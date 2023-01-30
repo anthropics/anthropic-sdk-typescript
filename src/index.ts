@@ -35,9 +35,9 @@ export class Client {
     this.apiUrl = options?.apiUrl ?? DEFAULT_API_URL;
   }
 
-  sample(
+  completeStream(
     params: SamplingParameters,
-    onSampleChange?: OnSampleChange
+    onSampleChange: OnSampleChange
   ): Promise<string> {
     const abortController = new AbortController();
     return new Promise((resolve, reject) => {

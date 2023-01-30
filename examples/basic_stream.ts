@@ -9,7 +9,7 @@ if (!apiKey) {
 const client = new Client(apiKey);
 
 client
-  .sample(
+  .completeStream(
     {
       prompt: `${HUMAN_PROMPT} How many toes do dogs have?${AI_PROMPT}`,
       stop_sequences: [HUMAN_PROMPT],
