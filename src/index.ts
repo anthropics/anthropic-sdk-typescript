@@ -1,14 +1,5 @@
 import { fetchEventSource } from "@fortaine/fetch-event-source";
 
-export type StreamingMessage = {
-  completion: string;
-  stop: string | null;
-  stop_reason: string | null;
-  truncated: boolean;
-  exception: string | null;
-  log_id: string;
-};
-
 export type SamplingParameters = {
   prompt: string;
   model: string;
@@ -27,6 +18,15 @@ const DEFAULT_API_URL = "https://api.anthropic.com";
 enum Event {
   Ping = "ping",
 }
+
+type StreamingMessage = {
+  completion: string;
+  stop: string | null;
+  stop_reason: string | null;
+  truncated: boolean;
+  exception: string | null;
+  log_id: string;
+};
 
 export class Client {
   private apiUrl: string;
