@@ -1,0 +1,29 @@
+name: Main
+
+on:
+  push:
+    branches: [main]
+
+  pull_request:
+
+  release:
+    types: [published]
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "yarn"
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+      - run: yarn lint
