@@ -5,12 +5,18 @@
   "repository": "https://github.com/anthropics/anthropic-sdk-typescript",
   "private": false,
   "scripts": {
-    "build": "tsc --build"
+    "build": "tsc --build",
+    "lint": "eslint src && prettier --check .",
+    "format": "prettier --write ."
   },
   "dependencies": {
-    "@fortaine/fetch-event-source": "^3.0.6"
+    "@fortaine/fetch-event-source": "^3.0.6",
+    "eslint": "^8.33.0",
+    "prettier": "^2.8.3"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.49.0",
+    "@typescript-eslint/parser": "^5.49.0",
     "typescript": "^4.9.4"
   }
 }
