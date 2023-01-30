@@ -18,6 +18,9 @@ export type SamplingParameters = {
 
 export type OnSampleChange = (sample: string) => void | Promise<void>;
 
+export const HUMAN_PROMPT = "\n\nHuman:";
+export const AI_PROMPT = "\n\nAssistant:";
+
 const CLIENT_ID = "anthropic-typescript/0.2.0";
 const DEFAULT_API_URL = "https://api.anthropic.com";
 
@@ -28,13 +31,13 @@ enum Event {
 export class Client {
   private apiUrl: string;
 
-  constructor(private apiKey: string, { apiUrl }: { apiUrl?: string }) {
-    this.apiUrl = apiUrl ?? DEFAULT_API_URL;
+  constructor(private apiKey: string, options?: { apiUrl?: string }) {
+    this.apiUrl = options?.apiUrl ?? DEFAULT_API_URL;
   }
 
   sample(
     params: SamplingParameters,
-    onSampleChange: OnSampleChange
+    onSampleChange?: OnSampleChange
   ): Promise<string> {
     const abortController = new AbortController();
     return new Promise((resolve, reject) => {
