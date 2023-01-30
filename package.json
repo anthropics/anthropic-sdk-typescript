@@ -1,0 +1,7 @@
+{
+  "name": "anthropic",
+  "version": "0.2.0",
+  "description": "Library for accessing the Anthropic API",
+  "repository": "https://github.com/anthropics/anthropic-sdk-typescript",
+  "private": false
+}
