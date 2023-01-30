@@ -4,6 +4,9 @@
   "description": "Library for accessing the Anthropic API",
   "repository": "https://github.com/anthropics/anthropic-sdk-typescript",
   "private": false,
+  "scripts": {
+    "build": "tsc --build"
+  },
   "devDependencies": {
     "typescript": "^4.9.4"
   }
