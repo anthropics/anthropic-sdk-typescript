@@ -9,17 +9,14 @@ if (!apiKey) {
 const client = new Client(apiKey);
 
 client
-  .completeStream(
-    {
-      prompt: `${HUMAN_PROMPT} How many toes do dogs have?${AI_PROMPT}`,
-      stop_sequences: [HUMAN_PROMPT],
-      max_tokens_to_sample: 200,
-      model: "claude-v1",
-    },
-    (updatedSample) => console.log(updatedSample.completion)
-  )
+  .complete({
+    prompt: `${HUMAN_PROMPT} How many toes do dogs have?${AI_PROMPT}`,
+    stop_sequences: [HUMAN_PROMPT],
+    max_tokens_to_sample: 200,
+    model: "claude-v1",
+  })
   .then((finalSample) => {
-    console.log("Finished sampling:\n", finalSample.completion);
+    console.log(finalSample.completion);
   })
   .catch((error) => {
     console.error(error);

@@ -14,4 +14,5 @@ To get started, install dependencies, set your API key, and run one of the [pack
 yarn
 export ANTHROPIC_API_KEY=<insert token here>
 yarn example:basic_stream
+yarn example:basic_sync
 ```

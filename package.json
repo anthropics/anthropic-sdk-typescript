@@ -13,7 +13,8 @@
     "build": "tsc --build",
     "lint": "eslint src && prettier --check .",
     "format": "prettier --write .",
-    "example:basic_stream": "tsc --build && node ./build/examples/basic_stream.js"
+    "example:basic_stream": "tsc --build && node ./build/examples/basic_stream.js",
+    "example:basic_sync": "tsc --build && node ./build/examples/basic_sync.js"
   },
   "dependencies": {
     "@fortaine/fetch-event-source": "^3.0.6",
