@@ -6,6 +6,9 @@
   "license": "MIT",
   "private": false,
   "main": "build/src/index.js",
+  "files": [
+    "build/src/**.js"
+  ],
   "scripts": {
     "build": "tsc --build",
     "lint": "eslint src && prettier --check .",
