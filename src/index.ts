@@ -14,7 +14,7 @@ export type OnSampleChange = (
 export const HUMAN_PROMPT = "\n\nHuman:";
 export const AI_PROMPT = "\n\nAssistant:";
 
-const CLIENT_ID = "anthropic-typescript/0.2.0";
+const CLIENT_ID = "anthropic-typescript/0.2.2";
 const DEFAULT_API_URL = "https://api.anthropic.com";
 
 enum Event {
