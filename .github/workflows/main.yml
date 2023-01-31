@@ -38,7 +38,6 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
-          cache: "yarn"
 
       - name: Prepare to publish
         run: echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
