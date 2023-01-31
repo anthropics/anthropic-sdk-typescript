@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/sdk",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Library for accessing the Anthropic API",
   "repository": "https://github.com/anthropics/anthropic-sdk-typescript",
   "license": "MIT",
@@ -17,15 +17,15 @@
     "example:basic_sync": "tsc --build && node ./build/examples/basic_sync.js"
   },
   "dependencies": {
-    "@fortaine/fetch-event-source": "^3.0.6",
-    "eslint": "^8.33.0",
-    "prettier": "^2.8.3"
+    "@fortaine/fetch-event-source": "^3.0.6"
   },
   "devDependencies": {
     "@types/node": "^18.11.18",
     "@typescript-eslint/eslint-plugin": "^5.49.0",
     "@typescript-eslint/parser": "^5.49.0",
     "dotenv": "^16.0.3",
+    "eslint": "^8.33.0",
+    "prettier": "^2.8.3",
     "typescript": "^4.9.4"
   }
 }
