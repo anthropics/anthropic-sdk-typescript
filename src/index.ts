@@ -7,7 +7,9 @@ export type SamplingParameters = {
   max_tokens_to_sample: number;
 };
 
-export type OnSampleChange = (sample: string) => void | Promise<void>;
+export type OnSampleChange = (
+  completion: CompletionResponse
+) => void | Promise<void>;
 
 export const HUMAN_PROMPT = "\n\nHuman:";
 export const AI_PROMPT = "\n\nAssistant:";
@@ -19,7 +21,7 @@ enum Event {
   Ping = "ping",
 }
 
-type StreamingMessage = {
+export type CompletionResponse = {
   completion: string;
   stop: string | null;
   stop_reason: string | null;
@@ -35,13 +37,37 @@ export class Client {
     this.apiUrl = options?.apiUrl ?? DEFAULT_API_URL;
   }
 
-  sample(
+  async complete(params: SamplingParameters): Promise<CompletionResponse> {
+    const response = await fetch(`${this.apiUrl}/v1/complete`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Client: CLIENT_ID,
+        "X-API-Key": this.apiKey,
+      },
+      body: JSON.stringify(params),
+    });
+
+    if (!response.ok) {
+      const error = new Error(
+        `Sampling error: ${response.status} ${response.statusText}`
+      );
+      console.error(error);
+      throw error;
+    }
+
+    const completion = (await response.json()) as CompletionResponse;
+    return completion;
+  }
+
+  completeStream(
     params: SamplingParameters,
-    onSampleChange?: OnSampleChange
-  ): Promise<string> {
+    onSampleChange: OnSampleChange
+  ): Promise<CompletionResponse> {
     const abortController = new AbortController();
     return new Promise((resolve, reject) => {
-      fetchEventSource("https://api.anthropic.com/v1/complete", {
+      fetchEventSource(`${this.apiUrl}/v1/complete`, {
         method: "POST",
         headers: {
           Accept: "application/json",
@@ -69,19 +95,17 @@ export class Client {
             return;
           }
 
-          const message = JSON.parse(ev.data) as StreamingMessage;
-          if (message.stop_reason !== null) {
+          const completion = JSON.parse(ev.data) as CompletionResponse;
+          if (completion.stop_reason !== null) {
             abortController.abort();
-            return resolve(message.completion);
+            return resolve(completion);
           }
 
           if (onSampleChange) {
-            Promise.resolve(onSampleChange(message.completion)).catch(
-              (error) => {
-                abortController.abort();
-                reject(error);
-              }
-            );
+            Promise.resolve(onSampleChange(completion)).catch((error) => {
+              abortController.abort();
+              reject(error);
+            });
           }
         },
         onerror: (error) => {
