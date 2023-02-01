@@ -1,13 +1,14 @@
 {
   "name": "@anthropic-ai/sdk",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "description": "Library for accessing the Anthropic API",
   "repository": "https://github.com/anthropics/anthropic-sdk-typescript",
   "license": "MIT",
   "private": false,
   "main": "build/src/index.js",
+  "types": "build/src/index.d.ts",
   "files": [
-    "build/src/**.js"
+    "build/src/**"
   ],
   "scripts": {
     "build": "tsc --build",
