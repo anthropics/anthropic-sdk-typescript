@@ -16,7 +16,14 @@ client
       max_tokens_to_sample: 200,
       model: "claude-v1",
     },
-    (updatedSample) => console.log(updatedSample.completion)
+    {
+      onOpen: (response) => {
+        console.log("Opened stream, HTTP status code", response.status);
+      },
+      onSampleChange: (updatedSample) => {
+        console.log(updatedSample.completion);
+      },
+    }
   )
   .then((finalSample) => {
     console.log("Finished sampling:\n", finalSample.completion);
