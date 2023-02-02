@@ -1,4 +1,4 @@
-# Anthropic TypeScript SDK ![npm](https://img.shields.io/npm/v/@anthropic-ai/sdk)
+# Anthropic TypeScript SDK [![npm](https://img.shields.io/npm/v/@anthropic-ai/sdk)](https://www.npmjs.com/package/@anthropic-ai/sdk)
 
 This package provides access to Anthropic's safety-first language model APIs.
 
