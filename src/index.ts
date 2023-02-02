@@ -7,6 +7,8 @@ export type SamplingParameters = {
   max_tokens_to_sample: number;
 };
 
+export type OnOpen = (response: Response) => void | Promise<void>;
+
 export type OnSampleChange = (
   completion: CompletionResponse
 ) => void | Promise<void>;
@@ -63,7 +65,10 @@ export class Client {
 
   completeStream(
     params: SamplingParameters,
-    onSampleChange: OnSampleChange
+    {
+      onOpen,
+      onSampleChange,
+    }: { onOpen?: OnOpen; onSampleChange?: OnSampleChange }
   ): Promise<CompletionResponse> {
     const abortController = new AbortController();
     return new Promise((resolve, reject) => {
@@ -88,6 +93,10 @@ export class Client {
                 `Failed to open sampling stream, HTTP status code ${response.status}: ${response.statusText}`
               )
             );
+          }
+
+          if (onOpen) {
+            await Promise.resolve(onOpen(response));
           }
         },
         onmessage: (ev) => {
