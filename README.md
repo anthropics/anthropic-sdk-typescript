@@ -1,10 +1,24 @@
-# Anthropic TypeScript SDK
+# Anthropic TypeScript SDK [![npm](https://img.shields.io/npm/v/@anthropic-ai/sdk)](https://www.npmjs.com/package/@anthropic-ai/sdk)
 
 This package provides access to Anthropic's safety-first language model APIs.
 
 For more information on our APIs, please check the confidential documentation portal.
 
-## Getting started
+## Installation
+
+Install using your package manager of choice. For example:
+
+```sh
+npm install @anthropic-ai/sdk
+```
+
+… or:
+
+```sh
+yarn add @anthropic-ai/sdk
+```
+
+## Development and testing
 
 Examples are available in the [examples/](examples/) folder.
 
