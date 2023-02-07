@@ -28,20 +28,11 @@ jobs:
       - run: yarn build
       - run: yarn lint
 
-  publish:
-    if: ${{ github.event_name == 'release' }}
-    needs: [build]
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
       - name: Prepare to publish
+        if: ${{ github.event_name == 'release' }}
         run: echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
 
       - run: npm publish
+        if: ${{ github.event_name == 'release' }}
         env:
           NPM_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
