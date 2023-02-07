@@ -20,13 +20,13 @@ client
       onOpen: (response) => {
         console.log("Opened stream, HTTP status code", response.status);
       },
-      onSampleChange: (updatedSample) => {
-        console.log(updatedSample.completion);
+      onUpdate: (completion) => {
+        console.log(completion.completion);
       },
     }
   )
-  .then((finalSample) => {
-    console.log("Finished sampling:\n", finalSample.completion);
+  .then((completion) => {
+    console.log("Finished sampling:\n", completion.completion);
   })
   .catch((error) => {
     console.error(error);

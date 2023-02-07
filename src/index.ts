@@ -8,10 +8,7 @@ export type SamplingParameters = {
 };
 
 export type OnOpen = (response: Response) => void | Promise<void>;
-
-export type OnSampleChange = (
-  completion: CompletionResponse
-) => void | Promise<void>;
+export type OnUpdate = (completion: CompletionResponse) => void | Promise<void>;
 
 export const HUMAN_PROMPT = "\n\nHuman:";
 export const AI_PROMPT = "\n\nAssistant:";
@@ -65,10 +62,7 @@ export class Client {
 
   completeStream(
     params: SamplingParameters,
-    {
-      onOpen,
-      onSampleChange,
-    }: { onOpen?: OnOpen; onSampleChange?: OnSampleChange }
+    { onOpen, onUpdate }: { onOpen?: OnOpen; onUpdate?: OnUpdate }
   ): Promise<CompletionResponse> {
     const abortController = new AbortController();
     return new Promise((resolve, reject) => {
@@ -110,8 +104,8 @@ export class Client {
             return resolve(completion);
           }
 
-          if (onSampleChange) {
-            Promise.resolve(onSampleChange(completion)).catch((error) => {
+          if (onUpdate) {
+            Promise.resolve(onUpdate(completion)).catch((error) => {
               abortController.abort();
               reject(error);
             });

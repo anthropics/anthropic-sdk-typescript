@@ -15,8 +15,8 @@ client
     max_tokens_to_sample: 200,
     model: "claude-v1",
   })
-  .then((finalSample) => {
-    console.log(finalSample.completion);
+  .then((completion) => {
+    console.log(completion.completion);
   })
   .catch((error) => {
     console.error(error);
