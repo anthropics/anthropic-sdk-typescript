@@ -4,6 +4,8 @@ This package provides access to Anthropic's safety-first language model APIs.
 
 For more information on our APIs, please check the confidential documentation portal.
 
+**Note that this package only officially supports Node 16+.**
+
 ## Installation
 
 Install using your package manager of choice. For example:
