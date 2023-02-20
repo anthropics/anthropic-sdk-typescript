@@ -27,7 +27,7 @@ enum Event {
 export type CompletionResponse = {
   completion: string;
   stop: string | null;
-  stop_reason: string | null;
+  stop_reason: "stop_sequence" | "max_tokens";
   truncated: boolean;
   exception: string | null;
   log_id: string;
