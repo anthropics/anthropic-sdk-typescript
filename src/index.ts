@@ -3,9 +3,12 @@ import fetch from "cross-fetch";
 
 export type SamplingParameters = {
   prompt: string;
-  model: string;
-  stop_sequences: string[];
+  temperature?: number;
   max_tokens_to_sample: number;
+  stop_sequences: string[];
+  top_k?: number;
+  top_p?: number;
+  model: string;
 };
 
 export type OnOpen = (response: Response) => void | Promise<void>;
@@ -46,7 +49,7 @@ export class Client {
         Client: CLIENT_ID,
         "X-API-Key": this.apiKey,
       },
-      body: JSON.stringify(params),
+      body: JSON.stringify({ ...params, stream: false }),
     });
 
     if (!response.ok) {
@@ -75,10 +78,7 @@ export class Client {
           Client: CLIENT_ID,
           "X-API-Key": this.apiKey,
         },
-        body: JSON.stringify({
-          ...params,
-          stream: true,
-        }),
+        body: JSON.stringify({ ...params, stream: true }),
         signal: abortController.signal,
         onopen: async (response) => {
           if (!response.ok) {
