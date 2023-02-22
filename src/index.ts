@@ -100,16 +100,17 @@ export class Client {
           }
 
           const completion = JSON.parse(ev.data) as CompletionResponse;
-          if (completion.stop_reason !== null) {
-            abortController.abort();
-            return resolve(completion);
-          }
 
           if (onUpdate) {
             Promise.resolve(onUpdate(completion)).catch((error) => {
               abortController.abort();
               reject(error);
             });
+          }
+
+          if (completion.stop_reason !== null) {
+            abortController.abort();
+            return resolve(completion);
           }
         },
         onerror: (error) => {
