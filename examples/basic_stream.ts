@@ -26,7 +26,7 @@ client
     }
   )
   .then((completion) => {
-    console.log("Finished sampling:\n", completion.completion);
+    console.log("Finished sampling:\n", completion);
   })
   .catch((error) => {
     console.error(error);

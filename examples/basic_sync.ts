@@ -16,7 +16,7 @@ client
     model: "claude-v1",
   })
   .then((completion) => {
-    console.log(completion.completion);
+    console.log(completion);
   })
   .catch((error) => {
     console.error(error);
