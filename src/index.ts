@@ -17,7 +17,7 @@ export type OnUpdate = (completion: CompletionResponse) => void | Promise<void>;
 export const HUMAN_PROMPT = "\n\nHuman:";
 export const AI_PROMPT = "\n\nAssistant:";
 
-const CLIENT_ID = "anthropic-typescript/0.4.0";
+const CLIENT_ID = "anthropic-typescript/0.4.1";
 const DEFAULT_API_URL = "https://api.anthropic.com";
 
 enum Event {
