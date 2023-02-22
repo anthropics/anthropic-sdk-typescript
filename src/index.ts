@@ -21,6 +21,8 @@ enum Event {
   Ping = "ping",
 }
 
+const DONE_MESSAGE = "[DONE]";
+
 export type CompletionResponse = {
   completion: string;
   stop: string | null;
@@ -96,6 +98,13 @@ export class Client {
         },
         onmessage: (ev) => {
           if (ev.event === Event.Ping) {
+            return;
+          }
+
+          if (ev.data === DONE_MESSAGE) {
+            console.error(
+              "Unexpected done message before stop_reason has been issued"
+            );
             return;
           }
 
