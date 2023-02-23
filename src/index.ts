@@ -9,6 +9,7 @@ export type SamplingParameters = {
   top_k?: number;
   top_p?: number;
   model: string;
+  tags?: { [key: string]: string };
 };
 
 export type OnOpen = (response: Response) => void | Promise<void>;
