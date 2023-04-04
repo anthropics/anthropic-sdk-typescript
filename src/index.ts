@@ -18,7 +18,7 @@ export type OnUpdate = (completion: CompletionResponse) => void | Promise<void>;
 export const HUMAN_PROMPT = "\n\nHuman:";
 export const AI_PROMPT = "\n\nAssistant:";
 
-const CLIENT_ID = "anthropic-typescript/0.4.2";
+const CLIENT_ID = "anthropic-typescript/0.4.3";
 const DEFAULT_API_URL = "https://api.anthropic.com";
 
 enum Event {
@@ -43,7 +43,10 @@ export class Client {
     this.apiUrl = options?.apiUrl ?? DEFAULT_API_URL;
   }
 
-  async complete(params: SamplingParameters): Promise<CompletionResponse> {
+  async complete(
+    params: SamplingParameters,
+    options?: { signal?: AbortSignal }
+  ): Promise<CompletionResponse> {
     const response = await fetch(`${this.apiUrl}/v1/complete`, {
       method: "POST",
       headers: {
@@ -53,6 +56,7 @@ export class Client {
         "X-API-Key": this.apiKey,
       },
       body: JSON.stringify({ ...params, stream: false }),
+      signal: options?.signal,
     });
 
     if (!response.ok) {
@@ -69,10 +73,23 @@ export class Client {
 
   completeStream(
     params: SamplingParameters,
-    { onOpen, onUpdate }: { onOpen?: OnOpen; onUpdate?: OnUpdate }
+    {
+      onOpen,
+      onUpdate,
+      signal,
+    }: { onOpen?: OnOpen; onUpdate?: OnUpdate; signal?: AbortSignal }
   ): Promise<CompletionResponse> {
     const abortController = new AbortController();
+
     return new Promise((resolve, reject) => {
+      signal?.addEventListener("abort", (event) => {
+        abortController.abort(event);
+        reject({
+          name: "AbortError",
+          message: "Caller aborted completeStream",
+        });
+      });
+
       fetchEventSource(`${this.apiUrl}/v1/complete`, {
         method: "POST",
         headers: {
