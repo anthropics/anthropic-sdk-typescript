@@ -43,7 +43,10 @@ export class Client {
     this.apiUrl = options?.apiUrl ?? DEFAULT_API_URL;
   }
 
-  async complete(params: SamplingParameters): Promise<CompletionResponse> {
+  async complete(
+    params: SamplingParameters,
+    options?: { signal?: AbortSignal }
+  ): Promise<CompletionResponse> {
     const response = await fetch(`${this.apiUrl}/v1/complete`, {
       method: "POST",
       headers: {
@@ -53,6 +56,7 @@ export class Client {
         "X-API-Key": this.apiKey,
       },
       body: JSON.stringify({ ...params, stream: false }),
+      signal: options?.signal,
     });
 
     if (!response.ok) {
