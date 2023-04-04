@@ -73,10 +73,23 @@ export class Client {
 
   completeStream(
     params: SamplingParameters,
-    { onOpen, onUpdate }: { onOpen?: OnOpen; onUpdate?: OnUpdate }
+    {
+      onOpen,
+      onUpdate,
+      signal,
+    }: { onOpen?: OnOpen; onUpdate?: OnUpdate; signal?: AbortSignal }
   ): Promise<CompletionResponse> {
     const abortController = new AbortController();
+
     return new Promise((resolve, reject) => {
+      signal?.addEventListener("abort", (event) => {
+        abortController.abort(event);
+        reject({
+          name: "AbortError",
+          message: "Caller aborted completeStream",
+        });
+      });
+
       fetchEventSource(`${this.apiUrl}/v1/complete`, {
         method: "POST",
         headers: {
