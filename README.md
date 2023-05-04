@@ -32,3 +32,11 @@ export ANTHROPIC_API_KEY=<insert token here>
 yarn example:basic_stream
 yarn example:basic_sync
 ```
+
+## Other Libraries
+
+Our API Library in other languages
+
+* PHP
+    - [Alle-AI anthropic-api-php](https://github.com/Alle-AI/anthropic-api-php)
+
