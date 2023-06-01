@@ -14,6 +14,7 @@ export type SamplingParameters = {
 
 export type OnOpen = (response: Response) => void | Promise<void>;
 export type OnUpdate = (completion: CompletionResponse) => void | Promise<void>;
+export type OnClose = () => void | Promise<void>;
 
 export const HUMAN_PROMPT = "\n\nHuman:";
 export const AI_PROMPT = "\n\nAssistant:";
@@ -77,7 +78,7 @@ export class Client {
       onOpen,
       onUpdate,
       signal,
-    }: { onOpen?: OnOpen; onUpdate?: OnUpdate; signal?: AbortSignal }
+    }: { onOpen?: OnOpen; onUpdate?: OnUpdate; onClose?: OnClose; signal?: AbortSignal }
   ): Promise<CompletionResponse> {
     const abortController = new AbortController();
 
@@ -138,6 +139,14 @@ export class Client {
           if (completion.stop_reason !== null) {
             abortController.abort();
             return resolve(completion);
+          }
+        },
+        onclose: () => {
+          if (onClose) {
+            Promise.resolve(onClose()).catch((error) => {
+              abortController.abort();
+              reject(error);
+            });
           }
         },
         onerror: (error) => {
