@@ -18,7 +18,8 @@ export type OnUpdate = (completion: CompletionResponse) => void | Promise<void>;
 export const HUMAN_PROMPT = "\n\nHuman:";
 export const AI_PROMPT = "\n\nAssistant:";
 
-const CLIENT_ID = "anthropic-typescript/0.4.3";
+const ANTHROPIC_SDK = "anthropic-typescript/0.4.4";
+const ANTHROPIC_VERSION = "2023-01-01";
 const DEFAULT_API_URL = "https://api.anthropic.com";
 
 enum Event {
@@ -52,7 +53,8 @@ export class Client {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        Client: CLIENT_ID,
+        "Anthropic-SDK": ANTHROPIC_SDK,
+        "Anthropic-Version": ANTHROPIC_VERSION,
         "X-API-Key": this.apiKey,
       },
       body: JSON.stringify({ ...params, stream: false }),
@@ -95,7 +97,8 @@ export class Client {
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          Client: CLIENT_ID,
+          "Anthropic-SDK": ANTHROPIC_SDK,
+          "Anthropic-Version": ANTHROPIC_VERSION,
           "X-API-Key": this.apiKey,
         },
         body: JSON.stringify({ ...params, stream: true }),
