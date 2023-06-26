@@ -1,52 +1,44 @@
-import "dotenv/config";
-import { AI_PROMPT, Client, HUMAN_PROMPT } from "../src";
+#!/usr/bin/env yarn tsn -T
 
-const apiKey = process.env.ANTHROPIC_API_KEY;
-if (!apiKey) {
-  throw new Error("The ANTHROPIC_API_KEY environment variable must be set");
+import Anthropic from '@anthropic-ai/sdk';
+const client = new Anthropic();
+
+/**
+ * This script demonstrates two ways of cancelling a stream,
+ * by racing to see whether some Rust code prints "unwrap"
+ * before 1.5 seconds or not.
+ *
+ * The most common is simply to `break` from the loop,
+ * but you can also call `stream.controller.abort()` from outside the loop
+ * if you need to.
+ */
+async function main() {
+  const question = 'Hey Claude! How can I recursively list all files in a directory in Rust?';
+
+  const stream = await client.completions.create({
+    prompt: `${Anthropic.HUMAN_PROMPT}${question}${Anthropic.AI_PROMPT}:`,
+    model: 'claude-v1',
+    stream: true,
+    max_tokens_to_sample: 500,
+  });
+
+  // If you need to, you can cancel a stream from outside the iterator
+  // by calling "stream.controller.abort()"
+  const timeout = setTimeout(() => {
+    console.log('\nCancelling after 1.5 seconds.');
+    stream.controller.abort();
+  }, 1500);
+
+  for await (const completion of stream) {
+    process.stdout.write(completion.completion);
+
+    // Most typically, you can cancel the stream by using "break"
+    if (completion.completion.includes('unwrap')) {
+      console.log('\nCancelling after seeing "unwrap".');
+      clearTimeout(timeout);
+      break;
+    }
+  }
 }
 
-const client = new Client(apiKey);
-const abortController = new AbortController();
-
-client
-  .complete(
-    {
-      prompt: `${HUMAN_PROMPT} How many toes do dogs have?${AI_PROMPT}`,
-      stop_sequences: [HUMAN_PROMPT],
-      max_tokens_to_sample: 200,
-      model: "claude-v1",
-    },
-    { signal: abortController.signal }
-  )
-  .catch((error) => {
-    if (error.name === "AbortError") {
-      console.log("Cancelled complete()");
-    }
-  });
-
-client
-  .completeStream(
-    {
-      prompt: `${HUMAN_PROMPT} How many toes do dogs have?${AI_PROMPT}`,
-      stop_sequences: [HUMAN_PROMPT],
-      max_tokens_to_sample: 200,
-      model: "claude-v1",
-    },
-    {
-      onOpen: (response) => {
-        console.log("Opened stream, HTTP status code", response.status);
-      },
-      onUpdate: (completion) => {
-        console.log(completion.completion);
-      },
-      signal: abortController.signal,
-    }
-  )
-  .catch((error) => {
-    if (error.name === "AbortError") {
-      console.log("Cancelled completeStream()");
-    }
-  });
-
-abortController.abort();
+main().catch(console.error);
