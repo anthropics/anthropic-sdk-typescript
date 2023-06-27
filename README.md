@@ -1,9 +1,83 @@
-# Anthropic Typescript API Library
+# Anthropic TypeScript API Library
 
 [![NPM version](https://img.shields.io/npm/v/@anthropic-ai/sdk.svg)](https://npmjs.org/package/@anthropic-ai/sdk)
 
-The Anthropic Typescript library provides convenient access to the Anthropic REST API from applications written in server-side JavaScript.
+The Anthropic TypeScript library provides convenient access to the Anthropic REST API from applications written in server-side JavaScript.
 It includes TypeScript definitions for all request params and response fields.
+
+## Migration from v0.4.x and below
+
+In `v0.5.0`, we introduced a fully rewritten SDK. The new version offers better error handling, a more robust and intuitive streaming implementation, and more.
+
+Key interface changes:
+
+1. `new Client(apiKey)` → `new Anthropic({ apiKey })`
+2. `client.complete()` → `client.completions.create()`
+3. `client.completeStream()` → `client.completions.create({ stream: true })`
+   1. `onUpdate` callback → `for await (const x of stream)`
+   2. full message in stream → delta of message in stream
+
+<details>
+<summary>Example diff</summary>
+
+```diff ts
+  // Import "Anthropic" instead of "Client":
+- import { Client, HUMAN_PROMPT, AI_PROMPT } from '@anthropic-ai/sdk';
++ import Anthropic, { HUMAN_PROMPT, AI_PROMPT } from '@anthropic-ai/sdk';
+
+  // Instantiate with "apiKey" as an object property:
+- const client = new Client(apiKey);
++ const client = new Anthropic({ apiKey });
+  // or, simply provide an ANTHROPIC_API_KEY environment variable:
++ const client = new Anthropic();
+
+  async function main() {
+    // Request & response types are the same as before, but better-typed.
+    const params = {
+      prompt: `${HUMAN_PROMPT} How many toes do dogs have?${AI_PROMPT}`,
+      max_tokens_to_sample: 200,
+      model: "claude-1",
+    };
+
+    // Instead of "client.complete()", you now call "client.completions.create()":
+-   await client.complete(params);
++   await client.completions.create(params);
+
+    // Streaming requests now use async iterators instead of callbacks:
+-   client.completeStream(params, {
+-     onUpdate: (completion) => {
+-       console.log(completion.completion); // full text
+-     },
+-   });
++   const stream = await client.completions.create({ ...params, stream: true });
++   for await (const completion of stream) {
++     process.stdout.write(completion.completion); // incremental text
++   }
+
+    // And, since this library uses `Anthropic-Version: 2023-06-01`,
+    // completion streams are now incremental diffs of text
+    // rather than sending the whole message every time:
+    let text = '';
+-   await client.completeStream(params, {
+-     onUpdate: (completion) => {
+-       const diff = completion.completion.replace(text, "");
+-       text = completion.completion;
+-       process.stdout.write(diff);
+-     },
+-   });
++   const stream = await client.completions.create({ ...params, stream: true });
++   for await (const completion of stream) {
++     const diff = completion.completion;
++     text += diff;
++     process.stdout.write(diff);
++   }
+    console.log('Done; final text is:')
+    console.log(text)
+  }
+  main();
+```
+
+</details>
 
 ## Documentation
 
@@ -20,7 +94,7 @@ yarn add @anthropic-ai/sdk
 ## Usage
 
 ```js
-import Anthropic from 'anthropic';
+import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({
   apiKey: 'my api key', // defaults to process.env["ANTHROPIC_API_KEY"]
@@ -41,7 +115,7 @@ main().catch(console.error);
 We provide support for streaming responses using Server Side Events (SSE).
 
 ```ts
-import Anthropic from 'anthropic';
+import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic();
 
@@ -65,7 +139,7 @@ Importing, instantiating, and interacting with the library are the same as above
 If you like, you may reference our types directly:
 
 ```ts
-import Anthropic from 'anthropic';
+import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({
   apiKey: 'my api key', // defaults to process.env["ANTHROPIC_API_KEY"]
@@ -189,7 +263,7 @@ If you would like to disable or customize this behavior, for example to use the 
 <!-- prettier-ignore -->
 ```ts
 import http from 'http';
-import Anthropic from 'anthropic';
+import Anthropic from '@anthropic-ai/sdk';
 import HttpsProxyAgent from 'https-proxy-agent';
 
 // Configure the default for all requests:
