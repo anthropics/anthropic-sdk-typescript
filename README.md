@@ -1,8 +1,8 @@
-# Anthropic Typescript API Library
+# Anthropic TypeScript API Library
 
 [![NPM version](https://img.shields.io/npm/v/@anthropic-ai/sdk.svg)](https://npmjs.org/package/@anthropic-ai/sdk)
 
-The Anthropic Typescript library provides convenient access to the Anthropic REST API from applications written in server-side JavaScript.
+The Anthropic TypeScript library provides convenient access to the Anthropic REST API from applications written in server-side JavaScript.
 It includes TypeScript definitions for all request params and response fields.
 
 ## Documentation
