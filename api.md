@@ -1,6 +1,6 @@
 # Completions
 
-Models:
+Types:
 
 - <code><a href="./resources/completions.ts">Completion</a></code>
 
