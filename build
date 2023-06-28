@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -exuo pipefail
 
 rm -rf dist/*
 
-yarn tsn check-version.ts
+yarn ts-node --transpileOnly check-version.ts
 
 # build node:
 node scripts/prepare-cjs-build.mjs
