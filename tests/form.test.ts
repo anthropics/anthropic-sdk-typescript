@@ -1,32 +1,32 @@
-import { multipartFormRequestOptions, createForm } from '~/core';
-import { Blob } from 'formdata-node';
-import { fileFromPath } from 'formdata-node/file-from-path';
+import { multipartFormRequestOptions, createForm } from '../core';
+import { Blob } from '@anthropic-ai/sdk/_shims/formdata';
+import { toFile } from '@anthropic-ai/sdk';
 
 describe('form data validation', () => {
   test('valid values do not error', async () => {
-    multipartFormRequestOptions({
+    await multipartFormRequestOptions({
       body: {
         foo: 'foo',
         string: 1,
         bool: true,
-        file: await fileFromPath('README.md'),
+        file: await toFile(Buffer.from('some-content')),
         blob: new Blob(['Some content'], { type: 'text/plain' }),
       },
     });
   });
 
   test('null', async () => {
-    expect(() =>
+    await expect(() =>
       multipartFormRequestOptions({
         body: {
           null: null,
         },
       }),
-    ).toThrow(TypeError);
+    ).rejects.toThrow(TypeError);
   });
 
   test('undefined is stripped', async () => {
-    const form = createForm({
+    const form = await createForm({
       foo: undefined,
       bar: 'baz',
     });
@@ -35,14 +35,14 @@ describe('form data validation', () => {
   });
 
   test('nested undefined property is stripped', async () => {
-    const form = createForm({
+    const form = await createForm({
       bar: {
         baz: undefined,
       },
     });
     expect(Array.from(form.entries())).toEqual([]);
 
-    const form2 = createForm({
+    const form2 = await createForm({
       bar: {
         foo: 'string',
         baz: undefined,
@@ -52,12 +52,12 @@ describe('form data validation', () => {
   });
 
   test('nested undefined array item is stripped', async () => {
-    const form = createForm({
+    const form = await createForm({
       bar: [undefined, undefined],
     });
     expect(Array.from(form.entries())).toEqual([]);
 
-    const form2 = createForm({
+    const form2 = await createForm({
       bar: [undefined, 'foo'],
     });
     expect(Array.from(form2.entries())).toEqual([['bar[]', 'foo']]);
