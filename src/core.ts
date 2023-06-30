@@ -1,17 +1,23 @@
-import type { Readable } from 'node:stream';
-import type { Agent } from 'http';
-
-import qs from 'qs';
-
+import * as qs from 'qs';
 import { VERSION } from './version';
 import { Stream } from './streaming';
 import { APIError, APIConnectionError, APIConnectionTimeoutError } from './error';
-import { getDefaultAgent } from '@anthropic-ai/sdk/_shims/agent';
-import { fetch, isPolyfilled as fetchIsPolyfilled } from '@anthropic-ai/sdk/_shims/fetch';
-import type { RequestInfo, RequestInit, Response } from '@anthropic-ai/sdk/_shims/fetch';
+import type { Readable } from '@anthropic-ai/sdk/_shims/node-readable';
+import { getDefaultAgent, type Agent } from '@anthropic-ai/sdk/_shims/agent';
+import {
+  fetch,
+  isPolyfilled as fetchIsPolyfilled,
+  type RequestInfo,
+  type RequestInit,
+  type Response,
+} from '@anthropic-ai/sdk/_shims/fetch';
 import { isMultipartBody } from './uploads';
-export { maybeMultipartFormRequestOptions, multipartFormRequestOptions, createForm } from './uploads';
-export type { Uploadable } from '@anthropic-ai/sdk/_shims/uploadable';
+export {
+  maybeMultipartFormRequestOptions,
+  multipartFormRequestOptions,
+  createForm,
+  type Uploadable,
+} from './uploads';
 
 const MAX_RETRIES = 2;
 
@@ -118,7 +124,7 @@ export abstract class APIClient {
     const { method, path, query, headers: headers = {} } = options;
 
     const body =
-      isMultipartBody(options.body) ? options.body.__multipartBody__
+      isMultipartBody(options.body) ? options.body.body
       : options.body ? JSON.stringify(options.body, null, 2)
       : null;
     const contentLength = typeof body === 'string' ? body.length.toString() : null;
@@ -148,7 +154,7 @@ export abstract class APIClient {
 
     const req: RequestInit = {
       method,
-      ...(body && { body }),
+      ...(body && { body: body as any }),
       headers: reqHeaders,
       ...(httpAgent && { agent: httpAgent }),
     };
@@ -263,11 +269,12 @@ export abstract class APIClient {
 
   async fetchWithTimeout(
     url: RequestInfo,
-    { signal, ...options }: RequestInit = {},
+    init: RequestInit | undefined,
     ms: number,
     controller: AbortController,
-  ) {
-    if (signal) signal.addEventListener('abort', controller.abort);
+  ): Promise<Response> {
+    const { signal, ...options } = init || {};
+    if (signal) signal.addEventListener('abort', () => controller.abort());
 
     const timeout = setTimeout(() => controller.abort(), ms);
 
@@ -491,12 +498,18 @@ export class PagePromise<
 export const createResponseHeaders = (
   headers: Awaited<ReturnType<Fetch>>['headers'],
 ): Record<string, string> => {
-  return new Proxy(Object.fromEntries(headers.entries()), {
-    get(target, name) {
-      const key = name.toString();
-      return target[key.toLowerCase()] || target[key];
+  return new Proxy(
+    Object.fromEntries(
+      // @ts-ignore
+      headers.entries(),
+    ),
+    {
+      get(target, name) {
+        const key = name.toString();
+        return target[key.toLowerCase()] || target[key];
+      },
     },
-  });
+  );
 };
 
 type HTTPMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';

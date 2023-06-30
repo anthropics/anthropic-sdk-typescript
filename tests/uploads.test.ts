@@ -1,6 +1,5 @@
 import fs from 'fs';
-import { toFile } from '~/uploads';
-import { ResponseLike } from '@anthropic-ai/sdk/_shims/uploadable';
+import { toFile, type ResponseLike } from '@anthropic-ai/sdk/uploads';
 import { File } from '@anthropic-ai/sdk/_shims/formdata';
 
 class MyClass {

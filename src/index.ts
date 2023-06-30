@@ -1,10 +1,10 @@
 // File generated from our OpenAPI spec by Stainless.
 
-import qs from 'qs';
+import * as qs from 'qs';
 import * as Core from './core';
-import * as API from './resources';
+import * as API from './resources/index';
 import * as Errors from './error';
-import type { Agent } from 'http';
+import type { Agent } from '@anthropic-ai/sdk/_shims/agent';
 import * as Uploads from './uploads';
 
 type Config = {
@@ -150,4 +150,5 @@ export namespace Anthropic {
   export import Completion = API.Completion;
   export import CompletionCreateParams = API.CompletionCreateParams;
 }
+
 export default Anthropic;

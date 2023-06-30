@@ -2,9 +2,8 @@
  * Disclaimer: modules in _shims aren't intended to be imported by SDK users.
  */
 
-import type { FilePropertyBag } from 'formdata-node';
 import { fileFromPath as _fileFromPath } from 'formdata-node/file-from-path';
-import type { File } from './formdata.node';
+import type { File, FilePropertyBag } from './formdata.node';
 
 export type FileFromPathOptions = Omit<FilePropertyBag, 'lastModified'>;
 

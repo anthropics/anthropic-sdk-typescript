@@ -1,4 +1,4 @@
-import { createResponseHeaders } from '../core';
+import { createResponseHeaders } from '@anthropic-ai/sdk/core';
 import { Headers } from '@anthropic-ai/sdk/_shims/fetch';
 
 describe('response parsing', () => {

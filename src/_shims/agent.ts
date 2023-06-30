@@ -5,8 +5,8 @@
  * In node environments, it gets replaced agent.node.ts by the package export map
  */
 
-import type { Agent } from 'node:http';
+export type Agent = any;
 
-export const getDefaultAgent = (url: string): Agent | undefined => {
+export const getDefaultAgent = (url: string): any => {
   return undefined;
 };
