@@ -1,7 +1,7 @@
 // File generated from our OpenAPI spec by Stainless.
 
-import { Headers } from '~/core';
-import Anthropic from '../index';
+import { Headers } from '@anthropic-ai/sdk/core';
+import Anthropic from '@anthropic-ai/sdk';
 
 describe('instantiate client', () => {
   const env = process.env;

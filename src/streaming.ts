@@ -1,7 +1,7 @@
 import type { Response } from '@anthropic-ai/sdk/_shims/fetch';
-import { APIResponse, Headers, createResponseHeaders } from '~/core';
-import { safeJSON } from '~/core';
-import { APIError } from '~/error';
+import { APIResponse, Headers, createResponseHeaders } from './core';
+import { safeJSON } from '@anthropic-ai/sdk/core';
+import { APIError } from '@anthropic-ai/sdk/error';
 
 type ServerSentEvent = {
   event: string | null;
@@ -86,6 +86,7 @@ export class Stream<Item> implements AsyncIterable<Item>, APIResponse<Stream<Ite
 
     const lineDecoder = new LineDecoder();
 
+    // @ts-ignore
     for await (const chunk of this.response.body) {
       let text;
       if (chunk instanceof Buffer) {

@@ -6,6 +6,7 @@ import { FormData } from './formdata.node';
 import type { RequestOptions } from '../core';
 import { Readable } from 'node:stream';
 import { FormDataEncoder } from 'form-data-encoder';
+import { MultipartBody } from '../uploads';
 
 export async function getMultipartRequestOptions<T extends {} = Record<string, unknown>>(
   form: FormData,
@@ -13,7 +14,7 @@ export async function getMultipartRequestOptions<T extends {} = Record<string, u
 ): Promise<RequestOptions<T>> {
   const encoder = new FormDataEncoder(form);
   const readable = Readable.from(encoder);
-  const body = { __multipartBody__: readable };
+  const body = new MultipartBody(readable);
   const headers = {
     ...opts.headers,
     ...encoder.headers,

@@ -5,8 +5,7 @@
  * in the package export map
  */
 
-import type { FilePropertyBag } from 'formdata-node';
-import type { File } from './formdata';
+import type { FilePropertyBag, File } from './formdata';
 
 export type FileFromPathOptions = Omit<FilePropertyBag, 'lastModified'>;
 
@@ -25,6 +24,6 @@ export async function fileFromPath(
 ): Promise<File>;
 export async function fileFromPath(): Promise<File> {
   throw new Error(
-    'The `fileFromPath` function is only supported in Node. See the README for more details: https://www.github.com/anthropics/anthropic-sdk-typescript#file-uploads',
+    'The `fileFromPath` function is only supported in Node. See the README for more details: https://www.github.com/openai/openai-node#file-uploads',
   );
 }

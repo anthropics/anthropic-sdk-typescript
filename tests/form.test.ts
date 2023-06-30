@@ -1,4 +1,4 @@
-import { multipartFormRequestOptions, createForm } from '../core';
+import { multipartFormRequestOptions, createForm } from '@anthropic-ai/sdk/core';
 import { Blob } from '@anthropic-ai/sdk/_shims/formdata';
 import { toFile } from '@anthropic-ai/sdk';
 

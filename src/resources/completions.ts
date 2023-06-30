@@ -1,9 +1,9 @@
 // File generated from our OpenAPI spec by Stainless.
 
-import * as Core from '~/core';
-import { APIResource } from '~/resource';
+import * as Core from '@anthropic-ai/sdk/core';
+import { APIResource } from '@anthropic-ai/sdk/resource';
 import * as API from './';
-import { Stream } from '~/streaming';
+import { Stream } from '@anthropic-ai/sdk/streaming';
 
 export class Completions extends APIResource {
   /**

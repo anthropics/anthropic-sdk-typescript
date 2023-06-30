@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless.
 
-import Anthropic from '~/index';
+import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({
   apiKey: 'something1234',
