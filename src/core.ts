@@ -73,6 +73,8 @@ export abstract class APIClient {
     };
   }
 
+  protected abstract defaultQuery(): DefaultQuery | undefined;
+
   /**
    * Override this to add your own headers validation:
    */
@@ -259,6 +261,11 @@ export abstract class APIClient {
       isAbsoluteURL(path) ?
         new URL(path)
       : new URL(this.baseURL + (this.baseURL.endsWith('/') && path.startsWith('/') ? path.slice(1) : path));
+
+    const defaultQuery = this.defaultQuery();
+    if (!isEmptyObj(defaultQuery)) {
+      query = { ...defaultQuery, ...query } as Req;
+    }
 
     if (query) {
       url.search = qs.stringify(query, this.qsOptions());
@@ -516,6 +523,7 @@ type HTTPMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 export type RequestClient = { fetch: Fetch };
 export type Headers = Record<string, string | null | undefined>;
+export type DefaultQuery = Record<string, string | undefined>;
 export type KeysEnum<T> = { [P in keyof Required<T>]: true };
 
 export type RequestOptions<Req extends {} = Record<string, unknown> | Readable> = {

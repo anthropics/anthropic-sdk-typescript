@@ -17,6 +17,7 @@ type Config = {
   httpAgent?: Agent;
   maxRetries?: number;
   defaultHeaders?: Core.Headers;
+  defaultQuery?: Core.DefaultQuery;
   authToken?: string | null;
 };
 
@@ -47,6 +48,10 @@ export class Anthropic extends Core.APIClient {
   }
 
   completions: API.Completions = new API.Completions(this);
+
+  protected override defaultQuery(): Core.DefaultQuery | undefined {
+    return this._options.defaultQuery;
+  }
 
   protected override defaultHeaders(): Core.Headers {
     return {
