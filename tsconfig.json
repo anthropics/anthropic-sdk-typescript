@@ -6,7 +6,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "rootDir": "./src",
+    "rootDir": "./",
     "baseUrl": "./",
     "paths": {
       "@anthropic-ai/sdk/_shims/*": ["src/_shims/*.node"],

@@ -3,6 +3,8 @@ set -exuo pipefail
 
 node scripts/check-version.cjs
 
+yarn tsc
+
 # Build into dist and will publish the package from there,
 # so that src/resources/foo.ts becomes <package root>/resources/foo.js
 # This way importing from `"@anthropic-ai/sdk/resources/foo"` works
