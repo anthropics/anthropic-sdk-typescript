@@ -65,7 +65,9 @@ class SSEDecoder {
 }
 
 export class Stream<Item> implements AsyncIterable<Item>, APIResponse<Stream<Item>> {
+  /** @deprecated - please use the async iterator instead. We plan to add additional helper methods shortly. */
   response: Response;
+  /** @deprecated - we plan to add a different way to access raw response information shortly. */
   responseHeaders: Headers;
   controller: AbortController;
 

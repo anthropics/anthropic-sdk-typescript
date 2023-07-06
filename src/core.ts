@@ -572,6 +572,7 @@ export type FinalRequestOptions<Req extends {} = Record<string, unknown> | Reada
 };
 
 export type APIResponse<T> = T & {
+  /** @deprecated - we plan to add a different way to access raw response information shortly. */
   responseHeaders: Headers;
 };
 
