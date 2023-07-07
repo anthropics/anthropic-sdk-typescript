@@ -1,7 +1,11 @@
 import type { Response } from '@anthropic-ai/sdk/_shims/fetch';
+
 import { APIResponse, Headers, createResponseHeaders } from './core';
+
 import { safeJSON } from '@anthropic-ai/sdk/core';
 import { APIError } from '@anthropic-ai/sdk/error';
+
+type Bytes = string | ArrayBuffer | Uint8Array | Buffer | null | undefined;
 
 type ServerSentEvent = {
   event: string | null;
@@ -85,19 +89,11 @@ export class Stream<Item> implements AsyncIterable<Item>, APIResponse<Stream<Ite
       this.controller.abort();
       throw new Error(`Attempted to iterate over a response with no body`);
     }
-
     const lineDecoder = new LineDecoder();
 
-    // @ts-ignore
-    for await (const chunk of this.response.body) {
-      let text;
-      if (chunk instanceof Buffer) {
-        text = chunk.toString();
-      } else if ((chunk as any) instanceof Uint8Array) {
-        text = Buffer.from(chunk).toString();
-      } else {
-        text = chunk;
-      }
+    const iter = readableStreamAsyncIterable<Bytes>(this.response.body);
+    for await (const chunk of iter) {
+      const text = decodeText(chunk);
 
       for (const line of lineDecoder.decode(text)) {
         const sse = this.decoder.decode(line);
@@ -217,4 +213,68 @@ function partition(str: string, delimiter: string): [string, string, string] {
   }
 
   return [str, '', ''];
+}
+
+let _textDecoder;
+function decodeText(bytes: Bytes): string {
+  if (bytes == null) return '';
+  if (typeof bytes === 'string') return bytes;
+
+  // Node:
+  if (typeof Buffer !== 'undefined') {
+    if (bytes instanceof Buffer) {
+      return bytes.toString();
+    }
+    if (bytes instanceof Uint8Array) {
+      return Buffer.from(bytes).toString();
+    }
+
+    throw new Error(`Unexpected: received non-Uint8Array (${bytes.constructor.name}) in Node.`);
+  }
+
+  // Browser
+  if (typeof TextDecoder !== 'undefined') {
+    if (bytes instanceof Uint8Array || bytes instanceof ArrayBuffer) {
+      _textDecoder ??= new TextDecoder('utf8');
+      return _textDecoder.decode(bytes);
+    }
+
+    throw new Error(
+      `Unexpected: received non-Uint8Array/ArrayBuffer (${
+        (bytes as any).constructor.name
+      }) in a web platform.`,
+    );
+  }
+
+  throw new Error(`Unexpected: neither Buffer nor TextDecoder are available as globals.`);
+}
+
+/**
+ * Most browsers don't yet have async iterable support for ReadableStream,
+ * and Node has a very different way of reading bytes from its "ReadableStream".
+ *
+ * This polyfill was pulled from https://github.com/MattiasBuelens/web-streams-polyfill/pull/122#issuecomment-1624185965
+ *
+ * We make extensive use of "any" here to avoid pulling in either "node" or "dom" types
+ * to library users' type scopes.
+ */
+function readableStreamAsyncIterable<T>(stream: any): AsyncIterableIterator<T> {
+  if (stream[Symbol.asyncIterator]) {
+    return stream[Symbol.asyncIterator];
+  }
+
+  const reader = stream.getReader();
+
+  return {
+    next() {
+      return reader.read();
+    },
+    async return() {
+      reader.releaseLock();
+      return { done: true, value: undefined };
+    },
+    [Symbol.asyncIterator]() {
+      return this;
+    },
+  };
 }
