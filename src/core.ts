@@ -132,9 +132,17 @@ export abstract class APIClient {
     const contentLength = typeof body === 'string' ? body.length.toString() : null;
 
     const url = this.buildURL(path!, query);
-    const httpAgent = options.httpAgent ?? this.httpAgent ?? getDefaultAgent(url);
+    if ('timeout' in options) validatePositiveInteger('timeout', options.timeout);
     const timeout = options.timeout ?? this.timeout;
-    validatePositiveInteger('timeout', timeout);
+    const httpAgent = options.httpAgent ?? this.httpAgent ?? getDefaultAgent(url);
+    const minAgentTimeout = timeout + 1000;
+    if ((httpAgent as any)?.options && minAgentTimeout > ((httpAgent as any).options.timeout ?? 0)) {
+      // Allow any given request to bump our agent active socket timeout.
+      // This may seem strange, but leaking active sockets should be rare and not particularly problematic,
+      // and without mutating agent we would need to create more of them.
+      // This tradeoff optimizes for performance.
+      (httpAgent as any).options.timeout = minAgentTimeout;
+    }
 
     if (this.idempotencyHeader && method !== 'get') {
       if (!options.idempotencyKey) options.idempotencyKey = this.defaultIdempotencyKey();
