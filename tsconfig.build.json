@@ -16,5 +16,17 @@
     "outDir": "dist",
     "pretty": true,
     "sourceMap": true
+  },
+  "tsc-alias": {
+    "resolveFullPaths": true,
+    "fileExtensions": {
+      "inputGlob": "{mjs,cjs,js,jsx,mts,cts,ts,tsx}"
+    },
+    "replacers": {
+      "replace-absolute-imports": {
+        "enabled": true,
+        "file": "./scripts/replace-self-referencing-imports.js"
+      }
+    }
   }
 }
