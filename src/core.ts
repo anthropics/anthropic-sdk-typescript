@@ -21,7 +21,7 @@ export {
 
 const MAX_RETRIES = 2;
 
-type Fetch = (url: RequestInfo, init?: RequestInit) => Promise<Response>;
+export type Fetch = (url: RequestInfo, init?: RequestInit) => Promise<Response>;
 
 export abstract class APIClient {
   baseURL: string;
@@ -37,18 +37,20 @@ export abstract class APIClient {
     maxRetries,
     timeout = 60 * 1000, // 60s
     httpAgent,
+    fetch: overridenFetch,
   }: {
     baseURL: string;
     maxRetries?: number | undefined;
     timeout: number | undefined;
     httpAgent: Agent | undefined;
+    fetch: Fetch | undefined;
   }) {
     this.baseURL = baseURL;
     this.maxRetries = validatePositiveInteger('maxRetries', maxRetries ?? MAX_RETRIES);
     this.timeout = validatePositiveInteger('timeout', timeout);
     this.httpAgent = httpAgent;
 
-    this.fetch = fetch;
+    this.fetch = overridenFetch ?? fetch;
   }
 
   protected authHeaders(): Headers {
