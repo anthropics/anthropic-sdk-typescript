@@ -259,19 +259,27 @@ function partition(str: string, delimiter: string): [string, string, string] {
  * Most browsers don't yet have async iterable support for ReadableStream,
  * and Node has a very different way of reading bytes from its "ReadableStream".
  *
- * This polyfill was pulled from https://github.com/MattiasBuelens/web-streams-polyfill/pull/122#issuecomment-1624185965
+ * This polyfill was pulled from https://github.com/MattiasBuelens/web-streams-polyfill/pull/122#issuecomment-1627354490
  */
 function readableStreamAsyncIterable<T>(stream: any): AsyncIterableIterator<T> {
   if (stream[Symbol.asyncIterator]) return stream;
 
   const reader = stream.getReader();
   return {
-    next() {
-      return reader.read();
+    async next() {
+      try {
+        const result = await reader.read();
+        if (result?.done) reader.releaseLock(); // release lock when stream becomes closed
+        return result;
+      } catch (e) {
+        reader.releaseLock(); // release lock when stream becomes errored
+        throw e;
+      }
     },
     async return() {
-      reader.cancel();
+      const cancelPromise = reader.cancel();
       reader.releaseLock();
+      await cancelPromise;
       return { done: true, value: undefined };
     },
     [Symbol.asyncIterator]() {
