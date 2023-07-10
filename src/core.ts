@@ -122,6 +122,20 @@ export abstract class APIClient {
     return this.requestAPIList(Page, { method: 'get', path, ...opts });
   }
 
+  private calculateContentLength(body: unknown): string | null {
+    if (typeof body === 'string') {
+      if (typeof Buffer !== 'undefined') {
+        return Buffer.byteLength(body, 'utf8').toString();
+      }
+
+      const encoder = new TextEncoder();
+      const encoded = encoder.encode(body);
+      return encoded.length.toString();
+    }
+
+    return null;
+  }
+
   buildRequest<Req extends {}>(
     options: FinalRequestOptions<Req>,
   ): { req: RequestInit; url: string; timeout: number } {
@@ -131,7 +145,7 @@ export abstract class APIClient {
       isMultipartBody(options.body) ? options.body.body
       : options.body ? JSON.stringify(options.body, null, 2)
       : null;
-    const contentLength = typeof body === 'string' ? body.length.toString() : null;
+    const contentLength = this.calculateContentLength(body);
 
     const url = this.buildURL(path!, query);
     if ('timeout' in options) validatePositiveInteger('timeout', options.timeout);
