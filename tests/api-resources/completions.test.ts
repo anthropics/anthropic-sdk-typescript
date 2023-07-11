@@ -12,7 +12,7 @@ describe('resource completions', () => {
   test('create: only required params', async () => {
     const response = await anthropic.completions.create({
       max_tokens_to_sample: 256,
-      model: 'claude-1',
+      model: 'claude-2',
       prompt: '\n\nHuman: Hello, world!\n\nAssistant:',
     });
   });
@@ -20,12 +20,12 @@ describe('resource completions', () => {
   test('create: required and optional params', async () => {
     const response = await anthropic.completions.create({
       max_tokens_to_sample: 256,
-      model: 'claude-1',
+      model: 'claude-2',
       prompt: '\n\nHuman: Hello, world!\n\nAssistant:',
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
       stop_sequences: ['string', 'string', 'string'],
       stream: false,
-      temperature: 0.7,
+      temperature: 1,
       top_k: 5,
       top_p: 0.7,
     });
