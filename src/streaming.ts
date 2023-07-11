@@ -51,6 +51,7 @@ export class Stream<Item> implements AsyncIterable<Item>, APIResponse<Stream<Ite
   }
 
   async *[Symbol.asyncIterator](): AsyncIterator<Item, any, undefined> {
+    let done = false;
     try {
       for await (const sse of this.iterMessages()) {
         if (sse.event === 'completion') {
@@ -75,13 +76,14 @@ export class Stream<Item> implements AsyncIterable<Item>, APIResponse<Stream<Ite
           throw APIError.generate(undefined, errJSON, errMessage, this.responseHeaders);
         }
       }
+      done = true;
     } catch (e) {
       // If the user calls `stream.controller.abort()`, we should exit without throwing.
       if (e instanceof Error && e.name === 'AbortError') return;
       throw e;
     } finally {
       // If the user `break`s, abort the ongoing request.
-      this.controller.abort();
+      if (!done) this.controller.abort();
     }
   }
 }
