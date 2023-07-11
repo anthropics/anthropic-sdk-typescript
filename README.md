@@ -102,7 +102,7 @@ const anthropic = new Anthropic({
 
 async function main() {
   const completion = await anthropic.completions.create({
-    model: 'claude-1',
+    model: 'claude-2',
     max_tokens_to_sample: 300,
     prompt: `${Anthropic.HUMAN_PROMPT} how does a court case get to the Supreme Court? ${Anthropic.AI_PROMPT}`,
   });
@@ -121,7 +121,7 @@ const anthropic = new Anthropic();
 
 const stream = await anthropic.completions.create({
   prompt: `${Anthropic.HUMAN_PROMPT} Your prompt here ${Anthropic.AI_PROMPT}`,
-  model: 'claude-1',
+  model: 'claude-2',
   stream: true,
   max_tokens_to_sample: 300,
 });
@@ -149,7 +149,7 @@ async function main() {
   const params: Anthropic.CompletionCreateParams = {
     prompt: `${Anthropic.HUMAN_PROMPT} how does a court case get to the Supreme Court? ${Anthropic.AI_PROMPT}`,
     max_tokens_to_sample: 300,
-    model: 'claude-1',
+    model: 'claude-2',
   };
   const completion: Anthropic.Completion = await anthropic.completions.create(params);
 }
@@ -170,7 +170,7 @@ async function main() {
     .create({
       prompt: `${Anthropic.HUMAN_PROMPT} Your prompt here ${Anthropic.AI_PROMPT}`,
       max_tokens_to_sample: 300,
-      model: 'claude-1',
+      model: 'claude-2',
     })
     .catch((err) => {
       if (err instanceof Anthropic.APIError) {
@@ -216,7 +216,7 @@ await anthropic.completions.create(
   {
     prompt: `${Anthropic.HUMAN_PROMPT} Can you help me effectively ask for a raise at work? ${Anthropic.AI_PROMPT}`,
     max_tokens_to_sample: 300,
-    model: 'claude-1',
+    model: 'claude-2',
   },
   {
     maxRetries: 5,
@@ -241,7 +241,7 @@ await anthropic.completions.create(
   {
     prompt: `${Anthropic.HUMAN_PROMPT} Where can I get a good coffee in my neighbourhood? ${Anthropic.AI_PROMPT}`,
     max_tokens_to_sample: 300,
-    model: 'claude-1',
+    model: 'claude-2',
   },
   {
     timeout: 5 * 1000,
@@ -276,7 +276,7 @@ await anthropic.completions.create(
   {
     prompt: `${Anthropic.HUMAN_PROMPT} How does a court case get to the Supreme Court? ${Anthropic.AI_PROMPT}`,
     max_tokens_to_sample: 300,
-    model: 'claude-1',
+    model: 'claude-2',
   },
   {
     baseURL: 'http://localhost:8080/test-api',
