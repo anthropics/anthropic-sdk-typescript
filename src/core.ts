@@ -255,7 +255,7 @@ export abstract class APIClient {
     if (options.stream) {
       // Note: there is an invariant here that isn't represented in the type system
       // that if you set `stream: true` the response type must also be `Stream<T>`
-      return new Stream<Rsp>(response, controller) as any;
+      return new Stream(response, controller) as any;
     }
 
     const contentType = response.headers.get('content-type');
