@@ -9,7 +9,7 @@ async function main() {
 
   const stream = await client.completions.create({
     prompt: `${Anthropic.HUMAN_PROMPT}${question}${Anthropic.AI_PROMPT}:`,
-    model: 'claude-v1',
+    model: 'claude-2',
     stream: true,
     max_tokens_to_sample: 500,
   });
