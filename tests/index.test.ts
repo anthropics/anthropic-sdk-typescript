@@ -1,8 +1,9 @@
 // File generated from our OpenAPI spec by Stainless.
 
-import { Headers } from '@anthropic-ai/sdk/core';
 import Anthropic from '@anthropic-ai/sdk';
-import { Response } from '@anthropic-ai/sdk/_shims/fetch';
+import { APIUserAbortError } from '@anthropic-ai/sdk';
+import { Headers } from '@anthropic-ai/sdk/core';
+import { Response, fetch as defaultFetch } from '@anthropic-ai/sdk/_shims/fetch';
 
 describe('instantiate client', () => {
   const env = process.env;
@@ -93,6 +94,32 @@ describe('instantiate client', () => {
 
     const response = await client.get('/foo');
     expect(response).toEqual({ url: 'http://localhost:5000/foo', custom: true });
+  });
+
+  test('custom signal', async () => {
+    const client = new Anthropic({
+      baseURL: 'http://127.0.0.1:4010',
+      apiKey: 'my api key',
+      fetch: (...args) => {
+        return new Promise((resolve, reject) =>
+          setTimeout(
+            () =>
+              defaultFetch(...args)
+                .then(resolve)
+                .catch(reject),
+            300,
+          ),
+        );
+      },
+    });
+
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 200);
+
+    const spy = jest.spyOn(client, 'request');
+
+    await expect(client.get('/foo', { signal: controller.signal })).rejects.toThrowError(APIUserAbortError);
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 
   describe('baseUrl', () => {
