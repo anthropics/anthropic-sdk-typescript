@@ -1,7 +1,7 @@
 import * as qs from 'qs';
 import { VERSION } from './version';
 import { Stream } from './streaming';
-import { APIError, APIConnectionError, APIConnectionTimeoutError } from './error';
+import { APIError, APIConnectionError, APIConnectionTimeoutError, APIUserAbortError } from './error';
 import type { Readable } from '@anthropic-ai/sdk/_shims/node-readable';
 import { getDefaultAgent, type Agent } from '@anthropic-ai/sdk/_shims/agent';
 import {
@@ -183,6 +183,9 @@ export abstract class APIClient {
       ...(body && { body: body as any }),
       headers: reqHeaders,
       ...(httpAgent && { agent: httpAgent }),
+      // @ts-ignore node-fetch uses a custom AbortSignal type that is
+      // not compatible with standard web types
+      signal: options.signal ?? null,
     };
 
     this.validateHeaders(reqHeaders, headers);
@@ -220,8 +223,15 @@ export abstract class APIClient {
     const response = await this.fetchWithTimeout(url, req, timeout, controller).catch(castToError);
 
     if (response instanceof Error) {
-      if (retriesRemaining) return this.retryRequest(options, retriesRemaining);
-      if (response.name === 'AbortError') throw new APIConnectionTimeoutError();
+      if (options.signal?.aborted) {
+        throw new APIUserAbortError();
+      }
+      if (retriesRemaining) {
+        return this.retryRequest(options, retriesRemaining);
+      }
+      if (response.name === 'AbortError') {
+        throw new APIConnectionTimeoutError();
+      }
       throw new APIConnectionError({ cause: response });
     }
 
@@ -561,6 +571,7 @@ export type RequestOptions<Req extends {} = Record<string, unknown> | Readable> 
   stream?: boolean | undefined;
   timeout?: number;
   httpAgent?: Agent;
+  signal?: AbortSignal | undefined | null;
   idempotencyKey?: string;
 };
 
@@ -578,6 +589,7 @@ const requestOptionsKeys: KeysEnum<RequestOptions> = {
   stream: true,
   timeout: true,
   httpAgent: true,
+  signal: true,
   idempotencyKey: true,
 };
 
