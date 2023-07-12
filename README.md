@@ -222,7 +222,6 @@ await anthropic.completions.create(
     maxRetries: 5,
   },
 );
-
 ```
 
 ### Timeouts
@@ -247,7 +246,6 @@ await anthropic.completions.create(
     timeout: 5 * 1000,
   },
 );
-
 ```
 
 On timeout, an `APIConnectionTimeoutError` is thrown.
@@ -283,7 +281,6 @@ await anthropic.completions.create(
     httpAgent: new http.Agent({ keepAlive: false }),
   },
 );
-
 ```
 
 ## Status
