@@ -817,3 +817,19 @@ export const getHeader = (headers: HeadersLike, key: string): string | null | un
   }
   return value;
 };
+
+/**
+ * Encodes a string to Base64 format.
+ */
+export const toBase64 = (str: string | null | undefined): string => {
+  if (!str) return '';
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(str).toString('base64');
+  }
+
+  if (typeof btoa !== 'undefined') {
+    return btoa(str);
+  }
+
+  throw new Error('Cannot generate b64 string; Expected `Buffer` or `btoa` to be defined');
+};
