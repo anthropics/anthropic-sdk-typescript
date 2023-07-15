@@ -67,7 +67,7 @@
     "build": "bash ./build",
     "prepack": "echo 'to pack, run yarn build && (cd dist; yarn pack)' && exit 1",
     "prepublishOnly": "echo 'to publish, run yarn build && (cd dist; yarn publish)' && exit 1",
-    "format": "prettier --write .",
+    "format": "prettier --write --cache  --cache-strategy metadata . !dist",
     "tsn": "ts-node -r tsconfig-paths/register",
     "fix": "eslint --fix --ext ts,js ."
   },
