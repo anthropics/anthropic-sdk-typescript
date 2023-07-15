@@ -161,6 +161,7 @@ export class Anthropic extends Core.APIClient {
     return { arrayFormat: 'comma' };
   }
 
+  static Anthropic = this;
   static HUMAN_PROMPT = '\n\nHuman:';
   static AI_PROMPT = '\n\nAssistant:';
 
