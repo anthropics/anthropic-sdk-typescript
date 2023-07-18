@@ -6,7 +6,7 @@ import * as Errors from './error';
 import type { Agent } from '@anthropic-ai/sdk/_shims/agent';
 import * as Uploads from './uploads';
 
-type Config = {
+export interface ClientOptions {
   /**
    * Defaults to process.env["ANTHROPIC_API_KEY"]. Set it to null if you want to send unauthenticated requests.
    */
@@ -67,20 +67,20 @@ type Config = {
   defaultQuery?: Core.DefaultQuery;
 
   authToken?: string | null;
-};
+}
 
 /** Instantiate the API Client. */
 export class Anthropic extends Core.APIClient {
   apiKey: string | null;
   authToken?: string | null;
 
-  private _options: Config;
+  private _options: ClientOptions;
 
-  constructor(config?: Config) {
-    const options: Config = {
+  constructor(opts?: ClientOptions) {
+    const options: ClientOptions = {
       apiKey: typeof process === 'undefined' ? '' : process.env['ANTHROPIC_API_KEY'] || '',
       baseURL: 'https://api.anthropic.com',
-      ...config,
+      ...opts,
     };
 
     super({
@@ -93,7 +93,7 @@ export class Anthropic extends Core.APIClient {
     this.apiKey = options.apiKey || null;
     this._options = options;
 
-    this.authToken = config?.authToken || process.env['ANTHROPIC_AUTH_TOKEN'] || null;
+    this.authToken = opts?.authToken || process.env['ANTHROPIC_AUTH_TOKEN'] || null;
   }
 
   completions: API.Completions = new API.Completions(this);
