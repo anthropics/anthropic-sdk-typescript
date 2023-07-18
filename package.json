@@ -48,17 +48,17 @@
       "types": "./dist/index.d.mts",
       "default": "./dist/index.mjs"
     },
-    "./*": {
+    "./*.mjs": {
       "types": "./dist/*.d.ts",
-      "require": "./dist/*.js",
       "default": "./dist/*.mjs"
     },
     "./*.js": {
       "types": "./dist/*.d.ts",
       "default": "./dist/*.js"
     },
-    "./*.mjs": {
+    "./*": {
       "types": "./dist/*.d.ts",
+      "require": "./dist/*.js",
       "default": "./dist/*.mjs"
     }
   },
