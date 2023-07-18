@@ -72,7 +72,7 @@ export namespace CompletionCreateParams {
      * [models](https://docs.anthropic.com/claude/reference/selecting-a-model) for
      * additional details.
      */
-    model: string;
+    model: (string & {}) | 'claude-2' | 'claude-instant-1';
 
     /**
      * The prompt that you want Claude to complete.
@@ -175,7 +175,7 @@ export namespace CompletionCreateParams {
      * [models](https://docs.anthropic.com/claude/reference/selecting-a-model) for
      * additional details.
      */
-    model: string;
+    model: (string & {}) | 'claude-2' | 'claude-instant-1';
 
     /**
      * The prompt that you want Claude to complete.
