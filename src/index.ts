@@ -1,6 +1,5 @@
 // File generated from our OpenAPI spec by Stainless.
 
-import * as qs from 'qs';
 import * as Core from './core';
 import * as API from './resources/index';
 import * as Errors from './error';
@@ -155,10 +154,6 @@ export class Anthropic extends Core.APIClient {
       return {};
     }
     return { Authorization: `Bearer ${this.authToken}` };
-  }
-
-  protected override qsOptions(): qs.IStringifyOptions {
-    return { arrayFormat: 'comma' };
   }
 
   static Anthropic = this;
