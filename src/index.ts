@@ -7,7 +7,7 @@ import * as Errors from './error';
 import type { Agent } from '@anthropic-ai/sdk/_shims/agent';
 import * as Uploads from './uploads';
 
-type Config = {
+export type Config = {
   /**
    * Defaults to process.env["ANTHROPIC_API_KEY"]. Set it to null if you want to send unauthenticated requests.
    */
