@@ -208,6 +208,10 @@ export abstract class APIClient {
 
     this.debug('request', url, options, req.headers);
 
+    if (options.signal?.aborted) {
+      throw new APIUserAbortError();
+    }
+
     const controller = new AbortController();
     const response = await this.fetchWithTimeout(url, req, timeout, controller).catch(castToError);
 
