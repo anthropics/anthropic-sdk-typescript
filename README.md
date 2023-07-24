@@ -107,7 +107,8 @@ async function main() {
     prompt: `${Anthropic.HUMAN_PROMPT} how does a court case get to the Supreme Court? ${Anthropic.AI_PROMPT}`,
   });
 }
-main().catch(console.error);
+
+main();
 ```
 
 ## Streaming Responses
@@ -153,7 +154,8 @@ async function main() {
   };
   const completion: Anthropic.Completion = await anthropic.completions.create(params);
 }
-main().catch(console.error);
+
+main();
 ```
 
 Documentation for each method, request param, and response field are available in docstrings and will appear on hover in most modern editors.
@@ -177,10 +179,13 @@ async function main() {
         console.log(err.status); // 400
         console.log(err.name); // BadRequestError
         console.log(err.headers); // {server: 'nginx', ...}
+      } else {
+        throw err;
       }
     });
 }
-main().catch(console.error);
+
+main();
 ```
 
 Error codes are as followed:
