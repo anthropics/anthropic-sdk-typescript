@@ -764,6 +764,19 @@ export const ensurePresent = <T>(value: T | null | undefined): T => {
   return value;
 };
 
+/**
+ * Read an environment variable.
+ *
+ * Will return an empty string if the environment variable doesn't exist or cannot be accessed.
+ */
+export const readEnv = (env: string): string => {
+  if (typeof process === 'undefined') {
+    return '';
+  }
+
+  return process.env[env] ?? '';
+};
+
 export const coerceInteger = (value: unknown): number => {
   if (typeof value === 'number') return Math.round(value);
   if (typeof value === 'string') return parseInt(value, 10);
