@@ -93,7 +93,7 @@ export class Anthropic extends Core.APIClient {
     this.apiKey = options.apiKey || null;
     this._options = options;
 
-    this.authToken = opts?.authToken || process.env['ANTHROPIC_AUTH_TOKEN'] || null;
+    this.authToken = options.authToken || Core.readEnv('ANTHROPIC_AUTH_TOKEN') || null;
   }
 
   completions: API.Completions = new API.Completions(this);
