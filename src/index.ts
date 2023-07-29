@@ -76,14 +76,18 @@ export class Anthropic extends Core.APIClient {
 
   private _options: ClientOptions;
 
-  constructor(opts: ClientOptions = {}) {
-    const authToken = opts.authToken || Core.readEnv('ANTHROPIC_AUTH_TOKEN') || null;
+  constructor({
+    apiKey = Core.readEnv('ANTHROPIC_API_KEY') ?? null,
+    authToken = Core.readEnv('ANTHROPIC_AUTH_TOKEN') ?? null,
+    ...opts
+  }: ClientOptions = {}) {
+    undefined;
 
     const options: ClientOptions = {
-      apiKey: typeof process === 'undefined' ? '' : process.env['ANTHROPIC_API_KEY'] || '',
+      apiKey,
+      authToken,
       baseURL: `https://api.anthropic.com`,
       ...opts,
-      authToken,
     };
 
     super({
@@ -93,9 +97,9 @@ export class Anthropic extends Core.APIClient {
       maxRetries: options.maxRetries,
       fetch: options.fetch,
     });
-    this.apiKey = options.apiKey || null;
     this._options = options;
 
+    this.apiKey = apiKey;
     this.authToken = authToken;
   }
 
