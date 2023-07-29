@@ -769,12 +769,12 @@ export const ensurePresent = <T>(value: T | null | undefined): T => {
  *
  * Will return an empty string if the environment variable doesn't exist or cannot be accessed.
  */
-export const readEnv = (env: string): string => {
+export const readEnv = (env: string): string | undefined => {
   if (typeof process === 'undefined') {
-    return '';
+    return undefined;
   }
 
-  return process.env[env] ?? '';
+  return process.env[env] ?? undefined;
 };
 
 export const coerceInteger = (value: unknown): number => {
@@ -795,6 +795,27 @@ export const coerceBoolean = (value: unknown): boolean => {
   if (typeof value === 'boolean') return value;
   if (typeof value === 'string') return value === 'true';
   return Boolean(value);
+};
+
+export const maybeCoerceInteger = (value: unknown): number | undefined => {
+  if (value === undefined) {
+    return undefined;
+  }
+  return coerceInteger(value);
+};
+
+export const maybeCoerceFloat = (value: unknown): number | undefined => {
+  if (value === undefined) {
+    return undefined;
+  }
+  return coerceFloat(value);
+};
+
+export const maybeCoerceBoolean = (value: unknown): boolean | undefined => {
+  if (value === undefined) {
+    return undefined;
+  }
+  return coerceBoolean(value);
 };
 
 // https://stackoverflow.com/a/34491287
