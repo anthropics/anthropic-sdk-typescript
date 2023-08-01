@@ -24,10 +24,10 @@ function denoify() {
         // convert self-referencing module specifiers to relative paths
         specifier = file.getRelativePathAsModuleSpecifierTo(denoDir + specifier.substring(pkgName.length));
       } else if (!decl.isModuleSpecifierRelative()) {
-        continue;
+        specifier = `npm:${specifier}`;
       }
 
-      if (decl.isModuleSpecifierRelative()) {
+      if (specifier.startsWith('./') || specifier.startsWith('../')) {
         // there may be CJS directory module specifiers that implicitly resolve
         // to /index.ts.  Add an explicit /index.ts to the end
         const sourceFile = decl.getModuleSpecifierSourceFile();
@@ -38,9 +38,9 @@ function denoify() {
         ) {
           specifier += '/' + path.basename(sourceFile.getFilePath());
         }
+        // add explicit .ts file extensions to relative module specifiers
+        specifier = specifier.replace(/(\.[^./]*)?$/, '.ts');
       }
-      // add explicit .ts file extensions to relative module specifiers
-      specifier = specifier.replace(/(\.[^./]*)?$/, '.ts');
       moduleSpecifier.replaceWithText(JSON.stringify(specifier));
     }
 
