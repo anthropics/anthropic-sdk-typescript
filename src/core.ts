@@ -744,8 +744,8 @@ const isAbsoluteURL = (url: string): boolean => {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const validatePositiveInteger = (name: string, n: number) => {
-  if (!Number.isInteger(n)) {
+const validatePositiveInteger = (name: string, n: unknown): number => {
+  if (typeof n !== 'number' || !Number.isInteger(n)) {
     throw new Error(`${name} must be an integer`);
   }
   if (n < 0) {

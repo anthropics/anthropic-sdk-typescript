@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["deno"],
+  "exclude": [],
+  "compilerOptions": {
+    "rootDir": "./deno",
+    "lib": ["es2020", "DOM"],
+    "paths": {
+      "@anthropic-ai/sdk/_shims/*": ["deno/_shims/*"],
+      "@anthropic-ai/sdk": ["deno/index.ts"],
+      "@anthropic-ai/sdk/*": ["deno/*"],
+      "digest-fetch": ["./typings/digest-fetch"]
+    },
+    "noEmit": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "deno",
+    "pretty": true,
+    "sourceMap": true
+  }
+}
