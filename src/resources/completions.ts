@@ -2,7 +2,7 @@
 
 import * as Core from '@anthropic-ai/sdk/core';
 import { APIResource } from '@anthropic-ai/sdk/resource';
-import * as API from './';
+import * as API from './index';
 import { Stream } from '@anthropic-ai/sdk/streaming';
 
 export class Completions extends APIResource {
