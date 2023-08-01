@@ -160,6 +160,12 @@ main();
 
 Documentation for each method, request param, and response field are available in docstrings and will appear on hover in most modern editors.
 
+## Counting Tokens
+
+We provide a [separate package](https://github.com/anthropics/anthropic-tokenizer-typescript) for counting how many tokens a given piece of text contains.
+
+See the [repository documentation](https://github.com/anthropics/anthropic-tokenizer-typescript) for more details.
+
 ## Handling errors
 
 When the library is unable to connect to the API,
@@ -231,13 +237,13 @@ await anthropic.completions.create(
 
 ### Timeouts
 
-Requests time out after 60 seconds by default. You can configure this with a `timeout` option:
+Requests time out after 10 minutes by default. You can configure this with a `timeout` option:
 
 <!-- prettier-ignore -->
 ```ts
 // Configure the default for all requests:
 const anthropic = new Anthropic({
-  timeout: 20 * 1000, // 20 seconds (default is 60s)
+  timeout: 20 * 1000, // 20 seconds (default is 10 minutes)
 });
 
 // Override per-request:
