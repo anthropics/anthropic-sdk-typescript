@@ -49,21 +49,7 @@ npm exec prettier -- --loglevel=warn --write .
 (cd dist && node -e 'require("@anthropic-ai/sdk")')
 (cd dist && node -e 'import("@anthropic-ai/sdk")' --input-type=module)
 
-if command -v deno &> /dev/null
+if command -v deno &> /dev/null && [ -e ./build-deno ]
 then
-  rm -rf deno; mkdir deno
-  cp -rp src/* README.md deno
-  rm deno/_shims/*.{d.ts,js,mjs,node.ts}
-  for file in deno/_shims/*.deno.ts; do
-    mv -- "$file" "${file%.deno.ts}.ts"
-  done
-  for file in LICENSE CHANGELOG.md; do
-    if [ -e "${file}" ]; then cp "${file}" deno; fi
-  done
-  npm exec ts-node -- scripts/denoify.ts
-  deno fmt deno
-  
-
-  # make sure that nothing crashes when we load the Deno module
-  (cd deno && deno run index.ts)
+  ./build-deno
 fi
