@@ -209,6 +209,8 @@ export namespace Anthropic {
   export import Completions = API.Completions;
   export import Completion = API.Completion;
   export import CompletionCreateParams = API.CompletionCreateParams;
+  export import CompletionCreateParamsNonStreaming = API.CompletionCreateParamsNonStreaming;
+  export import CompletionCreateParamsStreaming = API.CompletionCreateParamsStreaming;
 }
 
 export default Anthropic;
