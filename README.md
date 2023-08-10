@@ -2,8 +2,7 @@
 
 [![NPM version](https://img.shields.io/npm/v/@anthropic-ai/sdk.svg)](https://npmjs.org/package/@anthropic-ai/sdk)
 
-The Anthropic TypeScript library provides convenient access to the Anthropic REST API from applications written in server-side JavaScript.
-It includes TypeScript definitions for all request params and response fields.
+This library provides convenient access to the Anthropic TypeScript REST API from server-side TypeScript or JavaScript.
 
 ## Migration from v0.4.x and below
 
@@ -79,8 +78,6 @@ Key interface changes:
 
 </details>
 
-## Documentation
-
 The API documentation can be found [here](https://docs.anthropic.com/claude/reference/).
 
 ## Installation
@@ -134,10 +131,9 @@ for await (const completion of stream) {
 If you need to cancel a stream, you can `break` from the loop
 or call `stream.controller.abort()`.
 
-### Usage with TypeScript
+### Request & Response types
 
-Importing, instantiating, and interacting with the library are the same as above.
-If you like, you may reference our types directly:
+This library includes TypeScript definitions for all request params and response fields. You may import and use them like so:
 
 ```ts
 import Anthropic from '@anthropic-ai/sdk';
@@ -337,7 +333,9 @@ We are keen for your feedback; please open an [issue](https://www.github.com/ant
 The following runtimes are supported:
 
 - Node.js 16 LTS or later ([non-EOL](https://endoflife.date/nodejs)) versions.
-- Deno v1.28.0 or higher (experimental).
-  Use `import Anthropic from "npm:@anthropic-ai/sdk"`.
+- Deno v1.28.0 or higher, using `import Anthropic from "npm:@anthropic-ai/sdk"`.
+  Deno Deploy is not yet supported.
+- Cloudflare Workers.
+- Vercel Edge Runtime.
 
 If you are interested in other runtime environments, please open or upvote an issue on GitHub.
