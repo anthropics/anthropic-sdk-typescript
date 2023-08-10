@@ -1,8 +1,7 @@
 import type { Response } from '@anthropic-ai/sdk/_shims/fetch';
+import { ReadableStream } from '@anthropic-ai/sdk/_shims/ReadableStream';
 
-import { APIResponse, Headers, createResponseHeaders } from './core';
-
-import { safeJSON } from '@anthropic-ai/sdk/core';
+import { safeJSON, createResponseHeaders } from '@anthropic-ai/sdk/core';
 import { APIError } from '@anthropic-ai/sdk/error';
 
 type Bytes = string | ArrayBuffer | Uint8Array | Buffer | null | undefined;
@@ -13,20 +12,11 @@ type ServerSentEvent = {
   raw: string[];
 };
 
-export class Stream<Item> implements AsyncIterable<Item>, APIResponse<Stream<Item>> {
-  /** @deprecated - please use the async iterator instead. We plan to add additional helper methods shortly. */
-  response: Response;
-  /** @deprecated - we plan to add a different way to access raw response information shortly. */
-  responseHeaders: Headers;
-  controller: AbortController;
-
+export class Stream<Item> implements AsyncIterable<Item> {
   private decoder: SSEDecoder;
 
-  constructor(response: Response, controller: AbortController) {
-    this.response = response;
-    this.controller = controller;
+  constructor(private response: Response, private controller: AbortController) {
     this.decoder = new SSEDecoder();
-    this.responseHeaders = createResponseHeaders(response.headers);
   }
 
   private async *iterMessages(): AsyncGenerator<ServerSentEvent, void, unknown> {
@@ -73,7 +63,12 @@ export class Stream<Item> implements AsyncIterable<Item>, APIResponse<Stream<Ite
           const errJSON = safeJSON(errText);
           const errMessage = errJSON ? undefined : errText;
 
-          throw APIError.generate(undefined, errJSON, errMessage, this.responseHeaders);
+          throw APIError.generate(
+            undefined,
+            errJSON,
+            errMessage,
+            createResponseHeaders(this.response.headers),
+          );
         }
       }
       done = true;
@@ -85,6 +80,38 @@ export class Stream<Item> implements AsyncIterable<Item>, APIResponse<Stream<Ite
       // If the user `break`s, abort the ongoing request.
       if (!done) this.controller.abort();
     }
+  }
+
+  toReadableStream(): ReadableStream {
+    const self = this;
+    let iter: AsyncIterator<Item>;
+    const encoder = new TextEncoder();
+
+    return new ReadableStream({
+      async start() {
+        iter = self[Symbol.asyncIterator]();
+      },
+      async pull(ctrl) {
+        try {
+          const { value, done } = await iter.next();
+          if (done) return ctrl.close();
+
+          const str =
+            typeof value === 'string' ? value : (
+              // Add a newline after JSON to make it easier to parse newline-separated JSON on the frontend.
+              JSON.stringify(value) + '\n'
+            );
+          const bytes = encoder.encode(str);
+
+          ctrl.enqueue(bytes);
+        } catch (err) {
+          ctrl.error(err);
+        }
+      },
+      async cancel() {
+        await iter.return?.();
+      },
+    });
   }
 }
 

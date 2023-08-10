@@ -1,6 +1,7 @@
 // File generated from our OpenAPI spec by Stainless.
 
 import * as Core from '@anthropic-ai/sdk/core';
+import { APIPromise } from '@anthropic-ai/sdk/core';
 import { APIResource } from '@anthropic-ai/sdk/resource';
 import * as API from './index';
 import { Stream } from '@anthropic-ai/sdk/streaming';
@@ -9,23 +10,18 @@ export class Completions extends APIResource {
   /**
    * Create a completion
    */
-  create(
-    body: CompletionCreateParamsNonStreaming,
-    options?: Core.RequestOptions,
-  ): Promise<Core.APIResponse<Completion>>;
+  create(body: CompletionCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Completion>;
   create(
     body: CompletionCreateParamsStreaming,
     options?: Core.RequestOptions,
-  ): Promise<Core.APIResponse<Stream<Completion>>>;
+  ): APIPromise<Stream<Completion>>;
   create(
     body: CompletionCreateParams,
     options?: Core.RequestOptions,
-  ): Promise<Core.APIResponse<Completion | Stream<Completion>>>;
-  create(
-    body: CompletionCreateParams,
-    options?: Core.RequestOptions,
-  ): Promise<Core.APIResponse<Completion | Stream<Completion>>> {
-    return this.post('/v1/complete', { body, timeout: 600000, ...options, stream: body.stream ?? false });
+  ): APIPromise<Completion> | APIPromise<Stream<Completion>> {
+    return this.post('/v1/complete', { body, timeout: 600000, ...options, stream: body.stream ?? false }) as
+      | APIPromise<Completion>
+      | APIPromise<Stream<Completion>>;
   }
 }
 
