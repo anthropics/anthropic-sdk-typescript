@@ -263,6 +263,32 @@ On timeout, an `APIConnectionTimeoutError` is thrown.
 
 Note that requests which time out will be [retried twice by default](#retries).
 
+## Advanced Usage
+
+### Accessing raw Response data (e.g., headers)
+
+The "raw" `Response` returned by `fetch()` can be accessed through the `.asResponse()` method on the `APIPromise` type that all methods return.
+
+You can also use the `.withResponse()` method to get the raw `Response` along with the parsed data.
+
+```ts
+const anthropic = new Anthropic();
+
+const response = await anthropic.completions
+  .create({
+    prompt: `${Anthropic.HUMAN_PROMPT} Can you help me effectively ask for a raise at work? ${Anthropic.AI_PROMPT}`,
+    max_tokens_to_sample: 300,
+    model: 'claude-2',
+  })
+  .asResponse();
+console.log(response.headers.get('X-My-Header'));
+console.log(response.raw.statusText); // access the underlying Response object
+
+// parses the response body, returning an object if the API responds with JSON
+const completion: Completions.Completion = await response.parse();
+console.log(completion.completion);
+```
+
 ## Configuring an HTTP(S) Agent (e.g., for proxies)
 
 By default, this library uses a stable agent for all http/https requests to reuse TCP connections, eliminating many TCP & TLS handshakes and shaving around 100ms off most requests.
