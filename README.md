@@ -101,7 +101,7 @@ async function main() {
   const completion = await anthropic.completions.create({
     model: 'claude-2',
     max_tokens_to_sample: 300,
-    prompt: `${Anthropic.HUMAN_PROMPT} how does a court case get to the Supreme Court? ${Anthropic.AI_PROMPT}`,
+    prompt: `${Anthropic.HUMAN_PROMPT} how does a court case get to the Supreme Court?${Anthropic.AI_PROMPT}`,
   });
 }
 
@@ -118,7 +118,7 @@ import Anthropic from '@anthropic-ai/sdk';
 const anthropic = new Anthropic();
 
 const stream = await anthropic.completions.create({
-  prompt: `${Anthropic.HUMAN_PROMPT} Your prompt here ${Anthropic.AI_PROMPT}`,
+  prompt: `${Anthropic.HUMAN_PROMPT} Your prompt here${Anthropic.AI_PROMPT}`,
   model: 'claude-2',
   stream: true,
   max_tokens_to_sample: 300,
@@ -144,7 +144,7 @@ const anthropic = new Anthropic({
 
 async function main() {
   const params: Anthropic.CompletionCreateParams = {
-    prompt: `${Anthropic.HUMAN_PROMPT} how does a court case get to the Supreme Court? ${Anthropic.AI_PROMPT}`,
+    prompt: `${Anthropic.HUMAN_PROMPT} how does a court case get to the Supreme Court?${Anthropic.AI_PROMPT}`,
     max_tokens_to_sample: 300,
     model: 'claude-2',
   };
@@ -172,7 +172,7 @@ a subclass of `APIError` will be thrown:
 async function main() {
   const completion = await anthropic.completions
     .create({
-      prompt: `${Anthropic.HUMAN_PROMPT} Your prompt here ${Anthropic.AI_PROMPT}`,
+      prompt: `${Anthropic.HUMAN_PROMPT} Your prompt here${Anthropic.AI_PROMPT}`,
       max_tokens_to_sample: 300,
       model: 'claude-2',
     })
@@ -221,7 +221,7 @@ const anthropic = new Anthropic({
 // Or, configure per-request:
 await anthropic.completions.create(
   {
-    prompt: `${Anthropic.HUMAN_PROMPT} Can you help me effectively ask for a raise at work? ${Anthropic.AI_PROMPT}`,
+    prompt: `${Anthropic.HUMAN_PROMPT} Can you help me effectively ask for a raise at work?${Anthropic.AI_PROMPT}`,
     max_tokens_to_sample: 300,
     model: 'claude-2',
   },
@@ -245,7 +245,7 @@ const anthropic = new Anthropic({
 // Override per-request:
 await anthropic.completions.create(
   {
-    prompt: `${Anthropic.HUMAN_PROMPT} Where can I get a good coffee in my neighbourhood? ${Anthropic.AI_PROMPT}`,
+    prompt: `${Anthropic.HUMAN_PROMPT} Where can I get a good coffee in my neighbourhood?${Anthropic.AI_PROMPT}`,
     max_tokens_to_sample: 300,
     model: 'claude-2',
   },
@@ -272,7 +272,7 @@ const anthropic = new Anthropic();
 
 const response = await anthropic.completions
   .create({
-    prompt: `${Anthropic.HUMAN_PROMPT} Can you help me effectively ask for a raise at work? ${Anthropic.AI_PROMPT}`,
+    prompt: `${Anthropic.HUMAN_PROMPT} Can you help me effectively ask for a raise at work?${Anthropic.AI_PROMPT}`,
     max_tokens_to_sample: 300,
     model: 'claude-2',
   })
@@ -305,7 +305,7 @@ const anthropic = new Anthropic({
 // Override per-request:
 await anthropic.completions.create(
   {
-    prompt: `${Anthropic.HUMAN_PROMPT} How does a court case get to the Supreme Court? ${Anthropic.AI_PROMPT}`,
+    prompt: `${Anthropic.HUMAN_PROMPT} How does a court case get to the Supreme Court?${Anthropic.AI_PROMPT}`,
     max_tokens_to_sample: 300,
     model: 'claude-2',
   },
