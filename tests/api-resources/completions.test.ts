@@ -1,6 +1,7 @@
 // File generated from our OpenAPI spec by Stainless.
 
 import Anthropic from '@anthropic-ai/sdk';
+import { Response } from 'node-fetch';
 
 const anthropic = new Anthropic({
   apiKey: 'something1234',
@@ -10,11 +11,18 @@ const anthropic = new Anthropic({
 
 describe('resource completions', () => {
   test('create: only required params', async () => {
-    const response = await anthropic.completions.create({
+    const responsePromise = anthropic.completions.create({
       max_tokens_to_sample: 256,
       model: 'claude-2',
       prompt: '\n\nHuman: Hello, world!\n\nAssistant:',
     });
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
   });
 
   test('create: required and optional params', async () => {
