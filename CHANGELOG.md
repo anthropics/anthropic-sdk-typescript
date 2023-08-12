@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.6.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.5.10...v0.6.0) (2023-08-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **client:** Stream.toReadableStream() has been removed
+
+### Features
+
+* **client:** add support for accessing the raw response object ([#105](https://github.com/anthropics/anthropic-sdk-typescript/issues/105)) ([c86b059](https://github.com/anthropics/anthropic-sdk-typescript/commit/c86b0593a630f3adafc5c329019ea7028b6a41cd))
+* **client:** detect browser usage ([#101](https://github.com/anthropics/anthropic-sdk-typescript/issues/101)) ([f4cae3f](https://github.com/anthropics/anthropic-sdk-typescript/commit/f4cae3f63c2e65e087a7bf27dac1eeb8200e0a36))
+* **types:** improve streaming params types ([#102](https://github.com/anthropics/anthropic-sdk-typescript/issues/102)) ([cdf808c](https://github.com/anthropics/anthropic-sdk-typescript/commit/cdf808ca2a18cd744a5d1840e5e2adb3015e8d1d))
+
+
+### Documentation
+
+* **readme:** minor updates ([#107](https://github.com/anthropics/anthropic-sdk-typescript/issues/107)) ([406fd97](https://github.com/anthropics/anthropic-sdk-typescript/commit/406fd97d4cee0dd363ad548c9a251f78091a70e3))
+* **readme:** remove beta status + document versioning policy ([#100](https://github.com/anthropics/anthropic-sdk-typescript/issues/100)) ([e9ef3d2](https://github.com/anthropics/anthropic-sdk-typescript/commit/e9ef3d21a25e355d8bf94b7a941ad82ec5eafec8))
+
+
+### Chores
+
+* **docs:** remove trailing spaces ([#108](https://github.com/anthropics/anthropic-sdk-typescript/issues/108)) ([4ba2c6f](https://github.com/anthropics/anthropic-sdk-typescript/commit/4ba2c6f181521ed9a60ed45c35d2276129cd7a0b))
+* **internal:** conditionally include bin during build output ([#109](https://github.com/anthropics/anthropic-sdk-typescript/issues/109)) ([58ac305](https://github.com/anthropics/anthropic-sdk-typescript/commit/58ac305d752d6b5c378f91b988ddfb97231c003c))
+* **internal:** fix deno build ([#98](https://github.com/anthropics/anthropic-sdk-typescript/issues/98)) ([f011e04](https://github.com/anthropics/anthropic-sdk-typescript/commit/f011e041f2f9cabb12951013825c0f0a2a569053))
+* **internal:** remove deno build ([#103](https://github.com/anthropics/anthropic-sdk-typescript/issues/103)) ([9af1527](https://github.com/anthropics/anthropic-sdk-typescript/commit/9af152707a9bcf3027afc64f027566be25da2eb9))
+
+
+### Refactors
+
+* **client:** remove Stream.toReadableStream() ([#110](https://github.com/anthropics/anthropic-sdk-typescript/issues/110)) ([c370412](https://github.com/anthropics/anthropic-sdk-typescript/commit/c37041285ed9cccf6d980a953e14ffd4006a8acc))
+
 ## [0.5.10](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.5.9...v0.5.10) (2023-08-01)
 
 
