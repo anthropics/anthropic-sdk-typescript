@@ -3,10 +3,6 @@
 ## [0.6.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.5.10...v0.6.0) (2023-08-12)
 
 
-### ⚠ BREAKING CHANGES
-
-* **client:** Stream.toReadableStream() has been removed
-
 ### Features
 
 * **client:** add support for accessing the raw response object ([#105](https://github.com/anthropics/anthropic-sdk-typescript/issues/105)) ([c86b059](https://github.com/anthropics/anthropic-sdk-typescript/commit/c86b0593a630f3adafc5c329019ea7028b6a41cd))
