@@ -92,7 +92,7 @@ export class Anthropic extends Core.APIClient {
 
     super({
       baseURL: options.baseURL!,
-      timeout: options.timeout,
+      timeout: options.timeout ?? 600000 /* 10 minutes */,
       httpAgent: options.httpAgent,
       maxRetries: options.maxRetries,
       fetch: options.fetch,
