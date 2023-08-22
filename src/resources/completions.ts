@@ -16,7 +16,7 @@ export class Completions extends APIResource {
     options?: Core.RequestOptions,
   ): APIPromise<Stream<Completion>>;
   create(
-    body: CompletionCreateParams,
+    body: CompletionCreateParamsBase,
     options?: Core.RequestOptions,
   ): APIPromise<Stream<Completion> | Completion>;
   create(
@@ -52,7 +52,9 @@ export interface Completion {
   stop_reason: string;
 }
 
-export interface CompletionCreateParams {
+export type CompletionCreateParams = CompletionCreateParamsNonStreaming | CompletionCreateParamsStreaming;
+
+export interface CompletionCreateParamsBase {
   /**
    * The maximum number of tokens to generate before stopping.
    *
@@ -158,7 +160,7 @@ export namespace CompletionCreateParams {
   export type CompletionCreateParamsStreaming = API.CompletionCreateParamsStreaming;
 }
 
-export interface CompletionCreateParamsNonStreaming extends CompletionCreateParams {
+export interface CompletionCreateParamsNonStreaming extends CompletionCreateParamsBase {
   /**
    * Whether to incrementally stream the response using server-sent events.
    *
@@ -169,7 +171,7 @@ export interface CompletionCreateParamsNonStreaming extends CompletionCreatePara
   stream?: false;
 }
 
-export interface CompletionCreateParamsStreaming extends CompletionCreateParams {
+export interface CompletionCreateParamsStreaming extends CompletionCreateParamsBase {
   /**
    * Whether to incrementally stream the response using server-sent events.
    *
