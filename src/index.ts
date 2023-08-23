@@ -219,6 +219,8 @@ export namespace Anthropic {
   export import toFile = Uploads.toFile;
   export import fileFromPath = Uploads.fileFromPath;
 
+  export import RequestOptions = Core.RequestOptions;
+
   export import Completions = API.Completions;
   export import Completion = API.Completion;
   export import CompletionCreateParams = API.CompletionCreateParams;
