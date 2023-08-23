@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.6.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.0...v0.6.1) (2023-08-23)
+
+
+### Features
+
+* allow a default timeout to be set for clients ([#113](https://github.com/anthropics/anthropic-sdk-typescript/issues/113)) ([1c5b2e2](https://github.com/anthropics/anthropic-sdk-typescript/commit/1c5b2e29926100a6e4a6176f0943e2c98991175d))
+* **client:** improve compatibility with Bun ([#119](https://github.com/anthropics/anthropic-sdk-typescript/issues/119)) ([fe4f5d5](https://github.com/anthropics/anthropic-sdk-typescript/commit/fe4f5d5e35e35cab2a62388eb595519e9c14635c))
+* **docs:** add documentation to the client constructor ([#118](https://github.com/anthropics/anthropic-sdk-typescript/issues/118)) ([79303f9](https://github.com/anthropics/anthropic-sdk-typescript/commit/79303f9c46a8248abd05fedbedbbed6e735c046d))
+* **types:** export RequestOptions type ([#127](https://github.com/anthropics/anthropic-sdk-typescript/issues/127)) ([9769751](https://github.com/anthropics/anthropic-sdk-typescript/commit/9769751b84853822e3e6596110ecb2c367f07438))
+* **types:** remove footgun with streaming params ([#125](https://github.com/anthropics/anthropic-sdk-typescript/issues/125)) ([3ed67b6](https://github.com/anthropics/anthropic-sdk-typescript/commit/3ed67b670bae14bc586df224aa57dd4dfa6e71f5))
+
+
+### Bug Fixes
+
+* **client:** fix TypeError when a request gets retried ([#117](https://github.com/anthropics/anthropic-sdk-typescript/issues/117)) ([0ade979](https://github.com/anthropics/anthropic-sdk-typescript/commit/0ade979a322c07f9a8f5322407b38352fe99b3ce))
+* **core:** fix navigator check for strange environments ([#124](https://github.com/anthropics/anthropic-sdk-typescript/issues/124)) ([c783604](https://github.com/anthropics/anthropic-sdk-typescript/commit/c7836040017d5ce35204c07be0b018e87e827fdb))
+* **types:** add catch-all overload to streaming methods ([#123](https://github.com/anthropics/anthropic-sdk-typescript/issues/123)) ([7c229a2](https://github.com/anthropics/anthropic-sdk-typescript/commit/7c229a24e6751bad22acb8c544113713140120fd))
+
+
+### Documentation
+
+* **readme:** fix typo ([#121](https://github.com/anthropics/anthropic-sdk-typescript/issues/121)) ([c5dbc3f](https://github.com/anthropics/anthropic-sdk-typescript/commit/c5dbc3fe89c84a728b6a4d7a4f6eadb228ac5688))
+
+
+### Chores
+
+* assign default reviewers to release PRs ([#115](https://github.com/anthropics/anthropic-sdk-typescript/issues/115)) ([1df3965](https://github.com/anthropics/anthropic-sdk-typescript/commit/1df3965a10256d30f8ce2af8d9890a26522117a9))
+* **internal:** add missing eslint-plugin-prettier ([#122](https://github.com/anthropics/anthropic-sdk-typescript/issues/122)) ([66bede0](https://github.com/anthropics/anthropic-sdk-typescript/commit/66bede0ae3ed7b5baa002bbb0c87b4156306f982))
+* **internal:** fix error happening in CloudFlare pages ([#116](https://github.com/anthropics/anthropic-sdk-typescript/issues/116)) ([b0dc7b3](https://github.com/anthropics/anthropic-sdk-typescript/commit/b0dc7b3b14520ce1f66c2b9d6a0f5aae4028985b))
+* **internal:** minor reformatting of code ([#120](https://github.com/anthropics/anthropic-sdk-typescript/issues/120)) ([4bcaf9e](https://github.com/anthropics/anthropic-sdk-typescript/commit/4bcaf9e30a312284cb22c2084e8242ad7d181ba8))
+
 ## [0.6.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.5.10...v0.6.0) (2023-08-12)
 
 
