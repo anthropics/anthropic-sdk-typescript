@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/sdk",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Client library for the Anthropic API",
   "author": "Anthropic <support@anthropic.com>",
   "types": "dist/index.d.ts",
