@@ -94,8 +94,6 @@ export class Anthropic extends Core.APIClient {
     authToken = Core.readEnv('ANTHROPIC_AUTH_TOKEN') ?? null,
     ...opts
   }: ClientOptions = {}) {
-    undefined;
-
     const options: ClientOptions = {
       apiKey,
       authToken,
