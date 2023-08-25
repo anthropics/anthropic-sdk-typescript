@@ -120,9 +120,9 @@ export class Anthropic extends Core.APIClient {
     return this._options.defaultQuery;
   }
 
-  protected override defaultHeaders(): Core.Headers {
+  protected override defaultHeaders(opts: Core.FinalRequestOptions): Core.Headers {
     return {
-      ...super.defaultHeaders(),
+      ...super.defaultHeaders(opts),
       'anthropic-version': '2023-06-01',
       ...this._options.defaultHeaders,
     };
@@ -148,26 +148,26 @@ export class Anthropic extends Core.APIClient {
     );
   }
 
-  protected override authHeaders(): Core.Headers {
-    const apiKeyHeader = this.apiKeyHeader();
+  protected override authHeaders(opts: Core.FinalRequestOptions): Core.Headers {
+    const apiKeyHeader = this.apiKeyHeader(opts);
     if (apiKeyHeader != null && !Core.isEmptyObj(apiKeyHeader)) {
       return apiKeyHeader;
     }
-    const authTokenBearer = this.authTokenBearer();
+    const authTokenBearer = this.authTokenBearer(opts);
     if (authTokenBearer != null && !Core.isEmptyObj(authTokenBearer)) {
       return authTokenBearer;
     }
     return {};
   }
 
-  protected apiKeyHeader(): Core.Headers {
+  protected apiKeyHeader(opts: Core.FinalRequestOptions): Core.Headers {
     if (this.apiKey == null) {
       return {};
     }
     return { 'X-Api-Key': this.apiKey };
   }
 
-  protected authTokenBearer(): Core.Headers {
+  protected authTokenBearer(opts: Core.FinalRequestOptions): Core.Headers {
     if (this.authToken == null) {
       return {};
     }
