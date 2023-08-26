@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.6.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.1...v0.6.2) (2023-08-26)
+
+
+### Bug Fixes
+
+* **stream:** declare Stream.controller as public ([#132](https://github.com/anthropics/anthropic-sdk-typescript/issues/132)) ([ff33a89](https://github.com/anthropics/anthropic-sdk-typescript/commit/ff33a893747aa708133bab14e97fba34ec776303))
+
+
+### Refactors
+
+* remove unnecessary line in constructor ([#131](https://github.com/anthropics/anthropic-sdk-typescript/issues/131)) ([dcdf5e5](https://github.com/anthropics/anthropic-sdk-typescript/commit/dcdf5e5183e99ae91d170ca09cc6da5e5637783f))
+
+
+### Chores
+
+* **internal:** add helper method ([#133](https://github.com/anthropics/anthropic-sdk-typescript/issues/133)) ([4c6950a](https://github.com/anthropics/anthropic-sdk-typescript/commit/4c6950a489b818151127aa1a39c239e4fd58a06e))
+* **internal:** export HeadersInit type shim ([#129](https://github.com/anthropics/anthropic-sdk-typescript/issues/129)) ([bcd51bd](https://github.com/anthropics/anthropic-sdk-typescript/commit/bcd51bd12ad0854baf28b59dcada871889032515))
+
 ## [0.6.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.0...v0.6.1) (2023-08-23)
 
 
