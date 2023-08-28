@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.3 (2023-08-28)
+
+Full Changelog: [v0.6.2...v0.6.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.2...v0.6.3)
+
+### Bug Fixes
+
+* **types:** improve getNextPage() return type ([#137](https://github.com/anthropics/anthropic-sdk-typescript/issues/137)) ([713d603](https://github.com/anthropics/anthropic-sdk-typescript/commit/713d6032c2c3b3630314a9625a1672147ef19258))
+
+
+### Chores
+
+* **ci:** setup workflows to create releases and release PRs ([#135](https://github.com/anthropics/anthropic-sdk-typescript/issues/135)) ([56229d9](https://github.com/anthropics/anthropic-sdk-typescript/commit/56229d964733a8b00625dac4ff138b3ade7e4202))
+
 ## [0.6.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.1...v0.6.2) (2023-08-26)
 
 
