@@ -1,5 +1,5 @@
 import { multipartFormRequestOptions, createForm } from '@anthropic-ai/sdk/core';
-import { Blob } from '@anthropic-ai/sdk/_shims/formdata';
+import { Blob } from '@anthropic-ai/sdk/_shims/form-data';
 import { toFile } from '@anthropic-ai/sdk';
 
 describe('form data validation', () => {

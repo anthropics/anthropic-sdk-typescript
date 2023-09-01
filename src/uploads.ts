@@ -1,7 +1,7 @@
 import { type RequestOptions } from './core';
 import { type Readable } from '@anthropic-ai/sdk/_shims/node-readable';
 import { type BodyInit } from '@anthropic-ai/sdk/_shims/fetch';
-import { FormData, File, type Blob, type FilePropertyBag } from '@anthropic-ai/sdk/_shims/formdata';
+import { FormData, File, type Blob, type FilePropertyBag } from '@anthropic-ai/sdk/_shims/form-data';
 import { getMultipartRequestOptions } from '@anthropic-ai/sdk/_shims/getMultipartRequestOptions';
 import { fileFromPath } from '@anthropic-ai/sdk/_shims/fileFromPath';
 import { type FsReadStream, isFsReadStream } from '@anthropic-ai/sdk/_shims/node-readable';
