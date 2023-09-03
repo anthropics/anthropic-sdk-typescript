@@ -330,6 +330,8 @@ We are keen for your feedback; please open an [issue](https://www.github.com/ant
 
 ## Requirements
 
+TypeScript >= 4.5 is supported.
+
 The following runtimes are supported:
 
 - Node.js 16 LTS or later ([non-EOL](https://endoflife.date/nodejs)) versions.
