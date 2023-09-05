@@ -97,8 +97,8 @@ export class Anthropic extends Core.APIClient {
     const options: ClientOptions = {
       apiKey,
       authToken,
-      baseURL: `https://api.anthropic.com`,
       ...opts,
+      baseURL: opts.baseURL ?? `https://api.anthropic.com`,
     };
 
     super({
