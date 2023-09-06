@@ -90,6 +90,8 @@ yarn add @anthropic-ai/sdk
 
 ## Usage
 
+The full API of this library can be found in [api.md](https://www.github.com/anthropics/anthropic-sdk-typescript/blob/master/api.md).
+
 ```js
 import Anthropic from '@anthropic-ai/sdk';
 
