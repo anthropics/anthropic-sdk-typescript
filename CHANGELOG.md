@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.6.4 (2023-09-08)
+
+Full Changelog: [v0.6.3...v0.6.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.3...v0.6.4)
+
+### Features
+
+* **package:** add Bun export map ([#139](https://github.com/anthropics/anthropic-sdk-typescript/issues/139)) ([ba3310d](https://github.com/anthropics/anthropic-sdk-typescript/commit/ba3310d903cd5fda91168266335f4e445e60cad4))
+
+
+### Bug Fixes
+
+* **client:** fix TS errors that appear when users Go to Source in VSCode ([#142](https://github.com/anthropics/anthropic-sdk-typescript/issues/142)) ([f7bfbea](https://github.com/anthropics/anthropic-sdk-typescript/commit/f7bfbeaa54d364201bbe5cddf3132875ae2a3ccf))
+* **client:** handle case where the client is instantiated with a undefined baseURL ([#143](https://github.com/anthropics/anthropic-sdk-typescript/issues/143)) ([10e5203](https://github.com/anthropics/anthropic-sdk-typescript/commit/10e52034990d90dcdaf26672ea384545b88ddf35))
+* **client:** use explicit file extensions in _shims imports ([#141](https://github.com/anthropics/anthropic-sdk-typescript/issues/141)) ([10fd687](https://github.com/anthropics/anthropic-sdk-typescript/commit/10fd68742a202c5c0a8b520db190c239dce9b676))
+* fix module not found errors in Vercel edge ([#148](https://github.com/anthropics/anthropic-sdk-typescript/issues/148)) ([72e51a1](https://github.com/anthropics/anthropic-sdk-typescript/commit/72e51a170855281a8d099b00c6fb1e9ccb276212))
+* **readme:** update link to api.md to use the correct branch ([#145](https://github.com/anthropics/anthropic-sdk-typescript/issues/145)) ([5db78ed](https://github.com/anthropics/anthropic-sdk-typescript/commit/5db78edec4826f86b2fc21ee3f470b49a4987029))
+
+
+### Chores
+
+* **internal:** export helper from core ([#147](https://github.com/anthropics/anthropic-sdk-typescript/issues/147)) ([7e79de1](https://github.com/anthropics/anthropic-sdk-typescript/commit/7e79de14edeab8110d740e996653e9f9cc2299a4))
+
+
+### Documentation
+
+* **readme:** add link to api.md ([#144](https://github.com/anthropics/anthropic-sdk-typescript/issues/144)) ([716c9f0](https://github.com/anthropics/anthropic-sdk-typescript/commit/716c9f0714c0e9c26cb6cdcb007457aff1284cf4))
+
 ## 0.6.3 (2023-08-28)
 
 Full Changelog: [v0.6.2...v0.6.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.2...v0.6.3)
