@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { toFile, type ResponseLike } from '@anthropic-ai/sdk/uploads';
-import { File } from '@anthropic-ai/sdk/_shims/form-data';
+import { File } from '@anthropic-ai/sdk/_shims/index';
 
 class MyClass {
   name: string = 'foo';

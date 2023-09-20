@@ -3,7 +3,7 @@
 import * as Core from './core';
 import * as API from './resources/index';
 import * as Errors from './error';
-import type { Agent } from '@anthropic-ai/sdk/_shims/agent';
+import { type Agent } from './_shims/index';
 import * as Uploads from './uploads';
 
 export interface ClientOptions {

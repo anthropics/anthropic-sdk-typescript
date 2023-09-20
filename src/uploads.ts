@@ -1,12 +1,15 @@
 import { type RequestOptions } from './core';
-import { type Readable } from '@anthropic-ai/sdk/_shims/node-readable';
-import { type BodyInit } from '@anthropic-ai/sdk/_shims/fetch';
-import { FormData, File, type Blob, type FilePropertyBag } from '@anthropic-ai/sdk/_shims/form-data';
-import { getMultipartRequestOptions } from '@anthropic-ai/sdk/_shims/getMultipartRequestOptions';
-import { fileFromPath } from '@anthropic-ai/sdk/_shims/fileFromPath';
-import { type FsReadStream, isFsReadStream } from '@anthropic-ai/sdk/_shims/node-readable';
-
-export { fileFromPath };
+import {
+  FormData,
+  File,
+  type Blob,
+  type FilePropertyBag,
+  getMultipartRequestOptions,
+  type FsReadStream,
+  isFsReadStream,
+} from './_shims/index';
+import { MultipartBody } from './_shims/MultipartBody';
+export { fileFromPath } from './_shims/index';
 
 type BlobLikePart = string | ArrayBuffer | ArrayBufferView | BlobLike | Uint8Array | DataView;
 export type BlobPart = string | ArrayBuffer | ArrayBufferView | Blob | Uint8Array | DataView;
@@ -174,13 +177,6 @@ const getStringFromMaybeBuffer = (x: string | Buffer | unknown): string | undefi
 
 const isAsyncIterableIterator = (value: any): value is AsyncIterableIterator<unknown> =>
   value != null && typeof value === 'object' && typeof value[Symbol.asyncIterator] === 'function';
-
-export class MultipartBody {
-  constructor(public body: Readable | BodyInit) {}
-  get [Symbol.toStringTag](): string {
-    return 'MultipartBody';
-  }
-}
 
 export const isMultipartBody = (body: any): body is MultipartBody =>
   body && typeof body === 'object' && body.body && body[Symbol.toStringTag] === 'MultipartBody';
