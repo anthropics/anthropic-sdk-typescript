@@ -2,7 +2,7 @@
 
 [![NPM version](https://img.shields.io/npm/v/@anthropic-ai/sdk.svg)](https://npmjs.org/package/@anthropic-ai/sdk)
 
-This library provides convenient access to the Anthropic TypeScript REST API from server-side TypeScript or JavaScript.
+This library provides convenient access to the Anthropic REST API from server-side TypeScript or JavaScript.
 
 ## Migration from v0.4.x and below
 
