@@ -1,6 +1,6 @@
 {
   "include": ["src", "tests", "examples"],
-  "exclude": ["src/_shims/*.deno.ts"],
+  "exclude": ["src/_shims/**/*-deno.ts"],
   "compilerOptions": {
     "target": "es2019",
     "lib": ["es2020"],
@@ -9,9 +9,9 @@
     "esModuleInterop": true,
     "baseUrl": "./",
     "paths": {
-      "@anthropic-ai/sdk/_shims/*": ["src/_shims/*-node"],
-      "@anthropic-ai/sdk": ["src/index.ts"],
+      "@anthropic-ai/sdk/_shims/auto/*": ["src/_shims/auto/*-node"],
       "@anthropic-ai/sdk/*": ["src/*"],
+      "@anthropic-ai/sdk": ["src/index.ts"],
       "digest-fetch": ["./typings/digest-fetch"]
     },
     "noEmit": true,

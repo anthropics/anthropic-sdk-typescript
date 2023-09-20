@@ -1,5 +1,5 @@
 import { createResponseHeaders } from '@anthropic-ai/sdk/core';
-import { Headers } from '@anthropic-ai/sdk/_shims/fetch';
+import { Headers } from '@anthropic-ai/sdk/_shims/index';
 
 describe('response parsing', () => {
   // TODO: test unicode characters
