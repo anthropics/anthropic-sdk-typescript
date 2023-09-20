@@ -1,4 +1,4 @@
-import type { Response } from '@anthropic-ai/sdk/_shims/fetch';
+import { type Response } from './_shims/index';
 
 import { safeJSON, createResponseHeaders } from '@anthropic-ai/sdk/core';
 import { APIError } from '@anthropic-ai/sdk/error';

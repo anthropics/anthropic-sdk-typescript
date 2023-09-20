@@ -57,7 +57,11 @@
       "hidden": true
     }
   ],
-  "reviewers": ["RobertCraigie"],
+  "reviewers": [
+    "RobertCraigie"
+  ],
   "release-type": "node",
-  "extra-files": ["src/version.ts"]
+  "extra-files": [
+    "src/version.ts"
+  ]
 }
