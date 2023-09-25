@@ -178,6 +178,7 @@ export class Anthropic extends Core.APIClient {
   static HUMAN_PROMPT = '\n\nHuman:';
   static AI_PROMPT = '\n\nAssistant:';
 
+  static AnthropicError = Errors.AnthropicError;
   static APIError = Errors.APIError;
   static APIConnectionError = Errors.APIConnectionError;
   static APIConnectionTimeoutError = Errors.APIConnectionTimeoutError;
@@ -195,6 +196,7 @@ export class Anthropic extends Core.APIClient {
 export const { HUMAN_PROMPT, AI_PROMPT } = Anthropic;
 
 export const {
+  AnthropicError,
   APIError,
   APIConnectionError,
   APIConnectionTimeoutError,
