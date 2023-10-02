@@ -5,7 +5,7 @@ import { Response } from 'node-fetch';
 
 const anthropic = new Anthropic({
   apiKey: 'something1234',
-  baseURL: 'http://127.0.0.1:4010',
+  baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
   authToken: 'my-auth-token',
 });
 
