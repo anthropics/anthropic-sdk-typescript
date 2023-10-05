@@ -29,6 +29,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
       this.controller.abort();
       throw new AnthropicError(`Attempted to iterate over a response with no body`);
     }
+
     const lineDecoder = new LineDecoder();
 
     const iter = readableStreamAsyncIterable<Bytes>(this.response.body);
