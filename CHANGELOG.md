@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.6.5 (2023-10-11)
+
+Full Changelog: [v0.6.4...v0.6.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.4...v0.6.5)
+
+### Features
+
+* **client:** handle retry-after with a date ([#162](https://github.com/anthropics/anthropic-sdk-typescript/issues/162)) ([31bd609](https://github.com/anthropics/anthropic-sdk-typescript/commit/31bd60905858a6532414665a1368ae9f5fd29370))
+* **client:** retry on 408 Request Timeout ([#151](https://github.com/anthropics/anthropic-sdk-typescript/issues/151)) ([3523ffe](https://github.com/anthropics/anthropic-sdk-typescript/commit/3523ffe5647448d5a5960b1339c9a17374e85dd5))
+* **client:** support importing node or web shims manually ([#157](https://github.com/anthropics/anthropic-sdk-typescript/issues/157)) ([c1237fe](https://github.com/anthropics/anthropic-sdk-typescript/commit/c1237feaea9ca2d244720f2f75e023450a78019f))
+* **errors:** add status code to error message ([#155](https://github.com/anthropics/anthropic-sdk-typescript/issues/155)) ([76cf128](https://github.com/anthropics/anthropic-sdk-typescript/commit/76cf128b68f206038945ac4f54f6f50e8a6a2c1b))
+* **package:** export a root error type ([#160](https://github.com/anthropics/anthropic-sdk-typescript/issues/160)) ([51d8d60](https://github.com/anthropics/anthropic-sdk-typescript/commit/51d8d60b72fbe99dcb4d5a9ec32abbcb21ba1460))
+
+
+### Bug Fixes
+
+* **client:** eliminate circular imports, which cause runtime errors in webpack dev bundles ([#170](https://github.com/anthropics/anthropic-sdk-typescript/issues/170)) ([4a86733](https://github.com/anthropics/anthropic-sdk-typescript/commit/4a86733b9d11349fca041683ac9d89685133557d))
+* fix namespace exports regression ([#171](https://github.com/anthropics/anthropic-sdk-typescript/issues/171)) ([0689a91](https://github.com/anthropics/anthropic-sdk-typescript/commit/0689a9196619d968870b7fd2e1a0f037a1aee282))
+* prevent ReferenceError, update compatibility to ES2020 and Node 18+ ([#169](https://github.com/anthropics/anthropic-sdk-typescript/issues/169)) ([9753314](https://github.com/anthropics/anthropic-sdk-typescript/commit/9753314b7e36a270bb4c29f2981c521ec9c17773))
+
+
+### Chores
+
+* **internal:** bump lock file ([#159](https://github.com/anthropics/anthropic-sdk-typescript/issues/159)) ([e6030fa](https://github.com/anthropics/anthropic-sdk-typescript/commit/e6030fa915f26569f9c48c478a5e6c01910a6557))
+* **internal:** minor formatting improvement ([#168](https://github.com/anthropics/anthropic-sdk-typescript/issues/168)) ([6447608](https://github.com/anthropics/anthropic-sdk-typescript/commit/644760883802bc2769a916fa477f2c6491f018fd))
+* **internal:** update lock file ([#161](https://github.com/anthropics/anthropic-sdk-typescript/issues/161)) ([370ce3c](https://github.com/anthropics/anthropic-sdk-typescript/commit/370ce3c34b87591071fefc8b53977078603b6ca4))
+* **internal:** update lock file ([#163](https://github.com/anthropics/anthropic-sdk-typescript/issues/163)) ([4a37181](https://github.com/anthropics/anthropic-sdk-typescript/commit/4a37181e0ceada13e3ed61d6df7aa34492dc57a7))
+* **internal:** update lock file ([#164](https://github.com/anthropics/anthropic-sdk-typescript/issues/164)) ([939c155](https://github.com/anthropics/anthropic-sdk-typescript/commit/939c155277e67c19f7b2ff956f7cf0d40d4671cd))
+
+
+### Documentation
+
+* **api.md:** add shared models ([#158](https://github.com/anthropics/anthropic-sdk-typescript/issues/158)) ([33e5518](https://github.com/anthropics/anthropic-sdk-typescript/commit/33e5518bdeca83bbbde0e144e444609f569f1477))
+* declare Bun 1.0 officially supported ([#154](https://github.com/anthropics/anthropic-sdk-typescript/issues/154)) ([429d8f4](https://github.com/anthropics/anthropic-sdk-typescript/commit/429d8f44b113a91599f0ebb69128636da82a5050))
+* **readme:** remove incorrect wording in opening ([#156](https://github.com/anthropics/anthropic-sdk-typescript/issues/156)) ([01973fe](https://github.com/anthropics/anthropic-sdk-typescript/commit/01973fe50b13ce2981656f8c13603975e7c43efd))
+
 ## 0.6.4 (2023-09-08)
 
 Full Changelog: [v0.6.3...v0.6.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.3...v0.6.4)
