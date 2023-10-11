@@ -1,10 +1,10 @@
 // File generated from our OpenAPI spec by Stainless.
 
 import * as Core from './core';
-import * as API from './resources/index';
 import * as Errors from './error';
 import { type Agent } from './_shims/index';
 import * as Uploads from './uploads';
+import * as API from '@anthropic-ai/sdk/resources/index';
 
 export interface ClientOptions {
   /**
@@ -222,10 +222,10 @@ export namespace Anthropic {
   export import RequestOptions = Core.RequestOptions;
 
   export import Completions = API.Completions;
-  export import Completion = API.Completion;
-  export import CompletionCreateParams = API.CompletionCreateParams;
-  export import CompletionCreateParamsNonStreaming = API.CompletionCreateParamsNonStreaming;
-  export import CompletionCreateParamsStreaming = API.CompletionCreateParamsStreaming;
+  export type Completion = API.Completion;
+  export type CompletionCreateParams = API.CompletionCreateParams;
+  export type CompletionCreateParamsNonStreaming = API.CompletionCreateParamsNonStreaming;
+  export type CompletionCreateParamsStreaming = API.CompletionCreateParamsStreaming;
 }
 
 export default Anthropic;
