@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.6 (2023-10-11)
+
+Full Changelog: [v0.6.5...v0.6.6](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.5...v0.6.6)
+
+### Chores
+
+* update README ([#173](https://github.com/anthropics/anthropic-sdk-typescript/issues/173)) ([5f50c1b](https://github.com/anthropics/anthropic-sdk-typescript/commit/5f50c1b2f160610c89f158a10d83029c356d925a))
+
 ## 0.6.5 (2023-10-11)
 
 Full Changelog: [v0.6.4...v0.6.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.4...v0.6.5)
