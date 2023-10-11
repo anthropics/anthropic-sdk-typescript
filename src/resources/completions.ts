@@ -3,7 +3,7 @@
 import * as Core from '@anthropic-ai/sdk/core';
 import { APIPromise } from '@anthropic-ai/sdk/core';
 import { APIResource } from '@anthropic-ai/sdk/resource';
-import * as API from './index';
+import * as CompletionsAPI from '@anthropic-ai/sdk/resources/completions';
 import { Stream } from '@anthropic-ai/sdk/streaming';
 
 export class Completions extends APIResource {
@@ -156,8 +156,8 @@ export namespace CompletionCreateParams {
     user_id?: string;
   }
 
-  export type CompletionCreateParamsNonStreaming = API.CompletionCreateParamsNonStreaming;
-  export type CompletionCreateParamsStreaming = API.CompletionCreateParamsStreaming;
+  export type CompletionCreateParamsNonStreaming = CompletionsAPI.CompletionCreateParamsNonStreaming;
+  export type CompletionCreateParamsStreaming = CompletionsAPI.CompletionCreateParamsStreaming;
 }
 
 export interface CompletionCreateParamsNonStreaming extends CompletionCreateParamsBase {
@@ -183,8 +183,8 @@ export interface CompletionCreateParamsStreaming extends CompletionCreateParamsB
 }
 
 export namespace Completions {
-  export import Completion = API.Completion;
-  export import CompletionCreateParams = API.CompletionCreateParams;
-  export import CompletionCreateParamsNonStreaming = API.CompletionCreateParamsNonStreaming;
-  export import CompletionCreateParamsStreaming = API.CompletionCreateParamsStreaming;
+  export type Completion = CompletionsAPI.Completion;
+  export type CompletionCreateParams = CompletionsAPI.CompletionCreateParams;
+  export type CompletionCreateParamsNonStreaming = CompletionsAPI.CompletionCreateParamsNonStreaming;
+  export type CompletionCreateParamsStreaming = CompletionsAPI.CompletionCreateParamsStreaming;
 }
