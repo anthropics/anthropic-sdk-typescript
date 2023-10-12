@@ -23,7 +23,7 @@ describe('instantiate client', () => {
     const client = new Anthropic({
       baseURL: 'http://localhost:5000/',
       defaultHeaders: { 'X-My-Default-Header': '2' },
-      apiKey: 'my api key',
+      apiKey: 'my-anthropic-api-key',
     });
 
     test('they are used in the request', () => {
@@ -55,7 +55,7 @@ describe('instantiate client', () => {
       const client = new Anthropic({
         baseURL: 'http://localhost:5000/',
         defaultQuery: { apiVersion: 'foo' },
-        apiKey: 'my api key',
+        apiKey: 'my-anthropic-api-key',
       });
       expect(client.buildURL('/foo', null)).toEqual('http://localhost:5000/foo?apiVersion=foo');
     });
@@ -64,7 +64,7 @@ describe('instantiate client', () => {
       const client = new Anthropic({
         baseURL: 'http://localhost:5000/',
         defaultQuery: { apiVersion: 'foo', hello: 'world' },
-        apiKey: 'my api key',
+        apiKey: 'my-anthropic-api-key',
       });
       expect(client.buildURL('/foo', null)).toEqual('http://localhost:5000/foo?apiVersion=foo&hello=world');
     });
@@ -73,7 +73,7 @@ describe('instantiate client', () => {
       const client = new Anthropic({
         baseURL: 'http://localhost:5000/',
         defaultQuery: { hello: 'world' },
-        apiKey: 'my api key',
+        apiKey: 'my-anthropic-api-key',
       });
       expect(client.buildURL('/foo', { hello: undefined })).toEqual('http://localhost:5000/foo');
     });
@@ -82,7 +82,7 @@ describe('instantiate client', () => {
   test('custom fetch', async () => {
     const client = new Anthropic({
       baseURL: 'http://localhost:5000/',
-      apiKey: 'my api key',
+      apiKey: 'my-anthropic-api-key',
       fetch: (url) => {
         return Promise.resolve(
           new Response(JSON.stringify({ url, custom: true }), {
@@ -99,7 +99,7 @@ describe('instantiate client', () => {
   test('custom signal', async () => {
     const client = new Anthropic({
       baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
-      apiKey: 'my api key',
+      apiKey: 'my-anthropic-api-key',
       fetch: (...args) => {
         return new Promise((resolve, reject) =>
           setTimeout(
@@ -124,56 +124,48 @@ describe('instantiate client', () => {
 
   describe('baseUrl', () => {
     test('trailing slash', () => {
-      const client = new Anthropic({ baseURL: 'http://localhost:5000/custom/path/', apiKey: 'my api key' });
+      const client = new Anthropic({
+        baseURL: 'http://localhost:5000/custom/path/',
+        apiKey: 'my-anthropic-api-key',
+      });
       expect(client.buildURL('/foo', null)).toEqual('http://localhost:5000/custom/path/foo');
     });
 
     test('no trailing slash', () => {
-      const client = new Anthropic({ baseURL: 'http://localhost:5000/custom/path', apiKey: 'my api key' });
+      const client = new Anthropic({
+        baseURL: 'http://localhost:5000/custom/path',
+        apiKey: 'my-anthropic-api-key',
+      });
       expect(client.buildURL('/foo', null)).toEqual('http://localhost:5000/custom/path/foo');
     });
   });
 
   test('maxRetries option is correctly set', () => {
-    const client = new Anthropic({ maxRetries: 1, apiKey: 'my api key' });
+    const client = new Anthropic({ maxRetries: 1, apiKey: 'my-anthropic-api-key' });
     expect(client.maxRetries).toEqual(1);
 
     // default
-    const client2 = new Anthropic({ apiKey: 'my api key' });
+    const client2 = new Anthropic({ apiKey: 'my-anthropic-api-key' });
     expect(client2.maxRetries).toEqual(2);
   });
 
-  test('with minimal arguments', () => {
-    // set API Key via env var
-    process.env['ANTHROPIC_API_KEY'] = 'env var api key';
+  test('with environment variable arguments', () => {
+    // set options via env var
+    process.env['ANTHROPIC_API_KEY'] = 'my-anthropic-api-key';
     const client = new Anthropic();
-    expect(client.apiKey).toBe('env var api key');
+    expect(client.apiKey).toBe('my-anthropic-api-key');
   });
 
-  test('with apiKey argument', () => {
-    process.env['ANTHROPIC_API_KEY'] = 'env var api key';
-
-    const client = new Anthropic({ apiKey: 'another api key' });
-    expect(client.apiKey).toBe('another api key');
-  });
-
-  test('with options argument', () => {
-    process.env['ANTHROPIC_API_KEY'] = 'env var api key';
-
-    // apiKey and custom options
-    const client = new Anthropic({ apiKey: 'my api key', authToken: 'my-auth-token' });
-    expect(client.apiKey).toBe('my api key');
-  });
-
-  test('with disabled authentication', () => {
-    process.env['ANTHROPIC_API_KEY'] = 'env var api key';
-    const client = new Anthropic({ apiKey: null, authToken: 'my-auth-token' });
-    expect(client.apiKey).toBeNull();
+  test('with overriden environment variable arguments', () => {
+    // set options via env var
+    process.env['ANTHROPIC_API_KEY'] = 'another my-anthropic-api-key';
+    const client = new Anthropic({ apiKey: 'my-anthropic-api-key' });
+    expect(client.apiKey).toBe('my-anthropic-api-key');
   });
 });
 
 describe('request building', () => {
-  const client = new Anthropic({ apiKey: 'my api key' });
+  const client = new Anthropic({ apiKey: 'my-anthropic-api-key' });
 
   describe('Content-Length', () => {
     test('handles multi-byte characters', () => {
@@ -199,7 +191,7 @@ describe('retries', () => {
       return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
     };
 
-    const client = new Anthropic({ apiKey: 'my api key', timeout: 2000, fetch: testFetch });
+    const client = new Anthropic({ apiKey: 'my-anthropic-api-key', timeout: 2000, fetch: testFetch });
 
     expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
     expect(count).toEqual(2);
