@@ -17,3 +17,4 @@ jobs:
           bash ./bin/check-release-environment
         env:
           STAINLESS_API_KEY: ${{ secrets.STAINLESS_API_KEY }}
+          NPM_TOKEN: ${{ secrets.ANTHROPIC_NPM_TOKEN }}
