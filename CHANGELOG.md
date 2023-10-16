@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.6.7 (2023-10-16)
+
+Full Changelog: [v0.6.6...v0.6.7](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.6...v0.6.7)
+
+### Bug Fixes
+
+* improve status code in error messages ([#183](https://github.com/anthropics/anthropic-sdk-typescript/issues/183)) ([7d3bbd4](https://github.com/anthropics/anthropic-sdk-typescript/commit/7d3bbd485c9628bb7c3fb5d1660934198981fcc7))
+
+
+### Chores
+
+* add case insensitive get header function ([#178](https://github.com/anthropics/anthropic-sdk-typescript/issues/178)) ([13c398d](https://github.com/anthropics/anthropic-sdk-typescript/commit/13c398dee3ff2eaa3b6046630eda9831580348f4))
+* **internal:** add debug logs for stream responses ([#182](https://github.com/anthropics/anthropic-sdk-typescript/issues/182)) ([a1fa1b7](https://github.com/anthropics/anthropic-sdk-typescript/commit/a1fa1b7766248f3178cb55ac5342409a57c1dbb8))
+* update comment ([#179](https://github.com/anthropics/anthropic-sdk-typescript/issues/179)) ([27a425e](https://github.com/anthropics/anthropic-sdk-typescript/commit/27a425ee64dcdc569b92ac27b501bca0dadf2dea))
+
+
+### Documentation
+
+* organisation -&gt; organization (UK to US English) ([#185](https://github.com/anthropics/anthropic-sdk-typescript/issues/185)) ([70257d4](https://github.com/anthropics/anthropic-sdk-typescript/commit/70257d43296f5b448b5649a34b67a3a3a26704ab))
+
+
+### Refactors
+
+* **streaming:** change Stream constructor signature ([#174](https://github.com/anthropics/anthropic-sdk-typescript/issues/174)) ([1951824](https://github.com/anthropics/anthropic-sdk-typescript/commit/195182432c41a2a8a4fc425788267e60f36f5820))
+* **test:** refactor authentication tests ([#176](https://github.com/anthropics/anthropic-sdk-typescript/issues/176)) ([f59daad](https://github.com/anthropics/anthropic-sdk-typescript/commit/f59daad06cab4c5df3068ea7f71ecbb20d8af141))
+
 ## 0.6.6 (2023-10-11)
 
 Full Changelog: [v0.6.5...v0.6.6](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.5...v0.6.6)
