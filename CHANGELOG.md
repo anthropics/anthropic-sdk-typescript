@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.8 (2023-10-17)
+
+Full Changelog: [v0.6.7...v0.6.8](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.7...v0.6.8)
+
+### Bug Fixes
+
+* import web-streams-polyfill without overriding globals ([#186](https://github.com/anthropics/anthropic-sdk-typescript/issues/186)) ([e774e17](https://github.com/anthropics/anthropic-sdk-typescript/commit/e774e1774642668e080de5233aeaa33cf5f1b3ae))
+
 ## 0.6.7 (2023-10-16)
 
 Full Changelog: [v0.6.6...v0.6.7](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.6...v0.6.7)
