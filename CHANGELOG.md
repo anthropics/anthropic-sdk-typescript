@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0 (2023-10-19)
+
+Full Changelog: [v0.6.8...v0.7.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.8...v0.7.0)
+
+### Features
+
+* handle 204 No Content gracefully ([#190](https://github.com/anthropics/anthropic-sdk-typescript/issues/190)) ([c8a8bec](https://github.com/anthropics/anthropic-sdk-typescript/commit/c8a8becd127e5275333900c3bb76955605ae0f02))
+
 ## 0.6.8 (2023-10-17)
 
 Full Changelog: [v0.6.7...v0.6.8](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.7...v0.6.8)
