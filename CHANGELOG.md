@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0 (2023-10-24)
+
+Full Changelog: [v0.7.0...v0.8.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.7.0...v0.8.0)
+
+### Features
+
+* **client:** adjust retry behavior to be exponential backoff ([#192](https://github.com/anthropics/anthropic-sdk-typescript/issues/192)) ([747afe2](https://github.com/anthropics/anthropic-sdk-typescript/commit/747afe2bdbbe3a5489e9b9bc6ed4fcf2a276e40b))
+
 ## 0.7.0 (2023-10-19)
 
 Full Changelog: [v0.6.8...v0.7.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.6.8...v0.7.0)
