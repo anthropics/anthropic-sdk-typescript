@@ -141,8 +141,8 @@ describe('instantiate client', () => {
   });
 
   test('maxRetries option is correctly set', () => {
-    const client = new Anthropic({ maxRetries: 1, apiKey: 'my-anthropic-api-key' });
-    expect(client.maxRetries).toEqual(1);
+    const client = new Anthropic({ maxRetries: 4, apiKey: 'my-anthropic-api-key' });
+    expect(client.maxRetries).toEqual(4);
 
     // default
     const client2 = new Anthropic({ apiKey: 'my-anthropic-api-key' });
