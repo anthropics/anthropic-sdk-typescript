@@ -109,7 +109,7 @@ async function postprocess() {
           // convert self-references in dist/src to relative paths
           let relativePath = path.relative(
             path.dirname(file),
-            path.join(distSrcDir, importPath.substring('openai/'.length)),
+            path.join(distSrcDir, importPath.substring('@anthropic-ai/sdk/'.length)),
           );
           if (!relativePath.startsWith('.')) relativePath = `./${relativePath}`;
           return relativePath;
