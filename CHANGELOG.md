@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.1 (2023-10-25)
+
+Full Changelog: [v0.8.0...v0.8.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.8.0...v0.8.1)
+
+### Bug Fixes
+
+* typo in build script ([#197](https://github.com/anthropics/anthropic-sdk-typescript/issues/197)) ([212e990](https://github.com/anthropics/anthropic-sdk-typescript/commit/212e9903e9b72b3169f450d8ab11ebd384951dba))
+
 ## 0.8.0 (2023-10-24)
 
 Full Changelog: [v0.7.0...v0.8.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.7.0...v0.8.0)
