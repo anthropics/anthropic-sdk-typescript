@@ -89,8 +89,10 @@ export class Stream<Item> implements AsyncIterable<Item> {
     return new Stream(iterator, controller);
   }
 
-  // Generates a Stream from a newline-separated ReadableStream where each item
-  // is a JSON Value.
+  /**
+   * Generates a Stream from a newline-separated ReadableStream
+   * where each item is a JSON value.
+   */
   static fromReadableStream<Item>(readableStream: ReadableStream, controller: AbortController) {
     let consumed = false;
 
@@ -138,6 +140,10 @@ export class Stream<Item> implements AsyncIterable<Item> {
     return this.iterator();
   }
 
+  /**
+   * Splits the stream into two streams which can be
+   * independently read from at different speeds.
+   */
   tee(): [Stream<Item>, Stream<Item>] {
     const left: Array<Promise<IteratorResult<Item>>> = [];
     const right: Array<Promise<IteratorResult<Item>>> = [];
@@ -162,8 +168,11 @@ export class Stream<Item> implements AsyncIterable<Item> {
     ];
   }
 
-  // Converts this stream to a newline-separated ReadableStream of JSON Stringified values in the stream
-  // which can be turned back into a Stream with Stream.fromReadableStream.
+  /**
+   * Converts this stream to a newline-separated ReadableStream of
+   * JSON stringified values in the stream
+   * which can be turned back into a Stream with `Stream.fromReadableStream()`.
+   */
   toReadableStream(): ReadableStream {
     const self = this;
     let iter: AsyncIterator<Item>;
