@@ -263,6 +263,29 @@ On timeout, an `APIConnectionTimeoutError` is thrown.
 
 Note that requests which time out will be [retried twice by default](#retries).
 
+## Default Headers
+
+We automatically send the `anthropic-version` header set to `2023-06-01`.
+
+If you need to, you can override it by setting default headers on a per-request basis.
+
+Be aware that doing so may result in incorrect types and other unexpected or undefined behavior in the SDK.
+
+```ts
+import Anthropic from '@anthropic-ai/sdk';
+
+const anthropic = new Anthropic();
+
+const completion = await anthropic.completions.create(
+  {
+    max_tokens_to_sample: 300,
+    model: 'claude-2',
+    prompt: `${Anthropic.HUMAN_PROMPT} Where can I get a good coffee in my neighbourhood?${Anthropic.AI_PROMPT}`,
+  },
+  { headers: { 'anthropic-version': 'My-Custom-Value' } },
+);
+```
+
 ## Advanced Usage
 
 ### Accessing raw Response data (e.g., headers)
