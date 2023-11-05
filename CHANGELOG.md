@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.9.0 (2023-11-05)
+
+Full Changelog: [v0.8.1...v0.9.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.8.1...v0.9.0)
+
+### Features
+
+* **client:** allow binary returns ([#203](https://github.com/anthropics/anthropic-sdk-typescript/issues/203)) ([5983d5e](https://github.com/anthropics/anthropic-sdk-typescript/commit/5983d5e5de327d6835c7baaea022914a101865a2))
+* **github:** include a devcontainer setup ([#202](https://github.com/anthropics/anthropic-sdk-typescript/issues/202)) ([ea97913](https://github.com/anthropics/anthropic-sdk-typescript/commit/ea97913a04a508da7704758b78a9b96d097be5a2))
+
+
+### Chores
+
+* **internal:** update gitignore ([#198](https://github.com/anthropics/anthropic-sdk-typescript/issues/198)) ([3048738](https://github.com/anthropics/anthropic-sdk-typescript/commit/3048738235b9dff9de19aae59ff66487dffb9e8e))
+* small cleanups ([#201](https://github.com/anthropics/anthropic-sdk-typescript/issues/201)) ([9f0a73d](https://github.com/anthropics/anthropic-sdk-typescript/commit/9f0a73d794fc110689ce1c67b68d0a68133adb8d))
+
+
+### Documentation
+
+* document customizing fetch ([#204](https://github.com/anthropics/anthropic-sdk-typescript/issues/204)) ([d2df724](https://github.com/anthropics/anthropic-sdk-typescript/commit/d2df7246ec244f2de73d359ffbff3f88acec781d))
+* fix github links ([#200](https://github.com/anthropics/anthropic-sdk-typescript/issues/200)) ([4038acd](https://github.com/anthropics/anthropic-sdk-typescript/commit/4038acd91f4de7c3b20efe7f76523d1e6970f5d9))
+* **readme:** mention version header ([#205](https://github.com/anthropics/anthropic-sdk-typescript/issues/205)) ([a8d8f07](https://github.com/anthropics/anthropic-sdk-typescript/commit/a8d8f07f9d4890195847b6ea86eb311e258e655f))
+
 ## 0.8.1 (2023-10-25)
 
 Full Changelog: [v0.8.0...v0.8.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.8.0...v0.8.1)
