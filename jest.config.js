@@ -7,5 +7,10 @@ module.exports = {
     '^@anthropic-ai/sdk/_shims/auto/(.*)$': '<rootDir>/src/_shims/auto/$1-node',
     '^@anthropic-ai/sdk/(.*)$': '<rootDir>/src/$1',
   },
-  modulePathIgnorePatterns: ['<rootDir>/ecosystem-tests/', '<rootDir>/dist/', '<rootDir>/deno_tests/'],
+  modulePathIgnorePatterns: [
+    '<rootDir>/ecosystem-tests/',
+    '<rootDir>/dist/',
+    '<rootDir>/deno/',
+    '<rootDir>/deno_tests/',
+  ],
 };
