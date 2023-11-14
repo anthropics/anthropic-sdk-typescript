@@ -23,9 +23,12 @@ export class Completions extends APIResource {
     body: CompletionCreateParams,
     options?: Core.RequestOptions,
   ): APIPromise<Completion> | APIPromise<Stream<Completion>> {
-    return this.post('/v1/complete', { body, timeout: 600000, ...options, stream: body.stream ?? false }) as
-      | APIPromise<Completion>
-      | APIPromise<Stream<Completion>>;
+    return this._client.post('/v1/complete', {
+      body,
+      timeout: 600000,
+      ...options,
+      stream: body.stream ?? false,
+    }) as APIPromise<Completion> | APIPromise<Stream<Completion>>;
   }
 }
 
