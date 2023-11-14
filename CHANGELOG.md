@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.9.1 (2023-11-14)
+
+Full Changelog: [v0.9.0...v0.9.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.9.0...v0.9.1)
+
+### Chores
+
+* **ci:** update release-please config ([#206](https://github.com/anthropics/anthropic-sdk-typescript/issues/206)) ([270b0b7](https://github.com/anthropics/anthropic-sdk-typescript/commit/270b0b725ea559ca4616ec8d8bac5a5cde1de0db))
+* **docs:** fix github links ([#208](https://github.com/anthropics/anthropic-sdk-typescript/issues/208)) ([b316603](https://github.com/anthropics/anthropic-sdk-typescript/commit/b3166033cffe31f5d11793ddd32e595161f1a2e6))
+* **internal:** update APIResource structure ([#211](https://github.com/anthropics/anthropic-sdk-typescript/issues/211)) ([0d6bbce](https://github.com/anthropics/anthropic-sdk-typescript/commit/0d6bbce8ff699b511133ee6bfb72c1244d85eb32))
+* **internal:** update jest config ([#210](https://github.com/anthropics/anthropic-sdk-typescript/issues/210)) ([b0c64eb](https://github.com/anthropics/anthropic-sdk-typescript/commit/b0c64eb9531d417f024567a4c74d9dd64743b889))
+* **internal:** update tsconfig ([#209](https://github.com/anthropics/anthropic-sdk-typescript/issues/209)) ([81b3e0b](https://github.com/anthropics/anthropic-sdk-typescript/commit/81b3e0b59801f737c6f1783e59eef8c1af77b1ad))
+
 ## 0.9.0 (2023-11-05)
 
 Full Changelog: [v0.8.1...v0.9.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.8.1...v0.9.0)
