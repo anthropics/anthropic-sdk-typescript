@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.10.0 (2023-11-21)
+
+Full Changelog: [v0.9.1...v0.10.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.9.1...v0.10.0)
+
+### Features
+
+* allow installing package directly from github ([#215](https://github.com/anthropics/anthropic-sdk-typescript/issues/215)) ([3de3f1b](https://github.com/anthropics/anthropic-sdk-typescript/commit/3de3f1b8124c110ead3ebedf709f4d5d088230cd))
+
+
+### Chores
+
+* **ci:** fix publish-npm ([#213](https://github.com/anthropics/anthropic-sdk-typescript/issues/213)) ([4ab77b7](https://github.com/anthropics/anthropic-sdk-typescript/commit/4ab77b7b323f22019193ba4f0a85fc89af193fbf))
+* **internal:** don't call prepare in dist ([#216](https://github.com/anthropics/anthropic-sdk-typescript/issues/216)) ([b031904](https://github.com/anthropics/anthropic-sdk-typescript/commit/b031904901a17878545cd8ce5c43f03cd364a8fe))
+
 ## 0.9.1 (2023-11-14)
 
 Full Changelog: [v0.9.0...v0.9.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.9.0...v0.9.1)
