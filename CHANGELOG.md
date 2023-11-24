@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.10.1 (2023-11-24)
+
+Full Changelog: [v0.10.0...v0.10.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.10.0...v0.10.1)
+
+### Chores
+
+* **internal:** remove file import and conditionally run prepare ([#217](https://github.com/anthropics/anthropic-sdk-typescript/issues/217)) ([8ac5c7a](https://github.com/anthropics/anthropic-sdk-typescript/commit/8ac5c7ae63a7aa4262ad95e0f4d6a509428de794))
+
 ## 0.10.0 (2023-11-21)
 
 Full Changelog: [v0.9.1...v0.10.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.9.1...v0.10.0)
