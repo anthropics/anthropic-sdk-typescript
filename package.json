@@ -15,7 +15,7 @@
     "prepack": "echo 'to pack, run yarn build && (cd dist; yarn pack)' && exit 1",
     "prepublishOnly": "echo 'to publish, run yarn build && (cd dist; yarn publish)' && exit 1",
     "format": "prettier --write --cache  --cache-strategy metadata . !dist",
-    "prepare": "npm run build",
+    "prepare": "if [ $(basename $(dirname $PWD)) = 'node_modules' ]; then npm run build; fi",
     "tsn": "ts-node -r tsconfig-paths/register",
     "lint": "eslint --ext ts,js .",
     "fix": "eslint --fix --ext ts,js ."
@@ -35,7 +35,6 @@
     "@types/jest": "^29.4.0",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.7.0",
-    "@anthropic-ai/sdk": "file:.",
     "eslint": "^8.49.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-unused-imports": "^2.0.0",
@@ -56,6 +55,10 @@
     "./shims/web.js",
     "./shims/web.mjs"
   ],
+  "imports": {
+    "@anthropic-ai/sdk": ".",
+    "@anthropic-ai/sdk/*": "./src/*"
+  },
   "exports": {
     "./_shims/auto/*": {
       "deno": {
