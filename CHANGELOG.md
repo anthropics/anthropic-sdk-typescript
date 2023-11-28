@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.2 (2023-11-28)
+
+Full Changelog: [v0.10.1...v0.10.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.10.1...v0.10.2)
+
 ## 0.10.1 (2023-11-24)
 
 Full Changelog: [v0.10.0...v0.10.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.10.0...v0.10.1)
