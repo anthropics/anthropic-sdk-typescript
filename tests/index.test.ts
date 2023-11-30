@@ -138,6 +138,21 @@ describe('instantiate client', () => {
       });
       expect(client.buildURL('/foo', null)).toEqual('http://localhost:5000/custom/path/foo');
     });
+
+    afterEach(() => {
+      process.env['SINK_BASE_URL'] = undefined;
+    });
+
+    test('explicit option', () => {
+      const client = new Anthropic({ baseURL: 'https://example.com', apiKey: 'my-anthropic-api-key' });
+      expect(client.baseURL).toEqual('https://example.com');
+    });
+
+    test('env variable', () => {
+      process.env['ANTHROPIC_BASE_URL'] = 'https://example.com/from_env';
+      const client = new Anthropic({ apiKey: 'my-anthropic-api-key' });
+      expect(client.baseURL).toEqual('https://example.com/from_env');
+    });
   });
 
   test('maxRetries option is correctly set', () => {
