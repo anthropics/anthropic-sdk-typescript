@@ -19,8 +19,10 @@ export interface ClientOptions {
 
   /**
    * Override the default base URL for the API, e.g., "https://api.example.com/v2/"
+   *
+   * Defaults to process.env['ANTHROPIC_BASE_URL'].
    */
-  baseURL?: string;
+  baseURL?: string | null | undefined;
 
   /**
    * The maximum amount of time (in milliseconds) that the client should wait for a response
@@ -82,9 +84,9 @@ export class Anthropic extends Core.APIClient {
   /**
    * API Client for interfacing with the Anthropic API.
    *
-   * @param {string | null} [opts.apiKey==process.env['ANTHROPIC_API_KEY'] ?? null]
-   * @param {string | null} [opts.authToken==process.env['ANTHROPIC_AUTH_TOKEN'] ?? null]
-   * @param {string} [opts.baseURL] - Override the default base URL for the API.
+   * @param {string | null} [opts.apiKey=process.env['ANTHROPIC_API_KEY'] ?? null]
+   * @param {string | null} [opts.authToken=process.env['ANTHROPIC_AUTH_TOKEN'] ?? null]
+   * @param {string} [opts.baseURL=process.env['ANTHROPIC_BASE_URL'] ?? https://api.anthropic.com] - Override the default base URL for the API.
    * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
    * @param {number} [opts.httpAgent] - An HTTP agent used to manage HTTP(s) connections.
    * @param {Core.Fetch} [opts.fetch] - Specify a custom `fetch` function implementation.
@@ -93,6 +95,7 @@ export class Anthropic extends Core.APIClient {
    * @param {Core.DefaultQuery} opts.defaultQuery - Default query parameters to include with every request to the API.
    */
   constructor({
+    baseURL = Core.readEnv('ANTHROPIC_BASE_URL'),
     apiKey = Core.readEnv('ANTHROPIC_API_KEY') ?? null,
     authToken = Core.readEnv('ANTHROPIC_AUTH_TOKEN') ?? null,
     ...opts
@@ -101,7 +104,7 @@ export class Anthropic extends Core.APIClient {
       apiKey,
       authToken,
       ...opts,
-      baseURL: opts.baseURL ?? `https://api.anthropic.com`,
+      baseURL: baseURL ?? `https://api.anthropic.com`,
     };
 
     super({
