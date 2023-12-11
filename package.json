@@ -8,6 +8,7 @@
   "type": "commonjs",
   "repository": "github:anthropics/anthropic-sdk-typescript",
   "license": "MIT",
+  "packageManager": "yarn@1.22.21",
   "private": false,
   "scripts": {
     "test": "bin/check-test-server && yarn jest",
