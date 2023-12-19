@@ -5,18 +5,28 @@ import Anthropic from '@anthropic-ai/sdk';
 const client = new Anthropic(); // gets API Key from environment variable ANTHROPIC_API_KEY
 
 async function main() {
-  const question = 'Hey Claude! How can I recursively list all files in a directory in Rust?';
+  const stream = client.beta.messages
+    .stream({
+      messages: [
+        {
+          role: 'user',
+          content: `Hey Claude! How can I recursively list all files in a directory in Rust?`,
+        },
+      ],
+      model: 'claude-2.1',
+      max_tokens: 1024,
+    })
+    // Once a content block is fully streamed, this event will fire
+    .on('contentBlock', (content) => console.log('contentBlock', content))
+    // Once a message is fully streamed, this event will fire
+    .on('message', (message) => console.log('message', message));
 
-  const stream = await client.completions.create({
-    prompt: `${Anthropic.HUMAN_PROMPT}${question}${Anthropic.AI_PROMPT}:`,
-    model: 'claude-2.1',
-    stream: true,
-    max_tokens_to_sample: 500,
-  });
-
-  for await (const completion of stream) {
-    process.stdout.write(completion.completion);
+  for await (const event of stream) {
+    console.log('event', event);
   }
+
+  const message = await stream.finalMessage();
+  console.log('finalMessage', message);
 }
 
 main().catch((err) => {
