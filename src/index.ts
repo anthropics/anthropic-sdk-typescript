@@ -121,6 +121,7 @@ export class Anthropic extends Core.APIClient {
   }
 
   completions: API.Completions = new API.Completions(this);
+  beta: API.Beta = new API.Beta(this);
 
   protected override defaultQuery(): Core.DefaultQuery | undefined {
     return this._options.defaultQuery;
@@ -234,6 +235,8 @@ export namespace Anthropic {
   export import CompletionCreateParams = API.CompletionCreateParams;
   export import CompletionCreateParamsNonStreaming = API.CompletionCreateParamsNonStreaming;
   export import CompletionCreateParamsStreaming = API.CompletionCreateParamsStreaming;
+
+  export import Beta = API.Beta;
 }
 
 export default Anthropic;

@@ -8,43 +8,52 @@ import { Stream } from '@anthropic-ai/sdk/streaming';
 
 export class Completions extends APIResource {
   /**
-   * Create a completion
+   * Create a Completion
    */
-  create(body: CompletionCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Completion>;
+  create(params: CompletionCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Completion>;
   create(
-    body: CompletionCreateParamsStreaming,
+    params: CompletionCreateParamsStreaming,
     options?: Core.RequestOptions,
   ): APIPromise<Stream<Completion>>;
   create(
-    body: CompletionCreateParamsBase,
+    params: CompletionCreateParamsBase,
     options?: Core.RequestOptions,
   ): APIPromise<Stream<Completion> | Completion>;
   create(
-    body: CompletionCreateParams,
+    params: CompletionCreateParams,
     options?: Core.RequestOptions,
   ): APIPromise<Completion> | APIPromise<Stream<Completion>> {
+    const { 'x-api-key': xAPIKey, ...body } = params;
     return this._client.post('/v1/complete', {
       body,
       timeout: 600000,
       ...options,
-      stream: body.stream ?? false,
+      headers: { 'x-api-key': xAPIKey || '', ...options?.headers },
+      stream: params.stream ?? false,
     }) as APIPromise<Completion> | APIPromise<Stream<Completion>>;
   }
 }
 
 export interface Completion {
   /**
+   * Unique object identifier.
+   *
+   * The format and length of IDs may change over time.
+   */
+  id: string;
+
+  /**
    * The resulting completion up to and excluding the stop sequences.
    */
   completion: string;
 
   /**
-   * The model that performed the completion.
+   * The model that handled the request.
    */
   model: string;
 
   /**
-   * The reason that we stopped sampling.
+   * The reason that we stopped.
    *
    * This may be one the following values:
    *
@@ -53,13 +62,15 @@ export interface Completion {
    * - `"max_tokens"`: we exceeded `max_tokens_to_sample` or the model's maximum
    */
   stop_reason: string;
+
+  type: 'completion';
 }
 
 export type CompletionCreateParams = CompletionCreateParamsNonStreaming | CompletionCreateParamsStreaming;
 
 export interface CompletionCreateParamsBase {
   /**
-   * The maximum number of tokens to generate before stopping.
+   * Body param: The maximum number of tokens to generate before stopping.
    *
    * Note that our models may stop _before_ reaching this maximum. This parameter
    * only specifies the absolute maximum number of tokens to generate.
@@ -67,40 +78,44 @@ export interface CompletionCreateParamsBase {
   max_tokens_to_sample: number;
 
   /**
-   * The model that will complete your prompt.
+   * Body param: The model that will complete your prompt.
    *
-   * As we improve Claude, we develop new versions of it that you can query. This
-   * parameter controls which version of Claude answers your request. Right now we
-   * are offering two model families: Claude, and Claude Instant. You can use them by
-   * setting `model` to `"claude-2.1"` or `"claude-instant-1"`, respectively. See
-   * [models](https://docs.anthropic.com/claude/reference/selecting-a-model) for
-   * additional details.
+   * As we improve Claude, we develop new versions of it that you can query. The
+   * `model` parameter controls which version of Claude responds to your request.
+   * Right now we offer two model families: Claude, and Claude Instant. You can use
+   * them by setting `model` to `"claude-2.1"` or `"claude-instant-1.2"`,
+   * respectively.
+   *
+   * See [models](https://docs.anthropic.com/claude/reference/selecting-a-model) for
+   * additional details and options.
    */
   model: (string & {}) | 'claude-2.1' | 'claude-instant-1';
 
   /**
-   * The prompt that you want Claude to complete.
+   * Body param: The prompt that you want Claude to complete.
    *
-   * For proper response generation you will need to format your prompt as follows:
+   * For proper response generation you will need to format your prompt using
+   * alternating `\n\nHuman:` and `\n\nAssistant:` conversational turns. For example:
    *
-   * ```javascript
-   * const userQuestion = r"Why is the sky blue?";
-   * const prompt = `\n\nHuman: ${userQuestion}\n\nAssistant:`;
+   * ```
+   * "\n\nHuman: {userQuestion}\n\nAssistant:"
    * ```
    *
-   * See our
-   * [comments on prompts](https://docs.anthropic.com/claude/docs/introduction-to-prompt-design)
-   * for more context.
+   * See
+   * [prompt validation](https://anthropic.readme.io/claude/reference/prompt-validation)
+   * and our guide to
+   * [prompt design](https://docs.anthropic.com/claude/docs/introduction-to-prompt-design)
+   * for more details.
    */
   prompt: string;
 
   /**
-   * An object describing metadata about the request.
+   * Body param: An object describing metadata about the request.
    */
   metadata?: CompletionCreateParams.Metadata;
 
   /**
-   * Sequences that will cause the model to stop generating completion text.
+   * Body param: Sequences that will cause the model to stop generating.
    *
    * Our models stop on `"\n\nHuman:"`, and may include additional built-in stop
    * sequences in the future. By providing the stop_sequences parameter, you may
@@ -109,16 +124,16 @@ export interface CompletionCreateParamsBase {
   stop_sequences?: Array<string>;
 
   /**
-   * Whether to incrementally stream the response using server-sent events.
+   * Body param: Whether to incrementally stream the response using server-sent
+   * events.
    *
-   * See
-   * [this guide to SSE events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events)
-   * for details.
+   * See [streaming](https://docs.anthropic.com/claude/reference/streaming) for
+   * details.
    */
   stream?: boolean;
 
   /**
-   * Amount of randomness injected into the response.
+   * Body param: Amount of randomness injected into the response.
    *
    * Defaults to 1. Ranges from 0 to 1. Use temp closer to 0 for analytical /
    * multiple choice, and closer to 1 for creative and generative tasks.
@@ -126,7 +141,7 @@ export interface CompletionCreateParamsBase {
   temperature?: number;
 
   /**
-   * Only sample from the top K options for each subsequent token.
+   * Body param: Only sample from the top K options for each subsequent token.
    *
    * Used to remove "long tail" low probability responses.
    * [Learn more technical details here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
@@ -134,7 +149,7 @@ export interface CompletionCreateParamsBase {
   top_k?: number;
 
   /**
-   * Use nucleus sampling.
+   * Body param: Use nucleus sampling.
    *
    * In nucleus sampling, we compute the cumulative distribution over all the options
    * for each subsequent token in decreasing probability order and cut it off once it
@@ -142,6 +157,11 @@ export interface CompletionCreateParamsBase {
    * `temperature` or `top_p`, but not both.
    */
   top_p?: number;
+
+  /**
+   * Header param:
+   */
+  'x-api-key'?: string;
 }
 
 export namespace CompletionCreateParams {
@@ -165,22 +185,22 @@ export namespace CompletionCreateParams {
 
 export interface CompletionCreateParamsNonStreaming extends CompletionCreateParamsBase {
   /**
-   * Whether to incrementally stream the response using server-sent events.
+   * Body param: Whether to incrementally stream the response using server-sent
+   * events.
    *
-   * See
-   * [this guide to SSE events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events)
-   * for details.
+   * See [streaming](https://docs.anthropic.com/claude/reference/streaming) for
+   * details.
    */
   stream?: false;
 }
 
 export interface CompletionCreateParamsStreaming extends CompletionCreateParamsBase {
   /**
-   * Whether to incrementally stream the response using server-sent events.
+   * Body param: Whether to incrementally stream the response using server-sent
+   * events.
    *
-   * See
-   * [this guide to SSE events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events)
-   * for details.
+   * See [streaming](https://docs.anthropic.com/claude/reference/streaming) for
+   * details.
    */
   stream: true;
 }
