@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.11.0 (2023-12-19)
+
+Full Changelog: [v0.10.2...v0.11.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.10.2...v0.11.0)
+
+### Features
+
+* **api:** add messages endpoint with streaming helpers ([#235](https://github.com/anthropics/anthropic-sdk-typescript/issues/235)) ([12b914f](https://github.com/anthropics/anthropic-sdk-typescript/commit/12b914f46f4aa625ff141ec0b6631400d0994f76))
+* **client:** support reading the base url from an env variable ([#223](https://github.com/anthropics/anthropic-sdk-typescript/issues/223)) ([5bc3600](https://github.com/anthropics/anthropic-sdk-typescript/commit/5bc3600a487e7ed49d944aaf36a43e0d895e907b))
+
+
+### Chores
+
+* **ci:** run release workflow once per day ([#232](https://github.com/anthropics/anthropic-sdk-typescript/issues/232)) ([115479f](https://github.com/anthropics/anthropic-sdk-typescript/commit/115479f403838a6d2c81587220029b68a4371c02))
+* **deps:** update dependency ts-jest to v29.1.1 ([#233](https://github.com/anthropics/anthropic-sdk-typescript/issues/233)) ([bec6ab1](https://github.com/anthropics/anthropic-sdk-typescript/commit/bec6ab127d9b20071ab673e8e37087a879467b74))
+* **deps:** update jest ([#234](https://github.com/anthropics/anthropic-sdk-typescript/issues/234)) ([5506174](https://github.com/anthropics/anthropic-sdk-typescript/commit/5506174092d5248354f3d288c84da5ba4749375c))
+* update dependencies ([#231](https://github.com/anthropics/anthropic-sdk-typescript/issues/231)) ([4e34536](https://github.com/anthropics/anthropic-sdk-typescript/commit/4e345362c9002528fb0d95ca739fb8211ab3aec8))
+* update prettier ([#230](https://github.com/anthropics/anthropic-sdk-typescript/issues/230)) ([173603e](https://github.com/anthropics/anthropic-sdk-typescript/commit/173603e14fc5fe87c056553ecec3278059fe58d9))
+
+
+### Documentation
+
+* update examples to show claude-2.1 ([#227](https://github.com/anthropics/anthropic-sdk-typescript/issues/227)) ([4b00d84](https://github.com/anthropics/anthropic-sdk-typescript/commit/4b00d84aee56090b5d576fdff9c3a07386475c72))
+
+
+### Build System
+
+* specify `packageManager: yarn` ([#229](https://github.com/anthropics/anthropic-sdk-typescript/issues/229)) ([d31dae4](https://github.com/anthropics/anthropic-sdk-typescript/commit/d31dae455d750a61ae3b9a751ab73309b0f87417))
+
 ## 0.10.2 (2023-11-28)
 
 Full Changelog: [v0.10.1...v0.10.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.10.1...v0.10.2)
