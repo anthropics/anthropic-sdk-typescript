@@ -66,6 +66,23 @@ export class Stream<Item> implements AsyncIterable<Item> {
             }
           }
 
+          if (
+            sse.event === 'message_start' ||
+            sse.event === 'message_delta' ||
+            sse.event === 'message_stop' ||
+            sse.event === 'content_block_start' ||
+            sse.event === 'content_block_delta' ||
+            sse.event === 'content_block_stop'
+          ) {
+            try {
+              yield JSON.parse(sse.data);
+            } catch (e) {
+              console.error(`Could not parse message into JSON:`, sse.data);
+              console.error(`From chunk:`, sse.raw);
+              throw e;
+            }
+          }
+
           if (sse.event === 'ping') {
             continue;
           }

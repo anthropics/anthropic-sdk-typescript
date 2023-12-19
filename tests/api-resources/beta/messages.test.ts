@@ -8,12 +8,13 @@ const anthropic = new Anthropic({
   baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
 });
 
-describe('resource completions', () => {
+describe('resource messages', () => {
   test('create: only required params', async () => {
-    const responsePromise = anthropic.completions.create({
-      max_tokens_to_sample: 256,
+    const responsePromise = anthropic.beta.messages.create({
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: 'In one sentence, what is good about the color blue?' }],
       model: 'claude-2.1',
-      prompt: '\n\nHuman: Hello, world!\n\nAssistant:',
+      'anthropic-beta': 'messages-2023-12-15',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -25,13 +26,15 @@ describe('resource completions', () => {
   });
 
   test('create: required and optional params', async () => {
-    const response = await anthropic.completions.create({
-      max_tokens_to_sample: 256,
+    const response = await anthropic.beta.messages.create({
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: 'In one sentence, what is good about the color blue?' }],
       model: 'claude-2.1',
-      prompt: '\n\nHuman: Hello, world!\n\nAssistant:',
+      'anthropic-beta': 'messages-2023-12-15',
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
       stop_sequences: ['string', 'string', 'string'],
       stream: false,
+      system: "Today's date is 2024-01-01.",
       temperature: 1,
       top_k: 5,
       top_p: 0.7,
