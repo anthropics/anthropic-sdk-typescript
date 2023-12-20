@@ -20,6 +20,7 @@ yarn add @anthropic-ai/sdk
 
 The full API of this library can be found in [api.md](https://www.github.com/anthropics/anthropic-sdk-typescript/blob/main/api.md).
 
+<!-- prettier-ignore -->
 ```js
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -65,6 +66,7 @@ or call `stream.controller.abort()`.
 
 This library includes TypeScript definitions for all request params and response fields. You may import and use them like so:
 
+<!-- prettier-ignore -->
 ```ts
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -134,6 +136,7 @@ When the library is unable to connect to the API,
 or if the API returns a non-success status code (i.e., 4xx or 5xx response),
 a subclass of `APIError` will be thrown:
 
+<!-- prettier-ignore -->
 ```ts
 async function main() {
   const completion = await anthropic.completions
@@ -256,6 +259,7 @@ The "raw" `Response` returned by `fetch()` can be accessed through the `.asRespo
 
 You can also use the `.withResponse()` method to get the raw `Response` along with the parsed data.
 
+<!-- prettier-ignore -->
 ```ts
 const anthropic = new Anthropic();
 
@@ -282,12 +286,11 @@ If you would prefer to use a global, web-standards-compliant `fetch` function ev
 (for example, if you are running Node with `--experimental-fetch` or using NextJS which polyfills with `undici`),
 add the following import before your first import `from "Anthropic"`:
 
-<!-- prettier-ignore -->
 ```ts
 // Tell TypeScript and the package to use the global web fetch instead of node-fetch.
 // Note, despite the name, this does not add any polyfills, but expects them to be provided if needed.
-import "@anthropic-ai/sdk/shims/web";
-import Anthropic from "@anthropic-ai/sdk";
+import '@anthropic-ai/sdk/shims/web';
+import Anthropic from '@anthropic-ai/sdk';
 ```
 
 To do the inverse, add `import "@anthropic-ai/sdk/shims/node"` (which does import polyfills).
