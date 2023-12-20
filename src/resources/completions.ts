@@ -24,11 +24,15 @@ export class Completions extends APIResource {
     options?: Core.RequestOptions,
   ): APIPromise<Completion> | APIPromise<Stream<Completion>> {
     const { 'x-api-key': xAPIKey, ...body } = params;
+    const headers: Record<string, string> = {};
+    if (xAPIKey !== undefined) {
+      headers['x-api-key'] = xAPIKey;
+    }
     return this._client.post('/v1/complete', {
       body,
       timeout: 600000,
       ...options,
-      headers: { 'x-api-key': xAPIKey || '', ...options?.headers },
+      headers: { ...headers, ...options?.headers },
       stream: params.stream ?? false,
     }) as APIPromise<Completion> | APIPromise<Stream<Completion>>;
   }

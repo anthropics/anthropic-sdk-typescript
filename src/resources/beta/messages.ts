@@ -28,14 +28,20 @@ export class Messages extends APIResource {
     options?: Core.RequestOptions,
   ): APIPromise<Message> | APIPromise<Stream<MessageStreamEvent>> {
     const { 'anthropic-beta': anthropicBeta, 'x-api-key': xAPIKey, ...body } = params;
+    const headers: Record<string, string> = {
+      'Anthropic-Beta': 'messages-2023-12-15',
+      'anthropic-beta': anthropicBeta,
+      ...options?.headers,
+    };
+    if (xAPIKey !== undefined) {
+      headers['x-api-key'] = xAPIKey;
+    }
     return this._client.post('/v1/messages', {
       body,
       timeout: 600000,
       ...options,
       headers: {
-        'Anthropic-Beta': 'messages-2023-12-15',
-        'anthropic-beta': anthropicBeta,
-        'x-api-key': xAPIKey || '',
+        ...headers,
         ...options?.headers,
       },
       stream: params.stream ?? false,

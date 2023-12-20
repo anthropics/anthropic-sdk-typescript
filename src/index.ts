@@ -136,10 +136,10 @@ export class Anthropic extends Core.APIClient {
   }
 
   protected override validateHeaders(headers: Core.Headers, customHeaders: Core.Headers) {
-    if (this.apiKey && headers['X-Api-Key']) {
+    if (this.apiKey && headers['x-api-key']) {
       return;
     }
-    if (customHeaders['X-Api-Key'] === null) {
+    if (customHeaders['x-api-key'] === null) {
       return;
     }
 
@@ -173,7 +173,7 @@ export class Anthropic extends Core.APIClient {
     if (this.apiKey == null) {
       return {};
     }
-    return { 'X-Api-Key': this.apiKey };
+    return { 'x-api-key': this.apiKey };
   }
 
   protected bearerAuth(opts: Core.FinalRequestOptions): Core.Headers {
