@@ -1,4 +1,4 @@
-# Chat Completion Helpers
+# Message Helpers
 
 ## Streaming Responses
 
