@@ -92,6 +92,42 @@ We provide a [separate package](https://github.com/anthropics/anthropic-tokenize
 
 See the [repository documentation](https://github.com/anthropics/anthropic-tokenizer-typescript) for more details.
 
+### Streaming Helpers
+
+This library provides several conveniences for streaming messages, for example:
+
+```ts
+import Anthropic from '@anthropic-ai/sdk';
+
+const anthropic = new Anthropic();
+
+async function main() {
+  const stream = anthropic.beta.messages
+    .stream({
+      model: 'claude-2.1',
+      max_tokens: 1024,
+      messages: [
+        {
+          role: 'user',
+          content: 'Say hello there!',
+        },
+      ],
+    })
+    .on('text', (text) => {
+      console.log(text);
+    });
+
+  const message = await stream.finalMessage();
+  console.log(message);
+}
+
+main();
+```
+
+Streaming with `client.beta.messages.stream(...)` exposes [various helpers for your convenience](helpers.md) including event handlers and accumulation.
+
+Alternatively, you can use `client.beta.messages.create({ ..., stream: true })` which only returns an async iterable of the events in the stream and thus uses less memory (it does not build up a final message object for you).
+
 ## Handling errors
 
 When the library is unable to connect to the API,
