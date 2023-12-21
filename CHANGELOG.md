@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.12.0 (2023-12-21)
+
+Full Changelog: [v0.11.0...v0.12.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.11.0...v0.12.0)
+
+### ⚠ BREAKING CHANGES
+
+* remove anthropic-beta and x-api-key headers from param types ([#243](https://github.com/anthropics/anthropic-sdk-typescript/issues/243))
+
+### Bug Fixes
+
+* remove anthropic-beta and x-api-key headers from param types ([#243](https://github.com/anthropics/anthropic-sdk-typescript/issues/243)) ([60f67ae](https://github.com/anthropics/anthropic-sdk-typescript/commit/60f67ae757cfe8e482327f508a802b30ec3805a0))
+
+
+### Documentation
+
+* **readme:** add streaming helper documentation ([#238](https://github.com/anthropics/anthropic-sdk-typescript/issues/238)) ([d74ee71](https://github.com/anthropics/anthropic-sdk-typescript/commit/d74ee7159f366a3f78091eacdcea3049c1e81ec7))
+* **readme:** remove old migration guide ([#236](https://github.com/anthropics/anthropic-sdk-typescript/issues/236)) ([65dff0a](https://github.com/anthropics/anthropic-sdk-typescript/commit/65dff0adb2ec836b81da4f71fb94a316c5f1a942))
+* reformat README.md ([#241](https://github.com/anthropics/anthropic-sdk-typescript/issues/241)) ([eb12705](https://github.com/anthropics/anthropic-sdk-typescript/commit/eb12705a7d975f584ca31f24b99c35318cf6419b))
+
+
+### Refactors
+
+* write jest config in typescript ([#239](https://github.com/anthropics/anthropic-sdk-typescript/issues/239)) ([7c87f24](https://github.com/anthropics/anthropic-sdk-typescript/commit/7c87f242d921adfbd2bb21ed5f2c37ada2043f95))
+
 ## 0.11.0 (2023-12-19)
 
 Full Changelog: [v0.10.2...v0.11.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.10.2...v0.11.0)
