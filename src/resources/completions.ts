@@ -10,26 +10,24 @@ export class Completions extends APIResource {
   /**
    * Create a Completion
    */
-  create(params: CompletionCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Completion>;
+  create(body: CompletionCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Completion>;
   create(
-    params: CompletionCreateParamsStreaming,
+    body: CompletionCreateParamsStreaming,
     options?: Core.RequestOptions,
   ): APIPromise<Stream<Completion>>;
   create(
-    params: CompletionCreateParamsBase,
+    body: CompletionCreateParamsBase,
     options?: Core.RequestOptions,
   ): APIPromise<Stream<Completion> | Completion>;
   create(
-    params: CompletionCreateParams,
+    body: CompletionCreateParams,
     options?: Core.RequestOptions,
   ): APIPromise<Completion> | APIPromise<Stream<Completion>> {
-    const { 'x-api-key': xAPIKey, ...body } = params;
     return this._client.post('/v1/complete', {
       body,
       timeout: 600000,
       ...options,
-      headers: { 'x-api-key': xAPIKey || '', ...options?.headers },
-      stream: params.stream ?? false,
+      stream: body.stream ?? false,
     }) as APIPromise<Completion> | APIPromise<Stream<Completion>>;
   }
 }
@@ -70,7 +68,7 @@ export type CompletionCreateParams = CompletionCreateParamsNonStreaming | Comple
 
 export interface CompletionCreateParamsBase {
   /**
-   * Body param: The maximum number of tokens to generate before stopping.
+   * The maximum number of tokens to generate before stopping.
    *
    * Note that our models may stop _before_ reaching this maximum. This parameter
    * only specifies the absolute maximum number of tokens to generate.
@@ -78,7 +76,7 @@ export interface CompletionCreateParamsBase {
   max_tokens_to_sample: number;
 
   /**
-   * Body param: The model that will complete your prompt.
+   * The model that will complete your prompt.
    *
    * As we improve Claude, we develop new versions of it that you can query. The
    * `model` parameter controls which version of Claude responds to your request.
@@ -92,7 +90,7 @@ export interface CompletionCreateParamsBase {
   model: (string & {}) | 'claude-2.1' | 'claude-instant-1';
 
   /**
-   * Body param: The prompt that you want Claude to complete.
+   * The prompt that you want Claude to complete.
    *
    * For proper response generation you will need to format your prompt using
    * alternating `\n\nHuman:` and `\n\nAssistant:` conversational turns. For example:
@@ -110,12 +108,12 @@ export interface CompletionCreateParamsBase {
   prompt: string;
 
   /**
-   * Body param: An object describing metadata about the request.
+   * An object describing metadata about the request.
    */
   metadata?: CompletionCreateParams.Metadata;
 
   /**
-   * Body param: Sequences that will cause the model to stop generating.
+   * Sequences that will cause the model to stop generating.
    *
    * Our models stop on `"\n\nHuman:"`, and may include additional built-in stop
    * sequences in the future. By providing the stop_sequences parameter, you may
@@ -124,8 +122,7 @@ export interface CompletionCreateParamsBase {
   stop_sequences?: Array<string>;
 
   /**
-   * Body param: Whether to incrementally stream the response using server-sent
-   * events.
+   * Whether to incrementally stream the response using server-sent events.
    *
    * See [streaming](https://docs.anthropic.com/claude/reference/streaming) for
    * details.
@@ -133,7 +130,7 @@ export interface CompletionCreateParamsBase {
   stream?: boolean;
 
   /**
-   * Body param: Amount of randomness injected into the response.
+   * Amount of randomness injected into the response.
    *
    * Defaults to 1. Ranges from 0 to 1. Use temp closer to 0 for analytical /
    * multiple choice, and closer to 1 for creative and generative tasks.
@@ -141,7 +138,7 @@ export interface CompletionCreateParamsBase {
   temperature?: number;
 
   /**
-   * Body param: Only sample from the top K options for each subsequent token.
+   * Only sample from the top K options for each subsequent token.
    *
    * Used to remove "long tail" low probability responses.
    * [Learn more technical details here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
@@ -149,7 +146,7 @@ export interface CompletionCreateParamsBase {
   top_k?: number;
 
   /**
-   * Body param: Use nucleus sampling.
+   * Use nucleus sampling.
    *
    * In nucleus sampling, we compute the cumulative distribution over all the options
    * for each subsequent token in decreasing probability order and cut it off once it
@@ -157,11 +154,6 @@ export interface CompletionCreateParamsBase {
    * `temperature` or `top_p`, but not both.
    */
   top_p?: number;
-
-  /**
-   * Header param:
-   */
-  'x-api-key'?: string;
 }
 
 export namespace CompletionCreateParams {
@@ -185,8 +177,7 @@ export namespace CompletionCreateParams {
 
 export interface CompletionCreateParamsNonStreaming extends CompletionCreateParamsBase {
   /**
-   * Body param: Whether to incrementally stream the response using server-sent
-   * events.
+   * Whether to incrementally stream the response using server-sent events.
    *
    * See [streaming](https://docs.anthropic.com/claude/reference/streaming) for
    * details.
@@ -196,8 +187,7 @@ export interface CompletionCreateParamsNonStreaming extends CompletionCreatePara
 
 export interface CompletionCreateParamsStreaming extends CompletionCreateParamsBase {
   /**
-   * Body param: Whether to incrementally stream the response using server-sent
-   * events.
+   * Whether to incrementally stream the response using server-sent events.
    *
    * See [streaming](https://docs.anthropic.com/claude/reference/streaming) for
    * details.

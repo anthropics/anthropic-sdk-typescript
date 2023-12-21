@@ -95,7 +95,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     runner._run(() =>
       runner._createMessage(
         messages,
-        { ...params, stream: true, 'anthropic-beta': 'messages-2023-12-15' },
+        { ...params, stream: true },
         { ...options, headers: { ...options?.headers, 'X-Stainless-Helper-Method': 'stream' } },
       ),
     );
@@ -132,7 +132,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     }
     this.#beginRequest();
     const stream = await messages.create(
-      { ...params, stream: true, 'anthropic-beta': 'messages-2023-12-15' },
+      { ...params, stream: true },
       { ...options, signal: this.controller.signal },
     );
     this._connected();
