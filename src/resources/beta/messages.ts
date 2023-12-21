@@ -14,31 +14,25 @@ export class Messages extends APIResource {
    *
    * The Messages API is currently in beta.
    */
-  create(params: MessageCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Message>;
+  create(body: MessageCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Message>;
   create(
-    params: MessageCreateParamsStreaming,
+    body: MessageCreateParamsStreaming,
     options?: Core.RequestOptions,
   ): APIPromise<Stream<MessageStreamEvent>>;
   create(
-    params: MessageCreateParamsBase,
+    body: MessageCreateParamsBase,
     options?: Core.RequestOptions,
   ): APIPromise<Stream<MessageStreamEvent> | Message>;
   create(
-    params: MessageCreateParams,
+    body: MessageCreateParams,
     options?: Core.RequestOptions,
   ): APIPromise<Message> | APIPromise<Stream<MessageStreamEvent>> {
-    const { 'anthropic-beta': anthropicBeta, 'x-api-key': xAPIKey, ...body } = params;
     return this._client.post('/v1/messages', {
       body,
       timeout: 600000,
       ...options,
-      headers: {
-        'Anthropic-Beta': 'messages-2023-12-15',
-        'anthropic-beta': anthropicBeta,
-        'x-api-key': xAPIKey || '',
-        ...options?.headers,
-      },
-      stream: params.stream ?? false,
+      headers: { 'Anthropic-Beta': 'messages-2023-12-15', ...options?.headers },
+      stream: body.stream ?? false,
     }) as APIPromise<Message> | APIPromise<Stream<MessageStreamEvent>>;
   }
 
@@ -218,7 +212,7 @@ export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreat
 
 export interface MessageCreateParamsBase {
   /**
-   * Body param: The maximum number of tokens to generate before stopping.
+   * The maximum number of tokens to generate before stopping.
    *
    * Note that our models may stop _before_ reaching this maximum. This parameter
    * only specifies the absolute maximum number of tokens to generate.
@@ -230,7 +224,7 @@ export interface MessageCreateParamsBase {
   max_tokens: number;
 
   /**
-   * Body param: Input messages.
+   * Input messages.
    *
    * Our models are trained to operate on alternating `user` and `assistant`
    * conversational turns. When creating a new `Message`, you specify the prior
@@ -293,7 +287,7 @@ export interface MessageCreateParamsBase {
   messages: Array<MessageParam>;
 
   /**
-   * Body param: The model that will complete your prompt.
+   * The model that will complete your prompt.
    *
    * As we improve Claude, we develop new versions of it that you can query. The
    * `model` parameter controls which version of Claude responds to your request.
@@ -307,22 +301,12 @@ export interface MessageCreateParamsBase {
   model: string;
 
   /**
-   * Header param: Beta version header.
-   *
-   * During the beta, the Messages API requires sending the
-   * `anthropic-beta: messages-2023-12-15` header. This is a beta-specific header
-   * that is required in addition to the normal `anthropic-version` header. If you
-   * are using our SDKs, both of these headers will be sent automatically.
-   */
-  'anthropic-beta': string;
-
-  /**
-   * Body param: An object describing metadata about the request.
+   * An object describing metadata about the request.
    */
   metadata?: MessageCreateParams.Metadata;
 
   /**
-   * Body param: Custom text sequences that will cause the model to stop generating.
+   * Custom text sequences that will cause the model to stop generating.
    *
    * Our models will normally stop when they have naturally completed their turn,
    * which will result in a response `stop_reason` of `"end_turn"`.
@@ -335,8 +319,7 @@ export interface MessageCreateParamsBase {
   stop_sequences?: Array<string>;
 
   /**
-   * Body param: Whether to incrementally stream the response using server-sent
-   * events.
+   * Whether to incrementally stream the response using server-sent events.
    *
    * See [streaming](https://docs.anthropic.com/claude/reference/streaming) for
    * details.
@@ -344,7 +327,7 @@ export interface MessageCreateParamsBase {
   stream?: boolean;
 
   /**
-   * Body param: System prompt.
+   * System prompt.
    *
    * A system prompt is a way of providing context and instructions to Claude, such
    * as specifying a particular goal or role. See our
@@ -353,7 +336,7 @@ export interface MessageCreateParamsBase {
   system?: string;
 
   /**
-   * Body param: Amount of randomness injected into the response.
+   * Amount of randomness injected into the response.
    *
    * Defaults to 1. Ranges from 0 to 1. Use temp closer to 0 for analytical /
    * multiple choice, and closer to 1 for creative and generative tasks.
@@ -361,7 +344,7 @@ export interface MessageCreateParamsBase {
   temperature?: number;
 
   /**
-   * Body param: Only sample from the top K options for each subsequent token.
+   * Only sample from the top K options for each subsequent token.
    *
    * Used to remove "long tail" low probability responses.
    * [Learn more technical details here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
@@ -369,7 +352,7 @@ export interface MessageCreateParamsBase {
   top_k?: number;
 
   /**
-   * Body param: Use nucleus sampling.
+   * Use nucleus sampling.
    *
    * In nucleus sampling, we compute the cumulative distribution over all the options
    * for each subsequent token in decreasing probability order and cut it off once it
@@ -377,11 +360,6 @@ export interface MessageCreateParamsBase {
    * `temperature` or `top_p`, but not both.
    */
   top_p?: number;
-
-  /**
-   * Header param:
-   */
-  'x-api-key'?: string;
 }
 
 export namespace MessageCreateParams {
@@ -405,8 +383,7 @@ export namespace MessageCreateParams {
 
 export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase {
   /**
-   * Body param: Whether to incrementally stream the response using server-sent
-   * events.
+   * Whether to incrementally stream the response using server-sent events.
    *
    * See [streaming](https://docs.anthropic.com/claude/reference/streaming) for
    * details.
@@ -416,8 +393,7 @@ export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase
 
 export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
   /**
-   * Body param: Whether to incrementally stream the response using server-sent
-   * events.
+   * Whether to incrementally stream the response using server-sent events.
    *
    * See [streaming](https://docs.anthropic.com/claude/reference/streaming) for
    * details.

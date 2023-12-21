@@ -14,7 +14,6 @@ describe('resource messages', () => {
       max_tokens: 1024,
       messages: [{ role: 'user', content: 'In one sentence, what is good about the color blue?' }],
       model: 'claude-2.1',
-      'anthropic-beta': 'messages-2023-12-15',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -30,7 +29,6 @@ describe('resource messages', () => {
       max_tokens: 1024,
       messages: [{ role: 'user', content: 'In one sentence, what is good about the color blue?' }],
       model: 'claude-2.1',
-      'anthropic-beta': 'messages-2023-12-15',
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
       stop_sequences: ['string', 'string', 'string'],
       stream: false,
@@ -38,7 +36,6 @@ describe('resource messages', () => {
       temperature: 1,
       top_k: 5,
       top_p: 0.7,
-      'x-api-key': 'string',
     });
   });
 });
