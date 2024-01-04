@@ -136,17 +136,17 @@ export class Anthropic extends Core.APIClient {
   }
 
   protected override validateHeaders(headers: Core.Headers, customHeaders: Core.Headers) {
-    if (this.apiKey && headers['X-Api-Key']) {
+    if (this.apiKey && headers['x-api-key']) {
       return;
     }
-    if (customHeaders['X-Api-Key'] === null) {
+    if (customHeaders['x-api-key'] === null) {
       return;
     }
 
-    if (this.authToken && headers['Authorization']) {
+    if (this.authToken && headers['authorization']) {
       return;
     }
-    if (customHeaders['Authorization'] === null) {
+    if (customHeaders['authorization'] === null) {
       return;
     }
 
