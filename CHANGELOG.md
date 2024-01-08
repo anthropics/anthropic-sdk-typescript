@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.12.1 (2024-01-08)
+
+Full Changelog: [v0.12.0...v0.12.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.12.0...v0.12.1)
+
+### Bug Fixes
+
+* **headers:** always send lowercase headers and strip undefined (BREAKING in rare cases) ([#245](https://github.com/anthropics/anthropic-sdk-typescript/issues/245)) ([7703066](https://github.com/anthropics/anthropic-sdk-typescript/commit/77030661f5612ea5312cb2fecf7987024ffd6ede))
+
+
+### Chores
+
+* add .keep files for examples and custom code directories ([#249](https://github.com/anthropics/anthropic-sdk-typescript/issues/249)) ([26b9062](https://github.com/anthropics/anthropic-sdk-typescript/commit/26b9062c7489dd3ee7f620edfea9888f92a859d7))
+* **internal:** improve type signatures ([#247](https://github.com/anthropics/anthropic-sdk-typescript/issues/247)) ([40edd29](https://github.com/anthropics/anthropic-sdk-typescript/commit/40edd299a83f1f60e973080d1fa84f6f42752663))
+
 ## 0.12.0 (2023-12-21)
 
 Full Changelog: [v0.11.0...v0.12.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.11.0...v0.12.0)
