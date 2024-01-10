@@ -140,7 +140,7 @@ describe('instantiate client', () => {
     });
 
     afterEach(() => {
-      process.env['SINK_BASE_URL'] = undefined;
+      process.env['ANTHROPIC_BASE_URL'] = undefined;
     });
 
     test('explicit option', () => {
@@ -152,6 +152,18 @@ describe('instantiate client', () => {
       process.env['ANTHROPIC_BASE_URL'] = 'https://example.com/from_env';
       const client = new Anthropic({ apiKey: 'my-anthropic-api-key' });
       expect(client.baseURL).toEqual('https://example.com/from_env');
+    });
+
+    test('empty env variable', () => {
+      process.env['ANTHROPIC_BASE_URL'] = ''; // empty
+      const client = new Anthropic({ apiKey: 'my-anthropic-api-key' });
+      expect(client.baseURL).toEqual('https://api.anthropic.com');
+    });
+
+    test('blank env variable', () => {
+      process.env['ANTHROPIC_BASE_URL'] = '  '; // blank
+      const client = new Anthropic({ apiKey: 'my-anthropic-api-key' });
+      expect(client.baseURL).toEqual('https://api.anthropic.com');
     });
   });
 
