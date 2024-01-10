@@ -104,7 +104,7 @@ export class Anthropic extends Core.APIClient {
       apiKey,
       authToken,
       ...opts,
-      baseURL: baseURL ?? `https://api.anthropic.com`,
+      baseURL: baseURL || `https://api.anthropic.com`,
     };
 
     super({
