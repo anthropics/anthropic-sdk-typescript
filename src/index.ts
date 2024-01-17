@@ -10,12 +10,12 @@ export interface ClientOptions {
   /**
    * Defaults to process.env['ANTHROPIC_API_KEY'].
    */
-  apiKey?: string | null;
+  apiKey?: string | null | undefined;
 
   /**
    * Defaults to process.env['ANTHROPIC_AUTH_TOKEN'].
    */
-  authToken?: string | null;
+  authToken?: string | null | undefined;
 
   /**
    * Override the default base URL for the API, e.g., "https://api.example.com/v2/"
@@ -84,8 +84,8 @@ export class Anthropic extends Core.APIClient {
   /**
    * API Client for interfacing with the Anthropic API.
    *
-   * @param {string | null} [opts.apiKey=process.env['ANTHROPIC_API_KEY'] ?? null]
-   * @param {string | null} [opts.authToken=process.env['ANTHROPIC_AUTH_TOKEN'] ?? null]
+   * @param {string | null | undefined} [opts.apiKey=process.env['ANTHROPIC_API_KEY'] ?? null]
+   * @param {string | null | undefined} [opts.authToken=process.env['ANTHROPIC_AUTH_TOKEN'] ?? null]
    * @param {string} [opts.baseURL=process.env['ANTHROPIC_BASE_URL'] ?? https://api.anthropic.com] - Override the default base URL for the API.
    * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
    * @param {number} [opts.httpAgent] - An HTTP agent used to manage HTTP(s) connections.
