@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.12.2 (2024-01-18)
+
+Full Changelog: [v0.12.1...v0.12.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.12.1...v0.12.2)
+
+### Bug Fixes
+
+* **ci:** ignore stainless-app edits to release PR title ([#258](https://github.com/anthropics/anthropic-sdk-typescript/issues/258)) ([87e4ba8](https://github.com/anthropics/anthropic-sdk-typescript/commit/87e4ba82c5b498f881db9590edbfd68c8aba0930))
+* **types:** accept undefined for optional client options ([#257](https://github.com/anthropics/anthropic-sdk-typescript/issues/257)) ([a0e2c4a](https://github.com/anthropics/anthropic-sdk-typescript/commit/a0e2c4a4c4a269ad011d9a6c717c1ded2405711b))
+* use default base url if BASE_URL env var is blank ([#250](https://github.com/anthropics/anthropic-sdk-typescript/issues/250)) ([e38f32f](https://github.com/anthropics/anthropic-sdk-typescript/commit/e38f32f52398f3a082eb745e85179242ecee7663))
+
+
+### Chores
+
+* **internal:** debug logging for retries; speculative retry-after-ms support ([#256](https://github.com/anthropics/anthropic-sdk-typescript/issues/256)) ([b4b70fd](https://github.com/anthropics/anthropic-sdk-typescript/commit/b4b70fdbee45dd2a68e46135db45b61381538ae8))
+* **internal:** narrow type into stringifyQuery ([#253](https://github.com/anthropics/anthropic-sdk-typescript/issues/253)) ([3f42e07](https://github.com/anthropics/anthropic-sdk-typescript/commit/3f42e0702ab55cd841c0dc186732028d2fb9f5bb))
+
+
+### Documentation
+
+* fix missing async in readme code sample ([#255](https://github.com/anthropics/anthropic-sdk-typescript/issues/255)) ([553fb37](https://github.com/anthropics/anthropic-sdk-typescript/commit/553fb37159a9424a40df1e0f6bb36962ba9f5be8))
+* **readme:** improve api reference ([#254](https://github.com/anthropics/anthropic-sdk-typescript/issues/254)) ([3721927](https://github.com/anthropics/anthropic-sdk-typescript/commit/3721927e895d42c167e2464f30f7f2addb690ec6))
+
 ## 0.12.1 (2024-01-08)
 
 Full Changelog: [v0.12.0...v0.12.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.12.0...v0.12.1)
