@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.12.3 (2024-01-19)
+
+Full Changelog: [v0.12.2...v0.12.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.12.2...v0.12.3)
+
+### Bug Fixes
+
+* allow body type in RequestOptions to be null ([#259](https://github.com/anthropics/anthropic-sdk-typescript/issues/259)) ([2f98de1](https://github.com/anthropics/anthropic-sdk-typescript/commit/2f98de1a42568b1242ce313ba046febb1c6625b5))
+
 ## 0.12.2 (2024-01-18)
 
 Full Changelog: [v0.12.1...v0.12.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.12.1...v0.12.2)
