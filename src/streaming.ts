@@ -4,7 +4,7 @@ import { AnthropicError } from './error';
 import { safeJSON, createResponseHeaders } from '@anthropic-ai/sdk/core';
 import { APIError } from '@anthropic-ai/sdk/error';
 
-export type Bytes = string | ArrayBuffer | Uint8Array | Buffer | null | undefined;
+type Bytes = string | ArrayBuffer | Uint8Array | Buffer | null | undefined;
 
 export type ServerSentEvent = {
   event: string | null;
