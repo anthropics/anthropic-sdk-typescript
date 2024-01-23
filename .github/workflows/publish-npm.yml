@@ -3,6 +3,10 @@
 name: Publish NPM
 on:
   workflow_dispatch:
+    inputs:
+      path:
+        description: The path to run the release in, e.g. '.' or 'packages/vertex-sdk'
+        required: true
 
 jobs:
   publish:
@@ -24,6 +28,6 @@ jobs:
 
       - name: Publish to NPM
         run: |
-          bash ./bin/publish-npm
+          yarn tsn scripts/publish-packages.ts '{ "paths_released": "[\"${{ github.event.inputs.path }}\"]" }'
         env:
           NPM_TOKEN: ${{ secrets.ANTHROPIC_NPM_TOKEN || secrets.NPM_TOKEN }}
