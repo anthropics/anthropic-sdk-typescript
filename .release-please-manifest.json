@@ -1,4 +1,4 @@
 {
-  ".": "0.12.3",
-  "packages/vertex-sdk": "0.0.1"
+  ".": "0.12.4",
+  "packages/vertex-sdk": "0.1.0"
 }
