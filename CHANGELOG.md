@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.12.4 (2024-01-23)
+
+Full Changelog: [sdk-v0.12.3...sdk-v0.12.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.12.3...sdk-v0.12.4)
+
+### Chores
+
+* **internal:** add internal helpers & improve build scripts ([#261](https://github.com/anthropics/anthropic-sdk-typescript/issues/261)) ([4c1504a](https://github.com/anthropics/anthropic-sdk-typescript/commit/4c1504abc7eb8685a8409c4a19dc46d83ea26392))
+* **internal:** minor streaming updates ([#264](https://github.com/anthropics/anthropic-sdk-typescript/issues/264)) ([d4414ff](https://github.com/anthropics/anthropic-sdk-typescript/commit/d4414ffeafbc47769b91c4b2681f130b46d1a7c1))
+* **internal:** update resource client type ([#263](https://github.com/anthropics/anthropic-sdk-typescript/issues/263)) ([bc4f115](https://github.com/anthropics/anthropic-sdk-typescript/commit/bc4f115900cbeba1ff09d6f3cec79e639a8fda5e))
+
 ## 0.12.3 (2024-01-19)
 
 Full Changelog: [v0.12.2...v0.12.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.12.2...v0.12.3)
