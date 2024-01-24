@@ -64,6 +64,7 @@
   "release-type": "node",
   "extra-files": [
     "src/version.ts",
-    "README.md"
+    "README.md",
+    "packages/vertex-sdk/yarn.lock"
   ]
 }
