@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.12.6 (2024-01-30)
+
+Full Changelog: [sdk-v0.12.5...sdk-v0.12.6](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.12.5...sdk-v0.12.6)
+
+### Chores
+
+* **internal:** support pre-release versioning ([#270](https://github.com/anthropics/anthropic-sdk-typescript/issues/270)) ([566069d](https://github.com/anthropics/anthropic-sdk-typescript/commit/566069d4eb1dbcc2123f4b455f855b0748d586ee))
+
 ## 0.12.5 (2024-01-25)
 
 Full Changelog: [sdk-v0.12.4...sdk-v0.12.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.12.4...sdk-v0.12.5)
