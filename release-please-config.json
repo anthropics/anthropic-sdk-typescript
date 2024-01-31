@@ -1,7 +1,8 @@
 {
   "packages": {
     ".": {},
-    "packages/vertex-sdk": {}
+    "packages/vertex-sdk": {},
+    "packages/bedrock-sdk": {}
   },
   "$schema": "https://raw.githubusercontent.com/stainless-api/release-please/main/schemas/config.json",
   "include-v-in-tag": true,
@@ -67,6 +68,7 @@
   "extra-files": [
     "src/version.ts",
     "README.md",
-    "packages/vertex-sdk/yarn.lock"
+    "packages/vertex-sdk/yarn.lock",
+    "packages/bedrock-sdk/yarn.lock"
   ]
 }
