@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.1 (2024-01-31)
+
+Full Changelog: [bedrock-sdk-v0.7.0...bedrock-sdk-v0.7.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.7.0...bedrock-sdk-v0.7.1)
+
+### Chores
+
+* **bedrock:** move bedrock SDK to the main repo ([#274](https://github.com/anthropics/anthropic-sdk-typescript/issues/274)) ([1a565fe](https://github.com/anthropics/anthropic-sdk-typescript/commit/1a565feddd19c3dbe62f087fc9f13520bb69fc0e))
+* release main ([6679340](https://github.com/anthropics/anthropic-sdk-typescript/commit/6679340c68b7f1599e5a9a543371f7426f96307a))
+
 ## 0.7.0 (2024-01-31)
 
 This release restructures the SDK so that it relies on the main `@anthropic-ai/sdk` instead of duplicating everything.
