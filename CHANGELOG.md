@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.12.7 (2024-01-31)
+
+Full Changelog: [sdk-v0.12.6...sdk-v0.12.7](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.12.6...sdk-v0.12.7)
+
+### Chores
+
+* **bedrock:** move bedrock SDK to the main repo ([#274](https://github.com/anthropics/anthropic-sdk-typescript/issues/274)) ([b4ef3a8](https://github.com/anthropics/anthropic-sdk-typescript/commit/b4ef3a854e447744a1e270ec1e7e6da81b98ade3))
+* **ci:** fix publish packages script ([#272](https://github.com/anthropics/anthropic-sdk-typescript/issues/272)) ([db3585d](https://github.com/anthropics/anthropic-sdk-typescript/commit/db3585daf759c9794ec307b05a568527a2e7df99))
+
 ## 0.12.6 (2024-01-30)
 
 Full Changelog: [sdk-v0.12.5...sdk-v0.12.6](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.12.5...sdk-v0.12.6)
