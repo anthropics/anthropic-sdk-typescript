@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2 (2024-01-31)
+
+Full Changelog: [vertex-sdk-v0.1.1...vertex-sdk-v0.1.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.1.1...vertex-sdk-v0.1.2)
+
+### Chores
+
+* release main ([e77e068](https://github.com/anthropics/anthropic-sdk-typescript/commit/e77e0683769ae18084ecda178fb9eb85fc47eb4a))
+
 ## 0.1.1 (2024-01-25)
 
 Full Changelog: [vertex-sdk-v0.1.0...vertex-sdk-v0.1.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.1.0...vertex-sdk-v0.1.1)
