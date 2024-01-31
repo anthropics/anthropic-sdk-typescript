@@ -44,15 +44,16 @@ import { execSync } from 'child_process';
 import path from 'path';
 
 function main() {
-  if (!process.argv[2]) {
+  const data = process.argv[2] ?? process.env['DATA'];
+  if (!data) {
     throw new Error(`Usage: publish-packages.ts '{"json": "obj"}'`);
   }
 
   const rootDir = path.join(__dirname, '..');
   console.log('root dir', rootDir);
-  console.log(`publish-packages called with ${process.argv[2]}`);
+  console.log(`publish-packages called with ${data}`);
 
-  const outputs = JSON.parse(process.argv[2]);
+  const outputs = JSON.parse(data);
 
   const rawPaths = outputs.paths_released;
 
