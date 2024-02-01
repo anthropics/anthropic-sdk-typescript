@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.12.8 (2024-02-01)
+
+Full Changelog: [sdk-v0.12.7...sdk-v0.12.8](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.12.7...sdk-v0.12.8)
+
+### Chores
+
+* release main ([b8ed692](https://github.com/anthropics/anthropic-sdk-typescript/commit/b8ed6924f364228a0c25e5774c1a6df44999450d))
+
 ## 0.12.7 (2024-01-31)
 
 Full Changelog: [sdk-v0.12.6...sdk-v0.12.7](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.12.6...sdk-v0.12.7)
