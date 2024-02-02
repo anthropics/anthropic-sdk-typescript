@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.12.8 (2024-02-02)
+
+Full Changelog: [sdk-v0.12.7...sdk-v0.12.8](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.12.7...sdk-v0.12.8)
+
+### Chores
+
+* **interal:** make link to api.md relative ([#278](https://github.com/anthropics/anthropic-sdk-typescript/issues/278)) ([46f8c28](https://github.com/anthropics/anthropic-sdk-typescript/commit/46f8c2805af75a5a733fdaa53936765a483471cb))
+* **internal:** enable building when git installed ([#279](https://github.com/anthropics/anthropic-sdk-typescript/issues/279)) ([3065001](https://github.com/anthropics/anthropic-sdk-typescript/commit/3065001610041b0c74cc640b72f646b6ff867db1))
+
+
+### Documentation
+
+* add a CONTRIBUTING.md ([#280](https://github.com/anthropics/anthropic-sdk-typescript/issues/280)) ([5b53551](https://github.com/anthropics/anthropic-sdk-typescript/commit/5b535512f2eacdb9f2fef795c85f2d2aaeedaea3))
+
 ## 0.12.7 (2024-01-31)
 
 Full Changelog: [sdk-v0.12.6...sdk-v0.12.7](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.12.6...sdk-v0.12.7)
