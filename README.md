@@ -6,7 +6,7 @@ This library provides convenient access to the Anthropic REST API from server-si
 
 For the AWS Bedrock API, see [`@anthropic-ai/bedrock-sdk`](https://github.com/anthropics/anthropic-bedrock-typescript).
 
-The REST API documentation can be found [on docs.anthropic.com](https://docs.anthropic.com/claude/reference/). The full API of this library can be found in [api.md](https://www.github.com/anthropics/anthropic-sdk-typescript/blob/main/api.md).
+The REST API documentation can be found [on docs.anthropic.com](https://docs.anthropic.com/claude/reference/). The full API of this library can be found in [api.md](api.md).
 
 ## Installation
 
@@ -18,7 +18,7 @@ yarn add @anthropic-ai/sdk
 
 ## Usage
 
-The full API of this library can be found in [api.md](https://www.github.com/anthropics/anthropic-sdk-typescript/blob/main/api.md).
+The full API of this library can be found in [api.md](api.md).
 
 <!-- prettier-ignore -->
 ```js
