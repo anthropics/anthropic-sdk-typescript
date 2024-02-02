@@ -15,12 +15,14 @@ export namespace Beta {
   export import ContentBlockStopEvent = MessagesAPI.ContentBlockStopEvent;
   export import Message = MessagesAPI.Message;
   export import MessageDeltaEvent = MessagesAPI.MessageDeltaEvent;
+  export import MessageDeltaUsage = MessagesAPI.MessageDeltaUsage;
   export import MessageParam = MessagesAPI.MessageParam;
   export import MessageStartEvent = MessagesAPI.MessageStartEvent;
   export import MessageStopEvent = MessagesAPI.MessageStopEvent;
   export import MessageStreamEvent = MessagesAPI.MessageStreamEvent;
   export import TextBlock = MessagesAPI.TextBlock;
   export import TextDelta = MessagesAPI.TextDelta;
+  export import Usage = MessagesAPI.Usage;
   export import MessageCreateParams = MessagesAPI.MessageCreateParams;
   export import MessageCreateParamsNonStreaming = MessagesAPI.MessageCreateParamsNonStreaming;
   export import MessageCreateParamsStreaming = MessagesAPI.MessageCreateParamsStreaming;

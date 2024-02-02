@@ -8,7 +8,7 @@ import { Stream } from '@anthropic-ai/sdk/streaming';
 
 export class Completions extends APIResource {
   /**
-   * Create a Completion
+   * Create a Text Completion
    */
   create(body: CompletionCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Completion>;
   create(
@@ -59,7 +59,7 @@ export interface Completion {
    *   `stop_sequences` parameter, or a stop sequence built into the model
    * - `"max_tokens"`: we exceeded `max_tokens_to_sample` or the model's maximum
    */
-  stop_reason: string;
+  stop_reason: string | null;
 
   type: 'completion';
 }
@@ -124,8 +124,9 @@ export interface CompletionCreateParamsBase {
   /**
    * Whether to incrementally stream the response using server-sent events.
    *
-   * See [streaming](https://docs.anthropic.com/claude/reference/streaming) for
-   * details.
+   * See
+   * [streaming](https://docs.anthropic.com/claude/reference/text-completions-streaming)
+   * for details.
    */
   stream?: boolean;
 
@@ -168,7 +169,7 @@ export namespace CompletionCreateParams {
      * this id to help detect abuse. Do not include any identifying information such as
      * name, email address, or phone number.
      */
-    user_id?: string;
+    user_id?: string | null;
   }
 
   export type CompletionCreateParamsNonStreaming = CompletionsAPI.CompletionCreateParamsNonStreaming;
@@ -179,8 +180,9 @@ export interface CompletionCreateParamsNonStreaming extends CompletionCreatePara
   /**
    * Whether to incrementally stream the response using server-sent events.
    *
-   * See [streaming](https://docs.anthropic.com/claude/reference/streaming) for
-   * details.
+   * See
+   * [streaming](https://docs.anthropic.com/claude/reference/text-completions-streaming)
+   * for details.
    */
   stream?: false;
 }
@@ -189,8 +191,9 @@ export interface CompletionCreateParamsStreaming extends CompletionCreateParamsB
   /**
    * Whether to incrementally stream the response using server-sent events.
    *
-   * See [streaming](https://docs.anthropic.com/claude/reference/streaming) for
-   * details.
+   * See
+   * [streaming](https://docs.anthropic.com/claude/reference/text-completions-streaming)
+   * for details.
    */
   stream: true;
 }

@@ -22,12 +22,14 @@ Types:
 - <code><a href="./src/resources/beta/messages.ts">ContentBlockStopEvent</a></code>
 - <code><a href="./src/resources/beta/messages.ts">Message</a></code>
 - <code><a href="./src/resources/beta/messages.ts">MessageDeltaEvent</a></code>
+- <code><a href="./src/resources/beta/messages.ts">MessageDeltaUsage</a></code>
 - <code><a href="./src/resources/beta/messages.ts">MessageParam</a></code>
 - <code><a href="./src/resources/beta/messages.ts">MessageStartEvent</a></code>
 - <code><a href="./src/resources/beta/messages.ts">MessageStopEvent</a></code>
 - <code><a href="./src/resources/beta/messages.ts">MessageStreamEvent</a></code>
 - <code><a href="./src/resources/beta/messages.ts">TextBlock</a></code>
 - <code><a href="./src/resources/beta/messages.ts">TextDelta</a></code>
+- <code><a href="./src/resources/beta/messages.ts">Usage</a></code>
 
 Methods:
 
