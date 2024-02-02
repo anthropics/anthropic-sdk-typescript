@@ -12,7 +12,15 @@ export class Messages extends APIResource {
   /**
    * Create a Message.
    *
-   * The Messages API is currently in beta.
+   * Send a structured list of input messages, and the model will generate the next
+   * message in the conversation.
+   *
+   * Messages can be used for either single queries to the model or for multi-turn
+   * conversations.
+   *
+   * The Messages API is currently in beta. During beta, you must send the
+   * `anthropic-beta: messages-2023-12-15` header in your requests. If you are using
+   * our client SDKs, this is handled for you automatically.
    */
   create(body: MessageCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Message>;
   create(
@@ -156,12 +164,22 @@ export interface Message {
   stop_sequence: string | null;
 
   type: 'message';
+
+  /**
+   * Container for the number of tokens used.
+   */
+  usage: Usage;
 }
 
 export interface MessageDeltaEvent {
   delta: MessageDeltaEvent.Delta;
 
   type: 'message_delta';
+
+  /**
+   * Container for the number of tokens used.
+   */
+  usage: MessageDeltaUsage;
 }
 
 export namespace MessageDeltaEvent {
@@ -170,6 +188,13 @@ export namespace MessageDeltaEvent {
 
     stop_sequence: string | null;
   }
+}
+
+export interface MessageDeltaUsage {
+  /**
+   * The cumulative number of output tokens which were used.
+   */
+  output_tokens: number;
 }
 
 export interface MessageParam {
@@ -206,6 +231,18 @@ export interface TextDelta {
   text: string;
 
   type: 'text_delta';
+}
+
+export interface Usage {
+  /**
+   * The number of input tokens which were used.
+   */
+  input_tokens: number;
+
+  /**
+   * The number of output tokens which were used.
+   */
+  output_tokens: number;
 }
 
 export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreateParamsStreaming;
@@ -283,6 +320,11 @@ export interface MessageCreateParamsBase {
    * See our
    * [guide to prompt design](https://docs.anthropic.com/claude/docs/introduction-to-prompt-design)
    * for more details on how to best construct prompts.
+   *
+   * Note that if you want to include a
+   * [system prompt](https://docs.anthropic.com/claude/docs/how-to-use-system-prompts),
+   * you can use the top-level `system` parameter — there is no `"system"` role for
+   * input messages in the Messages API.
    */
   messages: Array<MessageParam>;
 
@@ -321,8 +363,8 @@ export interface MessageCreateParamsBase {
   /**
    * Whether to incrementally stream the response using server-sent events.
    *
-   * See [streaming](https://docs.anthropic.com/claude/reference/streaming) for
-   * details.
+   * See [streaming](https://docs.anthropic.com/claude/reference/messages-streaming)
+   * for details.
    */
   stream?: boolean;
 
@@ -374,7 +416,7 @@ export namespace MessageCreateParams {
      * this id to help detect abuse. Do not include any identifying information such as
      * name, email address, or phone number.
      */
-    user_id?: string;
+    user_id?: string | null;
   }
 
   export type MessageCreateParamsNonStreaming = MessagesAPI.MessageCreateParamsNonStreaming;
@@ -385,8 +427,8 @@ export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase
   /**
    * Whether to incrementally stream the response using server-sent events.
    *
-   * See [streaming](https://docs.anthropic.com/claude/reference/streaming) for
-   * details.
+   * See [streaming](https://docs.anthropic.com/claude/reference/messages-streaming)
+   * for details.
    */
   stream?: false;
 }
@@ -395,8 +437,8 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
   /**
    * Whether to incrementally stream the response using server-sent events.
    *
-   * See [streaming](https://docs.anthropic.com/claude/reference/streaming) for
-   * details.
+   * See [streaming](https://docs.anthropic.com/claude/reference/messages-streaming)
+   * for details.
    */
   stream: true;
 }
@@ -474,6 +516,11 @@ export interface MessageStreamParams {
    * See our
    * [guide to prompt design](https://docs.anthropic.com/claude/docs/introduction-to-prompt-design)
    * for more details on how to best construct prompts.
+   *
+   * Note that if you want to include a
+   * [system prompt](https://docs.anthropic.com/claude/docs/how-to-use-system-prompts),
+   * you can use the top-level `system` parameter — there is no `"system"` role for
+   * input messages in the Messages API.
    */
   messages: Array<MessageParam>;
 
@@ -557,7 +604,7 @@ export namespace MessageStreamParams {
      * this id to help detect abuse. Do not include any identifying information such as
      * name, email address, or phone number.
      */
-    user_id?: string;
+    user_id?: string | null;
   }
 }
 
@@ -568,12 +615,14 @@ export namespace Messages {
   export import ContentBlockStopEvent = MessagesAPI.ContentBlockStopEvent;
   export import Message = MessagesAPI.Message;
   export import MessageDeltaEvent = MessagesAPI.MessageDeltaEvent;
+  export import MessageDeltaUsage = MessagesAPI.MessageDeltaUsage;
   export import MessageParam = MessagesAPI.MessageParam;
   export import MessageStartEvent = MessagesAPI.MessageStartEvent;
   export import MessageStopEvent = MessagesAPI.MessageStopEvent;
   export import MessageStreamEvent = MessagesAPI.MessageStreamEvent;
   export import TextBlock = MessagesAPI.TextBlock;
   export import TextDelta = MessagesAPI.TextDelta;
+  export import Usage = MessagesAPI.Usage;
   export import MessageCreateParams = MessagesAPI.MessageCreateParams;
   export import MessageCreateParamsNonStreaming = MessagesAPI.MessageCreateParamsNonStreaming;
   export import MessageCreateParamsStreaming = MessagesAPI.MessageCreateParamsStreaming;
