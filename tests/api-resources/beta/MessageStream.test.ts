@@ -37,6 +37,7 @@ async function* messageIterable(message: Message): AsyncGenerator<MessageStreamE
 
   yield {
     type: 'message_delta',
+    usage: { output_tokens: 6 },
     // @ts-ignore
     delta: { stop_reason: message.stop_reason, stop_sequence: message.stop_sequence },
   };
@@ -121,6 +122,7 @@ describe('MessageStream class', () => {
         model: 'claude-2.1',
         stop_reason: 'end_turn',
         stop_sequence: null,
+        usage: { output_tokens: 6, input_tokens: 10 },
       }),
     );
 
@@ -152,151 +154,155 @@ describe('MessageStream class', () => {
     await stream.done();
 
     expect(events.map((event) => event.type)).toMatchInlineSnapshot(`
-     [
-       "connect",
-       "streamEvent",
-       "streamEvent",
-       "streamEvent",
-       "text",
-       "streamEvent",
-       "text",
-       "streamEvent",
-       "text",
-       "streamEvent",
-       "contentBlock",
-       "streamEvent",
-       "streamEvent",
-       "message",
-       "finalMessage",
-       "end",
-     ]
-    `);
+           [
+             "connect",
+             "streamEvent",
+             "streamEvent",
+             "streamEvent",
+             "text",
+             "streamEvent",
+             "text",
+             "streamEvent",
+             "text",
+             "streamEvent",
+             "contentBlock",
+             "streamEvent",
+             "streamEvent",
+             "message",
+             "finalMessage",
+             "end",
+           ]
+        `);
 
     expect(events).toMatchInlineSnapshot(`
-     [
-       {
-         "args": [],
-         "type": "connect",
-       },
-       {
-         "args": [
-           "{"type":"message_start","message":{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[],"model":"claude-2.1","stop_reason":null,"stop_sequence":null}}",
-           "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[],"model":"claude-2.1","stop_reason":null,"stop_sequence":null}",
-         ],
-         "type": "streamEvent",
-       },
-       {
-         "args": [
-           "{"type":"content_block_start","content_block":{"type":"text","text":""},"index":0}",
-           "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":""}],"model":"claude-2.1","stop_reason":null,"stop_sequence":null}",
-         ],
-         "type": "streamEvent",
-       },
-       {
-         "args": [
-           "{"type":"content_block_delta","delta":{"type":"text_delta","text":"Hello"},"index":0}",
-           "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello"}],"model":"claude-2.1","stop_reason":null,"stop_sequence":null}",
-         ],
-         "type": "streamEvent",
-       },
-       {
-         "args": [
-           ""Hello"",
-           ""Hello"",
-         ],
-         "type": "text",
-       },
-       {
-         "args": [
-           "{"type":"content_block_delta","delta":{"type":"text_delta","text":" ther"},"index":0}",
-           "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello ther"}],"model":"claude-2.1","stop_reason":null,"stop_sequence":null}",
-         ],
-         "type": "streamEvent",
-       },
-       {
-         "args": [
-           "" ther"",
-           ""Hello ther"",
-         ],
-         "type": "text",
-       },
-       {
-         "args": [
-           "{"type":"content_block_delta","delta":{"type":"text_delta","text":"e!"},"index":0}",
-           "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":null,"stop_sequence":null}",
-         ],
-         "type": "streamEvent",
-       },
-       {
-         "args": [
-           ""e!"",
-           ""Hello there!"",
-         ],
-         "type": "text",
-       },
-       {
-         "args": [
-           "{"type":"content_block_stop","index":0}",
-           "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":null,"stop_sequence":null}",
-         ],
-         "type": "streamEvent",
-       },
-       {
-         "args": [
-           "{"type":"text","text":"Hello there!"}",
-         ],
-         "type": "contentBlock",
-       },
-       {
-         "args": [
-           "{"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null}}",
-           "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":"end_turn","stop_sequence":null}",
-         ],
-         "type": "streamEvent",
-       },
-       {
-         "args": [
-           "{"type":"message_stop"}",
-           "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":"end_turn","stop_sequence":null}",
-         ],
-         "type": "streamEvent",
-       },
-       {
-         "args": [
-           "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":"end_turn","stop_sequence":null}",
-         ],
-         "type": "message",
-       },
-       {
-         "args": [
-           "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":"end_turn","stop_sequence":null}",
-         ],
-         "type": "finalMessage",
-       },
-       {
-         "args": [],
-         "type": "end",
-       },
-     ]
+      [
+        {
+          "args": [],
+          "type": "connect",
+        },
+        {
+          "args": [
+            "{"type":"message_start","message":{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[],"model":"claude-2.1","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[],"model":"claude-2.1","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+          ],
+          "type": "streamEvent",
+        },
+        {
+          "args": [
+            "{"type":"content_block_start","content_block":{"type":"text","text":""},"index":0}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":""}],"model":"claude-2.1","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+          ],
+          "type": "streamEvent",
+        },
+        {
+          "args": [
+            "{"type":"content_block_delta","delta":{"type":"text_delta","text":"Hello"},"index":0}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello"}],"model":"claude-2.1","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+          ],
+          "type": "streamEvent",
+        },
+        {
+          "args": [
+            ""Hello"",
+            ""Hello"",
+          ],
+          "type": "text",
+        },
+        {
+          "args": [
+            "{"type":"content_block_delta","delta":{"type":"text_delta","text":" ther"},"index":0}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello ther"}],"model":"claude-2.1","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+          ],
+          "type": "streamEvent",
+        },
+        {
+          "args": [
+            "" ther"",
+            ""Hello ther"",
+          ],
+          "type": "text",
+        },
+        {
+          "args": [
+            "{"type":"content_block_delta","delta":{"type":"text_delta","text":"e!"},"index":0}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+          ],
+          "type": "streamEvent",
+        },
+        {
+          "args": [
+            ""e!"",
+            ""Hello there!"",
+          ],
+          "type": "text",
+        },
+        {
+          "args": [
+            "{"type":"content_block_stop","index":0}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+          ],
+          "type": "streamEvent",
+        },
+        {
+          "args": [
+            "{"type":"text","text":"Hello there!"}",
+          ],
+          "type": "contentBlock",
+        },
+        {
+          "args": [
+            "{"type":"message_delta","usage":{"output_tokens":6},"delta":{"stop_reason":"end_turn","stop_sequence":null}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+          ],
+          "type": "streamEvent",
+        },
+        {
+          "args": [
+            "{"type":"message_stop"}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+          ],
+          "type": "streamEvent",
+        },
+        {
+          "args": [
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+          ],
+          "type": "message",
+        },
+        {
+          "args": [
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+          ],
+          "type": "finalMessage",
+        },
+        {
+          "args": [],
+          "type": "end",
+        },
+      ]
     `);
 
     expect(await stream.finalText()).toMatchInlineSnapshot(`"Hello there!"`);
 
     expect(await stream.finalMessage()).toMatchInlineSnapshot(`
-     {
-       "content": [
-         {
-           "text": "Hello there!",
-           "type": "text",
-         },
-       ],
-       "id": "msg_01hhptzfxdaeehfxfv070yb6b8",
-       "model": "claude-2.1",
-       "role": "assistant",
-       "stop_reason": "end_turn",
-       "stop_sequence": null,
-       "type": "message",
-     }
+      {
+        "content": [
+          {
+            "text": "Hello there!",
+            "type": "text",
+          },
+        ],
+        "id": "msg_01hhptzfxdaeehfxfv070yb6b8",
+        "model": "claude-2.1",
+        "role": "assistant",
+        "stop_reason": "end_turn",
+        "stop_sequence": null,
+        "type": "message",
+        "usage": {
+          "input_tokens": 10,
+          "output_tokens": 6,
+        },
+      }
     `);
   });
 
@@ -320,6 +326,7 @@ describe('MessageStream class', () => {
         model: 'claude-2.1',
         stop_reason: 'end_turn',
         stop_sequence: null,
+        usage: { output_tokens: 6, input_tokens: 10 },
       }),
     );
 
