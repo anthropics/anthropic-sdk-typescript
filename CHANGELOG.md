@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.13.0 (2024-02-02)
+
+Full Changelog: [sdk-v0.12.8...sdk-v0.13.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.12.8...sdk-v0.13.0)
+
+### Features
+
+* **api:** add new usage response fields ([#281](https://github.com/anthropics/anthropic-sdk-typescript/issues/281)) ([77bd18f](https://github.com/anthropics/anthropic-sdk-typescript/commit/77bd18fb3d149c0706664304102fc5f12830f761))
+
+
+### Chores
+
+* **package:** fix formatting ([#283](https://github.com/anthropics/anthropic-sdk-typescript/issues/283)) ([f88579a](https://github.com/anthropics/anthropic-sdk-typescript/commit/f88579a0768e0a7d5064eec9e1dd79e86c66bce7))
+
 ## 0.12.8 (2024-02-02)
 
 Full Changelog: [sdk-v0.12.7...sdk-v0.12.8](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.12.7...sdk-v0.12.8)
