@@ -9,9 +9,7 @@
   "repository": "github:anthropics/anthropic-sdk-typescript",
   "license": "MIT",
   "packageManager": "yarn@1.22.21",
-  "files": [
-    "*"
-  ],
+  "files": ["*"],
   "private": false,
   "scripts": {
     "test": "bin/check-test-server && yarn jest",
