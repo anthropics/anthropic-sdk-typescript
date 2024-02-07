@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.13.1 (2024-02-07)
+
+Full Changelog: [sdk-v0.13.0...sdk-v0.13.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.13.0...sdk-v0.13.1)
+
+### Chores
+
+* **internal:** reformat pacakge.json ([#284](https://github.com/anthropics/anthropic-sdk-typescript/issues/284)) ([3760c68](https://github.com/anthropics/anthropic-sdk-typescript/commit/3760c68f207b596261da336cbe62b4b84fb1763f))
+* respect `application/vnd.api+json` content-type header ([#286](https://github.com/anthropics/anthropic-sdk-typescript/issues/286)) ([daf0cae](https://github.com/anthropics/anthropic-sdk-typescript/commit/daf0cae6087580d61d4423e113259c8315c2b85a))
+
 ## 0.13.0 (2024-02-02)
 
 Full Changelog: [sdk-v0.12.8...sdk-v0.13.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.12.8...sdk-v0.13.0)
