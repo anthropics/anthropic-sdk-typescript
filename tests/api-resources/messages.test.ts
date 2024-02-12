@@ -10,7 +10,7 @@ const anthropic = new Anthropic({
 
 describe('resource messages', () => {
   test('create: only required params', async () => {
-    const responsePromise = anthropic.beta.messages.create({
+    const responsePromise = anthropic.messages.create({
       max_tokens: 1024,
       messages: [{ role: 'user', content: 'In one sentence, what is good about the color blue?' }],
       model: 'claude-2.1',
@@ -25,7 +25,7 @@ describe('resource messages', () => {
   });
 
   test('create: required and optional params', async () => {
-    const response = await anthropic.beta.messages.create({
+    const response = await anthropic.messages.create({
       max_tokens: 1024,
       messages: [{ role: 'user', content: 'In one sentence, what is good about the color blue?' }],
       model: 'claude-2.1',

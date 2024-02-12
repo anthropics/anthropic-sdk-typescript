@@ -70,7 +70,7 @@ export class AnthropicVertex extends Core.APIClient {
     this._authClientPromise = this._auth.getClient();
   }
 
-  beta: Resources.Beta = new Resources.Beta(this);
+  messages: Resources.Messages = new Resources.Messages(this);
 
   protected override defaultQuery(): Core.DefaultQuery | undefined {
     return this._options.defaultQuery;

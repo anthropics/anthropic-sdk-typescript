@@ -25,15 +25,17 @@ The full API of this library can be found in [api.md](api.md).
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({
-  apiKey: 'my api key', // defaults to process.env["ANTHROPIC_API_KEY"]
+  apiKey: process.env['ANTHROPIC_API_KEY'], // This is the default and can be omitted
 });
 
 async function main() {
-  const completion = await anthropic.completions.create({
+  const message = await anthropic.messages.create({
+    max_tokens: 1024,
+    messages: [{ role: 'user', content: 'How does a court case get to the supreme court?' }],
     model: 'claude-2.1',
-    max_tokens_to_sample: 300,
-    prompt: `${Anthropic.HUMAN_PROMPT} how does a court case get to the Supreme Court?${Anthropic.AI_PROMPT}`,
   });
+
+  console.log(message.content);
 }
 
 main();
@@ -48,14 +50,14 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic();
 
-const stream = await anthropic.completions.create({
-  prompt: `${Anthropic.HUMAN_PROMPT} Your prompt here${Anthropic.AI_PROMPT}`,
+const stream = await anthropic.messages.create({
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'your prompt here' }],
   model: 'claude-2.1',
   stream: true,
-  max_tokens_to_sample: 300,
 });
-for await (const completion of stream) {
-  console.log(completion.completion);
+for await (const messageStreamEvent of stream) {
+  console.log(messageStreamEvent.type);
 }
 ```
 
@@ -71,16 +73,16 @@ This library includes TypeScript definitions for all request params and response
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({
-  apiKey: 'my api key', // defaults to process.env["ANTHROPIC_API_KEY"]
+  apiKey: process.env['ANTHROPIC_API_KEY'], // This is the default and can be omitted
 });
 
 async function main() {
-  const params: Anthropic.CompletionCreateParams = {
-    prompt: `${Anthropic.HUMAN_PROMPT} how does a court case get to the Supreme Court?${Anthropic.AI_PROMPT}`,
-    max_tokens_to_sample: 300,
+  const params: Anthropic.MessageCreateParams = {
+    max_tokens: 1024,
+    messages: [{ role: 'user', content: 'Where can I get a good coffee in my neighbourhood?' }],
     model: 'claude-2.1',
   };
-  const completion: Anthropic.Completion = await anthropic.completions.create(params);
+  const message: Anthropic.Message = await anthropic.messages.create(params);
 }
 
 main();
@@ -104,7 +106,7 @@ import Anthropic from '@anthropic-ai/sdk';
 const anthropic = new Anthropic();
 
 async function main() {
-  const stream = anthropic.beta.messages
+  const stream = anthropic.messages
     .stream({
       model: 'claude-2.1',
       max_tokens: 1024,
@@ -126,9 +128,9 @@ async function main() {
 main();
 ```
 
-Streaming with `client.beta.messages.stream(...)` exposes [various helpers for your convenience](helpers.md) including event handlers and accumulation.
+Streaming with `client.messages.stream(...)` exposes [various helpers for your convenience](helpers.md) including event handlers and accumulation.
 
-Alternatively, you can use `client.beta.messages.create({ ..., stream: true })` which only returns an async iterable of the events in the stream and thus uses less memory (it does not build up a final message object for you).
+Alternatively, you can use `client.messages.create({ ..., stream: true })` which only returns an async iterable of the events in the stream and thus uses less memory (it does not build up a final message object for you).
 
 ## Handling errors
 
@@ -139,10 +141,10 @@ a subclass of `APIError` will be thrown:
 <!-- prettier-ignore -->
 ```ts
 async function main() {
-  const completion = await anthropic.completions
+  const message = await anthropic.messages
     .create({
-      prompt: `${Anthropic.HUMAN_PROMPT} Your prompt here${Anthropic.AI_PROMPT}`,
-      max_tokens_to_sample: 300,
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: 'your prompt here' }],
       model: 'claude-2.1',
     })
     .catch((err) => {
@@ -188,16 +190,9 @@ const anthropic = new Anthropic({
 });
 
 // Or, configure per-request:
-await anthropic.completions.create(
-  {
-    prompt: `${Anthropic.HUMAN_PROMPT} Can you help me effectively ask for a raise at work?${Anthropic.AI_PROMPT}`,
-    max_tokens_to_sample: 300,
-    model: 'claude-2.1',
-  },
-  {
-    maxRetries: 5,
-  },
-);
+await anthropic.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Can you help me effectively ask for a raise at work?' }], model: 'claude-2.1' }, {
+  maxRetries: 5,
+});
 ```
 
 ### Timeouts
@@ -212,16 +207,9 @@ const anthropic = new Anthropic({
 });
 
 // Override per-request:
-await anthropic.completions.create(
-  {
-    prompt: `${Anthropic.HUMAN_PROMPT} Where can I get a good coffee in my neighbourhood?${Anthropic.AI_PROMPT}`,
-    max_tokens_to_sample: 300,
-    model: 'claude-2.1',
-  },
-  {
-    timeout: 5 * 1000,
-  },
-);
+await anthropic.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Where can I get a good coffee in my neighbourhood?' }], model: 'claude-2.1' }, {
+  timeout: 5 * 1000,
+});
 ```
 
 On timeout, an `APIConnectionTimeoutError` is thrown.
@@ -241,11 +229,11 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic();
 
-const completion = await anthropic.completions.create(
+const message = await anthropic.messages.create(
   {
-    max_tokens_to_sample: 300,
+    max_tokens: 1024,
+    messages: [{ role: 'user', content: 'Where can I get a good coffee in my neighbourhood?' }],
     model: 'claude-2.1',
-    prompt: `${Anthropic.HUMAN_PROMPT} Where can I get a good coffee in my neighbourhood?${Anthropic.AI_PROMPT}`,
   },
   { headers: { 'anthropic-version': 'My-Custom-Value' } },
 );
@@ -263,19 +251,25 @@ You can also use the `.withResponse()` method to get the raw `Response` along wi
 ```ts
 const anthropic = new Anthropic();
 
-const response = await anthropic.completions
+const response = await anthropic.messages
   .create({
-    prompt: `${Anthropic.HUMAN_PROMPT} Can you help me effectively ask for a raise at work?${Anthropic.AI_PROMPT}`,
-    max_tokens_to_sample: 300,
+    max_tokens: 1024,
+    messages: [{ role: 'user', content: 'Where can I get a good coffee in my neighbourhood?' }],
     model: 'claude-2.1',
   })
   .asResponse();
 console.log(response.headers.get('X-My-Header'));
-console.log(response.raw.statusText); // access the underlying Response object
+console.log(response.statusText); // access the underlying Response object
 
-// parses the response body, returning an object if the API responds with JSON
-const completion: Completions.Completion = await response.parse();
-console.log(completion.completion);
+const { data: message, response: raw } = await anthropic.messages
+  .create({
+    max_tokens: 1024,
+    messages: [{ role: 'user', content: 'Where can I get a good coffee in my neighbourhood?' }],
+    model: 'claude-2.1',
+  })
+  .withResponse();
+console.log(raw.headers.get('X-My-Header'));
+console.log(message.content);
 ```
 
 ## Customizing the fetch client
@@ -325,7 +319,6 @@ If you would like to disable or customize this behavior, for example to use the 
 <!-- prettier-ignore -->
 ```ts
 import http from 'http';
-import Anthropic from '@anthropic-ai/sdk';
 import HttpsProxyAgent from 'https-proxy-agent';
 
 // Configure the default for all requests:
@@ -334,17 +327,10 @@ const anthropic = new Anthropic({
 });
 
 // Override per-request:
-await anthropic.completions.create(
-  {
-    prompt: `${Anthropic.HUMAN_PROMPT} How does a court case get to the Supreme Court?${Anthropic.AI_PROMPT}`,
-    max_tokens_to_sample: 300,
-    model: 'claude-2.1',
-  },
-  {
-    baseURL: 'http://localhost:8080/test-api',
-    httpAgent: new http.Agent({ keepAlive: false }),
-  },
-);
+await anthropic.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Where can I get a good coffee in my neighbourhood?' }], model: 'claude-2.1' }, {
+  baseURL: 'http://localhost:8080/test-api',
+  httpAgent: new http.Agent({ keepAlive: false }),
+})
 ```
 
 ## Semantic Versioning
