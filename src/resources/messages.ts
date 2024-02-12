@@ -5,7 +5,7 @@ import { APIPromise } from '@anthropic-ai/sdk/core';
 import { APIResource } from '@anthropic-ai/sdk/resource';
 import { MessageStream } from '@anthropic-ai/sdk/lib/MessageStream';
 export { MessageStream } from '@anthropic-ai/sdk/lib/MessageStream';
-import * as MessagesAPI from '@anthropic-ai/sdk/resources/beta/messages';
+import * as MessagesAPI from '@anthropic-ai/sdk/resources/messages';
 import { Stream } from '@anthropic-ai/sdk/streaming';
 
 export class Messages extends APIResource {
@@ -17,10 +17,6 @@ export class Messages extends APIResource {
    *
    * Messages can be used for either single queries to the model or for multi-turn
    * conversations.
-   *
-   * The Messages API is currently in beta. During beta, you must send the
-   * `anthropic-beta: messages-2023-12-15` header in your requests. If you are using
-   * our client SDKs, this is handled for you automatically.
    */
   create(body: MessageCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Message>;
   create(
@@ -39,7 +35,6 @@ export class Messages extends APIResource {
       body,
       timeout: 600000,
       ...options,
-      headers: { 'Anthropic-Beta': 'messages-2023-12-15', ...options?.headers },
       stream: body.stream ?? false,
     }) as APIPromise<Message> | APIPromise<Stream<MessageStreamEvent>>;
   }
@@ -314,9 +309,6 @@ export interface MessageCreateParamsBase {
    * { "role": "user", "content": [{ "type": "text", "text": "Hello, Claude" }] }
    * ```
    *
-   * During beta, the Messages API only accepts content blocks of type `"text"`, and
-   * at most one block per message.
-   *
    * See our
    * [guide to prompt design](https://docs.anthropic.com/claude/docs/introduction-to-prompt-design)
    * for more details on how to best construct prompts.
@@ -509,9 +501,6 @@ export interface MessageStreamParams {
    * ```json
    * { "role": "user", "content": [{ "type": "text", "text": "Hello, Claude" }] }
    * ```
-   *
-   * During beta, the Messages API only accepts content blocks of type `"text"`, and
-   * at most one block per message.
    *
    * See our
    * [guide to prompt design](https://docs.anthropic.com/claude/docs/introduction-to-prompt-design)

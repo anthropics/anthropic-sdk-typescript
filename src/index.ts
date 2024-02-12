@@ -121,7 +121,7 @@ export class Anthropic extends Core.APIClient {
   }
 
   completions: API.Completions = new API.Completions(this);
-  beta: API.Beta = new API.Beta(this);
+  messages: API.Messages = new API.Messages(this);
 
   protected override defaultQuery(): Core.DefaultQuery | undefined {
     return this._options.defaultQuery;
@@ -236,7 +236,25 @@ export namespace Anthropic {
   export import CompletionCreateParamsNonStreaming = API.CompletionCreateParamsNonStreaming;
   export import CompletionCreateParamsStreaming = API.CompletionCreateParamsStreaming;
 
-  export import Beta = API.Beta;
+  export import Messages = API.Messages;
+  export import ContentBlock = API.ContentBlock;
+  export import ContentBlockDeltaEvent = API.ContentBlockDeltaEvent;
+  export import ContentBlockStartEvent = API.ContentBlockStartEvent;
+  export import ContentBlockStopEvent = API.ContentBlockStopEvent;
+  export import Message = API.Message;
+  export import MessageDeltaEvent = API.MessageDeltaEvent;
+  export import MessageDeltaUsage = API.MessageDeltaUsage;
+  export import MessageParam = API.MessageParam;
+  export import MessageStartEvent = API.MessageStartEvent;
+  export import MessageStopEvent = API.MessageStopEvent;
+  export import MessageStreamEvent = API.MessageStreamEvent;
+  export import TextBlock = API.TextBlock;
+  export import TextDelta = API.TextDelta;
+  export import Usage = API.Usage;
+  export import MessageCreateParams = API.MessageCreateParams;
+  export import MessageCreateParamsNonStreaming = API.MessageCreateParamsNonStreaming;
+  export import MessageCreateParamsStreaming = API.MessageCreateParamsStreaming;
+  export import MessageStreamParams = API.MessageStreamParams;
 }
 
 export default Anthropic;

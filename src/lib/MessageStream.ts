@@ -8,7 +8,7 @@ import {
   MessageParam,
   MessageCreateParams,
   MessageStreamParams,
-} from '@anthropic-ai/sdk/resources/beta/messages';
+} from '@anthropic-ai/sdk/resources/messages';
 import { type ReadableStream } from '@anthropic-ai/sdk/_shims/index';
 import { Stream } from '@anthropic-ai/sdk/streaming';
 

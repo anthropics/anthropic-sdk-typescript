@@ -3,14 +3,14 @@
 ## Streaming Responses
 
 ```ts
-anthropic.beta.messages.stream({ … }, options?): MessageStream
+anthropic.messages.stream({ … }, options?): MessageStream
 ```
 
-`anthropic.beta.messages.stream()` returns a `MessageStream`, which emits events, has an async
+`anthropic.messages.stream()` returns a `MessageStream`, which emits events, has an async
 iterator, and exposes helper methods to accumulate stream events into a convenient shape and make it easy to reason
 about the conversation.
 
-Alternatively, you can use `anthropic.beta.messages.create({ stream: true, … })` which returns an async
+Alternatively, you can use `anthropic.messages.create({ stream: true, … })` which returns an async
 iterable of the chunks in the stream and uses less memory (most notably, it does not accumulate a message
 object for you).
 

@@ -1,7 +1,7 @@
 import { PassThrough } from 'stream';
 import { Response } from 'node-fetch';
 import Anthropic, { APIUserAbortError } from '@anthropic-ai/sdk';
-import { Message, MessageStreamEvent } from '@anthropic-ai/sdk/resources/beta';
+import { Message, MessageStreamEvent } from '@anthropic-ai/sdk/resources/messages';
 import { type RequestInfo, type RequestInit } from '@anthropic-ai/sdk/_shims/index';
 
 type Fetch = (req: string | RequestInfo, init?: RequestInit) => Promise<Response>;
@@ -126,7 +126,7 @@ describe('MessageStream class', () => {
       }),
     );
 
-    const stream = anthropic.beta.messages.stream({
+    const stream = anthropic.messages.stream({
       max_tokens: 1024,
       model: 'claude-2.1',
       messages: [{ role: 'user', content: 'Say hello there!' }],
@@ -311,7 +311,7 @@ describe('MessageStream class', () => {
 
     const anthropic = new Anthropic({ apiKey: '...', fetch });
 
-    const stream = anthropic.beta.messages.stream({
+    const stream = anthropic.messages.stream({
       max_tokens: 1024,
       model: 'claude-2.1',
       messages: [{ role: 'user', content: 'Say hello there!' }],
