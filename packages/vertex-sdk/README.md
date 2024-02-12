@@ -28,7 +28,7 @@ import { AnthropicVertex } from '@anthropic-ai/vertex-sdk';
 const client = new AnthropicVertex();
 
 async function main() {
-  const result = await client.beta.messages.create({
+  const result = await client.messages.create({
     messages: [
       {
         role: 'user',

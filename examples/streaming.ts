@@ -5,7 +5,7 @@ import Anthropic from '@anthropic-ai/sdk';
 const client = new Anthropic(); // gets API Key from environment variable ANTHROPIC_API_KEY
 
 async function main() {
-  const stream = client.beta.messages
+  const stream = client.messages
     .stream({
       messages: [
         {
