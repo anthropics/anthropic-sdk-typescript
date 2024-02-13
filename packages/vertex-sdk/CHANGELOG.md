@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0 (2024-02-13)
+
+Full Changelog: [vertex-sdk-v0.1.2...vertex-sdk-v0.2.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.1.2...vertex-sdk-v0.2.0)
+
+### ⚠ BREAKING CHANGES
+
+* **api:** messages is generally available ([#287](https://github.com/anthropics/anthropic-sdk-typescript/issues/287))
+
+### Features
+
+* **api:** messages is generally available ([#287](https://github.com/anthropics/anthropic-sdk-typescript/issues/287)) ([be0a828](https://github.com/anthropics/anthropic-sdk-typescript/commit/be0a82883cf9b1b9d2944525b86e40f2b42cea4f))
+
 ## 0.1.2 (2024-01-31)
 
 Full Changelog: [vertex-sdk-v0.1.1...vertex-sdk-v0.1.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.1.1...vertex-sdk-v0.1.2)
