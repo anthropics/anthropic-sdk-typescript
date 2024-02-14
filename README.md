@@ -4,8 +4,6 @@
 
 This library provides convenient access to the Anthropic REST API from server-side TypeScript or JavaScript.
 
-For the AWS Bedrock API, see [`@anthropic-ai/bedrock-sdk`](https://github.com/anthropics/anthropic-bedrock-typescript).
-
 The REST API documentation can be found [on docs.anthropic.com](https://docs.anthropic.com/claude/reference/). The full API of this library can be found in [api.md](api.md).
 
 ## Installation
