@@ -94,7 +94,7 @@ We provide a [separate package](https://github.com/anthropics/anthropic-tokenize
 
 See the [repository documentation](https://github.com/anthropics/anthropic-tokenizer-typescript) for more details.
 
-### Streaming Helpers
+## Streaming Helpers
 
 This library provides several conveniences for streaming messages, for example:
 
