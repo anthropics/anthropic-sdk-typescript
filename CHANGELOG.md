@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.14.1 (2024-02-22)
+
+Full Changelog: [sdk-v0.14.0...sdk-v0.14.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.14.0...sdk-v0.14.1)
+
+### Chores
+
+* **ci:** update actions/setup-node action to v4 ([#295](https://github.com/anthropics/anthropic-sdk-typescript/issues/295)) ([359a856](https://github.com/anthropics/anthropic-sdk-typescript/commit/359a856c4c93d962ca3e117f4dd799849eb5fa7d))
+* **docs:** remove references to old bedrock package ([#289](https://github.com/anthropics/anthropic-sdk-typescript/issues/289)) ([33b935e](https://github.com/anthropics/anthropic-sdk-typescript/commit/33b935e3d840346dd464445901846d2b22888e1c))
+* **internal:** refactor release environment script ([#294](https://github.com/anthropics/anthropic-sdk-typescript/issues/294)) ([b7f8714](https://github.com/anthropics/anthropic-sdk-typescript/commit/b7f87143b16ad413adb943297e65473fd9b93b71))
+
+
+### Documentation
+
+* **readme:** fix header for streaming helpers ([#293](https://github.com/anthropics/anthropic-sdk-typescript/issues/293)) ([7278e6f](https://github.com/anthropics/anthropic-sdk-typescript/commit/7278e6f7d62d837c2af0b1a440dfa97b6a3f6b4e))
+
+
+### Refactors
+
+* **api:** mark completions API as legacy ([#291](https://github.com/anthropics/anthropic-sdk-typescript/issues/291)) ([c78e2e2](https://github.com/anthropics/anthropic-sdk-typescript/commit/c78e2e215067fabcc3eaee0a537213f55735b42e))
+
 ## 0.14.0 (2024-02-13)
 
 Full Changelog: [sdk-v0.13.1...sdk-v0.14.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.13.1...sdk-v0.14.0)
