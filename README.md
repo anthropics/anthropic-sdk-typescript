@@ -296,7 +296,7 @@ import { fetch } from 'undici'; // as one example
 import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({
-  fetch: async (url: RequestInfo, init?: RequestInfo): Promise<Response> => {
+  fetch: async (url: RequestInfo, init?: RequestInit): Promise<Response> => {
     console.log('About to make a request', url, init);
     const response = await fetch(url, init);
     console.log('Got response', response);
