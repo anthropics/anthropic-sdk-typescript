@@ -1,6 +1,6 @@
 import { PassThrough } from 'stream';
 import { Response } from 'node-fetch';
-import Anthropic, { APIUserAbortError } from '@anthropic-ai/sdk';
+import Anthropic, { APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
 import { Message, MessageStreamEvent } from '@anthropic-ai/sdk/resources/messages';
 import { type RequestInfo, type RequestInit } from '@anthropic-ai/sdk/_shims/index';
 
@@ -336,10 +336,62 @@ describe('MessageStream class', () => {
       }
     }
 
-    await stream.done().catch((e) => {
-      expect(e).toBeInstanceOf(APIUserAbortError);
-    });
+    await expect(async () => stream.done()).rejects.toThrow(APIUserAbortError);
 
     expect(stream.aborted).toBe(true);
+  });
+
+  it('handles network errors', async () => {
+    const { fetch, handleRequest } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    const stream = anthropic.messages.stream(
+      {
+        max_tokens: 1024,
+        model: 'claude-2.1',
+        messages: [{ role: 'user', content: 'Say hello there!' }],
+      },
+      { maxRetries: 0 },
+    );
+
+    handleRequest(async () => {
+      throw new Error('mock request error');
+    });
+
+    async function runStream() {
+      await stream.done();
+    }
+
+    await expect(runStream).rejects.toThrow(APIConnectionError);
+  });
+
+  it('handles network errors on async iterator', async () => {
+    const { fetch, handleRequest } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    const stream = anthropic.messages.stream(
+      {
+        max_tokens: 1024,
+        model: 'claude-2.1',
+        messages: [{ role: 'user', content: 'Say hello there!' }],
+      },
+      { maxRetries: 0 },
+    );
+
+    handleRequest(async () => {
+      throw new Error('mock request error');
+    });
+
+    async function runStream() {
+      for await (const event of stream) {
+        if (event.type === 'content_block_delta' && event.delta.text.includes('He')) {
+          break;
+        }
+      }
+    }
+
+    await expect(runStream).rejects.toThrow(APIConnectionError);
   });
 });

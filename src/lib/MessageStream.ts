@@ -468,13 +468,16 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
 
   [Symbol.asyncIterator](): AsyncIterator<MessageStreamEvent> {
     const pushQueue: MessageStreamEvent[] = [];
-    const readQueue: ((chunk: MessageStreamEvent | undefined) => void)[] = [];
+    const readQueue: {
+      resolve: (chunk: MessageStreamEvent | undefined) => void;
+      reject: (error: unknown) => void;
+    }[] = [];
     let done = false;
 
     this.on('streamEvent', (event) => {
       const reader = readQueue.shift();
       if (reader) {
-        reader(event);
+        reader.resolve(event);
       } else {
         pushQueue.push(event);
       }
@@ -483,7 +486,23 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     this.on('end', () => {
       done = true;
       for (const reader of readQueue) {
-        reader(undefined);
+        reader.resolve(undefined);
+      }
+      readQueue.length = 0;
+    });
+
+    this.on('abort', (err) => {
+      done = true;
+      for (const reader of readQueue) {
+        reader.reject(err);
+      }
+      readQueue.length = 0;
+    });
+
+    this.on('error', (err) => {
+      done = true;
+      for (const reader of readQueue) {
+        reader.reject(err);
       }
       readQueue.length = 0;
     });
@@ -494,9 +513,9 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
           if (done) {
             return { value: undefined, done: true };
           }
-          return new Promise<MessageStreamEvent | undefined>((resolve) => readQueue.push(resolve)).then(
-            (chunk) => (chunk ? { value: chunk, done: false } : { value: undefined, done: true }),
-          );
+          return new Promise<MessageStreamEvent | undefined>((resolve, reject) =>
+            readQueue.push({ resolve, reject }),
+          ).then((chunk) => (chunk ? { value: chunk, done: false } : { value: undefined, done: true }));
         }
         const chunk = pushQueue.shift()!;
         return { value: chunk, done: false };
