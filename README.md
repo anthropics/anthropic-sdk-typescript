@@ -135,6 +135,10 @@ Streaming with `client.messages.stream(...)` exposes [various helpers for your c
 
 Alternatively, you can use `client.messages.create({ ..., stream: true })` which only returns an async iterable of the events in the stream and thus uses less memory (it does not build up a final message object for you).
 
+## AWS Bedrock
+
+We provide support for the [Anthropic Bedrock API](https://aws.amazon.com/bedrock/claude/) through a [separate package](https://github.com/anthropics/anthropic-sdk-typescript/tree/main/packages/bedrock-sdk).
+
 ## Handling errors
 
 When the library is unable to connect to the API,
