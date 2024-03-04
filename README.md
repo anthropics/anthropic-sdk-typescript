@@ -150,7 +150,7 @@ async function main() {
       messages: [{ role: 'user', content: 'Hello, Claude' }],
       model: 'claude-3-opus-20240229',
     })
-    .catch((err) => {
+    .catch(async (err) => {
       if (err instanceof Anthropic.APIError) {
         console.log(err.status); // 400
         console.log(err.name); // BadRequestError
