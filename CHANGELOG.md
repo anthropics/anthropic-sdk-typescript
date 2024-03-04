@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.16.0 (2024-03-04)
+
+Full Changelog: [sdk-v0.15.0...sdk-v0.16.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.15.0...sdk-v0.16.0)
+
+### Features
+
+* **bedrock:** add messages API ([#305](https://github.com/anthropics/anthropic-sdk-typescript/issues/305)) ([8b7f89e](https://github.com/anthropics/anthropic-sdk-typescript/commit/8b7f89e1e60416f9ad5b575d43238a4259654395))
+
+
+### Chores
+
+* update examples ([459956a](https://github.com/anthropics/anthropic-sdk-typescript/commit/459956ac44b5a2fd1dd0d0828e0281875b5900e9))
+
 ## 0.15.0 (2024-03-04)
 
 Full Changelog: [sdk-v0.14.1...sdk-v0.15.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.14.1...sdk-v0.15.0)

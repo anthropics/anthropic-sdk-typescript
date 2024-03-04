@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.0 (2024-03-04)
+
+Full Changelog: [bedrock-sdk-v0.8.0...bedrock-sdk-v0.9.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.8.0...bedrock-sdk-v0.9.0)
+
+### Features
+
+* **bedrock:** add messages API ([#305](https://github.com/anthropics/anthropic-sdk-typescript/issues/305)) ([8b7f89e](https://github.com/anthropics/anthropic-sdk-typescript/commit/8b7f89e1e60416f9ad5b575d43238a4259654395))
+
 ## 0.8.0 (2024-03-04)
 
 Full Changelog: [bedrock-sdk-v0.7.1...bedrock-sdk-v0.8.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.7.1...bedrock-sdk-v0.8.0)
