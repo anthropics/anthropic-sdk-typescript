@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.15.0 (2024-03-04)
+
+Full Changelog: [sdk-v0.14.1...sdk-v0.15.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.14.1...sdk-v0.15.0)
+
+### Features
+
+* **messages:** add support for image inputs ([#303](https://github.com/anthropics/anthropic-sdk-typescript/issues/303)) ([7663bd6](https://github.com/anthropics/anthropic-sdk-typescript/commit/7663bd6e1a4427483cf5f13889bc5c63314e5bae))
+
+
+### Bug Fixes
+
+* **MessageStream:** handle errors more gracefully in async iterator ([#301](https://github.com/anthropics/anthropic-sdk-typescript/issues/301)) ([9cc0daa](https://github.com/anthropics/anthropic-sdk-typescript/commit/9cc0daa9af5717953933e12b487bdbdd5b762cc7))
+
+
+### Chores
+
+* **docs:** mention install from git repo ([#302](https://github.com/anthropics/anthropic-sdk-typescript/issues/302)) ([dd2627b](https://github.com/anthropics/anthropic-sdk-typescript/commit/dd2627bc6404afbdccb2c2b66ee0dfcc3fc80031))
+* **internal:** update deps ([#296](https://github.com/anthropics/anthropic-sdk-typescript/issues/296)) ([8804a92](https://github.com/anthropics/anthropic-sdk-typescript/commit/8804a92e3c873d712cac75089af0e82104e6381c))
+
+
+### Documentation
+
+* **contributing:** improve wording ([#299](https://github.com/anthropics/anthropic-sdk-typescript/issues/299)) ([7697fa1](https://github.com/anthropics/anthropic-sdk-typescript/commit/7697fa1a3b680015c55ed715a1496c727630a3dc))
+* **readme:** fix typo in custom fetch implementation ([#300](https://github.com/anthropics/anthropic-sdk-typescript/issues/300)) ([a4974c3](https://github.com/anthropics/anthropic-sdk-typescript/commit/a4974c3080c6b592c2a25367932481a154e6c280))
+
 ## 0.14.1 (2024-02-22)
 
 Full Changelog: [sdk-v0.14.0...sdk-v0.14.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.14.0...sdk-v0.14.1)
