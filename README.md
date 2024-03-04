@@ -30,8 +30,8 @@ const anthropic = new Anthropic({
 async function main() {
   const message = await anthropic.messages.create({
     max_tokens: 1024,
-    messages: [{ role: 'user', content: 'How does a court case get to the supreme court?' }],
-    model: 'claude-2.1',
+    messages: [{ role: 'user', content: 'Hello, Claude' }],
+    model: 'claude-3-opus-20240229',
   });
 
   console.log(message.content);
@@ -51,8 +51,8 @@ const anthropic = new Anthropic();
 
 const stream = await anthropic.messages.create({
   max_tokens: 1024,
-  messages: [{ role: 'user', content: 'your prompt here' }],
-  model: 'claude-2.1',
+  messages: [{ role: 'user', content: 'Hello, Claude' }],
+  model: 'claude-3-opus-20240229',
   stream: true,
 });
 for await (const messageStreamEvent of stream) {
@@ -78,8 +78,8 @@ const anthropic = new Anthropic({
 async function main() {
   const params: Anthropic.MessageCreateParams = {
     max_tokens: 1024,
-    messages: [{ role: 'user', content: 'Where can I get a good coffee in my neighbourhood?' }],
-    model: 'claude-2.1',
+    messages: [{ role: 'user', content: 'Hello, Claude' }],
+    model: 'claude-3-opus-20240229',
   };
   const message: Anthropic.Message = await anthropic.messages.create(params);
 }
@@ -91,9 +91,13 @@ Documentation for each method, request param, and response field are available i
 
 ## Counting Tokens
 
-We provide a [separate package](https://github.com/anthropics/anthropic-tokenizer-typescript) for counting how many tokens a given piece of text contains.
+You can see the exact usage for a given request through the `usage` response property, e.g.
 
-See the [repository documentation](https://github.com/anthropics/anthropic-tokenizer-typescript) for more details.
+```ts
+const message = await client.messages.create(...)
+console.log(message.usage)
+// { input_tokens: 25, output_tokens: 13 }
+```
 
 ## Streaming Helpers
 
@@ -107,7 +111,7 @@ const anthropic = new Anthropic();
 async function main() {
   const stream = anthropic.messages
     .stream({
-      model: 'claude-2.1',
+      model: 'claude-3-opus-20240229',
       max_tokens: 1024,
       messages: [
         {
@@ -143,8 +147,8 @@ async function main() {
   const message = await anthropic.messages
     .create({
       max_tokens: 1024,
-      messages: [{ role: 'user', content: 'your prompt here' }],
-      model: 'claude-2.1',
+      messages: [{ role: 'user', content: 'Hello, Claude' }],
+      model: 'claude-3-opus-20240229',
     })
     .catch((err) => {
       if (err instanceof Anthropic.APIError) {
@@ -189,7 +193,7 @@ const anthropic = new Anthropic({
 });
 
 // Or, configure per-request:
-await anthropic.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Can you help me effectively ask for a raise at work?' }], model: 'claude-2.1' }, {
+await anthropic.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-opus-20240229' }, {
   maxRetries: 5,
 });
 ```
@@ -206,7 +210,7 @@ const anthropic = new Anthropic({
 });
 
 // Override per-request:
-await anthropic.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Where can I get a good coffee in my neighbourhood?' }], model: 'claude-2.1' }, {
+await anthropic.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-opus-20240229' }, {
   timeout: 5 * 1000,
 });
 ```
@@ -231,8 +235,8 @@ const anthropic = new Anthropic();
 const message = await anthropic.messages.create(
   {
     max_tokens: 1024,
-    messages: [{ role: 'user', content: 'Where can I get a good coffee in my neighbourhood?' }],
-    model: 'claude-2.1',
+    messages: [{ role: 'user', content: 'Hello, Claude' }],
+    model: 'claude-3-opus-20240229',
   },
   { headers: { 'anthropic-version': 'My-Custom-Value' } },
 );
@@ -253,8 +257,8 @@ const anthropic = new Anthropic();
 const response = await anthropic.messages
   .create({
     max_tokens: 1024,
-    messages: [{ role: 'user', content: 'Where can I get a good coffee in my neighbourhood?' }],
-    model: 'claude-2.1',
+    messages: [{ role: 'user', content: 'Hello, Claude' }],
+    model: 'claude-3-opus-20240229',
   })
   .asResponse();
 console.log(response.headers.get('X-My-Header'));
@@ -263,8 +267,8 @@ console.log(response.statusText); // access the underlying Response object
 const { data: message, response: raw } = await anthropic.messages
   .create({
     max_tokens: 1024,
-    messages: [{ role: 'user', content: 'Where can I get a good coffee in my neighbourhood?' }],
-    model: 'claude-2.1',
+    messages: [{ role: 'user', content: 'Hello, Claude' }],
+    model: 'claude-3-opus-20240229',
   })
   .withResponse();
 console.log(raw.headers.get('X-My-Header'));
@@ -326,7 +330,7 @@ const anthropic = new Anthropic({
 });
 
 // Override per-request:
-await anthropic.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Where can I get a good coffee in my neighbourhood?' }], model: 'claude-2.1' }, {
+await anthropic.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-opus-20240229' }, {
   baseURL: 'http://localhost:8080/test-api',
   httpAgent: new http.Agent({ keepAlive: false }),
 })

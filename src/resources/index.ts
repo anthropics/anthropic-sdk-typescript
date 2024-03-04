@@ -12,6 +12,7 @@ export {
   ContentBlockDeltaEvent,
   ContentBlockStartEvent,
   ContentBlockStopEvent,
+  ImageBlockParam,
   Message,
   MessageDeltaEvent,
   MessageDeltaUsage,

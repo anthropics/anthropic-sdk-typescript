@@ -119,7 +119,7 @@ describe('MessageStream class', () => {
         id: 'msg_01hhptzfxdaeehfxfv070yb6b8',
         role: 'assistant',
         content: [{ type: 'text', text: 'Hello there!' }],
-        model: 'claude-2.1',
+        model: 'claude-3-opus-20240229',
         stop_reason: 'end_turn',
         stop_sequence: null,
         usage: { output_tokens: 6, input_tokens: 10 },
@@ -128,7 +128,7 @@ describe('MessageStream class', () => {
 
     const stream = anthropic.messages.stream({
       max_tokens: 1024,
-      model: 'claude-2.1',
+      model: 'claude-3-opus-20240229',
       messages: [{ role: 'user', content: 'Say hello there!' }],
     });
 
@@ -182,22 +182,22 @@ describe('MessageStream class', () => {
         },
         {
           "args": [
-            "{"type":"message_start","message":{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[],"model":"claude-2.1","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}}",
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[],"model":"claude-2.1","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+            "{"type":"message_start","message":{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
           ],
           "type": "streamEvent",
         },
         {
           "args": [
             "{"type":"content_block_start","content_block":{"type":"text","text":""},"index":0}",
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":""}],"model":"claude-2.1","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":""}],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
           ],
           "type": "streamEvent",
         },
         {
           "args": [
             "{"type":"content_block_delta","delta":{"type":"text_delta","text":"Hello"},"index":0}",
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello"}],"model":"claude-2.1","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello"}],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
           ],
           "type": "streamEvent",
         },
@@ -211,7 +211,7 @@ describe('MessageStream class', () => {
         {
           "args": [
             "{"type":"content_block_delta","delta":{"type":"text_delta","text":" ther"},"index":0}",
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello ther"}],"model":"claude-2.1","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello ther"}],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
           ],
           "type": "streamEvent",
         },
@@ -225,7 +225,7 @@ describe('MessageStream class', () => {
         {
           "args": [
             "{"type":"content_block_delta","delta":{"type":"text_delta","text":"e!"},"index":0}",
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
           ],
           "type": "streamEvent",
         },
@@ -239,7 +239,7 @@ describe('MessageStream class', () => {
         {
           "args": [
             "{"type":"content_block_stop","index":0}",
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
           ],
           "type": "streamEvent",
         },
@@ -252,26 +252,26 @@ describe('MessageStream class', () => {
         {
           "args": [
             "{"type":"message_delta","usage":{"output_tokens":6},"delta":{"stop_reason":"end_turn","stop_sequence":null}}",
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-3-opus-20240229","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
           ],
           "type": "streamEvent",
         },
         {
           "args": [
             "{"type":"message_stop"}",
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-3-opus-20240229","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
           ],
           "type": "streamEvent",
         },
         {
           "args": [
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-3-opus-20240229","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
           ],
           "type": "message",
         },
         {
           "args": [
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-2.1","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-3-opus-20240229","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10}}",
           ],
           "type": "finalMessage",
         },
@@ -293,7 +293,7 @@ describe('MessageStream class', () => {
           },
         ],
         "id": "msg_01hhptzfxdaeehfxfv070yb6b8",
-        "model": "claude-2.1",
+        "model": "claude-3-opus-20240229",
         "role": "assistant",
         "stop_reason": "end_turn",
         "stop_sequence": null,
@@ -313,7 +313,7 @@ describe('MessageStream class', () => {
 
     const stream = anthropic.messages.stream({
       max_tokens: 1024,
-      model: 'claude-2.1',
+      model: 'claude-3-opus-20240229',
       messages: [{ role: 'user', content: 'Say hello there!' }],
     });
 
@@ -323,7 +323,7 @@ describe('MessageStream class', () => {
         id: 'msg_01hhptzfxdaeehfxfv070yb6b8',
         role: 'assistant',
         content: [{ type: 'text', text: 'Hello there!' }],
-        model: 'claude-2.1',
+        model: 'claude-3-opus-20240229',
         stop_reason: 'end_turn',
         stop_sequence: null,
         usage: { output_tokens: 6, input_tokens: 10 },
