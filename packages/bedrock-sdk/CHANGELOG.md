@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0 (2024-03-04)
+
+Full Changelog: [bedrock-sdk-v0.7.1...bedrock-sdk-v0.8.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.7.1...bedrock-sdk-v0.8.0)
+
+### Features
+
+* **messages:** add support for image inputs ([#303](https://github.com/anthropics/anthropic-sdk-typescript/issues/303)) ([7663bd6](https://github.com/anthropics/anthropic-sdk-typescript/commit/7663bd6e1a4427483cf5f13889bc5c63314e5bae))
+
 ## 0.7.1 (2024-01-31)
 
 Full Changelog: [bedrock-sdk-v0.7.0...bedrock-sdk-v0.7.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.7.0...bedrock-sdk-v0.7.1)
