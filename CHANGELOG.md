@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.16.1 (2024-03-04)
+
+Full Changelog: [sdk-v0.16.0...sdk-v0.16.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.16.0...sdk-v0.16.1)
+
+### Chores
+
+* fix error handler in readme ([#307](https://github.com/anthropics/anthropic-sdk-typescript/issues/307)) ([5007a1e](https://github.com/anthropics/anthropic-sdk-typescript/commit/5007a1e71907648ea44e1663f5b7f71bb20d001d))
+
+
+### Documentation
+
+* **readme:** reference bedrock sdk ([#309](https://github.com/anthropics/anthropic-sdk-typescript/issues/309)) ([0fd0416](https://github.com/anthropics/anthropic-sdk-typescript/commit/0fd041617eca18dd506efffe5a4e2505dd1aa004))
+
 ## 0.16.0 (2024-03-04)
 
 Full Changelog: [sdk-v0.15.0...sdk-v0.16.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.15.0...sdk-v0.16.0)
