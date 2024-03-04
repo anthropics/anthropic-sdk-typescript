@@ -7,7 +7,7 @@ const client = new Anthropic(); // gets API Key from environment variable ANTHRO
 async function main() {
   const result = await client.completions.create({
     prompt: `${Anthropic.HUMAN_PROMPT} how does a court case get to the Supreme Court? ${Anthropic.AI_PROMPT}`,
-    model: 'claude-2.1',
+    model: 'claude-3-opus-20240229',
     max_tokens_to_sample: 300,
   });
   console.log(result.completion);
