@@ -1,6 +1,5 @@
 #!/usr/bin/env -S npm run tsn -T
 
-import Anthropic from '@anthropic-ai/sdk';
 import { AnthropicBedrock } from '@anthropic-ai/bedrock-sdk';
 
 // Note: this assumes you have configured AWS credentials in a way
@@ -11,18 +10,24 @@ import { AnthropicBedrock } from '@anthropic-ai/bedrock-sdk';
 const client = new AnthropicBedrock();
 
 async function main() {
-  const question = 'Hey Claude! How can I recursively list all files in a directory in Rust?';
-
-  const stream = await client.completions.create({
-    prompt: `${Anthropic.HUMAN_PROMPT}${question}${Anthropic.AI_PROMPT}:`,
-    model: 'anthropic.claude-v2:1',
+  const stream = await client.messages.create({
+    model: 'anthropic.claude-3-sonnet-20240229-v1:0',
+    messages: [
+      {
+        role: 'user',
+        content: 'Hello!',
+      },
+    ],
+    max_tokens: 1024,
     stream: true,
-    max_tokens_to_sample: 500,
   });
 
-  for await (const completion of stream) {
-    process.stdout.write(completion.completion);
+  for await (const event of stream) {
+    if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+      process.stdout.write(event.delta.text);
+    }
   }
+  process.stdout.write('\n');
 }
 
 main();

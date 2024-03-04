@@ -5,6 +5,7 @@ import { getAuthHeaders } from './auth';
 import { Stream } from './streaming';
 
 const DEFAULT_VERSION = 'bedrock-2023-05-31';
+const MODEL_ENDPOINTS = new Set<string>(['/v1/complete', '/v1/messages']);
 
 export type ClientOptions = Omit<API.ClientOptions, 'apiKey' | 'authToken'> & {
   awsSecretKey?: string | null | undefined;
@@ -73,6 +74,7 @@ export class AnthropicBedrock extends Core.APIClient {
     this.awsSessionToken = awsSessionToken;
   }
 
+  messages: Resources.Messages = new Resources.Messages(this);
   completions: Resources.Completions = new Resources.Completions(this);
 
   protected override defaultQuery(): Core.DefaultQuery | undefined {
@@ -120,7 +122,7 @@ export class AnthropicBedrock extends Core.APIClient {
       }
     }
 
-    if (options.path === '/v1/complete' && options.method === 'post') {
+    if (MODEL_ENDPOINTS.has(options.path) && options.method === 'post') {
       if (!Core.isObj(options.body)) {
         throw new Error('Expected request body to be an object for post /v1/messages');
       }
