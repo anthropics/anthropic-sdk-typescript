@@ -12,8 +12,8 @@ describe('resource messages', () => {
   test('create: only required params', async () => {
     const responsePromise = anthropic.messages.create({
       max_tokens: 1024,
-      messages: [{ role: 'user', content: 'In one sentence, what is good about the color blue?' }],
-      model: 'claude-2.1',
+      messages: [{ role: 'user', content: 'Hello, world' }],
+      model: 'claude-3-opus-20240229',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -27,8 +27,8 @@ describe('resource messages', () => {
   test('create: required and optional params', async () => {
     const response = await anthropic.messages.create({
       max_tokens: 1024,
-      messages: [{ role: 'user', content: 'In one sentence, what is good about the color blue?' }],
-      model: 'claude-2.1',
+      messages: [{ role: 'user', content: 'Hello, world' }],
+      model: 'claude-3-opus-20240229',
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
       stop_sequences: ['string', 'string', 'string'],
       stream: false,

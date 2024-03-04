@@ -241,6 +241,7 @@ export namespace Anthropic {
   export import ContentBlockDeltaEvent = API.ContentBlockDeltaEvent;
   export import ContentBlockStartEvent = API.ContentBlockStartEvent;
   export import ContentBlockStopEvent = API.ContentBlockStopEvent;
+  export import ImageBlockParam = API.ImageBlockParam;
   export import Message = API.Message;
   export import MessageDeltaEvent = API.MessageDeltaEvent;
   export import MessageDeltaUsage = API.MessageDeltaUsage;

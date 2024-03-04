@@ -12,7 +12,7 @@ const anthropic = new AnthropicBedrock();
 
 async function main() {
   const completion = await anthropic.completions.create({
-    model: 'anthropic.claude-instant-v1',
+    model: 'anthropic.claude-3-opus-20240229-v1:0',
     prompt: `${Anthropic.HUMAN_PROMPT} how does a court case get to the Supreme Court? ${Anthropic.AI_PROMPT}`,
     stop_sequences: [Anthropic.HUMAN_PROMPT],
     max_tokens_to_sample: 800,

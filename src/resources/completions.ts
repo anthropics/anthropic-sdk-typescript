@@ -69,6 +69,11 @@ export interface Completion {
    */
   stop_reason: string | null;
 
+  /**
+   * Object type.
+   *
+   * For Text Completions, this is always `"completion"`.
+   */
   type: 'completion';
 }
 
@@ -86,16 +91,10 @@ export interface CompletionCreateParamsBase {
   /**
    * The model that will complete your prompt.
    *
-   * As we improve Claude, we develop new versions of it that you can query. The
-   * `model` parameter controls which version of Claude responds to your request.
-   * Right now we offer two model families: Claude, and Claude Instant. You can use
-   * them by setting `model` to `"claude-2.1"` or `"claude-instant-1.2"`,
-   * respectively.
-   *
-   * See [models](https://docs.anthropic.com/claude/reference/selecting-a-model) for
+   * See [models](https://docs.anthropic.com/claude/docs/models-overview) for
    * additional details and options.
    */
-  model: (string & {}) | 'claude-2.1' | 'claude-instant-1';
+  model: (string & {}) | 'claude-3-opus-20240229' | 'claude-2.1' | 'claude-instant-1';
 
   /**
    * The prompt that you want Claude to complete.
@@ -141,8 +140,12 @@ export interface CompletionCreateParamsBase {
   /**
    * Amount of randomness injected into the response.
    *
-   * Defaults to 1. Ranges from 0 to 1. Use temp closer to 0 for analytical /
-   * multiple choice, and closer to 1 for creative and generative tasks.
+   * Defaults to `1.0`. Ranges from `0.0` to `1.0`. Use `temperature` closer to `0.0`
+   * for analytical / multiple choice, and closer to `1.0` for creative and
+   * generative tasks.
+   *
+   * Note that even with `temperature` of `0.0`, the results will not be fully
+   * deterministic.
    */
   temperature?: number;
 
@@ -151,6 +154,9 @@ export interface CompletionCreateParamsBase {
    *
    * Used to remove "long tail" low probability responses.
    * [Learn more technical details here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
+   *
+   * Recommended for advanced use cases only. You usually only need to use
+   * `temperature`.
    */
   top_k?: number;
 
@@ -161,6 +167,9 @@ export interface CompletionCreateParamsBase {
    * for each subsequent token in decreasing probability order and cut it off once it
    * reaches a particular probability specified by `top_p`. You should either alter
    * `temperature` or `top_p`, but not both.
+   *
+   * Recommended for advanced use cases only. You usually only need to use
+   * `temperature`.
    */
   top_p?: number;
 }

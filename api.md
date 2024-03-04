@@ -1,15 +1,5 @@
 # Anthropic
 
-# Completions
-
-Types:
-
-- <code><a href="./src/resources/completions.ts">Completion</a></code>
-
-Methods:
-
-- <code title="post /v1/complete">client.completions.<a href="./src/resources/completions.ts">create</a>({ ...params }) -> Completion</code>
-
 # Messages
 
 Types:
@@ -18,6 +8,7 @@ Types:
 - <code><a href="./src/resources/messages.ts">ContentBlockDeltaEvent</a></code>
 - <code><a href="./src/resources/messages.ts">ContentBlockStartEvent</a></code>
 - <code><a href="./src/resources/messages.ts">ContentBlockStopEvent</a></code>
+- <code><a href="./src/resources/messages.ts">ImageBlockParam</a></code>
 - <code><a href="./src/resources/messages.ts">Message</a></code>
 - <code><a href="./src/resources/messages.ts">MessageDeltaEvent</a></code>
 - <code><a href="./src/resources/messages.ts">MessageDeltaUsage</a></code>
