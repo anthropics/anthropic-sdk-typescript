@@ -5,15 +5,17 @@ import Anthropic from '@anthropic-ai/sdk';
 const client = new Anthropic(); // gets API Key from environment variable ANTHROPIC_API_KEY
 
 async function main() {
-  const result = await client.completions.create({
-    prompt: `${Anthropic.HUMAN_PROMPT} how does a court case get to the Supreme Court? ${Anthropic.AI_PROMPT}`,
+  const result = await client.messages.create({
+    messages: [
+      {
+        role: 'user',
+        content: 'Hey Claude!?',
+      },
+    ],
     model: 'claude-3-opus-20240229',
-    max_tokens_to_sample: 300,
+    max_tokens: 1024,
   });
-  console.log(result.completion);
+  console.dir(result);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+main();

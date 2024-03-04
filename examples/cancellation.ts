@@ -15,11 +15,11 @@ const client = new Anthropic();
 async function main() {
   const question = 'Hey Claude! How can I recursively list all files in a directory in Rust?';
 
-  const stream = await client.completions.create({
-    prompt: `${Anthropic.HUMAN_PROMPT}${question}${Anthropic.AI_PROMPT}:`,
+  const stream = await client.messages.create({
     model: 'claude-3-opus-20240229',
     stream: true,
-    max_tokens_to_sample: 500,
+    max_tokens: 500,
+    messages: [{ role: 'user', content: question }],
   });
 
   // If you need to, you can cancel a stream from outside the iterator
@@ -29,19 +29,18 @@ async function main() {
     stream.controller.abort();
   }, 1500);
 
-  for await (const completion of stream) {
-    process.stdout.write(completion.completion);
+  for await (const event of stream) {
+    if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+      process.stdout.write(event.delta.text);
 
-    // Most typically, you can cancel the stream by using "break"
-    if (completion.completion.includes('unwrap')) {
-      console.log('\nCancelling after seeing "unwrap".');
-      clearTimeout(timeout);
-      break;
+      // Most typically, you can cancel the stream by using "break"
+      if (event.delta.text.includes('unwrap')) {
+        console.log('\nCancelling after seeing "unwrap".');
+        clearTimeout(timeout);
+        break;
+      }
     }
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+main();
