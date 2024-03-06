@@ -9,10 +9,7 @@ The REST API documentation can be found [on docs.anthropic.com](https://docs.ant
 ## Installation
 
 ```sh
-# install from NPM
-npm install --save @anthropic-ai/sdk
-# or
-yarn add @anthropic-ai/sdk
+npm install @anthropic-ai/sdk
 ```
 
 ## Usage
