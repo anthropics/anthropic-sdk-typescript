@@ -1,6 +1,6 @@
 # Anthropic Vertex TypeScript API Library
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > This API is in private preview.
 
 [![NPM version](https://img.shields.io/npm/v/@anthropic-ai/vertex-sdk.svg)](https://npmjs.org/package/@anthropic-ai/vertex-sdk)
@@ -12,9 +12,7 @@ For the non-Vertex Anthropic API at api.anthropic.com, see [`@anthropic-ai/sdk`]
 ## Installation
 
 ```sh
-npm install --save @anthropic-ai/vertex-sdk
-# or
-yarn add @anthropic-ai/vertex-sdk
+npm install @anthropic-ai/vertex-sdk
 ```
 
 ## Usage
