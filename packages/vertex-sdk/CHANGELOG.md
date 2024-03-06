@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1 (2024-03-06)
+
+Full Changelog: [vertex-sdk-v0.2.0...vertex-sdk-v0.2.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.2.0...vertex-sdk-v0.2.1)
+
+### Documentation
+
+* remove extraneous --save and yarn install instructions ([#323](https://github.com/anthropics/anthropic-sdk-typescript/issues/323)) ([775ecb9](https://github.com/anthropics/anthropic-sdk-typescript/commit/775ecb9ef3ab17e88dabc149faa0876cd6ab5f0b))
+
 ## 0.2.0 (2024-02-13)
 
 Full Changelog: [vertex-sdk-v0.1.2...vertex-sdk-v0.2.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.1.2...vertex-sdk-v0.2.0)
