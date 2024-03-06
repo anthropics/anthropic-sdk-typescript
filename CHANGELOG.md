@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.17.0 (2024-03-06)
+
+Full Changelog: [sdk-v0.16.1...sdk-v0.17.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.16.1...sdk-v0.17.0)
+
+### Features
+
+* **api:** add enum to model param for message ([#315](https://github.com/anthropics/anthropic-sdk-typescript/issues/315)) ([0c44de0](https://github.com/anthropics/anthropic-sdk-typescript/commit/0c44de01a5d5fc6dda3667f03779eb029247c18e))
+
+
+### Bug Fixes
+
+* **streaming:** correctly handle trailing new lines in byte chunks ([#317](https://github.com/anthropics/anthropic-sdk-typescript/issues/317)) ([0147b46](https://github.com/anthropics/anthropic-sdk-typescript/commit/0147b4693bd4b1dc3c9cba04a7082aad3c3cb42c))
+
+
+### Chores
+
+* **types:** fix accidental exposure of Buffer type to cloudflare ([#319](https://github.com/anthropics/anthropic-sdk-typescript/issues/319)) ([a5e4462](https://github.com/anthropics/anthropic-sdk-typescript/commit/a5e4462bcf054e8324cbcaa31d1b85ffc58113fd))
+
+
+### Documentation
+
+* **readme:** fix https proxy example ([#310](https://github.com/anthropics/anthropic-sdk-typescript/issues/310)) ([99d3c54](https://github.com/anthropics/anthropic-sdk-typescript/commit/99d3c545f45230ec5862ddbbfcb64f46b54d7d13))
+* **readme:** fix https proxy example ([#311](https://github.com/anthropics/anthropic-sdk-typescript/issues/311)) ([ffb603c](https://github.com/anthropics/anthropic-sdk-typescript/commit/ffb603c15a0f5d396c96ac545a0cdd0c814ec4ef))
+
 ## 0.16.1 (2024-03-04)
 
 Full Changelog: [sdk-v0.16.0...sdk-v0.16.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.16.0...sdk-v0.16.1)
