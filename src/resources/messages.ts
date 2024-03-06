@@ -390,7 +390,13 @@ export interface MessageCreateParamsBase {
    * See [models](https://docs.anthropic.com/claude/docs/models-overview) for
    * additional details and options.
    */
-  model: string;
+  model:
+    | (string & {})
+    | 'claude-3-opus-20240229'
+    | 'claude-3-sonnet-20240229'
+    | "claude-2.1'"
+    | 'claude-2.0'
+    | 'claude-instant-1.2';
 
   /**
    * An object describing metadata about the request.
@@ -610,7 +616,13 @@ export interface MessageStreamParams {
    * See [models](https://docs.anthropic.com/claude/docs/models-overview) for
    * additional details and options.
    */
-  model: string;
+  model:
+    | (string & {})
+    | 'claude-3-opus-20240229'
+    | 'claude-3-sonnet-20240229'
+    | "claude-2.1'"
+    | 'claude-2.0'
+    | 'claude-instant-1.2';
 
   /**
    * An object describing metadata about the request.
