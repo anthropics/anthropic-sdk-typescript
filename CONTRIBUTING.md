@@ -42,9 +42,7 @@ If you’d like to use the repository from source, you can either install from g
 To install via git:
 
 ```bash
-npm install --save git+ssh://git@github.com:anthropics/anthropic-sdk-typescript.git
-# or
-yarn add git+ssh://git@github.com:anthropics/anthropic-sdk-typescript.git
+npm install git+ssh://git@github.com:anthropics/anthropic-sdk-typescript.git
 ```
 
 Alternatively, to link a local copy of the repo:

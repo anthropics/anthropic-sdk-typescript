@@ -9,9 +9,7 @@ For the non-Bedrock Anthropic API at api.anthropic.com, see [`@anthropic-ai/sdk`
 ## Installation
 
 ```sh
-npm install --save @anthropic-ai/bedrock-sdk
-# or
-yarn add @anthropic-ai/bedrock-sdk
+npm install @anthropic-ai/bedrock-sdk
 ```
 
 ## Usage
