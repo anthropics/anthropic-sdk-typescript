@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.1 (2024-03-06)
+
+Full Changelog: [bedrock-sdk-v0.9.0...bedrock-sdk-v0.9.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.0...bedrock-sdk-v0.9.1)
+
+### Documentation
+
+* remove extraneous --save and yarn install instructions ([#323](https://github.com/anthropics/anthropic-sdk-typescript/issues/323)) ([775ecb9](https://github.com/anthropics/anthropic-sdk-typescript/commit/775ecb9ef3ab17e88dabc149faa0876cd6ab5f0b))
+
 ## 0.9.0 (2024-03-04)
 
 Full Changelog: [bedrock-sdk-v0.8.0...bedrock-sdk-v0.9.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.8.0...bedrock-sdk-v0.9.0)

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.17.1 (2024-03-06)
+
+Full Changelog: [sdk-v0.17.0...sdk-v0.17.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.17.0...sdk-v0.17.1)
+
+### Documentation
+
+* deprecate old access token getter ([#322](https://github.com/anthropics/anthropic-sdk-typescript/issues/322)) ([1110548](https://github.com/anthropics/anthropic-sdk-typescript/commit/1110548d4543fab83bc0ef3beb99a75711cb028a))
+* remove extraneous --save and yarn install instructions ([#323](https://github.com/anthropics/anthropic-sdk-typescript/issues/323)) ([775ecb9](https://github.com/anthropics/anthropic-sdk-typescript/commit/775ecb9ef3ab17e88dabc149faa0876cd6ab5f0b))
+
 ## 0.17.0 (2024-03-06)
 
 Full Changelog: [sdk-v0.16.1...sdk-v0.17.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.16.1...sdk-v0.17.0)
