@@ -94,7 +94,7 @@ export interface CompletionCreateParamsBase {
    * See [models](https://docs.anthropic.com/claude/docs/models-overview) for
    * additional details and options.
    */
-  model: (string & {}) | 'claude-3-opus-20240229' | 'claude-2.1' | 'claude-instant-1';
+  model: (string & {}) | 'claude-2.0' | 'claude-2.1' | 'claude-instant-1.2';
 
   /**
    * The prompt that you want Claude to complete.
