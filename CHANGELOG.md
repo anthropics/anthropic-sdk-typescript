@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.17.2 (2024-03-12)
+
+Full Changelog: [sdk-v0.17.1...sdk-v0.17.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.17.1...sdk-v0.17.2)
+
+### Chores
+
+* **internal:** add explicit type annotation to decoder ([#324](https://github.com/anthropics/anthropic-sdk-typescript/issues/324)) ([7e172c7](https://github.com/anthropics/anthropic-sdk-typescript/commit/7e172c74f75414ee246cbd71104454c9e81efc0d))
+
 ## 0.17.1 (2024-03-06)
 
 Full Changelog: [sdk-v0.17.0...sdk-v0.17.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.17.0...sdk-v0.17.1)
