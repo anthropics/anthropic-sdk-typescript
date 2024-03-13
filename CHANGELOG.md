@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.18.0 (2024-03-13)
+
+Full Changelog: [sdk-v0.17.2...sdk-v0.18.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.17.2...sdk-v0.18.0)
+
+### Features
+
+* **api:** add haiku model ([#333](https://github.com/anthropics/anthropic-sdk-typescript/issues/333)) ([11becc6](https://github.com/anthropics/anthropic-sdk-typescript/commit/11becc64a8b07b353835678e063a70e3a0bd85e3))
+
+
+### Documentation
+
+* update models in vertex examples ([#331](https://github.com/anthropics/anthropic-sdk-typescript/issues/331)) ([3d139b3](https://github.com/anthropics/anthropic-sdk-typescript/commit/3d139b374179ef5540a8e9436df06501c6ada6c5))
+
 ## 0.17.2 (2024-03-12)
 
 Full Changelog: [sdk-v0.17.1...sdk-v0.17.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.17.1...sdk-v0.17.2)
