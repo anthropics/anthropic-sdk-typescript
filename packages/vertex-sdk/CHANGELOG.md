@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.2 (2024-03-13)
+
+Full Changelog: [vertex-sdk-v0.2.1...vertex-sdk-v0.2.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.2.1...vertex-sdk-v0.2.2)
+
+### Documentation
+
+* update models in vertex examples ([#331](https://github.com/anthropics/anthropic-sdk-typescript/issues/331)) ([3d139b3](https://github.com/anthropics/anthropic-sdk-typescript/commit/3d139b374179ef5540a8e9436df06501c6ada6c5))
+
 ## 0.2.1 (2024-03-06)
 
 Full Changelog: [vertex-sdk-v0.2.0...vertex-sdk-v0.2.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.2.0...vertex-sdk-v0.2.1)
