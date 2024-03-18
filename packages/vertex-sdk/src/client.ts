@@ -11,6 +11,17 @@ export type ClientOptions = Omit<API.ClientOptions, 'apiKey' | 'authToken'> & {
   region?: string | null | undefined;
   projectId?: string | null | undefined;
   accessToken?: string | null | undefined;
+
+  /**
+   * Override the default google auth config using the
+   * [google-auth-library](https://www.npmjs.com/package/google-auth-library) package.
+   *
+   * Note that you'll likely have to set `scopes`, e.g.
+   * ```ts
+   * new GoogleAuth({ scopes: 'https://www.googleapis.com/auth/cloud-platform' })
+   * ```
+   */
+  googleAuth?: GoogleAuth | null | undefined;
 };
 
 export class AnthropicVertex extends Core.APIClient {
@@ -27,6 +38,7 @@ export class AnthropicVertex extends Core.APIClient {
    *
    * @param {string | null} opts.accessToken
    * @param {string | null} opts.projectId
+   * @param {GoogleAuth} opts.googleAuth - Override the default google auth config
    * @param {string | null} [opts.region=process.env['CLOUD_ML_REGION']]
    * @param {string} [opts.baseURL=process.env['ANTHROPIC_VERTEX__BASE_URL'] ?? https://${region}-aiplatform.googleapis.com/v1] - Override the default base URL for the API.
    * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
@@ -66,7 +78,8 @@ export class AnthropicVertex extends Core.APIClient {
     this.projectId = projectId;
     this.accessToken = options.accessToken ?? null;
 
-    this._auth = new GoogleAuth({ scopes: 'https://www.googleapis.com/auth/cloud-platform' });
+    this._auth =
+      options.googleAuth ?? new GoogleAuth({ scopes: 'https://www.googleapis.com/auth/cloud-platform' });
     this._authClientPromise = this._auth.getClient();
   }
 
