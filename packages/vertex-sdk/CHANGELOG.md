@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 (2024-03-19)
+
+Full Changelog: [vertex-sdk-v0.2.2...vertex-sdk-v0.3.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.2.2...vertex-sdk-v0.3.0)
+
+### Features
+
+* **vertex:** add support for overriding google auth ([#338](https://github.com/anthropics/anthropic-sdk-typescript/issues/338)) ([28d98c4](https://github.com/anthropics/anthropic-sdk-typescript/commit/28d98c487257a3c6b3c6d84597768d484fadb86d))
+* **vertex:** api is no longer in private beta ([#344](https://github.com/anthropics/anthropic-sdk-typescript/issues/344)) ([892127c](https://github.com/anthropics/anthropic-sdk-typescript/commit/892127cdac059eee11c1a322a5512f9250868023))
+
 ## 0.2.2 (2024-03-13)
 
 Full Changelog: [vertex-sdk-v0.2.1...vertex-sdk-v0.2.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.2.1...vertex-sdk-v0.2.2)

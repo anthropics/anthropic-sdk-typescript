@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.19.0 (2024-03-19)
+
+Full Changelog: [sdk-v0.18.0...sdk-v0.19.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.18.0...sdk-v0.19.0)
+
+### Features
+
+* **vertex:** add support for overriding google auth ([#338](https://github.com/anthropics/anthropic-sdk-typescript/issues/338)) ([28d98c4](https://github.com/anthropics/anthropic-sdk-typescript/commit/28d98c487257a3c6b3c6d84597768d484fadb86d))
+* **vertex:** api is no longer in private beta ([#344](https://github.com/anthropics/anthropic-sdk-typescript/issues/344)) ([892127c](https://github.com/anthropics/anthropic-sdk-typescript/commit/892127cdac059eee11c1a322a5512f9250868023))
+
+
+### Bug Fixes
+
+* **internal:** make toFile use input file's options ([#343](https://github.com/anthropics/anthropic-sdk-typescript/issues/343)) ([2dc2174](https://github.com/anthropics/anthropic-sdk-typescript/commit/2dc217441d6da8f2192b3e81b03c985383b6816e))
+
+
+### Chores
+
+* **internal:** update generated pragma comment ([#341](https://github.com/anthropics/anthropic-sdk-typescript/issues/341)) ([fd60f63](https://github.com/anthropics/anthropic-sdk-typescript/commit/fd60f63d5e5cd978b287d66fd95deabe2ff089d2))
+
+
+### Documentation
+
+* fix typo in CONTRIBUTING.md ([#340](https://github.com/anthropics/anthropic-sdk-typescript/issues/340)) ([ba9f3fa](https://github.com/anthropics/anthropic-sdk-typescript/commit/ba9f3faa5e3d116fce232d81f554b2f95f573ec8))
+
 ## 0.18.0 (2024-03-13)
 
 Full Changelog: [sdk-v0.17.2...sdk-v0.18.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.17.2...sdk-v0.18.0)
