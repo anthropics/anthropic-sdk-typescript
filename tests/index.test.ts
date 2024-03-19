@@ -1,4 +1,4 @@
-// File generated from our OpenAPI spec by Stainless.
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import Anthropic from '@anthropic-ai/sdk';
 import { APIUserAbortError } from '@anthropic-ai/sdk';
