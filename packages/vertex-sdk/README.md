@@ -1,11 +1,8 @@
 # Anthropic Vertex TypeScript API Library
 
-> [!IMPORTANT]
-> This API is in private preview.
-
 [![NPM version](https://img.shields.io/npm/v/@anthropic-ai/vertex-sdk.svg)](https://npmjs.org/package/@anthropic-ai/vertex-sdk)
 
-This library provides convenient access to the private preview of the Anthropic Vertex API.
+This library provides convenient access to the Anthropic Vertex API.
 
 For the non-Vertex Anthropic API at api.anthropic.com, see [`@anthropic-ai/sdk`](https://github.com/anthropics/anthropic-sdk-typescript).
 
