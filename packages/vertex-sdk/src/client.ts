@@ -5,7 +5,6 @@ import { type RequestInit } from '@anthropic-ai/sdk/_shims/index';
 import { GoogleAuth } from 'google-auth-library';
 
 const DEFAULT_VERSION = 'vertex-2023-10-16';
-const DEFAULT_BETA_TYPES = ['private-messages-testing'];
 
 export type ClientOptions = Omit<API.ClientOptions, 'apiKey' | 'authToken'> & {
   region?: string | null | undefined;
@@ -116,9 +115,6 @@ export class AnthropicVertex extends Core.APIClient {
     if (Core.isObj(options.body)) {
       if (!options.body['anthropic_version']) {
         options.body['anthropic_version'] = DEFAULT_VERSION;
-      }
-      if (!options.body['anthropic_beta']) {
-        options.body['anthropic_beta'] = DEFAULT_BETA_TYPES;
       }
     }
 
