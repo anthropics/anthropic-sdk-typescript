@@ -37,7 +37,7 @@ async function main() {
 main();
 ```
 
-## Streaming Responses
+## Streaming responses
 
 We provide support for streaming responses using Server Sent Events (SSE).
 
@@ -343,7 +343,7 @@ await anthropic.messages.create(
 );
 ```
 
-## Semantic Versioning
+## Semantic versioning
 
 This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) conventions, though certain backwards-incompatible changes may be released as minor versions:
 
