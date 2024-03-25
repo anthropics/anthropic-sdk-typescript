@@ -6,7 +6,7 @@ import { AnthropicBedrock } from '@anthropic-ai/bedrock-sdk';
 // that the AWS Node SDK will recognise, typicaly a shared `~/.aws/credentials`
 // file or `AWS_ACCESS_KEY_ID` & `AWS_SECRET_ACCESS_KEY` environment variables.
 //
-// https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_credential_provider_node.html
+// https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-credentials-node.html
 const client = new AnthropicBedrock();
 
 async function main() {
