@@ -548,23 +548,48 @@ export abstract class APIClient {
   ): Promise<APIResponseProps> {
     let timeoutMillis: number | undefined;
 
-    // Note the `retry-after-ms` header may not be standard, but is a good idea and we'd like proactive support for it.
-    const retryAfterMillisHeader = responseHeaders?.['retry-after-ms'];
-    if (retryAfterMillisHeader) {
-      const timeoutMs = parseFloat(retryAfterMillisHeader);
-      if (!Number.isNaN(timeoutMs)) {
-        timeoutMillis = timeoutMs;
+    if (responseHeaders) {
+      // Note the `retry-after-ms` header may not be standard, but is a good idea and we'd like proactive support for it.
+      const retryAfterMillisHeader = responseHeaders['retry-after-ms'];
+      if (retryAfterMillisHeader) {
+        const timeoutMs = parseFloat(retryAfterMillisHeader);
+        if (!Number.isNaN(timeoutMs)) {
+          timeoutMillis = timeoutMs;
+        }
       }
-    }
 
-    // About the Retry-After header: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
-    const retryAfterHeader = responseHeaders?.['retry-after'];
-    if (retryAfterHeader && !timeoutMillis) {
-      const timeoutSeconds = parseFloat(retryAfterHeader);
-      if (!Number.isNaN(timeoutSeconds)) {
-        timeoutMillis = timeoutSeconds * 1000;
-      } else {
-        timeoutMillis = Date.parse(retryAfterHeader) - Date.now();
+      if (!timeoutMillis) {
+        // About the Retry-After header: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
+        let retryAfterHeader = responseHeaders['retry-after'];
+
+        if (!retryAfterHeader) {
+          const requestsReset =
+            responseHeaders['anthropic-ratelimit-requests-remaining'] === '0' &&
+            responseHeaders['anthropic-ratelimit-requests-reset'];
+          const tokensReset =
+            responseHeaders['anthropic-ratelimit-tokens-remaining'] === '0' &&
+            responseHeaders['anthropic-ratelimit-tokens-reset'];
+
+          const reset =
+            requestsReset && tokensReset ?
+              Math.max(new Date(requestsReset).getTime(), new Date(tokensReset).getTime())
+            : requestsReset ? new Date(requestsReset).getTime()
+            : tokensReset ? new Date(tokensReset).getTime()
+            : null;
+
+          if (reset) {
+            timeoutMillis = reset - Date.now();
+          }
+        }
+
+        if (retryAfterHeader) {
+          const timeoutSeconds = parseFloat(retryAfterHeader);
+          if (!Number.isNaN(timeoutSeconds)) {
+            timeoutMillis = timeoutSeconds * 1000;
+          } else {
+            timeoutMillis = Date.parse(retryAfterHeader) - Date.now();
+          }
+        }
       }
     }
 
