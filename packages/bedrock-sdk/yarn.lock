@@ -17,7 +17,7 @@
 
 "@anthropic-ai/sdk@file:../../dist":
   # x-release-please-start-version
-  version "0.19.0"
+  version "0.19.1"
   # x-release-please-end-version
   dependencies:
     "@types/node" "^18.11.18"
