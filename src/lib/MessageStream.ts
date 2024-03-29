@@ -450,6 +450,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
       case 'message_delta':
         snapshot.stop_reason = event.delta.stop_reason;
         snapshot.stop_sequence = event.delta.stop_sequence;
+        snapshot.usage.output_tokens = event.usage.output_tokens;
         return snapshot;
       case 'content_block_start':
         snapshot.content.push(event.content_block);
