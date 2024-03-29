@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.2 (2024-03-29)
+
+Full Changelog: [bedrock-sdk-v0.9.1...bedrock-sdk-v0.9.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.1...bedrock-sdk-v0.9.2)
+
+### Documentation
+
+* **bedrock:** fix dead link ([#356](https://github.com/anthropics/anthropic-sdk-typescript/issues/356)) ([a953e00](https://github.com/anthropics/anthropic-sdk-typescript/commit/a953e0070698f3238b728ffe06a056a9f2d6b7ff))
+
 ## 0.9.1 (2024-03-06)
 
 Full Changelog: [bedrock-sdk-v0.9.0...bedrock-sdk-v0.9.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.0...bedrock-sdk-v0.9.1)

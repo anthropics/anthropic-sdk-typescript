@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.19.1 (2024-03-29)
+
+Full Changelog: [sdk-v0.19.0...sdk-v0.19.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.19.0...sdk-v0.19.1)
+
+### Bug Fixes
+
+* **client:** correctly send deno version header ([#354](https://github.com/anthropics/anthropic-sdk-typescript/issues/354)) ([ad5162b](https://github.com/anthropics/anthropic-sdk-typescript/commit/ad5162be2ccb122eb355577f481732121b130b0b))
+* handle process.env being undefined in debug func ([#351](https://github.com/anthropics/anthropic-sdk-typescript/issues/351)) ([3b0f38a](https://github.com/anthropics/anthropic-sdk-typescript/commit/3b0f38ab427ae7d31c800cd5c8be1653da9ae709))
+* **streaming:** correct accumulation of output tokens ([#361](https://github.com/anthropics/anthropic-sdk-typescript/issues/361)) ([76af283](https://github.com/anthropics/anthropic-sdk-typescript/commit/76af283596530ccd3a77ed86788bc0ea1e93f3c1))
+* **types:** correct typo claude-2.1' to claude-2.1 ([#352](https://github.com/anthropics/anthropic-sdk-typescript/issues/352)) ([0d5efb9](https://github.com/anthropics/anthropic-sdk-typescript/commit/0d5efb9a0b9eb3ebe1df5ed10164fadfd886eac6))
+
+
+### Chores
+
+* **internal:** add type ([#359](https://github.com/anthropics/anthropic-sdk-typescript/issues/359)) ([9456414](https://github.com/anthropics/anthropic-sdk-typescript/commit/945641467deffb674f762920955c98d10f287c8e))
+
+
+### Documentation
+
+* **bedrock:** fix dead link ([#356](https://github.com/anthropics/anthropic-sdk-typescript/issues/356)) ([a953e00](https://github.com/anthropics/anthropic-sdk-typescript/commit/a953e0070698f3238b728ffe06a056a9f2d6b7ff))
+* **readme:** consistent use of sentence case in headings ([#347](https://github.com/anthropics/anthropic-sdk-typescript/issues/347)) ([30f45d1](https://github.com/anthropics/anthropic-sdk-typescript/commit/30f45d14a534d7392dfcc4fb503bf07ab8cf038d))
+* **readme:** document how to make undocumented requests ([#349](https://github.com/anthropics/anthropic-sdk-typescript/issues/349)) ([f92c50a](https://github.com/anthropics/anthropic-sdk-typescript/commit/f92c50ac6d9d1b8bdb837e52414aafd3224553da))
+
 ## 0.19.0 (2024-03-19)
 
 Full Changelog: [sdk-v0.18.0...sdk-v0.19.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.18.0...sdk-v0.19.0)
