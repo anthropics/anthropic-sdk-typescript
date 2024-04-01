@@ -7,7 +7,6 @@
     "paths": {
       "@anthropic-ai/sdk/*": ["dist/src/*"],
       "@anthropic-ai/sdk": ["dist/src/index.ts"],
-      "digest-fetch": ["./typings/digest-fetch"]
     },
     "noEmit": false,
     "declaration": true,
