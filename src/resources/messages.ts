@@ -78,7 +78,7 @@ export interface ContentBlockStopEvent {
 export interface ImageBlockParam {
   source: ImageBlockParam.Source;
 
-  type?: 'image';
+  type: 'image';
 }
 
 export namespace ImageBlockParam {
@@ -87,7 +87,7 @@ export namespace ImageBlockParam {
 
     media_type: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
 
-    type?: 'base64';
+    type: 'base64';
   }
 }
 
@@ -260,7 +260,7 @@ export type MessageStreamEvent =
 export interface TextBlock {
   text: string;
 
-  type?: 'text';
+  type: 'text';
 }
 
 export interface TextDelta {
