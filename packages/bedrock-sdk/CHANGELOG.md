@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.5 (2024-04-04)
+
+Full Changelog: [bedrock-sdk-v0.9.4...bedrock-sdk-v0.9.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.4...bedrock-sdk-v0.9.5)
+
+### Documentation
+
+* **readme:** mention tool use ([#375](https://github.com/anthropics/anthropic-sdk-typescript/issues/375)) ([72356dd](https://github.com/anthropics/anthropic-sdk-typescript/commit/72356dd9c498344074c292ffdab602d54c4fa13e))
+
 ## 0.9.4 (2024-04-04)
 
 Full Changelog: [bedrock-sdk-v0.9.3...bedrock-sdk-v0.9.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.3...bedrock-sdk-v0.9.4)
