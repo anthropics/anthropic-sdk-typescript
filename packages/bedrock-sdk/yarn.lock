@@ -16,7 +16,7 @@
     "@jridgewell/trace-mapping" "^0.3.9"
 
 "@anthropic-ai/sdk@file:../../dist":
-  version "0.19.1"
+  version "0.19.2"
   dependencies:
     "@types/node" "^18.11.18"
     "@types/node-fetch" "^2.6.4"
