@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.20.1 (2024-04-04)
+
+Full Changelog: [sdk-v0.20.0...sdk-v0.20.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.0...sdk-v0.20.1)
+
+### Documentation
+
+* **readme:** mention tool use ([#375](https://github.com/anthropics/anthropic-sdk-typescript/issues/375)) ([72356dd](https://github.com/anthropics/anthropic-sdk-typescript/commit/72356dd9c498344074c292ffdab602d54c4fa13e))
+
 ## 0.20.0 (2024-04-04)
 
 Full Changelog: [sdk-v0.19.2...sdk-v0.20.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.19.2...sdk-v0.20.0)
