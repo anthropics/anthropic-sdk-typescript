@@ -250,6 +250,7 @@ export namespace Anthropic {
   export import MessageStopEvent = API.MessageStopEvent;
   export import MessageStreamEvent = API.MessageStreamEvent;
   export import TextBlock = API.TextBlock;
+  export import TextBlockParam = API.TextBlockParam;
   export import TextDelta = API.TextDelta;
   export import Usage = API.Usage;
   export import MessageCreateParams = API.MessageCreateParams;

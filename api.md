@@ -17,6 +17,7 @@ Types:
 - <code><a href="./src/resources/messages.ts">MessageStopEvent</a></code>
 - <code><a href="./src/resources/messages.ts">MessageStreamEvent</a></code>
 - <code><a href="./src/resources/messages.ts">TextBlock</a></code>
+- <code><a href="./src/resources/messages.ts">TextBlockParam</a></code>
 - <code><a href="./src/resources/messages.ts">TextDelta</a></code>
 - <code><a href="./src/resources/messages.ts">Usage</a></code>
 
