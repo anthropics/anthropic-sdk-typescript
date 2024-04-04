@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.3 (2024-04-04)
+
+Full Changelog: [bedrock-sdk-v0.9.2...bedrock-sdk-v0.9.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.2...bedrock-sdk-v0.9.3)
+
+### Chores
+
+* **deps:** remove unused dependency digest-fetch ([#368](https://github.com/anthropics/anthropic-sdk-typescript/issues/368)) ([df1df0f](https://github.com/anthropics/anthropic-sdk-typescript/commit/df1df0f509682841c703fa1ea5062a796cfe2091))
+
 ## 0.9.2 (2024-03-29)
 
 Full Changelog: [bedrock-sdk-v0.9.1...bedrock-sdk-v0.9.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.1...bedrock-sdk-v0.9.2)
