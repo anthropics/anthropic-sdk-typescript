@@ -47,11 +47,7 @@ export class Messages extends APIResource {
   }
 }
 
-export interface ContentBlock {
-  text: string;
-
-  type: 'text';
-}
+export type ContentBlock = TextBlock;
 
 export interface ContentBlockDeltaEvent {
   delta: TextDelta;
@@ -62,7 +58,7 @@ export interface ContentBlockDeltaEvent {
 }
 
 export interface ContentBlockStartEvent {
-  content_block: ContentBlock;
+  content_block: TextBlock;
 
   index: number;
 
@@ -133,7 +129,7 @@ export interface Message {
    * [{ "type": "text", "text": "B)" }]
    * ```
    */
-  content: Array<ContentBlock>;
+  content: Array<TextBlock>;
 
   /**
    * The model that handled the request.
@@ -234,7 +230,7 @@ export interface MessageDeltaUsage {
 }
 
 export interface MessageParam {
-  content: string | Array<TextBlock | ImageBlockParam>;
+  content: string | Array<TextBlockParam | ImageBlockParam>;
 
   role: 'user' | 'assistant';
 }
@@ -258,6 +254,12 @@ export type MessageStreamEvent =
   | ContentBlockStopEvent;
 
 export interface TextBlock {
+  text: string;
+
+  type: 'text';
+}
+
+export interface TextBlockParam {
   text: string;
 
   type: 'text';
@@ -720,6 +722,7 @@ export namespace Messages {
   export import MessageStopEvent = MessagesAPI.MessageStopEvent;
   export import MessageStreamEvent = MessagesAPI.MessageStreamEvent;
   export import TextBlock = MessagesAPI.TextBlock;
+  export import TextBlockParam = MessagesAPI.TextBlockParam;
   export import TextDelta = MessagesAPI.TextDelta;
   export import Usage = MessagesAPI.Usage;
   export import MessageCreateParams = MessagesAPI.MessageCreateParams;
