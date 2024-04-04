@@ -21,6 +21,7 @@ export {
   MessageStopEvent,
   MessageStreamEvent,
   TextBlock,
+  TextBlockParam,
   TextDelta,
   Usage,
   MessageCreateParams,
