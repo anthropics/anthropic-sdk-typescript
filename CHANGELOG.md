@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.20.0 (2024-04-04)
+
+Full Changelog: [sdk-v0.19.2...sdk-v0.20.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.19.2...sdk-v0.20.0)
+
+### Features
+
+* **api:** tool use beta ([#374](https://github.com/anthropics/anthropic-sdk-typescript/issues/374)) ([e28514a](https://github.com/anthropics/anthropic-sdk-typescript/commit/e28514a305908f71e98bc33123bc99ed6bf7348f))
+
+
+### Bug Fixes
+
+* **types:** correctly mark type as a required property in requests ([#371](https://github.com/anthropics/anthropic-sdk-typescript/issues/371)) ([a04edd8](https://github.com/anthropics/anthropic-sdk-typescript/commit/a04edd8d7f4c552281b37a44099edf432d7fcb27))
+
+
+### Chores
+
+* **types:** consistent naming for text block types ([#373](https://github.com/anthropics/anthropic-sdk-typescript/issues/373)) ([84a6a58](https://github.com/anthropics/anthropic-sdk-typescript/commit/84a6a58ff978cc274b85656ca4394396e8b360e3))
+
 ## 0.19.2 (2024-04-04)
 
 Full Changelog: [sdk-v0.19.1...sdk-v0.19.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.19.1...sdk-v0.19.2)

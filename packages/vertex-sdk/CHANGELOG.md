@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.2 (2024-04-04)
+
+Full Changelog: [vertex-sdk-v0.3.1...vertex-sdk-v0.3.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.3.1...vertex-sdk-v0.3.2)
+
+### Bug Fixes
+
+* **types:** correctly mark type as a required property in requests ([#371](https://github.com/anthropics/anthropic-sdk-typescript/issues/371)) ([a04edd8](https://github.com/anthropics/anthropic-sdk-typescript/commit/a04edd8d7f4c552281b37a44099edf432d7fcb27))
+
 ## 0.3.1 (2024-04-04)
 
 Full Changelog: [vertex-sdk-v0.3.0...vertex-sdk-v0.3.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.3.0...vertex-sdk-v0.3.1)

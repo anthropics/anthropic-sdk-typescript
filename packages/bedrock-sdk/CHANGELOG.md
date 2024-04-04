@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.4 (2024-04-04)
+
+Full Changelog: [bedrock-sdk-v0.9.3...bedrock-sdk-v0.9.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.3...bedrock-sdk-v0.9.4)
+
+### Bug Fixes
+
+* **types:** correctly mark type as a required property in requests ([#371](https://github.com/anthropics/anthropic-sdk-typescript/issues/371)) ([a04edd8](https://github.com/anthropics/anthropic-sdk-typescript/commit/a04edd8d7f4c552281b37a44099edf432d7fcb27))
+
 ## 0.9.3 (2024-04-04)
 
 Full Changelog: [bedrock-sdk-v0.9.2...bedrock-sdk-v0.9.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.2...bedrock-sdk-v0.9.3)
