@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1 (2024-04-04)
+
+Full Changelog: [vertex-sdk-v0.3.0...vertex-sdk-v0.3.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.3.0...vertex-sdk-v0.3.1)
+
+### Chores
+
+* **deps:** remove unused dependency digest-fetch ([#368](https://github.com/anthropics/anthropic-sdk-typescript/issues/368)) ([df1df0f](https://github.com/anthropics/anthropic-sdk-typescript/commit/df1df0f509682841c703fa1ea5062a796cfe2091))
+
 ## 0.3.0 (2024-03-19)
 
 Full Changelog: [vertex-sdk-v0.2.2...vertex-sdk-v0.3.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.2.2...vertex-sdk-v0.3.0)

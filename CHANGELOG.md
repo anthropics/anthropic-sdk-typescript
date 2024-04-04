@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.19.2 (2024-04-04)
+
+Full Changelog: [sdk-v0.19.1...sdk-v0.19.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.19.1...sdk-v0.19.2)
+
+### Bug Fixes
+
+* **streaming:** handle special line characters and fix multi-byte character decoding ([#370](https://github.com/anthropics/anthropic-sdk-typescript/issues/370)) ([7a97b38](https://github.com/anthropics/anthropic-sdk-typescript/commit/7a97b38e389809ef75c307d26fc671c829b5ea29))
+
+
+### Chores
+
+* **deps:** bump yarn to v1.22.22 ([#369](https://github.com/anthropics/anthropic-sdk-typescript/issues/369)) ([603d7b1](https://github.com/anthropics/anthropic-sdk-typescript/commit/603d7b17411bc25a562acb80ebde71ae058892d0))
+* **deps:** remove unused dependency digest-fetch ([#368](https://github.com/anthropics/anthropic-sdk-typescript/issues/368)) ([df1df0f](https://github.com/anthropics/anthropic-sdk-typescript/commit/df1df0f509682841c703fa1ea5062a796cfe2091))
+
+
+### Documentation
+
+* **readme:** change undocumented params wording ([#363](https://github.com/anthropics/anthropic-sdk-typescript/issues/363)) ([4222e08](https://github.com/anthropics/anthropic-sdk-typescript/commit/4222e088aff5e26a3d2fbe1b622781c6194b0469))
+
 ## 0.19.1 (2024-03-29)
 
 Full Changelog: [sdk-v0.19.0...sdk-v0.19.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.19.0...sdk-v0.19.1)
