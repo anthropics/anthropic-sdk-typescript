@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.4 (2024-04-09)
+
+Full Changelog: [vertex-sdk-v0.3.3...vertex-sdk-v0.3.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.3.3...vertex-sdk-v0.3.4)
+
+### Chores
+
+* **internal:** update lock files ([#377](https://github.com/anthropics/anthropic-sdk-typescript/issues/377)) ([6d239ef](https://github.com/anthropics/anthropic-sdk-typescript/commit/6d239efaca730baba374a1b49f6b1a4037b3e163))
+
 ## 0.3.3 (2024-04-04)
 
 Full Changelog: [vertex-sdk-v0.3.2...vertex-sdk-v0.3.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.3.2...vertex-sdk-v0.3.3)
