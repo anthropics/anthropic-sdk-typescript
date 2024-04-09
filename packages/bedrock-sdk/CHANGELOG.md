@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.6 (2024-04-09)
+
+Full Changelog: [bedrock-sdk-v0.9.5...bedrock-sdk-v0.9.6](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.5...bedrock-sdk-v0.9.6)
+
+### Chores
+
+* **internal:** update lock files ([#377](https://github.com/anthropics/anthropic-sdk-typescript/issues/377)) ([6d239ef](https://github.com/anthropics/anthropic-sdk-typescript/commit/6d239efaca730baba374a1b49f6b1a4037b3e163))
+
 ## 0.9.5 (2024-04-04)
 
 Full Changelog: [bedrock-sdk-v0.9.4...bedrock-sdk-v0.9.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.4...bedrock-sdk-v0.9.5)

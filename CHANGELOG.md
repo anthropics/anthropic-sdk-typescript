@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.20.2 (2024-04-09)
+
+Full Changelog: [sdk-v0.20.1...sdk-v0.20.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.1...sdk-v0.20.2)
+
+### Chores
+
+* **internal:** update lock files ([#377](https://github.com/anthropics/anthropic-sdk-typescript/issues/377)) ([6d239ef](https://github.com/anthropics/anthropic-sdk-typescript/commit/6d239efaca730baba374a1b49f6b1a4037b3e163))
+
 ## 0.20.1 (2024-04-04)
 
 Full Changelog: [sdk-v0.20.0...sdk-v0.20.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.0...sdk-v0.20.1)
