@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.20.3 (2024-04-10)
+
+Full Changelog: [sdk-v0.20.2...sdk-v0.20.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.2...sdk-v0.20.3)
+
+### Bug Fixes
+
+* **vertex:** correct core client dependency constraint ([#384](https://github.com/anthropics/anthropic-sdk-typescript/issues/384)) ([de29699](https://github.com/anthropics/anthropic-sdk-typescript/commit/de2969902b68b5c46b6e682b8b947426c6ccf195))
+
 ## 0.20.2 (2024-04-09)
 
 Full Changelog: [sdk-v0.20.1...sdk-v0.20.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.1...sdk-v0.20.2)

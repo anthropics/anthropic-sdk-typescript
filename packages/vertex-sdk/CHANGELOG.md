@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.5 (2024-04-10)
+
+Full Changelog: [vertex-sdk-v0.3.4...vertex-sdk-v0.3.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.3.4...vertex-sdk-v0.3.5)
+
+### Bug Fixes
+
+* **vertex:** correct core client dependency constraint ([#384](https://github.com/anthropics/anthropic-sdk-typescript/issues/384)) ([de29699](https://github.com/anthropics/anthropic-sdk-typescript/commit/de2969902b68b5c46b6e682b8b947426c6ccf195))
+
 ## 0.3.4 (2024-04-09)
 
 Full Changelog: [vertex-sdk-v0.3.3...vertex-sdk-v0.3.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.3.3...vertex-sdk-v0.3.4)
