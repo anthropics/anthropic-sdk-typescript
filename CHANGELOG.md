@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.20.4 (2024-04-11)
+
+Full Changelog: [sdk-v0.20.3...sdk-v0.20.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.3...sdk-v0.20.4)
+
+### Chores
+
+* **internal:** update gitignore ([#388](https://github.com/anthropics/anthropic-sdk-typescript/issues/388)) ([03f03a2](https://github.com/anthropics/anthropic-sdk-typescript/commit/03f03a22532680a3b9bbd2e49116ef760b07a498))
+
 ## 0.20.3 (2024-04-10)
 
 Full Changelog: [sdk-v0.20.2...sdk-v0.20.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.2...sdk-v0.20.3)
