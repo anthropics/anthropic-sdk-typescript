@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.20.5 (2024-04-15)
+
+Full Changelog: [sdk-v0.20.4...sdk-v0.20.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.4...sdk-v0.20.5)
+
+### Chores
+
+* **internal:** formatting ([#390](https://github.com/anthropics/anthropic-sdk-typescript/issues/390)) ([b7861b9](https://github.com/anthropics/anthropic-sdk-typescript/commit/b7861b940dc9c1c21eb6edf3bac8d1d62d2d372f))
+
 ## 0.20.4 (2024-04-11)
 
 Full Changelog: [sdk-v0.20.3...sdk-v0.20.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.3...sdk-v0.20.4)
