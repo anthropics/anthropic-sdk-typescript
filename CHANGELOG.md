@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.20.6 (2024-04-17)
+
+Full Changelog: [sdk-v0.20.5...sdk-v0.20.6](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.5...sdk-v0.20.6)
+
+### Build System
+
+* configure UTF-8 locale in devcontainer ([#393](https://github.com/anthropics/anthropic-sdk-typescript/issues/393)) ([db10244](https://github.com/anthropics/anthropic-sdk-typescript/commit/db10244fa87a653c48bbcc2fffbad206dbe39645))
+
 ## 0.20.5 (2024-04-15)
 
 Full Changelog: [sdk-v0.20.4...sdk-v0.20.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.4...sdk-v0.20.5)
