@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.20.7 (2024-04-24)
+
+Full Changelog: [sdk-v0.20.6...sdk-v0.20.7](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.6...sdk-v0.20.7)
+
+### Chores
+
+* **internal:** use @swc/jest for running tests ([#397](https://github.com/anthropics/anthropic-sdk-typescript/issues/397)) ([0dbca67](https://github.com/anthropics/anthropic-sdk-typescript/commit/0dbca679f26f4a301810290601cc41f18525fe6e))
+
 ## 0.20.6 (2024-04-17)
 
 Full Changelog: [sdk-v0.20.5...sdk-v0.20.6](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.5...sdk-v0.20.6)
