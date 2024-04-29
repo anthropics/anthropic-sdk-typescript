@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.20.8 (2024-04-29)
+
+Full Changelog: [sdk-v0.20.7...sdk-v0.20.8](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.7...sdk-v0.20.8)
+
+### Chores
+
+* **internal:** add scripts/test and scripts/mock ([#403](https://github.com/anthropics/anthropic-sdk-typescript/issues/403)) ([bdc6011](https://github.com/anthropics/anthropic-sdk-typescript/commit/bdc601192d651f9a7f6bf822c631db1d652d796c))
+* **internal:** use actions/checkout@v4 for codeflow ([#400](https://github.com/anthropics/anthropic-sdk-typescript/issues/400)) ([6d565d3](https://github.com/anthropics/anthropic-sdk-typescript/commit/6d565d366f8787e87cbe9ac851e42c13f88c2579))
+
 ## 0.20.7 (2024-04-24)
 
 Full Changelog: [sdk-v0.20.6...sdk-v0.20.7](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.6...sdk-v0.20.7)
