@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.7 (2024-05-07)
+
+Full Changelog: [bedrock-sdk-v0.9.6...bedrock-sdk-v0.9.7](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.6...bedrock-sdk-v0.9.7)
+
+### Chores
+
+* **internal:** refactor scripts ([#404](https://github.com/anthropics/anthropic-sdk-typescript/issues/404)) ([f60e2d8](https://github.com/anthropics/anthropic-sdk-typescript/commit/f60e2d81bb241063507d2d7e728c78e78c1c5e51))
+
 ## 0.9.6 (2024-04-09)
 
 Full Changelog: [bedrock-sdk-v0.9.5...bedrock-sdk-v0.9.6](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.5...bedrock-sdk-v0.9.6)
