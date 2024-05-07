@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.20.9 (2024-05-07)
+
+Full Changelog: [sdk-v0.20.8...sdk-v0.20.9](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.8...sdk-v0.20.9)
+
+### Bug Fixes
+
+* **package:** revert recent client file change ([#409](https://github.com/anthropics/anthropic-sdk-typescript/issues/409)) ([9054249](https://github.com/anthropics/anthropic-sdk-typescript/commit/90542499ccf9f5d020e71e1c8dc8935e0c86ede4))
+
+
+### Chores
+
+* **internal:** add link to openapi spec ([#406](https://github.com/anthropics/anthropic-sdk-typescript/issues/406)) ([39c856d](https://github.com/anthropics/anthropic-sdk-typescript/commit/39c856d02abbb1d54efbacef087cc89b79bce017))
+* **internal:** bump prism version ([#407](https://github.com/anthropics/anthropic-sdk-typescript/issues/407)) ([0c1eb5d](https://github.com/anthropics/anthropic-sdk-typescript/commit/0c1eb5d5c500ea95fbf9a5ccce37c74170c6a84f))
+* **internal:** move client class to separate file ([#408](https://github.com/anthropics/anthropic-sdk-typescript/issues/408)) ([b5e1e4a](https://github.com/anthropics/anthropic-sdk-typescript/commit/b5e1e4a68c9fc00bede9134fa2214480bbbf5f2d))
+* **internal:** refactor scripts ([#404](https://github.com/anthropics/anthropic-sdk-typescript/issues/404)) ([f60e2d8](https://github.com/anthropics/anthropic-sdk-typescript/commit/f60e2d81bb241063507d2d7e728c78e78c1c5e51))
+
 ## 0.20.8 (2024-04-29)
 
 Full Changelog: [sdk-v0.20.7...sdk-v0.20.8](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.7...sdk-v0.20.8)

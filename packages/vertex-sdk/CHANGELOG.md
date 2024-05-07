@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.6 (2024-05-07)
+
+Full Changelog: [vertex-sdk-v0.3.5...vertex-sdk-v0.3.6](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.3.5...vertex-sdk-v0.3.6)
+
+### Chores
+
+* **internal:** refactor scripts ([#404](https://github.com/anthropics/anthropic-sdk-typescript/issues/404)) ([f60e2d8](https://github.com/anthropics/anthropic-sdk-typescript/commit/f60e2d81bb241063507d2d7e728c78e78c1c5e51))
+
 ## 0.3.5 (2024-04-10)
 
 Full Changelog: [vertex-sdk-v0.3.4...vertex-sdk-v0.3.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.3.4...vertex-sdk-v0.3.5)
