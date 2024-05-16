@@ -256,7 +256,6 @@ export namespace Anthropic {
   export import MessageCreateParams = API.MessageCreateParams;
   export import MessageCreateParamsNonStreaming = API.MessageCreateParamsNonStreaming;
   export import MessageCreateParamsStreaming = API.MessageCreateParamsStreaming;
-  export import MessageStreamParams = API.MessageStreamParams;
 
   export import Beta = API.Beta;
 }

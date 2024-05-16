@@ -28,6 +28,5 @@ export {
   MessageCreateParams,
   MessageCreateParamsNonStreaming,
   MessageCreateParamsStreaming,
-  MessageStreamParams,
   Messages,
 } from './messages';

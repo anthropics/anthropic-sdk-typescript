@@ -23,5 +23,4 @@ export namespace Tools {
   export import MessageCreateParams = MessagesAPI.MessageCreateParams;
   export import MessageCreateParamsNonStreaming = MessagesAPI.MessageCreateParamsNonStreaming;
   export import MessageCreateParamsStreaming = MessagesAPI.MessageCreateParamsStreaming;
-  export import MessageStreamParams = MessagesAPI.MessageStreamParams;
 }
