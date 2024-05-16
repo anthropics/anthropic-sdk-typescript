@@ -9,14 +9,19 @@ export class Tools extends APIResource {
 
 export namespace Tools {
   export import Messages = MessagesAPI.Messages;
+  export import InputJsonDelta = MessagesAPI.InputJsonDelta;
   export import Tool = MessagesAPI.Tool;
   export import ToolResultBlockParam = MessagesAPI.ToolResultBlockParam;
   export import ToolUseBlock = MessagesAPI.ToolUseBlock;
   export import ToolUseBlockParam = MessagesAPI.ToolUseBlockParam;
   export import ToolsBetaContentBlock = MessagesAPI.ToolsBetaContentBlock;
+  export import ToolsBetaContentBlockDeltaEvent = MessagesAPI.ToolsBetaContentBlockDeltaEvent;
+  export import ToolsBetaContentBlockStartEvent = MessagesAPI.ToolsBetaContentBlockStartEvent;
   export import ToolsBetaMessage = MessagesAPI.ToolsBetaMessage;
   export import ToolsBetaMessageParam = MessagesAPI.ToolsBetaMessageParam;
+  export import ToolsBetaMessageStreamEvent = MessagesAPI.ToolsBetaMessageStreamEvent;
   export import MessageCreateParams = MessagesAPI.MessageCreateParams;
   export import MessageCreateParamsNonStreaming = MessagesAPI.MessageCreateParamsNonStreaming;
   export import MessageCreateParamsStreaming = MessagesAPI.MessageCreateParamsStreaming;
+  export import MessageStreamParams = MessagesAPI.MessageStreamParams;
 }

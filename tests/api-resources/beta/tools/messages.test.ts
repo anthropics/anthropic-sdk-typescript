@@ -34,6 +34,7 @@ describe('resource messages', () => {
       stream: false,
       system: "Today's date is 2024-01-01.",
       temperature: 1,
+      tool_choice: { type: 'auto' },
       tools: [
         {
           description: 'Get the current weather in a given location',
