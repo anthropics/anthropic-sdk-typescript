@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.21.0 (2024-05-16)
+
+Full Changelog: [sdk-v0.20.9...sdk-v0.21.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.9...sdk-v0.21.0)
+
+### Features
+
+* **api:** add `tool_choice` param, image block params inside `tool_result.content`, and streaming for `tool_use` blocks ([#418](https://github.com/anthropics/anthropic-sdk-typescript/issues/418)) ([421a1e6](https://github.com/anthropics/anthropic-sdk-typescript/commit/421a1e6f53cbb2f440e3668be3e13475976eebbf))
+
+
+### Chores
+
+* **docs:** add SECURITY.md ([#411](https://github.com/anthropics/anthropic-sdk-typescript/issues/411)) ([bf2ad84](https://github.com/anthropics/anthropic-sdk-typescript/commit/bf2ad8496d97de46b28575dfa37fa9cf15341eb4))
+* **internal:** add slightly better logging to scripts ([#415](https://github.com/anthropics/anthropic-sdk-typescript/issues/415)) ([7a042d2](https://github.com/anthropics/anthropic-sdk-typescript/commit/7a042d2dd5a5e310f15c02277c7f7a19e9772872))
+* **internal:** fix generated version numbers ([#413](https://github.com/anthropics/anthropic-sdk-typescript/issues/413)) ([ea77063](https://github.com/anthropics/anthropic-sdk-typescript/commit/ea770630897bb85caaecd39bccf478e4dd3f169c))
+
 ## 0.20.9 (2024-05-07)
 
 Full Changelog: [sdk-v0.20.8...sdk-v0.20.9](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.8...sdk-v0.20.9)
