@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.8 (2024-05-16)
+
+Full Changelog: [bedrock-sdk-v0.9.7...bedrock-sdk-v0.9.8](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.7...bedrock-sdk-v0.9.8)
+
+### Chores
+
+* **internal:** fix generated version numbers ([#413](https://github.com/anthropics/anthropic-sdk-typescript/issues/413)) ([ea77063](https://github.com/anthropics/anthropic-sdk-typescript/commit/ea770630897bb85caaecd39bccf478e4dd3f169c))
+
 ## 0.9.7 (2024-05-07)
 
 Full Changelog: [bedrock-sdk-v0.9.6...bedrock-sdk-v0.9.7](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.6...bedrock-sdk-v0.9.7)
