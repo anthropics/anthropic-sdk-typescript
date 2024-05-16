@@ -86,60 +86,6 @@ main();
 
 Documentation for each method, request param, and response field are available in docstrings and will appear on hover in most modern editors.
 
-## Counting Tokens
-
-You can see the exact usage for a given request through the `usage` response property, e.g.
-
-```ts
-const message = await client.messages.create(...)
-console.log(message.usage)
-// { input_tokens: 25, output_tokens: 13 }
-```
-
-## Streaming Helpers
-
-This library provides several conveniences for streaming messages, for example:
-
-```ts
-import Anthropic from '@anthropic-ai/sdk';
-
-const anthropic = new Anthropic();
-
-async function main() {
-  const stream = anthropic.messages
-    .stream({
-      model: 'claude-3-opus-20240229',
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: 'Say hello there!',
-        },
-      ],
-    })
-    .on('text', (text) => {
-      console.log(text);
-    });
-
-  const message = await stream.finalMessage();
-  console.log(message);
-}
-
-main();
-```
-
-Streaming with `client.messages.stream(...)` exposes [various helpers for your convenience](helpers.md) including event handlers and accumulation.
-
-Alternatively, you can use `client.messages.create({ ..., stream: true })` which only returns an async iterable of the events in the stream and thus uses less memory (it does not build up a final message object for you).
-
-## Tool use beta
-
-This SDK provides beta support for tool use, aka function calling. More details can be found in [the documentation](https://docs.anthropic.com/claude/docs/tool-use).
-
-## AWS Bedrock
-
-We provide support for the [Anthropic Bedrock API](https://aws.amazon.com/bedrock/claude/) through a [separate package](https://github.com/anthropics/anthropic-sdk-typescript/tree/main/packages/bedrock-sdk).
-
 ## Handling errors
 
 When the library is unable to connect to the API,
