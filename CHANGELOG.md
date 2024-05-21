@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.21.1 (2024-05-21)
+
+Full Changelog: [sdk-v0.21.0...sdk-v0.21.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.21.0...sdk-v0.21.1)
+
+### Chores
+
+* **docs:** fix typo ([#423](https://github.com/anthropics/anthropic-sdk-typescript/issues/423)) ([d42f458](https://github.com/anthropics/anthropic-sdk-typescript/commit/d42f45820347171bd456b0038406a53b098a4fa2))
+* **internal:** run build script over sub-packages ([6f04f66](https://github.com/anthropics/anthropic-sdk-typescript/commit/6f04f6689603ef5a59ce15f490d74392241694c3))
+
 ## 0.21.0 (2024-05-16)
 
 Full Changelog: [sdk-v0.20.9...sdk-v0.21.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.20.9...sdk-v0.21.0)
