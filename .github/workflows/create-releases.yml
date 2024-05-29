@@ -1,0 +1,43 @@
+name: Create releases
+on:
+  schedule:
+    - cron: '0 5 * * *' # every day at 5am UTC
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: release
+    if: github.ref == 'refs/heads/main' && github.repository == 'anthropics/anthropic-sdk-typescript'
+    runs-on: ubuntu-latest
+    environment: production-release
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: stainless-api/trigger-release-please@v1
+        id: release
+        with:
+          repo: ${{ github.event.repository.full_name }}
+          stainless-api-key: ${{ secrets.STAINLESS_API_KEY }}
+
+      - name: Set up Node
+        if: ${{ steps.release.outputs.releases_created }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        if: ${{ steps.release.outputs.releases_created }}
+        run: |
+          yarn install
+
+      - name: Publish to NPM
+        if: ${{ steps.release.outputs.releases_created }}
+        run: |
+          yarn tsn scripts/publish-packages.ts
+
+        env:
+          DATA: ${{ toJSON(steps.release.outputs) }}
+          NPM_TOKEN: ${{ secrets.ANTHROPIC_NPM_TOKEN || secrets.NPM_TOKEN }}
