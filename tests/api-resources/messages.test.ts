@@ -34,6 +34,42 @@ describe('resource messages', () => {
       stream: false,
       system: "Today's date is 2024-01-01.",
       temperature: 1,
+      tool_choice: { type: 'auto' },
+      tools: [
+        {
+          description: 'Get the current weather in a given location',
+          name: 'x',
+          input_schema: {
+            type: 'object',
+            properties: {
+              location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
+              unit: { description: 'Unit for the output - one of (celsius, fahrenheit)', type: 'string' },
+            },
+          },
+        },
+        {
+          description: 'Get the current weather in a given location',
+          name: 'x',
+          input_schema: {
+            type: 'object',
+            properties: {
+              location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
+              unit: { description: 'Unit for the output - one of (celsius, fahrenheit)', type: 'string' },
+            },
+          },
+        },
+        {
+          description: 'Get the current weather in a given location',
+          name: 'x',
+          input_schema: {
+            type: 'object',
+            properties: {
+              location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
+              unit: { description: 'Unit for the output - one of (celsius, fahrenheit)', type: 'string' },
+            },
+          },
+        },
+      ],
       top_k: 5,
       top_p: 0.7,
     });
