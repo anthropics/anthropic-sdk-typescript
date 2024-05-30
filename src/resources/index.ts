@@ -1,6 +1,5 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-export { Beta } from './beta/beta';
 export {
   Completion,
   CompletionCreateParams,
@@ -11,6 +10,7 @@ export {
 export {
   ContentBlock,
   ImageBlockParam,
+  InputJsonDelta,
   Message,
   MessageDeltaUsage,
   MessageParam,
@@ -24,6 +24,10 @@ export {
   TextBlock,
   TextBlockParam,
   TextDelta,
+  Tool,
+  ToolResultBlockParam,
+  ToolUseBlock,
+  ToolUseBlockParam,
   Usage,
   MessageCreateParams,
   MessageCreateParamsNonStreaming,

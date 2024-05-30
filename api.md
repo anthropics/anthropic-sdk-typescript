@@ -4,6 +4,7 @@ Types:
 
 - <code><a href="./src/resources/messages.ts">ContentBlock</a></code>
 - <code><a href="./src/resources/messages.ts">ImageBlockParam</a></code>
+- <code><a href="./src/resources/messages.ts">InputJsonDelta</a></code>
 - <code><a href="./src/resources/messages.ts">Message</a></code>
 - <code><a href="./src/resources/messages.ts">MessageDeltaUsage</a></code>
 - <code><a href="./src/resources/messages.ts">MessageParam</a></code>
@@ -17,32 +18,12 @@ Types:
 - <code><a href="./src/resources/messages.ts">TextBlock</a></code>
 - <code><a href="./src/resources/messages.ts">TextBlockParam</a></code>
 - <code><a href="./src/resources/messages.ts">TextDelta</a></code>
+- <code><a href="./src/resources/messages.ts">Tool</a></code>
+- <code><a href="./src/resources/messages.ts">ToolResultBlockParam</a></code>
+- <code><a href="./src/resources/messages.ts">ToolUseBlock</a></code>
+- <code><a href="./src/resources/messages.ts">ToolUseBlockParam</a></code>
 - <code><a href="./src/resources/messages.ts">Usage</a></code>
 
 Methods:
 
 - <code title="post /v1/messages">client.messages.<a href="./src/resources/messages.ts">create</a>({ ...params }) -> Message</code>
-
-# Beta
-
-## Tools
-
-### Messages
-
-Types:
-
-- <code><a href="./src/resources/beta/tools/messages.ts">InputJsonDelta</a></code>
-- <code><a href="./src/resources/beta/tools/messages.ts">RawToolsBetaContentBlockDeltaEvent</a></code>
-- <code><a href="./src/resources/beta/tools/messages.ts">RawToolsBetaContentBlockStartEvent</a></code>
-- <code><a href="./src/resources/beta/tools/messages.ts">RawToolsBetaMessageStreamEvent</a></code>
-- <code><a href="./src/resources/beta/tools/messages.ts">Tool</a></code>
-- <code><a href="./src/resources/beta/tools/messages.ts">ToolResultBlockParam</a></code>
-- <code><a href="./src/resources/beta/tools/messages.ts">ToolUseBlock</a></code>
-- <code><a href="./src/resources/beta/tools/messages.ts">ToolUseBlockParam</a></code>
-- <code><a href="./src/resources/beta/tools/messages.ts">ToolsBetaContentBlock</a></code>
-- <code><a href="./src/resources/beta/tools/messages.ts">ToolsBetaMessage</a></code>
-- <code><a href="./src/resources/beta/tools/messages.ts">ToolsBetaMessageParam</a></code>
-
-Methods:
-
-- <code title="post /v1/messages?beta=tools">client.beta.tools.messages.<a href="./src/resources/beta/tools/messages.ts">create</a>({ ...params }) -> ToolsBetaMessage</code>
