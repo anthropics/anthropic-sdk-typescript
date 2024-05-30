@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.10.0 (2024-05-30)
+
+Full Changelog: [bedrock-sdk-v0.9.8...bedrock-sdk-v0.10.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.8...bedrock-sdk-v0.10.0)
+
+### Features
+
+* **bedrock:** support tools ([91fc61a](https://github.com/anthropics/anthropic-sdk-typescript/commit/91fc61ae7246705d26e96a95dae38b46e9ad9290))
+
 ## 0.9.8 (2024-05-16)
 
 Full Changelog: [bedrock-sdk-v0.9.7...bedrock-sdk-v0.9.8](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.7...bedrock-sdk-v0.9.8)

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0 (2024-05-30)
+
+Full Changelog: [vertex-sdk-v0.3.7...vertex-sdk-v0.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.3.7...vertex-sdk-v0.4.0)
+
+### Features
+
+* **vertex:** support tools ([acf0aa7](https://github.com/anthropics/anthropic-sdk-typescript/commit/acf0aa7571425c8582740616e24883c2ec65218b))
+
 ## 0.3.7 (2024-05-16)
 
 Full Changelog: [vertex-sdk-v0.3.6...vertex-sdk-v0.3.7](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.3.6...vertex-sdk-v0.3.7)
