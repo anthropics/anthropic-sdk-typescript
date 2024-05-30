@@ -21,22 +21,22 @@ export class Messages extends APIResource {
   create(
     body: MessageCreateParamsStreaming,
     options?: Core.RequestOptions,
-  ): APIPromise<Stream<ToolsBetaMessageStreamEvent>>;
+  ): APIPromise<Stream<RawToolsBetaMessageStreamEvent>>;
   create(
     body: MessageCreateParamsBase,
     options?: Core.RequestOptions,
-  ): APIPromise<Stream<ToolsBetaMessageStreamEvent> | ToolsBetaMessage>;
+  ): APIPromise<Stream<RawToolsBetaMessageStreamEvent> | ToolsBetaMessage>;
   create(
     body: MessageCreateParams,
     options?: Core.RequestOptions,
-  ): APIPromise<ToolsBetaMessage> | APIPromise<Stream<ToolsBetaMessageStreamEvent>> {
+  ): APIPromise<ToolsBetaMessage> | APIPromise<Stream<RawToolsBetaMessageStreamEvent>> {
     return this._client.post('/v1/messages?beta=tools', {
       body,
       timeout: 600000,
       ...options,
       headers: { 'anthropic-beta': 'tools-2024-05-16', ...options?.headers },
       stream: body.stream ?? false,
-    }) as APIPromise<ToolsBetaMessage> | APIPromise<Stream<ToolsBetaMessageStreamEvent>>;
+    }) as APIPromise<ToolsBetaMessage> | APIPromise<Stream<RawToolsBetaMessageStreamEvent>>;
   }
 }
 
@@ -45,6 +45,30 @@ export interface InputJsonDelta {
 
   type: 'input_json_delta';
 }
+
+export interface RawToolsBetaContentBlockDeltaEvent {
+  delta: MessagesAPI.TextDelta | InputJsonDelta;
+
+  index: number;
+
+  type: 'content_block_delta';
+}
+
+export interface RawToolsBetaContentBlockStartEvent {
+  content_block: MessagesAPI.TextBlock | ToolUseBlock;
+
+  index: number;
+
+  type: 'content_block_start';
+}
+
+export type RawToolsBetaMessageStreamEvent =
+  | MessagesAPI.RawMessageStartEvent
+  | MessagesAPI.RawMessageDeltaEvent
+  | MessagesAPI.RawMessageStopEvent
+  | RawToolsBetaContentBlockStartEvent
+  | RawToolsBetaContentBlockDeltaEvent
+  | MessagesAPI.RawContentBlockStopEvent;
 
 export interface Tool {
   /**
@@ -114,22 +138,6 @@ export interface ToolUseBlockParam {
 }
 
 export type ToolsBetaContentBlock = MessagesAPI.TextBlock | ToolUseBlock;
-
-export interface ToolsBetaContentBlockDeltaEvent {
-  delta: MessagesAPI.TextDelta | InputJsonDelta;
-
-  index: number;
-
-  type: 'content_block_delta';
-}
-
-export interface ToolsBetaContentBlockStartEvent {
-  content_block: MessagesAPI.TextBlock | ToolUseBlock;
-
-  index: number;
-
-  type: 'content_block_start';
-}
 
 export interface ToolsBetaMessage {
   /**
@@ -243,14 +251,6 @@ export interface ToolsBetaMessageParam {
 
   role: 'user' | 'assistant';
 }
-
-export type ToolsBetaMessageStreamEvent =
-  | MessagesAPI.MessageStartEvent
-  | MessagesAPI.MessageDeltaEvent
-  | MessagesAPI.MessageStopEvent
-  | ToolsBetaContentBlockStartEvent
-  | ToolsBetaContentBlockDeltaEvent
-  | MessagesAPI.ContentBlockStopEvent;
 
 export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreateParamsStreaming;
 
@@ -584,16 +584,16 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
 
 export namespace Messages {
   export import InputJsonDelta = ToolsMessagesAPI.InputJsonDelta;
+  export import RawToolsBetaContentBlockDeltaEvent = ToolsMessagesAPI.RawToolsBetaContentBlockDeltaEvent;
+  export import RawToolsBetaContentBlockStartEvent = ToolsMessagesAPI.RawToolsBetaContentBlockStartEvent;
+  export import RawToolsBetaMessageStreamEvent = ToolsMessagesAPI.RawToolsBetaMessageStreamEvent;
   export import Tool = ToolsMessagesAPI.Tool;
   export import ToolResultBlockParam = ToolsMessagesAPI.ToolResultBlockParam;
   export import ToolUseBlock = ToolsMessagesAPI.ToolUseBlock;
   export import ToolUseBlockParam = ToolsMessagesAPI.ToolUseBlockParam;
   export import ToolsBetaContentBlock = ToolsMessagesAPI.ToolsBetaContentBlock;
-  export import ToolsBetaContentBlockDeltaEvent = ToolsMessagesAPI.ToolsBetaContentBlockDeltaEvent;
-  export import ToolsBetaContentBlockStartEvent = ToolsMessagesAPI.ToolsBetaContentBlockStartEvent;
   export import ToolsBetaMessage = ToolsMessagesAPI.ToolsBetaMessage;
   export import ToolsBetaMessageParam = ToolsMessagesAPI.ToolsBetaMessageParam;
-  export import ToolsBetaMessageStreamEvent = ToolsMessagesAPI.ToolsBetaMessageStreamEvent;
   export import MessageCreateParams = ToolsMessagesAPI.MessageCreateParams;
   export import MessageCreateParamsNonStreaming = ToolsMessagesAPI.MessageCreateParamsNonStreaming;
   export import MessageCreateParamsStreaming = ToolsMessagesAPI.MessageCreateParamsStreaming;

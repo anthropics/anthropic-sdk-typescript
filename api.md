@@ -3,17 +3,17 @@
 Types:
 
 - <code><a href="./src/resources/messages.ts">ContentBlock</a></code>
-- <code><a href="./src/resources/messages.ts">ContentBlockDeltaEvent</a></code>
-- <code><a href="./src/resources/messages.ts">ContentBlockStartEvent</a></code>
-- <code><a href="./src/resources/messages.ts">ContentBlockStopEvent</a></code>
 - <code><a href="./src/resources/messages.ts">ImageBlockParam</a></code>
 - <code><a href="./src/resources/messages.ts">Message</a></code>
-- <code><a href="./src/resources/messages.ts">MessageDeltaEvent</a></code>
 - <code><a href="./src/resources/messages.ts">MessageDeltaUsage</a></code>
 - <code><a href="./src/resources/messages.ts">MessageParam</a></code>
-- <code><a href="./src/resources/messages.ts">MessageStartEvent</a></code>
-- <code><a href="./src/resources/messages.ts">MessageStopEvent</a></code>
-- <code><a href="./src/resources/messages.ts">MessageStreamEvent</a></code>
+- <code><a href="./src/resources/messages.ts">RawContentBlockDeltaEvent</a></code>
+- <code><a href="./src/resources/messages.ts">RawContentBlockStartEvent</a></code>
+- <code><a href="./src/resources/messages.ts">RawContentBlockStopEvent</a></code>
+- <code><a href="./src/resources/messages.ts">RawMessageDeltaEvent</a></code>
+- <code><a href="./src/resources/messages.ts">RawMessageStartEvent</a></code>
+- <code><a href="./src/resources/messages.ts">RawMessageStopEvent</a></code>
+- <code><a href="./src/resources/messages.ts">RawMessageStreamEvent</a></code>
 - <code><a href="./src/resources/messages.ts">TextBlock</a></code>
 - <code><a href="./src/resources/messages.ts">TextBlockParam</a></code>
 - <code><a href="./src/resources/messages.ts">TextDelta</a></code>
@@ -32,16 +32,16 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/tools/messages.ts">InputJsonDelta</a></code>
+- <code><a href="./src/resources/beta/tools/messages.ts">RawToolsBetaContentBlockDeltaEvent</a></code>
+- <code><a href="./src/resources/beta/tools/messages.ts">RawToolsBetaContentBlockStartEvent</a></code>
+- <code><a href="./src/resources/beta/tools/messages.ts">RawToolsBetaMessageStreamEvent</a></code>
 - <code><a href="./src/resources/beta/tools/messages.ts">Tool</a></code>
 - <code><a href="./src/resources/beta/tools/messages.ts">ToolResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/tools/messages.ts">ToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/tools/messages.ts">ToolUseBlockParam</a></code>
 - <code><a href="./src/resources/beta/tools/messages.ts">ToolsBetaContentBlock</a></code>
-- <code><a href="./src/resources/beta/tools/messages.ts">ToolsBetaContentBlockDeltaEvent</a></code>
-- <code><a href="./src/resources/beta/tools/messages.ts">ToolsBetaContentBlockStartEvent</a></code>
 - <code><a href="./src/resources/beta/tools/messages.ts">ToolsBetaMessage</a></code>
 - <code><a href="./src/resources/beta/tools/messages.ts">ToolsBetaMessageParam</a></code>
-- <code><a href="./src/resources/beta/tools/messages.ts">ToolsBetaMessageStreamEvent</a></code>
 
 Methods:
 
