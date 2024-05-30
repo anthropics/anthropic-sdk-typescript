@@ -2,6 +2,9 @@
 
 export {
   InputJsonDelta,
+  RawToolsBetaContentBlockDeltaEvent,
+  RawToolsBetaContentBlockStartEvent,
+  RawToolsBetaMessageStreamEvent,
   Tool,
   ToolResultBlockParam,
   ToolUseBlock,

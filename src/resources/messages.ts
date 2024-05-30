@@ -22,21 +22,21 @@ export class Messages extends APIResource {
   create(
     body: MessageCreateParamsStreaming,
     options?: Core.RequestOptions,
-  ): APIPromise<Stream<MessageStreamEvent>>;
+  ): APIPromise<Stream<RawMessageStreamEvent>>;
   create(
     body: MessageCreateParamsBase,
     options?: Core.RequestOptions,
-  ): APIPromise<Stream<MessageStreamEvent> | Message>;
+  ): APIPromise<Stream<RawMessageStreamEvent> | Message>;
   create(
     body: MessageCreateParams,
     options?: Core.RequestOptions,
-  ): APIPromise<Message> | APIPromise<Stream<MessageStreamEvent>> {
+  ): APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>> {
     return this._client.post('/v1/messages', {
       body,
       timeout: 600000,
       ...options,
       stream: body.stream ?? false,
-    }) as APIPromise<Message> | APIPromise<Stream<MessageStreamEvent>>;
+    }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
   }
 
   /**
@@ -49,27 +49,11 @@ export class Messages extends APIResource {
 
 export type ContentBlock = TextBlock;
 
-export interface ContentBlockDeltaEvent {
-  delta: TextDelta;
+export type ContentBlockDeltaEvent = RawContentBlockDeltaEvent;
 
-  index: number;
+export type ContentBlockStartEvent = RawContentBlockStartEvent;
 
-  type: 'content_block_delta';
-}
-
-export interface ContentBlockStartEvent {
-  content_block: TextBlock;
-
-  index: number;
-
-  type: 'content_block_start';
-}
-
-export interface ContentBlockStopEvent {
-  index: number;
-
-  type: 'content_block_stop';
-}
+export type ContentBlockStopEvent = RawContentBlockStopEvent;
 
 export interface ImageBlockParam {
   source: ImageBlockParam.Source;
@@ -189,8 +173,51 @@ export interface Message {
   usage: Usage;
 }
 
-export interface MessageDeltaEvent {
-  delta: MessageDeltaEvent.Delta;
+export type MessageDeltaEvent = RawMessageDeltaEvent;
+
+export interface MessageDeltaUsage {
+  /**
+   * The cumulative number of output tokens which were used.
+   */
+  output_tokens: number;
+}
+
+export interface MessageParam {
+  content: string | Array<TextBlockParam | ImageBlockParam>;
+
+  role: 'user' | 'assistant';
+}
+
+export type MessageStartEvent = RawMessageStartEvent;
+
+export type MessageStopEvent = RawMessageStopEvent;
+
+export type MessageStreamEvent = RawMessageStreamEvent;
+
+export interface RawContentBlockDeltaEvent {
+  delta: TextDelta;
+
+  index: number;
+
+  type: 'content_block_delta';
+}
+
+export interface RawContentBlockStartEvent {
+  content_block: TextBlock;
+
+  index: number;
+
+  type: 'content_block_start';
+}
+
+export interface RawContentBlockStopEvent {
+  index: number;
+
+  type: 'content_block_stop';
+}
+
+export interface RawMessageDeltaEvent {
+  delta: RawMessageDeltaEvent.Delta;
 
   type: 'message_delta';
 
@@ -211,7 +238,7 @@ export interface MessageDeltaEvent {
   usage: MessageDeltaUsage;
 }
 
-export namespace MessageDeltaEvent {
+export namespace RawMessageDeltaEvent {
   export interface Delta {
     stop_reason: 'end_turn' | 'max_tokens' | 'stop_sequence' | null;
 
@@ -219,36 +246,23 @@ export namespace MessageDeltaEvent {
   }
 }
 
-export interface MessageDeltaUsage {
-  /**
-   * The cumulative number of output tokens which were used.
-   */
-  output_tokens: number;
-}
-
-export interface MessageParam {
-  content: string | Array<TextBlockParam | ImageBlockParam>;
-
-  role: 'user' | 'assistant';
-}
-
-export interface MessageStartEvent {
+export interface RawMessageStartEvent {
   message: Message;
 
   type: 'message_start';
 }
 
-export interface MessageStopEvent {
+export interface RawMessageStopEvent {
   type: 'message_stop';
 }
 
-export type MessageStreamEvent =
-  | MessageStartEvent
-  | MessageDeltaEvent
-  | MessageStopEvent
-  | ContentBlockStartEvent
-  | ContentBlockDeltaEvent
-  | ContentBlockStopEvent;
+export type RawMessageStreamEvent =
+  | RawMessageStartEvent
+  | RawMessageDeltaEvent
+  | RawMessageStopEvent
+  | RawContentBlockStartEvent
+  | RawContentBlockDeltaEvent
+  | RawContentBlockStopEvent;
 
 export interface TextBlock {
   text: string;
@@ -718,6 +732,13 @@ export namespace Messages {
   export import MessageStartEvent = MessagesAPI.MessageStartEvent;
   export import MessageStopEvent = MessagesAPI.MessageStopEvent;
   export import MessageStreamEvent = MessagesAPI.MessageStreamEvent;
+  export import RawContentBlockDeltaEvent = MessagesAPI.RawContentBlockDeltaEvent;
+  export import RawContentBlockStartEvent = MessagesAPI.RawContentBlockStartEvent;
+  export import RawContentBlockStopEvent = MessagesAPI.RawContentBlockStopEvent;
+  export import RawMessageDeltaEvent = MessagesAPI.RawMessageDeltaEvent;
+  export import RawMessageStartEvent = MessagesAPI.RawMessageStartEvent;
+  export import RawMessageStopEvent = MessagesAPI.RawMessageStopEvent;
+  export import RawMessageStreamEvent = MessagesAPI.RawMessageStreamEvent;
   export import TextBlock = MessagesAPI.TextBlock;
   export import TextBlockParam = MessagesAPI.TextBlockParam;
   export import TextDelta = MessagesAPI.TextDelta;
