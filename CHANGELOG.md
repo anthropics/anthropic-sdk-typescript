@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.22.0 (2024-05-30)
+
+Full Changelog: [sdk-v0.21.1...sdk-v0.22.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.21.1...sdk-v0.22.0)
+
+### Features
+
+* **api/types:** add stream event type aliases with a Raw prefix ([#428](https://github.com/anthropics/anthropic-sdk-typescript/issues/428)) ([1e367e4](https://github.com/anthropics/anthropic-sdk-typescript/commit/1e367e4020fa4691c565c89bdfba40c2f6060871))
+* **api:** tool use is GA and available on 3P ([#429](https://github.com/anthropics/anthropic-sdk-typescript/issues/429)) ([2decf85](https://github.com/anthropics/anthropic-sdk-typescript/commit/2decf85e7471932dad98c21d4ed2d476ab1588a6))
+* **streaming:** add tools support ([4c83bb1](https://github.com/anthropics/anthropic-sdk-typescript/commit/4c83bb111735cd513c09d5ed57a5cb0888534afd))
+
+
+### Documentation
+
+* **helpers:** mention inputJson event ([0ef0e39](https://github.com/anthropics/anthropic-sdk-typescript/commit/0ef0e39a870541bbe800b03c1bdcf88eb6e1350c))
+* **readme:** add bundle size badge ([#426](https://github.com/anthropics/anthropic-sdk-typescript/issues/426)) ([bf7c1fd](https://github.com/anthropics/anthropic-sdk-typescript/commit/bf7c1fdaf3476d5c43079e8a0789ed0dd0c807a6))
+
 ## 0.21.1 (2024-05-21)
 
 Full Changelog: [sdk-v0.21.0...sdk-v0.21.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.21.0...sdk-v0.21.1)
