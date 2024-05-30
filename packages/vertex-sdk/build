@@ -28,6 +28,7 @@ npm exec tsc-multi
 # No way to get that from index.ts because it would cause compile errors
 # when building .mjs
 DIST_PATH=./dist node ../../scripts/utils/fix-index-exports.cjs
+
 # with "moduleResolution": "nodenext", if ESM resolves to index.d.ts,
 # it'll have TS errors on the default import.  But if it resolves to
 # index.d.mts the default import will work (even though both files have
