@@ -10,6 +10,9 @@ export class Tools extends APIResource {
 export namespace Tools {
   export import Messages = MessagesAPI.Messages;
   export import InputJsonDelta = MessagesAPI.InputJsonDelta;
+  export import RawToolsBetaContentBlockDeltaEvent = MessagesAPI.RawToolsBetaContentBlockDeltaEvent;
+  export import RawToolsBetaContentBlockStartEvent = MessagesAPI.RawToolsBetaContentBlockStartEvent;
+  export import RawToolsBetaMessageStreamEvent = MessagesAPI.RawToolsBetaMessageStreamEvent;
   export import Tool = MessagesAPI.Tool;
   export import ToolResultBlockParam = MessagesAPI.ToolResultBlockParam;
   export import ToolUseBlock = MessagesAPI.ToolUseBlock;
