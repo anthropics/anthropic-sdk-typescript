@@ -7,15 +7,18 @@ import {
   MessageStreamEvent,
   MessageParam,
   MessageCreateParams,
-  MessageStreamParams,
+  MessageCreateParamsBase,
 } from '@anthropic-ai/sdk/resources/messages';
 import { type ReadableStream } from '@anthropic-ai/sdk/_shims/index';
 import { Stream } from '@anthropic-ai/sdk/streaming';
+import { TextBlock } from '@anthropic-ai/sdk/resources';
+import { partialParse } from '../_vendor/partial-json-parser/parser';
 
 export interface MessageStreamEvents {
   connect: () => void;
   streamEvent: (event: MessageStreamEvent, snapshot: Message) => void;
   text: (textDelta: string, textSnapshot: string) => void;
+  inputJson: (jsonDelta: string, jsonSnapshot: unknown) => void;
   message: (message: Message) => void;
   contentBlock: (content: ContentBlock) => void;
   finalMessage: (message: Message) => void;
@@ -28,6 +31,8 @@ type MessageStreamEventListeners<Event extends keyof MessageStreamEvents> = {
   listener: MessageStreamEvents[Event];
   once?: boolean;
 }[];
+
+const JSON_BUF_PROPERTY = '__json_buf';
 
 export class MessageStream implements AsyncIterable<MessageStreamEvent> {
   messages: MessageParam[] = [];
@@ -85,7 +90,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
 
   static createMessage(
     messages: Messages,
-    params: MessageStreamParams,
+    params: MessageCreateParamsBase,
     options?: Core.RequestOptions,
   ): MessageStream {
     const runner = new MessageStream();
@@ -264,7 +269,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     }
     const textBlocks = this.receivedMessages
       .at(-1)!
-      .content.filter((block) => block.type === 'text')
+      .content.filter((block): block is TextBlock => block.type === 'text')
       .map((block) => block.text);
     if (textBlocks.length === 0) {
       throw new AnthropicError('stream ended without producing a content block with type=text');
@@ -369,8 +374,13 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
 
     switch (event.type) {
       case 'content_block_delta': {
-        if (event.delta.type === 'text_delta') {
-          this._emit('text', event.delta.text, messageSnapshot.content.at(-1)!.text || '');
+        const content = messageSnapshot.content.at(-1)!;
+        if (event.delta.type === 'text_delta' && content.type === 'text') {
+          this._emit('text', event.delta.text, content.text || '');
+        } else if (event.delta.type === 'input_json_delta' && content.type === 'tool_use') {
+          if (content.input) {
+            this._emit('inputJson', event.delta.partial_json, content.input);
+          }
         }
         break;
       }
@@ -459,6 +469,22 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
         const snapshotContent = snapshot.content.at(event.index);
         if (snapshotContent?.type === 'text' && event.delta.type === 'text_delta') {
           snapshotContent.text += event.delta.text;
+        } else if (snapshotContent?.type === 'tool_use' && event.delta.type === 'input_json_delta') {
+          // we need to keep track of the raw JSON string as well so that we can
+          // re-parse it for each delta, for now we just store it as an untyped
+          // non-enumerable property on the snapshot
+          let jsonBuf = (snapshotContent as any)[JSON_BUF_PROPERTY] || '';
+          jsonBuf += event.delta.partial_json;
+
+          Object.defineProperty(snapshotContent, JSON_BUF_PROPERTY, {
+            value: jsonBuf,
+            enumerable: false,
+            writable: true,
+          });
+
+          if (jsonBuf) {
+            snapshotContent.input = partialParse(jsonBuf);
+          }
         }
         return snapshot;
       }

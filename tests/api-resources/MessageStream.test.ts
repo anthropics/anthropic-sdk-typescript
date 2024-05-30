@@ -6,6 +6,10 @@ import { type RequestInfo, type RequestInit } from '@anthropic-ai/sdk/_shims/ind
 
 type Fetch = (req: string | RequestInfo, init?: RequestInit) => Promise<Response>;
 
+function assertNever(x: never): never {
+  throw new Error(`unreachable: ${x}`);
+}
+
 async function* messageIterable(message: Message): AsyncGenerator<MessageStreamEvent> {
   yield {
     type: 'message_start',
@@ -17,16 +21,39 @@ async function* messageIterable(message: Message): AsyncGenerator<MessageStreamE
     const content = message.content[idx]!;
     yield {
       type: 'content_block_start',
-      content_block: { type: content.type, text: '' },
+      content_block:
+        content.type === 'text' ? { type: 'text', text: '' }
+        : content.type === 'tool_use' ?
+          {
+            type: 'tool_use',
+            id: 'toolu_01Up7oRoHeGvhded7n66nPzP',
+            name: 'get_weather',
+            input: {},
+          }
+        : assertNever(content),
       index: idx,
     };
 
-    for (let chunk = 0; chunk * 5 < content.text.length; chunk++) {
-      yield {
-        type: 'content_block_delta',
-        delta: { type: 'text_delta', text: content.text.slice(chunk * 5, (chunk + 1) * 5) },
-        index: idx,
-      };
+    if (content.type === 'text') {
+      for (let chunk = 0; chunk * 5 < content.text.length; chunk++) {
+        yield {
+          type: 'content_block_delta',
+          delta: { type: 'text_delta', text: content.text.slice(chunk * 5, (chunk + 1) * 5) },
+          index: idx,
+        };
+      }
+    } else if (content.type === 'tool_use') {
+      const jsonString = JSON.stringify(content.input);
+
+      for (let chunk = 0; chunk * 5 < jsonString.length; chunk++) {
+        yield {
+          type: 'content_block_delta',
+          delta: { type: 'input_json_delta', partial_json: jsonString.slice(chunk * 5, (chunk + 1) * 5) },
+          index: idx,
+        };
+      }
+    } else {
+      assertNever(content);
     }
 
     yield {
@@ -331,7 +358,11 @@ describe('MessageStream class', () => {
     );
 
     for await (const event of stream) {
-      if (event.type === 'content_block_delta' && event.delta.text.includes('He')) {
+      if (
+        event.type === 'content_block_delta' &&
+        event.delta.type == 'text_delta' &&
+        event.delta.text.includes('He')
+      ) {
         break;
       }
     }
@@ -386,7 +417,11 @@ describe('MessageStream class', () => {
 
     async function runStream() {
       for await (const event of stream) {
-        if (event.type === 'content_block_delta' && event.delta.text.includes('He')) {
+        if (
+          event.type === 'content_block_delta' &&
+          event.delta.type === 'text_delta' &&
+          event.delta.text.includes('He')
+        ) {
           break;
         }
       }

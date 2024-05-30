@@ -7,7 +7,7 @@ import { inspect } from 'util';
 const client = new Anthropic();
 
 async function main() {
-  const stream = client.beta.tools.messages
+  const stream = client.messages
     .stream({
       messages: [
         {
