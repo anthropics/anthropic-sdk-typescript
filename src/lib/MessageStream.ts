@@ -18,7 +18,7 @@ export interface MessageStreamEvents {
   connect: () => void;
   streamEvent: (event: MessageStreamEvent, snapshot: Message) => void;
   text: (textDelta: string, textSnapshot: string) => void;
-  inputJson: (jsonDelta: string, jsonSnapshot: unknown) => void;
+  inputJson: (partialJson: string, jsonSnapshot: unknown) => void;
   message: (message: Message) => void;
   contentBlock: (content: ContentBlock) => void;
   finalMessage: (message: Message) => void;

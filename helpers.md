@@ -35,6 +35,10 @@ returns an accumulated `Message` which is progressively built-up over events.
 
 The event fired when a text delta is sent by the API. The second parameter returns a `textSnapshot`.
 
+#### `.on('inputJson', (patialJson: string, jsonSnapshot: unknown) => …)`
+
+The event fired when a json delta is sent by the API. The second parameter returns a `jsonSnapshot`.
+
 #### `.on('message', (message: Message) => …)`
 
 The event fired when a message is done being streamed by the API. Corresponds to the `message_stop` SSE event.
