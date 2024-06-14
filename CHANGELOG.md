@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.23.0 (2024-06-14)
+
+Full Changelog: [sdk-v0.22.0...sdk-v0.23.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.22.0...sdk-v0.23.0)
+
+### Features
+
+* support `application/octet-stream` request bodies ([#436](https://github.com/anthropics/anthropic-sdk-typescript/issues/436)) ([3a8e6ed](https://github.com/anthropics/anthropic-sdk-typescript/commit/3a8e6ed7cc057b77fabeaf8f774f6231836022d7))
+
+
+### Bug Fixes
+
+* allow git imports for pnpm ([#433](https://github.com/anthropics/anthropic-sdk-typescript/issues/433)) ([a4f5263](https://github.com/anthropics/anthropic-sdk-typescript/commit/a4f5263692aea74fbf91d0591958aca16c820e00))
+
 ## 0.22.0 (2024-05-30)
 
 Full Changelog: [sdk-v0.21.1...sdk-v0.22.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.21.1...sdk-v0.22.0)
