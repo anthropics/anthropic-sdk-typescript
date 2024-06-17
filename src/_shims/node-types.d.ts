@@ -32,8 +32,6 @@ export interface FilePropertyBag extends BlobPropertyBag {
   lastModified?: number;
 }
 
-export type FileFromPathOptions = Omit<FilePropertyBag, 'lastModified'>;
-
 export type FormData = fd.FormData;
 export const FormData: typeof fd.FormData;
 export type File = fd.File;

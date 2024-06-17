@@ -42,8 +42,6 @@ export type BlobPropertyBag = SelectType<manual.BlobPropertyBag, auto.BlobProper
 // @ts-ignore
 export type FilePropertyBag = SelectType<manual.FilePropertyBag, auto.FilePropertyBag>;
 // @ts-ignore
-export type FileFromPathOptions = SelectType<manual.FileFromPathOptions, auto.FileFromPathOptions>;
-// @ts-ignore
 export type FormData = SelectType<manual.FormData, auto.FormData>;
 // @ts-ignore
 export const FormData: SelectType<typeof manual.FormData, typeof auto.FormData>;
@@ -71,11 +69,5 @@ export function getMultipartRequestOptions<T = Record<string, unknown>>(
 ): Promise<RequestOptions<T>>;
 
 export function getDefaultAgent(url: string): any;
-
-// @ts-ignore
-export type FileFromPathOptions = SelectType<manual.FileFromPathOptions, auto.FileFromPathOptions>;
-
-export function fileFromPath(path: string, options?: FileFromPathOptions): Promise<File>;
-export function fileFromPath(path: string, filename?: string, options?: FileFromPathOptions): Promise<File>;
 
 export function isFsReadStream(value: any): value is FsReadStream;

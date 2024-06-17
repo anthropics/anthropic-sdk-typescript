@@ -50,8 +50,6 @@ export interface FilePropertyBag extends BlobPropertyBag {
   lastModified?: number;
 }
 
-export type FileFromPathOptions = Omit<FilePropertyBag, 'lastModified'>;
-
 const _FormData = FormData;
 type _FormData = FormData;
 export { _FormData as FormData };
@@ -76,11 +74,6 @@ export async function getMultipartRequestOptions<T = Record<string, unknown>>(
 
 export function getDefaultAgent(url: string) {
   return undefined;
-}
-export function fileFromPath() {
-  throw new Error(
-    'The `fileFromPath` function is only supported in Node. See the README for more details: https://www.github.com/anthropics/anthropic-sdk-typescript#file-uploads',
-  );
 }
 
 export const isFsReadStream = (value: any) => false;

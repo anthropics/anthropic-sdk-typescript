@@ -3,7 +3,6 @@
  */
 import * as nf from 'node-fetch';
 import * as fd from 'formdata-node';
-import { type File, type FilePropertyBag } from 'formdata-node';
 import KeepAliveAgent from 'agentkeepalive';
 import { AbortController as AbortControllerPolyfill } from 'abort-controller';
 import { ReadStream as FsReadStream } from 'node:fs';
@@ -16,29 +15,6 @@ import { type Shims } from './registry';
 
 // @ts-ignore (this package does not have proper export maps for this export)
 import { ReadableStream } from 'web-streams-polyfill/dist/ponyfill.es2018.js';
-
-type FileFromPathOptions = Omit<FilePropertyBag, 'lastModified'>;
-
-let fileFromPathWarned = false;
-
-/**
- * @deprecated use fs.createReadStream('./my/file.txt') instead
- */
-async function fileFromPath(path: string): Promise<File>;
-async function fileFromPath(path: string, filename?: string): Promise<File>;
-async function fileFromPath(path: string, options?: FileFromPathOptions): Promise<File>;
-async function fileFromPath(path: string, filename?: string, options?: FileFromPathOptions): Promise<File>;
-async function fileFromPath(path: string, ...args: any[]): Promise<File> {
-  // this import fails in environments that don't handle export maps correctly, like old versions of Jest
-  const { fileFromPath: _fileFromPath } = await import('formdata-node/file-from-path');
-
-  if (!fileFromPathWarned) {
-    console.warn(`fileFromPath is deprecated; use fs.createReadStream(${JSON.stringify(path)}) instead`);
-    fileFromPathWarned = true;
-  }
-  // @ts-ignore
-  return await _fileFromPath(path, ...args);
-}
 
 const defaultHttpAgent: Agent = new KeepAliveAgent({ keepAlive: true, timeout: 5 * 60 * 1000 });
 const defaultHttpsAgent: Agent = new KeepAliveAgent.HttpsAgent({ keepAlive: true, timeout: 5 * 60 * 1000 });
@@ -77,7 +53,6 @@ export function getRuntime(): Shims {
     ReadableStream,
     getMultipartRequestOptions,
     getDefaultAgent: (url: string): Agent => (url.startsWith('https') ? defaultHttpsAgent : defaultHttpAgent),
-    fileFromPath,
     isFsReadStream: (value: any): value is FsReadStream => value instanceof FsReadStream,
   };
 }

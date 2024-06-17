@@ -9,7 +9,6 @@ import {
   isFsReadStream,
 } from './_shims/index';
 import { MultipartBody } from './_shims/MultipartBody';
-export { fileFromPath } from './_shims/index';
 
 type BlobLikePart = string | ArrayBuffer | ArrayBufferView | BlobLike | Uint8Array | DataView;
 export type BlobPart = string | ArrayBuffer | ArrayBufferView | Blob | Uint8Array | DataView;

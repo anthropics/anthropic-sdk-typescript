@@ -202,7 +202,6 @@ export class Anthropic extends Core.APIClient {
   static UnprocessableEntityError = Errors.UnprocessableEntityError;
 
   static toFile = Uploads.toFile;
-  static fileFromPath = Uploads.fileFromPath;
 }
 
 export const { HUMAN_PROMPT, AI_PROMPT } = Anthropic;
@@ -224,7 +223,6 @@ export const {
 } = Errors;
 
 export import toFile = Uploads.toFile;
-export import fileFromPath = Uploads.fileFromPath;
 
 export namespace Anthropic {
   export import RequestOptions = Core.RequestOptions;
