@@ -19,6 +19,8 @@ export interface Shims {
   ) => Promise<RequestOptions<T>>;
   getDefaultAgent: (url: string) => any;
   isFsReadStream: (value: any) => boolean;
+  isReadable: (value: any) => boolean;
+  readableFromWeb: (value: any) => any;
 }
 
 export let auto = false;
@@ -34,6 +36,8 @@ export let ReadableStream: Shims['ReadableStream'] | undefined = undefined;
 export let getMultipartRequestOptions: Shims['getMultipartRequestOptions'] | undefined = undefined;
 export let getDefaultAgent: Shims['getDefaultAgent'] | undefined = undefined;
 export let isFsReadStream: Shims['isFsReadStream'] | undefined = undefined;
+export let isReadable: Shims['isReadable'] | undefined = undefined;
+export let readableFromWeb: Shims['readableFromWeb'] | undefined = undefined;
 
 export function setShims(shims: Shims, options: { auto: boolean } = { auto: false }) {
   if (auto) {
@@ -59,4 +63,6 @@ export function setShims(shims: Shims, options: { auto: boolean } = { auto: fals
   getMultipartRequestOptions = shims.getMultipartRequestOptions;
   getDefaultAgent = shims.getDefaultAgent;
   isFsReadStream = shims.isFsReadStream;
+  isReadable = shims.isReadable;
+  readableFromWeb = shims.readableFromWeb;
 }

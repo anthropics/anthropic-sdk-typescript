@@ -1,7 +1,7 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import Anthropic from '@anthropic-ai/sdk';
-import { Response } from 'node-fetch';
+import { Response } from 'undici';
 
 const anthropic = new Anthropic({
   apiKey: 'my-anthropic-api-key',

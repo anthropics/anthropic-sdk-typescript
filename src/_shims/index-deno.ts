@@ -46,6 +46,9 @@ export interface BlobPropertyBag {
   type?: string;
 }
 
+type _RequestDuplex = 'half';
+export { type _RequestDuplex as RequestDuplex };
+
 export interface FilePropertyBag extends BlobPropertyBag {
   lastModified?: number;
 }
@@ -77,6 +80,16 @@ export function getDefaultAgent(url: string) {
 }
 
 export const isFsReadStream = (value: any) => false;
+
+export const isReadable = (value: any) => {
+  // We declare our own class of Readable here, so it's not feasible to
+  // do an 'instanceof' check. Instead, check for Readable-like properties.
+  return !!value && value.readable === true && typeof value.read === 'function';
+};
+
+export const readableFromWeb = (value: any) => {
+  return value; // assume web platform.
+};
 
 export declare class Readable {
   readable: boolean;

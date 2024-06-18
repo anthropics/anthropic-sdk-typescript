@@ -9,14 +9,16 @@ import {
 } from './error';
 import {
   kind as shimsKind,
-  type Readable,
   getDefaultAgent,
   type Agent,
   fetch,
+  type Readable,
   type RequestInfo,
   type RequestInit,
   type Response,
   type HeadersInit,
+  type RequestDuplex,
+  isReadable,
 } from './_shims/index';
 export { type Response };
 import { BlobLike, isBlobLike, isMultipartBody } from './uploads';
@@ -327,8 +329,6 @@ export abstract class APIClient {
       ...(body && { body: body as any }),
       headers: reqHeaders,
       ...(httpAgent && { agent: httpAgent }),
-      // @ts-ignore node-fetch uses a custom AbortSignal type that is
-      // not compatible with standard web types
       signal: options.signal ?? null,
     };
 
@@ -450,7 +450,7 @@ export abstract class APIClient {
         return this.retryRequest(options, retriesRemaining, responseHeaders);
       }
 
-      const errText = await response.text().catch((e) => castToError(e).message);
+      const errText = await response.text().catch((err: any) => castToError(err).message);
       const errJSON = safeJSON(errText);
       const errMessage = errJSON ? undefined : errText;
       const retryMessage = retriesRemaining ? `(error; no more retries left)` : `(error; not retryable)`;
@@ -513,15 +513,29 @@ export abstract class APIClient {
     ms: number,
     controller: AbortController,
   ): Promise<Response> {
-    const { signal, ...options } = init || {};
+    const { signal, method, ...options } = init || {};
     if (signal) signal.addEventListener('abort', () => controller.abort());
 
     const timeout = setTimeout(() => controller.abort(), ms);
 
+    const isReadableBody = isReadable(options.body);
+
+    const fetchOptions = {
+      signal: controller.signal as any,
+      ...(isReadableBody ? { duplex: 'half' as RequestDuplex } : {}),
+      method: 'GET',
+      ...options,
+    };
+    if (method) {
+      // Custom methods like 'patch' need to be uppercased
+      // See https://github.com/nodejs/undici/issues/2294
+      fetchOptions.method = method.toUpperCase();
+    }
+
     return (
       this.getRequestClient()
         // use undefined this binding; fetch errors if bound to something else in browser/cloudflare
-        .fetch.call(undefined, url, { signal: controller.signal as any, ...options })
+        .fetch.call(undefined, url, fetchOptions)
         .finally(() => {
           clearTimeout(timeout);
         })
@@ -807,6 +821,23 @@ export type FinalRequestOptions<Req = unknown | Record<string, unknown> | Readab
     path: string;
   };
 
+type DetectedPlatform = 'deno' | 'node' | 'edge' | 'unknown';
+/**
+ * Note this does not detect 'browser'; for that, use getBrowserInfo().
+ */
+function getDetectedPlatform(): DetectedPlatform {
+  if (typeof Deno !== 'undefined' && Deno.build != null) {
+    return 'deno';
+  }
+  if (typeof EdgeRuntime !== 'undefined') {
+    return 'edge';
+  }
+  if (Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]') {
+    return 'node';
+  }
+  return 'unknown';
+}
+
 declare const Deno: any;
 declare const EdgeRuntime: any;
 type Arch = 'x32' | 'x64' | 'arm' | 'arm64' | `other:${string}` | 'unknown';
@@ -830,7 +861,8 @@ type PlatformProperties = {
   'X-Stainless-Runtime-Version': string;
 };
 const getPlatformProperties = (): PlatformProperties => {
-  if (typeof Deno !== 'undefined' && Deno.build != null) {
+  const detectedPlatform = getDetectedPlatform();
+  if (detectedPlatform === 'deno') {
     return {
       'X-Stainless-Lang': 'js',
       'X-Stainless-Package-Version': VERSION,
@@ -852,7 +884,7 @@ const getPlatformProperties = (): PlatformProperties => {
     };
   }
   // Check if Node.js
-  if (Object.prototype.toString.call(typeof process !== 'undefined' ? process : 0) === '[object process]') {
+  if (detectedPlatform === 'node') {
     return {
       'X-Stainless-Lang': 'js',
       'X-Stainless-Package-Version': VERSION,

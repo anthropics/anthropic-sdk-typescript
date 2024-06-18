@@ -92,7 +92,9 @@ export function getRuntime({ manuallyImported }: { manuallyImported?: boolean } 
       ...opts,
       body: new MultipartBody(form) as any,
     }),
-    getDefaultAgent: (url: string) => undefined,
+    getDefaultAgent: (_url: string) => undefined,
     isFsReadStream: (value: any) => false,
+    isReadable: (_value: any) => false,
+    readableFromWeb: (value: any) => value, // assume web platform.
   };
 }

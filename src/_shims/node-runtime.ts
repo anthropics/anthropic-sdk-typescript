@@ -1,29 +1,26 @@
 /**
  * Disclaimer: modules in _shims aren't intended to be imported by SDK users.
  */
-import * as nf from 'node-fetch';
-import * as fd from 'formdata-node';
-import KeepAliveAgent from 'agentkeepalive';
+import undici from 'undici';
+import type { Agent, FormData } from 'undici';
+import { FormDataEncoder, FormDataLike } from 'form-data-encoder';
 import { AbortController as AbortControllerPolyfill } from 'abort-controller';
 import { ReadStream as FsReadStream } from 'node:fs';
-import { type Agent } from 'node:http';
-import { FormDataEncoder } from 'form-data-encoder';
 import { Readable } from 'node:stream';
+import { ReadableStream } from 'node:stream/web';
+import { Blob } from 'node:buffer';
 import { type RequestOptions } from '../core';
 import { MultipartBody } from './MultipartBody';
 import { type Shims } from './registry';
 
-// @ts-ignore (this package does not have proper export maps for this export)
-import { ReadableStream } from 'web-streams-polyfill/dist/ponyfill.es2018.js';
-
-const defaultHttpAgent: Agent = new KeepAliveAgent({ keepAlive: true, timeout: 5 * 60 * 1000 });
-const defaultHttpsAgent: Agent = new KeepAliveAgent.HttpsAgent({ keepAlive: true, timeout: 5 * 60 * 1000 });
+const defaultHttpAgent = new undici.Agent({ keepAliveTimeout: 5 * 60 * 1000 });
+const defaultHttpsAgent = new undici.Agent({ keepAliveTimeout: 5 * 60 * 1000 });
 
 async function getMultipartRequestOptions<T = Record<string, unknown>>(
-  form: fd.FormData,
+  form: FormData,
   opts: RequestOptions<T>,
 ): Promise<RequestOptions<T>> {
-  const encoder = new FormDataEncoder(form);
+  const encoder = new FormDataEncoder(form as unknown as FormDataLike);
   const readable = Readable.from(encoder);
   const body = new MultipartBody(readable);
   const headers = {
@@ -43,16 +40,18 @@ export function getRuntime(): Shims {
   }
   return {
     kind: 'node',
-    fetch: nf.default,
-    Request: nf.Request,
-    Response: nf.Response,
-    Headers: nf.Headers,
-    FormData: fd.FormData,
-    Blob: fd.Blob,
-    File: fd.File,
+    fetch: undici.fetch,
+    Request: undici.Request,
+    Response: undici.Response,
+    Headers: undici.Headers,
+    FormData: undici.FormData,
+    Blob: Blob,
+    File: undici.File,
     ReadableStream,
     getMultipartRequestOptions,
     getDefaultAgent: (url: string): Agent => (url.startsWith('https') ? defaultHttpsAgent : defaultHttpAgent),
     isFsReadStream: (value: any): value is FsReadStream => value instanceof FsReadStream,
+    isReadable: (value: any) => value instanceof Readable,
+    readableFromWeb: (value: ReadableStream<any>) => Readable.fromWeb(value),
   };
 }

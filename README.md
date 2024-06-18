@@ -272,14 +272,14 @@ validate or strip extra properties from the response from the API.
 
 ### Customizing the fetch client
 
-By default, this library uses `node-fetch` in Node, and expects a global `fetch` function in other environments.
+By default, this library uses `undici` in Node, and expects a global `fetch` function in other environments.
 
 If you would prefer to use a global, web-standards-compliant `fetch` function even in a Node environment,
 (for example, if you are running Node with `--experimental-fetch` or using NextJS which polyfills with `undici`),
 add the following import before your first import `from "Anthropic"`:
 
 ```ts
-// Tell TypeScript and the package to use the global web fetch instead of node-fetch.
+// Tell TypeScript and the package to use the global web fetch instead of undici.
 // Note, despite the name, this does not add any polyfills, but expects them to be provided if needed.
 import '@anthropic-ai/sdk/shims/web';
 import Anthropic from '@anthropic-ai/sdk';

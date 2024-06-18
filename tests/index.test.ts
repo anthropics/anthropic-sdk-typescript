@@ -3,7 +3,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { APIUserAbortError } from '@anthropic-ai/sdk';
 import { Headers } from '@anthropic-ai/sdk/core';
-import defaultFetch, { Response, type RequestInit, type RequestInfo } from 'node-fetch';
+import { fetch as defaultFetch, Response, type RequestInit, type RequestInfo } from 'undici';
 
 describe('instantiate client', () => {
   const env = process.env;
