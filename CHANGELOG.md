@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.24.0 (2024-06-20)
+
+Full Changelog: [sdk-v0.23.0...sdk-v0.24.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.23.0...sdk-v0.24.0)
+
+### Features
+
+* **api:** add new claude-3-5-sonnet-20240620 model ([#438](https://github.com/anthropics/anthropic-sdk-typescript/issues/438)) ([8d60d1b](https://github.com/anthropics/anthropic-sdk-typescript/commit/8d60d1b6fb14988a2257727a1aaab9fbc8f75be3))
+
 ## 0.23.0 (2024-06-14)
 
 Full Changelog: [sdk-v0.22.0...sdk-v0.23.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.22.0...sdk-v0.23.0)
