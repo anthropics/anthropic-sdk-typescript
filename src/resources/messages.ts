@@ -456,6 +456,7 @@ export interface MessageCreateParamsBase {
    */
   model:
     | (string & {})
+    | 'claude-3-5-sonnet-20240620'
     | 'claude-3-opus-20240229'
     | 'claude-3-sonnet-20240229'
     | 'claude-3-haiku-20240307'
@@ -496,7 +497,7 @@ export interface MessageCreateParamsBase {
    * as specifying a particular goal or role. See our
    * [guide to system prompts](https://docs.anthropic.com/en/docs/system-prompts).
    */
-  system?: string;
+  system?: string | Array<TextBlockParam>;
 
   /**
    * Amount of randomness injected into the response.
