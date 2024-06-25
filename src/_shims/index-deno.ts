@@ -1,5 +1,5 @@
 import { MultipartBody } from './MultipartBody';
-import { type RequestOptions } from '../core';
+import { type RequestOptions } from '../internal/request-options';
 
 export const kind: string = 'web';
 

@@ -1,10 +1,10 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import * as Core from '@anthropic-ai/sdk/core';
-import { APIPromise } from '@anthropic-ai/sdk/core';
 import { APIResource } from '@anthropic-ai/sdk/resource';
 import * as CompletionsAPI from '@anthropic-ai/sdk/resources/completions';
 import { Stream } from '@anthropic-ai/sdk/streaming';
+import { APIPromise } from '@anthropic-ai/sdk/internal/api-promise';
+import { RequestOptions } from '@anthropic-ai/sdk/internal/request-options';
 
 export class Completions extends APIResource {
   /**
@@ -17,18 +17,15 @@ export class Completions extends APIResource {
    * [migration guide](https://docs.anthropic.com/en/api/migrating-from-text-completions-to-messages)
    * for guidance in migrating from Text Completions to Messages.
    */
-  create(body: CompletionCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Completion>;
-  create(
-    body: CompletionCreateParamsStreaming,
-    options?: Core.RequestOptions,
-  ): APIPromise<Stream<Completion>>;
+  create(body: CompletionCreateParamsNonStreaming, options?: RequestOptions): APIPromise<Completion>;
+  create(body: CompletionCreateParamsStreaming, options?: RequestOptions): APIPromise<Stream<Completion>>;
   create(
     body: CompletionCreateParamsBase,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Stream<Completion> | Completion>;
   create(
     body: CompletionCreateParams,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Completion> | APIPromise<Stream<Completion>> {
     return this._client.post('/v1/complete', {
       body,

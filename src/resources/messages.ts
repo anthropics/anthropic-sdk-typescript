@@ -1,10 +1,10 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import * as Core from '@anthropic-ai/sdk/core';
-import { APIPromise } from '@anthropic-ai/sdk/core';
 import { APIResource } from '@anthropic-ai/sdk/resource';
 import * as MessagesAPI from '@anthropic-ai/sdk/resources/messages';
 import { Stream } from '@anthropic-ai/sdk/streaming';
+import { APIPromise } from '@anthropic-ai/sdk/internal/api-promise';
+import { RequestOptions } from '@anthropic-ai/sdk/internal/request-options';
 
 export class Messages extends APIResource {
   /**
@@ -16,18 +16,18 @@ export class Messages extends APIResource {
    * The Messages API can be used for either single queries or stateless multi-turn
    * conversations.
    */
-  create(body: MessageCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Message>;
+  create(body: MessageCreateParamsNonStreaming, options?: RequestOptions): APIPromise<Message>;
   create(
     body: MessageCreateParamsStreaming,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Stream<RawMessageStreamEvent>>;
   create(
     body: MessageCreateParamsBase,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Stream<RawMessageStreamEvent> | Message>;
   create(
     body: MessageCreateParams,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>> {
     return this._client.post('/v1/messages', {
       body,

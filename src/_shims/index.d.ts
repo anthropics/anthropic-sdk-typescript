@@ -3,7 +3,7 @@
  */
 import { manual } from './manual-types';
 import * as auto from '@anthropic-ai/sdk/_shims/auto/types';
-import { type RequestOptions } from '../core';
+import { type RequestOptions } from '../internal/request-options';
 
 type SelectType<Manual, Auto> = unknown extends Manual ? Auto : Manual;
 

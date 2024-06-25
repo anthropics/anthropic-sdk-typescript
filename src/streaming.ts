@@ -1,7 +1,8 @@
 import { ReadableStream, type Response } from './_shims/index';
 import { AnthropicError } from './error';
 
-import { safeJSON, createResponseHeaders } from '@anthropic-ai/sdk/core';
+import { safeJSON } from '@anthropic-ai/sdk/internal/utils';
+import { createResponseHeaders } from '@anthropic-ai/sdk/internal/headers';
 import { APIError } from '@anthropic-ai/sdk/error';
 
 type Bytes = string | ArrayBuffer | Uint8Array | Buffer | null | undefined;

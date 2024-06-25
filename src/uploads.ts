@@ -1,4 +1,4 @@
-import { type RequestOptions } from './core';
+import { type RequestOptions } from './internal/request-options';
 import {
   FormData,
   File,

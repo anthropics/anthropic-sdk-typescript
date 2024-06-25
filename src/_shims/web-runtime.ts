@@ -2,7 +2,7 @@
  * Disclaimer: modules in _shims aren't intended to be imported by SDK users.
  */
 import { MultipartBody } from './MultipartBody';
-import { type RequestOptions } from '../core';
+import { type RequestOptions } from '../internal/request-options';
 import { type Shims } from './registry';
 
 export function getRuntime({ manuallyImported }: { manuallyImported?: boolean } = {}): Shims {

@@ -9,7 +9,7 @@ import { ReadStream as FsReadStream } from 'node:fs';
 import { Readable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
 import { Blob } from 'node:buffer';
-import { type RequestOptions } from '../core';
+import { type RequestOptions } from '../internal/request-options';
 import { MultipartBody } from './MultipartBody';
 import { type Shims } from './registry';
 

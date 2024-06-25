@@ -1,7 +1,7 @@
 /**
  * Disclaimer: modules in _shims aren't intended to be imported by SDK users.
  */
-import { type RequestOptions } from '../core';
+import { type RequestOptions } from '../internal/request-options';
 
 export interface Shims {
   kind: string;
