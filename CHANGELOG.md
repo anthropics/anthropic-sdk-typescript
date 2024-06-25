@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.24.1 (2024-06-25)
+
+Full Changelog: [sdk-v0.24.0...sdk-v0.24.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.24.0...sdk-v0.24.1)
+
+### Bug Fixes
+
+* **api:** add string to tool result block ([#448](https://github.com/anthropics/anthropic-sdk-typescript/issues/448)) ([87af4e9](https://github.com/anthropics/anthropic-sdk-typescript/commit/87af4e9280923ac73295f9b32086f82c2ed0c6f2))
+
+
+### Chores
+
+* **internal:** minor reformatting ([#444](https://github.com/anthropics/anthropic-sdk-typescript/issues/444)) ([46790bb](https://github.com/anthropics/anthropic-sdk-typescript/commit/46790bb462db01ae1725e120f2bdca0a89c8f722))
+* **internal:** replace deprecated aws-sdk packages with [@smithy](https://github.com/smithy) ([#447](https://github.com/anthropics/anthropic-sdk-typescript/issues/447)) ([4328cbf](https://github.com/anthropics/anthropic-sdk-typescript/commit/4328cbf9e64f8bfc9b95a9048b18729c9a938ba5))
+
 ## 0.24.0 (2024-06-20)
 
 Full Changelog: [sdk-v0.23.0...sdk-v0.24.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.23.0...sdk-v0.24.0)

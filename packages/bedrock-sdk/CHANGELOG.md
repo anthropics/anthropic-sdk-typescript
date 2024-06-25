@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.10.1 (2024-06-25)
+
+Full Changelog: [bedrock-sdk-v0.10.0...bedrock-sdk-v0.10.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.10.0...bedrock-sdk-v0.10.1)
+
+### Chores
+
+* **internal:** replace deprecated aws-sdk packages with [@smithy](https://github.com/smithy) ([#447](https://github.com/anthropics/anthropic-sdk-typescript/issues/447)) ([4328cbf](https://github.com/anthropics/anthropic-sdk-typescript/commit/4328cbf9e64f8bfc9b95a9048b18729c9a938ba5))
+
 ## 0.10.0 (2024-05-30)
 
 Full Changelog: [bedrock-sdk-v0.9.8...bedrock-sdk-v0.10.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.9.8...bedrock-sdk-v0.10.0)
