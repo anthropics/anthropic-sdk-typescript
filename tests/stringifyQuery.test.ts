@@ -1,8 +1,10 @@
-import { APIClient } from '@anthropic-ai/sdk/core';
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-const { stringifyQuery } = APIClient.prototype as any;
+import { Anthropic } from '@anthropic-ai/sdk';
 
-describe('APIClient.stringifyQuery', () => {
+const { stringifyQuery } = Anthropic.prototype as any;
+
+describe(stringifyQuery, () => {
   for (const [input, expected] of [
     [{ a: '1', b: 2, c: true }, 'a=1&b=2&c=true'],
     [{ a: null, b: false, c: undefined }, 'a=&b=false'],
@@ -18,6 +20,7 @@ describe('APIClient.stringifyQuery', () => {
       expect(stringifyQuery(input)).toEqual(expected);
     });
   }
+
   for (const value of [[], {}, new Date()]) {
     it(`${JSON.stringify(value)} -> <error>`, () => {
       expect(() => stringifyQuery({ value })).toThrow(`Cannot stringify type ${typeof value}`);

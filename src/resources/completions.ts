@@ -1,8 +1,8 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import * as Core from '@anthropic-ai/sdk/core';
-import { APIPromise } from '@anthropic-ai/sdk/core';
 import { APIResource } from '@anthropic-ai/sdk/resource';
+import { APIPromise } from '@anthropic-ai/sdk/core';
+import * as Core from '@anthropic-ai/sdk/core';
 import * as CompletionsAPI from '@anthropic-ai/sdk/resources/completions';
 import { Stream } from '@anthropic-ai/sdk/streaming';
 
