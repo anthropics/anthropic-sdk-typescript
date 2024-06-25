@@ -1,7 +1,7 @@
 import assert from 'assert';
-import { SignatureV4 } from '@aws-sdk/signature-v4';
+import { SignatureV4 } from '@smithy/signature-v4';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { HttpRequest } from '@aws-sdk/protocol-http';
+import { HttpRequest } from '@smithy/protocol-http';
 import { Sha256 } from '@aws-crypto/sha256-js';
 import type { RequestInit } from '@anthropic-ai/sdk/_shims/index';
 
