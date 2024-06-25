@@ -31,7 +31,6 @@ import { createResponseHeaders } from './internal/headers';
 import { isBlobLike, isMultipartBody } from './uploads';
 import { applyHeadersMut } from './internal/headers';
 import * as API from '@anthropic-ai/sdk/resources/index';
-import { AbstractPage, PagePromise } from '@anthropic-ai/sdk/pagination';
 import { type Response } from '@anthropic-ai/sdk/_shims/index';
 import { APIPromise } from '@anthropic-ai/sdk/internal/api-promise';
 import { FinalRequestOptions, RequestOptions } from '@anthropic-ai/sdk/internal/request-options';
@@ -424,22 +423,6 @@ export class BaseAnthropic {
     return { response, options, controller };
   }
 
-  getAPIList<Item, PageClass extends AbstractPage<Item> = AbstractPage<Item>>(
-    path: string,
-    Page: new (...args: any[]) => PageClass,
-    opts?: RequestOptions<any>,
-  ): PagePromise<PageClass, Item> {
-    return this.requestAPIList(Page, { method: 'get', path, ...opts });
-  }
-
-  requestAPIList<Item = unknown, PageClass extends AbstractPage<Item> = AbstractPage<Item>>(
-    Page: new (...args: ConstructorParameters<typeof AbstractPage>) => PageClass,
-    options: FinalRequestOptions,
-  ): PagePromise<PageClass, Item> {
-    const request = this.makeRequest(options, null);
-    return new PagePromise<PageClass, Item>(this as any as Anthropic, request, Page);
-  }
-
   async fetchWithTimeout(
     url: RequestInfo,
     init: RequestInit | undefined,
@@ -664,7 +647,6 @@ export {
   createForm,
   type Uploadable,
 } from './uploads';
-export { PagePromise } from './pagination';
 export { APIPromise } from './internal/api-promise';
 export { type Response } from './internal/types';
 export const {
