@@ -332,7 +332,7 @@ export interface ToolResultBlockParam {
 
   type: 'tool_result';
 
-  content?: Array<TextBlockParam | ImageBlockParam>;
+  content?: string | Array<TextBlockParam | ImageBlockParam>;
 
   is_error?: boolean;
 }
