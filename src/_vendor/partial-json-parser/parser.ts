@@ -157,7 +157,9 @@ const tokenize = (input: string) => {
             value,
           });
         } else {
-          throw new Error(`Invalid token: ${value} is not a valid token!`);
+          // unknown token, e.g. `nul` which isn't quite `null`
+          current++;
+          continue;
         }
         continue;
       }
