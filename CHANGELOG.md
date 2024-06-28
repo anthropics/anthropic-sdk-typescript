@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.24.2 (2024-06-28)
+
+Full Changelog: [sdk-v0.24.1...sdk-v0.24.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.24.1...sdk-v0.24.2)
+
+### Bug Fixes
+
+* **partial-json:** don't error on unknown tokens ([d212ce1](https://github.com/anthropics/anthropic-sdk-typescript/commit/d212ce152ca0b8846e7891636ad4ba287da50958))
+* **partial-json:** handle `null` token properly ([f53742f](https://github.com/anthropics/anthropic-sdk-typescript/commit/f53742f497a33b8f0639a63cec828d430a19cb27))
+
+
+### Chores
+
+* gitignore test server logs ([#451](https://github.com/anthropics/anthropic-sdk-typescript/issues/451)) ([ee1308f](https://github.com/anthropics/anthropic-sdk-typescript/commit/ee1308f74e5544ed0ce53bfd14ca49d0f03bcffb))
+* **tests:** add unit tests for partial-json-parser ([4fb3bea](https://github.com/anthropics/anthropic-sdk-typescript/commit/4fb3bea74538823c8ab359048f823029d4716277))
+
 ## 0.24.1 (2024-06-25)
 
 Full Changelog: [sdk-v0.24.0...sdk-v0.24.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.24.0...sdk-v0.24.1)
