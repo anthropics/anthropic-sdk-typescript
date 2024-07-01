@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.24.3 (2024-07-01)
+
+Full Changelog: [sdk-v0.24.2...sdk-v0.24.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.24.2...sdk-v0.24.3)
+
+### Bug Fixes
+
+* **types:** avoid errors on certain TS versions ([dd6aca5](https://github.com/anthropics/anthropic-sdk-typescript/commit/dd6aca56e58d52f09e67e227cccbf273b92adb13))
+
 ## 0.24.2 (2024-06-28)
 
 Full Changelog: [sdk-v0.24.1...sdk-v0.24.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.24.1...sdk-v0.24.2)
