@@ -1,17 +1,17 @@
 import * as Core from '@anthropic-ai/sdk/core';
 import { AnthropicError, APIUserAbortError } from '@anthropic-ai/sdk/error';
 import {
-  ContentBlock,
+  type ContentBlock,
   Messages,
-  Message,
-  MessageStreamEvent,
-  MessageParam,
-  MessageCreateParams,
-  MessageCreateParamsBase,
+  type Message,
+  type MessageStreamEvent,
+  type MessageParam,
+  type MessageCreateParams,
+  type MessageCreateParamsBase,
+  type TextBlock,
 } from '@anthropic-ai/sdk/resources/messages';
 import { type ReadableStream } from '@anthropic-ai/sdk/_shims/index';
 import { Stream } from '@anthropic-ai/sdk/streaming';
-import { TextBlock } from '@anthropic-ai/sdk/resources';
 import { partialParse } from '../_vendor/partial-json-parser/parser';
 
 export interface MessageStreamEvents {

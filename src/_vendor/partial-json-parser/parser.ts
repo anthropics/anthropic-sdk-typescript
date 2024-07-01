@@ -3,9 +3,9 @@ type Token = {
   value: string;
 };
 
-const tokenize = (input: string) => {
+const tokenize = (input: string): Token[] => {
     let current = 0;
-    let tokens = [];
+    let tokens: Token[] = [];
 
     while (current < input.length) {
       let char = input[current];
