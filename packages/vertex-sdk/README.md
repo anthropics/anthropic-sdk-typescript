@@ -50,7 +50,7 @@ The following runtimes are supported:
 - Node.js 18 LTS or later ([non-EOL](https://endoflife.date/nodejs)) versions.
 - Deno v1.28.0 or higher, using `import { AnthropicVertex } from "npm:@anthropic-ai/vertex-sdk"`.
 - Bun 1.0 or later.
-- Cloudflare Workers.
+- Cloudflare Workers, using [Node.js compat](https://developers.cloudflare.com/workers/runtime-apis/nodejs/#enable-nodejs-with-workers).
 - Vercel Edge Runtime.
 - Jest 28 or greater with the `"node"` environment (`"jsdom"` is not supported at this time).
 - Nitro v2.6 or greater.
