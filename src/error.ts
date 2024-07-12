@@ -10,7 +10,7 @@ export class APIError extends AnthropicError {
   readonly headers: Headers | undefined;
   readonly error: Object | undefined;
 
-  readonly request_id: string | null | undefined;
+  readonly requestID: string | null | undefined;
 
   constructor(
     status: number | undefined,
@@ -21,7 +21,7 @@ export class APIError extends AnthropicError {
     super(`${APIError.makeMessage(status, error, message)}`);
     this.status = status;
     this.headers = headers;
-    this.request_id = headers?.['request-id'];
+    this.requestID = headers?.['request-id'];
     this.error = error;
   }
 
