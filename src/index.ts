@@ -109,6 +109,12 @@ export class Anthropic extends Core.APIClient {
       baseURL: baseURL || `https://api.anthropic.com`,
     };
 
+    if (Core.isRunningInBrowser()) {
+      throw new Errors.AnthropicError(
+        "It looks like you're running in a browser-like environment, which is disabled to protect your secret API credentials from attackers. If you have a strong business need for client-side use of this API, please open a GitHub issue with your use-case and security mitigations.",
+      );
+    }
+
     super({
       baseURL: options.baseURL!,
       timeout: options.timeout ?? 600000 /* 10 minutes */,
