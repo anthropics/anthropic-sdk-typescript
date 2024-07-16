@@ -33,6 +33,7 @@ import { applyHeadersMut } from './internal/headers';
 import * as API from '@anthropic-ai/sdk/resources/index';
 import { type Response } from '@anthropic-ai/sdk/_shims/index';
 import { APIPromise } from '@anthropic-ai/sdk/internal/api-promise';
+import { isRunningInBrowser } from '@anthropic-ai/sdk/internal/platform';
 import { FinalRequestOptions, RequestOptions } from '@anthropic-ai/sdk/internal/request-options';
 import { type DefaultQuery, type Fetch, type Headers } from '@anthropic-ai/sdk/internal/types';
 import { isEmptyObj, readEnv } from '@anthropic-ai/sdk/internal/utils';
@@ -143,6 +144,12 @@ export class BaseAnthropic {
       ...opts,
       baseURL: baseURL || `https://api.anthropic.com`,
     };
+
+    if (isRunningInBrowser()) {
+      throw new Errors.AnthropicError(
+        "It looks like you're running in a browser-like environment, which is disabled to protect your secret API credentials from attackers. If you have a strong business need for client-side use of this API, please open a GitHub issue with your use-case and security mitigations.",
+      );
+    }
 
     this.baseURL = options.baseURL!;
     this.timeout = options.timeout ?? 600000 /* 10 minutes */;
