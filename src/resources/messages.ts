@@ -1,13 +1,13 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '@anthropic-ai/sdk/resource';
-import { APIPromise } from '@anthropic-ai/sdk/core';
-import * as Core from '@anthropic-ai/sdk/core';
-import { MessageStream } from '@anthropic-ai/sdk/lib/MessageStream';
-import * as MessagesAPI from '@anthropic-ai/sdk/resources/messages';
-import { Stream } from '@anthropic-ai/sdk/streaming';
+import { APIResource } from '../resource';
+import { APIPromise } from '../core';
+import * as Core from '../core';
+import * as MessagesAPI from './messages';
+import { Stream } from '../streaming';
+import { MessageStream } from '../lib/MessageStream';
 
-export { MessageStream } from '@anthropic-ai/sdk/lib/MessageStream';
+export { MessageStream } from '../lib/MessageStream';
 
 export class Messages extends APIResource {
   /**
