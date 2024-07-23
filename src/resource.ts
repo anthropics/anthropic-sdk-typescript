@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import * as Core from '@anthropic-ai/sdk/core';
+import * as Core from './core';
 
 export class APIResource {
   protected _client: Core.APIClient;
