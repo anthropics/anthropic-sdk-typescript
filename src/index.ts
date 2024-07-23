@@ -30,13 +30,13 @@ import {
 import { createResponseHeaders } from './internal/headers';
 import { isBlobLike, isMultipartBody } from './uploads';
 import { applyHeadersMut } from './internal/headers';
-import * as API from '@anthropic-ai/sdk/resources/index';
-import { type Response } from '@anthropic-ai/sdk/_shims/index';
-import { APIPromise } from '@anthropic-ai/sdk/internal/api-promise';
-import { isRunningInBrowser } from '@anthropic-ai/sdk/internal/platform';
-import { FinalRequestOptions, RequestOptions } from '@anthropic-ai/sdk/internal/request-options';
-import { type DefaultQuery, type Fetch, type Headers } from '@anthropic-ai/sdk/internal/types';
-import { isEmptyObj, readEnv } from '@anthropic-ai/sdk/internal/utils';
+import * as API from './resources/index';
+import { type Response } from './_shims/index';
+import { APIPromise } from './internal/api-promise';
+import { isRunningInBrowser } from './internal/platform';
+import { FinalRequestOptions, RequestOptions } from './internal/request-options';
+import { type DefaultQuery, type Fetch, type Headers } from './internal/types';
+import { isEmptyObj, readEnv } from './internal/utils';
 
 export interface ClientOptions {
   /**
