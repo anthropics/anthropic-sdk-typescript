@@ -1,9 +1,9 @@
 import assert from 'assert';
 import { SignatureV4 } from '@smithy/signature-v4';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { HttpRequest } from '@smithy/protocol-http';
 import { Sha256 } from '@aws-crypto/sha256-js';
 import type { RequestInit } from '@anthropic-ai/sdk/_shims/index';
+import { AwsCredentialIdentityProvider } from '@smithy/types';
 
 type AuthProps = {
   url: string;
@@ -11,12 +11,15 @@ type AuthProps = {
   awsAccessKey: string | null | undefined;
   awsSecretKey: string | null | undefined;
   awsSessionToken: string | null | undefined;
+  providerChainResolver?: (() => Promise<AwsCredentialIdentityProvider>) | null;
 };
+
+const DEFAULT_PROVIDER_CHAIN_RESOLVER: () => Promise<AwsCredentialIdentityProvider> = () => import('@aws-sdk/credential-providers').then(({ fromNodeProviderChain }) => fromNodeProviderChain());
 
 export const getAuthHeaders = async (req: RequestInit, props: AuthProps): Promise<Record<string, string>> => {
   assert(req.method, 'Expected request method property to be set');
 
-  const providerChain = fromNodeProviderChain();
+  const providerChain = await (props.providerChainResolver ? props.providerChainResolver() : DEFAULT_PROVIDER_CHAIN_RESOLVER());
 
   const credentials = await withTempEnv(
     () => {

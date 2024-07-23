@@ -3,6 +3,7 @@ import * as Resources from '@anthropic-ai/sdk/resources/index';
 import * as API from '@anthropic-ai/sdk/index';
 import { getAuthHeaders } from './auth';
 import { Stream } from './streaming';
+import { AwsCredentialIdentityProvider } from '@smithy/types';
 
 const DEFAULT_VERSION = 'bedrock-2023-05-31';
 const MODEL_ENDPOINTS = new Set<string>(['/v1/complete', '/v1/messages']);
@@ -16,6 +17,8 @@ export type ClientOptions = Omit<API.ClientOptions, 'apiKey' | 'authToken'> & {
    */
   awsRegion?: string | undefined;
   awsSessionToken?: string | null | undefined;
+
+  providerChainResolver?: (() => Promise<AwsCredentialIdentityProvider>) | null;
 };
 
 /** API Client for interfacing with the Anthropic Bedrock API. */
@@ -24,6 +27,7 @@ export class AnthropicBedrock extends Core.APIClient {
   awsAccessKey: string | null;
   awsRegion: string;
   awsSessionToken: string | null;
+  providerChainResolver: (() => Promise<AwsCredentialIdentityProvider>) | null;
 
   private _options: ClientOptions;
 
@@ -48,6 +52,7 @@ export class AnthropicBedrock extends Core.APIClient {
     awsAccessKey = null,
     awsRegion = Core.readEnv('AWS_REGION') ?? 'us-east-1',
     awsSessionToken = null,
+    providerChainResolver = null,
     ...opts
   }: ClientOptions = {}) {
     const options: ClientOptions = {
@@ -55,6 +60,7 @@ export class AnthropicBedrock extends Core.APIClient {
       awsAccessKey,
       awsRegion,
       awsSessionToken,
+      providerChainResolver,
       ...opts,
       baseURL: baseURL || `https://bedrock-runtime.${awsRegion}.amazonaws.com`,
     };
@@ -72,6 +78,7 @@ export class AnthropicBedrock extends Core.APIClient {
     this.awsAccessKey = awsAccessKey;
     this.awsRegion = awsRegion;
     this.awsSessionToken = awsSessionToken;
+    this.providerChainResolver = providerChainResolver;
   }
 
   messages: Resources.Messages = new Resources.Messages(this);
@@ -105,6 +112,7 @@ export class AnthropicBedrock extends Core.APIClient {
       awsAccessKey: this.awsAccessKey,
       awsSecretKey: this.awsSecretKey,
       awsSessionToken: this.awsSessionToken,
+      providerChainResolver: this.providerChainResolver
     });
     request.headers = { ...request.headers, ...headers };
   }
