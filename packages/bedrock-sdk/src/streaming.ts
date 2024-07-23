@@ -47,7 +47,7 @@ export class Stream<Item> extends CoreStream<Item> {
       for await (const event of eventStream) {
         if (event.chunk && event.chunk.bytes) {
           const s = toUtf8(event.chunk.bytes);
-          yield { event: 'completion', data: s, raw: [] };
+          yield { event: 'chunk', data: s, raw: [] };
         } else if (event.internalServerException) {
           yield { event: 'error', data: 'InternalServerException', raw: [] };
         } else if (event.modelStreamErrorException) {
@@ -69,7 +69,7 @@ export class Stream<Item> extends CoreStream<Item> {
       let done = false;
       try {
         for await (const sse of iterMessages()) {
-          if (sse.event === 'completion') {
+          if (sse.event === 'chunk') {
             try {
               yield JSON.parse(sse.data);
             } catch (e) {
