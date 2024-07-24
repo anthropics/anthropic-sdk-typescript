@@ -9,7 +9,7 @@ Types:
 - <code><a href="./src/resources/messages.ts">ContentBlockStartEvent</a></code>
 - <code><a href="./src/resources/messages.ts">ContentBlockStopEvent</a></code>
 - <code><a href="./src/resources/messages.ts">ImageBlockParam</a></code>
-- <code><a href="./src/resources/messages.ts">InputJsonDelta</a></code>
+- <code><a href="./src/resources/messages.ts">InputJSONDelta</a></code>
 - <code><a href="./src/resources/messages.ts">Message</a></code>
 - <code><a href="./src/resources/messages.ts">MessageDeltaEvent</a></code>
 - <code><a href="./src/resources/messages.ts">MessageDeltaUsage</a></code>
@@ -17,6 +17,7 @@ Types:
 - <code><a href="./src/resources/messages.ts">MessageStartEvent</a></code>
 - <code><a href="./src/resources/messages.ts">MessageStopEvent</a></code>
 - <code><a href="./src/resources/messages.ts">MessageStreamEvent</a></code>
+- <code><a href="./src/resources/messages.ts">Model</a></code>
 - <code><a href="./src/resources/messages.ts">RawContentBlockDeltaEvent</a></code>
 - <code><a href="./src/resources/messages.ts">RawContentBlockStartEvent</a></code>
 - <code><a href="./src/resources/messages.ts">RawContentBlockStopEvent</a></code>
