@@ -686,10 +686,11 @@ export namespace Anthropic {
   export import Messages = API.Messages;
   export import ContentBlock = API.ContentBlock;
   export import ImageBlockParam = API.ImageBlockParam;
-  export import InputJsonDelta = API.InputJsonDelta;
+  export import InputJSONDelta = API.InputJSONDelta;
   export import Message = API.Message;
   export import MessageDeltaUsage = API.MessageDeltaUsage;
   export import MessageParam = API.MessageParam;
+  export import Model = API.Model;
   export import RawContentBlockDeltaEvent = API.RawContentBlockDeltaEvent;
   export import RawContentBlockStartEvent = API.RawContentBlockStartEvent;
   export import RawContentBlockStopEvent = API.RawContentBlockStopEvent;

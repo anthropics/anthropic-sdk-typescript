@@ -10,10 +10,11 @@ export {
 export {
   ContentBlock,
   ImageBlockParam,
-  InputJsonDelta,
+  InputJSONDelta,
   Message,
   MessageDeltaUsage,
   MessageParam,
+  Model,
   RawContentBlockDeltaEvent,
   RawContentBlockStartEvent,
   RawContentBlockStopEvent,
