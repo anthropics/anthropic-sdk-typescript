@@ -13,6 +13,7 @@ export {
   ContentBlockStartEvent,
   ContentBlockStopEvent,
   ImageBlockParam,
+  InputJsonDelta,
   InputJSONDelta,
   Message,
   MessageDeltaEvent,

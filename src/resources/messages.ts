@@ -72,6 +72,8 @@ export namespace ImageBlockParam {
   }
 }
 
+export type InputJsonDelta = InputJSONDelta;
+
 export interface InputJSONDelta {
   partial_json: string;
 
@@ -722,6 +724,7 @@ export namespace Messages {
   export import ContentBlockStartEvent = MessagesAPI.ContentBlockStartEvent;
   export import ContentBlockStopEvent = MessagesAPI.ContentBlockStopEvent;
   export import ImageBlockParam = MessagesAPI.ImageBlockParam;
+  export import InputJJsonDelta = MessagesAPI.InputJsonDelta;
   export import InputJSONDelta = MessagesAPI.InputJSONDelta;
   export import Message = MessagesAPI.Message;
   export import MessageDeltaEvent = MessagesAPI.MessageDeltaEvent;
