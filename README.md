@@ -28,7 +28,7 @@ const client = new Anthropic({
 });
 
 async function main() {
-  const message = await anthropic.messages.create({
+  const message = await client.messages.create({
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
     model: 'claude-3-opus-20240229',
@@ -49,7 +49,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic();
 
-const stream = await anthropic.messages.create({
+const stream = await client.messages.create({
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello, Claude' }],
   model: 'claude-3-opus-20240229',
@@ -81,7 +81,7 @@ async function main() {
     messages: [{ role: 'user', content: 'Hello, Claude' }],
     model: 'claude-3-opus-20240229',
   };
-  const message: Anthropic.Message = await anthropic.messages.create(params);
+  const message: Anthropic.Message = await client.messages.create(params);
 }
 
 main();
@@ -98,7 +98,7 @@ a subclass of `APIError` will be thrown:
 <!-- prettier-ignore -->
 ```ts
 async function main() {
-  const message = await anthropic.messages
+  const message = await client.messages
     .create({
       max_tokens: 1024,
       messages: [{ role: 'user', content: 'Hello, Claude' }],
@@ -147,7 +147,7 @@ const client = new Anthropic({
 });
 
 // Or, configure per-request:
-await anthropic.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-opus-20240229' }, {
+await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-opus-20240229' }, {
   maxRetries: 5,
 });
 ```
@@ -164,7 +164,7 @@ const client = new Anthropic({
 });
 
 // Override per-request:
-await anthropic.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-opus-20240229' }, {
+await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-opus-20240229' }, {
   timeout: 5 * 1000,
 });
 ```
@@ -186,7 +186,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic();
 
-const message = await anthropic.messages.create(
+const message = await client.messages.create(
   {
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
@@ -208,7 +208,7 @@ You can also use the `.withResponse()` method to get the raw `Response` along wi
 ```ts
 const client = new Anthropic();
 
-const response = await anthropic.messages
+const response = await client.messages
   .create({
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
@@ -218,7 +218,7 @@ const response = await anthropic.messages
 console.log(response.headers.get('X-My-Header'));
 console.log(response.statusText); // access the underlying Response object
 
-const { data: message, response: raw } = await anthropic.messages
+const { data: message, response: raw } = await client.messages
   .create({
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
@@ -330,7 +330,7 @@ const client = new Anthropic({
 });
 
 // Override per-request:
-await anthropic.messages.create(
+await client.messages.create(
   {
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
