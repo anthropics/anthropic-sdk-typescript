@@ -3,14 +3,14 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Response } from 'node-fetch';
 
-const anthropic = new Anthropic({
+const client = new Anthropic({
   apiKey: 'my-anthropic-api-key',
   baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
 });
 
 describe('resource messages', () => {
   test('create: only required params', async () => {
-    const responsePromise = anthropic.messages.create({
+    const responsePromise = client.messages.create({
       max_tokens: 1024,
       messages: [{ role: 'user', content: 'Hello, world' }],
       model: 'claude-3-5-sonnet-20240620',
@@ -25,7 +25,7 @@ describe('resource messages', () => {
   });
 
   test('create: required and optional params', async () => {
-    const response = await anthropic.messages.create({
+    const response = await client.messages.create({
       max_tokens: 1024,
       messages: [{ role: 'user', content: 'Hello, world' }],
       model: 'claude-3-5-sonnet-20240620',
