@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.10.2 (2024-07-29)
+
+Full Changelog: [bedrock-sdk-v0.10.1...bedrock-sdk-v0.10.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.10.1...bedrock-sdk-v0.10.2)
+
+### Chores
+
+* **bedrock:** use `chunk` for internal SSE parsing instead of `completion` ([#472](https://github.com/anthropics/anthropic-sdk-typescript/issues/472)) ([0f6190a](https://github.com/anthropics/anthropic-sdk-typescript/commit/0f6190a69d8986ac3779441eba43d345ec3fb342))
+* **docs:** rename anthropic const to client ([#471](https://github.com/anthropics/anthropic-sdk-typescript/issues/471)) ([e1a7f9f](https://github.com/anthropics/anthropic-sdk-typescript/commit/e1a7f9f813077fb033c732c004c7bda85738a321))
+* **internal:** remove old reference to check-test-server ([8dc9afc](https://github.com/anthropics/anthropic-sdk-typescript/commit/8dc9afcf00c4a38c2d85171ebceafc5f6a47c117))
+
 ## 0.10.1 (2024-06-25)
 
 Full Changelog: [bedrock-sdk-v0.10.0...bedrock-sdk-v0.10.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.10.0...bedrock-sdk-v0.10.1)
