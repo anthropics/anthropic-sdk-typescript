@@ -152,7 +152,7 @@ export class BaseAnthropic {
     }
 
     this.baseURL = options.baseURL!;
-    this.timeout = options.timeout ?? 600000 /* 10 minutes */;
+    this.timeout = options.timeout ?? Anthropic.DEFAULT_TIMEOUT /* 10 minutes */;
     this.httpAgent = options.httpAgent;
     this.maxRetries = options.maxRetries ?? 2;
     this.fetch = options.fetch ?? defaultFetch;
@@ -621,6 +621,7 @@ export class BaseAnthropic {
   static Anthropic = this;
   static HUMAN_PROMPT = '\n\nHuman:';
   static AI_PROMPT = '\n\nAssistant:';
+  static DEFAULT_TIMEOUT = 600000; // 10 minutes
 
   static AnthropicError = Errors.AnthropicError;
   static APIError = Errors.APIError;

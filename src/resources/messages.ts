@@ -31,7 +31,7 @@ export class Messages extends APIResource {
   ): APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>> {
     return this._client.post('/v1/messages', {
       body,
-      timeout: 600000,
+      timeout: (this._client as any)._options.timeout ?? 600000,
       ...options,
       stream: body.stream ?? false,
     }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
