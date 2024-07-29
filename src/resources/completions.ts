@@ -33,7 +33,7 @@ export class Completions extends APIResource {
   ): APIPromise<Completion> | APIPromise<Stream<Completion>> {
     return this._client.post('/v1/complete', {
       body,
-      timeout: 600000,
+      timeout: (this._client as any)._options.timeout ?? 600000,
       ...options,
       stream: body.stream ?? false,
     }) as APIPromise<Completion> | APIPromise<Stream<Completion>>;
