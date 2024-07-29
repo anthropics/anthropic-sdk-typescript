@@ -195,6 +195,7 @@ export class Anthropic extends Core.APIClient {
   static Anthropic = this;
   static HUMAN_PROMPT = '\n\nHuman:';
   static AI_PROMPT = '\n\nAssistant:';
+  static DEFAULT_TIMEOUT = 600000; // 10 minutes
 
   static AnthropicError = Errors.AnthropicError;
   static APIError = Errors.APIError;
