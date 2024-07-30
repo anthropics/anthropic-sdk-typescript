@@ -1,10 +1,11 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '@anthropic-ai/sdk/resource';
-import { APIPromise } from '@anthropic-ai/sdk/core';
-import * as Core from '@anthropic-ai/sdk/core';
-import * as CompletionsAPI from '@anthropic-ai/sdk/resources/completions';
-import { Stream } from '@anthropic-ai/sdk/streaming';
+import { APIResource } from '../resource';
+import { APIPromise } from '../core';
+import * as Core from '../core';
+import * as CompletionsAPI from './completions';
+import * as MessagesAPI from './messages';
+import { Stream } from '../streaming';
 
 export class Completions extends APIResource {
   /**
@@ -32,7 +33,7 @@ export class Completions extends APIResource {
   ): APIPromise<Completion> | APIPromise<Stream<Completion>> {
     return this._client.post('/v1/complete', {
       body,
-      timeout: 600000,
+      timeout: (this._client as any)._options.timeout ?? 600000,
       ...options,
       stream: body.stream ?? false,
     }) as APIPromise<Completion> | APIPromise<Stream<Completion>>;
@@ -53,9 +54,11 @@ export interface Completion {
   completion: string;
 
   /**
-   * The model that handled the request.
+   * The model that will complete your prompt.\n\nSee
+   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * details and options.
    */
-  model: string;
+  model: MessagesAPI.Model;
 
   /**
    * The reason that we stopped.
@@ -88,12 +91,11 @@ export interface CompletionCreateParamsBase {
   max_tokens_to_sample: number;
 
   /**
-   * The model that will complete your prompt.
-   *
-   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * The model that will complete your prompt.\n\nSee
+   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
-  model: (string & {}) | 'claude-2.0' | 'claude-2.1' | 'claude-instant-1.2';
+  model: MessagesAPI.Model;
 
   /**
    * The prompt that you want Claude to complete.

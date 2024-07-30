@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.1 (2024-07-29)
+
+Full Changelog: [vertex-sdk-v0.4.0...vertex-sdk-v0.4.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.4.0...vertex-sdk-v0.4.1)
+
+### Chores
+
+* **internal:** remove old reference to check-test-server ([8dc9afc](https://github.com/anthropics/anthropic-sdk-typescript/commit/8dc9afcf00c4a38c2d85171ebceafc5f6a47c117))
+
 ## 0.4.0 (2024-05-30)
 
 Full Changelog: [vertex-sdk-v0.3.7...vertex-sdk-v0.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.3.7...vertex-sdk-v0.4.0)

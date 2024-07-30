@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/vertex-sdk",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "The official TypeScript library for the Anthropic Vertex API",
   "author": "Anthropic <support@anthropic.com>",
   "types": "dist/index.d.ts",
@@ -11,7 +11,7 @@
   "packageManager": "yarn@1.22.21",
   "private": false,
   "scripts": {
-    "test": "bin/check-test-server && yarn jest",
+    "test": "echo 'no tests defined yet' && exit 1",
     "build": "bash ./build",
     "prepack": "echo 'to pack, run yarn build && (cd dist; yarn pack)' && exit 1",
     "prepublishOnly": "echo 'to publish, run yarn build && (cd dist; yarn publish)' && exit 1",

@@ -4,7 +4,7 @@
 
 This library provides convenient access to the Anthropic REST API from server-side TypeScript or JavaScript.
 
-The REST API documentation can be found [on docs.anthropic.com](https://docs.anthropic.com/claude/reference/). The full API of this library can be found in [api.md](api.md).
+The REST API documentation can be found on [docs.anthropic.com](https://docs.anthropic.com/claude/reference/). The full API of this library can be found in [api.md](api.md).
 
 ## Installation
 
@@ -20,12 +20,12 @@ The full API of this library can be found in [api.md](api.md).
 ```js
 import Anthropic from '@anthropic-ai/sdk';
 
-const anthropic = new Anthropic({
+const client = new Anthropic({
   apiKey: process.env['ANTHROPIC_API_KEY'], // This is the default and can be omitted
 });
 
 async function main() {
-  const message = await anthropic.messages.create({
+  const message = await client.messages.create({
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
     model: 'claude-3-opus-20240229',
@@ -44,9 +44,9 @@ We provide support for streaming responses using Server Sent Events (SSE).
 ```ts
 import Anthropic from '@anthropic-ai/sdk';
 
-const anthropic = new Anthropic();
+const client = new Anthropic();
 
-const stream = await anthropic.messages.create({
+const stream = await client.messages.create({
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello, Claude' }],
   model: 'claude-3-opus-20240229',
@@ -68,7 +68,7 @@ This library includes TypeScript definitions for all request params and response
 ```ts
 import Anthropic from '@anthropic-ai/sdk';
 
-const anthropic = new Anthropic({
+const client = new Anthropic({
   apiKey: process.env['ANTHROPIC_API_KEY'], // This is the default and can be omitted
 });
 
@@ -78,7 +78,7 @@ async function main() {
     messages: [{ role: 'user', content: 'Hello, Claude' }],
     model: 'claude-3-opus-20240229',
   };
-  const message: Anthropic.Message = await anthropic.messages.create(params);
+  const message: Anthropic.Message = await client.messages.create(params);
 }
 
 main();
@@ -149,7 +149,7 @@ a subclass of `APIError` will be thrown:
 <!-- prettier-ignore -->
 ```ts
 async function main() {
-  const message = await anthropic.messages
+  const message = await client.messages
     .create({
       max_tokens: 1024,
       messages: [{ role: 'user', content: 'Hello, Claude' }],
@@ -193,12 +193,12 @@ You can use the `maxRetries` option to configure or disable this:
 <!-- prettier-ignore -->
 ```js
 // Configure the default for all requests:
-const anthropic = new Anthropic({
+const client = new Anthropic({
   maxRetries: 0, // default is 2
 });
 
 // Or, configure per-request:
-await anthropic.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-opus-20240229' }, {
+await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-opus-20240229' }, {
   maxRetries: 5,
 });
 ```
@@ -210,12 +210,12 @@ Requests time out after 10 minutes by default. You can configure this with a `ti
 <!-- prettier-ignore -->
 ```ts
 // Configure the default for all requests:
-const anthropic = new Anthropic({
+const client = new Anthropic({
   timeout: 20 * 1000, // 20 seconds (default is 10 minutes)
 });
 
 // Override per-request:
-await anthropic.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-opus-20240229' }, {
+await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-opus-20240229' }, {
   timeout: 5 * 1000,
 });
 ```
@@ -235,9 +235,9 @@ Be aware that doing so may result in incorrect types and other unexpected or und
 ```ts
 import Anthropic from '@anthropic-ai/sdk';
 
-const anthropic = new Anthropic();
+const client = new Anthropic();
 
-const message = await anthropic.messages.create(
+const message = await client.messages.create(
   {
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
@@ -257,9 +257,9 @@ You can also use the `.withResponse()` method to get the raw `Response` along wi
 
 <!-- prettier-ignore -->
 ```ts
-const anthropic = new Anthropic();
+const client = new Anthropic();
 
-const response = await anthropic.messages
+const response = await client.messages
   .create({
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
@@ -269,7 +269,7 @@ const response = await anthropic.messages
 console.log(response.headers.get('X-My-Header'));
 console.log(response.statusText); // access the underlying Response object
 
-const { data: message, response: raw } = await anthropic.messages
+const { data: message, response: raw } = await client.messages
   .create({
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
@@ -376,12 +376,12 @@ import http from 'http';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 
 // Configure the default for all requests:
-const anthropic = new Anthropic({
+const client = new Anthropic({
   httpAgent: new HttpsProxyAgent(process.env.PROXY_URL),
 });
 
 // Override per-request:
-await anthropic.messages.create(
+await client.messages.create(
   {
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
@@ -418,6 +418,9 @@ The following runtimes are supported:
 - Vercel Edge Runtime.
 - Jest 28 or greater with the `"node"` environment (`"jsdom"` is not supported at this time).
 - Nitro v2.6 or greater.
+
+> [!WARNING]
+> Web browser runtimes aren't supported. The SDK will throw an error if used in a browser environment.
 
 Note that React Native is not supported at this time.
 

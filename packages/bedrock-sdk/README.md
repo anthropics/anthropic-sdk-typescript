@@ -23,10 +23,10 @@ import { AnthropicBedrock } from '@anthropic-ai/bedrock-sdk';
 // file or `AWS_ACCESS_KEY_ID` & `AWS_SECRET_ACCESS_KEY` environment variables.
 //
 // https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-credentials-node.html
-const anthropic = new AnthropicBedrock();
+const client = new AnthropicBedrock();
 
 async function main() {
-  const message = await anthropic.messages.create({
+  const message = await client.messages.create({
     model: 'anthropic.claude-3-sonnet-20240229-v1:0',
     messages: [
       {

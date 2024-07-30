@@ -3,8 +3,8 @@
 import * as Errors from './error';
 import * as Uploads from './uploads';
 import { type Agent } from './_shims/index';
-import * as Core from '@anthropic-ai/sdk/core';
-import * as API from '@anthropic-ai/sdk/resources/index';
+import * as Core from './core';
+import * as API from './resources/index';
 
 export interface ClientOptions {
   /**
@@ -109,6 +109,12 @@ export class Anthropic extends Core.APIClient {
       baseURL: baseURL || `https://api.anthropic.com`,
     };
 
+    if (Core.isRunningInBrowser()) {
+      throw new Errors.AnthropicError(
+        "It looks like you're running in a browser-like environment, which is disabled to protect your secret API credentials from attackers. If you have a strong business need for client-side use of this API, please open a GitHub issue with your use-case and security mitigations.",
+      );
+    }
+
     super({
       baseURL: options.baseURL!,
       timeout: options.timeout ?? 600000 /* 10 minutes */,
@@ -189,6 +195,7 @@ export class Anthropic extends Core.APIClient {
   static Anthropic = this;
   static HUMAN_PROMPT = '\n\nHuman:';
   static AI_PROMPT = '\n\nAssistant:';
+  static DEFAULT_TIMEOUT = 600000; // 10 minutes
 
   static AnthropicError = Errors.AnthropicError;
   static APIError = Errors.APIError;
@@ -244,7 +251,7 @@ export namespace Anthropic {
   export import ContentBlockStartEvent = API.ContentBlockStartEvent;
   export import ContentBlockStopEvent = API.ContentBlockStopEvent;
   export import ImageBlockParam = API.ImageBlockParam;
-  export import InputJsonDelta = API.InputJsonDelta;
+  export import InputJSONDelta = API.InputJSONDelta;
   export import Message = API.Message;
   export import MessageDeltaEvent = API.MessageDeltaEvent;
   export import MessageDeltaUsage = API.MessageDeltaUsage;
@@ -252,6 +259,7 @@ export namespace Anthropic {
   export import MessageStartEvent = API.MessageStartEvent;
   export import MessageStopEvent = API.MessageStopEvent;
   export import MessageStreamEvent = API.MessageStreamEvent;
+  export import Model = API.Model;
   export import RawContentBlockDeltaEvent = API.RawContentBlockDeltaEvent;
   export import RawContentBlockStartEvent = API.RawContentBlockStartEvent;
   export import RawContentBlockStopEvent = API.RawContentBlockStopEvent;

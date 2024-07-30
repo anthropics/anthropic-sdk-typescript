@@ -1,13 +1,13 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '@anthropic-ai/sdk/resource';
-import { APIPromise } from '@anthropic-ai/sdk/core';
-import * as Core from '@anthropic-ai/sdk/core';
-import { MessageStream } from '@anthropic-ai/sdk/lib/MessageStream';
-import * as MessagesAPI from '@anthropic-ai/sdk/resources/messages';
-import { Stream } from '@anthropic-ai/sdk/streaming';
+import { APIResource } from '../resource';
+import { APIPromise } from '../core';
+import * as Core from '../core';
+import * as MessagesAPI from './messages';
+import { Stream } from '../streaming';
+import { MessageStream } from '../lib/MessageStream';
 
-export { MessageStream } from '@anthropic-ai/sdk/lib/MessageStream';
+export { MessageStream } from '../lib/MessageStream';
 
 export class Messages extends APIResource {
   /**
@@ -34,7 +34,7 @@ export class Messages extends APIResource {
   ): APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>> {
     return this._client.post('/v1/messages', {
       body,
-      timeout: 600000,
+      timeout: (this._client as any)._options.timeout ?? 600000,
       ...options,
       stream: body.stream ?? false,
     }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
@@ -72,7 +72,9 @@ export namespace ImageBlockParam {
   }
 }
 
-export interface InputJsonDelta {
+export type InputJsonDelta = InputJSONDelta;
+
+export interface InputJSONDelta {
   partial_json: string;
 
   type: 'input_json_delta';
@@ -123,9 +125,11 @@ export interface Message {
   content: Array<ContentBlock>;
 
   /**
-   * The model that handled the request.
+   * The model that will complete your prompt.\n\nSee
+   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * details and options.
    */
-  model: string;
+  model: Model;
 
   /**
    * Conversational role of the generated message.
@@ -202,8 +206,23 @@ export type MessageStopEvent = RawMessageStopEvent;
 
 export type MessageStreamEvent = RawMessageStreamEvent;
 
+/**
+ * The model that will complete your prompt.\n\nSee
+ * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+ * details and options.
+ */
+export type Model =
+  | (string & {})
+  | 'claude-3-5-sonnet-20240620'
+  | 'claude-3-opus-20240229'
+  | 'claude-3-sonnet-20240229'
+  | 'claude-3-haiku-20240307'
+  | 'claude-2.1'
+  | 'claude-2.0'
+  | 'claude-instant-1.2';
+
 export interface RawContentBlockDeltaEvent {
-  delta: TextDelta | InputJsonDelta;
+  delta: TextDelta | InputJSONDelta;
 
   index: number;
 
@@ -473,20 +492,11 @@ export interface MessageCreateParamsBase {
   messages: Array<MessageParam>;
 
   /**
-   * The model that will complete your prompt.
-   *
-   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * The model that will complete your prompt.\n\nSee
+   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
-  model:
-    | (string & {})
-    | 'claude-3-5-sonnet-20240620'
-    | 'claude-3-opus-20240229'
-    | 'claude-3-sonnet-20240229'
-    | 'claude-3-haiku-20240307'
-    | 'claude-2.1'
-    | 'claude-2.0'
-    | 'claude-instant-1.2';
+  model: Model;
 
   /**
    * An object describing metadata about the request.
@@ -714,7 +724,8 @@ export namespace Messages {
   export import ContentBlockStartEvent = MessagesAPI.ContentBlockStartEvent;
   export import ContentBlockStopEvent = MessagesAPI.ContentBlockStopEvent;
   export import ImageBlockParam = MessagesAPI.ImageBlockParam;
-  export import InputJsonDelta = MessagesAPI.InputJsonDelta;
+  export import InputJJsonDelta = MessagesAPI.InputJsonDelta;
+  export import InputJSONDelta = MessagesAPI.InputJSONDelta;
   export import Message = MessagesAPI.Message;
   export import MessageDeltaEvent = MessagesAPI.MessageDeltaEvent;
   export import MessageDeltaUsage = MessagesAPI.MessageDeltaUsage;
@@ -722,6 +733,7 @@ export namespace Messages {
   export import MessageStartEvent = MessagesAPI.MessageStartEvent;
   export import MessageStopEvent = MessagesAPI.MessageStopEvent;
   export import MessageStreamEvent = MessagesAPI.MessageStreamEvent;
+  export import Model = MessagesAPI.Model;
   export import RawContentBlockDeltaEvent = MessagesAPI.RawContentBlockDeltaEvent;
   export import RawContentBlockStartEvent = MessagesAPI.RawContentBlockStartEvent;
   export import RawContentBlockStopEvent = MessagesAPI.RawContentBlockStopEvent;
