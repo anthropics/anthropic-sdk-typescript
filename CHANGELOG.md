@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.25.1 (2024-08-09)
+
+Full Changelog: [sdk-v0.25.0...sdk-v0.25.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.25.0...sdk-v0.25.1)
+
+### Chores
+
+* **internal:** update publish npm script ([#483](https://github.com/anthropics/anthropic-sdk-typescript/issues/483)) ([fb862ff](https://github.com/anthropics/anthropic-sdk-typescript/commit/fb862ff18be308ff710a2f97716f0ad1a62b9fbd))
+* **internal:** updates ([#487](https://github.com/anthropics/anthropic-sdk-typescript/issues/487)) ([67a3325](https://github.com/anthropics/anthropic-sdk-typescript/commit/67a3325aa05c5a19f06b0cb1e67517168427c300))
+* sync openapi version ([#481](https://github.com/anthropics/anthropic-sdk-typescript/issues/481)) ([5fd7e21](https://github.com/anthropics/anthropic-sdk-typescript/commit/5fd7e219732a4483c2edd9a812049569b31943c4))
+* sync openapi version ([#485](https://github.com/anthropics/anthropic-sdk-typescript/issues/485)) ([e74c522](https://github.com/anthropics/anthropic-sdk-typescript/commit/e74c522989cfb979ca916e416c7c14a349b32ef5))
+* sync openapi version ([#486](https://github.com/anthropics/anthropic-sdk-typescript/issues/486)) ([ad98e9e](https://github.com/anthropics/anthropic-sdk-typescript/commit/ad98e9eca5db4f5a04bf8c26e4c53050985cec33))
+
 ## 0.25.0 (2024-07-29)
 
 Full Changelog: [sdk-v0.24.3...sdk-v0.25.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.24.3...sdk-v0.25.0)
