@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.25.2 (2024-08-12)
+
+Full Changelog: [sdk-v0.25.1...sdk-v0.25.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.25.1...sdk-v0.25.2)
+
+### Chores
+
+* **ci:** bump prism mock server version ([#490](https://github.com/anthropics/anthropic-sdk-typescript/issues/490)) ([bfb27f5](https://github.com/anthropics/anthropic-sdk-typescript/commit/bfb27f54c9b4ff4f9ae06327db454f72431b5bf4))
+* **ci:** minor changes ([#488](https://github.com/anthropics/anthropic-sdk-typescript/issues/488)) ([747fd97](https://github.com/anthropics/anthropic-sdk-typescript/commit/747fd973af594cc52f244b33f31bcf8079733e7d))
+
 ## 0.25.1 (2024-08-09)
 
 Full Changelog: [sdk-v0.25.0...sdk-v0.25.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.25.0...sdk-v0.25.1)
