@@ -12,7 +12,7 @@ describe('resource messages', () => {
   test('create: only required params', async () => {
     const responsePromise = client.messages.create({
       max_tokens: 1024,
-      messages: [{ role: 'user', content: 'Hello, world' }],
+      messages: [{ content: 'Hello, world', role: 'user' }],
       model: 'claude-3-5-sonnet-20240620',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -27,18 +27,16 @@ describe('resource messages', () => {
   test('create: required and optional params', async () => {
     const response = await client.messages.create({
       max_tokens: 1024,
-      messages: [{ role: 'user', content: 'Hello, world' }],
+      messages: [{ content: 'Hello, world', role: 'user' }],
       model: 'claude-3-5-sonnet-20240620',
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
       stop_sequences: ['string', 'string', 'string'],
       stream: false,
-      system: [{ type: 'text', text: "Today's date is 2024-06-01." }],
+      system: [{ text: "Today's date is 2024-06-01.", type: 'text' }],
       temperature: 1,
       tool_choice: { type: 'auto' },
       tools: [
         {
-          description: 'Get the current weather in a given location',
-          name: 'x',
           input_schema: {
             type: 'object',
             properties: {
@@ -46,10 +44,10 @@ describe('resource messages', () => {
               unit: { description: 'Unit for the output - one of (celsius, fahrenheit)', type: 'string' },
             },
           },
+          name: 'x',
+          description: 'Get the current weather in a given location',
         },
         {
-          description: 'Get the current weather in a given location',
-          name: 'x',
           input_schema: {
             type: 'object',
             properties: {
@@ -57,10 +55,10 @@ describe('resource messages', () => {
               unit: { description: 'Unit for the output - one of (celsius, fahrenheit)', type: 'string' },
             },
           },
+          name: 'x',
+          description: 'Get the current weather in a given location',
         },
         {
-          description: 'Get the current weather in a given location',
-          name: 'x',
           input_schema: {
             type: 'object',
             properties: {
@@ -68,6 +66,8 @@ describe('resource messages', () => {
               unit: { description: 'Unit for the output - one of (celsius, fahrenheit)', type: 'string' },
             },
           },
+          name: 'x',
+          description: 'Get the current weather in a given location',
         },
       ],
       top_k: 5,
