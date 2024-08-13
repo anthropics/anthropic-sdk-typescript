@@ -6,6 +6,7 @@ import * as Core from '../../../core';
 import * as PromptCachingMessagesAPI from './messages';
 import * as MessagesAPI from '../../messages';
 import { Stream } from '../../../streaming';
+import { PromptCachingBetaMessageStream } from '../../../lib/PromptCachingBetaMessageStream';
 
 export class Messages extends APIResource {
   /**
@@ -41,7 +42,16 @@ export class Messages extends APIResource {
       stream: body.stream ?? false,
     }) as APIPromise<PromptCachingBetaMessage> | APIPromise<Stream<RawPromptCachingBetaMessageStreamEvent>>;
   }
+
+  /**
+   * Create a Message stream
+   */
+  stream(body: MessageStreamParams, options?: Core.RequestOptions): PromptCachingBetaMessageStream {
+    return PromptCachingBetaMessageStream.createMessage(this, body, options);
+  }
 }
+
+export type MessageStreamParams = MessageCreateParamsBase;
 
 export interface PromptCachingBetaCacheControlEphemeral {
   type: 'ephemeral';
