@@ -646,6 +646,7 @@ export class BaseAnthropic {
 export class Anthropic extends BaseAnthropic {
   completions: API.Completions = new API.Completions(this);
   messages: API.Messages = new API.Messages(this);
+  beta: API.Beta = new API.Beta(this);
 }
 
 export const { HUMAN_PROMPT, AI_PROMPT } = Anthropic;
@@ -710,6 +711,8 @@ export namespace Anthropic {
   export import MessageCreateParams = API.MessageCreateParams;
   export import MessageCreateParamsNonStreaming = API.MessageCreateParamsNonStreaming;
   export import MessageCreateParamsStreaming = API.MessageCreateParamsStreaming;
+
+  export import Beta = API.Beta;
 }
 
 export default Anthropic;
