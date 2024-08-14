@@ -62,3 +62,4 @@ Types:
 Methods:
 
 - <code title="post /v1/messages?beta=prompt_caching">client.beta.promptCaching.messages.<a href="./src/resources/beta/prompt-caching/messages.ts">create</a>({ ...params }) -> PromptCachingBetaMessage</code>
+- <code title="post /v1/messages?beta=prompt_caching">client.beta.promptCaching.messages.<a href="./src/resources/beta/prompt-caching/messages.ts">stream</a>({ ...params }) -> PromptCachingBetaMessageStream</code>
