@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.26.0 (2024-08-14)
+
+Full Changelog: [sdk-v0.25.2...sdk-v0.26.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.25.2...sdk-v0.26.0)
+
+### Features
+
+* **api:** add prompt caching beta ([c920b77](https://github.com/anthropics/anthropic-sdk-typescript/commit/c920b77fc67bd839bfeb6716ceab9d7c9bbe7393))
+* **client:** add streaming helpers ([39abc26](https://github.com/anthropics/anthropic-sdk-typescript/commit/39abc2635517d564ac8b7e63235f0a338fc4bed0))
+
+
+### Chores
+
+* **examples:** minor formatting changes ([#491](https://github.com/anthropics/anthropic-sdk-typescript/issues/491)) ([8afef58](https://github.com/anthropics/anthropic-sdk-typescript/commit/8afef584895ffa3f8382c98d2c0a3fc6138e9420))
+
 ## 0.25.2 (2024-08-12)
 
 Full Changelog: [sdk-v0.25.1...sdk-v0.25.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.25.1...sdk-v0.25.2)
