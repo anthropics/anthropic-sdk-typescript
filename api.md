@@ -35,3 +35,27 @@ Types:
 Methods:
 
 - <code title="post /v1/messages">client.messages.<a href="./src/resources/messages.ts">create</a>({ ...params }) -> Message</code>
+
+# Beta
+
+## PromptCaching
+
+### Messages
+
+Types:
+
+- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaCacheControlEphemeral</a></code>
+- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaImageBlockParam</a></code>
+- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaMessage</a></code>
+- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaMessageParam</a></code>
+- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaTextBlockParam</a></code>
+- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaTool</a></code>
+- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaToolResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaToolUseBlockParam</a></code>
+- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaUsage</a></code>
+- <code><a href="./src/resources/beta/prompt-caching/messages.ts">RawPromptCachingBetaMessageStartEvent</a></code>
+- <code><a href="./src/resources/beta/prompt-caching/messages.ts">RawPromptCachingBetaMessageStreamEvent</a></code>
+
+Methods:
+
+- <code title="post /v1/messages?beta=prompt_caching">client.beta.promptCaching.messages.<a href="./src/resources/beta/prompt-caching/messages.ts">create</a>({ ...params }) -> PromptCachingBetaMessage</code>
