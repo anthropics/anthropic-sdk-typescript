@@ -61,9 +61,6 @@
       "hidden": true
     }
   ],
-  "reviewers": [
-    "@anthropics/sdk"
-  ],
   "release-type": "node",
   "extra-files": [
     "src/version.ts",
