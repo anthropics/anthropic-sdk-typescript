@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.26.1 (2024-08-15)
+
+Full Changelog: [sdk-v0.26.0...sdk-v0.26.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.26.0...sdk-v0.26.1)
+
+### Chores
+
+* **ci:** add CODEOWNERS file ([#498](https://github.com/anthropics/anthropic-sdk-typescript/issues/498)) ([c34433f](https://github.com/anthropics/anthropic-sdk-typescript/commit/c34433fb6528fdd00d189ea0a3b177d95c7c7fa9))
+* **docs/api:** update prompt caching helpers ([04195a3](https://github.com/anthropics/anthropic-sdk-typescript/commit/04195a345d62c98f826e5eecdad20f497db5b3e5))
+
 ## 0.26.0 (2024-08-14)
 
 Full Changelog: [sdk-v0.25.2...sdk-v0.26.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.25.2...sdk-v0.26.0)
