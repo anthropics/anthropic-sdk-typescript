@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.27.0 (2024-08-21)
+
+Full Changelog: [sdk-v0.26.1...sdk-v0.27.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.26.1...sdk-v0.27.0)
+
+### Features
+
+* **client:** add support for browser usage ([#504](https://github.com/anthropics/anthropic-sdk-typescript/issues/504)) ([93c5f16](https://github.com/anthropics/anthropic-sdk-typescript/commit/93c5f16b4b8c3404bd67d6eb5a0556a8b0a5d027))
+
+
+### Documentation
+
+* **readme:** update formatting and clarity for CORS flag ([9cb2c35](https://github.com/anthropics/anthropic-sdk-typescript/commit/9cb2c35f92827eb8654b1669db5ba702770fcae4))
+
 ## 0.26.1 (2024-08-15)
 
 Full Changelog: [sdk-v0.26.0...sdk-v0.26.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.26.0...sdk-v0.26.1)
