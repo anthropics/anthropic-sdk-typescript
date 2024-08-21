@@ -5,7 +5,7 @@ import Anthropic from '@anthropic-ai/sdk';
 const client = new Anthropic(); // gets API Key from environment variable ANTHROPIC_API_KEY
 
 async function main() {
-  const stream = await client.messages.create({
+  const stream = await client.messages.stream({
     model: 'claude-3-opus-20240229',
     stream: true,
     max_tokens: 500,
