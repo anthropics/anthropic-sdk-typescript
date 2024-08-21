@@ -104,6 +104,12 @@ export interface ClientOptions {
    * param to `undefined` in request options.
    */
   defaultQuery?: DefaultQuery;
+
+  /**
+   * By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
+   * Only set this option to `true` if you understand the risks and have appropriate mitigations in place.
+   */
+  dangerouslyAllowBrowser?: boolean;
 }
 
 export class BaseAnthropic {
@@ -131,6 +137,7 @@ export class BaseAnthropic {
    * @param {number} [opts.maxRetries=2] - The maximum number of times the client will retry a request.
    * @param {Headers} opts.defaultHeaders - Default headers to include with every request to the API.
    * @param {DefaultQuery} opts.defaultQuery - Default query parameters to include with every request to the API.
+   * @param {boolean} [opts.dangerouslyAllowBrowser=false] - By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
    */
   constructor({
     baseURL = readEnv('ANTHROPIC_BASE_URL'),
@@ -145,9 +152,9 @@ export class BaseAnthropic {
       baseURL: baseURL || `https://api.anthropic.com`,
     };
 
-    if (isRunningInBrowser()) {
+    if (!options.dangerouslyAllowBrowser && isRunningInBrowser()) {
       throw new Errors.AnthropicError(
-        "It looks like you're running in a browser-like environment, which is disabled to protect your secret API credentials from attackers. If you have a strong business need for client-side use of this API, please open a GitHub issue with your use-case and security mitigations.",
+        "It looks like you're running in a browser-like environment.\n\nThis is disabled by default, as it risks exposing your secret API credentials to attackers.\nIf you understand the risks and have appropriate mitigations in place,\nyou can set the `dangerouslyAllowBrowser` option to `true`, e.g.,\n\nnew Anthropic({ apiKey, dangerouslyAllowBrowser: true });\n\nTODO: link!\n",
       );
     }
 
@@ -174,6 +181,9 @@ export class BaseAnthropic {
       'User-Agent': this.getUserAgent(),
       ...getPlatformHeaders(),
       ...this.authHeaders(opts),
+      ...(this._options.dangerouslyAllowBrowser ?
+        { 'anthropic-dangerous-direct-browser-access': 'true' }
+      : undefined),
       'anthropic-version': '2023-06-01',
       ...this._options.defaultHeaders,
     };
