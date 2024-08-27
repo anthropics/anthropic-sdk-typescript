@@ -23,7 +23,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "file:../../dist/",
-    "google-auth-library": "^9.4.2"
+    "google-auth-library": "^9.4.2",
+    "jose": "^5.7.0"
   },
   "devDependencies": {
     "@types/jest": "^29.4.0",
@@ -53,6 +54,14 @@
       },
       "types": "./dist/index.d.mts",
       "default": "./dist/index.mjs"
+    },
+    "./web": {
+      "require": {
+        "types": "./dist/web.d.ts",
+        "default": "./dist/web.js"
+      },
+      "types": "./dist/web.d.ts",
+      "default": "./dist/web.mjs"
     },
     "./*.mjs": {
       "types": "./dist/*.d.ts",
