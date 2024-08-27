@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.27.1 (2024-08-27)
+
+Full Changelog: [sdk-v0.27.0...sdk-v0.27.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.27.0...sdk-v0.27.1)
+
+### Chores
+
+* **ci:** check for build errors ([#511](https://github.com/anthropics/anthropic-sdk-typescript/issues/511)) ([3ab1d3d](https://github.com/anthropics/anthropic-sdk-typescript/commit/3ab1d3d936f5ba3500f2ce87012c38bd198c3cbd))
+
 ## 0.27.0 (2024-08-21)
 
 Full Changelog: [sdk-v0.26.1...sdk-v0.27.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.26.1...sdk-v0.27.0)
