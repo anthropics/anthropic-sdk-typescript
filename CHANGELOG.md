@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.27.2 (2024-09-04)
+
+Full Changelog: [sdk-v0.27.1...sdk-v0.27.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.27.1...sdk-v0.27.2)
+
+### Bug Fixes
+
+* **client:** correct File construction from node-fetch Responses ([#518](https://github.com/anthropics/anthropic-sdk-typescript/issues/518)) ([62ae46f](https://github.com/anthropics/anthropic-sdk-typescript/commit/62ae46fb1e1b360850aafc9e935411c9b7d1c3bb))
+
+
+### Chores
+
+* **api:** deprecate claude-1 models ([53644d2](https://github.com/anthropics/anthropic-sdk-typescript/commit/53644d2690e62623afc04383cad0126f98ea37e8))
+* **ci:** install deps via ./script/bootstrap ([#515](https://github.com/anthropics/anthropic-sdk-typescript/issues/515)) ([90a8da1](https://github.com/anthropics/anthropic-sdk-typescript/commit/90a8da1dc937e9aea9fdf6862c3ddb414b39963a))
+* **internal:** dependency updates ([#519](https://github.com/anthropics/anthropic-sdk-typescript/issues/519)) ([b7b0cd6](https://github.com/anthropics/anthropic-sdk-typescript/commit/b7b0cd6579cd987662e7118f8563f68c0903f8da))
+* run tsc as part of lint script ([#513](https://github.com/anthropics/anthropic-sdk-typescript/issues/513)) ([c8127cf](https://github.com/anthropics/anthropic-sdk-typescript/commit/c8127cfa3bdd1370934fe122018e20fc659a4dbb))
+
 ## 0.27.1 (2024-08-27)
 
 Full Changelog: [sdk-v0.27.0...sdk-v0.27.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.27.0...sdk-v0.27.1)
