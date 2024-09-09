@@ -994,7 +994,12 @@ const validatePositiveInteger = (name: string, n: unknown): number => {
 
 export const castToError = (err: any): Error => {
   if (err instanceof Error) return err;
-  return new Error(err);
+  if (typeof err === 'object' && err !== null) {
+    try {
+      return new Error(JSON.stringify(err));
+    } catch {}
+  }
+  return new Error(String(err));
 };
 
 export const ensurePresent = <T>(value: T | null | undefined): T => {
