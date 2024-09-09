@@ -1,7 +1,6 @@
 import { ReadableStream, type Response } from './_shims/index';
 import { AnthropicError } from './error';
 
-import { safeJSON } from '@anthropic-ai/sdk/internal/utils';
 import { createResponseHeaders } from '@anthropic-ai/sdk/internal/headers';
 import { APIError } from '@anthropic-ai/sdk/error';
 
@@ -66,11 +65,12 @@ export class Stream<Item> implements AsyncIterable<Item> {
           }
 
           if (sse.event === 'error') {
-            const errText = sse.data;
-            const errJSON = safeJSON(errText);
-            const errMessage = errJSON ? undefined : errText;
-
-            throw APIError.generate(undefined, errJSON, errMessage, createResponseHeaders(response.headers));
+            throw APIError.generate(
+              undefined,
+              `SSE Error: ${sse.data}`,
+              sse.data,
+              createResponseHeaders(response.headers),
+            );
           }
         }
         done = true;
