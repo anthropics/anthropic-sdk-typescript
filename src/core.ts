@@ -997,7 +997,7 @@ export const castToError = (err: any): Error => {
   if (typeof err === 'object' && err !== null) {
     try {
       return new Error(JSON.stringify(err));
-    } catch { }
+    } catch {}
   }
   return new Error(String(err));
 };
