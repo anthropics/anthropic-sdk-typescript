@@ -1,4 +1,4 @@
-import { ReadableStream, type Response } from './_shims/index';
+import { ReadableStream } from './_shims/index';
 import { AnthropicError } from './error';
 
 import { createResponseHeaders } from '@anthropic-ai/sdk/internal/headers';

@@ -1,4 +1,3 @@
-import { Response } from 'undici';
 import { PassThrough } from 'stream';
 import assert from 'assert';
 import { Stream, _iterSSEMessages, _decodeChunks as decodeChunks } from '@anthropic-ai/sdk/streaming';

@@ -2,8 +2,8 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { APIUserAbortError } from '@anthropic-ai/sdk';
-import { Headers } from '@anthropic-ai/sdk/core';
-import { fetch as defaultFetch, Response, type RequestInit, type RequestInfo } from 'undici';
+import { Headers } from '@anthropic-ai/sdk/internal/types';
+const defaultFetch = fetch;
 
 describe('instantiate client', () => {
   const env = process.env;
@@ -225,7 +225,10 @@ describe('request building', () => {
 describe('retries', () => {
   test('retry on timeout', async () => {
     let count = 0;
-    const testFetch = async (url: RequestInfo, { signal }: RequestInit = {}): Promise<Response> => {
+    const testFetch = async (
+      url: string | URL | Request,
+      { signal }: RequestInit = {},
+    ): Promise<Response> => {
       if (count++ === 0) {
         return new Promise(
           (resolve, reject) => signal?.addEventListener('abort', () => reject(new Error('timed out'))),
@@ -249,7 +252,10 @@ describe('retries', () => {
 
   test('retry on 429 with retry-after', async () => {
     let count = 0;
-    const testFetch = async (url: RequestInfo, { signal }: RequestInit = {}): Promise<Response> => {
+    const testFetch = async (
+      url: string | URL | Request,
+      { signal }: RequestInit = {},
+    ): Promise<Response> => {
       if (count++ === 0) {
         return new Response(undefined, {
           status: 429,
@@ -276,7 +282,10 @@ describe('retries', () => {
 
   test('retry on 429 with retry-after-ms', async () => {
     let count = 0;
-    const testFetch = async (url: RequestInfo, { signal }: RequestInit = {}): Promise<Response> => {
+    const testFetch = async (
+      url: string | URL | Request,
+      { signal }: RequestInit = {},
+    ): Promise<Response> => {
       if (count++ === 0) {
         return new Response(undefined, {
           status: 429,
