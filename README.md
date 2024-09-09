@@ -418,9 +418,20 @@ The following runtimes are supported:
 - Vercel Edge Runtime.
 - Jest 28 or greater with the `"node"` environment (`"jsdom"` is not supported at this time).
 - Nitro v2.6 or greater.
+- Web browsers: disabled by default to avoid exposing your secret API credentials (see our help center for [best practices](https://support.anthropic.com/en/articles/9767949-api-key-best-practices-keeping-your-keys-safe-and-secure)). Enable browser support by explicitly setting `dangerouslyAllowBrowser` to `true`.
 
-> [!WARNING]
-> Web browser runtimes aren't supported. The SDK will throw an error if used in a browser environment.
+<details>
+  <summary><b>More explanation</b></summary>
+  <h3>Why is this dangerous?</h3>
+  Enabling the <code>dangerouslyAllowBrowser</code> option can be dangerous because it exposes your secret API credentials in the client-side code. Web browsers are inherently less secure than server environments,
+  any user with access to the browser can potentially inspect, extract, and misuse these credentials. This could lead to unauthorized access using your credentials and potentially compromise sensitive data or functionality.
+  <h3>When might this not be dangerous?</h3>
+  In certain scenarios where enabling browser support might not pose significant risks:
+  <ul>
+    <li>Internal Tools: If the application is used solely within a controlled internal environment where the users are trusted, the risk of credential exposure can be mitigated.</li>
+    <li>Development or debugging purpose: Enabling this feature temporarily might be acceptable, provided the credentials are short-lived, aren't also used in production environments, or are frequently rotated.</li>
+  </ul>
+</details>
 
 Note that React Native is not supported at this time.
 

@@ -107,21 +107,28 @@ export async function toFile(
   // If it's a promise, resolve it.
   value = await value;
 
-  // Use the file's options if there isn't one provided
-  options ??= isFileLike(value) ? { lastModified: value.lastModified, type: value.type } : {};
+  // If we've been given a `File` we don't need to do anything
+  if (isFileLike(value)) {
+    return value;
+  }
 
   if (isResponseLike(value)) {
     const blob = await value.blob();
     name ||= new URL(value.url).pathname.split(/[\\/]/).pop() ?? 'unknown_file';
 
-    return new File([blob as any], name, options);
+    // we need to convert the `Blob` into an array buffer because the `Blob` class
+    // that `node-fetch` defines is incompatible with the web standard which results
+    // in `new File` interpreting it as a string instead of binary data.
+    const data = isBlobLike(blob) ? [(await blob.arrayBuffer()) as any] : [blob];
+
+    return new File(data, name, options);
   }
 
   const bits = await getBytes(value);
 
   name ||= getName(value) ?? 'unknown_file';
 
-  if (!options.type) {
+  if (!options?.type) {
     const type = (bits[0] as any)?.type;
     if (typeof type === 'string') {
       options = { ...options, type };

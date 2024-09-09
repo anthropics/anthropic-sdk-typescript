@@ -72,6 +72,12 @@ export interface ClientOptions {
    * param to `undefined` in request options.
    */
   defaultQuery?: Core.DefaultQuery;
+
+  /**
+   * By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
+   * Only set this option to `true` if you understand the risks and have appropriate mitigations in place.
+   */
+  dangerouslyAllowBrowser?: boolean;
 }
 
 /**
@@ -95,6 +101,7 @@ export class Anthropic extends Core.APIClient {
    * @param {number} [opts.maxRetries=2] - The maximum number of times the client will retry a request.
    * @param {Core.Headers} opts.defaultHeaders - Default headers to include with every request to the API.
    * @param {Core.DefaultQuery} opts.defaultQuery - Default query parameters to include with every request to the API.
+   * @param {boolean} [opts.dangerouslyAllowBrowser=false] - By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
    */
   constructor({
     baseURL = Core.readEnv('ANTHROPIC_BASE_URL'),
@@ -109,9 +116,9 @@ export class Anthropic extends Core.APIClient {
       baseURL: baseURL || `https://api.anthropic.com`,
     };
 
-    if (Core.isRunningInBrowser()) {
+    if (!options.dangerouslyAllowBrowser && Core.isRunningInBrowser()) {
       throw new Errors.AnthropicError(
-        "It looks like you're running in a browser-like environment, which is disabled to protect your secret API credentials from attackers. If you have a strong business need for client-side use of this API, please open a GitHub issue with your use-case and security mitigations.",
+        "It looks like you're running in a browser-like environment.\n\nThis is disabled by default, as it risks exposing your secret API credentials to attackers.\nIf you understand the risks and have appropriate mitigations in place,\nyou can set the `dangerouslyAllowBrowser` option to `true`, e.g.,\n\nnew Anthropic({ apiKey, dangerouslyAllowBrowser: true });\n\nTODO: link!\n",
       );
     }
 
@@ -140,6 +147,9 @@ export class Anthropic extends Core.APIClient {
   protected override defaultHeaders(opts: Core.FinalRequestOptions): Core.Headers {
     return {
       ...super.defaultHeaders(opts),
+      ...(this._options.dangerouslyAllowBrowser ?
+        { 'anthropic-dangerous-direct-browser-access': 'true' }
+      : undefined),
       'anthropic-version': '2023-06-01',
       ...this._options.defaultHeaders,
     };

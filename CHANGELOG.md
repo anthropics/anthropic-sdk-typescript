@@ -1,5 +1,56 @@
 # Changelog
 
+## 0.27.3 (2024-09-09)
+
+Full Changelog: [sdk-v0.27.2...sdk-v0.27.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.27.2...sdk-v0.27.3)
+
+### Bug Fixes
+
+* **streaming:** correct error message serialisation ([#524](https://github.com/anthropics/anthropic-sdk-typescript/issues/524)) ([e150fa4](https://github.com/anthropics/anthropic-sdk-typescript/commit/e150fa47d0cd4cbbe1269e3971085d4a434fc3ba))
+* **uploads:** avoid making redundant memory copies ([#520](https://github.com/anthropics/anthropic-sdk-typescript/issues/520)) ([b6d2638](https://github.com/anthropics/anthropic-sdk-typescript/commit/b6d2638387612def84cebac2dedd5fbbea776d09))
+
+
+### Chores
+
+* **docs:** update browser support information ([#522](https://github.com/anthropics/anthropic-sdk-typescript/issues/522)) ([ce7aeb5](https://github.com/anthropics/anthropic-sdk-typescript/commit/ce7aeb59ccba4e4d19cb9aa88d7055fb585865ae))
+
+## 0.27.2 (2024-09-04)
+
+Full Changelog: [sdk-v0.27.1...sdk-v0.27.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.27.1...sdk-v0.27.2)
+
+### Bug Fixes
+
+* **client:** correct File construction from node-fetch Responses ([#518](https://github.com/anthropics/anthropic-sdk-typescript/issues/518)) ([62ae46f](https://github.com/anthropics/anthropic-sdk-typescript/commit/62ae46fb1e1b360850aafc9e935411c9b7d1c3bb))
+
+
+### Chores
+
+* **api:** deprecate claude-1 models ([53644d2](https://github.com/anthropics/anthropic-sdk-typescript/commit/53644d2690e62623afc04383cad0126f98ea37e8))
+* **ci:** install deps via ./script/bootstrap ([#515](https://github.com/anthropics/anthropic-sdk-typescript/issues/515)) ([90a8da1](https://github.com/anthropics/anthropic-sdk-typescript/commit/90a8da1dc937e9aea9fdf6862c3ddb414b39963a))
+* **internal:** dependency updates ([#519](https://github.com/anthropics/anthropic-sdk-typescript/issues/519)) ([b7b0cd6](https://github.com/anthropics/anthropic-sdk-typescript/commit/b7b0cd6579cd987662e7118f8563f68c0903f8da))
+* run tsc as part of lint script ([#513](https://github.com/anthropics/anthropic-sdk-typescript/issues/513)) ([c8127cf](https://github.com/anthropics/anthropic-sdk-typescript/commit/c8127cfa3bdd1370934fe122018e20fc659a4dbb))
+
+## 0.27.1 (2024-08-27)
+
+Full Changelog: [sdk-v0.27.0...sdk-v0.27.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.27.0...sdk-v0.27.1)
+
+### Chores
+
+* **ci:** check for build errors ([#511](https://github.com/anthropics/anthropic-sdk-typescript/issues/511)) ([3ab1d3d](https://github.com/anthropics/anthropic-sdk-typescript/commit/3ab1d3d936f5ba3500f2ce87012c38bd198c3cbd))
+
+## 0.27.0 (2024-08-21)
+
+Full Changelog: [sdk-v0.26.1...sdk-v0.27.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.26.1...sdk-v0.27.0)
+
+### Features
+
+* **client:** add support for browser usage ([#504](https://github.com/anthropics/anthropic-sdk-typescript/issues/504)) ([93c5f16](https://github.com/anthropics/anthropic-sdk-typescript/commit/93c5f16b4b8c3404bd67d6eb5a0556a8b0a5d027))
+
+
+### Documentation
+
+* **readme:** update formatting and clarity for CORS flag ([9cb2c35](https://github.com/anthropics/anthropic-sdk-typescript/commit/9cb2c35f92827eb8654b1669db5ba702770fcae4))
+
 ## 0.26.1 (2024-08-15)
 
 Full Changelog: [sdk-v0.26.0...sdk-v0.26.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.26.0...sdk-v0.26.1)
