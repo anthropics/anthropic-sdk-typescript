@@ -1,5 +1,6 @@
-import { ReadableStream } from './_shims/index';
 import { AnthropicError } from './error';
+import { type ReadableStream } from './internal/shim-types';
+import { makeReadableStream } from './internal/shims';
 
 import { createResponseHeaders } from '@anthropic-ai/sdk/internal/headers';
 import { APIError } from '@anthropic-ai/sdk/error';
@@ -176,7 +177,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
     let iter: AsyncIterator<Item>;
     const encoder = new TextEncoder();
 
-    return new ReadableStream({
+    return makeReadableStream({
       async start() {
         iter = self[Symbol.asyncIterator]();
       },

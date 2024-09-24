@@ -2,7 +2,7 @@
 
 import * as Errors from './error';
 import * as Uploads from './uploads';
-import { fetch as defaultFetch } from './_shims/index';
+import { type RequestInit, type RequestInfo } from './internal/builtin-types';
 import { type HTTPMethod, type PromiseOrValue, type RequestClient } from './internal/types';
 import {
   debug,
@@ -14,27 +14,19 @@ import {
   validatePositiveInteger,
 } from './internal/utils';
 import { APIResponseProps } from './internal/parse';
-import { getPlatformHeaders } from './internal/platform';
-import { getDefaultFetch as _getDefaultFetch } from './internal/shims';
+import { getPlatformHeaders } from './internal/detect-platform';
+import * as Shims from './internal/shims';
 import * as Opts from './internal/request-options';
 import { VERSION } from './version';
-import {
-  kind as shimsKind,
-  getDefaultAgent,
-  type Agent,
-  type RequestInfo,
-  type HeadersInit,
-  type RequestDuplex,
-  isReadable,
-} from './_shims/index';
-import { createResponseHeaders } from './internal/headers';
+import { createResponseHeaders, type HeadersInit } from './internal/headers';
 import { isBlobLike, isMultipartBody } from './uploads';
 import { applyHeadersMut } from './internal/headers';
 import * as API from './resources/index';
 import { APIPromise } from './internal/api-promise';
-import { isRunningInBrowser } from './internal/platform';
+import { type Fetch } from './internal/builtin-types';
+import { isRunningInBrowser } from './internal/detect-platform';
 import { FinalRequestOptions, RequestOptions } from './internal/request-options';
-import { type DefaultQuery, type Fetch, type Headers } from './internal/types';
+import { type DefaultQuery, type Headers } from './internal/types';
 import { isEmptyObj, readEnv } from './internal/utils';
 
 export interface ClientOptions {
@@ -70,7 +62,7 @@ export interface ClientOptions {
    * If not provided, an agent will be constructed by default in the Node.js environment,
    * otherwise no agent is used.
    */
-  httpAgent?: Agent;
+  httpAgent?: Shims.Agent;
 
   /**
    * Specify a custom `fetch` function implementation.
@@ -117,7 +109,7 @@ export class BaseAnthropic {
   baseURL: string;
   maxRetries: number;
   timeout: number;
-  httpAgent: Agent | undefined;
+  httpAgent: Shims.Agent | undefined;
 
   private fetch: Fetch;
   protected idempotencyHeader?: string;
@@ -160,7 +152,7 @@ export class BaseAnthropic {
     this.timeout = options.timeout ?? Anthropic.DEFAULT_TIMEOUT /* 10 minutes */;
     this.httpAgent = options.httpAgent;
     this.maxRetries = options.maxRetries ?? 2;
-    this.fetch = options.fetch ?? defaultFetch ?? _getDefaultFetch();
+    this.fetch = options.fetch ?? Shims.getDefaultFetch();
 
     this._options = options;
 
@@ -450,11 +442,11 @@ export class BaseAnthropic {
 
     const timeout = setTimeout(() => controller.abort(), ms);
 
-    const isReadableBody = isReadable(options.body);
+    const isReadableBody = Shims.isReadableLike(options.body);
 
-    const fetchOptions = {
+    const fetchOptions: RequestInit = {
       signal: controller.signal as any,
-      ...(isReadableBody ? { duplex: 'half' as RequestDuplex } : {}),
+      ...(isReadableBody ? { duplex: 'half' } : {}),
       method: 'GET',
       ...options,
     };
@@ -571,7 +563,7 @@ export class BaseAnthropic {
     const url = this.buildURL(path!, query);
     if ('timeout' in options) validatePositiveInteger('timeout', options.timeout);
     const timeout = options.timeout ?? this.timeout;
-    const httpAgent = options.httpAgent ?? this.httpAgent ?? getDefaultAgent();
+    const httpAgent = options.httpAgent ?? this.httpAgent;
     const minAgentTimeout = timeout + 1000;
     if (
       typeof (httpAgent as any)?.options?.timeout === 'number' &&
@@ -623,7 +615,7 @@ export class BaseAnthropic {
     applyHeadersMut(reqHeaders, headers);
 
     // let builtin fetch set the Content-Type for multipart bodies
-    if (isMultipartBody(options.body) && shimsKind !== 'node') {
+    if (isMultipartBody(options.body)) {
       delete reqHeaders['content-type'];
     }
 
@@ -673,7 +665,7 @@ export {
   type Uploadable,
 } from './uploads';
 export { APIPromise } from './internal/api-promise';
-export { type Response } from './internal/types';
+export { type Response } from './internal/builtin-types';
 export const {
   AnthropicError,
   APIError,

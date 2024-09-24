@@ -6,9 +6,8 @@
     "rootDir": "./deno",
     "lib": ["es2020", "DOM"],
     "paths": {
-      "@anthropic-ai/sdk/_shims/auto/*": ["deno/_shims/auto/*-deno"],
       "@anthropic-ai/sdk/*": ["deno/*"],
-      "@anthropic-ai/sdk": ["deno/index.ts"],
+      "@anthropic-ai/sdk": ["deno/index.ts"]
     },
     "noEmit": true,
     "declaration": true,
