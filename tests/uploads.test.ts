@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { toFile, type ResponseLike } from '@anthropic-ai/sdk/uploads';
+import { File } from '@anthropic-ai/sdk/polyfill/node-file';
 
 class MyClass {
   name: string = 'foo';
