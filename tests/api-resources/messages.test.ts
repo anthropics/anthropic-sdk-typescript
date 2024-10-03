@@ -34,7 +34,7 @@ describe('resource messages', () => {
       stream: false,
       system: [{ text: "Today's date is 2024-06-01.", type: 'text' }],
       temperature: 1,
-      tool_choice: { type: 'auto' },
+      tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
         {
           input_schema: {
