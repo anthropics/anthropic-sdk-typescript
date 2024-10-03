@@ -690,6 +690,14 @@ export namespace MessageCreateParams {
    */
   export interface ToolChoiceAuto {
     type: 'auto';
+
+    /**
+     * Whether to disable parallel tool use.
+     *
+     * Defaults to `false`. If set to `true`, the model will output at most one tool
+     * use.
+     */
+    disable_parallel_tool_use?: boolean;
   }
 
   /**
@@ -697,6 +705,14 @@ export namespace MessageCreateParams {
    */
   export interface ToolChoiceAny {
     type: 'any';
+
+    /**
+     * Whether to disable parallel tool use.
+     *
+     * Defaults to `false`. If set to `true`, the model will output exactly one tool
+     * use.
+     */
+    disable_parallel_tool_use?: boolean;
   }
 
   /**
@@ -709,6 +725,14 @@ export namespace MessageCreateParams {
     name: string;
 
     type: 'tool';
+
+    /**
+     * Whether to disable parallel tool use.
+     *
+     * Defaults to `false`. If set to `true`, the model will output exactly one tool
+     * use.
+     */
+    disable_parallel_tool_use?: boolean;
   }
 
   export type MessageCreateParamsNonStreaming = MessagesAPI.MessageCreateParamsNonStreaming;
