@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.2 (2024-10-04)
+
+Full Changelog: [vertex-sdk-v0.4.1...vertex-sdk-v0.4.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.4.1...vertex-sdk-v0.4.2)
+
+### Chores
+
+* better object fallback behaviour for casting errors ([#526](https://github.com/anthropics/anthropic-sdk-typescript/issues/526)) ([4ffb2e4](https://github.com/anthropics/anthropic-sdk-typescript/commit/4ffb2e4e1f5fef3ae58d9f4c99a63e75dd459c5b))
+
 ## 0.4.1 (2024-07-29)
 
 Full Changelog: [vertex-sdk-v0.4.0...vertex-sdk-v0.4.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.4.0...vertex-sdk-v0.4.1)
