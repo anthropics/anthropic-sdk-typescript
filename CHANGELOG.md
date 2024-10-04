@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.28.0 (2024-10-04)
+
+Full Changelog: [sdk-v0.27.3...sdk-v0.28.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.27.3...sdk-v0.28.0)
+
+### Features
+
+* **api:** support disabling parallel tool use ([#540](https://github.com/anthropics/anthropic-sdk-typescript/issues/540)) ([df0032f](https://github.com/anthropics/anthropic-sdk-typescript/commit/df0032f263884190b31a63ddcb20429372617deb))
+* **client:** allow overriding retry count header ([#536](https://github.com/anthropics/anthropic-sdk-typescript/issues/536)) ([ec11f91](https://github.com/anthropics/anthropic-sdk-typescript/commit/ec11f9189e9a24f413a9d48b21a10ce88e367ac3))
+* **client:** send retry count header ([#533](https://github.com/anthropics/anthropic-sdk-typescript/issues/533)) ([401b81c](https://github.com/anthropics/anthropic-sdk-typescript/commit/401b81c55c1f998dc917fc268884c162f214df20))
+
+
+### Bug Fixes
+
+* **types:** remove leftover polyfill usage ([#532](https://github.com/anthropics/anthropic-sdk-typescript/issues/532)) ([ac188b2](https://github.com/anthropics/anthropic-sdk-typescript/commit/ac188b29670d409c15e740bca26f8ef488cb7d05))
+
+
+### Chores
+
+* better object fallback behaviour for casting errors ([#503](https://github.com/anthropics/anthropic-sdk-typescript/issues/503)) ([3660e97](https://github.com/anthropics/anthropic-sdk-typescript/commit/3660e977e7127b10446b24b0a76b0133b3f666de))
+* better object fallback behaviour for casting errors ([#526](https://github.com/anthropics/anthropic-sdk-typescript/issues/526)) ([4ffb2e4](https://github.com/anthropics/anthropic-sdk-typescript/commit/4ffb2e4e1f5fef3ae58d9f4c99a63e75dd459c5b))
+* **internal:** add dev dependency ([#531](https://github.com/anthropics/anthropic-sdk-typescript/issues/531)) ([a9c127b](https://github.com/anthropics/anthropic-sdk-typescript/commit/a9c127b2854d0cf7efd49e7d46ff10fe52372949))
+
+
+### Documentation
+
+* improve and reference contributing documentation ([#539](https://github.com/anthropics/anthropic-sdk-typescript/issues/539)) ([cbef925](https://github.com/anthropics/anthropic-sdk-typescript/commit/cbef925519c63f09626ea7aa61ab8ba9d36bc35d))
+* update CONTRIBUTING.md ([#528](https://github.com/anthropics/anthropic-sdk-typescript/issues/528)) ([2609dec](https://github.com/anthropics/anthropic-sdk-typescript/commit/2609dec770d33b828c957e431f2d03871e67e629))
+
 ## 0.27.3 (2024-09-09)
 
 Full Changelog: [sdk-v0.27.2...sdk-v0.27.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.27.2...sdk-v0.27.3)
