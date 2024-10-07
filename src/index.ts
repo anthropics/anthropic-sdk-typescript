@@ -716,6 +716,10 @@ export namespace Anthropic {
   export import TextBlockParam = API.TextBlockParam;
   export import TextDelta = API.TextDelta;
   export import Tool = API.Tool;
+  export import ToolChoice = API.ToolChoice;
+  export import ToolChoiceAny = API.ToolChoiceAny;
+  export import ToolChoiceAuto = API.ToolChoiceAuto;
+  export import ToolChoiceTool = API.ToolChoiceTool;
   export import ToolResultBlockParam = API.ToolResultBlockParam;
   export import ToolUseBlock = API.ToolUseBlock;
   export import ToolUseBlockParam = API.ToolUseBlockParam;
