@@ -461,10 +461,7 @@ export interface MessageCreateParamsBase {
    * How the model should use the provided tools. The model can use a specific tool,
    * any available tool, or decide by itself.
    */
-  tool_choice?:
-    | MessageCreateParams.ToolChoiceAuto
-    | MessageCreateParams.ToolChoiceAny
-    | MessageCreateParams.ToolChoiceTool;
+  tool_choice?: MessagesAPI.ToolChoice;
 
   /**
    * Definitions of tools that the model may use.
@@ -579,54 +576,19 @@ export namespace MessageCreateParams {
   }
 
   /**
-   * The model will automatically decide whether to use tools.
+   * @deprecated use `Anthropic.Messages.ToolChoiceAuto` instead
    */
-  export interface ToolChoiceAuto {
-    type: 'auto';
-
-    /**
-     * Whether to disable parallel tool use.
-     *
-     * Defaults to `false`. If set to `true`, the model will output at most one tool
-     * use.
-     */
-    disable_parallel_tool_use?: boolean;
-  }
+  export type ToolChoiceAuto = MessagesAPI.ToolChoiceAuto;
 
   /**
-   * The model will use any available tools.
+   * @deprecated use `Anthropic.Messages.ToolChoiceAny` instead
    */
-  export interface ToolChoiceAny {
-    type: 'any';
-
-    /**
-     * Whether to disable parallel tool use.
-     *
-     * Defaults to `false`. If set to `true`, the model will output exactly one tool
-     * use.
-     */
-    disable_parallel_tool_use?: boolean;
-  }
+  export type ToolChoiceAny = MessagesAPI.ToolChoiceAny;
 
   /**
-   * The model will use the specified tool with `tool_choice.name`.
+   * @deprecated use `Anthropic.Messages.ToolChoiceTool` instead
    */
-  export interface ToolChoiceTool {
-    /**
-     * The name of the tool to use.
-     */
-    name: string;
-
-    type: 'tool';
-
-    /**
-     * Whether to disable parallel tool use.
-     *
-     * Defaults to `false`. If set to `true`, the model will output exactly one tool
-     * use.
-     */
-    disable_parallel_tool_use?: boolean;
-  }
+  export type ToolChoiceTool = MessagesAPI.ToolChoiceTool;
 
   export type MessageCreateParamsNonStreaming = PromptCachingMessagesAPI.MessageCreateParamsNonStreaming;
   export type MessageCreateParamsStreaming = PromptCachingMessagesAPI.MessageCreateParamsStreaming;
