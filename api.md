@@ -29,6 +29,10 @@ Types:
 - <code><a href="./src/resources/messages.ts">TextBlockParam</a></code>
 - <code><a href="./src/resources/messages.ts">TextDelta</a></code>
 - <code><a href="./src/resources/messages.ts">Tool</a></code>
+- <code><a href="./src/resources/messages.ts">ToolChoice</a></code>
+- <code><a href="./src/resources/messages.ts">ToolChoiceAny</a></code>
+- <code><a href="./src/resources/messages.ts">ToolChoiceAuto</a></code>
+- <code><a href="./src/resources/messages.ts">ToolChoiceTool</a></code>
 - <code><a href="./src/resources/messages.ts">ToolResultBlockParam</a></code>
 - <code><a href="./src/resources/messages.ts">ToolUseBlock</a></code>
 - <code><a href="./src/resources/messages.ts">ToolUseBlockParam</a></code>
