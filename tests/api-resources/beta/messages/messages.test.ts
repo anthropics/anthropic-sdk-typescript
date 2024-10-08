@@ -10,7 +10,7 @@ const client = new Anthropic({
 
 describe('resource messages', () => {
   test('create: only required params', async () => {
-    const responsePromise = client.beta.promptCaching.messages.create({
+    const responsePromise = client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
       model: 'claude-3-5-sonnet-20240620',
@@ -25,7 +25,7 @@ describe('resource messages', () => {
   });
 
   test('create: required and optional params', async () => {
-    const response = await client.beta.promptCaching.messages.create({
+    const response = await client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
       model: 'claude-3-5-sonnet-20240620',

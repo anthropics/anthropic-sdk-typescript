@@ -4,6 +4,7 @@ import * as Errors from './error';
 import * as Uploads from './uploads';
 import { type Agent } from './_shims/index';
 import * as Core from './core';
+import * as Pagination from './pagination';
 import * as API from './resources/index';
 
 export interface ClientOptions {
@@ -250,6 +251,10 @@ export import fileFromPath = Uploads.fileFromPath;
 export namespace Anthropic {
   export import RequestOptions = Core.RequestOptions;
 
+  export import Page = Pagination.Page;
+  export import PageParams = Pagination.PageParams;
+  export import PageResponse = Pagination.PageResponse;
+
   export import Completions = API.Completions;
   export import Completion = API.Completion;
   export import CompletionCreateParams = API.CompletionCreateParams;
@@ -297,6 +302,16 @@ export namespace Anthropic {
   export import MessageStreamParams = API.MessageStreamParams;
 
   export import Beta = API.Beta;
+  export import AnthropicBeta = API.AnthropicBeta;
+  export import BetaAPIError = API.BetaAPIError;
+  export import BetaAuthenticationError = API.BetaAuthenticationError;
+  export import BetaError = API.BetaError;
+  export import BetaErrorResponse = API.BetaErrorResponse;
+  export import BetaInvalidRequestError = API.BetaInvalidRequestError;
+  export import BetaNotFoundError = API.BetaNotFoundError;
+  export import BetaOverloadedError = API.BetaOverloadedError;
+  export import BetaPermissionError = API.BetaPermissionError;
+  export import BetaRateLimitError = API.BetaRateLimitError;
 }
 
 export default Anthropic;

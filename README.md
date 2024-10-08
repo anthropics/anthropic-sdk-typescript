@@ -132,6 +132,51 @@ Streaming with `client.messages.stream(...)` exposes [various helpers for your c
 
 Alternatively, you can use `client.messages.create({ ..., stream: true })` which only returns an async iterable of the events in the stream and thus uses less memory (it does not build up a final message object for you).
 
+## Message Batches
+
+This SDK provides beta support for the [Message Batches API](https://docs.anthropic.com/en/docs/build-with-claude/message-batches) under the `client.beta.messages.batches` namespace.
+
+### Creating a batch
+
+Message Batches take the exact same request params as the standard Messages API:
+
+```ts
+await anthropic.beta.messages.batches.create({
+  requests: [
+    {
+      custom_id: 'my-first-request',
+      params: {
+        model: 'claude-3-5-sonnet-20240620',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'Hello, world' }],
+      },
+    },
+    {
+      custom_id: 'my-second-request',
+      params: {
+        model: 'claude-3-5-sonnet-20240620',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'Hi again, friend' }],
+      },
+    },
+  ],
+});
+```
+
+
+### Getting results from a batch
+
+Once a Message Batch has been processed, indicated by `.processing_status === 'ended'`, you can access the results with `.batches.results()`
+
+```ts
+const results = await anthropic.beta.messages.batches.results(batch_id);
+for await (const entry of results) {
+  if (entry.result.type === 'succeeded') {
+    console.log(entry.result.message.content)
+  }
+}
+```
+
 ## Tool use beta
 
 This SDK provides beta support for tool use, aka function calling. More details can be found in [the documentation](https://docs.anthropic.com/claude/docs/tool-use).
@@ -223,6 +268,37 @@ await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', cont
 On timeout, an `APIConnectionTimeoutError` is thrown.
 
 Note that requests which time out will be [retried twice by default](#retries).
+
+## Auto-pagination
+
+List methods in the Anthropic API are paginated.
+You can use `for await … of` syntax to iterate through items across all pages:
+
+```ts
+async function fetchAllBetaMessagesBatches(params) {
+  const allBetaMessagesBatches = [];
+  // Automatically fetches more pages as needed.
+  for await (const betaMessageBatch of client.beta.messages.batches.list({ limit: 20 })) {
+    allBetaMessagesBatches.push(betaMessageBatch);
+  }
+  return allBetaMessagesBatches;
+}
+```
+
+Alternatively, you can make request a single page at a time:
+
+```ts
+let page = await client.beta.messages.batches.list({ limit: 20 });
+for (const betaMessageBatch of page.data) {
+  console.log(betaMessageBatch);
+}
+
+// Convenience methods are provided for manually paginating:
+while (page.hasNextPage()) {
+  page = page.getNextPage();
+  // ...
+}
+```
 
 ## Default Headers
 

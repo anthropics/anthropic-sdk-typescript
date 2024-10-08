@@ -1,19 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 export {
-  AnthropicBeta,
-  BetaAPIError,
-  BetaAuthenticationError,
-  BetaError,
-  BetaErrorResponse,
-  BetaInvalidRequestError,
-  BetaNotFoundError,
-  BetaOverloadedError,
-  BetaPermissionError,
-  BetaRateLimitError,
-  Beta,
-} from './beta';
-export {
   BetaCacheControlEphemeral,
   BetaContentBlock,
   BetaContentBlockParam,
@@ -46,5 +33,21 @@ export {
   MessageCreateParamsNonStreaming,
   MessageCreateParamsStreaming,
   Messages,
-} from './messages/index';
-export { PromptCaching } from './prompt-caching/index';
+} from './messages';
+export {
+  BetaMessageBatch,
+  BetaMessageBatchCanceledResult,
+  BetaMessageBatchErroredResult,
+  BetaMessageBatchExpiredResult,
+  BetaMessageBatchIndividualResponse,
+  BetaMessageBatchRequestCounts,
+  BetaMessageBatchResult,
+  BetaMessageBatchSucceededResult,
+  BatchCreateParams,
+  BatchRetrieveParams,
+  BatchListParams,
+  BatchCancelParams,
+  BatchResultsParams,
+  BetaMessageBatchesPage,
+  Batches,
+} from './batches';
