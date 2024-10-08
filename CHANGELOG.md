@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.29.0 (2024-10-08)
+
+Full Changelog: [sdk-v0.28.0...sdk-v0.29.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.28.0...sdk-v0.29.0)
+
+### Features
+
+* **api:** add message batches api ([4f114d5](https://github.com/anthropics/anthropic-sdk-typescript/commit/4f114d5121f5c66619c7bdd18d0aa2b7a627e3ff))
+
+
+### Chores
+
+* **internal:** move LineDecoder to a separate file ([#541](https://github.com/anthropics/anthropic-sdk-typescript/issues/541)) ([fd42469](https://github.com/anthropics/anthropic-sdk-typescript/commit/fd4246928d11347147955ca19efcd4c5b0accb10))
+* **internal:** pass props through internal parser ([#549](https://github.com/anthropics/anthropic-sdk-typescript/issues/549)) ([dd71955](https://github.com/anthropics/anthropic-sdk-typescript/commit/dd7195501e0419ca1e6bafd7341b0726e8b809ab))
+
+
+### Refactors
+
+* **types:** improve metadata type names ([#547](https://github.com/anthropics/anthropic-sdk-typescript/issues/547)) ([cef499c](https://github.com/anthropics/anthropic-sdk-typescript/commit/cef499cf3b01643f7e5e3c09524f49e198b940be))
+* **types:** improve metadata types ([#546](https://github.com/anthropics/anthropic-sdk-typescript/issues/546)) ([3fe538b](https://github.com/anthropics/anthropic-sdk-typescript/commit/3fe538bb8cd50e6d68cacc0846f287dc539238d3))
+* **types:** improve tool type names ([#543](https://github.com/anthropics/anthropic-sdk-typescript/issues/543)) ([18dbe77](https://github.com/anthropics/anthropic-sdk-typescript/commit/18dbe7773781eb3917c9609bf490b515d75e6841))
+* **types:** improve tool type names ([#544](https://github.com/anthropics/anthropic-sdk-typescript/issues/544)) ([fc2d823](https://github.com/anthropics/anthropic-sdk-typescript/commit/fc2d8230c6fb68e247743ffa82c3ba9f8b989adf))
+
 ## 0.28.0 (2024-10-04)
 
 Full Changelog: [sdk-v0.27.3...sdk-v0.28.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.27.3...sdk-v0.28.0)
