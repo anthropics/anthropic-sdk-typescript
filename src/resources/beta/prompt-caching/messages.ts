@@ -5,13 +5,12 @@ import { APIPromise } from '../../../core';
 import * as Core from '../../../core';
 import * as PromptCachingMessagesAPI from './messages';
 import * as MessagesAPI from '../../messages';
+import * as BetaAPI from '../beta';
 import { Stream } from '../../../streaming';
 import { PromptCachingBetaMessageStream } from '../../../lib/PromptCachingBetaMessageStream';
 
 export class Messages extends APIResource {
   /**
-   * Create a Message.
-   *
    * Send a structured list of input messages with text and/or image content, and the
    * model will generate the next message in the conversation.
    *
@@ -19,27 +18,31 @@ export class Messages extends APIResource {
    * conversations.
    */
   create(
-    body: MessageCreateParamsNonStreaming,
+    params: MessageCreateParamsNonStreaming,
     options?: Core.RequestOptions,
   ): APIPromise<PromptCachingBetaMessage>;
   create(
-    body: MessageCreateParamsStreaming,
+    params: MessageCreateParamsStreaming,
     options?: Core.RequestOptions,
   ): APIPromise<Stream<RawPromptCachingBetaMessageStreamEvent>>;
   create(
-    body: MessageCreateParamsBase,
+    params: MessageCreateParamsBase,
     options?: Core.RequestOptions,
   ): APIPromise<Stream<RawPromptCachingBetaMessageStreamEvent> | PromptCachingBetaMessage>;
   create(
-    body: MessageCreateParams,
+    params: MessageCreateParams,
     options?: Core.RequestOptions,
   ): APIPromise<PromptCachingBetaMessage> | APIPromise<Stream<RawPromptCachingBetaMessageStreamEvent>> {
+    const { betas, ...body } = params;
     return this._client.post('/v1/messages?beta=prompt_caching', {
       body,
       timeout: (this._client as any)._options.timeout ?? 600000,
       ...options,
-      headers: { 'anthropic-beta': 'prompt-caching-2024-07-31', ...options?.headers },
-      stream: body.stream ?? false,
+      headers: {
+        'anthropic-beta': betas != null ? betas.toString() : 'prompt-caching-2024-07-31',
+        ...options?.headers,
+      },
+      stream: params.stream ?? false,
     }) as APIPromise<PromptCachingBetaMessage> | APIPromise<Stream<RawPromptCachingBetaMessageStreamEvent>>;
   }
 
@@ -304,7 +307,7 @@ export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreat
 
 export interface MessageCreateParamsBase {
   /**
-   * The maximum number of tokens to generate before stopping.
+   * Body param: The maximum number of tokens to generate before stopping.
    *
    * Note that our models may stop _before_ reaching this maximum. This parameter
    * only specifies the absolute maximum number of tokens to generate.
@@ -315,7 +318,7 @@ export interface MessageCreateParamsBase {
   max_tokens: number;
 
   /**
-   * Input messages.
+   * Body param: Input messages.
    *
    * Our models are trained to operate on alternating `user` and `assistant`
    * conversational turns. When creating a new `Message`, you specify the prior
@@ -404,19 +407,19 @@ export interface MessageCreateParamsBase {
   messages: Array<PromptCachingBetaMessageParam>;
 
   /**
-   * The model that will complete your prompt.\n\nSee
+   * Body param: The model that will complete your prompt.\n\nSee
    * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
   model: MessagesAPI.Model;
 
   /**
-   * An object describing metadata about the request.
+   * Body param: An object describing metadata about the request.
    */
   metadata?: MessagesAPI.Metadata;
 
   /**
-   * Custom text sequences that will cause the model to stop generating.
+   * Body param: Custom text sequences that will cause the model to stop generating.
    *
    * Our models will normally stop when they have naturally completed their turn,
    * which will result in a response `stop_reason` of `"end_turn"`.
@@ -429,7 +432,8 @@ export interface MessageCreateParamsBase {
   stop_sequences?: Array<string>;
 
   /**
-   * Whether to incrementally stream the response using server-sent events.
+   * Body param: Whether to incrementally stream the response using server-sent
+   * events.
    *
    * See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for
    * details.
@@ -437,7 +441,7 @@ export interface MessageCreateParamsBase {
   stream?: boolean;
 
   /**
-   * System prompt.
+   * Body param: System prompt.
    *
    * A system prompt is a way of providing context and instructions to Claude, such
    * as specifying a particular goal or role. See our
@@ -446,7 +450,7 @@ export interface MessageCreateParamsBase {
   system?: string | Array<PromptCachingBetaTextBlockParam>;
 
   /**
-   * Amount of randomness injected into the response.
+   * Body param: Amount of randomness injected into the response.
    *
    * Defaults to `1.0`. Ranges from `0.0` to `1.0`. Use `temperature` closer to `0.0`
    * for analytical / multiple choice, and closer to `1.0` for creative and
@@ -458,13 +462,13 @@ export interface MessageCreateParamsBase {
   temperature?: number;
 
   /**
-   * How the model should use the provided tools. The model can use a specific tool,
-   * any available tool, or decide by itself.
+   * Body param: How the model should use the provided tools. The model can use a
+   * specific tool, any available tool, or decide by itself.
    */
   tool_choice?: MessagesAPI.ToolChoice;
 
   /**
-   * Definitions of tools that the model may use.
+   * Body param: Definitions of tools that the model may use.
    *
    * If you include `tools` in your API request, the model may return `tool_use`
    * content blocks that represent the model's use of those tools. You can then run
@@ -536,7 +540,7 @@ export interface MessageCreateParamsBase {
   tools?: Array<PromptCachingBetaTool>;
 
   /**
-   * Only sample from the top K options for each subsequent token.
+   * Body param: Only sample from the top K options for each subsequent token.
    *
    * Used to remove "long tail" low probability responses.
    * [Learn more technical details here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
@@ -547,7 +551,7 @@ export interface MessageCreateParamsBase {
   top_k?: number;
 
   /**
-   * Use nucleus sampling.
+   * Body param: Use nucleus sampling.
    *
    * In nucleus sampling, we compute the cumulative distribution over all the options
    * for each subsequent token in decreasing probability order and cut it off once it
@@ -558,6 +562,11 @@ export interface MessageCreateParamsBase {
    * `temperature`.
    */
   top_p?: number;
+
+  /**
+   * Header param: Optional header to specify the beta version(s) you want to use.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
 export namespace MessageCreateParams {
@@ -587,7 +596,8 @@ export namespace MessageCreateParams {
 
 export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase {
   /**
-   * Whether to incrementally stream the response using server-sent events.
+   * Body param: Whether to incrementally stream the response using server-sent
+   * events.
    *
    * See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for
    * details.
@@ -597,7 +607,8 @@ export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase
 
 export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
   /**
-   * Whether to incrementally stream the response using server-sent events.
+   * Body param: Whether to incrementally stream the response using server-sent
+   * events.
    *
    * See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for
    * details.

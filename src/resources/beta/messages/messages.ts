@@ -1,15 +1,17 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../resource';
-import { APIPromise } from '../core';
-import * as Core from '../core';
-import * as MessagesAPI from './messages';
-import { Stream } from '../streaming';
-import { MessageStream } from '../lib/MessageStream';
-
-export { MessageStream } from '../lib/MessageStream';
+import { APIResource } from '../../../resource';
+import { APIPromise } from '../../../core';
+import * as Core from '../../../core';
+import * as MessagesMessagesAPI from './messages';
+import * as MessagesAPI from '../../messages';
+import * as BetaAPI from '../beta';
+import * as BatchesAPI from './batches';
+import { Stream } from '../../../streaming';
 
 export class Messages extends APIResource {
+  batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
+
   /**
    * Send a structured list of input messages with text and/or image content, and the
    * model will generate the next message in the conversation.
@@ -17,57 +19,54 @@ export class Messages extends APIResource {
    * The Messages API can be used for either single queries or stateless multi-turn
    * conversations.
    */
-  create(body: MessageCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Message>;
+  create(params: MessageCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<BetaMessage>;
   create(
-    body: MessageCreateParamsStreaming,
+    params: MessageCreateParamsStreaming,
     options?: Core.RequestOptions,
-  ): APIPromise<Stream<RawMessageStreamEvent>>;
+  ): APIPromise<Stream<BetaRawMessageStreamEvent>>;
   create(
-    body: MessageCreateParamsBase,
+    params: MessageCreateParamsBase,
     options?: Core.RequestOptions,
-  ): APIPromise<Stream<RawMessageStreamEvent> | Message>;
+  ): APIPromise<Stream<BetaRawMessageStreamEvent> | BetaMessage>;
   create(
-    body: MessageCreateParams,
+    params: MessageCreateParams,
     options?: Core.RequestOptions,
-  ): APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>> {
-    if (body.model in DEPRECATED_MODELS) {
-      console.warn(
-        `The model '${body.model}' is deprecated and will reach end-of-life on ${
-          DEPRECATED_MODELS[body.model]
-        }\nPlease migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information.`,
-      );
-    }
-    return this._client.post('/v1/messages', {
+  ): APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>> {
+    const { betas, ...body } = params;
+    return this._client.post('/v1/messages?beta=true', {
       body,
       timeout: (this._client as any)._options.timeout ?? 600000,
       ...options,
-      stream: body.stream ?? false,
-    }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
-  }
-
-  /**
-   * Create a Message stream
-   */
-  stream(body: MessageStreamParams, options?: Core.RequestOptions): MessageStream {
-    return MessageStream.createMessage(this, body, options);
+      headers: {
+        ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+        ...options?.headers,
+      },
+      stream: params.stream ?? false,
+    }) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
   }
 }
 
-export type ContentBlock = TextBlock | ToolUseBlock;
+export interface BetaCacheControlEphemeral {
+  type: 'ephemeral';
+}
 
-export type ContentBlockDeltaEvent = RawContentBlockDeltaEvent;
+export type BetaContentBlock = BetaTextBlock | BetaToolUseBlock;
 
-export type ContentBlockStartEvent = RawContentBlockStartEvent;
+export type BetaContentBlockParam =
+  | BetaTextBlockParam
+  | BetaImageBlockParam
+  | BetaToolUseBlockParam
+  | BetaToolResultBlockParam;
 
-export type ContentBlockStopEvent = RawContentBlockStopEvent;
-
-export interface ImageBlockParam {
-  source: ImageBlockParam.Source;
+export interface BetaImageBlockParam {
+  source: BetaImageBlockParam.Source;
 
   type: 'image';
+
+  cache_control?: BetaCacheControlEphemeral | null;
 }
 
-export namespace ImageBlockParam {
+export namespace BetaImageBlockParam {
   export interface Source {
     data: string;
 
@@ -77,15 +76,13 @@ export namespace ImageBlockParam {
   }
 }
 
-export type InputJsonDelta = InputJSONDelta;
-
-export interface InputJSONDelta {
+export interface BetaInputJSONDelta {
   partial_json: string;
 
   type: 'input_json_delta';
 }
 
-export interface Message {
+export interface BetaMessage {
   /**
    * Unique object identifier.
    *
@@ -127,14 +124,14 @@ export interface Message {
    * [{ "type": "text", "text": "B)" }]
    * ```
    */
-  content: Array<ContentBlock>;
+  content: Array<BetaContentBlock>;
 
   /**
    * The model that will complete your prompt.\n\nSee
    * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
-  model: Model;
+  model: MessagesAPI.Model;
 
   /**
    * Conversational role of the generated message.
@@ -187,31 +184,23 @@ export interface Message {
    * For example, `output_tokens` will be non-zero, even for an empty string response
    * from Claude.
    */
-  usage: Usage;
+  usage: BetaUsage;
 }
 
-export type MessageDeltaEvent = RawMessageDeltaEvent;
-
-export interface MessageDeltaUsage {
+export interface BetaMessageDeltaUsage {
   /**
    * The cumulative number of output tokens which were used.
    */
   output_tokens: number;
 }
 
-export interface MessageParam {
-  content: string | Array<TextBlockParam | ImageBlockParam | ToolUseBlockParam | ToolResultBlockParam>;
+export interface BetaMessageParam {
+  content: string | Array<BetaContentBlockParam>;
 
   role: 'user' | 'assistant';
 }
 
-export type MessageStartEvent = RawMessageStartEvent;
-
-export type MessageStopEvent = RawMessageStopEvent;
-
-export type MessageStreamEvent = RawMessageStreamEvent;
-
-export interface Metadata {
+export interface BetaMetadata {
   /**
    * An external identifier for the user who is associated with the request.
    *
@@ -222,57 +211,30 @@ export interface Metadata {
   user_id?: string | null;
 }
 
-/**
- * The model that will complete your prompt.\n\nSee
- * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
- * details and options.
- */
-export type Model =
-  | (string & {})
-  | 'claude-3-5-sonnet-20240620'
-  | 'claude-3-opus-20240229'
-  | 'claude-3-sonnet-20240229'
-  | 'claude-3-haiku-20240307'
-  | 'claude-2.1'
-  | 'claude-2.0'
-  | 'claude-instant-1.2';
-
-type DeprecatedModelsType = {
-  [K in Model]?: string;
-};
-
-const DEPRECATED_MODELS: DeprecatedModelsType = {
-  'claude-1.3': 'November 6th, 2024',
-  'claude-1.3-100k': 'November 6th, 2024',
-  'claude-instant-1.1': 'November 6th, 2024',
-  'claude-instant-1.1-100k': 'November 6th, 2024',
-  'claude-instant-1.2': 'November 6th, 2024',
-};
-
-export interface RawContentBlockDeltaEvent {
-  delta: TextDelta | InputJSONDelta;
+export interface BetaRawContentBlockDeltaEvent {
+  delta: BetaTextDelta | BetaInputJSONDelta;
 
   index: number;
 
   type: 'content_block_delta';
 }
 
-export interface RawContentBlockStartEvent {
-  content_block: TextBlock | ToolUseBlock;
+export interface BetaRawContentBlockStartEvent {
+  content_block: BetaTextBlock | BetaToolUseBlock;
 
   index: number;
 
   type: 'content_block_start';
 }
 
-export interface RawContentBlockStopEvent {
+export interface BetaRawContentBlockStopEvent {
   index: number;
 
   type: 'content_block_stop';
 }
 
-export interface RawMessageDeltaEvent {
-  delta: RawMessageDeltaEvent.Delta;
+export interface BetaRawMessageDeltaEvent {
+  delta: BetaRawMessageDeltaEvent.Delta;
 
   type: 'message_delta';
 
@@ -290,10 +252,10 @@ export interface RawMessageDeltaEvent {
    * For example, `output_tokens` will be non-zero, even for an empty string response
    * from Claude.
    */
-  usage: MessageDeltaUsage;
+  usage: BetaMessageDeltaUsage;
 }
 
-export namespace RawMessageDeltaEvent {
+export namespace BetaRawMessageDeltaEvent {
   export interface Delta {
     stop_reason: 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | null;
 
@@ -301,52 +263,56 @@ export namespace RawMessageDeltaEvent {
   }
 }
 
-export interface RawMessageStartEvent {
-  message: Message;
+export interface BetaRawMessageStartEvent {
+  message: BetaMessage;
 
   type: 'message_start';
 }
 
-export interface RawMessageStopEvent {
+export interface BetaRawMessageStopEvent {
   type: 'message_stop';
 }
 
-export type RawMessageStreamEvent =
-  | RawMessageStartEvent
-  | RawMessageDeltaEvent
-  | RawMessageStopEvent
-  | RawContentBlockStartEvent
-  | RawContentBlockDeltaEvent
-  | RawContentBlockStopEvent;
+export type BetaRawMessageStreamEvent =
+  | BetaRawMessageStartEvent
+  | BetaRawMessageDeltaEvent
+  | BetaRawMessageStopEvent
+  | BetaRawContentBlockStartEvent
+  | BetaRawContentBlockDeltaEvent
+  | BetaRawContentBlockStopEvent;
 
-export interface TextBlock {
+export interface BetaTextBlock {
   text: string;
 
   type: 'text';
 }
 
-export interface TextBlockParam {
+export interface BetaTextBlockParam {
   text: string;
 
   type: 'text';
+
+  cache_control?: BetaCacheControlEphemeral | null;
 }
 
-export interface TextDelta {
+export interface BetaTextDelta {
   text: string;
 
   type: 'text_delta';
 }
 
-export interface Tool {
+export interface BetaTool {
   /**
    * [JSON schema](https://json-schema.org/) for this tool's input.
    *
    * This defines the shape of the `input` that your tool accepts and that the model
    * will produce.
    */
-  input_schema: Tool.InputSchema;
+  input_schema: BetaTool.InputSchema;
 
   name: string;
+
+  cache_control?: BetaCacheControlEphemeral | null;
 
   /**
    * Description of what this tool does.
@@ -359,7 +325,7 @@ export interface Tool {
   description?: string;
 }
 
-export namespace Tool {
+export namespace BetaTool {
   /**
    * [JSON schema](https://json-schema.org/) for this tool's input.
    *
@@ -378,12 +344,12 @@ export namespace Tool {
  * How the model should use the provided tools. The model can use a specific tool,
  * any available tool, or decide by itself.
  */
-export type ToolChoice = ToolChoiceAuto | ToolChoiceAny | ToolChoiceTool;
+export type BetaToolChoice = BetaToolChoiceAuto | BetaToolChoiceAny | BetaToolChoiceTool;
 
 /**
  * The model will use any available tools.
  */
-export interface ToolChoiceAny {
+export interface BetaToolChoiceAny {
   type: 'any';
 
   /**
@@ -398,7 +364,7 @@ export interface ToolChoiceAny {
 /**
  * The model will automatically decide whether to use tools.
  */
-export interface ToolChoiceAuto {
+export interface BetaToolChoiceAuto {
   type: 'auto';
 
   /**
@@ -413,7 +379,7 @@ export interface ToolChoiceAuto {
 /**
  * The model will use the specified tool with `tool_choice.name`.
  */
-export interface ToolChoiceTool {
+export interface BetaToolChoiceTool {
   /**
    * The name of the tool to use.
    */
@@ -430,17 +396,19 @@ export interface ToolChoiceTool {
   disable_parallel_tool_use?: boolean;
 }
 
-export interface ToolResultBlockParam {
+export interface BetaToolResultBlockParam {
   tool_use_id: string;
 
   type: 'tool_result';
 
-  content?: string | Array<TextBlockParam | ImageBlockParam>;
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  content?: string | Array<BetaTextBlockParam | BetaImageBlockParam>;
 
   is_error?: boolean;
 }
 
-export interface ToolUseBlock {
+export interface BetaToolUseBlock {
   id: string;
 
   input: unknown;
@@ -450,7 +418,7 @@ export interface ToolUseBlock {
   type: 'tool_use';
 }
 
-export interface ToolUseBlockParam {
+export interface BetaToolUseBlockParam {
   id: string;
 
   input: unknown;
@@ -458,9 +426,21 @@ export interface ToolUseBlockParam {
   name: string;
 
   type: 'tool_use';
+
+  cache_control?: BetaCacheControlEphemeral | null;
 }
 
-export interface Usage {
+export interface BetaUsage {
+  /**
+   * The number of input tokens used to create the cache entry.
+   */
+  cache_creation_input_tokens: number | null;
+
+  /**
+   * The number of input tokens read from the cache.
+   */
+  cache_read_input_tokens: number | null;
+
   /**
    * The number of input tokens which were used.
    */
@@ -476,7 +456,7 @@ export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreat
 
 export interface MessageCreateParamsBase {
   /**
-   * The maximum number of tokens to generate before stopping.
+   * Body param: The maximum number of tokens to generate before stopping.
    *
    * Note that our models may stop _before_ reaching this maximum. This parameter
    * only specifies the absolute maximum number of tokens to generate.
@@ -487,7 +467,7 @@ export interface MessageCreateParamsBase {
   max_tokens: number;
 
   /**
-   * Input messages.
+   * Body param: Input messages.
    *
    * Our models are trained to operate on alternating `user` and `assistant`
    * conversational turns. When creating a new `Message`, you specify the prior
@@ -573,22 +553,22 @@ export interface MessageCreateParamsBase {
    * the top-level `system` parameter — there is no `"system"` role for input
    * messages in the Messages API.
    */
-  messages: Array<MessageParam>;
+  messages: Array<BetaMessageParam>;
 
   /**
-   * The model that will complete your prompt.\n\nSee
+   * Body param: The model that will complete your prompt.\n\nSee
    * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
-  model: Model;
+  model: MessagesAPI.Model;
 
   /**
-   * An object describing metadata about the request.
+   * Body param: An object describing metadata about the request.
    */
-  metadata?: Metadata;
+  metadata?: BetaMetadata;
 
   /**
-   * Custom text sequences that will cause the model to stop generating.
+   * Body param: Custom text sequences that will cause the model to stop generating.
    *
    * Our models will normally stop when they have naturally completed their turn,
    * which will result in a response `stop_reason` of `"end_turn"`.
@@ -601,7 +581,8 @@ export interface MessageCreateParamsBase {
   stop_sequences?: Array<string>;
 
   /**
-   * Whether to incrementally stream the response using server-sent events.
+   * Body param: Whether to incrementally stream the response using server-sent
+   * events.
    *
    * See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for
    * details.
@@ -609,16 +590,16 @@ export interface MessageCreateParamsBase {
   stream?: boolean;
 
   /**
-   * System prompt.
+   * Body param: System prompt.
    *
    * A system prompt is a way of providing context and instructions to Claude, such
    * as specifying a particular goal or role. See our
    * [guide to system prompts](https://docs.anthropic.com/en/docs/system-prompts).
    */
-  system?: string | Array<TextBlockParam>;
+  system?: string | Array<BetaTextBlockParam>;
 
   /**
-   * Amount of randomness injected into the response.
+   * Body param: Amount of randomness injected into the response.
    *
    * Defaults to `1.0`. Ranges from `0.0` to `1.0`. Use `temperature` closer to `0.0`
    * for analytical / multiple choice, and closer to `1.0` for creative and
@@ -630,13 +611,13 @@ export interface MessageCreateParamsBase {
   temperature?: number;
 
   /**
-   * How the model should use the provided tools. The model can use a specific tool,
-   * any available tool, or decide by itself.
+   * Body param: How the model should use the provided tools. The model can use a
+   * specific tool, any available tool, or decide by itself.
    */
-  tool_choice?: ToolChoice;
+  tool_choice?: BetaToolChoice;
 
   /**
-   * Definitions of tools that the model may use.
+   * Body param: Definitions of tools that the model may use.
    *
    * If you include `tools` in your API request, the model may return `tool_use`
    * content blocks that represent the model's use of those tools. You can then run
@@ -705,10 +686,10 @@ export interface MessageCreateParamsBase {
    *
    * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
    */
-  tools?: Array<Tool>;
+  tools?: Array<BetaTool>;
 
   /**
-   * Only sample from the top K options for each subsequent token.
+   * Body param: Only sample from the top K options for each subsequent token.
    *
    * Used to remove "long tail" low probability responses.
    * [Learn more technical details here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
@@ -719,7 +700,7 @@ export interface MessageCreateParamsBase {
   top_k?: number;
 
   /**
-   * Use nucleus sampling.
+   * Body param: Use nucleus sampling.
    *
    * In nucleus sampling, we compute the cumulative distribution over all the options
    * for each subsequent token in decreasing probability order and cut it off once it
@@ -730,36 +711,22 @@ export interface MessageCreateParamsBase {
    * `temperature`.
    */
   top_p?: number;
+
+  /**
+   * Header param: Optional header to specify the beta version(s) you want to use.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
 export namespace MessageCreateParams {
-  /**
-   * @deprecated use `Anthropic.Messages.ToolChoiceAuto` instead
-   */
-  export type Metadata = MessagesAPI.Metadata;
-
-  /**
-   * @deprecated use `Anthropic.Messages.ToolChoiceAuto` instead
-   */
-  export type ToolChoiceAuto = MessagesAPI.ToolChoiceAuto;
-
-  /**
-   * @deprecated use `Anthropic.Messages.ToolChoiceAny` instead
-   */
-  export type ToolChoiceAny = MessagesAPI.ToolChoiceAny;
-
-  /**
-   * @deprecated use `Anthropic.Messages.ToolChoiceTool` instead
-   */
-  export type ToolChoiceTool = MessagesAPI.ToolChoiceTool;
-
-  export type MessageCreateParamsNonStreaming = MessagesAPI.MessageCreateParamsNonStreaming;
-  export type MessageCreateParamsStreaming = MessagesAPI.MessageCreateParamsStreaming;
+  export type MessageCreateParamsNonStreaming = MessagesMessagesAPI.MessageCreateParamsNonStreaming;
+  export type MessageCreateParamsStreaming = MessagesMessagesAPI.MessageCreateParamsStreaming;
 }
 
 export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase {
   /**
-   * Whether to incrementally stream the response using server-sent events.
+   * Body param: Whether to incrementally stream the response using server-sent
+   * events.
    *
    * See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for
    * details.
@@ -769,7 +736,8 @@ export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase
 
 export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
   /**
-   * Whether to incrementally stream the response using server-sent events.
+   * Body param: Whether to incrementally stream the response using server-sent
+   * events.
    *
    * See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for
    * details.
@@ -777,46 +745,51 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
   stream: true;
 }
 
-export type MessageStreamParams = MessageCreateParamsBase;
-
 export namespace Messages {
-  export import ContentBlock = MessagesAPI.ContentBlock;
-  export import ContentBlockDeltaEvent = MessagesAPI.ContentBlockDeltaEvent;
-  export import ContentBlockStartEvent = MessagesAPI.ContentBlockStartEvent;
-  export import ContentBlockStopEvent = MessagesAPI.ContentBlockStopEvent;
-  export import ImageBlockParam = MessagesAPI.ImageBlockParam;
-  export import InputJJsonDelta = MessagesAPI.InputJsonDelta;
-  export import InputJSONDelta = MessagesAPI.InputJSONDelta;
-  export import Message = MessagesAPI.Message;
-  export import MessageDeltaEvent = MessagesAPI.MessageDeltaEvent;
-  export import MessageDeltaUsage = MessagesAPI.MessageDeltaUsage;
-  export import MessageParam = MessagesAPI.MessageParam;
-  export import MessageStartEvent = MessagesAPI.MessageStartEvent;
-  export import MessageStopEvent = MessagesAPI.MessageStopEvent;
-  export import MessageStreamEvent = MessagesAPI.MessageStreamEvent;
-  export import Metadata = MessagesAPI.Metadata;
-  export import Model = MessagesAPI.Model;
-  export import RawContentBlockDeltaEvent = MessagesAPI.RawContentBlockDeltaEvent;
-  export import RawContentBlockStartEvent = MessagesAPI.RawContentBlockStartEvent;
-  export import RawContentBlockStopEvent = MessagesAPI.RawContentBlockStopEvent;
-  export import RawMessageDeltaEvent = MessagesAPI.RawMessageDeltaEvent;
-  export import RawMessageStartEvent = MessagesAPI.RawMessageStartEvent;
-  export import RawMessageStopEvent = MessagesAPI.RawMessageStopEvent;
-  export import RawMessageStreamEvent = MessagesAPI.RawMessageStreamEvent;
-  export import TextBlock = MessagesAPI.TextBlock;
-  export import TextBlockParam = MessagesAPI.TextBlockParam;
-  export import TextDelta = MessagesAPI.TextDelta;
-  export import Tool = MessagesAPI.Tool;
-  export import ToolChoice = MessagesAPI.ToolChoice;
-  export import ToolChoiceAny = MessagesAPI.ToolChoiceAny;
-  export import ToolChoiceAuto = MessagesAPI.ToolChoiceAuto;
-  export import ToolChoiceTool = MessagesAPI.ToolChoiceTool;
-  export import ToolResultBlockParam = MessagesAPI.ToolResultBlockParam;
-  export import ToolUseBlock = MessagesAPI.ToolUseBlock;
-  export import ToolUseBlockParam = MessagesAPI.ToolUseBlockParam;
-  export import Usage = MessagesAPI.Usage;
-  export import MessageCreateParams = MessagesAPI.MessageCreateParams;
-  export import MessageCreateParamsNonStreaming = MessagesAPI.MessageCreateParamsNonStreaming;
-  export import MessageCreateParamsStreaming = MessagesAPI.MessageCreateParamsStreaming;
-  export import MessageStreamParams = MessagesAPI.MessageStreamParams;
+  export import BetaCacheControlEphemeral = MessagesMessagesAPI.BetaCacheControlEphemeral;
+  export import BetaContentBlock = MessagesMessagesAPI.BetaContentBlock;
+  export import BetaContentBlockParam = MessagesMessagesAPI.BetaContentBlockParam;
+  export import BetaImageBlockParam = MessagesMessagesAPI.BetaImageBlockParam;
+  export import BetaInputJSONDelta = MessagesMessagesAPI.BetaInputJSONDelta;
+  export import BetaMessage = MessagesMessagesAPI.BetaMessage;
+  export import BetaMessageDeltaUsage = MessagesMessagesAPI.BetaMessageDeltaUsage;
+  export import BetaMessageParam = MessagesMessagesAPI.BetaMessageParam;
+  export import BetaMetadata = MessagesMessagesAPI.BetaMetadata;
+  export import BetaRawContentBlockDeltaEvent = MessagesMessagesAPI.BetaRawContentBlockDeltaEvent;
+  export import BetaRawContentBlockStartEvent = MessagesMessagesAPI.BetaRawContentBlockStartEvent;
+  export import BetaRawContentBlockStopEvent = MessagesMessagesAPI.BetaRawContentBlockStopEvent;
+  export import BetaRawMessageDeltaEvent = MessagesMessagesAPI.BetaRawMessageDeltaEvent;
+  export import BetaRawMessageStartEvent = MessagesMessagesAPI.BetaRawMessageStartEvent;
+  export import BetaRawMessageStopEvent = MessagesMessagesAPI.BetaRawMessageStopEvent;
+  export import BetaRawMessageStreamEvent = MessagesMessagesAPI.BetaRawMessageStreamEvent;
+  export import BetaTextBlock = MessagesMessagesAPI.BetaTextBlock;
+  export import BetaTextBlockParam = MessagesMessagesAPI.BetaTextBlockParam;
+  export import BetaTextDelta = MessagesMessagesAPI.BetaTextDelta;
+  export import BetaTool = MessagesMessagesAPI.BetaTool;
+  export import BetaToolChoice = MessagesMessagesAPI.BetaToolChoice;
+  export import BetaToolChoiceAny = MessagesMessagesAPI.BetaToolChoiceAny;
+  export import BetaToolChoiceAuto = MessagesMessagesAPI.BetaToolChoiceAuto;
+  export import BetaToolChoiceTool = MessagesMessagesAPI.BetaToolChoiceTool;
+  export import BetaToolResultBlockParam = MessagesMessagesAPI.BetaToolResultBlockParam;
+  export import BetaToolUseBlock = MessagesMessagesAPI.BetaToolUseBlock;
+  export import BetaToolUseBlockParam = MessagesMessagesAPI.BetaToolUseBlockParam;
+  export import BetaUsage = MessagesMessagesAPI.BetaUsage;
+  export import MessageCreateParams = MessagesMessagesAPI.MessageCreateParams;
+  export import MessageCreateParamsNonStreaming = MessagesMessagesAPI.MessageCreateParamsNonStreaming;
+  export import MessageCreateParamsStreaming = MessagesMessagesAPI.MessageCreateParamsStreaming;
+  export import Batches = BatchesAPI.Batches;
+  export import BetaMessageBatch = BatchesAPI.BetaMessageBatch;
+  export import BetaMessageBatchCanceledResult = BatchesAPI.BetaMessageBatchCanceledResult;
+  export import BetaMessageBatchErroredResult = BatchesAPI.BetaMessageBatchErroredResult;
+  export import BetaMessageBatchExpiredResult = BatchesAPI.BetaMessageBatchExpiredResult;
+  export import BetaMessageBatchIndividualResponse = BatchesAPI.BetaMessageBatchIndividualResponse;
+  export import BetaMessageBatchRequestCounts = BatchesAPI.BetaMessageBatchRequestCounts;
+  export import BetaMessageBatchResult = BatchesAPI.BetaMessageBatchResult;
+  export import BetaMessageBatchSucceededResult = BatchesAPI.BetaMessageBatchSucceededResult;
+  export import BetaMessageBatchesPage = BatchesAPI.BetaMessageBatchesPage;
+  export import BatchCreateParams = BatchesAPI.BatchCreateParams;
+  export import BatchRetrieveParams = BatchesAPI.BatchRetrieveParams;
+  export import BatchListParams = BatchesAPI.BatchListParams;
+  export import BatchCancelParams = BatchesAPI.BatchCancelParams;
+  export import BatchResultsParams = BatchesAPI.BatchResultsParams;
 }
