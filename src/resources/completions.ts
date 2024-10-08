@@ -114,7 +114,7 @@ export interface CompletionCreateParamsBase {
   /**
    * An object describing metadata about the request.
    */
-  metadata?: CompletionCreateParams.Metadata;
+  metadata?: MessagesAPI.Metadata;
 
   /**
    * Sequences that will cause the model to stop generating.
@@ -170,20 +170,6 @@ export interface CompletionCreateParamsBase {
 }
 
 export namespace CompletionCreateParams {
-  /**
-   * An object describing metadata about the request.
-   */
-  export interface Metadata {
-    /**
-     * An external identifier for the user who is associated with the request.
-     *
-     * This should be a uuid, hash value, or other opaque identifier. Anthropic may use
-     * this id to help detect abuse. Do not include any identifying information such as
-     * name, email address, or phone number.
-     */
-    user_id?: string | null;
-  }
-
   export type CompletionCreateParamsNonStreaming = CompletionsAPI.CompletionCreateParamsNonStreaming;
   export type CompletionCreateParamsStreaming = CompletionsAPI.CompletionCreateParamsStreaming;
 }

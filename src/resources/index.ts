@@ -15,6 +15,7 @@ export {
   Message,
   MessageDeltaUsage,
   MessageParam,
+  Metadata,
   Model,
   RawContentBlockDeltaEvent,
   RawContentBlockStartEvent,

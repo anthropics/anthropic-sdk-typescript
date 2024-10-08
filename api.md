@@ -8,6 +8,7 @@ Types:
 - <code><a href="./src/resources/messages.ts">Message</a></code>
 - <code><a href="./src/resources/messages.ts">MessageDeltaUsage</a></code>
 - <code><a href="./src/resources/messages.ts">MessageParam</a></code>
+- <code><a href="./src/resources/messages.ts">Metadata</a></code>
 - <code><a href="./src/resources/messages.ts">Model</a></code>
 - <code><a href="./src/resources/messages.ts">RawContentBlockDeltaEvent</a></code>
 - <code><a href="./src/resources/messages.ts">RawContentBlockStartEvent</a></code>

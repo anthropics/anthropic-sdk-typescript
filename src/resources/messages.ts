@@ -180,6 +180,17 @@ export interface MessageParam {
   role: 'user' | 'assistant';
 }
 
+export interface Metadata {
+  /**
+   * An external identifier for the user who is associated with the request.
+   *
+   * This should be a uuid, hash value, or other opaque identifier. Anthropic may use
+   * this id to help detect abuse. Do not include any identifying information such as
+   * name, email address, or phone number.
+   */
+  user_id?: string | null;
+}
+
 /**
  * The model that will complete your prompt.\n\nSee
  * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
@@ -531,7 +542,7 @@ export interface MessageCreateParamsBase {
   /**
    * An object describing metadata about the request.
    */
-  metadata?: MessageCreateParams.Metadata;
+  metadata?: Metadata;
 
   /**
    * Custom text sequences that will cause the model to stop generating.
@@ -679,20 +690,6 @@ export interface MessageCreateParamsBase {
 }
 
 export namespace MessageCreateParams {
-  /**
-   * An object describing metadata about the request.
-   */
-  export interface Metadata {
-    /**
-     * An external identifier for the user who is associated with the request.
-     *
-     * This should be a uuid, hash value, or other opaque identifier. Anthropic may use
-     * this id to help detect abuse. Do not include any identifying information such as
-     * name, email address, or phone number.
-     */
-    user_id?: string | null;
-  }
-
   export type MessageCreateParamsNonStreaming = MessagesAPI.MessageCreateParamsNonStreaming;
   export type MessageCreateParamsStreaming = MessagesAPI.MessageCreateParamsStreaming;
 }
@@ -724,6 +721,7 @@ export namespace Messages {
   export import Message = MessagesAPI.Message;
   export import MessageDeltaUsage = MessagesAPI.MessageDeltaUsage;
   export import MessageParam = MessagesAPI.MessageParam;
+  export import Metadata = MessagesAPI.Metadata;
   export import Model = MessagesAPI.Model;
   export import RawContentBlockDeltaEvent = MessagesAPI.RawContentBlockDeltaEvent;
   export import RawContentBlockStartEvent = MessagesAPI.RawContentBlockStartEvent;

@@ -704,6 +704,7 @@ export namespace Anthropic {
   export import Message = API.Message;
   export import MessageDeltaUsage = API.MessageDeltaUsage;
   export import MessageParam = API.MessageParam;
+  export import Metadata = API.Metadata;
   export import Model = API.Model;
   export import RawContentBlockDeltaEvent = API.RawContentBlockDeltaEvent;
   export import RawContentBlockStartEvent = API.RawContentBlockStartEvent;
