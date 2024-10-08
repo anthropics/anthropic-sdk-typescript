@@ -173,6 +173,37 @@ On timeout, an `APIConnectionTimeoutError` is thrown.
 
 Note that requests which time out will be [retried twice by default](#retries).
 
+## Auto-pagination
+
+List methods in the Anthropic API are paginated.
+You can use `for await … of` syntax to iterate through items across all pages:
+
+```ts
+async function fetchAllBetaMessagesBatches(params) {
+  const allBetaMessagesBatches = [];
+  // Automatically fetches more pages as needed.
+  for await (const betaMessageBatch of client.beta.messages.batches.list({ limit: 20 })) {
+    allBetaMessagesBatches.push(betaMessageBatch);
+  }
+  return allBetaMessagesBatches;
+}
+```
+
+Alternatively, you can make request a single page at a time:
+
+```ts
+let page = await client.beta.messages.batches.list({ limit: 20 });
+for (const betaMessageBatch of page.data) {
+  console.log(betaMessageBatch);
+}
+
+// Convenience methods are provided for manually paginating:
+while (page.hasNextPage()) {
+  page = page.getNextPage();
+  // ...
+}
+```
+
 ## Default Headers
 
 We automatically send the `anthropic-version` header set to `2023-06-01`.

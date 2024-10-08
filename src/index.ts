@@ -21,6 +21,8 @@ import { VERSION } from './version';
 import { createResponseHeaders, getHeader, type HeadersInit } from './internal/headers';
 import { isBlobLike, isMultipartBody } from './uploads';
 import { applyHeadersMut } from './internal/headers';
+import * as Pagination from './pagination';
+import { AbstractPage } from './pagination';
 import * as API from './resources/index';
 import { APIPromise } from './internal/api-promise';
 import { type Fetch } from './internal/builtin-types';
@@ -431,6 +433,25 @@ export class BaseAnthropic {
     return { response, options, controller };
   }
 
+  getAPIList<Item, PageClass extends Pagination.AbstractPage<Item> = Pagination.AbstractPage<Item>>(
+    path: string,
+    Page: new (...args: any[]) => PageClass,
+    opts?: RequestOptions<any>,
+  ): Pagination.PagePromise<PageClass, Item> {
+    return this.requestAPIList(Page, { method: 'get', path, ...opts });
+  }
+
+  requestAPIList<
+    Item = unknown,
+    PageClass extends Pagination.AbstractPage<Item> = Pagination.AbstractPage<Item>,
+  >(
+    Page: new (...args: ConstructorParameters<typeof Pagination.AbstractPage>) => PageClass,
+    options: FinalRequestOptions,
+  ): Pagination.PagePromise<PageClass, Item> {
+    const request = this.makeRequest(options, null);
+    return new Pagination.PagePromise<PageClass, Item>(this as any as Anthropic, request, Page);
+  }
+
   async fetchWithTimeout(
     url: RequestInfo,
     init: RequestInit | undefined,
@@ -670,6 +691,7 @@ export {
 } from './uploads';
 export { APIPromise } from './internal/api-promise';
 export { type Response } from './internal/builtin-types';
+export { PagePromise } from './pagination';
 export const {
   AnthropicError,
   APIError,
@@ -690,6 +712,10 @@ export import toFile = Uploads.toFile;
 
 export namespace Anthropic {
   export import RequestOptions = Opts.RequestOptions;
+
+  export import Page = Pagination.Page;
+  export import PageParams = Pagination.PageParams;
+  export import PageResponse = Pagination.PageResponse;
 
   export import Completions = API.Completions;
   export import Completion = API.Completion;
@@ -730,6 +756,16 @@ export namespace Anthropic {
   export import MessageCreateParamsStreaming = API.MessageCreateParamsStreaming;
 
   export import Beta = API.Beta;
+  export import AnthropicBeta = API.AnthropicBeta;
+  export import BetaAPIError = API.BetaAPIError;
+  export import BetaAuthenticationError = API.BetaAuthenticationError;
+  export import BetaError = API.BetaError;
+  export import BetaErrorResponse = API.BetaErrorResponse;
+  export import BetaInvalidRequestError = API.BetaInvalidRequestError;
+  export import BetaNotFoundError = API.BetaNotFoundError;
+  export import BetaOverloadedError = API.BetaOverloadedError;
+  export import BetaPermissionError = API.BetaPermissionError;
+  export import BetaRateLimitError = API.BetaRateLimitError;
 }
 
 export default Anthropic;

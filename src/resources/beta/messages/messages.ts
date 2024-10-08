@@ -1,14 +1,17 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIResource } from '../../../resource';
-import * as PromptCachingMessagesAPI from './messages';
+import * as MessagesMessagesAPI from './messages';
 import * as MessagesAPI from '../../messages';
 import * as BetaAPI from '../beta';
+import * as BatchesAPI from './batches';
 import { Stream } from '../../../streaming';
 import { APIPromise } from '../../../internal/api-promise';
 import { RequestOptions } from '../../../internal/request-options';
 
 export class Messages extends APIResource {
+  batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
+
   /**
    * Send a structured list of input messages with text and/or image content, and the
    * model will generate the next message in the conversation.
@@ -16,49 +19,54 @@ export class Messages extends APIResource {
    * The Messages API can be used for either single queries or stateless multi-turn
    * conversations.
    */
-  create(
-    params: MessageCreateParamsNonStreaming,
-    options?: RequestOptions,
-  ): APIPromise<PromptCachingBetaMessage>;
+  create(params: MessageCreateParamsNonStreaming, options?: RequestOptions): APIPromise<BetaMessage>;
   create(
     params: MessageCreateParamsStreaming,
     options?: RequestOptions,
-  ): APIPromise<Stream<RawPromptCachingBetaMessageStreamEvent>>;
+  ): APIPromise<Stream<BetaRawMessageStreamEvent>>;
   create(
     params: MessageCreateParamsBase,
     options?: RequestOptions,
-  ): APIPromise<Stream<RawPromptCachingBetaMessageStreamEvent> | PromptCachingBetaMessage>;
+  ): APIPromise<Stream<BetaRawMessageStreamEvent> | BetaMessage>;
   create(
     params: MessageCreateParams,
     options?: RequestOptions,
-  ): APIPromise<PromptCachingBetaMessage> | APIPromise<Stream<RawPromptCachingBetaMessageStreamEvent>> {
+  ): APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>> {
     const { betas, ...body } = params;
-    return this._client.post('/v1/messages?beta=prompt_caching', {
+    return this._client.post('/v1/messages?beta=true', {
       body,
       timeout: (this._client as any)._options.timeout ?? 600000,
       ...options,
       headers: {
-        'anthropic-beta': betas != null ? betas.toString() : 'prompt-caching-2024-07-31',
+        ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
         ...options?.headers,
       },
       stream: params.stream ?? false,
-    }) as APIPromise<PromptCachingBetaMessage> | APIPromise<Stream<RawPromptCachingBetaMessageStreamEvent>>;
+    }) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
   }
 }
 
-export interface PromptCachingBetaCacheControlEphemeral {
+export interface BetaCacheControlEphemeral {
   type: 'ephemeral';
 }
 
-export interface PromptCachingBetaImageBlockParam {
-  source: PromptCachingBetaImageBlockParam.Source;
+export type BetaContentBlock = BetaTextBlock | BetaToolUseBlock;
+
+export type BetaContentBlockParam =
+  | BetaTextBlockParam
+  | BetaImageBlockParam
+  | BetaToolUseBlockParam
+  | BetaToolResultBlockParam;
+
+export interface BetaImageBlockParam {
+  source: BetaImageBlockParam.Source;
 
   type: 'image';
 
-  cache_control?: PromptCachingBetaCacheControlEphemeral | null;
+  cache_control?: BetaCacheControlEphemeral | null;
 }
 
-export namespace PromptCachingBetaImageBlockParam {
+export namespace BetaImageBlockParam {
   export interface Source {
     data: string;
 
@@ -68,7 +76,13 @@ export namespace PromptCachingBetaImageBlockParam {
   }
 }
 
-export interface PromptCachingBetaMessage {
+export interface BetaInputJSONDelta {
+  partial_json: string;
+
+  type: 'input_json_delta';
+}
+
+export interface BetaMessage {
   /**
    * Unique object identifier.
    *
@@ -110,7 +124,7 @@ export interface PromptCachingBetaMessage {
    * [{ "type": "text", "text": "B)" }]
    * ```
    */
-  content: Array<MessagesAPI.ContentBlock>;
+  content: Array<BetaContentBlock>;
 
   /**
    * The model that will complete your prompt.\n\nSee
@@ -170,42 +184,135 @@ export interface PromptCachingBetaMessage {
    * For example, `output_tokens` will be non-zero, even for an empty string response
    * from Claude.
    */
-  usage: PromptCachingBetaUsage;
+  usage: BetaUsage;
 }
 
-export interface PromptCachingBetaMessageParam {
-  content:
-    | string
-    | Array<
-        | PromptCachingBetaTextBlockParam
-        | PromptCachingBetaImageBlockParam
-        | PromptCachingBetaToolUseBlockParam
-        | PromptCachingBetaToolResultBlockParam
-      >;
+export interface BetaMessageDeltaUsage {
+  /**
+   * The cumulative number of output tokens which were used.
+   */
+  output_tokens: number;
+}
+
+export interface BetaMessageParam {
+  content: string | Array<BetaContentBlockParam>;
 
   role: 'user' | 'assistant';
 }
 
-export interface PromptCachingBetaTextBlockParam {
+export interface BetaMetadata {
+  /**
+   * An external identifier for the user who is associated with the request.
+   *
+   * This should be a uuid, hash value, or other opaque identifier. Anthropic may use
+   * this id to help detect abuse. Do not include any identifying information such as
+   * name, email address, or phone number.
+   */
+  user_id?: string | null;
+}
+
+export interface BetaRawContentBlockDeltaEvent {
+  delta: BetaTextDelta | BetaInputJSONDelta;
+
+  index: number;
+
+  type: 'content_block_delta';
+}
+
+export interface BetaRawContentBlockStartEvent {
+  content_block: BetaTextBlock | BetaToolUseBlock;
+
+  index: number;
+
+  type: 'content_block_start';
+}
+
+export interface BetaRawContentBlockStopEvent {
+  index: number;
+
+  type: 'content_block_stop';
+}
+
+export interface BetaRawMessageDeltaEvent {
+  delta: BetaRawMessageDeltaEvent.Delta;
+
+  type: 'message_delta';
+
+  /**
+   * Billing and rate-limit usage.
+   *
+   * Anthropic's API bills and rate-limits by token counts, as tokens represent the
+   * underlying cost to our systems.
+   *
+   * Under the hood, the API transforms requests into a format suitable for the
+   * model. The model's output then goes through a parsing stage before becoming an
+   * API response. As a result, the token counts in `usage` will not match one-to-one
+   * with the exact visible content of an API request or response.
+   *
+   * For example, `output_tokens` will be non-zero, even for an empty string response
+   * from Claude.
+   */
+  usage: BetaMessageDeltaUsage;
+}
+
+export namespace BetaRawMessageDeltaEvent {
+  export interface Delta {
+    stop_reason: 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | null;
+
+    stop_sequence: string | null;
+  }
+}
+
+export interface BetaRawMessageStartEvent {
+  message: BetaMessage;
+
+  type: 'message_start';
+}
+
+export interface BetaRawMessageStopEvent {
+  type: 'message_stop';
+}
+
+export type BetaRawMessageStreamEvent =
+  | BetaRawMessageStartEvent
+  | BetaRawMessageDeltaEvent
+  | BetaRawMessageStopEvent
+  | BetaRawContentBlockStartEvent
+  | BetaRawContentBlockDeltaEvent
+  | BetaRawContentBlockStopEvent;
+
+export interface BetaTextBlock {
+  text: string;
+
+  type: 'text';
+}
+
+export interface BetaTextBlockParam {
   text: string;
 
   type: 'text';
 
-  cache_control?: PromptCachingBetaCacheControlEphemeral | null;
+  cache_control?: BetaCacheControlEphemeral | null;
 }
 
-export interface PromptCachingBetaTool {
+export interface BetaTextDelta {
+  text: string;
+
+  type: 'text_delta';
+}
+
+export interface BetaTool {
   /**
    * [JSON schema](https://json-schema.org/) for this tool's input.
    *
    * This defines the shape of the `input` that your tool accepts and that the model
    * will produce.
    */
-  input_schema: PromptCachingBetaTool.InputSchema;
+  input_schema: BetaTool.InputSchema;
 
   name: string;
 
-  cache_control?: PromptCachingBetaCacheControlEphemeral | null;
+  cache_control?: BetaCacheControlEphemeral | null;
 
   /**
    * Description of what this tool does.
@@ -218,7 +325,7 @@ export interface PromptCachingBetaTool {
   description?: string;
 }
 
-export namespace PromptCachingBetaTool {
+export namespace BetaTool {
   /**
    * [JSON schema](https://json-schema.org/) for this tool's input.
    *
@@ -233,19 +340,85 @@ export namespace PromptCachingBetaTool {
   }
 }
 
-export interface PromptCachingBetaToolResultBlockParam {
+/**
+ * How the model should use the provided tools. The model can use a specific tool,
+ * any available tool, or decide by itself.
+ */
+export type BetaToolChoice = BetaToolChoiceAuto | BetaToolChoiceAny | BetaToolChoiceTool;
+
+/**
+ * The model will use any available tools.
+ */
+export interface BetaToolChoiceAny {
+  type: 'any';
+
+  /**
+   * Whether to disable parallel tool use.
+   *
+   * Defaults to `false`. If set to `true`, the model will output exactly one tool
+   * use.
+   */
+  disable_parallel_tool_use?: boolean;
+}
+
+/**
+ * The model will automatically decide whether to use tools.
+ */
+export interface BetaToolChoiceAuto {
+  type: 'auto';
+
+  /**
+   * Whether to disable parallel tool use.
+   *
+   * Defaults to `false`. If set to `true`, the model will output at most one tool
+   * use.
+   */
+  disable_parallel_tool_use?: boolean;
+}
+
+/**
+ * The model will use the specified tool with `tool_choice.name`.
+ */
+export interface BetaToolChoiceTool {
+  /**
+   * The name of the tool to use.
+   */
+  name: string;
+
+  type: 'tool';
+
+  /**
+   * Whether to disable parallel tool use.
+   *
+   * Defaults to `false`. If set to `true`, the model will output exactly one tool
+   * use.
+   */
+  disable_parallel_tool_use?: boolean;
+}
+
+export interface BetaToolResultBlockParam {
   tool_use_id: string;
 
   type: 'tool_result';
 
-  cache_control?: PromptCachingBetaCacheControlEphemeral | null;
+  cache_control?: BetaCacheControlEphemeral | null;
 
-  content?: string | Array<PromptCachingBetaTextBlockParam | PromptCachingBetaImageBlockParam>;
+  content?: string | Array<BetaTextBlockParam | BetaImageBlockParam>;
 
   is_error?: boolean;
 }
 
-export interface PromptCachingBetaToolUseBlockParam {
+export interface BetaToolUseBlock {
+  id: string;
+
+  input: unknown;
+
+  name: string;
+
+  type: 'tool_use';
+}
+
+export interface BetaToolUseBlockParam {
   id: string;
 
   input: unknown;
@@ -254,10 +427,10 @@ export interface PromptCachingBetaToolUseBlockParam {
 
   type: 'tool_use';
 
-  cache_control?: PromptCachingBetaCacheControlEphemeral | null;
+  cache_control?: BetaCacheControlEphemeral | null;
 }
 
-export interface PromptCachingBetaUsage {
+export interface BetaUsage {
   /**
    * The number of input tokens used to create the cache entry.
    */
@@ -278,20 +451,6 @@ export interface PromptCachingBetaUsage {
    */
   output_tokens: number;
 }
-
-export interface RawPromptCachingBetaMessageStartEvent {
-  message: PromptCachingBetaMessage;
-
-  type: 'message_start';
-}
-
-export type RawPromptCachingBetaMessageStreamEvent =
-  | RawPromptCachingBetaMessageStartEvent
-  | MessagesAPI.RawMessageDeltaEvent
-  | MessagesAPI.RawMessageStopEvent
-  | MessagesAPI.RawContentBlockStartEvent
-  | MessagesAPI.RawContentBlockDeltaEvent
-  | MessagesAPI.RawContentBlockStopEvent;
 
 export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreateParamsStreaming;
 
@@ -394,7 +553,7 @@ export interface MessageCreateParamsBase {
    * the top-level `system` parameter — there is no `"system"` role for input
    * messages in the Messages API.
    */
-  messages: Array<PromptCachingBetaMessageParam>;
+  messages: Array<BetaMessageParam>;
 
   /**
    * Body param: The model that will complete your prompt.\n\nSee
@@ -406,7 +565,7 @@ export interface MessageCreateParamsBase {
   /**
    * Body param: An object describing metadata about the request.
    */
-  metadata?: MessagesAPI.Metadata;
+  metadata?: BetaMetadata;
 
   /**
    * Body param: Custom text sequences that will cause the model to stop generating.
@@ -437,7 +596,7 @@ export interface MessageCreateParamsBase {
    * as specifying a particular goal or role. See our
    * [guide to system prompts](https://docs.anthropic.com/en/docs/system-prompts).
    */
-  system?: string | Array<PromptCachingBetaTextBlockParam>;
+  system?: string | Array<BetaTextBlockParam>;
 
   /**
    * Body param: Amount of randomness injected into the response.
@@ -455,7 +614,7 @@ export interface MessageCreateParamsBase {
    * Body param: How the model should use the provided tools. The model can use a
    * specific tool, any available tool, or decide by itself.
    */
-  tool_choice?: MessagesAPI.ToolChoice;
+  tool_choice?: BetaToolChoice;
 
   /**
    * Body param: Definitions of tools that the model may use.
@@ -527,7 +686,7 @@ export interface MessageCreateParamsBase {
    *
    * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
    */
-  tools?: Array<PromptCachingBetaTool>;
+  tools?: Array<BetaTool>;
 
   /**
    * Body param: Only sample from the top K options for each subsequent token.
@@ -560,8 +719,8 @@ export interface MessageCreateParamsBase {
 }
 
 export namespace MessageCreateParams {
-  export type MessageCreateParamsNonStreaming = PromptCachingMessagesAPI.MessageCreateParamsNonStreaming;
-  export type MessageCreateParamsStreaming = PromptCachingMessagesAPI.MessageCreateParamsStreaming;
+  export type MessageCreateParamsNonStreaming = MessagesMessagesAPI.MessageCreateParamsNonStreaming;
+  export type MessageCreateParamsStreaming = MessagesMessagesAPI.MessageCreateParamsStreaming;
 }
 
 export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase {
@@ -587,18 +746,50 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
 }
 
 export namespace Messages {
-  export import PromptCachingBetaCacheControlEphemeral = PromptCachingMessagesAPI.PromptCachingBetaCacheControlEphemeral;
-  export import PromptCachingBetaImageBlockParam = PromptCachingMessagesAPI.PromptCachingBetaImageBlockParam;
-  export import PromptCachingBetaMessage = PromptCachingMessagesAPI.PromptCachingBetaMessage;
-  export import PromptCachingBetaMessageParam = PromptCachingMessagesAPI.PromptCachingBetaMessageParam;
-  export import PromptCachingBetaTextBlockParam = PromptCachingMessagesAPI.PromptCachingBetaTextBlockParam;
-  export import PromptCachingBetaTool = PromptCachingMessagesAPI.PromptCachingBetaTool;
-  export import PromptCachingBetaToolResultBlockParam = PromptCachingMessagesAPI.PromptCachingBetaToolResultBlockParam;
-  export import PromptCachingBetaToolUseBlockParam = PromptCachingMessagesAPI.PromptCachingBetaToolUseBlockParam;
-  export import PromptCachingBetaUsage = PromptCachingMessagesAPI.PromptCachingBetaUsage;
-  export import RawPromptCachingBetaMessageStartEvent = PromptCachingMessagesAPI.RawPromptCachingBetaMessageStartEvent;
-  export import RawPromptCachingBetaMessageStreamEvent = PromptCachingMessagesAPI.RawPromptCachingBetaMessageStreamEvent;
-  export import MessageCreateParams = PromptCachingMessagesAPI.MessageCreateParams;
-  export import MessageCreateParamsNonStreaming = PromptCachingMessagesAPI.MessageCreateParamsNonStreaming;
-  export import MessageCreateParamsStreaming = PromptCachingMessagesAPI.MessageCreateParamsStreaming;
+  export import BetaCacheControlEphemeral = MessagesMessagesAPI.BetaCacheControlEphemeral;
+  export import BetaContentBlock = MessagesMessagesAPI.BetaContentBlock;
+  export import BetaContentBlockParam = MessagesMessagesAPI.BetaContentBlockParam;
+  export import BetaImageBlockParam = MessagesMessagesAPI.BetaImageBlockParam;
+  export import BetaInputJSONDelta = MessagesMessagesAPI.BetaInputJSONDelta;
+  export import BetaMessage = MessagesMessagesAPI.BetaMessage;
+  export import BetaMessageDeltaUsage = MessagesMessagesAPI.BetaMessageDeltaUsage;
+  export import BetaMessageParam = MessagesMessagesAPI.BetaMessageParam;
+  export import BetaMetadata = MessagesMessagesAPI.BetaMetadata;
+  export import BetaRawContentBlockDeltaEvent = MessagesMessagesAPI.BetaRawContentBlockDeltaEvent;
+  export import BetaRawContentBlockStartEvent = MessagesMessagesAPI.BetaRawContentBlockStartEvent;
+  export import BetaRawContentBlockStopEvent = MessagesMessagesAPI.BetaRawContentBlockStopEvent;
+  export import BetaRawMessageDeltaEvent = MessagesMessagesAPI.BetaRawMessageDeltaEvent;
+  export import BetaRawMessageStartEvent = MessagesMessagesAPI.BetaRawMessageStartEvent;
+  export import BetaRawMessageStopEvent = MessagesMessagesAPI.BetaRawMessageStopEvent;
+  export import BetaRawMessageStreamEvent = MessagesMessagesAPI.BetaRawMessageStreamEvent;
+  export import BetaTextBlock = MessagesMessagesAPI.BetaTextBlock;
+  export import BetaTextBlockParam = MessagesMessagesAPI.BetaTextBlockParam;
+  export import BetaTextDelta = MessagesMessagesAPI.BetaTextDelta;
+  export import BetaTool = MessagesMessagesAPI.BetaTool;
+  export import BetaToolChoice = MessagesMessagesAPI.BetaToolChoice;
+  export import BetaToolChoiceAny = MessagesMessagesAPI.BetaToolChoiceAny;
+  export import BetaToolChoiceAuto = MessagesMessagesAPI.BetaToolChoiceAuto;
+  export import BetaToolChoiceTool = MessagesMessagesAPI.BetaToolChoiceTool;
+  export import BetaToolResultBlockParam = MessagesMessagesAPI.BetaToolResultBlockParam;
+  export import BetaToolUseBlock = MessagesMessagesAPI.BetaToolUseBlock;
+  export import BetaToolUseBlockParam = MessagesMessagesAPI.BetaToolUseBlockParam;
+  export import BetaUsage = MessagesMessagesAPI.BetaUsage;
+  export import MessageCreateParams = MessagesMessagesAPI.MessageCreateParams;
+  export import MessageCreateParamsNonStreaming = MessagesMessagesAPI.MessageCreateParamsNonStreaming;
+  export import MessageCreateParamsStreaming = MessagesMessagesAPI.MessageCreateParamsStreaming;
+  export import Batches = BatchesAPI.Batches;
+  export import BetaMessageBatch = BatchesAPI.BetaMessageBatch;
+  export import BetaMessageBatchCanceledResult = BatchesAPI.BetaMessageBatchCanceledResult;
+  export import BetaMessageBatchErroredResult = BatchesAPI.BetaMessageBatchErroredResult;
+  export import BetaMessageBatchExpiredResult = BatchesAPI.BetaMessageBatchExpiredResult;
+  export import BetaMessageBatchIndividualResponse = BatchesAPI.BetaMessageBatchIndividualResponse;
+  export import BetaMessageBatchRequestCounts = BatchesAPI.BetaMessageBatchRequestCounts;
+  export import BetaMessageBatchResult = BatchesAPI.BetaMessageBatchResult;
+  export import BetaMessageBatchSucceededResult = BatchesAPI.BetaMessageBatchSucceededResult;
+  export type BetaMessageBatchesPage = BatchesAPI.BetaMessageBatchesPage;
+  export import BatchCreateParams = BatchesAPI.BatchCreateParams;
+  export import BatchRetrieveParams = BatchesAPI.BatchRetrieveParams;
+  export import BatchListParams = BatchesAPI.BatchListParams;
+  export import BatchCancelParams = BatchesAPI.BatchCancelParams;
+  export import BatchResultsParams = BatchesAPI.BatchResultsParams;
 }
