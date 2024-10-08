@@ -17,6 +17,7 @@ Types:
 - <code><a href="./src/resources/messages.ts">MessageStartEvent</a></code>
 - <code><a href="./src/resources/messages.ts">MessageStopEvent</a></code>
 - <code><a href="./src/resources/messages.ts">MessageStreamEvent</a></code>
+- <code><a href="./src/resources/messages.ts">Metadata</a></code>
 - <code><a href="./src/resources/messages.ts">Model</a></code>
 - <code><a href="./src/resources/messages.ts">RawContentBlockDeltaEvent</a></code>
 - <code><a href="./src/resources/messages.ts">RawContentBlockStartEvent</a></code>

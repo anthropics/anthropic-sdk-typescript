@@ -413,7 +413,7 @@ export interface MessageCreateParamsBase {
   /**
    * An object describing metadata about the request.
    */
-  metadata?: MessageCreateParams.Metadata;
+  metadata?: MessagesAPI.Metadata;
 
   /**
    * Custom text sequences that will cause the model to stop generating.
@@ -562,18 +562,9 @@ export interface MessageCreateParamsBase {
 
 export namespace MessageCreateParams {
   /**
-   * An object describing metadata about the request.
+   * @deprecated use `Anthropic.Messages.Metadata` instead
    */
-  export interface Metadata {
-    /**
-     * An external identifier for the user who is associated with the request.
-     *
-     * This should be a uuid, hash value, or other opaque identifier. Anthropic may use
-     * this id to help detect abuse. Do not include any identifying information such as
-     * name, email address, or phone number.
-     */
-    user_id?: string | null;
-  }
+  export type Metadata = MessagesAPI.Metadata;
 
   /**
    * @deprecated use `Anthropic.Messages.ToolChoiceAuto` instead
