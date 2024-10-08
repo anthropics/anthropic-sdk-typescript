@@ -213,6 +213,17 @@ export type MessageStopEvent = RawMessageStopEvent;
 
 export type MessageStreamEvent = RawMessageStreamEvent;
 
+export interface Metadata {
+  /**
+   * An external identifier for the user who is associated with the request.
+   *
+   * This should be a uuid, hash value, or other opaque identifier. Anthropic may use
+   * this id to help detect abuse. Do not include any identifying information such as
+   * name, email address, or phone number.
+   */
+  user_id?: string | null;
+}
+
 /**
  * The model that will complete your prompt.\n\nSee
  * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
@@ -576,7 +587,7 @@ export interface MessageCreateParamsBase {
   /**
    * An object describing metadata about the request.
    */
-  metadata?: MessageCreateParams.Metadata;
+  metadata?: Metadata;
 
   /**
    * Custom text sequences that will cause the model to stop generating.
@@ -725,18 +736,9 @@ export interface MessageCreateParamsBase {
 
 export namespace MessageCreateParams {
   /**
-   * An object describing metadata about the request.
+   * @deprecated use `Anthropic.Messages.ToolChoiceAuto` instead
    */
-  export interface Metadata {
-    /**
-     * An external identifier for the user who is associated with the request.
-     *
-     * This should be a uuid, hash value, or other opaque identifier. Anthropic may use
-     * this id to help detect abuse. Do not include any identifying information such as
-     * name, email address, or phone number.
-     */
-    user_id?: string | null;
-  }
+  export type Metadata = MessagesAPI.Metadata;
 
   /**
    * @deprecated use `Anthropic.Messages.ToolChoiceAuto` instead
@@ -794,6 +796,7 @@ export namespace Messages {
   export import MessageStartEvent = MessagesAPI.MessageStartEvent;
   export import MessageStopEvent = MessagesAPI.MessageStopEvent;
   export import MessageStreamEvent = MessagesAPI.MessageStreamEvent;
+  export import Metadata = MessagesAPI.Metadata;
   export import Model = MessagesAPI.Model;
   export import RawContentBlockDeltaEvent = MessagesAPI.RawContentBlockDeltaEvent;
   export import RawContentBlockStartEvent = MessagesAPI.RawContentBlockStartEvent;
