@@ -22,6 +22,7 @@ export {
   MessageStartEvent,
   MessageStopEvent,
   MessageStreamEvent,
+  Metadata,
   Model,
   RawContentBlockDeltaEvent,
   RawContentBlockStartEvent,
