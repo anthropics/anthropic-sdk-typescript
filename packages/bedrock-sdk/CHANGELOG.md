@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.10.4 (2024-10-08)
+
+Full Changelog: [bedrock-sdk-v0.10.3...bedrock-sdk-v0.10.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.10.3...bedrock-sdk-v0.10.4)
+
+### Refactors
+
+* **types:** improve metadata type names ([#547](https://github.com/anthropics/anthropic-sdk-typescript/issues/547)) ([cef499c](https://github.com/anthropics/anthropic-sdk-typescript/commit/cef499cf3b01643f7e5e3c09524f49e198b940be))
+
 ## 0.10.3 (2024-10-04)
 
 Full Changelog: [bedrock-sdk-v0.10.2...bedrock-sdk-v0.10.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.10.2...bedrock-sdk-v0.10.3)

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.3 (2024-10-08)
+
+Full Changelog: [vertex-sdk-v0.4.2...vertex-sdk-v0.4.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.4.2...vertex-sdk-v0.4.3)
+
+### Refactors
+
+* **types:** improve metadata type names ([#547](https://github.com/anthropics/anthropic-sdk-typescript/issues/547)) ([cef499c](https://github.com/anthropics/anthropic-sdk-typescript/commit/cef499cf3b01643f7e5e3c09524f49e198b940be))
+
 ## 0.4.2 (2024-10-04)
 
 Full Changelog: [vertex-sdk-v0.4.1...vertex-sdk-v0.4.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.4.1...vertex-sdk-v0.4.2)
