@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.29.1 (2024-10-08)
+
+Full Changelog: [sdk-v0.29.0...sdk-v0.29.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.29.0...sdk-v0.29.1)
+
+### Chores
+
+* **internal:** empty commit ([4420b17](https://github.com/anthropics/anthropic-sdk-typescript/commit/4420b1732351c63f1c2fcc16fd560320c19d077a))
+
 ## 0.29.0 (2024-10-08)
 
 Full Changelog: [sdk-v0.28.0...sdk-v0.29.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.28.0...sdk-v0.29.0)

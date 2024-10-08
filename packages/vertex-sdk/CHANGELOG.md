@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.4 (2024-10-08)
+
+Full Changelog: [vertex-sdk-v0.4.3...vertex-sdk-v0.4.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.4.3...vertex-sdk-v0.4.4)
+
+### Chores
+
+* **internal:** empty commit ([4420b17](https://github.com/anthropics/anthropic-sdk-typescript/commit/4420b1732351c63f1c2fcc16fd560320c19d077a))
+
 ## 0.4.3 (2024-10-08)
 
 Full Changelog: [vertex-sdk-v0.4.2...vertex-sdk-v0.4.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.4.2...vertex-sdk-v0.4.3)

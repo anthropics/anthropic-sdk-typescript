@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.10.5 (2024-10-08)
+
+Full Changelog: [bedrock-sdk-v0.10.4...bedrock-sdk-v0.10.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.10.4...bedrock-sdk-v0.10.5)
+
+### Chores
+
+* **internal:** empty commit ([4420b17](https://github.com/anthropics/anthropic-sdk-typescript/commit/4420b1732351c63f1c2fcc16fd560320c19d077a))
+
 ## 0.10.4 (2024-10-08)
 
 Full Changelog: [bedrock-sdk-v0.10.3...bedrock-sdk-v0.10.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.10.3...bedrock-sdk-v0.10.4)
