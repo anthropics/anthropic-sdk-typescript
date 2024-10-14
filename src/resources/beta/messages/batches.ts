@@ -23,7 +23,7 @@ export class Batches extends APIResource {
       body,
       ...options,
       headers: {
-        'anthropic-beta': betas != null ? betas.toString() : 'message-batches-2024-09-24',
+        'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
         ...options?.headers,
       },
     });
@@ -52,7 +52,7 @@ export class Batches extends APIResource {
     return this._client.get(`/v1/messages/batches/${messageBatchId}?beta=true`, {
       ...options,
       headers: {
-        'anthropic-beta': betas != null ? betas.toString() : 'message-batches-2024-09-24',
+        'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
         ...options?.headers,
       },
     });
@@ -78,7 +78,7 @@ export class Batches extends APIResource {
       query,
       ...options,
       headers: {
-        'anthropic-beta': betas != null ? betas.toString() : 'message-batches-2024-09-24',
+        'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
         ...options?.headers,
       },
     });
@@ -106,7 +106,7 @@ export class Batches extends APIResource {
     return this._client.post(`/v1/messages/batches/${messageBatchId}/cancel?beta=true`, {
       ...options,
       headers: {
-        'anthropic-beta': betas != null ? betas.toString() : 'message-batches-2024-09-24',
+        'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
         ...options?.headers,
       },
     });
@@ -149,7 +149,7 @@ export class Batches extends APIResource {
       .get(batch.results_url, {
         ...options,
         headers: {
-          'anthropic-beta': betas != null ? betas.toString() : 'message-batches-2024-09-24',
+          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
           ...options?.headers,
         },
         __binaryResponse: true,
