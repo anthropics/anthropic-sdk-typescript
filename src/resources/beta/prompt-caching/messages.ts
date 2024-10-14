@@ -39,7 +39,7 @@ export class Messages extends APIResource {
       timeout: (this._client as any)._options.timeout ?? 600000,
       ...options,
       headers: {
-        'anthropic-beta': betas != null ? betas.toString() : 'prompt-caching-2024-07-31',
+        'anthropic-beta': [...(betas ?? []), 'prompt-caching-2024-07-31'].toString(),
         ...options?.headers,
       },
       stream: params.stream ?? false,
