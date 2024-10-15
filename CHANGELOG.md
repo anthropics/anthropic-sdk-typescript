@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.29.1 (2024-10-15)
+
+Full Changelog: [sdk-v0.29.0...sdk-v0.29.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.29.0...sdk-v0.29.1)
+
+### Bug Fixes
+
+* **beta:** merge betas param with the default value ([#556](https://github.com/anthropics/anthropic-sdk-typescript/issues/556)) ([5520bbc](https://github.com/anthropics/anthropic-sdk-typescript/commit/5520bbccaa75fbab5aa321402637c77651ae3c87))
+
+
+### Chores
+
+* **internal:** update spec URL ([#554](https://github.com/anthropics/anthropic-sdk-typescript/issues/554)) ([1fb6448](https://github.com/anthropics/anthropic-sdk-typescript/commit/1fb64489aa1b13c266692c7d14d2dd9b5350b7fc))
+
 ## 0.29.0 (2024-10-08)
 
 Full Changelog: [sdk-v0.28.0...sdk-v0.29.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.28.0...sdk-v0.29.0)
