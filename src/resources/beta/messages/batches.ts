@@ -343,7 +343,7 @@ export namespace BatchCreateParams {
      * See the [Messages API reference](/en/api/messages) for full documentation on
      * available parameters.
      */
-    params: BetaMessagesAPI.MessageCreateParamsNonStreaming;
+    params: Omit<BetaMessagesAPI.MessageCreateParamsNonStreaming, 'betas'>;
   }
 }
 
