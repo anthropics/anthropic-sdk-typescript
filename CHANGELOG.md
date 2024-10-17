@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.29.2 (2024-10-17)
+
+Full Changelog: [sdk-v0.29.1...sdk-v0.29.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.29.1...sdk-v0.29.2)
+
+### Bug Fixes
+
+* **types:** remove misleading betas TypedDict property for the Batch API ([#559](https://github.com/anthropics/anthropic-sdk-typescript/issues/559)) ([4de5d0a](https://github.com/anthropics/anthropic-sdk-typescript/commit/4de5d0a9d0a8733987d13dcef968146620d3b110))
+
 ## 0.29.1 (2024-10-15)
 
 Full Changelog: [sdk-v0.29.0...sdk-v0.29.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.29.0...sdk-v0.29.1)
