@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.29.3 (2024-10-18)
+
+Full Changelog: [sdk-v0.29.2...sdk-v0.29.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.29.2...sdk-v0.29.3)
+
+### Bug Fixes
+
+* **client:** respect x-stainless-retry-count default headers ([#562](https://github.com/anthropics/anthropic-sdk-typescript/issues/562)) ([274573f](https://github.com/anthropics/anthropic-sdk-typescript/commit/274573f5bc74e382302071850dee058ea2920f0c))
+
+
+### Chores
+
+* **api:** add title ([#564](https://github.com/anthropics/anthropic-sdk-typescript/issues/564)) ([a8b7544](https://github.com/anthropics/anthropic-sdk-typescript/commit/a8b7544e56d4a1dfa1f6de530ddaa728ae52c87f))
+
 ## 0.29.2 (2024-10-17)
 
 Full Changelog: [sdk-v0.29.1...sdk-v0.29.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.29.1...sdk-v0.29.2)
