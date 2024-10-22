@@ -47,6 +47,7 @@ describe('resource messages', () => {
           name: 'x',
           cache_control: { type: 'ephemeral' },
           description: 'Get the current weather in a given location',
+          type: 'custom',
         },
         {
           input_schema: {
@@ -59,6 +60,7 @@ describe('resource messages', () => {
           name: 'x',
           cache_control: { type: 'ephemeral' },
           description: 'Get the current weather in a given location',
+          type: 'custom',
         },
         {
           input_schema: {
@@ -71,6 +73,7 @@ describe('resource messages', () => {
           name: 'x',
           cache_control: { type: 'ephemeral' },
           description: 'Get the current weather in a given location',
+          type: 'custom',
         },
       ],
       top_k: 5,
