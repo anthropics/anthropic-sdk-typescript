@@ -76,6 +76,7 @@ export class AnthropicBedrock extends Core.APIClient {
 
   messages: Resources.Messages = new Resources.Messages(this);
   completions: Resources.Completions = new Resources.Completions(this);
+  beta: BetaResource = makeBetaResource(this);
 
   protected override defaultQuery(): Core.DefaultQuery | undefined {
     return this._options.defaultQuery;
@@ -120,6 +121,13 @@ export class AnthropicBedrock extends Core.APIClient {
       if (!options.body['anthropic_version']) {
         options.body['anthropic_version'] = DEFAULT_VERSION;
       }
+
+      if (options.headers && !options.body['anthropic_beta']) {
+        const betas = Core.getHeader(options.headers, 'anthropic-beta');
+        if (betas != null) {
+          options.body['anthropic_beta'] = betas.split(',');
+        }
+      }
     }
 
     if (MODEL_ENDPOINTS.has(options.path) && options.method === 'post') {
@@ -142,4 +150,23 @@ export class AnthropicBedrock extends Core.APIClient {
 
     return super.buildRequest(options);
   }
+}
+
+/**
+ * The Bedrock API does not currently support prompt caching or the Batch API.
+ */
+type BetaResource = Omit<Resources.Beta, 'promptCaching' | 'messages'> & {
+  messages: Omit<Resources.Beta['messages'], 'batches'>;
+};
+
+function makeBetaResource(client: AnthropicBedrock): BetaResource {
+  const resource = new Resources.Beta(client);
+
+  // @ts-expect-error we're deleting non-optional properties
+  delete resource.promptCaching;
+
+  // @ts-expect-error we're deleting non-optional properties
+  delete resource.messages.batches;
+
+  return resource;
 }
