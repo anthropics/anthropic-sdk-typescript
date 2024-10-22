@@ -323,6 +323,8 @@ export interface BetaTool {
    * aspects of the tool input JSON schema.
    */
   description?: string;
+
+  type?: 'custom' | null;
 }
 
 export namespace BetaTool {
@@ -338,6 +340,14 @@ export namespace BetaTool {
     properties?: unknown | null;
     [k: string]: unknown;
   }
+}
+
+export interface BetaToolBash20241022 {
+  name: 'bash';
+
+  type: 'bash_20241022';
+
+  cache_control?: BetaCacheControlEphemeral | null;
 }
 
 /**
@@ -396,6 +406,20 @@ export interface BetaToolChoiceTool {
   disable_parallel_tool_use?: boolean;
 }
 
+export interface BetaToolComputerUse20241022 {
+  display_height_px: number;
+
+  display_width_px: number;
+
+  name: 'computer';
+
+  type: 'computer_20241022';
+
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  display_number?: number | null;
+}
+
 export interface BetaToolResultBlockParam {
   tool_use_id: string;
 
@@ -407,6 +431,20 @@ export interface BetaToolResultBlockParam {
 
   is_error?: boolean;
 }
+
+export interface BetaToolTextEditor20241022 {
+  name: 'str_replace_editor';
+
+  type: 'text_editor_20241022';
+
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export type BetaToolUnion =
+  | BetaTool
+  | BetaToolComputerUse20241022
+  | BetaToolBash20241022
+  | BetaToolTextEditor20241022;
 
 export interface BetaToolUseBlock {
   id: string;
@@ -472,11 +510,12 @@ export interface MessageCreateParamsBase {
    * Our models are trained to operate on alternating `user` and `assistant`
    * conversational turns. When creating a new `Message`, you specify the prior
    * conversational turns with the `messages` parameter, and the model then generates
-   * the next `Message` in the conversation.
+   * the next `Message` in the conversation. Consecutive `user` or `assistant` turns
+   * in your request will be combined into a single turn.
    *
    * Each input message must be an object with a `role` and `content`. You can
    * specify a single `user`-role message, or you can include multiple `user` and
-   * `assistant` messages. The first message must always use the `user` role.
+   * `assistant` messages.
    *
    * If the final message uses the `assistant` role, the response content will
    * continue immediately from the content in that message. This can be used to
@@ -686,7 +725,7 @@ export interface MessageCreateParamsBase {
    *
    * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
    */
-  tools?: Array<BetaTool>;
+  tools?: Array<BetaToolUnion>;
 
   /**
    * Body param: Only sample from the top K options for each subsequent token.
@@ -766,11 +805,15 @@ export namespace Messages {
   export import BetaTextBlockParam = MessagesMessagesAPI.BetaTextBlockParam;
   export import BetaTextDelta = MessagesMessagesAPI.BetaTextDelta;
   export import BetaTool = MessagesMessagesAPI.BetaTool;
+  export import BetaToolBash20241022 = MessagesMessagesAPI.BetaToolBash20241022;
   export import BetaToolChoice = MessagesMessagesAPI.BetaToolChoice;
   export import BetaToolChoiceAny = MessagesMessagesAPI.BetaToolChoiceAny;
   export import BetaToolChoiceAuto = MessagesMessagesAPI.BetaToolChoiceAuto;
   export import BetaToolChoiceTool = MessagesMessagesAPI.BetaToolChoiceTool;
+  export import BetaToolComputerUse20241022 = MessagesMessagesAPI.BetaToolComputerUse20241022;
   export import BetaToolResultBlockParam = MessagesMessagesAPI.BetaToolResultBlockParam;
+  export import BetaToolTextEditor20241022 = MessagesMessagesAPI.BetaToolTextEditor20241022;
+  export import BetaToolUnion = MessagesMessagesAPI.BetaToolUnion;
   export import BetaToolUseBlock = MessagesMessagesAPI.BetaToolUseBlock;
   export import BetaToolUseBlockParam = MessagesMessagesAPI.BetaToolUseBlockParam;
   export import BetaUsage = MessagesMessagesAPI.BetaUsage;

@@ -73,11 +73,15 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTool</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolBash20241022</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChoice</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChoiceAny</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChoiceAuto</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChoiceTool</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolComputerUse20241022</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolTextEditor20241022</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUnion</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUseBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaUsage</a></code>
