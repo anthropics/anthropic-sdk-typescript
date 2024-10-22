@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0 (2024-10-22)
+
+Full Changelog: [vertex-sdk-v0.4.3...vertex-sdk-v0.5.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.4.3...vertex-sdk-v0.5.0)
+
+### Features
+
+* **vertex:** add beta.messages.create() ([22cfdba](https://github.com/anthropics/anthropic-sdk-typescript/commit/22cfdba2a3a54e916f2efcbce62990544d3e5f5f))
+
 ## 0.4.3 (2024-10-08)
 
 Full Changelog: [vertex-sdk-v0.4.2...vertex-sdk-v0.4.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.4.2...vertex-sdk-v0.4.3)

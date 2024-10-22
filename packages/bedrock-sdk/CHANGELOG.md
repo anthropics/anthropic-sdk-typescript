@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.0 (2024-10-22)
+
+Full Changelog: [bedrock-sdk-v0.10.4...bedrock-sdk-v0.11.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.10.4...bedrock-sdk-v0.11.0)
+
+### Features
+
+* **bedrock:** add beta.messages.create() method ([6317592](https://github.com/anthropics/anthropic-sdk-typescript/commit/63175920a016a2ad187dd1127d263357cf6c007e))
+
 ## 0.10.4 (2024-10-08)
 
 Full Changelog: [bedrock-sdk-v0.10.3...bedrock-sdk-v0.10.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.10.3...bedrock-sdk-v0.10.4)
