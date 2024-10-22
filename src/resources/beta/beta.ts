@@ -10,7 +10,11 @@ export class Beta extends APIResource {
   promptCaching: PromptCachingAPI.PromptCaching = new PromptCachingAPI.PromptCaching(this._client);
 }
 
-export type AnthropicBeta = (string & {}) | 'message-batches-2024-09-24' | 'prompt-caching-2024-07-31';
+export type AnthropicBeta =
+  | (string & {})
+  | 'message-batches-2024-09-24'
+  | 'prompt-caching-2024-07-31'
+  | 'computer-use-2024-10-22';
 
 export interface BetaAPIError {
   message: string;
@@ -101,11 +105,15 @@ export namespace Beta {
   export import BetaTextBlockParam = MessagesAPI.BetaTextBlockParam;
   export import BetaTextDelta = MessagesAPI.BetaTextDelta;
   export import BetaTool = MessagesAPI.BetaTool;
+  export import BetaToolBash20241022 = MessagesAPI.BetaToolBash20241022;
   export import BetaToolChoice = MessagesAPI.BetaToolChoice;
   export import BetaToolChoiceAny = MessagesAPI.BetaToolChoiceAny;
   export import BetaToolChoiceAuto = MessagesAPI.BetaToolChoiceAuto;
   export import BetaToolChoiceTool = MessagesAPI.BetaToolChoiceTool;
+  export import BetaToolComputerUse20241022 = MessagesAPI.BetaToolComputerUse20241022;
   export import BetaToolResultBlockParam = MessagesAPI.BetaToolResultBlockParam;
+  export import BetaToolTextEditor20241022 = MessagesAPI.BetaToolTextEditor20241022;
+  export import BetaToolUnion = MessagesAPI.BetaToolUnion;
   export import BetaToolUseBlock = MessagesAPI.BetaToolUseBlock;
   export import BetaToolUseBlockParam = MessagesAPI.BetaToolUseBlockParam;
   export import BetaUsage = MessagesAPI.BetaUsage;

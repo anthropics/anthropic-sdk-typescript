@@ -12,10 +12,11 @@ import { type Response } from '../../../_shims/index';
 
 export class Batches extends APIResource {
   /**
-   * Send a batch of requests to create Messages.
+   * Send a batch of Message creation requests.
    *
-   * The Messages Batch API can be used to process multiple Messages API requests at
-   * once. Once a Message Batch is created, it begins processing immediately.
+   * The Message Batches API can be used to process multiple Messages API requests at
+   * once. Once a Message Batch is created, it begins processing immediately. Batches
+   * can take up to 24 hours to complete.
    */
   create(params: BatchCreateParams, options?: Core.RequestOptions): Core.APIPromise<BetaMessageBatch> {
     const { betas, ...body } = params;
@@ -31,8 +32,8 @@ export class Batches extends APIResource {
 
   /**
    * This endpoint is idempotent and can be used to poll for Message Batch
-   * completion. To access the results of a Message Batch, use the `responses_url`
-   * field in the response.
+   * completion. To access the results of a Message Batch, make a request to the
+   * `results_url` field in the response.
    */
   retrieve(
     messageBatchId: string,
@@ -59,7 +60,8 @@ export class Batches extends APIResource {
   }
 
   /**
-   * List all Message Batches within a Workspace.
+   * List all Message Batches within a Workspace. Most recently created batches are
+   * returned first.
    */
   list(
     params?: BatchListParams,
@@ -85,8 +87,15 @@ export class Batches extends APIResource {
   }
 
   /**
-   * Batches may be canceled any time before processing ends. The system may complete
-   * any in-progress, non-interruptible operations before finalizing cancellation.
+   * Batches may be canceled any time before processing ends. Once cancellation is
+   * initiated, the batch enters a `canceling` state, at which time the system may
+   * complete any in-progress, non-interruptible requests before finalizing
+   * cancellation.
+   *
+   * The number of canceled requests is specified in `request_counts`. To determine
+   * which requests were canceled, check the individual results within the batch.
+   * Note that cancellation may not result in any canceled requests if they were
+   * non-interruptible.
    */
   cancel(
     messageBatchId: string,
@@ -156,6 +165,12 @@ export interface BetaMessageBatch {
   id: string;
 
   /**
+   * RFC 3339 datetime string representing the time at which the Message Batch was
+   * archived and its results became unavailable.
+   */
+  archived_at: string | null;
+
+  /**
    * RFC 3339 datetime string representing the time at which cancellation was
    * initiated for the Message Batch. Specified only if cancellation was initiated.
    */
@@ -184,16 +199,15 @@ export interface BetaMessageBatch {
 
   /**
    * Processing status of the Message Batch.
-   *
-   * This is one of: `in_progress`, `canceling`, or `ended`.
    */
   processing_status: 'in_progress' | 'canceling' | 'ended';
 
   /**
-   * Overview of the number of requests within the Message Batch and their statuses.
+   * Tallies requests within the Message Batch, categorized by their status.
    *
    * Requests start as `processing` and move to one of the other statuses only once
-   * processing of entire batch ends.
+   * processing of the entire batch ends. The sum of all values always matches the
+   * total number of requests in the batch.
    */
   request_counts: BetaMessageBatchRequestCounts;
 
@@ -231,7 +245,7 @@ export interface BetaMessageBatchExpiredResult {
 export interface BetaMessageBatchIndividualResponse {
   /**
    * Developer-provided ID created for each request in a Message Batch. Useful for
-   * matching results to requests.
+   * matching results to requests, as results may be given out of request order.
    *
    * Must be unique for each request within the Message Batch.
    */
@@ -318,7 +332,7 @@ export namespace BatchCreateParams {
   export interface Request {
     /**
      * Developer-provided ID created for each request in a Message Batch. Useful for
-     * matching results to requests.
+     * matching results to requests, as results may be given out of request order.
      *
      * Must be unique for each request within the Message Batch.
      */
@@ -358,11 +372,12 @@ export namespace BatchCreateParams {
        * Our models are trained to operate on alternating `user` and `assistant`
        * conversational turns. When creating a new `Message`, you specify the prior
        * conversational turns with the `messages` parameter, and the model then generates
-       * the next `Message` in the conversation.
+       * the next `Message` in the conversation. Consecutive `user` or `assistant` turns
+       * in your request will be combined into a single turn.
        *
        * Each input message must be an object with a `role` and `content`. You can
        * specify a single `user`-role message, or you can include multiple `user` and
-       * `assistant` messages. The first message must always use the `user` role.
+       * `assistant` messages.
        *
        * If the final message uses the `assistant` role, the response content will
        * continue immediately from the content in that message. This can be used to
@@ -571,7 +586,7 @@ export namespace BatchCreateParams {
        *
        * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
        */
-      tools?: Array<MessagesMessagesAPI.BetaTool>;
+      tools?: Array<MessagesMessagesAPI.BetaToolUnion>;
 
       /**
        * Only sample from the top K options for each subsequent token.
