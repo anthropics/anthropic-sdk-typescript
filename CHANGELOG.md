@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.30.0 (2024-10-22)
+
+Full Changelog: [sdk-v0.29.2...sdk-v0.30.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.29.2...sdk-v0.30.0)
+
+### Features
+
+* **api:** add new model and `computer-use-2024-10-22` beta ([6981d89](https://github.com/anthropics/anthropic-sdk-typescript/commit/6981d89d3efe6ae8d35c7562527a6c81ad8ed78f))
+* **bedrock:** add beta.messages.create() method ([6317592](https://github.com/anthropics/anthropic-sdk-typescript/commit/63175920a016a2ad187dd1127d263357cf6c007e))
+* **vertex:** add beta.messages.create() ([22cfdba](https://github.com/anthropics/anthropic-sdk-typescript/commit/22cfdba2a3a54e916f2efcbce62990544d3e5f5f))
+
+
+### Bug Fixes
+
+* **client:** respect x-stainless-retry-count default headers ([#562](https://github.com/anthropics/anthropic-sdk-typescript/issues/562)) ([274573f](https://github.com/anthropics/anthropic-sdk-typescript/commit/274573f5bc74e382302071850dee058ea2920f0c))
+
+
+### Chores
+
+* **api:** add title ([#564](https://github.com/anthropics/anthropic-sdk-typescript/issues/564)) ([a8b7544](https://github.com/anthropics/anthropic-sdk-typescript/commit/a8b7544e56d4a1dfa1f6de530ddaa728ae52c87f))
+* **internal:** update spec ([#566](https://github.com/anthropics/anthropic-sdk-typescript/issues/566)) ([5b998ea](https://github.com/anthropics/anthropic-sdk-typescript/commit/5b998eaf3216fba2283e7762faa115bd5f47a239))
+
 ## 0.29.2 (2024-10-17)
 
 Full Changelog: [sdk-v0.29.1...sdk-v0.29.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.29.1...sdk-v0.29.2)
