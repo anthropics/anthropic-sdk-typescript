@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.30.1 (2024-10-23)
+
+Full Changelog: [sdk-v0.30.0...sdk-v0.30.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.30.0...sdk-v0.30.1)
+
+### Bug Fixes
+
+* **bedrock:** correct messages beta handling ([9b57586](https://github.com/anthropics/anthropic-sdk-typescript/commit/9b57586456221f8900902b8e85c7c017959c150a))
+* **vertex:** correct messages beta handling ([26f21ee](https://github.com/anthropics/anthropic-sdk-typescript/commit/26f21ee5f524f4cbfb7a97d40aa62553608b1d99))
+
+
+### Chores
+
+* **internal:** bumps eslint and related dependencies ([#570](https://github.com/anthropics/anthropic-sdk-typescript/issues/570)) ([0b3ebb0](https://github.com/anthropics/anthropic-sdk-typescript/commit/0b3ebb01c07356e09f0100c235200ca91384aa6a))
+
 ## 0.30.0 (2024-10-22)
 
 Full Changelog: [sdk-v0.29.2...sdk-v0.30.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.29.2...sdk-v0.30.0)

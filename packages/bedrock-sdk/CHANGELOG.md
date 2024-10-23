@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.1 (2024-10-23)
+
+Full Changelog: [bedrock-sdk-v0.11.0...bedrock-sdk-v0.11.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.11.0...bedrock-sdk-v0.11.1)
+
+### Bug Fixes
+
+* **bedrock:** correct messages beta handling ([9b57586](https://github.com/anthropics/anthropic-sdk-typescript/commit/9b57586456221f8900902b8e85c7c017959c150a))
+
 ## 0.11.0 (2024-10-22)
 
 Full Changelog: [bedrock-sdk-v0.10.4...bedrock-sdk-v0.11.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.10.4...bedrock-sdk-v0.11.0)
