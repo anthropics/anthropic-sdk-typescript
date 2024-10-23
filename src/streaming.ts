@@ -3,8 +3,8 @@ import { type ReadableStream } from './internal/shim-types';
 import { makeReadableStream } from './internal/shims';
 import { LineDecoder } from './internal/decoders/line';
 
-import { createResponseHeaders } from '@anthropic-ai/sdk/internal/headers';
-import { APIError } from '@anthropic-ai/sdk/error';
+import { createResponseHeaders } from './internal/headers';
+import { APIError } from './error';
 
 type Bytes = string | ArrayBuffer | Uint8Array | Buffer | null | undefined;
 

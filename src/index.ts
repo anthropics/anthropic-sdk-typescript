@@ -4,15 +4,8 @@ import * as Errors from './error';
 import * as Uploads from './uploads';
 import { type RequestInit, type RequestInfo } from './internal/builtin-types';
 import { type HTTPMethod, type PromiseOrValue, type RequestClient } from './internal/types';
-import {
-  debug,
-  sleep,
-  safeJSON,
-  castToError,
-  isAbsoluteURL,
-  uuid4,
-  validatePositiveInteger,
-} from './internal/utils';
+import { debug, sleep, safeJSON, isAbsoluteURL, uuid4, validatePositiveInteger } from './internal/utils';
+import { castToError } from './internal/errors';
 import { APIResponseProps } from './internal/parse';
 import { getPlatformHeaders } from './internal/detect-platform';
 import * as Shims from './internal/shims';
