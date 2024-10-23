@@ -5,6 +5,7 @@ import { type RequestInit } from '@anthropic-ai/sdk/_shims/index';
 import { GoogleAuth } from 'google-auth-library';
 
 const DEFAULT_VERSION = 'vertex-2023-10-16';
+const MODEL_ENDPOINTS = new Set<string>(['/v1/messages', '/v1/messages?beta=true']);
 
 export type ClientOptions = Omit<API.ClientOptions, 'apiKey' | 'authToken'> & {
   region?: string | null | undefined;
@@ -119,7 +120,7 @@ export class AnthropicVertex extends Core.APIClient {
       }
     }
 
-    if (options.path === '/v1/messages' && options.method === 'post') {
+    if (MODEL_ENDPOINTS.has(options.path) && options.method === 'post') {
       if (!this.projectId) {
         throw new Error(
           'No projectId was given and it could not be resolved from credentials. The client should be instantiated with the `projectId` option or the `ANTHROPIC_VERTEX_PROJECT_ID` environment variable should be set.',
