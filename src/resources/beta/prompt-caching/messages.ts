@@ -588,23 +588,18 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
 }
 
 export namespace Messages {
-  export type PromptCachingBetaCacheControlEphemeral =
-    PromptCachingMessagesAPI.PromptCachingBetaCacheControlEphemeral;
-  export type PromptCachingBetaImageBlockParam = PromptCachingMessagesAPI.PromptCachingBetaImageBlockParam;
-  export type PromptCachingBetaMessage = PromptCachingMessagesAPI.PromptCachingBetaMessage;
-  export type PromptCachingBetaMessageParam = PromptCachingMessagesAPI.PromptCachingBetaMessageParam;
-  export type PromptCachingBetaTextBlockParam = PromptCachingMessagesAPI.PromptCachingBetaTextBlockParam;
-  export type PromptCachingBetaTool = PromptCachingMessagesAPI.PromptCachingBetaTool;
-  export type PromptCachingBetaToolResultBlockParam =
-    PromptCachingMessagesAPI.PromptCachingBetaToolResultBlockParam;
-  export type PromptCachingBetaToolUseBlockParam =
-    PromptCachingMessagesAPI.PromptCachingBetaToolUseBlockParam;
-  export type PromptCachingBetaUsage = PromptCachingMessagesAPI.PromptCachingBetaUsage;
-  export type RawPromptCachingBetaMessageStartEvent =
-    PromptCachingMessagesAPI.RawPromptCachingBetaMessageStartEvent;
-  export type RawPromptCachingBetaMessageStreamEvent =
-    PromptCachingMessagesAPI.RawPromptCachingBetaMessageStreamEvent;
-  export type MessageCreateParams = PromptCachingMessagesAPI.MessageCreateParams;
-  export type MessageCreateParamsNonStreaming = PromptCachingMessagesAPI.MessageCreateParamsNonStreaming;
-  export type MessageCreateParamsStreaming = PromptCachingMessagesAPI.MessageCreateParamsStreaming;
+  export import PromptCachingBetaCacheControlEphemeral = PromptCachingMessagesAPI.PromptCachingBetaCacheControlEphemeral;
+  export import PromptCachingBetaImageBlockParam = PromptCachingMessagesAPI.PromptCachingBetaImageBlockParam;
+  export import PromptCachingBetaMessage = PromptCachingMessagesAPI.PromptCachingBetaMessage;
+  export import PromptCachingBetaMessageParam = PromptCachingMessagesAPI.PromptCachingBetaMessageParam;
+  export import PromptCachingBetaTextBlockParam = PromptCachingMessagesAPI.PromptCachingBetaTextBlockParam;
+  export import PromptCachingBetaTool = PromptCachingMessagesAPI.PromptCachingBetaTool;
+  export import PromptCachingBetaToolResultBlockParam = PromptCachingMessagesAPI.PromptCachingBetaToolResultBlockParam;
+  export import PromptCachingBetaToolUseBlockParam = PromptCachingMessagesAPI.PromptCachingBetaToolUseBlockParam;
+  export import PromptCachingBetaUsage = PromptCachingMessagesAPI.PromptCachingBetaUsage;
+  export import RawPromptCachingBetaMessageStartEvent = PromptCachingMessagesAPI.RawPromptCachingBetaMessageStartEvent;
+  export import RawPromptCachingBetaMessageStreamEvent = PromptCachingMessagesAPI.RawPromptCachingBetaMessageStreamEvent;
+  export import MessageCreateParams = PromptCachingMessagesAPI.MessageCreateParams;
+  export import MessageCreateParamsNonStreaming = PromptCachingMessagesAPI.MessageCreateParamsNonStreaming;
+  export import MessageCreateParamsStreaming = PromptCachingMessagesAPI.MessageCreateParamsStreaming;
 }
