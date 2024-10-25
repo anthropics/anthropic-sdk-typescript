@@ -608,18 +608,18 @@ export interface BatchResultsParams {
 }
 
 export namespace Batches {
-  export import BetaMessageBatch = BatchesAPI.BetaMessageBatch;
-  export import BetaMessageBatchCanceledResult = BatchesAPI.BetaMessageBatchCanceledResult;
-  export import BetaMessageBatchErroredResult = BatchesAPI.BetaMessageBatchErroredResult;
-  export import BetaMessageBatchExpiredResult = BatchesAPI.BetaMessageBatchExpiredResult;
-  export import BetaMessageBatchIndividualResponse = BatchesAPI.BetaMessageBatchIndividualResponse;
-  export import BetaMessageBatchRequestCounts = BatchesAPI.BetaMessageBatchRequestCounts;
-  export import BetaMessageBatchResult = BatchesAPI.BetaMessageBatchResult;
-  export import BetaMessageBatchSucceededResult = BatchesAPI.BetaMessageBatchSucceededResult;
+  export type BetaMessageBatch = BatchesAPI.BetaMessageBatch;
+  export type BetaMessageBatchCanceledResult = BatchesAPI.BetaMessageBatchCanceledResult;
+  export type BetaMessageBatchErroredResult = BatchesAPI.BetaMessageBatchErroredResult;
+  export type BetaMessageBatchExpiredResult = BatchesAPI.BetaMessageBatchExpiredResult;
+  export type BetaMessageBatchIndividualResponse = BatchesAPI.BetaMessageBatchIndividualResponse;
+  export type BetaMessageBatchRequestCounts = BatchesAPI.BetaMessageBatchRequestCounts;
+  export type BetaMessageBatchResult = BatchesAPI.BetaMessageBatchResult;
+  export type BetaMessageBatchSucceededResult = BatchesAPI.BetaMessageBatchSucceededResult;
   export type BetaMessageBatchesPage = BatchesAPI.BetaMessageBatchesPage;
-  export import BatchCreateParams = BatchesAPI.BatchCreateParams;
-  export import BatchRetrieveParams = BatchesAPI.BatchRetrieveParams;
-  export import BatchListParams = BatchesAPI.BatchListParams;
-  export import BatchCancelParams = BatchesAPI.BatchCancelParams;
-  export import BatchResultsParams = BatchesAPI.BatchResultsParams;
+  export type BatchCreateParams = BatchesAPI.BatchCreateParams;
+  export type BatchRetrieveParams = BatchesAPI.BatchRetrieveParams;
+  export type BatchListParams = BatchesAPI.BatchListParams;
+  export type BatchCancelParams = BatchesAPI.BatchCancelParams;
+  export type BatchResultsParams = BatchesAPI.BatchResultsParams;
 }
