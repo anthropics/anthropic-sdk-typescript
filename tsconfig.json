@@ -10,7 +10,7 @@
     "baseUrl": "./",
     "paths": {
       "@anthropic-ai/sdk/*": ["src/*"],
-      "@anthropic-ai/sdk": ["src/index.ts"]
+      "@anthropic-ai/sdk": ["src/index.ts"],
     },
     "noEmit": true,
 
@@ -31,7 +31,6 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
-    "isolatedModules": true,
 
     "skipLibCheck": true
   }
