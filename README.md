@@ -138,7 +138,7 @@ This SDK provides beta support for the [Message Batches API](https://docs.anthro
 
 ### Creating a batch
 
-Message Batches takes an array of requests, where each object ahs a `custom_id` identifier, and the exact same request `params` as the standard Messages API:
+Message Batches takes an array of requests, where each object has a `custom_id` identifier, and the exact same request `params` as the standard Messages API:
 
 ```ts
 await anthropic.beta.messages.batches.create({
