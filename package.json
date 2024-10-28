@@ -10,7 +10,7 @@
   "license": "MIT",
   "packageManager": "yarn@1.22.22",
   "files": [
-    "*"
+    "**/*"
   ],
   "private": false,
   "scripts": {
