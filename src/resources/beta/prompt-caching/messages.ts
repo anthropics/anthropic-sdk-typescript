@@ -587,19 +587,21 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
   stream: true;
 }
 
-export namespace Messages {
-  export import PromptCachingBetaCacheControlEphemeral = PromptCachingMessagesAPI.PromptCachingBetaCacheControlEphemeral;
-  export import PromptCachingBetaImageBlockParam = PromptCachingMessagesAPI.PromptCachingBetaImageBlockParam;
-  export import PromptCachingBetaMessage = PromptCachingMessagesAPI.PromptCachingBetaMessage;
-  export import PromptCachingBetaMessageParam = PromptCachingMessagesAPI.PromptCachingBetaMessageParam;
-  export import PromptCachingBetaTextBlockParam = PromptCachingMessagesAPI.PromptCachingBetaTextBlockParam;
-  export import PromptCachingBetaTool = PromptCachingMessagesAPI.PromptCachingBetaTool;
-  export import PromptCachingBetaToolResultBlockParam = PromptCachingMessagesAPI.PromptCachingBetaToolResultBlockParam;
-  export import PromptCachingBetaToolUseBlockParam = PromptCachingMessagesAPI.PromptCachingBetaToolUseBlockParam;
-  export import PromptCachingBetaUsage = PromptCachingMessagesAPI.PromptCachingBetaUsage;
-  export import RawPromptCachingBetaMessageStartEvent = PromptCachingMessagesAPI.RawPromptCachingBetaMessageStartEvent;
-  export import RawPromptCachingBetaMessageStreamEvent = PromptCachingMessagesAPI.RawPromptCachingBetaMessageStreamEvent;
-  export import MessageCreateParams = PromptCachingMessagesAPI.MessageCreateParams;
-  export import MessageCreateParamsNonStreaming = PromptCachingMessagesAPI.MessageCreateParamsNonStreaming;
-  export import MessageCreateParamsStreaming = PromptCachingMessagesAPI.MessageCreateParamsStreaming;
+export declare namespace Messages {
+  export {
+    type PromptCachingBetaCacheControlEphemeral as PromptCachingBetaCacheControlEphemeral,
+    type PromptCachingBetaImageBlockParam as PromptCachingBetaImageBlockParam,
+    type PromptCachingBetaMessage as PromptCachingBetaMessage,
+    type PromptCachingBetaMessageParam as PromptCachingBetaMessageParam,
+    type PromptCachingBetaTextBlockParam as PromptCachingBetaTextBlockParam,
+    type PromptCachingBetaTool as PromptCachingBetaTool,
+    type PromptCachingBetaToolResultBlockParam as PromptCachingBetaToolResultBlockParam,
+    type PromptCachingBetaToolUseBlockParam as PromptCachingBetaToolUseBlockParam,
+    type PromptCachingBetaUsage as PromptCachingBetaUsage,
+    type RawPromptCachingBetaMessageStartEvent as RawPromptCachingBetaMessageStartEvent,
+    type RawPromptCachingBetaMessageStreamEvent as RawPromptCachingBetaMessageStreamEvent,
+    type MessageCreateParams as MessageCreateParams,
+    type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
+    type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
+  };
 }

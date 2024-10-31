@@ -7,6 +7,23 @@ import * as MessagesMessagesAPI from './messages';
 import * as MessagesAPI from '../../messages';
 import * as BetaAPI from '../beta';
 import * as BatchesAPI from './batches';
+import {
+  BatchCancelParams,
+  BatchCreateParams,
+  BatchListParams,
+  BatchResultsParams,
+  BatchRetrieveParams,
+  Batches,
+  BetaMessageBatch,
+  BetaMessageBatchCanceledResult,
+  BetaMessageBatchErroredResult,
+  BetaMessageBatchExpiredResult,
+  BetaMessageBatchIndividualResponse,
+  BetaMessageBatchRequestCounts,
+  BetaMessageBatchResult,
+  BetaMessageBatchSucceededResult,
+  BetaMessageBatchesPage,
+} from './batches';
 import { Stream } from '../../../streaming';
 
 export class Messages extends APIResource {
@@ -784,55 +801,63 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
   stream: true;
 }
 
-export namespace Messages {
-  export import BetaCacheControlEphemeral = MessagesMessagesAPI.BetaCacheControlEphemeral;
-  export import BetaContentBlock = MessagesMessagesAPI.BetaContentBlock;
-  export import BetaContentBlockParam = MessagesMessagesAPI.BetaContentBlockParam;
-  export import BetaImageBlockParam = MessagesMessagesAPI.BetaImageBlockParam;
-  export import BetaInputJSONDelta = MessagesMessagesAPI.BetaInputJSONDelta;
-  export import BetaMessage = MessagesMessagesAPI.BetaMessage;
-  export import BetaMessageDeltaUsage = MessagesMessagesAPI.BetaMessageDeltaUsage;
-  export import BetaMessageParam = MessagesMessagesAPI.BetaMessageParam;
-  export import BetaMetadata = MessagesMessagesAPI.BetaMetadata;
-  export import BetaRawContentBlockDeltaEvent = MessagesMessagesAPI.BetaRawContentBlockDeltaEvent;
-  export import BetaRawContentBlockStartEvent = MessagesMessagesAPI.BetaRawContentBlockStartEvent;
-  export import BetaRawContentBlockStopEvent = MessagesMessagesAPI.BetaRawContentBlockStopEvent;
-  export import BetaRawMessageDeltaEvent = MessagesMessagesAPI.BetaRawMessageDeltaEvent;
-  export import BetaRawMessageStartEvent = MessagesMessagesAPI.BetaRawMessageStartEvent;
-  export import BetaRawMessageStopEvent = MessagesMessagesAPI.BetaRawMessageStopEvent;
-  export import BetaRawMessageStreamEvent = MessagesMessagesAPI.BetaRawMessageStreamEvent;
-  export import BetaTextBlock = MessagesMessagesAPI.BetaTextBlock;
-  export import BetaTextBlockParam = MessagesMessagesAPI.BetaTextBlockParam;
-  export import BetaTextDelta = MessagesMessagesAPI.BetaTextDelta;
-  export import BetaTool = MessagesMessagesAPI.BetaTool;
-  export import BetaToolBash20241022 = MessagesMessagesAPI.BetaToolBash20241022;
-  export import BetaToolChoice = MessagesMessagesAPI.BetaToolChoice;
-  export import BetaToolChoiceAny = MessagesMessagesAPI.BetaToolChoiceAny;
-  export import BetaToolChoiceAuto = MessagesMessagesAPI.BetaToolChoiceAuto;
-  export import BetaToolChoiceTool = MessagesMessagesAPI.BetaToolChoiceTool;
-  export import BetaToolComputerUse20241022 = MessagesMessagesAPI.BetaToolComputerUse20241022;
-  export import BetaToolResultBlockParam = MessagesMessagesAPI.BetaToolResultBlockParam;
-  export import BetaToolTextEditor20241022 = MessagesMessagesAPI.BetaToolTextEditor20241022;
-  export import BetaToolUnion = MessagesMessagesAPI.BetaToolUnion;
-  export import BetaToolUseBlock = MessagesMessagesAPI.BetaToolUseBlock;
-  export import BetaToolUseBlockParam = MessagesMessagesAPI.BetaToolUseBlockParam;
-  export import BetaUsage = MessagesMessagesAPI.BetaUsage;
-  export import MessageCreateParams = MessagesMessagesAPI.MessageCreateParams;
-  export import MessageCreateParamsNonStreaming = MessagesMessagesAPI.MessageCreateParamsNonStreaming;
-  export import MessageCreateParamsStreaming = MessagesMessagesAPI.MessageCreateParamsStreaming;
-  export import Batches = BatchesAPI.Batches;
-  export import BetaMessageBatch = BatchesAPI.BetaMessageBatch;
-  export import BetaMessageBatchCanceledResult = BatchesAPI.BetaMessageBatchCanceledResult;
-  export import BetaMessageBatchErroredResult = BatchesAPI.BetaMessageBatchErroredResult;
-  export import BetaMessageBatchExpiredResult = BatchesAPI.BetaMessageBatchExpiredResult;
-  export import BetaMessageBatchIndividualResponse = BatchesAPI.BetaMessageBatchIndividualResponse;
-  export import BetaMessageBatchRequestCounts = BatchesAPI.BetaMessageBatchRequestCounts;
-  export import BetaMessageBatchResult = BatchesAPI.BetaMessageBatchResult;
-  export import BetaMessageBatchSucceededResult = BatchesAPI.BetaMessageBatchSucceededResult;
-  export import BetaMessageBatchesPage = BatchesAPI.BetaMessageBatchesPage;
-  export import BatchCreateParams = BatchesAPI.BatchCreateParams;
-  export import BatchRetrieveParams = BatchesAPI.BatchRetrieveParams;
-  export import BatchListParams = BatchesAPI.BatchListParams;
-  export import BatchCancelParams = BatchesAPI.BatchCancelParams;
-  export import BatchResultsParams = BatchesAPI.BatchResultsParams;
+Messages.Batches = Batches;
+Messages.BetaMessageBatchesPage = BetaMessageBatchesPage;
+
+export declare namespace Messages {
+  export {
+    type BetaCacheControlEphemeral as BetaCacheControlEphemeral,
+    type BetaContentBlock as BetaContentBlock,
+    type BetaContentBlockParam as BetaContentBlockParam,
+    type BetaImageBlockParam as BetaImageBlockParam,
+    type BetaInputJSONDelta as BetaInputJSONDelta,
+    type BetaMessage as BetaMessage,
+    type BetaMessageDeltaUsage as BetaMessageDeltaUsage,
+    type BetaMessageParam as BetaMessageParam,
+    type BetaMetadata as BetaMetadata,
+    type BetaRawContentBlockDeltaEvent as BetaRawContentBlockDeltaEvent,
+    type BetaRawContentBlockStartEvent as BetaRawContentBlockStartEvent,
+    type BetaRawContentBlockStopEvent as BetaRawContentBlockStopEvent,
+    type BetaRawMessageDeltaEvent as BetaRawMessageDeltaEvent,
+    type BetaRawMessageStartEvent as BetaRawMessageStartEvent,
+    type BetaRawMessageStopEvent as BetaRawMessageStopEvent,
+    type BetaRawMessageStreamEvent as BetaRawMessageStreamEvent,
+    type BetaTextBlock as BetaTextBlock,
+    type BetaTextBlockParam as BetaTextBlockParam,
+    type BetaTextDelta as BetaTextDelta,
+    type BetaTool as BetaTool,
+    type BetaToolBash20241022 as BetaToolBash20241022,
+    type BetaToolChoice as BetaToolChoice,
+    type BetaToolChoiceAny as BetaToolChoiceAny,
+    type BetaToolChoiceAuto as BetaToolChoiceAuto,
+    type BetaToolChoiceTool as BetaToolChoiceTool,
+    type BetaToolComputerUse20241022 as BetaToolComputerUse20241022,
+    type BetaToolResultBlockParam as BetaToolResultBlockParam,
+    type BetaToolTextEditor20241022 as BetaToolTextEditor20241022,
+    type BetaToolUnion as BetaToolUnion,
+    type BetaToolUseBlock as BetaToolUseBlock,
+    type BetaToolUseBlockParam as BetaToolUseBlockParam,
+    type BetaUsage as BetaUsage,
+    type MessageCreateParams as MessageCreateParams,
+    type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
+    type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
+  };
+
+  export {
+    Batches as Batches,
+    type BetaMessageBatch as BetaMessageBatch,
+    type BetaMessageBatchCanceledResult as BetaMessageBatchCanceledResult,
+    type BetaMessageBatchErroredResult as BetaMessageBatchErroredResult,
+    type BetaMessageBatchExpiredResult as BetaMessageBatchExpiredResult,
+    type BetaMessageBatchIndividualResponse as BetaMessageBatchIndividualResponse,
+    type BetaMessageBatchRequestCounts as BetaMessageBatchRequestCounts,
+    type BetaMessageBatchResult as BetaMessageBatchResult,
+    type BetaMessageBatchSucceededResult as BetaMessageBatchSucceededResult,
+    BetaMessageBatchesPage as BetaMessageBatchesPage,
+    type BatchCreateParams as BatchCreateParams,
+    type BatchRetrieveParams as BatchRetrieveParams,
+    type BatchListParams as BatchListParams,
+    type BatchCancelParams as BatchCancelParams,
+    type BatchResultsParams as BatchResultsParams,
+  };
 }
