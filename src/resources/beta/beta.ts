@@ -1,9 +1,47 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIResource } from '../../resource';
-import * as BetaAPI from './beta';
 import * as MessagesAPI from './messages/messages';
+import {
+  BetaCacheControlEphemeral,
+  BetaContentBlock,
+  BetaContentBlockParam,
+  BetaImageBlockParam,
+  BetaInputJSONDelta,
+  BetaMessage,
+  BetaMessageDeltaUsage,
+  BetaMessageParam,
+  BetaMetadata,
+  BetaRawContentBlockDeltaEvent,
+  BetaRawContentBlockStartEvent,
+  BetaRawContentBlockStopEvent,
+  BetaRawMessageDeltaEvent,
+  BetaRawMessageStartEvent,
+  BetaRawMessageStopEvent,
+  BetaRawMessageStreamEvent,
+  BetaTextBlock,
+  BetaTextBlockParam,
+  BetaTextDelta,
+  BetaTool,
+  BetaToolBash20241022,
+  BetaToolChoice,
+  BetaToolChoiceAny,
+  BetaToolChoiceAuto,
+  BetaToolChoiceTool,
+  BetaToolComputerUse20241022,
+  BetaToolResultBlockParam,
+  BetaToolTextEditor20241022,
+  BetaToolUnion,
+  BetaToolUseBlock,
+  BetaToolUseBlockParam,
+  BetaUsage,
+  MessageCreateParams,
+  MessageCreateParamsNonStreaming,
+  MessageCreateParamsStreaming,
+  Messages,
+} from './messages/messages';
 import * as PromptCachingAPI from './prompt-caching/prompt-caching';
+import { PromptCaching } from './prompt-caching/prompt-caching';
 
 export class Beta extends APIResource {
   messages: MessagesAPI.Messages = new MessagesAPI.Messages(this._client);
@@ -73,52 +111,61 @@ export interface BetaRateLimitError {
   type: 'rate_limit_error';
 }
 
-export namespace Beta {
-  export import AnthropicBeta = BetaAPI.AnthropicBeta;
-  export import BetaAPIError = BetaAPI.BetaAPIError;
-  export import BetaAuthenticationError = BetaAPI.BetaAuthenticationError;
-  export import BetaError = BetaAPI.BetaError;
-  export import BetaErrorResponse = BetaAPI.BetaErrorResponse;
-  export import BetaInvalidRequestError = BetaAPI.BetaInvalidRequestError;
-  export import BetaNotFoundError = BetaAPI.BetaNotFoundError;
-  export import BetaOverloadedError = BetaAPI.BetaOverloadedError;
-  export import BetaPermissionError = BetaAPI.BetaPermissionError;
-  export import BetaRateLimitError = BetaAPI.BetaRateLimitError;
-  export import Messages = MessagesAPI.Messages;
-  export import BetaCacheControlEphemeral = MessagesAPI.BetaCacheControlEphemeral;
-  export import BetaContentBlock = MessagesAPI.BetaContentBlock;
-  export import BetaContentBlockParam = MessagesAPI.BetaContentBlockParam;
-  export import BetaImageBlockParam = MessagesAPI.BetaImageBlockParam;
-  export import BetaInputJSONDelta = MessagesAPI.BetaInputJSONDelta;
-  export import BetaMessage = MessagesAPI.BetaMessage;
-  export import BetaMessageDeltaUsage = MessagesAPI.BetaMessageDeltaUsage;
-  export import BetaMessageParam = MessagesAPI.BetaMessageParam;
-  export import BetaMetadata = MessagesAPI.BetaMetadata;
-  export import BetaRawContentBlockDeltaEvent = MessagesAPI.BetaRawContentBlockDeltaEvent;
-  export import BetaRawContentBlockStartEvent = MessagesAPI.BetaRawContentBlockStartEvent;
-  export import BetaRawContentBlockStopEvent = MessagesAPI.BetaRawContentBlockStopEvent;
-  export import BetaRawMessageDeltaEvent = MessagesAPI.BetaRawMessageDeltaEvent;
-  export import BetaRawMessageStartEvent = MessagesAPI.BetaRawMessageStartEvent;
-  export import BetaRawMessageStopEvent = MessagesAPI.BetaRawMessageStopEvent;
-  export import BetaRawMessageStreamEvent = MessagesAPI.BetaRawMessageStreamEvent;
-  export import BetaTextBlock = MessagesAPI.BetaTextBlock;
-  export import BetaTextBlockParam = MessagesAPI.BetaTextBlockParam;
-  export import BetaTextDelta = MessagesAPI.BetaTextDelta;
-  export import BetaTool = MessagesAPI.BetaTool;
-  export import BetaToolBash20241022 = MessagesAPI.BetaToolBash20241022;
-  export import BetaToolChoice = MessagesAPI.BetaToolChoice;
-  export import BetaToolChoiceAny = MessagesAPI.BetaToolChoiceAny;
-  export import BetaToolChoiceAuto = MessagesAPI.BetaToolChoiceAuto;
-  export import BetaToolChoiceTool = MessagesAPI.BetaToolChoiceTool;
-  export import BetaToolComputerUse20241022 = MessagesAPI.BetaToolComputerUse20241022;
-  export import BetaToolResultBlockParam = MessagesAPI.BetaToolResultBlockParam;
-  export import BetaToolTextEditor20241022 = MessagesAPI.BetaToolTextEditor20241022;
-  export import BetaToolUnion = MessagesAPI.BetaToolUnion;
-  export import BetaToolUseBlock = MessagesAPI.BetaToolUseBlock;
-  export import BetaToolUseBlockParam = MessagesAPI.BetaToolUseBlockParam;
-  export import BetaUsage = MessagesAPI.BetaUsage;
-  export import MessageCreateParams = MessagesAPI.MessageCreateParams;
-  export import MessageCreateParamsNonStreaming = MessagesAPI.MessageCreateParamsNonStreaming;
-  export import MessageCreateParamsStreaming = MessagesAPI.MessageCreateParamsStreaming;
-  export import PromptCaching = PromptCachingAPI.PromptCaching;
+Beta.Messages = Messages;
+Beta.PromptCaching = PromptCaching;
+
+export declare namespace Beta {
+  export {
+    type AnthropicBeta as AnthropicBeta,
+    type BetaAPIError as BetaAPIError,
+    type BetaAuthenticationError as BetaAuthenticationError,
+    type BetaError as BetaError,
+    type BetaErrorResponse as BetaErrorResponse,
+    type BetaInvalidRequestError as BetaInvalidRequestError,
+    type BetaNotFoundError as BetaNotFoundError,
+    type BetaOverloadedError as BetaOverloadedError,
+    type BetaPermissionError as BetaPermissionError,
+    type BetaRateLimitError as BetaRateLimitError,
+  };
+
+  export {
+    Messages as Messages,
+    type BetaCacheControlEphemeral as BetaCacheControlEphemeral,
+    type BetaContentBlock as BetaContentBlock,
+    type BetaContentBlockParam as BetaContentBlockParam,
+    type BetaImageBlockParam as BetaImageBlockParam,
+    type BetaInputJSONDelta as BetaInputJSONDelta,
+    type BetaMessage as BetaMessage,
+    type BetaMessageDeltaUsage as BetaMessageDeltaUsage,
+    type BetaMessageParam as BetaMessageParam,
+    type BetaMetadata as BetaMetadata,
+    type BetaRawContentBlockDeltaEvent as BetaRawContentBlockDeltaEvent,
+    type BetaRawContentBlockStartEvent as BetaRawContentBlockStartEvent,
+    type BetaRawContentBlockStopEvent as BetaRawContentBlockStopEvent,
+    type BetaRawMessageDeltaEvent as BetaRawMessageDeltaEvent,
+    type BetaRawMessageStartEvent as BetaRawMessageStartEvent,
+    type BetaRawMessageStopEvent as BetaRawMessageStopEvent,
+    type BetaRawMessageStreamEvent as BetaRawMessageStreamEvent,
+    type BetaTextBlock as BetaTextBlock,
+    type BetaTextBlockParam as BetaTextBlockParam,
+    type BetaTextDelta as BetaTextDelta,
+    type BetaTool as BetaTool,
+    type BetaToolBash20241022 as BetaToolBash20241022,
+    type BetaToolChoice as BetaToolChoice,
+    type BetaToolChoiceAny as BetaToolChoiceAny,
+    type BetaToolChoiceAuto as BetaToolChoiceAuto,
+    type BetaToolChoiceTool as BetaToolChoiceTool,
+    type BetaToolComputerUse20241022 as BetaToolComputerUse20241022,
+    type BetaToolResultBlockParam as BetaToolResultBlockParam,
+    type BetaToolTextEditor20241022 as BetaToolTextEditor20241022,
+    type BetaToolUnion as BetaToolUnion,
+    type BetaToolUseBlock as BetaToolUseBlock,
+    type BetaToolUseBlockParam as BetaToolUseBlockParam,
+    type BetaUsage as BetaUsage,
+    type MessageCreateParams as MessageCreateParams,
+    type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
+    type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
+  };
+
+  export { PromptCaching as PromptCaching };
 }

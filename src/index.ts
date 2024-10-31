@@ -1,7 +1,5 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import * as Errors from './error';
-import * as Uploads from './uploads';
 import { type RequestInit, type RequestInfo } from './internal/builtin-types';
 import { type HTTPMethod, type PromiseOrValue, type RequestClient } from './internal/types';
 import { debug, sleep, safeJSON, isAbsoluteURL, uuid4, validatePositiveInteger } from './internal/utils';
@@ -14,8 +12,10 @@ import { VERSION } from './version';
 import { createResponseHeaders, getHeader, type HeadersInit } from './internal/headers';
 import { isBlobLike, isMultipartBody } from './uploads';
 import { applyHeadersMut } from './internal/headers';
+import * as Errors from './error';
 import * as Pagination from './pagination';
-import { AbstractPage } from './pagination';
+import { AbstractPage, type PageParams, PageResponse } from './pagination';
+import * as Uploads from './uploads';
 import * as API from './resources/index';
 import { APIPromise } from './internal/api-promise';
 import { type Fetch } from './internal/builtin-types';
@@ -23,6 +23,59 @@ import { isRunningInBrowser } from './internal/detect-platform';
 import { FinalRequestOptions, RequestOptions } from './internal/request-options';
 import { type DefaultQuery, type Headers } from './internal/types';
 import { isEmptyObj, readEnv } from './internal/utils';
+import {
+  Completion,
+  CompletionCreateParams,
+  CompletionCreateParamsNonStreaming,
+  CompletionCreateParamsStreaming,
+  Completions,
+} from './resources/completions';
+import {
+  ContentBlock,
+  ImageBlockParam,
+  InputJSONDelta,
+  Message,
+  MessageCreateParams,
+  MessageCreateParamsNonStreaming,
+  MessageCreateParamsStreaming,
+  MessageDeltaUsage,
+  MessageParam,
+  Messages,
+  Metadata,
+  Model,
+  RawContentBlockDeltaEvent,
+  RawContentBlockStartEvent,
+  RawContentBlockStopEvent,
+  RawMessageDeltaEvent,
+  RawMessageStartEvent,
+  RawMessageStopEvent,
+  RawMessageStreamEvent,
+  TextBlock,
+  TextBlockParam,
+  TextDelta,
+  Tool,
+  ToolChoice,
+  ToolChoiceAny,
+  ToolChoiceAuto,
+  ToolChoiceTool,
+  ToolResultBlockParam,
+  ToolUseBlock,
+  ToolUseBlockParam,
+  Usage,
+} from './resources/messages';
+import {
+  AnthropicBeta,
+  Beta,
+  BetaAPIError,
+  BetaAuthenticationError,
+  BetaError,
+  BetaErrorResponse,
+  BetaInvalidRequestError,
+  BetaNotFoundError,
+  BetaOverloadedError,
+  BetaPermissionError,
+  BetaRateLimitError,
+} from './resources/beta/beta';
 
 export interface ClientOptions {
   /**
@@ -689,80 +742,88 @@ export {
 export { APIPromise } from './internal/api-promise';
 export { type Response } from './internal/builtin-types';
 export { PagePromise } from './pagination';
-export const {
-  AnthropicError,
-  APIError,
-  APIConnectionError,
-  APIConnectionTimeoutError,
-  APIUserAbortError,
-  NotFoundError,
-  ConflictError,
-  RateLimitError,
-  BadRequestError,
-  AuthenticationError,
-  InternalServerError,
-  PermissionDeniedError,
-  UnprocessableEntityError,
-} = Errors;
+
+export const AnthropicError = Errors.AnthropicError;
+export const APIError = Errors.APIError;
+export const APIConnectionError = Errors.APIConnectionError;
+export const APIConnectionTimeoutError = Errors.APIConnectionTimeoutError;
+export const APIUserAbortError = Errors.APIUserAbortError;
+export const NotFoundError = Errors.NotFoundError;
+export const ConflictError = Errors.ConflictError;
+export const RateLimitError = Errors.RateLimitError;
+export const BadRequestError = Errors.BadRequestError;
+export const AuthenticationError = Errors.AuthenticationError;
+export const InternalServerError = Errors.InternalServerError;
+export const PermissionDeniedError = Errors.PermissionDeniedError;
+export const UnprocessableEntityError = Errors.UnprocessableEntityError;
 
 export import toFile = Uploads.toFile;
 
-export namespace Anthropic {
-  export import RequestOptions = Opts.RequestOptions;
+Anthropic.Completions = Completions;
+Anthropic.Messages = Messages;
+Anthropic.Beta = Beta;
+
+export declare namespace Anthropic {
+  export type RequestOptions = Opts.RequestOptions;
 
   export import Page = Pagination.Page;
-  export import PageParams = Pagination.PageParams;
-  export import PageResponse = Pagination.PageResponse;
+  export { type PageParams as PageParams, type PageResponse as PageResponse };
 
-  export import Completions = API.Completions;
-  export import Completion = API.Completion;
-  export import CompletionCreateParams = API.CompletionCreateParams;
-  export import CompletionCreateParamsNonStreaming = API.CompletionCreateParamsNonStreaming;
-  export import CompletionCreateParamsStreaming = API.CompletionCreateParamsStreaming;
+  export {
+    Completions as Completions,
+    type Completion as Completion,
+    type CompletionCreateParams as CompletionCreateParams,
+    type CompletionCreateParamsNonStreaming as CompletionCreateParamsNonStreaming,
+    type CompletionCreateParamsStreaming as CompletionCreateParamsStreaming,
+  };
 
-  export import Messages = API.Messages;
-  export import ContentBlock = API.ContentBlock;
-  export import ImageBlockParam = API.ImageBlockParam;
-  export import InputJSONDelta = API.InputJSONDelta;
-  export import Message = API.Message;
-  export import MessageDeltaUsage = API.MessageDeltaUsage;
-  export import MessageParam = API.MessageParam;
-  export import Metadata = API.Metadata;
-  export import Model = API.Model;
-  export import RawContentBlockDeltaEvent = API.RawContentBlockDeltaEvent;
-  export import RawContentBlockStartEvent = API.RawContentBlockStartEvent;
-  export import RawContentBlockStopEvent = API.RawContentBlockStopEvent;
-  export import RawMessageDeltaEvent = API.RawMessageDeltaEvent;
-  export import RawMessageStartEvent = API.RawMessageStartEvent;
-  export import RawMessageStopEvent = API.RawMessageStopEvent;
-  export import RawMessageStreamEvent = API.RawMessageStreamEvent;
-  export import TextBlock = API.TextBlock;
-  export import TextBlockParam = API.TextBlockParam;
-  export import TextDelta = API.TextDelta;
-  export import Tool = API.Tool;
-  export import ToolChoice = API.ToolChoice;
-  export import ToolChoiceAny = API.ToolChoiceAny;
-  export import ToolChoiceAuto = API.ToolChoiceAuto;
-  export import ToolChoiceTool = API.ToolChoiceTool;
-  export import ToolResultBlockParam = API.ToolResultBlockParam;
-  export import ToolUseBlock = API.ToolUseBlock;
-  export import ToolUseBlockParam = API.ToolUseBlockParam;
-  export import Usage = API.Usage;
-  export import MessageCreateParams = API.MessageCreateParams;
-  export import MessageCreateParamsNonStreaming = API.MessageCreateParamsNonStreaming;
-  export import MessageCreateParamsStreaming = API.MessageCreateParamsStreaming;
+  export {
+    Messages as Messages,
+    type ContentBlock as ContentBlock,
+    type ImageBlockParam as ImageBlockParam,
+    type InputJSONDelta as InputJSONDelta,
+    type Message as Message,
+    type MessageDeltaUsage as MessageDeltaUsage,
+    type MessageParam as MessageParam,
+    type Metadata as Metadata,
+    type Model as Model,
+    type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,
+    type RawContentBlockStartEvent as RawContentBlockStartEvent,
+    type RawContentBlockStopEvent as RawContentBlockStopEvent,
+    type RawMessageDeltaEvent as RawMessageDeltaEvent,
+    type RawMessageStartEvent as RawMessageStartEvent,
+    type RawMessageStopEvent as RawMessageStopEvent,
+    type RawMessageStreamEvent as RawMessageStreamEvent,
+    type TextBlock as TextBlock,
+    type TextBlockParam as TextBlockParam,
+    type TextDelta as TextDelta,
+    type Tool as Tool,
+    type ToolChoice as ToolChoice,
+    type ToolChoiceAny as ToolChoiceAny,
+    type ToolChoiceAuto as ToolChoiceAuto,
+    type ToolChoiceTool as ToolChoiceTool,
+    type ToolResultBlockParam as ToolResultBlockParam,
+    type ToolUseBlock as ToolUseBlock,
+    type ToolUseBlockParam as ToolUseBlockParam,
+    type Usage as Usage,
+    type MessageCreateParams as MessageCreateParams,
+    type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
+    type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
+  };
 
-  export import Beta = API.Beta;
-  export import AnthropicBeta = API.AnthropicBeta;
-  export import BetaAPIError = API.BetaAPIError;
-  export import BetaAuthenticationError = API.BetaAuthenticationError;
-  export import BetaError = API.BetaError;
-  export import BetaErrorResponse = API.BetaErrorResponse;
-  export import BetaInvalidRequestError = API.BetaInvalidRequestError;
-  export import BetaNotFoundError = API.BetaNotFoundError;
-  export import BetaOverloadedError = API.BetaOverloadedError;
-  export import BetaPermissionError = API.BetaPermissionError;
-  export import BetaRateLimitError = API.BetaRateLimitError;
+  export {
+    Beta as Beta,
+    type AnthropicBeta as AnthropicBeta,
+    type BetaAPIError as BetaAPIError,
+    type BetaAuthenticationError as BetaAuthenticationError,
+    type BetaError as BetaError,
+    type BetaErrorResponse as BetaErrorResponse,
+    type BetaInvalidRequestError as BetaInvalidRequestError,
+    type BetaNotFoundError as BetaNotFoundError,
+    type BetaOverloadedError as BetaOverloadedError,
+    type BetaPermissionError as BetaPermissionError,
+    type BetaRateLimitError as BetaRateLimitError,
+  };
 }
 
 export default Anthropic;
