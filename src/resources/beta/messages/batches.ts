@@ -3,7 +3,6 @@
 import { APIResource } from '../../../resource';
 import { isRequestOptions } from '../../../core';
 import * as Core from '../../../core';
-import * as BatchesAPI from './batches';
 import * as MessagesAPI from '../../messages';
 import * as BetaAPI from '../beta';
 import * as MessagesMessagesAPI from './messages';
@@ -643,19 +642,23 @@ export interface BatchResultsParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
-export namespace Batches {
-  export import BetaMessageBatch = BatchesAPI.BetaMessageBatch;
-  export import BetaMessageBatchCanceledResult = BatchesAPI.BetaMessageBatchCanceledResult;
-  export import BetaMessageBatchErroredResult = BatchesAPI.BetaMessageBatchErroredResult;
-  export import BetaMessageBatchExpiredResult = BatchesAPI.BetaMessageBatchExpiredResult;
-  export import BetaMessageBatchIndividualResponse = BatchesAPI.BetaMessageBatchIndividualResponse;
-  export import BetaMessageBatchRequestCounts = BatchesAPI.BetaMessageBatchRequestCounts;
-  export import BetaMessageBatchResult = BatchesAPI.BetaMessageBatchResult;
-  export import BetaMessageBatchSucceededResult = BatchesAPI.BetaMessageBatchSucceededResult;
-  export import BetaMessageBatchesPage = BatchesAPI.BetaMessageBatchesPage;
-  export import BatchCreateParams = BatchesAPI.BatchCreateParams;
-  export import BatchRetrieveParams = BatchesAPI.BatchRetrieveParams;
-  export import BatchListParams = BatchesAPI.BatchListParams;
-  export import BatchCancelParams = BatchesAPI.BatchCancelParams;
-  export import BatchResultsParams = BatchesAPI.BatchResultsParams;
+Batches.BetaMessageBatchesPage = BetaMessageBatchesPage;
+
+export declare namespace Batches {
+  export {
+    type BetaMessageBatch as BetaMessageBatch,
+    type BetaMessageBatchCanceledResult as BetaMessageBatchCanceledResult,
+    type BetaMessageBatchErroredResult as BetaMessageBatchErroredResult,
+    type BetaMessageBatchExpiredResult as BetaMessageBatchExpiredResult,
+    type BetaMessageBatchIndividualResponse as BetaMessageBatchIndividualResponse,
+    type BetaMessageBatchRequestCounts as BetaMessageBatchRequestCounts,
+    type BetaMessageBatchResult as BetaMessageBatchResult,
+    type BetaMessageBatchSucceededResult as BetaMessageBatchSucceededResult,
+    BetaMessageBatchesPage as BetaMessageBatchesPage,
+    type BatchCreateParams as BatchCreateParams,
+    type BatchRetrieveParams as BatchRetrieveParams,
+    type BatchListParams as BatchListParams,
+    type BatchCancelParams as BatchCancelParams,
+    type BatchResultsParams as BatchResultsParams,
+  };
 }
