@@ -63,6 +63,8 @@ Types:
 
 Types:
 
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64PDFBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64PDFSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheControlEphemeral</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContentBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContentBlockParam</a></code>
@@ -71,6 +73,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageDeltaUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageTokensCount</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMetadata</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRawContentBlockDeltaEvent</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRawContentBlockStartEvent</a></code>
@@ -99,6 +102,7 @@ Types:
 Methods:
 
 - <code title="post /v1/messages?beta=true">client.beta.messages.<a href="./src/resources/beta/messages/messages.ts">create</a>({ ...params }) -> BetaMessage</code>
+- <code title="post /v1/messages/count_tokens?beta=true">client.beta.messages.<a href="./src/resources/beta/messages/messages.ts">countTokens</a>({ ...params }) -> BetaMessageTokensCount</code>
 
 ### Batches
 

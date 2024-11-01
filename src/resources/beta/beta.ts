@@ -3,6 +3,8 @@
 import { APIResource } from '../../resource';
 import * as MessagesAPI from './messages/messages';
 import {
+  BetaBase64PDFBlock,
+  BetaBase64PDFSource,
   BetaCacheControlEphemeral,
   BetaContentBlock,
   BetaContentBlockParam,
@@ -11,6 +13,7 @@ import {
   BetaMessage,
   BetaMessageDeltaUsage,
   BetaMessageParam,
+  BetaMessageTokensCount,
   BetaMetadata,
   BetaRawContentBlockDeltaEvent,
   BetaRawContentBlockStartEvent,
@@ -35,6 +38,7 @@ import {
   BetaToolUseBlock,
   BetaToolUseBlockParam,
   BetaUsage,
+  MessageCountTokensParams,
   MessageCreateParams,
   MessageCreateParamsNonStreaming,
   MessageCreateParamsStreaming,
@@ -52,7 +56,8 @@ export type AnthropicBeta =
   | (string & {})
   | 'message-batches-2024-09-24'
   | 'prompt-caching-2024-07-31'
-  | 'computer-use-2024-10-22';
+  | 'computer-use-2024-10-22'
+  | 'pdfs-2024-09-25';
 
 export interface BetaAPIError {
   message: string;
@@ -130,6 +135,8 @@ export declare namespace Beta {
 
   export {
     Messages as Messages,
+    type BetaBase64PDFBlock as BetaBase64PDFBlock,
+    type BetaBase64PDFSource as BetaBase64PDFSource,
     type BetaCacheControlEphemeral as BetaCacheControlEphemeral,
     type BetaContentBlock as BetaContentBlock,
     type BetaContentBlockParam as BetaContentBlockParam,
@@ -138,6 +145,7 @@ export declare namespace Beta {
     type BetaMessage as BetaMessage,
     type BetaMessageDeltaUsage as BetaMessageDeltaUsage,
     type BetaMessageParam as BetaMessageParam,
+    type BetaMessageTokensCount as BetaMessageTokensCount,
     type BetaMetadata as BetaMetadata,
     type BetaRawContentBlockDeltaEvent as BetaRawContentBlockDeltaEvent,
     type BetaRawContentBlockStartEvent as BetaRawContentBlockStartEvent,
@@ -165,6 +173,7 @@ export declare namespace Beta {
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
+    type MessageCountTokensParams as MessageCountTokensParams,
   };
 
   export { PromptCaching as PromptCaching };

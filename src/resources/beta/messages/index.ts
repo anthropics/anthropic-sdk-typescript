@@ -19,6 +19,8 @@ export {
 } from './batches';
 export {
   Messages,
+  type BetaBase64PDFBlock,
+  type BetaBase64PDFSource,
   type BetaCacheControlEphemeral,
   type BetaContentBlock,
   type BetaContentBlockParam,
@@ -27,6 +29,7 @@ export {
   type BetaMessage,
   type BetaMessageDeltaUsage,
   type BetaMessageParam,
+  type BetaMessageTokensCount,
   type BetaMetadata,
   type BetaRawContentBlockDeltaEvent,
   type BetaRawContentBlockStartEvent,
@@ -54,4 +57,5 @@ export {
   type MessageCreateParams,
   type MessageCreateParamsNonStreaming,
   type MessageCreateParamsStreaming,
+  type MessageCountTokensParams,
 } from './messages';
