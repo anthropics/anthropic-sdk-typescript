@@ -783,44 +783,46 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
 
 export type MessageStreamParams = MessageCreateParamsBase;
 
-export namespace Messages {
-  export import ContentBlock = MessagesAPI.ContentBlock;
-  export import ContentBlockDeltaEvent = MessagesAPI.ContentBlockDeltaEvent;
-  export import ContentBlockStartEvent = MessagesAPI.ContentBlockStartEvent;
-  export import ContentBlockStopEvent = MessagesAPI.ContentBlockStopEvent;
-  export import ImageBlockParam = MessagesAPI.ImageBlockParam;
-  export import InputJJsonDelta = MessagesAPI.InputJsonDelta;
-  export import InputJSONDelta = MessagesAPI.InputJSONDelta;
-  export import Message = MessagesAPI.Message;
-  export import MessageDeltaEvent = MessagesAPI.MessageDeltaEvent;
-  export import MessageDeltaUsage = MessagesAPI.MessageDeltaUsage;
-  export import MessageParam = MessagesAPI.MessageParam;
-  export import MessageStartEvent = MessagesAPI.MessageStartEvent;
-  export import MessageStopEvent = MessagesAPI.MessageStopEvent;
-  export import MessageStreamEvent = MessagesAPI.MessageStreamEvent;
-  export import Metadata = MessagesAPI.Metadata;
-  export import Model = MessagesAPI.Model;
-  export import RawContentBlockDeltaEvent = MessagesAPI.RawContentBlockDeltaEvent;
-  export import RawContentBlockStartEvent = MessagesAPI.RawContentBlockStartEvent;
-  export import RawContentBlockStopEvent = MessagesAPI.RawContentBlockStopEvent;
-  export import RawMessageDeltaEvent = MessagesAPI.RawMessageDeltaEvent;
-  export import RawMessageStartEvent = MessagesAPI.RawMessageStartEvent;
-  export import RawMessageStopEvent = MessagesAPI.RawMessageStopEvent;
-  export import RawMessageStreamEvent = MessagesAPI.RawMessageStreamEvent;
-  export import TextBlock = MessagesAPI.TextBlock;
-  export import TextBlockParam = MessagesAPI.TextBlockParam;
-  export import TextDelta = MessagesAPI.TextDelta;
-  export import Tool = MessagesAPI.Tool;
-  export import ToolChoice = MessagesAPI.ToolChoice;
-  export import ToolChoiceAny = MessagesAPI.ToolChoiceAny;
-  export import ToolChoiceAuto = MessagesAPI.ToolChoiceAuto;
-  export import ToolChoiceTool = MessagesAPI.ToolChoiceTool;
-  export import ToolResultBlockParam = MessagesAPI.ToolResultBlockParam;
-  export import ToolUseBlock = MessagesAPI.ToolUseBlock;
-  export import ToolUseBlockParam = MessagesAPI.ToolUseBlockParam;
-  export import Usage = MessagesAPI.Usage;
-  export import MessageCreateParams = MessagesAPI.MessageCreateParams;
-  export import MessageCreateParamsNonStreaming = MessagesAPI.MessageCreateParamsNonStreaming;
-  export import MessageCreateParamsStreaming = MessagesAPI.MessageCreateParamsStreaming;
-  export import MessageStreamParams = MessagesAPI.MessageStreamParams;
+export declare namespace Messages {
+  export {
+    type ContentBlock as ContentBlock,
+    type ContentBlockDeltaEvent as ContentBlockDeltaEvent,
+    type ContentBlockStartEvent as ContentBlockStartEvent,
+    type ContentBlockStopEvent as ContentBlockStopEvent,
+    type ImageBlockParam as ImageBlockParam,
+    type InputJsonDelta as InputJsonDelta,
+    type InputJSONDelta as InputJSONDelta,
+    type Message as Message,
+    type MessageDeltaEvent as MessageDeltaEvent,
+    type MessageDeltaUsage as MessageDeltaUsage,
+    type MessageParam as MessageParam,
+    type MessageStartEvent as MessageStartEvent,
+    type MessageStopEvent as MessageStopEvent,
+    type MessageStreamEvent as MessageStreamEvent,
+    type Metadata as Metadata,
+    type Model as Model,
+    type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,
+    type RawContentBlockStartEvent as RawContentBlockStartEvent,
+    type RawContentBlockStopEvent as RawContentBlockStopEvent,
+    type RawMessageDeltaEvent as RawMessageDeltaEvent,
+    type RawMessageStartEvent as RawMessageStartEvent,
+    type RawMessageStopEvent as RawMessageStopEvent,
+    type RawMessageStreamEvent as RawMessageStreamEvent,
+    type TextBlock as TextBlock,
+    type TextBlockParam as TextBlockParam,
+    type TextDelta as TextDelta,
+    type Tool as Tool,
+    type ToolChoice as ToolChoice,
+    type ToolChoiceAny as ToolChoiceAny,
+    type ToolChoiceAuto as ToolChoiceAuto,
+    type ToolChoiceTool as ToolChoiceTool,
+    type ToolResultBlockParam as ToolResultBlockParam,
+    type ToolUseBlock as ToolUseBlock,
+    type ToolUseBlockParam as ToolUseBlockParam,
+    type Usage as Usage,
+    type MessageCreateParams as MessageCreateParams,
+    type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
+    type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
+    type MessageStreamParams as MessageStreamParams,
+  };
 }

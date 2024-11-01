@@ -2,25 +2,46 @@
 
 import { APIResource } from '../../../resource';
 import * as MessagesAPI from './messages';
+import {
+  MessageCreateParams,
+  MessageCreateParamsNonStreaming,
+  MessageCreateParamsStreaming,
+  Messages,
+  PromptCachingBetaCacheControlEphemeral,
+  PromptCachingBetaImageBlockParam,
+  PromptCachingBetaMessage,
+  PromptCachingBetaMessageParam,
+  PromptCachingBetaTextBlockParam,
+  PromptCachingBetaTool,
+  PromptCachingBetaToolResultBlockParam,
+  PromptCachingBetaToolUseBlockParam,
+  PromptCachingBetaUsage,
+  RawPromptCachingBetaMessageStartEvent,
+  RawPromptCachingBetaMessageStreamEvent,
+} from './messages';
 
 export class PromptCaching extends APIResource {
   messages: MessagesAPI.Messages = new MessagesAPI.Messages(this._client);
 }
 
-export namespace PromptCaching {
-  export import Messages = MessagesAPI.Messages;
-  export import PromptCachingBetaCacheControlEphemeral = MessagesAPI.PromptCachingBetaCacheControlEphemeral;
-  export import PromptCachingBetaImageBlockParam = MessagesAPI.PromptCachingBetaImageBlockParam;
-  export import PromptCachingBetaMessage = MessagesAPI.PromptCachingBetaMessage;
-  export import PromptCachingBetaMessageParam = MessagesAPI.PromptCachingBetaMessageParam;
-  export import PromptCachingBetaTextBlockParam = MessagesAPI.PromptCachingBetaTextBlockParam;
-  export import PromptCachingBetaTool = MessagesAPI.PromptCachingBetaTool;
-  export import PromptCachingBetaToolResultBlockParam = MessagesAPI.PromptCachingBetaToolResultBlockParam;
-  export import PromptCachingBetaToolUseBlockParam = MessagesAPI.PromptCachingBetaToolUseBlockParam;
-  export import PromptCachingBetaUsage = MessagesAPI.PromptCachingBetaUsage;
-  export import RawPromptCachingBetaMessageStartEvent = MessagesAPI.RawPromptCachingBetaMessageStartEvent;
-  export import RawPromptCachingBetaMessageStreamEvent = MessagesAPI.RawPromptCachingBetaMessageStreamEvent;
-  export import MessageCreateParams = MessagesAPI.MessageCreateParams;
-  export import MessageCreateParamsNonStreaming = MessagesAPI.MessageCreateParamsNonStreaming;
-  export import MessageCreateParamsStreaming = MessagesAPI.MessageCreateParamsStreaming;
+PromptCaching.Messages = Messages;
+
+export declare namespace PromptCaching {
+  export {
+    Messages as Messages,
+    type PromptCachingBetaCacheControlEphemeral as PromptCachingBetaCacheControlEphemeral,
+    type PromptCachingBetaImageBlockParam as PromptCachingBetaImageBlockParam,
+    type PromptCachingBetaMessage as PromptCachingBetaMessage,
+    type PromptCachingBetaMessageParam as PromptCachingBetaMessageParam,
+    type PromptCachingBetaTextBlockParam as PromptCachingBetaTextBlockParam,
+    type PromptCachingBetaTool as PromptCachingBetaTool,
+    type PromptCachingBetaToolResultBlockParam as PromptCachingBetaToolResultBlockParam,
+    type PromptCachingBetaToolUseBlockParam as PromptCachingBetaToolUseBlockParam,
+    type PromptCachingBetaUsage as PromptCachingBetaUsage,
+    type RawPromptCachingBetaMessageStartEvent as RawPromptCachingBetaMessageStartEvent,
+    type RawPromptCachingBetaMessageStreamEvent as RawPromptCachingBetaMessageStreamEvent,
+    type MessageCreateParams as MessageCreateParams,
+    type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
+    type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
+  };
 }
