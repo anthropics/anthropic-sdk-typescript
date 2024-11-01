@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.31.0 (2024-11-01)
+
+Full Changelog: [sdk-v0.30.1...sdk-v0.31.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.30.1...sdk-v0.31.0)
+
+### Features
+
+* **api:** add message token counting & PDFs support ([#582](https://github.com/anthropics/anthropic-sdk-typescript/issues/582)) ([b593837](https://github.com/anthropics/anthropic-sdk-typescript/commit/b593837ae2d320414a26b5ec53aa6d3f30a3e6bc))
+
+
+### Bug Fixes
+
+* **countTokens:** correctly set beta header ([1680757](https://github.com/anthropics/anthropic-sdk-typescript/commit/16807572af923831e384869a0a6ccccaa8dbec84))
+* **internal:** support pnpm git installs ([#579](https://github.com/anthropics/anthropic-sdk-typescript/issues/579)) ([86bb102](https://github.com/anthropics/anthropic-sdk-typescript/commit/86bb102ce33346930a8b0a553a909fcc7d964a36))
+* **types:** add missing token-counting-2024-11-01 ([aff1546](https://github.com/anthropics/anthropic-sdk-typescript/commit/aff1546cd84ce50a52d17bcdcaba54e60e92955a))
+
+
+### Reverts
+
+* disable isolatedModules and change imports ([#575](https://github.com/anthropics/anthropic-sdk-typescript/issues/575)) ([2c3b176](https://github.com/anthropics/anthropic-sdk-typescript/commit/2c3b176fc551c21abef240b4fa6a98d33ca52048))
+
+
+### Chores
+
+* **internal:** update spec version ([#571](https://github.com/anthropics/anthropic-sdk-typescript/issues/571)) ([5760012](https://github.com/anthropics/anthropic-sdk-typescript/commit/576001245f0b5222cb9b17fafb8619f68d51bec3))
+
+
+### Documentation
+
+* **readme:** minor typo fixes ([#577](https://github.com/anthropics/anthropic-sdk-typescript/issues/577)) ([8412854](https://github.com/anthropics/anthropic-sdk-typescript/commit/8412854c05837cdb8b8ff898bef2a4e0dbb23cd2))
+
+
+### Refactors
+
+* enable isolatedModules and change imports ([#573](https://github.com/anthropics/anthropic-sdk-typescript/issues/573)) ([9068b4b](https://github.com/anthropics/anthropic-sdk-typescript/commit/9068b4b0a0a08a69a9330ce03418135e11aa539e))
+* use type imports for type-only imports ([#580](https://github.com/anthropics/anthropic-sdk-typescript/issues/580)) ([2c8a337](https://github.com/anthropics/anthropic-sdk-typescript/commit/2c8a337033e850b7282d35b37c3ce36d5b0dabbe))
+
 ## 0.30.1 (2024-10-23)
 
 Full Changelog: [sdk-v0.30.0...sdk-v0.30.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.30.0...sdk-v0.30.1)
