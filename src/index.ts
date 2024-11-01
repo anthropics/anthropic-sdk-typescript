@@ -288,7 +288,7 @@ export class BaseAnthropic {
         if (value === null) {
           return `${encodeURIComponent(key)}=`;
         }
-        throw new AnthropicError(
+        throw new Errors.AnthropicError(
           `Cannot stringify type ${typeof value}; Expected string, number, boolean, or null. If you need to pass nested query parameters, you can manually encode them, e.g. { query: { 'foo[key1]': value1, 'foo[key2]': value2 } }, and please open a GitHub issue requesting better support for your use case.`,
         );
       })
@@ -308,8 +308,8 @@ export class BaseAnthropic {
     error: Object | undefined,
     message: string | undefined,
     headers: Headers | undefined,
-  ) {
-    return APIError.generate(status, error, message, headers);
+  ): Errors.APIError {
+    return Errors.APIError.generate(status, error, message, headers);
   }
 
   buildURL<Req>(path: string, query: Req | null | undefined): string {
@@ -437,7 +437,7 @@ export class BaseAnthropic {
     debug('request', url, options, req.headers);
 
     if (options.signal?.aborted) {
-      throw new APIUserAbortError();
+      throw new Errors.APIUserAbortError();
     }
 
     const controller = new AbortController();
@@ -445,15 +445,15 @@ export class BaseAnthropic {
 
     if (response instanceof Error) {
       if (options.signal?.aborted) {
-        throw new APIUserAbortError();
+        throw new Errors.APIUserAbortError();
       }
       if (retriesRemaining) {
         return this.retryRequest(options, retriesRemaining);
       }
       if (response.name === 'AbortError') {
-        throw new APIConnectionTimeoutError();
+        throw new Errors.APIConnectionTimeoutError();
       }
-      throw new APIConnectionError({ cause: response });
+      throw new Errors.APIConnectionError({ cause: response });
     }
 
     const responseHeaders = createResponseHeaders(response.headers);
@@ -743,19 +743,21 @@ export { APIPromise } from './internal/api-promise';
 export { type Response } from './internal/builtin-types';
 export { PagePromise } from './pagination';
 
-export const AnthropicError = Errors.AnthropicError;
-export const APIError = Errors.APIError;
-export const APIConnectionError = Errors.APIConnectionError;
-export const APIConnectionTimeoutError = Errors.APIConnectionTimeoutError;
-export const APIUserAbortError = Errors.APIUserAbortError;
-export const NotFoundError = Errors.NotFoundError;
-export const ConflictError = Errors.ConflictError;
-export const RateLimitError = Errors.RateLimitError;
-export const BadRequestError = Errors.BadRequestError;
-export const AuthenticationError = Errors.AuthenticationError;
-export const InternalServerError = Errors.InternalServerError;
-export const PermissionDeniedError = Errors.PermissionDeniedError;
-export const UnprocessableEntityError = Errors.UnprocessableEntityError;
+export {
+  AnthropicError,
+  APIError,
+  APIConnectionError,
+  APIConnectionTimeoutError,
+  APIUserAbortError,
+  NotFoundError,
+  ConflictError,
+  RateLimitError,
+  BadRequestError,
+  AuthenticationError,
+  InternalServerError,
+  PermissionDeniedError,
+  UnprocessableEntityError,
+} from './error';
 
 export import toFile = Uploads.toFile;
 
