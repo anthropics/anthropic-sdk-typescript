@@ -77,7 +77,7 @@ export class Messages extends APIResource {
       body,
       ...options,
       headers: {
-        ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+        'anthropic-beta': [...(betas ?? []), 'token-counting-2024-11-01'].toString(),
         ...options?.headers,
       },
     });
