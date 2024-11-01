@@ -318,6 +318,11 @@ export interface Tool {
    */
   input_schema: Tool.InputSchema;
 
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in tool_use blocks.
+   */
   name: string;
 
   /**
