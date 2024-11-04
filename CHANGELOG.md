@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.32.0 (2024-11-04)
+
+Full Changelog: [sdk-v0.31.0...sdk-v0.32.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.31.0...sdk-v0.32.0)
+
+### Features
+
+* **api:** add new haiku model ([#587](https://github.com/anthropics/anthropic-sdk-typescript/issues/587)) ([983b13c](https://github.com/anthropics/anthropic-sdk-typescript/commit/983b13c9e4f55b832fc4fddfd46bed89756d745e))
+
+
+### Bug Fixes
+
+* don't require deno to run build-deno ([#586](https://github.com/anthropics/anthropic-sdk-typescript/issues/586)) ([0e431d6](https://github.com/anthropics/anthropic-sdk-typescript/commit/0e431d61ec318aae09687dee0bfb922ccb8ddd15))
+* **types:** add missing token-counting-2024-11-01 ([#583](https://github.com/anthropics/anthropic-sdk-typescript/issues/583)) ([13d629c](https://github.com/anthropics/anthropic-sdk-typescript/commit/13d629c9b444a32b69729df7792199556a2b95f2))
+
+
+### Chores
+
+* remove unused build-deno condition ([#585](https://github.com/anthropics/anthropic-sdk-typescript/issues/585)) ([491e8fe](https://github.com/anthropics/anthropic-sdk-typescript/commit/491e8fe28745aeb55217809f94ad4e37900f4675))
+
 ## 0.31.0 (2024-11-01)
 
 Full Changelog: [sdk-v0.30.1...sdk-v0.31.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.30.1...sdk-v0.31.0)
