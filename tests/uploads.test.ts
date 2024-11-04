@@ -1,6 +1,5 @@
 import fs from 'fs';
 import { toFile, type ResponseLike } from '@anthropic-ai/sdk/uploads';
-import { File } from '@anthropic-ai/sdk/polyfill/node-file';
 
 class MyClass {
   name: string = 'foo';
@@ -71,6 +70,6 @@ test('missing File error message', async () => {
   await expect(
     toFile(mockResponse({ url: 'https://example.com/my/audio.mp3' })),
   ).rejects.toMatchInlineSnapshot(
-    `[Error: \`File\` is not defined as a global which is required for file uploads; https://github.com/stainless-sdks/anthropic-typescript/tree/main#how-do-i-setup-file-uploads-in-nodejs]`,
+    `[Error: \`File\` is not defined as a global which is required for file uploads]`,
   );
 });
