@@ -6,6 +6,7 @@ test('body params are not mutated', async () => {
     baseURL: 'http://localhost:5000/',
     accessToken: 'placeholder',
     region: 'us-east-2',
+    projectId: 'placeholder',
     fetch: (url) => {
       return Promise.resolve(
         new Response(JSON.stringify({ url, custom: true }), {
