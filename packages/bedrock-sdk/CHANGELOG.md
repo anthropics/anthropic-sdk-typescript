@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.2 (2024-11-05)
+
+Full Changelog: [bedrock-sdk-v0.11.1...bedrock-sdk-v0.11.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.11.1...bedrock-sdk-v0.11.2)
+
+### Bug Fixes
+
+* **bedrock:** don't mutate request body inputs ([f83b535](https://github.com/anthropics/anthropic-sdk-typescript/commit/f83b53520262219229cecc388f95d92be83c09d5))
+
 ## 0.11.1 (2024-10-23)
 
 Full Changelog: [bedrock-sdk-v0.11.0...bedrock-sdk-v0.11.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.11.0...bedrock-sdk-v0.11.1)

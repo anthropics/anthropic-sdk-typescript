@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.2 (2024-11-05)
+
+Full Changelog: [vertex-sdk-v0.5.1...vertex-sdk-v0.5.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.5.1...vertex-sdk-v0.5.2)
+
+### Bug Fixes
+
+* **vertex:** don't mutate request body inputs ([e9a82e5](https://github.com/anthropics/anthropic-sdk-typescript/commit/e9a82e56f0d7fff956c2ebd19e103a190f8beb83))
+
 ## 0.5.1 (2024-10-23)
 
 Full Changelog: [vertex-sdk-v0.5.0...vertex-sdk-v0.5.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.5.0...vertex-sdk-v0.5.1)
