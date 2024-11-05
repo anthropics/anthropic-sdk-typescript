@@ -118,6 +118,12 @@ export class AnthropicBedrock extends Core.APIClient {
     options.__streamClass = Stream;
 
     if (Core.isObj(options.body)) {
+      // create a shallow copy of the request body so that code that mutates it later
+      // doesn't mutate the original user-provided object
+      options.body = { ...options.body };
+    }
+
+    if (Core.isObj(options.body)) {
       if (!options.body['anthropic_version']) {
         options.body['anthropic_version'] = DEFAULT_VERSION;
       }
