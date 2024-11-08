@@ -152,10 +152,10 @@ export class AnthropicVertex extends Core.APIClient {
 }
 
 /**
- * The Vertex API does not currently support prompt caching or the Batch API.
+ * The Vertex API does not currently support prompt caching, token counting or the Batch API.
  */
 type BetaResource = Omit<Resources.Beta, 'promptCaching' | 'messages'> & {
-  messages: Omit<Resources.Beta['messages'], 'batches'>;
+  messages: Omit<Resources.Beta['messages'], 'batches' | 'countTokens'>;
 };
 
 function makeBetaResource(client: AnthropicVertex): BetaResource {
@@ -166,6 +166,9 @@ function makeBetaResource(client: AnthropicVertex): BetaResource {
 
   // @ts-expect-error we're deleting non-optional properties
   delete resource.messages.batches;
+
+  // @ts-expect-error we're deleting non-optional properties
+  delete resource.messages.countTokens;
 
   return resource;
 }
