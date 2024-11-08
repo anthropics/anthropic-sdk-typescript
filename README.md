@@ -227,6 +227,18 @@ Error codes are as followed:
 | >=500       | `InternalServerError`      |
 | N/A         | `APIConnectionError`       |
 
+## Request IDs
+
+> For more information on debugging requests, see [these docs](https://docs.anthropic.com/en/api/errors#request-id)
+
+All object responses in the SDK provide a `_request_id` property which is added from the `request-id` response header so that you can quickly log failing requests and report them back to Anthropic.
+
+```ts
+const message = await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-opus-20240229' });
+console.log(completion._request_id) // req_018EeWyXxfu5pfWkrYcMdjWG
+```
+
+
 ### Retries
 
 Certain errors will be automatically retried 2 times by default, with a short exponential backoff.
