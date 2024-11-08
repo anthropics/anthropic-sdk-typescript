@@ -159,10 +159,10 @@ export class AnthropicBedrock extends Core.APIClient {
 }
 
 /**
- * The Bedrock API does not currently support prompt caching or the Batch API.
+ * The Bedrock API does not currently support prompt caching, token counting or the Batch API.
  */
 type BetaResource = Omit<Resources.Beta, 'promptCaching' | 'messages'> & {
-  messages: Omit<Resources.Beta['messages'], 'batches'>;
+  messages: Omit<Resources.Beta['messages'], 'batches' | 'countTokens'>;
 };
 
 function makeBetaResource(client: AnthropicBedrock): BetaResource {
@@ -173,6 +173,9 @@ function makeBetaResource(client: AnthropicBedrock): BetaResource {
 
   // @ts-expect-error we're deleting non-optional properties
   delete resource.messages.batches;
+
+  // @ts-expect-error we're deleting non-optional properties
+  delete resource.messages.countTokens;
 
   return resource;
 }
