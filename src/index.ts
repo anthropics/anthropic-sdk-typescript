@@ -289,31 +289,9 @@ export class Anthropic extends Core.APIClient {
   static fileFromPath = Uploads.fileFromPath;
 }
 
-export const { HUMAN_PROMPT, AI_PROMPT } = Anthropic;
-
-export {
-  AnthropicError,
-  APIError,
-  APIConnectionError,
-  APIConnectionTimeoutError,
-  APIUserAbortError,
-  NotFoundError,
-  ConflictError,
-  RateLimitError,
-  BadRequestError,
-  AuthenticationError,
-  InternalServerError,
-  PermissionDeniedError,
-  UnprocessableEntityError,
-} from './error';
-
-export import toFile = Uploads.toFile;
-export import fileFromPath = Uploads.fileFromPath;
-
 Anthropic.Completions = Completions;
 Anthropic.Messages = Messages;
 Anthropic.Beta = Beta;
-
 export declare namespace Anthropic {
   export type RequestOptions = Core.RequestOptions;
 
@@ -384,5 +362,23 @@ export declare namespace Anthropic {
     type BetaRateLimitError as BetaRateLimitError,
   };
 }
+export const { HUMAN_PROMPT, AI_PROMPT } = Anthropic;
+
+export { toFile, fileFromPath } from '@anthropic-ai/sdk/uploads';
+export {
+  AnthropicError,
+  APIError,
+  APIConnectionError,
+  APIConnectionTimeoutError,
+  APIUserAbortError,
+  NotFoundError,
+  ConflictError,
+  RateLimitError,
+  BadRequestError,
+  AuthenticationError,
+  InternalServerError,
+  PermissionDeniedError,
+  UnprocessableEntityError,
+} from '@anthropic-ai/sdk/error';
 
 export default Anthropic;
