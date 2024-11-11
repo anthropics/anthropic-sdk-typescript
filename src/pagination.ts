@@ -1,10 +1,10 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import type { Anthropic } from './index';
+import type { Anthropic } from './client';
 import { AnthropicError } from './error';
 import { FinalRequestOptions } from './internal/request-options';
 import { defaultParseResponse, APIResponseProps } from './internal/parse';
-import { APIPromise } from './internal/api-promise';
+import { APIPromise } from './api-promise';
 import { maybeObj } from './internal/utils';
 
 export type PageRequestOptions = Pick<FinalRequestOptions, 'query' | 'headers' | 'body' | 'path' | 'method'>;

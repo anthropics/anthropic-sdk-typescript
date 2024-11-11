@@ -22,8 +22,8 @@ import {
   BetaMessageBatchSucceededResult,
   BetaMessageBatchesPage,
 } from './batches';
+import { APIPromise } from '../../../api-promise';
 import { Stream } from '../../../streaming';
-import { APIPromise } from '../../../internal/api-promise';
 import { RequestOptions } from '../../../internal/request-options';
 
 export class Messages extends APIResource {

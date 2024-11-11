@@ -4,8 +4,8 @@ import { APIResource } from '../../../resource';
 import * as MessagesAPI from '../../messages';
 import * as BetaAPI from '../beta';
 import * as MessagesMessagesAPI from './messages';
+import { APIPromise } from '../../../api-promise';
 import { Page, type PageParams, PagePromise } from '../../../pagination';
-import { APIPromise } from '../../../internal/api-promise';
 import { RequestOptions } from '../../../internal/request-options';
 
 export class Batches extends APIResource {
