@@ -4,6 +4,7 @@ Types:
 
 - <code><a href="./src/resources/messages.ts">ContentBlock</a></code>
 - <code><a href="./src/resources/messages.ts">ContentBlockDeltaEvent</a></code>
+- <code><a href="./src/resources/messages.ts">ContentBlockParam</a></code>
 - <code><a href="./src/resources/messages.ts">ContentBlockStartEvent</a></code>
 - <code><a href="./src/resources/messages.ts">ContentBlockStopEvent</a></code>
 - <code><a href="./src/resources/messages.ts">ImageBlockParam</a></code>
