@@ -17,6 +17,7 @@ import {
 import {
   ContentBlock,
   ContentBlockDeltaEvent,
+  ContentBlockParam,
   ContentBlockStartEvent,
   ContentBlockStopEvent,
   ImageBlockParam,
@@ -310,6 +311,7 @@ export declare namespace Anthropic {
     Messages as Messages,
     type ContentBlock as ContentBlock,
     type ContentBlockDeltaEvent as ContentBlockDeltaEvent,
+    type ContentBlockParam as ContentBlockParam,
     type ContentBlockStartEvent as ContentBlockStartEvent,
     type ContentBlockStopEvent as ContentBlockStopEvent,
     type ImageBlockParam as ImageBlockParam,

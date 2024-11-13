@@ -24,6 +24,7 @@ export {
   Messages,
   type ContentBlock,
   type ContentBlockDeltaEvent,
+  type ContentBlockParam,
   type ContentBlockStartEvent,
   type ContentBlockStopEvent,
   type ImageBlockParam,
