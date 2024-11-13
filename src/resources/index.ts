@@ -23,6 +23,7 @@ export {
 export {
   Messages,
   type ContentBlock,
+  type ContentBlockParam,
   type ImageBlockParam,
   type InputJSONDelta,
   type Message,

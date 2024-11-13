@@ -32,6 +32,7 @@ import {
 } from './resources/completions';
 import {
   ContentBlock,
+  ContentBlockParam,
   ImageBlockParam,
   InputJSONDelta,
   Message,
@@ -751,6 +752,7 @@ export declare namespace Anthropic {
   export {
     Messages as Messages,
     type ContentBlock as ContentBlock,
+    type ContentBlockParam as ContentBlockParam,
     type ImageBlockParam as ImageBlockParam,
     type InputJSONDelta as InputJSONDelta,
     type Message as Message,

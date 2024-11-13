@@ -38,6 +38,8 @@ export class Messages extends APIResource {
 
 export type ContentBlock = TextBlock | ToolUseBlock;
 
+export type ContentBlockParam = TextBlockParam | ImageBlockParam | ToolUseBlockParam | ToolResultBlockParam;
+
 export interface ImageBlockParam {
   source: ImageBlockParam.Source;
 
@@ -173,7 +175,7 @@ export interface MessageDeltaUsage {
 }
 
 export interface MessageParam {
-  content: string | Array<TextBlockParam | ImageBlockParam | ToolUseBlockParam | ToolResultBlockParam>;
+  content: string | Array<ContentBlockParam>;
 
   role: 'user' | 'assistant';
 }
@@ -725,6 +727,7 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
 export declare namespace Messages {
   export {
     type ContentBlock as ContentBlock,
+    type ContentBlockParam as ContentBlockParam,
     type ImageBlockParam as ImageBlockParam,
     type InputJSONDelta as InputJSONDelta,
     type Message as Message,

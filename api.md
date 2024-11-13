@@ -3,6 +3,7 @@
 Types:
 
 - <code><a href="./src/resources/messages.ts">ContentBlock</a></code>
+- <code><a href="./src/resources/messages.ts">ContentBlockParam</a></code>
 - <code><a href="./src/resources/messages.ts">ImageBlockParam</a></code>
 - <code><a href="./src/resources/messages.ts">InputJSONDelta</a></code>
 - <code><a href="./src/resources/messages.ts">Message</a></code>
