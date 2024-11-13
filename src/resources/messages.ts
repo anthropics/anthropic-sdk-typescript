@@ -40,6 +40,8 @@ export type ContentBlock = TextBlock | ToolUseBlock;
 
 export type ContentBlockDeltaEvent = RawContentBlockDeltaEvent;
 
+export type ContentBlockParam = TextBlockParam | ImageBlockParam | ToolUseBlockParam | ToolResultBlockParam;
+
 export type ContentBlockStartEvent = RawContentBlockStartEvent;
 
 export type ContentBlockStopEvent = RawContentBlockStopEvent;
@@ -181,7 +183,7 @@ export interface MessageDeltaUsage {
 }
 
 export interface MessageParam {
-  content: string | Array<TextBlockParam | ImageBlockParam | ToolUseBlockParam | ToolResultBlockParam>;
+  content: string | Array<ContentBlockParam>;
 
   role: 'user' | 'assistant';
 }
@@ -740,6 +742,7 @@ export declare namespace Messages {
   export {
     type ContentBlock as ContentBlock,
     type ContentBlockDeltaEvent as ContentBlockDeltaEvent,
+    type ContentBlockParam as ContentBlockParam,
     type ContentBlockStartEvent as ContentBlockStartEvent,
     type ContentBlockStopEvent as ContentBlockStopEvent,
     type ImageBlockParam as ImageBlockParam,
