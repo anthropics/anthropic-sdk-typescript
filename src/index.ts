@@ -8,10 +8,10 @@ export {
   Uploadable,
   createForm,
   toFile,
-} from '@anthropic-ai/sdk/uploads';
-export { APIPromise } from '@anthropic-ai/sdk/api-promise';
-export { BaseAnthropic, Anthropic, ClientOptions, HUMAN_PROMPT, AI_PROMPT } from '@anthropic-ai/sdk/client';
-export { PagePromise } from '@anthropic-ai/sdk/pagination';
+} from './uploads';
+export { APIPromise } from './api-promise';
+export { BaseAnthropic, Anthropic, ClientOptions, HUMAN_PROMPT, AI_PROMPT } from './client';
+export { PagePromise } from './pagination';
 export {
   AnthropicError,
   APIError,
@@ -26,4 +26,4 @@ export {
   InternalServerError,
   PermissionDeniedError,
   UnprocessableEntityError,
-} from '@anthropic-ai/sdk/error';
+} from './error';
