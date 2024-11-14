@@ -366,7 +366,7 @@ export declare namespace Anthropic {
 }
 export const { HUMAN_PROMPT, AI_PROMPT } = Anthropic;
 
-export { toFile, fileFromPath } from '@anthropic-ai/sdk/uploads';
+export { toFile, fileFromPath } from './uploads';
 export {
   AnthropicError,
   APIError,
@@ -381,6 +381,6 @@ export {
   InternalServerError,
   PermissionDeniedError,
   UnprocessableEntityError,
-} from '@anthropic-ai/sdk/error';
+} from './error';
 
 export default Anthropic;
