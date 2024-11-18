@@ -19,22 +19,6 @@ describe('resource batches', () => {
             model: 'claude-3-5-sonnet-20241022',
           },
         },
-        {
-          custom_id: 'my-custom-id-1',
-          params: {
-            max_tokens: 1024,
-            messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-3-5-sonnet-20241022',
-          },
-        },
-        {
-          custom_id: 'my-custom-id-1',
-          params: {
-            max_tokens: 1024,
-            messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-3-5-sonnet-20241022',
-          },
-        },
       ],
     });
     const rawResponse = await responsePromise.asResponse();
@@ -56,7 +40,7 @@ describe('resource batches', () => {
             messages: [{ content: 'Hello, world', role: 'user' }],
             model: 'claude-3-5-sonnet-20241022',
             metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
-            stop_sequences: ['string', 'string', 'string'],
+            stop_sequences: ['string'],
             stream: true,
             system: [
               { text: "Today's date is 2024-06-01.", type: 'text', cache_control: { type: 'ephemeral' } },
@@ -64,174 +48,6 @@ describe('resource batches', () => {
             temperature: 1,
             tool_choice: { type: 'auto', disable_parallel_tool_use: true },
             tools: [
-              {
-                input_schema: {
-                  type: 'object',
-                  properties: {
-                    location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-                    unit: {
-                      description: 'Unit for the output - one of (celsius, fahrenheit)',
-                      type: 'string',
-                    },
-                  },
-                },
-                name: 'x',
-                cache_control: { type: 'ephemeral' },
-                description: 'Get the current weather in a given location',
-                type: 'custom',
-              },
-              {
-                input_schema: {
-                  type: 'object',
-                  properties: {
-                    location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-                    unit: {
-                      description: 'Unit for the output - one of (celsius, fahrenheit)',
-                      type: 'string',
-                    },
-                  },
-                },
-                name: 'x',
-                cache_control: { type: 'ephemeral' },
-                description: 'Get the current weather in a given location',
-                type: 'custom',
-              },
-              {
-                input_schema: {
-                  type: 'object',
-                  properties: {
-                    location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-                    unit: {
-                      description: 'Unit for the output - one of (celsius, fahrenheit)',
-                      type: 'string',
-                    },
-                  },
-                },
-                name: 'x',
-                cache_control: { type: 'ephemeral' },
-                description: 'Get the current weather in a given location',
-                type: 'custom',
-              },
-            ],
-            top_k: 5,
-            top_p: 0.7,
-          },
-        },
-        {
-          custom_id: 'my-custom-id-1',
-          params: {
-            max_tokens: 1024,
-            messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-3-5-sonnet-20241022',
-            metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
-            stop_sequences: ['string', 'string', 'string'],
-            stream: true,
-            system: [
-              { text: "Today's date is 2024-06-01.", type: 'text', cache_control: { type: 'ephemeral' } },
-            ],
-            temperature: 1,
-            tool_choice: { type: 'auto', disable_parallel_tool_use: true },
-            tools: [
-              {
-                input_schema: {
-                  type: 'object',
-                  properties: {
-                    location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-                    unit: {
-                      description: 'Unit for the output - one of (celsius, fahrenheit)',
-                      type: 'string',
-                    },
-                  },
-                },
-                name: 'x',
-                cache_control: { type: 'ephemeral' },
-                description: 'Get the current weather in a given location',
-                type: 'custom',
-              },
-              {
-                input_schema: {
-                  type: 'object',
-                  properties: {
-                    location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-                    unit: {
-                      description: 'Unit for the output - one of (celsius, fahrenheit)',
-                      type: 'string',
-                    },
-                  },
-                },
-                name: 'x',
-                cache_control: { type: 'ephemeral' },
-                description: 'Get the current weather in a given location',
-                type: 'custom',
-              },
-              {
-                input_schema: {
-                  type: 'object',
-                  properties: {
-                    location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-                    unit: {
-                      description: 'Unit for the output - one of (celsius, fahrenheit)',
-                      type: 'string',
-                    },
-                  },
-                },
-                name: 'x',
-                cache_control: { type: 'ephemeral' },
-                description: 'Get the current weather in a given location',
-                type: 'custom',
-              },
-            ],
-            top_k: 5,
-            top_p: 0.7,
-          },
-        },
-        {
-          custom_id: 'my-custom-id-1',
-          params: {
-            max_tokens: 1024,
-            messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-3-5-sonnet-20241022',
-            metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
-            stop_sequences: ['string', 'string', 'string'],
-            stream: true,
-            system: [
-              { text: "Today's date is 2024-06-01.", type: 'text', cache_control: { type: 'ephemeral' } },
-            ],
-            temperature: 1,
-            tool_choice: { type: 'auto', disable_parallel_tool_use: true },
-            tools: [
-              {
-                input_schema: {
-                  type: 'object',
-                  properties: {
-                    location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-                    unit: {
-                      description: 'Unit for the output - one of (celsius, fahrenheit)',
-                      type: 'string',
-                    },
-                  },
-                },
-                name: 'x',
-                cache_control: { type: 'ephemeral' },
-                description: 'Get the current weather in a given location',
-                type: 'custom',
-              },
-              {
-                input_schema: {
-                  type: 'object',
-                  properties: {
-                    location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-                    unit: {
-                      description: 'Unit for the output - one of (celsius, fahrenheit)',
-                      type: 'string',
-                    },
-                  },
-                },
-                name: 'x',
-                cache_control: { type: 'ephemeral' },
-                description: 'Get the current weather in a given location',
-                type: 'custom',
-              },
               {
                 input_schema: {
                   type: 'object',
@@ -254,7 +70,7 @@ describe('resource batches', () => {
           },
         },
       ],
-      betas: ['string', 'string', 'string'],
+      betas: ['string'],
     });
   });
 
@@ -274,7 +90,7 @@ describe('resource batches', () => {
     await expect(
       client.beta.messages.batches.retrieve(
         'message_batch_id',
-        { betas: ['string', 'string', 'string'] },
+        { betas: ['string'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -295,7 +111,7 @@ describe('resource batches', () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.messages.batches.list(
-        { after_id: 'after_id', before_id: 'before_id', limit: 1, betas: ['string', 'string', 'string'] },
+        { after_id: 'after_id', before_id: 'before_id', limit: 1, betas: ['string'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -317,7 +133,7 @@ describe('resource batches', () => {
     await expect(
       client.beta.messages.batches.cancel(
         'message_batch_id',
-        { betas: ['string', 'string', 'string'] },
+        { betas: ['string'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -328,7 +144,7 @@ describe('resource batches', () => {
     await expect(
       client.beta.messages.batches.results(
         'message_batch_id',
-        { betas: ['string', 'string', 'string'] },
+        { betas: ['string'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

@@ -29,7 +29,7 @@ describe('resource messages', () => {
       messages: [{ content: 'Hello, world', role: 'user' }],
       model: 'claude-3-5-sonnet-20241022',
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
-      stop_sequences: ['string', 'string', 'string'],
+      stop_sequences: ['string'],
       stream: false,
       system: [{ text: "Today's date is 2024-06-01.", type: 'text', cache_control: { type: 'ephemeral' } }],
       temperature: 1,
@@ -48,46 +48,16 @@ describe('resource messages', () => {
           description: 'Get the current weather in a given location',
           type: 'custom',
         },
-        {
-          input_schema: {
-            type: 'object',
-            properties: {
-              location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-              unit: { description: 'Unit for the output - one of (celsius, fahrenheit)', type: 'string' },
-            },
-          },
-          name: 'x',
-          cache_control: { type: 'ephemeral' },
-          description: 'Get the current weather in a given location',
-          type: 'custom',
-        },
-        {
-          input_schema: {
-            type: 'object',
-            properties: {
-              location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-              unit: { description: 'Unit for the output - one of (celsius, fahrenheit)', type: 'string' },
-            },
-          },
-          name: 'x',
-          cache_control: { type: 'ephemeral' },
-          description: 'Get the current weather in a given location',
-          type: 'custom',
-        },
       ],
       top_k: 5,
       top_p: 0.7,
-      betas: ['string', 'string', 'string'],
+      betas: ['string'],
     });
   });
 
   test('countTokens: only required params', async () => {
     const responsePromise = client.beta.messages.countTokens({
-      messages: [
-        { content: 'string', role: 'user' },
-        { content: 'string', role: 'user' },
-        { content: 'string', role: 'user' },
-      ],
+      messages: [{ content: 'string', role: 'user' }],
       model: 'string',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -101,11 +71,7 @@ describe('resource messages', () => {
 
   test('countTokens: required and optional params', async () => {
     const response = await client.beta.messages.countTokens({
-      messages: [
-        { content: 'string', role: 'user' },
-        { content: 'string', role: 'user' },
-        { content: 'string', role: 'user' },
-      ],
+      messages: [{ content: 'string', role: 'user' }],
       model: 'string',
       system: [{ text: "Today's date is 2024-06-01.", type: 'text', cache_control: { type: 'ephemeral' } }],
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
@@ -123,34 +89,8 @@ describe('resource messages', () => {
           description: 'Get the current weather in a given location',
           type: 'custom',
         },
-        {
-          input_schema: {
-            type: 'object',
-            properties: {
-              location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-              unit: { description: 'Unit for the output - one of (celsius, fahrenheit)', type: 'string' },
-            },
-          },
-          name: 'x',
-          cache_control: { type: 'ephemeral' },
-          description: 'Get the current weather in a given location',
-          type: 'custom',
-        },
-        {
-          input_schema: {
-            type: 'object',
-            properties: {
-              location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-              unit: { description: 'Unit for the output - one of (celsius, fahrenheit)', type: 'string' },
-            },
-          },
-          name: 'x',
-          cache_control: { type: 'ephemeral' },
-          description: 'Get the current weather in a given location',
-          type: 'custom',
-        },
       ],
-      betas: ['string', 'string', 'string'],
+      betas: ['string'],
     });
   });
 });

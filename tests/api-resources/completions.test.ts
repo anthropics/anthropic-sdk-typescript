@@ -29,7 +29,7 @@ describe('resource completions', () => {
       model: 'string',
       prompt: '\n\nHuman: Hello, world!\n\nAssistant:',
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
-      stop_sequences: ['string', 'string', 'string'],
+      stop_sequences: ['string'],
       stream: false,
       temperature: 1,
       top_k: 5,
