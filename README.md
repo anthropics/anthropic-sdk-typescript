@@ -227,6 +227,18 @@ Error codes are as followed:
 | >=500       | `InternalServerError`      |
 | N/A         | `APIConnectionError`       |
 
+## Request IDs
+
+> For more information on debugging requests, see [these docs](https://docs.anthropic.com/en/api/errors#request-id)
+
+All object responses in the SDK provide a `_request_id` property which is added from the `request-id` response header so that you can quickly log failing requests and report them back to Anthropic.
+
+```ts
+const message = await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-opus-20240229' });
+console.log(completion._request_id) // req_018EeWyXxfu5pfWkrYcMdjWG
+```
+
+
 ### Retries
 
 Certain errors will be automatically retried 2 times by default, with a short exponential backoff.
@@ -295,7 +307,7 @@ for (const betaMessageBatch of page.data) {
 
 // Convenience methods are provided for manually paginating:
 while (page.hasNextPage()) {
-  page = page.getNextPage();
+  page = await page.getNextPage();
   // ...
 }
 ```
@@ -488,7 +500,7 @@ TypeScript >= 4.5 is supported.
 The following runtimes are supported:
 
 - Node.js 18 LTS or later ([non-EOL](https://endoflife.date/nodejs)) versions.
-- Deno v1.28.0 or higher, using `import Anthropic from "npm:@anthropic-ai/sdk"`.
+- Deno v1.28.0 or higher.
 - Bun 1.0 or later.
 - Cloudflare Workers.
 - Vercel Edge Runtime.

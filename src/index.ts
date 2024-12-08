@@ -17,6 +17,7 @@ import {
 import {
   ContentBlock,
   ContentBlockDeltaEvent,
+  ContentBlockParam,
   ContentBlockStartEvent,
   ContentBlockStopEvent,
   ImageBlockParam,
@@ -181,7 +182,7 @@ export class Anthropic extends Core.APIClient {
 
     if (!options.dangerouslyAllowBrowser && Core.isRunningInBrowser()) {
       throw new Errors.AnthropicError(
-        "It looks like you're running in a browser-like environment.\n\nThis is disabled by default, as it risks exposing your secret API credentials to attackers.\nIf you understand the risks and have appropriate mitigations in place,\nyou can set the `dangerouslyAllowBrowser` option to `true`, e.g.,\n\nnew Anthropic({ apiKey, dangerouslyAllowBrowser: true });\n\nTODO: link!\n",
+        "It looks like you're running in a browser-like environment.\n\nThis is disabled by default, as it risks exposing your secret API credentials to attackers.\nIf you understand the risks and have appropriate mitigations in place,\nyou can set the `dangerouslyAllowBrowser` option to `true`, e.g.,\n\nnew Anthropic({ apiKey, dangerouslyAllowBrowser: true });\n",
       );
     }
 
@@ -289,31 +290,9 @@ export class Anthropic extends Core.APIClient {
   static fileFromPath = Uploads.fileFromPath;
 }
 
-export const { HUMAN_PROMPT, AI_PROMPT } = Anthropic;
-
-export {
-  AnthropicError,
-  APIError,
-  APIConnectionError,
-  APIConnectionTimeoutError,
-  APIUserAbortError,
-  NotFoundError,
-  ConflictError,
-  RateLimitError,
-  BadRequestError,
-  AuthenticationError,
-  InternalServerError,
-  PermissionDeniedError,
-  UnprocessableEntityError,
-} from './error';
-
-export import toFile = Uploads.toFile;
-export import fileFromPath = Uploads.fileFromPath;
-
 Anthropic.Completions = Completions;
 Anthropic.Messages = Messages;
 Anthropic.Beta = Beta;
-
 export declare namespace Anthropic {
   export type RequestOptions = Core.RequestOptions;
 
@@ -332,6 +311,7 @@ export declare namespace Anthropic {
     Messages as Messages,
     type ContentBlock as ContentBlock,
     type ContentBlockDeltaEvent as ContentBlockDeltaEvent,
+    type ContentBlockParam as ContentBlockParam,
     type ContentBlockStartEvent as ContentBlockStartEvent,
     type ContentBlockStopEvent as ContentBlockStopEvent,
     type ImageBlockParam as ImageBlockParam,
@@ -384,5 +364,23 @@ export declare namespace Anthropic {
     type BetaRateLimitError as BetaRateLimitError,
   };
 }
+export const { HUMAN_PROMPT, AI_PROMPT } = Anthropic;
+
+export { toFile, fileFromPath } from './uploads';
+export {
+  AnthropicError,
+  APIError,
+  APIConnectionError,
+  APIConnectionTimeoutError,
+  APIUserAbortError,
+  NotFoundError,
+  ConflictError,
+  RateLimitError,
+  BadRequestError,
+  AuthenticationError,
+  InternalServerError,
+  PermissionDeniedError,
+  UnprocessableEntityError,
+} from './error';
 
 export default Anthropic;

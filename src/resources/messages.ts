@@ -57,6 +57,8 @@ export type ContentBlock = TextBlock | ToolUseBlock;
 
 export type ContentBlockDeltaEvent = RawContentBlockDeltaEvent;
 
+export type ContentBlockParam = TextBlockParam | ImageBlockParam | ToolUseBlockParam | ToolResultBlockParam;
+
 export type ContentBlockStartEvent = RawContentBlockStartEvent;
 
 export type ContentBlockStopEvent = RawContentBlockStopEvent;
@@ -200,7 +202,7 @@ export interface MessageDeltaUsage {
 }
 
 export interface MessageParam {
-  content: string | Array<TextBlockParam | ImageBlockParam | ToolUseBlockParam | ToolResultBlockParam>;
+  content: string | Array<ContentBlockParam>;
 
   role: 'user' | 'assistant';
 }
@@ -239,8 +241,7 @@ export type Model =
   | 'claude-3-sonnet-20240229'
   | 'claude-3-haiku-20240307'
   | 'claude-2.1'
-  | 'claude-2.0'
-  | 'claude-instant-1.2';
+  | 'claude-2.0';
 
 type DeprecatedModelsType = {
   [K in Model]?: string;
@@ -794,6 +795,7 @@ export declare namespace Messages {
   export {
     type ContentBlock as ContentBlock,
     type ContentBlockDeltaEvent as ContentBlockDeltaEvent,
+    type ContentBlockParam as ContentBlockParam,
     type ContentBlockStartEvent as ContentBlockStartEvent,
     type ContentBlockStopEvent as ContentBlockStopEvent,
     type ImageBlockParam as ImageBlockParam,
