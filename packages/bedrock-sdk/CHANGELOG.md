@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.3 (2024-12-08)
+
+Full Changelog: [bedrock-sdk-v0.11.2...bedrock-sdk-v0.11.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.11.2...bedrock-sdk-v0.11.3)
+
+### Chores
+
+* **bedrock,vertex:** remove unsupported countTokens method ([#597](https://github.com/anthropics/anthropic-sdk-typescript/issues/597)) ([17b7da5](https://github.com/anthropics/anthropic-sdk-typescript/commit/17b7da5ee6f35ea2bdd53a66a662871affae6341))
+
 ## 0.11.2 (2024-11-05)
 
 Full Changelog: [bedrock-sdk-v0.11.1...bedrock-sdk-v0.11.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.11.1...bedrock-sdk-v0.11.2)
