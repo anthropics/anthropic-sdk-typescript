@@ -28,7 +28,7 @@ async function main() {
   const message = await client.messages.create({
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-opus-20240229',
+    model: 'claude-3-5-sonnet-latest',
   });
 
   console.log(message.content);
@@ -49,7 +49,7 @@ const client = new Anthropic();
 const stream = await client.messages.create({
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello, Claude' }],
-  model: 'claude-3-opus-20240229',
+  model: 'claude-3-5-sonnet-latest',
   stream: true,
 });
 for await (const messageStreamEvent of stream) {
@@ -76,7 +76,7 @@ async function main() {
   const params: Anthropic.MessageCreateParams = {
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-opus-20240229',
+    model: 'claude-3-5-sonnet-latest',
   };
   const message: Anthropic.Message = await client.messages.create(params);
 }
@@ -108,7 +108,7 @@ const anthropic = new Anthropic();
 async function main() {
   const stream = anthropic.messages
     .stream({
-      model: 'claude-3-opus-20240229',
+      model: 'claude-3-5-sonnet-latest',
       max_tokens: 1024,
       messages: [
         {
@@ -146,7 +146,7 @@ await anthropic.beta.messages.batches.create({
     {
       custom_id: 'my-first-request',
       params: {
-        model: 'claude-3-5-sonnet-20240620',
+        model: 'claude-3-5-sonnet-latest',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'Hello, world' }],
       },
@@ -154,7 +154,7 @@ await anthropic.beta.messages.batches.create({
     {
       custom_id: 'my-second-request',
       params: {
-        model: 'claude-3-5-sonnet-20240620',
+        model: 'claude-3-5-sonnet-latest',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'Hi again, friend' }],
       },
@@ -198,7 +198,7 @@ async function main() {
     .create({
       max_tokens: 1024,
       messages: [{ role: 'user', content: 'Hello, Claude' }],
-      model: 'claude-3-opus-20240229',
+      model: 'claude-3-5-sonnet-latest',
     })
     .catch(async (err) => {
       if (err instanceof Anthropic.APIError) {
@@ -234,7 +234,7 @@ Error codes are as followed:
 All object responses in the SDK provide a `_request_id` property which is added from the `request-id` response header so that you can quickly log failing requests and report them back to Anthropic.
 
 ```ts
-const message = await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-opus-20240229' });
+const message = await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-5-sonnet-latest' });
 console.log(completion._request_id) // req_018EeWyXxfu5pfWkrYcMdjWG
 ```
 
@@ -255,7 +255,7 @@ const client = new Anthropic({
 });
 
 // Or, configure per-request:
-await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-opus-20240229' }, {
+await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-5-sonnet-latest' }, {
   maxRetries: 5,
 });
 ```
@@ -272,7 +272,7 @@ const client = new Anthropic({
 });
 
 // Override per-request:
-await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-opus-20240229' }, {
+await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-5-sonnet-latest' }, {
   timeout: 5 * 1000,
 });
 ```
@@ -329,7 +329,7 @@ const message = await client.messages.create(
   {
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-opus-20240229',
+    model: 'claude-3-5-sonnet-latest',
   },
   { headers: { 'anthropic-version': 'My-Custom-Value' } },
 );
@@ -351,7 +351,7 @@ const response = await client.messages
   .create({
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-opus-20240229',
+    model: 'claude-3-5-sonnet-latest',
   })
   .asResponse();
 console.log(response.headers.get('X-My-Header'));
@@ -361,7 +361,7 @@ const { data: message, response: raw } = await client.messages
   .create({
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-opus-20240229',
+    model: 'claude-3-5-sonnet-latest',
   })
   .withResponse();
 console.log(raw.headers.get('X-My-Header'));
@@ -473,7 +473,7 @@ await client.messages.create(
   {
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-opus-20240229',
+    model: 'claude-3-5-sonnet-latest',
   },
   {
     httpAgent: new http.Agent({ keepAlive: false }),
