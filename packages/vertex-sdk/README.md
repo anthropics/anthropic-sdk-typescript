@@ -30,7 +30,7 @@ async function main() {
         content: 'Hey Claude!',
       },
     ],
-    model: 'claude-3-sonnet@20240229',
+    model: 'claude-3-5-sonnet-v2@20241022',
     max_tokens: 300,
   });
   console.log(JSON.stringify(result, null, 2));
