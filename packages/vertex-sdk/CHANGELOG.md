@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.3 (2024-12-10)
+
+Full Changelog: [vertex-sdk-v0.5.2...vertex-sdk-v0.5.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.5.2...vertex-sdk-v0.5.3)
+
+### Chores
+
+* **bedrock,vertex:** remove unsupported countTokens method ([#597](https://github.com/anthropics/anthropic-sdk-typescript/issues/597)) ([17b7da5](https://github.com/anthropics/anthropic-sdk-typescript/commit/17b7da5ee6f35ea2bdd53a66a662871affae6341))
+
 ## 0.5.2 (2024-11-05)
 
 Full Changelog: [vertex-sdk-v0.5.1...vertex-sdk-v0.5.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.5.1...vertex-sdk-v0.5.2)
