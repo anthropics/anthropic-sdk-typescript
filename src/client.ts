@@ -2,7 +2,10 @@
 
 import type { RequestInit, RequestInfo } from './internal/builtin-types';
 import type { HTTPMethod, PromiseOrValue } from './internal/types';
-import { debug, sleep, safeJSON, isAbsoluteURL, uuid4, validatePositiveInteger } from './internal/utils';
+import { debug } from './internal/utils/log';
+import { uuid4 } from './internal/utils/uuid';
+import { validatePositiveInteger, isAbsoluteURL } from './internal/utils/values';
+import { sleep } from './internal/utils/sleep';
 import { castToError } from './internal/errors';
 import type { APIResponseProps } from './internal/parse';
 import { getPlatformHeaders } from './internal/detect-platform';
@@ -21,8 +24,7 @@ import { APIPromise } from './api-promise';
 import { type Fetch } from './internal/builtin-types';
 import { isRunningInBrowser } from './internal/detect-platform';
 import { FinalRequestOptions, RequestOptions } from './internal/request-options';
-import { type DefaultQuery, type Headers } from './internal/types';
-import { isEmptyObj, readEnv } from './internal/utils';
+import { type Headers } from './internal/types';
 import {
   Completion,
   CompletionCreateParams,
@@ -64,6 +66,8 @@ import {
   ToolUseBlockParam,
   Usage,
 } from './resources/messages';
+import { readEnv } from './internal/utils/env';
+import { isEmptyObj } from './internal/utils/values';
 import {
   AnthropicBeta,
   Beta,
@@ -77,6 +81,14 @@ import {
   BetaPermissionError,
   BetaRateLimitError,
 } from './resources/beta/beta';
+
+const safeJSON = (text: string) => {
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    return undefined;
+  }
+};
 
 export interface ClientOptions {
   /**
@@ -142,7 +154,7 @@ export interface ClientOptions {
    * These can be removed in individual requests by explicitly setting the
    * param to `undefined` in request options.
    */
-  defaultQuery?: DefaultQuery;
+  defaultQuery?: Record<string, string | undefined>;
 
   /**
    * By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
@@ -175,7 +187,7 @@ export class BaseAnthropic {
    * @param {Fetch} [opts.fetch] - Specify a custom `fetch` function implementation.
    * @param {number} [opts.maxRetries=2] - The maximum number of times the client will retry a request.
    * @param {Headers} opts.defaultHeaders - Default headers to include with every request to the API.
-   * @param {DefaultQuery} opts.defaultQuery - Default query parameters to include with every request to the API.
+   * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
    * @param {boolean} [opts.dangerouslyAllowBrowser=false] - By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
    */
   constructor({
@@ -209,7 +221,7 @@ export class BaseAnthropic {
     this.authToken = authToken;
   }
 
-  protected defaultQuery(): DefaultQuery | undefined {
+  protected defaultQuery(): Record<string, string | undefined> | undefined {
     return this._options.defaultQuery;
   }
 
