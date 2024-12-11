@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/sdk",
-  "version": "0.32.1",
+  "version": "0.33.0",
   "description": "The official TypeScript library for the Anthropic API",
   "author": "Anthropic <support@anthropic.com>",
   "types": "dist/index.d.ts",
@@ -18,7 +18,7 @@
     "build": "./scripts/build-all",
     "prepublishOnly": "echo 'to publish, run yarn build && (cd dist; yarn publish)' && exit 1",
     "format": "prettier --write --cache --cache-strategy metadata . !dist",
-    "prepare": "if ./scripts/utils/check-is-in-git-install.sh; then ./scripts/build; fi",
+    "prepare": "if ./scripts/utils/check-is-in-git-install.sh; then ./scripts/build && ./scripts/utils/git-swap.sh; fi",
     "tsn": "ts-node -r tsconfig-paths/register",
     "lint": "./scripts/lint",
     "fix": "./scripts/format"
@@ -45,7 +45,6 @@
     "jest": "^29.4.0",
     "prettier": "^3.0.0",
     "ts-jest": "^29.1.0",
-    "ts-morph": "^19.0.0",
     "ts-node": "^10.5.0",
     "tsc-multi": "^1.1.0",
     "tsconfig-paths": "^4.0.0",
