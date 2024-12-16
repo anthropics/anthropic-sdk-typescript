@@ -212,7 +212,7 @@ export class Anthropic extends Core.APIClient {
       ...super.defaultHeaders(opts),
       ...(this._options.dangerouslyAllowBrowser ?
         { 'anthropic-dangerous-direct-browser-access': 'true' }
-      : undefined),
+        : undefined),
       'anthropic-version': '2023-06-01',
       ...this._options.defaultHeaders,
     };
@@ -309,6 +309,7 @@ export {
 
 export import toFile = Uploads.toFile;
 export import fileFromPath = Uploads.fileFromPath;
+import Opuz from './opuz';
 
 Anthropic.Completions = Completions;
 Anthropic.Messages = Messages;

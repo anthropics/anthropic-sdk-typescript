@@ -1,7 +1,7 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIResource } from '../resource';
-import { APIPromise } from '../core';
+import { APIPromise, APIResponseProps } from '../core';
 import * as Core from '../core';
 import * as MessagesAPI from './messages';
 import { Stream } from '../streaming';
@@ -32,17 +32,36 @@ export class Messages extends APIResource {
   ): APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>> {
     if (body.model in DEPRECATED_MODELS) {
       console.warn(
-        `The model '${body.model}' is deprecated and will reach end-of-life on ${
-          DEPRECATED_MODELS[body.model]
+        `The model '${body.model}' is deprecated and will reach end-of-life on ${DEPRECATED_MODELS[body.model]
         }\nPlease migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information.`,
       );
     }
-    return this._client.post('/v1/messages', {
+
+    if (body.stream) {
+      return this._client.post('/v1/messages', {
+        body,
+        timeout: (this._client as any)._options.timeout ?? 600000,
+        ...options,
+        stream: body.stream ?? false,
+      }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
+    }
+
+    const start = Date.now();
+
+    return (this._client.post('/v1/messages', {
       body,
       timeout: (this._client as any)._options.timeout ?? 600000,
       ...options,
       stream: body.stream ?? false,
-    }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
+    }) as APIPromise<Message>)._thenUnwrap((response, props) => {
+      this._opuz.trace({
+        request: body,
+        response: response,
+        checks: options?.checkBuilder?.getChecks() ?? [],
+        duration: Date.now() - start,
+      });
+      return response;
+    });
   }
 
   /**

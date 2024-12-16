@@ -20,6 +20,7 @@ import {
 } from './_shims/index';
 export { type Response };
 import { BlobLike, isBlobLike, isMultipartBody } from './uploads';
+import CheckBuilder from './checkBuilder';
 export {
   maybeMultipartFormRequestOptions,
   multipartFormRequestOptions,
@@ -31,7 +32,7 @@ export type Fetch = (url: RequestInfo, init?: RequestInit) => Promise<Response>;
 
 type PromiseOrValue<T> = T | Promise<T>;
 
-type APIResponseProps = {
+export type APIResponseProps = {
   response: Response;
   options: FinalRequestOptions;
   controller: AbortController;
@@ -220,7 +221,7 @@ export abstract class APIClient {
   /**
    * Override this to add your own headers validation:
    */
-  protected validateHeaders(headers: Headers, customHeaders: Headers) {}
+  protected validateHeaders(headers: Headers, customHeaders: Headers) { }
 
   protected defaultIdempotencyKey(): string {
     return `stainless-node-retry-${uuid4()}`;
@@ -255,10 +256,10 @@ export abstract class APIClient {
       Promise.resolve(opts).then(async (opts) => {
         const body =
           opts && isBlobLike(opts?.body) ? new DataView(await opts.body.arrayBuffer())
-          : opts?.body instanceof DataView ? opts.body
-          : opts?.body instanceof ArrayBuffer ? new DataView(opts.body)
-          : opts && ArrayBuffer.isView(opts?.body) ? new DataView(opts.body.buffer)
-          : opts?.body;
+            : opts?.body instanceof DataView ? opts.body
+              : opts?.body instanceof ArrayBuffer ? new DataView(opts.body)
+                : opts && ArrayBuffer.isView(opts?.body) ? new DataView(opts.body.buffer)
+                  : opts?.body;
         return { method, path, ...opts, body };
       }),
     );
@@ -299,9 +300,9 @@ export abstract class APIClient {
     const body =
       ArrayBuffer.isView(options.body) || (options.__binaryRequest && typeof options.body === 'string') ?
         options.body
-      : isMultipartBody(options.body) ? options.body.body
-      : options.body ? JSON.stringify(options.body, null, 2)
-      : null;
+        : isMultipartBody(options.body) ? options.body.body
+          : options.body ? JSON.stringify(options.body, null, 2)
+            : null;
     const contentLength = this.calculateContentLength(body);
 
     const url = this.buildURL(path!, query);
@@ -383,7 +384,7 @@ export abstract class APIClient {
   /**
    * Used as a callback for mutating the given `FinalRequestOptions` object.
    */
-  protected async prepareOptions(options: FinalRequestOptions): Promise<void> {}
+  protected async prepareOptions(options: FinalRequestOptions): Promise<void> { }
 
   /**
    * Used as a callback for mutating the given `RequestInit` object.
@@ -394,14 +395,14 @@ export abstract class APIClient {
   protected async prepareRequest(
     request: RequestInit,
     { url, options }: { url: string; options: FinalRequestOptions },
-  ): Promise<void> {}
+  ): Promise<void> { }
 
   protected parseHeaders(headers: HeadersInit | null | undefined): Record<string, string> {
     return (
       !headers ? {}
-      : Symbol.iterator in headers ?
-        Object.fromEntries(Array.from(headers as Iterable<string[]>).map((header) => [...header]))
-      : { ...headers }
+        : Symbol.iterator in headers ?
+          Object.fromEntries(Array.from(headers as Iterable<string[]>).map((header) => [...header]))
+          : { ...headers }
     );
   }
 
@@ -444,7 +445,9 @@ export abstract class APIClient {
     }
 
     const controller = new AbortController();
+    const start = Date.now();
     const response = await this.fetchWithTimeout(url, req, timeout, controller).catch(castToError);
+    const end = Date.now();
 
     if (response instanceof Error) {
       if (options.signal?.aborted) {
@@ -458,6 +461,7 @@ export abstract class APIClient {
       }
       throw new APIConnectionError({ cause: response });
     }
+
 
     const responseHeaders = createResponseHeaders(response.headers);
 
@@ -494,7 +498,7 @@ export abstract class APIClient {
     const url =
       isAbsoluteURL(path) ?
         new URL(path)
-      : new URL(this.baseURL + (this.baseURL.endsWith('/') && path.startsWith('/') ? path.slice(1) : path));
+        : new URL(this.baseURL + (this.baseURL.endsWith('/') && path.startsWith('/') ? path.slice(1) : path));
 
     const defaultQuery = this.defaultQuery();
     if (!isEmptyObj(defaultQuery)) {
@@ -711,12 +715,11 @@ export abstract class AbstractPage<Item> implements AsyncIterable<Item> {
  *    }
  */
 export class PagePromise<
-    PageClass extends AbstractPage<Item>,
-    Item = ReturnType<PageClass['getPaginatedItems']>[number],
-  >
+  PageClass extends AbstractPage<Item>,
+  Item = ReturnType<PageClass['getPaginatedItems']>[number],
+>
   extends APIPromise<PageClass>
-  implements AsyncIterable<Item>
-{
+  implements AsyncIterable<Item> {
   constructor(
     client: APIClient,
     request: Promise<APIResponseProps>,
@@ -786,6 +789,9 @@ export type RequestOptions<
   __binaryRequest?: boolean | undefined;
   __binaryResponse?: boolean | undefined;
   __streamClass?: typeof Stream;
+
+  // Opuz 
+  checkBuilder?: CheckBuilder;
 };
 
 // This is required so that we can determine if a given object matches the RequestOptions
@@ -808,6 +814,9 @@ const requestOptionsKeys: KeysEnum<RequestOptions> = {
   __binaryRequest: true,
   __binaryResponse: true,
   __streamClass: true,
+
+  // Opuz 
+  checkBuilder: true,
 };
 
 export const isRequestOptions = (obj: unknown): obj is RequestOptions => {
@@ -1015,7 +1024,7 @@ export const castToError = (err: any): Error => {
   if (typeof err === 'object' && err !== null) {
     try {
       return new Error(JSON.stringify(err));
-    } catch {}
+    } catch { }
   }
   return new Error(String(err));
 };
