@@ -4,7 +4,7 @@ import { APIResource } from '../resource';
 import { APIPromise } from '../core';
 import * as Core from '../core';
 import * as CompletionsAPI from './completions';
-import * as MessagesAPI from './messages';
+import * as MessagesAPI from './messages/messages';
 import { Stream } from '../streaming';
 
 export class Completions extends APIResource {

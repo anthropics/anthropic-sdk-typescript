@@ -1,28 +1,19 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-export * from './shared';
 export {
-  Beta,
-  type AnthropicBeta,
-  type BetaAPIError,
-  type BetaAuthenticationError,
-  type BetaBillingError,
-  type BetaError,
-  type BetaErrorResponse,
-  type BetaGatewayTimeoutError,
-  type BetaInvalidRequestError,
-  type BetaNotFoundError,
-  type BetaOverloadedError,
-  type BetaPermissionError,
-  type BetaRateLimitError,
-} from './beta/beta';
-export {
-  Completions,
-  type Completion,
-  type CompletionCreateParams,
-  type CompletionCreateParamsNonStreaming,
-  type CompletionCreateParamsStreaming,
-} from './completions';
+  MessageBatchesPage,
+  Batches,
+  type MessageBatch,
+  type MessageBatchCanceledResult,
+  type MessageBatchErroredResult,
+  type MessageBatchExpiredResult,
+  type MessageBatchIndividualResponse,
+  type MessageBatchRequestCounts,
+  type MessageBatchResult,
+  type MessageBatchSucceededResult,
+  type BatchCreateParams,
+  type BatchListParams,
+} from './batches';
 export {
   Messages,
   type Base64PDFSource,
@@ -34,7 +25,6 @@ export {
   type ContentBlockStopEvent,
   type DocumentBlockParam,
   type ImageBlockParam,
-  type InputJsonDelta,
   type InputJSONDelta,
   type Message,
   type MessageDeltaEvent,
@@ -43,7 +33,6 @@ export {
   type MessageStartEvent,
   type MessageStopEvent,
   type MessageStreamEvent,
-  type MessageStreamParams,
   type MessageTokensCount,
   type Metadata,
   type Model,
@@ -67,8 +56,8 @@ export {
   type ToolUseBlockParam,
   type Usage,
   type MessageCreateParams,
+  type MessageCreateParamsBase,
   type MessageCreateParamsNonStreaming,
   type MessageCreateParamsStreaming,
   type MessageCountTokensParams,
-} from './messages/messages';
-export { ModelInfosPage, Models, type ModelInfo, type ModelListParams } from './models';
+} from './messages';
