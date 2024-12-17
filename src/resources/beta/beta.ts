@@ -1,6 +1,8 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIResource } from '../../resource';
+import * as ModelsAPI from './models';
+import { BetaModelInfo, BetaModelInfosPage, ModelListParams, Models } from './models';
 import * as MessagesAPI from './messages/messages';
 import {
   BetaBase64PDFBlock,
@@ -44,12 +46,10 @@ import {
   MessageCreateParamsStreaming,
   Messages,
 } from './messages/messages';
-import * as PromptCachingAPI from './prompt-caching/prompt-caching';
-import { PromptCaching } from './prompt-caching/prompt-caching';
 
 export class Beta extends APIResource {
+  models: ModelsAPI.Models = new ModelsAPI.Models(this._client);
   messages: MessagesAPI.Messages = new MessagesAPI.Messages(this._client);
-  promptCaching: PromptCachingAPI.PromptCaching = new PromptCachingAPI.PromptCaching(this._client);
 }
 
 export type AnthropicBeta =
@@ -72,12 +72,20 @@ export interface BetaAuthenticationError {
   type: 'authentication_error';
 }
 
+export interface BetaBillingError {
+  message: string;
+
+  type: 'billing_error';
+}
+
 export type BetaError =
   | BetaInvalidRequestError
   | BetaAuthenticationError
+  | BetaBillingError
   | BetaPermissionError
   | BetaNotFoundError
   | BetaRateLimitError
+  | BetaGatewayTimeoutError
   | BetaAPIError
   | BetaOverloadedError;
 
@@ -85,6 +93,12 @@ export interface BetaErrorResponse {
   error: BetaError;
 
   type: 'error';
+}
+
+export interface BetaGatewayTimeoutError {
+  message: string;
+
+  type: 'timeout_error';
 }
 
 export interface BetaInvalidRequestError {
@@ -117,21 +131,31 @@ export interface BetaRateLimitError {
   type: 'rate_limit_error';
 }
 
+Beta.Models = Models;
+Beta.BetaModelInfosPage = BetaModelInfosPage;
 Beta.Messages = Messages;
-Beta.PromptCaching = PromptCaching;
 
 export declare namespace Beta {
   export {
     type AnthropicBeta as AnthropicBeta,
     type BetaAPIError as BetaAPIError,
     type BetaAuthenticationError as BetaAuthenticationError,
+    type BetaBillingError as BetaBillingError,
     type BetaError as BetaError,
     type BetaErrorResponse as BetaErrorResponse,
+    type BetaGatewayTimeoutError as BetaGatewayTimeoutError,
     type BetaInvalidRequestError as BetaInvalidRequestError,
     type BetaNotFoundError as BetaNotFoundError,
     type BetaOverloadedError as BetaOverloadedError,
     type BetaPermissionError as BetaPermissionError,
     type BetaRateLimitError as BetaRateLimitError,
+  };
+
+  export {
+    Models as Models,
+    type BetaModelInfo as BetaModelInfo,
+    BetaModelInfosPage as BetaModelInfosPage,
+    type ModelListParams as ModelListParams,
   };
 
   export {
@@ -176,6 +200,4 @@ export declare namespace Beta {
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
     type MessageCountTokensParams as MessageCountTokensParams,
   };
-
-  export { PromptCaching as PromptCaching };
 }
