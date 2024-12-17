@@ -183,7 +183,7 @@ describe('instantiate client', () => {
     expect(client.apiKey).toBe('my-anthropic-api-key');
   });
 
-  test('with overriden environment variable arguments', () => {
+  test('with overridden environment variable arguments', () => {
     // set options via env var
     process.env['ANTHROPIC_API_KEY'] = 'another my-anthropic-api-key';
     const client = new Anthropic({ apiKey: 'my-anthropic-api-key' });
