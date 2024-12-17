@@ -83,7 +83,7 @@ export class AnthropicVertex extends Core.APIClient {
     this._authClientPromise = this._auth.getClient();
   }
 
-  messages: Resources.Messages = new Resources.Messages(this);
+  messages: MessagesResource = makeMessagesResource(this);
   beta: BetaResource = makeBetaResource(this);
 
   protected override defaultQuery(): Core.DefaultQuery | undefined {
@@ -147,8 +147,39 @@ export class AnthropicVertex extends Core.APIClient {
       options.path = `/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/${model}:${specifier}`;
     }
 
+    if (
+      options.path === '/v1/messages/count_tokens' ||
+      (options.path == '/v1/messages/count_tokens?beta=true' && options.method === 'post')
+    ) {
+      if (!this.projectId) {
+        throw new Error(
+          'No projectId was given and it could not be resolved from credentials. The client should be instantiated with the `projectId` option or the `ANTHROPIC_VERTEX_PROJECT_ID` environment variable should be set.',
+        );
+      }
+
+      if (Core.isObj(options.body)) {
+        options.body['anthropic_version'] = undefined;
+      }
+
+      options.path = `/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/count-tokens:rawPredict`;
+    }
+
     return super.buildRequest(options);
   }
+}
+
+/**
+ * The Vertex SDK does not currently support the Batch API.
+ */
+type MessagesResource = Omit<Resources.Messages, 'batches'>;
+
+function makeMessagesResource(client: AnthropicVertex): MessagesResource {
+  const resource = new Resources.Messages(client);
+
+  // @ts-expect-error we're deleting non-optional properties
+  delete resource.batches;
+
+  return resource;
 }
 
 /**
