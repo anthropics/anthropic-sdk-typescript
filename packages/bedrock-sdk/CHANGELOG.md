@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.12.0 (2024-12-17)
+
+Full Changelog: [bedrock-sdk-v0.11.2...bedrock-sdk-v0.12.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.11.2...bedrock-sdk-v0.12.0)
+
+### Features
+
+* **api:** general availability updates ([#631](https://github.com/anthropics/anthropic-sdk-typescript/issues/631)) ([b5c92e5](https://github.com/anthropics/anthropic-sdk-typescript/commit/b5c92e5b74c370ac3f9ba28e915bd54588a42be0))
+
+
+### Chores
+
+* **bedrock,vertex:** remove unsupported countTokens method ([#597](https://github.com/anthropics/anthropic-sdk-typescript/issues/597)) ([17b7da5](https://github.com/anthropics/anthropic-sdk-typescript/commit/17b7da5ee6f35ea2bdd53a66a662871affae6341))
+* **bedrock:** remove unsupported methods ([6458dc1](https://github.com/anthropics/anthropic-sdk-typescript/commit/6458dc14544c16240a6580a21a36fcf5bde594b2))
+
+
+### Documentation
+
+* use latest sonnet in example snippets ([#625](https://github.com/anthropics/anthropic-sdk-typescript/issues/625)) ([f70882b](https://github.com/anthropics/anthropic-sdk-typescript/commit/f70882b0e8119a414b01b9f0b85fbe1ccb06f122))
+
 ## 0.11.2 (2024-11-05)
 
 Full Changelog: [bedrock-sdk-v0.11.1...bedrock-sdk-v0.11.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.11.1...bedrock-sdk-v0.11.2)

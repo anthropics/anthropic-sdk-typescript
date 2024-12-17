@@ -1,5 +1,48 @@
 # Changelog
 
+## 0.33.0 (2024-12-17)
+
+Full Changelog: [sdk-v0.32.1...sdk-v0.33.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.32.1...sdk-v0.33.0)
+
+### Features
+
+* **api:** general availability updates ([93d1316](https://github.com/anthropics/anthropic-sdk-typescript/commit/93d13168f950b2cdfc3b7c6664205b06418fea79))
+* **api:** general availability updates ([#631](https://github.com/anthropics/anthropic-sdk-typescript/issues/631)) ([b5c92e5](https://github.com/anthropics/anthropic-sdk-typescript/commit/b5c92e5b74c370ac3f9ba28e915bd54588a42be0))
+* **client:** add ._request_id property to object responses ([#596](https://github.com/anthropics/anthropic-sdk-typescript/issues/596)) ([9d6d584](https://github.com/anthropics/anthropic-sdk-typescript/commit/9d6d58430a216df9888434158bf628ae4b067aba))
+* **internal:** make git install file structure match npm ([#617](https://github.com/anthropics/anthropic-sdk-typescript/issues/617)) ([d3dd7d5](https://github.com/anthropics/anthropic-sdk-typescript/commit/d3dd7d5f8cad460dd18725d5c0f3c8db3f00115d))
+* **vertex:** support token counting ([9e76b4d](https://github.com/anthropics/anthropic-sdk-typescript/commit/9e76b4dc22d62b1239b382bb771b69ad8cff9442))
+
+
+### Bug Fixes
+
+* **docs:** add missing await to pagination example ([#609](https://github.com/anthropics/anthropic-sdk-typescript/issues/609)) ([e303077](https://github.com/anthropics/anthropic-sdk-typescript/commit/e303077ebab73c41adee7d25375b767c3fc78998))
+* **types:** remove anthropic-instant-1.2 model ([#599](https://github.com/anthropics/anthropic-sdk-typescript/issues/599)) ([e222a4d](https://github.com/anthropics/anthropic-sdk-typescript/commit/e222a4d0518aa80671c66ee2a25d87dc87a51316))
+
+
+### Chores
+
+* **api:** update spec version ([#607](https://github.com/anthropics/anthropic-sdk-typescript/issues/607)) ([ea44f9a](https://github.com/anthropics/anthropic-sdk-typescript/commit/ea44f9ac49dcc25a5dfa53880ebf61318ee90f6c))
+* **api:** update spec version ([#629](https://github.com/anthropics/anthropic-sdk-typescript/issues/629)) ([a25295c](https://github.com/anthropics/anthropic-sdk-typescript/commit/a25295cd6db7b57162fdd9049eb8a3c37bb94f08))
+* **bedrock,vertex:** remove unsupported countTokens method ([#597](https://github.com/anthropics/anthropic-sdk-typescript/issues/597)) ([17b7da5](https://github.com/anthropics/anthropic-sdk-typescript/commit/17b7da5ee6f35ea2bdd53a66a662871affae6341))
+* **bedrock:** remove unsupported methods ([6458dc1](https://github.com/anthropics/anthropic-sdk-typescript/commit/6458dc14544c16240a6580a21a36fcf5bde594b2))
+* **ci:** remove unneeded workflow ([#594](https://github.com/anthropics/anthropic-sdk-typescript/issues/594)) ([7572e48](https://github.com/anthropics/anthropic-sdk-typescript/commit/7572e48dbccb2090562399c7ff2d01503c86f445))
+* **client:** drop unused devDependency ([#610](https://github.com/anthropics/anthropic-sdk-typescript/issues/610)) ([5d0d523](https://github.com/anthropics/anthropic-sdk-typescript/commit/5d0d523390d8c34cae836c423940b67defb9d2aa))
+* improve browser error message ([#613](https://github.com/anthropics/anthropic-sdk-typescript/issues/613)) ([c26121e](https://github.com/anthropics/anthropic-sdk-typescript/commit/c26121e84039b7430995b6363876ea9795ba31ed))
+* **internal:** bump cross-spawn to v7.0.6 ([#624](https://github.com/anthropics/anthropic-sdk-typescript/issues/624)) ([e58ba9a](https://github.com/anthropics/anthropic-sdk-typescript/commit/e58ba9a177ec5c8545fd3a3f4fd3d2e7c722f023))
+* **internal:** remove unnecessary getRequestClient function ([#623](https://github.com/anthropics/anthropic-sdk-typescript/issues/623)) ([882c45f](https://github.com/anthropics/anthropic-sdk-typescript/commit/882c45f5a0bd1f4b996d59e6589a205c2111f46b))
+* **internal:** update isAbsoluteURL ([#627](https://github.com/anthropics/anthropic-sdk-typescript/issues/627)) ([2528ea0](https://github.com/anthropics/anthropic-sdk-typescript/commit/2528ea0dcfc83f38e76b58eaadaa5e8c5c0b188d))
+* **internal:** update spec ([#630](https://github.com/anthropics/anthropic-sdk-typescript/issues/630)) ([82cac06](https://github.com/anthropics/anthropic-sdk-typescript/commit/82cac065e2711467773c0ea62848cdf139ed5a11))
+* **internal:** use reexports not destructuring ([#604](https://github.com/anthropics/anthropic-sdk-typescript/issues/604)) ([e4daff2](https://github.com/anthropics/anthropic-sdk-typescript/commit/e4daff2b6a3fb42876ebd06ed4947c88cff919d8))
+* remove redundant word in comment ([#615](https://github.com/anthropics/anthropic-sdk-typescript/issues/615)) ([ef57a10](https://github.com/anthropics/anthropic-sdk-typescript/commit/ef57a103bcfc922a724a7c878f970dbd369b305e))
+* **tests:** limit array example length ([#611](https://github.com/anthropics/anthropic-sdk-typescript/issues/611)) ([91dc181](https://github.com/anthropics/anthropic-sdk-typescript/commit/91dc1812db2cc9e1f4660a13106bad932518b7cf))
+* **types:** nicer error class types + jsdocs ([#626](https://github.com/anthropics/anthropic-sdk-typescript/issues/626)) ([0287993](https://github.com/anthropics/anthropic-sdk-typescript/commit/0287993912ef81bd2c49603d120f49f4f979d75e))
+
+
+### Documentation
+
+* remove suggestion to use `npm` call out ([#614](https://github.com/anthropics/anthropic-sdk-typescript/issues/614)) ([6369261](https://github.com/anthropics/anthropic-sdk-typescript/commit/6369261e3597351f17b8f1a3945ca56b00eba177))
+* use latest sonnet in example snippets ([#625](https://github.com/anthropics/anthropic-sdk-typescript/issues/625)) ([f70882b](https://github.com/anthropics/anthropic-sdk-typescript/commit/f70882b0e8119a414b01b9f0b85fbe1ccb06f122))
+
 ## 0.32.1 (2024-11-05)
 
 Full Changelog: [sdk-v0.32.0...sdk-v0.32.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.32.0...sdk-v0.32.1)
