@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.1 (2024-12-17)
+
+Full Changelog: [vertex-sdk-v0.6.0...vertex-sdk-v0.6.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.6.0...vertex-sdk-v0.6.1)
+
+### Bug Fixes
+
+* **vertex:** remove `anthropic_version` deletion for token counting ([88221be](https://github.com/anthropics/anthropic-sdk-typescript/commit/88221be305d6e13ccf92e6e9cdb00daba45b57db))
+
 ## 0.6.0 (2024-12-17)
 
 Full Changelog: [vertex-sdk-v0.5.2...vertex-sdk-v0.6.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.5.2...vertex-sdk-v0.6.0)
