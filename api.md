@@ -1,46 +1,99 @@
+# Shared
+
+Types:
+
+- <code><a href="./src/resources/shared.ts">APIErrorObject</a></code>
+- <code><a href="./src/resources/shared.ts">AuthenticationError</a></code>
+- <code><a href="./src/resources/shared.ts">BillingError</a></code>
+- <code><a href="./src/resources/shared.ts">ErrorObject</a></code>
+- <code><a href="./src/resources/shared.ts">ErrorResponse</a></code>
+- <code><a href="./src/resources/shared.ts">GatewayTimeoutError</a></code>
+- <code><a href="./src/resources/shared.ts">InvalidRequestError</a></code>
+- <code><a href="./src/resources/shared.ts">NotFoundError</a></code>
+- <code><a href="./src/resources/shared.ts">OverloadedError</a></code>
+- <code><a href="./src/resources/shared.ts">PermissionError</a></code>
+- <code><a href="./src/resources/shared.ts">RateLimitError</a></code>
+
 # Messages
 
 Types:
 
-- <code><a href="./src/resources/messages.ts">ContentBlock</a></code>
-- <code><a href="./src/resources/messages.ts">ContentBlockDeltaEvent</a></code>
-- <code><a href="./src/resources/messages.ts">ContentBlockParam</a></code>
-- <code><a href="./src/resources/messages.ts">ContentBlockStartEvent</a></code>
-- <code><a href="./src/resources/messages.ts">ContentBlockStopEvent</a></code>
-- <code><a href="./src/resources/messages.ts">ImageBlockParam</a></code>
-- <code><a href="./src/resources/messages.ts">InputJSONDelta</a></code>
-- <code><a href="./src/resources/messages.ts">Message</a></code>
-- <code><a href="./src/resources/messages.ts">MessageDeltaEvent</a></code>
-- <code><a href="./src/resources/messages.ts">MessageDeltaUsage</a></code>
-- <code><a href="./src/resources/messages.ts">MessageParam</a></code>
-- <code><a href="./src/resources/messages.ts">MessageStartEvent</a></code>
-- <code><a href="./src/resources/messages.ts">MessageStopEvent</a></code>
-- <code><a href="./src/resources/messages.ts">MessageStreamEvent</a></code>
-- <code><a href="./src/resources/messages.ts">Metadata</a></code>
-- <code><a href="./src/resources/messages.ts">Model</a></code>
-- <code><a href="./src/resources/messages.ts">RawContentBlockDeltaEvent</a></code>
-- <code><a href="./src/resources/messages.ts">RawContentBlockStartEvent</a></code>
-- <code><a href="./src/resources/messages.ts">RawContentBlockStopEvent</a></code>
-- <code><a href="./src/resources/messages.ts">RawMessageDeltaEvent</a></code>
-- <code><a href="./src/resources/messages.ts">RawMessageStartEvent</a></code>
-- <code><a href="./src/resources/messages.ts">RawMessageStopEvent</a></code>
-- <code><a href="./src/resources/messages.ts">RawMessageStreamEvent</a></code>
-- <code><a href="./src/resources/messages.ts">TextBlock</a></code>
-- <code><a href="./src/resources/messages.ts">TextBlockParam</a></code>
-- <code><a href="./src/resources/messages.ts">TextDelta</a></code>
-- <code><a href="./src/resources/messages.ts">Tool</a></code>
-- <code><a href="./src/resources/messages.ts">ToolChoice</a></code>
-- <code><a href="./src/resources/messages.ts">ToolChoiceAny</a></code>
-- <code><a href="./src/resources/messages.ts">ToolChoiceAuto</a></code>
-- <code><a href="./src/resources/messages.ts">ToolChoiceTool</a></code>
-- <code><a href="./src/resources/messages.ts">ToolResultBlockParam</a></code>
-- <code><a href="./src/resources/messages.ts">ToolUseBlock</a></code>
-- <code><a href="./src/resources/messages.ts">ToolUseBlockParam</a></code>
-- <code><a href="./src/resources/messages.ts">Usage</a></code>
+- <code><a href="./src/resources/messages/messages.ts">Base64PDFSource</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CacheControlEphemeral</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContentBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContentBlockDeltaEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContentBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContentBlockStartEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContentBlockStopEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">DocumentBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ImageBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">InputJSONDelta</a></code>
+- <code><a href="./src/resources/messages/messages.ts">Message</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageDeltaEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageDeltaUsage</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageStartEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageStopEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageStreamEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageTokensCount</a></code>
+- <code><a href="./src/resources/messages/messages.ts">Metadata</a></code>
+- <code><a href="./src/resources/messages/messages.ts">Model</a></code>
+- <code><a href="./src/resources/messages/messages.ts">RawContentBlockDeltaEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">RawContentBlockStartEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">RawContentBlockStopEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">RawMessageDeltaEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">RawMessageStartEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">RawMessageStopEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">RawMessageStreamEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">TextBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">TextBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">TextDelta</a></code>
+- <code><a href="./src/resources/messages/messages.ts">Tool</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolChoice</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolChoiceAny</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolChoiceAuto</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolChoiceTool</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolResultBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolUseBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">Usage</a></code>
 
 Methods:
 
-- <code title="post /v1/messages">client.messages.<a href="./src/resources/messages.ts">create</a>({ ...params }) -> Message</code>
+- <code title="post /v1/messages">client.messages.<a href="./src/resources/messages/messages.ts">create</a>({ ...params }) -> Message</code>
+- <code title="post /v1/messages/count_tokens">client.messages.<a href="./src/resources/messages/messages.ts">countTokens</a>({ ...params }) -> MessageTokensCount</code>
+
+## Batches
+
+Types:
+
+- <code><a href="./src/resources/messages/batches.ts">MessageBatch</a></code>
+- <code><a href="./src/resources/messages/batches.ts">MessageBatchCanceledResult</a></code>
+- <code><a href="./src/resources/messages/batches.ts">MessageBatchErroredResult</a></code>
+- <code><a href="./src/resources/messages/batches.ts">MessageBatchExpiredResult</a></code>
+- <code><a href="./src/resources/messages/batches.ts">MessageBatchIndividualResponse</a></code>
+- <code><a href="./src/resources/messages/batches.ts">MessageBatchRequestCounts</a></code>
+- <code><a href="./src/resources/messages/batches.ts">MessageBatchResult</a></code>
+- <code><a href="./src/resources/messages/batches.ts">MessageBatchSucceededResult</a></code>
+
+Methods:
+
+- <code title="post /v1/messages/batches">client.messages.batches.<a href="./src/resources/messages/batches.ts">create</a>({ ...params }) -> MessageBatch</code>
+- <code title="get /v1/messages/batches/{message_batch_id}">client.messages.batches.<a href="./src/resources/messages/batches.ts">retrieve</a>(messageBatchId) -> MessageBatch</code>
+- <code title="get /v1/messages/batches">client.messages.batches.<a href="./src/resources/messages/batches.ts">list</a>({ ...params }) -> MessageBatchesPage</code>
+- <code title="post /v1/messages/batches/{message_batch_id}/cancel">client.messages.batches.<a href="./src/resources/messages/batches.ts">cancel</a>(messageBatchId) -> MessageBatch</code>
+- <code title="get /v1/messages/batches/{message_batch_id}/results">client.messages.batches.<a href="./src/resources/messages/batches.ts">results</a>(messageBatchId) -> Response</code>
+
+# Models
+
+Types:
+
+- <code><a href="./src/resources/models.ts">ModelInfo</a></code>
+
+Methods:
+
+- <code title="get /v1/models/{model_id}">client.models.<a href="./src/resources/models.ts">retrieve</a>(modelId) -> ModelInfo</code>
+- <code title="get /v1/models">client.models.<a href="./src/resources/models.ts">list</a>({ ...params }) -> ModelInfosPage</code>
 
 # Beta
 
@@ -49,13 +102,26 @@ Types:
 - <code><a href="./src/resources/beta/beta.ts">AnthropicBeta</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaAPIError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaAuthenticationError</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaBillingError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaErrorResponse</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaGatewayTimeoutError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaInvalidRequestError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaNotFoundError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaOverloadedError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaPermissionError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaRateLimitError</a></code>
+
+## Models
+
+Types:
+
+- <code><a href="./src/resources/beta/models.ts">BetaModelInfo</a></code>
+
+Methods:
+
+- <code title="get /v1/models/{model_id}?beta=true">client.beta.models.<a href="./src/resources/beta/models.ts">retrieve</a>(modelId) -> BetaModelInfo</code>
+- <code title="get /v1/models?beta=true">client.beta.models.<a href="./src/resources/beta/models.ts">list</a>({ ...params }) -> BetaModelInfosPage</code>
 
 ## Messages
 
@@ -122,25 +188,3 @@ Methods:
 - <code title="get /v1/messages/batches?beta=true">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">list</a>({ ...params }) -> BetaMessageBatchesPage</code>
 - <code title="post /v1/messages/batches/{message_batch_id}/cancel?beta=true">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">cancel</a>(messageBatchId, { ...params }) -> BetaMessageBatch</code>
 - <code title="get /v1/messages/batches/{message_batch_id}/results?beta=true">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">results</a>(messageBatchId, { ...params }) -> Response</code>
-
-## PromptCaching
-
-### Messages
-
-Types:
-
-- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaCacheControlEphemeral</a></code>
-- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaImageBlockParam</a></code>
-- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaMessage</a></code>
-- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaMessageParam</a></code>
-- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaTextBlockParam</a></code>
-- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaTool</a></code>
-- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaToolResultBlockParam</a></code>
-- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaToolUseBlockParam</a></code>
-- <code><a href="./src/resources/beta/prompt-caching/messages.ts">PromptCachingBetaUsage</a></code>
-- <code><a href="./src/resources/beta/prompt-caching/messages.ts">RawPromptCachingBetaMessageStartEvent</a></code>
-- <code><a href="./src/resources/beta/prompt-caching/messages.ts">RawPromptCachingBetaMessageStreamEvent</a></code>
-
-Methods:
-
-- <code title="post /v1/messages?beta=prompt_caching">client.beta.promptCaching.messages.<a href="./src/resources/beta/prompt-caching/messages.ts">create</a>({ ...params }) -> PromptCachingBetaMessage</code>

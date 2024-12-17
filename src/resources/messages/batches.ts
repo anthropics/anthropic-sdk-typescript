@@ -1,13 +1,12 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../../resource';
-import { isRequestOptions } from '../../../core';
-import * as Core from '../../../core';
-import * as BetaAPI from '../beta';
-import * as MessagesAPI from '../../messages/messages';
-import * as MessagesMessagesAPI from './messages';
-import { Page, type PageParams } from '../../../pagination';
-import { type Response } from '../../../_shims/index';
+import { APIResource } from '../../resource';
+import { isRequestOptions } from '../../core';
+import * as Core from '../../core';
+import * as Shared from '../shared';
+import * as MessagesAPI from './messages';
+import { Page, type PageParams } from '../../pagination';
+import { type Response } from '../../_shims/index';
 
 export class Batches extends APIResource {
   /**
@@ -17,16 +16,8 @@ export class Batches extends APIResource {
    * once. Once a Message Batch is created, it begins processing immediately. Batches
    * can take up to 24 hours to complete.
    */
-  create(params: BatchCreateParams, options?: Core.RequestOptions): Core.APIPromise<BetaMessageBatch> {
-    const { betas, ...body } = params;
-    return this._client.post('/v1/messages/batches?beta=true', {
-      body,
-      ...options,
-      headers: {
-        'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
-        ...options?.headers,
-      },
-    });
+  create(body: BatchCreateParams, options?: Core.RequestOptions): Core.APIPromise<MessageBatch> {
+    return this._client.post('/v1/messages/batches', { body, ...options });
   }
 
   /**
@@ -34,28 +25,8 @@ export class Batches extends APIResource {
    * completion. To access the results of a Message Batch, make a request to the
    * `results_url` field in the response.
    */
-  retrieve(
-    messageBatchId: string,
-    params?: BatchRetrieveParams,
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<BetaMessageBatch>;
-  retrieve(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<BetaMessageBatch>;
-  retrieve(
-    messageBatchId: string,
-    params: BatchRetrieveParams | Core.RequestOptions = {},
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<BetaMessageBatch> {
-    if (isRequestOptions(params)) {
-      return this.retrieve(messageBatchId, {}, params);
-    }
-    const { betas } = params;
-    return this._client.get(`/v1/messages/batches/${messageBatchId}?beta=true`, {
-      ...options,
-      headers: {
-        'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
-        ...options?.headers,
-      },
-    });
+  retrieve(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<MessageBatch> {
+    return this._client.get(`/v1/messages/batches/${messageBatchId}`, options);
   }
 
   /**
@@ -63,26 +34,18 @@ export class Batches extends APIResource {
    * returned first.
    */
   list(
-    params?: BatchListParams,
+    query?: BatchListParams,
     options?: Core.RequestOptions,
-  ): Core.PagePromise<BetaMessageBatchesPage, BetaMessageBatch>;
-  list(options?: Core.RequestOptions): Core.PagePromise<BetaMessageBatchesPage, BetaMessageBatch>;
+  ): Core.PagePromise<MessageBatchesPage, MessageBatch>;
+  list(options?: Core.RequestOptions): Core.PagePromise<MessageBatchesPage, MessageBatch>;
   list(
-    params: BatchListParams | Core.RequestOptions = {},
+    query: BatchListParams | Core.RequestOptions = {},
     options?: Core.RequestOptions,
-  ): Core.PagePromise<BetaMessageBatchesPage, BetaMessageBatch> {
-    if (isRequestOptions(params)) {
-      return this.list({}, params);
+  ): Core.PagePromise<MessageBatchesPage, MessageBatch> {
+    if (isRequestOptions(query)) {
+      return this.list({}, query);
     }
-    const { betas, ...query } = params;
-    return this._client.getAPIList('/v1/messages/batches?beta=true', BetaMessageBatchesPage, {
-      query,
-      ...options,
-      headers: {
-        'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
-        ...options?.headers,
-      },
-    });
+    return this._client.getAPIList('/v1/messages/batches', MessageBatchesPage, { query, ...options });
   }
 
   /**
@@ -96,28 +59,8 @@ export class Batches extends APIResource {
    * Note that cancellation may not result in any canceled requests if they were
    * non-interruptible.
    */
-  cancel(
-    messageBatchId: string,
-    params?: BatchCancelParams,
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<BetaMessageBatch>;
-  cancel(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<BetaMessageBatch>;
-  cancel(
-    messageBatchId: string,
-    params: BatchCancelParams | Core.RequestOptions = {},
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<BetaMessageBatch> {
-    if (isRequestOptions(params)) {
-      return this.cancel(messageBatchId, {}, params);
-    }
-    const { betas } = params;
-    return this._client.post(`/v1/messages/batches/${messageBatchId}/cancel?beta=true`, {
-      ...options,
-      headers: {
-        'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
-        ...options?.headers,
-      },
-    });
+  cancel(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<MessageBatch> {
+    return this._client.post(`/v1/messages/batches/${messageBatchId}/cancel`, options);
   }
 
   /**
@@ -127,35 +70,17 @@ export class Batches extends APIResource {
    * in the Message Batch. Results are not guaranteed to be in the same order as
    * requests. Use the `custom_id` field to match results to requests.
    */
-  results(
-    messageBatchId: string,
-    params?: BatchResultsParams,
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<Response>;
-  results(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<Response>;
-  results(
-    messageBatchId: string,
-    params: BatchResultsParams | Core.RequestOptions = {},
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<Response> {
-    if (isRequestOptions(params)) {
-      return this.results(messageBatchId, {}, params);
-    }
-    const { betas } = params;
-    return this._client.get(`/v1/messages/batches/${messageBatchId}/results?beta=true`, {
+  results(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<Response> {
+    return this._client.get(`/v1/messages/batches/${messageBatchId}/results`, {
       ...options,
-      headers: {
-        'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
-        ...options?.headers,
-      },
       __binaryResponse: true,
     });
   }
 }
 
-export class BetaMessageBatchesPage extends Page<BetaMessageBatch> {}
+export class MessageBatchesPage extends Page<MessageBatch> {}
 
-export interface BetaMessageBatch {
+export interface MessageBatch {
   /**
    * Unique object identifier.
    *
@@ -208,7 +133,7 @@ export interface BetaMessageBatch {
    * processing of the entire batch ends. The sum of all values always matches the
    * total number of requests in the batch.
    */
-  request_counts: BetaMessageBatchRequestCounts;
+  request_counts: MessageBatchRequestCounts;
 
   /**
    * URL to a `.jsonl` file containing the results of the Message Batch requests.
@@ -227,21 +152,21 @@ export interface BetaMessageBatch {
   type: 'message_batch';
 }
 
-export interface BetaMessageBatchCanceledResult {
+export interface MessageBatchCanceledResult {
   type: 'canceled';
 }
 
-export interface BetaMessageBatchErroredResult {
-  error: BetaAPI.BetaErrorResponse;
+export interface MessageBatchErroredResult {
+  error: Shared.ErrorResponse;
 
   type: 'errored';
 }
 
-export interface BetaMessageBatchExpiredResult {
+export interface MessageBatchExpiredResult {
   type: 'expired';
 }
 
-export interface BetaMessageBatchIndividualResponse {
+export interface MessageBatchIndividualResponse {
   /**
    * Developer-provided ID created for each request in a Message Batch. Useful for
    * matching results to requests, as results may be given out of request order.
@@ -257,10 +182,10 @@ export interface BetaMessageBatchIndividualResponse {
    * processing failed, or the reason why processing was not attempted, such as
    * cancellation or expiration.
    */
-  result: BetaMessageBatchResult;
+  result: MessageBatchResult;
 }
 
-export interface BetaMessageBatchRequestCounts {
+export interface MessageBatchRequestCounts {
   /**
    * Number of requests in the Message Batch that have been canceled.
    *
@@ -302,29 +227,24 @@ export interface BetaMessageBatchRequestCounts {
  * processing failed, or the reason why processing was not attempted, such as
  * cancellation or expiration.
  */
-export type BetaMessageBatchResult =
-  | BetaMessageBatchSucceededResult
-  | BetaMessageBatchErroredResult
-  | BetaMessageBatchCanceledResult
-  | BetaMessageBatchExpiredResult;
+export type MessageBatchResult =
+  | MessageBatchSucceededResult
+  | MessageBatchErroredResult
+  | MessageBatchCanceledResult
+  | MessageBatchExpiredResult;
 
-export interface BetaMessageBatchSucceededResult {
-  message: MessagesMessagesAPI.BetaMessage;
+export interface MessageBatchSucceededResult {
+  message: MessagesAPI.Message;
 
   type: 'succeeded';
 }
 
 export interface BatchCreateParams {
   /**
-   * Body param: List of requests for prompt completion. Each is an individual
-   * request to create a Message.
+   * List of requests for prompt completion. Each is an individual request to create
+   * a Message.
    */
   requests: Array<BatchCreateParams.Request>;
-
-  /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
-   */
-  betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
 export namespace BatchCreateParams {
@@ -453,7 +373,7 @@ export namespace BatchCreateParams {
        * the top-level `system` parameter — there is no `"system"` role for input
        * messages in the Messages API.
        */
-      messages: Array<MessagesMessagesAPI.BetaMessageParam>;
+      messages: Array<MessagesAPI.MessageParam>;
 
       /**
        * The model that will complete your prompt.\n\nSee
@@ -465,7 +385,7 @@ export namespace BatchCreateParams {
       /**
        * An object describing metadata about the request.
        */
-      metadata?: MessagesMessagesAPI.BetaMetadata;
+      metadata?: MessagesAPI.Metadata;
 
       /**
        * Custom text sequences that will cause the model to stop generating.
@@ -495,7 +415,7 @@ export namespace BatchCreateParams {
        * as specifying a particular goal or role. See our
        * [guide to system prompts](https://docs.anthropic.com/en/docs/system-prompts).
        */
-      system?: string | Array<MessagesMessagesAPI.BetaTextBlockParam>;
+      system?: string | Array<MessagesAPI.TextBlockParam>;
 
       /**
        * Amount of randomness injected into the response.
@@ -513,7 +433,7 @@ export namespace BatchCreateParams {
        * How the model should use the provided tools. The model can use a specific tool,
        * any available tool, or decide by itself.
        */
-      tool_choice?: MessagesMessagesAPI.BetaToolChoice;
+      tool_choice?: MessagesAPI.ToolChoice;
 
       /**
        * Definitions of tools that the model may use.
@@ -585,7 +505,7 @@ export namespace BatchCreateParams {
        *
        * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
        */
-      tools?: Array<MessagesMessagesAPI.BetaToolUnion>;
+      tools?: Array<MessagesAPI.Tool>;
 
       /**
        * Only sample from the top K options for each subsequent token.
@@ -614,51 +534,22 @@ export namespace BatchCreateParams {
   }
 }
 
-export interface BatchRetrieveParams {
-  /**
-   * Optional header to specify the beta version(s) you want to use.
-   */
-  betas?: Array<BetaAPI.AnthropicBeta>;
-}
+export interface BatchListParams extends PageParams {}
 
-export interface BatchListParams extends PageParams {
-  /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
-   */
-  betas?: Array<BetaAPI.AnthropicBeta>;
-}
-
-export interface BatchCancelParams {
-  /**
-   * Optional header to specify the beta version(s) you want to use.
-   */
-  betas?: Array<BetaAPI.AnthropicBeta>;
-}
-
-export interface BatchResultsParams {
-  /**
-   * Optional header to specify the beta version(s) you want to use.
-   */
-  betas?: Array<BetaAPI.AnthropicBeta>;
-}
-
-Batches.BetaMessageBatchesPage = BetaMessageBatchesPage;
+Batches.MessageBatchesPage = MessageBatchesPage;
 
 export declare namespace Batches {
   export {
-    type BetaMessageBatch as BetaMessageBatch,
-    type BetaMessageBatchCanceledResult as BetaMessageBatchCanceledResult,
-    type BetaMessageBatchErroredResult as BetaMessageBatchErroredResult,
-    type BetaMessageBatchExpiredResult as BetaMessageBatchExpiredResult,
-    type BetaMessageBatchIndividualResponse as BetaMessageBatchIndividualResponse,
-    type BetaMessageBatchRequestCounts as BetaMessageBatchRequestCounts,
-    type BetaMessageBatchResult as BetaMessageBatchResult,
-    type BetaMessageBatchSucceededResult as BetaMessageBatchSucceededResult,
-    BetaMessageBatchesPage as BetaMessageBatchesPage,
+    type MessageBatch as MessageBatch,
+    type MessageBatchCanceledResult as MessageBatchCanceledResult,
+    type MessageBatchErroredResult as MessageBatchErroredResult,
+    type MessageBatchExpiredResult as MessageBatchExpiredResult,
+    type MessageBatchIndividualResponse as MessageBatchIndividualResponse,
+    type MessageBatchRequestCounts as MessageBatchRequestCounts,
+    type MessageBatchResult as MessageBatchResult,
+    type MessageBatchSucceededResult as MessageBatchSucceededResult,
+    MessageBatchesPage as MessageBatchesPage,
     type BatchCreateParams as BatchCreateParams,
-    type BatchRetrieveParams as BatchRetrieveParams,
     type BatchListParams as BatchListParams,
-    type BatchCancelParams as BatchCancelParams,
-    type BatchResultsParams as BatchResultsParams,
   };
 }

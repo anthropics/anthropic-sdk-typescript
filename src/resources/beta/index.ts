@@ -5,14 +5,17 @@ export {
   type AnthropicBeta,
   type BetaAPIError,
   type BetaAuthenticationError,
+  type BetaBillingError,
   type BetaError,
   type BetaErrorResponse,
+  type BetaGatewayTimeoutError,
   type BetaInvalidRequestError,
   type BetaNotFoundError,
   type BetaOverloadedError,
   type BetaPermissionError,
   type BetaRateLimitError,
 } from './beta';
+export { BetaModelInfosPage, Models, type BetaModelInfo, type ModelListParams } from './models';
 export {
   Messages,
   type BetaBase64PDFBlock,
@@ -55,4 +58,3 @@ export {
   type MessageCreateParamsStreaming,
   type MessageCountTokensParams,
 } from './messages/index';
-export { PromptCaching } from './prompt-caching/index';
