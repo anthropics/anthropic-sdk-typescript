@@ -74,7 +74,7 @@ export class AnthropicBedrock extends Core.APIClient {
     this.awsSessionToken = awsSessionToken;
   }
 
-  messages: Resources.Messages = new Resources.Messages(this);
+  messages: MessagesResource = makeMessagesResource(this);
   completions: Resources.Completions = new Resources.Completions(this);
   beta: BetaResource = makeBetaResource(this);
 
@@ -156,6 +156,23 @@ export class AnthropicBedrock extends Core.APIClient {
 
     return super.buildRequest(options);
   }
+}
+
+/**
+ * The Bedrock API does not currently support token counting or the Batch API.
+ */
+type MessagesResource = Omit<Resources.Messages, 'batches' | 'countTokens'>;
+
+function makeMessagesResource(client: AnthropicBedrock): MessagesResource {
+  const resource = new Resources.Messages(client);
+
+  // @ts-expect-error we're deleting non-optional properties
+  delete resource.batches;
+
+  // @ts-expect-error we're deleting non-optional properties
+  delete resource.countTokens;
+
+  return resource;
 }
 
 /**
