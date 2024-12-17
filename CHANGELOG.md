@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.33.1 (2024-12-17)
+
+Full Changelog: [sdk-v0.33.0...sdk-v0.33.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.33.0...sdk-v0.33.1)
+
+### Bug Fixes
+
+* **vertex:** remove `anthropic_version` deletion for token counting ([88221be](https://github.com/anthropics/anthropic-sdk-typescript/commit/88221be305d6e13ccf92e6e9cdb00daba45b57db))
+
+
+### Chores
+
+* **internal:** fix some typos ([#633](https://github.com/anthropics/anthropic-sdk-typescript/issues/633)) ([a0298f5](https://github.com/anthropics/anthropic-sdk-typescript/commit/a0298f5f67b8ecd25de416dbb3eada68b86befd7))
+
 ## 0.33.0 (2024-12-17)
 
 Full Changelog: [sdk-v0.32.1...sdk-v0.33.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.32.1...sdk-v0.33.0)
