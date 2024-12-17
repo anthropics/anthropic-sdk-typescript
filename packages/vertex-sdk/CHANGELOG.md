@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.6.0 (2024-12-17)
+
+Full Changelog: [vertex-sdk-v0.5.2...vertex-sdk-v0.6.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.5.2...vertex-sdk-v0.6.0)
+
+### Features
+
+* **api:** general availability updates ([#631](https://github.com/anthropics/anthropic-sdk-typescript/issues/631)) ([b5c92e5](https://github.com/anthropics/anthropic-sdk-typescript/commit/b5c92e5b74c370ac3f9ba28e915bd54588a42be0))
+* **vertex:** support token counting ([9e76b4d](https://github.com/anthropics/anthropic-sdk-typescript/commit/9e76b4dc22d62b1239b382bb771b69ad8cff9442))
+
+
+### Chores
+
+* **bedrock,vertex:** remove unsupported countTokens method ([#597](https://github.com/anthropics/anthropic-sdk-typescript/issues/597)) ([17b7da5](https://github.com/anthropics/anthropic-sdk-typescript/commit/17b7da5ee6f35ea2bdd53a66a662871affae6341))
+
+
+### Documentation
+
+* use latest sonnet in example snippets ([#625](https://github.com/anthropics/anthropic-sdk-typescript/issues/625)) ([f70882b](https://github.com/anthropics/anthropic-sdk-typescript/commit/f70882b0e8119a414b01b9f0b85fbe1ccb06f122))
+
 ## 0.5.2 (2024-11-05)
 
 Full Changelog: [vertex-sdk-v0.5.1...vertex-sdk-v0.5.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.5.1...vertex-sdk-v0.5.2)
