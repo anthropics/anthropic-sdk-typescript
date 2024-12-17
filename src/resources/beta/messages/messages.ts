@@ -2,8 +2,8 @@
 
 import { APIResource } from '../../../resource';
 import * as MessagesMessagesAPI from './messages';
-import * as MessagesAPI from '../../messages';
 import * as BetaAPI from '../beta';
+import * as MessagesAPI from '../../messages/messages';
 import * as BatchesAPI from './batches';
 import {
   BatchCancelParams,

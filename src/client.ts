@@ -32,17 +32,40 @@ import {
   CompletionCreateParamsStreaming,
   Completions,
 } from './resources/completions';
+import { ModelInfo, ModelInfosPage, ModelListParams, Models } from './resources/models';
+import { readEnv } from './internal/utils/env';
+import { isEmptyObj } from './internal/utils/values';
 import {
+  AnthropicBeta,
+  Beta,
+  BetaAPIError,
+  BetaAuthenticationError,
+  BetaBillingError,
+  BetaError,
+  BetaErrorResponse,
+  BetaGatewayTimeoutError,
+  BetaInvalidRequestError,
+  BetaNotFoundError,
+  BetaOverloadedError,
+  BetaPermissionError,
+  BetaRateLimitError,
+} from './resources/beta/beta';
+import {
+  Base64PDFSource,
+  CacheControlEphemeral,
   ContentBlock,
   ContentBlockParam,
+  DocumentBlockParam,
   ImageBlockParam,
   InputJSONDelta,
   Message,
+  MessageCountTokensParams,
   MessageCreateParams,
   MessageCreateParamsNonStreaming,
   MessageCreateParamsStreaming,
   MessageDeltaUsage,
   MessageParam,
+  MessageTokensCount,
   Messages,
   Metadata,
   Model,
@@ -65,22 +88,7 @@ import {
   ToolUseBlock,
   ToolUseBlockParam,
   Usage,
-} from './resources/messages';
-import { readEnv } from './internal/utils/env';
-import { isEmptyObj } from './internal/utils/values';
-import {
-  AnthropicBeta,
-  Beta,
-  BetaAPIError,
-  BetaAuthenticationError,
-  BetaError,
-  BetaErrorResponse,
-  BetaInvalidRequestError,
-  BetaNotFoundError,
-  BetaOverloadedError,
-  BetaPermissionError,
-  BetaRateLimitError,
-} from './resources/beta/beta';
+} from './resources/messages/messages';
 
 const safeJSON = (text: string) => {
   try {
@@ -736,10 +744,12 @@ export class BaseAnthropic {
 export class Anthropic extends BaseAnthropic {
   completions: API.Completions = new API.Completions(this);
   messages: API.Messages = new API.Messages(this);
+  models: API.Models = new API.Models(this);
   beta: API.Beta = new API.Beta(this);
 }
 Anthropic.Completions = Completions;
 Anthropic.Messages = Messages;
+Anthropic.Models = Models;
 Anthropic.Beta = Beta;
 export declare namespace Anthropic {
   export type RequestOptions = Opts.RequestOptions;
@@ -757,13 +767,17 @@ export declare namespace Anthropic {
 
   export {
     Messages as Messages,
+    type Base64PDFSource as Base64PDFSource,
+    type CacheControlEphemeral as CacheControlEphemeral,
     type ContentBlock as ContentBlock,
     type ContentBlockParam as ContentBlockParam,
+    type DocumentBlockParam as DocumentBlockParam,
     type ImageBlockParam as ImageBlockParam,
     type InputJSONDelta as InputJSONDelta,
     type Message as Message,
     type MessageDeltaUsage as MessageDeltaUsage,
     type MessageParam as MessageParam,
+    type MessageTokensCount as MessageTokensCount,
     type Metadata as Metadata,
     type Model as Model,
     type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,
@@ -788,6 +802,14 @@ export declare namespace Anthropic {
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
+    type MessageCountTokensParams as MessageCountTokensParams,
+  };
+
+  export {
+    Models as Models,
+    type ModelInfo as ModelInfo,
+    type ModelInfosPage as ModelInfosPage,
+    type ModelListParams as ModelListParams,
   };
 
   export {
@@ -795,13 +817,27 @@ export declare namespace Anthropic {
     type AnthropicBeta as AnthropicBeta,
     type BetaAPIError as BetaAPIError,
     type BetaAuthenticationError as BetaAuthenticationError,
+    type BetaBillingError as BetaBillingError,
     type BetaError as BetaError,
     type BetaErrorResponse as BetaErrorResponse,
+    type BetaGatewayTimeoutError as BetaGatewayTimeoutError,
     type BetaInvalidRequestError as BetaInvalidRequestError,
     type BetaNotFoundError as BetaNotFoundError,
     type BetaOverloadedError as BetaOverloadedError,
     type BetaPermissionError as BetaPermissionError,
     type BetaRateLimitError as BetaRateLimitError,
   };
+
+  export type APIErrorObject = API.APIErrorObject;
+  export type AuthenticationError = API.AuthenticationError;
+  export type BillingError = API.BillingError;
+  export type ErrorObject = API.ErrorObject;
+  export type ErrorResponse = API.ErrorResponse;
+  export type GatewayTimeoutError = API.GatewayTimeoutError;
+  export type InvalidRequestError = API.InvalidRequestError;
+  export type NotFoundError = API.NotFoundError;
+  export type OverloadedError = API.OverloadedError;
+  export type PermissionError = API.PermissionError;
+  export type RateLimitError = API.RateLimitError;
 }
 export const { HUMAN_PROMPT, AI_PROMPT } = Anthropic;

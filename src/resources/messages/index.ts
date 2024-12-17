@@ -1,28 +1,19 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-export * from './shared';
 export {
-  Beta,
-  type AnthropicBeta,
-  type BetaAPIError,
-  type BetaAuthenticationError,
-  type BetaBillingError,
-  type BetaError,
-  type BetaErrorResponse,
-  type BetaGatewayTimeoutError,
-  type BetaInvalidRequestError,
-  type BetaNotFoundError,
-  type BetaOverloadedError,
-  type BetaPermissionError,
-  type BetaRateLimitError,
-} from './beta/beta';
-export {
-  Completions,
-  type Completion,
-  type CompletionCreateParams,
-  type CompletionCreateParamsNonStreaming,
-  type CompletionCreateParamsStreaming,
-} from './completions';
+  Batches,
+  type MessageBatch,
+  type MessageBatchCanceledResult,
+  type MessageBatchErroredResult,
+  type MessageBatchExpiredResult,
+  type MessageBatchIndividualResponse,
+  type MessageBatchRequestCounts,
+  type MessageBatchResult,
+  type MessageBatchSucceededResult,
+  type BatchCreateParams,
+  type BatchListParams,
+  type MessageBatchesPage,
+} from './batches';
 export {
   Messages,
   type Base64PDFSource,
@@ -61,5 +52,4 @@ export {
   type MessageCreateParamsNonStreaming,
   type MessageCreateParamsStreaming,
   type MessageCountTokensParams,
-} from './messages/messages';
-export { Models, type ModelInfo, type ModelListParams, type ModelInfosPage } from './models';
+} from './messages';

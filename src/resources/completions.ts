@@ -2,7 +2,7 @@
 
 import { APIResource } from '../resource';
 import * as CompletionsAPI from './completions';
-import * as MessagesAPI from './messages';
+import * as MessagesAPI from './messages/messages';
 import { APIPromise } from '../api-promise';
 import { Stream } from '../streaming';
 import { RequestOptions } from '../internal/request-options';

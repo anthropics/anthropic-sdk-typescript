@@ -5,8 +5,10 @@ export {
   type AnthropicBeta,
   type BetaAPIError,
   type BetaAuthenticationError,
+  type BetaBillingError,
   type BetaError,
   type BetaErrorResponse,
+  type BetaGatewayTimeoutError,
   type BetaInvalidRequestError,
   type BetaNotFoundError,
   type BetaOverloadedError,
@@ -55,4 +57,4 @@ export {
   type MessageCreateParamsStreaming,
   type MessageCountTokensParams,
 } from './messages/index';
-export { PromptCaching } from './prompt-caching/index';
+export { Models, type BetaModelInfo, type ModelListParams, type BetaModelInfosPage } from './models';
