@@ -157,10 +157,6 @@ export class AnthropicVertex extends Core.APIClient {
         );
       }
 
-      if (Core.isObj(options.body)) {
-        options.body['anthropic_version'] = undefined;
-      }
-
       options.path = `/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/count-tokens:rawPredict`;
     }
 
