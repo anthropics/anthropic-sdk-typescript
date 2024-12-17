@@ -1,5 +1,14 @@
 import { Check } from './types';
 import * as Core from './core';
+import nodeFetch from 'node-fetch';
+
+declare global {
+    var fetch: typeof nodeFetch;
+}
+
+const fetchImpl = (typeof globalThis !== 'undefined' && 'fetch' in globalThis) ? 
+    (globalThis as any).fetch.bind(globalThis) : 
+    nodeFetch;
 
 interface ITrace {
     request: any; // TODO: fix this
@@ -29,7 +38,7 @@ export default class Opuz {
     async trace(request: ITrace) {
         console.log('Tracing request:', request);
         try {
-            const response = await fetch(this.getUrl(), {
+            const response = await fetchImpl(this.getUrl(), {
                 method: 'POST',
                 headers: {
                     'x-api-key': this.apiKey,

@@ -1,12 +1,12 @@
 {
-  "name": "@anthropic-ai/sdk",
-  "version": "0.32.1",
-  "description": "The official TypeScript library for the Anthropic API",
-  "author": "Anthropic <support@anthropic.com>",
+  "name": "@opuz/anthropic-sdk",
+  "version": "0.2.0",
+  "description": "Enhanced Anthropic SDK with Opuz functionality",
+  "author": "Opuz <support@opuz.org>",
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
   "type": "commonjs",
-  "repository": "github:anthropics/anthropic-sdk-typescript",
+  "repository": "github:opuz/opuz-anthropic-sdk",
   "license": "MIT",
   "packageManager": "yarn@1.22.22",
   "files": [
@@ -24,6 +24,7 @@
     "fix": "./scripts/format"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
     "@types/node": "^18.11.18",
     "@types/node-fetch": "^2.6.4",
     "abort-controller": "^3.0.0",
