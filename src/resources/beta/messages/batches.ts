@@ -86,6 +86,35 @@ export class Batches extends APIResource {
   }
 
   /**
+   * This endpoint is idempotent and can be used to poll for Message Batch
+   * completion. To access the results of a Message Batch, make a request to the
+   * `results_url` field in the response.
+   */
+  delete(
+    messageBatchId: string,
+    params?: BatchDeleteParams,
+    options?: Core.RequestOptions,
+  ): Core.APIPromise<BetaDeletedMessageBatch>;
+  delete(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<BetaDeletedMessageBatch>;
+  delete(
+    messageBatchId: string,
+    params: BatchDeleteParams | Core.RequestOptions = {},
+    options?: Core.RequestOptions,
+  ): Core.APIPromise<BetaDeletedMessageBatch> {
+    if (isRequestOptions(params)) {
+      return this.delete(messageBatchId, {}, params);
+    }
+    const { betas } = params;
+    return this._client.delete(`/v1/messages/batches/${messageBatchId}?beta=true`, {
+      ...options,
+      headers: {
+        'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+        ...options?.headers,
+      },
+    });
+  }
+
+  /**
    * Batches may be canceled any time before processing ends. Once cancellation is
    * initiated, the batch enters a `canceling` state, at which time the system may
    * complete any in-progress, non-interruptible requests before finalizing
@@ -154,6 +183,20 @@ export class Batches extends APIResource {
 }
 
 export class BetaMessageBatchesPage extends Page<BetaMessageBatch> {}
+
+export interface BetaDeletedMessageBatch {
+  /**
+   * ID of the Message Batch.
+   */
+  id: string;
+
+  /**
+   * Deleted object type.
+   *
+   * For Message Batches, this is always `"message_batch_deleted"`.
+   */
+  type: 'message_batch_deleted';
+}
 
 export interface BetaMessageBatch {
   /**
@@ -628,6 +671,13 @@ export interface BatchListParams extends PageParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
+export interface BatchDeleteParams {
+  /**
+   * Optional header to specify the beta version(s) you want to use.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
+}
+
 export interface BatchCancelParams {
   /**
    * Optional header to specify the beta version(s) you want to use.
@@ -646,6 +696,7 @@ Batches.BetaMessageBatchesPage = BetaMessageBatchesPage;
 
 export declare namespace Batches {
   export {
+    type BetaDeletedMessageBatch as BetaDeletedMessageBatch,
     type BetaMessageBatch as BetaMessageBatch,
     type BetaMessageBatchCanceledResult as BetaMessageBatchCanceledResult,
     type BetaMessageBatchErroredResult as BetaMessageBatchErroredResult,
@@ -658,6 +709,7 @@ export declare namespace Batches {
     type BatchCreateParams as BatchCreateParams,
     type BatchRetrieveParams as BatchRetrieveParams,
     type BatchListParams as BatchListParams,
+    type BatchDeleteParams as BatchDeleteParams,
     type BatchCancelParams as BatchCancelParams,
     type BatchResultsParams as BatchResultsParams,
   };
