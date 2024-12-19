@@ -40,6 +40,15 @@ export class Batches extends APIResource {
   }
 
   /**
+   * This endpoint is idempotent and can be used to poll for Message Batch
+   * completion. To access the results of a Message Batch, make a request to the
+   * `results_url` field in the response.
+   */
+  delete(messageBatchID: string, options?: RequestOptions): APIPromise<DeletedMessageBatch> {
+    return this._client.delete(`/v1/messages/batches/${messageBatchID}`, options);
+  }
+
+  /**
    * Batches may be canceled any time before processing ends. Once cancellation is
    * initiated, the batch enters a `canceling` state, at which time the system may
    * complete any in-progress, non-interruptible requests before finalizing
@@ -70,6 +79,20 @@ export class Batches extends APIResource {
 }
 
 export type MessageBatchesPage = Page<MessageBatch>;
+
+export interface DeletedMessageBatch {
+  /**
+   * ID of the Message Batch.
+   */
+  id: string;
+
+  /**
+   * Deleted object type.
+   *
+   * For Message Batches, this is always `"message_batch_deleted"`.
+   */
+  type: 'message_batch_deleted';
+}
 
 export interface MessageBatch {
   /**
@@ -529,6 +552,7 @@ export interface BatchListParams extends PageParams {}
 
 export declare namespace Batches {
   export {
+    type DeletedMessageBatch as DeletedMessageBatch,
     type MessageBatch as MessageBatch,
     type MessageBatchCanceledResult as MessageBatchCanceledResult,
     type MessageBatchErroredResult as MessageBatchErroredResult,

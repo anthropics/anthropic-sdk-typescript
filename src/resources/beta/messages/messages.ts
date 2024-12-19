@@ -8,10 +8,12 @@ import * as BatchesAPI from './batches';
 import {
   BatchCancelParams,
   BatchCreateParams,
+  BatchDeleteParams,
   BatchListParams,
   BatchResultsParams,
   BatchRetrieveParams,
   Batches,
+  BetaDeletedMessageBatch,
   BetaMessageBatch,
   BetaMessageBatchCanceledResult,
   BetaMessageBatchErroredResult,
@@ -1114,6 +1116,7 @@ export declare namespace Messages {
 
   export {
     Batches as Batches,
+    type BetaDeletedMessageBatch as BetaDeletedMessageBatch,
     type BetaMessageBatch as BetaMessageBatch,
     type BetaMessageBatchCanceledResult as BetaMessageBatchCanceledResult,
     type BetaMessageBatchErroredResult as BetaMessageBatchErroredResult,
@@ -1126,6 +1129,7 @@ export declare namespace Messages {
     type BatchCreateParams as BatchCreateParams,
     type BatchRetrieveParams as BatchRetrieveParams,
     type BatchListParams as BatchListParams,
+    type BatchDeleteParams as BatchDeleteParams,
     type BatchCancelParams as BatchCancelParams,
     type BatchResultsParams as BatchResultsParams,
   };

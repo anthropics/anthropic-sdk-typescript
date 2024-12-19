@@ -104,6 +104,17 @@ describe('resource batches', () => {
     ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
+  test('delete', async () => {
+    const responsePromise = client.messages.batches.delete('message_batch_id');
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
   test('cancel', async () => {
     const responsePromise = client.messages.batches.cancel('message_batch_id');
     const rawResponse = await responsePromise.asResponse();
