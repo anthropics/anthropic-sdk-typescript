@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.33.2 (2024-12-19)
+
+Full Changelog: [sdk-v0.33.1...sdk-v0.33.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.33.1...sdk-v0.33.2)
+
+### Chores
+
+* bump testing data uri ([#637](https://github.com/anthropics/anthropic-sdk-typescript/issues/637)) ([3f23530](https://github.com/anthropics/anthropic-sdk-typescript/commit/3f23530fb55d9fec7278967ea02600e44e9f58e2))
+
 ## 0.33.1 (2024-12-17)
 
 Full Changelog: [sdk-v0.33.0...sdk-v0.33.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.33.0...sdk-v0.33.1)
