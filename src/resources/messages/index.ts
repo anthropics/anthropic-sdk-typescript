@@ -3,6 +3,7 @@
 export {
   MessageBatchesPage,
   Batches,
+  type DeletedMessageBatch,
   type MessageBatch,
   type MessageBatchCanceledResult,
   type MessageBatchErroredResult,
