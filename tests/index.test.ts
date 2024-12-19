@@ -122,6 +122,23 @@ describe('instantiate client', () => {
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
+  test('normalized method', async () => {
+    let capturedRequest: RequestInit | undefined;
+    const testFetch = async (url: string | URL | Request, init: RequestInit = {}): Promise<Response> => {
+      capturedRequest = init;
+      return new Response(JSON.stringify({}), { headers: { 'Content-Type': 'application/json' } });
+    };
+
+    const client = new Anthropic({
+      baseURL: 'http://localhost:5000/',
+      apiKey: 'my-anthropic-api-key',
+      fetch: testFetch,
+    });
+
+    await client.patch('/foo');
+    expect(capturedRequest?.method).toEqual('PATCH');
+  });
+
   describe('baseUrl', () => {
     test('trailing slash', () => {
       const client = new Anthropic({
