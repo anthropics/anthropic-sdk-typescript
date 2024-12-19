@@ -3,6 +3,7 @@
 export {
   BetaMessageBatchesPage,
   Batches,
+  type BetaDeletedMessageBatch,
   type BetaMessageBatch,
   type BetaMessageBatchCanceledResult,
   type BetaMessageBatchErroredResult,
@@ -14,6 +15,7 @@ export {
   type BatchCreateParams,
   type BatchRetrieveParams,
   type BatchListParams,
+  type BatchDeleteParams,
   type BatchCancelParams,
   type BatchResultsParams,
 } from './batches';
