@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import type { RequestInit, RequestInfo } from './internal/builtin-types';
+import type { RequestInit, RequestInfo, BodyInit } from './internal/builtin-types';
 import type { HTTPMethod, PromiseOrValue } from './internal/types';
 import { debug } from './internal/utils/log';
 import { uuid4 } from './internal/utils/uuid';
@@ -12,9 +12,8 @@ import { getPlatformHeaders } from './internal/detect-platform';
 import * as Shims from './internal/shims';
 import * as Opts from './internal/request-options';
 import { VERSION } from './version';
-import { createResponseHeaders, getHeader, type HeadersInit } from './internal/headers';
-import { isBlobLike, isMultipartBody } from './uploads';
-import { applyHeadersMut } from './internal/headers';
+import { isBlobLike } from './uploads';
+import { buildHeaders } from './internal/headers';
 import * as Errors from './error';
 import * as Pagination from './pagination';
 import { AbstractPage, type PageParams, PageResponse } from './pagination';
@@ -23,8 +22,8 @@ import * as API from './resources/index';
 import { APIPromise } from './api-promise';
 import { type Fetch } from './internal/builtin-types';
 import { isRunningInBrowser } from './internal/detect-platform';
+import { HeadersLike, NullableHeaders, isEmptyHeaders } from './internal/headers';
 import { FinalRequestOptions, RequestOptions } from './internal/request-options';
-import { type Headers } from './internal/types';
 import {
   Completion,
   CompletionCreateParams,
@@ -152,9 +151,9 @@ export interface ClientOptions {
    * Default headers to include with every request to the API.
    *
    * These can be removed in individual requests by explicitly setting the
-   * header to `undefined` or `null` in request options.
+   * header to `null` in request options.
    */
-  defaultHeaders?: Headers;
+  defaultHeaders?: HeadersLike;
 
   /**
    * Default query parameters to include with every request to the API.
@@ -171,6 +170,8 @@ export interface ClientOptions {
   dangerouslyAllowBrowser?: boolean;
 }
 
+type FinalizedRequestInit = RequestInit & { headers: Headers };
+
 export class BaseAnthropic {
   apiKey: string | null;
   authToken: string | null;
@@ -181,6 +182,7 @@ export class BaseAnthropic {
   httpAgent: Shims.Agent | undefined;
 
   private fetch: Fetch;
+  #encoder: Opts.RequestEncoder;
   protected idempotencyHeader?: string;
   private _options: ClientOptions;
 
@@ -194,7 +196,7 @@ export class BaseAnthropic {
    * @param {number} [opts.httpAgent] - An HTTP agent used to manage HTTP(s) connections.
    * @param {Fetch} [opts.fetch] - Specify a custom `fetch` function implementation.
    * @param {number} [opts.maxRetries=2] - The maximum number of times the client will retry a request.
-   * @param {Headers} opts.defaultHeaders - Default headers to include with every request to the API.
+   * @param {HeadersLike} opts.defaultHeaders - Default headers to include with every request to the API.
    * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
    * @param {boolean} [opts.dangerouslyAllowBrowser=false] - By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
    */
@@ -222,6 +224,7 @@ export class BaseAnthropic {
     this.httpAgent = options.httpAgent;
     this.maxRetries = options.maxRetries ?? 2;
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
+    this.#encoder = Opts.FallbackEncoder;
 
     this._options = options;
 
@@ -233,33 +236,18 @@ export class BaseAnthropic {
     return this._options.defaultQuery;
   }
 
-  protected defaultHeaders(opts: FinalRequestOptions): Headers {
-    return {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'User-Agent': this.getUserAgent(),
-      ...getPlatformHeaders(),
-      ...this.authHeaders(opts),
-      ...(this._options.dangerouslyAllowBrowser ?
-        { 'anthropic-dangerous-direct-browser-access': 'true' }
-      : undefined),
-      'anthropic-version': '2023-06-01',
-      ...this._options.defaultHeaders,
-    };
-  }
-
-  protected validateHeaders(headers: Headers, customHeaders: Headers) {
-    if (this.apiKey && headers['x-api-key']) {
+  protected validateHeaders({ values, nulls }: NullableHeaders) {
+    if (this.apiKey && values.get('x-api-key')) {
       return;
     }
-    if (customHeaders['x-api-key'] === null) {
+    if (nulls.has('x-api-key')) {
       return;
     }
 
-    if (this.authToken && headers['authorization']) {
+    if (this.authToken && values.get('authorization')) {
       return;
     }
-    if (customHeaders['authorization'] === null) {
+    if (nulls.has('authorization')) {
       return;
     }
 
@@ -268,32 +256,32 @@ export class BaseAnthropic {
     );
   }
 
-  protected authHeaders(opts: FinalRequestOptions): Headers {
+  protected authHeaders(opts: FinalRequestOptions): Headers | undefined {
     const apiKeyAuth = this.apiKeyAuth(opts);
     const bearerAuth = this.bearerAuth(opts);
 
-    if (apiKeyAuth != null && !isEmptyObj(apiKeyAuth)) {
+    if (apiKeyAuth != null && !isEmptyHeaders(apiKeyAuth)) {
       return apiKeyAuth;
     }
 
-    if (bearerAuth != null && !isEmptyObj(bearerAuth)) {
+    if (bearerAuth != null && !isEmptyHeaders(bearerAuth)) {
       return bearerAuth;
     }
-    return {};
+    return undefined;
   }
 
-  protected apiKeyAuth(opts: FinalRequestOptions): Headers {
+  protected apiKeyAuth(opts: FinalRequestOptions): Headers | undefined {
     if (this.apiKey == null) {
-      return {};
+      return undefined;
     }
-    return { 'X-Api-Key': this.apiKey };
+    return new Headers({ 'X-Api-Key': this.apiKey });
   }
 
-  protected bearerAuth(opts: FinalRequestOptions): Headers {
+  protected bearerAuth(opts: FinalRequestOptions): Headers | undefined {
     if (this.authToken == null) {
-      return {};
+      return undefined;
     }
-    return { Authorization: `Bearer ${this.authToken}` };
+    return new Headers({ Authorization: `Bearer ${this.authToken}` });
   }
 
   /**
@@ -333,7 +321,7 @@ export class BaseAnthropic {
     return Errors.APIError.generate(status, error, message, headers);
   }
 
-  buildURL<Req>(path: string, query: Req | null | undefined): string {
+  buildURL(path: string, query: Record<string, unknown> | null | undefined): string {
     const url =
       isAbsoluteURL(path) ?
         new URL(path)
@@ -341,7 +329,7 @@ export class BaseAnthropic {
 
     const defaultQuery = this.defaultQuery();
     if (!isEmptyObj(defaultQuery)) {
-      query = { ...defaultQuery, ...query } as Req;
+      query = { ...defaultQuery, ...query };
     }
 
     if (typeof query === 'object' && query && !Array.isArray(query)) {
@@ -385,39 +373,30 @@ export class BaseAnthropic {
     { url, options }: { url: string; options: FinalRequestOptions },
   ): Promise<void> {}
 
-  protected parseHeaders(headers: HeadersInit | null | undefined): Record<string, string> {
-    return (
-      !headers ? {}
-      : Symbol.iterator in headers ?
-        Object.fromEntries(Array.from(headers as Iterable<string[]>).map((header) => [...header]))
-      : { ...headers }
-    );
-  }
-
-  get<Req, Rsp>(path: string, opts?: PromiseOrValue<RequestOptions<Req>>): APIPromise<Rsp> {
+  get<Rsp>(path: string, opts?: PromiseOrValue<RequestOptions>): APIPromise<Rsp> {
     return this.methodRequest('get', path, opts);
   }
 
-  post<Req, Rsp>(path: string, opts?: PromiseOrValue<RequestOptions<Req>>): APIPromise<Rsp> {
+  post<Rsp>(path: string, opts?: PromiseOrValue<RequestOptions>): APIPromise<Rsp> {
     return this.methodRequest('post', path, opts);
   }
 
-  patch<Req, Rsp>(path: string, opts?: PromiseOrValue<RequestOptions<Req>>): APIPromise<Rsp> {
+  patch<Rsp>(path: string, opts?: PromiseOrValue<RequestOptions>): APIPromise<Rsp> {
     return this.methodRequest('patch', path, opts);
   }
 
-  put<Req, Rsp>(path: string, opts?: PromiseOrValue<RequestOptions<Req>>): APIPromise<Rsp> {
+  put<Rsp>(path: string, opts?: PromiseOrValue<RequestOptions>): APIPromise<Rsp> {
     return this.methodRequest('put', path, opts);
   }
 
-  delete<Req, Rsp>(path: string, opts?: PromiseOrValue<RequestOptions<Req>>): APIPromise<Rsp> {
+  delete<Rsp>(path: string, opts?: PromiseOrValue<RequestOptions>): APIPromise<Rsp> {
     return this.methodRequest('delete', path, opts);
   }
 
-  private methodRequest<Req, Rsp>(
+  private methodRequest<Rsp>(
     method: HTTPMethod,
     path: string,
-    opts?: PromiseOrValue<RequestOptions<Req>>,
+    opts?: PromiseOrValue<RequestOptions>,
   ): APIPromise<Rsp> {
     return this.request(
       Promise.resolve(opts).then(async (opts) => {
@@ -432,15 +411,15 @@ export class BaseAnthropic {
     );
   }
 
-  request<Req, Rsp>(
-    options: PromiseOrValue<FinalRequestOptions<Req>>,
+  request<Rsp>(
+    options: PromiseOrValue<FinalRequestOptions>,
     remainingRetries: number | null = null,
   ): APIPromise<Rsp> {
     return new APIPromise(this.makeRequest(options, remainingRetries));
   }
 
-  private async makeRequest<Req>(
-    optionsInput: PromiseOrValue<FinalRequestOptions<Req>>,
+  private async makeRequest(
+    optionsInput: PromiseOrValue<FinalRequestOptions>,
     retriesRemaining: number | null,
   ): Promise<APIResponseProps> {
     const options = await optionsInput;
@@ -477,13 +456,11 @@ export class BaseAnthropic {
       throw new Errors.APIConnectionError({ cause: response });
     }
 
-    const responseHeaders = createResponseHeaders(response.headers);
-
     if (!response.ok) {
       if (retriesRemaining && this.shouldRetry(response)) {
         const retryMessage = `retrying, ${retriesRemaining} attempts remaining`;
-        debug(`response (error; ${retryMessage})`, response.status, url, responseHeaders);
-        return this.retryRequest(options, retriesRemaining, responseHeaders);
+        debug(`response (error; ${retryMessage})`, response.status, url, response.headers);
+        return this.retryRequest(options, retriesRemaining, response.headers);
       }
 
       const errText = await response.text().catch((err: any) => castToError(err).message);
@@ -491,9 +468,9 @@ export class BaseAnthropic {
       const errMessage = errJSON ? undefined : errText;
       const retryMessage = retriesRemaining ? `(error; no more retries left)` : `(error; not retryable)`;
 
-      debug(`response (error; ${retryMessage})`, response.status, url, responseHeaders, errMessage);
+      debug(`response (error; ${retryMessage})`, response.status, url, response.headers, errMessage);
 
-      const err = this.makeStatusError(response.status, errJSON, errMessage, responseHeaders);
+      const err = this.makeStatusError(response.status, errJSON, errMessage, response.headers);
       throw err;
     }
 
@@ -503,7 +480,7 @@ export class BaseAnthropic {
   getAPIList<Item, PageClass extends Pagination.AbstractPage<Item> = Pagination.AbstractPage<Item>>(
     path: string,
     Page: new (...args: any[]) => PageClass,
-    opts?: RequestOptions<any>,
+    opts?: RequestOptions,
   ): Pagination.PagePromise<PageClass, Item> {
     return this.requestAPIList(Page, { method: 'get', path, ...opts });
   }
@@ -583,7 +560,7 @@ export class BaseAnthropic {
     let timeoutMillis: number | undefined;
 
     // Note the `retry-after-ms` header may not be standard, but is a good idea and we'd like proactive support for it.
-    const retryAfterMillisHeader = responseHeaders?.['retry-after-ms'];
+    const retryAfterMillisHeader = responseHeaders?.get('retry-after-ms');
     if (retryAfterMillisHeader) {
       const timeoutMs = parseFloat(retryAfterMillisHeader);
       if (!Number.isNaN(timeoutMs)) {
@@ -592,7 +569,7 @@ export class BaseAnthropic {
     }
 
     // About the Retry-After header: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
-    const retryAfterHeader = responseHeaders?.['retry-after'];
+    const retryAfterHeader = responseHeaders?.get('retry-after');
     if (retryAfterHeader && !timeoutMillis) {
       const timeoutSeconds = parseFloat(retryAfterHeader);
       if (!Number.isNaN(timeoutSeconds)) {
@@ -628,21 +605,13 @@ export class BaseAnthropic {
     return sleepSeconds * jitter * 1000;
   }
 
-  buildRequest<Req>(
-    options: FinalRequestOptions<Req>,
+  buildRequest(
+    options: FinalRequestOptions,
     { retryCount = 0 }: { retryCount?: number } = {},
-  ): { req: RequestInit; url: string; timeout: number } {
-    const { method, path, query, headers: headers = {} } = options;
+  ): { req: FinalizedRequestInit; url: string; timeout: number } {
+    const { method, path, query } = options;
 
-    const body =
-      ArrayBuffer.isView(options.body) || (options.__binaryRequest && typeof options.body === 'string') ?
-        options.body
-      : isMultipartBody(options.body) ? options.body.body
-      : options.body ? JSON.stringify(options.body, null, 2)
-      : null;
-    const contentLength = this.calculateContentLength(body);
-
-    const url = this.buildURL(path!, query);
+    const url = this.buildURL(path!, query as Record<string, unknown>);
     if ('timeout' in options) validatePositiveInteger('timeout', options.timeout);
     const timeout = options.timeout ?? this.timeout;
     const httpAgent = options.httpAgent ?? this.httpAgent;
@@ -658,19 +627,17 @@ export class BaseAnthropic {
       (httpAgent as any).options.timeout = minAgentTimeout;
     }
 
-    if (this.idempotencyHeader && method !== 'get') {
-      if (!options.idempotencyKey) options.idempotencyKey = this.defaultIdempotencyKey();
-      headers[this.idempotencyHeader] = options.idempotencyKey;
-    }
+    const { bodyHeaders, body } = this.buildBody({ options });
+    const reqHeaders = this.buildHeaders({ options, method, bodyHeaders, retryCount });
 
-    const reqHeaders = this.buildHeaders({ options, headers, contentLength, retryCount });
-
-    const req: RequestInit = {
+    const req: FinalizedRequestInit = {
       method,
-      ...(body && { body: body as any }),
       headers: reqHeaders,
       ...(httpAgent && { agent: httpAgent }),
-      signal: options.signal ?? null,
+      ...(options.signal && { signal: options.signal }),
+      ...((globalThis as any).ReadableStream &&
+        body instanceof (globalThis as any).ReadableStream && { duplex: 'half' }),
+      ...(body && { body }),
     };
 
     return { req, url, timeout };
@@ -678,42 +645,79 @@ export class BaseAnthropic {
 
   private buildHeaders({
     options,
-    headers,
-    contentLength,
+    method,
+    bodyHeaders,
     retryCount,
   }: {
     options: FinalRequestOptions;
-    headers: Record<string, string | null | undefined>;
-    contentLength: string | null | undefined;
+    method: HTTPMethod;
+    bodyHeaders: HeadersLike;
     retryCount: number;
-  }): Record<string, string> {
-    const reqHeaders: Record<string, string> = {};
-    if (contentLength) {
-      reqHeaders['content-length'] = contentLength;
+  }): Headers {
+    let idempotencyHeaders: HeadersLike = {};
+    if (this.idempotencyHeader && method !== 'get') {
+      if (!options.idempotencyKey) options.idempotencyKey = this.defaultIdempotencyKey();
+      idempotencyHeaders[this.idempotencyHeader] = options.idempotencyKey;
     }
 
-    const defaultHeaders = this.defaultHeaders(options);
-    applyHeadersMut(reqHeaders, defaultHeaders);
-    applyHeadersMut(reqHeaders, headers);
+    const headers = buildHeaders([
+      idempotencyHeaders,
+      {
+        Accept: 'application/json',
+        'User-Agent': this.getUserAgent(),
+        'X-Stainless-Retry-Count': String(retryCount),
+        ...getPlatformHeaders(),
+        ...(this._options.dangerouslyAllowBrowser ?
+          { 'anthropic-dangerous-direct-browser-access': 'true' }
+        : undefined),
+        'anthropic-version': '2023-06-01',
+      },
+      this.authHeaders(options),
+      this._options.defaultHeaders,
+      bodyHeaders,
+      options.headers,
+    ]);
 
-    // let builtin fetch set the Content-Type for multipart bodies
-    if (isMultipartBody(options.body)) {
-      delete reqHeaders['content-type'];
+    this.validateHeaders(headers);
+
+    return headers.values;
+  }
+
+  private buildBody({ options: { body, headers: rawHeaders } }: { options: FinalRequestOptions }): {
+    bodyHeaders: HeadersLike;
+    body: BodyInit | undefined;
+  } {
+    if (!body) {
+      return { bodyHeaders: undefined, body: undefined };
     }
-
-    // Don't set the retry count header if it was already set or removed through default headers or by the
-    // caller. We check "defaultHeaders" and "headers", which can contain nulls, instead of "reqHeaders" to
-    // account for the removal case.
+    const headers = buildHeaders([rawHeaders]);
     if (
-      getHeader(defaultHeaders, 'x-stainless-retry-count') === undefined &&
-      getHeader(headers, 'x-stainless-retry-count') === undefined
+      // Pass raw type verbatim
+      ArrayBuffer.isView(body) ||
+      body instanceof ArrayBuffer ||
+      body instanceof DataView ||
+      (typeof body === 'string' &&
+        // Preserve legacy string encoding behavior for now
+        headers.values.has('content-type')) ||
+      // `Blob` is superset of `File`
+      body instanceof Blob ||
+      // `FormData` -> `multipart/form-data`
+      body instanceof FormData ||
+      // `URLSearchParams` -> `application/x-www-form-urlencoded`
+      body instanceof URLSearchParams ||
+      // Send chunked stream (each chunk has own `length`)
+      ((globalThis as any).ReadableStream && body instanceof (globalThis as any).ReadableStream)
     ) {
-      reqHeaders['x-stainless-retry-count'] = String(retryCount);
+      return { bodyHeaders: undefined, body: body as BodyInit };
+    } else if (
+      typeof body === 'object' &&
+      (Symbol.asyncIterator in body ||
+        (Symbol.iterator in body && 'next' in body && typeof body.next === 'function'))
+    ) {
+      return { bodyHeaders: undefined, body: Shims.ReadableStreamFrom(body as AsyncIterable<Uint8Array>) };
+    } else {
+      return this.#encoder({ body, headers });
     }
-
-    this.validateHeaders(reqHeaders, headers);
-
-    return reqHeaders;
   }
 
   static Anthropic = this;

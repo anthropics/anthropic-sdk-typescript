@@ -3,7 +3,6 @@ import { type ReadableStream } from './internal/shim-types';
 import { makeReadableStream } from './internal/shims';
 import { LineDecoder } from './internal/decoders/line';
 
-import { createResponseHeaders } from './internal/headers';
 import { APIError } from './error';
 
 type Bytes = string | ArrayBuffer | Uint8Array | Buffer | null | undefined;
@@ -67,12 +66,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
           }
 
           if (sse.event === 'error') {
-            throw APIError.generate(
-              undefined,
-              `SSE Error: ${sse.data}`,
-              sse.data,
-              createResponseHeaders(response.headers),
-            );
+            throw APIError.generate(undefined, `SSE Error: ${sse.data}`, sse.data, response.headers);
           }
         }
         done = true;

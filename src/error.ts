@@ -1,7 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { castToError } from './internal/errors';
-import { type Headers } from './internal/types';
 
 export class AnthropicError extends Error {}
 
@@ -23,7 +22,7 @@ export class APIError<
     super(`${APIError.makeMessage(status, error, message)}`);
     this.status = status;
     this.headers = headers;
-    this.requestID = headers?.['request-id'];
+    this.requestID = headers?.get('request-id');
     this.error = error;
   }
 
