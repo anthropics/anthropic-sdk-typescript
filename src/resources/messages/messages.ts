@@ -9,6 +9,7 @@ import {
   BatchCreateParams,
   BatchListParams,
   Batches,
+  DeletedMessageBatch,
   MessageBatch,
   MessageBatchCanceledResult,
   MessageBatchErroredResult,
@@ -1114,6 +1115,7 @@ export declare namespace Messages {
 
   export {
     Batches as Batches,
+    type DeletedMessageBatch as DeletedMessageBatch,
     type MessageBatch as MessageBatch,
     type MessageBatchCanceledResult as MessageBatchCanceledResult,
     type MessageBatchErroredResult as MessageBatchErroredResult,
