@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.2 (2024-12-20)
+
+Full Changelog: [vertex-sdk-v0.6.1...vertex-sdk-v0.6.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.6.1...vertex-sdk-v0.6.2)
+
+### Chores
+
+* **internal:** temporary revert commit ([#643](https://github.com/anthropics/anthropic-sdk-typescript/issues/643)) ([8057b1e](https://github.com/anthropics/anthropic-sdk-typescript/commit/8057b1eb67ccccee042a45f2efe53cccced15682))
+
 ## 0.6.1 (2024-12-17)
 
 Full Changelog: [vertex-sdk-v0.6.0...vertex-sdk-v0.6.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.6.0...vertex-sdk-v0.6.1)
