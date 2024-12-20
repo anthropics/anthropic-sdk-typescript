@@ -3,8 +3,9 @@
 import type { Anthropic } from './client';
 import { AnthropicError } from './error';
 import { FinalRequestOptions } from './internal/request-options';
-import { defaultParseResponse, APIResponseProps } from './internal/parse';
+import { defaultParseResponse } from './internal/parse';
 import { APIPromise } from './api-promise';
+import { type APIResponseProps } from './internal/parse';
 import { maybeObj } from './internal/utils/values';
 
 export type PageRequestOptions = Pick<FinalRequestOptions, 'query' | 'headers' | 'body' | 'path' | 'method'>;
