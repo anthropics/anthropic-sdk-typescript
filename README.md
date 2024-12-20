@@ -163,7 +163,6 @@ await anthropic.beta.messages.batches.create({
 });
 ```
 
-
 ### Getting results from a batch
 
 Once a Message Batch has been processed, indicated by `.processing_status === 'ended'`, you can access the results with `.batches.results()`
@@ -172,7 +171,7 @@ Once a Message Batch has been processed, indicated by `.processing_status === 'e
 const results = await anthropic.beta.messages.batches.results(batch_id);
 for await (const entry of results) {
   if (entry.result.type === 'succeeded') {
-    console.log(entry.result.message.content)
+    console.log(entry.result.message.content);
   }
 }
 ```
@@ -183,7 +182,60 @@ This SDK provides beta support for tool use, aka function calling. More details 
 
 ## AWS Bedrock
 
-We provide support for the [Anthropic Bedrock API](https://aws.amazon.com/bedrock/claude/) through a [separate package](https://github.com/anthropics/anthropic-sdk-typescript/tree/main/packages/bedrock-sdk).
+We provide support for the [Anthropic Bedrock API](https://aws.amazon.com/bedrock/claude/) through a [separate package](https://github.com/anthropics/anthropic-sdk-typescript/tree/main/packages/bedrock-sdk) which reads the [default config](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html).
+
+```ts
+import { AnthropicBedrock } from '@anthropic-ai/bedrock-sdk';
+
+// Note: this assumes you have configured AWS credentials in a way
+// that the AWS Node SDK will recognize, typically a shared `~/.aws/credentials`
+// file or `AWS_ACCESS_KEY_ID` & `AWS_SECRET_ACCESS_KEY` environment variables.
+//
+// https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-credentials-node.html
+const client = new AnthropicBedrock();
+
+async function main() {
+  const message = await client.messages.create({
+    model: 'anthropic.claude-3-sonnet-20240229-v1:0',
+    messages: [
+      {
+        role: 'user',
+        content: 'Hello!',
+      },
+    ],
+    max_tokens: 1024,
+  });
+  console.log(message);
+}
+
+main();
+```
+
+## Google Vertex
+
+We provide support for the [Google Vertex API](https://cloud.google.com/vertex-ai/generative-ai/docs/partner-models/use-claude) through a [separate package](https://github.com/anthropics/anthropic-sdk-typescript/tree/main/packages/vertex-sdk) which uses [google-auth-library](https://github.com/googleapis/google-auth-library-nodejs) for authentication. `google-auth-library` which by default reads from [Application Default Credentials](https://cloud.google.com/docs/authentication/application-default-credentials) and a number of different authentication methods. If needed you can supply your own `GoogleAuth` instance via the `googleAuth` option.
+
+```ts
+import { AnthropicVertex } from '@anthropic-ai/vertex-sdk';
+
+const client = new AnthropicVertex();
+
+async function main() {
+  const message = await client.messages.create({
+    model: 'claude-3-sonnet@20240229',
+    messages: [
+      {
+        role: 'user',
+        content: 'Hello!',
+      },
+    ],
+    max_tokens: 1024,
+  });
+  console.log(message);
+}
+
+main();
+```
 
 ## Handling errors
 
