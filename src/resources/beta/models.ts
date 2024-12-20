@@ -1,9 +1,9 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIResource } from '../../resource';
-import { isRequestOptions } from '../../core';
-import * as Core from '../../core';
-import { Page, type PageParams } from '../../pagination';
+import { APIPromise } from '../../api-promise';
+import { Page, type PageParams, PagePromise } from '../../pagination';
+import { RequestOptions } from '../../internal/request-options';
 
 export class Models extends APIResource {
   /**
@@ -12,8 +12,8 @@ export class Models extends APIResource {
    * The Models API response can be used to determine information about a specific
    * model or resolve a model alias to a model ID.
    */
-  retrieve(modelId: string, options?: Core.RequestOptions): Core.APIPromise<BetaModelInfo> {
-    return this._client.get(`/v1/models/${modelId}?beta=true`, options);
+  retrieve(modelID: string, options?: RequestOptions): APIPromise<BetaModelInfo> {
+    return this._client.get(`/v1/models/${modelID}?beta=true`, options);
   }
 
   /**
@@ -23,22 +23,14 @@ export class Models extends APIResource {
    * use in the API. More recently released models are listed first.
    */
   list(
-    query?: ModelListParams,
-    options?: Core.RequestOptions,
-  ): Core.PagePromise<BetaModelInfosPage, BetaModelInfo>;
-  list(options?: Core.RequestOptions): Core.PagePromise<BetaModelInfosPage, BetaModelInfo>;
-  list(
-    query: ModelListParams | Core.RequestOptions = {},
-    options?: Core.RequestOptions,
-  ): Core.PagePromise<BetaModelInfosPage, BetaModelInfo> {
-    if (isRequestOptions(query)) {
-      return this.list({}, query);
-    }
-    return this._client.getAPIList('/v1/models?beta=true', BetaModelInfosPage, { query, ...options });
+    query: ModelListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<BetaModelInfosPage, BetaModelInfo> {
+    return this._client.getAPIList('/v1/models?beta=true', Page<BetaModelInfo>, { query, ...options });
   }
 }
 
-export class BetaModelInfosPage extends Page<BetaModelInfo> {}
+export type BetaModelInfosPage = Page<BetaModelInfo>;
 
 export interface BetaModelInfo {
   /**
@@ -67,12 +59,10 @@ export interface BetaModelInfo {
 
 export interface ModelListParams extends PageParams {}
 
-Models.BetaModelInfosPage = BetaModelInfosPage;
-
 export declare namespace Models {
   export {
     type BetaModelInfo as BetaModelInfo,
-    BetaModelInfosPage as BetaModelInfosPage,
+    type BetaModelInfosPage as BetaModelInfosPage,
     type ModelListParams as ModelListParams,
   };
 }

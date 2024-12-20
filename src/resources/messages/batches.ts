@@ -1,11 +1,11 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIResource } from '../../resource';
-import { isRequestOptions } from '../../core';
-import * as Core from '../../core';
 import * as Shared from '../shared';
 import * as MessagesAPI from './messages';
-import { Page, type PageParams } from '../../pagination';
+import { APIPromise } from '../../api-promise';
+import { Page, type PageParams, PagePromise } from '../../pagination';
+import { RequestOptions } from '../../internal/request-options';
 import { JSONLDecoder } from '../../internal/decoders/jsonl';
 import { AnthropicError } from '../../error';
 
@@ -17,7 +17,7 @@ export class Batches extends APIResource {
    * once. Once a Message Batch is created, it begins processing immediately. Batches
    * can take up to 24 hours to complete.
    */
-  create(body: BatchCreateParams, options?: Core.RequestOptions): Core.APIPromise<MessageBatch> {
+  create(body: BatchCreateParams, options?: RequestOptions): APIPromise<MessageBatch> {
     return this._client.post('/v1/messages/batches', { body, ...options });
   }
 
@@ -26,8 +26,8 @@ export class Batches extends APIResource {
    * completion. To access the results of a Message Batch, make a request to the
    * `results_url` field in the response.
    */
-  retrieve(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<MessageBatch> {
-    return this._client.get(`/v1/messages/batches/${messageBatchId}`, options);
+  retrieve(messageBatchID: string, options?: RequestOptions): APIPromise<MessageBatch> {
+    return this._client.get(`/v1/messages/batches/${messageBatchID}`, options);
   }
 
   /**
@@ -35,18 +35,19 @@ export class Batches extends APIResource {
    * returned first.
    */
   list(
-    query?: BatchListParams,
-    options?: Core.RequestOptions,
-  ): Core.PagePromise<MessageBatchesPage, MessageBatch>;
-  list(options?: Core.RequestOptions): Core.PagePromise<MessageBatchesPage, MessageBatch>;
-  list(
-    query: BatchListParams | Core.RequestOptions = {},
-    options?: Core.RequestOptions,
-  ): Core.PagePromise<MessageBatchesPage, MessageBatch> {
-    if (isRequestOptions(query)) {
-      return this.list({}, query);
-    }
-    return this._client.getAPIList('/v1/messages/batches', MessageBatchesPage, { query, ...options });
+    query: BatchListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<MessageBatchesPage, MessageBatch> {
+    return this._client.getAPIList('/v1/messages/batches', Page<MessageBatch>, { query, ...options });
+  }
+
+  /**
+   * This endpoint is idempotent and can be used to poll for Message Batch
+   * completion. To access the results of a Message Batch, make a request to the
+   * `results_url` field in the response.
+   */
+  delete(messageBatchID: string, options?: RequestOptions): APIPromise<DeletedMessageBatch> {
+    return this._client.delete(`/v1/messages/batches/${messageBatchID}`, options);
   }
 
   /**
@@ -60,8 +61,8 @@ export class Batches extends APIResource {
    * Note that cancellation may not result in any canceled requests if they were
    * non-interruptible.
    */
-  cancel(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<MessageBatch> {
-    return this._client.post(`/v1/messages/batches/${messageBatchId}/cancel`, options);
+  cancel(messageBatchID: string, options?: RequestOptions): APIPromise<MessageBatch> {
+    return this._client.post(`/v1/messages/batches/${messageBatchID}/cancel`, options);
   }
 
   /**
@@ -72,10 +73,10 @@ export class Batches extends APIResource {
    * requests. Use the `custom_id` field to match results to requests.
    */
   async results(
-    messageBatchId: string,
-    options?: Core.RequestOptions,
+    messageBatchID: string,
+    options?: RequestOptions,
   ): Promise<JSONLDecoder<MessageBatchIndividualResponse>> {
-    const batch = await this.retrieve(messageBatchId);
+    const batch = await this.retrieve(messageBatchID);
     if (!batch.results_url) {
       throw new AnthropicError(
         `No batch \`results_url\`; Has it finished processing? ${batch.processing_status} - ${batch.id}`,
@@ -88,7 +89,21 @@ export class Batches extends APIResource {
   }
 }
 
-export class MessageBatchesPage extends Page<MessageBatch> {}
+export type MessageBatchesPage = Page<MessageBatch>;
+
+export interface DeletedMessageBatch {
+  /**
+   * ID of the Message Batch.
+   */
+  id: string;
+
+  /**
+   * Deleted object type.
+   *
+   * For Message Batches, this is always `"message_batch_deleted"`.
+   */
+  type: 'message_batch_deleted';
+}
 
 export interface MessageBatch {
   /**
@@ -279,10 +294,9 @@ export namespace BatchCreateParams {
 
 export interface BatchListParams extends PageParams {}
 
-Batches.MessageBatchesPage = MessageBatchesPage;
-
 export declare namespace Batches {
   export {
+    type DeletedMessageBatch as DeletedMessageBatch,
     type MessageBatch as MessageBatch,
     type MessageBatchCanceledResult as MessageBatchCanceledResult,
     type MessageBatchErroredResult as MessageBatchErroredResult,
@@ -291,7 +305,7 @@ export declare namespace Batches {
     type MessageBatchRequestCounts as MessageBatchRequestCounts,
     type MessageBatchResult as MessageBatchResult,
     type MessageBatchSucceededResult as MessageBatchSucceededResult,
-    MessageBatchesPage as MessageBatchesPage,
+    type MessageBatchesPage as MessageBatchesPage,
     type BatchCreateParams as BatchCreateParams,
     type BatchListParams as BatchListParams,
   };

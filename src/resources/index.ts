@@ -71,4 +71,4 @@ export {
   type MessageCreateParamsStreaming,
   type MessageCountTokensParams,
 } from './messages/messages';
-export { ModelInfosPage, Models, type ModelInfo, type ModelListParams } from './models';
+export { Models, type ModelInfo, type ModelListParams, type ModelInfosPage } from './models';

@@ -1,8 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIResource } from '../../../resource';
-import { APIPromise } from '../../../core';
-import * as Core from '../../../core';
 import * as MessagesMessagesAPI from './messages';
 import * as BetaAPI from '../beta';
 import * as MessagesAPI from '../../messages/messages';
@@ -10,10 +8,12 @@ import * as BatchesAPI from './batches';
 import {
   BatchCancelParams,
   BatchCreateParams,
+  BatchDeleteParams,
   BatchListParams,
   BatchResultsParams,
   BatchRetrieveParams,
   Batches,
+  BetaDeletedMessageBatch,
   BetaMessageBatch,
   BetaMessageBatchCanceledResult,
   BetaMessageBatchErroredResult,
@@ -24,7 +24,9 @@ import {
   BetaMessageBatchSucceededResult,
   BetaMessageBatchesPage,
 } from './batches';
+import { APIPromise } from '../../../api-promise';
 import { Stream } from '../../../streaming';
+import { RequestOptions } from '../../../internal/request-options';
 
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
@@ -36,18 +38,18 @@ export class Messages extends APIResource {
    * The Messages API can be used for either single queries or stateless multi-turn
    * conversations.
    */
-  create(params: MessageCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<BetaMessage>;
+  create(params: MessageCreateParamsNonStreaming, options?: RequestOptions): APIPromise<BetaMessage>;
   create(
     params: MessageCreateParamsStreaming,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Stream<BetaRawMessageStreamEvent>>;
   create(
     params: MessageCreateParamsBase,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Stream<BetaRawMessageStreamEvent> | BetaMessage>;
   create(
     params: MessageCreateParams,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>> {
     const { betas, ...body } = params;
     return this._client.post('/v1/messages?beta=true', {
@@ -70,8 +72,8 @@ export class Messages extends APIResource {
    */
   countTokens(
     params: MessageCountTokensParams,
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<BetaMessageTokensCount> {
+    options?: RequestOptions,
+  ): APIPromise<BetaMessageTokensCount> {
     const { betas, ...body } = params;
     return this._client.post('/v1/messages/count_tokens?beta=true', {
       body,
@@ -1068,7 +1070,6 @@ export interface MessageCountTokensParams {
 }
 
 Messages.Batches = Batches;
-Messages.BetaMessageBatchesPage = BetaMessageBatchesPage;
 
 export declare namespace Messages {
   export {
@@ -1115,6 +1116,7 @@ export declare namespace Messages {
 
   export {
     Batches as Batches,
+    type BetaDeletedMessageBatch as BetaDeletedMessageBatch,
     type BetaMessageBatch as BetaMessageBatch,
     type BetaMessageBatchCanceledResult as BetaMessageBatchCanceledResult,
     type BetaMessageBatchErroredResult as BetaMessageBatchErroredResult,
@@ -1123,10 +1125,11 @@ export declare namespace Messages {
     type BetaMessageBatchRequestCounts as BetaMessageBatchRequestCounts,
     type BetaMessageBatchResult as BetaMessageBatchResult,
     type BetaMessageBatchSucceededResult as BetaMessageBatchSucceededResult,
-    BetaMessageBatchesPage as BetaMessageBatchesPage,
+    type BetaMessageBatchesPage as BetaMessageBatchesPage,
     type BatchCreateParams as BatchCreateParams,
     type BatchRetrieveParams as BatchRetrieveParams,
     type BatchListParams as BatchListParams,
+    type BatchDeleteParams as BatchDeleteParams,
     type BatchCancelParams as BatchCancelParams,
     type BatchResultsParams as BatchResultsParams,
   };

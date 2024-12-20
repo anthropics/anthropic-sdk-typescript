@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { castToError, Headers } from './core';
+import { castToError } from './internal/errors';
 
 export class AnthropicError extends Error {}
 
@@ -16,13 +16,13 @@ export class APIError<
   /** JSON body of the response that caused the error */
   readonly error: TError;
 
-  readonly request_id: string | null | undefined;
+  readonly requestID: string | null | undefined;
 
   constructor(status: TStatus, error: TError, message: string | undefined, headers: THeaders) {
     super(`${APIError.makeMessage(status, error, message)}`);
     this.status = status;
     this.headers = headers;
-    this.request_id = headers?.['request-id'];
+    this.requestID = headers?.get('request-id');
     this.error = error;
   }
 
