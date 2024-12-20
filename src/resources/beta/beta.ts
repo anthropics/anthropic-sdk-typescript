@@ -132,7 +132,6 @@ export interface BetaRateLimitError {
 }
 
 Beta.Models = Models;
-Beta.BetaModelInfosPage = BetaModelInfosPage;
 Beta.Messages = Messages;
 
 export declare namespace Beta {
@@ -154,7 +153,7 @@ export declare namespace Beta {
   export {
     Models as Models,
     type BetaModelInfo as BetaModelInfo,
-    BetaModelInfosPage as BetaModelInfosPage,
+    type BetaModelInfosPage as BetaModelInfosPage,
     type ModelListParams as ModelListParams,
   };
 

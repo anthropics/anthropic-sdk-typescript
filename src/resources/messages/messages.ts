@@ -1,8 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIResource } from '../../resource';
-import { APIPromise } from '../../core';
-import * as Core from '../../core';
 import * as MessagesAPI from './messages';
 import * as BatchesAPI from './batches';
 import {
@@ -20,7 +18,9 @@ import {
   MessageBatchSucceededResult,
   MessageBatchesPage,
 } from './batches';
+import { APIPromise } from '../../api-promise';
 import { Stream } from '../../streaming';
+import { RequestOptions } from '../../internal/request-options';
 import { MessageStream } from '../../lib/MessageStream';
 
 export { MessageStream } from '../../lib/MessageStream';
@@ -35,18 +35,18 @@ export class Messages extends APIResource {
    * The Messages API can be used for either single queries or stateless multi-turn
    * conversations.
    */
-  create(body: MessageCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Message>;
+  create(body: MessageCreateParamsNonStreaming, options?: RequestOptions): APIPromise<Message>;
   create(
     body: MessageCreateParamsStreaming,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Stream<RawMessageStreamEvent>>;
   create(
     body: MessageCreateParamsBase,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Stream<RawMessageStreamEvent> | Message>;
   create(
     body: MessageCreateParams,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>> {
     if (body.model in DEPRECATED_MODELS) {
       console.warn(
@@ -76,10 +76,7 @@ export class Messages extends APIResource {
    * The Token Count API can be used to count the number of tokens in a Message,
    * including tools, images, and documents, without creating it.
    */
-  countTokens(
-    body: MessageCountTokensParams,
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<MessageTokensCount> {
+  countTokens(body: MessageCountTokensParams, options?: RequestOptions): APIPromise<MessageTokensCount> {
     return this._client.post('/v1/messages/count_tokens', { body, ...options });
   }
 }
@@ -1062,7 +1059,6 @@ export interface MessageCountTokensParams {
 }
 
 Messages.Batches = Batches;
-Messages.MessageBatchesPage = MessageBatchesPage;
 
 export declare namespace Messages {
   export {
@@ -1124,7 +1120,7 @@ export declare namespace Messages {
     type MessageBatchRequestCounts as MessageBatchRequestCounts,
     type MessageBatchResult as MessageBatchResult,
     type MessageBatchSucceededResult as MessageBatchSucceededResult,
-    MessageBatchesPage as MessageBatchesPage,
+    type MessageBatchesPage as MessageBatchesPage,
     type BatchCreateParams as BatchCreateParams,
     type BatchListParams as BatchListParams,
   };

@@ -1,9 +1,9 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIResource } from '../resource';
-import { isRequestOptions } from '../core';
-import * as Core from '../core';
-import { Page, type PageParams } from '../pagination';
+import { APIPromise } from '../api-promise';
+import { Page, type PageParams, PagePromise } from '../pagination';
+import { RequestOptions } from '../internal/request-options';
 
 export class Models extends APIResource {
   /**
@@ -12,8 +12,8 @@ export class Models extends APIResource {
    * The Models API response can be used to determine information about a specific
    * model or resolve a model alias to a model ID.
    */
-  retrieve(modelId: string, options?: Core.RequestOptions): Core.APIPromise<ModelInfo> {
-    return this._client.get(`/v1/models/${modelId}`, options);
+  retrieve(modelID: string, options?: RequestOptions): APIPromise<ModelInfo> {
+    return this._client.get(`/v1/models/${modelID}`, options);
   }
 
   /**
@@ -22,20 +22,15 @@ export class Models extends APIResource {
    * The Models API response can be used to determine which models are available for
    * use in the API. More recently released models are listed first.
    */
-  list(query?: ModelListParams, options?: Core.RequestOptions): Core.PagePromise<ModelInfosPage, ModelInfo>;
-  list(options?: Core.RequestOptions): Core.PagePromise<ModelInfosPage, ModelInfo>;
   list(
-    query: ModelListParams | Core.RequestOptions = {},
-    options?: Core.RequestOptions,
-  ): Core.PagePromise<ModelInfosPage, ModelInfo> {
-    if (isRequestOptions(query)) {
-      return this.list({}, query);
-    }
-    return this._client.getAPIList('/v1/models', ModelInfosPage, { query, ...options });
+    query: ModelListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<ModelInfosPage, ModelInfo> {
+    return this._client.getAPIList('/v1/models', Page<ModelInfo>, { query, ...options });
   }
 }
 
-export class ModelInfosPage extends Page<ModelInfo> {}
+export type ModelInfosPage = Page<ModelInfo>;
 
 export interface ModelInfo {
   /**
@@ -64,12 +59,10 @@ export interface ModelInfo {
 
 export interface ModelListParams extends PageParams {}
 
-Models.ModelInfosPage = ModelInfosPage;
-
 export declare namespace Models {
   export {
     type ModelInfo as ModelInfo,
-    ModelInfosPage as ModelInfosPage,
+    type ModelInfosPage as ModelInfosPage,
     type ModelListParams as ModelListParams,
   };
 }

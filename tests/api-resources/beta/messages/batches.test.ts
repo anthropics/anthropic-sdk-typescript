@@ -1,7 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import Anthropic from '@anthropic-ai/sdk';
-import { Response } from 'node-fetch';
 
 const client = new Anthropic({
   apiKey: 'my-anthropic-api-key',
@@ -86,13 +85,6 @@ describe('resource batches', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  test('retrieve: request options instead of params are passed correctly', async () => {
-    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(
-      client.beta.messages.batches.retrieve('message_batch_id', { path: '/_stainless_unknown_path' }),
-    ).rejects.toThrow(Anthropic.NotFoundError);
-  });
-
   test('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
@@ -115,13 +107,6 @@ describe('resource batches', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  test('list: request options instead of params are passed correctly', async () => {
-    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(client.beta.messages.batches.list({ path: '/_stainless_unknown_path' })).rejects.toThrow(
-      Anthropic.NotFoundError,
-    );
-  });
-
   test('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
@@ -141,13 +126,6 @@ describe('resource batches', () => {
     const dataAndResponse = await responsePromise.withResponse();
     expect(dataAndResponse.data).toBe(response);
     expect(dataAndResponse.response).toBe(rawResponse);
-  });
-
-  test('delete: request options instead of params are passed correctly', async () => {
-    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(
-      client.beta.messages.batches.delete('message_batch_id', { path: '/_stainless_unknown_path' }),
-    ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
   test('delete: request options and params are passed correctly', async () => {
@@ -172,13 +150,6 @@ describe('resource batches', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  test('cancel: request options instead of params are passed correctly', async () => {
-    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(
-      client.beta.messages.batches.cancel('message_batch_id', { path: '/_stainless_unknown_path' }),
-    ).rejects.toThrow(Anthropic.NotFoundError);
-  });
-
   test('cancel: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
@@ -187,13 +158,6 @@ describe('resource batches', () => {
         { betas: ['string'] },
         { path: '/_stainless_unknown_path' },
       ),
-    ).rejects.toThrow(Anthropic.NotFoundError);
-  });
-
-  test('results: request options instead of params are passed correctly', async () => {
-    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(
-      client.beta.messages.batches.results('message_batch_id', { path: '/_stainless_unknown_path' }),
     ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
