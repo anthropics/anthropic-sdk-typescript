@@ -3,10 +3,12 @@ on:
   push:
     branches:
       - main
+      - alpha
   pull_request:
     branches:
       - main
       - next
+      - alpha
 
 jobs:
   lint:
@@ -64,4 +66,3 @@ jobs:
 
       - name: Run tests
         run: ./scripts/test
-
