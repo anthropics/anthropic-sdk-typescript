@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.34.0 (2024-12-20)
+
+Full Changelog: [sdk-v0.33.1...sdk-v0.34.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.33.1...sdk-v0.34.0)
+
+### Features
+
+* **api:** add message batch delete endpoint ([#640](https://github.com/anthropics/anthropic-sdk-typescript/issues/640)) ([54f7e1f](https://github.com/anthropics/anthropic-sdk-typescript/commit/54f7e1ffb9a2956ee27a4a715b84717aa681eb7c))
+
+
+### Bug Fixes
+
+* **client:** normalize method ([#639](https://github.com/anthropics/anthropic-sdk-typescript/issues/639)) ([384bb04](https://github.com/anthropics/anthropic-sdk-typescript/commit/384bb042dd854ed753c6bd8e25f522d0e042bfbf))
+
+
+### Chores
+
+* bump testing data uri ([#637](https://github.com/anthropics/anthropic-sdk-typescript/issues/637)) ([3f23530](https://github.com/anthropics/anthropic-sdk-typescript/commit/3f23530fb55d9fec7278967ea02600e44e9f58e2))
+* **internal:** temporary revert commit ([#643](https://github.com/anthropics/anthropic-sdk-typescript/issues/643)) ([8057b1e](https://github.com/anthropics/anthropic-sdk-typescript/commit/8057b1eb67ccccee042a45f2efe53cccced15682))
+
+
+### Documentation
+
+* minor formatting changes ([#641](https://github.com/anthropics/anthropic-sdk-typescript/issues/641)) ([8b362ee](https://github.com/anthropics/anthropic-sdk-typescript/commit/8b362ee72954b31b4de920b35aed97255efa5e2e))
+* **readme:** add alpha callout ([#646](https://github.com/anthropics/anthropic-sdk-typescript/issues/646)) ([640304c](https://github.com/anthropics/anthropic-sdk-typescript/commit/640304c7c7e8bc67cbf799a646169736d89ad4c8))
+
 ## 0.33.1 (2024-12-17)
 
 Full Changelog: [sdk-v0.33.0...sdk-v0.33.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.33.0...sdk-v0.33.1)

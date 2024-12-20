@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.12.1 (2024-12-20)
+
+Full Changelog: [bedrock-sdk-v0.12.0...bedrock-sdk-v0.12.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.12.0...bedrock-sdk-v0.12.1)
+
+### Chores
+
+* **internal:** temporary revert commit ([#643](https://github.com/anthropics/anthropic-sdk-typescript/issues/643)) ([8057b1e](https://github.com/anthropics/anthropic-sdk-typescript/commit/8057b1eb67ccccee042a45f2efe53cccced15682))
+
 ## 0.12.0 (2024-12-17)
 
 Full Changelog: [bedrock-sdk-v0.11.2...bedrock-sdk-v0.12.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.11.2...bedrock-sdk-v0.12.0)
