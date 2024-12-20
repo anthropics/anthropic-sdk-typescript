@@ -2,8 +2,7 @@
 
 import { APIResource } from '../../../resource';
 import * as BetaAPI from '../beta';
-import * as MessagesAPI from '../../messages/messages';
-import * as MessagesMessagesAPI from './messages';
+import * as BetaMessagesAPI from './messages';
 import { APIPromise } from '../../../api-promise';
 import { Page, type PageParams, PagePromise } from '../../../pagination';
 import { RequestOptions } from '../../../internal/request-options';
@@ -122,19 +121,19 @@ export class Batches extends APIResource {
    * in the Message Batch. Results are not guaranteed to be in the same order as
    * requests. Use the `custom_id` field to match results to requests.
    */
-  results(
+  async results(
     messageBatchID: string,
     params: BatchResultsParams | null | undefined = {},
     options?: RequestOptions,
-  ): APIPromise<Response> {
-    const batch = await this.retrieve(messageBatchId);
+  ): Promise<JSONLDecoder<BetaMessageBatchIndividualResponse>> {
+    const batch = await this.retrieve(messageBatchID);
     if (!batch.results_url) {
       throw new AnthropicError(
         `No batch \`results_url\`; Has it finished processing? ${batch.processing_status} - ${batch.id}`,
       );
     }
 
-    const { betas } = params;
+    const { betas } = params ?? {};
     return this._client
       .get(batch.results_url, {
         ...options,

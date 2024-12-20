@@ -66,7 +66,7 @@ export class Messages extends APIResource {
   /**
    * Create a Message stream
    */
-  stream(body: MessageStreamParams, options?: Core.RequestOptions): MessageStream {
+  stream(body: MessageStreamParams, options?: RequestOptions): MessageStream {
     return MessageStream.createMessage(this, body, options);
   }
 

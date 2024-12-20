@@ -3,6 +3,7 @@
 import { debug } from './utils/log';
 import { FinalRequestOptions } from './request-options';
 import { Stream } from '../streaming';
+import { type AbstractPage } from '../pagination';
 
 export type APIResponseProps = {
   response: Response;
@@ -10,7 +11,12 @@ export type APIResponseProps = {
   controller: AbortController;
 };
 
-export async function defaultParseResponse<T>(props: APIResponseProps): Promise<T> {
+export type WithRequestID<T> =
+  T extends Array<any> | Response | AbstractPage<any> ? T
+  : T extends Record<string, any> ? T & { _request_id?: string | null }
+  : T;
+
+export async function defaultParseResponse<T>(props: APIResponseProps): Promise<WithRequestID<T>> {
   const { response } = props;
   if (props.options.stream) {
     debug('response', response.status, response.url, response.headers, response.body);
@@ -27,11 +33,11 @@ export async function defaultParseResponse<T>(props: APIResponseProps): Promise<
 
   // fetch refuses to read the body when the status code is 204.
   if (response.status === 204) {
-    return null as T;
+    return null as WithRequestID<T>;
   }
 
   if (props.options.__binaryResponse) {
-    return response as unknown as T;
+    return response as unknown as WithRequestID<T>;
   }
 
   const contentType = response.headers.get('content-type');
@@ -42,12 +48,23 @@ export async function defaultParseResponse<T>(props: APIResponseProps): Promise<
 
     debug('response', response.status, response.url, response.headers, json);
 
-    return json as T;
+    return addRequestID(json as T, response);
   }
 
   const text = await response.text();
   debug('response', response.status, response.url, response.headers, text);
 
   // TODO handle blob, arraybuffer, other content types, etc.
-  return text as unknown as T;
+  return text as unknown as WithRequestID<T>;
+}
+
+export function addRequestID<T>(value: T, response: Response): WithRequestID<T> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return value as WithRequestID<T>;
+  }
+
+  return Object.defineProperty(value, '_request_id', {
+    value: response.headers.get('request-id'),
+    enumerable: false,
+  }) as WithRequestID<T>;
 }

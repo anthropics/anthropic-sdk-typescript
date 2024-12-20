@@ -1,6 +1,5 @@
 import { AnthropicError } from '../../error';
 import { readableStreamAsyncIterable } from '../../streaming';
-import { type Response } from '../../_shims/index';
 import { LineDecoder, type Bytes } from './line';
 
 export class JSONLDecoder<T> {

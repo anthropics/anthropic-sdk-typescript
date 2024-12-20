@@ -72,11 +72,20 @@ export class Batches extends APIResource {
    * in the Message Batch. Results are not guaranteed to be in the same order as
    * requests. Use the `custom_id` field to match results to requests.
    */
-  results(messageBatchID: string, options?: RequestOptions): APIPromise<Response> {
-    return this._client.get(`/v1/messages/batches/${messageBatchID}/results`, {
-      ...options,
-      __binaryResponse: true,
-    });
+  async results(
+    messageBatchID: string,
+    options?: RequestOptions,
+  ): Promise<JSONLDecoder<MessageBatchIndividualResponse>> {
+    const batch = await this.retrieve(messageBatchID);
+    if (!batch.results_url) {
+      throw new AnthropicError(
+        `No batch \`results_url\`; Has it finished processing? ${batch.processing_status} - ${batch.id}`,
+      );
+    }
+
+    return this._client
+      .get(batch.results_url, { ...options, __binaryResponse: true })
+      ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller));
   }
 }
 
