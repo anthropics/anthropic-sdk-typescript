@@ -10,7 +10,6 @@ const config: JestConfigWithTsJest = {
     '^@anthropic-ai/sdk$': '<rootDir>/src/index.ts',
     '^@anthropic-ai/sdk/(.*)$': '<rootDir>/src/$1',
   },
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   modulePathIgnorePatterns: [
     '<rootDir>/ecosystem-tests/',
     '<rootDir>/dist/',
