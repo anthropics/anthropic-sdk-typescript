@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.34.1 (2024-12-21)
+
+Full Changelog: [sdk-v0.34.0...sdk-v0.34.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.34.0...sdk-v0.34.1)
+
+### Chores
+
+* **internal:** temporary revert commit ([#643](https://github.com/anthropics/anthropic-sdk-typescript/issues/643)) ([43dd43c](https://github.com/anthropics/anthropic-sdk-typescript/commit/43dd43c4c8ab69d5a60e59473af7dff5f7799048))
+
 ## 0.34.0 (2024-12-20)
 
 Full Changelog: [sdk-v0.33.1...sdk-v0.34.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.33.1...sdk-v0.34.0)
