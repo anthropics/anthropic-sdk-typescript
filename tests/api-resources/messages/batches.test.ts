@@ -59,7 +59,7 @@ describe('resource batches', () => {
                     },
                   },
                 },
-                name: 'x',
+                name: 'name',
                 cache_control: { type: 'ephemeral' },
                 description: 'Get the current weather in a given location',
               },
