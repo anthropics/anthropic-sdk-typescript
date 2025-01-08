@@ -5,12 +5,12 @@ export { Anthropic as default } from './client';
 export {
   multipartFormRequestOptions,
   maybeMultipartFormRequestOptions,
-  Uploadable,
+  type Uploadable,
   createForm,
   toFile,
 } from './uploads';
 export { APIPromise } from './api-promise';
-export { BaseAnthropic, Anthropic, ClientOptions, HUMAN_PROMPT, AI_PROMPT } from './client';
+export { BaseAnthropic, Anthropic, type ClientOptions, HUMAN_PROMPT, AI_PROMPT } from './client';
 export { PagePromise } from './pagination';
 export {
   AnthropicError,
