@@ -2,7 +2,6 @@
 
 import type { RequestInit, RequestInfo, BodyInit } from './internal/builtin-types';
 import type { HTTPMethod, PromiseOrValue } from './internal/types';
-import { debug } from './internal/utils/log';
 import { uuid4 } from './internal/utils/uuid';
 import { validatePositiveInteger, isAbsoluteURL } from './internal/utils/values';
 import { sleep } from './internal/utils/sleep';
@@ -33,6 +32,7 @@ import {
 } from './resources/completions';
 import { ModelInfo, ModelInfosPage, ModelListParams, Models } from './resources/models';
 import { readEnv } from './internal/utils/env';
+import { logger } from './internal/utils/log';
 import { isEmptyObj } from './internal/utils/values';
 import {
   AnthropicBeta,
@@ -95,6 +95,25 @@ const safeJSON = (text: string) => {
   } catch (err) {
     return undefined;
   }
+};
+
+type LogFn = (message: string, ...rest: unknown[]) => void;
+export type Logger = {
+  error: LogFn;
+  warn: LogFn;
+  info: LogFn;
+  debug: LogFn;
+};
+export type LogLevel = 'off' | 'error' | 'warn' | 'info' | 'debug';
+const isLogLevel = (key: string | undefined): key is LogLevel => {
+  const levels: Record<LogLevel, true> = {
+    off: true,
+    error: true,
+    warn: true,
+    info: true,
+    debug: true,
+  };
+  return key! in levels;
 };
 
 export interface ClientOptions {
@@ -168,6 +187,20 @@ export interface ClientOptions {
    * Only set this option to `true` if you understand the risks and have appropriate mitigations in place.
    */
   dangerouslyAllowBrowser?: boolean;
+
+  /**
+   * Set the log level.
+   *
+   * Defaults to process.env['ANTHROPIC_LOG'].
+   */
+  logLevel?: LogLevel | undefined | null;
+
+  /**
+   * Set the logger.
+   *
+   * Defaults to globalThis.console.
+   */
+  logger?: Logger | undefined | null;
 }
 
 type FinalizedRequestInit = RequestInit & { headers: Headers };
@@ -179,6 +212,8 @@ export class BaseAnthropic {
   baseURL: string;
   maxRetries: number;
   timeout: number;
+  logger: Logger | undefined;
+  logLevel: LogLevel | undefined;
   httpAgent: Shims.Agent | undefined;
 
   private fetch: Fetch;
@@ -221,6 +256,15 @@ export class BaseAnthropic {
 
     this.baseURL = options.baseURL!;
     this.timeout = options.timeout ?? Anthropic.DEFAULT_TIMEOUT /* 10 minutes */;
+    this.logger = options.logger ?? console;
+    if (options.logLevel != null) {
+      this.logLevel = options.logLevel;
+    } else {
+      const envLevel = readEnv('ANTHROPIC_LOG');
+      if (isLogLevel(envLevel)) {
+        this.logLevel = envLevel;
+      }
+    }
     this.httpAgent = options.httpAgent;
     this.maxRetries = options.maxRetries ?? 2;
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
@@ -415,7 +459,7 @@ export class BaseAnthropic {
     options: PromiseOrValue<FinalRequestOptions>,
     remainingRetries: number | null = null,
   ): APIPromise<Rsp> {
-    return new APIPromise(this.makeRequest(options, remainingRetries));
+    return new APIPromise(this, this.makeRequest(options, remainingRetries));
   }
 
   private async makeRequest(
@@ -434,7 +478,7 @@ export class BaseAnthropic {
 
     await this.prepareRequest(req, { url, options });
 
-    debug('request', url, options, req.headers);
+    logger(this).debug('request', url, options, req.headers);
 
     if (options.signal?.aborted) {
       throw new Errors.APIUserAbortError();
@@ -459,7 +503,7 @@ export class BaseAnthropic {
     if (!response.ok) {
       if (retriesRemaining && this.shouldRetry(response)) {
         const retryMessage = `retrying, ${retriesRemaining} attempts remaining`;
-        debug(`response (error; ${retryMessage})`, response.status, url, response.headers);
+        logger(this).debug(`response (error; ${retryMessage})`, response.status, url, response.headers);
         return this.retryRequest(options, retriesRemaining, response.headers);
       }
 
@@ -468,7 +512,13 @@ export class BaseAnthropic {
       const errMessage = errJSON ? undefined : errText;
       const retryMessage = retriesRemaining ? `(error; no more retries left)` : `(error; not retryable)`;
 
-      debug(`response (error; ${retryMessage})`, response.status, url, response.headers, errMessage);
+      logger(this).debug(
+        `response (error; ${retryMessage})`,
+        response.status,
+        url,
+        response.headers,
+        errMessage,
+      );
 
       const err = this.makeStatusError(response.status, errJSON, errMessage, response.headers);
       throw err;

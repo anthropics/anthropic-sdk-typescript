@@ -343,7 +343,7 @@ const client = new Anthropic({
 });
 ```
 
-Note that if given a `DEBUG=true` environment variable, this library will log all requests and responses automatically.
+Note that if given a `ANTHROPIC_LOG=debug` environment variable, this library will log all requests and responses automatically.
 This is intended for debugging purposes only and may change in the future without notice.
 
 ### Configuring an HTTP(S) Agent (e.g., for proxies)

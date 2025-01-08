@@ -1,23 +1,23 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import type { Anthropic } from './client';
 import { AnthropicError } from './error';
 import { FinalRequestOptions } from './internal/request-options';
 import { defaultParseResponse } from './internal/parse';
 import { APIPromise } from './api-promise';
+import { type BaseAnthropic } from './client';
 import { type APIResponseProps } from './internal/parse';
 import { maybeObj } from './internal/utils/values';
 
 export type PageRequestOptions = Pick<FinalRequestOptions, 'query' | 'headers' | 'body' | 'path' | 'method'>;
 
 export abstract class AbstractPage<Item> implements AsyncIterable<Item> {
-  #client: Anthropic;
+  #client: BaseAnthropic;
   protected options: FinalRequestOptions;
 
   protected response: Response;
   protected body: unknown;
 
-  constructor(client: Anthropic, response: Response, body: unknown, options: FinalRequestOptions) {
+  constructor(client: BaseAnthropic, response: Response, body: unknown, options: FinalRequestOptions) {
     this.#client = client;
     this.options = options;
     this.response = response;
@@ -81,13 +81,15 @@ export class PagePromise<
   implements AsyncIterable<Item>
 {
   constructor(
-    client: Anthropic,
+    client: BaseAnthropic,
     request: Promise<APIResponseProps>,
     Page: new (...args: ConstructorParameters<typeof AbstractPage>) => PageClass,
   ) {
     super(
+      client,
       request,
-      async (props) => new Page(client, props.response, await defaultParseResponse(props), props.options),
+      async (client, props) =>
+        new Page(client, props.response, await defaultParseResponse(client, props), props.options),
     );
   }
 
@@ -136,7 +138,12 @@ export class Page<Item> extends AbstractPage<Item> implements PageResponse<Item>
 
   last_id: string | null;
 
-  constructor(client: Anthropic, response: Response, body: PageResponse<Item>, options: FinalRequestOptions) {
+  constructor(
+    client: BaseAnthropic,
+    response: Response,
+    body: PageResponse<Item>,
+    options: FinalRequestOptions,
+  ) {
     super(client, response, body, options);
 
     this.data = body.data || [];
