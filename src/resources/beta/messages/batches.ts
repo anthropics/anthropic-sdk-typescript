@@ -187,6 +187,7 @@ export class Batches extends APIResource {
         ...options,
         headers: {
           'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          Accept: 'application/binary',
           ...options?.headers,
         },
         __binaryResponse: true,
