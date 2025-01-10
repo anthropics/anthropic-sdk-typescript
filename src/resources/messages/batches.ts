@@ -82,6 +82,7 @@ export class Batches extends APIResource {
   results(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<Response> {
     return this._client.get(`/v1/messages/batches/${messageBatchId}/results`, {
       ...options,
+      headers: { Accept: 'application/binary', ...options?.headers },
       __binaryResponse: true,
     });
   }
