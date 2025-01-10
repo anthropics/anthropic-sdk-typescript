@@ -73,6 +73,7 @@ export class Batches extends APIResource {
   results(messageBatchID: string, options?: RequestOptions): APIPromise<Response> {
     return this._client.get(`/v1/messages/batches/${messageBatchID}/results`, {
       ...options,
+      headers: { Accept: 'application/binary', ...options?.headers },
       __binaryResponse: true,
     });
   }
