@@ -10,7 +10,7 @@ import {
   type MessageCreateParamsBase,
   type TextBlock,
 } from '@anthropic-ai/sdk/resources/messages';
-import { type ReadableStream } from '@anthropic-ai/sdk/_shims/index';
+import { type ReadableStream, type Response } from '@anthropic-ai/sdk/_shims/index';
 import { Stream } from '@anthropic-ai/sdk/streaming';
 import { partialParse } from '../_vendor/partial-json-parser/parser';
 
@@ -41,8 +41,8 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
 
   controller: AbortController = new AbortController();
 
-  #connectedPromise: Promise<void>;
-  #resolveConnectedPromise: () => void = () => {};
+  #connectedPromise: Promise<Response | null>;
+  #resolveConnectedPromise: (response: Response | null) => void = () => {};
   #rejectConnectedPromise: (error: AnthropicError) => void = () => {};
 
   #endPromise: Promise<void>;
@@ -57,7 +57,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
   #catchingPromiseCreated = false;
 
   constructor() {
-    this.#connectedPromise = new Promise<void>((resolve, reject) => {
+    this.#connectedPromise = new Promise<Response | null>((resolve, reject) => {
       this.#resolveConnectedPromise = resolve;
       this.#rejectConnectedPromise = reject;
     });
@@ -73,6 +73,33 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     // any promise-returning method.
     this.#connectedPromise.catch(() => {});
     this.#endPromise.catch(() => {});
+  }
+
+  /**
+   * Returns the `MessageStream` data, the raw `Response` instance and the ID of the request,
+   * returned vie the `request-id` header which is useful for debugging requests and resporting
+   * issues to Anthropic.
+   *
+   * This is the same as the `APIPromise.withResponse()` method.
+   *
+   * This method will raise an error if you created the stream using `MessageStream.fromReadableStream`
+   * as no `Response` is available.
+   */
+  async withResponse(): Promise<{
+    data: MessageStream;
+    response: Response;
+    request_id: string | null | undefined;
+  }> {
+    const response = await this.#connectedPromise;
+    if (!response) {
+      throw new Error('Could not resolve a `Response` object');
+    }
+
+    return {
+      data: this,
+      response,
+      request_id: response.headers.get('request-id'),
+    };
   }
 
   /**
@@ -136,11 +163,10 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
       signal.addEventListener('abort', () => this.controller.abort());
     }
     this.#beginRequest();
-    const stream = await messages.create(
-      { ...params, stream: true },
-      { ...options, signal: this.controller.signal },
-    );
-    this._connected();
+    const { response, data: stream } = await messages
+      .create({ ...params, stream: true }, { ...options, signal: this.controller.signal })
+      .withResponse();
+    this._connected(response);
     for await (const event of stream) {
       this.#addStreamEvent(event);
     }
@@ -150,9 +176,9 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     this.#endRequest();
   }
 
-  protected _connected() {
+  protected _connected(response: Response | null) {
     if (this.ended) return;
-    this.#resolveConnectedPromise();
+    this.#resolveConnectedPromise(response);
     this._emit('connect');
   }
 
@@ -424,7 +450,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
       signal.addEventListener('abort', () => this.controller.abort());
     }
     this.#beginRequest();
-    this._connected();
+    this._connected(null);
     const stream = Stream.fromReadableStream<MessageStreamEvent>(readableStream, this.controller);
     for await (const event of stream) {
       this.#addStreamEvent(event);
