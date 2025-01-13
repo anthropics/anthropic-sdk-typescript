@@ -27,6 +27,7 @@ import {
   BetaMessageBatchesPage,
 } from './batches';
 import { Stream } from '../../../streaming';
+import { BetaMessageStream } from '../../../lib/BetaMessageStream';
 
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
@@ -65,6 +66,13 @@ export class Messages extends APIResource {
   }
 
   /**
+   * Create a Message stream
+   */
+  stream(body: BetaMessageStreamParams, options?: Core.RequestOptions): BetaMessageStream {
+    return BetaMessageStream.createMessage(this, body, options);
+  }
+
+  /**
    * Count the number of tokens in a Message.
    *
    * The Token Count API can be used to count the number of tokens in a Message,
@@ -85,6 +93,8 @@ export class Messages extends APIResource {
     });
   }
 }
+
+export type BetaMessageStreamParams = MessageCreateParamsBase;
 
 export interface BetaBase64PDFBlock {
   source: BetaBase64PDFSource;
