@@ -1,5 +1,6 @@
 import fs from 'fs';
-import { toFile, type ResponseLike } from '@anthropic-ai/sdk/uploads';
+import type { ResponseLike } from '@anthropic-ai/sdk/internal/uploads';
+import { toFile } from '@anthropic-ai/sdk/uploads';
 
 class MyClass {
   name: string = 'foo';
@@ -8,7 +9,7 @@ class MyClass {
 function mockResponse({ url, content }: { url: string; content?: Blob }): ResponseLike {
   return {
     url,
-    blob: async () => content as any,
+    blob: async () => content || new Blob([]),
   };
 }
 

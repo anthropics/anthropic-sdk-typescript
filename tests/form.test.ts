@@ -1,4 +1,5 @@
-import { multipartFormRequestOptions, createForm, toFile } from '@anthropic-ai/sdk';
+import { multipartFormRequestOptions, createForm } from '@anthropic-ai/sdk/internal/uploads';
+import { toFile } from '@anthropic-ai/sdk/uploads';
 
 describe('form data validation', () => {
   test('valid values do not error', async () => {
