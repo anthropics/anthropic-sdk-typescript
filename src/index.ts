@@ -2,13 +2,7 @@
 
 export { Anthropic as default } from './client';
 
-export {
-  multipartFormRequestOptions,
-  maybeMultipartFormRequestOptions,
-  type Uploadable,
-  createForm,
-  toFile,
-} from './uploads';
+export { type Uploadable, toFile } from './uploads';
 export { APIPromise } from './api-promise';
 export { BaseAnthropic, Anthropic, type ClientOptions, HUMAN_PROMPT, AI_PROMPT } from './client';
 export { PagePromise } from './pagination';
