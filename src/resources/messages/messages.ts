@@ -309,16 +309,17 @@ export type Model =
   | 'claude-2.1'
   | 'claude-2.0';
 
-type DeprecatedModelsType = {
+const DEPRECATED_MODELS: {
   [K in Model]?: string;
-};
-
-const DEPRECATED_MODELS: DeprecatedModelsType = {
+} = {
   'claude-1.3': 'November 6th, 2024',
   'claude-1.3-100k': 'November 6th, 2024',
   'claude-instant-1.1': 'November 6th, 2024',
   'claude-instant-1.1-100k': 'November 6th, 2024',
   'claude-instant-1.2': 'November 6th, 2024',
+  'claude-3-sonnet-20240229': 'July 21st, 2025',
+  'claude-2.1': 'July 21st, 2025',
+  'claude-2.0': 'July 21st, 2025',
 };
 
 export interface RawContentBlockDeltaEvent {
