@@ -241,7 +241,7 @@ All object responses in the SDK provide a `_request_id` property which is added 
 
 ```ts
 const message = await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-5-sonnet-latest' });
-console.log(completion._request_id) // req_018EeWyXxfu5pfWkrYcMdjWG
+console.log(message._request_id) // req_018EeWyXxfu5pfWkrYcMdjWG
 ```
 
 
