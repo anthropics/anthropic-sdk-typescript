@@ -346,33 +346,62 @@ const client = new Anthropic({
 Note that if given a `ANTHROPIC_LOG=debug` environment variable, this library will log all requests and responses automatically.
 This is intended for debugging purposes only and may change in the future without notice.
 
-### Configuring an HTTP(S) Agent (e.g., for proxies)
+### Fetch options
 
-By default, this library uses a stable agent for all http/https requests to reuse TCP connections, eliminating many TCP & TLS handshakes and shaving around 100ms off most requests.
+If you want to set custom `fetch` options without overriding the `fetch` function, you can provide a `fetchOptions` object when instantiating the client or making a request. (Request-specific options override client options.)
 
-If you would like to disable or customize this behavior, for example to use the API behind a proxy, you can pass an `httpAgent` which is used for all requests (be they http or https), for example:
-
-<!-- prettier-ignore -->
 ```ts
-import http from 'http';
-import { HttpsProxyAgent } from 'https-proxy-agent';
+import Anthropic from '@anthropic-ai/sdk';
 
-// Configure the default for all requests:
 const client = new Anthropic({
-  httpAgent: new HttpsProxyAgent(process.env.PROXY_URL),
+  fetchOptions: {
+    // `RequestInit` options
+  },
 });
+```
 
-// Override per-request:
-await client.messages.create(
-  {
-    max_tokens: 1024,
-    messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-5-sonnet-latest',
+#### Configuring proxies
+
+To modify proxy behavior, you can provide custom `fetchOptions` that add runtime-specific proxy
+options to requests:
+
+<img src="https://raw.githubusercontent.com/stainless-api/sdk-assets/refs/heads/main/node.svg" align="top" width="18" height="21"> **Node** <sup>[[docs](https://github.com/nodejs/undici/blob/main/docs/docs/api/ProxyAgent.md#example---proxyagent-with-fetch)]</sup>
+
+```ts
+import Anthropic from '@anthropic-ai/sdk';
+import * as undici from 'undici';
+
+const proxyAgent = new undici.ProxyAgent('http://localhost:8888');
+const client = new Anthropic({
+  fetchOptions: {
+    dispatcher: proxyAgent,
   },
-  {
-    httpAgent: new http.Agent({ keepAlive: false }),
+});
+```
+
+<img src="https://raw.githubusercontent.com/stainless-api/sdk-assets/refs/heads/main/bun.svg" align="top" width="18" height="21"> **Bun** <sup>[[docs](https://bun.sh/guides/http/proxy)]</sup>
+
+```ts
+import Anthropic from '@anthropic-ai/sdk';
+
+const client = new Anthropic({
+  fetchOptions: {
+    proxy: 'http://localhost:8888',
   },
-);
+});
+```
+
+<img src="https://raw.githubusercontent.com/stainless-api/sdk-assets/refs/heads/main/deno.svg" align="top" width="18" height="21"> **Deno** <sup>[[docs](https://docs.deno.com/api/deno/~/Deno.createHttpClient)]</sup>
+
+```ts
+import Anthropic from 'npm:@anthropic-ai/sdk';
+
+const httpClient = Deno.createHttpClient({ proxy: { url: 'http://localhost:8888' } });
+const client = new Anthropic({
+  fetchOptions: {
+    client: httpClient,
+  },
+});
 ```
 
 ## Frequently Asked Questions
