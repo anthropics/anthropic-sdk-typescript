@@ -55,6 +55,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
   #errored = false;
   #aborted = false;
   #catchingPromiseCreated = false;
+  #request_id: string | null | undefined;
 
   constructor() {
     this.#connectedPromise = new Promise<Response | null>((resolve, reject) => {
@@ -73,6 +74,10 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     // any promise-returning method.
     this.#connectedPromise.catch(() => {});
     this.#endPromise.catch(() => {});
+  }
+
+  get request_id(): string | null | undefined {
+    return this.#request_id;
   }
 
   /**
@@ -178,6 +183,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
 
   protected _connected(response: Response | null) {
     if (this.ended) return;
+    this.#request_id = response?.headers.get('request-id');
     this.#resolveConnectedPromise(response);
     this._emit('connect');
   }
