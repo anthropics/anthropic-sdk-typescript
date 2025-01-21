@@ -11,7 +11,6 @@ import { getPlatformHeaders } from './internal/detect-platform';
 import * as Shims from './internal/shims';
 import * as Opts from './internal/request-options';
 import { VERSION } from './version';
-import { buildHeaders } from './internal/headers';
 import * as Errors from './error';
 import * as Pagination from './pagination';
 import { AbstractPage, type PageParams, PageResponse } from './pagination';
@@ -20,7 +19,7 @@ import * as API from './resources/index';
 import { APIPromise } from './api-promise';
 import { type Fetch } from './internal/builtin-types';
 import { isRunningInBrowser } from './internal/detect-platform';
-import { HeadersLike, NullableHeaders, isEmptyHeaders } from './internal/headers';
+import { HeadersLike, NullableHeaders, buildHeaders, isEmptyHeaders } from './internal/headers';
 import { FinalRequestOptions, RequestOptions } from './internal/request-options';
 import {
   Completion,
