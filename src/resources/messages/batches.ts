@@ -87,7 +87,7 @@ export class Batches extends APIResource {
     return this._client
       .get(batch.results_url, {
         ...options,
-        headers: buildHeaders([{ Accept: 'application/binary' }, options?.headers]),
+        headers: buildHeaders([{ Accept: 'application/x-jsonl' }, options?.headers]),
 
         __binaryResponse: true,
       })
