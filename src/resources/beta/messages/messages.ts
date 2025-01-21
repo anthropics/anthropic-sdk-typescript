@@ -26,6 +26,7 @@ import {
 } from './batches';
 import { APIPromise } from '../../../api-promise';
 import { Stream } from '../../../streaming';
+import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
 
 export class Messages extends APIResource {
@@ -56,10 +57,10 @@ export class Messages extends APIResource {
       body,
       timeout: (this._client as any)._options.timeout ?? 600000,
       ...options,
-      headers: {
-        ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
-        ...options?.headers,
-      },
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
       stream: params.stream ?? false,
     }) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
   }
@@ -78,10 +79,10 @@ export class Messages extends APIResource {
     return this._client.post('/v1/messages/count_tokens?beta=true', {
       body,
       ...options,
-      headers: {
-        'anthropic-beta': [...(betas ?? []), 'token-counting-2024-11-01'].toString(),
-        ...options?.headers,
-      },
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'token-counting-2024-11-01'].toString() },
+        options?.headers,
+      ]),
     });
   }
 }

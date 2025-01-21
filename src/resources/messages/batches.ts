@@ -5,6 +5,7 @@ import * as Shared from '../shared';
 import * as MessagesAPI from './messages';
 import { APIPromise } from '../../api-promise';
 import { Page, type PageParams, PagePromise } from '../../pagination';
+import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
 import { JSONLDecoder } from '../../internal/decoders/jsonl';
 import { AnthropicError } from '../../error';
@@ -86,7 +87,8 @@ export class Batches extends APIResource {
     return this._client
       .get(batch.results_url, {
         ...options,
-        headers: { Accept: 'application/binary', ...options?.headers },
+        headers: buildHeaders([{ Accept: 'application/binary' }, options?.headers]),
+
         __binaryResponse: true,
       })
       ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller));
