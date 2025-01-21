@@ -1,5 +1,47 @@
 # Changelog
 
+## 0.13.0 (2025-01-21)
+
+Full Changelog: [bedrock-sdk-v0.12.2...bedrock-sdk-v0.13.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.12.2...bedrock-sdk-v0.13.0)
+
+### Features
+
+* **bedrock:** add beta.messages.create() method ([faf8484](https://github.com/anthropics/anthropic-sdk-typescript/commit/faf84848e42ec02994003283bf6178aa55233531))
+* **bedrock:** add messages API ([#305](https://github.com/anthropics/anthropic-sdk-typescript/issues/305)) ([072a5ed](https://github.com/anthropics/anthropic-sdk-typescript/commit/072a5ed642cbbdeee45532359d1ee5baea0b78fd))
+* **bedrock:** support tools ([2aeff91](https://github.com/anthropics/anthropic-sdk-typescript/commit/2aeff9187f3ebfa010c95715814a7e34f85ac6dd))
+* **messages:** add support for image inputs ([#303](https://github.com/anthropics/anthropic-sdk-typescript/issues/303)) ([1b87d9e](https://github.com/anthropics/anthropic-sdk-typescript/commit/1b87d9ea141defa81fa31ee47673b47e19cc8cb1))
+
+
+### Bug Fixes
+
+* **bedrock:** correct messages beta handling ([f34d67a](https://github.com/anthropics/anthropic-sdk-typescript/commit/f34d67abca1270f04f9bbf6ce430ce67b36d4932))
+* **bedrock:** don't mutate request body inputs ([4523ca9](https://github.com/anthropics/anthropic-sdk-typescript/commit/4523ca92b0fa194c2de0ac8bbc7e66873ec5e817))
+* **types:** correctly mark type as a required property in requests ([#371](https://github.com/anthropics/anthropic-sdk-typescript/issues/371)) ([06fc0f7](https://github.com/anthropics/anthropic-sdk-typescript/commit/06fc0f74f7769628f4001b9b739c463cd84e7e6f))
+
+
+### Chores
+
+* **bedrock,vertex:** remove unsupported countTokens method ([#597](https://github.com/anthropics/anthropic-sdk-typescript/issues/597)) ([6f6db16](https://github.com/anthropics/anthropic-sdk-typescript/commit/6f6db164d2526c2fb272151f4d68140da27ce1ea))
+* **bedrock:** move bedrock SDK to the main repo ([#274](https://github.com/anthropics/anthropic-sdk-typescript/issues/274)) ([1a565fe](https://github.com/anthropics/anthropic-sdk-typescript/commit/1a565feddd19c3dbe62f087fc9f13520bb69fc0e))
+* **bedrock:** remove unsupported methods ([8bb04ed](https://github.com/anthropics/anthropic-sdk-typescript/commit/8bb04ed2370c894b080d56d37e960ad4c3dc5925))
+* **bedrock:** use `chunk` for internal SSE parsing instead of `completion` ([#472](https://github.com/anthropics/anthropic-sdk-typescript/issues/472)) ([9515f60](https://github.com/anthropics/anthropic-sdk-typescript/commit/9515f6035e8b79a5335286c8cc1591d83ee51216))
+* **deps:** remove unused dependency digest-fetch ([#368](https://github.com/anthropics/anthropic-sdk-typescript/issues/368)) ([62790cb](https://github.com/anthropics/anthropic-sdk-typescript/commit/62790cb93abd27d63c2d6678159803972dc20606))
+* **docs:** rename anthropic const to client ([#471](https://github.com/anthropics/anthropic-sdk-typescript/issues/471)) ([8274f4b](https://github.com/anthropics/anthropic-sdk-typescript/commit/8274f4bbace5afa5956c1788bb244bd57c7f5c0f))
+* **internal:** fix generated version numbers ([#413](https://github.com/anthropics/anthropic-sdk-typescript/issues/413)) ([471430d](https://github.com/anthropics/anthropic-sdk-typescript/commit/471430dc1bfc7317b737bf778bda45aa591b087e))
+* **internal:** refactor scripts ([#404](https://github.com/anthropics/anthropic-sdk-typescript/issues/404)) ([60d1d00](https://github.com/anthropics/anthropic-sdk-typescript/commit/60d1d0035cb066a244f36f384f9d2f828d7c8de6))
+* **internal:** remove old reference to check-test-server ([e31a467](https://github.com/anthropics/anthropic-sdk-typescript/commit/e31a467163d801f1af1f25e967bdab226f5942ac))
+* **internal:** replace deprecated aws-sdk packages with [@smithy](https://github.com/smithy) ([#447](https://github.com/anthropics/anthropic-sdk-typescript/issues/447)) ([e21df2d](https://github.com/anthropics/anthropic-sdk-typescript/commit/e21df2df1ebb9edbbd60a5af2c1ec9c52a9bd28b))
+* **internal:** temporary revert commit ([#643](https://github.com/anthropics/anthropic-sdk-typescript/issues/643)) ([5e992e1](https://github.com/anthropics/anthropic-sdk-typescript/commit/5e992e1a9f75eceb948242498b6818d9af89a60e))
+* **internal:** update lock files ([#377](https://github.com/anthropics/anthropic-sdk-typescript/issues/377)) ([0029ce4](https://github.com/anthropics/anthropic-sdk-typescript/commit/0029ce4c4516e22a970d67d211d37e95519b2786))
+
+
+### Documentation
+
+* **bedrock:** fix dead link ([#356](https://github.com/anthropics/anthropic-sdk-typescript/issues/356)) ([131ba63](https://github.com/anthropics/anthropic-sdk-typescript/commit/131ba632f2a29e51842430cbdaae65b2002a7926))
+* **readme:** mention tool use ([#375](https://github.com/anthropics/anthropic-sdk-typescript/issues/375)) ([c08bdd4](https://github.com/anthropics/anthropic-sdk-typescript/commit/c08bdd4b91078ef9d18191771fbd300edb599fe7))
+* remove extraneous --save and yarn install instructions ([#323](https://github.com/anthropics/anthropic-sdk-typescript/issues/323)) ([57f8656](https://github.com/anthropics/anthropic-sdk-typescript/commit/57f8656d9b61c334e2f1ac7ff7cce118bc4bf46d))
+* use latest sonnet in example snippets ([#625](https://github.com/anthropics/anthropic-sdk-typescript/issues/625)) ([a965791](https://github.com/anthropics/anthropic-sdk-typescript/commit/a9657918aaf1246609105cbafaf4bb043b146356))
+
 ## 0.12.2 (2025-01-21)
 
 Full Changelog: [bedrock-sdk-v0.12.1...bedrock-sdk-v0.12.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.12.1...bedrock-sdk-v0.12.2)
