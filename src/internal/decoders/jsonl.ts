@@ -1,5 +1,5 @@
 import { AnthropicError } from '../../error';
-import { readableStreamAsyncIterable } from '../../streaming';
+import { ReadableStreamToAsyncIterable } from '../stream-utils';
 import { type Response } from '../../_shims/index';
 import { LineDecoder, type Bytes } from './line';
 
@@ -36,6 +36,6 @@ export class JSONLDecoder<T> {
       throw new AnthropicError(`Attempted to iterate over a response with no body`);
     }
 
-    return new JSONLDecoder(readableStreamAsyncIterable<Bytes>(response.body), controller);
+    return new JSONLDecoder(ReadableStreamToAsyncIterable<Bytes>(response.body), controller);
   }
 }
