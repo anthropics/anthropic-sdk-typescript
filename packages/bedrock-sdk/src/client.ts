@@ -3,6 +3,7 @@ import * as Resources from '@anthropic-ai/sdk/resources/index';
 import * as API from '@anthropic-ai/sdk/index';
 import { getAuthHeaders } from './auth';
 import { Stream } from './streaming';
+import { encode } from 'querystring';
 
 const DEFAULT_VERSION = 'bedrock-2023-05-31';
 const MODEL_ENDPOINTS = new Set<string>(['/v1/complete', '/v1/messages', '/v1/messages?beta=true']);
@@ -141,17 +142,16 @@ export class AnthropicBedrock extends Core.APIClient {
         throw new Error('Expected request body to be an object for post /v1/messages');
       }
 
-      // const model = options.body['model'];
-      const model = encodeURIComponent(options.body['model']);
+      const model = options.body['model'] as string;
       options.body['model'] = undefined;
 
       const stream = options.body['stream'];
       options.body['stream'] = undefined;
 
       if (stream) {
-        options.path = `/model/${model}/invoke-with-response-stream`;
+        options.path = `/model/${encodeURIComponent(model)}/invoke-with-response-stream`;
       } else {
-        options.path = `/model/${model}/invoke`;
+        options.path = `/model/${encodeURIComponent(model)}/invoke`;
       }
     }
 
