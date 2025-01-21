@@ -7,7 +7,7 @@ import * as BetaAPI from '../beta';
 import * as MessagesAPI from '../../messages/messages';
 import * as MessagesMessagesAPI from './messages';
 import { Page, type PageParams } from '../../../pagination';
-import { type Response } from '../../../_shims/index';
+import { JSONLDecoder } from '../../../internal/decoders/jsonl';
 
 export class Batches extends APIResource {
   /**
@@ -160,26 +160,31 @@ export class Batches extends APIResource {
     messageBatchId: string,
     params?: BatchResultsParams,
     options?: Core.RequestOptions,
-  ): Core.APIPromise<Response>;
-  results(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<Response>;
+  ): Core.APIPromise<JSONLDecoder<BetaMessageBatchIndividualResponse>>;
+  results(
+    messageBatchId: string,
+    options?: Core.RequestOptions,
+  ): Core.APIPromise<JSONLDecoder<BetaMessageBatchIndividualResponse>>;
   results(
     messageBatchId: string,
     params: BatchResultsParams | Core.RequestOptions = {},
     options?: Core.RequestOptions,
-  ): Core.APIPromise<Response> {
+  ): Core.APIPromise<JSONLDecoder<BetaMessageBatchIndividualResponse>> {
     if (isRequestOptions(params)) {
       return this.results(messageBatchId, {}, params);
     }
     const { betas } = params;
-    return this._client.get(`/v1/messages/batches/${messageBatchId}/results?beta=true`, {
-      ...options,
-      headers: {
-        'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
-        Accept: 'application/binary',
-        ...options?.headers,
-      },
-      __binaryResponse: true,
-    });
+    return this._client
+      .get(`/v1/messages/batches/${messageBatchId}/results?beta=true`, {
+        ...options,
+        headers: {
+          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          Accept: 'application/x-jsonl',
+          ...options?.headers,
+        },
+        __binaryResponse: true,
+      })
+      ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller));
   }
 }
 

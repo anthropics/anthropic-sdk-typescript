@@ -6,7 +6,7 @@ import * as Core from '../../core';
 import * as Shared from '../shared';
 import * as MessagesAPI from './messages';
 import { Page, type PageParams } from '../../pagination';
-import { type Response } from '../../_shims/index';
+import { JSONLDecoder } from '../../internal/decoders/jsonl';
 
 export class Batches extends APIResource {
   /**
@@ -79,12 +79,17 @@ export class Batches extends APIResource {
    * in the Message Batch. Results are not guaranteed to be in the same order as
    * requests. Use the `custom_id` field to match results to requests.
    */
-  results(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<Response> {
-    return this._client.get(`/v1/messages/batches/${messageBatchId}/results`, {
-      ...options,
-      headers: { Accept: 'application/binary', ...options?.headers },
-      __binaryResponse: true,
-    });
+  results(
+    messageBatchId: string,
+    options?: Core.RequestOptions,
+  ): Core.APIPromise<JSONLDecoder<MessageBatchIndividualResponse>> {
+    return this._client
+      .get(`/v1/messages/batches/${messageBatchId}/results`, {
+        ...options,
+        headers: { Accept: 'application/x-jsonl', ...options?.headers },
+        __binaryResponse: true,
+      })
+      ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller));
   }
 }
 
