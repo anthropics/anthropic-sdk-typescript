@@ -5,6 +5,7 @@ import * as Shared from '../shared';
 import * as MessagesAPI from './messages';
 import { APIPromise } from '../../api-promise';
 import { Page, type PageParams, PagePromise } from '../../pagination';
+import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
 
 export class Batches extends APIResource {
@@ -73,7 +74,7 @@ export class Batches extends APIResource {
   results(messageBatchID: string, options?: RequestOptions): APIPromise<Response> {
     return this._client.get(`/v1/messages/batches/${messageBatchID}/results`, {
       ...options,
-      headers: { Accept: 'application/binary', ...options?.headers },
+      headers: buildHeaders([{ Accept: 'application/binary' }, options?.headers]),
       __binaryResponse: true,
     });
   }
