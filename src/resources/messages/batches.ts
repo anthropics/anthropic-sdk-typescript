@@ -7,6 +7,7 @@ import { APIPromise } from '../../api-promise';
 import { Page, type PageParams, PagePromise } from '../../pagination';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { JSONLDecoder } from '../../internal/decoders/jsonl';
 
 export class Batches extends APIResource {
   /**
@@ -71,12 +72,17 @@ export class Batches extends APIResource {
    * in the Message Batch. Results are not guaranteed to be in the same order as
    * requests. Use the `custom_id` field to match results to requests.
    */
-  results(messageBatchID: string, options?: RequestOptions): APIPromise<Response> {
-    return this._client.get(`/v1/messages/batches/${messageBatchID}/results`, {
-      ...options,
-      headers: buildHeaders([{ Accept: 'application/binary' }, options?.headers]),
-      __binaryResponse: true,
-    });
+  results(
+    messageBatchID: string,
+    options?: RequestOptions,
+  ): APIPromise<JSONLDecoder<MessageBatchIndividualResponse>> {
+    return this._client
+      .get(`/v1/messages/batches/${messageBatchID}/results`, {
+        ...options,
+        headers: buildHeaders([{ Accept: 'application/x-jsonl' }, options?.headers]),
+        __binaryResponse: true,
+      })
+      ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller));
   }
 }
 

@@ -8,6 +8,7 @@ import { APIPromise } from '../../../api-promise';
 import { Page, type PageParams, PagePromise } from '../../../pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { JSONLDecoder } from '../../../internal/decoders/jsonl';
 
 export class Batches extends APIResource {
   /**
@@ -125,19 +126,21 @@ export class Batches extends APIResource {
     messageBatchID: string,
     params: BatchResultsParams | null | undefined = {},
     options?: RequestOptions,
-  ): APIPromise<Response> {
+  ): APIPromise<JSONLDecoder<BetaMessageBatchIndividualResponse>> {
     const { betas } = params ?? {};
-    return this._client.get(`/v1/messages/batches/${messageBatchID}/results?beta=true`, {
-      ...options,
-      headers: buildHeaders([
-        {
-          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
-          Accept: 'application/binary',
-        },
-        options?.headers,
-      ]),
-      __binaryResponse: true,
-    });
+    return this._client
+      .get(`/v1/messages/batches/${messageBatchID}/results?beta=true`, {
+        ...options,
+        headers: buildHeaders([
+          {
+            'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+            Accept: 'application/x-jsonl',
+          },
+          options?.headers,
+        ]),
+        __binaryResponse: true,
+      })
+      ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller));
   }
 }
 
