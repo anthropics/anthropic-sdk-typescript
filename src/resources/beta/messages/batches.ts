@@ -141,7 +141,7 @@ export class Batches extends APIResource {
         headers: buildHeaders([
           {
             'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
-            Accept: 'application/binary',
+            Accept: 'application/x-jsonl',
           },
           options?.headers,
         ]),
