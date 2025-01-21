@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.3 (2025-01-21)
+
+Full Changelog: [vertex-sdk-v0.6.2...vertex-sdk-v0.6.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.6.2...vertex-sdk-v0.6.3)
+
+### Bug Fixes
+
+* **vertex:** add beta.messages.countTokens method ([51d3f23](https://github.com/anthropics/anthropic-sdk-typescript/commit/51d3f23a7cc1bea798cc8e4041e08114ebc3a4eb))
+
+
+### Chores
+
+* **internal:** temporary revert commit ([#643](https://github.com/anthropics/anthropic-sdk-typescript/issues/643)) ([43dd43c](https://github.com/anthropics/anthropic-sdk-typescript/commit/43dd43c4c8ab69d5a60e59473af7dff5f7799048))
+
 ## 0.6.2 (2024-12-20)
 
 Full Changelog: [vertex-sdk-v0.6.1...vertex-sdk-v0.6.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.6.1...vertex-sdk-v0.6.2)
