@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.35.0 (2025-01-21)
+
+Full Changelog: [sdk-v0.34.0...sdk-v0.35.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.34.0...sdk-v0.35.0)
+
+### Features
+
+* add beta message streaming helpers ([#655](https://github.com/anthropics/anthropic-sdk-typescript/issues/655)) ([d7b5af1](https://github.com/anthropics/anthropic-sdk-typescript/commit/d7b5af1629dbcefdb7bfdca271ab497567830227))
+* **stream:** add `.withResponse()` ([#654](https://github.com/anthropics/anthropic-sdk-typescript/issues/654)) ([b54477f](https://github.com/anthropics/anthropic-sdk-typescript/commit/b54477f20c92db4c2c5ed89af5d46c36b035bf1e))
+* **streaming:** add `.request_id` getter ([4572478](https://github.com/anthropics/anthropic-sdk-typescript/commit/4572478266a67e12e32ffef69817cbc495943b1d))
+
+
+### Bug Fixes
+
+* **docs:** correct results return type ([#657](https://github.com/anthropics/anthropic-sdk-typescript/issues/657)) ([4e6d031](https://github.com/anthropics/anthropic-sdk-typescript/commit/4e6d031a41625ebf9c4311638e0c149179fcae0c))
+* **examples:** add token counting example ([2498e2e](https://github.com/anthropics/anthropic-sdk-typescript/commit/2498e2eaf49d66a664ed1fdcd7bbd331979cf5b2))
+* send correct Accept header for certain endpoints ([#651](https://github.com/anthropics/anthropic-sdk-typescript/issues/651)) ([17ffaeb](https://github.com/anthropics/anthropic-sdk-typescript/commit/17ffaeba5af48d13b08483973b82cfe1ae79347f))
+* **vertex:** add beta.messages.countTokens method ([51d3f23](https://github.com/anthropics/anthropic-sdk-typescript/commit/51d3f23a7cc1bea798cc8e4041e08114ebc3a4eb))
+
+
+### Chores
+
+* deprecate more models ([661f5f9](https://github.com/anthropics/anthropic-sdk-typescript/commit/661f5f9d9b24f3661df246dcf101dd9812b3e19e))
+* **internal:** add test ([#660](https://github.com/anthropics/anthropic-sdk-typescript/issues/660)) ([3ec7d1a](https://github.com/anthropics/anthropic-sdk-typescript/commit/3ec7d1a9eea30255b24cdb16c1a26705bdfea0ac))
+* **internal:** temporary revert commit ([#643](https://github.com/anthropics/anthropic-sdk-typescript/issues/643)) ([43dd43c](https://github.com/anthropics/anthropic-sdk-typescript/commit/43dd43c4c8ab69d5a60e59473af7dff5f7799048))
+* **internal:** update examples ([#649](https://github.com/anthropics/anthropic-sdk-typescript/issues/649)) ([036a239](https://github.com/anthropics/anthropic-sdk-typescript/commit/036a239800fec7e6cbc439f125101d5475eae5b3))
+* **types:** add `| undefined` to client options properties ([#656](https://github.com/anthropics/anthropic-sdk-typescript/issues/656)) ([d642298](https://github.com/anthropics/anthropic-sdk-typescript/commit/d642298334529ff95b9d7ac497d548a6b04dbcfb))
+
+
+### Documentation
+
+* **readme:** fix misplaced period ([#650](https://github.com/anthropics/anthropic-sdk-typescript/issues/650)) ([8754744](https://github.com/anthropics/anthropic-sdk-typescript/commit/87547448c8b4bf69a61756af1f12927f33b68680))
+* **readme:** fix Request IDs example ([#659](https://github.com/anthropics/anthropic-sdk-typescript/issues/659)) ([6d3162d](https://github.com/anthropics/anthropic-sdk-typescript/commit/6d3162da1ddb964b75e575376f278468ba1ed9f5))
+
 ## 0.34.0 (2024-12-20)
 
 Full Changelog: [sdk-v0.33.1...sdk-v0.34.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.33.1...sdk-v0.34.0)

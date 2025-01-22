@@ -92,7 +92,14 @@ export class Batches extends APIResource {
     }
 
     return this._client
-      .get(batch.results_url, { ...options, __binaryResponse: true })
+      .get(batch.results_url, {
+        ...options,
+        headers: {
+          Accept: 'application/binary',
+          ...options?.headers,
+        },
+        __binaryResponse: true,
+      })
       ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller));
   }
 }

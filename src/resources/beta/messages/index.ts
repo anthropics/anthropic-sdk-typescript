@@ -60,4 +60,5 @@ export {
   type MessageCreateParamsNonStreaming,
   type MessageCreateParamsStreaming,
   type MessageCountTokensParams,
+  type BetaMessageStreamParams,
 } from './messages';

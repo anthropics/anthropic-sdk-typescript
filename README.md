@@ -241,7 +241,7 @@ All object responses in the SDK provide a `_request_id` property which is added 
 
 ```ts
 const message = await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-5-sonnet-latest' });
-console.log(completion._request_id) // req_018EeWyXxfu5pfWkrYcMdjWG
+console.log(message._request_id) // req_018EeWyXxfu5pfWkrYcMdjWG
 ```
 
 
@@ -492,7 +492,7 @@ await client.messages.create(
 This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) conventions, though certain backwards-incompatible changes may be released as minor versions:
 
 1. Changes that only affect static types, without breaking runtime behavior.
-2. Changes to library internals which are technically public but not intended or documented for external use. _(Please open a GitHub issue to let us know if you are relying on such internals)_.
+2. Changes to library internals which are technically public but not intended or documented for external use. _(Please open a GitHub issue to let us know if you are relying on such internals.)_
 3. Changes that we do not expect to impact the vast majority of users in practice.
 
 We take backwards-compatibility seriously and work hard to ensure you can rely on a smooth upgrade experience.
