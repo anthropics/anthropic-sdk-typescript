@@ -55,6 +55,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
   #errored = false;
   #aborted = false;
   #catchingPromiseCreated = false;
+  #response: Response | null | undefined;
   #request_id: string | null | undefined;
 
   constructor() {
@@ -74,6 +75,10 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
     // any promise-returning method.
     this.#connectedPromise.catch(() => {});
     this.#endPromise.catch(() => {});
+  }
+
+  get response(): Response | null | undefined {
+    return this.#response;
   }
 
   get request_id(): string | null | undefined {
@@ -183,6 +188,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
 
   protected _connected(response: Response | null) {
     if (this.ended) return;
+    this.#response = response;
     this.#request_id = response?.headers.get('request-id');
     this.#resolveConnectedPromise(response);
     this._emit('connect');
