@@ -42,9 +42,10 @@ export class Batches extends APIResource {
   }
 
   /**
-   * This endpoint is idempotent and can be used to poll for Message Batch
-   * completion. To access the results of a Message Batch, make a request to the
-   * `results_url` field in the response.
+   * Delete a Message Batch.
+   *
+   * Message Batches can only be deleted once they've finished processing. If you'd
+   * like to delete an in-progress batch, you must first cancel it.
    */
   delete(messageBatchID: string, options?: RequestOptions): APIPromise<DeletedMessageBatch> {
     return this._client.delete(`/v1/messages/batches/${messageBatchID}`, options);
