@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.4 (2025-01-23)
+
+Full Changelog: [vertex-sdk-v0.6.3...vertex-sdk-v0.6.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.6.3...vertex-sdk-v0.6.4)
+
+### Chores
+
+* **vertex:** bump dependency on @anthropic-ai/sdk ([a1c7fcd](https://github.com/anthropics/anthropic-sdk-typescript/commit/a1c7fcdce081f860cbb1148c3862e3303ddb8a62))
+
 ## 0.6.3 (2025-01-21)
 
 Full Changelog: [vertex-sdk-v0.6.2...vertex-sdk-v0.6.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.6.2...vertex-sdk-v0.6.3)

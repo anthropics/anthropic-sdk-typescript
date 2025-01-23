@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.36.0 (2025-01-23)
+
+Full Changelog: [sdk-v0.35.0...sdk-v0.36.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.35.0...sdk-v0.36.0)
+
+### Features
+
+* **api:** add citations ([#668](https://github.com/anthropics/anthropic-sdk-typescript/issues/668)) ([1fef177](https://github.com/anthropics/anthropic-sdk-typescript/commit/1fef17749adbbeb243480b96c04941be29c0746c))
+* **client:** support results endpoint ([#666](https://github.com/anthropics/anthropic-sdk-typescript/issues/666)) ([db5fffe](https://github.com/anthropics/anthropic-sdk-typescript/commit/db5fffeb38a99a3e9283ebf001fbf767d756162e))
+* **stream:** expose `response` property as well ([b0235c7](https://github.com/anthropics/anthropic-sdk-typescript/commit/b0235c7b3ac174b3c8e670e381b4aa038e61c826))
+
+
+### Chores
+
+* **bedrock:** bump dependency on @anthropic-ai/sdk ([8745ca2](https://github.com/anthropics/anthropic-sdk-typescript/commit/8745ca2160f5af4d89e5732a44e560c5e2787aa8))
+* **internal:** fix import ([628b55e](https://github.com/anthropics/anthropic-sdk-typescript/commit/628b55ef5ff8f0245287ecaea688480a0174e2e9))
+* **internal:** minor restructuring ([#664](https://github.com/anthropics/anthropic-sdk-typescript/issues/664)) ([57aefa7](https://github.com/anthropics/anthropic-sdk-typescript/commit/57aefa73230d54da24d787a89adc277481986d02))
+* **vertex:** bump dependency on @anthropic-ai/sdk ([a1c7fcd](https://github.com/anthropics/anthropic-sdk-typescript/commit/a1c7fcdce081f860cbb1148c3862e3303ddb8a62))
+
 ## 0.35.0 (2025-01-21)
 
 Full Changelog: [sdk-v0.34.0...sdk-v0.35.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.34.0...sdk-v0.35.0)
