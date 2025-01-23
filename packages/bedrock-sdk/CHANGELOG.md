@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.12.3 (2025-01-23)
+
+Full Changelog: [bedrock-sdk-v0.12.2...bedrock-sdk-v0.12.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.12.2...bedrock-sdk-v0.12.3)
+
+### Chores
+
+* **bedrock:** bump dependency on @anthropic-ai/sdk ([8745ca2](https://github.com/anthropics/anthropic-sdk-typescript/commit/8745ca2160f5af4d89e5732a44e560c5e2787aa8))
+
 ## 0.12.2 (2025-01-21)
 
 Full Changelog: [bedrock-sdk-v0.12.1...bedrock-sdk-v0.12.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.12.1...bedrock-sdk-v0.12.2)
