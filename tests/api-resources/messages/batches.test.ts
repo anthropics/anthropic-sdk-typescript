@@ -44,7 +44,21 @@ describe('resource batches', () => {
             stop_sequences: ['string'],
             stream: true,
             system: [
-              { text: "Today's date is 2024-06-01.", type: 'text', cache_control: { type: 'ephemeral' } },
+              {
+                text: "Today's date is 2024-06-01.",
+                type: 'text',
+                cache_control: { type: 'ephemeral' },
+                citations: [
+                  {
+                    cited_text: 'cited_text',
+                    document_index: 0,
+                    document_title: 'x',
+                    end_char_index: 0,
+                    start_char_index: 0,
+                    type: 'char_location',
+                  },
+                ],
+              },
             ],
             temperature: 1,
             tool_choice: { type: 'auto', disable_parallel_tool_use: true },
