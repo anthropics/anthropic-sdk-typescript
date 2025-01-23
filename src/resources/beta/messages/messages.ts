@@ -120,11 +120,17 @@ export class Messages extends APIResource {
 export type BetaMessageStreamParams = MessageCreateParamsBase;
 
 export interface BetaBase64PDFBlock {
-  source: BetaBase64PDFSource;
+  source: BetaBase64PDFSource | BetaPlainTextSource | BetaContentBlockSource;
 
   type: 'document';
 
   cache_control?: BetaCacheControlEphemeral | null;
+
+  citations?: BetaCitationsConfigParam;
+
+  context?: string | null;
+
+  title?: string | null;
 }
 
 export interface BetaBase64PDFSource {
@@ -139,6 +145,100 @@ export interface BetaCacheControlEphemeral {
   type: 'ephemeral';
 }
 
+export interface BetaCitationCharLocation {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_char_index: number;
+
+  start_char_index: number;
+
+  type: 'char_location';
+}
+
+export interface BetaCitationCharLocationParam {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_char_index: number;
+
+  start_char_index: number;
+
+  type: 'char_location';
+}
+
+export interface BetaCitationContentBlockLocation {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_block_index: number;
+
+  start_block_index: number;
+
+  type: 'content_block_location';
+}
+
+export interface BetaCitationContentBlockLocationParam {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_block_index: number;
+
+  start_block_index: number;
+
+  type: 'content_block_location';
+}
+
+export interface BetaCitationPageLocation {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_page_number: number;
+
+  start_page_number: number;
+
+  type: 'page_location';
+}
+
+export interface BetaCitationPageLocationParam {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_page_number: number;
+
+  start_page_number: number;
+
+  type: 'page_location';
+}
+
+export interface BetaCitationsConfigParam {
+  enabled?: boolean;
+}
+
+export interface BetaCitationsDelta {
+  citation: BetaCitationCharLocation | BetaCitationPageLocation | BetaCitationContentBlockLocation;
+
+  type: 'citations_delta';
+}
+
 export type BetaContentBlock = BetaTextBlock | BetaToolUseBlock;
 
 export type BetaContentBlockParam =
@@ -147,6 +247,14 @@ export type BetaContentBlockParam =
   | BetaToolUseBlockParam
   | BetaToolResultBlockParam
   | BetaBase64PDFBlock;
+
+export interface BetaContentBlockSource {
+  content: string | Array<BetaContentBlockSourceContent>;
+
+  type: 'content';
+}
+
+export type BetaContentBlockSourceContent = BetaTextBlockParam | BetaImageBlockParam;
 
 export interface BetaImageBlockParam {
   source: BetaImageBlockParam.Source;
@@ -309,8 +417,16 @@ export interface BetaMetadata {
   user_id?: string | null;
 }
 
+export interface BetaPlainTextSource {
+  data: string;
+
+  media_type: 'text/plain';
+
+  type: 'text';
+}
+
 export interface BetaRawContentBlockDeltaEvent {
-  delta: BetaTextDelta | BetaInputJSONDelta;
+  delta: BetaTextDelta | BetaInputJSONDelta | BetaCitationsDelta;
 
   index: number;
 
@@ -380,6 +496,15 @@ export type BetaRawMessageStreamEvent =
   | BetaRawContentBlockStopEvent;
 
 export interface BetaTextBlock {
+  /**
+   * Citations supporting the text block.
+   *
+   * The type of citation returned will depend on the type of document being cited.
+   * Citing a PDF results in `page_location`, plain text results in `char_location`,
+   * and content document results in `content_block_location`.
+   */
+  citations: Array<BetaTextCitation> | null;
+
   text: string;
 
   type: 'text';
@@ -391,7 +516,19 @@ export interface BetaTextBlockParam {
   type: 'text';
 
   cache_control?: BetaCacheControlEphemeral | null;
+
+  citations?: Array<BetaTextCitationParam> | null;
 }
+
+export type BetaTextCitation =
+  | BetaCitationCharLocation
+  | BetaCitationPageLocation
+  | BetaCitationContentBlockLocation;
+
+export type BetaTextCitationParam =
+  | BetaCitationCharLocationParam
+  | BetaCitationPageLocationParam
+  | BetaCitationContentBlockLocationParam;
 
 export interface BetaTextDelta {
   text: string;
@@ -1110,8 +1247,18 @@ export declare namespace Messages {
     type BetaBase64PDFBlock as BetaBase64PDFBlock,
     type BetaBase64PDFSource as BetaBase64PDFSource,
     type BetaCacheControlEphemeral as BetaCacheControlEphemeral,
+    type BetaCitationCharLocation as BetaCitationCharLocation,
+    type BetaCitationCharLocationParam as BetaCitationCharLocationParam,
+    type BetaCitationContentBlockLocation as BetaCitationContentBlockLocation,
+    type BetaCitationContentBlockLocationParam as BetaCitationContentBlockLocationParam,
+    type BetaCitationPageLocation as BetaCitationPageLocation,
+    type BetaCitationPageLocationParam as BetaCitationPageLocationParam,
+    type BetaCitationsConfigParam as BetaCitationsConfigParam,
+    type BetaCitationsDelta as BetaCitationsDelta,
     type BetaContentBlock as BetaContentBlock,
     type BetaContentBlockParam as BetaContentBlockParam,
+    type BetaContentBlockSource as BetaContentBlockSource,
+    type BetaContentBlockSourceContent as BetaContentBlockSourceContent,
     type BetaImageBlockParam as BetaImageBlockParam,
     type BetaInputJSONDelta as BetaInputJSONDelta,
     type BetaMessage as BetaMessage,
@@ -1119,6 +1266,7 @@ export declare namespace Messages {
     type BetaMessageParam as BetaMessageParam,
     type BetaMessageTokensCount as BetaMessageTokensCount,
     type BetaMetadata as BetaMetadata,
+    type BetaPlainTextSource as BetaPlainTextSource,
     type BetaRawContentBlockDeltaEvent as BetaRawContentBlockDeltaEvent,
     type BetaRawContentBlockStartEvent as BetaRawContentBlockStartEvent,
     type BetaRawContentBlockStopEvent as BetaRawContentBlockStopEvent,
@@ -1128,6 +1276,8 @@ export declare namespace Messages {
     type BetaRawMessageStreamEvent as BetaRawMessageStreamEvent,
     type BetaTextBlock as BetaTextBlock,
     type BetaTextBlockParam as BetaTextBlockParam,
+    type BetaTextCitation as BetaTextCitation,
+    type BetaTextCitationParam as BetaTextCitationParam,
     type BetaTextDelta as BetaTextDelta,
     type BetaTool as BetaTool,
     type BetaToolBash20241022 as BetaToolBash20241022,
