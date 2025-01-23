@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.36.2 (2025-01-23)
+
+Full Changelog: [sdk-v0.36.1...sdk-v0.36.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.36.1...sdk-v0.36.2)
+
+### Bug Fixes
+
+* **bedrock:** update streaming util import ([255c059](https://github.com/anthropics/anthropic-sdk-typescript/commit/255c0599e333e6fae582255e3b0631538b168c69))
+
 ## 0.36.1 (2025-01-23)
 
 Full Changelog: [sdk-v0.36.0...sdk-v0.36.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.36.0...sdk-v0.36.1)
