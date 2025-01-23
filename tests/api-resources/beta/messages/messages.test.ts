@@ -31,7 +31,23 @@ describe('resource messages', () => {
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
       stop_sequences: ['string'],
       stream: false,
-      system: [{ text: "Today's date is 2024-06-01.", type: 'text', cache_control: { type: 'ephemeral' } }],
+      system: [
+        {
+          text: "Today's date is 2024-06-01.",
+          type: 'text',
+          cache_control: { type: 'ephemeral' },
+          citations: [
+            {
+              cited_text: 'cited_text',
+              document_index: 0,
+              document_title: 'x',
+              end_char_index: 0,
+              start_char_index: 0,
+              type: 'char_location',
+            },
+          ],
+        },
+      ],
       temperature: 1,
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
@@ -73,7 +89,23 @@ describe('resource messages', () => {
     const response = await client.beta.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
       model: 'string',
-      system: [{ text: "Today's date is 2024-06-01.", type: 'text', cache_control: { type: 'ephemeral' } }],
+      system: [
+        {
+          text: "Today's date is 2024-06-01.",
+          type: 'text',
+          cache_control: { type: 'ephemeral' },
+          citations: [
+            {
+              cited_text: 'cited_text',
+              document_index: 0,
+              document_title: 'x',
+              end_char_index: 0,
+              start_char_index: 0,
+              type: 'char_location',
+            },
+          ],
+        },
+      ],
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
         {

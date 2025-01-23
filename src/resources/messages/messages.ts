@@ -93,6 +93,100 @@ export interface CacheControlEphemeral {
   type: 'ephemeral';
 }
 
+export interface CitationCharLocation {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_char_index: number;
+
+  start_char_index: number;
+
+  type: 'char_location';
+}
+
+export interface CitationCharLocationParam {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_char_index: number;
+
+  start_char_index: number;
+
+  type: 'char_location';
+}
+
+export interface CitationContentBlockLocation {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_block_index: number;
+
+  start_block_index: number;
+
+  type: 'content_block_location';
+}
+
+export interface CitationContentBlockLocationParam {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_block_index: number;
+
+  start_block_index: number;
+
+  type: 'content_block_location';
+}
+
+export interface CitationPageLocation {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_page_number: number;
+
+  start_page_number: number;
+
+  type: 'page_location';
+}
+
+export interface CitationPageLocationParam {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_page_number: number;
+
+  start_page_number: number;
+
+  type: 'page_location';
+}
+
+export interface CitationsConfigParam {
+  enabled?: boolean;
+}
+
+export interface CitationsDelta {
+  citation: CitationCharLocation | CitationPageLocation | CitationContentBlockLocation;
+
+  type: 'citations_delta';
+}
+
 export type ContentBlock = TextBlock | ToolUseBlock;
 
 export type ContentBlockDeltaEvent = RawContentBlockDeltaEvent;
@@ -108,12 +202,26 @@ export type ContentBlockStartEvent = RawContentBlockStartEvent;
 
 export type ContentBlockStopEvent = RawContentBlockStopEvent;
 
+export interface ContentBlockSource {
+  content: string | Array<ContentBlockSourceContent>;
+
+  type: 'content';
+}
+
+export type ContentBlockSourceContent = TextBlockParam | ImageBlockParam;
+
 export interface DocumentBlockParam {
-  source: Base64PDFSource;
+  source: Base64PDFSource | PlainTextSource | ContentBlockSource;
 
   type: 'document';
 
   cache_control?: CacheControlEphemeral | null;
+
+  citations?: CitationsConfigParam;
+
+  context?: string | null;
+
+  title?: string | null;
 }
 
 export interface ImageBlockParam {
@@ -318,8 +426,16 @@ const DEPRECATED_MODELS: DeprecatedModelsType = {
   'claude-instant-1.2': 'November 6th, 2024',
 };
 
+export interface PlainTextSource {
+  data: string;
+
+  media_type: 'text/plain';
+
+  type: 'text';
+}
+
 export interface RawContentBlockDeltaEvent {
-  delta: TextDelta | InputJSONDelta;
+  delta: TextDelta | InputJSONDelta | CitationsDelta;
 
   index: number;
 
@@ -389,6 +505,15 @@ export type RawMessageStreamEvent =
   | RawContentBlockStopEvent;
 
 export interface TextBlock {
+  /**
+   * Citations supporting the text block.
+   *
+   * The type of citation returned will depend on the type of document being cited.
+   * Citing a PDF results in `page_location`, plain text results in `char_location`,
+   * and content document results in `content_block_location`.
+   */
+  citations: Array<TextCitation> | null;
+
   text: string;
 
   type: 'text';
@@ -400,7 +525,16 @@ export interface TextBlockParam {
   type: 'text';
 
   cache_control?: CacheControlEphemeral | null;
+
+  citations?: Array<TextCitationParam> | null;
 }
+
+export type TextCitation = CitationCharLocation | CitationPageLocation | CitationContentBlockLocation;
+
+export type TextCitationParam =
+  | CitationCharLocationParam
+  | CitationPageLocationParam
+  | CitationContentBlockLocationParam;
 
 export interface TextDelta {
   text: string;
@@ -1064,11 +1198,21 @@ export declare namespace Messages {
   export {
     type Base64PDFSource as Base64PDFSource,
     type CacheControlEphemeral as CacheControlEphemeral,
+    type CitationCharLocation as CitationCharLocation,
+    type CitationCharLocationParam as CitationCharLocationParam,
+    type CitationContentBlockLocation as CitationContentBlockLocation,
+    type CitationContentBlockLocationParam as CitationContentBlockLocationParam,
+    type CitationPageLocation as CitationPageLocation,
+    type CitationPageLocationParam as CitationPageLocationParam,
+    type CitationsConfigParam as CitationsConfigParam,
+    type CitationsDelta as CitationsDelta,
     type ContentBlock as ContentBlock,
     type ContentBlockDeltaEvent as ContentBlockDeltaEvent,
     type ContentBlockParam as ContentBlockParam,
     type ContentBlockStartEvent as ContentBlockStartEvent,
     type ContentBlockStopEvent as ContentBlockStopEvent,
+    type ContentBlockSource as ContentBlockSource,
+    type ContentBlockSourceContent as ContentBlockSourceContent,
     type DocumentBlockParam as DocumentBlockParam,
     type ImageBlockParam as ImageBlockParam,
     type InputJsonDelta as InputJsonDelta,
@@ -1083,6 +1227,7 @@ export declare namespace Messages {
     type MessageTokensCount as MessageTokensCount,
     type Metadata as Metadata,
     type Model as Model,
+    type PlainTextSource as PlainTextSource,
     type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,
     type RawContentBlockStartEvent as RawContentBlockStartEvent,
     type RawContentBlockStopEvent as RawContentBlockStopEvent,
@@ -1092,6 +1237,8 @@ export declare namespace Messages {
     type RawMessageStreamEvent as RawMessageStreamEvent,
     type TextBlock as TextBlock,
     type TextBlockParam as TextBlockParam,
+    type TextCitation as TextCitation,
+    type TextCitationParam as TextCitationParam,
     type TextDelta as TextDelta,
     type Tool as Tool,
     type ToolChoice as ToolChoice,
