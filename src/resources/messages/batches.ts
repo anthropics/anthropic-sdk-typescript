@@ -189,6 +189,10 @@ export interface MessageBatchExpiredResult {
   type: 'expired';
 }
 
+/**
+ * This is a single line in the response `.jsonl` file and does not represent the
+ * response as a whole.
+ */
 export interface MessageBatchIndividualResponse {
   /**
    * Developer-provided ID created for each request in a Message Batch. Useful for
