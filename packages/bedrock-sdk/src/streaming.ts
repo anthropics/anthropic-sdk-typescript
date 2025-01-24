@@ -2,11 +2,8 @@ import { EventStreamMarshaller } from '@smithy/eventstream-serde-node';
 import { fromBase64, toBase64 } from '@smithy/util-base64';
 import { streamCollector } from '@smithy/fetch-http-handler';
 import { EventStreamSerdeContext, SerdeContext } from '@smithy/types';
-import {
-  Stream as CoreStream,
-  readableStreamAsyncIterable,
-  ServerSentEvent,
-} from '@anthropic-ai/sdk/streaming';
+import { Stream as CoreStream, ServerSentEvent } from '@anthropic-ai/sdk/streaming';
+import { ReadableStreamToAsyncIterable } from '@anthropic-ai/sdk/internal/stream-utils';
 import { AnthropicError } from '@anthropic-ai/sdk/error';
 import { APIError } from '@anthropic-ai/sdk';
 import { createResponseHeaders, safeJSON } from '@anthropic-ai/sdk/core';
@@ -42,7 +39,7 @@ export class Stream<Item> extends CoreStream<Item> {
         throw new AnthropicError(`Attempted to iterate over a response with no body`);
       }
 
-      const responseBodyIter = readableStreamAsyncIterable<Bytes>(response.body);
+      const responseBodyIter = ReadableStreamToAsyncIterable<Bytes>(response.body);
       const eventStream = de_ResponseStream(responseBodyIter, getMinimalSerdeContext());
       for await (const event of eventStream) {
         if (event.chunk && event.chunk.bytes) {

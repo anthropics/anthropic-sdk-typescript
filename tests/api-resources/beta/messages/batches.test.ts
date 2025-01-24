@@ -44,7 +44,21 @@ describe('resource batches', () => {
             stop_sequences: ['string'],
             stream: false,
             system: [
-              { text: "Today's date is 2024-06-01.", type: 'text', cache_control: { type: 'ephemeral' } },
+              {
+                text: "Today's date is 2024-06-01.",
+                type: 'text',
+                cache_control: { type: 'ephemeral' },
+                citations: [
+                  {
+                    cited_text: 'cited_text',
+                    document_index: 0,
+                    document_title: 'x',
+                    end_char_index: 0,
+                    start_char_index: 0,
+                    type: 'char_location',
+                  },
+                ],
+              },
             ],
             temperature: 1,
             tool_choice: { type: 'auto', disable_parallel_tool_use: true },
@@ -190,14 +204,16 @@ describe('resource batches', () => {
     ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
-  test('results: request options instead of params are passed correctly', async () => {
+  // Prism doesn't support JSONL responses yet
+  test.skip('results: request options instead of params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.messages.batches.results('message_batch_id', { path: '/_stainless_unknown_path' }),
     ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
-  test('results: request options and params are passed correctly', async () => {
+  // Prism doesn't support JSONL responses yet
+  test.skip('results: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.messages.batches.results(
