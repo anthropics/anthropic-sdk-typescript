@@ -368,7 +368,6 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
-  | (string & {})
   | 'claude-3-5-haiku-latest'
   | 'claude-3-5-haiku-20241022'
   | 'claude-3-5-sonnet-latest'
@@ -379,7 +378,8 @@ export type Model =
   | 'claude-3-sonnet-20240229'
   | 'claude-3-haiku-20240307'
   | 'claude-2.1'
-  | 'claude-2.0';
+  | 'claude-2.0'
+  | (string & {});
 
 export interface PlainTextSource {
   data: string;
