@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.36.3 (2025-01-27)
+
+Full Changelog: [sdk-v0.36.2...sdk-v0.36.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.36.2...sdk-v0.36.3)
+
+### Bug Fixes
+
+* **streaming:** accumulate citations ([#675](https://github.com/anthropics/anthropic-sdk-typescript/issues/675)) ([522118f](https://github.com/anthropics/anthropic-sdk-typescript/commit/522118ffeab327e8476f12d9b9fa1f19042ed714))
+
+
+### Chores
+
+* **docs:** updates ([#673](https://github.com/anthropics/anthropic-sdk-typescript/issues/673)) ([751ecd0](https://github.com/anthropics/anthropic-sdk-typescript/commit/751ecd0d44707b21ccb390c81716937fae3d8e35))
+
 ## 0.36.2 (2025-01-23)
 
 Full Changelog: [sdk-v0.36.1...sdk-v0.36.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.36.1...sdk-v0.36.2)
