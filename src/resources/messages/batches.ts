@@ -8,6 +8,7 @@ import { Page, type PageParams, PagePromise } from '../../pagination';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
 import { JSONLDecoder } from '../../internal/decoders/jsonl';
+import { path } from '../../internal/utils/path';
 
 export class Batches extends APIResource {
   /**
@@ -27,7 +28,7 @@ export class Batches extends APIResource {
    * `results_url` field in the response.
    */
   retrieve(messageBatchID: string, options?: RequestOptions): APIPromise<MessageBatch> {
-    return this._client.get(`/v1/messages/batches/${messageBatchID}`, options);
+    return this._client.get(path`/v1/messages/batches/${messageBatchID}`, options);
   }
 
   /**
@@ -48,7 +49,7 @@ export class Batches extends APIResource {
    * like to delete an in-progress batch, you must first cancel it.
    */
   delete(messageBatchID: string, options?: RequestOptions): APIPromise<DeletedMessageBatch> {
-    return this._client.delete(`/v1/messages/batches/${messageBatchID}`, options);
+    return this._client.delete(path`/v1/messages/batches/${messageBatchID}`, options);
   }
 
   /**
@@ -63,7 +64,7 @@ export class Batches extends APIResource {
    * non-interruptible.
    */
   cancel(messageBatchID: string, options?: RequestOptions): APIPromise<MessageBatch> {
-    return this._client.post(`/v1/messages/batches/${messageBatchID}/cancel`, options);
+    return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel`, options);
   }
 
   /**
@@ -78,7 +79,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): APIPromise<JSONLDecoder<MessageBatchIndividualResponse>> {
     return this._client
-      .get(`/v1/messages/batches/${messageBatchID}/results`, {
+      .get(path`/v1/messages/batches/${messageBatchID}/results`, {
         ...options,
         headers: buildHeaders([{ Accept: 'application/x-jsonl' }, options?.headers]),
         __binaryResponse: true,
