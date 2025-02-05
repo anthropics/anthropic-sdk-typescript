@@ -9,6 +9,7 @@ import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
 import { JSONLDecoder } from '../../../internal/decoders/jsonl';
 import { AnthropicError } from '../../../error';
+import { path } from '../../../internal/utils/path';
 
 export class Batches extends APIResource {
   /**
@@ -41,7 +42,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaMessageBatch> {
     const { betas } = params ?? {};
-    return this._client.get(`/v1/messages/batches/${messageBatchID}?beta=true`, {
+    return this._client.get(path`/v1/messages/batches/${messageBatchID}?beta=true`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString() },
@@ -81,7 +82,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedMessageBatch> {
     const { betas } = params ?? {};
-    return this._client.delete(`/v1/messages/batches/${messageBatchID}?beta=true`, {
+    return this._client.delete(path`/v1/messages/batches/${messageBatchID}?beta=true`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString() },
@@ -107,7 +108,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaMessageBatch> {
     const { betas } = params ?? {};
-    return this._client.post(`/v1/messages/batches/${messageBatchID}/cancel?beta=true`, {
+    return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel?beta=true`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString() },
