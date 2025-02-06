@@ -161,6 +161,14 @@ export class Page<Item> extends AbstractPage<Item> implements PageResponse<Item>
     return this.data ?? [];
   }
 
+  override hasNextPage() {
+    if (this.has_more === false) {
+      return false;
+    }
+
+    return super.hasNextPage();
+  }
+
   nextPageRequestOptions(): PageRequestOptions | null {
     if ((this.options.query as Record<string, unknown>)?.['before_id']) {
       // in reverse
