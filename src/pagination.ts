@@ -45,6 +45,14 @@ export class Page<Item> extends AbstractPage<Item> implements PageResponse<Item>
     return this.data ?? [];
   }
 
+  override hasNextPage() {
+    if (this.has_more === false) {
+      return false;
+    }
+
+    return super.hasNextPage();
+  }
+
   // @deprecated Please use `nextPageInfo()` instead
   nextPageParams(): Partial<PageParams> | null {
     const info = this.nextPageInfo();
