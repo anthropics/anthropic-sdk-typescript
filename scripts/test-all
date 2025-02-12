@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -e
+
+bash ./scripts/test
+
+for dir in packages/*; do
+    if [ -f "$dir/scripts/test" ]; then
+        echo "==> Running tests in $dir"
+        (cd "$dir" && bash scripts/test)
+    fi
+done
