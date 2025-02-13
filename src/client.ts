@@ -391,24 +391,6 @@ export class BaseAnthropic {
     return url.toString();
   }
 
-  private calculateContentLength(body: unknown): string | null {
-    if (typeof body === 'string') {
-      if (typeof (globalThis as any).Buffer !== 'undefined') {
-        return (globalThis as any).Buffer.byteLength(body, 'utf8').toString();
-      }
-
-      if (typeof (globalThis as any).TextEncoder !== 'undefined') {
-        const encoder = new (globalThis as any).TextEncoder();
-        const encoded = encoder.encode(body);
-        return encoded.length.toString();
-      }
-    } else if (ArrayBuffer.isView(body)) {
-      return body.byteLength.toString();
-    }
-
-    return null;
-  }
-
   /**
    * Used as a callback for mutating the given `FinalRequestOptions` object.
    */
