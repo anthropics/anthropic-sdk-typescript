@@ -8,4 +8,4 @@ for (const dep in pkgJson.dependencies) {
   }
 }
 
-fs.writeFileSync('dist/package.json', JSON.stringify(pkgJson, null, 2))
+fs.writeFileSync('dist/package.json', JSON.stringify(pkgJson, null, 2));
