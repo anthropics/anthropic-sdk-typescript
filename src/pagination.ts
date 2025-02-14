@@ -155,7 +155,7 @@ export class Page<Item> extends AbstractPage<Item> implements PageResponse<Item>
     return this.data ?? [];
   }
 
-  override hasNextPage() {
+  override hasNextPage(): boolean {
     if (this.has_more === false) {
       return false;
     }
