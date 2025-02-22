@@ -13,7 +13,7 @@ describe('resource messages', () => {
     const responsePromise = client.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-3-5-haiku-latest',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -28,7 +28,7 @@ describe('resource messages', () => {
     const response = await client.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-3-5-haiku-latest',
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
       stop_sequences: ['string'],
       stream: false,
@@ -73,7 +73,7 @@ describe('resource messages', () => {
   test('countTokens: only required params', async () => {
     const responsePromise = client.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
-      model: 'string',
+      model: 'claude-3-5-haiku-latest',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -87,7 +87,7 @@ describe('resource messages', () => {
   test('countTokens: required and optional params', async () => {
     const response = await client.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
-      model: 'string',
+      model: 'claude-3-5-haiku-latest',
       system: [
         {
           text: "Today's date is 2024-06-01.",
