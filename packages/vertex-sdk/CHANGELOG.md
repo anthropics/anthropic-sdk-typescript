@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0 (2025-02-24)
+
+Full Changelog: [vertex-sdk-v0.6.4...vertex-sdk-v0.7.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.6.4...vertex-sdk-v0.7.0)
+
+### Features
+
+* **api:** add claude-3.7 + support for thinking ([ffab311](https://github.com/anthropics/anthropic-sdk-typescript/commit/ffab3113ddb042951a35d71e571727f8cce184ee))
+
 ## 0.6.4 (2025-01-23)
 
 Full Changelog: [vertex-sdk-v0.6.3...vertex-sdk-v0.6.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.6.3...vertex-sdk-v0.6.4)
