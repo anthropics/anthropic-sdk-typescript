@@ -38,6 +38,8 @@ export class Messages extends APIResource {
    *
    * The Messages API can be used for either single queries or stateless multi-turn
    * conversations.
+   *
+   * Learn more about the Messages API in our [user guide](/en/docs/initial-setup)
    */
   create(params: MessageCreateParamsNonStreaming, options?: RequestOptions): APIPromise<BetaMessage>;
   create(
@@ -70,6 +72,9 @@ export class Messages extends APIResource {
    *
    * The Token Count API can be used to count the number of tokens in a Message,
    * including tools, images, and documents, without creating it.
+   *
+   * Learn more about token counting in our
+   * [user guide](/en/docs/build-with-claude/token-counting)
    */
   countTokens(
     params: MessageCountTokensParams,
@@ -207,14 +212,20 @@ export interface BetaCitationsDelta {
   type: 'citations_delta';
 }
 
-export type BetaContentBlock = BetaTextBlock | BetaToolUseBlock;
+export type BetaContentBlock =
+  | BetaTextBlock
+  | BetaToolUseBlock
+  | BetaThinkingBlock
+  | BetaRedactedThinkingBlock;
 
 export type BetaContentBlockParam =
   | BetaTextBlockParam
   | BetaImageBlockParam
   | BetaToolUseBlockParam
   | BetaToolResultBlockParam
-  | BetaBase64PDFBlock;
+  | BetaBase64PDFBlock
+  | BetaThinkingBlockParam
+  | BetaRedactedThinkingBlockParam;
 
 export interface BetaContentBlockSource {
   content: string | Array<BetaContentBlockSourceContent>;
@@ -349,6 +360,9 @@ export interface BetaMessage {
    *
    * For example, `output_tokens` will be non-zero, even for an empty string response
    * from Claude.
+   *
+   * Total input tokens in a request is the summation of `input_tokens`,
+   * `cache_creation_input_tokens`, and `cache_read_input_tokens`.
    */
   usage: BetaUsage;
 }
@@ -394,7 +408,7 @@ export interface BetaPlainTextSource {
 }
 
 export interface BetaRawContentBlockDeltaEvent {
-  delta: BetaTextDelta | BetaInputJSONDelta | BetaCitationsDelta;
+  delta: BetaTextDelta | BetaInputJSONDelta | BetaCitationsDelta | BetaThinkingDelta | BetaSignatureDelta;
 
   index: number;
 
@@ -402,7 +416,7 @@ export interface BetaRawContentBlockDeltaEvent {
 }
 
 export interface BetaRawContentBlockStartEvent {
-  content_block: BetaTextBlock | BetaToolUseBlock;
+  content_block: BetaTextBlock | BetaToolUseBlock | BetaThinkingBlock | BetaRedactedThinkingBlock;
 
   index: number;
 
@@ -433,6 +447,9 @@ export interface BetaRawMessageDeltaEvent {
    *
    * For example, `output_tokens` will be non-zero, even for an empty string response
    * from Claude.
+   *
+   * Total input tokens in a request is the summation of `input_tokens`,
+   * `cache_creation_input_tokens`, and `cache_read_input_tokens`.
    */
   usage: BetaMessageDeltaUsage;
 }
@@ -462,6 +479,24 @@ export type BetaRawMessageStreamEvent =
   | BetaRawContentBlockStartEvent
   | BetaRawContentBlockDeltaEvent
   | BetaRawContentBlockStopEvent;
+
+export interface BetaRedactedThinkingBlock {
+  data: string;
+
+  type: 'redacted_thinking';
+}
+
+export interface BetaRedactedThinkingBlockParam {
+  data: string;
+
+  type: 'redacted_thinking';
+}
+
+export interface BetaSignatureDelta {
+  signature: string;
+
+  type: 'signature_delta';
+}
 
 export interface BetaTextBlock {
   /**
@@ -504,9 +539,65 @@ export interface BetaTextDelta {
   type: 'text_delta';
 }
 
+export interface BetaThinkingBlock {
+  signature: string;
+
+  thinking: string;
+
+  type: 'thinking';
+}
+
+export interface BetaThinkingBlockParam {
+  signature: string;
+
+  thinking: string;
+
+  type: 'thinking';
+}
+
+export interface BetaThinkingConfigDisabled {
+  type: 'disabled';
+}
+
+export interface BetaThinkingConfigEnabled {
+  /**
+   * Determines how many tokens Claude can use for its internal reasoning process.
+   * Larger budgets can enable more thorough analysis for complex problems, improving
+   * response quality.
+   *
+   * Must be ≥1024 and less than `max_tokens`.
+   *
+   * See
+   * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+   * for details.
+   */
+  budget_tokens: number;
+
+  type: 'enabled';
+}
+
+/**
+ * Configuration for enabling Claude's extended thinking.
+ *
+ * When enabled, responses include `thinking` content blocks showing Claude's
+ * thinking process before the final answer. Requires a minimum budget of 1,024
+ * tokens and counts towards your `max_tokens` limit.
+ *
+ * See
+ * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+ * for details.
+ */
+export type BetaThinkingConfigParam = BetaThinkingConfigEnabled | BetaThinkingConfigDisabled;
+
+export interface BetaThinkingDelta {
+  thinking: string;
+
+  type: 'thinking_delta';
+}
+
 export interface BetaTool {
   /**
-   * [JSON schema](https://json-schema.org/) for this tool's input.
+   * [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
    *
    * This defines the shape of the `input` that your tool accepts and that the model
    * will produce.
@@ -537,7 +628,7 @@ export interface BetaTool {
 
 export namespace BetaTool {
   /**
-   * [JSON schema](https://json-schema.org/) for this tool's input.
+   * [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
    *
    * This defines the shape of the `input` that your tool accepts and that the model
    * will produce.
@@ -559,6 +650,19 @@ export interface BetaToolBash20241022 {
   name: 'bash';
 
   type: 'bash_20241022';
+
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export interface BetaToolBash20250124 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in tool_use blocks.
+   */
+  name: 'bash';
+
+  type: 'bash_20250124';
 
   cache_control?: BetaCacheControlEphemeral | null;
 }
@@ -647,6 +751,34 @@ export interface BetaToolComputerUse20241022 {
   display_number?: number | null;
 }
 
+export interface BetaToolComputerUse20250124 {
+  /**
+   * The height of the display in pixels.
+   */
+  display_height_px: number;
+
+  /**
+   * The width of the display in pixels.
+   */
+  display_width_px: number;
+
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in tool_use blocks.
+   */
+  name: 'computer';
+
+  type: 'computer_20250124';
+
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * The X11 display number (e.g. 0, 1) for the display.
+   */
+  display_number?: number | null;
+}
+
 export interface BetaToolResultBlockParam {
   tool_use_id: string;
 
@@ -672,11 +804,27 @@ export interface BetaToolTextEditor20241022 {
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
+export interface BetaToolTextEditor20250124 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in tool_use blocks.
+   */
+  name: 'str_replace_editor';
+
+  type: 'text_editor_20250124';
+
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
 export type BetaToolUnion =
-  | BetaTool
   | BetaToolComputerUse20241022
   | BetaToolBash20241022
-  | BetaToolTextEditor20241022;
+  | BetaToolTextEditor20241022
+  | BetaToolComputerUse20250124
+  | BetaToolBash20250124
+  | BetaToolTextEditor20250124
+  | BetaTool;
 
 export interface BetaToolUseBlock {
   id: string;
@@ -882,6 +1030,19 @@ export interface MessageCreateParamsBase {
   temperature?: number;
 
   /**
+   * Body param: Configuration for enabling Claude's extended thinking.
+   *
+   * When enabled, responses include `thinking` content blocks showing Claude's
+   * thinking process before the final answer. Requires a minimum budget of 1,024
+   * tokens and counts towards your `max_tokens` limit.
+   *
+   * See
+   * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+   * for details.
+   */
+  thinking?: BetaThinkingConfigParam;
+
+  /**
    * Body param: How the model should use the provided tools. The model can use a
    * specific tool, any available tool, or decide by itself.
    */
@@ -899,8 +1060,9 @@ export interface MessageCreateParamsBase {
    *
    * - `name`: Name of the tool.
    * - `description`: Optional, but strongly-recommended description of the tool.
-   * - `input_schema`: [JSON schema](https://json-schema.org/) for the tool `input`
-   *   shape that the model will produce in `tool_use` output content blocks.
+   * - `input_schema`: [JSON schema](https://json-schema.org/draft/2020-12) for the
+   *   tool `input` shape that the model will produce in `tool_use` output content
+   *   blocks.
    *
    * For example, if you defined `tools` as:
    *
@@ -1124,6 +1286,19 @@ export interface MessageCountTokensParams {
   system?: string | Array<BetaTextBlockParam>;
 
   /**
+   * Body param: Configuration for enabling Claude's extended thinking.
+   *
+   * When enabled, responses include `thinking` content blocks showing Claude's
+   * thinking process before the final answer. Requires a minimum budget of 1,024
+   * tokens and counts towards your `max_tokens` limit.
+   *
+   * See
+   * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+   * for details.
+   */
+  thinking?: BetaThinkingConfigParam;
+
+  /**
    * Body param: How the model should use the provided tools. The model can use a
    * specific tool, any available tool, or decide by itself.
    */
@@ -1141,8 +1316,9 @@ export interface MessageCountTokensParams {
    *
    * - `name`: Name of the tool.
    * - `description`: Optional, but strongly-recommended description of the tool.
-   * - `input_schema`: [JSON schema](https://json-schema.org/) for the tool `input`
-   *   shape that the model will produce in `tool_use` output content blocks.
+   * - `input_schema`: [JSON schema](https://json-schema.org/draft/2020-12) for the
+   *   tool `input` shape that the model will produce in `tool_use` output content
+   *   blocks.
    *
    * For example, if you defined `tools` as:
    *
@@ -1199,7 +1375,15 @@ export interface MessageCountTokensParams {
    *
    * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
    */
-  tools?: Array<BetaTool | BetaToolComputerUse20241022 | BetaToolBash20241022 | BetaToolTextEditor20241022>;
+  tools?: Array<
+    | BetaToolComputerUse20241022
+    | BetaToolBash20241022
+    | BetaToolTextEditor20241022
+    | BetaToolComputerUse20250124
+    | BetaToolBash20250124
+    | BetaToolTextEditor20250124
+    | BetaTool
+  >;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
@@ -1241,20 +1425,32 @@ export declare namespace Messages {
     type BetaRawMessageStartEvent as BetaRawMessageStartEvent,
     type BetaRawMessageStopEvent as BetaRawMessageStopEvent,
     type BetaRawMessageStreamEvent as BetaRawMessageStreamEvent,
+    type BetaRedactedThinkingBlock as BetaRedactedThinkingBlock,
+    type BetaRedactedThinkingBlockParam as BetaRedactedThinkingBlockParam,
+    type BetaSignatureDelta as BetaSignatureDelta,
     type BetaTextBlock as BetaTextBlock,
     type BetaTextBlockParam as BetaTextBlockParam,
     type BetaTextCitation as BetaTextCitation,
     type BetaTextCitationParam as BetaTextCitationParam,
     type BetaTextDelta as BetaTextDelta,
+    type BetaThinkingBlock as BetaThinkingBlock,
+    type BetaThinkingBlockParam as BetaThinkingBlockParam,
+    type BetaThinkingConfigDisabled as BetaThinkingConfigDisabled,
+    type BetaThinkingConfigEnabled as BetaThinkingConfigEnabled,
+    type BetaThinkingConfigParam as BetaThinkingConfigParam,
+    type BetaThinkingDelta as BetaThinkingDelta,
     type BetaTool as BetaTool,
     type BetaToolBash20241022 as BetaToolBash20241022,
+    type BetaToolBash20250124 as BetaToolBash20250124,
     type BetaToolChoice as BetaToolChoice,
     type BetaToolChoiceAny as BetaToolChoiceAny,
     type BetaToolChoiceAuto as BetaToolChoiceAuto,
     type BetaToolChoiceTool as BetaToolChoiceTool,
     type BetaToolComputerUse20241022 as BetaToolComputerUse20241022,
+    type BetaToolComputerUse20250124 as BetaToolComputerUse20250124,
     type BetaToolResultBlockParam as BetaToolResultBlockParam,
     type BetaToolTextEditor20241022 as BetaToolTextEditor20241022,
+    type BetaToolTextEditor20250124 as BetaToolTextEditor20250124,
     type BetaToolUnion as BetaToolUnion,
     type BetaToolUseBlock as BetaToolUseBlock,
     type BetaToolUseBlockParam as BetaToolUseBlockParam,
