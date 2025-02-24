@@ -16,6 +16,9 @@ export class Batches extends APIResource {
    * The Message Batches API can be used to process multiple Messages API requests at
    * once. Once a Message Batch is created, it begins processing immediately. Batches
    * can take up to 24 hours to complete.
+   *
+   * Learn more about the Message Batches API in our
+   * [user guide](/en/docs/build-with-claude/batch-processing)
    */
   create(params: BatchCreateParams, options?: Core.RequestOptions): Core.APIPromise<BetaMessageBatch> {
     const { betas, ...body } = params;
@@ -33,6 +36,9 @@ export class Batches extends APIResource {
    * This endpoint is idempotent and can be used to poll for Message Batch
    * completion. To access the results of a Message Batch, make a request to the
    * `results_url` field in the response.
+   *
+   * Learn more about the Message Batches API in our
+   * [user guide](/en/docs/build-with-claude/batch-processing)
    */
   retrieve(
     messageBatchId: string,
@@ -61,6 +67,9 @@ export class Batches extends APIResource {
   /**
    * List all Message Batches within a Workspace. Most recently created batches are
    * returned first.
+   *
+   * Learn more about the Message Batches API in our
+   * [user guide](/en/docs/build-with-claude/batch-processing)
    */
   list(
     params?: BatchListParams,
@@ -90,6 +99,9 @@ export class Batches extends APIResource {
    *
    * Message Batches can only be deleted once they've finished processing. If you'd
    * like to delete an in-progress batch, you must first cancel it.
+   *
+   * Learn more about the Message Batches API in our
+   * [user guide](/en/docs/build-with-claude/batch-processing)
    */
   delete(
     messageBatchId: string,
@@ -125,6 +137,9 @@ export class Batches extends APIResource {
    * which requests were canceled, check the individual results within the batch.
    * Note that cancellation may not result in any canceled requests if they were
    * non-interruptible.
+   *
+   * Learn more about the Message Batches API in our
+   * [user guide](/en/docs/build-with-claude/batch-processing)
    */
   cancel(
     messageBatchId: string,
@@ -156,6 +171,9 @@ export class Batches extends APIResource {
    * Each line in the file is a JSON object containing the result of a single request
    * in the Message Batch. Results are not guaranteed to be in the same order as
    * requests. Use the `custom_id` field to match results to requests.
+   *
+   * Learn more about the Message Batches API in our
+   * [user guide](/en/docs/build-with-claude/batch-processing)
    */
   results(
     messageBatchId: string,
@@ -564,6 +582,19 @@ export namespace BatchCreateParams {
       temperature?: number;
 
       /**
+       * Configuration for enabling Claude's extended thinking.
+       *
+       * When enabled, responses include `thinking` content blocks showing Claude's
+       * thinking process before the final answer. Requires a minimum budget of 1,024
+       * tokens and counts towards your `max_tokens` limit.
+       *
+       * See
+       * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+       * for details.
+       */
+      thinking?: MessagesMessagesAPI.BetaThinkingConfigParam;
+
+      /**
        * How the model should use the provided tools. The model can use a specific tool,
        * any available tool, or decide by itself.
        */
@@ -581,8 +612,9 @@ export namespace BatchCreateParams {
        *
        * - `name`: Name of the tool.
        * - `description`: Optional, but strongly-recommended description of the tool.
-       * - `input_schema`: [JSON schema](https://json-schema.org/) for the tool `input`
-       *   shape that the model will produce in `tool_use` output content blocks.
+       * - `input_schema`: [JSON schema](https://json-schema.org/draft/2020-12) for the
+       *   tool `input` shape that the model will produce in `tool_use` output content
+       *   blocks.
        *
        * For example, if you defined `tools` as:
        *
