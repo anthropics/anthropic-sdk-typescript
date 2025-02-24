@@ -408,6 +408,18 @@ export abstract class APIClient {
     return reqHeaders;
   }
 
+  _calculateNonstreamingTimeout(maxTokens: number): number {
+    const defaultTimeout = 10 * 60;
+    const expectedTimeout = (60 * 60 * maxTokens) / 128_000;
+    if (expectedTimeout > defaultTimeout) {
+      throw new AnthropicError(
+        'Streaming is strongly recommended for operations that may take longer than 10 minutes. ' +
+          'See https://github.com/anthropics/anthropic-sdk-python#streaming-responses for more details',
+      );
+    }
+    return defaultTimeout * 1000;
+  }
+
   /**
    * Used as a callback for mutating the given `FinalRequestOptions` object.
    */
@@ -574,10 +586,23 @@ export abstract class APIClient {
       fetchOptions.method = fetchOptions.method.toUpperCase();
     }
 
+    // turn on TCP keep-alive for the sockets, if the runtime supports it
+    const socketKeepAliveInterval = 60 * 1000;
+    const keepAliveTimeout = setTimeout(() => {
+      if (fetchOptions && (fetchOptions as any)?.agent?.sockets) {
+        for (const socket of Object.values((fetchOptions as any)?.agent?.sockets).flat()) {
+          if ((socket as any)?.setKeepAlive) {
+            (socket as any).setKeepAlive(true, socketKeepAliveInterval);
+          }
+        }
+      }
+    }, socketKeepAliveInterval);
+
     return (
       // use undefined this binding; fetch errors if bound to something else in browser/cloudflare
       this.fetch.call(undefined, url, fetchOptions).finally(() => {
         clearTimeout(timeout);
+        clearTimeout(keepAliveTimeout);
       })
     );
   }

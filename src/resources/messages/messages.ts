@@ -34,6 +34,8 @@ export class Messages extends APIResource {
    *
    * The Messages API can be used for either single queries or stateless multi-turn
    * conversations.
+   *
+   * Learn more about the Messages API in our [user guide](/en/docs/initial-setup)
    */
   create(body: MessageCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Message>;
   create(
@@ -57,7 +59,9 @@ export class Messages extends APIResource {
     }
     return this._client.post('/v1/messages', {
       body,
-      timeout: (this._client as any)._options.timeout ?? 600000,
+      timeout:
+        (this._client as any)._options.timeout ??
+        (body.stream ? 600000 : this._client._calculateNonstreamingTimeout(body.max_tokens)),
       ...options,
       stream: body.stream ?? false,
     }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
@@ -75,6 +79,9 @@ export class Messages extends APIResource {
    *
    * The Token Count API can be used to count the number of tokens in a Message,
    * including tools, images, and documents, without creating it.
+   *
+   * Learn more about token counting in our
+   * [user guide](/en/docs/build-with-claude/token-counting)
    */
   countTokens(
     body: MessageCountTokensParams,
@@ -190,7 +197,7 @@ export interface CitationsDelta {
   type: 'citations_delta';
 }
 
-export type ContentBlock = TextBlock | ToolUseBlock;
+export type ContentBlock = TextBlock | ToolUseBlock | ThinkingBlock | RedactedThinkingBlock;
 
 export type ContentBlockDeltaEvent = RawContentBlockDeltaEvent;
 
@@ -199,7 +206,9 @@ export type ContentBlockParam =
   | ImageBlockParam
   | ToolUseBlockParam
   | ToolResultBlockParam
-  | DocumentBlockParam;
+  | DocumentBlockParam
+  | ThinkingBlockParam
+  | RedactedThinkingBlockParam;
 
 export interface ContentBlockSource {
   content: string | Array<ContentBlockSourceContent>;
@@ -354,9 +363,14 @@ export interface Message {
    *
    * For example, `output_tokens` will be non-zero, even for an empty string response
    * from Claude.
+   *
+   * Total input tokens in a request is the summation of `input_tokens`,
+   * `cache_creation_input_tokens`, and `cache_read_input_tokens`.
    */
   usage: Usage;
 }
+
+export type MessageCountTokensTool = ToolBash20250124 | ToolTextEditor20250124 | Tool;
 
 export type MessageDeltaEvent = RawMessageDeltaEvent;
 
@@ -404,6 +418,8 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
+  | 'claude-3-7-sonnet-latest'
+  | 'claude-3-7-sonnet-20250219'
   | 'claude-3-5-haiku-latest'
   | 'claude-3-5-haiku-20241022'
   | 'claude-3-5-sonnet-latest'
@@ -439,7 +455,7 @@ export interface PlainTextSource {
 }
 
 export interface RawContentBlockDeltaEvent {
-  delta: TextDelta | InputJSONDelta | CitationsDelta;
+  delta: TextDelta | InputJSONDelta | CitationsDelta | ThinkingDelta | SignatureDelta;
 
   index: number;
 
@@ -447,7 +463,7 @@ export interface RawContentBlockDeltaEvent {
 }
 
 export interface RawContentBlockStartEvent {
-  content_block: TextBlock | ToolUseBlock;
+  content_block: TextBlock | ToolUseBlock | ThinkingBlock | RedactedThinkingBlock;
 
   index: number;
 
@@ -478,6 +494,9 @@ export interface RawMessageDeltaEvent {
    *
    * For example, `output_tokens` will be non-zero, even for an empty string response
    * from Claude.
+   *
+   * Total input tokens in a request is the summation of `input_tokens`,
+   * `cache_creation_input_tokens`, and `cache_read_input_tokens`.
    */
   usage: MessageDeltaUsage;
 }
@@ -507,6 +526,24 @@ export type RawMessageStreamEvent =
   | RawContentBlockStartEvent
   | RawContentBlockDeltaEvent
   | RawContentBlockStopEvent;
+
+export interface RedactedThinkingBlock {
+  data: string;
+
+  type: 'redacted_thinking';
+}
+
+export interface RedactedThinkingBlockParam {
+  data: string;
+
+  type: 'redacted_thinking';
+}
+
+export interface SignatureDelta {
+  signature: string;
+
+  type: 'signature_delta';
+}
 
 export interface TextBlock {
   /**
@@ -546,9 +583,65 @@ export interface TextDelta {
   type: 'text_delta';
 }
 
+export interface ThinkingBlock {
+  signature: string;
+
+  thinking: string;
+
+  type: 'thinking';
+}
+
+export interface ThinkingBlockParam {
+  signature: string;
+
+  thinking: string;
+
+  type: 'thinking';
+}
+
+export interface ThinkingConfigDisabled {
+  type: 'disabled';
+}
+
+export interface ThinkingConfigEnabled {
+  /**
+   * Determines how many tokens Claude can use for its internal reasoning process.
+   * Larger budgets can enable more thorough analysis for complex problems, improving
+   * response quality.
+   *
+   * Must be ≥1024 and less than `max_tokens`.
+   *
+   * See
+   * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+   * for details.
+   */
+  budget_tokens: number;
+
+  type: 'enabled';
+}
+
+/**
+ * Configuration for enabling Claude's extended thinking.
+ *
+ * When enabled, responses include `thinking` content blocks showing Claude's
+ * thinking process before the final answer. Requires a minimum budget of 1,024
+ * tokens and counts towards your `max_tokens` limit.
+ *
+ * See
+ * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+ * for details.
+ */
+export type ThinkingConfigParam = ThinkingConfigEnabled | ThinkingConfigDisabled;
+
+export interface ThinkingDelta {
+  thinking: string;
+
+  type: 'thinking_delta';
+}
+
 export interface Tool {
   /**
-   * [JSON schema](https://json-schema.org/) for this tool's input.
+   * [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
    *
    * This defines the shape of the `input` that your tool accepts and that the model
    * will produce.
@@ -577,7 +670,7 @@ export interface Tool {
 
 export namespace Tool {
   /**
-   * [JSON schema](https://json-schema.org/) for this tool's input.
+   * [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
    *
    * This defines the shape of the `input` that your tool accepts and that the model
    * will produce.
@@ -588,6 +681,19 @@ export namespace Tool {
     properties?: unknown | null;
     [k: string]: unknown;
   }
+}
+
+export interface ToolBash20250124 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in tool_use blocks.
+   */
+  name: 'bash';
+
+  type: 'bash_20250124';
+
+  cache_control?: CacheControlEphemeral | null;
 }
 
 /**
@@ -657,6 +763,21 @@ export interface ToolResultBlockParam {
 
   is_error?: boolean;
 }
+
+export interface ToolTextEditor20250124 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in tool_use blocks.
+   */
+  name: 'str_replace_editor';
+
+  type: 'text_editor_20250124';
+
+  cache_control?: CacheControlEphemeral | null;
+}
+
+export type ToolUnion = ToolBash20250124 | ToolTextEditor20250124 | Tool;
 
 export interface ToolUseBlock {
   id: string;
@@ -861,6 +982,19 @@ export interface MessageCreateParamsBase {
   temperature?: number;
 
   /**
+   * Configuration for enabling Claude's extended thinking.
+   *
+   * When enabled, responses include `thinking` content blocks showing Claude's
+   * thinking process before the final answer. Requires a minimum budget of 1,024
+   * tokens and counts towards your `max_tokens` limit.
+   *
+   * See
+   * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+   * for details.
+   */
+  thinking?: ThinkingConfigParam;
+
+  /**
    * How the model should use the provided tools. The model can use a specific tool,
    * any available tool, or decide by itself.
    */
@@ -878,8 +1012,9 @@ export interface MessageCreateParamsBase {
    *
    * - `name`: Name of the tool.
    * - `description`: Optional, but strongly-recommended description of the tool.
-   * - `input_schema`: [JSON schema](https://json-schema.org/) for the tool `input`
-   *   shape that the model will produce in `tool_use` output content blocks.
+   * - `input_schema`: [JSON schema](https://json-schema.org/draft/2020-12) for the
+   *   tool `input` shape that the model will produce in `tool_use` output content
+   *   blocks.
    *
    * For example, if you defined `tools` as:
    *
@@ -936,7 +1071,7 @@ export interface MessageCreateParamsBase {
    *
    * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
    */
-  tools?: Array<Tool>;
+  tools?: Array<ToolUnion>;
 
   /**
    * Only sample from the top K options for each subsequent token.
@@ -1118,6 +1253,19 @@ export interface MessageCountTokensParams {
   system?: string | Array<TextBlockParam>;
 
   /**
+   * Configuration for enabling Claude's extended thinking.
+   *
+   * When enabled, responses include `thinking` content blocks showing Claude's
+   * thinking process before the final answer. Requires a minimum budget of 1,024
+   * tokens and counts towards your `max_tokens` limit.
+   *
+   * See
+   * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+   * for details.
+   */
+  thinking?: ThinkingConfigParam;
+
+  /**
    * How the model should use the provided tools. The model can use a specific tool,
    * any available tool, or decide by itself.
    */
@@ -1135,8 +1283,9 @@ export interface MessageCountTokensParams {
    *
    * - `name`: Name of the tool.
    * - `description`: Optional, but strongly-recommended description of the tool.
-   * - `input_schema`: [JSON schema](https://json-schema.org/) for the tool `input`
-   *   shape that the model will produce in `tool_use` output content blocks.
+   * - `input_schema`: [JSON schema](https://json-schema.org/draft/2020-12) for the
+   *   tool `input` shape that the model will produce in `tool_use` output content
+   *   blocks.
    *
    * For example, if you defined `tools` as:
    *
@@ -1193,7 +1342,7 @@ export interface MessageCountTokensParams {
    *
    * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
    */
-  tools?: Array<Tool>;
+  tools?: Array<MessageCountTokensTool>;
 }
 
 Messages.Batches = Batches;
@@ -1223,6 +1372,7 @@ export declare namespace Messages {
     type InputJsonDelta as InputJsonDelta,
     type InputJSONDelta as InputJSONDelta,
     type Message as Message,
+    type MessageCountTokensTool as MessageCountTokensTool,
     type MessageDeltaEvent as MessageDeltaEvent,
     type MessageDeltaUsage as MessageDeltaUsage,
     type MessageParam as MessageParam,
@@ -1240,17 +1390,29 @@ export declare namespace Messages {
     type RawMessageStartEvent as RawMessageStartEvent,
     type RawMessageStopEvent as RawMessageStopEvent,
     type RawMessageStreamEvent as RawMessageStreamEvent,
+    type RedactedThinkingBlock as RedactedThinkingBlock,
+    type RedactedThinkingBlockParam as RedactedThinkingBlockParam,
+    type SignatureDelta as SignatureDelta,
     type TextBlock as TextBlock,
     type TextBlockParam as TextBlockParam,
     type TextCitation as TextCitation,
     type TextCitationParam as TextCitationParam,
     type TextDelta as TextDelta,
+    type ThinkingBlock as ThinkingBlock,
+    type ThinkingBlockParam as ThinkingBlockParam,
+    type ThinkingConfigDisabled as ThinkingConfigDisabled,
+    type ThinkingConfigEnabled as ThinkingConfigEnabled,
+    type ThinkingConfigParam as ThinkingConfigParam,
+    type ThinkingDelta as ThinkingDelta,
     type Tool as Tool,
+    type ToolBash20250124 as ToolBash20250124,
     type ToolChoice as ToolChoice,
     type ToolChoiceAny as ToolChoiceAny,
     type ToolChoiceAuto as ToolChoiceAuto,
     type ToolChoiceTool as ToolChoiceTool,
     type ToolResultBlockParam as ToolResultBlockParam,
+    type ToolTextEditor20250124 as ToolTextEditor20250124,
+    type ToolUnion as ToolUnion,
     type ToolUseBlock as ToolUseBlock,
     type ToolUseBlockParam as ToolUseBlockParam,
     type Usage as Usage,

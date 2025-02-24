@@ -1,6 +1,6 @@
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > We're actively working on a new alpha version that migrates from `node-fetch` to builtin fetch.
-> 
+>
 > Please try it out and let us know if you run into any issues!
 > https://github.com/anthropics/anthropic-sdk-typescript/issues/645
 
@@ -268,7 +268,16 @@ await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', cont
 
 ### Timeouts
 
-Requests time out after 10 minutes by default. You can configure this with a `timeout` option:
+By default requests time out after 10 minutes. However if you have specified a large `max_tokens` value and are
+*not* streaming, the default timeout will be calculated dynamically using the formula:
+```typescript
+const minimum = 10 * 60;
+const calculated = (60 * 60 * maxTokens) / 128_000;
+return calculated < minimum ? minimum * 1000 : calculated * 1000;
+```
+which will result in a timeout up to 60 minutes, scaled by the `max_tokens` parameter, unless overriden at the request or client level.
+
+You can configure this with a `timeout` option:
 
 <!-- prettier-ignore -->
 ```ts
@@ -286,6 +295,24 @@ await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', cont
 On timeout, an `APIConnectionTimeoutError` is thrown.
 
 Note that requests which time out will be [retried twice by default](#retries).
+
+### Long Requests
+
+> [!IMPORTANT]
+> We highly encourage you use the streaming [Messages API](#streaming-responses) for longer running requests.
+
+We do not recommend setting a large `max_tokens` values without using streaming.
+Some networks may drop idle connections after a certain period of time, which
+can cause the request to fail or [timeout](#timeouts) without receiving a response from Anthropic.
+
+This SDK will also throw an error if a non-streaming request is expected to be above roughly 10 minutes long.
+Passing `stream: true` or [overriding](#timeouts) the `timeout` option at the client or request level disables this error.
+
+An expected request latency longer than the [timeout](#timeouts) for a non-streaming request
+will result in the client terminating the connection and retrying without receiving a response.
+
+When supported by the `fetch` implementation, we set a [TCP socket keep-alive](https://tldp.org/HOWTO/TCP-Keepalive-HOWTO/overview.html)
+option in order to reduce the impact of idle connection timeouts on some networks.
 
 ## Auto-pagination
 
