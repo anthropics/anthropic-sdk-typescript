@@ -61,23 +61,7 @@ describe('resource batches', () => {
             temperature: 1,
             thinking: { budget_tokens: 1024, type: 'enabled' },
             tool_choice: { type: 'auto', disable_parallel_tool_use: true },
-            tools: [
-              {
-                input_schema: {
-                  type: 'object',
-                  properties: {
-                    location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-                    unit: {
-                      description: 'Unit for the output - one of (celsius, fahrenheit)',
-                      type: 'string',
-                    },
-                  },
-                },
-                name: 'name',
-                cache_control: { type: 'ephemeral' },
-                description: 'Get the current weather in a given location',
-              },
-            ],
+            tools: [{ name: 'bash', type: 'bash_20250124', cache_control: { type: 'ephemeral' } }],
             top_k: 5,
             top_p: 0.7,
           },

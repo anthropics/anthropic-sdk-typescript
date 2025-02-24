@@ -57,7 +57,9 @@ export class Messages extends APIResource {
     const { betas, ...body } = params;
     return this._client.post('/v1/messages?beta=true', {
       body,
-      timeout: (this._client as any)._options.timeout ?? 600000,
+      timeout:
+        (this._client as any)._options.timeout ??
+        (body.stream ? 600000 : this._client._calculateNonstreamingTimeout(body.max_tokens)),
       ...options,
       headers: buildHeaders([
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
@@ -823,13 +825,13 @@ export interface BetaToolTextEditor20250124 {
 }
 
 export type BetaToolUnion =
-  | BetaTool
   | BetaToolComputerUse20241022
   | BetaToolBash20241022
   | BetaToolTextEditor20241022
   | BetaToolComputerUse20250124
   | BetaToolBash20250124
-  | BetaToolTextEditor20250124;
+  | BetaToolTextEditor20250124
+  | BetaTool;
 
 export interface BetaToolUseBlock {
   id: string;
@@ -1393,13 +1395,13 @@ export interface MessageCountTokensParams {
    * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
    */
   tools?: Array<
-    | BetaTool
     | BetaToolComputerUse20241022
     | BetaToolBash20241022
     | BetaToolTextEditor20241022
     | BetaToolComputerUse20250124
     | BetaToolBash20250124
     | BetaToolTextEditor20250124
+    | BetaTool
   >;
 
   /**

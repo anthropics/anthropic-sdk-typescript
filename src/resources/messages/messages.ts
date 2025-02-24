@@ -59,7 +59,9 @@ export class Messages extends APIResource {
     }
     return this._client.post('/v1/messages', {
       body,
-      timeout: (this._client as any)._options.timeout ?? 600000,
+      timeout:
+        (this._client as any)._options.timeout ??
+        (body.stream ? 600000 : this._client._calculateNonstreamingTimeout(body.max_tokens)),
       ...options,
       stream: body.stream ?? false,
     }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
@@ -361,7 +363,7 @@ export interface Message {
   usage: Usage;
 }
 
-export type MessageCountTokensTool = Tool | ToolBash20250124 | ToolTextEditor20250124;
+export type MessageCountTokensTool = ToolBash20250124 | ToolTextEditor20250124 | Tool;
 
 export type MessageDeltaEvent = RawMessageDeltaEvent;
 
@@ -774,7 +776,7 @@ export interface ToolTextEditor20250124 {
   cache_control?: CacheControlEphemeral | null;
 }
 
-export type ToolUnion = Tool | ToolBash20250124 | ToolTextEditor20250124;
+export type ToolUnion = ToolBash20250124 | ToolTextEditor20250124 | Tool;
 
 export interface ToolUseBlock {
   id: string;
