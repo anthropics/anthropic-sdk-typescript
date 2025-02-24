@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.37.0 (2025-02-24)
+
+Full Changelog: [sdk-v0.36.3...sdk-v0.37.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.36.3...sdk-v0.37.0)
+
+### Features
+
+* **api:** add claude-3.7 + support for thinking ([ffab311](https://github.com/anthropics/anthropic-sdk-typescript/commit/ffab3113ddb042951a35d71e571727f8cce184ee))
+* **client:** send `X-Stainless-Timeout` header ([#679](https://github.com/anthropics/anthropic-sdk-typescript/issues/679)) ([1172430](https://github.com/anthropics/anthropic-sdk-typescript/commit/1172430c87ba42acd2e16f4960247fe4003641a5))
+* **pagination:** avoid fetching when has_more: false ([#680](https://github.com/anthropics/anthropic-sdk-typescript/issues/680)) ([d4df248](https://github.com/anthropics/anthropic-sdk-typescript/commit/d4df248ff4eafa15b5f4b21b3da69d1a710052fa))
+
+
+### Bug Fixes
+
+* **client:** fix export map for index exports ([#684](https://github.com/anthropics/anthropic-sdk-typescript/issues/684)) ([56d9c7a](https://github.com/anthropics/anthropic-sdk-typescript/commit/56d9c7ab269af132d2ac374b6b7b9e5e523e0720))
+* correctly decode multi-byte characters over multiple chunks ([#681](https://github.com/anthropics/anthropic-sdk-typescript/issues/681)) ([e369e3d](https://github.com/anthropics/anthropic-sdk-typescript/commit/e369e3d650f2d761c3479935502615cab2a42b8d))
+* optimize sse chunk reading off-by-one error ([#686](https://github.com/anthropics/anthropic-sdk-typescript/issues/686)) ([53669af](https://github.com/anthropics/anthropic-sdk-typescript/commit/53669af8507c503dfd109ea34896dd018fbb1fc8))
+
+
+### Chores
+
+* **api:** update openapi spec url ([#678](https://github.com/anthropics/anthropic-sdk-typescript/issues/678)) ([84401b1](https://github.com/anthropics/anthropic-sdk-typescript/commit/84401b1068a11ae241a03643d32c459d837a82c6))
+* **internal:** add missing return type annotation ([#685](https://github.com/anthropics/anthropic-sdk-typescript/issues/685)) ([a8862b9](https://github.com/anthropics/anthropic-sdk-typescript/commit/a8862b9d39f688707ecf2142b002aa27a3cbd09b))
+* **internal:** fix devcontainers setup ([#689](https://github.com/anthropics/anthropic-sdk-typescript/issues/689)) ([8665946](https://github.com/anthropics/anthropic-sdk-typescript/commit/8665946ded8472e892301449569aae30613175fa))
+* **internal:** reorder model constants ([#676](https://github.com/anthropics/anthropic-sdk-typescript/issues/676)) ([52a2a11](https://github.com/anthropics/anthropic-sdk-typescript/commit/52a2a11467e4c117b50516104eb9b29aca86e232))
+* **internal:** update models used in tests ([52a2a11](https://github.com/anthropics/anthropic-sdk-typescript/commit/52a2a11467e4c117b50516104eb9b29aca86e232))
+
 ## 0.36.3 (2025-01-27)
 
 Full Changelog: [sdk-v0.36.2...sdk-v0.36.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.36.2...sdk-v0.36.3)
