@@ -13,6 +13,7 @@ import * as Opts from './internal/request-options';
 import { VERSION } from './version';
 import * as Errors from './error';
 import * as Pagination from './pagination';
+import { AnthropicError } from './error';
 import { AbstractPage, type PageParams, PageResponse } from './pagination';
 import * as Uploads from './uploads';
 import * as API from './resources/index';
@@ -428,6 +429,18 @@ export class BaseAnthropic {
     }
 
     return url.toString();
+  }
+
+  _calculateNonstreamingTimeout(maxTokens: number): number {
+    const defaultTimeout = 10 * 60;
+    const expectedTimeout = (60 * 60 * maxTokens) / 128_000;
+    if (expectedTimeout > defaultTimeout) {
+      throw new AnthropicError(
+        'Streaming is strongly recommended for operations that may take longer than 10 minutes. ' +
+          'See https://github.com/anthropics/anthropic-sdk-python#streaming-responses for more details',
+      );
+    }
+    return defaultTimeout * 1000;
   }
 
   /**

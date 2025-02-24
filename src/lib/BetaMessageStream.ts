@@ -1,32 +1,32 @@
 import { isAbortError } from '../internal/errors';
 import { AnthropicError, APIUserAbortError } from '../error';
 import {
-  type ContentBlock,
-  Messages,
-  type Message,
-  type MessageStreamEvent,
-  type MessageParam,
-  type MessageCreateParams,
-  type MessageCreateParamsBase,
-  type TextBlock,
-  type TextCitation,
-} from '../resources/messages';
+  type BetaContentBlock,
+  Messages as BetaMessages,
+  type BetaMessage,
+  type BetaRawMessageStreamEvent as BetaMessageStreamEvent,
+  type BetaMessageParam,
+  type MessageCreateParams as BetaMessageCreateParams,
+  type MessageCreateParamsBase as BetaMessageCreateParamsBase,
+  type BetaTextBlock,
+  type BetaTextCitation,
+} from '../resources/beta/messages/messages';
 import { Stream } from '../streaming';
 import { partialParse } from '../_vendor/partial-json-parser/parser';
-import { RequestOptions } from '../internal/request-options';
+import { type RequestOptions } from '../internal/request-options';
 import { type ReadableStream } from '../internal/shim-types';
 
 export interface MessageStreamEvents {
   connect: () => void;
-  streamEvent: (event: MessageStreamEvent, snapshot: Message) => void;
+  streamEvent: (event: BetaMessageStreamEvent, snapshot: BetaMessage) => void;
   text: (textDelta: string, textSnapshot: string) => void;
-  citation: (citation: TextCitation, citationsSnapshot: TextCitation[]) => void;
+  citation: (citation: BetaTextCitation, citationsSnapshot: BetaTextCitation[]) => void;
   inputJson: (partialJson: string, jsonSnapshot: unknown) => void;
   thinking: (thinkingDelta: string, thinkingSnapshot: string) => void;
   signature: (signature: string) => void;
-  message: (message: Message) => void;
-  contentBlock: (content: ContentBlock) => void;
-  finalMessage: (message: Message) => void;
+  message: (message: BetaMessage) => void;
+  contentBlock: (content: BetaContentBlock) => void;
+  finalMessage: (message: BetaMessage) => void;
   error: (error: AnthropicError) => void;
   abort: (error: APIUserAbortError) => void;
   end: () => void;
@@ -39,10 +39,10 @@ type MessageStreamEventListeners<Event extends keyof MessageStreamEvents> = {
 
 const JSON_BUF_PROPERTY = '__json_buf';
 
-export class MessageStream implements AsyncIterable<MessageStreamEvent> {
-  messages: MessageParam[] = [];
-  receivedMessages: Message[] = [];
-  #currentMessageSnapshot: Message | undefined;
+export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> {
+  messages: BetaMessageParam[] = [];
+  receivedMessages: BetaMessage[] = [];
+  #currentMessageSnapshot: BetaMessage | undefined;
 
   controller: AbortController = new AbortController();
 
@@ -101,7 +101,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
    * as no `Response` is available.
    */
   async withResponse(): Promise<{
-    data: MessageStream;
+    data: BetaMessageStream;
     response: Response;
     request_id: string | null | undefined;
   }> {
@@ -124,18 +124,18 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
    * Note that messages sent to the model do not appear in `.on('message')`
    * in this context.
    */
-  static fromReadableStream(stream: ReadableStream): MessageStream {
-    const runner = new MessageStream();
+  static fromReadableStream(stream: ReadableStream): BetaMessageStream {
+    const runner = new BetaMessageStream();
     runner._run(() => runner._fromReadableStream(stream));
     return runner;
   }
 
   static createMessage(
-    messages: Messages,
-    params: MessageCreateParamsBase,
+    messages: BetaMessages,
+    params: BetaMessageCreateParamsBase,
     options?: RequestOptions,
-  ): MessageStream {
-    const runner = new MessageStream();
+  ): BetaMessageStream {
+    const runner = new BetaMessageStream();
     for (const message of params.messages) {
       runner._addMessageParam(message);
     }
@@ -156,11 +156,11 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     }, this.#handleError);
   }
 
-  protected _addMessageParam(message: MessageParam) {
+  protected _addMessageParam(message: BetaMessageParam) {
     this.messages.push(message);
   }
 
-  protected _addMessage(message: Message, emit = true) {
+  protected _addMessage(message: BetaMessage, emit = true) {
     this.receivedMessages.push(message);
     if (emit) {
       this._emit('message', message);
@@ -168,8 +168,8 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
   }
 
   protected async _createMessage(
-    messages: Messages,
-    params: MessageCreateParams,
+    messages: BetaMessages,
+    params: BetaMessageCreateParams,
     options?: RequestOptions,
   ): Promise<void> {
     const signal = options?.signal;
@@ -286,11 +286,11 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     await this.#endPromise;
   }
 
-  get currentMessage(): Message | undefined {
+  get currentMessage(): BetaMessage | undefined {
     return this.#currentMessageSnapshot;
   }
 
-  #getFinalMessage(): Message {
+  #getFinalMessage(): BetaMessage {
     if (this.receivedMessages.length === 0) {
       throw new AnthropicError('stream ended without producing a Message with role=assistant');
     }
@@ -301,7 +301,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
    * @returns a promise that resolves with the the final assistant Message response,
    * or rejects if an error occurred or the stream ended prematurely without producing a Message.
    */
-  async finalMessage(): Promise<Message> {
+  async finalMessage(): Promise<BetaMessage> {
     await this.done();
     return this.#getFinalMessage();
   }
@@ -312,7 +312,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     }
     const textBlocks = this.receivedMessages
       .at(-1)!
-      .content.filter((block): block is TextBlock => block.type === 'text')
+      .content.filter((block): block is BetaTextBlock => block.type === 'text')
       .map((block) => block.text);
     if (textBlocks.length === 0) {
       throw new AnthropicError('stream ended without producing a content block with type=text');
@@ -410,7 +410,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     if (this.ended) return;
     this.#currentMessageSnapshot = undefined;
   }
-  #addStreamEvent(event: MessageStreamEvent) {
+  #addStreamEvent(event: BetaMessageStreamEvent) {
     if (this.ended) return;
     const messageSnapshot = this.#accumulateMessage(event);
     this._emit('streamEvent', event, messageSnapshot);
@@ -472,7 +472,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
         break;
     }
   }
-  #endRequest(): Message {
+  #endRequest(): BetaMessage {
     if (this.ended) {
       throw new AnthropicError(`stream has ended, this shouldn't happen`);
     }
@@ -495,7 +495,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     }
     this.#beginRequest();
     this._connected(null);
-    const stream = Stream.fromReadableStream<MessageStreamEvent>(readableStream, this.controller);
+    const stream = Stream.fromReadableStream<BetaMessageStreamEvent>(readableStream, this.controller);
     for await (const event of stream) {
       this.#addStreamEvent(event);
     }
@@ -510,7 +510,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
    * will be needed to be handled by the caller, this method will throw if you try to accumulate for multiple
    * messages.
    */
-  #accumulateMessage(event: MessageStreamEvent): Message {
+  #accumulateMessage(event: BetaMessageStreamEvent): BetaMessage {
     let snapshot = this.#currentMessageSnapshot;
 
     if (event.type === 'message_start') {
@@ -587,7 +587,6 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
           default:
             checkNever(event.delta);
         }
-
         return snapshot;
       }
       case 'content_block_stop':
@@ -595,10 +594,10 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     }
   }
 
-  [Symbol.asyncIterator](): AsyncIterator<MessageStreamEvent> {
-    const pushQueue: MessageStreamEvent[] = [];
+  [Symbol.asyncIterator](): AsyncIterator<BetaMessageStreamEvent> {
+    const pushQueue: BetaMessageStreamEvent[] = [];
     const readQueue: {
-      resolve: (chunk: MessageStreamEvent | undefined) => void;
+      resolve: (chunk: BetaMessageStreamEvent | undefined) => void;
       reject: (error: unknown) => void;
     }[] = [];
     let done = false;
@@ -637,12 +636,12 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     });
 
     return {
-      next: async (): Promise<IteratorResult<MessageStreamEvent>> => {
+      next: async (): Promise<IteratorResult<BetaMessageStreamEvent>> => {
         if (!pushQueue.length) {
           if (done) {
             return { value: undefined, done: true };
           }
-          return new Promise<MessageStreamEvent | undefined>((resolve, reject) =>
+          return new Promise<BetaMessageStreamEvent | undefined>((resolve, reject) =>
             readQueue.push({ resolve, reject }),
           ).then((chunk) => (chunk ? { value: chunk, done: false } : { value: undefined, done: true }));
         }

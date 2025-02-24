@@ -32,6 +32,8 @@ async function* messageIterable(message: Message): AsyncGenerator<MessageStreamE
             name: 'get_weather',
             input: {},
           }
+        : content.type === 'thinking' ? { type: 'thinking', thinking: '', signature: '' }
+        : content.type === 'redacted_thinking' ? { type: 'redacted_thinking', data: '' }
         : assertNever(content),
       index: idx,
     };
@@ -54,6 +56,10 @@ async function* messageIterable(message: Message): AsyncGenerator<MessageStreamE
           index: idx,
         };
       }
+    } else if (content.type === 'thinking') {
+      throw new Error('thinking not implemented yet');
+    } else if (content.type === 'redacted_thinking') {
+      throw new Error('redacted_thinking not implemented yet');
     } else {
       assertNever(content);
     }
