@@ -12,7 +12,7 @@ describe('resource messages', () => {
     const responsePromise = client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-3-5-haiku-latest',
+      model: 'claude-3-7-sonnet-latest',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -27,7 +27,7 @@ describe('resource messages', () => {
     const response = await client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-3-5-haiku-latest',
+      model: 'claude-3-7-sonnet-latest',
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
       stop_sequences: ['string'],
       stream: false,
@@ -49,20 +49,16 @@ describe('resource messages', () => {
         },
       ],
       temperature: 1,
+      thinking: { budget_tokens: 1024, type: 'enabled' },
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
         {
-          input_schema: {
-            type: 'object',
-            properties: {
-              location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-              unit: { description: 'Unit for the output - one of (celsius, fahrenheit)', type: 'string' },
-            },
-          },
-          name: 'name',
+          display_height_px: 1,
+          display_width_px: 1,
+          name: 'computer',
+          type: 'computer_20241022',
           cache_control: { type: 'ephemeral' },
-          description: 'Get the current weather in a given location',
-          type: 'custom',
+          display_number: 0,
         },
       ],
       top_k: 5,
@@ -74,7 +70,7 @@ describe('resource messages', () => {
   test('countTokens: only required params', async () => {
     const responsePromise = client.beta.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
-      model: 'claude-3-5-haiku-latest',
+      model: 'claude-3-7-sonnet-latest',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -88,7 +84,7 @@ describe('resource messages', () => {
   test('countTokens: required and optional params', async () => {
     const response = await client.beta.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
-      model: 'claude-3-5-haiku-latest',
+      model: 'claude-3-7-sonnet-latest',
       system: [
         {
           text: "Today's date is 2024-06-01.",
@@ -106,20 +102,16 @@ describe('resource messages', () => {
           ],
         },
       ],
+      thinking: { budget_tokens: 1024, type: 'enabled' },
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
         {
-          input_schema: {
-            type: 'object',
-            properties: {
-              location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-              unit: { description: 'Unit for the output - one of (celsius, fahrenheit)', type: 'string' },
-            },
-          },
-          name: 'name',
+          display_height_px: 1,
+          display_width_px: 1,
+          name: 'computer',
+          type: 'computer_20241022',
           cache_control: { type: 'ephemeral' },
-          description: 'Get the current weather in a given location',
-          type: 'custom',
+          display_number: 0,
         },
       ],
       betas: ['string'],
