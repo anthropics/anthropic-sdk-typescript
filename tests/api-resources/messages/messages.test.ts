@@ -13,7 +13,7 @@ describe('resource messages', () => {
     const responsePromise = client.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-3-5-haiku-latest',
+      model: 'claude-3-7-sonnet-latest',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -28,7 +28,7 @@ describe('resource messages', () => {
     const response = await client.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-3-5-haiku-latest',
+      model: 'claude-3-7-sonnet-latest',
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
       stop_sequences: ['string'],
       stream: false,
@@ -50,21 +50,9 @@ describe('resource messages', () => {
         },
       ],
       temperature: 1,
+      thinking: { budget_tokens: 1024, type: 'enabled' },
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
-      tools: [
-        {
-          input_schema: {
-            type: 'object',
-            properties: {
-              location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-              unit: { description: 'Unit for the output - one of (celsius, fahrenheit)', type: 'string' },
-            },
-          },
-          name: 'name',
-          cache_control: { type: 'ephemeral' },
-          description: 'Get the current weather in a given location',
-        },
-      ],
+      tools: [{ name: 'bash', type: 'bash_20250124', cache_control: { type: 'ephemeral' } }],
       top_k: 5,
       top_p: 0.7,
     });
@@ -73,7 +61,7 @@ describe('resource messages', () => {
   test('countTokens: only required params', async () => {
     const responsePromise = client.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
-      model: 'claude-3-5-haiku-latest',
+      model: 'claude-3-7-sonnet-latest',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -87,7 +75,7 @@ describe('resource messages', () => {
   test('countTokens: required and optional params', async () => {
     const response = await client.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
-      model: 'claude-3-5-haiku-latest',
+      model: 'claude-3-7-sonnet-latest',
       system: [
         {
           text: "Today's date is 2024-06-01.",
@@ -105,21 +93,9 @@ describe('resource messages', () => {
           ],
         },
       ],
+      thinking: { budget_tokens: 1024, type: 'enabled' },
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
-      tools: [
-        {
-          input_schema: {
-            type: 'object',
-            properties: {
-              location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-              unit: { description: 'Unit for the output - one of (celsius, fahrenheit)', type: 'string' },
-            },
-          },
-          name: 'name',
-          cache_control: { type: 'ephemeral' },
-          description: 'Get the current weather in a given location',
-        },
-      ],
+      tools: [{ name: 'bash', type: 'bash_20250124', cache_control: { type: 'ephemeral' } }],
     });
   });
 });

@@ -21,6 +21,8 @@ export interface MessageStreamEvents {
   text: (textDelta: string, textSnapshot: string) => void;
   citation: (citation: TextCitation, citationsSnapshot: TextCitation[]) => void;
   inputJson: (partialJson: string, jsonSnapshot: unknown) => void;
+  thinking: (thinkingDelta: string, thinkingSnapshot: string) => void;
+  signature: (signature: string) => void;
   message: (message: Message) => void;
   contentBlock: (content: ContentBlock) => void;
   finalMessage: (message: Message) => void;
@@ -434,6 +436,18 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
             }
             break;
           }
+          case 'thinking_delta': {
+            if (content.type === 'thinking') {
+              this._emit('thinking', event.delta.thinking, content.thinking);
+            }
+            break;
+          }
+          case 'signature_delta': {
+            if (content.type === 'thinking') {
+              this._emit('signature', content.signature);
+            }
+            break;
+          }
           default:
             checkNever(event.delta);
         }
@@ -554,6 +568,18 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
               if (jsonBuf) {
                 snapshotContent.input = partialParse(jsonBuf);
               }
+            }
+            break;
+          }
+          case 'thinking_delta': {
+            if (snapshotContent?.type === 'thinking') {
+              snapshotContent.thinking += event.delta.thinking;
+            }
+            break;
+          }
+          case 'signature_delta': {
+            if (snapshotContent?.type === 'thinking') {
+              snapshotContent.signature = event.delta.signature;
             }
             break;
           }
