@@ -11,7 +11,7 @@ describe('resource completions', () => {
   test('create: only required params', async () => {
     const responsePromise = client.completions.create({
       max_tokens_to_sample: 256,
-      model: 'claude-3-5-haiku-latest',
+      model: 'claude-3-7-sonnet-latest',
       prompt: '\n\nHuman: Hello, world!\n\nAssistant:',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -26,7 +26,7 @@ describe('resource completions', () => {
   test('create: required and optional params', async () => {
     const response = await client.completions.create({
       max_tokens_to_sample: 256,
-      model: 'claude-3-5-haiku-latest',
+      model: 'claude-3-7-sonnet-latest',
       prompt: '\n\nHuman: Hello, world!\n\nAssistant:',
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
       stop_sequences: ['string'],

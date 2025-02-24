@@ -35,20 +35,32 @@ import {
   BetaRawMessageStartEvent,
   BetaRawMessageStopEvent,
   BetaRawMessageStreamEvent,
+  BetaRedactedThinkingBlock,
+  BetaRedactedThinkingBlockParam,
+  BetaSignatureDelta,
   BetaTextBlock,
   BetaTextBlockParam,
   BetaTextCitation,
   BetaTextCitationParam,
   BetaTextDelta,
+  BetaThinkingBlock,
+  BetaThinkingBlockParam,
+  BetaThinkingConfigDisabled,
+  BetaThinkingConfigEnabled,
+  BetaThinkingConfigParam,
+  BetaThinkingDelta,
   BetaTool,
   BetaToolBash20241022,
+  BetaToolBash20250124,
   BetaToolChoice,
   BetaToolChoiceAny,
   BetaToolChoiceAuto,
   BetaToolChoiceTool,
   BetaToolComputerUse20241022,
+  BetaToolComputerUse20250124,
   BetaToolResultBlockParam,
   BetaToolTextEditor20241022,
+  BetaToolTextEditor20250124,
   BetaToolUnion,
   BetaToolUseBlock,
   BetaToolUseBlockParam,
@@ -70,8 +82,11 @@ export type AnthropicBeta =
   | 'message-batches-2024-09-24'
   | 'prompt-caching-2024-07-31'
   | 'computer-use-2024-10-22'
+  | 'computer-use-2025-01-24'
   | 'pdfs-2024-09-25'
-  | 'token-counting-2024-11-01';
+  | 'token-counting-2024-11-01'
+  | 'token-efficient-tools-2025-02-19'
+  | 'output-128k-2025-02-19';
 
 export interface BetaAPIError {
   message: string;
@@ -202,20 +217,32 @@ export declare namespace Beta {
     type BetaRawMessageStartEvent as BetaRawMessageStartEvent,
     type BetaRawMessageStopEvent as BetaRawMessageStopEvent,
     type BetaRawMessageStreamEvent as BetaRawMessageStreamEvent,
+    type BetaRedactedThinkingBlock as BetaRedactedThinkingBlock,
+    type BetaRedactedThinkingBlockParam as BetaRedactedThinkingBlockParam,
+    type BetaSignatureDelta as BetaSignatureDelta,
     type BetaTextBlock as BetaTextBlock,
     type BetaTextBlockParam as BetaTextBlockParam,
     type BetaTextCitation as BetaTextCitation,
     type BetaTextCitationParam as BetaTextCitationParam,
     type BetaTextDelta as BetaTextDelta,
+    type BetaThinkingBlock as BetaThinkingBlock,
+    type BetaThinkingBlockParam as BetaThinkingBlockParam,
+    type BetaThinkingConfigDisabled as BetaThinkingConfigDisabled,
+    type BetaThinkingConfigEnabled as BetaThinkingConfigEnabled,
+    type BetaThinkingConfigParam as BetaThinkingConfigParam,
+    type BetaThinkingDelta as BetaThinkingDelta,
     type BetaTool as BetaTool,
     type BetaToolBash20241022 as BetaToolBash20241022,
+    type BetaToolBash20250124 as BetaToolBash20250124,
     type BetaToolChoice as BetaToolChoice,
     type BetaToolChoiceAny as BetaToolChoiceAny,
     type BetaToolChoiceAuto as BetaToolChoiceAuto,
     type BetaToolChoiceTool as BetaToolChoiceTool,
     type BetaToolComputerUse20241022 as BetaToolComputerUse20241022,
+    type BetaToolComputerUse20250124 as BetaToolComputerUse20250124,
     type BetaToolResultBlockParam as BetaToolResultBlockParam,
     type BetaToolTextEditor20241022 as BetaToolTextEditor20241022,
+    type BetaToolTextEditor20250124 as BetaToolTextEditor20250124,
     type BetaToolUnion as BetaToolUnion,
     type BetaToolUseBlock as BetaToolUseBlock,
     type BetaToolUseBlockParam as BetaToolUseBlockParam,
