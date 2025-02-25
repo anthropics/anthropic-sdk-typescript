@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.37.1 (2025-02-25)
+
+Full Changelog: [sdk-v0.37.0...sdk-v0.37.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.37.0...sdk-v0.37.1)
+
+### Chores
+
+* **internal:** update spec ([#692](https://github.com/anthropics/anthropic-sdk-typescript/issues/692)) ([142f221](https://github.com/anthropics/anthropic-sdk-typescript/commit/142f221d364c7450f3397563f59e56f8d9a41e02))
+
 ## 0.37.0 (2025-02-24)
 
 Full Changelog: [sdk-v0.36.3...sdk-v0.37.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.36.3...sdk-v0.37.0)
