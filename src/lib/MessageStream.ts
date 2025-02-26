@@ -1,3 +1,4 @@
+import { isAbortError } from '../internal/errors';
 import { AnthropicError, APIUserAbortError } from '../error';
 import {
   type ContentBlock,
@@ -289,7 +290,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
 
   #handleError = (error: unknown) => {
     this.#errored = true;
-    if (error instanceof Error && error.name === 'AbortError') {
+    if (isAbortError(error)) {
       error = new APIUserAbortError();
     }
     if (error instanceof APIUserAbortError) {
