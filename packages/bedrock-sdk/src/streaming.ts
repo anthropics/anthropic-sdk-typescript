@@ -90,7 +90,7 @@ export class Stream<Item> extends CoreStream<Item> {
         done = true;
       } catch (e) {
         // If the user calls `stream.controller.abort()`, we should exit without throwing.
-        if (e instanceof Error && e.name === 'AbortError') return;
+        if (isAbortError(e)) return;
         throw e;
       } finally {
         // If the user `break`s, abort the ongoing request.
@@ -100,4 +100,15 @@ export class Stream<Item> extends CoreStream<Item> {
 
     return new Stream(iterator, controller);
   }
+}
+
+function isAbortError(err: unknown) {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    // Spec-compliant fetch implementations
+    (('name' in err && (err as any).name === 'AbortError') ||
+      // Expo fetch
+      ('message' in err && String((err as any).message).includes('FetchRequestCanceledException')))
+  );
 }
