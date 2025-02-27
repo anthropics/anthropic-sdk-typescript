@@ -17,6 +17,7 @@ export {
 } from './batches';
 export {
   Messages,
+  type Base64ImageSource,
   type Base64PDFSource,
   type CacheControlEphemeral,
   type CitationCharLocation,
@@ -81,6 +82,8 @@ export {
   type ToolUnion,
   type ToolUseBlock,
   type ToolUseBlockParam,
+  type URLImageSource,
+  type URLPDFSource,
   type Usage,
   type MessageCreateParams,
   type MessageCreateParamsNonStreaming,

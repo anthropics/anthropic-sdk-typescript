@@ -18,6 +18,7 @@ export {
 export { BetaModelInfosPage, Models, type BetaModelInfo, type ModelListParams } from './models';
 export {
   Messages,
+  type BetaBase64ImageSource,
   type BetaBase64PDFBlock,
   type BetaBase64PDFSource,
   type BetaCacheControlEphemeral,
@@ -77,6 +78,8 @@ export {
   type BetaToolUnion,
   type BetaToolUseBlock,
   type BetaToolUseBlockParam,
+  type BetaURLImageSource,
+  type BetaURLPDFSource,
   type BetaUsage,
   type MessageCreateParams,
   type MessageCreateParamsNonStreaming,
