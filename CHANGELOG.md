@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.38.0 (2025-02-27)
+
+Full Changelog: [sdk-v0.37.0...sdk-v0.38.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.37.0...sdk-v0.38.0)
+
+### Features
+
+* **api:** add URL source blocks for images and PDFs ([#698](https://github.com/anthropics/anthropic-sdk-typescript/issues/698)) ([16e7336](https://github.com/anthropics/anthropic-sdk-typescript/commit/16e7336ca99f261ab21efabfadc927f3e3c34198))
+
+
+### Chores
+
+* **internal:** update spec ([#692](https://github.com/anthropics/anthropic-sdk-typescript/issues/692)) ([142f221](https://github.com/anthropics/anthropic-sdk-typescript/commit/142f221d364c7450f3397563f59e56f8d9a41e02))
+
+
+### Documentation
+
+* add thinking examples ([db6f761](https://github.com/anthropics/anthropic-sdk-typescript/commit/db6f761007b29b2ace293723f20728ad31b316dd))
+
 ## 0.37.0 (2025-02-24)
 
 Full Changelog: [sdk-v0.36.3...sdk-v0.37.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.36.3...sdk-v0.37.0)
