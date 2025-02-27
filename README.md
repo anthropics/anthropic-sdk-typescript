@@ -13,7 +13,7 @@ npm install git+ssh://git@github.com:stainless-sdks/anthropic-typescript.git
 ```
 
 > [!NOTE]
-> Once this package is [published to npm](https://app.stainlessapi.com/docs/guides/publish), this will become: `npm install @anthropic-ai/sdk`
+> Once this package is [published to npm](https://app.stainless.com/docs/guides/publish), this will become: `npm install @anthropic-ai/sdk`
 
 ## Usage
 
