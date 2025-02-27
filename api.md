@@ -18,6 +18,7 @@ Types:
 
 Types:
 
+- <code><a href="./src/resources/messages/messages.ts">Base64ImageSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Base64PDFSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CacheControlEphemeral</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationCharLocation</a></code>
@@ -75,6 +76,8 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">ToolUnion</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolUseBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">URLImageSource</a></code>
+- <code><a href="./src/resources/messages/messages.ts">URLPDFSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Usage</a></code>
 
 Methods:
@@ -148,6 +151,7 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64ImageSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64PDFBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64PDFSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheControlEphemeral</a></code>
@@ -207,6 +211,8 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUnion</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUseBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaURLImageSource</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaURLPDFSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaUsage</a></code>
 
 Methods:

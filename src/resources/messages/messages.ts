@@ -69,6 +69,14 @@ export class Messages extends APIResource {
   }
 }
 
+export interface Base64ImageSource {
+  data: string;
+
+  media_type: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+
+  type: 'base64';
+}
+
 export interface Base64PDFSource {
   data: string;
 
@@ -195,7 +203,7 @@ export interface ContentBlockSource {
 export type ContentBlockSourceContent = TextBlockParam | ImageBlockParam;
 
 export interface DocumentBlockParam {
-  source: Base64PDFSource | PlainTextSource | ContentBlockSource;
+  source: Base64PDFSource | PlainTextSource | ContentBlockSource | URLPDFSource;
 
   type: 'document';
 
@@ -209,21 +217,11 @@ export interface DocumentBlockParam {
 }
 
 export interface ImageBlockParam {
-  source: ImageBlockParam.Source;
+  source: Base64ImageSource | URLImageSource;
 
   type: 'image';
 
   cache_control?: CacheControlEphemeral | null;
-}
-
-export namespace ImageBlockParam {
-  export interface Source {
-    data: string;
-
-    media_type: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
-
-    type: 'base64';
-  }
 }
 
 export interface InputJSONDelta {
@@ -340,7 +338,7 @@ export interface Message {
   usage: Usage;
 }
 
-export type MessageCountTokensTool = ToolBash20250124 | ToolTextEditor20250124 | Tool;
+export type MessageCountTokensTool = Tool | ToolBash20250124 | ToolTextEditor20250124;
 
 export interface MessageDeltaUsage {
   /**
@@ -726,7 +724,7 @@ export interface ToolTextEditor20250124 {
   cache_control?: CacheControlEphemeral | null;
 }
 
-export type ToolUnion = ToolBash20250124 | ToolTextEditor20250124 | Tool;
+export type ToolUnion = Tool | ToolBash20250124 | ToolTextEditor20250124;
 
 export interface ToolUseBlock {
   id: string;
@@ -748,6 +746,18 @@ export interface ToolUseBlockParam {
   type: 'tool_use';
 
   cache_control?: CacheControlEphemeral | null;
+}
+
+export interface URLImageSource {
+  type: 'url';
+
+  url: string;
+}
+
+export interface URLPDFSource {
+  type: 'url';
+
+  url: string;
 }
 
 export interface Usage {
@@ -1276,6 +1286,7 @@ Messages.Batches = Batches;
 
 export declare namespace Messages {
   export {
+    type Base64ImageSource as Base64ImageSource,
     type Base64PDFSource as Base64PDFSource,
     type CacheControlEphemeral as CacheControlEphemeral,
     type CitationCharLocation as CitationCharLocation,
@@ -1333,6 +1344,8 @@ export declare namespace Messages {
     type ToolUnion as ToolUnion,
     type ToolUseBlock as ToolUseBlock,
     type ToolUseBlockParam as ToolUseBlockParam,
+    type URLImageSource as URLImageSource,
+    type URLPDFSource as URLPDFSource,
     type Usage as Usage,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,

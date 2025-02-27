@@ -48,6 +48,7 @@ import {
   BetaRateLimitError,
 } from './resources/beta/beta';
 import {
+  Base64ImageSource,
   Base64PDFSource,
   CacheControlEphemeral,
   CitationCharLocation,
@@ -110,6 +111,8 @@ import {
   ToolUnion,
   ToolUseBlock,
   ToolUseBlockParam,
+  URLImageSource,
+  URLPDFSource,
   Usage,
 } from './resources/messages/messages';
 
@@ -917,6 +920,7 @@ export declare namespace Anthropic {
 
   export {
     Messages as Messages,
+    type Base64ImageSource as Base64ImageSource,
     type Base64PDFSource as Base64PDFSource,
     type CacheControlEphemeral as CacheControlEphemeral,
     type CitationCharLocation as CitationCharLocation,
@@ -974,6 +978,8 @@ export declare namespace Anthropic {
     type ToolUnion as ToolUnion,
     type ToolUseBlock as ToolUseBlock,
     type ToolUseBlockParam as ToolUseBlockParam,
+    type URLImageSource as URLImageSource,
+    type URLPDFSource as URLPDFSource,
     type Usage as Usage,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
