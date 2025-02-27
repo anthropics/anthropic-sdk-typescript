@@ -65,12 +65,20 @@ describe('resource batches', () => {
             tool_choice: { type: 'auto', disable_parallel_tool_use: true },
             tools: [
               {
-                display_height_px: 1,
-                display_width_px: 1,
-                name: 'computer',
-                type: 'computer_20241022',
+                input_schema: {
+                  type: 'object',
+                  properties: {
+                    location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
+                    unit: {
+                      description: 'Unit for the output - one of (celsius, fahrenheit)',
+                      type: 'string',
+                    },
+                  },
+                },
+                name: 'name',
                 cache_control: { type: 'ephemeral' },
-                display_number: 0,
+                description: 'Get the current weather in a given location',
+                type: 'custom',
               },
             ],
             top_k: 5,
