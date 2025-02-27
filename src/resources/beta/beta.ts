@@ -5,6 +5,7 @@ import * as ModelsAPI from './models';
 import { BetaModelInfo, BetaModelInfosPage, ModelListParams, Models } from './models';
 import * as MessagesAPI from './messages/messages';
 import {
+  BetaBase64ImageSource,
   BetaBase64PDFBlock,
   BetaBase64PDFSource,
   BetaCacheControlEphemeral,
@@ -64,6 +65,8 @@ import {
   BetaToolUnion,
   BetaToolUseBlock,
   BetaToolUseBlockParam,
+  BetaURLImageSource,
+  BetaURLPDFSource,
   BetaUsage,
   MessageCountTokensParams,
   MessageCreateParams,
@@ -187,6 +190,7 @@ export declare namespace Beta {
 
   export {
     Messages as Messages,
+    type BetaBase64ImageSource as BetaBase64ImageSource,
     type BetaBase64PDFBlock as BetaBase64PDFBlock,
     type BetaBase64PDFSource as BetaBase64PDFSource,
     type BetaCacheControlEphemeral as BetaCacheControlEphemeral,
@@ -246,6 +250,8 @@ export declare namespace Beta {
     type BetaToolUnion as BetaToolUnion,
     type BetaToolUseBlock as BetaToolUseBlock,
     type BetaToolUseBlockParam as BetaToolUseBlockParam,
+    type BetaURLImageSource as BetaURLImageSource,
+    type BetaURLPDFSource as BetaURLPDFSource,
     type BetaUsage as BetaUsage,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,

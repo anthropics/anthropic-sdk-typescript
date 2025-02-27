@@ -92,8 +92,16 @@ export class Messages extends APIResource {
   }
 }
 
+export interface BetaBase64ImageSource {
+  data: string;
+
+  media_type: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+
+  type: 'base64';
+}
+
 export interface BetaBase64PDFBlock {
-  source: BetaBase64PDFSource | BetaPlainTextSource | BetaContentBlockSource;
+  source: BetaBase64PDFSource | BetaPlainTextSource | BetaContentBlockSource | BetaURLPDFSource;
 
   type: 'document';
 
@@ -236,21 +244,11 @@ export interface BetaContentBlockSource {
 export type BetaContentBlockSourceContent = BetaTextBlockParam | BetaImageBlockParam;
 
 export interface BetaImageBlockParam {
-  source: BetaImageBlockParam.Source;
+  source: BetaBase64ImageSource | BetaURLImageSource;
 
   type: 'image';
 
   cache_control?: BetaCacheControlEphemeral | null;
-}
-
-export namespace BetaImageBlockParam {
-  export interface Source {
-    data: string;
-
-    media_type: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
-
-    type: 'base64';
-  }
 }
 
 export interface BetaInputJSONDelta {
@@ -818,13 +816,13 @@ export interface BetaToolTextEditor20250124 {
 }
 
 export type BetaToolUnion =
+  | BetaTool
   | BetaToolComputerUse20241022
   | BetaToolBash20241022
   | BetaToolTextEditor20241022
   | BetaToolComputerUse20250124
   | BetaToolBash20250124
-  | BetaToolTextEditor20250124
-  | BetaTool;
+  | BetaToolTextEditor20250124;
 
 export interface BetaToolUseBlock {
   id: string;
@@ -846,6 +844,18 @@ export interface BetaToolUseBlockParam {
   type: 'tool_use';
 
   cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export interface BetaURLImageSource {
+  type: 'url';
+
+  url: string;
+}
+
+export interface BetaURLPDFSource {
+  type: 'url';
+
+  url: string;
 }
 
 export interface BetaUsage {
@@ -1376,13 +1386,13 @@ export interface MessageCountTokensParams {
    * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
    */
   tools?: Array<
+    | BetaTool
     | BetaToolComputerUse20241022
     | BetaToolBash20241022
     | BetaToolTextEditor20241022
     | BetaToolComputerUse20250124
     | BetaToolBash20250124
     | BetaToolTextEditor20250124
-    | BetaTool
   >;
 
   /**
@@ -1395,6 +1405,7 @@ Messages.Batches = Batches;
 
 export declare namespace Messages {
   export {
+    type BetaBase64ImageSource as BetaBase64ImageSource,
     type BetaBase64PDFBlock as BetaBase64PDFBlock,
     type BetaBase64PDFSource as BetaBase64PDFSource,
     type BetaCacheControlEphemeral as BetaCacheControlEphemeral,
@@ -1454,6 +1465,8 @@ export declare namespace Messages {
     type BetaToolUnion as BetaToolUnion,
     type BetaToolUseBlock as BetaToolUseBlock,
     type BetaToolUseBlockParam as BetaToolUseBlockParam,
+    type BetaURLImageSource as BetaURLImageSource,
+    type BetaURLPDFSource as BetaURLPDFSource,
     type BetaUsage as BetaUsage,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
