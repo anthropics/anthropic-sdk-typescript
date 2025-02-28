@@ -84,6 +84,7 @@ export {
   type ToolChoice,
   type ToolChoiceAny,
   type ToolChoiceAuto,
+  type ToolChoiceNone,
   type ToolChoiceTool,
   type ToolResultBlockParam,
   type ToolTextEditor20250124,
