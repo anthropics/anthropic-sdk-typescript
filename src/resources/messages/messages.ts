@@ -662,9 +662,9 @@ export interface ToolBash20250124 {
 
 /**
  * How the model should use the provided tools. The model can use a specific tool,
- * any available tool, or decide by itself.
+ * any available tool, decide by itself, or not use tools at all.
  */
-export type ToolChoice = ToolChoiceAuto | ToolChoiceAny | ToolChoiceTool;
+export type ToolChoice = ToolChoiceAuto | ToolChoiceAny | ToolChoiceTool | ToolChoiceNone;
 
 /**
  * The model will use any available tools.
@@ -694,6 +694,13 @@ export interface ToolChoiceAuto {
    * use.
    */
   disable_parallel_tool_use?: boolean;
+}
+
+/**
+ * The model will not be allowed to use tools.
+ */
+export interface ToolChoiceNone {
+  type: 'none';
 }
 
 /**
@@ -972,7 +979,7 @@ export interface MessageCreateParamsBase {
 
   /**
    * How the model should use the provided tools. The model can use a specific tool,
-   * any available tool, or decide by itself.
+   * any available tool, decide by itself, or not use tools at all.
    */
   tool_choice?: ToolChoice;
 
@@ -1221,7 +1228,7 @@ export interface MessageCountTokensParams {
 
   /**
    * How the model should use the provided tools. The model can use a specific tool,
-   * any available tool, or decide by itself.
+   * any available tool, decide by itself, or not use tools at all.
    */
   tool_choice?: ToolChoice;
 
@@ -1363,6 +1370,7 @@ export declare namespace Messages {
     type ToolChoice as ToolChoice,
     type ToolChoiceAny as ToolChoiceAny,
     type ToolChoiceAuto as ToolChoiceAuto,
+    type ToolChoiceNone as ToolChoiceNone,
     type ToolChoiceTool as ToolChoiceTool,
     type ToolResultBlockParam as ToolResultBlockParam,
     type ToolTextEditor20250124 as ToolTextEditor20250124,

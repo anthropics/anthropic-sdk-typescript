@@ -69,6 +69,7 @@ export {
   type BetaToolChoice,
   type BetaToolChoiceAny,
   type BetaToolChoiceAuto,
+  type BetaToolChoiceNone,
   type BetaToolChoiceTool,
   type BetaToolComputerUse20241022,
   type BetaToolComputerUse20250124,
