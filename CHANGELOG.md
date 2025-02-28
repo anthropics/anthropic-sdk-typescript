@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.39.0 (2025-02-28)
+
+Full Changelog: [sdk-v0.38.0...sdk-v0.39.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.38.0...sdk-v0.39.0)
+
+### Features
+
+* **api:** add support for disabling tool calls ([#701](https://github.com/anthropics/anthropic-sdk-typescript/issues/701)) ([1602b51](https://github.com/anthropics/anthropic-sdk-typescript/commit/1602b5156432d587c3fd55abb719cab98ef50928))
+
+
+### Documentation
+
+* update URLs from stainlessapi.com to stainless.com ([#699](https://github.com/anthropics/anthropic-sdk-typescript/issues/699)) ([05e33b7](https://github.com/anthropics/anthropic-sdk-typescript/commit/05e33b7f5fbcc2adacd2c3ab1d4c7806ea7d40fd))
+
 ## 0.38.0 (2025-02-27)
 
 Full Changelog: [sdk-v0.37.0...sdk-v0.38.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.37.0...sdk-v0.38.0)
