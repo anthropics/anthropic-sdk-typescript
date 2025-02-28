@@ -667,9 +667,9 @@ export interface BetaToolBash20250124 {
 
 /**
  * How the model should use the provided tools. The model can use a specific tool,
- * any available tool, or decide by itself.
+ * any available tool, decide by itself, or not use tools at all.
  */
-export type BetaToolChoice = BetaToolChoiceAuto | BetaToolChoiceAny | BetaToolChoiceTool;
+export type BetaToolChoice = BetaToolChoiceAuto | BetaToolChoiceAny | BetaToolChoiceTool | BetaToolChoiceNone;
 
 /**
  * The model will use any available tools.
@@ -699,6 +699,13 @@ export interface BetaToolChoiceAuto {
    * use.
    */
   disable_parallel_tool_use?: boolean;
+}
+
+/**
+ * The model will not be allowed to use tools.
+ */
+export interface BetaToolChoiceNone {
+  type: 'none';
 }
 
 /**
@@ -1054,7 +1061,7 @@ export interface MessageCreateParamsBase {
 
   /**
    * Body param: How the model should use the provided tools. The model can use a
-   * specific tool, any available tool, or decide by itself.
+   * specific tool, any available tool, decide by itself, or not use tools at all.
    */
   tool_choice?: BetaToolChoice;
 
@@ -1310,7 +1317,7 @@ export interface MessageCountTokensParams {
 
   /**
    * Body param: How the model should use the provided tools. The model can use a
-   * specific tool, any available tool, or decide by itself.
+   * specific tool, any available tool, decide by itself, or not use tools at all.
    */
   tool_choice?: BetaToolChoice;
 
@@ -1456,6 +1463,7 @@ export declare namespace Messages {
     type BetaToolChoice as BetaToolChoice,
     type BetaToolChoiceAny as BetaToolChoiceAny,
     type BetaToolChoiceAuto as BetaToolChoiceAuto,
+    type BetaToolChoiceNone as BetaToolChoiceNone,
     type BetaToolChoiceTool as BetaToolChoiceTool,
     type BetaToolComputerUse20241022 as BetaToolComputerUse20241022,
     type BetaToolComputerUse20250124 as BetaToolComputerUse20250124,
