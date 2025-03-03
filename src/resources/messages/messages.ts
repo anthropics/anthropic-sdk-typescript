@@ -1378,7 +1378,6 @@ export declare namespace Messages {
     type ContentBlockSourceContent as ContentBlockSourceContent,
     type DocumentBlockParam as DocumentBlockParam,
     type ImageBlockParam as ImageBlockParam,
-    type InputJsonDelta as InputJsonDelta,
     type InputJSONDelta as InputJSONDelta,
     type Message as Message,
     type MessageCountTokensTool as MessageCountTokensTool,

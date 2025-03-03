@@ -263,6 +263,8 @@ import { Response } from '@anthropic-ai/sdk';
 // `Response` must now come from the builtin types
 ```
 
+We've also removed `InputJsonDelta` in favour of `InputJSONDelta`. `Anthropic.InputJsonDelta` -> `Anthropic.InputJSONDelta`
+
 #### Resource classes
 
 If you were importing resource classes from the root package then you must now import them from the file they are defined in:
