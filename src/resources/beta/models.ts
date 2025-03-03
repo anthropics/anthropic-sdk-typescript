@@ -4,6 +4,7 @@ import { APIResource } from '../../resource';
 import { APIPromise } from '../../api-promise';
 import { Page, type PageParams, PagePromise } from '../../pagination';
 import { RequestOptions } from '../../internal/request-options';
+import { path } from '../../internal/utils/path';
 
 export class Models extends APIResource {
   /**
@@ -13,7 +14,7 @@ export class Models extends APIResource {
    * model or resolve a model alias to a model ID.
    */
   retrieve(modelID: string, options?: RequestOptions): APIPromise<BetaModelInfo> {
-    return this._client.get(`/v1/models/${modelID}?beta=true`, options);
+    return this._client.get(path`/v1/models/${modelID}?beta=true`, options);
   }
 
   /**

@@ -2,6 +2,8 @@ import { APIPromise } from '@anthropic-ai/sdk/api-promise';
 import Anthropic from '@anthropic-ai/sdk/index';
 import { compareType } from './utils/typing';
 
+const client = new Anthropic({ apiKey: 'dummy' });
+
 describe('request id', () => {
   test('types', () => {
     compareType<Awaited<APIPromise<string>>, string>(true);
@@ -60,6 +62,7 @@ describe('request id', () => {
 
   test('envelope response', async () => {
     const promise = new APIPromise<{ data: { foo: string } }>(
+      client,
       (async () => {
         return {
           response: new Response(JSON.stringify({ data: { foo: 'bar' } }), {
@@ -67,6 +70,9 @@ describe('request id', () => {
           }),
           controller: {} as any,
           options: {} as any,
+          requestLogID: 'log_000000',
+          retryOfRequestLogID: undefined,
+          startTime: Date.now(),
         };
       })(),
     )._thenUnwrap((d) => d.data);
@@ -92,6 +98,7 @@ describe('request id', () => {
 
   test('array response', async () => {
     const promise = new APIPromise<Array<{ foo: string }>>(
+      client,
       (async () => {
         return {
           response: new Response(JSON.stringify([{ foo: 'bar' }]), {
@@ -99,6 +106,9 @@ describe('request id', () => {
           }),
           controller: {} as any,
           options: {} as any,
+          requestLogID: 'log_000000',
+          retryOfRequestLogID: undefined,
+          startTime: Date.now(),
         };
       })(),
     );
@@ -111,6 +121,7 @@ describe('request id', () => {
 
   test('string response', async () => {
     const promise = new APIPromise<string>(
+      client,
       (async () => {
         return {
           response: new Response('hello world', {
@@ -118,6 +129,9 @@ describe('request id', () => {
           }),
           controller: {} as any,
           options: {} as any,
+          requestLogID: 'log_000000',
+          retryOfRequestLogID: undefined,
+          startTime: Date.now(),
         };
       })(),
     );

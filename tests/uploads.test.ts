@@ -1,5 +1,7 @@
 import fs from 'fs';
-import { toFile, type ResponseLike } from '@anthropic-ai/sdk/uploads';
+import type { ResponseLike } from '@anthropic-ai/sdk/internal/to-file';
+import { toFile } from '@anthropic-ai/sdk/uploads';
+import { File } from 'node:buffer';
 
 class MyClass {
   name: string = 'foo';
@@ -8,9 +10,15 @@ class MyClass {
 function mockResponse({ url, content }: { url: string; content?: Blob }): ResponseLike {
   return {
     url,
-    blob: async () => content as any,
+    blob: async () => content || new Blob([]),
   };
 }
+
+beforeEach(() => {
+  // The file shim captures the global File object when it's first imported.
+  // Reset modules before each test so we can test the error thrown when it's undefined.
+  jest.resetModules();
+});
 
 describe('toFile', () => {
   it('throws a helpful error for mismatched types', async () => {
@@ -61,15 +69,29 @@ describe('toFile', () => {
     expect(file.name).toEqual('input.jsonl');
     expect(file.type).toBe('jsonl');
   });
+
+  it('is assignable to File and Blob', async () => {
+    const input = new File(['foo'], 'input.jsonl', { type: 'jsonl' });
+    const result = await toFile(input);
+    const file: File = result;
+    const blob: Blob = result;
+    void file, blob;
+  });
 });
 
-test('missing File error message', async () => {
-  // @ts-ignore
-  globalThis.File = undefined;
+describe('missing File error message', () => {
+  beforeEach(() => {
+    // @ts-ignore
+    globalThis.File = undefined;
+    require('node:buffer').File = undefined;
+  });
 
-  await expect(
-    toFile(mockResponse({ url: 'https://example.com/my/audio.mp3' })),
-  ).rejects.toMatchInlineSnapshot(
-    `[Error: \`File\` is not defined as a global which is required for file uploads]`,
-  );
+  test('is thrown', async () => {
+    const uploads = await import('@anthropic-ai/sdk/uploads');
+    await expect(
+      uploads.toFile(mockResponse({ url: 'https://example.com/my/audio.mp3' })),
+    ).rejects.toMatchInlineSnapshot(
+      `[Error: \`File\` is not defined as a global which is required for file uploads]`,
+    );
+  });
 });
