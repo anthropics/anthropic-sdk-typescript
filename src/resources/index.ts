@@ -45,7 +45,6 @@ export {
   type ContentBlockSourceContent,
   type DocumentBlockParam,
   type ImageBlockParam,
-  type InputJsonDelta,
   type InputJSONDelta,
   type Message,
   type MessageCountTokensTool,
