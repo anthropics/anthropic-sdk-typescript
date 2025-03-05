@@ -20,7 +20,7 @@ export interface MessageStreamEvents {
   streamEvent: (event: MessageStreamEvent, snapshot: Message) => void;
   text: (textDelta: string, textSnapshot: string) => void;
   citation: (citation: TextCitation, citationsSnapshot: TextCitation[]) => void;
-  inputJson: (partialJson: string, jsonSnapshot: unknown) => void;
+  inputJson: (partialJson: string, jsonSnapshot: unknown, toolName: string) => void;
   thinking: (thinkingDelta: string, thinkingSnapshot: string) => void;
   signature: (signature: string) => void;
   message: (message: Message) => void;
@@ -432,7 +432,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
           }
           case 'input_json_delta': {
             if (content.type === 'tool_use' && content.input) {
-              this._emit('inputJson', event.delta.partial_json, content.input);
+              this._emit('inputJson', event.delta.partial_json, content.input, content.name);
             }
             break;
           }
