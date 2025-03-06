@@ -27,6 +27,21 @@ import {
   BetaMessageBatchesPage,
 } from './batches';
 import { Stream } from '../../../streaming';
+import { BetaMessageStream } from '../../../lib/BetaMessageStream';
+import type { Model } from '../../messages/messages';
+
+const DEPRECATED_MODELS: {
+  [K in Model]?: string;
+} = {
+  'claude-1.3': 'November 6th, 2024',
+  'claude-1.3-100k': 'November 6th, 2024',
+  'claude-instant-1.1': 'November 6th, 2024',
+  'claude-instant-1.1-100k': 'November 6th, 2024',
+  'claude-instant-1.2': 'November 6th, 2024',
+  'claude-3-sonnet-20240229': 'July 21st, 2025',
+  'claude-2.1': 'July 21st, 2025',
+  'claude-2.0': 'July 21st, 2025',
+};
 
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
@@ -54,9 +69,20 @@ export class Messages extends APIResource {
     options?: Core.RequestOptions,
   ): APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>> {
     const { betas, ...body } = params;
+
+    if (body.model in DEPRECATED_MODELS) {
+      console.warn(
+        `The model '${body.model}' is deprecated and will reach end-of-life on ${
+          DEPRECATED_MODELS[body.model]
+        }\nPlease migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information.`,
+      );
+    }
+
     return this._client.post('/v1/messages?beta=true', {
       body,
-      timeout: (this._client as any)._options.timeout ?? 600000,
+      timeout:
+        (this._client as any)._options.timeout ??
+        (body.stream ? 600000 : this._client._calculateNonstreamingTimeout(body.max_tokens)),
       ...options,
       headers: {
         ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
@@ -64,6 +90,13 @@ export class Messages extends APIResource {
       },
       stream: params.stream ?? false,
     }) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
+  }
+
+  /**
+   * Create a Message stream
+   */
+  stream(body: BetaMessageStreamParams, options?: Core.RequestOptions): BetaMessageStream {
+    return BetaMessageStream.createMessage(this, body, options);
   }
 
   /**
@@ -84,12 +117,14 @@ export class Messages extends APIResource {
       body,
       ...options,
       headers: {
-        ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+        'anthropic-beta': [...(betas ?? []), 'token-counting-2024-11-01'].toString(),
         ...options?.headers,
       },
     });
   }
 }
+
+export type BetaMessageStreamParams = MessageCreateParamsBase;
 
 export interface BetaBase64ImageSource {
   data: string;

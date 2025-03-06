@@ -173,6 +173,11 @@ export interface CompletionCreateParamsBase {
 }
 
 export namespace CompletionCreateParams {
+  /**
+   * @deprecated use `Anthropic.Messages.Metadata` instead
+   */
+  export type Metadata = MessagesAPI.Metadata;
+
   export type CompletionCreateParamsNonStreaming = CompletionsAPI.CompletionCreateParamsNonStreaming;
   export type CompletionCreateParamsStreaming = CompletionsAPI.CompletionCreateParamsStreaming;
 }

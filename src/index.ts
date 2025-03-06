@@ -64,6 +64,7 @@ import {
   MessageStartEvent,
   MessageStopEvent,
   MessageStreamEvent,
+  MessageStreamParams,
   MessageTokensCount,
   Messages,
   Metadata,
@@ -421,6 +422,7 @@ export declare namespace Anthropic {
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
+    type MessageStreamParams as MessageStreamParams,
     type MessageCountTokensParams as MessageCountTokensParams,
   };
 

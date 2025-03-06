@@ -87,6 +87,7 @@ export {
   type URLPDFSource,
   type Usage,
   type MessageCreateParams,
+  type MessageCreateParamsBase,
   type MessageCreateParamsNonStreaming,
   type MessageCreateParamsStreaming,
   type MessageCountTokensParams,

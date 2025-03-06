@@ -21,6 +21,9 @@ import {
   MessageBatchesPage,
 } from './batches';
 import { Stream } from '../../streaming';
+import { MessageStream } from '../../lib/MessageStream';
+
+export { MessageStream } from '../../lib/MessageStream';
 
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
@@ -47,12 +50,28 @@ export class Messages extends APIResource {
     body: MessageCreateParams,
     options?: Core.RequestOptions,
   ): APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>> {
+    if (body.model in DEPRECATED_MODELS) {
+      console.warn(
+        `The model '${body.model}' is deprecated and will reach end-of-life on ${
+          DEPRECATED_MODELS[body.model]
+        }\nPlease migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information.`,
+      );
+    }
     return this._client.post('/v1/messages', {
       body,
-      timeout: (this._client as any)._options.timeout ?? 600000,
+      timeout:
+        (this._client as any)._options.timeout ??
+        (body.stream ? 600000 : this._client._calculateNonstreamingTimeout(body.max_tokens)),
       ...options,
       stream: body.stream ?? false,
     }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
+  }
+
+  /**
+   * Create a Message stream
+   */
+  stream(body: MessageStreamParams, options?: Core.RequestOptions): MessageStream {
+    return MessageStream.createMessage(this, body, options);
   }
 
   /**
@@ -233,6 +252,8 @@ export interface ImageBlockParam {
   cache_control?: CacheControlEphemeral | null;
 }
 
+export type InputJsonDelta = InputJSONDelta;
+
 export interface InputJSONDelta {
   partial_json: string;
 
@@ -409,6 +430,19 @@ export type Model =
   | 'claude-2.1'
   | 'claude-2.0'
   | (string & {});
+
+const DEPRECATED_MODELS: {
+  [K in Model]?: string;
+} = {
+  'claude-1.3': 'November 6th, 2024',
+  'claude-1.3-100k': 'November 6th, 2024',
+  'claude-instant-1.1': 'November 6th, 2024',
+  'claude-instant-1.1-100k': 'November 6th, 2024',
+  'claude-instant-1.2': 'November 6th, 2024',
+  'claude-3-sonnet-20240229': 'July 21st, 2025',
+  'claude-2.1': 'July 21st, 2025',
+  'claude-2.0': 'July 21st, 2025',
+};
 
 export interface PlainTextSource {
   data: string;
@@ -1082,6 +1116,26 @@ export interface MessageCreateParamsBase {
 }
 
 export namespace MessageCreateParams {
+  /**
+   * @deprecated use `Anthropic.Messages.ToolChoiceAuto` instead
+   */
+  export type Metadata = MessagesAPI.Metadata;
+
+  /**
+   * @deprecated use `Anthropic.Messages.ToolChoiceAuto` instead
+   */
+  export type ToolChoiceAuto = MessagesAPI.ToolChoiceAuto;
+
+  /**
+   * @deprecated use `Anthropic.Messages.ToolChoiceAny` instead
+   */
+  export type ToolChoiceAny = MessagesAPI.ToolChoiceAny;
+
+  /**
+   * @deprecated use `Anthropic.Messages.ToolChoiceTool` instead
+   */
+  export type ToolChoiceTool = MessagesAPI.ToolChoiceTool;
+
   export type MessageCreateParamsNonStreaming = MessagesAPI.MessageCreateParamsNonStreaming;
   export type MessageCreateParamsStreaming = MessagesAPI.MessageCreateParamsStreaming;
 }
@@ -1105,6 +1159,8 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
    */
   stream: true;
 }
+
+export type MessageStreamParams = MessageCreateParamsBase;
 
 export interface MessageCountTokensParams {
   /**
@@ -1331,6 +1387,7 @@ export declare namespace Messages {
     type ContentBlockStopEvent as ContentBlockStopEvent,
     type DocumentBlockParam as DocumentBlockParam,
     type ImageBlockParam as ImageBlockParam,
+    type InputJsonDelta as InputJsonDelta,
     type InputJSONDelta as InputJSONDelta,
     type Message as Message,
     type MessageCountTokensTool as MessageCountTokensTool,
@@ -1383,6 +1440,7 @@ export declare namespace Messages {
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
+    type MessageStreamParams as MessageStreamParams,
     type MessageCountTokensParams as MessageCountTokensParams,
   };
 

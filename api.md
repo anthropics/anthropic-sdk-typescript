@@ -1,3 +1,5 @@
+# Anthropic
+
 # Shared
 
 Types:
@@ -92,6 +94,7 @@ Methods:
 
 - <code title="post /v1/messages">client.messages.<a href="./src/resources/messages/messages.ts">create</a>({ ...params }) -> Message</code>
 - <code title="post /v1/messages/count_tokens">client.messages.<a href="./src/resources/messages/messages.ts">countTokens</a>({ ...params }) -> MessageTokensCount</code>
+- <code>client.messages.<a href="./src/resources/messages.ts">stream</a>(body, options?) -> MessageStream</code>
 
 ## Batches
 
