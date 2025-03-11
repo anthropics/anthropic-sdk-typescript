@@ -141,8 +141,12 @@ export class AnthropicBedrock extends Core.APIClient {
         throw new Error('Expected request body to be an object for post /v1/messages');
       }
 
-      const model = options.body['model'];
+      let model = options.body['model'];
       options.body['model'] = undefined;
+      // Encode any forward slashes in inference profile ARNs
+      if (model.includes('/')) {
+        model = model.replaceAll('/', '%2F');
+      }
 
       const stream = options.body['stream'];
       options.body['stream'] = undefined;
