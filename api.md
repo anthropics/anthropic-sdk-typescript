@@ -32,23 +32,16 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">CitationsConfigParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationsDelta</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlock</a></code>
-- <code><a href="./src/resources/messages/messages.ts">ContentBlockDeltaEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockSourceContent</a></code>
-- <code><a href="./src/resources/messages/messages.ts">ContentBlockStartEvent</a></code>
-- <code><a href="./src/resources/messages/messages.ts">ContentBlockStopEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">DocumentBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ImageBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">InputJSONDelta</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Message</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageCountTokensTool</a></code>
-- <code><a href="./src/resources/messages/messages.ts">MessageDeltaEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageDeltaUsage</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageParam</a></code>
-- <code><a href="./src/resources/messages/messages.ts">MessageStartEvent</a></code>
-- <code><a href="./src/resources/messages/messages.ts">MessageStopEvent</a></code>
-- <code><a href="./src/resources/messages/messages.ts">MessageStreamEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageTokensCount</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Metadata</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Model</a></code>
@@ -89,6 +82,13 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">URLImageSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">URLPDFSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Usage</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageStreamEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageStartEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageDeltaEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageStopEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContentBlockStartEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContentBlockDeltaEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContentBlockStopEvent</a></code>
 
 Methods:
 
