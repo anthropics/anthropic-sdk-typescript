@@ -207,8 +207,6 @@ export interface CitationsDelta {
 
 export type ContentBlock = TextBlock | ToolUseBlock | ThinkingBlock | RedactedThinkingBlock;
 
-export type ContentBlockDeltaEvent = RawContentBlockDeltaEvent;
-
 export type ContentBlockParam =
   | TextBlockParam
   | ImageBlockParam
@@ -225,10 +223,6 @@ export interface ContentBlockSource {
 }
 
 export type ContentBlockSourceContent = TextBlockParam | ImageBlockParam;
-
-export type ContentBlockStartEvent = RawContentBlockStartEvent;
-
-export type ContentBlockStopEvent = RawContentBlockStopEvent;
 
 export interface DocumentBlockParam {
   source: Base64PDFSource | PlainTextSource | ContentBlockSource | URLPDFSource;
@@ -370,8 +364,6 @@ export interface Message {
 
 export type MessageCountTokensTool = Tool | ToolBash20250124 | ToolTextEditor20250124;
 
-export type MessageDeltaEvent = RawMessageDeltaEvent;
-
 export interface MessageDeltaUsage {
   /**
    * The cumulative number of output tokens which were used.
@@ -384,12 +376,6 @@ export interface MessageParam {
 
   role: 'user' | 'assistant';
 }
-
-export type MessageStartEvent = RawMessageStartEvent;
-
-export type MessageStopEvent = RawMessageStopEvent;
-
-export type MessageStreamEvent = RawMessageStreamEvent;
 
 export interface MessageTokensCount {
   /**
@@ -839,6 +825,20 @@ export interface Usage {
    */
   output_tokens: number;
 }
+
+export type MessageStreamEvent = RawMessageStreamEvent;
+
+export type MessageStartEvent = RawMessageStartEvent;
+
+export type MessageDeltaEvent = RawMessageDeltaEvent;
+
+export type MessageStopEvent = RawMessageStopEvent;
+
+export type ContentBlockStartEvent = RawContentBlockStartEvent;
+
+export type ContentBlockDeltaEvent = RawContentBlockDeltaEvent;
+
+export type ContentBlockStopEvent = RawContentBlockStopEvent;
 
 export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreateParamsStreaming;
 
@@ -1379,24 +1379,17 @@ export declare namespace Messages {
     type CitationsConfigParam as CitationsConfigParam,
     type CitationsDelta as CitationsDelta,
     type ContentBlock as ContentBlock,
-    type ContentBlockDeltaEvent as ContentBlockDeltaEvent,
     type ContentBlockParam as ContentBlockParam,
     type ContentBlockSource as ContentBlockSource,
     type ContentBlockSourceContent as ContentBlockSourceContent,
-    type ContentBlockStartEvent as ContentBlockStartEvent,
-    type ContentBlockStopEvent as ContentBlockStopEvent,
     type DocumentBlockParam as DocumentBlockParam,
     type ImageBlockParam as ImageBlockParam,
     type InputJsonDelta as InputJsonDelta,
     type InputJSONDelta as InputJSONDelta,
     type Message as Message,
     type MessageCountTokensTool as MessageCountTokensTool,
-    type MessageDeltaEvent as MessageDeltaEvent,
     type MessageDeltaUsage as MessageDeltaUsage,
     type MessageParam as MessageParam,
-    type MessageStartEvent as MessageStartEvent,
-    type MessageStopEvent as MessageStopEvent,
-    type MessageStreamEvent as MessageStreamEvent,
     type MessageTokensCount as MessageTokensCount,
     type Metadata as Metadata,
     type Model as Model,
@@ -1437,6 +1430,13 @@ export declare namespace Messages {
     type URLImageSource as URLImageSource,
     type URLPDFSource as URLPDFSource,
     type Usage as Usage,
+    type MessageStreamEvent as MessageStreamEvent,
+    type MessageStartEvent as MessageStartEvent,
+    type MessageDeltaEvent as MessageDeltaEvent,
+    type MessageStopEvent as MessageStopEvent,
+    type ContentBlockStartEvent as ContentBlockStartEvent,
+    type ContentBlockDeltaEvent as ContentBlockDeltaEvent,
+    type ContentBlockStopEvent as ContentBlockStopEvent,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
