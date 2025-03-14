@@ -1,5 +1,7 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+import { APIPromise } from '@anthropic-ai/sdk/api-promise';
+
 import util from 'node:util';
 import Anthropic from '@anthropic-ai/sdk';
 import { APIUserAbortError } from '@anthropic-ai/sdk';
@@ -11,8 +13,6 @@ describe('instantiate client', () => {
   beforeEach(() => {
     jest.resetModules();
     process.env = { ...env };
-
-    console.warn = jest.fn();
   });
 
   afterEach(() => {
@@ -47,6 +47,135 @@ describe('instantiate client', () => {
         headers: { 'X-My-Default-Header': null },
       });
       expect(req.headers.has('x-my-default-header')).toBe(false);
+    });
+  });
+  describe('logging', () => {
+    const env = process.env;
+
+    beforeEach(() => {
+      process.env = { ...env };
+      process.env['ANTHROPIC_LOG'] = undefined;
+    });
+
+    afterEach(() => {
+      process.env = env;
+    });
+
+    const forceAPIResponseForClient = async (client: Anthropic) => {
+      await new APIPromise(
+        client,
+        Promise.resolve({
+          response: new Response(),
+          controller: new AbortController(),
+          requestLogID: 'log_000000',
+          retryOfRequestLogID: undefined,
+          startTime: Date.now(),
+          options: {
+            method: 'get',
+            path: '/',
+          },
+        }),
+      );
+    };
+
+    test('debug logs when log level is debug', async () => {
+      const debugMock = jest.fn();
+      const logger = {
+        debug: debugMock,
+        info: jest.fn(),
+        warn: jest.fn(),
+        error: jest.fn(),
+      };
+
+      const client = new Anthropic({ logger: logger, logLevel: 'debug', apiKey: 'my-anthropic-api-key' });
+
+      await forceAPIResponseForClient(client);
+      expect(debugMock).toHaveBeenCalled();
+    });
+
+    test('default logLevel is warn', async () => {
+      const client = new Anthropic({ apiKey: 'my-anthropic-api-key' });
+      expect(client.logLevel).toBe('warn');
+    });
+
+    test('debug logs are skipped when log level is info', async () => {
+      const debugMock = jest.fn();
+      const logger = {
+        debug: debugMock,
+        info: jest.fn(),
+        warn: jest.fn(),
+        error: jest.fn(),
+      };
+
+      const client = new Anthropic({ logger: logger, logLevel: 'info', apiKey: 'my-anthropic-api-key' });
+
+      await forceAPIResponseForClient(client);
+      expect(debugMock).not.toHaveBeenCalled();
+    });
+
+    test('debug logs happen with debug env var', async () => {
+      const debugMock = jest.fn();
+      const logger = {
+        debug: debugMock,
+        info: jest.fn(),
+        warn: jest.fn(),
+        error: jest.fn(),
+      };
+
+      process.env['ANTHROPIC_LOG'] = 'debug';
+      const client = new Anthropic({ logger: logger, apiKey: 'my-anthropic-api-key' });
+      expect(client.logLevel).toBe('debug');
+
+      await forceAPIResponseForClient(client);
+      expect(debugMock).toHaveBeenCalled();
+    });
+
+    test('warn when env var level is invalid', async () => {
+      const warnMock = jest.fn();
+      const logger = {
+        debug: jest.fn(),
+        info: jest.fn(),
+        warn: warnMock,
+        error: jest.fn(),
+      };
+
+      process.env['ANTHROPIC_LOG'] = 'not a log level';
+      const client = new Anthropic({ logger: logger, apiKey: 'my-anthropic-api-key' });
+      expect(client.logLevel).toBe('warn');
+      expect(warnMock).toHaveBeenCalledWith(
+        'process.env[\'ANTHROPIC_LOG\'] was set to "not a log level", expected one of ["off","error","warn","info","debug"]',
+      );
+    });
+
+    test('client log level overrides env var', async () => {
+      const debugMock = jest.fn();
+      const logger = {
+        debug: debugMock,
+        info: jest.fn(),
+        warn: jest.fn(),
+        error: jest.fn(),
+      };
+
+      process.env['ANTHROPIC_LOG'] = 'debug';
+      const client = new Anthropic({ logger: logger, logLevel: 'off', apiKey: 'my-anthropic-api-key' });
+
+      await forceAPIResponseForClient(client);
+      expect(debugMock).not.toHaveBeenCalled();
+    });
+
+    test('no warning logged for invalid env var level + valid client level', async () => {
+      const warnMock = jest.fn();
+      const logger = {
+        debug: jest.fn(),
+        info: jest.fn(),
+        warn: warnMock,
+        error: jest.fn(),
+      };
+
+      process.env['ANTHROPIC_LOG'] = 'not a log level';
+      const client = new Anthropic({ logger: logger, logLevel: 'debug', apiKey: 'my-anthropic-api-key' });
+      expect(client.logLevel).toBe('debug');
+      expect(warnMock).not.toHaveBeenCalled();
     });
   });
 
@@ -94,6 +223,15 @@ describe('instantiate client', () => {
 
     const response = await client.get('/foo');
     expect(response).toEqual({ url: 'http://localhost:5000/foo', custom: true });
+  });
+
+  test('explicit global fetch', async () => {
+    // make sure the global fetch type is assignable to our Fetch type
+    const client = new Anthropic({
+      baseURL: 'http://localhost:5000/',
+      apiKey: 'my-anthropic-api-key',
+      fetch: defaultFetch,
+    });
   });
 
   test('custom signal', async () => {

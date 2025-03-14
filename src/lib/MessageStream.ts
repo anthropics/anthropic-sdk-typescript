@@ -1,3 +1,4 @@
+import { isAbortError } from '../internal/errors';
 import { AnthropicError, APIUserAbortError } from '../error';
 import {
   type ContentBlock,
@@ -8,6 +9,7 @@ import {
   type MessageCreateParams,
   type MessageCreateParamsBase,
   type TextBlock,
+  type TextCitation,
 } from '../resources/messages';
 import { Stream } from '../streaming';
 import { partialParse } from '../_vendor/partial-json-parser/parser';
@@ -18,7 +20,10 @@ export interface MessageStreamEvents {
   connect: () => void;
   streamEvent: (event: MessageStreamEvent, snapshot: Message) => void;
   text: (textDelta: string, textSnapshot: string) => void;
+  citation: (citation: TextCitation, citationsSnapshot: TextCitation[]) => void;
   inputJson: (partialJson: string, jsonSnapshot: unknown) => void;
+  thinking: (thinkingDelta: string, thinkingSnapshot: string) => void;
+  signature: (signature: string) => void;
   message: (message: Message) => void;
   contentBlock: (content: ContentBlock) => void;
   finalMessage: (message: Message) => void;
@@ -41,8 +46,8 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
 
   controller: AbortController = new AbortController();
 
-  #connectedPromise: Promise<void>;
-  #resolveConnectedPromise: () => void = () => {};
+  #connectedPromise: Promise<Response | null>;
+  #resolveConnectedPromise: (response: Response | null) => void = () => {};
   #rejectConnectedPromise: (error: AnthropicError) => void = () => {};
 
   #endPromise: Promise<void>;
@@ -55,9 +60,11 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
   #errored = false;
   #aborted = false;
   #catchingPromiseCreated = false;
+  #response: Response | null | undefined;
+  #request_id: string | null | undefined;
 
   constructor() {
-    this.#connectedPromise = new Promise<void>((resolve, reject) => {
+    this.#connectedPromise = new Promise<Response | null>((resolve, reject) => {
       this.#resolveConnectedPromise = resolve;
       this.#rejectConnectedPromise = reject;
     });
@@ -73,6 +80,41 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     // any promise-returning method.
     this.#connectedPromise.catch(() => {});
     this.#endPromise.catch(() => {});
+  }
+
+  get response(): Response | null | undefined {
+    return this.#response;
+  }
+
+  get request_id(): string | null | undefined {
+    return this.#request_id;
+  }
+
+  /**
+   * Returns the `MessageStream` data, the raw `Response` instance and the ID of the request,
+   * returned vie the `request-id` header which is useful for debugging requests and resporting
+   * issues to Anthropic.
+   *
+   * This is the same as the `APIPromise.withResponse()` method.
+   *
+   * This method will raise an error if you created the stream using `MessageStream.fromReadableStream`
+   * as no `Response` is available.
+   */
+  async withResponse(): Promise<{
+    data: MessageStream;
+    response: Response;
+    request_id: string | null | undefined;
+  }> {
+    const response = await this.#connectedPromise;
+    if (!response) {
+      throw new Error('Could not resolve a `Response` object');
+    }
+
+    return {
+      data: this,
+      response,
+      request_id: response.headers.get('request-id'),
+    };
   }
 
   /**
@@ -136,11 +178,10 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
       signal.addEventListener('abort', () => this.controller.abort());
     }
     this.#beginRequest();
-    const stream = await messages.create(
-      { ...params, stream: true },
-      { ...options, signal: this.controller.signal },
-    );
-    this._connected();
+    const { response, data: stream } = await messages
+      .create({ ...params, stream: true }, { ...options, signal: this.controller.signal })
+      .withResponse();
+    this._connected(response);
     for await (const event of stream) {
       this.#addStreamEvent(event);
     }
@@ -150,9 +191,11 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     this.#endRequest();
   }
 
-  protected _connected() {
+  protected _connected(response: Response | null) {
     if (this.ended) return;
-    this.#resolveConnectedPromise();
+    this.#response = response;
+    this.#request_id = response?.headers.get('request-id');
+    this.#resolveConnectedPromise(response);
     this._emit('connect');
   }
 
@@ -289,7 +332,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
 
   #handleError = (error: unknown) => {
     this.#errored = true;
-    if (error instanceof Error && error.name === 'AbortError') {
+    if (isAbortError(error)) {
       error = new APIUserAbortError();
     }
     if (error instanceof APIUserAbortError) {
@@ -375,12 +418,39 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     switch (event.type) {
       case 'content_block_delta': {
         const content = messageSnapshot.content.at(-1)!;
-        if (event.delta.type === 'text_delta' && content.type === 'text') {
-          this._emit('text', event.delta.text, content.text || '');
-        } else if (event.delta.type === 'input_json_delta' && content.type === 'tool_use') {
-          if (content.input) {
-            this._emit('inputJson', event.delta.partial_json, content.input);
+        switch (event.delta.type) {
+          case 'text_delta': {
+            if (content.type === 'text') {
+              this._emit('text', event.delta.text, content.text || '');
+            }
+            break;
           }
+          case 'citations_delta': {
+            if (content.type === 'text') {
+              this._emit('citation', event.delta.citation, content.citations ?? []);
+            }
+            break;
+          }
+          case 'input_json_delta': {
+            if (content.type === 'tool_use' && content.input) {
+              this._emit('inputJson', event.delta.partial_json, content.input);
+            }
+            break;
+          }
+          case 'thinking_delta': {
+            if (content.type === 'thinking') {
+              this._emit('thinking', event.delta.thinking, content.thinking);
+            }
+            break;
+          }
+          case 'signature_delta': {
+            if (content.type === 'thinking') {
+              this._emit('signature', content.signature);
+            }
+            break;
+          }
+          default:
+            checkNever(event.delta);
         }
         break;
       }
@@ -424,7 +494,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
       signal.addEventListener('abort', () => this.controller.abort());
     }
     this.#beginRequest();
-    this._connected();
+    this._connected(null);
     const stream = Stream.fromReadableStream<MessageStreamEvent>(readableStream, this.controller);
     for await (const event of stream) {
       this.#addStreamEvent(event);
@@ -467,25 +537,57 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
         return snapshot;
       case 'content_block_delta': {
         const snapshotContent = snapshot.content.at(event.index);
-        if (snapshotContent?.type === 'text' && event.delta.type === 'text_delta') {
-          snapshotContent.text += event.delta.text;
-        } else if (snapshotContent?.type === 'tool_use' && event.delta.type === 'input_json_delta') {
-          // we need to keep track of the raw JSON string as well so that we can
-          // re-parse it for each delta, for now we just store it as an untyped
-          // non-enumerable property on the snapshot
-          let jsonBuf = (snapshotContent as any)[JSON_BUF_PROPERTY] || '';
-          jsonBuf += event.delta.partial_json;
 
-          Object.defineProperty(snapshotContent, JSON_BUF_PROPERTY, {
-            value: jsonBuf,
-            enumerable: false,
-            writable: true,
-          });
-
-          if (jsonBuf) {
-            snapshotContent.input = partialParse(jsonBuf);
+        switch (event.delta.type) {
+          case 'text_delta': {
+            if (snapshotContent?.type === 'text') {
+              snapshotContent.text += event.delta.text;
+            }
+            break;
           }
+          case 'citations_delta': {
+            if (snapshotContent?.type === 'text') {
+              snapshotContent.citations ??= [];
+              snapshotContent.citations.push(event.delta.citation);
+            }
+            break;
+          }
+          case 'input_json_delta': {
+            if (snapshotContent?.type === 'tool_use') {
+              // we need to keep track of the raw JSON string as well so that we can
+              // re-parse it for each delta, for now we just store it as an untyped
+              // non-enumerable property on the snapshot
+              let jsonBuf = (snapshotContent as any)[JSON_BUF_PROPERTY] || '';
+              jsonBuf += event.delta.partial_json;
+
+              Object.defineProperty(snapshotContent, JSON_BUF_PROPERTY, {
+                value: jsonBuf,
+                enumerable: false,
+                writable: true,
+              });
+
+              if (jsonBuf) {
+                snapshotContent.input = partialParse(jsonBuf);
+              }
+            }
+            break;
+          }
+          case 'thinking_delta': {
+            if (snapshotContent?.type === 'thinking') {
+              snapshotContent.thinking += event.delta.thinking;
+            }
+            break;
+          }
+          case 'signature_delta': {
+            if (snapshotContent?.type === 'thinking') {
+              snapshotContent.signature = event.delta.signature;
+            }
+            break;
+          }
+          default:
+            checkNever(event.delta);
         }
+
         return snapshot;
       }
       case 'content_block_stop':
@@ -559,3 +661,6 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     return stream.toReadableStream();
   }
 }
+
+// used to ensure exhaustive case matching without throwing a runtime error
+function checkNever(x: never) {}

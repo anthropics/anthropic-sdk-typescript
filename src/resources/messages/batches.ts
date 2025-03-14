@@ -5,9 +5,11 @@ import * as Shared from '../shared';
 import * as MessagesAPI from './messages';
 import { APIPromise } from '../../api-promise';
 import { Page, type PageParams, PagePromise } from '../../pagination';
+import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
 import { JSONLDecoder } from '../../internal/decoders/jsonl';
 import { AnthropicError } from '../../error';
+import { path } from '../../internal/utils/path';
 
 export class Batches extends APIResource {
   /**
@@ -16,6 +18,9 @@ export class Batches extends APIResource {
    * The Message Batches API can be used to process multiple Messages API requests at
    * once. Once a Message Batch is created, it begins processing immediately. Batches
    * can take up to 24 hours to complete.
+   *
+   * Learn more about the Message Batches API in our
+   * [user guide](/en/docs/build-with-claude/batch-processing)
    */
   create(body: BatchCreateParams, options?: RequestOptions): APIPromise<MessageBatch> {
     return this._client.post('/v1/messages/batches', { body, ...options });
@@ -25,14 +30,20 @@ export class Batches extends APIResource {
    * This endpoint is idempotent and can be used to poll for Message Batch
    * completion. To access the results of a Message Batch, make a request to the
    * `results_url` field in the response.
+   *
+   * Learn more about the Message Batches API in our
+   * [user guide](/en/docs/build-with-claude/batch-processing)
    */
   retrieve(messageBatchID: string, options?: RequestOptions): APIPromise<MessageBatch> {
-    return this._client.get(`/v1/messages/batches/${messageBatchID}`, options);
+    return this._client.get(path`/v1/messages/batches/${messageBatchID}`, options);
   }
 
   /**
    * List all Message Batches within a Workspace. Most recently created batches are
    * returned first.
+   *
+   * Learn more about the Message Batches API in our
+   * [user guide](/en/docs/build-with-claude/batch-processing)
    */
   list(
     query: BatchListParams | null | undefined = {},
@@ -42,12 +53,16 @@ export class Batches extends APIResource {
   }
 
   /**
-   * This endpoint is idempotent and can be used to poll for Message Batch
-   * completion. To access the results of a Message Batch, make a request to the
-   * `results_url` field in the response.
+   * Delete a Message Batch.
+   *
+   * Message Batches can only be deleted once they've finished processing. If you'd
+   * like to delete an in-progress batch, you must first cancel it.
+   *
+   * Learn more about the Message Batches API in our
+   * [user guide](/en/docs/build-with-claude/batch-processing)
    */
   delete(messageBatchID: string, options?: RequestOptions): APIPromise<DeletedMessageBatch> {
-    return this._client.delete(`/v1/messages/batches/${messageBatchID}`, options);
+    return this._client.delete(path`/v1/messages/batches/${messageBatchID}`, options);
   }
 
   /**
@@ -60,9 +75,12 @@ export class Batches extends APIResource {
    * which requests were canceled, check the individual results within the batch.
    * Note that cancellation may not result in any canceled requests if they were
    * non-interruptible.
+   *
+   * Learn more about the Message Batches API in our
+   * [user guide](/en/docs/build-with-claude/batch-processing)
    */
   cancel(messageBatchID: string, options?: RequestOptions): APIPromise<MessageBatch> {
-    return this._client.post(`/v1/messages/batches/${messageBatchID}/cancel`, options);
+    return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel`, options);
   }
 
   /**
@@ -71,6 +89,9 @@ export class Batches extends APIResource {
    * Each line in the file is a JSON object containing the result of a single request
    * in the Message Batch. Results are not guaranteed to be in the same order as
    * requests. Use the `custom_id` field to match results to requests.
+   *
+   * Learn more about the Message Batches API in our
+   * [user guide](/en/docs/build-with-claude/batch-processing)
    */
   async results(
     messageBatchID: string,
@@ -84,7 +105,11 @@ export class Batches extends APIResource {
     }
 
     return this._client
-      .get(batch.results_url, { ...options, __binaryResponse: true })
+      .get(batch.results_url, {
+        ...options,
+        headers: buildHeaders([{ Accept: 'application/x-jsonl' }, options?.headers]),
+        __binaryResponse: true,
+      })
       ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller));
   }
 }
@@ -191,6 +216,10 @@ export interface MessageBatchExpiredResult {
   type: 'expired';
 }
 
+/**
+ * This is a single line in the response `.jsonl` file and does not represent the
+ * response as a whole.
+ */
 export interface MessageBatchIndividualResponse {
   /**
    * Developer-provided ID created for each request in a Message Batch. Useful for

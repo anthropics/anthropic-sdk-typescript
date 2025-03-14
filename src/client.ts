@@ -1,28 +1,26 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import type { RequestInit, RequestInfo, BodyInit } from './internal/builtin-types';
-import type { HTTPMethod, PromiseOrValue } from './internal/types';
-import { debug } from './internal/utils/log';
+import type { HTTPMethod, PromiseOrValue, MergedRequestInit } from './internal/types';
 import { uuid4 } from './internal/utils/uuid';
-import { validatePositiveInteger, isAbsoluteURL } from './internal/utils/values';
+import { validatePositiveInteger, isAbsoluteURL, hasOwn } from './internal/utils/values';
 import { sleep } from './internal/utils/sleep';
-import { castToError } from './internal/errors';
+import { castToError, isAbortError } from './internal/errors';
 import type { APIResponseProps } from './internal/parse';
 import { getPlatformHeaders } from './internal/detect-platform';
 import * as Shims from './internal/shims';
 import * as Opts from './internal/request-options';
 import { VERSION } from './version';
-import { isBlobLike } from './uploads';
-import { buildHeaders } from './internal/headers';
 import * as Errors from './error';
 import * as Pagination from './pagination';
+import { AnthropicError } from './error';
 import { AbstractPage, type PageParams, PageResponse } from './pagination';
 import * as Uploads from './uploads';
 import * as API from './resources/index';
 import { APIPromise } from './api-promise';
 import { type Fetch } from './internal/builtin-types';
 import { isRunningInBrowser } from './internal/detect-platform';
-import { HeadersLike, NullableHeaders, isEmptyHeaders } from './internal/headers';
+import { HeadersLike, NullableHeaders, buildHeaders, isEmptyHeaders } from './internal/headers';
 import { FinalRequestOptions, RequestOptions } from './internal/request-options';
 import {
   Completion,
@@ -33,6 +31,7 @@ import {
 } from './resources/completions';
 import { ModelInfo, ModelInfosPage, ModelListParams, Models } from './resources/models';
 import { readEnv } from './internal/utils/env';
+import { formatRequestDetails, loggerFor } from './internal/utils/log';
 import { isEmptyObj } from './internal/utils/values';
 import {
   AnthropicBeta,
@@ -50,19 +49,31 @@ import {
   BetaRateLimitError,
 } from './resources/beta/beta';
 import {
+  Base64ImageSource,
   Base64PDFSource,
   CacheControlEphemeral,
+  CitationCharLocation,
+  CitationCharLocationParam,
+  CitationContentBlockLocation,
+  CitationContentBlockLocationParam,
+  CitationPageLocation,
+  CitationPageLocationParam,
+  CitationsConfigParam,
+  CitationsDelta,
   ContentBlock,
   ContentBlockDeltaEvent,
   ContentBlockParam,
   ContentBlockStartEvent,
   ContentBlockStopEvent,
+  ContentBlockSource,
+  ContentBlockSourceContent,
   DocumentBlockParam,
   ImageBlockParam,
   InputJSONDelta,
   Message,
   MessageStreamParams,
   MessageCountTokensParams,
+  MessageCountTokensTool,
   MessageCreateParams,
   MessageCreateParamsNonStreaming,
   MessageCreateParamsStreaming,
@@ -76,6 +87,7 @@ import {
   Messages,
   Metadata,
   Model,
+  PlainTextSource,
   RawContentBlockDeltaEvent,
   RawContentBlockStartEvent,
   RawContentBlockStopEvent,
@@ -83,17 +95,34 @@ import {
   RawMessageStartEvent,
   RawMessageStopEvent,
   RawMessageStreamEvent,
+  RedactedThinkingBlock,
+  RedactedThinkingBlockParam,
+  SignatureDelta,
   TextBlock,
   TextBlockParam,
+  TextCitation,
+  TextCitationParam,
   TextDelta,
+  ThinkingBlock,
+  ThinkingBlockParam,
+  ThinkingConfigDisabled,
+  ThinkingConfigEnabled,
+  ThinkingConfigParam,
+  ThinkingDelta,
   Tool,
+  ToolBash20250124,
   ToolChoice,
   ToolChoiceAny,
   ToolChoiceAuto,
+  ToolChoiceNone,
   ToolChoiceTool,
   ToolResultBlockParam,
+  ToolTextEditor20250124,
+  ToolUnion,
   ToolUseBlock,
   ToolUseBlockParam,
+  URLImageSource,
+  URLPDFSource,
   Usage,
 } from './resources/messages/messages';
 
@@ -103,6 +132,40 @@ const safeJSON = (text: string) => {
   } catch (err) {
     return undefined;
   }
+};
+
+type LogFn = (message: string, ...rest: unknown[]) => void;
+export type Logger = {
+  error: LogFn;
+  warn: LogFn;
+  info: LogFn;
+  debug: LogFn;
+};
+export type LogLevel = 'off' | 'error' | 'warn' | 'info' | 'debug';
+const parseLogLevel = (
+  maybeLevel: string | undefined,
+  sourceName: string,
+  client: BaseAnthropic,
+): LogLevel | undefined => {
+  if (!maybeLevel) {
+    return undefined;
+  }
+  const levels: Record<LogLevel, true> = {
+    off: true,
+    error: true,
+    warn: true,
+    info: true,
+    debug: true,
+  };
+  if (hasOwn(levels, maybeLevel)) {
+    return maybeLevel;
+  }
+  loggerFor(client).warn(
+    `${sourceName} was set to ${JSON.stringify(maybeLevel)}, expected one of ${JSON.stringify(
+      Object.keys(levels),
+    )}`,
+  );
+  return undefined;
 };
 
 export interface ClientOptions {
@@ -130,15 +193,12 @@ export interface ClientOptions {
    * Note that request timeouts are retried by default, so in a worst-case scenario you may wait
    * much longer than this timeout before the promise succeeds or fails.
    */
-  timeout?: number;
-
+  timeout?: number | undefined;
   /**
-   * An HTTP agent used to manage HTTP(S) connections.
-   *
-   * If not provided, an agent will be constructed by default in the Node.js environment,
-   * otherwise no agent is used.
+   * Additional `RequestInit` options to be passed to `fetch` calls.
+   * Properties will be overridden by per-request `fetchOptions`.
    */
-  httpAgent?: Shims.Agent;
+  fetchOptions?: MergedRequestInit | undefined;
 
   /**
    * Specify a custom `fetch` function implementation.
@@ -153,7 +213,7 @@ export interface ClientOptions {
    *
    * @default 2
    */
-  maxRetries?: number;
+  maxRetries?: number | undefined;
 
   /**
    * Default headers to include with every request to the API.
@@ -161,7 +221,7 @@ export interface ClientOptions {
    * These can be removed in individual requests by explicitly setting the
    * header to `null` in request options.
    */
-  defaultHeaders?: HeadersLike;
+  defaultHeaders?: HeadersLike | undefined;
 
   /**
    * Default query parameters to include with every request to the API.
@@ -169,13 +229,27 @@ export interface ClientOptions {
    * These can be removed in individual requests by explicitly setting the
    * param to `undefined` in request options.
    */
-  defaultQuery?: Record<string, string | undefined>;
+  defaultQuery?: Record<string, string | undefined> | undefined;
 
   /**
    * By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
    * Only set this option to `true` if you understand the risks and have appropriate mitigations in place.
    */
-  dangerouslyAllowBrowser?: boolean;
+  dangerouslyAllowBrowser?: boolean | undefined;
+
+  /**
+   * Set the log level.
+   *
+   * Defaults to process.env['ANTHROPIC_LOG'] or 'warn' if it isn't set.
+   */
+  logLevel?: LogLevel | undefined;
+
+  /**
+   * Set the logger.
+   *
+   * Defaults to globalThis.console.
+   */
+  logger?: Logger | undefined;
 }
 
 type FinalizedRequestInit = RequestInit & { headers: Headers };
@@ -187,7 +261,9 @@ export class BaseAnthropic {
   baseURL: string;
   maxRetries: number;
   timeout: number;
-  httpAgent: Shims.Agent | undefined;
+  logger: Logger | undefined;
+  logLevel: LogLevel | undefined;
+  fetchOptions: MergedRequestInit | undefined;
 
   private fetch: Fetch;
   #encoder: Opts.RequestEncoder;
@@ -201,7 +277,7 @@ export class BaseAnthropic {
    * @param {string | null | undefined} [opts.authToken=process.env['ANTHROPIC_AUTH_TOKEN'] ?? null]
    * @param {string} [opts.baseURL=process.env['ANTHROPIC_BASE_URL'] ?? https://api.anthropic.com] - Override the default base URL for the API.
    * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
-   * @param {number} [opts.httpAgent] - An HTTP agent used to manage HTTP(s) connections.
+   * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
    * @param {Fetch} [opts.fetch] - Specify a custom `fetch` function implementation.
    * @param {number} [opts.maxRetries=2] - The maximum number of times the client will retry a request.
    * @param {HeadersLike} opts.defaultHeaders - Default headers to include with every request to the API.
@@ -229,7 +305,15 @@ export class BaseAnthropic {
 
     this.baseURL = options.baseURL!;
     this.timeout = options.timeout ?? Anthropic.DEFAULT_TIMEOUT /* 10 minutes */;
-    this.httpAgent = options.httpAgent;
+    this.logger = options.logger ?? console;
+    const defaultLogLevel = 'warn';
+    // Set default logLevel early so that we can log a warning in parseLogLevel.
+    this.logLevel = defaultLogLevel;
+    this.logLevel =
+      parseLogLevel(options.logLevel, 'ClientOptions.logLevel', this) ??
+      parseLogLevel(readEnv('ANTHROPIC_LOG'), "process.env['ANTHROPIC_LOG']", this) ??
+      defaultLogLevel;
+    this.fetchOptions = options.fetchOptions;
     this.maxRetries = options.maxRetries ?? 2;
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
     this.#encoder = Opts.FallbackEncoder;
@@ -347,22 +431,16 @@ export class BaseAnthropic {
     return url.toString();
   }
 
-  private calculateContentLength(body: unknown): string | null {
-    if (typeof body === 'string') {
-      if (typeof Buffer !== 'undefined') {
-        return Buffer.byteLength(body, 'utf8').toString();
-      }
-
-      if (typeof TextEncoder !== 'undefined') {
-        const encoder = new TextEncoder();
-        const encoded = encoder.encode(body);
-        return encoded.length.toString();
-      }
-    } else if (ArrayBuffer.isView(body)) {
-      return body.byteLength.toString();
+  _calculateNonstreamingTimeout(maxTokens: number): number {
+    const defaultTimeout = 10 * 60;
+    const expectedTimeout = (60 * 60 * maxTokens) / 128_000;
+    if (expectedTimeout > defaultTimeout) {
+      throw new AnthropicError(
+        'Streaming is strongly recommended for operations that may take longer than 10 minutes. ' +
+          'See https://github.com/anthropics/anthropic-sdk-python#streaming-responses for more details',
+      );
     }
-
-    return null;
+    return defaultTimeout * 1000;
   }
 
   /**
@@ -407,14 +485,8 @@ export class BaseAnthropic {
     opts?: PromiseOrValue<RequestOptions>,
   ): APIPromise<Rsp> {
     return this.request(
-      Promise.resolve(opts).then(async (opts) => {
-        const body =
-          opts && isBlobLike(opts?.body) ? new DataView(await opts.body.arrayBuffer())
-          : opts?.body instanceof DataView ? opts.body
-          : opts?.body instanceof ArrayBuffer ? new DataView(opts.body)
-          : opts && ArrayBuffer.isView(opts?.body) ? new DataView(opts.body.buffer)
-          : opts?.body;
-        return { method, path, ...opts, body };
+      Promise.resolve(opts).then((opts) => {
+        return { method, path, ...opts };
       }),
     );
   }
@@ -423,12 +495,13 @@ export class BaseAnthropic {
     options: PromiseOrValue<FinalRequestOptions>,
     remainingRetries: number | null = null,
   ): APIPromise<Rsp> {
-    return new APIPromise(this.makeRequest(options, remainingRetries));
+    return new APIPromise(this, this.makeRequest(options, remainingRetries, undefined));
   }
 
   private async makeRequest(
     optionsInput: PromiseOrValue<FinalRequestOptions>,
     retriesRemaining: number | null,
+    retryOfRequestLogID: string | undefined,
   ): Promise<APIResponseProps> {
     const options = await optionsInput;
     const maxRetries = options.maxRetries ?? this.maxRetries;
@@ -442,7 +515,21 @@ export class BaseAnthropic {
 
     await this.prepareRequest(req, { url, options });
 
-    debug('request', url, options, req.headers);
+    /** Not an API request ID, just for correlating local log entries. */
+    const requestLogID = 'log_' + ((Math.random() * (1 << 24)) | 0).toString(16).padStart(6, '0');
+    const retryLogStr = retryOfRequestLogID === undefined ? '' : `, retryOf: ${retryOfRequestLogID}`;
+    const startTime = Date.now();
+
+    loggerFor(this).debug(
+      `[${requestLogID}] sending request`,
+      formatRequestDetails({
+        retryOfRequestLogID,
+        method: options.method,
+        url,
+        options,
+        headers: req.headers,
+      }),
+    );
 
     if (options.signal?.aborted) {
       throw new Errors.APIUserAbortError();
@@ -450,39 +537,124 @@ export class BaseAnthropic {
 
     const controller = new AbortController();
     const response = await this.fetchWithTimeout(url, req, timeout, controller).catch(castToError);
+    const headersTime = Date.now();
 
     if (response instanceof Error) {
+      const retryMessage = `retrying, ${retriesRemaining} attempts remaining`;
       if (options.signal?.aborted) {
         throw new Errors.APIUserAbortError();
       }
+      // detect native connection timeout errors
+      // deno throws "TypeError: error sending request for url (https://example/): client error (Connect): tcp connect error: Operation timed out (os error 60): Operation timed out (os error 60)"
+      // undici throws "TypeError: fetch failed" with cause "ConnectTimeoutError: Connect Timeout Error (attempted address: example:443, timeout: 1ms)"
+      // others do not provide enough information to distinguish timeouts from other connection errors
+      const isTimeout =
+        isAbortError(response) ||
+        /timed? ?out/i.test(String(response) + ('cause' in response ? String(response.cause) : ''));
       if (retriesRemaining) {
-        return this.retryRequest(options, retriesRemaining);
+        loggerFor(this).info(
+          `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - ${retryMessage}`,
+        );
+        loggerFor(this).debug(
+          `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (${retryMessage})`,
+          formatRequestDetails({
+            retryOfRequestLogID,
+            url,
+            durationMs: headersTime - startTime,
+            message: response.message,
+          }),
+        );
+        return this.retryRequest(options, retriesRemaining, retryOfRequestLogID ?? requestLogID);
       }
-      if (response.name === 'AbortError') {
+      loggerFor(this).info(
+        `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - error; no more retries left`,
+      );
+      loggerFor(this).debug(
+        `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (error; no more retries left)`,
+        formatRequestDetails({
+          retryOfRequestLogID,
+          url,
+          durationMs: headersTime - startTime,
+          message: response.message,
+        }),
+      );
+      if (isTimeout) {
         throw new Errors.APIConnectionTimeoutError();
       }
       throw new Errors.APIConnectionError({ cause: response });
     }
 
+    const specialHeaders = [...response.headers.entries()]
+      .filter(([name]) => name === 'request-id')
+      .map(([name, value]) => ', ' + name + ': ' + JSON.stringify(value))
+      .join('');
+    const responseInfo = `[${requestLogID}${retryLogStr}${specialHeaders}] ${req.method} ${url} ${
+      response.ok ? 'succeeded' : 'failed'
+    } with status ${response.status} in ${headersTime - startTime}ms`;
+
     if (!response.ok) {
-      if (retriesRemaining && this.shouldRetry(response)) {
+      const shouldRetry = this.shouldRetry(response);
+      if (retriesRemaining && shouldRetry) {
         const retryMessage = `retrying, ${retriesRemaining} attempts remaining`;
-        debug(`response (error; ${retryMessage})`, response.status, url, response.headers);
-        return this.retryRequest(options, retriesRemaining, response.headers);
+
+        // We don't need the body of this response.
+        await Shims.CancelReadableStream(response.body);
+        loggerFor(this).info(`${responseInfo} - ${retryMessage}`);
+        loggerFor(this).debug(
+          `[${requestLogID}] response error (${retryMessage})`,
+          formatRequestDetails({
+            retryOfRequestLogID,
+            url: response.url,
+            status: response.status,
+            headers: response.headers,
+            durationMs: headersTime - startTime,
+          }),
+        );
+        return this.retryRequest(
+          options,
+          retriesRemaining,
+          retryOfRequestLogID ?? requestLogID,
+          response.headers,
+        );
       }
+
+      const retryMessage = shouldRetry ? `error; no more retries left` : `error; not retryable`;
+
+      loggerFor(this).info(`${responseInfo} - ${retryMessage}`);
 
       const errText = await response.text().catch((err: any) => castToError(err).message);
       const errJSON = safeJSON(errText);
       const errMessage = errJSON ? undefined : errText;
-      const retryMessage = retriesRemaining ? `(error; no more retries left)` : `(error; not retryable)`;
 
-      debug(`response (error; ${retryMessage})`, response.status, url, response.headers, errMessage);
+      loggerFor(this).debug(
+        `[${requestLogID}] response error (${retryMessage})`,
+        formatRequestDetails({
+          retryOfRequestLogID,
+          url: response.url,
+          status: response.status,
+          headers: response.headers,
+          message: errMessage,
+          durationMs: Date.now() - startTime,
+        }),
+      );
 
       const err = this.makeStatusError(response.status, errJSON, errMessage, response.headers);
       throw err;
     }
 
-    return { response, options, controller };
+    loggerFor(this).info(responseInfo);
+    loggerFor(this).debug(
+      `[${requestLogID}] response start`,
+      formatRequestDetails({
+        retryOfRequestLogID,
+        url: response.url,
+        status: response.status,
+        headers: response.headers,
+        durationMs: headersTime - startTime,
+      }),
+    );
+
+    return { response, options, controller, requestLogID, retryOfRequestLogID, startTime };
   }
 
   getAPIList<Item, PageClass extends Pagination.AbstractPage<Item> = Pagination.AbstractPage<Item>>(
@@ -500,7 +672,7 @@ export class BaseAnthropic {
     Page: new (...args: ConstructorParameters<typeof Pagination.AbstractPage>) => PageClass,
     options: FinalRequestOptions,
   ): Pagination.PagePromise<PageClass, Item> {
-    const request = this.makeRequest(options, null);
+    const request = this.makeRequest(options, null, undefined);
     return new Pagination.PagePromise<PageClass, Item>(this as any as Anthropic, request, Page);
   }
 
@@ -515,7 +687,9 @@ export class BaseAnthropic {
 
     const timeout = setTimeout(() => controller.abort(), ms);
 
-    const isReadableBody = Shims.isReadableLike(options.body);
+    const isReadableBody =
+      ((globalThis as any).ReadableStream && options.body instanceof (globalThis as any).ReadableStream) ||
+      (typeof options.body === 'object' && options.body !== null && Symbol.asyncIterator in options.body);
 
     const fetchOptions: RequestInit = {
       signal: controller.signal as any,
@@ -563,6 +737,7 @@ export class BaseAnthropic {
   private async retryRequest(
     options: FinalRequestOptions,
     retriesRemaining: number,
+    requestLogID: string,
     responseHeaders?: Headers | undefined,
   ): Promise<APIResponseProps> {
     let timeoutMillis: number | undefined;
@@ -595,7 +770,7 @@ export class BaseAnthropic {
     }
     await sleep(timeoutMillis);
 
-    return this.makeRequest(options, retriesRemaining - 1);
+    return this.makeRequest(options, retriesRemaining - 1, requestLogID);
   }
 
   private calculateDefaultRetryTimeoutMillis(retriesRemaining: number, maxRetries: number): number {
@@ -617,38 +792,27 @@ export class BaseAnthropic {
     options: FinalRequestOptions,
     { retryCount = 0 }: { retryCount?: number } = {},
   ): { req: FinalizedRequestInit; url: string; timeout: number } {
+    options = { ...options };
     const { method, path, query } = options;
 
     const url = this.buildURL(path!, query as Record<string, unknown>);
     if ('timeout' in options) validatePositiveInteger('timeout', options.timeout);
-    const timeout = options.timeout ?? this.timeout;
-    const httpAgent = options.httpAgent ?? this.httpAgent;
-    const minAgentTimeout = timeout + 1000;
-    if (
-      typeof (httpAgent as any)?.options?.timeout === 'number' &&
-      minAgentTimeout > ((httpAgent as any).options.timeout ?? 0)
-    ) {
-      // Allow any given request to bump our agent active socket timeout.
-      // This may seem strange, but leaking active sockets should be rare and not particularly problematic,
-      // and without mutating agent we would need to create more of them.
-      // This tradeoff optimizes for performance.
-      (httpAgent as any).options.timeout = minAgentTimeout;
-    }
-
+    options.timeout = options.timeout ?? this.timeout;
     const { bodyHeaders, body } = this.buildBody({ options });
     const reqHeaders = this.buildHeaders({ options, method, bodyHeaders, retryCount });
 
     const req: FinalizedRequestInit = {
       method,
       headers: reqHeaders,
-      ...(httpAgent && { agent: httpAgent }),
       ...(options.signal && { signal: options.signal }),
       ...((globalThis as any).ReadableStream &&
         body instanceof (globalThis as any).ReadableStream && { duplex: 'half' }),
       ...(body && { body }),
+      ...((this.fetchOptions as any) ?? {}),
+      ...((options.fetchOptions as any) ?? {}),
     };
 
-    return { req, url, timeout };
+    return { req, url, timeout: options.timeout };
   }
 
   private buildHeaders({
@@ -674,6 +838,7 @@ export class BaseAnthropic {
         Accept: 'application/json',
         'User-Agent': this.getUserAgent(),
         'X-Stainless-Retry-Count': String(retryCount),
+        ...(options.timeout ? { 'X-Stainless-Timeout': String(options.timeout) } : {}),
         ...getPlatformHeaders(),
         ...(this._options.dangerouslyAllowBrowser ?
           { 'anthropic-dangerous-direct-browser-access': 'true' }
@@ -779,17 +944,29 @@ export declare namespace Anthropic {
 
   export {
     Messages as Messages,
+    type Base64ImageSource as Base64ImageSource,
     type Base64PDFSource as Base64PDFSource,
     type CacheControlEphemeral as CacheControlEphemeral,
+    type CitationCharLocation as CitationCharLocation,
+    type CitationCharLocationParam as CitationCharLocationParam,
+    type CitationContentBlockLocation as CitationContentBlockLocation,
+    type CitationContentBlockLocationParam as CitationContentBlockLocationParam,
+    type CitationPageLocation as CitationPageLocation,
+    type CitationPageLocationParam as CitationPageLocationParam,
+    type CitationsConfigParam as CitationsConfigParam,
+    type CitationsDelta as CitationsDelta,
     type ContentBlock as ContentBlock,
     type ContentBlockDeltaEvent as ContentBlockDeltaEvent,
     type ContentBlockParam as ContentBlockParam,
     type ContentBlockStartEvent as ContentBlockStartEvent,
     type ContentBlockStopEvent as ContentBlockStopEvent,
+    type ContentBlockSource as ContentBlockSource,
+    type ContentBlockSourceContent as ContentBlockSourceContent,
     type DocumentBlockParam as DocumentBlockParam,
     type ImageBlockParam as ImageBlockParam,
     type InputJSONDelta as InputJSONDelta,
     type Message as Message,
+    type MessageCountTokensTool as MessageCountTokensTool,
     type MessageDeltaEvent as MessageDeltaEvent,
     type MessageDeltaUsage as MessageDeltaUsage,
     type MessageParam as MessageParam,
@@ -799,6 +976,7 @@ export declare namespace Anthropic {
     type MessageTokensCount as MessageTokensCount,
     type Metadata as Metadata,
     type Model as Model,
+    type PlainTextSource as PlainTextSource,
     type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,
     type RawContentBlockStartEvent as RawContentBlockStartEvent,
     type RawContentBlockStopEvent as RawContentBlockStopEvent,
@@ -806,17 +984,34 @@ export declare namespace Anthropic {
     type RawMessageStartEvent as RawMessageStartEvent,
     type RawMessageStopEvent as RawMessageStopEvent,
     type RawMessageStreamEvent as RawMessageStreamEvent,
+    type RedactedThinkingBlock as RedactedThinkingBlock,
+    type RedactedThinkingBlockParam as RedactedThinkingBlockParam,
+    type SignatureDelta as SignatureDelta,
     type TextBlock as TextBlock,
     type TextBlockParam as TextBlockParam,
+    type TextCitation as TextCitation,
+    type TextCitationParam as TextCitationParam,
     type TextDelta as TextDelta,
+    type ThinkingBlock as ThinkingBlock,
+    type ThinkingBlockParam as ThinkingBlockParam,
+    type ThinkingConfigDisabled as ThinkingConfigDisabled,
+    type ThinkingConfigEnabled as ThinkingConfigEnabled,
+    type ThinkingConfigParam as ThinkingConfigParam,
+    type ThinkingDelta as ThinkingDelta,
     type Tool as Tool,
+    type ToolBash20250124 as ToolBash20250124,
     type ToolChoice as ToolChoice,
     type ToolChoiceAny as ToolChoiceAny,
     type ToolChoiceAuto as ToolChoiceAuto,
+    type ToolChoiceNone as ToolChoiceNone,
     type ToolChoiceTool as ToolChoiceTool,
     type ToolResultBlockParam as ToolResultBlockParam,
+    type ToolTextEditor20250124 as ToolTextEditor20250124,
+    type ToolUnion as ToolUnion,
     type ToolUseBlock as ToolUseBlock,
     type ToolUseBlockParam as ToolUseBlockParam,
+    type URLImageSource as URLImageSource,
+    type URLPDFSource as URLPDFSource,
     type Usage as Usage,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
