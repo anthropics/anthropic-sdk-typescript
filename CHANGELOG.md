@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.40.0 (2025-03-15)
+
+Full Changelog: [sdk-v0.39.0...sdk-v0.40.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.39.0...sdk-v0.40.0)
+
+### Features
+
+* add SKIP_BREW env var to ./scripts/bootstrap ([#710](https://github.com/anthropics/anthropic-sdk-typescript/issues/710)) ([1b8376a](https://github.com/anthropics/anthropic-sdk-typescript/commit/1b8376aac5475e1bb6b5f79c7c5684ab77908c1f))
+* **client:** accept RFC6838 JSON content types ([#713](https://github.com/anthropics/anthropic-sdk-typescript/issues/713)) ([fc32787](https://github.com/anthropics/anthropic-sdk-typescript/commit/fc3278702b3d27f792006e9710432f612e856af1))
+
+
+### Bug Fixes
+
+* **exports:** ensure resource imports don't require /index ([#717](https://github.com/anthropics/anthropic-sdk-typescript/issues/717)) ([56b2a80](https://github.com/anthropics/anthropic-sdk-typescript/commit/56b2a80145999256d4c075cf48be891df7832aad))
+* remove duplicate exports ([2df4cdd](https://github.com/anthropics/anthropic-sdk-typescript/commit/2df4cdd6f3a4f35a858fde57ce6327c50d3319d8))
+
+
+### Chores
+
+* **internal:** import ordering changes ([#708](https://github.com/anthropics/anthropic-sdk-typescript/issues/708)) ([a5680e1](https://github.com/anthropics/anthropic-sdk-typescript/commit/a5680e1466a6ea1bed0ddc4c880dd4e342ea1350))
+* **internal:** remove extra empty newlines ([#716](https://github.com/anthropics/anthropic-sdk-typescript/issues/716)) ([4d3c024](https://github.com/anthropics/anthropic-sdk-typescript/commit/4d3c02496ee09625fbcb5da545e90faa3890a885))
+
 ## 0.39.0 (2025-02-28)
 
 Full Changelog: [sdk-v0.38.0...sdk-v0.39.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.38.0...sdk-v0.39.0)
