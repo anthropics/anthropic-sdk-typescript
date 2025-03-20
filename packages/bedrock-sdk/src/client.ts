@@ -6,8 +6,10 @@ import { Stream } from './streaming';
 import { readEnv } from './internal/utils/env';
 import { FinalRequestOptions } from './internal/request-options';
 import { isObj } from './internal/utils/values';
-import { buildHeaders } from './internal/headers';
+import { buildHeaders, type HeadersLike } from './internal/headers';
 import { FinalizedRequestInit } from './internal/types';
+import type { Fetch } from './internal/builtin-types';
+import type { MergedRequestInit } from './internal/types';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 
 const DEFAULT_VERSION = 'bedrock-2023-05-31';
@@ -40,11 +42,12 @@ export class AnthropicBedrock extends BaseAnthropic {
    * @param {string | null | undefined} [opts.awsSessionToken]
    * @param {string} [opts.baseURL=process.env['ANTHROPIC_BEDROCK_BASE_URL'] ?? https://bedrock-runtime.${this.awsRegion}.amazonaws.com] - Override the default base URL for the API.
    * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
-   * @param {number} [opts.httpAgent] - An HTTP agent used to manage HTTP(s) connections.
-   * @param {Core.Fetch} [opts.fetch] - Specify a custom `fetch` function implementation.
+   * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
+   * @param {Fetch} [opts.fetch] - Specify a custom `fetch` function implementation.
    * @param {number} [opts.maxRetries=2] - The maximum number of times the client will retry a request.
-   * @param {Core.Headers} opts.defaultHeaders - Default headers to include with every request to the API.
-   * @param {Core.DefaultQuery} opts.defaultQuery - Default query parameters to include with every request to the API.
+   * @param {HeadersLike} opts.defaultHeaders - Default headers to include with every request to the API.
+   * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
+   * @param {boolean} [opts.dangerouslyAllowBrowser=false] - By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
    */
   constructor({
     awsRegion = readEnv('AWS_REGION') ?? 'us-east-1',
@@ -74,7 +77,7 @@ export class AnthropicBedrock extends BaseAnthropic {
   }
 
   protected override async prepareRequest(
-    request: RequestInit,
+    request: FinalizedRequestInit,
     { url, options }: { url: string; options: FinalRequestOptions },
   ): Promise<void> {
     const regionName = this.awsRegion;
@@ -91,7 +94,7 @@ export class AnthropicBedrock extends BaseAnthropic {
       awsSecretKey: this.awsSecretKey,
       awsSessionToken: this.awsSessionToken,
     });
-    request.headers = { ...request.headers, ...headers };
+    request.headers = buildHeaders([request.headers ?? [], headers]).values;
   }
 
   override buildRequest(options: FinalRequestOptions): {
