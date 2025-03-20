@@ -4,7 +4,7 @@ import type { FinalRequestOptions } from './request-options';
 import { Stream } from '../core/streaming';
 import { type BaseAnthropic } from '../client';
 import { formatRequestDetails, loggerFor } from './utils/log';
-import type { AbstractPage } from '../pagination';
+import type { AbstractPage } from '../core/pagination';
 
 export type APIResponseProps = {
   response: Response;

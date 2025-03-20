@@ -9,7 +9,9 @@ export type HeadersLike =
   | null
   | NullableHeaders;
 
-const brand_privateNullableHeaders = Symbol('brand.privateNullableHeaders');
+const brand_privateNullableHeaders = Symbol.for('brand.privateNullableHeaders') as symbol & {
+  description: 'brand.privateNullableHeaders';
+};
 
 /**
  * @internal
@@ -18,7 +20,7 @@ const brand_privateNullableHeaders = Symbol('brand.privateNullableHeaders');
  */
 export type NullableHeaders = {
   /** Brand check, prevent users from creating a NullableHeaders. */
-  [brand_privateNullableHeaders]: true;
+  [_: typeof brand_privateNullableHeaders]: true;
   /** Parsed headers. */
   values: Headers;
   /** Set of lowercase header names explicitly set to null. */
@@ -31,7 +33,7 @@ function* iterateHeaders(headers: HeadersLike): IterableIterator<readonly [strin
   if (!headers) return;
 
   if (brand_privateNullableHeaders in headers) {
-    const { values, nulls } = headers;
+    const { values, nulls } = headers as NullableHeaders;
     yield* values.entries();
     for (const name of nulls) {
       yield [name, null];
