@@ -1,6 +1,5 @@
-import { BaseAnthropic } from '@anthropic-ai/sdk/client';
+import { BaseAnthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
-import * as API from '@anthropic-ai/sdk/index';
 import { getAuthHeaders } from './auth';
 import { Stream } from './streaming';
 import { readEnv } from './internal/utils/env';
@@ -15,7 +14,7 @@ export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 const DEFAULT_VERSION = 'bedrock-2023-05-31';
 const MODEL_ENDPOINTS = new Set<string>(['/v1/complete', '/v1/messages', '/v1/messages?beta=true']);
 
-export type ClientOptions = Omit<API.ClientOptions, 'apiKey' | 'authToken'> & {
+export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
   awsSecretKey?: string | null | undefined;
   awsAccessKey?: string | null | undefined;
 
@@ -94,7 +93,7 @@ export class AnthropicBedrock extends BaseAnthropic {
       awsSecretKey: this.awsSecretKey,
       awsSessionToken: this.awsSessionToken,
     });
-    request.headers = buildHeaders([request.headers ?? [], headers]).values;
+    request.headers = buildHeaders([headers, request.headers]).values;
   }
 
   override buildRequest(options: FinalRequestOptions): {

@@ -1,4 +1,1 @@
-import { AnthropicBedrock } from './client';
-
-export default AnthropicBedrock;
-export { AnthropicBedrock };
+export { AnthropicBedrock, AnthropicBedrock as default } from './client';
