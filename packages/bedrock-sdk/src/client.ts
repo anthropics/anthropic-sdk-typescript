@@ -9,6 +9,7 @@ import { buildHeaders, type HeadersLike } from './internal/headers';
 import { FinalizedRequestInit } from './internal/types';
 import type { Fetch } from './internal/builtin-types';
 import type { MergedRequestInit } from './internal/types';
+
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 
 const DEFAULT_VERSION = 'bedrock-2023-05-31';
