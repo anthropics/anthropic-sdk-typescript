@@ -1,1 +1,2 @@
-export { AnthropicBedrock, AnthropicBedrock as default } from './client';
+export * from './client';
+export { AnthropicBedrock as default } from './client';

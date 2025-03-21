@@ -6,9 +6,10 @@ import { FinalRequestOptions } from './internal/request-options';
 import { FinalizedRequestInit } from './internal/types';
 import { isObj } from './internal/utils/values';
 import { buildHeaders, HeadersLike } from './internal/headers';
-export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 import type { Fetch } from './internal/builtin-types';
 import type { MergedRequestInit } from './internal/types';
+
+export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 
 const DEFAULT_VERSION = 'vertex-2023-10-16';
 const MODEL_ENDPOINTS = new Set<string>(['/v1/messages', '/v1/messages?beta=true']);
