@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { Stream, _iterSSEMessages } from '@anthropic-ai/sdk/streaming';
-import { APIConnectionError } from '@anthropic-ai/sdk/error';
+import { APIError } from '@anthropic-ai/sdk/error';
 import { ReadableStreamFrom } from '@anthropic-ai/sdk/internal/shims';
 
 describe('streaming decoding', () => {
@@ -241,5 +241,5 @@ test('error handling', async () => {
   await err.toMatchInlineSnapshot(
     `[Error: {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}]`,
   );
-  await err.toBeInstanceOf(APIConnectionError);
+  await err.toBeInstanceOf(APIError);
 });

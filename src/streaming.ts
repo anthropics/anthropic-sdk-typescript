@@ -4,6 +4,7 @@ import { makeReadableStream } from './internal/shims';
 import { findDoubleNewlineIndex, LineDecoder } from './internal/decoders/line';
 import { ReadableStreamToAsyncIterable } from './internal/shims';
 import { isAbortError } from './internal/errors';
+import { safeJSON } from './internal/utils/values';
 
 import { APIError } from './error';
 
@@ -30,7 +31,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
 
     async function* iterator(): AsyncIterator<Item, any, undefined> {
       if (consumed) {
-        throw new Error('Cannot iterate over a consumed stream, use `.tee()` to split the stream.');
+        throw new AnthropicError('Cannot iterate over a consumed stream, use `.tee()` to split the stream.');
       }
       consumed = true;
       let done = false;
@@ -68,7 +69,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
           }
 
           if (sse.event === 'error') {
-            throw APIError.generate(undefined, `SSE Error: ${sse.data}`, sse.data, response.headers);
+            throw new APIError(undefined, safeJSON(sse.data) ?? sse.data, undefined, response.headers);
           }
         }
         done = true;
@@ -109,7 +110,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
 
     async function* iterator(): AsyncIterator<Item, any, undefined> {
       if (consumed) {
-        throw new Error('Cannot iterate over a consumed stream, use `.tee()` to split the stream.');
+        throw new AnthropicError('Cannot iterate over a consumed stream, use `.tee()` to split the stream.');
       }
       consumed = true;
       let done = false;
