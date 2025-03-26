@@ -1,6 +1,6 @@
 import assert from 'assert';
-import { Stream, _iterSSEMessages } from '@anthropic-ai/sdk/streaming';
-import { APIError } from '@anthropic-ai/sdk/error';
+import { Stream, _iterSSEMessages } from '@anthropic-ai/sdk/core/streaming';
+import { APIError } from '@anthropic-ai/sdk/core/error';
 import { ReadableStreamFrom } from '@anthropic-ai/sdk/internal/shims';
 
 describe('streaming decoding', () => {

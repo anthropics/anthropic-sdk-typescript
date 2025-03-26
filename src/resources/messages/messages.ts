@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../resource';
+import { APIResource } from '../../core/resource';
 import * as MessagesAPI from './messages';
 import * as BatchesAPI from './batches';
 import {
@@ -18,8 +18,8 @@ import {
   MessageBatchSucceededResult,
   MessageBatchesPage,
 } from './batches';
-import { APIPromise } from '../../api-promise';
-import { Stream } from '../../streaming';
+import { APIPromise } from '../../core/api-promise';
+import { Stream } from '../../core/streaming';
 import { RequestOptions } from '../../internal/request-options';
 
 export class Messages extends APIResource {

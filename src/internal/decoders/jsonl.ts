@@ -1,4 +1,4 @@
-import { AnthropicError } from '../../error';
+import { AnthropicError } from '../../core/error';
 import { ReadableStreamToAsyncIterable } from '../shims';
 import { LineDecoder, type Bytes } from './line';
 

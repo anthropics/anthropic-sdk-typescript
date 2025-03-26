@@ -253,37 +253,48 @@ The `headers` property on `APIError` objects is now an instance of the Web [Head
 
 ### Removed exports
 
-#### `Response`
-
-```typescript
-// Before
-import { Response } from '@anthropic-ai/sdk';
-
-// After
-// `Response` must now come from the builtin types
-```
-
 #### Resource classes
 
-If you were importing resource classes from the root package then you must now import them from the file they are defined in:
+If you were importing resource classes from the root package then you must now import them from the file they are defined in.
+This was never valid at the type level and only worked in CommonJS files.
 
 ```typescript
 // Before
-import { Completions } from '@anthropic-ai/sdk';
+const { Completions } = require('@anthropic-ai/sdk');
 
 // After
-import { Completions } from '@anthropic-ai/sdk/resources/completions';
+const { Anthropic } = require('@anthropic-ai/sdk');
+Anthropic.Completions; // or import directly from @anthropic-ai/sdk/resources/completions
 ```
 
-#### `@anthropic-ai/sdk/core`
+#### Refactor of `@anthropic-ai/sdk/core`, `error`, `pagination`, `resource`, `streaming` and `uploads`
 
-The `@anthropic-ai/sdk/core` file was intended to be internal-only but it was publicly accessible, as such it has been refactored and split up into internal files.
+Much of the `@anthropic-ai/sdk/core` file was intended to be internal-only but it was publicly accessible, as such it has been refactored and split up into internal and public files, with public-facing code moved to a new `core` folder and internal code moving to the private `internal` folder.
+
+At the same time, we moved some public-facing files which were previously at the top level into `core` to make the file structure cleaner and more clear:
+
+```typescript
+// Before
+import '@anthropic-ai/sdk/error';
+import '@anthropic-ai/sdk/pagination';
+import '@anthropic-ai/sdk/resource';
+import '@anthropic-ai/sdk/streaming';
+import '@anthropic-ai/sdk/uploads';
+
+// After
+import '@anthropic-ai/sdk/core/error';
+import '@anthropic-ai/sdk/core/pagination';
+import '@anthropic-ai/sdk/core/resource';
+import '@anthropic-ai/sdk/core/streaming';
+import '@anthropic-ai/sdk/core/uploads';
+```
 
 If you were relying on anything that was only exported from `@anthropic-ai/sdk/core` and is also not accessible anywhere else, please open an issue and we'll consider adding it to the public API.
 
-#### Cleaned up `@anthropic-ai/sdk/uploads` exports
+#### Cleaned up `uploads` exports
 
-The following exports have been removed from `@anthropic-ai/sdk/uploads` as they were not intended to be a part of the public API:
+As part of the `core` refactor, `@anthropic-ai/sdk/uploads` was moved to `@anthropic-ai/sdk/core/uploads`
+and the following exports were removed, as they were not intended to be a part of the public API:
 
 - `fileFromPath`
 - `BlobPart`
@@ -302,5 +313,17 @@ The following exports have been removed from `@anthropic-ai/sdk/uploads` as they
 Note that `Uploadable` & `toFile` **are** still exported:
 
 ```typescript
-import { type Uploadable, toFile } from '@anthropic-ai/sdk/uploads';
+import { type Uploadable, toFile } from '@anthropic-ai/sdk/core/uploads';
+```
+
+#### `APIClient`
+
+The `APIClient` base client class has been replaced with a new `BaseAnthropic` class:
+
+```typescript
+// Before
+import { APIClient } from '@anthropic-ai/sdk/core';
+
+// After
+import { BaseAnthropic } from '@anthropic-ai/sdk/client';
 ```

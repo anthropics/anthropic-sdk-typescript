@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../../resource';
+import { APIResource } from '../../../core/resource';
 import * as MessagesMessagesAPI from './messages';
 import * as BetaAPI from '../beta';
 import * as MessagesAPI from '../../messages/messages';
@@ -24,8 +24,8 @@ import {
   BetaMessageBatchSucceededResult,
   BetaMessageBatchesPage,
 } from './batches';
-import { APIPromise } from '../../../api-promise';
-import { Stream } from '../../../streaming';
+import { APIPromise } from '../../../core/api-promise';
+import { Stream } from '../../../core/streaming';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
 
