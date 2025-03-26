@@ -13,13 +13,12 @@ import { getPlatformHeaders } from './internal/detect-platform';
 import * as Shims from './internal/shims';
 import * as Opts from './internal/request-options';
 import { VERSION } from './version';
-import * as Errors from './error';
-import * as Pagination from './pagination';
-import { AnthropicError } from './error';
-import { AbstractPage, type PageParams, PageResponse } from './pagination';
-import * as Uploads from './uploads';
+import * as Errors from './core/error';
+import * as Pagination from './core/pagination';
+import { type PageParams, PageResponse } from './core/pagination';
+import * as Uploads from './core/uploads';
 import * as API from './resources/index';
-import { APIPromise } from './api-promise';
+import { APIPromise } from './core/api-promise';
 import { type Fetch } from './internal/builtin-types';
 import { isRunningInBrowser } from './internal/detect-platform';
 import { HeadersLike, NullableHeaders, buildHeaders, isEmptyHeaders } from './internal/headers';
@@ -394,7 +393,7 @@ export class BaseAnthropic {
     const defaultTimeout = 10 * 60;
     const expectedTimeout = (60 * 60 * maxTokens) / 128_000;
     if (expectedTimeout > defaultTimeout) {
-      throw new AnthropicError(
+      throw new Errors.AnthropicError(
         'Streaming is strongly recommended for operations that may take longer than 10 minutes. ' +
           'See https://github.com/anthropics/anthropic-sdk-python#streaming-responses for more details',
       );

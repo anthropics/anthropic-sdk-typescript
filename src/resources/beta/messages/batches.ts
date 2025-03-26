@@ -1,10 +1,10 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../../resource';
+import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
+import { APIPromise } from '../../../core/api-promise';
 import * as BetaMessagesAPI from './messages';
-import { APIPromise } from '../../../api-promise';
-import { Page, type PageParams, PagePromise } from '../../../pagination';
+import { Page, type PageParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
 import { JSONLDecoder } from '../../../internal/decoders/jsonl';

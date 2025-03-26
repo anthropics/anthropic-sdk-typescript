@@ -2,10 +2,10 @@
 
 export { Anthropic as default } from './client';
 
-export { type Uploadable, toFile } from './uploads';
-export { APIPromise } from './api-promise';
+export { type Uploadable, toFile } from './core/uploads';
+export { APIPromise } from './core/api-promise';
 export { BaseAnthropic, Anthropic, type ClientOptions, HUMAN_PROMPT, AI_PROMPT } from './client';
-export { PagePromise } from './pagination';
+export { PagePromise } from './core/pagination';
 export {
   AnthropicError,
   APIError,
@@ -20,4 +20,4 @@ export {
   InternalServerError,
   PermissionDeniedError,
   UnprocessableEntityError,
-} from './error';
+} from './core/error';
