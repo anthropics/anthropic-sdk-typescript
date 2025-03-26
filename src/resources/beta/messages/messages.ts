@@ -327,7 +327,7 @@ export interface BetaMessage {
    * In non-streaming mode this value is always non-null. In streaming mode, it is
    * null in the `message_start` event and non-null otherwise.
    */
-  stop_reason: 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | null;
+  stop_reason: BetaStopReason | null;
 
   /**
    * Which custom stop sequence was generated, if any.
@@ -453,7 +453,7 @@ export interface BetaRawMessageDeltaEvent {
 
 export namespace BetaRawMessageDeltaEvent {
   export interface Delta {
-    stop_reason: 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | null;
+    stop_reason: MessagesMessagesAPI.BetaStopReason | null;
 
     stop_sequence: string | null;
   }
@@ -494,6 +494,8 @@ export interface BetaSignatureDelta {
 
   type: 'signature_delta';
 }
+
+export type BetaStopReason = 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use';
 
 export interface BetaTextBlock {
   /**
@@ -1446,6 +1448,7 @@ export declare namespace Messages {
     type BetaRedactedThinkingBlock as BetaRedactedThinkingBlock,
     type BetaRedactedThinkingBlockParam as BetaRedactedThinkingBlockParam,
     type BetaSignatureDelta as BetaSignatureDelta,
+    type BetaStopReason as BetaStopReason,
     type BetaTextBlock as BetaTextBlock,
     type BetaTextBlockParam as BetaTextBlockParam,
     type BetaTextCitation as BetaTextCitation,
