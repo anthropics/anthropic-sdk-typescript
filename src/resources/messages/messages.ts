@@ -301,7 +301,7 @@ export interface Message {
    * In non-streaming mode this value is always non-null. In streaming mode, it is
    * null in the `message_start` event and non-null otherwise.
    */
-  stop_reason: 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | null;
+  stop_reason: StopReason | null;
 
   /**
    * Which custom stop sequence was generated, if any.
@@ -450,7 +450,7 @@ export interface RawMessageDeltaEvent {
 
 export namespace RawMessageDeltaEvent {
   export interface Delta {
-    stop_reason: 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | null;
+    stop_reason: MessagesAPI.StopReason | null;
 
     stop_sequence: string | null;
   }
@@ -491,6 +491,8 @@ export interface SignatureDelta {
 
   type: 'signature_delta';
 }
+
+export type StopReason = 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use';
 
 export interface TextBlock {
   /**
@@ -1329,6 +1331,7 @@ export declare namespace Messages {
     type RedactedThinkingBlock as RedactedThinkingBlock,
     type RedactedThinkingBlockParam as RedactedThinkingBlockParam,
     type SignatureDelta as SignatureDelta,
+    type StopReason as StopReason,
     type TextBlock as TextBlock,
     type TextBlockParam as TextBlockParam,
     type TextCitation as TextCitation,
