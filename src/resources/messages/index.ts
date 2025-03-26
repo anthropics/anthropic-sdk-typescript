@@ -60,6 +60,7 @@ export {
   type RedactedThinkingBlock,
   type RedactedThinkingBlockParam,
   type SignatureDelta,
+  type StopReason,
   type TextBlock,
   type TextBlockParam,
   type TextCitation,
