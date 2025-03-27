@@ -52,7 +52,6 @@ export {
   type BetaRedactedThinkingBlock,
   type BetaRedactedThinkingBlockParam,
   type BetaSignatureDelta,
-  type BetaStopReason,
   type BetaTextBlock,
   type BetaTextBlockParam,
   type BetaTextCitation,

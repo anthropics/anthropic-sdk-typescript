@@ -54,7 +54,6 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">RedactedThinkingBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">RedactedThinkingBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">SignatureDelta</a></code>
-- <code><a href="./src/resources/messages/messages.ts">StopReason</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextCitation</a></code>
@@ -194,7 +193,6 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRedactedThinkingBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRedactedThinkingBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSignatureDelta</a></code>
-- <code><a href="./src/resources/beta/messages/messages.ts">BetaStopReason</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextCitation</a></code>
