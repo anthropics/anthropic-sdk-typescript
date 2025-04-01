@@ -401,8 +401,15 @@ export interface PlainTextSource {
   type: 'text';
 }
 
+export type RawContentBlockDelta =
+  | TextDelta
+  | InputJSONDelta
+  | CitationsDelta
+  | ThinkingDelta
+  | SignatureDelta;
+
 export interface RawContentBlockDeltaEvent {
-  delta: TextDelta | InputJSONDelta | CitationsDelta | ThinkingDelta | SignatureDelta;
+  delta: RawContentBlockDelta;
 
   index: number;
 
@@ -1321,6 +1328,7 @@ export declare namespace Messages {
     type Metadata as Metadata,
     type Model as Model,
     type PlainTextSource as PlainTextSource,
+    type RawContentBlockDelta as RawContentBlockDelta,
     type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,
     type RawContentBlockStartEvent as RawContentBlockStartEvent,
     type RawContentBlockStopEvent as RawContentBlockStopEvent,

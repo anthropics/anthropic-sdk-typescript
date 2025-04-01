@@ -405,8 +405,15 @@ export interface BetaPlainTextSource {
   type: 'text';
 }
 
+export type BetaRawContentBlockDelta =
+  | BetaTextDelta
+  | BetaInputJSONDelta
+  | BetaCitationsDelta
+  | BetaThinkingDelta
+  | BetaSignatureDelta;
+
 export interface BetaRawContentBlockDeltaEvent {
-  delta: BetaTextDelta | BetaInputJSONDelta | BetaCitationsDelta | BetaThinkingDelta | BetaSignatureDelta;
+  delta: BetaRawContentBlockDelta;
 
   index: number;
 
@@ -1438,6 +1445,7 @@ export declare namespace Messages {
     type BetaMessageTokensCount as BetaMessageTokensCount,
     type BetaMetadata as BetaMetadata,
     type BetaPlainTextSource as BetaPlainTextSource,
+    type BetaRawContentBlockDelta as BetaRawContentBlockDelta,
     type BetaRawContentBlockDeltaEvent as BetaRawContentBlockDeltaEvent,
     type BetaRawContentBlockStartEvent as BetaRawContentBlockStartEvent,
     type BetaRawContentBlockStopEvent as BetaRawContentBlockStopEvent,
