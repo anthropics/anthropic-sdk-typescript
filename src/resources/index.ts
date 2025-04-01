@@ -56,6 +56,7 @@ export {
   type Metadata,
   type Model,
   type PlainTextSource,
+  type RawContentBlockDelta,
   type RawContentBlockDeltaEvent,
   type RawContentBlockStartEvent,
   type RawContentBlockStopEvent,

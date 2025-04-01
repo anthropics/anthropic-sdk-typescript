@@ -41,6 +41,7 @@ export {
   type BetaMessageTokensCount,
   type BetaMetadata,
   type BetaPlainTextSource,
+  type BetaRawContentBlockDelta,
   type BetaRawContentBlockDeltaEvent,
   type BetaRawContentBlockStartEvent,
   type BetaRawContentBlockStopEvent,
