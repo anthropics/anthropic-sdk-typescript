@@ -797,7 +797,7 @@ export class BaseAnthropic {
         Accept: 'application/json',
         'User-Agent': this.getUserAgent(),
         'X-Stainless-Retry-Count': String(retryCount),
-        ...(options.timeout ? { 'X-Stainless-Timeout': String(options.timeout) } : {}),
+        ...(options.timeout ? { 'X-Stainless-Timeout': String(Math.trunc(options.timeout / 1000)) } : {}),
         ...getPlatformHeaders(),
         ...(this._options.dangerouslyAllowBrowser ?
           { 'anthropic-dangerous-direct-browser-access': 'true' }
