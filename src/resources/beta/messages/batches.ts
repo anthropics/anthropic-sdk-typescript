@@ -144,7 +144,7 @@ export class Batches extends APIResource {
    */
   async results(
     messageBatchID: string,
-    params: BatchResultsParams | null | undefined = {},
+    params: BatchResultsParams | undefined = {},
     options?: RequestOptions,
   ): Promise<JSONLDecoder<BetaMessageBatchIndividualResponse>> {
     const batch = await this.retrieve(messageBatchID);
@@ -165,9 +165,12 @@ export class Batches extends APIResource {
           },
           options?.headers,
         ]),
+        stream: true,
         __binaryResponse: true,
       })
-      ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller));
+      ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller)) as APIPromise<
+      JSONLDecoder<BetaMessageBatchIndividualResponse>
+    >;
   }
 }
 
