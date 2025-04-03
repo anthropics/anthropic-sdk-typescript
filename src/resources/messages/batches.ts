@@ -2,6 +2,7 @@
 
 import { APIResource } from '../../resource';
 import { isRequestOptions } from '../../core';
+import { APIPromise } from '../../core';
 import * as Core from '../../core';
 import * as Shared from '../shared';
 import * as MessagesAPI from './messages';
@@ -101,14 +102,17 @@ export class Batches extends APIResource {
   results(
     messageBatchId: string,
     options?: Core.RequestOptions,
-  ): Core.APIPromise<JSONLDecoder<MessageBatchIndividualResponse>> {
+  ): APIPromise<JSONLDecoder<MessageBatchIndividualResponse>> {
     return this._client
       .get(`/v1/messages/batches/${messageBatchId}/results`, {
         ...options,
         headers: { Accept: 'application/x-jsonl', ...options?.headers },
+        stream: true,
         __binaryResponse: true,
       })
-      ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller));
+      ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller)) as APIPromise<
+      JSONLDecoder<MessageBatchIndividualResponse>
+    >;
   }
 }
 
