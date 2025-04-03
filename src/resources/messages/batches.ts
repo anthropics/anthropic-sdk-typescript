@@ -100,9 +100,12 @@ export class Batches extends APIResource {
       .get(path`/v1/messages/batches/${messageBatchID}/results`, {
         ...options,
         headers: buildHeaders([{ Accept: 'application/x-jsonl' }, options?.headers]),
+        stream: true,
         __binaryResponse: true,
       })
-      ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller));
+      ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller)) as APIPromise<
+      JSONLDecoder<MessageBatchIndividualResponse>
+    >;
   }
 }
 
