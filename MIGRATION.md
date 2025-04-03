@@ -103,10 +103,34 @@ For example:
 
 ```diff
 - client.example.retrieve(encodeURIComponent('string/with/slash'))
-+ client.example.retrieve('string/with/slash') // renders example/string%2Fwith%2Fslash
++ client.example.retrieve('string/with/slash') // retrieves /example/string%2Fwith%2Fslash
 ```
 
 Previously without the `encodeURIComponent()` call we would have used the path `/example/string/with/slash`; now we'll use `/example/string%2Fwith%2Fslash`.
+
+### Removed request options overloads
+
+When making requests with no required body, query or header parameters, you must now explicitly pass `null`, `undefined` or an empty object `{}` to the params argument in order to customise request options.
+
+```diff
+client.example.list();
+client.example.list({}, { headers: { ... } });
+client.example.list(null, { headers: { ... } });
+client.example.list(undefined, { headers: { ... } });
+- client.example.list({ headers: { ... } });
++ client.example.list({}, { headers: { ... } });
+```
+
+This affects the following methods:
+
+- `client.messages.batches.list()`
+- `client.models.list()`
+- `client.beta.models.list()`
+- `client.beta.messages.batches.retrieve()`
+- `client.beta.messages.batches.list()`
+- `client.beta.messages.batches.delete()`
+- `client.beta.messages.batches.cancel()`
+- `client.beta.messages.batches.results()`
 
 ### Removed `httpAgent` in favor of `fetchOptions`
 
@@ -142,130 +166,7 @@ const client = new Anthropic({
 });
 ```
 
-### Removed request options overloads
-
-When making requests with no required body, query or header parameters, you must now explicitly pass `null`, `undefined` or an empty object `{}` to the params argument in order to customise request options.
-
-```diff
-client.example.list();
-client.example.list({}, { headers: { ... } });
-client.example.list(null, { headers: { ... } });
-client.example.list(undefined, { headers: { ... } });
-- client.example.list({ headers: { ... } });
-+ client.example.list({}, { headers: { ... } });
-```
-
-This affects the following methods:
-
-- `client.messages.batches.list()`
-- `client.models.list()`
-- `client.beta.models.list()`
-- `client.beta.messages.batches.retrieve()`
-- `client.beta.messages.batches.list()`
-- `client.beta.messages.batches.delete()`
-- `client.beta.messages.batches.cancel()`
-- `client.beta.messages.batches.results()`
-
-### Pagination changes
-
-Note that the `for await` syntax is _not_ affected. This still works as-is:
-
-```ts
-// Automatically fetches more pages as needed.
-for await (const betaMessageBatch of client.beta.messages.batches.list()) {
-  console.log(betaMessageBatch);
-}
-```
-
-#### Simplified interface
-
-The pagination interface has been simplified:
-
-```ts
-// Before
-page.nextPageParams();
-page.nextPageInfo();
-// Required manually handling { url } | { params } type
-
-// After
-page.nextPageRequestOptions();
-```
-
-#### Removed unnecessary classes
-
-Page classes for individual methods are now type aliases:
-
-```ts
-// Before
-export class BetaMessageBatchesPage extends Page<BetaMessageBatch> {}
-
-// After
-export type BetaMessageBatchesPage = Page<BetaMessageBatch>;
-```
-
-If you were importing these classes at runtime, you'll need to switch to importing the base class or only import them at the type-level.
-
-### File handling
-
-The deprecated `fileFromPath` helper has been removed in favor of native Node.js streams:
-
-```ts
-// Before
-Anthropic.fileFromPath('path/to/file');
-
-// After
-import fs from 'fs';
-fs.createReadStream('path/to/file');
-```
-
-Note that this function previously only worked on Node.js. If you're using Bun, you can use [`Bun.file`](https://bun.sh/docs/api/file-io) instead.
-
-### Shims removal
-
-Previously you could configure the types that the SDK used like this:
-
-```ts
-// Tell TypeScript and the package to use the global Web fetch instead of node-fetch.
-import '@anthropic-ai/sdk/shims/web';
-import Anthropic from '@anthropic-ai/sdk';
-```
-
-The `@anthropic-ai/sdk/shims` imports have been removed. Your global types must now be [correctly configured](#minimum-types-requirements).
-
-### `@anthropic-ai/sdk/src` directory removed
-
-Previously IDEs may have auto-completed imports from the `@anthropic-ai/sdk/src` directory, however this
-directory was only included for an improved go-to-definition experience and should not have been used at runtime.
-
-If you have any `@anthropic-ai/sdk/src` imports, you must replace it with `@anthropic-ai/sdk`.
-
-```ts
-// Before
-import Anthropic from '@anthropic-ai/sdk/src';
-
-// After
-import Anthropic from '@anthropic-ai/sdk';
-```
-
-### Headers
-
-The `headers` property on `APIError` objects is now an instance of the Web [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) class. It was previously just `Record<string, string | null | undefined>`.
-
-### Removed exports
-
-#### Resource classes
-
-If you were importing resource classes from the root package then you must now import them from the file they are defined in.
-This was never valid at the type level and only worked in CommonJS files.
-
-```typescript
-// Before
-const { Completions } = require('@anthropic-ai/sdk');
-
-// After
-const { Anthropic } = require('@anthropic-ai/sdk');
-Anthropic.Completions; // or import directly from @anthropic-ai/sdk/resources/completions
-```
+### Changed exports
 
 #### Refactor of `@anthropic-ai/sdk/core`, `error`, `pagination`, `resource`, `streaming` and `uploads`
 
@@ -290,6 +191,20 @@ import '@anthropic-ai/sdk/core/uploads';
 ```
 
 If you were relying on anything that was only exported from `@anthropic-ai/sdk/core` and is also not accessible anywhere else, please open an issue and we'll consider adding it to the public API.
+
+#### Resource classes
+
+Previously under certain circumstances it was possible to import resource classes like `Completions` directly from the root of the package. This was never valid at the type level and only worked in CommonJS files.
+Now you must always either reference them as static class properties or import them directly from the files in which they are defined.
+
+```typescript
+// Before
+const { Completions } = require('@anthropic-ai/sdk');
+
+// After
+const { Anthropic } = require('@anthropic-ai/sdk');
+Anthropic.Completions; // or import directly from @anthropic-ai/sdk/resources/completions
+```
 
 #### Cleaned up `uploads` exports
 
@@ -327,3 +242,86 @@ import { APIClient } from '@anthropic-ai/sdk/core';
 // After
 import { BaseAnthropic } from '@anthropic-ai/sdk/client';
 ```
+
+### File handling
+
+The deprecated `fileFromPath` helper has been removed in favor of native Node.js streams:
+
+```ts
+// Before
+Anthropic.fileFromPath('path/to/file');
+
+// After
+import fs from 'fs';
+fs.createReadStream('path/to/file');
+```
+
+Note that this function previously only worked on Node.js. If you're using Bun, you can use [`Bun.file`](https://bun.sh/docs/api/file-io) instead.
+
+### Shims removal
+
+Previously you could configure the types that the SDK used like this:
+
+```ts
+// Tell TypeScript and the package to use the global Web fetch instead of node-fetch.
+import '@anthropic-ai/sdk/shims/web';
+import Anthropic from '@anthropic-ai/sdk';
+```
+
+The `@anthropic-ai/sdk/shims` imports have been removed. Your global types must now be [correctly configured](#minimum-types-requirements).
+
+### Pagination changes
+
+The `for await` syntax **is not affected**. This still works as-is:
+
+```ts
+// Automatically fetches more pages as needed.
+for await (const betaMessageBatch of client.beta.messages.batches.list()) {
+  console.log(betaMessageBatch);
+}
+```
+
+The interface for manually paginating through list results has been simplified:
+
+```ts
+// Before
+page.nextPageParams();
+page.nextPageInfo();
+// Required manually handling { url } | { params } type
+
+// After
+page.nextPageRequestOptions();
+```
+
+#### Removed unnecessary classes
+
+Page classes for individual methods are now type aliases:
+
+```ts
+// Before
+export class BetaMessageBatchesPage extends Page<BetaMessageBatch> {}
+
+// After
+export type BetaMessageBatchesPage = Page<BetaMessageBatch>;
+```
+
+If you were importing these classes at runtime, you'll need to switch to importing the base class or only import them at the type-level.
+
+### `@anthropic-ai/sdk/src` directory removed
+
+Previously IDEs may have auto-completed imports from the `@anthropic-ai/sdk/src` directory, however this
+directory was only included for an improved go-to-definition experience and should not have been used at runtime.
+
+If you have any `@anthropic-ai/sdk/src/*` imports, you will need to replace them with `@anthropic-ai/sdk/*`.
+
+```ts
+// Before
+import Anthropic from '@anthropic-ai/sdk/src';
+
+// After
+import Anthropic from '@anthropic-ai/sdk';
+```
+
+### Headers
+
+The `headers` property on `APIError` objects is now an instance of the Web [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) class. It was previously just `Record<string, string | null | undefined>`.
