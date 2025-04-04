@@ -672,6 +672,7 @@ export namespace Tool {
     type: 'object';
 
     properties?: unknown | null;
+
     [k: string]: unknown;
   }
 }
