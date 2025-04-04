@@ -644,6 +644,7 @@ export namespace BetaTool {
     type: 'object';
 
     properties?: unknown | null;
+
     [k: string]: unknown;
   }
 }
