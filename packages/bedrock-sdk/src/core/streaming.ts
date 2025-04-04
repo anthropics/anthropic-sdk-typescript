@@ -5,9 +5,9 @@ import { EventStreamSerdeContext, SerdeContext } from '@smithy/types';
 import { Stream as CoreStream, ServerSentEvent } from '@anthropic-ai/sdk/streaming';
 import { AnthropicError } from '@anthropic-ai/sdk/error';
 import { APIError } from '@anthropic-ai/sdk';
-import { de_ResponseStream } from './AWS_restJson1';
-import { ReadableStreamToAsyncIterable } from './internal/shims';
-import { safeJSON } from './internal/utils/values';
+import { de_ResponseStream } from '../AWS_restJson1';
+import { ReadableStreamToAsyncIterable } from '../internal/shims';
+import { safeJSON } from '../internal/utils/values';
 
 type Bytes = string | ArrayBuffer | Uint8Array | Buffer | null | undefined;
 

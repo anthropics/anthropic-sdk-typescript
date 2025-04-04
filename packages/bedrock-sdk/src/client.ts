@@ -1,7 +1,7 @@
 import { BaseAnthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
-import { getAuthHeaders } from './auth';
-import { Stream } from './streaming';
+import { getAuthHeaders } from './core/auth';
+import { Stream } from './core/streaming';
 import { readEnv } from './internal/utils/env';
 import { FinalRequestOptions } from './internal/request-options';
 import { isObj } from './internal/utils/values';
