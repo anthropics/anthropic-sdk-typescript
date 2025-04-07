@@ -21,7 +21,7 @@ import * as API from './resources/index';
 import { APIPromise } from './core/api-promise';
 import { type Fetch } from './internal/builtin-types';
 import { isRunningInBrowser } from './internal/detect-platform';
-import { HeadersLike, NullableHeaders, buildHeaders, isEmptyHeaders } from './internal/headers';
+import { HeadersLike, NullableHeaders, buildHeaders } from './internal/headers';
 import { FinalRequestOptions, RequestOptions } from './internal/request-options';
 import {
   Completion,
@@ -307,32 +307,22 @@ export class BaseAnthropic {
     );
   }
 
-  protected authHeaders(opts: FinalRequestOptions): Headers | undefined {
-    const apiKeyAuth = this.apiKeyAuth(opts);
-    const bearerAuth = this.bearerAuth(opts);
-
-    if (apiKeyAuth != null && !isEmptyHeaders(apiKeyAuth)) {
-      return apiKeyAuth;
-    }
-
-    if (bearerAuth != null && !isEmptyHeaders(bearerAuth)) {
-      return bearerAuth;
-    }
-    return undefined;
+  protected authHeaders(opts: FinalRequestOptions): NullableHeaders | undefined {
+    return buildHeaders([this.apiKeyAuth(opts), this.bearerAuth(opts)]);
   }
 
-  protected apiKeyAuth(opts: FinalRequestOptions): Headers | undefined {
+  protected apiKeyAuth(opts: FinalRequestOptions): NullableHeaders | undefined {
     if (this.apiKey == null) {
       return undefined;
     }
-    return new Headers({ 'X-Api-Key': this.apiKey });
+    return buildHeaders([{ 'X-Api-Key': this.apiKey }]);
   }
 
-  protected bearerAuth(opts: FinalRequestOptions): Headers | undefined {
+  protected bearerAuth(opts: FinalRequestOptions): NullableHeaders | undefined {
     if (this.authToken == null) {
       return undefined;
     }
-    return new Headers({ Authorization: `Bearer ${this.authToken}` });
+    return buildHeaders([{ Authorization: `Bearer ${this.authToken}` }]);
   }
 
   /**
