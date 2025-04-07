@@ -281,17 +281,10 @@ export class Anthropic extends Core.APIClient {
   }
 
   protected override authHeaders(opts: Core.FinalRequestOptions): Core.Headers {
-    const apiKeyAuth = this.apiKeyAuth(opts);
-    const bearerAuth = this.bearerAuth(opts);
-
-    if (apiKeyAuth != null && !Core.isEmptyObj(apiKeyAuth)) {
-      return apiKeyAuth;
-    }
-
-    if (bearerAuth != null && !Core.isEmptyObj(bearerAuth)) {
-      return bearerAuth;
-    }
-    return {};
+    return {
+      ...this.apiKeyAuth(opts),
+      ...this.bearerAuth(opts),
+    };
   }
 
   protected apiKeyAuth(opts: Core.FinalRequestOptions): Core.Headers {
