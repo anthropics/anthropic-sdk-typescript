@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.40.0 (2025-04-15)
+
+Full Changelog: [sdk-v0.39.0...sdk-v0.40.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.39.0...sdk-v0.40.0)
+
+### Features
+
+* add SKIP_BREW env var to ./scripts/bootstrap ([#710](https://github.com/anthropics/anthropic-sdk-typescript/issues/710)) ([1b8376a](https://github.com/anthropics/anthropic-sdk-typescript/commit/1b8376aac5475e1bb6b5f79c7c5684ab77908c1f))
+* **api:** extract ContentBlockDelta events into their own schemas ([#732](https://github.com/anthropics/anthropic-sdk-typescript/issues/732)) ([fd0ec83](https://github.com/anthropics/anthropic-sdk-typescript/commit/fd0ec836ab9244c05b913a68224f806b4ac8da60))
+* **api:** manual updates ([14df8cc](https://github.com/anthropics/anthropic-sdk-typescript/commit/14df8cce890993e7056dfe5432f86b53faf7a044))
+* **client:** accept RFC6838 JSON content types ([#713](https://github.com/anthropics/anthropic-sdk-typescript/issues/713)) ([fc32787](https://github.com/anthropics/anthropic-sdk-typescript/commit/fc3278702b3d27f792006e9710432f612e856af1))
+* **mcp:** allow opt-in mcp resources and endpoints ([#720](https://github.com/anthropics/anthropic-sdk-typescript/issues/720)) ([9f3a54e](https://github.com/anthropics/anthropic-sdk-typescript/commit/9f3a54e868feb78e63a4593aae3b7fffc4ce588f))
+
+
+### Bug Fixes
+
+* avoid type error in certain environments ([#723](https://github.com/anthropics/anthropic-sdk-typescript/issues/723)) ([208fdaf](https://github.com/anthropics/anthropic-sdk-typescript/commit/208fdaf0e00ab4cb12c0172cda870f3f1e13098c))
+* **client:** deduplicate stop reason type ([#726](https://github.com/anthropics/anthropic-sdk-typescript/issues/726)) ([2d7cef1](https://github.com/anthropics/anthropic-sdk-typescript/commit/2d7cef14ecdb0501deac02ca270b355ffa5275f2))
+* **client:** send `X-Stainless-Timeout` in seconds ([#733](https://github.com/anthropics/anthropic-sdk-typescript/issues/733)) ([cae4f77](https://github.com/anthropics/anthropic-sdk-typescript/commit/cae4f77474a84d2ce81b890dfb39d3b28c8b5834))
+* **exports:** ensure resource imports don't require /index ([#717](https://github.com/anthropics/anthropic-sdk-typescript/issues/717)) ([56b2a80](https://github.com/anthropics/anthropic-sdk-typescript/commit/56b2a80145999256d4c075cf48be891df7832aad))
+* **internal:** work around https://github.com/vercel/next.js/issues/76881 ([#727](https://github.com/anthropics/anthropic-sdk-typescript/issues/727)) ([36ea0ef](https://github.com/anthropics/anthropic-sdk-typescript/commit/36ea0efd017d48931b3954034744234aec084a42))
+* remove duplicate exports ([2df4cdd](https://github.com/anthropics/anthropic-sdk-typescript/commit/2df4cdd6f3a4f35a858fde57ce6327c50d3319d8))
+
+
+### Chores
+
+* add hash of OpenAPI spec/config inputs to .stats.yml ([#725](https://github.com/anthropics/anthropic-sdk-typescript/issues/725)) ([271be7d](https://github.com/anthropics/anthropic-sdk-typescript/commit/271be7d6d3cc615df3c8c48d4e1fb907d286df62))
+* **internal:** add aliases for Record and Array ([#735](https://github.com/anthropics/anthropic-sdk-typescript/issues/735)) ([e0a4bec](https://github.com/anthropics/anthropic-sdk-typescript/commit/e0a4becfdd79898b1187b50b18bb5a082e67c7cd))
+* **internal:** add back release workflow ([68d54e5](https://github.com/anthropics/anthropic-sdk-typescript/commit/68d54e5540bf5cc9c9bf21c8e21a3d7225e17bba))
+* **internal:** import ordering changes ([#708](https://github.com/anthropics/anthropic-sdk-typescript/issues/708)) ([a5680e1](https://github.com/anthropics/anthropic-sdk-typescript/commit/a5680e1466a6ea1bed0ddc4c880dd4e342ea1350))
+* **internal:** remove CI condition ([#730](https://github.com/anthropics/anthropic-sdk-typescript/issues/730)) ([cc31518](https://github.com/anthropics/anthropic-sdk-typescript/commit/cc3151809070c885450f0884fb5120e0276e2d66))
+* **internal:** remove extra empty newlines ([#716](https://github.com/anthropics/anthropic-sdk-typescript/issues/716)) ([4d3c024](https://github.com/anthropics/anthropic-sdk-typescript/commit/4d3c02496ee09625fbcb5da545e90faa3890a885))
+* **internal:** update config ([#728](https://github.com/anthropics/anthropic-sdk-typescript/issues/728)) ([ababd80](https://github.com/anthropics/anthropic-sdk-typescript/commit/ababd809519fb31ae82395c77b997fd76a3d804e))
+
 ## 0.39.0 (2025-02-28)
 
 Full Changelog: [sdk-v0.38.0...sdk-v0.39.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.38.0...sdk-v0.39.0)
