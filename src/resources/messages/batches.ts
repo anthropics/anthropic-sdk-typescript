@@ -2,6 +2,7 @@
 
 import { APIResource } from '../../resource';
 import { isRequestOptions } from '../../core';
+import { APIPromise } from '../../core';
 import * as Core from '../../core';
 import * as Shared from '../shared';
 import * as MessagesAPI from './messages';
@@ -119,7 +120,9 @@ export class Batches extends APIResource {
         },
         __binaryResponse: true,
       })
-      ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller));
+      ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller)) as APIPromise<
+      JSONLDecoder<MessageBatchIndividualResponse>
+    >;
   }
 }
 
