@@ -2,6 +2,7 @@
 
 import { APIResource } from '../../../resource';
 import { isRequestOptions } from '../../../core';
+import { APIPromise } from '../../../core';
 import * as Core from '../../../core';
 import * as BetaAPI from '../beta';
 import * as BetaMessagesAPI from './messages';
@@ -177,7 +178,7 @@ export class Batches extends APIResource {
    */
   async results(
     messageBatchId: string,
-    params?: BatchResultsParams,
+    params: BatchResultsParams | undefined = {},
     options?: Core.RequestOptions,
   ): Promise<JSONLDecoder<BetaMessageBatchIndividualResponse>>;
   async results(
@@ -209,9 +210,12 @@ export class Batches extends APIResource {
           Accept: 'application/binary',
           ...options?.headers,
         },
+        stream: true,
         __binaryResponse: true,
       })
-      ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller));
+      ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller)) as APIPromise<
+      JSONLDecoder<BetaMessageBatchIndividualResponse>
+    >;
   }
 }
 
