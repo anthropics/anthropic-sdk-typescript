@@ -168,16 +168,4 @@ describe('resource batches', () => {
       client.messages.batches.cancel('message_batch_id', { path: '/_stainless_unknown_path' }),
     ).rejects.toThrow(Anthropic.NotFoundError);
   });
-
-  // Prism doesn't support JSONL responses yet
-  test.skip('results', async () => {
-    const responsePromise = client.messages.batches.results('message_batch_id');
-    const rawResponse = await responsePromise.asResponse();
-    expect(rawResponse).toBeInstanceOf(Response);
-    const response = await responsePromise;
-    expect(response).not.toBeInstanceOf(Response);
-    const dataAndResponse = await responsePromise.withResponse();
-    expect(dataAndResponse.data).toBe(response);
-    expect(dataAndResponse.response).toBe(rawResponse);
-  });
 });

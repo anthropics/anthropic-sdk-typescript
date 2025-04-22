@@ -178,7 +178,7 @@ export class Batches extends APIResource {
    */
   async results(
     messageBatchId: string,
-    params: BatchResultsParams | undefined = {},
+    params: BatchResultsParams | undefined,
     options?: Core.RequestOptions,
   ): Promise<JSONLDecoder<BetaMessageBatchIndividualResponse>>;
   async results(
