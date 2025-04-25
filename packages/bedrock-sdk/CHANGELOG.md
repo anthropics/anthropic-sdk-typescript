@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.12.5 (2025-04-25)
+
+Full Changelog: [bedrock-sdk-v0.12.4...bedrock-sdk-v0.12.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.12.4...bedrock-sdk-v0.12.5)
+
+### Chores
+
+* **bedrock:** bump @aws-sdk/credential-providers ([a4d88d7](https://github.com/anthropics/anthropic-sdk-typescript/commit/a4d88d7807e2cf1a0836dc05d9deff5bfc0c665f))
+
 ## 0.12.4 (2025-01-23)
 
 Full Changelog: [bedrock-sdk-v0.12.3...bedrock-sdk-v0.12.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.12.3...bedrock-sdk-v0.12.4)
