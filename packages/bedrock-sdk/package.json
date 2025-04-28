@@ -24,8 +24,8 @@
   "dependencies": {
     "@anthropic-ai/sdk": "file:../../dist/",
     "@aws-crypto/sha256-js": "^4.0.0",
-    "@aws-sdk/client-bedrock-runtime": "^3.423.0",
-    "@aws-sdk/credential-providers": "^3.341.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.797.0",
+    "@aws-sdk/credential-providers": "^3.796.0",
     "@smithy/eventstream-serde-node": "^2.0.10",
     "@smithy/fetch-http-handler": "^2.2.1",
     "@smithy/protocol-http": "^3.0.6",
