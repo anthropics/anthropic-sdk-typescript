@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.40.1 (2025-04-28)
+
+Full Changelog: [sdk-v0.40.0...sdk-v0.40.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.40.0...sdk-v0.40.1)
+
+### Chores
+
+* **bedrock:** bump [@aws-sdk](https://github.com/aws-sdk) dependencies ([6440e1d](https://github.com/anthropics/anthropic-sdk-typescript/commit/6440e1db992779aeead231b420a55002ec0991d1))
+
 ## 0.40.0 (2025-04-25)
 
 Full Changelog: [sdk-v0.39.0...sdk-v0.40.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.39.0...sdk-v0.40.0)
