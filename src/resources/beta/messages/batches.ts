@@ -20,6 +20,25 @@ export class Batches extends APIResource {
    *
    * Learn more about the Message Batches API in our
    * [user guide](/en/docs/build-with-claude/batch-processing)
+   *
+   * @example
+   * ```ts
+   * const betaMessageBatch =
+   *   await client.beta.messages.batches.create({
+   *     requests: [
+   *       {
+   *         custom_id: 'my-custom-id-1',
+   *         params: {
+   *           max_tokens: 1024,
+   *           messages: [
+   *             { content: 'Hello, world', role: 'user' },
+   *           ],
+   *           model: 'claude-3-7-sonnet-20250219',
+   *         },
+   *       },
+   *     ],
+   *   });
+   * ```
    */
   create(params: BatchCreateParams, options?: Core.RequestOptions): Core.APIPromise<BetaMessageBatch> {
     const { betas, ...body } = params;
@@ -40,6 +59,14 @@ export class Batches extends APIResource {
    *
    * Learn more about the Message Batches API in our
    * [user guide](/en/docs/build-with-claude/batch-processing)
+   *
+   * @example
+   * ```ts
+   * const betaMessageBatch =
+   *   await client.beta.messages.batches.retrieve(
+   *     'message_batch_id',
+   *   );
+   * ```
    */
   retrieve(
     messageBatchId: string,
@@ -71,6 +98,14 @@ export class Batches extends APIResource {
    *
    * Learn more about the Message Batches API in our
    * [user guide](/en/docs/build-with-claude/batch-processing)
+   *
+   * @example
+   * ```ts
+   * // Automatically fetches more pages as needed.
+   * for await (const betaMessageBatch of client.beta.messages.batches.list()) {
+   *   // ...
+   * }
+   * ```
    */
   list(
     params?: BatchListParams,
@@ -103,6 +138,14 @@ export class Batches extends APIResource {
    *
    * Learn more about the Message Batches API in our
    * [user guide](/en/docs/build-with-claude/batch-processing)
+   *
+   * @example
+   * ```ts
+   * const betaDeletedMessageBatch =
+   *   await client.beta.messages.batches.delete(
+   *     'message_batch_id',
+   *   );
+   * ```
    */
   delete(
     messageBatchId: string,
@@ -141,6 +184,14 @@ export class Batches extends APIResource {
    *
    * Learn more about the Message Batches API in our
    * [user guide](/en/docs/build-with-claude/batch-processing)
+   *
+   * @example
+   * ```ts
+   * const betaMessageBatch =
+   *   await client.beta.messages.batches.cancel(
+   *     'message_batch_id',
+   *   );
+   * ```
    */
   cancel(
     messageBatchId: string,
@@ -175,6 +226,14 @@ export class Batches extends APIResource {
    *
    * Learn more about the Message Batches API in our
    * [user guide](/en/docs/build-with-claude/batch-processing)
+   *
+   * @example
+   * ```ts
+   * const betaMessageBatchIndividualResponse =
+   *   await client.beta.messages.batches.results(
+   *     'message_batch_id',
+   *   );
+   * ```
    */
   async results(
     messageBatchId: string,

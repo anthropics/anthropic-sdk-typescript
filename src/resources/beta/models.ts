@@ -11,6 +11,13 @@ export class Models extends APIResource {
    *
    * The Models API response can be used to determine information about a specific
    * model or resolve a model alias to a model ID.
+   *
+   * @example
+   * ```ts
+   * const betaModelInfo = await client.beta.models.retrieve(
+   *   'model_id',
+   * );
+   * ```
    */
   retrieve(modelId: string, options?: Core.RequestOptions): Core.APIPromise<BetaModelInfo> {
     return this._client.get(`/v1/models/${modelId}?beta=true`, options);
@@ -21,6 +28,14 @@ export class Models extends APIResource {
    *
    * The Models API response can be used to determine which models are available for
    * use in the API. More recently released models are listed first.
+   *
+   * @example
+   * ```ts
+   * // Automatically fetches more pages as needed.
+   * for await (const betaModelInfo of client.beta.models.list()) {
+   *   // ...
+   * }
+   * ```
    */
   list(
     query?: ModelListParams,
