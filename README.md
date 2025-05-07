@@ -163,7 +163,6 @@ await anthropic.beta.messages.batches.create({
 });
 ```
 
-
 ### Getting results from a batch
 
 Once a Message Batch has been processed, indicated by `.processing_status === 'ended'`, you can access the results with `.batches.results()`
@@ -172,7 +171,7 @@ Once a Message Batch has been processed, indicated by `.processing_status === 'e
 const results = await anthropic.beta.messages.batches.results(batch_id);
 for await (const entry of results) {
   if (entry.result.type === 'succeeded') {
-    console.log(entry.result.message.content)
+    console.log(entry.result.message.content);
   }
 }
 ```
@@ -234,10 +233,13 @@ Error codes are as follows:
 All object responses in the SDK provide a `_request_id` property which is added from the `request-id` response header so that you can quickly log failing requests and report them back to Anthropic.
 
 ```ts
-const message = await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-5-sonnet-latest' });
-console.log(completion._request_id) // req_018EeWyXxfu5pfWkrYcMdjWG
+const message = await client.messages.create({
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'Hello, Claude' }],
+  model: 'claude-3-5-sonnet-latest',
+});
+console.log(completion._request_id); // req_018EeWyXxfu5pfWkrYcMdjWG
 ```
-
 
 ### Retries
 
@@ -263,12 +265,14 @@ await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', cont
 ### Timeouts
 
 By default requests time out after 10 minutes. However if you have specified a large `max_tokens` value and are
-*not* streaming, the default timeout will be calculated dynamically using the formula:
+_not_ streaming, the default timeout will be calculated dynamically using the formula:
+
 ```typescript
 const minimum = 10 * 60;
 const calculated = (60 * 60 * maxTokens) / 128_000;
 return calculated < minimum ? minimum * 1000 : calculated * 1000;
 ```
+
 which will result in a timeout up to 60 minutes, scaled by the `max_tokens` parameter, unless overriden at the request or client level.
 
 You can configure this with a `timeout` option:
