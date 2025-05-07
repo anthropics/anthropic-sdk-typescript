@@ -531,6 +531,15 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
         snapshot.stop_reason = event.delta.stop_reason;
         snapshot.stop_sequence = event.delta.stop_sequence;
         snapshot.usage.output_tokens = event.usage.output_tokens;
+
+        // Update other usage fields if they exist in the event
+        if (event.usage.input_tokens) {
+          snapshot.usage.input_tokens = event.usage.input_tokens;
+        }
+        snapshot.usage.cache_creation_input_tokens = event.usage.cache_creation_input_tokens;
+        snapshot.usage.cache_read_input_tokens = event.usage.cache_read_input_tokens;
+        snapshot.usage.server_tool_use = event.usage.server_tool_use;
+
         return snapshot;
       case 'content_block_start':
         snapshot.content.push(event.content_block);

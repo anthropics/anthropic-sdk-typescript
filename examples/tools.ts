@@ -49,7 +49,7 @@ async function main() {
           {
             type: 'tool_result',
             tool_use_id: tool.id,
-            content: [{ type: 'text', text: 'The weather is 73f' }],
+            content: 'The weather is 73f',
           },
         ],
       },
