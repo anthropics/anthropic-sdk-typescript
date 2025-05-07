@@ -63,6 +63,7 @@ describe('resource messages', () => {
           name: 'name',
           cache_control: { type: 'ephemeral' },
           description: 'Get the current weather in a given location',
+          type: 'custom',
         },
       ],
       top_k: 5,
@@ -119,6 +120,7 @@ describe('resource messages', () => {
           name: 'name',
           cache_control: { type: 'ephemeral' },
           description: 'Get the current weather in a given location',
+          type: 'custom',
         },
       ],
     });

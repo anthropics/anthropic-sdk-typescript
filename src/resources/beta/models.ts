@@ -1,8 +1,10 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIResource } from '../../core/resource';
+import * as BetaAPI from './beta';
 import { APIPromise } from '../../core/api-promise';
 import { Page, type PageParams, PagePromise } from '../../core/pagination';
+import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
 import { path } from '../../internal/utils/path';
 
@@ -20,8 +22,19 @@ export class Models extends APIResource {
    * );
    * ```
    */
-  retrieve(modelID: string, options?: RequestOptions): APIPromise<BetaModelInfo> {
-    return this._client.get(path`/v1/models/${modelID}?beta=true`, options);
+  retrieve(
+    modelID: string,
+    params: ModelRetrieveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaModelInfo> {
+    const { betas } = params ?? {};
+    return this._client.get(path`/v1/models/${modelID}?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -39,10 +52,18 @@ export class Models extends APIResource {
    * ```
    */
   list(
-    query: ModelListParams | null | undefined = {},
+    params: ModelListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaModelInfosPage, BetaModelInfo> {
-    return this._client.getAPIList('/v1/models?beta=true', Page<BetaModelInfo>, { query, ...options });
+    const { betas, ...query } = params ?? {};
+    return this._client.getAPIList('/v1/models?beta=true', Page<BetaModelInfo>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 }
 
@@ -73,12 +94,25 @@ export interface BetaModelInfo {
   type: 'model';
 }
 
-export interface ModelListParams extends PageParams {}
+export interface ModelRetrieveParams {
+  /**
+   * Optional header to specify the beta version(s) you want to use.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
+}
+
+export interface ModelListParams extends PageParams {
+  /**
+   * Header param: Optional header to specify the beta version(s) you want to use.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
+}
 
 export declare namespace Models {
   export {
     type BetaModelInfo as BetaModelInfo,
     type BetaModelInfosPage as BetaModelInfosPage,
+    type ModelRetrieveParams as ModelRetrieveParams,
     type ModelListParams as ModelListParams,
   };
 }

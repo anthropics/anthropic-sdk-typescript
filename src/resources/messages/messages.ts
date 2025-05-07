@@ -191,22 +191,58 @@ export interface CitationPageLocationParam {
   type: 'page_location';
 }
 
+export interface CitationWebSearchResultLocationParam {
+  cited_text: string;
+
+  encrypted_index: string;
+
+  title: string | null;
+
+  type: 'web_search_result_location';
+
+  url: string;
+}
+
 export interface CitationsConfigParam {
   enabled?: boolean;
 }
 
 export interface CitationsDelta {
-  citation: CitationCharLocation | CitationPageLocation | CitationContentBlockLocation;
+  citation:
+    | CitationCharLocation
+    | CitationPageLocation
+    | CitationContentBlockLocation
+    | CitationsWebSearchResultLocation;
 
   type: 'citations_delta';
 }
 
-export type ContentBlock = TextBlock | ToolUseBlock | ThinkingBlock | RedactedThinkingBlock;
+export interface CitationsWebSearchResultLocation {
+  cited_text: string;
+
+  encrypted_index: string;
+
+  title: string | null;
+
+  type: 'web_search_result_location';
+
+  url: string;
+}
+
+export type ContentBlock =
+  | TextBlock
+  | ToolUseBlock
+  | ServerToolUseBlock
+  | WebSearchToolResultBlock
+  | ThinkingBlock
+  | RedactedThinkingBlock;
 
 export type ContentBlockParam =
   | TextBlockParam
   | ImageBlockParam
   | ToolUseBlockParam
+  | ServerToolUseBlockParam
+  | WebSearchToolResultBlockParam
   | ToolResultBlockParam
   | DocumentBlockParam
   | ThinkingBlockParam
@@ -225,6 +261,9 @@ export interface DocumentBlockParam {
 
   type: 'document';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: CacheControlEphemeral | null;
 
   citations?: CitationsConfigParam;
@@ -239,6 +278,9 @@ export interface ImageBlockParam {
 
   type: 'image';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: CacheControlEphemeral | null;
 }
 
@@ -356,13 +398,33 @@ export interface Message {
   usage: Usage;
 }
 
-export type MessageCountTokensTool = Tool | ToolBash20250124 | ToolTextEditor20250124;
+export type MessageCountTokensTool = Tool | ToolBash20250124 | ToolTextEditor20250124 | WebSearchTool20250305;
 
 export interface MessageDeltaUsage {
+  /**
+   * The cumulative number of input tokens used to create the cache entry.
+   */
+  cache_creation_input_tokens: number | null;
+
+  /**
+   * The cumulative number of input tokens read from the cache.
+   */
+  cache_read_input_tokens: number | null;
+
+  /**
+   * The cumulative number of input tokens which were used.
+   */
+  input_tokens: number | null;
+
   /**
    * The cumulative number of output tokens which were used.
    */
   output_tokens: number;
+
+  /**
+   * The number of server tool requests.
+   */
+  server_tool_use: ServerToolUsage | null;
 }
 
 export interface MessageParam {
@@ -435,7 +497,13 @@ export interface RawContentBlockDeltaEvent {
 }
 
 export interface RawContentBlockStartEvent {
-  content_block: TextBlock | ToolUseBlock | ThinkingBlock | RedactedThinkingBlock;
+  content_block:
+    | TextBlock
+    | ToolUseBlock
+    | ServerToolUseBlock
+    | WebSearchToolResultBlock
+    | ThinkingBlock
+    | RedactedThinkingBlock;
 
   index: number;
 
@@ -511,13 +579,45 @@ export interface RedactedThinkingBlockParam {
   type: 'redacted_thinking';
 }
 
+export interface ServerToolUsage {
+  /**
+   * The number of web search tool requests.
+   */
+  web_search_requests: number;
+}
+
+export interface ServerToolUseBlock {
+  id: string;
+
+  input: unknown;
+
+  name: 'web_search';
+
+  type: 'server_tool_use';
+}
+
+export interface ServerToolUseBlockParam {
+  id: string;
+
+  input: unknown;
+
+  name: 'web_search';
+
+  type: 'server_tool_use';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+}
+
 export interface SignatureDelta {
   signature: string;
 
   type: 'signature_delta';
 }
 
-export type StopReason = 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use';
+export type StopReason = 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | 'pause_turn' | 'refusal';
 
 export interface TextBlock {
   /**
@@ -539,17 +639,25 @@ export interface TextBlockParam {
 
   type: 'text';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: CacheControlEphemeral | null;
 
   citations?: Array<TextCitationParam> | null;
 }
 
-export type TextCitation = CitationCharLocation | CitationPageLocation | CitationContentBlockLocation;
+export type TextCitation =
+  | CitationCharLocation
+  | CitationPageLocation
+  | CitationContentBlockLocation
+  | CitationsWebSearchResultLocation;
 
 export type TextCitationParam =
   | CitationCharLocationParam
   | CitationPageLocationParam
-  | CitationContentBlockLocationParam;
+  | CitationContentBlockLocationParam
+  | CitationWebSearchResultLocationParam;
 
 export interface TextDelta {
   text: string;
@@ -625,10 +733,13 @@ export interface Tool {
   /**
    * Name of the tool.
    *
-   * This is how the tool will be called by the model and in tool_use blocks.
+   * This is how the tool will be called by the model and in `tool_use` blocks.
    */
   name: string;
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: CacheControlEphemeral | null;
 
   /**
@@ -640,6 +751,8 @@ export interface Tool {
    * aspects of the tool input JSON schema.
    */
   description?: string;
+
+  type?: 'custom' | null;
 }
 
 export namespace Tool {
@@ -662,12 +775,15 @@ export interface ToolBash20250124 {
   /**
    * Name of the tool.
    *
-   * This is how the tool will be called by the model and in tool_use blocks.
+   * This is how the tool will be called by the model and in `tool_use` blocks.
    */
   name: 'bash';
 
   type: 'bash_20250124';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: CacheControlEphemeral | null;
 }
 
@@ -739,6 +855,9 @@ export interface ToolResultBlockParam {
 
   type: 'tool_result';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: CacheControlEphemeral | null;
 
   content?: string | Array<TextBlockParam | ImageBlockParam>;
@@ -750,16 +869,19 @@ export interface ToolTextEditor20250124 {
   /**
    * Name of the tool.
    *
-   * This is how the tool will be called by the model and in tool_use blocks.
+   * This is how the tool will be called by the model and in `tool_use` blocks.
    */
   name: 'str_replace_editor';
 
   type: 'text_editor_20250124';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: CacheControlEphemeral | null;
 }
 
-export type ToolUnion = Tool | ToolBash20250124 | ToolTextEditor20250124;
+export type ToolUnion = Tool | ToolBash20250124 | ToolTextEditor20250124 | WebSearchTool20250305;
 
 export interface ToolUseBlock {
   id: string;
@@ -780,6 +902,9 @@ export interface ToolUseBlockParam {
 
   type: 'tool_use';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: CacheControlEphemeral | null;
 }
 
@@ -815,6 +940,155 @@ export interface Usage {
    * The number of output tokens which were used.
    */
   output_tokens: number;
+
+  /**
+   * The number of server tool requests.
+   */
+  server_tool_use: ServerToolUsage | null;
+}
+
+export interface WebSearchResultBlock {
+  encrypted_content: string;
+
+  page_age: string | null;
+
+  title: string;
+
+  type: 'web_search_result';
+
+  url: string;
+}
+
+export interface WebSearchResultBlockParam {
+  encrypted_content: string;
+
+  title: string;
+
+  type: 'web_search_result';
+
+  url: string;
+
+  page_age?: string | null;
+}
+
+export interface WebSearchTool20250305 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_search';
+
+  type: 'web_search_20250305';
+
+  /**
+   * If provided, only these domains will be included in results. Cannot be used
+   * alongside `blocked_domains`.
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * If provided, these domains will never appear in results. Cannot be used
+   * alongside `allowed_domains`.
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * Parameters for the user's location. Used to provide more relevant search
+   * results.
+   */
+  user_location?: WebSearchTool20250305.UserLocation | null;
+}
+
+export namespace WebSearchTool20250305 {
+  /**
+   * Parameters for the user's location. Used to provide more relevant search
+   * results.
+   */
+  export interface UserLocation {
+    type: 'approximate';
+
+    /**
+     * The city of the user.
+     */
+    city?: string | null;
+
+    /**
+     * The two letter
+     * [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the
+     * user.
+     */
+    country?: string | null;
+
+    /**
+     * The region of the user.
+     */
+    region?: string | null;
+
+    /**
+     * The [IANA timezone](https://nodatime.org/TimeZones) of the user.
+     */
+    timezone?: string | null;
+  }
+}
+
+export interface WebSearchToolRequestError {
+  error_code:
+    | 'invalid_tool_input'
+    | 'unavailable'
+    | 'max_uses_exceeded'
+    | 'too_many_requests'
+    | 'query_too_long';
+
+  type: 'web_search_tool_result_error';
+}
+
+export interface WebSearchToolResultBlock {
+  content: WebSearchToolResultBlockContent;
+
+  tool_use_id: string;
+
+  type: 'web_search_tool_result';
+}
+
+export type WebSearchToolResultBlockContent = WebSearchToolResultError | Array<WebSearchResultBlock>;
+
+export interface WebSearchToolResultBlockParam {
+  content: WebSearchToolResultBlockParamContent;
+
+  tool_use_id: string;
+
+  type: 'web_search_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+}
+
+export type WebSearchToolResultBlockParamContent =
+  | Array<WebSearchResultBlockParam>
+  | WebSearchToolRequestError;
+
+export interface WebSearchToolResultError {
+  error_code:
+    | 'invalid_tool_input'
+    | 'unavailable'
+    | 'max_uses_exceeded'
+    | 'too_many_requests'
+    | 'query_too_long';
+
+  type: 'web_search_tool_result_error';
 }
 
 export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreateParamsStreaming;
@@ -918,6 +1192,8 @@ export interface MessageCreateParamsBase {
    * [system prompt](https://docs.anthropic.com/en/docs/system-prompts), you can use
    * the top-level `system` parameter — there is no `"system"` role for input
    * messages in the Messages API.
+   *
+   * There is a limit of 100000 messages in a single request.
    */
   messages: Array<MessageParam>;
 
@@ -1205,6 +1481,8 @@ export interface MessageCountTokensParams {
    * [system prompt](https://docs.anthropic.com/en/docs/system-prompts), you can use
    * the top-level `system` parameter — there is no `"system"` role for input
    * messages in the Messages API.
+   *
+   * There is a limit of 100000 messages in a single request.
    */
   messages: Array<MessageParam>;
 
@@ -1330,8 +1608,10 @@ export declare namespace Messages {
     type CitationContentBlockLocationParam as CitationContentBlockLocationParam,
     type CitationPageLocation as CitationPageLocation,
     type CitationPageLocationParam as CitationPageLocationParam,
+    type CitationWebSearchResultLocationParam as CitationWebSearchResultLocationParam,
     type CitationsConfigParam as CitationsConfigParam,
     type CitationsDelta as CitationsDelta,
+    type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
     type ContentBlock as ContentBlock,
     type ContentBlockParam as ContentBlockParam,
     type ContentBlockSource as ContentBlockSource,
@@ -1357,6 +1637,9 @@ export declare namespace Messages {
     type RawMessageStreamEvent as RawMessageStreamEvent,
     type RedactedThinkingBlock as RedactedThinkingBlock,
     type RedactedThinkingBlockParam as RedactedThinkingBlockParam,
+    type ServerToolUsage as ServerToolUsage,
+    type ServerToolUseBlock as ServerToolUseBlock,
+    type ServerToolUseBlockParam as ServerToolUseBlockParam,
     type SignatureDelta as SignatureDelta,
     type StopReason as StopReason,
     type TextBlock as TextBlock,
@@ -1385,6 +1668,15 @@ export declare namespace Messages {
     type URLImageSource as URLImageSource,
     type URLPDFSource as URLPDFSource,
     type Usage as Usage,
+    type WebSearchResultBlock as WebSearchResultBlock,
+    type WebSearchResultBlockParam as WebSearchResultBlockParam,
+    type WebSearchTool20250305 as WebSearchTool20250305,
+    type WebSearchToolRequestError as WebSearchToolRequestError,
+    type WebSearchToolResultBlock as WebSearchToolResultBlock,
+    type WebSearchToolResultBlockContent as WebSearchToolResultBlockContent,
+    type WebSearchToolResultBlockParam as WebSearchToolResultBlockParam,
+    type WebSearchToolResultBlockParamContent as WebSearchToolResultBlockParamContent,
+    type WebSearchToolResultError as WebSearchToolResultError,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,

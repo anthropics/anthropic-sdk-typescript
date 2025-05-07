@@ -2,9 +2,11 @@
 
 import { APIResource } from '../core/resource';
 import * as CompletionsAPI from './completions';
+import * as BetaAPI from './beta/beta';
 import * as MessagesAPI from './messages/messages';
 import { APIPromise } from '../core/api-promise';
 import { Stream } from '../core/streaming';
+import { buildHeaders } from '../internal/headers';
 import { RequestOptions } from '../internal/request-options';
 
 export class Completions extends APIResource {
@@ -27,21 +29,26 @@ export class Completions extends APIResource {
    * });
    * ```
    */
-  create(body: CompletionCreateParamsNonStreaming, options?: RequestOptions): APIPromise<Completion>;
-  create(body: CompletionCreateParamsStreaming, options?: RequestOptions): APIPromise<Stream<Completion>>;
+  create(params: CompletionCreateParamsNonStreaming, options?: RequestOptions): APIPromise<Completion>;
+  create(params: CompletionCreateParamsStreaming, options?: RequestOptions): APIPromise<Stream<Completion>>;
   create(
-    body: CompletionCreateParamsBase,
+    params: CompletionCreateParamsBase,
     options?: RequestOptions,
   ): APIPromise<Stream<Completion> | Completion>;
   create(
-    body: CompletionCreateParams,
+    params: CompletionCreateParams,
     options?: RequestOptions,
   ): APIPromise<Completion> | APIPromise<Stream<Completion>> {
+    const { betas, ...body } = params;
     return this._client.post('/v1/complete', {
       body,
       timeout: (this._client as any)._options.timeout ?? 600000,
       ...options,
-      stream: body.stream ?? false,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+      stream: params.stream ?? false,
     }) as APIPromise<Completion> | APIPromise<Stream<Completion>>;
   }
 }
@@ -89,7 +96,7 @@ export type CompletionCreateParams = CompletionCreateParamsNonStreaming | Comple
 
 export interface CompletionCreateParamsBase {
   /**
-   * The maximum number of tokens to generate before stopping.
+   * Body param: The maximum number of tokens to generate before stopping.
    *
    * Note that our models may stop _before_ reaching this maximum. This parameter
    * only specifies the absolute maximum number of tokens to generate.
@@ -97,14 +104,14 @@ export interface CompletionCreateParamsBase {
   max_tokens_to_sample: number;
 
   /**
-   * The model that will complete your prompt.\n\nSee
+   * Body param: The model that will complete your prompt.\n\nSee
    * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
   model: MessagesAPI.Model;
 
   /**
-   * The prompt that you want Claude to complete.
+   * Body param: The prompt that you want Claude to complete.
    *
    * For proper response generation you will need to format your prompt using
    * alternating `\n\nHuman:` and `\n\nAssistant:` conversational turns. For example:
@@ -121,12 +128,12 @@ export interface CompletionCreateParamsBase {
   prompt: string;
 
   /**
-   * An object describing metadata about the request.
+   * Body param: An object describing metadata about the request.
    */
   metadata?: MessagesAPI.Metadata;
 
   /**
-   * Sequences that will cause the model to stop generating.
+   * Body param: Sequences that will cause the model to stop generating.
    *
    * Our models stop on `"\n\nHuman:"`, and may include additional built-in stop
    * sequences in the future. By providing the stop_sequences parameter, you may
@@ -135,14 +142,15 @@ export interface CompletionCreateParamsBase {
   stop_sequences?: Array<string>;
 
   /**
-   * Whether to incrementally stream the response using server-sent events.
+   * Body param: Whether to incrementally stream the response using server-sent
+   * events.
    *
    * See [streaming](https://docs.anthropic.com/en/api/streaming) for details.
    */
   stream?: boolean;
 
   /**
-   * Amount of randomness injected into the response.
+   * Body param: Amount of randomness injected into the response.
    *
    * Defaults to `1.0`. Ranges from `0.0` to `1.0`. Use `temperature` closer to `0.0`
    * for analytical / multiple choice, and closer to `1.0` for creative and
@@ -154,7 +162,7 @@ export interface CompletionCreateParamsBase {
   temperature?: number;
 
   /**
-   * Only sample from the top K options for each subsequent token.
+   * Body param: Only sample from the top K options for each subsequent token.
    *
    * Used to remove "long tail" low probability responses.
    * [Learn more technical details here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
@@ -165,7 +173,7 @@ export interface CompletionCreateParamsBase {
   top_k?: number;
 
   /**
-   * Use nucleus sampling.
+   * Body param: Use nucleus sampling.
    *
    * In nucleus sampling, we compute the cumulative distribution over all the options
    * for each subsequent token in decreasing probability order and cut it off once it
@@ -176,6 +184,11 @@ export interface CompletionCreateParamsBase {
    * `temperature`.
    */
   top_p?: number;
+
+  /**
+   * Header param: Optional header to specify the beta version(s) you want to use.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
 export namespace CompletionCreateParams {
@@ -185,7 +198,8 @@ export namespace CompletionCreateParams {
 
 export interface CompletionCreateParamsNonStreaming extends CompletionCreateParamsBase {
   /**
-   * Whether to incrementally stream the response using server-sent events.
+   * Body param: Whether to incrementally stream the response using server-sent
+   * events.
    *
    * See [streaming](https://docs.anthropic.com/en/api/streaming) for details.
    */
@@ -194,7 +208,8 @@ export interface CompletionCreateParamsNonStreaming extends CompletionCreatePara
 
 export interface CompletionCreateParamsStreaming extends CompletionCreateParamsBase {
   /**
-   * Whether to incrementally stream the response using server-sent events.
+   * Body param: Whether to incrementally stream the response using server-sent
+   * events.
    *
    * See [streaming](https://docs.anthropic.com/en/api/streaming) for details.
    */

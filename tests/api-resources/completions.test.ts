@@ -34,6 +34,7 @@ describe('resource completions', () => {
       temperature: 1,
       top_k: 5,
       top_p: 0.7,
+      betas: ['string'],
     });
   });
 });
