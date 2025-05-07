@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.41.0 (2025-05-07)
+
+Full Changelog: [sdk-v0.40.1...sdk-v0.41.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.40.1...sdk-v0.41.0)
+
+### Features
+
+* **api:** adds web search capabilities to the Claude API ([fae7e52](https://github.com/anthropics/anthropic-sdk-typescript/commit/fae7e521568d9659e376d13c4e4a6c320b13b1d4))
+
+
+### Chores
+
+* **ci:** bump node version for release workflows ([3502747](https://github.com/anthropics/anthropic-sdk-typescript/commit/350274792ed3d9b7ea237ee60876883373344016))
+
+
+### Documentation
+
+* add examples to tsdocs ([19a9285](https://github.com/anthropics/anthropic-sdk-typescript/commit/19a928512b1616f2cac9c82f02e7bd9a158dab95))
+* **readme:** fix typo ([735574e](https://github.com/anthropics/anthropic-sdk-typescript/commit/735574e23b7956cbfd0c05d0374079391d5d4e96))
+
 ## 0.40.1 (2025-04-28)
 
 Full Changelog: [sdk-v0.40.0...sdk-v0.40.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.40.0...sdk-v0.40.1)

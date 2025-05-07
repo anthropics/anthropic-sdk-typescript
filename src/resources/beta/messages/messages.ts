@@ -54,6 +54,15 @@ export class Messages extends APIResource {
    * conversations.
    *
    * Learn more about the Messages API in our [user guide](/en/docs/initial-setup)
+   *
+   * @example
+   * ```ts
+   * const betaMessage = await client.beta.messages.create({
+   *   max_tokens: 1024,
+   *   messages: [{ content: 'Hello, world', role: 'user' }],
+   *   model: 'claude-3-7-sonnet-20250219',
+   * });
+   * ```
    */
   create(params: MessageCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<BetaMessage>;
   create(
@@ -107,6 +116,15 @@ export class Messages extends APIResource {
    *
    * Learn more about token counting in our
    * [user guide](/en/docs/build-with-claude/token-counting)
+   *
+   * @example
+   * ```ts
+   * const betaMessageTokensCount =
+   *   await client.beta.messages.countTokens({
+   *     messages: [{ content: 'string', role: 'user' }],
+   *     model: 'claude-3-7-sonnet-latest',
+   *   });
+   * ```
    */
   countTokens(
     params: MessageCountTokensParams,
@@ -139,6 +157,9 @@ export interface BetaBase64PDFBlock {
 
   type: 'document';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: BetaCacheControlEphemeral | null;
 
   citations?: BetaCitationsConfigParam;
@@ -244,19 +265,49 @@ export interface BetaCitationPageLocationParam {
   type: 'page_location';
 }
 
+export interface BetaCitationWebSearchResultLocationParam {
+  cited_text: string;
+
+  encrypted_index: string;
+
+  title: string | null;
+
+  type: 'web_search_result_location';
+
+  url: string;
+}
+
 export interface BetaCitationsConfigParam {
   enabled?: boolean;
 }
 
 export interface BetaCitationsDelta {
-  citation: BetaCitationCharLocation | BetaCitationPageLocation | BetaCitationContentBlockLocation;
+  citation:
+    | BetaCitationCharLocation
+    | BetaCitationPageLocation
+    | BetaCitationContentBlockLocation
+    | BetaCitationsWebSearchResultLocation;
 
   type: 'citations_delta';
+}
+
+export interface BetaCitationsWebSearchResultLocation {
+  cited_text: string;
+
+  encrypted_index: string;
+
+  title: string | null;
+
+  type: 'web_search_result_location';
+
+  url: string;
 }
 
 export type BetaContentBlock =
   | BetaTextBlock
   | BetaToolUseBlock
+  | BetaServerToolUseBlock
+  | BetaWebSearchToolResultBlock
   | BetaThinkingBlock
   | BetaRedactedThinkingBlock;
 
@@ -264,6 +315,8 @@ export type BetaContentBlockParam =
   | BetaTextBlockParam
   | BetaImageBlockParam
   | BetaToolUseBlockParam
+  | BetaServerToolUseBlockParam
+  | BetaWebSearchToolResultBlockParam
   | BetaToolResultBlockParam
   | BetaBase64PDFBlock
   | BetaThinkingBlockParam
@@ -282,6 +335,9 @@ export interface BetaImageBlockParam {
 
   type: 'image';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
@@ -401,9 +457,29 @@ export interface BetaMessage {
 
 export interface BetaMessageDeltaUsage {
   /**
+   * The cumulative number of input tokens used to create the cache entry.
+   */
+  cache_creation_input_tokens: number | null;
+
+  /**
+   * The cumulative number of input tokens read from the cache.
+   */
+  cache_read_input_tokens: number | null;
+
+  /**
+   * The cumulative number of input tokens which were used.
+   */
+  input_tokens: number | null;
+
+  /**
    * The cumulative number of output tokens which were used.
    */
   output_tokens: number;
+
+  /**
+   * The number of server tool requests.
+   */
+  server_tool_use: BetaServerToolUsage | null;
 }
 
 export interface BetaMessageParam {
@@ -455,7 +531,13 @@ export interface BetaRawContentBlockDeltaEvent {
 }
 
 export interface BetaRawContentBlockStartEvent {
-  content_block: BetaTextBlock | BetaToolUseBlock | BetaThinkingBlock | BetaRedactedThinkingBlock;
+  content_block:
+    | BetaTextBlock
+    | BetaToolUseBlock
+    | BetaServerToolUseBlock
+    | BetaWebSearchToolResultBlock
+    | BetaThinkingBlock
+    | BetaRedactedThinkingBlock;
 
   index: number;
 
@@ -531,13 +613,51 @@ export interface BetaRedactedThinkingBlockParam {
   type: 'redacted_thinking';
 }
 
+export interface BetaServerToolUsage {
+  /**
+   * The number of web search tool requests.
+   */
+  web_search_requests: number;
+}
+
+export interface BetaServerToolUseBlock {
+  id: string;
+
+  input: unknown;
+
+  name: 'web_search';
+
+  type: 'server_tool_use';
+}
+
+export interface BetaServerToolUseBlockParam {
+  id: string;
+
+  input: unknown;
+
+  name: 'web_search';
+
+  type: 'server_tool_use';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
 export interface BetaSignatureDelta {
   signature: string;
 
   type: 'signature_delta';
 }
 
-export type BetaStopReason = 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use';
+export type BetaStopReason =
+  | 'end_turn'
+  | 'max_tokens'
+  | 'stop_sequence'
+  | 'tool_use'
+  | 'pause_turn'
+  | 'refusal';
 
 export interface BetaTextBlock {
   /**
@@ -559,6 +679,9 @@ export interface BetaTextBlockParam {
 
   type: 'text';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: BetaCacheControlEphemeral | null;
 
   citations?: Array<BetaTextCitationParam> | null;
@@ -567,12 +690,14 @@ export interface BetaTextBlockParam {
 export type BetaTextCitation =
   | BetaCitationCharLocation
   | BetaCitationPageLocation
-  | BetaCitationContentBlockLocation;
+  | BetaCitationContentBlockLocation
+  | BetaCitationsWebSearchResultLocation;
 
 export type BetaTextCitationParam =
   | BetaCitationCharLocationParam
   | BetaCitationPageLocationParam
-  | BetaCitationContentBlockLocationParam;
+  | BetaCitationContentBlockLocationParam
+  | BetaCitationWebSearchResultLocationParam;
 
 export interface BetaTextDelta {
   text: string;
@@ -648,10 +773,13 @@ export interface BetaTool {
   /**
    * Name of the tool.
    *
-   * This is how the tool will be called by the model and in tool_use blocks.
+   * This is how the tool will be called by the model and in `tool_use` blocks.
    */
   name: string;
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: BetaCacheControlEphemeral | null;
 
   /**
@@ -687,12 +815,15 @@ export interface BetaToolBash20241022 {
   /**
    * Name of the tool.
    *
-   * This is how the tool will be called by the model and in tool_use blocks.
+   * This is how the tool will be called by the model and in `tool_use` blocks.
    */
   name: 'bash';
 
   type: 'bash_20241022';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
@@ -700,12 +831,15 @@ export interface BetaToolBash20250124 {
   /**
    * Name of the tool.
    *
-   * This is how the tool will be called by the model and in tool_use blocks.
+   * This is how the tool will be called by the model and in `tool_use` blocks.
    */
   name: 'bash';
 
   type: 'bash_20250124';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
@@ -786,12 +920,15 @@ export interface BetaToolComputerUse20241022 {
   /**
    * Name of the tool.
    *
-   * This is how the tool will be called by the model and in tool_use blocks.
+   * This is how the tool will be called by the model and in `tool_use` blocks.
    */
   name: 'computer';
 
   type: 'computer_20241022';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: BetaCacheControlEphemeral | null;
 
   /**
@@ -814,12 +951,15 @@ export interface BetaToolComputerUse20250124 {
   /**
    * Name of the tool.
    *
-   * This is how the tool will be called by the model and in tool_use blocks.
+   * This is how the tool will be called by the model and in `tool_use` blocks.
    */
   name: 'computer';
 
   type: 'computer_20250124';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: BetaCacheControlEphemeral | null;
 
   /**
@@ -833,6 +973,9 @@ export interface BetaToolResultBlockParam {
 
   type: 'tool_result';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: BetaCacheControlEphemeral | null;
 
   content?: string | Array<BetaTextBlockParam | BetaImageBlockParam>;
@@ -844,12 +987,15 @@ export interface BetaToolTextEditor20241022 {
   /**
    * Name of the tool.
    *
-   * This is how the tool will be called by the model and in tool_use blocks.
+   * This is how the tool will be called by the model and in `tool_use` blocks.
    */
   name: 'str_replace_editor';
 
   type: 'text_editor_20241022';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
@@ -857,12 +1003,15 @@ export interface BetaToolTextEditor20250124 {
   /**
    * Name of the tool.
    *
-   * This is how the tool will be called by the model and in tool_use blocks.
+   * This is how the tool will be called by the model and in `tool_use` blocks.
    */
   name: 'str_replace_editor';
 
   type: 'text_editor_20250124';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
@@ -873,7 +1022,8 @@ export type BetaToolUnion =
   | BetaToolTextEditor20241022
   | BetaToolComputerUse20250124
   | BetaToolBash20250124
-  | BetaToolTextEditor20250124;
+  | BetaToolTextEditor20250124
+  | BetaWebSearchTool20250305;
 
 export interface BetaToolUseBlock {
   id: string;
@@ -894,6 +1044,9 @@ export interface BetaToolUseBlockParam {
 
   type: 'tool_use';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
@@ -929,6 +1082,157 @@ export interface BetaUsage {
    * The number of output tokens which were used.
    */
   output_tokens: number;
+
+  /**
+   * The number of server tool requests.
+   */
+  server_tool_use: BetaServerToolUsage | null;
+}
+
+export interface BetaWebSearchResultBlock {
+  encrypted_content: string;
+
+  page_age: string | null;
+
+  title: string;
+
+  type: 'web_search_result';
+
+  url: string;
+}
+
+export interface BetaWebSearchResultBlockParam {
+  encrypted_content: string;
+
+  title: string;
+
+  type: 'web_search_result';
+
+  url: string;
+
+  page_age?: string | null;
+}
+
+export interface BetaWebSearchTool20250305 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_search';
+
+  type: 'web_search_20250305';
+
+  /**
+   * If provided, only these domains will be included in results. Cannot be used
+   * alongside `blocked_domains`.
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * If provided, these domains will never appear in results. Cannot be used
+   * alongside `allowed_domains`.
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * Parameters for the user's location. Used to provide more relevant search
+   * results.
+   */
+  user_location?: BetaWebSearchTool20250305.UserLocation | null;
+}
+
+export namespace BetaWebSearchTool20250305 {
+  /**
+   * Parameters for the user's location. Used to provide more relevant search
+   * results.
+   */
+  export interface UserLocation {
+    type: 'approximate';
+
+    /**
+     * The city of the user.
+     */
+    city?: string | null;
+
+    /**
+     * The two letter
+     * [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the
+     * user.
+     */
+    country?: string | null;
+
+    /**
+     * The region of the user.
+     */
+    region?: string | null;
+
+    /**
+     * The [IANA timezone](https://nodatime.org/TimeZones) of the user.
+     */
+    timezone?: string | null;
+  }
+}
+
+export interface BetaWebSearchToolRequestError {
+  error_code:
+    | 'invalid_tool_input'
+    | 'unavailable'
+    | 'max_uses_exceeded'
+    | 'too_many_requests'
+    | 'query_too_long';
+
+  type: 'web_search_tool_result_error';
+}
+
+export interface BetaWebSearchToolResultBlock {
+  content: BetaWebSearchToolResultBlockContent;
+
+  tool_use_id: string;
+
+  type: 'web_search_tool_result';
+}
+
+export type BetaWebSearchToolResultBlockContent =
+  | BetaWebSearchToolResultError
+  | Array<BetaWebSearchResultBlock>;
+
+export interface BetaWebSearchToolResultBlockParam {
+  content: BetaWebSearchToolResultBlockParamContent;
+
+  tool_use_id: string;
+
+  type: 'web_search_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export type BetaWebSearchToolResultBlockParamContent =
+  | Array<BetaWebSearchResultBlockParam>
+  | BetaWebSearchToolRequestError;
+
+export interface BetaWebSearchToolResultError {
+  error_code:
+    | 'invalid_tool_input'
+    | 'unavailable'
+    | 'max_uses_exceeded'
+    | 'too_many_requests'
+    | 'query_too_long';
+
+  type: 'web_search_tool_result_error';
 }
 
 export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreateParamsStreaming;
@@ -1032,6 +1336,8 @@ export interface MessageCreateParamsBase {
    * [system prompt](https://docs.anthropic.com/en/docs/system-prompts), you can use
    * the top-level `system` parameter — there is no `"system"` role for input
    * messages in the Messages API.
+   *
+   * There is a limit of 100000 messages in a single request.
    */
   messages: Array<BetaMessageParam>;
 
@@ -1327,6 +1633,8 @@ export interface MessageCountTokensParams {
    * [system prompt](https://docs.anthropic.com/en/docs/system-prompts), you can use
    * the top-level `system` parameter — there is no `"system"` role for input
    * messages in the Messages API.
+   *
+   * There is a limit of 100000 messages in a single request.
    */
   messages: Array<BetaMessageParam>;
 
@@ -1444,6 +1752,7 @@ export interface MessageCountTokensParams {
     | BetaToolComputerUse20250124
     | BetaToolBash20250124
     | BetaToolTextEditor20250124
+    | BetaWebSearchTool20250305
   >;
 
   /**
@@ -1467,8 +1776,10 @@ export declare namespace Messages {
     type BetaCitationContentBlockLocationParam as BetaCitationContentBlockLocationParam,
     type BetaCitationPageLocation as BetaCitationPageLocation,
     type BetaCitationPageLocationParam as BetaCitationPageLocationParam,
+    type BetaCitationWebSearchResultLocationParam as BetaCitationWebSearchResultLocationParam,
     type BetaCitationsConfigParam as BetaCitationsConfigParam,
     type BetaCitationsDelta as BetaCitationsDelta,
+    type BetaCitationsWebSearchResultLocation as BetaCitationsWebSearchResultLocation,
     type BetaContentBlock as BetaContentBlock,
     type BetaContentBlockParam as BetaContentBlockParam,
     type BetaContentBlockSource as BetaContentBlockSource,
@@ -1491,6 +1802,9 @@ export declare namespace Messages {
     type BetaRawMessageStreamEvent as BetaRawMessageStreamEvent,
     type BetaRedactedThinkingBlock as BetaRedactedThinkingBlock,
     type BetaRedactedThinkingBlockParam as BetaRedactedThinkingBlockParam,
+    type BetaServerToolUsage as BetaServerToolUsage,
+    type BetaServerToolUseBlock as BetaServerToolUseBlock,
+    type BetaServerToolUseBlockParam as BetaServerToolUseBlockParam,
     type BetaSignatureDelta as BetaSignatureDelta,
     type BetaStopReason as BetaStopReason,
     type BetaTextBlock as BetaTextBlock,
@@ -1523,6 +1837,15 @@ export declare namespace Messages {
     type BetaURLImageSource as BetaURLImageSource,
     type BetaURLPDFSource as BetaURLPDFSource,
     type BetaUsage as BetaUsage,
+    type BetaWebSearchResultBlock as BetaWebSearchResultBlock,
+    type BetaWebSearchResultBlockParam as BetaWebSearchResultBlockParam,
+    type BetaWebSearchTool20250305 as BetaWebSearchTool20250305,
+    type BetaWebSearchToolRequestError as BetaWebSearchToolRequestError,
+    type BetaWebSearchToolResultBlock as BetaWebSearchToolResultBlock,
+    type BetaWebSearchToolResultBlockContent as BetaWebSearchToolResultBlockContent,
+    type BetaWebSearchToolResultBlockParam as BetaWebSearchToolResultBlockParam,
+    type BetaWebSearchToolResultBlockParamContent as BetaWebSearchToolResultBlockParamContent,
+    type BetaWebSearchToolResultError as BetaWebSearchToolResultError,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
