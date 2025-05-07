@@ -20,17 +20,31 @@ Types:
 
 Types:
 
+- <code><a href="./src/resources/messages/messages.ts">Base64ImageSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Base64PDFSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CacheControlEphemeral</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CitationCharLocation</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CitationCharLocationParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CitationContentBlockLocation</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CitationContentBlockLocationParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CitationPageLocation</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CitationPageLocationParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CitationWebSearchResultLocationParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CitationsConfigParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CitationsDelta</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CitationsWebSearchResultLocation</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockDeltaEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContentBlockSource</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContentBlockSourceContent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockStartEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockStopEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">DocumentBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ImageBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">InputJSONDelta</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Message</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageCountTokensTool</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageDeltaEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageDeltaUsage</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageParam</a></code>
@@ -40,6 +54,8 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">MessageTokensCount</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Metadata</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Model</a></code>
+- <code><a href="./src/resources/messages/messages.ts">PlainTextSource</a></code>
+- <code><a href="./src/resources/messages/messages.ts">RawContentBlockDelta</a></code>
 - <code><a href="./src/resources/messages/messages.ts">RawContentBlockDeltaEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">RawContentBlockStartEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">RawContentBlockStopEvent</a></code>
@@ -47,18 +63,48 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">RawMessageStartEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">RawMessageStopEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">RawMessageStreamEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">RedactedThinkingBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">RedactedThinkingBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ServerToolUsage</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ServerToolUseBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ServerToolUseBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">SignatureDelta</a></code>
+- <code><a href="./src/resources/messages/messages.ts">StopReason</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">TextCitation</a></code>
+- <code><a href="./src/resources/messages/messages.ts">TextCitationParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextDelta</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThinkingBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThinkingBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThinkingConfigDisabled</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThinkingConfigEnabled</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThinkingConfigParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThinkingDelta</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Tool</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolBash20250124</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolChoice</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolChoiceAny</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolChoiceAuto</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolChoiceNone</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolChoiceTool</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolResultBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolTextEditor20250124</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolUnion</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolUseBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">URLImageSource</a></code>
+- <code><a href="./src/resources/messages/messages.ts">URLPDFSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Usage</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebSearchResultBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebSearchResultBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebSearchTool20250305</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebSearchToolRequestError</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultBlock</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultBlockContent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultBlockParamContent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultError</a></code>
 
 Methods:
 
@@ -87,7 +133,7 @@ Methods:
 - <code title="get /v1/messages/batches">client.messages.batches.<a href="./src/resources/messages/batches.ts">list</a>({ ...params }) -> MessageBatchesPage</code>
 - <code title="delete /v1/messages/batches/{message_batch_id}">client.messages.batches.<a href="./src/resources/messages/batches.ts">delete</a>(messageBatchID) -> DeletedMessageBatch</code>
 - <code title="post /v1/messages/batches/{message_batch_id}/cancel">client.messages.batches.<a href="./src/resources/messages/batches.ts">cancel</a>(messageBatchID) -> MessageBatch</code>
-- <code title="get /v1/messages/batches/{message_batch_id}/results">client.messages.batches.<a href="./src/resources/messages/batches.ts">results</a>(messageBatchID) -> Response</code>
+- <code title="get /v1/messages/batches/{message_batch_id}/results">client.messages.batches.<a href="./src/resources/messages/batches.ts">results</a>(messageBatchID) -> MessageBatchIndividualResponse</code>
 
 # Models
 
@@ -97,7 +143,7 @@ Types:
 
 Methods:
 
-- <code title="get /v1/models/{model_id}">client.models.<a href="./src/resources/models.ts">retrieve</a>(modelID) -> ModelInfo</code>
+- <code title="get /v1/models/{model_id}">client.models.<a href="./src/resources/models.ts">retrieve</a>(modelID, { ...params }) -> ModelInfo</code>
 - <code title="get /v1/models">client.models.<a href="./src/resources/models.ts">list</a>({ ...params }) -> ModelInfosPage</code>
 
 # Beta
@@ -125,18 +171,31 @@ Types:
 
 Methods:
 
-- <code title="get /v1/models/{model_id}?beta=true">client.beta.models.<a href="./src/resources/beta/models.ts">retrieve</a>(modelID) -> BetaModelInfo</code>
+- <code title="get /v1/models/{model_id}?beta=true">client.beta.models.<a href="./src/resources/beta/models.ts">retrieve</a>(modelID, { ...params }) -> BetaModelInfo</code>
 - <code title="get /v1/models?beta=true">client.beta.models.<a href="./src/resources/beta/models.ts">list</a>({ ...params }) -> BetaModelInfosPage</code>
 
 ## Messages
 
 Types:
 
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64ImageSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64PDFBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64PDFSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheControlEphemeral</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationCharLocation</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationCharLocationParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationContentBlockLocation</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationContentBlockLocationParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationPageLocation</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationPageLocationParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationWebSearchResultLocationParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationsConfigParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationsDelta</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationsWebSearchResultLocation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContentBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContentBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaContentBlockSource</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaContentBlockSourceContent</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaImageBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaInputJSONDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessage</a></code>
@@ -144,6 +203,8 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageTokensCount</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMetadata</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaPlainTextSource</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaRawContentBlockDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRawContentBlockDeltaEvent</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRawContentBlockStartEvent</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRawContentBlockStopEvent</a></code>
@@ -151,22 +212,52 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRawMessageStartEvent</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRawMessageStopEvent</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRawMessageStreamEvent</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaRedactedThinkingBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaRedactedThinkingBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolUsage</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolUseBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolUseBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaSignatureDelta</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaStopReason</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaTextCitation</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaTextCitationParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextDelta</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigDisabled</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigEnabled</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTool</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolBash20241022</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolBash20250124</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChoice</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChoiceAny</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChoiceAuto</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChoiceNone</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChoiceTool</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolComputerUse20241022</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolComputerUse20250124</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolTextEditor20241022</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolTextEditor20250124</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUnion</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUseBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaURLImageSource</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaURLPDFSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaUsage</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchResultBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchTool20250305</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolRequestError</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultBlockContent</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultBlockParamContent</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultError</a></code>
 
 Methods:
 
@@ -194,4 +285,4 @@ Methods:
 - <code title="get /v1/messages/batches?beta=true">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">list</a>({ ...params }) -> BetaMessageBatchesPage</code>
 - <code title="delete /v1/messages/batches/{message_batch_id}?beta=true">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">delete</a>(messageBatchID, { ...params }) -> BetaDeletedMessageBatch</code>
 - <code title="post /v1/messages/batches/{message_batch_id}/cancel?beta=true">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">cancel</a>(messageBatchID, { ...params }) -> BetaMessageBatch</code>
-- <code title="get /v1/messages/batches/{message_batch_id}/results?beta=true">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">results</a>(messageBatchID, { ...params }) -> Response</code>
+- <code title="get /v1/messages/batches/{message_batch_id}/results?beta=true">client.beta.messages.batches.<a href="./src/resources/beta/messages/batches.ts">results</a>(messageBatchID, { ...params }) -> BetaMessageBatchIndividualResponse</code>

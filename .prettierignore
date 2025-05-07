@@ -5,3 +5,4 @@ CHANGELOG.md
 
 # don't format tsc output, will break source maps
 /dist
+/packages/*/dist

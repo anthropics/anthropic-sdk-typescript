@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../resource';
+import { APIResource } from '../../core/resource';
 import * as MessagesAPI from './messages';
 import * as BatchesAPI from './batches';
 import {
@@ -18,8 +18,8 @@ import {
   MessageBatchSucceededResult,
   MessageBatchesPage,
 } from './batches';
-import { APIPromise } from '../../api-promise';
-import { Stream } from '../../streaming';
+import { APIPromise } from '../../core/api-promise';
+import { Stream } from '../../core/streaming';
 import { RequestOptions } from '../../internal/request-options';
 import { MessageStream } from '../../lib/MessageStream';
 
@@ -34,6 +34,17 @@ export class Messages extends APIResource {
    *
    * The Messages API can be used for either single queries or stateless multi-turn
    * conversations.
+   *
+   * Learn more about the Messages API in our [user guide](/en/docs/initial-setup)
+   *
+   * @example
+   * ```ts
+   * const message = await client.messages.create({
+   *   max_tokens: 1024,
+   *   messages: [{ content: 'Hello, world', role: 'user' }],
+   *   model: 'claude-3-7-sonnet-20250219',
+   * });
+   * ```
    */
   create(body: MessageCreateParamsNonStreaming, options?: RequestOptions): APIPromise<Message>;
   create(
@@ -57,7 +68,9 @@ export class Messages extends APIResource {
     }
     return this._client.post('/v1/messages', {
       body,
-      timeout: (this._client as any)._options.timeout ?? 600000,
+      timeout:
+        (this._client as any)._options.timeout ??
+        (body.stream ? 600000 : this._client._calculateNonstreamingTimeout(body.max_tokens)),
       ...options,
       stream: body.stream ?? false,
     }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
@@ -75,10 +88,30 @@ export class Messages extends APIResource {
    *
    * The Token Count API can be used to count the number of tokens in a Message,
    * including tools, images, and documents, without creating it.
+   *
+   * Learn more about token counting in our
+   * [user guide](/en/docs/build-with-claude/token-counting)
+   *
+   * @example
+   * ```ts
+   * const messageTokensCount =
+   *   await client.messages.countTokens({
+   *     messages: [{ content: 'string', role: 'user' }],
+   *     model: 'claude-3-7-sonnet-latest',
+   *   });
+   * ```
    */
   countTokens(body: MessageCountTokensParams, options?: RequestOptions): APIPromise<MessageTokensCount> {
     return this._client.post('/v1/messages/count_tokens', { body, ...options });
   }
+}
+
+export interface Base64ImageSource {
+  data: string;
+
+  media_type: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+
+  type: 'base64';
 }
 
 export interface Base64PDFSource {
@@ -93,7 +126,135 @@ export interface CacheControlEphemeral {
   type: 'ephemeral';
 }
 
-export type ContentBlock = TextBlock | ToolUseBlock;
+export interface CitationCharLocation {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_char_index: number;
+
+  start_char_index: number;
+
+  type: 'char_location';
+}
+
+export interface CitationCharLocationParam {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_char_index: number;
+
+  start_char_index: number;
+
+  type: 'char_location';
+}
+
+export interface CitationContentBlockLocation {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_block_index: number;
+
+  start_block_index: number;
+
+  type: 'content_block_location';
+}
+
+export interface CitationContentBlockLocationParam {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_block_index: number;
+
+  start_block_index: number;
+
+  type: 'content_block_location';
+}
+
+export interface CitationPageLocation {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_page_number: number;
+
+  start_page_number: number;
+
+  type: 'page_location';
+}
+
+export interface CitationPageLocationParam {
+  cited_text: string;
+
+  document_index: number;
+
+  document_title: string | null;
+
+  end_page_number: number;
+
+  start_page_number: number;
+
+  type: 'page_location';
+}
+
+export interface CitationWebSearchResultLocationParam {
+  cited_text: string;
+
+  encrypted_index: string;
+
+  title: string | null;
+
+  type: 'web_search_result_location';
+
+  url: string;
+}
+
+export interface CitationsConfigParam {
+  enabled?: boolean;
+}
+
+export interface CitationsDelta {
+  citation:
+    | CitationCharLocation
+    | CitationPageLocation
+    | CitationContentBlockLocation
+    | CitationsWebSearchResultLocation;
+
+  type: 'citations_delta';
+}
+
+export interface CitationsWebSearchResultLocation {
+  cited_text: string;
+
+  encrypted_index: string;
+
+  title: string | null;
+
+  type: 'web_search_result_location';
+
+  url: string;
+}
+
+export type ContentBlock =
+  | TextBlock
+  | ToolUseBlock
+  | ServerToolUseBlock
+  | WebSearchToolResultBlock
+  | ThinkingBlock
+  | RedactedThinkingBlock;
 
 export type ContentBlockDeltaEvent = RawContentBlockDeltaEvent;
 
@@ -101,40 +262,52 @@ export type ContentBlockParam =
   | TextBlockParam
   | ImageBlockParam
   | ToolUseBlockParam
+  | ServerToolUseBlockParam
+  | WebSearchToolResultBlockParam
   | ToolResultBlockParam
-  | DocumentBlockParam;
+  | DocumentBlockParam
+  | ThinkingBlockParam
+  | RedactedThinkingBlockParam;
 
 export type ContentBlockStartEvent = RawContentBlockStartEvent;
 
 export type ContentBlockStopEvent = RawContentBlockStopEvent;
 
+export interface ContentBlockSource {
+  content: string | Array<ContentBlockSourceContent>;
+
+  type: 'content';
+}
+
+export type ContentBlockSourceContent = TextBlockParam | ImageBlockParam;
+
 export interface DocumentBlockParam {
-  source: Base64PDFSource;
+  source: Base64PDFSource | PlainTextSource | ContentBlockSource | URLPDFSource;
 
   type: 'document';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: CacheControlEphemeral | null;
+
+  citations?: CitationsConfigParam;
+
+  context?: string | null;
+
+  title?: string | null;
 }
 
 export interface ImageBlockParam {
-  source: ImageBlockParam.Source;
+  source: Base64ImageSource | URLImageSource;
 
   type: 'image';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: CacheControlEphemeral | null;
 }
-
-export namespace ImageBlockParam {
-  export interface Source {
-    data: string;
-
-    media_type: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
-
-    type: 'base64';
-  }
-}
-
-export type InputJsonDelta = InputJSONDelta;
 
 export interface InputJSONDelta {
   partial_json: string;
@@ -213,7 +386,7 @@ export interface Message {
    * In non-streaming mode this value is always non-null. In streaming mode, it is
    * null in the `message_start` event and non-null otherwise.
    */
-  stop_reason: 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | null;
+  stop_reason: StopReason | null;
 
   /**
    * Which custom stop sequence was generated, if any.
@@ -243,17 +416,42 @@ export interface Message {
    *
    * For example, `output_tokens` will be non-zero, even for an empty string response
    * from Claude.
+   *
+   * Total input tokens in a request is the summation of `input_tokens`,
+   * `cache_creation_input_tokens`, and `cache_read_input_tokens`.
    */
   usage: Usage;
 }
+
+export type MessageCountTokensTool = Tool | ToolBash20250124 | ToolTextEditor20250124 | WebSearchTool20250305;
 
 export type MessageDeltaEvent = RawMessageDeltaEvent;
 
 export interface MessageDeltaUsage {
   /**
+   * The cumulative number of input tokens used to create the cache entry.
+   */
+  cache_creation_input_tokens: number | null;
+
+  /**
+   * The cumulative number of input tokens read from the cache.
+   */
+  cache_read_input_tokens: number | null;
+
+  /**
+   * The cumulative number of input tokens which were used.
+   */
+  input_tokens: number | null;
+
+  /**
    * The cumulative number of output tokens which were used.
    */
   output_tokens: number;
+
+  /**
+   * The number of server tool requests.
+   */
+  server_tool_use: ServerToolUsage | null;
 }
 
 export interface MessageParam {
@@ -293,7 +491,8 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
-  | (string & {})
+  | 'claude-3-7-sonnet-latest'
+  | 'claude-3-7-sonnet-20250219'
   | 'claude-3-5-haiku-latest'
   | 'claude-3-5-haiku-20241022'
   | 'claude-3-5-sonnet-latest'
@@ -304,7 +503,8 @@ export type Model =
   | 'claude-3-sonnet-20240229'
   | 'claude-3-haiku-20240307'
   | 'claude-2.1'
-  | 'claude-2.0';
+  | 'claude-2.0'
+  | (string & {});
 
 type DeprecatedModelsType = {
   [K in Model]?: string;
@@ -318,8 +518,23 @@ const DEPRECATED_MODELS: DeprecatedModelsType = {
   'claude-instant-1.2': 'November 6th, 2024',
 };
 
+export interface PlainTextSource {
+  data: string;
+
+  media_type: 'text/plain';
+
+  type: 'text';
+}
+
+export type RawContentBlockDelta =
+  | TextDelta
+  | InputJSONDelta
+  | CitationsDelta
+  | ThinkingDelta
+  | SignatureDelta;
+
 export interface RawContentBlockDeltaEvent {
-  delta: TextDelta | InputJSONDelta;
+  delta: RawContentBlockDelta;
 
   index: number;
 
@@ -327,7 +542,13 @@ export interface RawContentBlockDeltaEvent {
 }
 
 export interface RawContentBlockStartEvent {
-  content_block: TextBlock | ToolUseBlock;
+  content_block:
+    | TextBlock
+    | ToolUseBlock
+    | ServerToolUseBlock
+    | WebSearchToolResultBlock
+    | ThinkingBlock
+    | RedactedThinkingBlock;
 
   index: number;
 
@@ -358,13 +579,16 @@ export interface RawMessageDeltaEvent {
    *
    * For example, `output_tokens` will be non-zero, even for an empty string response
    * from Claude.
+   *
+   * Total input tokens in a request is the summation of `input_tokens`,
+   * `cache_creation_input_tokens`, and `cache_read_input_tokens`.
    */
   usage: MessageDeltaUsage;
 }
 
 export namespace RawMessageDeltaEvent {
   export interface Delta {
-    stop_reason: 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | null;
+    stop_reason: MessagesAPI.StopReason | null;
 
     stop_sequence: string | null;
   }
@@ -388,7 +612,68 @@ export type RawMessageStreamEvent =
   | RawContentBlockDeltaEvent
   | RawContentBlockStopEvent;
 
+export interface RedactedThinkingBlock {
+  data: string;
+
+  type: 'redacted_thinking';
+}
+
+export interface RedactedThinkingBlockParam {
+  data: string;
+
+  type: 'redacted_thinking';
+}
+
+export interface ServerToolUsage {
+  /**
+   * The number of web search tool requests.
+   */
+  web_search_requests: number;
+}
+
+export interface ServerToolUseBlock {
+  id: string;
+
+  input: unknown;
+
+  name: 'web_search';
+
+  type: 'server_tool_use';
+}
+
+export interface ServerToolUseBlockParam {
+  id: string;
+
+  input: unknown;
+
+  name: 'web_search';
+
+  type: 'server_tool_use';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+}
+
+export interface SignatureDelta {
+  signature: string;
+
+  type: 'signature_delta';
+}
+
+export type StopReason = 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | 'pause_turn' | 'refusal';
+
 export interface TextBlock {
+  /**
+   * Citations supporting the text block.
+   *
+   * The type of citation returned will depend on the type of document being cited.
+   * Citing a PDF results in `page_location`, plain text results in `char_location`,
+   * and content document results in `content_block_location`.
+   */
+  citations: Array<TextCitation> | null;
+
   text: string;
 
   type: 'text';
@@ -399,8 +684,25 @@ export interface TextBlockParam {
 
   type: 'text';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: CacheControlEphemeral | null;
+
+  citations?: Array<TextCitationParam> | null;
 }
+
+export type TextCitation =
+  | CitationCharLocation
+  | CitationPageLocation
+  | CitationContentBlockLocation
+  | CitationsWebSearchResultLocation;
+
+export type TextCitationParam =
+  | CitationCharLocationParam
+  | CitationPageLocationParam
+  | CitationContentBlockLocationParam
+  | CitationWebSearchResultLocationParam;
 
 export interface TextDelta {
   text: string;
@@ -408,9 +710,65 @@ export interface TextDelta {
   type: 'text_delta';
 }
 
+export interface ThinkingBlock {
+  signature: string;
+
+  thinking: string;
+
+  type: 'thinking';
+}
+
+export interface ThinkingBlockParam {
+  signature: string;
+
+  thinking: string;
+
+  type: 'thinking';
+}
+
+export interface ThinkingConfigDisabled {
+  type: 'disabled';
+}
+
+export interface ThinkingConfigEnabled {
+  /**
+   * Determines how many tokens Claude can use for its internal reasoning process.
+   * Larger budgets can enable more thorough analysis for complex problems, improving
+   * response quality.
+   *
+   * Must be ≥1024 and less than `max_tokens`.
+   *
+   * See
+   * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+   * for details.
+   */
+  budget_tokens: number;
+
+  type: 'enabled';
+}
+
+/**
+ * Configuration for enabling Claude's extended thinking.
+ *
+ * When enabled, responses include `thinking` content blocks showing Claude's
+ * thinking process before the final answer. Requires a minimum budget of 1,024
+ * tokens and counts towards your `max_tokens` limit.
+ *
+ * See
+ * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+ * for details.
+ */
+export type ThinkingConfigParam = ThinkingConfigEnabled | ThinkingConfigDisabled;
+
+export interface ThinkingDelta {
+  thinking: string;
+
+  type: 'thinking_delta';
+}
+
 export interface Tool {
   /**
-   * [JSON schema](https://json-schema.org/) for this tool's input.
+   * [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
    *
    * This defines the shape of the `input` that your tool accepts and that the model
    * will produce.
@@ -420,10 +778,13 @@ export interface Tool {
   /**
    * Name of the tool.
    *
-   * This is how the tool will be called by the model and in tool_use blocks.
+   * This is how the tool will be called by the model and in `tool_use` blocks.
    */
   name: string;
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: CacheControlEphemeral | null;
 
   /**
@@ -435,11 +796,13 @@ export interface Tool {
    * aspects of the tool input JSON schema.
    */
   description?: string;
+
+  type?: 'custom' | null;
 }
 
 export namespace Tool {
   /**
-   * [JSON schema](https://json-schema.org/) for this tool's input.
+   * [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
    *
    * This defines the shape of the `input` that your tool accepts and that the model
    * will produce.
@@ -448,15 +811,32 @@ export namespace Tool {
     type: 'object';
 
     properties?: unknown | null;
+
     [k: string]: unknown;
   }
 }
 
+export interface ToolBash20250124 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'bash';
+
+  type: 'bash_20250124';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+}
+
 /**
  * How the model should use the provided tools. The model can use a specific tool,
- * any available tool, or decide by itself.
+ * any available tool, decide by itself, or not use tools at all.
  */
-export type ToolChoice = ToolChoiceAuto | ToolChoiceAny | ToolChoiceTool;
+export type ToolChoice = ToolChoiceAuto | ToolChoiceAny | ToolChoiceTool | ToolChoiceNone;
 
 /**
  * The model will use any available tools.
@@ -489,6 +869,13 @@ export interface ToolChoiceAuto {
 }
 
 /**
+ * The model will not be allowed to use tools.
+ */
+export interface ToolChoiceNone {
+  type: 'none';
+}
+
+/**
  * The model will use the specified tool with `tool_choice.name`.
  */
 export interface ToolChoiceTool {
@@ -513,12 +900,33 @@ export interface ToolResultBlockParam {
 
   type: 'tool_result';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: CacheControlEphemeral | null;
 
   content?: string | Array<TextBlockParam | ImageBlockParam>;
 
   is_error?: boolean;
 }
+
+export interface ToolTextEditor20250124 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'str_replace_editor';
+
+  type: 'text_editor_20250124';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+}
+
+export type ToolUnion = Tool | ToolBash20250124 | ToolTextEditor20250124 | WebSearchTool20250305;
 
 export interface ToolUseBlock {
   id: string;
@@ -539,7 +947,22 @@ export interface ToolUseBlockParam {
 
   type: 'tool_use';
 
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
   cache_control?: CacheControlEphemeral | null;
+}
+
+export interface URLImageSource {
+  type: 'url';
+
+  url: string;
+}
+
+export interface URLPDFSource {
+  type: 'url';
+
+  url: string;
 }
 
 export interface Usage {
@@ -562,6 +985,155 @@ export interface Usage {
    * The number of output tokens which were used.
    */
   output_tokens: number;
+
+  /**
+   * The number of server tool requests.
+   */
+  server_tool_use: ServerToolUsage | null;
+}
+
+export interface WebSearchResultBlock {
+  encrypted_content: string;
+
+  page_age: string | null;
+
+  title: string;
+
+  type: 'web_search_result';
+
+  url: string;
+}
+
+export interface WebSearchResultBlockParam {
+  encrypted_content: string;
+
+  title: string;
+
+  type: 'web_search_result';
+
+  url: string;
+
+  page_age?: string | null;
+}
+
+export interface WebSearchTool20250305 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_search';
+
+  type: 'web_search_20250305';
+
+  /**
+   * If provided, only these domains will be included in results. Cannot be used
+   * alongside `blocked_domains`.
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * If provided, these domains will never appear in results. Cannot be used
+   * alongside `allowed_domains`.
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * Parameters for the user's location. Used to provide more relevant search
+   * results.
+   */
+  user_location?: WebSearchTool20250305.UserLocation | null;
+}
+
+export namespace WebSearchTool20250305 {
+  /**
+   * Parameters for the user's location. Used to provide more relevant search
+   * results.
+   */
+  export interface UserLocation {
+    type: 'approximate';
+
+    /**
+     * The city of the user.
+     */
+    city?: string | null;
+
+    /**
+     * The two letter
+     * [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the
+     * user.
+     */
+    country?: string | null;
+
+    /**
+     * The region of the user.
+     */
+    region?: string | null;
+
+    /**
+     * The [IANA timezone](https://nodatime.org/TimeZones) of the user.
+     */
+    timezone?: string | null;
+  }
+}
+
+export interface WebSearchToolRequestError {
+  error_code:
+    | 'invalid_tool_input'
+    | 'unavailable'
+    | 'max_uses_exceeded'
+    | 'too_many_requests'
+    | 'query_too_long';
+
+  type: 'web_search_tool_result_error';
+}
+
+export interface WebSearchToolResultBlock {
+  content: WebSearchToolResultBlockContent;
+
+  tool_use_id: string;
+
+  type: 'web_search_tool_result';
+}
+
+export type WebSearchToolResultBlockContent = WebSearchToolResultError | Array<WebSearchResultBlock>;
+
+export interface WebSearchToolResultBlockParam {
+  content: WebSearchToolResultBlockParamContent;
+
+  tool_use_id: string;
+
+  type: 'web_search_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+}
+
+export type WebSearchToolResultBlockParamContent =
+  | Array<WebSearchResultBlockParam>
+  | WebSearchToolRequestError;
+
+export interface WebSearchToolResultError {
+  error_code:
+    | 'invalid_tool_input'
+    | 'unavailable'
+    | 'max_uses_exceeded'
+    | 'too_many_requests'
+    | 'query_too_long';
+
+  type: 'web_search_tool_result_error';
 }
 
 export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreateParamsStreaming;
@@ -665,6 +1237,8 @@ export interface MessageCreateParamsBase {
    * [system prompt](https://docs.anthropic.com/en/docs/system-prompts), you can use
    * the top-level `system` parameter — there is no `"system"` role for input
    * messages in the Messages API.
+   *
+   * There is a limit of 100000 messages in a single request.
    */
   messages: Array<MessageParam>;
 
@@ -723,8 +1297,21 @@ export interface MessageCreateParamsBase {
   temperature?: number;
 
   /**
+   * Configuration for enabling Claude's extended thinking.
+   *
+   * When enabled, responses include `thinking` content blocks showing Claude's
+   * thinking process before the final answer. Requires a minimum budget of 1,024
+   * tokens and counts towards your `max_tokens` limit.
+   *
+   * See
+   * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+   * for details.
+   */
+  thinking?: ThinkingConfigParam;
+
+  /**
    * How the model should use the provided tools. The model can use a specific tool,
-   * any available tool, or decide by itself.
+   * any available tool, decide by itself, or not use tools at all.
    */
   tool_choice?: ToolChoice;
 
@@ -740,8 +1327,9 @@ export interface MessageCreateParamsBase {
    *
    * - `name`: Name of the tool.
    * - `description`: Optional, but strongly-recommended description of the tool.
-   * - `input_schema`: [JSON schema](https://json-schema.org/) for the tool `input`
-   *   shape that the model will produce in `tool_use` output content blocks.
+   * - `input_schema`: [JSON schema](https://json-schema.org/draft/2020-12) for the
+   *   tool `input` shape that the model will produce in `tool_use` output content
+   *   blocks.
    *
    * For example, if you defined `tools` as:
    *
@@ -798,7 +1386,7 @@ export interface MessageCreateParamsBase {
    *
    * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
    */
-  tools?: Array<Tool>;
+  tools?: Array<ToolUnion>;
 
   /**
    * Only sample from the top K options for each subsequent token.
@@ -960,6 +1548,8 @@ export interface MessageCountTokensParams {
    * [system prompt](https://docs.anthropic.com/en/docs/system-prompts), you can use
    * the top-level `system` parameter — there is no `"system"` role for input
    * messages in the Messages API.
+   *
+   * There is a limit of 100000 messages in a single request.
    */
   messages: Array<MessageParam>;
 
@@ -980,8 +1570,21 @@ export interface MessageCountTokensParams {
   system?: string | Array<TextBlockParam>;
 
   /**
+   * Configuration for enabling Claude's extended thinking.
+   *
+   * When enabled, responses include `thinking` content blocks showing Claude's
+   * thinking process before the final answer. Requires a minimum budget of 1,024
+   * tokens and counts towards your `max_tokens` limit.
+   *
+   * See
+   * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+   * for details.
+   */
+  thinking?: ThinkingConfigParam;
+
+  /**
    * How the model should use the provided tools. The model can use a specific tool,
-   * any available tool, or decide by itself.
+   * any available tool, decide by itself, or not use tools at all.
    */
   tool_choice?: ToolChoice;
 
@@ -997,8 +1600,9 @@ export interface MessageCountTokensParams {
    *
    * - `name`: Name of the tool.
    * - `description`: Optional, but strongly-recommended description of the tool.
-   * - `input_schema`: [JSON schema](https://json-schema.org/) for the tool `input`
-   *   shape that the model will produce in `tool_use` output content blocks.
+   * - `input_schema`: [JSON schema](https://json-schema.org/draft/2020-12) for the
+   *   tool `input` shape that the model will produce in `tool_use` output content
+   *   blocks.
    *
    * For example, if you defined `tools` as:
    *
@@ -1055,25 +1659,38 @@ export interface MessageCountTokensParams {
    *
    * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
    */
-  tools?: Array<Tool>;
+  tools?: Array<MessageCountTokensTool>;
 }
 
 Messages.Batches = Batches;
 
 export declare namespace Messages {
   export {
+    type Base64ImageSource as Base64ImageSource,
     type Base64PDFSource as Base64PDFSource,
     type CacheControlEphemeral as CacheControlEphemeral,
+    type CitationCharLocation as CitationCharLocation,
+    type CitationCharLocationParam as CitationCharLocationParam,
+    type CitationContentBlockLocation as CitationContentBlockLocation,
+    type CitationContentBlockLocationParam as CitationContentBlockLocationParam,
+    type CitationPageLocation as CitationPageLocation,
+    type CitationPageLocationParam as CitationPageLocationParam,
+    type CitationWebSearchResultLocationParam as CitationWebSearchResultLocationParam,
+    type CitationsConfigParam as CitationsConfigParam,
+    type CitationsDelta as CitationsDelta,
+    type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
     type ContentBlock as ContentBlock,
     type ContentBlockDeltaEvent as ContentBlockDeltaEvent,
     type ContentBlockParam as ContentBlockParam,
     type ContentBlockStartEvent as ContentBlockStartEvent,
     type ContentBlockStopEvent as ContentBlockStopEvent,
+    type ContentBlockSource as ContentBlockSource,
+    type ContentBlockSourceContent as ContentBlockSourceContent,
     type DocumentBlockParam as DocumentBlockParam,
     type ImageBlockParam as ImageBlockParam,
-    type InputJsonDelta as InputJsonDelta,
     type InputJSONDelta as InputJSONDelta,
     type Message as Message,
+    type MessageCountTokensTool as MessageCountTokensTool,
     type MessageDeltaEvent as MessageDeltaEvent,
     type MessageDeltaUsage as MessageDeltaUsage,
     type MessageParam as MessageParam,
@@ -1083,6 +1700,8 @@ export declare namespace Messages {
     type MessageTokensCount as MessageTokensCount,
     type Metadata as Metadata,
     type Model as Model,
+    type PlainTextSource as PlainTextSource,
+    type RawContentBlockDelta as RawContentBlockDelta,
     type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,
     type RawContentBlockStartEvent as RawContentBlockStartEvent,
     type RawContentBlockStopEvent as RawContentBlockStopEvent,
@@ -1090,18 +1709,48 @@ export declare namespace Messages {
     type RawMessageStartEvent as RawMessageStartEvent,
     type RawMessageStopEvent as RawMessageStopEvent,
     type RawMessageStreamEvent as RawMessageStreamEvent,
+    type RedactedThinkingBlock as RedactedThinkingBlock,
+    type RedactedThinkingBlockParam as RedactedThinkingBlockParam,
+    type ServerToolUsage as ServerToolUsage,
+    type ServerToolUseBlock as ServerToolUseBlock,
+    type ServerToolUseBlockParam as ServerToolUseBlockParam,
+    type SignatureDelta as SignatureDelta,
+    type StopReason as StopReason,
     type TextBlock as TextBlock,
     type TextBlockParam as TextBlockParam,
+    type TextCitation as TextCitation,
+    type TextCitationParam as TextCitationParam,
     type TextDelta as TextDelta,
+    type ThinkingBlock as ThinkingBlock,
+    type ThinkingBlockParam as ThinkingBlockParam,
+    type ThinkingConfigDisabled as ThinkingConfigDisabled,
+    type ThinkingConfigEnabled as ThinkingConfigEnabled,
+    type ThinkingConfigParam as ThinkingConfigParam,
+    type ThinkingDelta as ThinkingDelta,
     type Tool as Tool,
+    type ToolBash20250124 as ToolBash20250124,
     type ToolChoice as ToolChoice,
     type ToolChoiceAny as ToolChoiceAny,
     type ToolChoiceAuto as ToolChoiceAuto,
+    type ToolChoiceNone as ToolChoiceNone,
     type ToolChoiceTool as ToolChoiceTool,
     type ToolResultBlockParam as ToolResultBlockParam,
+    type ToolTextEditor20250124 as ToolTextEditor20250124,
+    type ToolUnion as ToolUnion,
     type ToolUseBlock as ToolUseBlock,
     type ToolUseBlockParam as ToolUseBlockParam,
+    type URLImageSource as URLImageSource,
+    type URLPDFSource as URLPDFSource,
     type Usage as Usage,
+    type WebSearchResultBlock as WebSearchResultBlock,
+    type WebSearchResultBlockParam as WebSearchResultBlockParam,
+    type WebSearchTool20250305 as WebSearchTool20250305,
+    type WebSearchToolRequestError as WebSearchToolRequestError,
+    type WebSearchToolResultBlock as WebSearchToolResultBlock,
+    type WebSearchToolResultBlockContent as WebSearchToolResultBlockContent,
+    type WebSearchToolResultBlockParam as WebSearchToolResultBlockParam,
+    type WebSearchToolResultBlockParamContent as WebSearchToolResultBlockParamContent,
+    type WebSearchToolResultError as WebSearchToolResultError,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,

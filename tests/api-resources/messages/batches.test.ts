@@ -16,7 +16,7 @@ describe('resource batches', () => {
           params: {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-3-5-sonnet-20241022',
+            model: 'claude-3-7-sonnet-20250219',
           },
         },
       ],
@@ -38,31 +38,30 @@ describe('resource batches', () => {
           params: {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-3-5-sonnet-20241022',
+            model: 'claude-3-7-sonnet-20250219',
             metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
             stop_sequences: ['string'],
             system: [
-              { text: "Today's date is 2024-06-01.", type: 'text', cache_control: { type: 'ephemeral' } },
-            ],
-            temperature: 1,
-            tool_choice: { type: 'auto', disable_parallel_tool_use: true },
-            tools: [
               {
-                input_schema: {
-                  type: 'object',
-                  properties: {
-                    location: { description: 'The city and state, e.g. San Francisco, CA', type: 'string' },
-                    unit: {
-                      description: 'Unit for the output - one of (celsius, fahrenheit)',
-                      type: 'string',
-                    },
-                  },
-                },
-                name: 'x',
+                text: "Today's date is 2024-06-01.",
+                type: 'text',
                 cache_control: { type: 'ephemeral' },
-                description: 'Get the current weather in a given location',
+                citations: [
+                  {
+                    cited_text: 'cited_text',
+                    document_index: 0,
+                    document_title: 'x',
+                    end_char_index: 0,
+                    start_char_index: 0,
+                    type: 'char_location',
+                  },
+                ],
               },
             ],
+            temperature: 1,
+            thinking: { budget_tokens: 1024, type: 'enabled' },
+            tool_choice: { type: 'auto', disable_parallel_tool_use: true },
+            tools: [{ name: 'bash', type: 'bash_20250124', cache_control: { type: 'ephemeral' } }],
             top_k: 5,
             top_p: 0.7,
           },

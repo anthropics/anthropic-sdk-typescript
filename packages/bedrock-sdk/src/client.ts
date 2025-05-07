@@ -1,13 +1,19 @@
-import * as Core from '@anthropic-ai/sdk/core';
+import { BaseAnthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
-import * as API from '@anthropic-ai/sdk/index';
-import { getAuthHeaders } from './auth';
-import { Stream } from './streaming';
+import { getAuthHeaders } from './core/auth';
+import { Stream } from './core/streaming';
+import { readEnv } from './internal/utils/env';
+import { FinalRequestOptions } from './internal/request-options';
+import { isObj } from './internal/utils/values';
+import { buildHeaders } from './internal/headers';
+import { FinalizedRequestInit } from './internal/types';
+
+export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 
 const DEFAULT_VERSION = 'bedrock-2023-05-31';
 const MODEL_ENDPOINTS = new Set<string>(['/v1/complete', '/v1/messages', '/v1/messages?beta=true']);
 
-export type ClientOptions = Omit<API.ClientOptions, 'apiKey' | 'authToken'> & {
+export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
   awsSecretKey?: string | null | undefined;
   awsAccessKey?: string | null | undefined;
 
@@ -19,13 +25,11 @@ export type ClientOptions = Omit<API.ClientOptions, 'apiKey' | 'authToken'> & {
 };
 
 /** API Client for interfacing with the Anthropic Bedrock API. */
-export class AnthropicBedrock extends Core.APIClient {
+export class AnthropicBedrock extends BaseAnthropic {
   awsSecretKey: string | null;
   awsAccessKey: string | null;
   awsRegion: string;
   awsSessionToken: string | null;
-
-  private _options: ClientOptions;
 
   /**
    * API Client for interfacing with the Anthropic Bedrock API.
@@ -36,37 +40,25 @@ export class AnthropicBedrock extends Core.APIClient {
    * @param {string | null | undefined} [opts.awsSessionToken]
    * @param {string} [opts.baseURL=process.env['ANTHROPIC_BEDROCK_BASE_URL'] ?? https://bedrock-runtime.${this.awsRegion}.amazonaws.com] - Override the default base URL for the API.
    * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
-   * @param {number} [opts.httpAgent] - An HTTP agent used to manage HTTP(s) connections.
-   * @param {Core.Fetch} [opts.fetch] - Specify a custom `fetch` function implementation.
+   * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
+   * @param {Fetch} [opts.fetch] - Specify a custom `fetch` function implementation.
    * @param {number} [opts.maxRetries=2] - The maximum number of times the client will retry a request.
-   * @param {Core.Headers} opts.defaultHeaders - Default headers to include with every request to the API.
-   * @param {Core.DefaultQuery} opts.defaultQuery - Default query parameters to include with every request to the API.
+   * @param {HeadersLike} opts.defaultHeaders - Default headers to include with every request to the API.
+   * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
+   * @param {boolean} [opts.dangerouslyAllowBrowser=false] - By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
    */
   constructor({
-    baseURL = Core.readEnv('ANTHROPIC_BEDROCK_BASE_URL'),
+    awsRegion = readEnv('AWS_REGION') ?? 'us-east-1',
+    baseURL = readEnv('ANTHROPIC_BEDROCK_BASE_URL') ?? `https://bedrock-runtime.${awsRegion}.amazonaws.com`,
     awsSecretKey = null,
     awsAccessKey = null,
-    awsRegion = Core.readEnv('AWS_REGION') ?? 'us-east-1',
     awsSessionToken = null,
     ...opts
   }: ClientOptions = {}) {
-    const options: ClientOptions = {
-      awsSecretKey,
-      awsAccessKey,
-      awsRegion,
-      awsSessionToken,
-      ...opts,
-      baseURL: baseURL || `https://bedrock-runtime.${awsRegion}.amazonaws.com`,
-    };
-
     super({
-      baseURL: options.baseURL!,
-      timeout: options.timeout ?? 600000 /* 10 minutes */,
-      httpAgent: options.httpAgent,
-      maxRetries: options.maxRetries,
-      fetch: options.fetch,
+      baseURL,
+      ...opts,
     });
-    this._options = options;
 
     this.awsSecretKey = awsSecretKey;
     this.awsAccessKey = awsAccessKey;
@@ -78,20 +70,13 @@ export class AnthropicBedrock extends Core.APIClient {
   completions: Resources.Completions = new Resources.Completions(this);
   beta: BetaResource = makeBetaResource(this);
 
-  protected override defaultQuery(): Core.DefaultQuery | undefined {
-    return this._options.defaultQuery;
-  }
-
-  protected override defaultHeaders(opts: Core.FinalRequestOptions): Core.Headers {
-    return {
-      ...super.defaultHeaders(opts),
-      ...this._options.defaultHeaders,
-    };
+  protected override validateHeaders() {
+    // auth validation is handled in prepareRequest since it needs to be async
   }
 
   protected override async prepareRequest(
-    request: RequestInit,
-    { url, options }: { url: string; options: Core.FinalRequestOptions },
+    request: FinalizedRequestInit,
+    { url, options }: { url: string; options: FinalRequestOptions },
   ): Promise<void> {
     const regionName = this.awsRegion;
     if (!regionName) {
@@ -107,29 +92,29 @@ export class AnthropicBedrock extends Core.APIClient {
       awsSecretKey: this.awsSecretKey,
       awsSessionToken: this.awsSessionToken,
     });
-    request.headers = { ...request.headers, ...headers };
+    request.headers = buildHeaders([headers, request.headers]).values;
   }
 
-  override buildRequest(options: Core.FinalRequestOptions<unknown>): {
-    req: RequestInit;
+  override buildRequest(options: FinalRequestOptions): {
+    req: FinalizedRequestInit;
     url: string;
     timeout: number;
   } {
     options.__streamClass = Stream;
 
-    if (Core.isObj(options.body)) {
+    if (isObj(options.body)) {
       // create a shallow copy of the request body so that code that mutates it later
       // doesn't mutate the original user-provided object
       options.body = { ...options.body };
     }
 
-    if (Core.isObj(options.body)) {
+    if (isObj(options.body)) {
       if (!options.body['anthropic_version']) {
         options.body['anthropic_version'] = DEFAULT_VERSION;
       }
 
       if (options.headers && !options.body['anthropic_beta']) {
-        const betas = Core.getHeader(options.headers, 'anthropic-beta');
+        const betas = buildHeaders([options.headers]).values.get('anthropic-beta');
         if (betas != null) {
           options.body['anthropic_beta'] = betas.split(',');
         }
@@ -137,7 +122,7 @@ export class AnthropicBedrock extends Core.APIClient {
     }
 
     if (MODEL_ENDPOINTS.has(options.path) && options.method === 'post') {
-      if (!Core.isObj(options.body)) {
+      if (!isObj(options.body)) {
         throw new Error('Expected request body to be an object for post /v1/messages');
       }
 

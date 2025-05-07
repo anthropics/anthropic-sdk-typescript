@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "include": ["dist/src"],
-  "exclude": [],
+  "exclude": ["dist/src/internal/detect-platform.ts"],
   "compilerOptions": {
     "rootDir": "./dist/src",
     "paths": {

@@ -1,9 +1,12 @@
 import { PassThrough } from 'stream';
 import Anthropic, { APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
 import { Message, MessageStreamEvent } from '@anthropic-ai/sdk/resources/messages';
-import { type RequestInfo, type RequestInit } from '@anthropic-ai/sdk/_shims/index';
-
-type Fetch = typeof fetch;
+import {
+  type Fetch,
+  type RequestInfo,
+  type RequestInit,
+  type Response,
+} from '@anthropic-ai/sdk/internal/builtin-types';
 
 function assertNever(x: never): never {
   throw new Error(`unreachable: ${x}`);
@@ -21,13 +24,28 @@ async function* messageIterable(message: Message): AsyncGenerator<MessageStreamE
     yield {
       type: 'content_block_start',
       content_block:
-        content.type === 'text' ? { type: 'text', text: '' }
+        content.type === 'text' ? { type: 'text', text: '', citations: null }
         : content.type === 'tool_use' ?
           {
             type: 'tool_use',
             id: 'toolu_01Up7oRoHeGvhded7n66nPzP',
             name: 'get_weather',
             input: {},
+          }
+        : content.type === 'thinking' ? { type: 'thinking', thinking: '', signature: '' }
+        : content.type === 'redacted_thinking' ? { type: 'redacted_thinking', data: '' }
+        : content.type === 'server_tool_use' ?
+          {
+            type: 'server_tool_use',
+            id: 'toolu_01Up7oRoHeGvhded7n66nPzP',
+            name: 'web_search',
+            input: {},
+          }
+        : content.type === 'web_search_tool_result' ?
+          {
+            type: 'web_search_tool_result',
+            tool_use_id: 'toolu_01Up7oRoHeGvhded7n66nPzP',
+            content: [],
           }
         : assertNever(content),
       index: idx,
@@ -51,6 +69,14 @@ async function* messageIterable(message: Message): AsyncGenerator<MessageStreamE
           index: idx,
         };
       }
+    } else if (content.type === 'thinking') {
+      throw new Error('thinking not implemented yet');
+    } else if (content.type === 'redacted_thinking') {
+      throw new Error('redacted_thinking not implemented yet');
+    } else if (content.type === 'server_tool_use') {
+      throw new Error('server_tool_use not implemented yet');
+    } else if (content.type === 'web_search_tool_result') {
+      throw new Error('web_search_tool_result not implemented yet');
     } else {
       assertNever(content);
     }
@@ -63,7 +89,13 @@ async function* messageIterable(message: Message): AsyncGenerator<MessageStreamE
 
   yield {
     type: 'message_delta',
-    usage: { output_tokens: 6 },
+    usage: {
+      output_tokens: 6,
+      input_tokens: null,
+      cache_creation_input_tokens: null,
+      cache_read_input_tokens: null,
+      server_tool_use: null,
+    },
     // @ts-ignore
     delta: { stop_reason: message.stop_reason, stop_sequence: message.stop_sequence },
   };
@@ -148,7 +180,7 @@ describe('MessageStream class', () => {
         type: 'message',
         id: 'msg_01hhptzfxdaeehfxfv070yb6b8',
         role: 'assistant',
-        content: [{ type: 'text', text: 'Hello there!' }],
+        content: [{ type: 'text', text: 'Hello there!', citations: null }],
         model: 'claude-3-opus-20240229',
         stop_reason: 'end_turn',
         stop_sequence: null,
@@ -157,6 +189,7 @@ describe('MessageStream class', () => {
           input_tokens: 10,
           cache_creation_input_tokens: null,
           cache_read_input_tokens: null,
+          server_tool_use: null,
         },
       }),
     );
@@ -217,22 +250,22 @@ describe('MessageStream class', () => {
         },
         {
           "args": [
-            "{"type":"message_start","message":{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null}}}",
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null}}",
+            "{"type":"message_start","message":{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null,"server_tool_use":null}}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null,"server_tool_use":null}}",
           ],
           "type": "streamEvent",
         },
         {
           "args": [
-            "{"type":"content_block_start","content_block":{"type":"text","text":""},"index":0}",
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":""}],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null}}",
+            "{"type":"content_block_start","content_block":{"type":"text","text":"","citations":null},"index":0}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"","citations":null}],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null,"server_tool_use":null}}",
           ],
           "type": "streamEvent",
         },
         {
           "args": [
             "{"type":"content_block_delta","delta":{"type":"text_delta","text":"Hello"},"index":0}",
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello"}],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello","citations":null}],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null,"server_tool_use":null}}",
           ],
           "type": "streamEvent",
         },
@@ -246,7 +279,7 @@ describe('MessageStream class', () => {
         {
           "args": [
             "{"type":"content_block_delta","delta":{"type":"text_delta","text":" ther"},"index":0}",
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello ther"}],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello ther","citations":null}],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null,"server_tool_use":null}}",
           ],
           "type": "streamEvent",
         },
@@ -260,7 +293,7 @@ describe('MessageStream class', () => {
         {
           "args": [
             "{"type":"content_block_delta","delta":{"type":"text_delta","text":"e!"},"index":0}",
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!","citations":null}],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null,"server_tool_use":null}}",
           ],
           "type": "streamEvent",
         },
@@ -274,39 +307,39 @@ describe('MessageStream class', () => {
         {
           "args": [
             "{"type":"content_block_stop","index":0}",
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!","citations":null}],"model":"claude-3-opus-20240229","stop_reason":null,"stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null,"server_tool_use":null}}",
           ],
           "type": "streamEvent",
         },
         {
           "args": [
-            "{"type":"text","text":"Hello there!"}",
+            "{"type":"text","text":"Hello there!","citations":null}",
           ],
           "type": "contentBlock",
         },
         {
           "args": [
-            "{"type":"message_delta","usage":{"output_tokens":6},"delta":{"stop_reason":"end_turn","stop_sequence":null}}",
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-3-opus-20240229","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null}}",
+            "{"type":"message_delta","usage":{"output_tokens":6,"input_tokens":null,"cache_creation_input_tokens":null,"cache_read_input_tokens":null,"server_tool_use":null},"delta":{"stop_reason":"end_turn","stop_sequence":null}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!","citations":null}],"model":"claude-3-opus-20240229","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null,"server_tool_use":null}}",
           ],
           "type": "streamEvent",
         },
         {
           "args": [
             "{"type":"message_stop"}",
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-3-opus-20240229","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!","citations":null}],"model":"claude-3-opus-20240229","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null,"server_tool_use":null}}",
           ],
           "type": "streamEvent",
         },
         {
           "args": [
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-3-opus-20240229","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!","citations":null}],"model":"claude-3-opus-20240229","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null,"server_tool_use":null}}",
           ],
           "type": "message",
         },
         {
           "args": [
-            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!"}],"model":"claude-3-opus-20240229","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null}}",
+            "{"type":"message","id":"msg_01hhptzfxdaeehfxfv070yb6b8","role":"assistant","content":[{"type":"text","text":"Hello there!","citations":null}],"model":"claude-3-opus-20240229","stop_reason":"end_turn","stop_sequence":null,"usage":{"output_tokens":6,"input_tokens":10,"cache_creation_input_tokens":null,"cache_read_input_tokens":null,"server_tool_use":null}}",
           ],
           "type": "finalMessage",
         },
@@ -323,6 +356,7 @@ describe('MessageStream class', () => {
       {
         "content": [
           {
+            "citations": null,
             "text": "Hello there!",
             "type": "text",
           },
@@ -338,6 +372,7 @@ describe('MessageStream class', () => {
           "cache_read_input_tokens": null,
           "input_tokens": 10,
           "output_tokens": 6,
+          "server_tool_use": null,
         },
       }
     `);
@@ -359,7 +394,7 @@ describe('MessageStream class', () => {
         type: 'message',
         id: 'msg_01hhptzfxdaeehfxfv070yb6b8',
         role: 'assistant',
-        content: [{ type: 'text', text: 'Hello there!' }],
+        content: [{ type: 'text', text: 'Hello there!', citations: null }],
         model: 'claude-3-opus-20240229',
         stop_reason: 'end_turn',
         stop_sequence: null,
@@ -368,6 +403,7 @@ describe('MessageStream class', () => {
           input_tokens: 10,
           cache_creation_input_tokens: null,
           cache_read_input_tokens: null,
+          server_tool_use: null,
         },
       }),
     );
@@ -395,7 +431,7 @@ describe('MessageStream class', () => {
     const stream = anthropic.messages.stream(
       {
         max_tokens: 1024,
-        model: 'claude-2.1',
+        model: 'claude-3-7-sonnet-20250219',
         messages: [{ role: 'user', content: 'Say hello there!' }],
       },
       { maxRetries: 0 },
@@ -420,7 +456,7 @@ describe('MessageStream class', () => {
     const stream = anthropic.messages.stream(
       {
         max_tokens: 1024,
-        model: 'claude-2.1',
+        model: 'claude-3-7-sonnet-20250219',
         messages: [{ role: 'user', content: 'Say hello there!' }],
       },
       { maxRetries: 0 },

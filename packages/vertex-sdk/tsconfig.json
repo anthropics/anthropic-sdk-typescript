@@ -1,6 +1,6 @@
 {
   "include": ["src", "tests", "examples"],
-  "exclude": [],
+  "exclude": ["dist/src/internal/detect-platform.ts"],
   "compilerOptions": {
     "target": "es2020",
     "lib": ["es2020"],

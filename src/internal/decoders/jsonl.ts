@@ -1,5 +1,5 @@
-import { AnthropicError } from '../../error';
-import { readableStreamAsyncIterable } from '../../streaming';
+import { AnthropicError } from '../../core/error';
+import { ReadableStreamToAsyncIterable } from '../shims';
 import { LineDecoder, type Bytes } from './line';
 
 export class JSONLDecoder<T> {
@@ -32,9 +32,17 @@ export class JSONLDecoder<T> {
   static fromResponse<T>(response: Response, controller: AbortController): JSONLDecoder<T> {
     if (!response.body) {
       controller.abort();
+      if (
+        typeof (globalThis as any).navigator !== 'undefined' &&
+        (globalThis as any).navigator.product === 'ReactNative'
+      ) {
+        throw new AnthropicError(
+          `The default react-native fetch implementation does not support streaming. Please use expo/fetch: https://docs.expo.dev/versions/latest/sdk/expo/#expofetch-api`,
+        );
+      }
       throw new AnthropicError(`Attempted to iterate over a response with no body`);
     }
 
-    return new JSONLDecoder(readableStreamAsyncIterable<Bytes>(response.body), controller);
+    return new JSONLDecoder(ReadableStreamToAsyncIterable<Bytes>(response.body), controller);
   }
 }

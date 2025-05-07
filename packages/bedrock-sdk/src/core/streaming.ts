@@ -2,15 +2,12 @@ import { EventStreamMarshaller } from '@smithy/eventstream-serde-node';
 import { fromBase64, toBase64 } from '@smithy/util-base64';
 import { streamCollector } from '@smithy/fetch-http-handler';
 import { EventStreamSerdeContext, SerdeContext } from '@smithy/types';
-import {
-  Stream as CoreStream,
-  readableStreamAsyncIterable,
-  ServerSentEvent,
-} from '@anthropic-ai/sdk/streaming';
+import { Stream as CoreStream, ServerSentEvent } from '@anthropic-ai/sdk/streaming';
 import { AnthropicError } from '@anthropic-ai/sdk/error';
 import { APIError } from '@anthropic-ai/sdk';
-import { createResponseHeaders, safeJSON } from '@anthropic-ai/sdk/core';
-import { de_ResponseStream } from './AWS_restJson1';
+import { de_ResponseStream } from '../AWS_restJson1';
+import { ReadableStreamToAsyncIterable } from '../internal/shims';
+import { safeJSON } from '../internal/utils/values';
 
 type Bytes = string | ArrayBuffer | Uint8Array | Buffer | null | undefined;
 
@@ -42,7 +39,7 @@ export class Stream<Item> extends CoreStream<Item> {
         throw new AnthropicError(`Attempted to iterate over a response with no body`);
       }
 
-      const responseBodyIter = readableStreamAsyncIterable<Bytes>(response.body);
+      const responseBodyIter = ReadableStreamToAsyncIterable<Bytes>(response.body);
       const eventStream = de_ResponseStream(responseBodyIter, getMinimalSerdeContext());
       for await (const event of eventStream) {
         if (event.chunk && event.chunk.bytes) {
@@ -84,13 +81,13 @@ export class Stream<Item> extends CoreStream<Item> {
             const errJSON = safeJSON(errText);
             const errMessage = errJSON ? undefined : errText;
 
-            throw APIError.generate(undefined, errJSON, errMessage, createResponseHeaders(response.headers));
+            throw APIError.generate(undefined, errJSON, errMessage, response.headers);
           }
         }
         done = true;
       } catch (e) {
         // If the user calls `stream.controller.abort()`, we should exit without throwing.
-        if (e instanceof Error && e.name === 'AbortError') return;
+        if (isAbortError(e)) return;
         throw e;
       } finally {
         // If the user `break`s, abort the ongoing request.
@@ -100,4 +97,15 @@ export class Stream<Item> extends CoreStream<Item> {
 
     return new Stream(iterator, controller);
   }
+}
+
+function isAbortError(err: unknown) {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    // Spec-compliant fetch implementations
+    (('name' in err && (err as any).name === 'AbortError') ||
+      // Expo fetch
+      ('message' in err && String((err as any).message).includes('FetchRequestCanceledException')))
+  );
 }
