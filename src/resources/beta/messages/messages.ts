@@ -40,6 +40,15 @@ export class Messages extends APIResource {
    * conversations.
    *
    * Learn more about the Messages API in our [user guide](/en/docs/initial-setup)
+   *
+   * @example
+   * ```ts
+   * const betaMessage = await client.beta.messages.create({
+   *   max_tokens: 1024,
+   *   messages: [{ content: 'Hello, world', role: 'user' }],
+   *   model: 'claude-3-7-sonnet-20250219',
+   * });
+   * ```
    */
   create(params: MessageCreateParamsNonStreaming, options?: RequestOptions): APIPromise<BetaMessage>;
   create(
@@ -77,6 +86,15 @@ export class Messages extends APIResource {
    *
    * Learn more about token counting in our
    * [user guide](/en/docs/build-with-claude/token-counting)
+   *
+   * @example
+   * ```ts
+   * const betaMessageTokensCount =
+   *   await client.beta.messages.countTokens({
+   *     messages: [{ content: 'string', role: 'user' }],
+   *     model: 'claude-3-7-sonnet-latest',
+   *   });
+   * ```
    */
   countTokens(
     params: MessageCountTokensParams,

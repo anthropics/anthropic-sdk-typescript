@@ -36,6 +36,15 @@ export class Messages extends APIResource {
    * conversations.
    *
    * Learn more about the Messages API in our [user guide](/en/docs/initial-setup)
+   *
+   * @example
+   * ```ts
+   * const message = await client.messages.create({
+   *   max_tokens: 1024,
+   *   messages: [{ content: 'Hello, world', role: 'user' }],
+   *   model: 'claude-3-7-sonnet-20250219',
+   * });
+   * ```
    */
   create(body: MessageCreateParamsNonStreaming, options?: RequestOptions): APIPromise<Message>;
   create(
@@ -82,6 +91,15 @@ export class Messages extends APIResource {
    *
    * Learn more about token counting in our
    * [user guide](/en/docs/build-with-claude/token-counting)
+   *
+   * @example
+   * ```ts
+   * const messageTokensCount =
+   *   await client.messages.countTokens({
+   *     messages: [{ content: 'string', role: 'user' }],
+   *     model: 'claude-3-7-sonnet-latest',
+   *   });
+   * ```
    */
   countTokens(body: MessageCountTokensParams, options?: RequestOptions): APIPromise<MessageTokensCount> {
     return this._client.post('/v1/messages/count_tokens', { body, ...options });
