@@ -5,9 +5,8 @@ set -exuo pipefail
 
 bash ./scripts/build
 
-# temporarily disabled
-# for dir in packages/*; do
-#     if [ -d "$dir" ]; then
-#         (cd "$dir" && yarn install && yarn build)
-#     fi
-# done
+for dir in packages/*; do
+    if [ -d "$dir" ]; then
+        (cd "$dir" && yarn install && yarn build)
+    fi
+done
