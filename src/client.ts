@@ -30,7 +30,7 @@ import {
   CompletionCreateParamsStreaming,
   Completions,
 } from './resources/completions';
-import { ModelInfo, ModelInfosPage, ModelListParams, Models } from './resources/models';
+import { ModelInfo, ModelInfosPage, ModelListParams, ModelRetrieveParams, Models } from './resources/models';
 import { readEnv } from './internal/utils/env';
 import { formatRequestDetails, loggerFor } from './internal/utils/log';
 import { isEmptyObj } from './internal/utils/values';
@@ -59,8 +59,10 @@ import {
   CitationContentBlockLocationParam,
   CitationPageLocation,
   CitationPageLocationParam,
+  CitationWebSearchResultLocationParam,
   CitationsConfigParam,
   CitationsDelta,
+  CitationsWebSearchResultLocation,
   ContentBlock,
   ContentBlockDeltaEvent,
   ContentBlockParam,
@@ -99,6 +101,9 @@ import {
   RawMessageStreamEvent,
   RedactedThinkingBlock,
   RedactedThinkingBlockParam,
+  ServerToolUsage,
+  ServerToolUseBlock,
+  ServerToolUseBlockParam,
   SignatureDelta,
   StopReason,
   TextBlock,
@@ -127,6 +132,15 @@ import {
   URLImageSource,
   URLPDFSource,
   Usage,
+  WebSearchResultBlock,
+  WebSearchResultBlockParam,
+  WebSearchTool20250305,
+  WebSearchToolRequestError,
+  WebSearchToolResultBlock,
+  WebSearchToolResultBlockContent,
+  WebSearchToolResultBlockParam,
+  WebSearchToolResultBlockParamContent,
+  WebSearchToolResultError,
 } from './resources/messages/messages';
 
 export interface ClientOptions {
@@ -920,8 +934,10 @@ export declare namespace Anthropic {
     type CitationContentBlockLocationParam as CitationContentBlockLocationParam,
     type CitationPageLocation as CitationPageLocation,
     type CitationPageLocationParam as CitationPageLocationParam,
+    type CitationWebSearchResultLocationParam as CitationWebSearchResultLocationParam,
     type CitationsConfigParam as CitationsConfigParam,
     type CitationsDelta as CitationsDelta,
+    type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
     type ContentBlock as ContentBlock,
     type ContentBlockDeltaEvent as ContentBlockDeltaEvent,
     type ContentBlockParam as ContentBlockParam,
@@ -954,6 +970,9 @@ export declare namespace Anthropic {
     type RawMessageStreamEvent as RawMessageStreamEvent,
     type RedactedThinkingBlock as RedactedThinkingBlock,
     type RedactedThinkingBlockParam as RedactedThinkingBlockParam,
+    type ServerToolUsage as ServerToolUsage,
+    type ServerToolUseBlock as ServerToolUseBlock,
+    type ServerToolUseBlockParam as ServerToolUseBlockParam,
     type SignatureDelta as SignatureDelta,
     type StopReason as StopReason,
     type TextBlock as TextBlock,
@@ -982,6 +1001,15 @@ export declare namespace Anthropic {
     type URLImageSource as URLImageSource,
     type URLPDFSource as URLPDFSource,
     type Usage as Usage,
+    type WebSearchResultBlock as WebSearchResultBlock,
+    type WebSearchResultBlockParam as WebSearchResultBlockParam,
+    type WebSearchTool20250305 as WebSearchTool20250305,
+    type WebSearchToolRequestError as WebSearchToolRequestError,
+    type WebSearchToolResultBlock as WebSearchToolResultBlock,
+    type WebSearchToolResultBlockContent as WebSearchToolResultBlockContent,
+    type WebSearchToolResultBlockParam as WebSearchToolResultBlockParam,
+    type WebSearchToolResultBlockParamContent as WebSearchToolResultBlockParamContent,
+    type WebSearchToolResultError as WebSearchToolResultError,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
@@ -993,6 +1021,7 @@ export declare namespace Anthropic {
     Models as Models,
     type ModelInfo as ModelInfo,
     type ModelInfosPage as ModelInfosPage,
+    type ModelRetrieveParams as ModelRetrieveParams,
     type ModelListParams as ModelListParams,
   };
 

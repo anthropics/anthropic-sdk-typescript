@@ -1,8 +1,10 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIResource } from '../core/resource';
+import * as BetaAPI from './beta/beta';
 import { APIPromise } from '../core/api-promise';
 import { Page, type PageParams, PagePromise } from '../core/pagination';
+import { buildHeaders } from '../internal/headers';
 import { RequestOptions } from '../internal/request-options';
 import { path } from '../internal/utils/path';
 
@@ -13,8 +15,19 @@ export class Models extends APIResource {
    * The Models API response can be used to determine information about a specific
    * model or resolve a model alias to a model ID.
    */
-  retrieve(modelID: string, options?: RequestOptions): APIPromise<ModelInfo> {
-    return this._client.get(path`/v1/models/${modelID}`, options);
+  retrieve(
+    modelID: string,
+    params: ModelRetrieveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<ModelInfo> {
+    const { betas } = params ?? {};
+    return this._client.get(path`/v1/models/${modelID}`, {
+      ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -24,10 +37,18 @@ export class Models extends APIResource {
    * use in the API. More recently released models are listed first.
    */
   list(
-    query: ModelListParams | null | undefined = {},
+    params: ModelListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<ModelInfosPage, ModelInfo> {
-    return this._client.getAPIList('/v1/models', Page<ModelInfo>, { query, ...options });
+    const { betas, ...query } = params ?? {};
+    return this._client.getAPIList('/v1/models', Page<ModelInfo>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 }
 
@@ -58,12 +79,25 @@ export interface ModelInfo {
   type: 'model';
 }
 
-export interface ModelListParams extends PageParams {}
+export interface ModelRetrieveParams {
+  /**
+   * Optional header to specify the beta version(s) you want to use.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
+}
+
+export interface ModelListParams extends PageParams {
+  /**
+   * Header param: Optional header to specify the beta version(s) you want to use.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
+}
 
 export declare namespace Models {
   export {
     type ModelInfo as ModelInfo,
     type ModelInfosPage as ModelInfosPage,
+    type ModelRetrieveParams as ModelRetrieveParams,
     type ModelListParams as ModelListParams,
   };
 }

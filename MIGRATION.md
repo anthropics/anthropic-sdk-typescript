@@ -68,7 +68,9 @@ client.example.list(undefined, { headers: { ... } });
 This affects the following methods:
 
 - `client.messages.batches.list()`
+- `client.models.retrieve()`
 - `client.models.list()`
+- `client.beta.models.retrieve()`
 - `client.beta.models.list()`
 - `client.beta.messages.batches.retrieve()`
 - `client.beta.messages.batches.list()`
