@@ -16,6 +16,7 @@ export type ClientOptions = Omit<API.ClientOptions, 'apiKey' | 'authToken'> & {
    */
   awsRegion?: string | undefined;
   awsSessionToken?: string | null | undefined;
+  skipAuth?: boolean;
 };
 
 /** API Client for interfacing with the Anthropic Bedrock API. */
@@ -24,6 +25,7 @@ export class AnthropicBedrock extends Core.APIClient {
   awsAccessKey: string | null;
   awsRegion: string;
   awsSessionToken: string | null;
+  skipAuth: boolean = false;
 
   private _options: ClientOptions;
 
@@ -41,6 +43,7 @@ export class AnthropicBedrock extends Core.APIClient {
    * @param {number} [opts.maxRetries=2] - The maximum number of times the client will retry a request.
    * @param {Core.Headers} opts.defaultHeaders - Default headers to include with every request to the API.
    * @param {Core.DefaultQuery} opts.defaultQuery - Default query parameters to include with every request to the API.
+   * @param {boolean} [opts.skipAuth=false] - Skip authentication for this request. This is useful if you have an internal proxy that handles authentication for you.
    */
   constructor({
     baseURL = Core.readEnv('ANTHROPIC_BEDROCK_BASE_URL'),
@@ -72,6 +75,7 @@ export class AnthropicBedrock extends Core.APIClient {
     this.awsAccessKey = awsAccessKey;
     this.awsRegion = awsRegion;
     this.awsSessionToken = awsSessionToken;
+    this.skipAuth = opts.skipAuth ?? false;
   }
 
   messages: MessagesResource = makeMessagesResource(this);
@@ -93,6 +97,9 @@ export class AnthropicBedrock extends Core.APIClient {
     request: RequestInit,
     { url, options }: { url: string; options: Core.FinalRequestOptions },
   ): Promise<void> {
+    if (this.skipAuth) {
+      return;
+    }
     const regionName = this.awsRegion;
     if (!regionName) {
       throw new Error(
