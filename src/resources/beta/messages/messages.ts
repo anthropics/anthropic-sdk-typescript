@@ -1,8 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../../resource';
-import { APIPromise } from '../../../core';
-import * as Core from '../../../core';
+import { APIResource } from '../../../core/resource';
 import * as MessagesMessagesAPI from './messages';
 import * as BetaAPI from '../beta';
 import * as MessagesAPI from '../../messages/messages';
@@ -26,9 +24,12 @@ import {
   BetaMessageBatchSucceededResult,
   BetaMessageBatchesPage,
 } from './batches';
-import { Stream } from '../../../streaming';
-import { BetaMessageStream } from '../../../lib/BetaMessageStream';
+import { APIPromise } from '../../../core/api-promise';
+import { Stream } from '../../../core/streaming';
+import { buildHeaders } from '../../../internal/headers';
+import { RequestOptions } from '../../../internal/request-options';
 import type { Model } from '../../messages/messages';
+import { BetaMessageStream } from '../../../lib/BetaMessageStream';
 
 const DEPRECATED_MODELS: {
   [K in Model]?: string;
@@ -64,18 +65,18 @@ export class Messages extends APIResource {
    * });
    * ```
    */
-  create(params: MessageCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<BetaMessage>;
+  create(params: MessageCreateParamsNonStreaming, options?: RequestOptions): APIPromise<BetaMessage>;
   create(
     params: MessageCreateParamsStreaming,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Stream<BetaRawMessageStreamEvent>>;
   create(
     params: MessageCreateParamsBase,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Stream<BetaRawMessageStreamEvent> | BetaMessage>;
   create(
     params: MessageCreateParams,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>> {
     const { betas, ...body } = params;
 
@@ -93,10 +94,10 @@ export class Messages extends APIResource {
         (this._client as any)._options.timeout ??
         (body.stream ? 600000 : this._client._calculateNonstreamingTimeout(body.max_tokens)),
       ...options,
-      headers: {
-        ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
-        ...options?.headers,
-      },
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
       stream: params.stream ?? false,
     }) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
   }
@@ -104,7 +105,7 @@ export class Messages extends APIResource {
   /**
    * Create a Message stream
    */
-  stream(body: BetaMessageStreamParams, options?: Core.RequestOptions): BetaMessageStream {
+  stream(body: BetaMessageStreamParams, options?: RequestOptions): BetaMessageStream {
     return BetaMessageStream.createMessage(this, body, options);
   }
 
@@ -128,16 +129,16 @@ export class Messages extends APIResource {
    */
   countTokens(
     params: MessageCountTokensParams,
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<BetaMessageTokensCount> {
+    options?: RequestOptions,
+  ): APIPromise<BetaMessageTokensCount> {
     const { betas, ...body } = params;
     return this._client.post('/v1/messages/count_tokens?beta=true', {
       body,
       ...options,
-      headers: {
-        'anthropic-beta': [...(betas ?? []), 'token-counting-2024-11-01'].toString(),
-        ...options?.headers,
-      },
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'token-counting-2024-11-01'].toString() },
+        options?.headers,
+      ]),
     });
   }
 }
@@ -1762,7 +1763,6 @@ export interface MessageCountTokensParams {
 }
 
 Messages.Batches = Batches;
-Messages.BetaMessageBatchesPage = BetaMessageBatchesPage;
 
 export declare namespace Messages {
   export {
@@ -1863,7 +1863,7 @@ export declare namespace Messages {
     type BetaMessageBatchRequestCounts as BetaMessageBatchRequestCounts,
     type BetaMessageBatchResult as BetaMessageBatchResult,
     type BetaMessageBatchSucceededResult as BetaMessageBatchSucceededResult,
-    BetaMessageBatchesPage as BetaMessageBatchesPage,
+    type BetaMessageBatchesPage as BetaMessageBatchesPage,
     type BatchCreateParams as BatchCreateParams,
     type BatchRetrieveParams as BatchRetrieveParams,
     type BatchListParams as BatchListParams,

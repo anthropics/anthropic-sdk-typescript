@@ -1,7 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 export {
-  BetaMessageBatchesPage,
   Batches,
   type BetaDeletedMessageBatch,
   type BetaMessageBatch,
@@ -18,6 +17,7 @@ export {
   type BatchDeleteParams,
   type BatchCancelParams,
   type BatchResultsParams,
+  type BetaMessageBatchesPage,
 } from './batches';
 export {
   Messages,

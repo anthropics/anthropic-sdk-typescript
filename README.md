@@ -169,7 +169,6 @@ await anthropic.beta.messages.batches.create({
 });
 ```
 
-
 ### Getting results from a batch
 
 Once a Message Batch has been processed, indicated by `.processing_status === 'ended'`, you can access the results with `.batches.results()`
@@ -178,7 +177,7 @@ Once a Message Batch has been processed, indicated by `.processing_status === 'e
 const results = await anthropic.beta.messages.batches.results(batch_id);
 for await (const entry of results) {
   if (entry.result.type === 'succeeded') {
-    console.log(entry.result.message.content)
+    console.log(entry.result.message.content);
   }
 }
 ```
@@ -240,10 +239,13 @@ Error codes are as follows:
 All object responses in the SDK provide a `_request_id` property which is added from the `request-id` response header so that you can quickly log failing requests and report them back to Anthropic.
 
 ```ts
-const message = await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-5-sonnet-latest' });
-console.log(message._request_id) // req_018EeWyXxfu5pfWkrYcMdjWG
+const message = await client.messages.create({
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'Hello, Claude' }],
+  model: 'claude-3-5-sonnet-latest',
+});
+console.log(message._request_id); // req_018EeWyXxfu5pfWkrYcMdjWG
 ```
-
 
 ### Retries
 
@@ -269,12 +271,14 @@ await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', cont
 ### Timeouts
 
 By default requests time out after 10 minutes. However if you have specified a large `max_tokens` value and are
-*not* streaming, the default timeout will be calculated dynamically using the formula:
+_not_ streaming, the default timeout will be calculated dynamically using the formula:
+
 ```typescript
 const minimum = 10 * 60;
 const calculated = (60 * 60 * maxTokens) / 128_000;
 return calculated < minimum ? minimum * 1000 : calculated * 1000;
 ```
+
 which will result in a timeout up to 60 minutes, scaled by the `max_tokens` parameter, unless overriden at the request or client level.
 
 You can configure this with a `timeout` option:
@@ -373,8 +377,10 @@ const message = await client.messages.create(
 ### Accessing raw Response data (e.g., headers)
 
 The "raw" `Response` returned by `fetch()` can be accessed through the `.asResponse()` method on the `APIPromise` type that all methods return.
+This method returns as soon as the headers for a successful response are received and does not consume the response body, so you are free to write custom parsing or streaming logic.
 
 You can also use the `.withResponse()` method to get the raw `Response` along with the parsed data.
+Unlike `.asResponse()` this method consumes the body, returning once it is parsed.
 
 <!-- prettier-ignore -->
 ```ts
@@ -399,6 +405,59 @@ const { data: message, response: raw } = await client.messages
   .withResponse();
 console.log(raw.headers.get('X-My-Header'));
 console.log(message.content);
+```
+
+### Logging
+
+> [!IMPORTANT]
+> All log messages are intended for debugging only. The format and content of log messages
+> may change between releases.
+
+#### Log levels
+
+The log level can be configured in two ways:
+
+1. Via the `ANTHROPIC_LOG` environment variable
+2. Using the `logLevel` client option (overrides the environment variable if set)
+
+```ts
+import Anthropic from '@anthropic-ai/sdk';
+
+const client = new Anthropic({
+  logLevel: 'debug', // Show all log messages
+});
+```
+
+Available log levels, from most to least verbose:
+
+- `'debug'` - Show debug messages, info, warnings, and errors
+- `'info'` - Show info messages, warnings, and errors
+- `'warn'` - Show warnings and errors (default)
+- `'error'` - Show only errors
+- `'off'` - Disable all logging
+
+At the `'debug'` level, all HTTP requests and responses are logged, including headers and bodies.
+Some authentication-related headers are redacted, but sensitive data in request and response bodies
+may still be visible.
+
+#### Custom logger
+
+By default, this library logs to `globalThis.console`. You can also provide a custom logger.
+Most logging libraries are supported, including [pino](https://www.npmjs.com/package/pino), [winston](https://www.npmjs.com/package/winston), [bunyan](https://www.npmjs.com/package/bunyan), [consola](https://www.npmjs.com/package/consola), [signale](https://www.npmjs.com/package/signale), and [@std/log](https://jsr.io/@std/log). If your logger doesn't work, please open an issue.
+
+When providing a custom logger, the `logLevel` option still controls which messages are emitted, messages
+below the configured level will not be sent to your logger.
+
+```ts
+import Anthropic from '@anthropic-ai/sdk';
+import pino from 'pino';
+
+const logger = pino();
+
+const client = new Anthropic({
+  logger: logger.child({ name: 'Anthropic' }),
+  logLevel: 'debug', // Send all messages to pino, allowing it to filter
+});
 ```
 
 ### Making custom/undocumented requests
@@ -447,72 +506,84 @@ validate or strip extra properties from the response from the API.
 
 ### Customizing the fetch client
 
-By default, this library uses `node-fetch` in Node, and expects a global `fetch` function in other environments.
+By default, this library expects a global `fetch` function is defined.
 
-If you would prefer to use a global, web-standards-compliant `fetch` function even in a Node environment,
-(for example, if you are running Node with `--experimental-fetch` or using NextJS which polyfills with `undici`),
-add the following import before your first import `from "Anthropic"`:
+If you want to use a different `fetch` function, you can either polyfill the global:
 
 ```ts
-// Tell TypeScript and the package to use the global web fetch instead of node-fetch.
-// Note, despite the name, this does not add any polyfills, but expects them to be provided if needed.
-import '@anthropic-ai/sdk/shims/web';
-import Anthropic from '@anthropic-ai/sdk';
+import fetch from 'my-fetch';
+
+globalThis.fetch = fetch;
 ```
 
-To do the inverse, add `import "@anthropic-ai/sdk/shims/node"` (which does import polyfills).
-This can also be useful if you are getting the wrong TypeScript types for `Response` ([more details](https://github.com/anthropics/anthropic-sdk-typescript/tree/main/src/_shims#readme)).
-
-### Logging and middleware
-
-You may also provide a custom `fetch` function when instantiating the client,
-which can be used to inspect or alter the `Request` or `Response` before/after each request:
+Or pass it to the client:
 
 ```ts
-import { fetch } from 'undici'; // as one example
+import Anthropic from '@anthropic-ai/sdk';
+import fetch from 'my-fetch';
+
+const client = new Anthropic({ fetch });
+```
+
+### Fetch options
+
+If you want to set custom `fetch` options without overriding the `fetch` function, you can provide a `fetchOptions` object when instantiating the client or making a request. (Request-specific options override client options.)
+
+```ts
 import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({
-  fetch: async (url: RequestInfo, init?: RequestInit): Promise<Response> => {
-    console.log('About to make a request', url, init);
-    const response = await fetch(url, init);
-    console.log('Got response', response);
-    return response;
+  fetchOptions: {
+    // `RequestInit` options
   },
 });
 ```
 
-Note that if given a `DEBUG=true` environment variable, this library will log all requests and responses automatically.
-This is intended for debugging purposes only and may change in the future without notice.
+#### Configuring proxies
 
-### Configuring an HTTP(S) Agent (e.g., for proxies)
+To modify proxy behavior, you can provide custom `fetchOptions` that add runtime-specific proxy
+options to requests:
 
-By default, this library uses a stable agent for all http/https requests to reuse TCP connections, eliminating many TCP & TLS handshakes and shaving around 100ms off most requests.
+<img src="https://raw.githubusercontent.com/stainless-api/sdk-assets/refs/heads/main/node.svg" align="top" width="18" height="21"> **Node** <sup>[[docs](https://github.com/nodejs/undici/blob/main/docs/docs/api/ProxyAgent.md#example---proxyagent-with-fetch)]</sup>
 
-If you would like to disable or customize this behavior, for example to use the API behind a proxy, you can pass an `httpAgent` which is used for all requests (be they http or https), for example:
-
-<!-- prettier-ignore -->
 ```ts
-import http from 'http';
-import { HttpsProxyAgent } from 'https-proxy-agent';
+import Anthropic from '@anthropic-ai/sdk';
+import * as undici from 'undici';
 
-// Configure the default for all requests:
+const proxyAgent = new undici.ProxyAgent('http://localhost:8888');
 const client = new Anthropic({
-  httpAgent: new HttpsProxyAgent(process.env.PROXY_URL),
+  fetchOptions: {
+    dispatcher: proxyAgent,
+  },
 });
-
-// Override per-request:
-await client.messages.create(
-  {
-    max_tokens: 1024,
-    messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-5-sonnet-latest',
-  },
-  {
-    httpAgent: new http.Agent({ keepAlive: false }),
-  },
-);
 ```
+
+<img src="https://raw.githubusercontent.com/stainless-api/sdk-assets/refs/heads/main/bun.svg" align="top" width="18" height="21"> **Bun** <sup>[[docs](https://bun.sh/guides/http/proxy)]</sup>
+
+```ts
+import Anthropic from '@anthropic-ai/sdk';
+
+const client = new Anthropic({
+  fetchOptions: {
+    proxy: 'http://localhost:8888',
+  },
+});
+```
+
+<img src="https://raw.githubusercontent.com/stainless-api/sdk-assets/refs/heads/main/deno.svg" align="top" width="18" height="21"> **Deno** <sup>[[docs](https://docs.deno.com/api/deno/~/Deno.createHttpClient)]</sup>
+
+```ts
+import Anthropic from 'npm:@anthropic-ai/sdk';
+
+const httpClient = Deno.createHttpClient({ proxy: { url: 'http://localhost:8888' } });
+const client = new Anthropic({
+  fetchOptions: {
+    client: httpClient,
+  },
+});
+```
+
+## Frequently Asked Questions
 
 ## Semantic versioning
 
@@ -528,11 +599,11 @@ We are keen for your feedback; please open an [issue](https://www.github.com/ant
 
 ## Requirements
 
-TypeScript >= 4.5 is supported.
+TypeScript >= 4.9 is supported.
 
 The following runtimes are supported:
 
-- Node.js 18 LTS or later ([non-EOL](https://endoflife.date/nodejs)) versions.
+- Node.js 20 LTS or later ([non-EOL](https://endoflife.date/nodejs)) versions.
 - Deno v1.28.0 or higher.
 - Bun 1.0 or later.
 - Cloudflare Workers.

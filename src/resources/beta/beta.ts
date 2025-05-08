@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../resource';
+import { APIResource } from '../../core/resource';
 import * as ModelsAPI from './models';
 import { BetaModelInfo, BetaModelInfosPage, ModelListParams, ModelRetrieveParams, Models } from './models';
 import * as MessagesAPI from './messages/messages';
@@ -180,7 +180,6 @@ export interface BetaRateLimitError {
 }
 
 Beta.Models = Models;
-Beta.BetaModelInfosPage = BetaModelInfosPage;
 Beta.Messages = Messages;
 
 export declare namespace Beta {
@@ -202,7 +201,7 @@ export declare namespace Beta {
   export {
     Models as Models,
     type BetaModelInfo as BetaModelInfo,
-    BetaModelInfosPage as BetaModelInfosPage,
+    type BetaModelInfosPage as BetaModelInfosPage,
     type ModelRetrieveParams as ModelRetrieveParams,
     type ModelListParams as ModelListParams,
   };

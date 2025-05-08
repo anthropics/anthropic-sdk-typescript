@@ -1,10 +1,12 @@
 import { PassThrough } from 'stream';
-import { Response } from 'node-fetch';
 import Anthropic, { APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
 import { Message, MessageStreamEvent } from '@anthropic-ai/sdk/resources/messages';
-import { type RequestInfo, type RequestInit } from '@anthropic-ai/sdk/_shims/index';
-
-type Fetch = (req: string | RequestInfo, init?: RequestInit) => Promise<Response>;
+import {
+  type Fetch,
+  type RequestInfo,
+  type RequestInit,
+  type Response,
+} from '@anthropic-ai/sdk/internal/builtin-types';
 
 function assertNever(x: never): never {
   throw new Error(`unreachable: ${x}`);
@@ -103,7 +105,11 @@ async function* messageIterable(message: Message): AsyncGenerator<MessageStreamE
   };
 }
 
-function mockFetch() {
+function mockFetch(): {
+  fetch: Fetch;
+  handleRequest: (handle: Fetch) => void;
+  handleMessageStreamEvents: (iter: AsyncIterable<MessageStreamEvent>) => void;
+} {
   const queue: Promise<typeof fetch>[] = [];
   const readResolvers: ((handler: typeof fetch) => void)[] = [];
 
@@ -160,7 +166,7 @@ function mockFetch() {
     });
   }
 
-  return { fetch, handleRequest, handleMessageStreamEvents };
+  return { fetch: fetch as any, handleRequest, handleMessageStreamEvents };
 }
 
 describe('MessageStream class', () => {

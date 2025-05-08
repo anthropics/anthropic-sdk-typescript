@@ -1,8 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../resource';
-import { APIPromise } from '../../core';
-import * as Core from '../../core';
+import { APIResource } from '../../core/resource';
 import * as MessagesAPI from './messages';
 import * as BatchesAPI from './batches';
 import {
@@ -20,7 +18,9 @@ import {
   MessageBatchSucceededResult,
   MessageBatchesPage,
 } from './batches';
-import { Stream } from '../../streaming';
+import { APIPromise } from '../../core/api-promise';
+import { Stream } from '../../core/streaming';
+import { RequestOptions } from '../../internal/request-options';
 import { MessageStream } from '../../lib/MessageStream';
 
 export { MessageStream } from '../../lib/MessageStream';
@@ -46,18 +46,18 @@ export class Messages extends APIResource {
    * });
    * ```
    */
-  create(body: MessageCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Message>;
+  create(body: MessageCreateParamsNonStreaming, options?: RequestOptions): APIPromise<Message>;
   create(
     body: MessageCreateParamsStreaming,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Stream<RawMessageStreamEvent>>;
   create(
     body: MessageCreateParamsBase,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Stream<RawMessageStreamEvent> | Message>;
   create(
     body: MessageCreateParams,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>> {
     if (body.model in DEPRECATED_MODELS) {
       console.warn(
@@ -79,7 +79,7 @@ export class Messages extends APIResource {
   /**
    * Create a Message stream
    */
-  stream(body: MessageStreamParams, options?: Core.RequestOptions): MessageStream {
+  stream(body: MessageStreamParams, options?: RequestOptions): MessageStream {
     return MessageStream.createMessage(this, body, options);
   }
 
@@ -101,10 +101,7 @@ export class Messages extends APIResource {
    *   });
    * ```
    */
-  countTokens(
-    body: MessageCountTokensParams,
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<MessageTokensCount> {
+  countTokens(body: MessageCountTokensParams, options?: RequestOptions): APIPromise<MessageTokensCount> {
     return this._client.post('/v1/messages/count_tokens', { body, ...options });
   }
 }
@@ -305,8 +302,6 @@ export interface ImageBlockParam {
    */
   cache_control?: CacheControlEphemeral | null;
 }
-
-export type InputJsonDelta = InputJSONDelta;
 
 export interface InputJSONDelta {
   partial_json: string;
@@ -1420,26 +1415,6 @@ export interface MessageCreateParamsBase {
 }
 
 export namespace MessageCreateParams {
-  /**
-   * @deprecated use `Anthropic.Messages.ToolChoiceAuto` instead
-   */
-  export type Metadata = MessagesAPI.Metadata;
-
-  /**
-   * @deprecated use `Anthropic.Messages.ToolChoiceAuto` instead
-   */
-  export type ToolChoiceAuto = MessagesAPI.ToolChoiceAuto;
-
-  /**
-   * @deprecated use `Anthropic.Messages.ToolChoiceAny` instead
-   */
-  export type ToolChoiceAny = MessagesAPI.ToolChoiceAny;
-
-  /**
-   * @deprecated use `Anthropic.Messages.ToolChoiceTool` instead
-   */
-  export type ToolChoiceTool = MessagesAPI.ToolChoiceTool;
-
   export type MessageCreateParamsNonStreaming = MessagesAPI.MessageCreateParamsNonStreaming;
   export type MessageCreateParamsStreaming = MessagesAPI.MessageCreateParamsStreaming;
 }
@@ -1669,7 +1644,6 @@ export interface MessageCountTokensParams {
 }
 
 Messages.Batches = Batches;
-Messages.MessageBatchesPage = MessageBatchesPage;
 
 export declare namespace Messages {
   export {
@@ -1688,14 +1662,16 @@ export declare namespace Messages {
     type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
     type ContentBlock as ContentBlock,
     type ContentBlockParam as ContentBlockParam,
+    type ContentBlockStartEvent as ContentBlockStartEvent,
+    type ContentBlockStopEvent as ContentBlockStopEvent,
     type ContentBlockSource as ContentBlockSource,
     type ContentBlockSourceContent as ContentBlockSourceContent,
     type DocumentBlockParam as DocumentBlockParam,
     type ImageBlockParam as ImageBlockParam,
-    type InputJsonDelta as InputJsonDelta,
     type InputJSONDelta as InputJSONDelta,
     type Message as Message,
     type MessageCountTokensTool as MessageCountTokensTool,
+    type MessageDeltaEvent as MessageDeltaEvent,
     type MessageDeltaUsage as MessageDeltaUsage,
     type MessageParam as MessageParam,
     type MessageTokensCount as MessageTokensCount,
@@ -1754,11 +1730,8 @@ export declare namespace Messages {
     type WebSearchToolResultError as WebSearchToolResultError,
     type MessageStreamEvent as MessageStreamEvent,
     type MessageStartEvent as MessageStartEvent,
-    type MessageDeltaEvent as MessageDeltaEvent,
     type MessageStopEvent as MessageStopEvent,
-    type ContentBlockStartEvent as ContentBlockStartEvent,
     type ContentBlockDeltaEvent as ContentBlockDeltaEvent,
-    type ContentBlockStopEvent as ContentBlockStopEvent,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
@@ -1777,7 +1750,7 @@ export declare namespace Messages {
     type MessageBatchRequestCounts as MessageBatchRequestCounts,
     type MessageBatchResult as MessageBatchResult,
     type MessageBatchSucceededResult as MessageBatchSucceededResult,
-    MessageBatchesPage as MessageBatchesPage,
+    type MessageBatchesPage as MessageBatchesPage,
     type BatchCreateParams as BatchCreateParams,
     type BatchListParams as BatchListParams,
   };

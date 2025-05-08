@@ -1,5 +1,5 @@
-import * as Core from '@anthropic-ai/sdk/core';
-import { AnthropicError, APIUserAbortError } from '@anthropic-ai/sdk/error';
+import { isAbortError } from '../internal/errors';
+import { AnthropicError, APIUserAbortError } from '../error';
 import {
   type BetaContentBlock,
   Messages as BetaMessages,
@@ -10,10 +10,11 @@ import {
   type MessageCreateParamsBase as BetaMessageCreateParamsBase,
   type BetaTextBlock,
   type BetaTextCitation,
-} from '@anthropic-ai/sdk/resources/beta/messages/messages';
-import { type ReadableStream, type Response } from '@anthropic-ai/sdk/_shims/index';
-import { Stream } from '@anthropic-ai/sdk/streaming';
+} from '../resources/beta/messages/messages';
+import { Stream } from '../streaming';
 import { partialParse } from '../_vendor/partial-json-parser/parser';
+import { type RequestOptions } from '../internal/request-options';
+import { type ReadableStream } from '../internal/shim-types';
 
 export interface MessageStreamEvents {
   connect: () => void;
@@ -132,7 +133,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
   static createMessage(
     messages: BetaMessages,
     params: BetaMessageCreateParamsBase,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): BetaMessageStream {
     const runner = new BetaMessageStream();
     for (const message of params.messages) {
@@ -169,7 +170,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
   protected async _createMessage(
     messages: BetaMessages,
     params: BetaMessageCreateParams,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): Promise<void> {
     const signal = options?.signal;
     if (signal) {
@@ -331,7 +332,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
 
   #handleError = (error: unknown) => {
     this.#errored = true;
-    if (error instanceof Error && error.name === 'AbortError') {
+    if (isAbortError(error)) {
       error = new APIUserAbortError();
     }
     if (error instanceof APIUserAbortError) {
@@ -485,7 +486,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
 
   protected async _fromReadableStream(
     readableStream: ReadableStream,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): Promise<void> {
     const signal = options?.signal;
     if (signal) {
