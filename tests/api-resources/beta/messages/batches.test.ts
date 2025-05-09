@@ -41,7 +41,7 @@ describe('resource batches', () => {
             model: 'claude-3-7-sonnet-20250219',
             metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
             stop_sequences: ['string'],
-            stream: false,
+            stream: true,
             system: [
               {
                 text: "Today's date is 2024-06-01.",
@@ -174,6 +174,18 @@ describe('resource batches', () => {
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
+  });
+
+  // Prism doesn't support JSONL responses yet
+  test.skip('results', async () => {
+    const responsePromise = client.beta.messages.batches.results('message_batch_id');
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
   });
 
   // Prism doesn't support JSONL responses yet

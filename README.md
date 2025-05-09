@@ -1,9 +1,3 @@
-> [!IMPORTANT]
-> We're actively working on a new alpha version that migrates from `node-fetch` to builtin fetch.
->
-> Please try it out and let us know if you run into any issues!
-> https://github.com/anthropics/anthropic-sdk-typescript/issues/645
-
 # Anthropic TypeScript API Library
 
 [![NPM version](https://img.shields.io/npm/v/@anthropic-ai/sdk.svg)](https://npmjs.org/package/@anthropic-ai/sdk) ![npm bundle size](https://img.shields.io/bundlephobia/minzip/@anthropic-ai/sdk)
@@ -15,8 +9,11 @@ The REST API documentation can be found on [docs.anthropic.com](https://docs.ant
 ## Installation
 
 ```sh
-npm install @anthropic-ai/sdk
+npm install git+ssh://git@github.com:stainless-sdks/anthropic-typescript.git
 ```
+
+> [!NOTE]
+> Once this package is [published to npm](https://app.stainless.com/docs/guides/publish), this will become: `npm install @anthropic-ai/sdk`
 
 ## Usage
 
@@ -92,104 +89,6 @@ main();
 
 Documentation for each method, request param, and response field are available in docstrings and will appear on hover in most modern editors.
 
-## Counting Tokens
-
-You can see the exact usage for a given request through the `usage` response property, e.g.
-
-```ts
-const message = await client.messages.create(...)
-console.log(message.usage)
-// { input_tokens: 25, output_tokens: 13 }
-```
-
-## Streaming Helpers
-
-This library provides several conveniences for streaming messages, for example:
-
-```ts
-import Anthropic from '@anthropic-ai/sdk';
-
-const anthropic = new Anthropic();
-
-async function main() {
-  const stream = anthropic.messages
-    .stream({
-      model: 'claude-3-5-sonnet-latest',
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: 'Say hello there!',
-        },
-      ],
-    })
-    .on('text', (text) => {
-      console.log(text);
-    });
-
-  const message = await stream.finalMessage();
-  console.log(message);
-}
-
-main();
-```
-
-Streaming with `client.messages.stream(...)` exposes [various helpers for your convenience](helpers.md) including event handlers and accumulation.
-
-Alternatively, you can use `client.messages.create({ ..., stream: true })` which only returns an async iterable of the events in the stream and thus uses less memory (it does not build up a final message object for you).
-
-## Message Batches
-
-This SDK provides beta support for the [Message Batches API](https://docs.anthropic.com/en/docs/build-with-claude/message-batches) under the `client.beta.messages.batches` namespace.
-
-### Creating a batch
-
-Message Batches takes an array of requests, where each object has a `custom_id` identifier, and the exact same request `params` as the standard Messages API:
-
-```ts
-await anthropic.beta.messages.batches.create({
-  requests: [
-    {
-      custom_id: 'my-first-request',
-      params: {
-        model: 'claude-3-5-sonnet-latest',
-        max_tokens: 1024,
-        messages: [{ role: 'user', content: 'Hello, world' }],
-      },
-    },
-    {
-      custom_id: 'my-second-request',
-      params: {
-        model: 'claude-3-5-sonnet-latest',
-        max_tokens: 1024,
-        messages: [{ role: 'user', content: 'Hi again, friend' }],
-      },
-    },
-  ],
-});
-```
-
-### Getting results from a batch
-
-Once a Message Batch has been processed, indicated by `.processing_status === 'ended'`, you can access the results with `.batches.results()`
-
-```ts
-const results = await anthropic.beta.messages.batches.results(batch_id);
-for await (const entry of results) {
-  if (entry.result.type === 'succeeded') {
-    console.log(entry.result.message.content);
-  }
-}
-```
-
-## Tool use
-
-This SDK provides support for tool use, aka function calling. More details can be found in [the documentation](https://docs.anthropic.com/claude/docs/tool-use).
-
-## AWS Bedrock
-
-We provide support for the [Anthropic Bedrock API](https://aws.amazon.com/bedrock/claude/) through a [separate package](https://github.com/anthropics/anthropic-sdk-typescript/tree/main/packages/bedrock-sdk).
-
 ## Handling errors
 
 When the library is unable to connect to the API,
@@ -232,21 +131,6 @@ Error codes are as follows:
 | >=500       | `InternalServerError`      |
 | N/A         | `APIConnectionError`       |
 
-## Request IDs
-
-> For more information on debugging requests, see [these docs](https://docs.anthropic.com/en/api/errors#request-id)
-
-All object responses in the SDK provide a `_request_id` property which is added from the `request-id` response header so that you can quickly log failing requests and report them back to Anthropic.
-
-```ts
-const message = await client.messages.create({
-  max_tokens: 1024,
-  messages: [{ role: 'user', content: 'Hello, Claude' }],
-  model: 'claude-3-5-sonnet-latest',
-});
-console.log(message._request_id); // req_018EeWyXxfu5pfWkrYcMdjWG
-```
-
 ### Retries
 
 Certain errors will be automatically retried 2 times by default, with a short exponential backoff.
@@ -270,18 +154,7 @@ await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', cont
 
 ### Timeouts
 
-By default requests time out after 10 minutes. However if you have specified a large `max_tokens` value and are
-_not_ streaming, the default timeout will be calculated dynamically using the formula:
-
-```typescript
-const minimum = 10 * 60;
-const calculated = (60 * 60 * maxTokens) / 128_000;
-return calculated < minimum ? minimum * 1000 : calculated * 1000;
-```
-
-which will result in a timeout up to 60 minutes, scaled by the `max_tokens` parameter, unless overriden at the request or client level.
-
-You can configure this with a `timeout` option:
+Requests time out after 10 minutes by default. You can configure this with a `timeout` option:
 
 <!-- prettier-ignore -->
 ```ts
@@ -299,24 +172,6 @@ await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', cont
 On timeout, an `APIConnectionTimeoutError` is thrown.
 
 Note that requests which time out will be [retried twice by default](#retries).
-
-### Long Requests
-
-> [!IMPORTANT]
-> We highly encourage you use the streaming [Messages API](#streaming-responses) for longer running requests.
-
-We do not recommend setting a large `max_tokens` values without using streaming.
-Some networks may drop idle connections after a certain period of time, which
-can cause the request to fail or [timeout](#timeouts) without receiving a response from Anthropic.
-
-This SDK will also throw an error if a non-streaming request is expected to be above roughly 10 minutes long.
-Passing `stream: true` or [overriding](#timeouts) the `timeout` option at the client or request level disables this error.
-
-An expected request latency longer than the [timeout](#timeouts) for a non-streaming request
-will result in the client terminating the connection and retrying without receiving a response.
-
-When supported by the `fetch` implementation, we set a [TCP socket keep-alive](https://tldp.org/HOWTO/TCP-Keepalive-HOWTO/overview.html)
-option in order to reduce the impact of idle connection timeouts on some networks.
 
 ## Auto-pagination
 
@@ -595,7 +450,7 @@ This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) con
 
 We take backwards-compatibility seriously and work hard to ensure you can rely on a smooth upgrade experience.
 
-We are keen for your feedback; please open an [issue](https://www.github.com/anthropics/anthropic-sdk-typescript/issues) with questions, bugs, or suggestions.
+We are keen for your feedback; please open an [issue](https://www.github.com/stainless-sdks/anthropic-typescript/issues) with questions, bugs, or suggestions.
 
 ## Requirements
 
@@ -610,19 +465,23 @@ The following runtimes are supported:
 - Vercel Edge Runtime.
 - Jest 28 or greater with the `"node"` environment (`"jsdom"` is not supported at this time).
 - Nitro v2.6 or greater.
-- Web browsers: disabled by default to avoid exposing your secret API credentials (see our help center for [best practices](https://support.anthropic.com/en/articles/9767949-api-key-best-practices-keeping-your-keys-safe-and-secure)). Enable browser support by explicitly setting `dangerouslyAllowBrowser` to `true`.
+- Web browsers: disabled by default to avoid exposing your secret API credentials. Enable browser support by explicitly setting `dangerouslyAllowBrowser` to true'.
+  <details>
+    <summary>More explanation</summary>
 
-<details>
-  <summary><b>More explanation</b></summary>
-  <h3>Why is this dangerous?</h3>
-  Enabling the <code>dangerouslyAllowBrowser</code> option can be dangerous because it exposes your secret API credentials in the client-side code. Web browsers are inherently less secure than server environments,
+  ### Why is this dangerous?
+
+  Enabling the `dangerouslyAllowBrowser` option can be dangerous because it exposes your secret API credentials in the client-side code. Web browsers are inherently less secure than server environments,
   any user with access to the browser can potentially inspect, extract, and misuse these credentials. This could lead to unauthorized access using your credentials and potentially compromise sensitive data or functionality.
-  <h3>When might this not be dangerous?</h3>
+
+  ### When might this not be dangerous?
+
   In certain scenarios where enabling browser support might not pose significant risks:
-  <ul>
-    <li>Internal Tools: If the application is used solely within a controlled internal environment where the users are trusted, the risk of credential exposure can be mitigated.</li>
-    <li>Development or debugging purpose: Enabling this feature temporarily might be acceptable, provided the credentials are short-lived, aren't also used in production environments, or are frequently rotated.</li>
-  </ul>
+
+  - Internal Tools: If the application is used solely within a controlled internal environment where the users are trusted, the risk of credential exposure can be mitigated.
+  - Public APIs with Limited Scope: If your API has very limited scope and the exposed credentials do not grant access to sensitive data or critical operations, the potential impact of exposure is reduced.
+  - Development or debugging purpose: Enabling this feature temporarily might be acceptable, provided the credentials are short-lived, aren't also used in production environments, or are frequently rotated.
+
 </details>
 
 Note that React Native is not supported at this time.

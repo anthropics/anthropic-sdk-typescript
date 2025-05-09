@@ -3,19 +3,14 @@
 import { type BaseAnthropic } from '../client';
 
 import { type PromiseOrValue } from '../internal/types';
-import {
-  type APIResponseProps,
-  type WithRequestID,
-  defaultParseResponse,
-  addRequestID,
-} from '../internal/parse';
+import { APIResponseProps, defaultParseResponse } from '../internal/parse';
 
 /**
  * A subclass of `Promise` providing additional helper methods
  * for interacting with the SDK.
  */
-export class APIPromise<T> extends Promise<WithRequestID<T>> {
-  private parsedPromise: Promise<WithRequestID<T>> | undefined;
+export class APIPromise<T> extends Promise<T> {
+  private parsedPromise: Promise<T> | undefined;
   #client: BaseAnthropic;
 
   constructor(
@@ -24,7 +19,7 @@ export class APIPromise<T> extends Promise<WithRequestID<T>> {
     private parseResponse: (
       client: BaseAnthropic,
       props: APIResponseProps,
-    ) => PromiseOrValue<WithRequestID<T>> = defaultParseResponse,
+    ) => PromiseOrValue<T> = defaultParseResponse,
   ) {
     super((resolve) => {
       // this is maybe a bit weird but this has to be a no-op to not implicitly
@@ -37,7 +32,7 @@ export class APIPromise<T> extends Promise<WithRequestID<T>> {
 
   _thenUnwrap<U>(transform: (data: T, props: APIResponseProps) => U): APIPromise<U> {
     return new APIPromise(this.#client, this.responsePromise, async (client, props) =>
-      addRequestID(transform(await this.parseResponse(client, props), props), props.response),
+      transform(await this.parseResponse(client, props), props),
     );
   }
 
@@ -57,9 +52,7 @@ export class APIPromise<T> extends Promise<WithRequestID<T>> {
   }
 
   /**
-   * Gets the parsed response data, the raw `Response` instance and the ID of the request,
-   * returned via the `request-id` header which is useful for debugging requests and resporting
-   * issues to Anthropic.
+   * Gets the parsed response data and the raw `Response` instance.
    *
    * If you just want to get the raw `Response` instance without parsing it,
    * you can use {@link asResponse()}.
@@ -68,22 +61,20 @@ export class APIPromise<T> extends Promise<WithRequestID<T>> {
    * Try setting `"moduleResolution": "NodeNext"` or add `"lib": ["DOM"]`
    * to your `tsconfig.json`.
    */
-  async withResponse(): Promise<{ data: T; response: Response; request_id: string | null | undefined }> {
+  async withResponse(): Promise<{ data: T; response: Response }> {
     const [data, response] = await Promise.all([this.parse(), this.asResponse()]);
-    return { data, response, request_id: response.headers.get('request-id') };
+    return { data, response };
   }
 
-  private parse(): Promise<WithRequestID<T>> {
+  private parse(): Promise<T> {
     if (!this.parsedPromise) {
-      this.parsedPromise = this.responsePromise.then(
-        (data) => this.parseResponse(this.#client, data) as any as Promise<WithRequestID<T>>,
-      );
+      this.parsedPromise = this.responsePromise.then((data) => this.parseResponse(this.#client, data));
     }
     return this.parsedPromise;
   }
 
-  override then<TResult1 = WithRequestID<T>, TResult2 = never>(
-    onfulfilled?: ((value: WithRequestID<T>) => TResult1 | PromiseLike<TResult1>) | undefined | null,
+  override then<TResult1 = T, TResult2 = never>(
+    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
     return this.parse().then(onfulfilled, onrejected);
@@ -91,11 +82,11 @@ export class APIPromise<T> extends Promise<WithRequestID<T>> {
 
   override catch<TResult = never>(
     onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
-  ): Promise<WithRequestID<T> | TResult> {
+  ): Promise<T | TResult> {
     return this.parse().catch(onrejected);
   }
 
-  override finally(onfinally?: (() => void) | undefined | null): Promise<WithRequestID<T>> {
+  override finally(onfinally?: (() => void) | undefined | null): Promise<T> {
     return this.parse().finally(onfinally);
   }
 }

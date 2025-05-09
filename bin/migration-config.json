@@ -1,6 +1,6 @@
 {
   "pkg": "@anthropic-ai/sdk",
-  "githubRepo": "https://github.com/anthropics/anthropic-sdk-typescript",
+  "githubRepo": "https://github.com/stainless-sdks/anthropic-typescript",
   "clientClass": "Anthropic",
   "baseClientClass": "BaseAnthropic",
   "methods": []

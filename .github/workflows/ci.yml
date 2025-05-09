@@ -45,11 +45,8 @@ jobs:
       - name: Bootstrap
         run: ./scripts/bootstrap
 
-      - name: Update 3p souces
-        run: ./bin/replace-internal-symlinks
-
       - name: Check build
-        run: yarn build
+        run: ./scripts/build
 
       - name: Get GitHub OIDC Token
         if: github.repository == 'stainless-sdks/anthropic-typescript'

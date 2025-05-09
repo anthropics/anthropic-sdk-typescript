@@ -4,7 +4,6 @@ import type { FinalRequestOptions } from './request-options';
 import { Stream } from '../core/streaming';
 import { type BaseAnthropic } from '../client';
 import { formatRequestDetails, loggerFor } from './utils/log';
-import type { AbstractPage } from '../core/pagination';
 
 export type APIResponseProps = {
   response: Response;
@@ -15,10 +14,7 @@ export type APIResponseProps = {
   startTime: number;
 };
 
-export async function defaultParseResponse<T>(
-  client: BaseAnthropic,
-  props: APIResponseProps,
-): Promise<WithRequestID<T>> {
+export async function defaultParseResponse<T>(client: BaseAnthropic, props: APIResponseProps): Promise<T> {
   const { response, requestLogID, retryOfRequestLogID, startTime } = props;
   const body = await (async () => {
     if (props.options.stream) {
@@ -48,7 +44,7 @@ export async function defaultParseResponse<T>(
     const isJSON = mediaType?.includes('application/json') || mediaType?.endsWith('+json');
     if (isJSON) {
       const json = await response.json();
-      return addRequestID(json as T, response);
+      return json as T;
     }
 
     const text = await response.text();
@@ -65,20 +61,4 @@ export async function defaultParseResponse<T>(
     }),
   );
   return body;
-}
-
-export type WithRequestID<T> =
-  T extends Array<any> | Response | AbstractPage<any> ? T
-  : T extends Record<string, any> ? T & { _request_id?: string | null }
-  : T;
-
-export function addRequestID<T>(value: T, response: Response): WithRequestID<T> {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return value as WithRequestID<T>;
-  }
-
-  return Object.defineProperty(value, '_request_id', {
-    value: response.headers.get('request-id'),
-    enumerable: false,
-  }) as WithRequestID<T>;
 }

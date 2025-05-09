@@ -2,7 +2,7 @@
 
 import { AnthropicError } from './error';
 import { FinalRequestOptions } from '../internal/request-options';
-import { defaultParseResponse, WithRequestID } from '../internal/parse';
+import { defaultParseResponse } from '../internal/parse';
 import { type BaseAnthropic } from '../client';
 import { APIPromise } from './api-promise';
 import { type APIResponseProps } from '../internal/parse';
@@ -88,12 +88,7 @@ export class PagePromise<
       client,
       request,
       async (client, props) =>
-        new Page(
-          client,
-          props.response,
-          await defaultParseResponse(client, props),
-          props.options,
-        ) as WithRequestID<PageClass>,
+        new Page(client, props.response, await defaultParseResponse(client, props), props.options),
     );
   }
 
