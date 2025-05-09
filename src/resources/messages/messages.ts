@@ -21,6 +21,9 @@ import {
 import { APIPromise } from '../../core/api-promise';
 import { Stream } from '../../core/streaming';
 import { RequestOptions } from '../../internal/request-options';
+import { MessageStream } from '../../lib/MessageStream';
+
+export { MessageStream } from '../../lib/MessageStream';
 
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
@@ -56,12 +59,28 @@ export class Messages extends APIResource {
     body: MessageCreateParams,
     options?: RequestOptions,
   ): APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>> {
+    if (body.model in DEPRECATED_MODELS) {
+      console.warn(
+        `The model '${body.model}' is deprecated and will reach end-of-life on ${
+          DEPRECATED_MODELS[body.model]
+        }\nPlease migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information.`,
+      );
+    }
     return this._client.post('/v1/messages', {
       body,
-      timeout: (this._client as any)._options.timeout ?? 600000,
+      timeout:
+        (this._client as any)._options.timeout ??
+        (body.stream ? 600000 : this._client._calculateNonstreamingTimeout(body.max_tokens)),
       ...options,
       stream: body.stream ?? false,
     }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
+  }
+
+  /**
+   * Create a Message stream
+   */
+  stream(body: MessageStreamParams, options?: RequestOptions): MessageStream {
+    return MessageStream.createMessage(this, body, options);
   }
 
   /**
@@ -472,6 +491,19 @@ export type Model =
   | 'claude-2.1'
   | 'claude-2.0'
   | (string & {});
+
+const DEPRECATED_MODELS: {
+  [K in Model]?: string;
+} = {
+  'claude-1.3': 'November 6th, 2024',
+  'claude-1.3-100k': 'November 6th, 2024',
+  'claude-instant-1.1': 'November 6th, 2024',
+  'claude-instant-1.1-100k': 'November 6th, 2024',
+  'claude-instant-1.2': 'November 6th, 2024',
+  'claude-3-sonnet-20240229': 'July 21st, 2025',
+  'claude-2.1': 'July 21st, 2025',
+  'claude-2.0': 'July 21st, 2025',
+};
 
 export interface PlainTextSource {
   data: string;
@@ -1091,6 +1123,20 @@ export interface WebSearchToolResultError {
   type: 'web_search_tool_result_error';
 }
 
+export type MessageStreamEvent = RawMessageStreamEvent;
+
+export type MessageStartEvent = RawMessageStartEvent;
+
+export type MessageDeltaEvent = RawMessageDeltaEvent;
+
+export type MessageStopEvent = RawMessageStopEvent;
+
+export type ContentBlockStartEvent = RawContentBlockStartEvent;
+
+export type ContentBlockDeltaEvent = RawContentBlockDeltaEvent;
+
+export type ContentBlockStopEvent = RawContentBlockStopEvent;
+
 export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreateParamsStreaming;
 
 export interface MessageCreateParamsBase {
@@ -1393,6 +1439,8 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
   stream: true;
 }
 
+export type MessageStreamParams = MessageCreateParamsBase;
+
 export interface MessageCountTokensParams {
   /**
    * Input messages.
@@ -1614,6 +1662,8 @@ export declare namespace Messages {
     type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
     type ContentBlock as ContentBlock,
     type ContentBlockParam as ContentBlockParam,
+    type ContentBlockStartEvent as ContentBlockStartEvent,
+    type ContentBlockStopEvent as ContentBlockStopEvent,
     type ContentBlockSource as ContentBlockSource,
     type ContentBlockSourceContent as ContentBlockSourceContent,
     type DocumentBlockParam as DocumentBlockParam,
@@ -1621,6 +1671,7 @@ export declare namespace Messages {
     type InputJSONDelta as InputJSONDelta,
     type Message as Message,
     type MessageCountTokensTool as MessageCountTokensTool,
+    type MessageDeltaEvent as MessageDeltaEvent,
     type MessageDeltaUsage as MessageDeltaUsage,
     type MessageParam as MessageParam,
     type MessageTokensCount as MessageTokensCount,
@@ -1677,9 +1728,14 @@ export declare namespace Messages {
     type WebSearchToolResultBlockParam as WebSearchToolResultBlockParam,
     type WebSearchToolResultBlockParamContent as WebSearchToolResultBlockParamContent,
     type WebSearchToolResultError as WebSearchToolResultError,
+    type MessageStreamEvent as MessageStreamEvent,
+    type MessageStartEvent as MessageStartEvent,
+    type MessageStopEvent as MessageStopEvent,
+    type ContentBlockDeltaEvent as ContentBlockDeltaEvent,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
+    type MessageStreamParams as MessageStreamParams,
     type MessageCountTokensParams as MessageCountTokensParams,
   };
 

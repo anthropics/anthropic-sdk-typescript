@@ -15,7 +15,7 @@ import * as Opts from './internal/request-options';
 import { VERSION } from './version';
 import * as Errors from './core/error';
 import * as Pagination from './core/pagination';
-import { AbstractPage, type PageParams, PageResponse } from './core/pagination';
+import { type PageParams, PageResponse } from './core/pagination';
 import * as Uploads from './core/uploads';
 import * as API from './resources/index';
 import { APIPromise } from './core/api-promise';
@@ -64,20 +64,28 @@ import {
   CitationsDelta,
   CitationsWebSearchResultLocation,
   ContentBlock,
+  ContentBlockDeltaEvent,
   ContentBlockParam,
+  ContentBlockStartEvent,
+  ContentBlockStopEvent,
   ContentBlockSource,
   ContentBlockSourceContent,
   DocumentBlockParam,
   ImageBlockParam,
   InputJSONDelta,
   Message,
+  MessageStreamParams,
   MessageCountTokensParams,
   MessageCountTokensTool,
   MessageCreateParams,
   MessageCreateParamsNonStreaming,
   MessageCreateParamsStreaming,
+  MessageDeltaEvent,
   MessageDeltaUsage,
   MessageParam,
+  MessageStartEvent,
+  MessageStopEvent,
+  MessageStreamEvent,
   MessageTokensCount,
   Messages,
   Metadata,
@@ -402,6 +410,18 @@ export class BaseAnthropic {
     }
 
     return url.toString();
+  }
+
+  _calculateNonstreamingTimeout(maxTokens: number): number {
+    const defaultTimeout = 10 * 60;
+    const expectedTimeout = (60 * 60 * maxTokens) / 128_000;
+    if (expectedTimeout > defaultTimeout) {
+      throw new Errors.AnthropicError(
+        'Streaming is strongly recommended for operations that may take longer than 10 minutes. ' +
+          'See https://github.com/anthropics/anthropic-sdk-python#streaming-responses for more details',
+      );
+    }
+    return defaultTimeout * 1000;
   }
 
   /**
@@ -919,7 +939,10 @@ export declare namespace Anthropic {
     type CitationsDelta as CitationsDelta,
     type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
     type ContentBlock as ContentBlock,
+    type ContentBlockDeltaEvent as ContentBlockDeltaEvent,
     type ContentBlockParam as ContentBlockParam,
+    type ContentBlockStartEvent as ContentBlockStartEvent,
+    type ContentBlockStopEvent as ContentBlockStopEvent,
     type ContentBlockSource as ContentBlockSource,
     type ContentBlockSourceContent as ContentBlockSourceContent,
     type DocumentBlockParam as DocumentBlockParam,
@@ -927,8 +950,12 @@ export declare namespace Anthropic {
     type InputJSONDelta as InputJSONDelta,
     type Message as Message,
     type MessageCountTokensTool as MessageCountTokensTool,
+    type MessageDeltaEvent as MessageDeltaEvent,
     type MessageDeltaUsage as MessageDeltaUsage,
     type MessageParam as MessageParam,
+    type MessageStartEvent as MessageStartEvent,
+    type MessageStopEvent as MessageStopEvent,
+    type MessageStreamEvent as MessageStreamEvent,
     type MessageTokensCount as MessageTokensCount,
     type Metadata as Metadata,
     type Model as Model,
@@ -986,6 +1013,7 @@ export declare namespace Anthropic {
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
+    type MessageStreamParams as MessageStreamParams,
     type MessageCountTokensParams as MessageCountTokensParams,
   };
 

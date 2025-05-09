@@ -1,3 +1,5 @@
+# Anthropic
+
 # Shared
 
 Types:
@@ -35,11 +37,14 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockSourceContent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContentBlockStartEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContentBlockStopEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">DocumentBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ImageBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">InputJSONDelta</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Message</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageCountTokensTool</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageDeltaEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageDeltaUsage</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageTokensCount</a></code>
@@ -96,11 +101,19 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultBlockParamContent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultError</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageStreamEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageStartEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageDeltaEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageStopEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContentBlockStartEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContentBlockDeltaEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContentBlockStopEvent</a></code>
 
 Methods:
 
 - <code title="post /v1/messages">client.messages.<a href="./src/resources/messages/messages.ts">create</a>({ ...params }) -> Message</code>
 - <code title="post /v1/messages/count_tokens">client.messages.<a href="./src/resources/messages/messages.ts">countTokens</a>({ ...params }) -> MessageTokensCount</code>
+- <code>client.messages.<a href="./src/resources/messages.ts">stream</a>(body, options?) -> MessageStream</code>
 
 ## Batches
 

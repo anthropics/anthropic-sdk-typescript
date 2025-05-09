@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["dist/src"],
+  "exclude": ["dist/src/internal/detect-platform.ts"],
+  "compilerOptions": {
+    "rootDir": "./dist/src",
+    "paths": {
+      "@anthropic-ai/bedrock-sdk/*": ["src/*"],
+      "@anthropic-ai/bedrock-sdk": ["src/index.ts"]
+    },
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist",
+    "pretty": true,
+    "sourceMap": true
+  }
+}
