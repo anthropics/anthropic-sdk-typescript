@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.50.1 (2025-05-09)
+
+Full Changelog: [sdk-v0.50.0...sdk-v0.50.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.50.0...sdk-v0.50.1)
+
 ## 0.50.0 (2025-05-09)
 
 Full Changelog: [sdk-v0.41.0...sdk-v0.50.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.41.0...sdk-v0.42.0)
