@@ -5,7 +5,7 @@ const { spawnSync } = require('child_process');
 const commands = {
   migrate: {
     description:
-      'Run migrations to update your code using @anthropic-ai/sdk@0.39 to be compatible with @anthropic-ai/sdk@0.40',
+      'Run migrations to update your code using @anthropic-ai/sdk@0.41 to be compatible with @anthropic-ai/sdk@0.50',
     fn: () => {
       const result = spawnSync(
         'npx',

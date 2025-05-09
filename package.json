@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
   "type": "commonjs",
-  "repository": "github:stainless-sdks/anthropic-typescript",
+  "repository": "github:anthropics/anthropic-sdk-typescript",
   "license": "MIT",
   "packageManager": "yarn@1.22.22",
   "files": [
