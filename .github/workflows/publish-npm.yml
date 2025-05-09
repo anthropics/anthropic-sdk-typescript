@@ -26,6 +26,9 @@ jobs:
         run: |
           yarn install
 
+      - name: Update 3p souces
+        run: ./bin/replace-internal-symlinks
+
       - name: Publish to NPM
         run: |
           yarn tsn scripts/publish-packages.ts '{ "paths_released": "[\"${{ github.event.inputs.path }}\"]" }'

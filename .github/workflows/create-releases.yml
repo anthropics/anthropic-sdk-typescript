@@ -33,6 +33,9 @@ jobs:
         run: |
           yarn install
 
+      - name: Update 3p souces
+        run: ./bin/replace-internal-symlinks
+
       - name: Publish to NPM
         if: ${{ steps.release.outputs.releases_created }}
         run: |
