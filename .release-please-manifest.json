@@ -1,3 +1,5 @@
 {
-  ".": "0.0.1-alpha.0"
+  ".": "0.50.2",
+  "packages/vertex-sdk": "0.11.1",
+  "packages/bedrock-sdk": "0.21.1"
 }
