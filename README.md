@@ -1,9 +1,3 @@
-> [!IMPORTANT]
-> We're actively working on a new alpha version that migrates from `node-fetch` to builtin fetch.
->
-> Please try it out and let us know if you run into any issues!
-> https://github.com/anthropics/anthropic-sdk-typescript/issues/645
-
 # Anthropic TypeScript API Library
 
 [![NPM version](https://img.shields.io/npm/v/@anthropic-ai/sdk.svg)](https://npmjs.org/package/@anthropic-ai/sdk) ![npm bundle size](https://img.shields.io/bundlephobia/minzip/@anthropic-ai/sdk)
