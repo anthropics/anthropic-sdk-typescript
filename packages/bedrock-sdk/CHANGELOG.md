@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.21.2 (2025-05-09)
+
+Full Changelog: [bedrock-sdk-v0.21.1...bedrock-sdk-v0.21.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.21.1...bedrock-sdk-v0.21.2)
+
+### Bug Fixes
+
+* **client:** always overwrite when merging headers ([657912a](https://github.com/anthropics/anthropic-sdk-typescript/commit/657912ad66f86e878291a4cab5436844efbb633b))
+
 ## 0.21.1 (2025-05-09)
 
 Full Changelog: [bedrock-sdk-v0.21.0...bedrock-sdk-v0.21.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.21.0...bedrock-sdk-v0.21.1)

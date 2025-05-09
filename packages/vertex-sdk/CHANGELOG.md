@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.2 (2025-05-09)
+
+Full Changelog: [vertex-sdk-v0.11.1...vertex-sdk-v0.11.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.11.1...vertex-sdk-v0.11.2)
+
+### Bug Fixes
+
+* **client:** always overwrite when merging headers ([657912a](https://github.com/anthropics/anthropic-sdk-typescript/commit/657912ad66f86e878291a4cab5436844efbb633b))
+
 ## 0.11.1 (2025-05-09)
 
 Full Changelog: [vertex-sdk-v0.11.0...vertex-sdk-v0.11.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.11.0...vertex-sdk-v0.11.1)
