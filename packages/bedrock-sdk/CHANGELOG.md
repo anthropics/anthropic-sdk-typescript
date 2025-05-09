@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.21.0 (2025-05-09)
+
+Full Changelog: [bedrock-sdk-v0.20.0...bedrock-sdk-v0.21.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.20.0...bedrock-sdk-v0.21.0)
+
+### Features
+
+* **bedrock:** add beta.messages.create() method ([faf8484](https://github.com/anthropics/anthropic-sdk-typescript/commit/faf84848e42ec02994003283bf6178aa55233531))
+
+
+### Bug Fixes
+
+* **bedrock,vertex:** update to new SDK version ([cb620bb](https://github.com/anthropics/anthropic-sdk-typescript/commit/cb620bbb60e64f27168f74db7a48ad8c2d5f953e))
+* **bedrock:** correct messages beta handling ([f34d67a](https://github.com/anthropics/anthropic-sdk-typescript/commit/f34d67abca1270f04f9bbf6ce430ce67b36d4932))
+* **bedrock:** don't mutate request body inputs ([4523ca9](https://github.com/anthropics/anthropic-sdk-typescript/commit/4523ca92b0fa194c2de0ac8bbc7e66873ec5e817))
+* **bedrock:** update streaming util import ([01d03bf](https://github.com/anthropics/anthropic-sdk-typescript/commit/01d03bf79615de601f8bb9284df818e7d066aafa))
+* **streaming:** handle more AbortError cases ([521d6cd](https://github.com/anthropics/anthropic-sdk-typescript/commit/521d6cda1c43bad9b0ef110809e0d3e7cd411a0d))
+* **vertex,bedrock:** correct build script ([df895a7](https://github.com/anthropics/anthropic-sdk-typescript/commit/df895a7d7cbd51422343fca95ab9f1d58918b2a1))
+
+
+### Chores
+
+* **bedrock,vertex:** remove unsupported countTokens method ([#597](https://github.com/anthropics/anthropic-sdk-typescript/issues/597)) ([6f6db16](https://github.com/anthropics/anthropic-sdk-typescript/commit/6f6db164d2526c2fb272151f4d68140da27ce1ea))
+* **bedrock:** add `skipAuth` option to allow users to let authorization be handled elsewhere ([ee58772](https://github.com/anthropics/anthropic-sdk-typescript/commit/ee587723718109797efa80b020076c43a300f1b9))
+* **bedrock:** bump [@aws-sdk](https://github.com/aws-sdk) dependencies ([ff925db](https://github.com/anthropics/anthropic-sdk-typescript/commit/ff925db987a66950c997ec50b9c55e67152d1945))
+* **bedrock:** bump [@aws-sdk](https://github.com/aws-sdk) dependencies ([9891107](https://github.com/anthropics/anthropic-sdk-typescript/commit/98911074a745bfefe29f26c725bf54b6e228c93c))
+* **bedrock:** bump @aws-sdk/credential-providers ([9f611d6](https://github.com/anthropics/anthropic-sdk-typescript/commit/9f611d6ba8c6b3de02c3183e4f2f42d1540525f0))
+* **bedrock:** bump @aws-sdk/credential-providers ([491646e](https://github.com/anthropics/anthropic-sdk-typescript/commit/491646e10a48a09c0828d0fb23908f43f38d8e6a))
+* **bedrock:** bump dependency on @anthropic-ai/sdk ([2d0d4b6](https://github.com/anthropics/anthropic-sdk-typescript/commit/2d0d4b61368286581e281b604e005fc81139b6b9))
+* **bedrock:** remove unsupported methods ([8bb04ed](https://github.com/anthropics/anthropic-sdk-typescript/commit/8bb04ed2370c894b080d56d37e960ad4c3dc5925))
+* **internal:** migrate to eslint v9 ([1141664](https://github.com/anthropics/anthropic-sdk-typescript/commit/114166498a54e0b62cd9ea071fc736d714cefde6))
+
+
+### Documentation
+
+* use latest sonnet in example snippets ([#625](https://github.com/anthropics/anthropic-sdk-typescript/issues/625)) ([a965791](https://github.com/anthropics/anthropic-sdk-typescript/commit/a9657918aaf1246609105cbafaf4bb043b146356))
+
 ## 0.20.0 (2025-05-09)
 
 Full Changelog: [bedrock-sdk-v0.12.6...bedrock-sdk-v0.12.7](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.12.6...bedrock-sdk-v0.12.7)
