@@ -1,5 +1,55 @@
 # Changelog
 
+## 0.50.0 (2025-05-09)
+
+Full Changelog: [sdk-v0.41.0...sdk-v0.50.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.41.0...sdk-v0.42.0)
+
+### Features
+
+* **api:** adds web search capabilities to the Claude API ([b36623f](https://github.com/anthropics/anthropic-sdk-typescript/commit/b36623f33134e937ba8fc7585ab5fab3b31203ed))
+* **api:** manual updates ([80d5daa](https://github.com/anthropics/anthropic-sdk-typescript/commit/80d5daaff943536fbf300f5f19d7c9922294e837))
+* **api:** manual updates ([3124e2b](https://github.com/anthropics/anthropic-sdk-typescript/commit/3124e2b5fc5d279403f409168186cb08de3b0d13))
+* **client:** add withOptions helper ([caab783](https://github.com/anthropics/anthropic-sdk-typescript/commit/caab78382741526d50e0c6d3a3e2834ac889fbd7))
+
+
+### Bug Fixes
+
+* **bedrock,vertex:** update to new SDK version ([cb620bb](https://github.com/anthropics/anthropic-sdk-typescript/commit/cb620bbb60e64f27168f74db7a48ad8c2d5f953e))
+* **client:** send all configured auth headers ([3961628](https://github.com/anthropics/anthropic-sdk-typescript/commit/3961628811d807cc967b9f0f781e55415b578f5d))
+* **internal:** fix file uploads in node 18 jest ([1071b34](https://github.com/anthropics/anthropic-sdk-typescript/commit/1071b342d56a81d375f2b373c649843f800a3ad5))
+* **mcp:** remove unused tools.ts ([4c4d763](https://github.com/anthropics/anthropic-sdk-typescript/commit/4c4d7635bf6c6ef3fd810adefb3a290ad0f59576))
+* **messages:** updates for server tools ([c2709b2](https://github.com/anthropics/anthropic-sdk-typescript/commit/c2709b27b17a5a80daf399b7bfca41b953706d51))
+* update old links ([f33a68a](https://github.com/anthropics/anthropic-sdk-typescript/commit/f33a68abddd29ef8f8fe1a334d7dcd259595c4cb))
+* **vertex,bedrock:** correct build script ([df895a7](https://github.com/anthropics/anthropic-sdk-typescript/commit/df895a7d7cbd51422343fca95ab9f1d58918b2a1))
+
+
+### Chores
+
+* **bedrock:** add `skipAuth` option to allow users to let authorization be handled elsewhere ([ee58772](https://github.com/anthropics/anthropic-sdk-typescript/commit/ee587723718109797efa80b020076c43a300f1b9))
+* **bedrock:** bump [@aws-sdk](https://github.com/aws-sdk) dependencies ([ff925db](https://github.com/anthropics/anthropic-sdk-typescript/commit/ff925db987a66950c997ec50b9c55e67152d1945))
+* **bedrock:** bump @aws-sdk/credential-providers ([9f611d6](https://github.com/anthropics/anthropic-sdk-typescript/commit/9f611d6ba8c6b3de02c3183e4f2f42d1540525f0))
+* **ci:** add timeout thresholds for CI jobs ([385f900](https://github.com/anthropics/anthropic-sdk-typescript/commit/385f900ae36892a8c65e2568faf46ce7bb011206))
+* **ci:** only use depot for staging repos ([1f05880](https://github.com/anthropics/anthropic-sdk-typescript/commit/1f058806ccd549aa99194fc8b808ab21c7655bcf))
+* **ci:** run on more branches and use depot runners ([7176150](https://github.com/anthropics/anthropic-sdk-typescript/commit/7176150915334f06ac2ee3ed854ddf6752c1e113))
+* **client:** drop support for EOL node versions ([ffbb2da](https://github.com/anthropics/anthropic-sdk-typescript/commit/ffbb2dac2b9e3b82c57d043dfb279ab95948cbc0))
+* **client:** minor internal fixes ([595678f](https://github.com/anthropics/anthropic-sdk-typescript/commit/595678f2b8588f20d7ca3d9219878a4d72c56c7d))
+* **internal:** codegen related update ([a6ae129](https://github.com/anthropics/anthropic-sdk-typescript/commit/a6ae12953f6f841d4585a8cf8cf03fa24f17d57c))
+* **internal:** fix format script ([9ce30ba](https://github.com/anthropics/anthropic-sdk-typescript/commit/9ce30ba225a37feb50c0089164bbec830ab18a1c))
+* **internal:** formatting fixes ([7bd4594](https://github.com/anthropics/anthropic-sdk-typescript/commit/7bd45941a46703db869161fd0585cd209efc782c))
+* **internal:** improve index signature formatting ([7dc3e19](https://github.com/anthropics/anthropic-sdk-typescript/commit/7dc3e190c854623c030d20530cef2f16798dae50))
+* **internal:** improve node 18 shims ([c6780dd](https://github.com/anthropics/anthropic-sdk-typescript/commit/c6780ddc12282ae1e6796825c713bacf5a50812c))
+* **internal:** reduce CI branch coverage ([464431d](https://github.com/anthropics/anthropic-sdk-typescript/commit/464431d1e57954812b10baa04d12795f4cba6b76))
+* **internal:** refactor utils ([b3dee57](https://github.com/anthropics/anthropic-sdk-typescript/commit/b3dee573e69afe41d1c588e732780b5d370980dd))
+* **internal:** share typescript helpers ([74187db](https://github.com/anthropics/anthropic-sdk-typescript/commit/74187dbc73585c68aa6ae0f05bcba6053d257434))
+* **internal:** upload builds and expand CI branch coverage ([bbda5d3](https://github.com/anthropics/anthropic-sdk-typescript/commit/bbda5d3ccd5c10abbd0727c33c9d63bd366ef557))
+* **perf:** faster base64 decoding ([975795a](https://github.com/anthropics/anthropic-sdk-typescript/commit/975795a61b3067396035621638feb631a7e44dbc))
+* **tests:** improve enum examples ([66cf6d4](https://github.com/anthropics/anthropic-sdk-typescript/commit/66cf6d4d460f93c728aeee069af4f134b853b7d7))
+
+
+### Documentation
+
+* **readme:** fix typo ([6f8fce9](https://github.com/anthropics/anthropic-sdk-typescript/commit/6f8fce9cf7a921b0fc7a5cf0aada0ce130667082))
+
 ## 0.41.0 (2025-05-07)
 
 Full Changelog: [sdk-v0.40.1...sdk-v0.41.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.40.1...sdk-v0.41.0)
