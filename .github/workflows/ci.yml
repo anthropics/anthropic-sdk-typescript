@@ -46,7 +46,7 @@ jobs:
         run: ./scripts/bootstrap
 
       - name: Check build
-        run: ./scripts/build
+        run: yarn build
 
       - name: Get GitHub OIDC Token
         if: github.repository == 'stainless-sdks/anthropic-typescript'
