@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["dist/src"],
+  "exclude": ["dist/src/internal/detect-platform.ts"],
+  "compilerOptions": {
+    "rootDir": "./dist/src",
+    "paths": {
+      "@anthropic-ai/vertex-sdk/*": ["src/*"],
+      "@anthropic-ai/vertex-sdk": ["src/index.ts"]
+    },
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist",
+    "pretty": true,
+    "sourceMap": true
+  }
+}

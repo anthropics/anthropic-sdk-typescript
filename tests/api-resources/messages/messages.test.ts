@@ -126,3 +126,34 @@ describe('resource messages', () => {
     });
   });
 });
+
+test('create: warns when using a deprecated model', async () => {
+  const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+  await client.messages.create({
+    max_tokens: 1024,
+    messages: [{ content: 'Hello, world', role: 'user' }],
+    model: 'claude-instant-1.2',
+  });
+
+  expect(consoleSpy).toHaveBeenCalledWith(
+    "The model 'claude-instant-1.2' is deprecated and will reach end-of-life on November 6th, 2024\n" +
+      'Please migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information.',
+  );
+
+  consoleSpy.mockRestore();
+});
+
+test('create: does not warn for non-deprecated models', async () => {
+  const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+  await client.messages.create({
+    max_tokens: 1024,
+    messages: [{ content: 'Hello, world', role: 'user' }],
+    model: 'claude-3-5-sonnet-20240620',
+  });
+
+  expect(consoleSpy).not.toHaveBeenCalled();
+
+  consoleSpy.mockRestore();
+});

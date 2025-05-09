@@ -1,10 +1,12 @@
 {
   "packages": {
-    ".": {}
+    ".": {},
+    "packages/vertex-sdk": {},
+    "packages/bedrock-sdk": {}
   },
   "$schema": "https://raw.githubusercontent.com/stainless-api/release-please/main/schemas/config.json",
   "include-v-in-tag": true,
-  "include-component-in-tag": false,
+  "include-component-in-tag": true,
   "versioning": "prerelease",
   "prerelease": true,
   "bump-minor-pre-major": true,
@@ -60,5 +62,10 @@
     }
   ],
   "release-type": "node",
-  "extra-files": ["src/version.ts", "README.md"]
+  "extra-files": [
+    "src/version.ts",
+    "README.md",
+    "packages/vertex-sdk/yarn.lock",
+    "packages/bedrock-sdk/yarn.lock"
+  ]
 }
