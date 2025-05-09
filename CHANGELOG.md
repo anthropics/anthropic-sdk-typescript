@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.50.2 (2025-05-09)
+
+Full Changelog: [sdk-v0.50.1...sdk-v0.50.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.50.1...sdk-v0.50.2)
+
+### Bug Fixes
+
+* **ci:** bump publish workflow to node 20 ([306a081](https://github.com/anthropics/anthropic-sdk-typescript/commit/306a0816c3fe383ae8ac78a43ebb57927597417e))
+
+
+### Chores
+
+* **internal:** minor sync ([d89476f](https://github.com/anthropics/anthropic-sdk-typescript/commit/d89476ffacccdf1c30c03bbfac8ae3280a4e8d08))
+* sync repo ([508e385](https://github.com/anthropics/anthropic-sdk-typescript/commit/508e38511c13ba8842065d0dafbc7f462abe0322))
+
+
+### Documentation
+
+* update readme ([ef0c60a](https://github.com/anthropics/anthropic-sdk-typescript/commit/ef0c60afc9ebc690c6179466a22d3e26c77f71db))
+
 ## 0.50.1 (2025-05-09)
 
 Full Changelog: [sdk-v0.50.0...sdk-v0.50.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.50.0...sdk-v0.50.1)
