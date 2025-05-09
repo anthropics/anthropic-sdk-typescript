@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.50.3 (2025-05-09)
+
+Full Changelog: [sdk-v0.50.2...sdk-v0.50.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.50.2...sdk-v0.50.3)
+
+### Bug Fixes
+
+* **client:** always overwrite when merging headers ([bf70c9f](https://github.com/anthropics/anthropic-sdk-typescript/commit/bf70c9f6c8031616cb3927d86272dbcce2158b4e))
+
 ## 0.50.2 (2025-05-09)
 
 Full Changelog: [sdk-v0.50.1...sdk-v0.50.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.50.1...sdk-v0.50.2)
