@@ -1,14 +1,15 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../resource';
-import { isRequestOptions } from '../../core';
-import { APIPromise } from '../../core';
-import * as Core from '../../core';
+import { APIResource } from '../../core/resource';
 import * as Shared from '../shared';
 import * as MessagesAPI from './messages';
-import { Page, type PageParams } from '../../pagination';
+import { APIPromise } from '../../core/api-promise';
+import { Page, type PageParams, PagePromise } from '../../core/pagination';
+import { buildHeaders } from '../../internal/headers';
+import { RequestOptions } from '../../internal/request-options';
 import { JSONLDecoder } from '../../internal/decoders/jsonl';
 import { AnthropicError } from '../../error';
+import { path } from '../../internal/utils/path';
 
 export class Batches extends APIResource {
   /**
@@ -39,7 +40,7 @@ export class Batches extends APIResource {
    * });
    * ```
    */
-  create(body: BatchCreateParams, options?: Core.RequestOptions): Core.APIPromise<MessageBatch> {
+  create(body: BatchCreateParams, options?: RequestOptions): APIPromise<MessageBatch> {
     return this._client.post('/v1/messages/batches', { body, ...options });
   }
 
@@ -58,8 +59,8 @@ export class Batches extends APIResource {
    * );
    * ```
    */
-  retrieve(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<MessageBatch> {
-    return this._client.get(`/v1/messages/batches/${messageBatchId}`, options);
+  retrieve(messageBatchID: string, options?: RequestOptions): APIPromise<MessageBatch> {
+    return this._client.get(path`/v1/messages/batches/${messageBatchID}`, options);
   }
 
   /**
@@ -78,18 +79,10 @@ export class Batches extends APIResource {
    * ```
    */
   list(
-    query?: BatchListParams,
-    options?: Core.RequestOptions,
-  ): Core.PagePromise<MessageBatchesPage, MessageBatch>;
-  list(options?: Core.RequestOptions): Core.PagePromise<MessageBatchesPage, MessageBatch>;
-  list(
-    query: BatchListParams | Core.RequestOptions = {},
-    options?: Core.RequestOptions,
-  ): Core.PagePromise<MessageBatchesPage, MessageBatch> {
-    if (isRequestOptions(query)) {
-      return this.list({}, query);
-    }
-    return this._client.getAPIList('/v1/messages/batches', MessageBatchesPage, { query, ...options });
+    query: BatchListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<MessageBatchesPage, MessageBatch> {
+    return this._client.getAPIList('/v1/messages/batches', Page<MessageBatch>, { query, ...options });
   }
 
   /**
@@ -107,8 +100,8 @@ export class Batches extends APIResource {
    *   await client.messages.batches.delete('message_batch_id');
    * ```
    */
-  delete(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<DeletedMessageBatch> {
-    return this._client.delete(`/v1/messages/batches/${messageBatchId}`, options);
+  delete(messageBatchID: string, options?: RequestOptions): APIPromise<DeletedMessageBatch> {
+    return this._client.delete(path`/v1/messages/batches/${messageBatchID}`, options);
   }
 
   /**
@@ -132,8 +125,8 @@ export class Batches extends APIResource {
    * );
    * ```
    */
-  cancel(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<MessageBatch> {
-    return this._client.post(`/v1/messages/batches/${messageBatchId}/cancel`, options);
+  cancel(messageBatchID: string, options?: RequestOptions): APIPromise<MessageBatch> {
+    return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel`, options);
   }
 
   /**
@@ -153,10 +146,10 @@ export class Batches extends APIResource {
    * ```
    */
   async results(
-    messageBatchId: string,
-    options?: Core.RequestOptions,
+    messageBatchID: string,
+    options?: RequestOptions,
   ): Promise<JSONLDecoder<MessageBatchIndividualResponse>> {
-    const batch = await this.retrieve(messageBatchId);
+    const batch = await this.retrieve(messageBatchID);
     if (!batch.results_url) {
       throw new AnthropicError(
         `No batch \`results_url\`; Has it finished processing? ${batch.processing_status} - ${batch.id}`,
@@ -166,10 +159,8 @@ export class Batches extends APIResource {
     return this._client
       .get(batch.results_url, {
         ...options,
-        headers: {
-          Accept: 'application/binary',
-          ...options?.headers,
-        },
+        headers: buildHeaders([{ Accept: 'application/binary' }, options?.headers]),
+        stream: true,
         __binaryResponse: true,
       })
       ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller)) as APIPromise<
@@ -178,7 +169,7 @@ export class Batches extends APIResource {
   }
 }
 
-export class MessageBatchesPage extends Page<MessageBatch> {}
+export type MessageBatchesPage = Page<MessageBatch>;
 
 export interface DeletedMessageBatch {
   /**
@@ -387,8 +378,6 @@ export namespace BatchCreateParams {
 
 export interface BatchListParams extends PageParams {}
 
-Batches.MessageBatchesPage = MessageBatchesPage;
-
 export declare namespace Batches {
   export {
     type DeletedMessageBatch as DeletedMessageBatch,
@@ -400,7 +389,7 @@ export declare namespace Batches {
     type MessageBatchRequestCounts as MessageBatchRequestCounts,
     type MessageBatchResult as MessageBatchResult,
     type MessageBatchSucceededResult as MessageBatchSucceededResult,
-    MessageBatchesPage as MessageBatchesPage,
+    type MessageBatchesPage as MessageBatchesPage,
     type BatchCreateParams as BatchCreateParams,
     type BatchListParams as BatchListParams,
   };

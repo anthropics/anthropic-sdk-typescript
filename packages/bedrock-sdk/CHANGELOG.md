@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.20.0 (2025-05-09)
+
+Full Changelog: [bedrock-sdk-v0.12.6...bedrock-sdk-v0.12.7](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.12.6...bedrock-sdk-v0.12.7)
+
+### Bug Fixes
+
+* **bedrock,vertex:** update to new SDK version ([cb620bb](https://github.com/anthropics/anthropic-sdk-typescript/commit/cb620bbb60e64f27168f74db7a48ad8c2d5f953e))
+* **vertex,bedrock:** correct build script ([df895a7](https://github.com/anthropics/anthropic-sdk-typescript/commit/df895a7d7cbd51422343fca95ab9f1d58918b2a1))
+
+
+### Chores
+
+* **bedrock:** add `skipAuth` option to allow users to let authorization be handled elsewhere ([ee58772](https://github.com/anthropics/anthropic-sdk-typescript/commit/ee587723718109797efa80b020076c43a300f1b9))
+* **bedrock:** bump [@aws-sdk](https://github.com/aws-sdk) dependencies ([ff925db](https://github.com/anthropics/anthropic-sdk-typescript/commit/ff925db987a66950c997ec50b9c55e67152d1945))
+* **bedrock:** bump @aws-sdk/credential-providers ([9f611d6](https://github.com/anthropics/anthropic-sdk-typescript/commit/9f611d6ba8c6b3de02c3183e4f2f42d1540525f0))
+
 ## 0.12.6 (2025-04-28)
 
 Full Changelog: [bedrock-sdk-v0.12.5...bedrock-sdk-v0.12.6](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.12.5...bedrock-sdk-v0.12.6)

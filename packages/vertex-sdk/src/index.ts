@@ -1,1 +1,2 @@
-export { AnthropicVertex } from './client';
+export * from './client';
+export { AnthropicVertex as default } from './client';

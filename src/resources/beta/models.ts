@@ -1,10 +1,12 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../resource';
-import { isRequestOptions } from '../../core';
-import * as Core from '../../core';
+import { APIResource } from '../../core/resource';
 import * as BetaAPI from './beta';
-import { Page, type PageParams } from '../../pagination';
+import { APIPromise } from '../../core/api-promise';
+import { Page, type PageParams, PagePromise } from '../../core/pagination';
+import { buildHeaders } from '../../internal/headers';
+import { RequestOptions } from '../../internal/request-options';
+import { path } from '../../internal/utils/path';
 
 export class Models extends APIResource {
   /**
@@ -21,26 +23,17 @@ export class Models extends APIResource {
    * ```
    */
   retrieve(
-    modelId: string,
-    params?: ModelRetrieveParams,
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<BetaModelInfo>;
-  retrieve(modelId: string, options?: Core.RequestOptions): Core.APIPromise<BetaModelInfo>;
-  retrieve(
-    modelId: string,
-    params: ModelRetrieveParams | Core.RequestOptions = {},
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<BetaModelInfo> {
-    if (isRequestOptions(params)) {
-      return this.retrieve(modelId, {}, params);
-    }
-    const { betas } = params;
-    return this._client.get(`/v1/models/${modelId}?beta=true`, {
+    modelID: string,
+    params: ModelRetrieveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaModelInfo> {
+    const { betas } = params ?? {};
+    return this._client.get(path`/v1/models/${modelID}?beta=true`, {
       ...options,
-      headers: {
-        ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
-        ...options?.headers,
-      },
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
     });
   }
 
@@ -59,30 +52,22 @@ export class Models extends APIResource {
    * ```
    */
   list(
-    params?: ModelListParams,
-    options?: Core.RequestOptions,
-  ): Core.PagePromise<BetaModelInfosPage, BetaModelInfo>;
-  list(options?: Core.RequestOptions): Core.PagePromise<BetaModelInfosPage, BetaModelInfo>;
-  list(
-    params: ModelListParams | Core.RequestOptions = {},
-    options?: Core.RequestOptions,
-  ): Core.PagePromise<BetaModelInfosPage, BetaModelInfo> {
-    if (isRequestOptions(params)) {
-      return this.list({}, params);
-    }
-    const { betas, ...query } = params;
-    return this._client.getAPIList('/v1/models?beta=true', BetaModelInfosPage, {
+    params: ModelListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<BetaModelInfosPage, BetaModelInfo> {
+    const { betas, ...query } = params ?? {};
+    return this._client.getAPIList('/v1/models?beta=true', Page<BetaModelInfo>, {
       query,
       ...options,
-      headers: {
-        ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
-        ...options?.headers,
-      },
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
     });
   }
 }
 
-export class BetaModelInfosPage extends Page<BetaModelInfo> {}
+export type BetaModelInfosPage = Page<BetaModelInfo>;
 
 export interface BetaModelInfo {
   /**
@@ -123,12 +108,10 @@ export interface ModelListParams extends PageParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
-Models.BetaModelInfosPage = BetaModelInfosPage;
-
 export declare namespace Models {
   export {
     type BetaModelInfo as BetaModelInfo,
-    BetaModelInfosPage as BetaModelInfosPage,
+    type BetaModelInfosPage as BetaModelInfosPage,
     type ModelRetrieveParams as ModelRetrieveParams,
     type ModelListParams as ModelListParams,
   };

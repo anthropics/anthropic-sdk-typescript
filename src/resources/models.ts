@@ -1,10 +1,12 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../resource';
-import { isRequestOptions } from '../core';
-import * as Core from '../core';
+import { APIResource } from '../core/resource';
 import * as BetaAPI from './beta/beta';
-import { Page, type PageParams } from '../pagination';
+import { APIPromise } from '../core/api-promise';
+import { Page, type PageParams, PagePromise } from '../core/pagination';
+import { buildHeaders } from '../internal/headers';
+import { RequestOptions } from '../internal/request-options';
+import { path } from '../internal/utils/path';
 
 export class Models extends APIResource {
   /**
@@ -14,26 +16,17 @@ export class Models extends APIResource {
    * model or resolve a model alias to a model ID.
    */
   retrieve(
-    modelId: string,
-    params?: ModelRetrieveParams,
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<ModelInfo>;
-  retrieve(modelId: string, options?: Core.RequestOptions): Core.APIPromise<ModelInfo>;
-  retrieve(
-    modelId: string,
-    params: ModelRetrieveParams | Core.RequestOptions = {},
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<ModelInfo> {
-    if (isRequestOptions(params)) {
-      return this.retrieve(modelId, {}, params);
-    }
-    const { betas } = params;
-    return this._client.get(`/v1/models/${modelId}`, {
+    modelID: string,
+    params: ModelRetrieveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<ModelInfo> {
+    const { betas } = params ?? {};
+    return this._client.get(path`/v1/models/${modelID}`, {
       ...options,
-      headers: {
-        ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
-        ...options?.headers,
-      },
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
     });
   }
 
@@ -43,28 +36,23 @@ export class Models extends APIResource {
    * The Models API response can be used to determine which models are available for
    * use in the API. More recently released models are listed first.
    */
-  list(params?: ModelListParams, options?: Core.RequestOptions): Core.PagePromise<ModelInfosPage, ModelInfo>;
-  list(options?: Core.RequestOptions): Core.PagePromise<ModelInfosPage, ModelInfo>;
   list(
-    params: ModelListParams | Core.RequestOptions = {},
-    options?: Core.RequestOptions,
-  ): Core.PagePromise<ModelInfosPage, ModelInfo> {
-    if (isRequestOptions(params)) {
-      return this.list({}, params);
-    }
-    const { betas, ...query } = params;
-    return this._client.getAPIList('/v1/models', ModelInfosPage, {
+    params: ModelListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<ModelInfosPage, ModelInfo> {
+    const { betas, ...query } = params ?? {};
+    return this._client.getAPIList('/v1/models', Page<ModelInfo>, {
       query,
       ...options,
-      headers: {
-        ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
-        ...options?.headers,
-      },
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
     });
   }
 }
 
-export class ModelInfosPage extends Page<ModelInfo> {}
+export type ModelInfosPage = Page<ModelInfo>;
 
 export interface ModelInfo {
   /**
@@ -105,12 +93,10 @@ export interface ModelListParams extends PageParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
-Models.ModelInfosPage = ModelInfosPage;
-
 export declare namespace Models {
   export {
     type ModelInfo as ModelInfo,
-    ModelInfosPage as ModelInfosPage,
+    type ModelInfosPage as ModelInfosPage,
     type ModelRetrieveParams as ModelRetrieveParams,
     type ModelListParams as ModelListParams,
   };

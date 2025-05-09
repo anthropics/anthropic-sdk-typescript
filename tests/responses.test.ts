@@ -1,31 +1,8 @@
-import { APIPromise, createResponseHeaders } from '@anthropic-ai/sdk/core';
+import { APIPromise } from '@anthropic-ai/sdk/api-promise';
 import Anthropic from '@anthropic-ai/sdk/index';
-import { Headers } from '@anthropic-ai/sdk/_shims/index';
-import { Response } from 'node-fetch';
 import { compareType } from './utils/typing';
 
-describe('response parsing', () => {
-  // TODO: test unicode characters
-  test('headers are case agnostic', async () => {
-    const headers = createResponseHeaders(new Headers({ 'Content-Type': 'foo', Accept: 'text/plain' }));
-    expect(headers['content-type']).toEqual('foo');
-    expect(headers['Content-type']).toEqual('foo');
-    expect(headers['Content-Type']).toEqual('foo');
-    expect(headers['accept']).toEqual('text/plain');
-    expect(headers['Accept']).toEqual('text/plain');
-    expect(headers['Hello-World']).toBeUndefined();
-  });
-
-  test('duplicate headers are concatenated', () => {
-    const headers = createResponseHeaders(
-      new Headers([
-        ['Content-Type', 'text/xml'],
-        ['Content-Type', 'application/json'],
-      ]),
-    );
-    expect(headers['content-type']).toBe('text/xml, application/json');
-  });
-});
+const client = new Anthropic({ apiKey: 'dummy' });
 
 describe('request id', () => {
   test('types', () => {
@@ -85,6 +62,7 @@ describe('request id', () => {
 
   test('envelope response', async () => {
     const promise = new APIPromise<{ data: { foo: string } }>(
+      client,
       (async () => {
         return {
           response: new Response(JSON.stringify({ data: { foo: 'bar' } }), {
@@ -92,6 +70,9 @@ describe('request id', () => {
           }),
           controller: {} as any,
           options: {} as any,
+          requestLogID: 'log_000000',
+          retryOfRequestLogID: undefined,
+          startTime: Date.now(),
         };
       })(),
     )._thenUnwrap((d) => d.data);
@@ -117,6 +98,7 @@ describe('request id', () => {
 
   test('array response', async () => {
     const promise = new APIPromise<Array<{ foo: string }>>(
+      client,
       (async () => {
         return {
           response: new Response(JSON.stringify([{ foo: 'bar' }]), {
@@ -124,6 +106,9 @@ describe('request id', () => {
           }),
           controller: {} as any,
           options: {} as any,
+          requestLogID: 'log_000000',
+          retryOfRequestLogID: undefined,
+          startTime: Date.now(),
         };
       })(),
     );
@@ -136,6 +121,7 @@ describe('request id', () => {
 
   test('string response', async () => {
     const promise = new APIPromise<string>(
+      client,
       (async () => {
         return {
           response: new Response('hello world', {
@@ -143,6 +129,9 @@ describe('request id', () => {
           }),
           controller: {} as any,
           options: {} as any,
+          requestLogID: 'log_000000',
+          retryOfRequestLogID: undefined,
+          startTime: Date.now(),
         };
       })(),
     );

@@ -1,14 +1,15 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../../../resource';
-import { isRequestOptions } from '../../../core';
-import { APIPromise } from '../../../core';
-import * as Core from '../../../core';
+import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
+import { APIPromise } from '../../../core/api-promise';
 import * as BetaMessagesAPI from './messages';
-import { Page, type PageParams } from '../../../pagination';
+import { Page, type PageParams, PagePromise } from '../../../core/pagination';
+import { buildHeaders } from '../../../internal/headers';
+import { RequestOptions } from '../../../internal/request-options';
 import { JSONLDecoder } from '../../../internal/decoders/jsonl';
 import { AnthropicError } from '../../../error';
+import { path } from '../../../internal/utils/path';
 
 export class Batches extends APIResource {
   /**
@@ -40,15 +41,15 @@ export class Batches extends APIResource {
    *   });
    * ```
    */
-  create(params: BatchCreateParams, options?: Core.RequestOptions): Core.APIPromise<BetaMessageBatch> {
+  create(params: BatchCreateParams, options?: RequestOptions): APIPromise<BetaMessageBatch> {
     const { betas, ...body } = params;
     return this._client.post('/v1/messages/batches?beta=true', {
       body,
       ...options,
-      headers: {
-        'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
-        ...options?.headers,
-      },
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString() },
+        options?.headers,
+      ]),
     });
   }
 
@@ -69,26 +70,17 @@ export class Batches extends APIResource {
    * ```
    */
   retrieve(
-    messageBatchId: string,
-    params?: BatchRetrieveParams,
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<BetaMessageBatch>;
-  retrieve(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<BetaMessageBatch>;
-  retrieve(
-    messageBatchId: string,
-    params: BatchRetrieveParams | Core.RequestOptions = {},
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<BetaMessageBatch> {
-    if (isRequestOptions(params)) {
-      return this.retrieve(messageBatchId, {}, params);
-    }
-    const { betas } = params;
-    return this._client.get(`/v1/messages/batches/${messageBatchId}?beta=true`, {
+    messageBatchID: string,
+    params: BatchRetrieveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaMessageBatch> {
+    const { betas } = params ?? {};
+    return this._client.get(path`/v1/messages/batches/${messageBatchID}?beta=true`, {
       ...options,
-      headers: {
-        'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
-        ...options?.headers,
-      },
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString() },
+        options?.headers,
+      ]),
     });
   }
 
@@ -108,25 +100,17 @@ export class Batches extends APIResource {
    * ```
    */
   list(
-    params?: BatchListParams,
-    options?: Core.RequestOptions,
-  ): Core.PagePromise<BetaMessageBatchesPage, BetaMessageBatch>;
-  list(options?: Core.RequestOptions): Core.PagePromise<BetaMessageBatchesPage, BetaMessageBatch>;
-  list(
-    params: BatchListParams | Core.RequestOptions = {},
-    options?: Core.RequestOptions,
-  ): Core.PagePromise<BetaMessageBatchesPage, BetaMessageBatch> {
-    if (isRequestOptions(params)) {
-      return this.list({}, params);
-    }
-    const { betas, ...query } = params;
-    return this._client.getAPIList('/v1/messages/batches?beta=true', BetaMessageBatchesPage, {
+    params: BatchListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<BetaMessageBatchesPage, BetaMessageBatch> {
+    const { betas, ...query } = params ?? {};
+    return this._client.getAPIList('/v1/messages/batches?beta=true', Page<BetaMessageBatch>, {
       query,
       ...options,
-      headers: {
-        'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
-        ...options?.headers,
-      },
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString() },
+        options?.headers,
+      ]),
     });
   }
 
@@ -148,26 +132,17 @@ export class Batches extends APIResource {
    * ```
    */
   delete(
-    messageBatchId: string,
-    params?: BatchDeleteParams,
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<BetaDeletedMessageBatch>;
-  delete(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<BetaDeletedMessageBatch>;
-  delete(
-    messageBatchId: string,
-    params: BatchDeleteParams | Core.RequestOptions = {},
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<BetaDeletedMessageBatch> {
-    if (isRequestOptions(params)) {
-      return this.delete(messageBatchId, {}, params);
-    }
-    const { betas } = params;
-    return this._client.delete(`/v1/messages/batches/${messageBatchId}?beta=true`, {
+    messageBatchID: string,
+    params: BatchDeleteParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaDeletedMessageBatch> {
+    const { betas } = params ?? {};
+    return this._client.delete(path`/v1/messages/batches/${messageBatchID}?beta=true`, {
       ...options,
-      headers: {
-        'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
-        ...options?.headers,
-      },
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString() },
+        options?.headers,
+      ]),
     });
   }
 
@@ -194,26 +169,17 @@ export class Batches extends APIResource {
    * ```
    */
   cancel(
-    messageBatchId: string,
-    params?: BatchCancelParams,
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<BetaMessageBatch>;
-  cancel(messageBatchId: string, options?: Core.RequestOptions): Core.APIPromise<BetaMessageBatch>;
-  cancel(
-    messageBatchId: string,
-    params: BatchCancelParams | Core.RequestOptions = {},
-    options?: Core.RequestOptions,
-  ): Core.APIPromise<BetaMessageBatch> {
-    if (isRequestOptions(params)) {
-      return this.cancel(messageBatchId, {}, params);
-    }
-    const { betas } = params;
-    return this._client.post(`/v1/messages/batches/${messageBatchId}/cancel?beta=true`, {
+    messageBatchID: string,
+    params: BatchCancelParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaMessageBatch> {
+    const { betas } = params ?? {};
+    return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel?beta=true`, {
       ...options,
-      headers: {
-        'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
-        ...options?.headers,
-      },
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString() },
+        options?.headers,
+      ]),
     });
   }
 
@@ -236,39 +202,28 @@ export class Batches extends APIResource {
    * ```
    */
   async results(
-    messageBatchId: string,
-    params: BatchResultsParams | undefined,
-    options?: Core.RequestOptions,
-  ): Promise<JSONLDecoder<BetaMessageBatchIndividualResponse>>;
-  async results(
-    messageBatchId: string,
-    options?: Core.RequestOptions,
-  ): Promise<JSONLDecoder<BetaMessageBatchIndividualResponse>>;
-  async results(
-    messageBatchId: string,
-    params: BatchResultsParams | Core.RequestOptions = {},
-    options?: Core.RequestOptions,
+    messageBatchID: string,
+    params: BatchResultsParams | undefined = {},
+    options?: RequestOptions,
   ): Promise<JSONLDecoder<BetaMessageBatchIndividualResponse>> {
-    if (isRequestOptions(params)) {
-      return this.results(messageBatchId, {}, params);
-    }
-
-    const batch = await this.retrieve(messageBatchId);
+    const batch = await this.retrieve(messageBatchID);
     if (!batch.results_url) {
       throw new AnthropicError(
         `No batch \`results_url\`; Has it finished processing? ${batch.processing_status} - ${batch.id}`,
       );
     }
 
-    const { betas } = params;
+    const { betas } = params ?? {};
     return this._client
       .get(batch.results_url, {
         ...options,
-        headers: {
-          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
-          Accept: 'application/binary',
-          ...options?.headers,
-        },
+        headers: buildHeaders([
+          {
+            'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+            Accept: 'application/binary',
+          },
+          options?.headers,
+        ]),
         stream: true,
         __binaryResponse: true,
       })
@@ -278,7 +233,7 @@ export class Batches extends APIResource {
   }
 }
 
-export class BetaMessageBatchesPage extends Page<BetaMessageBatch> {}
+export type BetaMessageBatchesPage = Page<BetaMessageBatch>;
 
 export interface BetaDeletedMessageBatch {
   /**
@@ -525,8 +480,6 @@ export interface BatchResultsParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
-Batches.BetaMessageBatchesPage = BetaMessageBatchesPage;
-
 export declare namespace Batches {
   export {
     type BetaDeletedMessageBatch as BetaDeletedMessageBatch,
@@ -538,7 +491,7 @@ export declare namespace Batches {
     type BetaMessageBatchRequestCounts as BetaMessageBatchRequestCounts,
     type BetaMessageBatchResult as BetaMessageBatchResult,
     type BetaMessageBatchSucceededResult as BetaMessageBatchSucceededResult,
-    BetaMessageBatchesPage as BetaMessageBatchesPage,
+    type BetaMessageBatchesPage as BetaMessageBatchesPage,
     type BatchCreateParams as BatchCreateParams,
     type BatchRetrieveParams as BatchRetrieveParams,
     type BatchListParams as BatchListParams,

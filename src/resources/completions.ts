@@ -1,12 +1,13 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIResource } from '../resource';
-import { APIPromise } from '../core';
-import * as Core from '../core';
+import { APIResource } from '../core/resource';
 import * as CompletionsAPI from './completions';
 import * as BetaAPI from './beta/beta';
 import * as MessagesAPI from './messages/messages';
-import { Stream } from '../streaming';
+import { APIPromise } from '../core/api-promise';
+import { Stream } from '../core/streaming';
+import { buildHeaders } from '../internal/headers';
+import { RequestOptions } from '../internal/request-options';
 
 export class Completions extends APIResource {
   /**
@@ -28,28 +29,25 @@ export class Completions extends APIResource {
    * });
    * ```
    */
-  create(params: CompletionCreateParamsNonStreaming, options?: Core.RequestOptions): APIPromise<Completion>;
-  create(
-    params: CompletionCreateParamsStreaming,
-    options?: Core.RequestOptions,
-  ): APIPromise<Stream<Completion>>;
+  create(params: CompletionCreateParamsNonStreaming, options?: RequestOptions): APIPromise<Completion>;
+  create(params: CompletionCreateParamsStreaming, options?: RequestOptions): APIPromise<Stream<Completion>>;
   create(
     params: CompletionCreateParamsBase,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Stream<Completion> | Completion>;
   create(
     params: CompletionCreateParams,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): APIPromise<Completion> | APIPromise<Stream<Completion>> {
     const { betas, ...body } = params;
     return this._client.post('/v1/complete', {
       body,
       timeout: (this._client as any)._options.timeout ?? 600000,
       ...options,
-      headers: {
-        ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
-        ...options?.headers,
-      },
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
       stream: params.stream ?? false,
     }) as APIPromise<Completion> | APIPromise<Stream<Completion>>;
   }

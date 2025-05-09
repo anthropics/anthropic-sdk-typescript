@@ -1,5 +1,5 @@
-import * as Core from '@anthropic-ai/sdk/core';
-import { AnthropicError, APIUserAbortError } from '@anthropic-ai/sdk/error';
+import { isAbortError } from '../internal/errors';
+import { AnthropicError, APIUserAbortError } from '../error';
 import {
   type ContentBlock,
   Messages,
@@ -10,10 +10,11 @@ import {
   type MessageCreateParamsBase,
   type TextBlock,
   type TextCitation,
-} from '@anthropic-ai/sdk/resources/messages';
-import { type ReadableStream, type Response } from '@anthropic-ai/sdk/_shims/index';
-import { Stream } from '@anthropic-ai/sdk/streaming';
+} from '../resources/messages';
+import { Stream } from '../streaming';
 import { partialParse } from '../_vendor/partial-json-parser/parser';
+import { RequestOptions } from '../internal/request-options';
+import { type ReadableStream } from '../internal/shim-types';
 
 export interface MessageStreamEvents {
   connect: () => void;
@@ -132,7 +133,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
   static createMessage(
     messages: Messages,
     params: MessageCreateParamsBase,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): MessageStream {
     const runner = new MessageStream();
     for (const message of params.messages) {
@@ -169,7 +170,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
   protected async _createMessage(
     messages: Messages,
     params: MessageCreateParams,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): Promise<void> {
     const signal = options?.signal;
     if (signal) {
@@ -331,7 +332,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
 
   #handleError = (error: unknown) => {
     this.#errored = true;
-    if (error instanceof Error && error.name === 'AbortError') {
+    if (isAbortError(error)) {
       error = new APIUserAbortError();
     }
     if (error instanceof APIUserAbortError) {
@@ -485,7 +486,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
 
   protected async _fromReadableStream(
     readableStream: ReadableStream,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): Promise<void> {
     const signal = options?.signal;
     if (signal) {

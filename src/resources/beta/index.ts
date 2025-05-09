@@ -16,13 +16,6 @@ export {
   type BetaRateLimitError,
 } from './beta';
 export {
-  BetaModelInfosPage,
-  Models,
-  type BetaModelInfo,
-  type ModelRetrieveParams,
-  type ModelListParams,
-} from './models';
-export {
   Messages,
   type BetaBase64ImageSource,
   type BetaBase64PDFBlock,
@@ -109,3 +102,10 @@ export {
   type MessageCreateParamsStreaming,
   type MessageCountTokensParams,
 } from './messages/index';
+export {
+  Models,
+  type BetaModelInfo,
+  type ModelRetrieveParams,
+  type ModelListParams,
+  type BetaModelInfosPage,
+} from './models';

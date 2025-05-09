@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.0 (2025-05-09)
+
+Full Changelog: [vertex-sdk-v0.7.0...vertex-sdk-v0.7.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.7.0...vertex-sdk-v0.7.1)
+
+### Bug Fixes
+
+* **bedrock,vertex:** update to new SDK version ([cb620bb](https://github.com/anthropics/anthropic-sdk-typescript/commit/cb620bbb60e64f27168f74db7a48ad8c2d5f953e))
+* **vertex,bedrock:** correct build script ([df895a7](https://github.com/anthropics/anthropic-sdk-typescript/commit/df895a7d7cbd51422343fca95ab9f1d58918b2a1))
+
 ## 0.7.0 (2025-02-24)
 
 Full Changelog: [vertex-sdk-v0.6.4...vertex-sdk-v0.7.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.6.4...vertex-sdk-v0.7.0)
