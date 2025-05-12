@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.50.4 (2025-05-12)
+
+Full Changelog: [sdk-v0.50.3...sdk-v0.50.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.50.3...sdk-v0.50.4)
+
+### Bug Fixes
+
+* **stream:** correctly accumulate usage ([c55b4f0](https://github.com/anthropics/anthropic-sdk-typescript/commit/c55b4f01cdd545faf93d6f463caef6f6c5839f07))
+
 ## 0.50.3 (2025-05-09)
 
 Full Changelog: [sdk-v0.50.2...sdk-v0.50.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.50.2...sdk-v0.50.3)
