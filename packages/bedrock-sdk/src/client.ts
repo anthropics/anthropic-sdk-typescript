@@ -7,6 +7,7 @@ import { FinalRequestOptions } from './internal/request-options';
 import { isObj } from './internal/utils/values';
 import { buildHeaders } from './internal/headers';
 import { FinalizedRequestInit } from './internal/types';
+import { path } from './internal/utils/path';
 
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 
@@ -139,13 +140,10 @@ export class AnthropicBedrock extends BaseAnthropic {
       const stream = options.body['stream'];
       options.body['stream'] = undefined;
 
-      // Encode model name to handle ARNs with slashes (e.g., inference-profile/name)
-      const encodedModel = encodeURIComponent(model);
-
       if (stream) {
-        options.path = `/model/${encodedModel}/invoke-with-response-stream`;
+        options.path = path`/model/${model}/invoke-with-response-stream`;
       } else {
-        options.path = `/model/${encodedModel}/invoke`;
+        options.path = path`/model/${model}/invoke`;
       }
     }
 
