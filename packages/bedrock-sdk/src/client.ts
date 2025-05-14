@@ -133,16 +133,19 @@ export class AnthropicBedrock extends BaseAnthropic {
         throw new Error('Expected request body to be an object for post /v1/messages');
       }
 
-      const model = options.body['model'];
+      const model = options.body['model'] as string;
       options.body['model'] = undefined;
 
       const stream = options.body['stream'];
       options.body['stream'] = undefined;
 
+      // Encode model name to handle ARNs with slashes (e.g., inference-profile/name)
+      const encodedModel = encodeURIComponent(model);
+
       if (stream) {
-        options.path = `/model/${model}/invoke-with-response-stream`;
+        options.path = `/model/${encodedModel}/invoke-with-response-stream`;
       } else {
-        options.path = `/model/${model}/invoke`;
+        options.path = `/model/${encodedModel}/invoke`;
       }
     }
 
