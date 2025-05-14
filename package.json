@@ -21,7 +21,8 @@
     "prepare": "if ./scripts/utils/check-is-in-git-install.sh; then ./scripts/build && ./scripts/utils/git-swap.sh; fi",
     "tsn": "ts-node -r tsconfig-paths/register",
     "lint": "./scripts/lint",
-    "fix": "./scripts/format"
+    "fix": "./scripts/format",
+    "install-all": "./scripts/install-all"
   },
   "dependencies": {},
   "devDependencies": {
