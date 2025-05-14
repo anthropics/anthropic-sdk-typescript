@@ -68,7 +68,7 @@ describe('Bedrock model ARN URL encoding integration test', () => {
 
     // Expected URL with properly encoded ARN (slash encoded as %2F)
     const expectedUrl =
-      'http://localhost:4010/model/arn%3Aaws%3Abedrock%3Aus-east-2%3A1234%3Ainference-profile%2Fus.anthropic.claude-3-7-sonnet-20250219-v1%3A0/invoke';
+      'http://localhost:4010/model/arn:aws:bedrock:us-east-2:1234:inference-profile%2Fus.anthropic.claude-3-7-sonnet-20250219-v1:0/invoke';
 
     // Verify the exact URL matches what we expect
     expect(fetchUrl).toBe(expectedUrl);
@@ -105,7 +105,7 @@ describe('Bedrock model ARN URL encoding integration test', () => {
     const fetchUrl = mockFetch.mock.calls[0][0];
 
     // Expected URL with properly encoded model name
-    const expectedUrl = 'http://localhost:4010/model/anthropic.claude-3-sonnet-20240229-v1%3A0/invoke';
+    const expectedUrl = 'http://localhost:4010/model/anthropic.claude-3-sonnet-20240229-v1:0/invoke';
 
     // Verify the exact URL matches what we expect
     expect(fetchUrl).toBe(expectedUrl);
