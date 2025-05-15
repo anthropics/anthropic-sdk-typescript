@@ -7,6 +7,7 @@ import { FinalRequestOptions } from './internal/request-options';
 import { isObj } from './internal/utils/values';
 import { buildHeaders } from './internal/headers';
 import { FinalizedRequestInit } from './internal/types';
+import { path } from './internal/utils/path';
 
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 
@@ -133,16 +134,16 @@ export class AnthropicBedrock extends BaseAnthropic {
         throw new Error('Expected request body to be an object for post /v1/messages');
       }
 
-      const model = options.body['model'];
+      const model = options.body['model'] as string;
       options.body['model'] = undefined;
 
       const stream = options.body['stream'];
       options.body['stream'] = undefined;
 
       if (stream) {
-        options.path = `/model/${model}/invoke-with-response-stream`;
+        options.path = path`/model/${model}/invoke-with-response-stream`;
       } else {
-        options.path = `/model/${model}/invoke`;
+        options.path = path`/model/${model}/invoke`;
       }
     }
 

@@ -33,7 +33,7 @@ jobs:
         run: |
           yarn install
 
-      - name: Update 3p souces
+      - name: Update internal symlinks in third party packages
         run: ./bin/replace-internal-symlinks
 
       - name: Publish to NPM

@@ -11,7 +11,7 @@
   "packageManager": "yarn@1.22.21",
   "private": false,
   "scripts": {
-    "test": "echo 'no tests defined yet' && exit 1",
+    "test": "jest",
     "build": "bash ./build",
     "prepack": "echo 'to pack, run yarn build && (cd dist; yarn pack)' && exit 1",
     "prepublishOnly": "echo 'to publish, run yarn build && (cd dist; yarn publish)' && exit 1",
@@ -35,6 +35,8 @@
     "@smithy/util-base64": "^2.0.0"
   },
   "devDependencies": {
+    "@swc/core": "^1.3.101",
+    "@swc/jest": "^0.2.29",
     "@types/node": "^20.17.6",
     "@types/jest": "^29.4.0",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
