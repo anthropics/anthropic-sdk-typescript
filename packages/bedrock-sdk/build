@@ -15,6 +15,11 @@ for file in CHANGELOG.md; do
   if [ -e "${file}" ]; then cp "${file}" dist; fi
 done
 
+# Make sure the internal modules are properly copied over
+if [ -e "../../dist/internal" ]; then
+  cp -rp ../../dist/internal dist/src/
+fi
+
 # this converts the export map paths for the dist directory
 # and does a few other minor things
 PKG_JSON_PATH=../../packages/bedrock-sdk/package.json node ../../scripts/utils/make-dist-package-json.cjs > dist/package.json
