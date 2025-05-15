@@ -7,6 +7,7 @@ import { FinalRequestOptions } from './internal/request-options';
 import { isObj } from './internal/utils/values';
 import { buildHeaders } from './internal/headers';
 import { FinalizedRequestInit } from './internal/types';
+import { path } from './internal/utils/path';
 
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 
@@ -22,6 +23,7 @@ export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
    */
   awsRegion?: string | undefined;
   awsSessionToken?: string | null | undefined;
+  skipAuth?: boolean;
 };
 
 /** API Client for interfacing with the Anthropic Bedrock API. */
@@ -30,6 +32,7 @@ export class AnthropicBedrock extends BaseAnthropic {
   awsAccessKey: string | null;
   awsRegion: string;
   awsSessionToken: string | null;
+  skipAuth: boolean = false;
 
   /**
    * API Client for interfacing with the Anthropic Bedrock API.
@@ -46,6 +49,7 @@ export class AnthropicBedrock extends BaseAnthropic {
    * @param {HeadersLike} opts.defaultHeaders - Default headers to include with every request to the API.
    * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
    * @param {boolean} [opts.dangerouslyAllowBrowser=false] - By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
+   * @param {boolean} [opts.skipAuth=false] - Skip authentication for this request. This is useful if you have an internal proxy that handles authentication for you.
    */
   constructor({
     awsRegion = readEnv('AWS_REGION') ?? 'us-east-1',
@@ -64,6 +68,7 @@ export class AnthropicBedrock extends BaseAnthropic {
     this.awsAccessKey = awsAccessKey;
     this.awsRegion = awsRegion;
     this.awsSessionToken = awsSessionToken;
+    this.skipAuth = opts.skipAuth ?? false;
   }
 
   messages: MessagesResource = makeMessagesResource(this);
@@ -78,6 +83,9 @@ export class AnthropicBedrock extends BaseAnthropic {
     request: FinalizedRequestInit,
     { url, options }: { url: string; options: FinalRequestOptions },
   ): Promise<void> {
+    if (this.skipAuth) {
+      return;
+    }
     const regionName = this.awsRegion;
     if (!regionName) {
       throw new Error(
@@ -126,16 +134,16 @@ export class AnthropicBedrock extends BaseAnthropic {
         throw new Error('Expected request body to be an object for post /v1/messages');
       }
 
-      const model = options.body['model'];
+      const model = options.body['model'] as string;
       options.body['model'] = undefined;
 
       const stream = options.body['stream'];
       options.body['stream'] = undefined;
 
       if (stream) {
-        options.path = `/model/${model}/invoke-with-response-stream`;
+        options.path = path`/model/${model}/invoke-with-response-stream`;
       } else {
-        options.path = `/model/${model}/invoke`;
+        options.path = path`/model/${model}/invoke`;
       }
     }
 

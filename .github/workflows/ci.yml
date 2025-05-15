@@ -24,6 +24,13 @@ jobs:
       - name: Bootstrap
         run: ./scripts/bootstrap
 
+      - name: Update internal symlinks in third party packages
+        run: ./bin/replace-internal-symlinks
+
+      - name: run build all
+        # this is needed so that sub packages can work (they depend on `dist` in the root folder)
+        run: ./scripts/build-all
+
       - name: Check types
         run: ./scripts/lint
 
@@ -45,11 +52,11 @@ jobs:
       - name: Bootstrap
         run: ./scripts/bootstrap
 
-      - name: Update 3p souces
+      - name: Update internal symlinks in third party packages
         run: ./bin/replace-internal-symlinks
 
-      - name: Check build
-        run: yarn build
+      - name: run build all
+        run: ./scripts/build-all
 
       - name: Get GitHub OIDC Token
         if: github.repository == 'stainless-sdks/anthropic-typescript'
@@ -79,6 +86,13 @@ jobs:
 
       - name: Bootstrap
         run: ./scripts/bootstrap
+
+      - name: Update internal symlinks in third party packages
+        run: ./bin/replace-internal-symlinks
+
+      - name: run build all
+        # this is needed so that sub packages can work (they depend on `dist` in the root folder)
+        run: ./scripts/build-all
 
       - name: Run tests
         run: ./scripts/test
