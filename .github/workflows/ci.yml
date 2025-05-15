@@ -56,12 +56,7 @@ jobs:
         run: ./bin/replace-internal-symlinks
 
       - name: run build all
-        # this is needed so that sub packages can work (they depend on `dist` in the root folder)
         run: ./scripts/build-all
-
-
-      - name: Check build
-        run: yarn build
 
       - name: Get GitHub OIDC Token
         if: github.repository == 'stainless-sdks/anthropic-typescript'
