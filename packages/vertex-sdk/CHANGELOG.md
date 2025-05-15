@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.3 (2025-05-15)
+
+Full Changelog: [vertex-sdk-v0.11.2...vertex-sdk-v0.11.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.11.2...vertex-sdk-v0.11.3)
+
 ## 0.11.2 (2025-05-09)
 
 Full Changelog: [vertex-sdk-v0.11.1...vertex-sdk-v0.11.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.11.1...vertex-sdk-v0.11.2)

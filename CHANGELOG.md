@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.51.0 (2025-05-15)
+
+Full Changelog: [sdk-v0.50.4...sdk-v0.51.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.50.4...sdk-v0.51.0)
+
+### Features
+
+* **bedrock:** support skipAuth on Bedrock client to bypass local auth requirements ([b661c5f](https://github.com/anthropics/anthropic-sdk-typescript/commit/b661c5fe4d93fa749de5b7cbbce98dc224a68adc))
+
+
+### Bug Fixes
+
+* **bedrock:** support model names with slashes ([cb5fa8a](https://github.com/anthropics/anthropic-sdk-typescript/commit/cb5fa8a8f55ed12382aeb5f09110b0d5fefc46bb))
+
+
+### Chores
+
+* **package:** remove engines ([f0378ec](https://github.com/anthropics/anthropic-sdk-typescript/commit/f0378ec0be0cac0b165d169a05548692f8ef3b69))
+
 ## 0.50.4 (2025-05-12)
 
 Full Changelog: [sdk-v0.50.3...sdk-v0.50.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.50.3...sdk-v0.50.4)
