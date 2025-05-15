@@ -52,12 +52,13 @@ jobs:
       - name: Bootstrap
         run: ./scripts/bootstrap
 
+      - name: Update 3p souces
+        run: ./bin/replace-internal-symlinks
+
       - name: run build all
         # this is needed so that sub packages can work (they depend on `dist` in the root folder)
         run: ./scripts/build-all
 
-      - name: Update 3p souces
-        run: ./bin/replace-internal-symlinks
 
       - name: Check build
         run: yarn build
@@ -90,6 +91,9 @@ jobs:
 
       - name: Bootstrap
         run: ./scripts/bootstrap
+
+      - name: Update 3p souces
+        run: ./bin/replace-internal-symlinks
 
       - name: run build all
         # this is needed so that sub packages can work (they depend on `dist` in the root folder)
