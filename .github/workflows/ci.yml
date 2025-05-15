@@ -24,6 +24,11 @@ jobs:
       - name: Bootstrap
         run: ./scripts/bootstrap
 
+      - name: Unlink internals of bedrock
+        run: |
+          unlink packages/bedrock-sdk/src/internal
+          cp -r src/internal packages/bedrock-sdk/src/internal
+
       - name: run build all
         # this is needed so that sub packages can work (they depend on `dist` in the root folder)
         run: ./scripts/build-all
@@ -48,6 +53,11 @@ jobs:
 
       - name: Bootstrap
         run: ./scripts/bootstrap
+
+      - name: Unlink internals of bedrock
+        run: |
+          unlink packages/bedrock-sdk/src/internal
+          cp -r src/internal packages/bedrock-sdk/src/internal
 
       - name: run build all
         # this is needed so that sub packages can work (they depend on `dist` in the root folder)
@@ -87,6 +97,11 @@ jobs:
 
       - name: Bootstrap
         run: ./scripts/bootstrap
+
+      - name: Unlink internals of bedrock
+        run: |
+          unlink packages/bedrock-sdk/src/internal
+          cp -r src/internal packages/bedrock-sdk/src/internal
 
       - name: run build all
         # this is needed so that sub packages can work (they depend on `dist` in the root folder)
