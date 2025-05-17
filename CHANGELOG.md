@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.51.1 (2025-05-17)
+
+Full Changelog: [sdk-v0.51.0...sdk-v0.51.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.51.0...sdk-v0.51.1)
+
+### Chores
+
+* **internal:** version bump ([8ebaf61](https://github.com/anthropics/anthropic-sdk-typescript/commit/8ebaf616d2e5c6aebc153f19a403dde41ab5a9f1))
+
 ## 0.51.0 (2025-05-15)
 
 Full Changelog: [sdk-v0.50.4...sdk-v0.51.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.50.4...sdk-v0.51.0)
