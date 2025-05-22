@@ -77,6 +77,10 @@ This affects the following methods:
 - `client.beta.messages.batches.delete()`
 - `client.beta.messages.batches.cancel()`
 - `client.beta.messages.batches.results()`
+- `client.beta.files.list()`
+- `client.beta.files.delete()`
+- `client.beta.files.download()`
+- `client.beta.files.retrieveMetadata()`
 
 ### Removed `httpAgent` in favor of `fetchOptions`
 

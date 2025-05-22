@@ -556,9 +556,28 @@ export namespace BatchCreateParams {
       model: MessagesAPI.Model;
 
       /**
+       * Container identifier for reuse across requests.
+       */
+      container?: string | null;
+
+      /**
+       * MCP servers to be utilized in this request
+       */
+      mcp_servers?: Array<MessagesMessagesAPI.BetaRequestMCPServerURLDefinition>;
+
+      /**
        * An object describing metadata about the request.
        */
       metadata?: MessagesMessagesAPI.BetaMetadata;
+
+      /**
+       * Determines whether to use priority capacity (if available) or standard capacity
+       * for this request.
+       *
+       * Anthropic offers different levels of service for your API requests. See
+       * [service-tiers](https://docs.anthropic.com/en/api/service-tiers) for details.
+       */
+      service_tier?: 'auto' | 'standard_only';
 
       /**
        * Custom text sequences that will cause the model to stop generating.

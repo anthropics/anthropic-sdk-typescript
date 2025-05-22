@@ -237,12 +237,15 @@ export type ContentBlock =
   | ThinkingBlock
   | RedactedThinkingBlock;
 
+/**
+ * Regular text content.
+ */
 export type ContentBlockParam =
+  | ServerToolUseBlockParam
+  | WebSearchToolResultBlockParam
   | TextBlockParam
   | ImageBlockParam
   | ToolUseBlockParam
-  | ServerToolUseBlockParam
-  | WebSearchToolResultBlockParam
   | ToolResultBlockParam
   | DocumentBlockParam
   | ThinkingBlockParam
@@ -462,9 +465,15 @@ export type Model =
   | 'claude-3-7-sonnet-20250219'
   | 'claude-3-5-haiku-latest'
   | 'claude-3-5-haiku-20241022'
+  | 'claude-sonnet-4-20250514'
+  | 'claude-sonnet-4-0'
+  | 'claude-4-sonnet-20250514'
   | 'claude-3-5-sonnet-latest'
   | 'claude-3-5-sonnet-20241022'
   | 'claude-3-5-sonnet-20240620'
+  | 'claude-opus-4-0'
+  | 'claude-opus-4-20250514'
+  | 'claude-4-opus-20250514'
   | 'claude-3-opus-latest'
   | 'claude-3-opus-20240229'
   | 'claude-3-sonnet-20240229'
@@ -945,6 +954,11 @@ export interface Usage {
    * The number of server tool requests.
    */
   server_tool_use: ServerToolUsage | null;
+
+  /**
+   * If the request used the priority, standard, or batch tier.
+   */
+  service_tier: 'standard' | 'priority' | 'batch' | null;
 }
 
 export interface WebSearchResultBlock {
@@ -1208,6 +1222,15 @@ export interface MessageCreateParamsBase {
    * An object describing metadata about the request.
    */
   metadata?: Metadata;
+
+  /**
+   * Determines whether to use priority capacity (if available) or standard capacity
+   * for this request.
+   *
+   * Anthropic offers different levels of service for your API requests. See
+   * [service-tiers](https://docs.anthropic.com/en/api/service-tiers) for details.
+   */
+  service_tier?: 'auto' | 'standard_only';
 
   /**
    * Custom text sequences that will cause the model to stop generating.

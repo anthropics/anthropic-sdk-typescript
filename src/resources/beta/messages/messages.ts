@@ -119,7 +119,12 @@ export interface BetaBase64ImageSource {
 }
 
 export interface BetaBase64PDFBlock {
-  source: BetaBase64PDFSource | BetaPlainTextSource | BetaContentBlockSource | BetaURLPDFSource;
+  source:
+    | BetaBase64PDFSource
+    | BetaPlainTextSource
+    | BetaContentBlockSource
+    | BetaURLPDFSource
+    | BetaFileDocumentSource;
 
   type: 'document';
 
@@ -145,6 +150,30 @@ export interface BetaBase64PDFSource {
 
 export interface BetaCacheControlEphemeral {
   type: 'ephemeral';
+
+  /**
+   * The time-to-live for the cache control breakpoint.
+   *
+   * This may be one the following values:
+   *
+   * - `5m`: 5 minutes
+   * - `1h`: 1 hour
+   *
+   * Defaults to `5m`.
+   */
+  ttl?: '5m' | '1h';
+}
+
+export interface BetaCacheCreation {
+  /**
+   * The number of input tokens used to create the 1 hour cache entry.
+   */
+  ephemeral_1h_input_tokens: number;
+
+  /**
+   * The number of input tokens used to create the 5 minute cache entry.
+   */
+  ephemeral_5m_input_tokens: number;
 }
 
 export interface BetaCitationCharLocation {
@@ -269,24 +298,177 @@ export interface BetaCitationsWebSearchResultLocation {
   url: string;
 }
 
+export interface BetaCodeExecutionOutputBlock {
+  file_id: string;
+
+  type: 'code_execution_output';
+}
+
+export interface BetaCodeExecutionOutputBlockParam {
+  file_id: string;
+
+  type: 'code_execution_output';
+}
+
+export interface BetaCodeExecutionResultBlock {
+  content: Array<BetaCodeExecutionOutputBlock>;
+
+  return_code: number;
+
+  stderr: string;
+
+  stdout: string;
+
+  type: 'code_execution_result';
+}
+
+export interface BetaCodeExecutionResultBlockParam {
+  content: Array<BetaCodeExecutionOutputBlockParam>;
+
+  return_code: number;
+
+  stderr: string;
+
+  stdout: string;
+
+  type: 'code_execution_result';
+}
+
+export interface BetaCodeExecutionTool20250522 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'code_execution';
+
+  type: 'code_execution_20250522';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export interface BetaCodeExecutionToolResultBlock {
+  content: BetaCodeExecutionToolResultBlockContent;
+
+  tool_use_id: string;
+
+  type: 'code_execution_tool_result';
+}
+
+export type BetaCodeExecutionToolResultBlockContent =
+  | BetaCodeExecutionToolResultError
+  | BetaCodeExecutionResultBlock;
+
+export interface BetaCodeExecutionToolResultBlockParam {
+  content: BetaCodeExecutionToolResultBlockParamContent;
+
+  tool_use_id: string;
+
+  type: 'code_execution_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export type BetaCodeExecutionToolResultBlockParamContent =
+  | BetaCodeExecutionToolResultErrorParam
+  | BetaCodeExecutionResultBlockParam;
+
+export interface BetaCodeExecutionToolResultError {
+  error_code: BetaCodeExecutionToolResultErrorCode;
+
+  type: 'code_execution_tool_result_error';
+}
+
+export type BetaCodeExecutionToolResultErrorCode =
+  | 'invalid_tool_input'
+  | 'unavailable'
+  | 'too_many_requests'
+  | 'execution_time_exceeded';
+
+export interface BetaCodeExecutionToolResultErrorParam {
+  error_code: BetaCodeExecutionToolResultErrorCode;
+
+  type: 'code_execution_tool_result_error';
+}
+
+/**
+ * Information about the container used in the request (for the code execution
+ * tool)
+ */
+export interface BetaContainer {
+  /**
+   * Identifier for the container used in this request
+   */
+  id: string;
+
+  /**
+   * The time at which the container will expire.
+   */
+  expires_at: string;
+}
+
+/**
+ * Response model for a file uploaded to the container.
+ */
+export interface BetaContainerUploadBlock {
+  file_id: string;
+
+  type: 'container_upload';
+}
+
+/**
+ * A content block that represents a file to be uploaded to the container Files
+ * uploaded via this block will be available in the container's input directory.
+ */
+export interface BetaContainerUploadBlockParam {
+  file_id: string;
+
+  type: 'container_upload';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+/**
+ * Response model for a file uploaded to the container.
+ */
 export type BetaContentBlock =
   | BetaTextBlock
   | BetaToolUseBlock
   | BetaServerToolUseBlock
   | BetaWebSearchToolResultBlock
+  | BetaCodeExecutionToolResultBlock
+  | BetaMCPToolUseBlock
+  | BetaMCPToolResultBlock
+  | BetaContainerUploadBlock
   | BetaThinkingBlock
   | BetaRedactedThinkingBlock;
 
+/**
+ * Regular text content.
+ */
 export type BetaContentBlockParam =
+  | BetaServerToolUseBlockParam
+  | BetaWebSearchToolResultBlockParam
+  | BetaCodeExecutionToolResultBlockParam
+  | BetaMCPToolUseBlockParam
+  | BetaRequestMCPToolResultBlockParam
   | BetaTextBlockParam
   | BetaImageBlockParam
   | BetaToolUseBlockParam
-  | BetaServerToolUseBlockParam
-  | BetaWebSearchToolResultBlockParam
   | BetaToolResultBlockParam
   | BetaBase64PDFBlock
   | BetaThinkingBlockParam
-  | BetaRedactedThinkingBlockParam;
+  | BetaRedactedThinkingBlockParam
+  | BetaContainerUploadBlockParam;
 
 export interface BetaContentBlockSource {
   content: string | Array<BetaContentBlockSourceContent>;
@@ -296,8 +478,20 @@ export interface BetaContentBlockSource {
 
 export type BetaContentBlockSourceContent = BetaTextBlockParam | BetaImageBlockParam;
 
+export interface BetaFileDocumentSource {
+  file_id: string;
+
+  type: 'file';
+}
+
+export interface BetaFileImageSource {
+  file_id: string;
+
+  type: 'file';
+}
+
 export interface BetaImageBlockParam {
-  source: BetaBase64ImageSource | BetaURLImageSource;
+  source: BetaBase64ImageSource | BetaURLImageSource | BetaFileImageSource;
 
   type: 'image';
 
@@ -313,6 +507,54 @@ export interface BetaInputJSONDelta {
   type: 'input_json_delta';
 }
 
+export interface BetaMCPToolResultBlock {
+  content: string | Array<BetaTextBlock>;
+
+  is_error: boolean;
+
+  tool_use_id: string;
+
+  type: 'mcp_tool_result';
+}
+
+export interface BetaMCPToolUseBlock {
+  id: string;
+
+  input: unknown;
+
+  /**
+   * The name of the MCP tool
+   */
+  name: string;
+
+  /**
+   * The name of the MCP server
+   */
+  server_name: string;
+
+  type: 'mcp_tool_use';
+}
+
+export interface BetaMCPToolUseBlockParam {
+  id: string;
+
+  input: unknown;
+
+  name: string;
+
+  /**
+   * The name of the MCP server
+   */
+  server_name: string;
+
+  type: 'mcp_tool_use';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
 export interface BetaMessage {
   /**
    * Unique object identifier.
@@ -320,6 +562,12 @@ export interface BetaMessage {
    * The format and length of IDs may change over time.
    */
   id: string;
+
+  /**
+   * Information about the container used in the request (for the code execution
+   * tool)
+   */
+  container: BetaContainer | null;
 
   /**
    * Content generated by the model.
@@ -497,11 +745,18 @@ export interface BetaRawContentBlockDeltaEvent {
 }
 
 export interface BetaRawContentBlockStartEvent {
+  /**
+   * Response model for a file uploaded to the container.
+   */
   content_block:
     | BetaTextBlock
     | BetaToolUseBlock
     | BetaServerToolUseBlock
     | BetaWebSearchToolResultBlock
+    | BetaCodeExecutionToolResultBlock
+    | BetaMCPToolUseBlock
+    | BetaMCPToolResultBlock
+    | BetaContainerUploadBlock
     | BetaThinkingBlock
     | BetaRedactedThinkingBlock;
 
@@ -543,6 +798,12 @@ export interface BetaRawMessageDeltaEvent {
 
 export namespace BetaRawMessageDeltaEvent {
   export interface Delta {
+    /**
+     * Information about the container used in the request (for the code execution
+     * tool)
+     */
+    container: MessagesMessagesAPI.BetaContainer | null;
+
     stop_reason: MessagesMessagesAPI.BetaStopReason | null;
 
     stop_sequence: string | null;
@@ -579,6 +840,39 @@ export interface BetaRedactedThinkingBlockParam {
   type: 'redacted_thinking';
 }
 
+export interface BetaRequestMCPServerToolConfiguration {
+  allowed_tools?: Array<string> | null;
+
+  enabled?: boolean | null;
+}
+
+export interface BetaRequestMCPServerURLDefinition {
+  name: string;
+
+  type: 'url';
+
+  url: string;
+
+  authorization_token?: string | null;
+
+  tool_configuration?: BetaRequestMCPServerToolConfiguration | null;
+}
+
+export interface BetaRequestMCPToolResultBlockParam {
+  tool_use_id: string;
+
+  type: 'mcp_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  content?: string | Array<BetaTextBlockParam>;
+
+  is_error?: boolean;
+}
+
 export interface BetaServerToolUsage {
   /**
    * The number of web search tool requests.
@@ -591,7 +885,7 @@ export interface BetaServerToolUseBlock {
 
   input: unknown;
 
-  name: 'web_search';
+  name: 'web_search' | 'code_execution';
 
   type: 'server_tool_use';
 }
@@ -601,7 +895,7 @@ export interface BetaServerToolUseBlockParam {
 
   input: unknown;
 
-  name: 'web_search';
+  name: 'web_search' | 'code_execution';
 
   type: 'server_tool_use';
 
@@ -981,6 +1275,22 @@ export interface BetaToolTextEditor20250124 {
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
+export interface BetaToolTextEditor20250429 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'str_replace_based_edit_tool';
+
+  type: 'text_editor_20250429';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
 export type BetaToolUnion =
   | BetaTool
   | BetaToolComputerUse20241022
@@ -989,7 +1299,9 @@ export type BetaToolUnion =
   | BetaToolComputerUse20250124
   | BetaToolBash20250124
   | BetaToolTextEditor20250124
-  | BetaWebSearchTool20250305;
+  | BetaToolTextEditor20250429
+  | BetaWebSearchTool20250305
+  | BetaCodeExecutionTool20250522;
 
 export interface BetaToolUseBlock {
   id: string;
@@ -1030,6 +1342,11 @@ export interface BetaURLPDFSource {
 
 export interface BetaUsage {
   /**
+   * Breakdown of cached tokens by TTL
+   */
+  cache_creation: BetaCacheCreation | null;
+
+  /**
    * The number of input tokens used to create the cache entry.
    */
   cache_creation_input_tokens: number | null;
@@ -1053,6 +1370,11 @@ export interface BetaUsage {
    * The number of server tool requests.
    */
   server_tool_use: BetaServerToolUsage | null;
+
+  /**
+   * If the request used the priority, standard, or batch tier.
+   */
+  service_tier: 'standard' | 'priority' | 'batch' | null;
 }
 
 export interface BetaWebSearchResultBlock {
@@ -1151,12 +1473,7 @@ export namespace BetaWebSearchTool20250305 {
 }
 
 export interface BetaWebSearchToolRequestError {
-  error_code:
-    | 'invalid_tool_input'
-    | 'unavailable'
-    | 'max_uses_exceeded'
-    | 'too_many_requests'
-    | 'query_too_long';
+  error_code: BetaWebSearchToolResultErrorCode;
 
   type: 'web_search_tool_result_error';
 }
@@ -1191,15 +1508,17 @@ export type BetaWebSearchToolResultBlockParamContent =
   | BetaWebSearchToolRequestError;
 
 export interface BetaWebSearchToolResultError {
-  error_code:
-    | 'invalid_tool_input'
-    | 'unavailable'
-    | 'max_uses_exceeded'
-    | 'too_many_requests'
-    | 'query_too_long';
+  error_code: BetaWebSearchToolResultErrorCode;
 
   type: 'web_search_tool_result_error';
 }
+
+export type BetaWebSearchToolResultErrorCode =
+  | 'invalid_tool_input'
+  | 'unavailable'
+  | 'max_uses_exceeded'
+  | 'too_many_requests'
+  | 'query_too_long';
 
 export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreateParamsStreaming;
 
@@ -1315,9 +1634,28 @@ export interface MessageCreateParamsBase {
   model: MessagesAPI.Model;
 
   /**
+   * Body param: Container identifier for reuse across requests.
+   */
+  container?: string | null;
+
+  /**
+   * Body param: MCP servers to be utilized in this request
+   */
+  mcp_servers?: Array<BetaRequestMCPServerURLDefinition>;
+
+  /**
    * Body param: An object describing metadata about the request.
    */
   metadata?: BetaMetadata;
+
+  /**
+   * Body param: Determines whether to use priority capacity (if available) or
+   * standard capacity for this request.
+   *
+   * Anthropic offers different levels of service for your API requests. See
+   * [service-tiers](https://docs.anthropic.com/en/api/service-tiers) for details.
+   */
+  service_tier?: 'auto' | 'standard_only';
 
   /**
    * Body param: Custom text sequences that will cause the model to stop generating.
@@ -1612,6 +1950,11 @@ export interface MessageCountTokensParams {
   model: MessagesAPI.Model;
 
   /**
+   * Body param: MCP servers to be utilized in this request
+   */
+  mcp_servers?: Array<BetaRequestMCPServerURLDefinition>;
+
+  /**
    * Body param: System prompt.
    *
    * A system prompt is a way of providing context and instructions to Claude, such
@@ -1718,7 +2061,9 @@ export interface MessageCountTokensParams {
     | BetaToolComputerUse20250124
     | BetaToolBash20250124
     | BetaToolTextEditor20250124
+    | BetaToolTextEditor20250429
     | BetaWebSearchTool20250305
+    | BetaCodeExecutionTool20250522
   >;
 
   /**
@@ -1735,6 +2080,7 @@ export declare namespace Messages {
     type BetaBase64PDFBlock as BetaBase64PDFBlock,
     type BetaBase64PDFSource as BetaBase64PDFSource,
     type BetaCacheControlEphemeral as BetaCacheControlEphemeral,
+    type BetaCacheCreation as BetaCacheCreation,
     type BetaCitationCharLocation as BetaCitationCharLocation,
     type BetaCitationCharLocationParam as BetaCitationCharLocationParam,
     type BetaCitationContentBlockLocation as BetaCitationContentBlockLocation,
@@ -1745,12 +2091,32 @@ export declare namespace Messages {
     type BetaCitationsConfigParam as BetaCitationsConfigParam,
     type BetaCitationsDelta as BetaCitationsDelta,
     type BetaCitationsWebSearchResultLocation as BetaCitationsWebSearchResultLocation,
+    type BetaCodeExecutionOutputBlock as BetaCodeExecutionOutputBlock,
+    type BetaCodeExecutionOutputBlockParam as BetaCodeExecutionOutputBlockParam,
+    type BetaCodeExecutionResultBlock as BetaCodeExecutionResultBlock,
+    type BetaCodeExecutionResultBlockParam as BetaCodeExecutionResultBlockParam,
+    type BetaCodeExecutionTool20250522 as BetaCodeExecutionTool20250522,
+    type BetaCodeExecutionToolResultBlock as BetaCodeExecutionToolResultBlock,
+    type BetaCodeExecutionToolResultBlockContent as BetaCodeExecutionToolResultBlockContent,
+    type BetaCodeExecutionToolResultBlockParam as BetaCodeExecutionToolResultBlockParam,
+    type BetaCodeExecutionToolResultBlockParamContent as BetaCodeExecutionToolResultBlockParamContent,
+    type BetaCodeExecutionToolResultError as BetaCodeExecutionToolResultError,
+    type BetaCodeExecutionToolResultErrorCode as BetaCodeExecutionToolResultErrorCode,
+    type BetaCodeExecutionToolResultErrorParam as BetaCodeExecutionToolResultErrorParam,
+    type BetaContainer as BetaContainer,
+    type BetaContainerUploadBlock as BetaContainerUploadBlock,
+    type BetaContainerUploadBlockParam as BetaContainerUploadBlockParam,
     type BetaContentBlock as BetaContentBlock,
     type BetaContentBlockParam as BetaContentBlockParam,
     type BetaContentBlockSource as BetaContentBlockSource,
     type BetaContentBlockSourceContent as BetaContentBlockSourceContent,
+    type BetaFileDocumentSource as BetaFileDocumentSource,
+    type BetaFileImageSource as BetaFileImageSource,
     type BetaImageBlockParam as BetaImageBlockParam,
     type BetaInputJSONDelta as BetaInputJSONDelta,
+    type BetaMCPToolResultBlock as BetaMCPToolResultBlock,
+    type BetaMCPToolUseBlock as BetaMCPToolUseBlock,
+    type BetaMCPToolUseBlockParam as BetaMCPToolUseBlockParam,
     type BetaMessage as BetaMessage,
     type BetaMessageDeltaUsage as BetaMessageDeltaUsage,
     type BetaMessageParam as BetaMessageParam,
@@ -1767,6 +2133,9 @@ export declare namespace Messages {
     type BetaRawMessageStreamEvent as BetaRawMessageStreamEvent,
     type BetaRedactedThinkingBlock as BetaRedactedThinkingBlock,
     type BetaRedactedThinkingBlockParam as BetaRedactedThinkingBlockParam,
+    type BetaRequestMCPServerToolConfiguration as BetaRequestMCPServerToolConfiguration,
+    type BetaRequestMCPServerURLDefinition as BetaRequestMCPServerURLDefinition,
+    type BetaRequestMCPToolResultBlockParam as BetaRequestMCPToolResultBlockParam,
     type BetaServerToolUsage as BetaServerToolUsage,
     type BetaServerToolUseBlock as BetaServerToolUseBlock,
     type BetaServerToolUseBlockParam as BetaServerToolUseBlockParam,
@@ -1796,6 +2165,7 @@ export declare namespace Messages {
     type BetaToolResultBlockParam as BetaToolResultBlockParam,
     type BetaToolTextEditor20241022 as BetaToolTextEditor20241022,
     type BetaToolTextEditor20250124 as BetaToolTextEditor20250124,
+    type BetaToolTextEditor20250429 as BetaToolTextEditor20250429,
     type BetaToolUnion as BetaToolUnion,
     type BetaToolUseBlock as BetaToolUseBlock,
     type BetaToolUseBlockParam as BetaToolUseBlockParam,
@@ -1811,6 +2181,7 @@ export declare namespace Messages {
     type BetaWebSearchToolResultBlockParam as BetaWebSearchToolResultBlockParam,
     type BetaWebSearchToolResultBlockParamContent as BetaWebSearchToolResultBlockParamContent,
     type BetaWebSearchToolResultError as BetaWebSearchToolResultError,
+    type BetaWebSearchToolResultErrorCode as BetaWebSearchToolResultErrorCode,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,

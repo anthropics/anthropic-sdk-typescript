@@ -491,6 +491,15 @@ export namespace BatchCreateParams {
       metadata?: MessagesAPI.Metadata;
 
       /**
+       * Determines whether to use priority capacity (if available) or standard capacity
+       * for this request.
+       *
+       * Anthropic offers different levels of service for your API requests. See
+       * [service-tiers](https://docs.anthropic.com/en/api/service-tiers) for details.
+       */
+      service_tier?: 'auto' | 'standard_only';
+
+      /**
        * Custom text sequences that will cause the model to stop generating.
        *
        * Our models will normally stop when they have naturally completed their turn,
