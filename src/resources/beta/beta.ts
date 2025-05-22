@@ -1,6 +1,18 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIResource } from '../../core/resource';
+import * as FilesAPI from './files';
+import {
+  DeletedFile,
+  FileDeleteParams,
+  FileDownloadParams,
+  FileListParams,
+  FileMetadata,
+  FileMetadataPage,
+  FileRetrieveMetadataParams,
+  FileUploadParams,
+  Files,
+} from './files';
 import * as ModelsAPI from './models';
 import { BetaModelInfo, BetaModelInfosPage, ModelListParams, ModelRetrieveParams, Models } from './models';
 import * as MessagesAPI from './messages/messages';
@@ -9,6 +21,7 @@ import {
   BetaBase64PDFBlock,
   BetaBase64PDFSource,
   BetaCacheControlEphemeral,
+  BetaCacheCreation,
   BetaCitationCharLocation,
   BetaCitationCharLocationParam,
   BetaCitationContentBlockLocation,
@@ -19,12 +32,32 @@ import {
   BetaCitationsConfigParam,
   BetaCitationsDelta,
   BetaCitationsWebSearchResultLocation,
+  BetaCodeExecutionOutputBlock,
+  BetaCodeExecutionOutputBlockParam,
+  BetaCodeExecutionResultBlock,
+  BetaCodeExecutionResultBlockParam,
+  BetaCodeExecutionTool20250522,
+  BetaCodeExecutionToolResultBlock,
+  BetaCodeExecutionToolResultBlockContent,
+  BetaCodeExecutionToolResultBlockParam,
+  BetaCodeExecutionToolResultBlockParamContent,
+  BetaCodeExecutionToolResultError,
+  BetaCodeExecutionToolResultErrorCode,
+  BetaCodeExecutionToolResultErrorParam,
+  BetaContainer,
+  BetaContainerUploadBlock,
+  BetaContainerUploadBlockParam,
   BetaContentBlock,
   BetaContentBlockParam,
   BetaContentBlockSource,
   BetaContentBlockSourceContent,
+  BetaFileDocumentSource,
+  BetaFileImageSource,
   BetaImageBlockParam,
   BetaInputJSONDelta,
+  BetaMCPToolResultBlock,
+  BetaMCPToolUseBlock,
+  BetaMCPToolUseBlockParam,
   BetaMessage,
   BetaMessageDeltaUsage,
   BetaMessageParam,
@@ -41,6 +74,9 @@ import {
   BetaRawMessageStreamEvent,
   BetaRedactedThinkingBlock,
   BetaRedactedThinkingBlockParam,
+  BetaRequestMCPServerToolConfiguration,
+  BetaRequestMCPServerURLDefinition,
+  BetaRequestMCPToolResultBlockParam,
   BetaServerToolUsage,
   BetaServerToolUseBlock,
   BetaServerToolUseBlockParam,
@@ -70,6 +106,7 @@ import {
   BetaToolResultBlockParam,
   BetaToolTextEditor20241022,
   BetaToolTextEditor20250124,
+  BetaToolTextEditor20250429,
   BetaToolUnion,
   BetaToolUseBlock,
   BetaToolUseBlockParam,
@@ -85,6 +122,7 @@ import {
   BetaWebSearchToolResultBlockParam,
   BetaWebSearchToolResultBlockParamContent,
   BetaWebSearchToolResultError,
+  BetaWebSearchToolResultErrorCode,
   MessageCountTokensParams,
   MessageCreateParams,
   MessageCreateParamsNonStreaming,
@@ -95,6 +133,7 @@ import {
 export class Beta extends APIResource {
   models: ModelsAPI.Models = new ModelsAPI.Models(this._client);
   messages: MessagesAPI.Messages = new MessagesAPI.Messages(this._client);
+  files: FilesAPI.Files = new FilesAPI.Files(this._client);
 }
 
 export type AnthropicBeta =
@@ -106,7 +145,13 @@ export type AnthropicBeta =
   | 'pdfs-2024-09-25'
   | 'token-counting-2024-11-01'
   | 'token-efficient-tools-2025-02-19'
-  | 'output-128k-2025-02-19';
+  | 'output-128k-2025-02-19'
+  | 'files-api-2025-04-14'
+  | 'mcp-client-2025-04-04'
+  | 'dev-full-thinking-2025-05-14'
+  | 'interleaved-thinking-2025-05-14'
+  | 'code-execution-2025-05-22'
+  | 'extended-cache-ttl-2025-04-11';
 
 export interface BetaAPIError {
   message: string;
@@ -181,6 +226,7 @@ export interface BetaRateLimitError {
 
 Beta.Models = Models;
 Beta.Messages = Messages;
+Beta.Files = Files;
 
 export declare namespace Beta {
   export {
@@ -212,6 +258,7 @@ export declare namespace Beta {
     type BetaBase64PDFBlock as BetaBase64PDFBlock,
     type BetaBase64PDFSource as BetaBase64PDFSource,
     type BetaCacheControlEphemeral as BetaCacheControlEphemeral,
+    type BetaCacheCreation as BetaCacheCreation,
     type BetaCitationCharLocation as BetaCitationCharLocation,
     type BetaCitationCharLocationParam as BetaCitationCharLocationParam,
     type BetaCitationContentBlockLocation as BetaCitationContentBlockLocation,
@@ -222,12 +269,32 @@ export declare namespace Beta {
     type BetaCitationsConfigParam as BetaCitationsConfigParam,
     type BetaCitationsDelta as BetaCitationsDelta,
     type BetaCitationsWebSearchResultLocation as BetaCitationsWebSearchResultLocation,
+    type BetaCodeExecutionOutputBlock as BetaCodeExecutionOutputBlock,
+    type BetaCodeExecutionOutputBlockParam as BetaCodeExecutionOutputBlockParam,
+    type BetaCodeExecutionResultBlock as BetaCodeExecutionResultBlock,
+    type BetaCodeExecutionResultBlockParam as BetaCodeExecutionResultBlockParam,
+    type BetaCodeExecutionTool20250522 as BetaCodeExecutionTool20250522,
+    type BetaCodeExecutionToolResultBlock as BetaCodeExecutionToolResultBlock,
+    type BetaCodeExecutionToolResultBlockContent as BetaCodeExecutionToolResultBlockContent,
+    type BetaCodeExecutionToolResultBlockParam as BetaCodeExecutionToolResultBlockParam,
+    type BetaCodeExecutionToolResultBlockParamContent as BetaCodeExecutionToolResultBlockParamContent,
+    type BetaCodeExecutionToolResultError as BetaCodeExecutionToolResultError,
+    type BetaCodeExecutionToolResultErrorCode as BetaCodeExecutionToolResultErrorCode,
+    type BetaCodeExecutionToolResultErrorParam as BetaCodeExecutionToolResultErrorParam,
+    type BetaContainer as BetaContainer,
+    type BetaContainerUploadBlock as BetaContainerUploadBlock,
+    type BetaContainerUploadBlockParam as BetaContainerUploadBlockParam,
     type BetaContentBlock as BetaContentBlock,
     type BetaContentBlockParam as BetaContentBlockParam,
     type BetaContentBlockSource as BetaContentBlockSource,
     type BetaContentBlockSourceContent as BetaContentBlockSourceContent,
+    type BetaFileDocumentSource as BetaFileDocumentSource,
+    type BetaFileImageSource as BetaFileImageSource,
     type BetaImageBlockParam as BetaImageBlockParam,
     type BetaInputJSONDelta as BetaInputJSONDelta,
+    type BetaMCPToolResultBlock as BetaMCPToolResultBlock,
+    type BetaMCPToolUseBlock as BetaMCPToolUseBlock,
+    type BetaMCPToolUseBlockParam as BetaMCPToolUseBlockParam,
     type BetaMessage as BetaMessage,
     type BetaMessageDeltaUsage as BetaMessageDeltaUsage,
     type BetaMessageParam as BetaMessageParam,
@@ -244,6 +311,9 @@ export declare namespace Beta {
     type BetaRawMessageStreamEvent as BetaRawMessageStreamEvent,
     type BetaRedactedThinkingBlock as BetaRedactedThinkingBlock,
     type BetaRedactedThinkingBlockParam as BetaRedactedThinkingBlockParam,
+    type BetaRequestMCPServerToolConfiguration as BetaRequestMCPServerToolConfiguration,
+    type BetaRequestMCPServerURLDefinition as BetaRequestMCPServerURLDefinition,
+    type BetaRequestMCPToolResultBlockParam as BetaRequestMCPToolResultBlockParam,
     type BetaServerToolUsage as BetaServerToolUsage,
     type BetaServerToolUseBlock as BetaServerToolUseBlock,
     type BetaServerToolUseBlockParam as BetaServerToolUseBlockParam,
@@ -273,6 +343,7 @@ export declare namespace Beta {
     type BetaToolResultBlockParam as BetaToolResultBlockParam,
     type BetaToolTextEditor20241022 as BetaToolTextEditor20241022,
     type BetaToolTextEditor20250124 as BetaToolTextEditor20250124,
+    type BetaToolTextEditor20250429 as BetaToolTextEditor20250429,
     type BetaToolUnion as BetaToolUnion,
     type BetaToolUseBlock as BetaToolUseBlock,
     type BetaToolUseBlockParam as BetaToolUseBlockParam,
@@ -288,9 +359,22 @@ export declare namespace Beta {
     type BetaWebSearchToolResultBlockParam as BetaWebSearchToolResultBlockParam,
     type BetaWebSearchToolResultBlockParamContent as BetaWebSearchToolResultBlockParamContent,
     type BetaWebSearchToolResultError as BetaWebSearchToolResultError,
+    type BetaWebSearchToolResultErrorCode as BetaWebSearchToolResultErrorCode,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
     type MessageCountTokensParams as MessageCountTokensParams,
+  };
+
+  export {
+    Files as Files,
+    type DeletedFile as DeletedFile,
+    type FileMetadata as FileMetadata,
+    type FileMetadataPage as FileMetadataPage,
+    type FileListParams as FileListParams,
+    type FileDeleteParams as FileDeleteParams,
+    type FileDownloadParams as FileDownloadParams,
+    type FileRetrieveMetadataParams as FileRetrieveMetadataParams,
+    type FileUploadParams as FileUploadParams,
   };
 }

@@ -1,7 +1,10 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+import { APIPromise } from '../../core/api-promise';
 import { APIResource } from '../../core/resource';
-import * as MessagesAPI from './messages';
+import { Stream } from '../../core/streaming';
+import { RequestOptions } from '../../internal/request-options';
+import { MessageStream } from '../../lib/MessageStream';
 import * as BatchesAPI from './batches';
 import {
   BatchCreateParams,
@@ -18,12 +21,9 @@ import {
   MessageBatchSucceededResult,
   MessageBatchesPage,
 } from './batches';
-import { APIPromise } from '../../core/api-promise';
-import { Stream } from '../../core/streaming';
-import { RequestOptions } from '../../internal/request-options';
-import { MessageStream } from '../../lib/MessageStream';
+import * as MessagesAPI from './messages';
 
-export { MessageStream } from '../../lib/MessageStream';
+import { MODEL_NONSTREAMING_TOKENS } from '../../internal/constants';
 
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
@@ -66,11 +66,14 @@ export class Messages extends APIResource {
         }\nPlease migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information.`,
       );
     }
+    let timeout = (this._client as any)._options.timeout as number | null;
+    if (!body.stream && timeout == null) {
+      const maxNonstreamingTokens = MODEL_NONSTREAMING_TOKENS[body.model] ?? undefined;
+      timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
+    }
     return this._client.post('/v1/messages', {
       body,
-      timeout:
-        (this._client as any)._options.timeout ??
-        (body.stream ? 600000 : this._client._calculateNonstreamingTimeout(body.max_tokens)),
+      timeout: timeout ?? 600000,
       ...options,
       stream: body.stream ?? false,
     }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
@@ -256,12 +259,15 @@ export type ContentBlock =
   | ThinkingBlock
   | RedactedThinkingBlock;
 
+/**
+ * Regular text content.
+ */
 export type ContentBlockParam =
+  | ServerToolUseBlockParam
+  | WebSearchToolResultBlockParam
   | TextBlockParam
   | ImageBlockParam
   | ToolUseBlockParam
-  | ServerToolUseBlockParam
-  | WebSearchToolResultBlockParam
   | ToolResultBlockParam
   | DocumentBlockParam
   | ThinkingBlockParam
@@ -481,9 +487,15 @@ export type Model =
   | 'claude-3-7-sonnet-20250219'
   | 'claude-3-5-haiku-latest'
   | 'claude-3-5-haiku-20241022'
+  | 'claude-sonnet-4-20250514'
+  | 'claude-sonnet-4-0'
+  | 'claude-4-sonnet-20250514'
   | 'claude-3-5-sonnet-latest'
   | 'claude-3-5-sonnet-20241022'
   | 'claude-3-5-sonnet-20240620'
+  | 'claude-opus-4-0'
+  | 'claude-opus-4-20250514'
+  | 'claude-4-opus-20250514'
   | 'claude-3-opus-latest'
   | 'claude-3-opus-20240229'
   | 'claude-3-sonnet-20240229'
@@ -977,6 +989,11 @@ export interface Usage {
    * The number of server tool requests.
    */
   server_tool_use: ServerToolUsage | null;
+
+  /**
+   * If the request used the priority, standard, or batch tier.
+   */
+  service_tier: 'standard' | 'priority' | 'batch' | null;
 }
 
 export interface WebSearchResultBlock {
@@ -1254,6 +1271,15 @@ export interface MessageCreateParamsBase {
    * An object describing metadata about the request.
    */
   metadata?: Metadata;
+
+  /**
+   * Determines whether to use priority capacity (if available) or standard capacity
+   * for this request.
+   *
+   * Anthropic offers different levels of service for your API requests. See
+   * [service-tiers](https://docs.anthropic.com/en/api/service-tiers) for details.
+   */
+  service_tier?: 'auto' | 'standard_only';
 
   /**
    * Custom text sequences that will cause the model to stop generating.

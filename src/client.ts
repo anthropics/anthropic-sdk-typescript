@@ -769,6 +769,20 @@ export class BaseAnthropic {
     return sleepSeconds * jitter * 1000;
   }
 
+  public calculateNonstreamingTimeout(maxTokens: number, maxNonstreamingTokens?: number): number {
+    const maxTime = 60 * 60 * 1000; // 10 minutes
+    const defaultTime = 60 * 10 * 1000; // 10 minutes
+
+    const expectedTime = (maxTime * maxTokens) / 128000;
+    if (expectedTime > defaultTime || (maxNonstreamingTokens != null && maxTokens > maxNonstreamingTokens)) {
+      throw new Errors.AnthropicError(
+        'Streaming is strongly recommended for operations that may token longer than 10 minutes. See https://github.com/anthropics/anthropic-sdk-typescript#long-requests for more details',
+      );
+    }
+
+    return defaultTime;
+  }
+
   buildRequest(
     inputOptions: FinalRequestOptions,
     { retryCount = 0 }: { retryCount?: number } = {},

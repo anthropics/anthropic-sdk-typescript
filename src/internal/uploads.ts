@@ -138,7 +138,7 @@ export const createForm = async <T = Record<string, unknown>>(
 
 // We check for Blob not File because Bun.File doesn't inherit from File,
 // but they both inherit from Blob and have a `name` property at runtime.
-const isNamedBlob = (value: object) => value instanceof Blob && 'name' in value;
+const isNamedBlob = (value: object): value is Blob => value instanceof Blob && 'name' in value;
 
 const isUploadable = (value: unknown) =>
   typeof value === 'object' &&
@@ -168,11 +168,17 @@ const addFormValue = async (form: FormData, key: string, value: unknown): Promis
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
     form.append(key, String(value));
   } else if (value instanceof Response) {
-    form.append(key, makeFile([await value.blob()], getName(value)));
+    let options = {} as FilePropertyBag;
+    const contentType = value.headers.get('Content-Type');
+    if (contentType) {
+      options = { type: contentType };
+    }
+
+    form.append(key, makeFile([await value.blob()], getName(value), options));
   } else if (isAsyncIterable(value)) {
     form.append(key, makeFile([await new Response(ReadableStreamFrom(value)).blob()], getName(value)));
   } else if (isNamedBlob(value)) {
-    form.append(key, value, getName(value));
+    form.append(key, makeFile([value], getName(value), { type: value.type }));
   } else if (Array.isArray(value)) {
     await Promise.all(value.map((entry) => addFormValue(form, key + '[]', entry)));
   } else if (typeof value === 'object') {

@@ -432,7 +432,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
             break;
           }
           case 'input_json_delta': {
-            if (content.type === 'tool_use' && content.input) {
+            if ((content.type === 'tool_use' || content.type === 'mcp_tool_use') && content.input) {
               this._emit('inputJson', event.delta.partial_json, content.input);
             }
             break;
@@ -528,6 +528,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
       case 'message_stop':
         return snapshot;
       case 'message_delta':
+        snapshot.container = event.delta.container;
         snapshot.stop_reason = event.delta.stop_reason;
         snapshot.stop_sequence = event.delta.stop_sequence;
         snapshot.usage.output_tokens = event.usage.output_tokens;
@@ -570,7 +571,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
             break;
           }
           case 'input_json_delta': {
-            if (snapshotContent?.type === 'tool_use') {
+            if (snapshotContent?.type === 'tool_use' || snapshotContent?.type === 'mcp_tool_use') {
               // we need to keep track of the raw JSON string as well so that we can
               // re-parse it for each delta, for now we just store it as an untyped
               // non-enumerable property on the snapshot
