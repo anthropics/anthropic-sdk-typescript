@@ -39,14 +39,25 @@ describe('resource batches', () => {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
             model: 'claude-3-7-sonnet-20250219',
+            container: 'container',
+            mcp_servers: [
+              {
+                name: 'name',
+                type: 'url',
+                url: 'url',
+                authorization_token: 'authorization_token',
+                tool_configuration: { allowed_tools: ['string'], enabled: true },
+              },
+            ],
             metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
+            service_tier: 'auto',
             stop_sequences: ['string'],
             stream: false,
             system: [
               {
                 text: "Today's date is 2024-06-01.",
                 type: 'text',
-                cache_control: { type: 'ephemeral' },
+                cache_control: { type: 'ephemeral', ttl: '5m' },
                 citations: [
                   {
                     cited_text: 'cited_text',
@@ -75,7 +86,7 @@ describe('resource batches', () => {
                   },
                 },
                 name: 'name',
-                cache_control: { type: 'ephemeral' },
+                cache_control: { type: 'ephemeral', ttl: '5m' },
                 description: 'Get the current weather in a given location',
                 type: 'custom',
               },

@@ -90,12 +90,19 @@ export async function toFile(
   // If it's a promise, resolve it.
   value = await value;
 
-  // If we've been given a `File` we don't need to do anything
+  name ||= getName(value);
+
+  // If we've been given a `File` we don't need to do anything if the name / options
+  // have not been customised.
   if (isFileLike(value)) {
-    if (value instanceof File) {
+    if (value instanceof File && name == null && options == null) {
       return value;
     }
-    return makeFile([await value.arrayBuffer()], value.name);
+    return makeFile([await value.arrayBuffer()], name ?? value.name, {
+      type: value.type,
+      lastModified: value.lastModified,
+      ...options,
+    });
   }
 
   if (isResponseLike(value)) {
@@ -106,8 +113,6 @@ export async function toFile(
   }
 
   const parts = await getBytes(value);
-
-  name ||= getName(value);
 
   if (!options?.type) {
     const type = parts.find((part) => typeof part === 'object' && 'type' in part && part.type);

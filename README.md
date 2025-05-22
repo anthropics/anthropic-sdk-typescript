@@ -184,6 +184,51 @@ This SDK provides support for tool use, aka function calling. More details can b
 
 We provide support for the [Anthropic Bedrock API](https://aws.amazon.com/bedrock/claude/) through a [separate package](https://github.com/anthropics/anthropic-sdk-typescript/tree/main/packages/bedrock-sdk).
 
+## File uploads
+
+Request parameters that correspond to file uploads can be passed in many different forms:
+
+- `File` (or an object with the same structure)
+- a `fetch` `Response` (or an object with the same structure)
+- an `fs.ReadStream`
+- the return value of our `toFile` helper
+
+Note that we recommend you set the content-type explicitly as the files API will not infer it for you:
+
+```ts
+import fs from 'fs';
+import Anthropic, { toFile } from '@anthropic-ai/sdk';
+
+const client = new Anthropic();
+
+// If you have access to Node `fs` we recommend using `fs.createReadStream()`:
+await client.beta.files.upload({
+  file: await toFile(fs.createReadStream('/path/to/file'), undefined, { type: 'application/json' }),
+  betas: ['files-api-2025-04-14'],
+});
+
+// Or if you have the web `File` API you can pass a `File` instance:
+await client.beta.files.upload({
+  file: new File(['my bytes'], 'file.txt', { type: 'text/plain' }),
+  betas: ['files-api-2025-04-14'],
+});
+// You can also pass a `fetch` `Response`:
+await client.beta.files.upload({
+  file: await fetch('https://somesite/file'),
+  betas: ['files-api-2025-04-14'],
+});
+
+// Or a `Buffer` / `Uint8Array`
+await client.beta.files.upload({
+  file: await toFile(Buffer.from('my bytes'), 'file', { type: 'text/plain' }),
+  betas: ['files-api-2025-04-14'],
+});
+await client.beta.files.upload({
+  file: await toFile(new Uint8Array([0, 1, 2]), 'file', { type: 'text/plain' }),
+  betas: ['files-api-2025-04-14'],
+});
+```
+
 ## Handling errors
 
 When the library is unable to connect to the API,
@@ -309,8 +354,9 @@ Passing `stream: true` or [overriding](#timeouts) the `timeout` option at the cl
 An expected request latency longer than the [timeout](#timeouts) for a non-streaming request
 will result in the client terminating the connection and retrying without receiving a response.
 
-When supported by the `fetch` implementation, we set a [TCP socket keep-alive](https://tldp.org/HOWTO/TCP-Keepalive-HOWTO/overview.html)
-option in order to reduce the impact of idle connection timeouts on some networks.
+When supported by the `fetch` implementation, we set a [TCP socket keep-alive](https://tldp.org/HOWTO/TCP-Keepalive-HOWTO/overview.html) option in order
+to reduce the impact of idle connection timeouts on some networks.
+This can be [overriden](#configuring-an-https-agent-eg-for-proxies) by configuring a custom proxy.
 
 ## Auto-pagination
 

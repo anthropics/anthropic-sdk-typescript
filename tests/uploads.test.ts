@@ -54,14 +54,42 @@ describe('toFile', () => {
     const input = fs.createReadStream('tests/uploads.test.ts');
     const file = await toFile(input);
     expect(file.name).toEqual('uploads.test.ts');
+    expect(file.type).toEqual('');
   });
 
-  it('does not copy File objects', async () => {
+  it('allows overriding props from a ReadStream', async () => {
+    var file = await toFile(fs.createReadStream('tests/uploads.test.ts'), undefined, {
+      type: 'application/typescript',
+    });
+    expect(file.name).toEqual('uploads.test.ts');
+    expect(file.type).toEqual('application/typescript');
+
+    const time = new Date().getTime();
+    var file = await toFile(fs.createReadStream('tests/uploads.test.ts'), 'my-uploads.test.ts', {
+      type: 'application/typescript',
+      lastModified: time,
+    });
+    expect(file.name).toEqual('my-uploads.test.ts');
+    expect(file.type).toEqual('application/typescript');
+    expect(file.lastModified).toEqual(time);
+  });
+
+  it('does not copy File objects by default', async () => {
     const input = new File(['foo'], 'input.jsonl', { type: 'jsonl' });
     const file = await toFile(input);
-    expect(file).toBe(input);
+    expect(file).toStrictEqual(input);
     expect(file.name).toEqual('input.jsonl');
     expect(file.type).toBe('jsonl');
+  });
+
+  it('allows overriding props from a File', async () => {
+    const time = new Date().getTime();
+    var input = new File(['foo'], 'input.jsonl', { type: 'jsonl', lastModified: time - 10000 });
+    var file = await toFile(input, 'foo.jsonl', { type: 'plain/text', lastModified: time });
+    expect(file).not.toStrictEqual(input);
+    expect(file.name).toEqual('foo.jsonl');
+    expect(file.type).toEqual('plain/text');
+    expect(file.lastModified).toEqual(time);
   });
 
   it('is assignable to File and Blob', async () => {
