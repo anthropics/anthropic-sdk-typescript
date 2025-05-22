@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.52.0 (2025-05-22)
+
+Full Changelog: [sdk-v0.51.0...sdk-v0.52.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.51.0...sdk-v0.52.0)
+
+### Features
+
+* **api:** add claude 4 models, files API, code execution tool, MCP connector and more ([769f9da](https://github.com/anthropics/anthropic-sdk-typescript/commit/769f9da91cf4480d1e4aa4bb488d6d9cc2471985))
+
+
+### Chores
+
+* **internal:** codegen related update ([2ed236d](https://github.com/anthropics/anthropic-sdk-typescript/commit/2ed236ddb9977a91289c4799692a583f460ce8b6))
+* **internal:** version bump ([8ebaf61](https://github.com/anthropics/anthropic-sdk-typescript/commit/8ebaf616d2e5c6aebc153f19a403dde41ab5a9f1))
+
 ## 0.51.0 (2025-05-15)
 
 Full Changelog: [sdk-v0.50.4...sdk-v0.51.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.50.4...sdk-v0.51.0)
