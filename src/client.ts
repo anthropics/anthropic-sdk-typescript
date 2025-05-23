@@ -418,7 +418,7 @@ export class BaseAnthropic {
     if (expectedTimeout > defaultTimeout) {
       throw new Errors.AnthropicError(
         'Streaming is strongly recommended for operations that may take longer than 10 minutes. ' +
-          'See https://github.com/anthropics/anthropic-sdk-python#streaming-responses for more details',
+          'See https://github.com/anthropics/anthropic-sdk-typescript#streaming-responses for more details',
       );
     }
     return defaultTimeout * 1000;
