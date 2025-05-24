@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.52.1 (2025-05-24)
+
+Full Changelog: [sdk-v0.52.0...sdk-v0.52.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.52.0...sdk-v0.52.1)
+
+### Chores
+
+* **examples:** show how to pass an authorization token to an MCP server ([340461b](https://github.com/anthropics/anthropic-sdk-typescript/commit/340461b39d9e27e281affda7ff9359c04bde3878))
+* **internal:** fix release workflows ([a8da56f](https://github.com/anthropics/anthropic-sdk-typescript/commit/a8da56f2ce042804925ec882cbdbe2ba1d66a183))
+
 ## 0.52.0 (2025-05-22)
 
 Full Changelog: [sdk-v0.51.0...sdk-v0.52.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.51.0...sdk-v0.52.0)

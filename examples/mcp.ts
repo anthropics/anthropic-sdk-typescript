@@ -14,6 +14,7 @@ const main = async () => {
           type: 'url',
           url: 'http://example-server.modelcontextprotocol.io/sse',
           name: 'example',
+          authorization_token: 'YOUR_TOKEN',
           tool_configuration: {
             // Optional, defaults to allowing all tools
             enabled: true, // Optional
