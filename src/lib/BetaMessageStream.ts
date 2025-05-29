@@ -10,6 +10,9 @@ import {
   type MessageCreateParamsBase as BetaMessageCreateParamsBase,
   type BetaTextBlock,
   type BetaTextCitation,
+  type BetaToolUseBlock,
+  type BetaServerToolUseBlock,
+  type BetaMCPToolUseBlock,
 } from '../resources/beta/messages/messages';
 import { Stream } from '../streaming';
 import { partialParse } from '../_vendor/partial-json-parser/parser';
@@ -38,6 +41,18 @@ type MessageStreamEventListeners<Event extends keyof MessageStreamEvents> = {
 }[];
 
 const JSON_BUF_PROPERTY = '__json_buf';
+
+/**
+ * Types of content blocks that track tool input via input_json_delta events
+ */
+export type TracksToolInput = BetaToolUseBlock | BetaServerToolUseBlock | BetaMCPToolUseBlock;
+
+/**
+ * Type guard to check if a content block is one that tracks tool input
+ */
+function tracksToolInput(content: BetaContentBlock): content is TracksToolInput {
+  return content.type === 'tool_use' || content.type === 'server_tool_use' || content.type === 'mcp_tool_use';
+}
 
 export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> {
   messages: BetaMessageParam[] = [];
@@ -432,7 +447,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
             break;
           }
           case 'input_json_delta': {
-            if ((content.type === 'tool_use' || content.type === 'mcp_tool_use') && content.input) {
+            if (tracksToolInput(content) && content.input) {
               this._emit('inputJson', event.delta.partial_json, content.input);
             }
             break;
@@ -571,7 +586,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
             break;
           }
           case 'input_json_delta': {
-            if (snapshotContent?.type === 'tool_use' || snapshotContent?.type === 'mcp_tool_use') {
+            if (snapshotContent && tracksToolInput(snapshotContent)) {
               // we need to keep track of the raw JSON string as well so that we can
               // re-parse it for each delta, for now we just store it as an untyped
               // non-enumerable property on the snapshot
