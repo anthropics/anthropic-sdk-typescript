@@ -10,6 +10,8 @@ import {
   type MessageCreateParamsBase,
   type TextBlock,
   type TextCitation,
+  type ToolUseBlock,
+  type ServerToolUseBlock,
 } from '../resources/messages';
 import { Stream } from '../streaming';
 import { partialParse } from '../_vendor/partial-json-parser/parser';
@@ -38,6 +40,12 @@ type MessageStreamEventListeners<Event extends keyof MessageStreamEvents> = {
 }[];
 
 const JSON_BUF_PROPERTY = '__json_buf';
+
+export type TracksToolInput = ToolUseBlock | ServerToolUseBlock;
+
+function tracksToolInput(content: ContentBlock): content is TracksToolInput {
+  return content.type === 'tool_use' || content.type === 'server_tool_use';
+}
 
 export class MessageStream implements AsyncIterable<MessageStreamEvent> {
   messages: MessageParam[] = [];
@@ -432,7 +440,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
             break;
           }
           case 'input_json_delta': {
-            if (content.type === 'tool_use' && content.input) {
+            if (tracksToolInput(content) && content.input) {
               this._emit('inputJson', event.delta.partial_json, content.input);
             }
             break;
@@ -571,7 +579,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
             break;
           }
           case 'input_json_delta': {
-            if (snapshotContent?.type === 'tool_use') {
+            if (snapshotContent && tracksToolInput(snapshotContent)) {
               // we need to keep track of the raw JSON string as well so that we can
               // re-parse it for each delta, for now we just store it as an untyped
               // non-enumerable property on the snapshot
