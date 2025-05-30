@@ -41,15 +41,8 @@ type MessageStreamEventListeners<Event extends keyof MessageStreamEvents> = {
 
 const JSON_BUF_PROPERTY = '__json_buf';
 
-/**
- * Types of content blocks that track tool input via input_json_delta events
- */
 export type TracksToolInput = ToolUseBlock | ServerToolUseBlock;
 
-/**
- * Type guard to check if a content block is one that tracks tool input
- * by having an `input` property that is updated via input_json_delta events.
- */
 function tracksToolInput(content: ContentBlock): content is TracksToolInput {
   return content.type === 'tool_use' || content.type === 'server_tool_use';
 }
