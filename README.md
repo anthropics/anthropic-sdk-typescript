@@ -205,13 +205,13 @@ List methods in the Anthropic API are paginated.
 You can use the `for await … of` syntax to iterate through items across all pages:
 
 ```ts
-async function fetchAllBetaMessagesBatches(params) {
-  const allBetaMessagesBatches = [];
+async function fetchAllBetaMessageBatches(params) {
+  const allBetaMessageBatches = [];
   // Automatically fetches more pages as needed.
   for await (const betaMessageBatch of client.beta.messages.batches.list({ limit: 20 })) {
-    allBetaMessagesBatches.push(betaMessageBatch);
+    allBetaMessageBatches.push(betaMessageBatch);
   }
-  return allBetaMessagesBatches;
+  return allBetaMessageBatches;
 }
 ```
 
