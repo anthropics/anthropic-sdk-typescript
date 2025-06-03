@@ -16,7 +16,6 @@ import {
 import { Stream } from '../streaming';
 import { partialParse } from '../_vendor/partial-json-parser/parser';
 import { RequestOptions } from '../internal/request-options';
-import { type ReadableStream } from '../internal/shim-types';
 
 export interface MessageStreamEvents {
   connect: () => void;
