@@ -423,7 +423,12 @@ export interface Message {
   usage: Usage;
 }
 
-export type MessageCountTokensTool = Tool | ToolBash20250124 | ToolTextEditor20250124 | WebSearchTool20250305;
+export type MessageCountTokensTool =
+  | Tool
+  | ToolBash20250124
+  | ToolTextEditor20250124
+  | ToolTextEditor20250429
+  | WebSearchTool20250305;
 
 export interface MessageDeltaUsage {
   /**
@@ -811,6 +816,8 @@ export namespace Tool {
 
     properties?: unknown | null;
 
+    required?: Array<string> | null;
+
     [k: string]: unknown;
   }
 }
@@ -925,7 +932,28 @@ export interface ToolTextEditor20250124 {
   cache_control?: CacheControlEphemeral | null;
 }
 
-export type ToolUnion = Tool | ToolBash20250124 | ToolTextEditor20250124 | WebSearchTool20250305;
+export interface ToolTextEditor20250429 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'str_replace_based_edit_tool';
+
+  type: 'text_editor_20250429';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+}
+
+export type ToolUnion =
+  | Tool
+  | ToolBash20250124
+  | ToolTextEditor20250124
+  | ToolTextEditor20250429
+  | WebSearchTool20250305;
 
 export interface ToolUseBlock {
   id: string;
@@ -1739,6 +1767,7 @@ export declare namespace Messages {
     type ToolChoiceTool as ToolChoiceTool,
     type ToolResultBlockParam as ToolResultBlockParam,
     type ToolTextEditor20250124 as ToolTextEditor20250124,
+    type ToolTextEditor20250429 as ToolTextEditor20250429,
     type ToolUnion as ToolUnion,
     type ToolUseBlock as ToolUseBlock,
     type ToolUseBlockParam as ToolUseBlockParam,
