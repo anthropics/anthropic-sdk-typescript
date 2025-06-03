@@ -24,17 +24,13 @@ const client = new Anthropic({
   apiKey: process.env['ANTHROPIC_API_KEY'], // This is the default and can be omitted
 });
 
-async function main() {
-  const message = await client.messages.create({
-    max_tokens: 1024,
-    messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-5-sonnet-latest',
-  });
+const message = await client.messages.create({
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'Hello, Claude' }],
+  model: 'claude-3-5-sonnet-latest',
+});
 
-  console.log(message.content);
-}
-
-main();
+console.log(message.content);
 ```
 
 ## Streaming responses
@@ -72,16 +68,12 @@ const client = new Anthropic({
   apiKey: process.env['ANTHROPIC_API_KEY'], // This is the default and can be omitted
 });
 
-async function main() {
-  const params: Anthropic.MessageCreateParams = {
-    max_tokens: 1024,
-    messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-5-sonnet-latest',
-  };
-  const message: Anthropic.Message = await client.messages.create(params);
-}
-
-main();
+const params: Anthropic.MessageCreateParams = {
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'Hello, Claude' }],
+  model: 'claude-3-5-sonnet-latest',
+};
+const message: Anthropic.Message = await client.messages.create(params);
 ```
 
 Documentation for each method, request param, and response field are available in docstrings and will appear on hover in most modern editors.
@@ -123,25 +115,21 @@ a subclass of `APIError` will be thrown:
 
 <!-- prettier-ignore -->
 ```ts
-async function main() {
-  const message = await client.messages
-    .create({
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: 'Hello, Claude' }],
-      model: 'claude-3-5-sonnet-latest',
-    })
-    .catch(async (err) => {
-      if (err instanceof Anthropic.APIError) {
-        console.log(err.status); // 400
-        console.log(err.name); // BadRequestError
-        console.log(err.headers); // {server: 'nginx', ...}
-      } else {
-        throw err;
-      }
-    });
-}
-
-main();
+const message = await client.messages
+  .create({
+    max_tokens: 1024,
+    messages: [{ role: 'user', content: 'Hello, Claude' }],
+    model: 'claude-3-5-sonnet-latest',
+  })
+  .catch(async (err) => {
+    if (err instanceof Anthropic.APIError) {
+      console.log(err.status); // 400
+      console.log(err.name); // BadRequestError
+      console.log(err.headers); // {server: 'nginx', ...}
+    } else {
+      throw err;
+    }
+  });
 ```
 
 Error codes are as follows:
