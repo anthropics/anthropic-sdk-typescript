@@ -83,6 +83,7 @@ export {
   type ToolChoiceTool,
   type ToolResultBlockParam,
   type ToolTextEditor20250124,
+  type ToolTextEditor20250429,
   type ToolUnion,
   type ToolUseBlock,
   type ToolUseBlockParam,

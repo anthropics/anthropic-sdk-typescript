@@ -73,6 +73,7 @@ describe('resource batches', () => {
                       type: 'string',
                     },
                   },
+                  required: ['location'],
                 },
                 name: 'name',
                 cache_control: { type: 'ephemeral' },

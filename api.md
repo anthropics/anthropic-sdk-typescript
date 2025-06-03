@@ -86,6 +86,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">ToolChoiceTool</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolResultBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolTextEditor20250124</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolTextEditor20250429</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolUnion</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolUseBlockParam</a></code>

@@ -1106,6 +1106,8 @@ export namespace BetaTool {
 
     properties?: unknown | null;
 
+    required?: Array<string> | null;
+
     [k: string]: unknown;
   }
 }
