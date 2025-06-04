@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.53.0 (2025-06-04)
+
+Full Changelog: [sdk-v0.52.0...sdk-v0.53.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.52.0...sdk-v0.53.0)
+
+### Features
+
+* **client:** add support for new text_editor_20250429 tool ([e49ebfb](https://github.com/anthropics/anthropic-sdk-typescript/commit/e49ebfb23729c5554796a2ef6b19869d2fb8854e))
+
+
+### Bug Fixes
+
+* **client:** correctly track input from server_tool_use input deltas ([4a14253](https://github.com/anthropics/anthropic-sdk-typescript/commit/4a142533c0e56b6cca120b15dc78779000496bc2))
+* **client:** fix link to streaming responses docs ([2ad98be](https://github.com/anthropics/anthropic-sdk-typescript/commit/2ad98be9088517715571438ef0cd577f428b50a4))
+* compat with more runtimes ([3c70ae3](https://github.com/anthropics/anthropic-sdk-typescript/commit/3c70ae35411566ae39428d1b0583fd9fe1b4f2a6))
+
+
+### Chores
+
+* adjust eslint.config.mjs ignore pattern ([ab404cf](https://github.com/anthropics/anthropic-sdk-typescript/commit/ab404cfddd74d6203acfb63c8e56c6727ab9ec9a))
+* **ci:** fix release workflow ([7e2e566](https://github.com/anthropics/anthropic-sdk-typescript/commit/7e2e5666b65168e926d32500a73f849e9d61fb17))
+* **deps:** bump eslint-plugin-prettier ([8f973c4](https://github.com/anthropics/anthropic-sdk-typescript/commit/8f973c428734fe37710f46cbbcb2c79a046246d9))
+* **docs:** use top-level-await in example snippets ([b4a60ee](https://github.com/anthropics/anthropic-sdk-typescript/commit/b4a60ee8a6912d7cfb68849b6369124260da69ed))
+* **examples:** show how to pass an authorization token to an MCP server ([340461b](https://github.com/anthropics/anthropic-sdk-typescript/commit/340461b39d9e27e281affda7ff9359c04bde3878))
+* improve publish-npm script --latest tag logic ([4a7bdc0](https://github.com/anthropics/anthropic-sdk-typescript/commit/4a7bdc07f5bbc0da266daaa163319665400318c9))
+* **internal:** codegen related update ([345af47](https://github.com/anthropics/anthropic-sdk-typescript/commit/345af474e599d8083aa473d043061ed64d9bd284))
+* **internal:** codegen related update ([6d924ef](https://github.com/anthropics/anthropic-sdk-typescript/commit/6d924efc8669b6cdadf4bb23612ca08afa3c7885))
+* **internal:** fix readablestream types in node 20 ([b68745b](https://github.com/anthropics/anthropic-sdk-typescript/commit/b68745b6a98aa0f12b9ce2e97d24a0cbed47758e))
+* **internal:** fix release workflows ([a8da56f](https://github.com/anthropics/anthropic-sdk-typescript/commit/a8da56f2ce042804925ec882cbdbe2ba1d66a183))
+
+
+### Documentation
+
+* **pagination:** improve naming ([8e62803](https://github.com/anthropics/anthropic-sdk-typescript/commit/8e62803aca24e182bf2202b1ea8ae9c6e3061883))
+
 ## 0.52.0 (2025-05-22)
 
 Full Changelog: [sdk-v0.51.0...sdk-v0.52.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.51.0...sdk-v0.52.0)
