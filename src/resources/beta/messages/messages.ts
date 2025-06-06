@@ -118,28 +118,6 @@ export interface BetaBase64ImageSource {
   type: 'base64';
 }
 
-export interface BetaBase64PDFBlock {
-  source:
-    | BetaBase64PDFSource
-    | BetaPlainTextSource
-    | BetaContentBlockSource
-    | BetaURLPDFSource
-    | BetaFileDocumentSource;
-
-  type: 'document';
-
-  /**
-   * Create a cache control breakpoint at this content block.
-   */
-  cache_control?: BetaCacheControlEphemeral | null;
-
-  citations?: BetaCitationsConfigParam;
-
-  context?: string | null;
-
-  title?: string | null;
-}
-
 export interface BetaBase64PDFSource {
   data: string;
 
@@ -465,7 +443,7 @@ export type BetaContentBlockParam =
   | BetaImageBlockParam
   | BetaToolUseBlockParam
   | BetaToolResultBlockParam
-  | BetaBase64PDFBlock
+  | BetaRequestDocumentBlock
   | BetaThinkingBlockParam
   | BetaRedactedThinkingBlockParam
   | BetaContainerUploadBlockParam;
@@ -838,6 +816,28 @@ export interface BetaRedactedThinkingBlockParam {
   data: string;
 
   type: 'redacted_thinking';
+}
+
+export interface BetaRequestDocumentBlock {
+  source:
+    | BetaBase64PDFSource
+    | BetaPlainTextSource
+    | BetaContentBlockSource
+    | BetaURLPDFSource
+    | BetaFileDocumentSource;
+
+  type: 'document';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  citations?: BetaCitationsConfigParam;
+
+  context?: string | null;
+
+  title?: string | null;
 }
 
 export interface BetaRequestMCPServerToolConfiguration {
@@ -1522,6 +1522,11 @@ export type BetaWebSearchToolResultErrorCode =
   | 'too_many_requests'
   | 'query_too_long';
 
+/**
+ * @deprecated BetaRequestDocumentBlock should be used insated
+ */
+export type BetaBase64PDFBlock = BetaRequestDocumentBlock;
+
 export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreateParamsStreaming;
 
 export interface MessageCreateParamsBase {
@@ -2079,7 +2084,6 @@ Messages.Batches = Batches;
 export declare namespace Messages {
   export {
     type BetaBase64ImageSource as BetaBase64ImageSource,
-    type BetaBase64PDFBlock as BetaBase64PDFBlock,
     type BetaBase64PDFSource as BetaBase64PDFSource,
     type BetaCacheControlEphemeral as BetaCacheControlEphemeral,
     type BetaCacheCreation as BetaCacheCreation,
@@ -2135,6 +2139,7 @@ export declare namespace Messages {
     type BetaRawMessageStreamEvent as BetaRawMessageStreamEvent,
     type BetaRedactedThinkingBlock as BetaRedactedThinkingBlock,
     type BetaRedactedThinkingBlockParam as BetaRedactedThinkingBlockParam,
+    type BetaRequestDocumentBlock as BetaRequestDocumentBlock,
     type BetaRequestMCPServerToolConfiguration as BetaRequestMCPServerToolConfiguration,
     type BetaRequestMCPServerURLDefinition as BetaRequestMCPServerURLDefinition,
     type BetaRequestMCPToolResultBlockParam as BetaRequestMCPToolResultBlockParam,
@@ -2184,6 +2189,7 @@ export declare namespace Messages {
     type BetaWebSearchToolResultBlockParamContent as BetaWebSearchToolResultBlockParamContent,
     type BetaWebSearchToolResultError as BetaWebSearchToolResultError,
     type BetaWebSearchToolResultErrorCode as BetaWebSearchToolResultErrorCode,
+    type BetaBase64PDFBlock as BetaBase64PDFBlock,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
