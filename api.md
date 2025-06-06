@@ -182,7 +182,6 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64ImageSource</a></code>
-- <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64PDFBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64PDFSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheControlEphemeral</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheCreation</a></code>
@@ -238,6 +237,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRawMessageStreamEvent</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRedactedThinkingBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRedactedThinkingBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestDocumentBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestMCPServerToolConfiguration</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestMCPServerURLDefinition</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestMCPToolResultBlockParam</a></code>
@@ -287,6 +287,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultBlockParamContent</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultError</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultErrorCode</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64PDFBlock</a></code>
 
 Methods:
 

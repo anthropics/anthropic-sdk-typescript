@@ -29,7 +29,6 @@ export {
 export {
   Messages,
   type BetaBase64ImageSource,
-  type BetaBase64PDFBlock,
   type BetaBase64PDFSource,
   type BetaCacheControlEphemeral,
   type BetaCacheCreation,
@@ -85,6 +84,7 @@ export {
   type BetaRawMessageStreamEvent,
   type BetaRedactedThinkingBlock,
   type BetaRedactedThinkingBlockParam,
+  type BetaRequestDocumentBlock,
   type BetaRequestMCPServerToolConfiguration,
   type BetaRequestMCPServerURLDefinition,
   type BetaRequestMCPToolResultBlockParam,
@@ -134,6 +134,7 @@ export {
   type BetaWebSearchToolResultBlockParamContent,
   type BetaWebSearchToolResultError,
   type BetaWebSearchToolResultErrorCode,
+  type BetaBase64PDFBlock,
   type MessageCreateParams,
   type MessageCreateParamsNonStreaming,
   type MessageCreateParamsStreaming,
