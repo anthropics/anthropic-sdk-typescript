@@ -558,7 +558,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
 
         return snapshot;
       case 'content_block_start':
-        snapshot.content.push(event.content_block);
+        snapshot.content.push({ ...event.content_block });
         return snapshot;
       case 'content_block_delta': {
         const snapshotContent = snapshot.content.at(event.index);
@@ -566,14 +566,21 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
         switch (event.delta.type) {
           case 'text_delta': {
             if (snapshotContent?.type === 'text') {
-              snapshotContent.text += event.delta.text;
+              // Create new content block instead of mutating
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                text: (snapshotContent.text || '') + event.delta.text,
+              };
             }
             break;
           }
           case 'citations_delta': {
             if (snapshotContent?.type === 'text') {
-              snapshotContent.citations ??= [];
-              snapshotContent.citations.push(event.delta.citation);
+              // Create new content block instead of mutating
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                citations: [...(snapshotContent.citations ?? []), event.delta.citation],
+              };
             }
             break;
           }
@@ -585,27 +592,38 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
               let jsonBuf = (snapshotContent as any)[JSON_BUF_PROPERTY] || '';
               jsonBuf += event.delta.partial_json;
 
-              Object.defineProperty(snapshotContent, JSON_BUF_PROPERTY, {
+              const newContent = { ...snapshotContent };
+              Object.defineProperty(newContent, JSON_BUF_PROPERTY, {
                 value: jsonBuf,
                 enumerable: false,
                 writable: true,
               });
 
               if (jsonBuf) {
-                snapshotContent.input = partialParse(jsonBuf);
+                newContent.input = partialParse(jsonBuf);
               }
+
+              snapshot.content[event.index] = newContent;
             }
             break;
           }
           case 'thinking_delta': {
             if (snapshotContent?.type === 'thinking') {
-              snapshotContent.thinking += event.delta.thinking;
+              // Create new content block instead of mutating
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                thinking: snapshotContent.thinking + event.delta.thinking,
+              };
             }
             break;
           }
           case 'signature_delta': {
             if (snapshotContent?.type === 'thinking') {
-              snapshotContent.signature = event.delta.signature;
+              // Create new content block instead of mutating
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                signature: event.delta.signature,
+              };
             }
             break;
           }

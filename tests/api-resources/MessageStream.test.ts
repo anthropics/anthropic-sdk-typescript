@@ -483,4 +483,144 @@ describe('MessageStream class', () => {
 
     await expect(runStream).rejects.toThrow(APIConnectionError);
   });
+
+  it('ensures events are immutable and not mutated after emission', async () => {
+    const { fetch, handleMessageStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    handleMessageStreamEvents(
+      messageIterable({
+        type: 'message',
+        id: 'msg_01hhptzfxdaeehfxfv070yb6b8',
+        role: 'assistant',
+        content: [{ type: 'text', text: 'Hello there!', citations: null }],
+        model: 'claude-3-opus-20240229',
+        stop_reason: 'end_turn',
+        stop_sequence: null,
+        usage: {
+          output_tokens: 6,
+          input_tokens: 10,
+          cache_creation_input_tokens: null,
+          cache_read_input_tokens: null,
+          server_tool_use: null,
+          service_tier: 'standard',
+        },
+      }),
+    );
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-3-opus-20240229',
+      messages: [{ role: 'user', content: 'Say hello there!' }],
+    });
+
+    const capturedEvents: Array<{ event: any; snapshot: any }> = [];
+
+    stream.on('streamEvent', (event, snapshot) => {
+      // Capture deep copies of the event and snapshot at emission time
+      capturedEvents.push({
+        event: JSON.parse(JSON.stringify(event)),
+        snapshot: JSON.parse(JSON.stringify(snapshot)),
+      });
+    });
+
+    await stream.done();
+
+    // Verify we captured some text delta events
+    const textDeltaEvents = capturedEvents.filter(
+      ({ event }) => event.type === 'content_block_delta' && event.delta.type === 'text_delta',
+    );
+
+    expect(textDeltaEvents.length).toBeGreaterThan(0);
+
+    // Verify that each captured event matches what we expect and hasn't been mutated
+    // The first text delta should have just the first chunk of text
+    const firstTextDelta = textDeltaEvents[0]!;
+    expect(firstTextDelta.event.delta.text).toBe('Hello');
+    expect(firstTextDelta.snapshot.content[0].text).toBe('Hello');
+
+    // The second text delta should have the second chunk
+    const secondTextDelta = textDeltaEvents[1]!;
+    expect(secondTextDelta.event.delta.text).toBe(' ther');
+    expect(secondTextDelta.snapshot.content[0].text).toBe('Hello ther');
+
+    // The third text delta should have the final chunk
+    const thirdTextDelta = textDeltaEvents[2]!;
+    expect(thirdTextDelta.event.delta.text).toBe('e!');
+    expect(thirdTextDelta.snapshot.content[0].text).toBe('Hello there!');
+
+    // Verify that earlier snapshots haven't been mutated by later events
+    // The first snapshot should still only have "Hello"
+    expect(firstTextDelta.snapshot.content[0].text).toBe('Hello');
+    // The second snapshot should still only have "Hello ther"
+    expect(secondTextDelta.snapshot.content[0].text).toBe('Hello ther');
+  });
+
+  it('ensures content_block_start event remains immutable even after deltas', async () => {
+    const { fetch, handleMessageStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    handleMessageStreamEvents(
+      messageIterable({
+        type: 'message',
+        id: 'msg_01hhptzfxdaeehfxfv070yb6b8',
+        role: 'assistant',
+        content: [{ type: 'text', text: 'Hello there!', citations: null }],
+        model: 'claude-3-opus-20240229',
+        stop_reason: 'end_turn',
+        stop_sequence: null,
+        usage: {
+          output_tokens: 6,
+          input_tokens: 10,
+          cache_creation_input_tokens: null,
+          cache_read_input_tokens: null,
+          server_tool_use: null,
+          service_tier: 'standard',
+        },
+      }),
+    );
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-3-opus-20240229',
+      messages: [{ role: 'user', content: 'Say hello there!' }],
+    });
+
+    const capturedEvents: Array<{ event: any; snapshot: any }> = [];
+
+    stream.on('streamEvent', (event, snapshot) => {
+      // Capture deep copies of the event and snapshot at emission time
+      capturedEvents.push({
+        event: JSON.parse(JSON.stringify(event)),
+        snapshot: JSON.parse(JSON.stringify(snapshot)),
+      });
+    });
+
+    await stream.done();
+
+    // Find the content_block_start event
+    const contentBlockStartEvent = capturedEvents.find(({ event }) => event.type === 'content_block_start');
+
+    expect(contentBlockStartEvent).toBeDefined();
+
+    // Verify the content_block_start event has empty text initially
+    expect(contentBlockStartEvent!.event.content_block.text).toBe('');
+    expect(contentBlockStartEvent!.snapshot.content[0].text).toBe('');
+
+    // Find a later text delta event to ensure text was accumulated
+    const laterTextDelta = capturedEvents.find(
+      ({ event }) => event.type === 'content_block_delta' && event.delta.type === 'text_delta',
+    );
+
+    expect(laterTextDelta).toBeDefined();
+    expect(laterTextDelta!.snapshot.content[0].text).toContain('Hello');
+
+    // Verify that the original content_block_start event's content_block still has empty text
+    // This ensures we didn't mutate the original event
+    expect(contentBlockStartEvent!.event.content_block.text).toBe('');
+    // And that the snapshot from content_block_start also remains unchanged
+    expect(contentBlockStartEvent!.snapshot.content[0].text).toBe('');
+  });
 });
