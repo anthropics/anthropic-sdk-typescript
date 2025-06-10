@@ -593,7 +593,14 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
               });
 
               if (jsonBuf) {
-                snapshotContent.input = partialParse(jsonBuf);
+                try {
+                  snapshotContent.input = partialParse(jsonBuf);
+                } catch (err) {
+                  const error = new AnthropicError(
+                    `Invalid JSON received in input_json_delta event.\nerror: ${err}\njson: ${jsonBuf}`,
+                  );
+                  this.#handleError(error);
+                }
               }
             }
             break;
