@@ -597,7 +597,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
                   snapshotContent.input = partialParse(jsonBuf);
                 } catch (err) {
                   const error = new AnthropicError(
-                    `Invalid JSON received in input_json_delta event.\nerror: ${err}\njson: ${jsonBuf}`,
+                    `Unable to parse tool parameter JSON from model. Please retry your request or adjust your prompt. Error: ${err}. JSON: ${jsonBuf}`,
                   );
                   this.#handleError(error);
                 }
