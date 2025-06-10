@@ -1,65 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { AnthropicError } from '@anthropic-ai/sdk/error';
-import {
-  type Fetch,
-  type RequestInfo,
-  type RequestInit,
-  type Response,
-} from '@anthropic-ai/sdk/internal/builtin-types';
-import { PassThrough } from 'stream';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-
-function mockFetch(): {
-  fetch: Fetch;
-  handleRequest: (handle: Fetch) => void;
-  handleStreamEvents: (events: any[]) => void;
-} {
-  const queue: Promise<typeof fetch>[] = [];
-  const readResolvers: ((handler: typeof fetch) => void)[] = [];
-
-  let index = 0;
-
-  async function fetch(req: string | RequestInfo, init?: RequestInit): Promise<Response> {
-    const idx = index++;
-    if (!queue[idx]) {
-      queue.push(new Promise((resolve) => readResolvers.push(resolve)));
-    }
-
-    const handler = await queue[idx]!;
-    return await handler(req, init);
-  }
-
-  function handleRequest(handler: typeof fetch): void {
-    if (readResolvers.length) {
-      const resolver = readResolvers.shift()!;
-      resolver(handler);
-      return;
-    }
-    queue.push(Promise.resolve(handler));
-  }
-
-  function handleStreamEvents(events: any[]) {
-    handleRequest(async () => {
-      const stream = new PassThrough();
-      (async () => {
-        for (const event of events) {
-          stream.write(`event: ${event.type}\n`);
-          stream.write(`data: ${JSON.stringify(event)}\n\n`);
-        }
-        stream.end(`done: [DONE]\n\n`);
-      })();
-      return new Response(stream, {
-        headers: {
-          'Content-Type': 'text/event-stream',
-          'Transfer-Encoding': 'chunked',
-        },
-      });
-    });
-  }
-
-  return { fetch: fetch as any, handleRequest, handleStreamEvents };
-}
+import { mockFetch } from '../lib/mock-fetch';
 
 function loadFixture(filename: string): string {
   const fixturePath = join(__dirname, '..', 'lib', 'fixtures', filename);
@@ -103,6 +46,56 @@ function parseSSEFixture(sseContent: string): any[] {
 
   return events;
 }
+
+// Expected message fixtures
+const EXPECTED_INCOMPLETE_MESSAGE = {
+  id: 'msg_01UdjYBBipA9omjYhicnevgq',
+  model: 'claude-3-7-sonnet-20250219',
+  role: 'assistant',
+  stop_reason: 'max_tokens',
+  stop_sequence: null,
+  type: 'message',
+  content: [
+    {
+      type: 'text',
+      text: "I'll create a comprehensive tax guide for someone with multiple W2s and save it in a file called taxes.txt. Let me do that for you now.",
+    },
+    {
+      type: 'tool_use',
+      id: 'toolu_01EKqbqmZrGRXy18eN7m9kvY',
+      name: 'make_file',
+      input: {
+        filename: 'taxes.txt',
+        lines_of_text: ['# COMPREHENSIVE TAX GUIDE FOR INDIVIDUALS WITH MULTIPLE W-2s'],
+      },
+    },
+  ],
+  usage: {
+    input_tokens: 450,
+    output_tokens: 124,
+    cache_creation_input_tokens: 0,
+    cache_read_input_tokens: 0,
+    service_tier: 'standard',
+  },
+};
+
+const EXPECTED_INCOMPLETE_EVENT_TYPES = [
+  'message_start',
+  'content_block_start',
+  'content_block_delta',
+  'content_block_delta',
+  'content_block_delta',
+  'content_block_delta',
+  'content_block_delta',
+  'content_block_stop',
+  'content_block_start',
+  'content_block_delta',
+  'content_block_delta',
+  'content_block_delta',
+  'content_block_delta',
+  'message_delta',
+  'message_stop',
+];
 
 describe('BetaMessageStream class', () => {
   it('handles partial JSON parsing errors in input_json_delta events', async () => {
@@ -237,58 +230,11 @@ describe('BetaMessageStream class', () => {
     await stream.done();
     const finalMessage = await stream.finalMessage();
 
-    // Verify the expected event types for TypeScript SDK (simpler than Python)
-    const expectedEventTypes = [
-      'message_start',
-      'content_block_start',
-      'content_block_delta',
-      'content_block_delta',
-      'content_block_delta',
-      'content_block_delta',
-      'content_block_delta',
-      'content_block_stop',
-      'content_block_start',
-      'content_block_delta',
-      'content_block_delta',
-      'content_block_delta',
-      'content_block_delta',
-      'message_delta',
-      'message_stop',
-    ];
+    // Verify the event types match expected
+    expect(events).toEqual(EXPECTED_INCOMPLETE_EVENT_TYPES);
 
-    expect(events).toEqual(expectedEventTypes);
-
-    // Verify the final message structure matches expected from Python test
-    expect(finalMessage.id).toBe('msg_01UdjYBBipA9omjYhicnevgq');
-    expect(finalMessage.model).toBe('claude-3-7-sonnet-20250219');
-    expect(finalMessage.role).toBe('assistant');
-    expect(finalMessage.stop_reason).toBe('max_tokens');
-    expect(finalMessage.content).toHaveLength(2);
-
-    // First content block: text
-    const textContent = finalMessage.content[0]!;
-    expect(textContent.type).toBe('text');
-    expect((textContent as any).text).toBe(
-      "I'll create a comprehensive tax guide for someone with multiple W2s and save it in a file called taxes.txt. Let me do that for you now.",
-    );
-
-    // Second content block: tool use with partial input
-    const toolContent = finalMessage.content[1]!;
-    expect(toolContent.type).toBe('tool_use');
-    expect((toolContent as any).id).toBe('toolu_01EKqbqmZrGRXy18eN7m9kvY');
-    expect((toolContent as any).name).toBe('make_file');
-
-    // Verify the partial JSON was correctly parsed with trailing strings mode
-    const toolInput = (toolContent as any).input;
-    expect(toolInput.filename).toBe('taxes.txt');
-    // Note: The incomplete JSON in the fixture only contains the first element due to max_tokens cutoff
-    expect(toolInput.lines_of_text).toEqual(['# COMPREHENSIVE TAX GUIDE FOR INDIVIDUALS WITH MULTIPLE W-2s']);
-
-    // Verify usage information
-    expect(finalMessage.usage.input_tokens).toBe(450);
-    expect(finalMessage.usage.output_tokens).toBe(124);
-    expect(finalMessage.usage.cache_creation_input_tokens).toBe(0);
-    expect(finalMessage.usage.cache_read_input_tokens).toBe(0);
-    expect(finalMessage.usage.service_tier).toBe('standard');
+    // Verify the final message structure matches expected
+    const actualMessage = JSON.parse(JSON.stringify(finalMessage));
+    expect(actualMessage).toEqual(EXPECTED_INCOMPLETE_MESSAGE);
   });
 });
