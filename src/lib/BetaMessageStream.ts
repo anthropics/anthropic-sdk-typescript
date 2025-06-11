@@ -593,7 +593,14 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
               });
 
               if (jsonBuf) {
-                snapshotContent.input = partialParse(jsonBuf);
+                try {
+                  snapshotContent.input = partialParse(jsonBuf);
+                } catch (err) {
+                  const error = new AnthropicError(
+                    `Unable to parse tool parameter JSON from model. Please retry your request or adjust your prompt. Error: ${err}. JSON: ${jsonBuf}`,
+                  );
+                  this.#handleError(error);
+                }
               }
             }
             break;
