@@ -1,9 +1,85 @@
 import Anthropic, { APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
 import { Message, MessageStreamEvent } from '@anthropic-ai/sdk/resources/messages';
 import { mockFetch } from '../lib/mock-fetch';
+import { loadFixture, parseSSEFixture } from '../lib/sse-helpers';
 
 function assertNever(x: never): never {
   throw new Error(`unreachable: ${x}`);
+}
+
+// Expected message fixtures
+const EXPECTED_BASIC_MESSAGE = {
+  id: 'msg_4QpJur2dWWDjF6C758FbBw5vm12BaVipnK',
+  model: 'claude-3-opus-20240229',
+  role: 'assistant',
+  stop_reason: 'end_turn',
+  stop_sequence: null,
+  type: 'message',
+  content: [{ type: 'text', text: 'Hello there!' }],
+  usage: { input_tokens: 11, output_tokens: 6 },
+};
+
+const EXPECTED_BASIC_EVENT_TYPES = [
+  'message_start',
+  'content_block_start',
+  'content_block_delta',
+  'content_block_delta',
+  'content_block_delta',
+  'content_block_stop',
+  'message_delta',
+  'message_stop',
+];
+
+const EXPECTED_TOOL_USE_MESSAGE = {
+  id: 'msg_019Q1hrJbZG26Fb9BQhrkHEr',
+  model: 'claude-sonnet-4-20250514',
+  role: 'assistant',
+  stop_reason: 'tool_use',
+  stop_sequence: null,
+  type: 'message',
+  content: [
+    { type: 'text', text: "I'll check the current weather in Paris for you." },
+    {
+      type: 'tool_use',
+      id: 'toolu_01NRLabsLyVHZPKxbKvkfSMn',
+      name: 'get_weather',
+      input: { location: 'Paris' },
+    },
+  ],
+  usage: {
+    input_tokens: 377,
+    output_tokens: 65,
+    cache_creation_input_tokens: 0,
+    cache_read_input_tokens: 0,
+    service_tier: 'standard',
+  },
+};
+
+const EXPECTED_TOOL_USE_EVENT_TYPES = [
+  'message_start',
+  'content_block_start',
+  'content_block_delta',
+  'content_block_delta',
+  'content_block_stop',
+  'content_block_start',
+  'content_block_delta',
+  'content_block_delta',
+  'content_block_delta',
+  'content_block_delta',
+  'content_block_delta',
+  'content_block_stop',
+  'message_delta',
+  'message_stop',
+];
+
+function assertBasicResponse(events: MessageStreamEvent[], message: Message) {
+  expect(events.map((e) => e.type)).toEqual(EXPECTED_BASIC_EVENT_TYPES);
+  expect(message).toMatchObject(EXPECTED_BASIC_MESSAGE);
+}
+
+function assertToolUseResponse(events: MessageStreamEvent[], message: Message) {
+  expect(events.map((e) => e.type)).toEqual(EXPECTED_TOOL_USE_EVENT_TYPES);
+  expect(message).toMatchObject(EXPECTED_TOOL_USE_MESSAGE);
 }
 
 async function* messageIterable(message: Message): AsyncGenerator<MessageStreamEvent> {
@@ -412,5 +488,59 @@ describe('MessageStream class', () => {
     }
 
     await expect(runStream).rejects.toThrow(APIConnectionError);
+  });
+
+  it('handles basic response fixture', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    // Load and parse the fixture
+    const fixtureContent = loadFixture('basic_response.txt');
+    const streamEvents = parseSSEFixture(fixtureContent);
+    handleStreamEvents(streamEvents);
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-3-opus-20240229',
+      messages: [{ role: 'user', content: 'Say hello there!' }],
+    });
+
+    const events: MessageStreamEvent[] = [];
+    for await (const event of stream) {
+      events.push(event);
+    }
+
+    await stream.done();
+    const finalMessage = await stream.finalMessage();
+
+    assertBasicResponse(events, finalMessage);
+  });
+
+  it('handles tool use response fixture', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    // Load and parse the fixture
+    const fixtureContent = loadFixture('tool_use_response.txt');
+    const streamEvents = parseSSEFixture(fixtureContent);
+    handleStreamEvents(streamEvents);
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-sonnet-4-20250514',
+      messages: [{ role: 'user', content: 'What is the weather in Paris?' }],
+    });
+
+    const events: MessageStreamEvent[] = [];
+    for await (const event of stream) {
+      events.push(event);
+    }
+
+    await stream.done();
+    const finalMessage = await stream.finalMessage();
+
+    assertToolUseResponse(events, finalMessage);
   });
 });
