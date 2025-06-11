@@ -290,8 +290,10 @@ describe('BetaMessageStream class', () => {
 
     await stream.done();
     const finalMessage = await stream.finalMessage();
+    const finalText = await stream.finalText();
 
     assertBasicResponse(events, finalMessage);
+    expect(finalText).toBe('Hello there!');
   });
 
   it('handles tool use response fixture', async () => {
@@ -322,8 +324,10 @@ describe('BetaMessageStream class', () => {
 
     await stream.done();
     const finalMessage = await stream.finalMessage();
+    const finalText = await stream.finalText();
 
     assertToolUseResponse(events, finalMessage);
+    expect(finalText).toBe("I'll check the current weather in Paris for you.");
   });
 
   it('aborts on break', async () => {

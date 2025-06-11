@@ -192,8 +192,10 @@ describe('MessageStream class', () => {
 
     await stream.done();
     const finalMessage = await stream.finalMessage();
+    const finalText = await stream.finalText();
 
     assertBasicResponse(events, finalMessage);
+    expect(finalText).toBe('Hello there!');
   });
 
   it('handles tool use response fixture', async () => {
@@ -218,7 +220,9 @@ describe('MessageStream class', () => {
 
     await stream.done();
     const finalMessage = await stream.finalMessage();
+    const finalText = await stream.finalText();
 
     assertToolUseResponse(events, finalMessage);
+    expect(finalText).toBe("I'll check the current weather in Paris for you.");
   });
 });
