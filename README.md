@@ -26,7 +26,7 @@ const client = new Anthropic({
 
 const message = await client.messages.create({
   max_tokens: 1024,
-  messages: [{ content: 'Hello, Claude', role: 'user' }],
+  messages: [{ role: 'user', content: 'Hello, Claude' }],
   model: 'claude-3-5-sonnet-latest',
 });
 
@@ -44,7 +44,7 @@ const client = new Anthropic();
 
 const stream = await client.messages.create({
   max_tokens: 1024,
-  messages: [{ content: 'Hello, Claude', role: 'user' }],
+  messages: [{ role: 'user', content: 'Hello, Claude' }],
   model: 'claude-3-5-sonnet-latest',
   stream: true,
 });
@@ -70,7 +70,7 @@ const client = new Anthropic({
 
 const params: Anthropic.MessageCreateParams = {
   max_tokens: 1024,
-  messages: [{ content: 'Hello, Claude', role: 'user' }],
+  messages: [{ role: 'user', content: 'Hello, Claude' }],
   model: 'claude-3-5-sonnet-latest',
 };
 const message: Anthropic.Message = await client.messages.create(params);
@@ -118,7 +118,7 @@ a subclass of `APIError` will be thrown:
 const message = await client.messages
   .create({
     max_tokens: 1024,
-    messages: [{ content: 'Hello, Claude', role: 'user' }],
+    messages: [{ role: 'user', content: 'Hello, Claude' }],
     model: 'claude-3-5-sonnet-latest',
   })
   .catch(async (err) => {
@@ -161,7 +161,7 @@ const client = new Anthropic({
 });
 
 // Or, configure per-request:
-await client.messages.create({ max_tokens: 1024, messages: [{ content: 'Hello, Claude', role: 'user' }], model: 'claude-3-5-sonnet-latest' }, {
+await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-5-sonnet-latest' }, {
   maxRetries: 5,
 });
 ```
@@ -178,7 +178,7 @@ const client = new Anthropic({
 });
 
 // Override per-request:
-await client.messages.create({ max_tokens: 1024, messages: [{ content: 'Hello, Claude', role: 'user' }], model: 'claude-3-5-sonnet-latest' }, {
+await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-5-sonnet-latest' }, {
   timeout: 5 * 1000,
 });
 ```
@@ -234,7 +234,7 @@ const client = new Anthropic();
 const message = await client.messages.create(
   {
     max_tokens: 1024,
-    messages: [{ content: 'Hello, Claude', role: 'user' }],
+    messages: [{ role: 'user', content: 'Hello, Claude' }],
     model: 'claude-3-5-sonnet-latest',
   },
   { headers: { 'anthropic-version': 'My-Custom-Value' } },
@@ -258,7 +258,7 @@ const client = new Anthropic();
 const response = await client.messages
   .create({
     max_tokens: 1024,
-    messages: [{ content: 'Hello, Claude', role: 'user' }],
+    messages: [{ role: 'user', content: 'Hello, Claude' }],
     model: 'claude-3-5-sonnet-latest',
   })
   .asResponse();
@@ -268,7 +268,7 @@ console.log(response.statusText); // access the underlying Response object
 const { data: message, response: raw } = await client.messages
   .create({
     max_tokens: 1024,
-    messages: [{ content: 'Hello, Claude', role: 'user' }],
+    messages: [{ role: 'user', content: 'Hello, Claude' }],
     model: 'claude-3-5-sonnet-latest',
   })
   .withResponse();

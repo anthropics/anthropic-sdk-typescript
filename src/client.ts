@@ -855,8 +855,8 @@ export class BaseAnthropic {
   }
 
   static Anthropic = this;
-  static AI_PROMPT = '\n\nAssistant:';
   static HUMAN_PROMPT = '\n\nHuman:';
+  static AI_PROMPT = '\n\nAssistant:';
   static DEFAULT_TIMEOUT = 600000; // 10 minutes
 
   static AnthropicError = Errors.AnthropicError;
@@ -880,36 +880,20 @@ export class BaseAnthropic {
  * API Client for interfacing with the Anthropic API.
  */
 export class Anthropic extends BaseAnthropic {
-  beta: API.Beta = new API.Beta(this);
   completions: API.Completions = new API.Completions(this);
   messages: API.Messages = new API.Messages(this);
   models: API.Models = new API.Models(this);
+  beta: API.Beta = new API.Beta(this);
 }
-Anthropic.Beta = Beta;
 Anthropic.Completions = Completions;
 Anthropic.Messages = Messages;
 Anthropic.Models = Models;
+Anthropic.Beta = Beta;
 export declare namespace Anthropic {
   export type RequestOptions = Opts.RequestOptions;
 
   export import Page = Pagination.Page;
   export { type PageParams as PageParams, type PageResponse as PageResponse };
-
-  export {
-    Beta as Beta,
-    type AnthropicBeta as AnthropicBeta,
-    type BetaAPIError as BetaAPIError,
-    type BetaAuthenticationError as BetaAuthenticationError,
-    type BetaBillingError as BetaBillingError,
-    type BetaError as BetaError,
-    type BetaErrorResponse as BetaErrorResponse,
-    type BetaGatewayTimeoutError as BetaGatewayTimeoutError,
-    type BetaInvalidRequestError as BetaInvalidRequestError,
-    type BetaNotFoundError as BetaNotFoundError,
-    type BetaOverloadedError as BetaOverloadedError,
-    type BetaPermissionError as BetaPermissionError,
-    type BetaRateLimitError as BetaRateLimitError,
-  };
 
   export {
     Completions as Completions,
@@ -1013,6 +997,22 @@ export declare namespace Anthropic {
     type ModelListParams as ModelListParams,
   };
 
+  export {
+    Beta as Beta,
+    type AnthropicBeta as AnthropicBeta,
+    type BetaAPIError as BetaAPIError,
+    type BetaAuthenticationError as BetaAuthenticationError,
+    type BetaBillingError as BetaBillingError,
+    type BetaError as BetaError,
+    type BetaErrorResponse as BetaErrorResponse,
+    type BetaGatewayTimeoutError as BetaGatewayTimeoutError,
+    type BetaInvalidRequestError as BetaInvalidRequestError,
+    type BetaNotFoundError as BetaNotFoundError,
+    type BetaOverloadedError as BetaOverloadedError,
+    type BetaPermissionError as BetaPermissionError,
+    type BetaRateLimitError as BetaRateLimitError,
+  };
+
   export type APIErrorObject = API.APIErrorObject;
   export type AuthenticationError = API.AuthenticationError;
   export type BillingError = API.BillingError;
@@ -1025,4 +1025,4 @@ export declare namespace Anthropic {
   export type PermissionError = API.PermissionError;
   export type RateLimitError = API.RateLimitError;
 }
-export const { AI_PROMPT, HUMAN_PROMPT } = Anthropic;
+export const { HUMAN_PROMPT, AI_PROMPT } = Anthropic;

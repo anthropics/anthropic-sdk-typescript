@@ -67,20 +67,20 @@ client.example.list(undefined, { headers: { ... } });
 
 This affects the following methods:
 
-- `client.beta.files.list()`
-- `client.beta.files.delete()`
-- `client.beta.files.download()`
-- `client.beta.files.retrieveMetadata()`
+- `client.messages.batches.list()`
+- `client.models.retrieve()`
+- `client.models.list()`
+- `client.beta.models.retrieve()`
+- `client.beta.models.list()`
 - `client.beta.messages.batches.retrieve()`
 - `client.beta.messages.batches.list()`
 - `client.beta.messages.batches.delete()`
 - `client.beta.messages.batches.cancel()`
 - `client.beta.messages.batches.results()`
-- `client.beta.models.retrieve()`
-- `client.beta.models.list()`
-- `client.messages.batches.list()`
-- `client.models.retrieve()`
-- `client.models.list()`
+- `client.beta.files.list()`
+- `client.beta.files.delete()`
+- `client.beta.files.download()`
+- `client.beta.files.retrieveMetadata()`
 
 ### Removed `httpAgent` in favor of `fetchOptions`
 
@@ -144,16 +144,16 @@ If you were relying on anything that was only exported from `@anthropic-ai/sdk/c
 
 #### Resource classes
 
-Previously under certain circumstances it was possible to import resource classes like `Beta` directly from the root of the package. This was never valid at the type level and only worked in CommonJS files.
+Previously under certain circumstances it was possible to import resource classes like `Completions` directly from the root of the package. This was never valid at the type level and only worked in CommonJS files.
 Now you must always either reference them as static class properties or import them directly from the files in which they are defined.
 
 ```typescript
 // Before
-const { Beta } = require('@anthropic-ai/sdk');
+const { Completions } = require('@anthropic-ai/sdk');
 
 // After
 const { Anthropic } = require('@anthropic-ai/sdk');
-Anthropic.Beta; // or import directly from @anthropic-ai/sdk/resources/beta/beta
+Anthropic.Completions; // or import directly from @anthropic-ai/sdk/resources/completions
 ```
 
 #### Cleaned up `uploads` exports

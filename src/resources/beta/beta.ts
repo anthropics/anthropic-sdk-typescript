@@ -132,9 +132,9 @@ import {
 } from './messages/messages';
 
 export class Beta extends APIResource {
-  files: FilesAPI.Files = new FilesAPI.Files(this._client);
-  messages: MessagesAPI.Messages = new MessagesAPI.Messages(this._client);
   models: ModelsAPI.Models = new ModelsAPI.Models(this._client);
+  messages: MessagesAPI.Messages = new MessagesAPI.Messages(this._client);
+  files: FilesAPI.Files = new FilesAPI.Files(this._client);
 }
 
 export type AnthropicBeta =
@@ -225,9 +225,9 @@ export interface BetaRateLimitError {
   type: 'rate_limit_error';
 }
 
-Beta.Files = Files;
-Beta.Messages = Messages;
 Beta.Models = Models;
+Beta.Messages = Messages;
+Beta.Files = Files;
 
 export declare namespace Beta {
   export {
@@ -246,15 +246,11 @@ export declare namespace Beta {
   };
 
   export {
-    Files as Files,
-    type DeletedFile as DeletedFile,
-    type FileMetadata as FileMetadata,
-    type FileMetadataPage as FileMetadataPage,
-    type FileListParams as FileListParams,
-    type FileDeleteParams as FileDeleteParams,
-    type FileDownloadParams as FileDownloadParams,
-    type FileRetrieveMetadataParams as FileRetrieveMetadataParams,
-    type FileUploadParams as FileUploadParams,
+    Models as Models,
+    type BetaModelInfo as BetaModelInfo,
+    type BetaModelInfosPage as BetaModelInfosPage,
+    type ModelRetrieveParams as ModelRetrieveParams,
+    type ModelListParams as ModelListParams,
   };
 
   export {
@@ -373,10 +369,14 @@ export declare namespace Beta {
   };
 
   export {
-    Models as Models,
-    type BetaModelInfo as BetaModelInfo,
-    type BetaModelInfosPage as BetaModelInfosPage,
-    type ModelRetrieveParams as ModelRetrieveParams,
-    type ModelListParams as ModelListParams,
+    Files as Files,
+    type DeletedFile as DeletedFile,
+    type FileMetadata as FileMetadata,
+    type FileMetadataPage as FileMetadataPage,
+    type FileListParams as FileListParams,
+    type FileDeleteParams as FileDeleteParams,
+    type FileDownloadParams as FileDownloadParams,
+    type FileRetrieveMetadataParams as FileRetrieveMetadataParams,
+    type FileUploadParams as FileUploadParams,
   };
 }
