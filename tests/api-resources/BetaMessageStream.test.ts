@@ -4,11 +4,6 @@ import { BetaMessage, BetaRawMessageStreamEvent } from '@anthropic-ai/sdk/resour
 import { mockFetch } from '../lib/mock-fetch';
 import { loadFixture, parseSSEFixture } from '../lib/sse-helpers';
 
-function assertNever(x: never): never {
-  throw new Error(`unreachable: ${x}`);
-}
-
-// Expected message fixtures
 const EXPECTED_BASIC_MESSAGE = {
   id: 'msg_4QpJur2dWWDjF6C758FbBw5vm12BaVipnK',
   model: 'claude-3-opus-20240229',
@@ -132,99 +127,6 @@ function assertToolUseResponse(events: BetaRawMessageStreamEvent[], message: Bet
   expect(message).toMatchObject(EXPECTED_TOOL_USE_MESSAGE);
 }
 
-async function* betaMessageIterable(message: BetaMessage): AsyncGenerator<BetaRawMessageStreamEvent> {
-  yield {
-    type: 'message_start',
-    // @ts-ignore
-    message: { ...message, content: [], stop_reason: null, stop_sequence: null },
-  };
-
-  for (let idx = 0; idx < message.content.length; idx++) {
-    const content = message.content[idx]!;
-    yield {
-      type: 'content_block_start',
-      content_block:
-        content.type === 'text' ? { type: 'text', text: '' }
-        : content.type === 'tool_use' ?
-          {
-            type: 'tool_use',
-            id: 'toolu_01Up7oRoHeGvhded7n66nPzP',
-            name: 'get_weather',
-            input: {},
-          }
-        : content.type === 'thinking' ? { type: 'thinking', thinking: '', signature: '' }
-        : content.type === 'redacted_thinking' ? { type: 'redacted_thinking', data: '' }
-        : content.type === 'server_tool_use' ?
-          {
-            type: 'server_tool_use',
-            id: 'toolu_01Up7oRoHeGvhded7n66nPzP',
-            name: 'web_search',
-            input: {},
-          }
-        : content.type === 'web_search_tool_result' ?
-          {
-            type: 'web_search_tool_result',
-            tool_use_id: 'toolu_01Up7oRoHeGvhded7n66nPzP',
-            content: [],
-          }
-        : assertNever(content),
-      index: idx,
-    };
-
-    if (content.type === 'text') {
-      for (let chunk = 0; chunk * 5 < content.text.length; chunk++) {
-        yield {
-          type: 'content_block_delta',
-          delta: { type: 'text_delta', text: content.text.slice(chunk * 5, (chunk + 1) * 5) },
-          index: idx,
-        };
-      }
-    } else if (content.type === 'tool_use') {
-      const jsonString = JSON.stringify(content.input);
-
-      for (let chunk = 0; chunk * 5 < jsonString.length; chunk++) {
-        yield {
-          type: 'content_block_delta',
-          delta: { type: 'input_json_delta', partial_json: jsonString.slice(chunk * 5, (chunk + 1) * 5) },
-          index: idx,
-        };
-      }
-    } else if (content.type === 'thinking') {
-      throw new Error('thinking not implemented yet');
-    } else if (content.type === 'redacted_thinking') {
-      throw new Error('redacted_thinking not implemented yet');
-    } else if (content.type === 'server_tool_use') {
-      throw new Error('server_tool_use not implemented yet');
-    } else if (content.type === 'web_search_tool_result') {
-      throw new Error('web_search_tool_result not implemented yet');
-    } else {
-      assertNever(content);
-    }
-
-    yield {
-      type: 'content_block_stop',
-      index: idx,
-    };
-  }
-
-  yield {
-    type: 'message_delta',
-    usage: {
-      output_tokens: 6,
-      input_tokens: null,
-      cache_creation_input_tokens: null,
-      cache_read_input_tokens: null,
-      server_tool_use: null,
-    },
-    // @ts-ignore
-    delta: { stop_reason: message.stop_reason, stop_sequence: message.stop_sequence },
-  };
-
-  yield {
-    type: 'message_stop',
-  };
-}
-
 describe('BetaMessageStream class', () => {
   it('handles partial JSON parsing errors in input_json_delta events', async () => {
     const { fetch, handleStreamEvents } = mockFetch();
@@ -301,13 +203,11 @@ describe('BetaMessageStream class', () => {
       messages: [{ role: 'user', content: 'Use the test tool' }],
     });
 
-    // Collect errors emitted by the stream
     const errors: AnthropicError[] = [];
     stream.on('error', (error) => {
       errors.push(error);
     });
 
-    // Process the stream to completion
     try {
       await stream.done();
     } catch (error) {
@@ -332,7 +232,6 @@ describe('BetaMessageStream class', () => {
       },
     });
 
-    // Load and parse the fixture that contains incomplete partial JSON
     const fixtureContent = loadFixture('incomplete_partial_json_response.txt');
     const streamEvents = parseSSEFixture(fixtureContent);
     handleStreamEvents(streamEvents);
@@ -354,14 +253,11 @@ describe('BetaMessageStream class', () => {
       contentBlocks.push(block);
     });
 
-    // Process the stream to completion
     await stream.done();
     const finalMessage = await stream.finalMessage();
 
-    // Verify the event types match expected
     expect(events).toEqual(EXPECTED_INCOMPLETE_EVENT_TYPES);
 
-    // Verify the final message structure matches expected
     const actualMessage = JSON.parse(JSON.stringify(finalMessage));
     expect(actualMessage).toEqual(EXPECTED_INCOMPLETE_MESSAGE);
   });
@@ -377,7 +273,6 @@ describe('BetaMessageStream class', () => {
       },
     });
 
-    // Load and parse the fixture
     const fixtureContent = loadFixture('basic_response.txt');
     const streamEvents = parseSSEFixture(fixtureContent);
     handleStreamEvents(streamEvents);
@@ -393,11 +288,9 @@ describe('BetaMessageStream class', () => {
       events.push(event);
     });
 
-    // Process the stream to completion
     await stream.done();
     const finalMessage = await stream.finalMessage();
 
-    // Verify the event types and final message match expected
     assertBasicResponse(events, finalMessage);
   });
 
@@ -412,7 +305,6 @@ describe('BetaMessageStream class', () => {
       },
     });
 
-    // Load and parse the fixture
     const fixtureContent = loadFixture('tool_use_response.txt');
     const streamEvents = parseSSEFixture(fixtureContent);
     handleStreamEvents(streamEvents);
@@ -428,11 +320,9 @@ describe('BetaMessageStream class', () => {
       events.push(event);
     });
 
-    // Process the stream to completion
     await stream.done();
     const finalMessage = await stream.finalMessage();
 
-    // Verify the event types and final message match expected
     assertToolUseResponse(events, finalMessage);
   });
 
@@ -453,28 +343,9 @@ describe('BetaMessageStream class', () => {
       messages: [{ role: 'user', content: 'Say hello there!' }],
     });
 
-    const events = [];
-    for await (const event of betaMessageIterable({
-      type: 'message',
-      id: 'msg_01hhptzfxdaeehfxfv070yb6b8',
-      role: 'assistant',
-      content: [{ type: 'text', text: 'Hello there!' }],
-      model: 'claude-3-opus-20240229',
-      stop_reason: 'end_turn',
-      stop_sequence: null,
-      usage: {
-        output_tokens: 6,
-        input_tokens: 10,
-        cache_creation_input_tokens: null,
-        cache_read_input_tokens: null,
-        server_tool_use: null,
-        service_tier: 'standard',
-      },
-    })) {
-      events.push(event);
-    }
-
-    handleStreamEvents(events);
+    const fixtureContent = loadFixture('basic_response.txt');
+    const streamEvents = parseSSEFixture(fixtureContent);
+    handleStreamEvents(streamEvents);
 
     for await (const event of stream) {
       if (
