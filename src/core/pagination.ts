@@ -115,30 +115,30 @@ export class PagePromise<
 export interface PageResponse<Item> {
   data: Array<Item>;
 
-  first_id: string | null;
-
   has_more: boolean;
+
+  first_id: string | null;
 
   last_id: string | null;
 }
 
 export interface PageParams {
-  after_id?: string;
-
-  before_id?: string;
-
   /**
    * Number of items per page.
    */
   limit?: number;
+
+  before_id?: string;
+
+  after_id?: string;
 }
 
 export class Page<Item> extends AbstractPage<Item> implements PageResponse<Item> {
   data: Array<Item>;
 
-  first_id: string | null;
-
   has_more: boolean;
+
+  first_id: string | null;
 
   last_id: string | null;
 
@@ -151,8 +151,8 @@ export class Page<Item> extends AbstractPage<Item> implements PageResponse<Item>
     super(client, response, body, options);
 
     this.data = body.data || [];
-    this.first_id = body.first_id || null;
     this.has_more = body.has_more || false;
+    this.first_id = body.first_id || null;
     this.last_id = body.last_id || null;
   }
 
