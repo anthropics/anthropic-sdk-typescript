@@ -4,7 +4,7 @@ export { Anthropic as default } from './client';
 
 export { type Uploadable, toFile } from './core/uploads';
 export { APIPromise } from './core/api-promise';
-export { BaseAnthropic, Anthropic, type ClientOptions, HUMAN_PROMPT, AI_PROMPT } from './client';
+export { BaseAnthropic, Anthropic, type ClientOptions, AI_PROMPT, HUMAN_PROMPT } from './client';
 export { PagePromise } from './core/pagination';
 export {
   AnthropicError,
