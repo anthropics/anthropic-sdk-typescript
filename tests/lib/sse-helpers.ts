@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { SSEDecoder } from '../../src/core/streaming';
 
 export function loadFixture(filename: string): string {
   const fixturePath = join(__dirname, 'fixtures', filename);
@@ -9,36 +10,29 @@ export function loadFixture(filename: string): string {
 export function parseSSEFixture(sseContent: string): any[] {
   const events: any[] = [];
   const lines = sseContent.split('\n');
-  let currentEvent: any = {};
+  const sseDecoder = new SSEDecoder();
 
   for (const line of lines) {
-    if (line.startsWith('event: ')) {
-      // If we have a complete event, push it
-      if (currentEvent.type && currentEvent.data) {
-        events.push(currentEvent.data);
-      }
-      currentEvent = { type: line.substring(7) };
-    } else if (line.startsWith('data: ')) {
-      const dataStr = line.substring(6).trim();
-      if (dataStr) {
-        try {
-          currentEvent.data = JSON.parse(dataStr);
-        } catch (e) {
-          // Skip malformed JSON data lines
-        }
-      }
-    } else if (line.trim() === '') {
-      // Empty line indicates end of event
-      if (currentEvent.type && currentEvent.data) {
-        events.push(currentEvent.data);
-        currentEvent = {};
+    const sse = sseDecoder.decode(line);
+    if (sse && sse.event !== 'ping') {
+      try {
+        events.push(JSON.parse(sse.data));
+      } catch (e) {
+        // Skip malformed JSON data lines
+        console.error(`Error parsing SSE data: ${sse.data}`, e);
       }
     }
   }
 
-  // Push the last event if it exists
-  if (currentEvent.type && currentEvent.data) {
-    events.push(currentEvent.data);
+  // Process any remaining event (in case file doesn't end with empty line)
+  const finalSse = sseDecoder.decode('');
+  if (finalSse && finalSse.event !== 'ping') {
+    try {
+      events.push(JSON.parse(finalSse.data));
+    } catch (e) {
+      // Skip malformed JSON data lines
+      console.error(`Error parsing SSE data: ${finalSse.data}`, e);
+    }
   }
 
   return events;
