@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.54.0 (2025-06-11)
+
+Full Changelog: [sdk-v0.53.0...sdk-v0.54.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.53.0...sdk-v0.54.0)
+
+### Features
+
+* **api:** api update ([e923aa1](https://github.com/anthropics/anthropic-sdk-typescript/commit/e923aa1b48b1739def4d5d97756678979b4c01a3))
+* **api:** api update ([4877181](https://github.com/anthropics/anthropic-sdk-typescript/commit/4877181c118ebcf1b5d98ca4bfd26acf5dbdedab))
+* **api:** manual updates ([99b0111](https://github.com/anthropics/anthropic-sdk-typescript/commit/99b0111ec289eb4454c1290f80600d653a5a9c30))
+* **client:** add support for fine-grained-tool-streaming-2025-05-14 ([6b35dd9](https://github.com/anthropics/anthropic-sdk-typescript/commit/6b35dd968b47e6ed486ed6d0a7b8d29cf1928aaf))
+
+
+### Bug Fixes
+
+* **client:** deprecate BetaBase64PDFBlock in favor of BetaRequestDocumentBlock ([7fa10db](https://github.com/anthropics/anthropic-sdk-typescript/commit/7fa10db38d56f8839be3a3197b77a4c8f24fa42a))
+* **client:** improve error message in parsing JSON ([7c0cb84](https://github.com/anthropics/anthropic-sdk-typescript/commit/7c0cb8414473ffff3939f105d1bdb92b7d02ab5e))
+* **internal:** revert unintentional changes ([28dccec](https://github.com/anthropics/anthropic-sdk-typescript/commit/28dccec451d0426e7a0afe6de1122e5fddb057f5))
+
+
+### Chores
+
+* avoid type error in certain environments ([48c1a41](https://github.com/anthropics/anthropic-sdk-typescript/commit/48c1a4143bf2a6cae73007532e8292922a0b4fb8))
+* **tests:** add testing for invalid json raising ([52260c1](https://github.com/anthropics/anthropic-sdk-typescript/commit/52260c196ab91be10354770362b0e2191607337b))
+
 ## 0.53.0 (2025-06-04)
 
 Full Changelog: [sdk-v0.52.0...sdk-v0.53.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.52.0...sdk-v0.53.0)
