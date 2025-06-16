@@ -281,8 +281,14 @@ export interface ContentBlockSource {
 
 export type ContentBlockSourceContent = TextBlockParam | ImageBlockParam;
 
+export interface FileDocumentSource {
+  file_id: string;
+
+  type: 'file';
+}
+
 export interface DocumentBlockParam {
-  source: Base64PDFSource | PlainTextSource | ContentBlockSource | URLPDFSource;
+  source: Base64PDFSource | PlainTextSource | ContentBlockSource | URLPDFSource | FileDocumentSource;
 
   type: 'document';
 
