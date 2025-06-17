@@ -227,6 +227,9 @@ export interface ClientOptions {
   logger?: Logger | undefined;
 }
 
+/**
+ * Base class for Anthropic API clients.
+ */
 export class BaseAnthropic {
   apiKey: string | null;
   authToken: string | null;
@@ -277,7 +280,7 @@ export class BaseAnthropic {
     }
 
     this.baseURL = options.baseURL!;
-    this.timeout = options.timeout ?? Anthropic.DEFAULT_TIMEOUT /* 10 minutes */;
+    this.timeout = options.timeout ?? BaseAnthropic.DEFAULT_TIMEOUT /* 10 minutes */;
     this.logger = options.logger ?? console;
     const defaultLogLevel = 'warn';
     // Set default logLevel early so that we can log a warning in parseLogLevel.

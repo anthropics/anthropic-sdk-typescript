@@ -1,5 +1,7 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+import { isReadonlyArray } from './utils/values';
+
 type HeaderValue = string | undefined | null;
 export type HeadersLike =
   | Headers
@@ -9,9 +11,13 @@ export type HeadersLike =
   | null
   | NullableHeaders;
 
+<<<<<<< generated--merge-conflict
+const brand_privateNullableHeaders = /* @__PURE__ */ Symbol('brand.privateNullableHeaders');
+=======
 const brand_privateNullableHeaders = Symbol.for('brand.privateNullableHeaders') as symbol & {
   description: 'brand.privateNullableHeaders';
 };
+>>>>>>> integrated--merge-conflict
 
 /**
  * @internal
@@ -26,8 +32,6 @@ export type NullableHeaders = {
   /** Set of lowercase header names explicitly set to null. */
   nulls: Set<string>;
 };
-
-const isArray = Array.isArray as (val: unknown) => val is readonly unknown[];
 
 function* iterateHeaders(headers: HeadersLike): IterableIterator<readonly [string, string | null]> {
   if (!headers) return;
@@ -45,7 +49,7 @@ function* iterateHeaders(headers: HeadersLike): IterableIterator<readonly [strin
   let iter: Iterable<readonly (HeaderValue | readonly HeaderValue[])[]>;
   if (headers instanceof Headers) {
     iter = headers.entries();
-  } else if (isArray(headers)) {
+  } else if (isReadonlyArray(headers)) {
     iter = headers;
   } else {
     shouldClear = true;
@@ -54,7 +58,7 @@ function* iterateHeaders(headers: HeadersLike): IterableIterator<readonly [strin
   for (let row of iter) {
     const name = row[0];
     if (typeof name !== 'string') throw new TypeError('expected header name to be a string');
-    const values = isArray(row[1]) ? row[1] : [row[1]];
+    const values = isReadonlyArray(row[1]) ? row[1] : [row[1]];
     let didClear = false;
     for (const value of values) {
       if (value === undefined) continue;
