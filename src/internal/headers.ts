@@ -11,13 +11,9 @@ export type HeadersLike =
   | null
   | NullableHeaders;
 
-<<<<<<< generated--merge-conflict
-const brand_privateNullableHeaders = /* @__PURE__ */ Symbol('brand.privateNullableHeaders');
-=======
 const brand_privateNullableHeaders = Symbol.for('brand.privateNullableHeaders') as symbol & {
   description: 'brand.privateNullableHeaders';
 };
->>>>>>> integrated--merge-conflict
 
 /**
  * @internal
