@@ -181,22 +181,30 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
     options?: RequestOptions,
   ): Promise<void> {
     const signal = options?.signal;
+    let abortHandler: (() => void) | undefined;
     if (signal) {
       if (signal.aborted) this.controller.abort();
-      signal.addEventListener('abort', () => this.controller.abort());
+      abortHandler = this.controller.abort.bind(this.controller);
+      signal.addEventListener('abort', abortHandler);
     }
-    this.#beginRequest();
-    const { response, data: stream } = await messages
-      .create({ ...params, stream: true }, { ...options, signal: this.controller.signal })
-      .withResponse();
-    this._connected(response);
-    for await (const event of stream) {
-      this.#addStreamEvent(event);
+    try {
+      this.#beginRequest();
+      const { response, data: stream } = await messages
+        .create({ ...params, stream: true }, { ...options, signal: this.controller.signal })
+        .withResponse();
+      this._connected(response);
+      for await (const event of stream) {
+        this.#addStreamEvent(event);
+      }
+      if (stream.controller.signal?.aborted) {
+        throw new APIUserAbortError();
+      }
+      this.#endRequest();
+    } finally {
+      if (signal && abortHandler) {
+        signal.removeEventListener('abort', abortHandler);
+      }
     }
-    if (stream.controller.signal?.aborted) {
-      throw new APIUserAbortError();
-    }
-    this.#endRequest();
   }
 
   protected _connected(response: Response | null) {
@@ -497,20 +505,28 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
     options?: RequestOptions,
   ): Promise<void> {
     const signal = options?.signal;
+    let abortHandler: (() => void) | undefined;
     if (signal) {
       if (signal.aborted) this.controller.abort();
-      signal.addEventListener('abort', () => this.controller.abort());
+      abortHandler = this.controller.abort.bind(this.controller);
+      signal.addEventListener('abort', abortHandler);
     }
-    this.#beginRequest();
-    this._connected(null);
-    const stream = Stream.fromReadableStream<BetaMessageStreamEvent>(readableStream, this.controller);
-    for await (const event of stream) {
-      this.#addStreamEvent(event);
+    try {
+      this.#beginRequest();
+      this._connected(null);
+      const stream = Stream.fromReadableStream<BetaMessageStreamEvent>(readableStream, this.controller);
+      for await (const event of stream) {
+        this.#addStreamEvent(event);
+      }
+      if (stream.controller.signal?.aborted) {
+        throw new APIUserAbortError();
+      }
+      this.#endRequest();
+    } finally {
+      if (signal && abortHandler) {
+        signal.removeEventListener('abort', abortHandler);
+      }
     }
-    if (stream.controller.signal?.aborted) {
-      throw new APIUserAbortError();
-    }
-    this.#endRequest();
   }
 
   /**
