@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.22.2 (2025-06-24)
+
+Full Changelog: [bedrock-sdk-v0.22.1...bedrock-sdk-v0.22.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.22.1...bedrock-sdk-v0.22.2)
+
 ## 0.22.1 (2025-05-22)
 
 Full Changelog: [bedrock-sdk-v0.22.0...bedrock-sdk-v0.22.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.22.0...bedrock-sdk-v0.22.1)

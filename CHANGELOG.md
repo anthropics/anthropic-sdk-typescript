@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.55.0 (2025-06-24)
+
+Full Changelog: [sdk-v0.54.0...sdk-v0.55.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.54.0...sdk-v0.55.0)
+
+### Features
+
+* **client:** add support for endpoint-specific base URLs ([9be46a8](https://github.com/anthropics/anthropic-sdk-typescript/commit/9be46a802deaab8689d1986c4e33315111ec0133))
+
+
+### Bug Fixes
+
+* **client:** explicitly copy fetch in withOptions ([3a5909b](https://github.com/anthropics/anthropic-sdk-typescript/commit/3a5909bae831701d2124783ec141ddda527daf30))
+* **internal:** resolve conflict ([acfff05](https://github.com/anthropics/anthropic-sdk-typescript/commit/acfff053f3638700d14e51ff1f180d7a476ecc20))
+* publish script — handle NPM errors correctly ([c4a6666](https://github.com/anthropics/anthropic-sdk-typescript/commit/c4a66664f0b36cfae88bd4f788f58d6a61045862))
+* **stream:** avoid event listener leak ([eb272af](https://github.com/anthropics/anthropic-sdk-typescript/commit/eb272af39becf87549859f7257ec272facf590b2))
+
+
+### Chores
+
+* **ci:** enable for pull requests ([8505818](https://github.com/anthropics/anthropic-sdk-typescript/commit/85058186ac5bd044046a6bf60bf27405923b193a))
+* **client:** refactor imports ([d5dff04](https://github.com/anthropics/anthropic-sdk-typescript/commit/d5dff0418054494f170359735e0ceba8b0283abf))
+* **internal:** add pure annotations, make base APIResource abstract ([183d39c](https://github.com/anthropics/anthropic-sdk-typescript/commit/183d39cb7880a7d6d22015ca32de539b3594bae3))
+* **readme:** update badges ([147f321](https://github.com/anthropics/anthropic-sdk-typescript/commit/147f3211972fd2d28c777fd3feea37b6db8ab621))
+* **readme:** use better example snippet for undocumented params ([5beafd5](https://github.com/anthropics/anthropic-sdk-typescript/commit/5beafd5f5c0488c051a1fd7a32d7eea976bf671d))
+
 ## 0.54.0 (2025-06-11)
 
 Full Changelog: [sdk-v0.53.0...sdk-v0.54.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.53.0...sdk-v0.54.0)
