@@ -2,6 +2,8 @@
 # You can run this workflow manually by navigating to https://www.github.com/anthropics/anthropic-sdk-typescript/actions/workflows/publish-npm.yml
 name: Publish NPM
 on:
+  
+
   workflow_dispatch:
     inputs:
       path:
