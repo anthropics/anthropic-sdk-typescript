@@ -17,9 +17,12 @@ export const getAuthHeaders = async (req: RequestInit, props: AuthProps): Promis
   assert(req.method, 'Expected request method property to be set');
 
   const providerChain = fromNodeProviderChain({
-    clientConfig: props.requestHandler ? {
-      requestHandler: props.requestHandler,
-    } : {},
+    clientConfig:
+      props.requestHandler ?
+        {
+          requestHandler: props.requestHandler,
+        }
+      : {},
   });
 
   const credentials = await withTempEnv(
