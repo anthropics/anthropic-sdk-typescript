@@ -1,8 +1,10 @@
-import assert from 'assert';
-import { SignatureV4 } from '@smithy/signature-v4';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { HttpRequest } from '@smithy/protocol-http';
 import { Sha256 } from '@aws-crypto/sha256-js';
+import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import { FetchHttpHandler } from '@smithy/fetch-http-handler';
+import { HttpRequest } from '@smithy/protocol-http';
+import { SignatureV4 } from '@smithy/signature-v4';
+import assert from 'assert';
+import { MergedRequestInit } from '../internal/types';
 
 type AuthProps = {
   url: string;
@@ -10,19 +12,23 @@ type AuthProps = {
   awsAccessKey: string | null | undefined;
   awsSecretKey: string | null | undefined;
   awsSessionToken: string | null | undefined;
-  requestHandler?: any;
+  fetchOptions?: MergedRequestInit | undefined;
 };
 
 export const getAuthHeaders = async (req: RequestInit, props: AuthProps): Promise<Record<string, string>> => {
   assert(req.method, 'Expected request method property to be set');
 
   const providerChain = fromNodeProviderChain({
-    clientConfig:
-      props.requestHandler ?
-        {
-          requestHandler: props.requestHandler,
-        }
-      : {},
+    clientConfig: {
+      requestHandler: new FetchHttpHandler({
+        requestInit: (httpRequest) => {
+          return {
+            ...httpRequest,
+            ...props.fetchOptions,
+          } as RequestInit;
+        },
+      }),
+    },
   });
 
   const credentials = await withTempEnv(
