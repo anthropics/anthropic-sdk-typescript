@@ -583,14 +583,19 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
         switch (event.delta.type) {
           case 'text_delta': {
             if (snapshotContent?.type === 'text') {
-              snapshotContent.text += event.delta.text;
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                text: (snapshotContent.text || '') + event.delta.text,
+              };
             }
             break;
           }
           case 'citations_delta': {
             if (snapshotContent?.type === 'text') {
-              snapshotContent.citations ??= [];
-              snapshotContent.citations.push(event.delta.citation);
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                citations: [...(snapshotContent.citations ?? []), event.delta.citation],
+              };
             }
             break;
           }
@@ -602,7 +607,8 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
               let jsonBuf = (snapshotContent as any)[JSON_BUF_PROPERTY] || '';
               jsonBuf += event.delta.partial_json;
 
-              Object.defineProperty(snapshotContent, JSON_BUF_PROPERTY, {
+              const newContent = { ...snapshotContent };
+              Object.defineProperty(newContent, JSON_BUF_PROPERTY, {
                 value: jsonBuf,
                 enumerable: false,
                 writable: true,
@@ -610,7 +616,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
 
               if (jsonBuf) {
                 try {
-                  snapshotContent.input = partialParse(jsonBuf);
+                  newContent.input = partialParse(jsonBuf);
                 } catch (err) {
                   const error = new AnthropicError(
                     `Unable to parse tool parameter JSON from model. Please retry your request or adjust your prompt. Error: ${err}. JSON: ${jsonBuf}`,
@@ -618,18 +624,25 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
                   this.#handleError(error);
                 }
               }
+              snapshot.content[event.index] = newContent;
             }
             break;
           }
           case 'thinking_delta': {
             if (snapshotContent?.type === 'thinking') {
-              snapshotContent.thinking += event.delta.thinking;
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                thinking: snapshotContent.thinking + event.delta.thinking,
+              };
             }
             break;
           }
           case 'signature_delta': {
             if (snapshotContent?.type === 'thinking') {
-              snapshotContent.signature = event.delta.signature;
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                signature: event.delta.signature,
+              };
             }
             break;
           }
