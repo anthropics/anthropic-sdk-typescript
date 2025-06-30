@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/bedrock-sdk",
-  "version": "0.22.2",
+  "version": "0.22.3",
   "description": "The official TypeScript library for the Anthropic Bedrock API",
   "author": "Anthropic <support@anthropic.com>",
   "types": "dist/index.d.ts",
@@ -27,7 +27,7 @@
     "@aws-sdk/client-bedrock-runtime": "^3.797.0",
     "@aws-sdk/credential-providers": "^3.796.0",
     "@smithy/eventstream-serde-node": "^2.0.10",
-    "@smithy/fetch-http-handler": "^2.2.1",
+    "@smithy/fetch-http-handler": "^5.0.4",
     "@smithy/protocol-http": "^3.0.6",
     "@smithy/signature-v4": "^3.1.1",
     "@smithy/smithy-client": "^2.1.9",

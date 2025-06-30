@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.55.1 (2025-06-30)
+
+Full Changelog: [sdk-v0.55.0...sdk-v0.55.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.55.0...sdk-v0.55.1)
+
+### Bug Fixes
+
+* **ci:** release-doctor — report correct token name ([5fa2ebf](https://github.com/anthropics/anthropic-sdk-typescript/commit/5fa2ebfd2c13ddfb7811160da795d0935161d7d7))
+* **client:** get fetchOptions type more reliably ([60673ab](https://github.com/anthropics/anthropic-sdk-typescript/commit/60673abd8ca59ec0491a205ae259cc36cb640a22))
+* **client:** use proxy in bedrock when requesting credentials from AWS ([8cfd227](https://github.com/anthropics/anthropic-sdk-typescript/commit/8cfd227dd82686101ea54d5d32a0c1d6ad04d336))
+
+
+### Chores
+
+* **ci:** only run for pushes and fork pull requests ([3d1c911](https://github.com/anthropics/anthropic-sdk-typescript/commit/3d1c911d8c2cf2c9999ba1284c036edbf4f0078e))
+* **client:** improve path param validation ([1638f13](https://github.com/anthropics/anthropic-sdk-typescript/commit/1638f1315b1eb836dc933e41f8d89222a4374e35))
+
 ## 0.55.0 (2025-06-24)
 
 Full Changelog: [sdk-v0.54.0...sdk-v0.55.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.54.0...sdk-v0.55.0)
