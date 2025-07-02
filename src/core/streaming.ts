@@ -266,7 +266,7 @@ async function* iterSSEChunks(iterator: AsyncIterableIterator<Bytes>): AsyncGene
   }
 }
 
-export class SSEDecoder {
+class SSEDecoder {
   private data: string[];
   private event: string | null;
   private chunks: string[];

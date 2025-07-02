@@ -233,7 +233,7 @@ describe('BetaMessageStream class', () => {
     });
 
     const fixtureContent = loadFixture('incomplete_partial_json_response.txt');
-    const streamEvents = parseSSEFixture(fixtureContent);
+    const streamEvents = await parseSSEFixture(fixtureContent);
     handleStreamEvents(streamEvents);
 
     const stream = anthropic.beta.messages.stream({
@@ -274,7 +274,7 @@ describe('BetaMessageStream class', () => {
     });
 
     const fixtureContent = loadFixture('basic_response.txt');
-    const streamEvents = parseSSEFixture(fixtureContent);
+    const streamEvents = await parseSSEFixture(fixtureContent);
     handleStreamEvents(streamEvents);
 
     const stream = anthropic.beta.messages.stream({
@@ -308,7 +308,7 @@ describe('BetaMessageStream class', () => {
     });
 
     const fixtureContent = loadFixture('tool_use_response.txt');
-    const streamEvents = parseSSEFixture(fixtureContent);
+    const streamEvents = await parseSSEFixture(fixtureContent);
     handleStreamEvents(streamEvents);
 
     const stream = anthropic.beta.messages.stream({
@@ -348,7 +348,7 @@ describe('BetaMessageStream class', () => {
     });
 
     const fixtureContent = loadFixture('basic_response.txt');
-    const streamEvents = parseSSEFixture(fixtureContent);
+    const streamEvents = await parseSSEFixture(fixtureContent);
     handleStreamEvents(streamEvents);
 
     for await (const event of stream) {

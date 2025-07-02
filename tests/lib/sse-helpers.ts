@@ -1,38 +1,39 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { SSEDecoder } from '../../src/core/streaming';
+import { _iterSSEMessages } from '@anthropic-ai/sdk/core/streaming';
+import { ReadableStreamFrom } from '@anthropic-ai/sdk/internal/shims';
 
 export function loadFixture(filename: string): string {
   const fixturePath = join(__dirname, 'fixtures', filename);
   return readFileSync(fixturePath, 'utf-8');
 }
 
-export function parseSSEFixture(sseContent: string): any[] {
+export async function parseSSEFixture(sseContent: string): Promise<any[]> {
   const events: any[] = [];
-  const lines = sseContent.split('\n');
-  const sseDecoder = new SSEDecoder();
 
-  for (const line of lines) {
-    const sse = sseDecoder.decode(line);
-    if (sse && sse.event !== 'ping') {
-      try {
-        events.push(JSON.parse(sse.data));
-      } catch (e) {
-        // Skip malformed JSON data lines
-        console.error(`Error parsing SSE data: ${sse.data}`, e);
-      }
-    }
+  async function* body(): AsyncGenerator<Buffer> {
+    yield Buffer.from(sseContent);
   }
 
-  // Process any remaining event (in case file doesn't end with empty line)
-  const finalSse = sseDecoder.decode('');
-  if (finalSse && finalSse.event !== 'ping') {
-    try {
-      events.push(JSON.parse(finalSse.data));
-    } catch (e) {
-      // Skip malformed JSON data lines
-      console.error(`Error parsing SSE data: ${finalSse.data}`, e);
+  try {
+    const stream = _iterSSEMessages(new Response(ReadableStreamFrom(body())), new AbortController())[
+      Symbol.asyncIterator
+    ]();
+
+    let event = await stream.next();
+    while (!event.done) {
+      if (event.value && event.value.event !== 'ping') {
+        try {
+          events.push(JSON.parse(event.value.data));
+        } catch (e) {
+          // Skip malformed JSON data lines
+          console.error(`Error parsing SSE data: "${event.value.data}"`, e);
+        }
+      }
+      event = await stream.next();
     }
+  } catch (error) {
+    console.error('Error parsing SSE fixture:', error);
   }
 
   return events;

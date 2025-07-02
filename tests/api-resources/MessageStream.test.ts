@@ -88,7 +88,7 @@ describe('MessageStream class', () => {
     const anthropic = new Anthropic({ apiKey: '...', fetch });
 
     const fixtureContent = loadFixture('basic_response.txt');
-    const streamEvents = parseSSEFixture(fixtureContent);
+    const streamEvents = await parseSSEFixture(fixtureContent);
     handleStreamEvents(streamEvents);
 
     const stream = anthropic.messages.stream({
@@ -176,7 +176,7 @@ describe('MessageStream class', () => {
     const anthropic = new Anthropic({ apiKey: '...', fetch });
 
     const fixtureContent = loadFixture('basic_response.txt');
-    const streamEvents = parseSSEFixture(fixtureContent);
+    const streamEvents = await parseSSEFixture(fixtureContent);
     handleStreamEvents(streamEvents);
 
     const stream = anthropic.messages.stream({
@@ -204,7 +204,7 @@ describe('MessageStream class', () => {
     const anthropic = new Anthropic({ apiKey: '...', fetch });
 
     const fixtureContent = loadFixture('tool_use_response.txt');
-    const streamEvents = parseSSEFixture(fixtureContent);
+    const streamEvents = await parseSSEFixture(fixtureContent);
     handleStreamEvents(streamEvents);
 
     const stream = anthropic.messages.stream({
