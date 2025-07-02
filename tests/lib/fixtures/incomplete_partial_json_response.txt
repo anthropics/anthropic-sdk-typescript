@@ -41,7 +41,8 @@ event: content_block_delta
 data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"\n\"Filing taxes"}               }
 
 event: message_delta
-data: {"type":"message_delta","delta":{"stop_reason":"max_tokens","stop_sequence":null},"usage":{"output_tokens":124}    }
+data: {"type":"message_delta","delta":{"stop_reason":"max_tokens","stop_sequence":null},"usage":{"output_tokens":124}}
 
 event: message_stop
-data: {"type":"message_stop" }
+data: {"type":"message_stop"}
+

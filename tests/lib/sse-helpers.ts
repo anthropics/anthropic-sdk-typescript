@@ -15,25 +15,16 @@ export async function parseSSEFixture(sseContent: string): Promise<any[]> {
     yield Buffer.from(sseContent);
   }
 
-  try {
-    const stream = _iterSSEMessages(new Response(ReadableStreamFrom(body())), new AbortController())[
-      Symbol.asyncIterator
-    ]();
+  const stream = _iterSSEMessages(new Response(ReadableStreamFrom(body())), new AbortController())[
+    Symbol.asyncIterator
+  ]();
 
-    let event = await stream.next();
-    while (!event.done) {
-      if (event.value && event.value.event !== 'ping') {
-        try {
-          events.push(JSON.parse(event.value.data));
-        } catch (e) {
-          // Skip malformed JSON data lines
-          console.error(`Error parsing SSE data: "${event.value.data}"`, e);
-        }
-      }
-      event = await stream.next();
+  let event = await stream.next();
+  while (!event.done) {
+    if (event.value && event.value.event !== 'ping') {
+      events.push(JSON.parse(event.value.data));
     }
-  } catch (error) {
-    console.error('Error parsing SSE fixture:', error);
+    event = await stream.next();
   }
 
   return events;
