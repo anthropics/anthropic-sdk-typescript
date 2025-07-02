@@ -99,6 +99,7 @@ export class AnthropicBedrock extends BaseAnthropic {
       awsAccessKey: this.awsAccessKey,
       awsSecretKey: this.awsSecretKey,
       awsSessionToken: this.awsSessionToken,
+      fetchOptions: this.fetchOptions,
     });
     request.headers = buildHeaders([headers, request.headers]).values;
   }

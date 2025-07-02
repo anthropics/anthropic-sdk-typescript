@@ -181,22 +181,30 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
     options?: RequestOptions,
   ): Promise<void> {
     const signal = options?.signal;
+    let abortHandler: (() => void) | undefined;
     if (signal) {
       if (signal.aborted) this.controller.abort();
-      signal.addEventListener('abort', () => this.controller.abort());
+      abortHandler = this.controller.abort.bind(this.controller);
+      signal.addEventListener('abort', abortHandler);
     }
-    this.#beginRequest();
-    const { response, data: stream } = await messages
-      .create({ ...params, stream: true }, { ...options, signal: this.controller.signal })
-      .withResponse();
-    this._connected(response);
-    for await (const event of stream) {
-      this.#addStreamEvent(event);
+    try {
+      this.#beginRequest();
+      const { response, data: stream } = await messages
+        .create({ ...params, stream: true }, { ...options, signal: this.controller.signal })
+        .withResponse();
+      this._connected(response);
+      for await (const event of stream) {
+        this.#addStreamEvent(event);
+      }
+      if (stream.controller.signal?.aborted) {
+        throw new APIUserAbortError();
+      }
+      this.#endRequest();
+    } finally {
+      if (signal && abortHandler) {
+        signal.removeEventListener('abort', abortHandler);
+      }
     }
-    if (stream.controller.signal?.aborted) {
-      throw new APIUserAbortError();
-    }
-    this.#endRequest();
   }
 
   protected _connected(response: Response | null) {
@@ -497,20 +505,28 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
     options?: RequestOptions,
   ): Promise<void> {
     const signal = options?.signal;
+    let abortHandler: (() => void) | undefined;
     if (signal) {
       if (signal.aborted) this.controller.abort();
-      signal.addEventListener('abort', () => this.controller.abort());
+      abortHandler = this.controller.abort.bind(this.controller);
+      signal.addEventListener('abort', abortHandler);
     }
-    this.#beginRequest();
-    this._connected(null);
-    const stream = Stream.fromReadableStream<BetaMessageStreamEvent>(readableStream, this.controller);
-    for await (const event of stream) {
-      this.#addStreamEvent(event);
+    try {
+      this.#beginRequest();
+      this._connected(null);
+      const stream = Stream.fromReadableStream<BetaMessageStreamEvent>(readableStream, this.controller);
+      for await (const event of stream) {
+        this.#addStreamEvent(event);
+      }
+      if (stream.controller.signal?.aborted) {
+        throw new APIUserAbortError();
+      }
+      this.#endRequest();
+    } finally {
+      if (signal && abortHandler) {
+        signal.removeEventListener('abort', abortHandler);
+      }
     }
-    if (stream.controller.signal?.aborted) {
-      throw new APIUserAbortError();
-    }
-    this.#endRequest();
   }
 
   /**
@@ -567,14 +583,19 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
         switch (event.delta.type) {
           case 'text_delta': {
             if (snapshotContent?.type === 'text') {
-              snapshotContent.text += event.delta.text;
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                text: (snapshotContent.text || '') + event.delta.text,
+              };
             }
             break;
           }
           case 'citations_delta': {
             if (snapshotContent?.type === 'text') {
-              snapshotContent.citations ??= [];
-              snapshotContent.citations.push(event.delta.citation);
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                citations: [...(snapshotContent.citations ?? []), event.delta.citation],
+              };
             }
             break;
           }
@@ -586,7 +607,8 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
               let jsonBuf = (snapshotContent as any)[JSON_BUF_PROPERTY] || '';
               jsonBuf += event.delta.partial_json;
 
-              Object.defineProperty(snapshotContent, JSON_BUF_PROPERTY, {
+              const newContent = { ...snapshotContent };
+              Object.defineProperty(newContent, JSON_BUF_PROPERTY, {
                 value: jsonBuf,
                 enumerable: false,
                 writable: true,
@@ -594,7 +616,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
 
               if (jsonBuf) {
                 try {
-                  snapshotContent.input = partialParse(jsonBuf);
+                  newContent.input = partialParse(jsonBuf);
                 } catch (err) {
                   const error = new AnthropicError(
                     `Unable to parse tool parameter JSON from model. Please retry your request or adjust your prompt. Error: ${err}. JSON: ${jsonBuf}`,
@@ -602,18 +624,25 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
                   this.#handleError(error);
                 }
               }
+              snapshot.content[event.index] = newContent;
             }
             break;
           }
           case 'thinking_delta': {
             if (snapshotContent?.type === 'thinking') {
-              snapshotContent.thinking += event.delta.thinking;
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                thinking: snapshotContent.thinking + event.delta.thinking,
+              };
             }
             break;
           }
           case 'signature_delta': {
             if (snapshotContent?.type === 'thinking') {
-              snapshotContent.signature = event.delta.signature;
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                signature: event.delta.signature,
+              };
             }
             break;
           }
