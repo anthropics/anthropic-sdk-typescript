@@ -47,7 +47,7 @@ This library supports multiple authentication methods:
 
 ### Default authentication
 
-The client automatically uses the default Google Cloud authentication flow:
+The client automatically uses the default [Google Cloud authentication flow](https://cloud.google.com/docs/authentication):
 
 ```js
 import { AnthropicVertex } from '@anthropic-ai/vertex-sdk';
@@ -79,7 +79,7 @@ const client = new AnthropicVertex({
 
 ### Pre-configured AuthClient
 
-For advanced use cases like impersonation, you can provide a pre-configured `AuthClient`:
+For advanced use cases [like impersonation](https://cloud.google.com/docs/authentication/use-service-account-impersonation), you can provide a pre-configured `AuthClient`:
 
 ```js
 import { AnthropicVertex } from '@anthropic-ai/vertex-sdk';

@@ -33,7 +33,7 @@ export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
    * [google-auth-library](https://www.npmjs.com/package/google-auth-library) package.
    *
    * This is useful when you want to use a specific authentication method like
-   * Impersonated credentials:
+   * [Impersonated credentials](https://www.npmjs.com/package/google-auth-library#impersonated-credentials-client):
    * ```ts
    * new AnthropicVertex({
    *   authClient: new Impersonated({
@@ -95,8 +95,11 @@ export class AnthropicVertex extends BaseAnthropic {
     this.projectId = projectId;
     this.accessToken = opts.accessToken ?? null;
 
-    // Support both authClient and googleAuth for backward compatibility
-    if (opts.authClient) {
+    if (opts.authClient && opts.googleAuth) {
+      throw new Error(
+        'You cannot provide both `authClient` and `googleAuth`. Please provide only one of them.',
+      );
+    } else if (opts.authClient) {
       this._authClientPromise = Promise.resolve(opts.authClient);
     } else {
       this._auth =
