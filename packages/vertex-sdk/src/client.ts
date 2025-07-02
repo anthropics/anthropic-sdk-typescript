@@ -1,6 +1,6 @@
 import { BaseAnthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
-import { GoogleAuth } from 'google-auth-library';
+import { GoogleAuth, AuthClient } from 'google-auth-library';
 import { readEnv } from './internal/utils/env';
 import { FinalRequestOptions } from './internal/request-options';
 import { FinalizedRequestInit } from './internal/types';
@@ -27,6 +27,26 @@ export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
    * ```
    */
   googleAuth?: GoogleAuth | null | undefined;
+
+  /**
+   * Provide a pre-configured `AuthClient` instance from the
+   * [google-auth-library](https://www.npmjs.com/package/google-auth-library) package.
+   *
+   * This is useful when you want to use a specific authentication method like
+   * [Impersonated credentials](https://www.npmjs.com/package/google-auth-library#impersonated-credentials-client):
+   * ```ts
+   * new AnthropicVertex({
+   *   authClient: new Impersonated({
+   *     sourceClient: await new GoogleAuth().getClient(),
+   *     targetPrincipal: 'impersonated-account@projectID.iam.gserviceaccount.com',
+   *     lifetime: 30,
+   *     delegates: [],
+   *     targetScopes: ['https://www.googleapis.com/auth/cloud-platform']
+   *   })
+   * })
+   * ```
+   */
+  authClient?: AuthClient | null | undefined;
 };
 
 export class AnthropicVertex extends BaseAnthropic {
@@ -34,8 +54,8 @@ export class AnthropicVertex extends BaseAnthropic {
   projectId: string | null;
   accessToken: string | null;
 
-  private _auth: GoogleAuth;
-  private _authClientPromise: ReturnType<GoogleAuth['getClient']>;
+  private _auth?: GoogleAuth;
+  private _authClientPromise: Promise<AuthClient>;
 
   /**
    * API Client for interfacing with the Anthropic Vertex API.
@@ -43,6 +63,7 @@ export class AnthropicVertex extends BaseAnthropic {
    * @param {string | null} opts.accessToken
    * @param {string | null} opts.projectId
    * @param {GoogleAuth} opts.googleAuth - Override the default google auth config
+   * @param {AuthClient} opts.authClient - Provide a pre-configured AuthClient instance (alternative to googleAuth)
    * @param {string | null} [opts.region=process.env['CLOUD_ML_REGION']]
    * @param {string} [opts.baseURL=process.env['ANTHROPIC_VERTEX__BASE_URL'] ?? https://${region}-aiplatform.googleapis.com/v1] - Override the default base URL for the API.
    * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
@@ -74,9 +95,17 @@ export class AnthropicVertex extends BaseAnthropic {
     this.projectId = projectId;
     this.accessToken = opts.accessToken ?? null;
 
-    this._auth =
-      opts.googleAuth ?? new GoogleAuth({ scopes: 'https://www.googleapis.com/auth/cloud-platform' });
-    this._authClientPromise = this._auth.getClient();
+    if (opts.authClient && opts.googleAuth) {
+      throw new Error(
+        'You cannot provide both `authClient` and `googleAuth`. Please provide only one of them.',
+      );
+    } else if (opts.authClient) {
+      this._authClientPromise = Promise.resolve(opts.authClient);
+    } else {
+      this._auth =
+        opts.googleAuth ?? new GoogleAuth({ scopes: 'https://www.googleapis.com/auth/cloud-platform' });
+      this._authClientPromise = this._auth.getClient();
+    }
   }
 
   messages: MessagesResource = makeMessagesResource(this);
