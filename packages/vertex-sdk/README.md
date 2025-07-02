@@ -41,6 +41,66 @@ main();
 
 For more details on how to use the SDK, see the [README.md for the main Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript/tree/main#anthropic-typescript-api-library) which this library extends.
 
+## Authentication
+
+This library supports multiple authentication methods:
+
+### Default authentication
+
+The client automatically uses the default Google Cloud authentication flow:
+
+```js
+import { AnthropicVertex } from '@anthropic-ai/vertex-sdk';
+
+// Uses default authentication and environment variables
+const client = new AnthropicVertex({
+  region: 'us-central1',
+  projectId: 'my-project-id',
+});
+```
+
+### Custom GoogleAuth configuration
+
+You can customize the authentication using the `googleAuth` option:
+
+```js
+import { AnthropicVertex } from '@anthropic-ai/vertex-sdk';
+import { GoogleAuth } from 'google-auth-library';
+
+const client = new AnthropicVertex({
+  googleAuth: new GoogleAuth({
+    scopes: 'https://www.googleapis.com/auth/cloud-platform',
+    keyFile: '/path/to/service-account.json',
+  }),
+  region: 'us-central1',
+  projectId: 'my-project-id',
+});
+```
+
+### Pre-configured AuthClient
+
+For advanced use cases like impersonation, you can provide a pre-configured `AuthClient`:
+
+```js
+import { AnthropicVertex } from '@anthropic-ai/vertex-sdk';
+import { GoogleAuth, Impersonated } from 'google-auth-library';
+
+// Create an impersonated credential
+const authClient = new Impersonated({
+  sourceClient: await new GoogleAuth().getClient(),
+  targetPrincipal: 'impersonated-account@projectID.iam.gserviceaccount.com',
+  lifetime: 30,
+  delegates: [],
+  targetScopes: ['https://www.googleapis.com/auth/cloud-platform'],
+});
+
+const client = new AnthropicVertex({
+  authClient,
+  region: 'us-central1',
+  projectId: 'my-project-id',
+});
+```
+
 ## Requirements
 
 TypeScript >= 4.5 is supported.
