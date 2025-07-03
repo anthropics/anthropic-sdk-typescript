@@ -126,14 +126,14 @@ Alternatively, you can use `client.messages.create({ ..., stream: true })` which
 
 ## Message Batches
 
-This SDK provides beta support for the [Message Batches API](https://docs.anthropic.com/en/docs/build-with-claude/message-batches) under the `client.messages.batches` namespace.
+This SDK provides support for the [Message Batches API](https://docs.anthropic.com/en/docs/build-with-claude/message-batches) under the `client.messages.batches` namespace.
 
 ### Creating a batch
 
 Message Batches takes an array of requests, where each object has a `custom_id` identifier, and the exact same request `params` as the standard Messages API:
 
 ```ts
-await anthropic.beta.messages.batches.create({
+await anthropic.messages.batches.create({
   requests: [
     {
       custom_id: 'my-first-request',
@@ -160,7 +160,7 @@ await anthropic.beta.messages.batches.create({
 Once a Message Batch has been processed, indicated by `.processing_status === 'ended'`, you can access the results with `.batches.results()`
 
 ```ts
-const results = await anthropic.beta.messages.batches.results(batch_id);
+const results = await anthropic.messages.batches.results(batch_id);
 for await (const entry of results) {
   if (entry.result.type === 'succeeded') {
     console.log(entry.result.message.content);
@@ -352,13 +352,13 @@ List methods in the Anthropic API are paginated.
 You can use the `for await … of` syntax to iterate through items across all pages:
 
 ```ts
-async function fetchAllBetaMessageBatches(params) {
-  const allBetaMessageBatches = [];
+async function fetchAllMessageBatches(params) {
+  const allMessageBatches = [];
   // Automatically fetches more pages as needed.
-  for await (const betaMessageBatch of client.messages.batches.list({ limit: 20 })) {
-    allBetaMessageBatches.push(betaMessageBatch);
+  for await (const messageBatch of client.messages.batches.list({ limit: 20 })) {
+    allMessageBatches.push(messageBatch);
   }
-  return allBetaMessageBatches;
+  return allMessageBatches;
 }
 ```
 
@@ -366,8 +366,8 @@ Alternatively, you can request a single page at a time:
 
 ```ts
 let page = await client.messages.batches.list({ limit: 20 });
-for (const betaMessageBatch of page.data) {
-  console.log(betaMessageBatch);
+for (const messageBatch of page.data) {
+  console.log(messageBatch);
 }
 
 // Convenience methods are provided for manually paginating:
