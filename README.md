@@ -27,7 +27,7 @@ const client = new Anthropic({
 const message = await client.messages.create({
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello, Claude' }],
-  model: 'claude-3-5-sonnet-latest',
+  model: 'claude-sonnet-4-20250514',
 });
 
 console.log(message.content);
@@ -45,7 +45,7 @@ const client = new Anthropic();
 const stream = await client.messages.create({
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello, Claude' }],
-  model: 'claude-3-5-sonnet-latest',
+  model: 'claude-sonnet-4-20250514',
   stream: true,
 });
 for await (const messageStreamEvent of stream) {
@@ -71,7 +71,7 @@ const client = new Anthropic({
 const params: Anthropic.MessageCreateParams = {
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello, Claude' }],
-  model: 'claude-3-5-sonnet-latest',
+  model: 'claude-sonnet-4-20250514',
 };
 const message: Anthropic.Message = await client.messages.create(params);
 ```
@@ -233,7 +233,7 @@ const message = await client.messages
   .create({
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-sonnet-4-20250514',
   })
   .catch(async (err) => {
     if (err instanceof Anthropic.APIError) {
@@ -290,7 +290,7 @@ const client = new Anthropic({
 });
 
 // Or, configure per-request:
-await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-5-sonnet-latest' }, {
+await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-sonnet-4-20250514' }, {
   maxRetries: 5,
 });
 ```
@@ -318,7 +318,7 @@ const client = new Anthropic({
 });
 
 // Override per-request:
-await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-5-sonnet-latest' }, {
+await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-sonnet-4-20250514' }, {
   timeout: 5 * 1000,
 });
 ```
@@ -394,7 +394,7 @@ const message = await client.messages.create(
   {
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-sonnet-4-20250514',
   },
   { headers: { 'anthropic-version': 'My-Custom-Value' } },
 );
@@ -418,7 +418,7 @@ const response = await client.messages
   .create({
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-sonnet-4-20250514',
   })
   .asResponse();
 console.log(response.headers.get('X-My-Header'));
@@ -428,7 +428,7 @@ const { data: message, response: raw } = await client.messages
   .create({
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-sonnet-4-20250514',
   })
   .withResponse();
 console.log(raw.headers.get('X-My-Header'));
