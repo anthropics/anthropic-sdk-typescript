@@ -8,8 +8,8 @@ export function loadFixture(filename: string): string {
   return readFileSync(fixturePath, 'utf-8');
 }
 
-export async function parseSSEFixture(sseContent: string): Promise<any[]> {
-  const events: any[] = [];
+export async function parseSSEFixture(sseContent: string): Promise<unknown[]> {
+  const events: unknown[] = [];
 
   async function* body(): AsyncGenerator<Buffer> {
     yield Buffer.from(sseContent);
