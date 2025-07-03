@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.56.0 (2025-07-03)
+
+Full Changelog: [sdk-v0.55.1...sdk-v0.56.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.55.1...sdk-v0.56.0)
+
+### Features
+
+* **api:** add support for Search Result Content Blocks ([2910b28](https://github.com/anthropics/anthropic-sdk-typescript/commit/2910b280ef8ab8888dbad59e2ab97c63565879cb))
+* **tests:** add fixture-based streaming tests and improve test coverage ([00424bc](https://github.com/anthropics/anthropic-sdk-typescript/commit/00424bc033895c20f2f73d9311c85dabfe0e9a9f))
+* **vertex:** add AuthClient interface support for improved auth flexibility ([b6f86e2](https://github.com/anthropics/anthropic-sdk-typescript/commit/b6f86e29396f5521eeaae43d43084a76e3e518fe))
+
+
+### Bug Fixes
+
+* avoid console usage ([e5ab01d](https://github.com/anthropics/anthropic-sdk-typescript/commit/e5ab01dd3f0a9a9904b000f4599a05f4200e1f67))
+* **bedrock:** fix bedrock logger ([f183bc9](https://github.com/anthropics/anthropic-sdk-typescript/commit/f183bc97bc5a83b0e00053740caa387a1c98c322))
+
+
+### Chores
+
+* add docs to RequestOptions type ([38cb967](https://github.com/anthropics/anthropic-sdk-typescript/commit/38cb9676c929e86a1048bd086c5c26129aeea46d))
+* **api:** update BetaCitationSearchResultLocation ([760be6b](https://github.com/anthropics/anthropic-sdk-typescript/commit/760be6be14ae6b10004841aa97db2b3871ac15aa))
+
+
+### Documentation
+
+* model in examples ([9385376](https://github.com/anthropics/anthropic-sdk-typescript/commit/9385376d8352040bccf9563ab985438b55dbbdae))
+* more beta updates ([7d8b8ac](https://github.com/anthropics/anthropic-sdk-typescript/commit/7d8b8ac2f219c0a64beeecfdd4f2be90c5786201))
+* update model in readme ([b1799f7](https://github.com/anthropics/anthropic-sdk-typescript/commit/b1799f7efa15938ecc00e2a65d90ecb03da9dda0))
+* update models and non-beta batches ([5305cdb](https://github.com/anthropics/anthropic-sdk-typescript/commit/5305cdbd65e6b1b7b8c460c1cea845b23fddc770))
+
 ## 0.55.1 (2025-06-30)
 
 Full Changelog: [sdk-v0.55.0...sdk-v0.55.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.55.0...sdk-v0.55.1)

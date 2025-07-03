@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.12.0 (2025-07-03)
+
+Full Changelog: [vertex-sdk-v0.11.5...vertex-sdk-v0.12.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.11.5...vertex-sdk-v0.12.0)
+
+### Features
+
+* **vertex:** add AuthClient interface support for improved auth flexibility ([b6f86e2](https://github.com/anthropics/anthropic-sdk-typescript/commit/b6f86e29396f5521eeaae43d43084a76e3e518fe))
+
 ## 0.11.5 (2025-06-24)
 
 Full Changelog: [vertex-sdk-v0.11.4...vertex-sdk-v0.11.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.11.4...vertex-sdk-v0.11.5)
