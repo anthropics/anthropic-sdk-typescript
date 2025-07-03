@@ -10,7 +10,7 @@ async function main() {
 
   // Create a message with web search enabled
   const message = await client.messages.create({
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 1024,
     messages: [
       {

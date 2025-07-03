@@ -13,7 +13,7 @@ async function main() {
           content: `Hey Claude! How can I recursively list all files in a directory in Rust?`,
         },
       ],
-      model: 'claude-3-5-sonnet-latest',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
     })
     // Once a content block is fully streamed, this event will fire

@@ -16,7 +16,7 @@ async function main() {
   const question = 'Hey Claude! How can I recursively list all files in a directory in Rust?';
 
   const stream = await client.messages.create({
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-sonnet-4-20250514',
     stream: true,
     max_tokens: 500,
     messages: [{ role: 'user', content: question }],
