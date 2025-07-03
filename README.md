@@ -100,7 +100,7 @@ const anthropic = new Anthropic();
 async function main() {
   const stream = anthropic.messages
     .stream({
-      model: 'claude-3-5-sonnet-latest',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
       messages: [
         {
@@ -126,7 +126,7 @@ Alternatively, you can use `client.messages.create({ ..., stream: true })` which
 
 ## Message Batches
 
-This SDK provides beta support for the [Message Batches API](https://docs.anthropic.com/en/docs/build-with-claude/message-batches) under the `client.beta.messages.batches` namespace.
+This SDK provides beta support for the [Message Batches API](https://docs.anthropic.com/en/docs/build-with-claude/message-batches) under the `client.messages.batches` namespace.
 
 ### Creating a batch
 
@@ -138,7 +138,7 @@ await anthropic.beta.messages.batches.create({
     {
       custom_id: 'my-first-request',
       params: {
-        model: 'claude-3-5-sonnet-latest',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'Hello, world' }],
       },
@@ -146,7 +146,7 @@ await anthropic.beta.messages.batches.create({
     {
       custom_id: 'my-second-request',
       params: {
-        model: 'claude-3-5-sonnet-latest',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'Hi again, friend' }],
       },
@@ -269,7 +269,7 @@ All object responses in the SDK provide a `_request_id` property which is added 
 const message = await client.messages.create({
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello, Claude' }],
-  model: 'claude-3-5-sonnet-latest',
+  model: 'claude-sonnet-4-20250514',
 });
 console.log(message._request_id); // req_018EeWyXxfu5pfWkrYcMdjWG
 ```
@@ -355,7 +355,7 @@ You can use the `for await … of` syntax to iterate through items across all pa
 async function fetchAllBetaMessageBatches(params) {
   const allBetaMessageBatches = [];
   // Automatically fetches more pages as needed.
-  for await (const betaMessageBatch of client.beta.messages.batches.list({ limit: 20 })) {
+  for await (const betaMessageBatch of client.messages.batches.list({ limit: 20 })) {
     allBetaMessageBatches.push(betaMessageBatch);
   }
   return allBetaMessageBatches;
@@ -365,7 +365,7 @@ async function fetchAllBetaMessageBatches(params) {
 Alternatively, you can request a single page at a time:
 
 ```ts
-let page = await client.beta.messages.batches.list({ limit: 20 });
+let page = await client.messages.batches.list({ limit: 20 });
 for (const betaMessageBatch of page.data) {
   console.log(betaMessageBatch);
 }
