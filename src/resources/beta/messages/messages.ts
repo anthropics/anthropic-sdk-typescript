@@ -238,6 +238,38 @@ export interface BetaCitationPageLocationParam {
   type: 'page_location';
 }
 
+export interface BetaCitationSearchResultLocation {
+  cited_text: string;
+
+  end_block_index: number;
+
+  search_result_index: number;
+
+  source: string;
+
+  start_block_index: number;
+
+  title: string | null;
+
+  type: 'search_result_location';
+}
+
+export interface BetaCitationSearchResultLocationParam {
+  cited_text: string;
+
+  end_block_index: number;
+
+  search_result_index: number;
+
+  source: string;
+
+  start_block_index: number;
+
+  title: string | null;
+
+  type: 'search_result_location';
+}
+
 export interface BetaCitationWebSearchResultLocationParam {
   cited_text: string;
 
@@ -260,7 +292,7 @@ export interface BetaCitationsDelta {
     | BetaCitationPageLocation
     | BetaCitationContentBlockLocation
     | BetaCitationsWebSearchResultLocation
-    | BetaSearchResultLocationCitation;
+    | BetaCitationSearchResultLocation;
 
   type: 'citations_delta';
 }
@@ -896,38 +928,6 @@ export interface BetaSearchResultBlockParam {
   citations?: BetaCitationsConfigParam;
 }
 
-export interface BetaSearchResultLocationCitation {
-  cited_text: string;
-
-  end_block_index: number;
-
-  search_result_index: number;
-
-  source: string;
-
-  start_block_index: number;
-
-  title: string | null;
-
-  type: 'search_result_location';
-}
-
-export interface BetaSearchResultLocationCitationParam {
-  cited_text: string;
-
-  end_block_index: number;
-
-  search_result_index: number;
-
-  source: string;
-
-  start_block_index: number;
-
-  title: string | null;
-
-  type: 'search_result_location';
-}
-
 export interface BetaServerToolUsage {
   /**
    * The number of web search tool requests.
@@ -1007,14 +1007,14 @@ export type BetaTextCitation =
   | BetaCitationPageLocation
   | BetaCitationContentBlockLocation
   | BetaCitationsWebSearchResultLocation
-  | BetaSearchResultLocationCitation;
+  | BetaCitationSearchResultLocation;
 
 export type BetaTextCitationParam =
   | BetaCitationCharLocationParam
   | BetaCitationPageLocationParam
   | BetaCitationContentBlockLocationParam
   | BetaCitationWebSearchResultLocationParam
-  | BetaSearchResultLocationCitationParam;
+  | BetaCitationSearchResultLocationParam;
 
 export interface BetaTextDelta {
   text: string;
@@ -2162,6 +2162,8 @@ export declare namespace Messages {
     type BetaCitationContentBlockLocationParam as BetaCitationContentBlockLocationParam,
     type BetaCitationPageLocation as BetaCitationPageLocation,
     type BetaCitationPageLocationParam as BetaCitationPageLocationParam,
+    type BetaCitationSearchResultLocation as BetaCitationSearchResultLocation,
+    type BetaCitationSearchResultLocationParam as BetaCitationSearchResultLocationParam,
     type BetaCitationWebSearchResultLocationParam as BetaCitationWebSearchResultLocationParam,
     type BetaCitationsConfigParam as BetaCitationsConfigParam,
     type BetaCitationsDelta as BetaCitationsDelta,
@@ -2213,8 +2215,6 @@ export declare namespace Messages {
     type BetaRequestMCPServerURLDefinition as BetaRequestMCPServerURLDefinition,
     type BetaRequestMCPToolResultBlockParam as BetaRequestMCPToolResultBlockParam,
     type BetaSearchResultBlockParam as BetaSearchResultBlockParam,
-    type BetaSearchResultLocationCitation as BetaSearchResultLocationCitation,
-    type BetaSearchResultLocationCitationParam as BetaSearchResultLocationCitationParam,
     type BetaServerToolUsage as BetaServerToolUsage,
     type BetaServerToolUseBlock as BetaServerToolUseBlock,
     type BetaServerToolUseBlockParam as BetaServerToolUseBlockParam,

@@ -178,6 +178,8 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationContentBlockLocationParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationPageLocation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationPageLocationParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationSearchResultLocation</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationSearchResultLocationParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationWebSearchResultLocationParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationsConfigParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationsDelta</a></code>
@@ -229,8 +231,6 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestMCPServerURLDefinition</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestMCPToolResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSearchResultBlockParam</a></code>
-- <code><a href="./src/resources/beta/messages/messages.ts">BetaSearchResultLocationCitation</a></code>
-- <code><a href="./src/resources/beta/messages/messages.ts">BetaSearchResultLocationCitationParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolUseBlockParam</a></code>
