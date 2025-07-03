@@ -16,7 +16,7 @@ describe('resource batches', () => {
           params: {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-3-7-sonnet-20250219',
+            model: 'claude-sonnet-4-20250514',
           },
         },
       ],
@@ -38,7 +38,7 @@ describe('resource batches', () => {
           params: {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-3-7-sonnet-20250219',
+            model: 'claude-sonnet-4-20250514',
             container: 'container',
             mcp_servers: [
               {
