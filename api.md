@@ -241,6 +241,9 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestMCPServerToolConfiguration</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestMCPServerURLDefinition</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestMCPToolResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaSearchResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaSearchResultLocationCitation</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaSearchResultLocationCitationParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolUseBlockParam</a></code>
