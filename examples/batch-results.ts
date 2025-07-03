@@ -10,7 +10,7 @@ async function main() {
 
   console.log(`fetching results for ${batch_id}`);
 
-  const results = await anthropic.beta.messages.batches.results(batch_id);
+  const results = await anthropic.messages.batches.results(batch_id);
 
   for await (const result of results) {
     console.log(result);

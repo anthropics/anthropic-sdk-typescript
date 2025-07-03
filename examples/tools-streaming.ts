@@ -33,7 +33,7 @@ async function main() {
           },
         },
       ],
-      model: 'claude-3-5-sonnet-latest',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
     })
     // When a JSON content block delta is encountered this

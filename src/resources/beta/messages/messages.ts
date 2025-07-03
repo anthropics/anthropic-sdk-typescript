@@ -40,6 +40,7 @@ const DEPRECATED_MODELS: {
   'claude-instant-1.1-100k': 'November 6th, 2024',
   'claude-instant-1.2': 'November 6th, 2024',
   'claude-3-sonnet-20240229': 'July 21st, 2025',
+  'claude-3-opus-20240229': 'January 5th, 2026',
   'claude-2.1': 'July 21st, 2025',
   'claude-2.0': 'July 21st, 2025',
 };
@@ -62,7 +63,7 @@ export class Messages extends APIResource {
    * const betaMessage = await client.beta.messages.create({
    *   max_tokens: 1024,
    *   messages: [{ content: 'Hello, world', role: 'user' }],
-   *   model: 'claude-3-7-sonnet-20250219',
+   *   model: 'claude-sonnet-4-20250514',
    * });
    * ```
    */
@@ -277,6 +278,38 @@ export interface BetaCitationPageLocationParam {
   type: 'page_location';
 }
 
+export interface BetaCitationSearchResultLocation {
+  cited_text: string;
+
+  end_block_index: number;
+
+  search_result_index: number;
+
+  source: string;
+
+  start_block_index: number;
+
+  title: string | null;
+
+  type: 'search_result_location';
+}
+
+export interface BetaCitationSearchResultLocationParam {
+  cited_text: string;
+
+  end_block_index: number;
+
+  search_result_index: number;
+
+  source: string;
+
+  start_block_index: number;
+
+  title: string | null;
+
+  type: 'search_result_location';
+}
+
 export interface BetaCitationWebSearchResultLocationParam {
   cited_text: string;
 
@@ -298,7 +331,8 @@ export interface BetaCitationsDelta {
     | BetaCitationCharLocation
     | BetaCitationPageLocation
     | BetaCitationContentBlockLocation
-    | BetaCitationsWebSearchResultLocation;
+    | BetaCitationsWebSearchResultLocation
+    | BetaCitationSearchResultLocation;
 
   type: 'citations_delta';
 }
@@ -459,32 +493,33 @@ export interface BetaContainerUploadBlockParam {
  */
 export type BetaContentBlock =
   | BetaTextBlock
+  | BetaThinkingBlock
+  | BetaRedactedThinkingBlock
   | BetaToolUseBlock
   | BetaServerToolUseBlock
   | BetaWebSearchToolResultBlock
   | BetaCodeExecutionToolResultBlock
   | BetaMCPToolUseBlock
   | BetaMCPToolResultBlock
-  | BetaContainerUploadBlock
-  | BetaThinkingBlock
-  | BetaRedactedThinkingBlock;
+  | BetaContainerUploadBlock;
 
 /**
  * Regular text content.
  */
 export type BetaContentBlockParam =
+  | BetaTextBlockParam
+  | BetaImageBlockParam
+  | BetaRequestDocumentBlock
+  | BetaSearchResultBlockParam
+  | BetaThinkingBlockParam
+  | BetaRedactedThinkingBlockParam
+  | BetaToolUseBlockParam
+  | BetaToolResultBlockParam
   | BetaServerToolUseBlockParam
   | BetaWebSearchToolResultBlockParam
   | BetaCodeExecutionToolResultBlockParam
   | BetaMCPToolUseBlockParam
   | BetaRequestMCPToolResultBlockParam
-  | BetaTextBlockParam
-  | BetaImageBlockParam
-  | BetaToolUseBlockParam
-  | BetaToolResultBlockParam
-  | BetaRequestDocumentBlock
-  | BetaThinkingBlockParam
-  | BetaRedactedThinkingBlockParam
   | BetaContainerUploadBlockParam;
 
 export interface BetaContentBlockSource {
@@ -645,6 +680,10 @@ export interface BetaMessage {
    * - `"max_tokens"`: we exceeded the requested `max_tokens` or the model's maximum
    * - `"stop_sequence"`: one of your provided custom `stop_sequences` was generated
    * - `"tool_use"`: the model invoked one or more tools
+   * - `"pause_turn"`: we paused a long-running turn. You may provide the response
+   *   back as-is in a subsequent request to let the model continue.
+   * - `"refusal"`: when streaming classifiers intervene to handle potential policy
+   *   violations
    *
    * In non-streaming mode this value is always non-null. In streaming mode, it is
    * null in the `message_start` event and non-null otherwise.
@@ -767,15 +806,15 @@ export interface BetaRawContentBlockStartEvent {
    */
   content_block:
     | BetaTextBlock
+    | BetaThinkingBlock
+    | BetaRedactedThinkingBlock
     | BetaToolUseBlock
     | BetaServerToolUseBlock
     | BetaWebSearchToolResultBlock
     | BetaCodeExecutionToolResultBlock
     | BetaMCPToolUseBlock
     | BetaMCPToolResultBlock
-    | BetaContainerUploadBlock
-    | BetaThinkingBlock
-    | BetaRedactedThinkingBlock;
+    | BetaContainerUploadBlock;
 
   index: number;
 
@@ -912,6 +951,23 @@ export interface BetaRequestMCPToolResultBlockParam {
   is_error?: boolean;
 }
 
+export interface BetaSearchResultBlockParam {
+  content: Array<BetaTextBlockParam>;
+
+  source: string;
+
+  title: string;
+
+  type: 'search_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  citations?: BetaCitationsConfigParam;
+}
+
 export interface BetaServerToolUsage {
   /**
    * The number of web search tool requests.
@@ -990,13 +1046,15 @@ export type BetaTextCitation =
   | BetaCitationCharLocation
   | BetaCitationPageLocation
   | BetaCitationContentBlockLocation
-  | BetaCitationsWebSearchResultLocation;
+  | BetaCitationsWebSearchResultLocation
+  | BetaCitationSearchResultLocation;
 
 export type BetaTextCitationParam =
   | BetaCitationCharLocationParam
   | BetaCitationPageLocationParam
   | BetaCitationContentBlockLocationParam
-  | BetaCitationWebSearchResultLocationParam;
+  | BetaCitationWebSearchResultLocationParam
+  | BetaCitationSearchResultLocationParam;
 
 export interface BetaTextDelta {
   text: string;
@@ -1279,7 +1337,7 @@ export interface BetaToolResultBlockParam {
    */
   cache_control?: BetaCacheControlEphemeral | null;
 
-  content?: string | Array<BetaTextBlockParam | BetaImageBlockParam>;
+  content?: string | Array<BetaTextBlockParam | BetaImageBlockParam | BetaSearchResultBlockParam>;
 
   is_error?: boolean;
 }
@@ -1334,15 +1392,15 @@ export interface BetaToolTextEditor20250429 {
 
 export type BetaToolUnion =
   | BetaTool
-  | BetaToolComputerUse20241022
   | BetaToolBash20241022
-  | BetaToolTextEditor20241022
-  | BetaToolComputerUse20250124
   | BetaToolBash20250124
+  | BetaCodeExecutionTool20250522
+  | BetaToolComputerUse20241022
+  | BetaToolComputerUse20250124
+  | BetaToolTextEditor20241022
   | BetaToolTextEditor20250124
   | BetaToolTextEditor20250429
-  | BetaWebSearchTool20250305
-  | BetaCodeExecutionTool20250522;
+  | BetaWebSearchTool20250305;
 
 export interface BetaToolUseBlock {
   id: string;
@@ -1668,7 +1726,7 @@ export interface MessageCreateParamsBase {
    * the top-level `system` parameter — there is no `"system"` role for input
    * messages in the Messages API.
    *
-   * There is a limit of 100000 messages in a single request.
+   * There is a limit of 100,000 messages in a single request.
    */
   messages: Array<BetaMessageParam>;
 
@@ -1772,6 +1830,12 @@ export interface MessageCreateParamsBase {
    * content blocks that represent the model's use of those tools. You can then run
    * those tools using the tool input generated by the model and then optionally
    * return results back to the model using `tool_result` content blocks.
+   *
+   * There are two types of tools: **client tools** and **server tools**. The
+   * behavior described below applies to client tools. For
+   * [server tools](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
+   * see their individual documentation as each has its own behavior (e.g., the
+   * [web search tool](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
    *
    * Each tool definition includes:
    *
@@ -1984,7 +2048,7 @@ export interface MessageCountTokensParams {
    * the top-level `system` parameter — there is no `"system"` role for input
    * messages in the Messages API.
    *
-   * There is a limit of 100000 messages in a single request.
+   * There is a limit of 100,000 messages in a single request.
    */
   messages: Array<BetaMessageParam>;
 
@@ -2035,6 +2099,12 @@ export interface MessageCountTokensParams {
    * content blocks that represent the model's use of those tools. You can then run
    * those tools using the tool input generated by the model and then optionally
    * return results back to the model using `tool_result` content blocks.
+   *
+   * There are two types of tools: **client tools** and **server tools**. The
+   * behavior described below applies to client tools. For
+   * [server tools](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
+   * see their individual documentation as each has its own behavior (e.g., the
+   * [web search tool](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
    *
    * Each tool definition includes:
    *
@@ -2101,15 +2171,15 @@ export interface MessageCountTokensParams {
    */
   tools?: Array<
     | BetaTool
-    | BetaToolComputerUse20241022
     | BetaToolBash20241022
-    | BetaToolTextEditor20241022
-    | BetaToolComputerUse20250124
     | BetaToolBash20250124
+    | BetaCodeExecutionTool20250522
+    | BetaToolComputerUse20241022
+    | BetaToolComputerUse20250124
+    | BetaToolTextEditor20241022
     | BetaToolTextEditor20250124
     | BetaToolTextEditor20250429
     | BetaWebSearchTool20250305
-    | BetaCodeExecutionTool20250522
   >;
 
   /**
@@ -2132,6 +2202,8 @@ export declare namespace Messages {
     type BetaCitationContentBlockLocationParam as BetaCitationContentBlockLocationParam,
     type BetaCitationPageLocation as BetaCitationPageLocation,
     type BetaCitationPageLocationParam as BetaCitationPageLocationParam,
+    type BetaCitationSearchResultLocation as BetaCitationSearchResultLocation,
+    type BetaCitationSearchResultLocationParam as BetaCitationSearchResultLocationParam,
     type BetaCitationWebSearchResultLocationParam as BetaCitationWebSearchResultLocationParam,
     type BetaCitationsConfigParam as BetaCitationsConfigParam,
     type BetaCitationsDelta as BetaCitationsDelta,
@@ -2182,6 +2254,7 @@ export declare namespace Messages {
     type BetaRequestMCPServerToolConfiguration as BetaRequestMCPServerToolConfiguration,
     type BetaRequestMCPServerURLDefinition as BetaRequestMCPServerURLDefinition,
     type BetaRequestMCPToolResultBlockParam as BetaRequestMCPToolResultBlockParam,
+    type BetaSearchResultBlockParam as BetaSearchResultBlockParam,
     type BetaServerToolUsage as BetaServerToolUsage,
     type BetaServerToolUseBlock as BetaServerToolUseBlock,
     type BetaServerToolUseBlockParam as BetaServerToolUseBlockParam,

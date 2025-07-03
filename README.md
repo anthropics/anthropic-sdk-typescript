@@ -27,7 +27,7 @@ const client = new Anthropic({
 const message = await client.messages.create({
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello, Claude' }],
-  model: 'claude-3-5-sonnet-latest',
+  model: 'claude-sonnet-4-20250514',
 });
 
 console.log(message.content);
@@ -45,7 +45,7 @@ const client = new Anthropic();
 const stream = await client.messages.create({
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello, Claude' }],
-  model: 'claude-3-5-sonnet-latest',
+  model: 'claude-sonnet-4-20250514',
   stream: true,
 });
 for await (const messageStreamEvent of stream) {
@@ -71,7 +71,7 @@ const client = new Anthropic({
 const params: Anthropic.MessageCreateParams = {
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello, Claude' }],
-  model: 'claude-3-5-sonnet-latest',
+  model: 'claude-sonnet-4-20250514',
 };
 const message: Anthropic.Message = await client.messages.create(params);
 ```
@@ -100,7 +100,7 @@ const anthropic = new Anthropic();
 async function main() {
   const stream = anthropic.messages
     .stream({
-      model: 'claude-3-5-sonnet-latest',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
       messages: [
         {
@@ -126,19 +126,19 @@ Alternatively, you can use `client.messages.create({ ..., stream: true })` which
 
 ## Message Batches
 
-This SDK provides beta support for the [Message Batches API](https://docs.anthropic.com/en/docs/build-with-claude/message-batches) under the `client.beta.messages.batches` namespace.
+This SDK provides support for the [Message Batches API](https://docs.anthropic.com/en/docs/build-with-claude/message-batches) under the `client.messages.batches` namespace.
 
 ### Creating a batch
 
 Message Batches takes an array of requests, where each object has a `custom_id` identifier, and the exact same request `params` as the standard Messages API:
 
 ```ts
-await anthropic.beta.messages.batches.create({
+await anthropic.messages.batches.create({
   requests: [
     {
       custom_id: 'my-first-request',
       params: {
-        model: 'claude-3-5-sonnet-latest',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'Hello, world' }],
       },
@@ -146,7 +146,7 @@ await anthropic.beta.messages.batches.create({
     {
       custom_id: 'my-second-request',
       params: {
-        model: 'claude-3-5-sonnet-latest',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'Hi again, friend' }],
       },
@@ -160,7 +160,7 @@ await anthropic.beta.messages.batches.create({
 Once a Message Batch has been processed, indicated by `.processing_status === 'ended'`, you can access the results with `.batches.results()`
 
 ```ts
-const results = await anthropic.beta.messages.batches.results(batch_id);
+const results = await anthropic.messages.batches.results(batch_id);
 for await (const entry of results) {
   if (entry.result.type === 'succeeded') {
     console.log(entry.result.message.content);
@@ -233,7 +233,7 @@ const message = await client.messages
   .create({
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-sonnet-4-20250514',
   })
   .catch(async (err) => {
     if (err instanceof Anthropic.APIError) {
@@ -269,7 +269,7 @@ All object responses in the SDK provide a `_request_id` property which is added 
 const message = await client.messages.create({
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello, Claude' }],
-  model: 'claude-3-5-sonnet-latest',
+  model: 'claude-sonnet-4-20250514',
 });
 console.log(message._request_id); // req_018EeWyXxfu5pfWkrYcMdjWG
 ```
@@ -290,7 +290,7 @@ const client = new Anthropic({
 });
 
 // Or, configure per-request:
-await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-5-sonnet-latest' }, {
+await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-sonnet-4-20250514' }, {
   maxRetries: 5,
 });
 ```
@@ -318,7 +318,7 @@ const client = new Anthropic({
 });
 
 // Override per-request:
-await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-3-5-sonnet-latest' }, {
+await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-sonnet-4-20250514' }, {
   timeout: 5 * 1000,
 });
 ```
@@ -352,22 +352,22 @@ List methods in the Anthropic API are paginated.
 You can use the `for await … of` syntax to iterate through items across all pages:
 
 ```ts
-async function fetchAllBetaMessageBatches(params) {
-  const allBetaMessageBatches = [];
+async function fetchAllMessageBatches(params) {
+  const allMessageBatches = [];
   // Automatically fetches more pages as needed.
-  for await (const betaMessageBatch of client.beta.messages.batches.list({ limit: 20 })) {
-    allBetaMessageBatches.push(betaMessageBatch);
+  for await (const messageBatch of client.messages.batches.list({ limit: 20 })) {
+    allMessageBatches.push(messageBatch);
   }
-  return allBetaMessageBatches;
+  return allMessageBatches;
 }
 ```
 
 Alternatively, you can request a single page at a time:
 
 ```ts
-let page = await client.beta.messages.batches.list({ limit: 20 });
-for (const betaMessageBatch of page.data) {
-  console.log(betaMessageBatch);
+let page = await client.messages.batches.list({ limit: 20 });
+for (const messageBatch of page.data) {
+  console.log(messageBatch);
 }
 
 // Convenience methods are provided for manually paginating:
@@ -394,7 +394,7 @@ const message = await client.messages.create(
   {
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-sonnet-4-20250514',
   },
   { headers: { 'anthropic-version': 'My-Custom-Value' } },
 );
@@ -418,7 +418,7 @@ const response = await client.messages
   .create({
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-sonnet-4-20250514',
   })
   .asResponse();
 console.log(response.headers.get('X-My-Header'));
@@ -428,7 +428,7 @@ const { data: message, response: raw } = await client.messages
   .create({
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Hello, Claude' }],
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-sonnet-4-20250514',
   })
   .withResponse();
 console.log(raw.headers.get('X-My-Header'));

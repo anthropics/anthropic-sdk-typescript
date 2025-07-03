@@ -22,7 +22,7 @@ async function main() {
   ];
 
   const message = await client.messages.create({
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 1024,
     messages: [userMessage],
     tools,
@@ -38,7 +38,7 @@ async function main() {
   assert(tool);
 
   const result = await client.messages.create({
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 1024,
     messages: [
       userMessage,

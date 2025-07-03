@@ -4,10 +4,11 @@ import { streamCollector } from '@smithy/fetch-http-handler';
 import { EventStreamSerdeContext, SerdeContext } from '@smithy/types';
 import { Stream as CoreStream, ServerSentEvent } from '@anthropic-ai/sdk/streaming';
 import { AnthropicError } from '@anthropic-ai/sdk/error';
-import { APIError } from '@anthropic-ai/sdk';
+import { APIError, BaseAnthropic } from '@anthropic-ai/sdk';
 import { de_ResponseStream } from '../AWS_restJson1';
 import { ReadableStreamToAsyncIterable } from '../internal/shims';
 import { safeJSON } from '../internal/utils/values';
+import { loggerFor } from '../internal/utils/log';
 
 type Bytes = string | ArrayBuffer | Uint8Array | Buffer | null | undefined;
 
@@ -30,8 +31,13 @@ export const getMinimalSerdeContext = (): SerdeContext & EventStreamSerdeContext
 };
 
 export class Stream<Item> extends CoreStream<Item> {
-  static override fromSSEResponse<Item>(response: Response, controller: AbortController) {
+  static override fromSSEResponse<Item>(
+    response: Response,
+    controller: AbortController,
+    client?: BaseAnthropic,
+  ) {
     let consumed = false;
+    const logger = client ? loggerFor(client) : console;
 
     async function* iterMessages(): AsyncGenerator<ServerSentEvent, void, unknown> {
       if (!response.body) {
@@ -70,8 +76,8 @@ export class Stream<Item> extends CoreStream<Item> {
             try {
               yield JSON.parse(sse.data);
             } catch (e) {
-              console.error(`Could not parse message into JSON:`, sse.data);
-              console.error(`From chunk:`, sse.raw);
+              logger.error(`Could not parse message into JSON:`, sse.data);
+              logger.error(`From chunk:`, sse.raw);
               throw e;
             }
           }

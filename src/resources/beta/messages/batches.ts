@@ -34,7 +34,7 @@ export class Batches extends APIResource {
    *           messages: [
    *             { content: 'Hello, world', role: 'user' },
    *           ],
-   *           model: 'claude-3-7-sonnet-20250219',
+   *           model: 'claude-sonnet-4-20250514',
    *         },
    *       },
    *     ],
