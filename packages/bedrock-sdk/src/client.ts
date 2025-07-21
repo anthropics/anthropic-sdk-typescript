@@ -113,11 +113,11 @@ export class AnthropicBedrock extends BaseAnthropic {
     request.headers = buildHeaders([headers, request.headers]).values;
   }
 
-  override buildRequest(options: FinalRequestOptions): {
+  override async buildRequest(options: FinalRequestOptions): Promise<{
     req: FinalizedRequestInit;
     url: string;
     timeout: number;
-  } {
+  }> {
     options.__streamClass = Stream;
 
     if (isObj(options.body)) {
