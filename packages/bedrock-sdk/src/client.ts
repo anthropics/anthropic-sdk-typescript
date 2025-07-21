@@ -1,5 +1,6 @@
 import { BaseAnthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
+import { AwsCredentialIdentityProvider } from '@smithy/types';
 import { getAuthHeaders } from './core/auth';
 import { Stream } from './core/streaming';
 import { readEnv } from './internal/utils/env';
@@ -24,6 +25,9 @@ export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
   awsRegion?: string | undefined;
   awsSessionToken?: string | null | undefined;
   skipAuth?: boolean;
+
+  /** Custom provider chain resolver for AWS credentials. Useful for non-Node environments, like edge workers, where the default credential provider chain may not work. */
+  providerChainResolver?: (() => Promise<AwsCredentialIdentityProvider>) | null;
 };
 
 /** API Client for interfacing with the Anthropic Bedrock API. */
@@ -33,6 +37,7 @@ export class AnthropicBedrock extends BaseAnthropic {
   awsRegion: string;
   awsSessionToken: string | null;
   skipAuth: boolean = false;
+  providerChainResolver: (() => Promise<AwsCredentialIdentityProvider>) | null;
 
   /**
    * API Client for interfacing with the Anthropic Bedrock API.
@@ -41,6 +46,7 @@ export class AnthropicBedrock extends BaseAnthropic {
    * @param {string | null | undefined} [opts.awsAccessKey]
    * @param {string | undefined} [opts.awsRegion=process.env['AWS_REGION'] ?? us-east-1]
    * @param {string | null | undefined} [opts.awsSessionToken]
+   * @param {(() => Promise<AwsCredentialIdentityProvider>) | null} [opts.providerChainResolver] - Custom provider chain resolver for AWS credentials. Useful for non-Node environments.
    * @param {string} [opts.baseURL=process.env['ANTHROPIC_BEDROCK_BASE_URL'] ?? https://bedrock-runtime.${this.awsRegion}.amazonaws.com] - Override the default base URL for the API.
    * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
    * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
@@ -57,6 +63,7 @@ export class AnthropicBedrock extends BaseAnthropic {
     awsSecretKey = null,
     awsAccessKey = null,
     awsSessionToken = null,
+    providerChainResolver = null,
     ...opts
   }: ClientOptions = {}) {
     super({
@@ -69,6 +76,7 @@ export class AnthropicBedrock extends BaseAnthropic {
     this.awsRegion = awsRegion;
     this.awsSessionToken = awsSessionToken;
     this.skipAuth = opts.skipAuth ?? false;
+    this.providerChainResolver = providerChainResolver;
   }
 
   messages: MessagesResource = makeMessagesResource(this);
@@ -100,6 +108,7 @@ export class AnthropicBedrock extends BaseAnthropic {
       awsSecretKey: this.awsSecretKey,
       awsSessionToken: this.awsSessionToken,
       fetchOptions: this.fetchOptions,
+      providerChainResolver: this.providerChainResolver,
     });
     request.headers = buildHeaders([headers, request.headers]).values;
   }
