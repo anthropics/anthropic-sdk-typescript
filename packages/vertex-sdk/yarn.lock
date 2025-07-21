@@ -17,7 +17,7 @@
 
 "@anthropic-ai/sdk@file:../../dist":
   # x-release-please-start-version
-  version "0.56.0"
+  version "0.57.0"
   # x-release-please-end-version
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.12.13", "@babel/code-frame@^7.22.13", "@babel/code-frame@^7.23.5":
