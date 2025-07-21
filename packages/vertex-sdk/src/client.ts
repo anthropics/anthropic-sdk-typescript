@@ -127,11 +127,11 @@ export class AnthropicVertex extends BaseAnthropic {
     options.headers = buildHeaders([authHeaders, options.headers]);
   }
 
-  override buildRequest(options: FinalRequestOptions): {
+  override async buildRequest(options: FinalRequestOptions): Promise<{
     req: FinalizedRequestInit;
     url: string;
     timeout: number;
-  } {
+  }> {
     if (isObj(options.body)) {
       // create a shallow copy of the request body so that code that mutates it later
       // doesn't mutate the original user-provided object
