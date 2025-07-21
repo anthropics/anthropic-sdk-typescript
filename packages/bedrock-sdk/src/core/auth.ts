@@ -1,8 +1,8 @@
 import { Sha256 } from '@aws-crypto/sha256-js';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { FetchHttpHandler } from '@smithy/fetch-http-handler';
 import { HttpRequest } from '@smithy/protocol-http';
 import { SignatureV4 } from '@smithy/signature-v4';
+import { AwsCredentialIdentityProvider } from '@smithy/types';
 import assert from 'assert';
 import { MergedRequestInit } from '../internal/types';
 
@@ -13,23 +13,39 @@ type AuthProps = {
   awsSecretKey: string | null | undefined;
   awsSessionToken: string | null | undefined;
   fetchOptions?: MergedRequestInit | undefined;
+  providerChainResolver?: (() => Promise<AwsCredentialIdentityProvider>) | null;
 };
+
+const DEFAULT_PROVIDER_CHAIN_RESOLVER: () => Promise<AwsCredentialIdentityProvider> = () =>
+  import('@aws-sdk/credential-providers')
+    .then(({ fromNodeProviderChain }) =>
+      fromNodeProviderChain({
+        clientConfig: {
+          requestHandler: new FetchHttpHandler({
+            requestInit: (httpRequest) => {
+              return {
+                ...httpRequest,
+              } as RequestInit;
+            },
+          }),
+        },
+      }),
+    )
+    .catch((error) => {
+      throw new Error(
+        `Failed to import '@aws-sdk/credential-providers'.` +
+          `You can provide a custom \`providerChainResolver\` in the client options if your runtime does not have access to '@aws-sdk/credential-providers': ` +
+          `\`new AnthropicBedrock({ providerChainResolver })\` ` +
+          `Original error: ${error.message}`,
+      );
+    });
 
 export const getAuthHeaders = async (req: RequestInit, props: AuthProps): Promise<Record<string, string>> => {
   assert(req.method, 'Expected request method property to be set');
 
-  const providerChain = fromNodeProviderChain({
-    clientConfig: {
-      requestHandler: new FetchHttpHandler({
-        requestInit: (httpRequest) => {
-          return {
-            ...httpRequest,
-            ...props.fetchOptions,
-          } as RequestInit;
-        },
-      }),
-    },
-  });
+  const providerChain = await (props.providerChainResolver ?
+    props.providerChainResolver()
+  : DEFAULT_PROVIDER_CHAIN_RESOLVER());
 
   const credentials = await withTempEnv(
     () => {

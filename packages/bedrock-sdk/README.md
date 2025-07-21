@@ -42,6 +42,30 @@ async function main() {
 main();
 ```
 
+### Custom Credential Provider (for non-Node environments)
+
+For non-Node environments like Vercel Edge Runtime where the default AWS credential provider chain isn't available, you can provide a custom credential resolver:
+
+```js
+import { AnthropicBedrock } from '@anthropic-ai/bedrock-sdk';
+
+const customCredentialProvider = async () => {
+  // Return an object that implements the AwsCredentialIdentityProvider interface
+  return {
+    accessKeyId: 'your-aws-access-key-id',
+    secretAccessKey: 'your-aws-secret-access-key',
+    sessionToken: 'your-aws-session-token', // Optional, if using temporary credentials
+  };
+};
+
+const client = new AnthropicBedrock({
+  awsRegion: 'us-east-1',
+  providerChainResolver: async () => {
+    return customCredentialProvider;
+  },
+});
+```
+
 For more details on how to use the SDK, see the [README.md for the main Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript/tree/main#anthropic-typescript-api-library) which this library extends.
 
 ## Requirements
