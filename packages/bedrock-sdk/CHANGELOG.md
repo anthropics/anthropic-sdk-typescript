@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.23.0 (2025-07-21)
+
+Full Changelog: [bedrock-sdk-v0.22.4...bedrock-sdk-v0.23.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.22.4...bedrock-sdk-v0.23.0)
+
+### Features
+
+* **bedrock:** better edge runtime support ([#462](https://github.com/anthropics/anthropic-sdk-typescript/issues/462)) ([5f8d1bb](https://github.com/anthropics/anthropic-sdk-typescript/commit/5f8d1bb6a1e7a71acf7a89a090bb2296c050e1d2))
+
+
+### Bug Fixes
+
+* **bedrock:** fix lint errors ([aa40e9c](https://github.com/anthropics/anthropic-sdk-typescript/commit/aa40e9c6987a23ca964683a72fb89c9f570528bd))
+
 ## 0.22.4 (2025-07-03)
 
 Full Changelog: [bedrock-sdk-v0.22.3...bedrock-sdk-v0.22.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.22.3...bedrock-sdk-v0.22.4)

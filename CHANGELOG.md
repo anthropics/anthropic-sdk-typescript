@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.57.0 (2025-07-21)
+
+Full Changelog: [sdk-v0.56.0...sdk-v0.57.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.56.0...sdk-v0.57.0)
+
+### Features
+
+* **bedrock:** better edge runtime support ([#462](https://github.com/anthropics/anthropic-sdk-typescript/issues/462)) ([5f8d1bb](https://github.com/anthropics/anthropic-sdk-typescript/commit/5f8d1bb6a1e7a71acf7a89a090bb2296c050e1d2))
+* **client:** add breaking change detection to CI ([04332aa](https://github.com/anthropics/anthropic-sdk-typescript/commit/04332aa52c371a2c3126c8c188e9855898017772))
+
+
+### Bug Fixes
+
+* **bedrock:** fix lint errors ([aa40e9c](https://github.com/anthropics/anthropic-sdk-typescript/commit/aa40e9c6987a23ca964683a72fb89c9f570528bd))
+* **internal:** fix type error for fromSSEResponse call ([2405664](https://github.com/anthropics/anthropic-sdk-typescript/commit/2405664427fb313a785ee6fb7d5e357388dcf5d7))
+* **vertex:** fix lint errors ([7772f78](https://github.com/anthropics/anthropic-sdk-typescript/commit/7772f78a34dbfcf5c6fc1e149e4d851de9e722f8))
+
+
+### Chores
+
+* make some internal functions async ([9cc6c55](https://github.com/anthropics/anthropic-sdk-typescript/commit/9cc6c55713308f91f56e5f9c4c02966b421cee7f))
+* **ts:** reorder package.json imports ([e02b0a1](https://github.com/anthropics/anthropic-sdk-typescript/commit/e02b0a1e8c58499e7881f17688a75c0e8c405985))
+
 ## 0.56.0 (2025-07-03)
 
 Full Changelog: [sdk-v0.55.1...sdk-v0.56.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.55.1...sdk-v0.56.0)

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.12.1 (2025-07-21)
+
+Full Changelog: [vertex-sdk-v0.12.0...vertex-sdk-v0.12.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.12.0...vertex-sdk-v0.12.1)
+
+### Bug Fixes
+
+* **vertex:** fix lint errors ([7772f78](https://github.com/anthropics/anthropic-sdk-typescript/commit/7772f78a34dbfcf5c6fc1e149e4d851de9e722f8))
+
 ## 0.12.0 (2025-07-03)
 
 Full Changelog: [vertex-sdk-v0.11.5...vertex-sdk-v0.12.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.11.5...vertex-sdk-v0.12.0)
