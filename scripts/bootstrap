@@ -17,7 +17,7 @@ PACKAGE_MANAGER=$(command -v yarn >/dev/null 2>&1 && echo "yarn" || echo "npm")
 
 $PACKAGE_MANAGER install
 
-$PACKAGE_MANAGER build
+./scripts/build
 
 echo
 echo "==> Installing vertex-sdk dependencies"
