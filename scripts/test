@@ -57,8 +57,8 @@ echo "==> Running tests"
 
 echo
 echo "==> Running vertex-sdk tests"
-(cd packages/vertex-sdk && yarn test)
+(cd packages/vertex-sdk && ./node_modules/.bin/jest)
 
 echo
 echo "==> Running bedrock-sdk tests"
-(cd packages/bedrock-sdk && yarn test)
+(cd packages/bedrock-sdk && ./node_modules/.bin/jest)
