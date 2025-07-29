@@ -114,6 +114,7 @@ export {
   type BetaToolTextEditor20241022,
   type BetaToolTextEditor20250124,
   type BetaToolTextEditor20250429,
+  type BetaToolTextEditor20250728,
   type BetaToolUnion,
   type BetaToolUseBlock,
   type BetaToolUseBlockParam,
