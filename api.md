@@ -86,6 +86,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">ToolChoiceTool</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolResultBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolTextEditor20250124</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolTextEditor20250728</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolUnion</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolUseBlockParam</a></code>
@@ -274,6 +275,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolTextEditor20241022</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolTextEditor20250124</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolTextEditor20250429</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolTextEditor20250728</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUnion</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolUseBlockParam</a></code>
