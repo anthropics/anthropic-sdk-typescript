@@ -46,10 +46,6 @@
     "typescript": "5.8.3",
     "typescript-eslint": "8.31.1"
   },
-  "imports": {
-    "@anthropic-ai/sdk": ".",
-    "@anthropic-ai/sdk/*": "./src/*"
-  },
   "bin": {
     "anthropic-ai-sdk": "bin/cli"
   },
