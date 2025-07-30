@@ -415,27 +415,9 @@ export type MessageCountTokensTool =
   | Tool
   | ToolBash20250124
   | ToolTextEditor20250124
-  | MessageCountTokensTool.TextEditor20250429
+  | ToolTextEditor20250429
   | ToolTextEditor20250728
   | WebSearchTool20250305;
-
-export namespace MessageCountTokensTool {
-  export interface TextEditor20250429 {
-    /**
-     * Name of the tool.
-     *
-     * This is how the tool will be called by the model and in `tool_use` blocks.
-     */
-    name: 'str_replace_based_edit_tool';
-
-    type: 'text_editor_20250429';
-
-    /**
-     * Create a cache control breakpoint at this content block.
-     */
-    cache_control?: MessagesAPI.CacheControlEphemeral | null;
-  }
-}
 
 export interface MessageDeltaUsage {
   /**
@@ -923,6 +905,22 @@ export interface ToolTextEditor20250124 {
   cache_control?: CacheControlEphemeral | null;
 }
 
+export interface ToolTextEditor20250429 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'str_replace_based_edit_tool';
+
+  type: 'text_editor_20250429';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+}
+
 export interface ToolTextEditor20250728 {
   /**
    * Name of the tool.
@@ -949,27 +947,9 @@ export type ToolUnion =
   | Tool
   | ToolBash20250124
   | ToolTextEditor20250124
-  | ToolUnion.TextEditor20250429
+  | ToolTextEditor20250429
   | ToolTextEditor20250728
   | WebSearchTool20250305;
-
-export namespace ToolUnion {
-  export interface TextEditor20250429 {
-    /**
-     * Name of the tool.
-     *
-     * This is how the tool will be called by the model and in `tool_use` blocks.
-     */
-    name: 'str_replace_based_edit_tool';
-
-    type: 'text_editor_20250429';
-
-    /**
-     * Create a cache control breakpoint at this content block.
-     */
-    cache_control?: MessagesAPI.CacheControlEphemeral | null;
-  }
-}
 
 export interface ToolUseBlock {
   id: string;
@@ -1776,6 +1756,7 @@ export declare namespace Messages {
     type ToolChoiceTool as ToolChoiceTool,
     type ToolResultBlockParam as ToolResultBlockParam,
     type ToolTextEditor20250124 as ToolTextEditor20250124,
+    type ToolTextEditor20250429 as ToolTextEditor20250429,
     type ToolTextEditor20250728 as ToolTextEditor20250728,
     type ToolUnion as ToolUnion,
     type ToolUseBlock as ToolUseBlock,
