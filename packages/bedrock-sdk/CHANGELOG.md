@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.24.0 (2025-08-05)
+
+Full Changelog: [bedrock-sdk-v0.23.0...bedrock-sdk-v0.24.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.23.0...bedrock-sdk-v0.24.0)
+
+### Features
+
+* **api:** removed older deprecated models ([352a5fd](https://github.com/anthropics/anthropic-sdk-typescript/commit/352a5fd17372ac37277a2f001122973537579968))
+
+
+### Chores
+
+* **internal:** version bump ([eb97e85](https://github.com/anthropics/anthropic-sdk-typescript/commit/eb97e8577279fb150582297d2a0924a297185c3c))
+
 ## 0.23.0 (2025-07-21)
 
 Full Changelog: [bedrock-sdk-v0.22.4...bedrock-sdk-v0.23.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.22.4...bedrock-sdk-v0.23.0)

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.13.0 (2025-08-05)
+
+Full Changelog: [vertex-sdk-v0.12.1...vertex-sdk-v0.13.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.12.1...vertex-sdk-v0.13.0)
+
+### Features
+
+* **vertex:** support global endpoint ([#449](https://github.com/anthropics/anthropic-sdk-typescript/issues/449)) ([1c42030](https://github.com/anthropics/anthropic-sdk-typescript/commit/1c420301c4a1e9a2bfacf45067eb5473a7cdb53c))
+
+
+### Chores
+
+* **internal:** version bump ([eb97e85](https://github.com/anthropics/anthropic-sdk-typescript/commit/eb97e8577279fb150582297d2a0924a297185c3c))
+
 ## 0.12.1 (2025-07-21)
 
 Full Changelog: [vertex-sdk-v0.12.0...vertex-sdk-v0.12.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.12.0...vertex-sdk-v0.12.1)

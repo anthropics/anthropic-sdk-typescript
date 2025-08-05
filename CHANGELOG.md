@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.58.0 (2025-08-05)
+
+Full Changelog: [sdk-v0.57.0...sdk-v0.58.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.57.0...sdk-v0.58.0)
+
+### Features
+
+* **api:** add claude-opus-4-1-20250805 ([08c61db](https://github.com/anthropics/anthropic-sdk-typescript/commit/08c61dbcb1f7e7fa6889d4578b38717586bfec20))
+* **api:** adds support for text_editor_20250728 tool ([ca57d74](https://github.com/anthropics/anthropic-sdk-typescript/commit/ca57d7444db6512880786aec7cc11c32522e86f0))
+* **api:** removed older deprecated models ([352a5fd](https://github.com/anthropics/anthropic-sdk-typescript/commit/352a5fd17372ac37277a2f001122973537579968))
+* update streaming error message to say 'required' not 'recommended' ([ffac3e0](https://github.com/anthropics/anthropic-sdk-typescript/commit/ffac3e0dd9162c88a98102c204aea08a9c9a60e7))
+* update streaming error message to say 'required' not 'recommended' ([82a9ae5](https://github.com/anthropics/anthropic-sdk-typescript/commit/82a9ae5835c3dde1f061fc4147e5c06dbf546ef2))
+* **vertex:** support global endpoint ([#449](https://github.com/anthropics/anthropic-sdk-typescript/issues/449)) ([1c42030](https://github.com/anthropics/anthropic-sdk-typescript/commit/1c420301c4a1e9a2bfacf45067eb5473a7cdb53c))
+
+
+### Bug Fixes
+
+* **internal/bootstrap:** install dependencies for all packages ([d3734f9](https://github.com/anthropics/anthropic-sdk-typescript/commit/d3734f98ebecaee5d37206794bc35fcac9c8b3ec))
+* **internal/bootstrap:** only build main package ([82428c7](https://github.com/anthropics/anthropic-sdk-typescript/commit/82428c728c9cd164d43087a8d3c055b3aa8a14d3))
+* **internal/bootstrap:** run build before installing other packages ([301f504](https://github.com/anthropics/anthropic-sdk-typescript/commit/301f50444bdb28a68c6dd8e012422a7267617e80))
+* **internal/test:** use jest directly ([dab423b](https://github.com/anthropics/anthropic-sdk-typescript/commit/dab423bc7fe5be2c97ba311c4fc38532a2bdf293))
+
+
+### Chores
+
+* **client:** add TextEditor_20250429 tool ([bcb557d](https://github.com/anthropics/anthropic-sdk-typescript/commit/bcb557d23e13e6ea73020bf1247447a54b317653))
+* **internal:** remove redundant imports config ([555769d](https://github.com/anthropics/anthropic-sdk-typescript/commit/555769da822dc3b105b96d1481108b9b62666c99))
+* **internal:** version bump ([eb97e85](https://github.com/anthropics/anthropic-sdk-typescript/commit/eb97e8577279fb150582297d2a0924a297185c3c))
+
 ## 0.57.0 (2025-07-21)
 
 Full Changelog: [sdk-v0.56.0...sdk-v0.57.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.56.0...sdk-v0.57.0)
