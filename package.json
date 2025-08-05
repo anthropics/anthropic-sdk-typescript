@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/sdk",
-  "version": "0.57.0",
+  "version": "0.58.0",
   "description": "The official TypeScript library for the Anthropic API",
   "author": "Anthropic <support@anthropic.com>",
   "types": "dist/index.d.ts",
@@ -45,10 +45,6 @@
     "tsconfig-paths": "^4.0.0",
     "typescript": "5.8.3",
     "typescript-eslint": "8.31.1"
-  },
-  "imports": {
-    "@anthropic-ai/sdk": ".",
-    "@anthropic-ai/sdk/*": "./src/*"
   },
   "bin": {
     "anthropic-ai-sdk": "bin/cli"

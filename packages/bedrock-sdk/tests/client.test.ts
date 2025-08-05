@@ -85,7 +85,7 @@ describe('Bedrock model ARN URL encoding integration test', () => {
     });
 
     // Regular model name (still contains characters that need encoding)
-    const modelName = 'anthropic.claude-3-sonnet-20240229-v1:0';
+    const modelName = 'anthropic.claude-3-5-sonnet-20241022-v2:0';
 
     // Make a request to trigger the URL construction
     try {
@@ -105,7 +105,7 @@ describe('Bedrock model ARN URL encoding integration test', () => {
     const fetchUrl = mockFetch.mock.calls[0][0];
 
     // Expected URL with properly encoded model name
-    const expectedUrl = 'http://localhost:4010/model/anthropic.claude-3-sonnet-20240229-v1:0/invoke';
+    const expectedUrl = 'http://localhost:4010/model/anthropic.claude-3-5-sonnet-20241022-v2:0/invoke';
 
     // Verify the exact URL matches what we expect
     expect(fetchUrl).toBe(expectedUrl);

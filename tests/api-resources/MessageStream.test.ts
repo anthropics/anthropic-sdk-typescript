@@ -9,7 +9,7 @@ function assertNever(x: never): never {
 
 const EXPECTED_BASIC_MESSAGE = {
   id: 'msg_4QpJur2dWWDjF6C758FbBw5vm12BaVipnK',
-  model: 'claude-3-opus-20240229',
+  model: 'claude-opus-4-20250514',
   role: 'assistant',
   stop_reason: 'end_turn',
   stop_sequence: null,
@@ -93,7 +93,7 @@ describe('MessageStream class', () => {
 
     const stream = anthropic.messages.stream({
       max_tokens: 1024,
-      model: 'claude-3-opus-20240229',
+      model: 'claude-opus-4-20250514',
       messages: [{ role: 'user', content: 'Say hello there!' }],
     });
 
@@ -181,7 +181,7 @@ describe('MessageStream class', () => {
 
     const stream = anthropic.messages.stream({
       max_tokens: 1024,
-      model: 'claude-3-opus-20240229',
+      model: 'claude-opus-4-20250514',
       messages: [{ role: 'user', content: 'Say hello there!' }],
     });
 

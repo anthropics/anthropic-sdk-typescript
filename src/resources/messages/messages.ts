@@ -138,6 +138,8 @@ export interface CitationCharLocation {
 
   end_char_index: number;
 
+  file_id: string | null;
+
   start_char_index: number;
 
   type: 'char_location';
@@ -166,6 +168,8 @@ export interface CitationContentBlockLocation {
 
   end_block_index: number;
 
+  file_id: string | null;
+
   start_block_index: number;
 
   type: 'content_block_location';
@@ -193,6 +197,8 @@ export interface CitationPageLocation {
   document_title: string | null;
 
   end_page_number: number;
+
+  file_id: string | null;
 
   start_page_number: number;
 
@@ -431,26 +437,9 @@ export type MessageCountTokensTool =
   | Tool
   | ToolBash20250124
   | ToolTextEditor20250124
-  | MessageCountTokensTool.TextEditor20250429
+  | ToolTextEditor20250429
+  | ToolTextEditor20250728
   | WebSearchTool20250305;
-
-export namespace MessageCountTokensTool {
-  export interface TextEditor20250429 {
-    /**
-     * Name of the tool.
-     *
-     * This is how the tool will be called by the model and in `tool_use` blocks.
-     */
-    name: 'str_replace_based_edit_tool';
-
-    type: 'text_editor_20250429';
-
-    /**
-     * Create a cache control breakpoint at this content block.
-     */
-    cache_control?: MessagesAPI.CacheControlEphemeral | null;
-  }
-}
 
 export interface MessageDeltaUsage {
   /**
@@ -523,12 +512,10 @@ export type Model =
   | 'claude-opus-4-0'
   | 'claude-opus-4-20250514'
   | 'claude-4-opus-20250514'
+  | 'claude-opus-4-1-20250805'
   | 'claude-3-opus-latest'
   | 'claude-3-opus-20240229'
-  | 'claude-3-sonnet-20240229'
   | 'claude-3-haiku-20240307'
-  | 'claude-2.1'
-  | 'claude-2.0'
   | (string & {});
 
 const DEPRECATED_MODELS: {
@@ -955,30 +942,51 @@ export interface ToolTextEditor20250124 {
   cache_control?: CacheControlEphemeral | null;
 }
 
+export interface ToolTextEditor20250429 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'str_replace_based_edit_tool';
+
+  type: 'text_editor_20250429';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+}
+
+export interface ToolTextEditor20250728 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'str_replace_based_edit_tool';
+
+  type: 'text_editor_20250728';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * Maximum number of characters to display when viewing a file. If not specified,
+   * defaults to displaying the full file.
+   */
+  max_characters?: number | null;
+}
+
 export type ToolUnion =
   | Tool
   | ToolBash20250124
   | ToolTextEditor20250124
-  | ToolUnion.TextEditor20250429
+  | ToolTextEditor20250429
+  | ToolTextEditor20250728
   | WebSearchTool20250305;
-
-export namespace ToolUnion {
-  export interface TextEditor20250429 {
-    /**
-     * Name of the tool.
-     *
-     * This is how the tool will be called by the model and in `tool_use` blocks.
-     */
-    name: 'str_replace_based_edit_tool';
-
-    type: 'text_editor_20250429';
-
-    /**
-     * Create a cache control breakpoint at this content block.
-     */
-    cache_control?: MessagesAPI.CacheControlEphemeral | null;
-  }
-}
 
 export interface ToolUseBlock {
   id: string;
@@ -1804,6 +1812,8 @@ export declare namespace Messages {
     type ToolChoiceTool as ToolChoiceTool,
     type ToolResultBlockParam as ToolResultBlockParam,
     type ToolTextEditor20250124 as ToolTextEditor20250124,
+    type ToolTextEditor20250429 as ToolTextEditor20250429,
+    type ToolTextEditor20250728 as ToolTextEditor20250728,
     type ToolUnion as ToolUnion,
     type ToolUseBlock as ToolUseBlock,
     type ToolUseBlockParam as ToolUseBlockParam,

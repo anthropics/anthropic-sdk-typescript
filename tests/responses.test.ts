@@ -32,7 +32,7 @@ describe('request id', () => {
       response,
       request_id,
     } = await client.messages
-      .create({ messages: [], model: 'claude-3-opus-20240229', max_tokens: 1024 })
+      .create({ messages: [], model: 'claude-opus-4-20250514', max_tokens: 1024 })
       .withResponse();
 
     expect(request_id).toBe('req_xxx');
@@ -52,7 +52,7 @@ describe('request id', () => {
 
     const rsp = await client.messages.create({
       messages: [],
-      model: 'claude-3-opus-20240229',
+      model: 'claude-opus-4-20250514',
       max_tokens: 1024,
     });
     expect(rsp.id).toBe('bar');

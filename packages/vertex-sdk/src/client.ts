@@ -64,7 +64,7 @@ export class AnthropicVertex extends BaseAnthropic {
    * @param {string | null} opts.projectId
    * @param {GoogleAuth} opts.googleAuth - Override the default google auth config
    * @param {AuthClient} opts.authClient - Provide a pre-configured AuthClient instance (alternative to googleAuth)
-   * @param {string | null} [opts.region=process.env['CLOUD_ML_REGION']]
+   * @param {string | null} [opts.region=process.env['CLOUD_ML_REGION']] - The region to use for the API. Use 'global' for global endpoint. [More details here](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/locations).
    * @param {string} [opts.baseURL=process.env['ANTHROPIC_VERTEX__BASE_URL'] ?? https://${region}-aiplatform.googleapis.com/v1] - Override the default base URL for the API.
    * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
    * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
@@ -87,7 +87,11 @@ export class AnthropicVertex extends BaseAnthropic {
     }
 
     super({
-      baseURL: baseURL || `https://${region}-aiplatform.googleapis.com/v1`,
+      baseURL:
+        baseURL ||
+        (region === 'global' ?
+          'https://aiplatform.googleapis.com/v1'
+        : `https://${region}-aiplatform.googleapis.com/v1`),
       ...opts,
     });
 

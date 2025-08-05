@@ -118,6 +118,8 @@ import {
   ToolChoiceTool,
   ToolResultBlockParam,
   ToolTextEditor20250124,
+  ToolTextEditor20250429,
+  ToolTextEditor20250728,
   ToolUnion,
   ToolUseBlock,
   ToolUseBlockParam,
@@ -441,7 +443,7 @@ export class BaseAnthropic {
     const expectedTimeout = (60 * 60 * maxTokens) / 128_000;
     if (expectedTimeout > defaultTimeout) {
       throw new Errors.AnthropicError(
-        'Streaming is strongly recommended for operations that may take longer than 10 minutes. ' +
+        'Streaming is required for operations that may take longer than 10 minutes. ' +
           'See https://github.com/anthropics/anthropic-sdk-typescript#streaming-responses for more details',
       );
     }
@@ -802,7 +804,7 @@ export class BaseAnthropic {
     const expectedTime = (maxTime * maxTokens) / 128000;
     if (expectedTime > defaultTime || (maxNonstreamingTokens != null && maxTokens > maxNonstreamingTokens)) {
       throw new Errors.AnthropicError(
-        'Streaming is strongly recommended for operations that may token longer than 10 minutes. See https://github.com/anthropics/anthropic-sdk-typescript#long-requests for more details',
+        'Streaming is required for operations that may take longer than 10 minutes. See https://github.com/anthropics/anthropic-sdk-typescript#long-requests for more details',
       );
     }
 
@@ -1035,6 +1037,8 @@ export declare namespace Anthropic {
     type ToolChoiceTool as ToolChoiceTool,
     type ToolResultBlockParam as ToolResultBlockParam,
     type ToolTextEditor20250124 as ToolTextEditor20250124,
+    type ToolTextEditor20250429 as ToolTextEditor20250429,
+    type ToolTextEditor20250728 as ToolTextEditor20250728,
     type ToolUnion as ToolUnion,
     type ToolUseBlock as ToolUseBlock,
     type ToolUseBlockParam as ToolUseBlockParam,

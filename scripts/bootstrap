@@ -16,3 +16,13 @@ echo "==> Installing Node dependencies…"
 PACKAGE_MANAGER=$(command -v yarn >/dev/null 2>&1 && echo "yarn" || echo "npm")
 
 $PACKAGE_MANAGER install
+
+./scripts/build
+
+echo
+echo "==> Installing vertex-sdk dependencies"
+(cd packages/vertex-sdk && $PACKAGE_MANAGER install)
+
+echo
+echo "==> Installing bedrock-sdk dependencies"
+(cd packages/bedrock-sdk && $PACKAGE_MANAGER install)
