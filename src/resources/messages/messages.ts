@@ -197,6 +197,22 @@ export interface CitationPageLocationParam {
   type: 'page_location';
 }
 
+export interface CitationSearchResultLocationParam {
+  cited_text: string;
+
+  end_block_index: number;
+
+  search_result_index: number;
+
+  source: string;
+
+  start_block_index: number;
+
+  title: string | null;
+
+  type: 'search_result_location';
+}
+
 export interface CitationWebSearchResultLocationParam {
   cited_text: string;
 
@@ -218,9 +234,26 @@ export interface CitationsDelta {
     | CitationCharLocation
     | CitationPageLocation
     | CitationContentBlockLocation
-    | CitationsWebSearchResultLocation;
+    | CitationsWebSearchResultLocation
+    | CitationsSearchResultLocation;
 
   type: 'citations_delta';
+}
+
+export interface CitationsSearchResultLocation {
+  cited_text: string;
+
+  end_block_index: number;
+
+  search_result_index: number;
+
+  source: string;
+
+  start_block_index: number;
+
+  title: string | null;
+
+  type: 'search_result_location';
 }
 
 export interface CitationsWebSearchResultLocation {
@@ -250,6 +283,7 @@ export type ContentBlockParam =
   | TextBlockParam
   | ImageBlockParam
   | DocumentBlockParam
+  | SearchResultBlockParam
   | ThinkingBlockParam
   | RedactedThinkingBlockParam
   | ToolUseBlockParam
@@ -602,6 +636,23 @@ export interface RedactedThinkingBlockParam {
   type: 'redacted_thinking';
 }
 
+export interface SearchResultBlockParam {
+  content: Array<TextBlockParam>;
+
+  source: string;
+
+  title: string;
+
+  type: 'search_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  citations?: CitationsConfigParam;
+}
+
 export interface ServerToolUsage {
   /**
    * The number of web search tool requests.
@@ -674,13 +725,15 @@ export type TextCitation =
   | CitationCharLocation
   | CitationPageLocation
   | CitationContentBlockLocation
-  | CitationsWebSearchResultLocation;
+  | CitationsWebSearchResultLocation
+  | CitationsSearchResultLocation;
 
 export type TextCitationParam =
   | CitationCharLocationParam
   | CitationPageLocationParam
   | CitationContentBlockLocationParam
-  | CitationWebSearchResultLocationParam;
+  | CitationWebSearchResultLocationParam
+  | CitationSearchResultLocationParam;
 
 export interface TextDelta {
   text: string;
@@ -885,7 +938,7 @@ export interface ToolResultBlockParam {
    */
   cache_control?: CacheControlEphemeral | null;
 
-  content?: string | Array<TextBlockParam | ImageBlockParam>;
+  content?: string | Array<TextBlockParam | ImageBlockParam | SearchResultBlockParam>;
 
   is_error?: boolean;
 }
@@ -1703,9 +1756,11 @@ export declare namespace Messages {
     type CitationContentBlockLocationParam as CitationContentBlockLocationParam,
     type CitationPageLocation as CitationPageLocation,
     type CitationPageLocationParam as CitationPageLocationParam,
+    type CitationSearchResultLocationParam as CitationSearchResultLocationParam,
     type CitationWebSearchResultLocationParam as CitationWebSearchResultLocationParam,
     type CitationsConfigParam as CitationsConfigParam,
     type CitationsDelta as CitationsDelta,
+    type CitationsSearchResultLocation as CitationsSearchResultLocation,
     type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
     type ContentBlock as ContentBlock,
     type ContentBlockParam as ContentBlockParam,
@@ -1732,6 +1787,7 @@ export declare namespace Messages {
     type RawMessageStreamEvent as RawMessageStreamEvent,
     type RedactedThinkingBlock as RedactedThinkingBlock,
     type RedactedThinkingBlockParam as RedactedThinkingBlockParam,
+    type SearchResultBlockParam as SearchResultBlockParam,
     type ServerToolUsage as ServerToolUsage,
     type ServerToolUseBlock as ServerToolUseBlock,
     type ServerToolUseBlockParam as ServerToolUseBlockParam,
