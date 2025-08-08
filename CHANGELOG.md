@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.59.0 (2025-08-08)
+
+Full Changelog: [sdk-v0.58.0...sdk-v0.59.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.58.0...sdk-v0.59.0)
+
+### Features
+
+* **api:** search result content blocks ([f372c0d](https://github.com/anthropics/anthropic-sdk-typescript/commit/f372c0dc7e3ecd6376de657431c2a3053be7bc84))
+
+
+### Chores
+
+* **internal:** move publish config ([5c1689e](https://github.com/anthropics/anthropic-sdk-typescript/commit/5c1689e277b9b7313a3c21217acea09bbe6da6e8))
+
 ## 0.58.0 (2025-08-05)
 
 Full Changelog: [sdk-v0.57.0...sdk-v0.58.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.57.0...sdk-v0.58.0)

@@ -29,9 +29,11 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">CitationContentBlockLocationParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationPageLocation</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationPageLocationParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CitationSearchResultLocationParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationWebSearchResultLocationParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationsConfigParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationsDelta</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CitationsSearchResultLocation</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationsWebSearchResultLocation</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockParam</a></code>
@@ -61,6 +63,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">RawMessageStreamEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">RedactedThinkingBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">RedactedThinkingBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">SearchResultBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ServerToolUsage</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ServerToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ServerToolUseBlockParam</a></code>
