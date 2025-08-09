@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.59.1 (2025-08-09)
+
+Full Changelog: [sdk-v0.59.0...sdk-v0.59.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.59.0...sdk-v0.59.1)
+
+### Chores
+
+* **internal:** update comment in script ([8157062](https://github.com/anthropics/anthropic-sdk-typescript/commit/81570622d168226e75275af72c7ebf9d81945df7))
+* update @stainless-api/prism-cli to v5.15.0 ([43616bd](https://github.com/anthropics/anthropic-sdk-typescript/commit/43616bddad0d832e27fc2506c14a51337d09673f))
+
 ## 0.59.0 (2025-08-08)
 
 Full Changelog: [sdk-v0.58.0...sdk-v0.59.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.58.0...sdk-v0.59.0)
