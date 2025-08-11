@@ -614,12 +614,12 @@ const client = new Anthropic({
 
 Beta API features are generally available inside the beta property of the client. To enable a particular beta feature, you need to add the appropriate beta header to the betas field when creating a message.
 
-For example, to add an MCP server:
+For example, to use code execution:
 ```ts
 import Anthropic from 'npm:@anthropic-ai/sdk';
 
 const client = new Anthropic();
-const response = await this.client.beta.messages.create({
+const response = await client.beta.messages.create({
   max_tokens: 1024,
   model: "claude-sonnet-4-20250514",
   messages: [
@@ -628,20 +628,17 @@ const response = await this.client.beta.messages.create({
       content: [
         {
           type: "text",
-          text: "Explain the latest PR in the anthropics/anthropic-sdk-typescript repo.",
+          text: "What's 4242424242 * 4242424242?.",
         }
       ]
     }
   ],
-  mcp_servers: [
+  tools: [
     {
-      name: "github",
-      type: "url",
-      url: "https://api.githubcopilot.com/mcp/",
-      authorization_token: process.env.GITHUB_PERSONAL_ACCESS_TOKEN!,
-    },
-  ],
-  betas: ["mcp-client-2025-04-04"]
+      "name": "code_execution",
+      "type": "code_execution_20250522"
+    }],
+  betas: ["code-execution-2025-05-22"]
 })
 ```
 
