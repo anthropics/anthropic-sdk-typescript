@@ -611,8 +611,9 @@ const client = new Anthropic({
 ```
 
 ### Beta Features
+We introduce beta features before they are generally available to get early feedback and test new functionality. You can check the availability of  all of Claude's capabilities and tools [here](https://docs.anthropic.com/en/docs/build-with-claude/overview).
 
-Beta API features are generally available inside the beta property of the client. To enable a particular beta feature, you need to add the appropriate beta header to the betas field when creating a message.
+You can access most beta API features through the beta property of the client. To enable a particular beta feature, you need to add the appropriate [beta header](https://docs.anthropic.com/en/api/beta-headers) to the `betas` field when creating a message.
 
 For example, to use code execution:
 ```ts
