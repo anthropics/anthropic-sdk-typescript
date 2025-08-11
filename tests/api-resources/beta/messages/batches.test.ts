@@ -188,7 +188,7 @@ describe('resource batches', () => {
     ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
-  // Prism doesn't support JSONL responses yet
+  // Prism doesn't support application/x-jsonl responses
   test.skip('results: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
