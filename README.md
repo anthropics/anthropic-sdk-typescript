@@ -610,6 +610,40 @@ const client = new Anthropic({
 });
 ```
 
+### Beta Features
+We introduce beta features before they are generally available to get early feedback and test new functionality. You can check the availability of  all of Claude's capabilities and tools [here](https://docs.anthropic.com/en/docs/build-with-claude/overview).
+
+You can access most beta API features through the beta property of the client. To enable a particular beta feature, you need to add the appropriate [beta header](https://docs.anthropic.com/en/api/beta-headers) to the `betas` field when creating a message.
+
+For example, to use code execution:
+```ts
+import Anthropic from 'npm:@anthropic-ai/sdk';
+
+const client = new Anthropic();
+const response = await client.beta.messages.create({
+  max_tokens: 1024,
+  model: "claude-sonnet-4-20250514",
+  messages: [
+    {
+      role: "user",
+      content: [
+        {
+          type: "text",
+          text: "What's 4242424242 * 4242424242?.",
+        }
+      ]
+    }
+  ],
+  tools: [
+    {
+      name: "code_execution",
+      type: "code_execution_20250522",
+    }
+  ],
+  betas: ["code-execution-2025-05-22"]
+})
+```
+
 ## Frequently Asked Questions
 
 ## Semantic versioning
