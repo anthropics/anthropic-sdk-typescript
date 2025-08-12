@@ -636,9 +636,10 @@ const response = await client.beta.messages.create({
   ],
   tools: [
     {
-      "name": "code_execution",
-      "type": "code_execution_20250522"
-    }],
+      name: "code_execution",
+      type: "code_execution_20250522",
+    }
+  ],
   betas: ["code-execution-2025-05-22"]
 })
 ```
