@@ -156,7 +156,8 @@ export type AnthropicBeta =
   | 'dev-full-thinking-2025-05-14'
   | 'interleaved-thinking-2025-05-14'
   | 'code-execution-2025-05-22'
-  | 'extended-cache-ttl-2025-04-11';
+  | 'extended-cache-ttl-2025-04-11'
+  | 'context-1m-2025-08-07';
 
 export interface BetaAPIError {
   message: string;
