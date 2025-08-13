@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.60.0 (2025-08-13)
+
+Full Changelog: [sdk-v0.59.0...sdk-v0.60.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.59.0...sdk-v0.60.0)
+
+### Features
+
+* **api:** makes 1 hour TTL Cache Control generally available ([b3c97bd](https://github.com/anthropics/anthropic-sdk-typescript/commit/b3c97bddd98829c6f0a6e6b4f118820d92f1f457))
+* **betas:** add context-1m-2025-08-07 ([a5f6db8](https://github.com/anthropics/anthropic-sdk-typescript/commit/a5f6db8dc645a64896ac2835b2fd7d3d3754121e))
+
+
+### Chores
+
+* deprecate older claude-3-5 sonnet models ([#488](https://github.com/anthropics/anthropic-sdk-typescript/issues/488)) ([4fc9f76](https://github.com/anthropics/anthropic-sdk-typescript/commit/4fc9f7638058cff5890f4a989df41726a2abb798))
+* **internal:** update comment in script ([8157062](https://github.com/anthropics/anthropic-sdk-typescript/commit/81570622d168226e75275af72c7ebf9d81945df7))
+* **internal:** update test skipping reason ([4ea623a](https://github.com/anthropics/anthropic-sdk-typescript/commit/4ea623a734493c9c333832d703cc80cb1a290831))
+* update @stainless-api/prism-cli to v5.15.0 ([43616bd](https://github.com/anthropics/anthropic-sdk-typescript/commit/43616bddad0d832e27fc2506c14a51337d09673f))
+
+
+### Documentation
+
+* **readme:** clarify beta feature usage ([3196064](https://github.com/anthropics/anthropic-sdk-typescript/commit/3196064705a952845893d0d9cb677be0f1516f62))
+
 ## 0.59.0 (2025-08-08)
 
 Full Changelog: [sdk-v0.58.0...sdk-v0.59.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.58.0...sdk-v0.59.0)
