@@ -21,6 +21,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">Base64ImageSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Base64PDFSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CacheControlEphemeral</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CacheCreation</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationCharLocation</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationCharLocationParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationContentBlockLocation</a></code>

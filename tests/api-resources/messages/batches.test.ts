@@ -47,7 +47,7 @@ describe('resource batches', () => {
               {
                 text: "Today's date is 2024-06-01.",
                 type: 'text',
-                cache_control: { type: 'ephemeral' },
+                cache_control: { type: 'ephemeral', ttl: '5m' },
                 citations: [
                   {
                     cited_text: 'cited_text',
@@ -77,7 +77,7 @@ describe('resource batches', () => {
                   required: ['location'],
                 },
                 name: 'name',
-                cache_control: { type: 'ephemeral' },
+                cache_control: { type: 'ephemeral', ttl: '5m' },
                 description: 'Get the current weather in a given location',
                 type: 'custom',
               },

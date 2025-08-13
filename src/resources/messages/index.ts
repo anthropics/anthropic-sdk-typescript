@@ -20,6 +20,7 @@ export {
   type Base64ImageSource,
   type Base64PDFSource,
   type CacheControlEphemeral,
+  type CacheCreation,
   type CitationCharLocation,
   type CitationCharLocationParam,
   type CitationContentBlockLocation,

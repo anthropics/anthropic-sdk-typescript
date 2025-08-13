@@ -105,6 +105,30 @@ export interface Base64PDFSource {
 
 export interface CacheControlEphemeral {
   type: 'ephemeral';
+
+  /**
+   * The time-to-live for the cache control breakpoint.
+   *
+   * This may be one the following values:
+   *
+   * - `5m`: 5 minutes
+   * - `1h`: 1 hour
+   *
+   * Defaults to `5m`.
+   */
+  ttl?: '5m' | '1h';
+}
+
+export interface CacheCreation {
+  /**
+   * The number of input tokens used to create the 1 hour cache entry.
+   */
+  ephemeral_1h_input_tokens: number;
+
+  /**
+   * The number of input tokens used to create the 5 minute cache entry.
+   */
+  ephemeral_5m_input_tokens: number;
 }
 
 export interface CitationCharLocation {
@@ -1044,6 +1068,11 @@ export interface URLPDFSource {
 
 export interface Usage {
   /**
+   * Breakdown of cached tokens by TTL
+   */
+  cache_creation: CacheCreation | null;
+
+  /**
    * The number of input tokens used to create the cache entry.
    */
   cache_creation_input_tokens: number | null;
@@ -1750,6 +1779,7 @@ export declare namespace Messages {
     type Base64ImageSource as Base64ImageSource,
     type Base64PDFSource as Base64PDFSource,
     type CacheControlEphemeral as CacheControlEphemeral,
+    type CacheCreation as CacheCreation,
     type CitationCharLocation as CitationCharLocation,
     type CitationCharLocationParam as CitationCharLocationParam,
     type CitationContentBlockLocation as CitationContentBlockLocation,
