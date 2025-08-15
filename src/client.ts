@@ -240,6 +240,9 @@ export interface ClientOptions {
   logger?: Logger | undefined;
 }
 
+export const HUMAN_PROMPT = '\\n\\nHuman:';
+export const AI_PROMPT = '\\n\\nAssistant:';
+
 /**
  * Base class for Anthropic API clients.
  */
@@ -921,8 +924,8 @@ export class BaseAnthropic {
   }
 
   static Anthropic = this;
-  static HUMAN_PROMPT = '\n\nHuman:';
-  static AI_PROMPT = '\n\nAssistant:';
+  static HUMAN_PROMPT = HUMAN_PROMPT;
+  static AI_PROMPT = AI_PROMPT;
   static DEFAULT_TIMEOUT = 600000; // 10 minutes
 
   static AnthropicError = Errors.AnthropicError;
@@ -951,10 +954,12 @@ export class Anthropic extends BaseAnthropic {
   models: API.Models = new API.Models(this);
   beta: API.Beta = new API.Beta(this);
 }
+
 Anthropic.Completions = Completions;
 Anthropic.Messages = Messages;
 Anthropic.Models = Models;
 Anthropic.Beta = Beta;
+
 export declare namespace Anthropic {
   export type RequestOptions = Opts.RequestOptions;
 
@@ -1105,4 +1110,3 @@ export declare namespace Anthropic {
   export type PermissionError = API.PermissionError;
   export type RateLimitError = API.RateLimitError;
 }
-export const { HUMAN_PROMPT, AI_PROMPT } = Anthropic;
