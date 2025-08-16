@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.60.1 (2025-08-16)
+
+Full Changelog: [sdk-v0.60.0...sdk-v0.60.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.60.0...sdk-v0.60.1)
+
+### Chores
+
+* **deps:** update dependency @types/node to v20.17.58 ([e3577f1](https://github.com/anthropics/anthropic-sdk-typescript/commit/e3577f11939a4af7df07bd6697cbde1aeb0fd4b3))
+* **internal:** formatting change ([c8f4029](https://github.com/anthropics/anthropic-sdk-typescript/commit/c8f4029d07da07624d319422a38266af6a17a8c7))
+
 ## 0.60.0 (2025-08-13)
 
 Full Changelog: [sdk-v0.59.0...sdk-v0.60.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.59.0...sdk-v0.60.0)
