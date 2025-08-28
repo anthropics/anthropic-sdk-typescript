@@ -802,7 +802,7 @@ export class BaseAnthropic {
   }
 
   public calculateNonstreamingTimeout(maxTokens: number, maxNonstreamingTokens?: number): number {
-    const maxTime = 60 * 60 * 1000; // 10 minutes
+    const maxTime = 60 * 60 * 1000; // 60 minutes
     const defaultTime = 60 * 10 * 1000; // 10 minutes
 
     const expectedTime = (maxTime * maxTokens) / 128000;
