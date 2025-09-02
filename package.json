@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/sdk",
-  "version": "0.60.0",
+  "version": "0.61.0",
   "description": "The official TypeScript library for the Anthropic API",
   "author": "Anthropic <support@anthropic.com>",
   "types": "dist/index.d.ts",
@@ -44,8 +44,9 @@
     "publint": "^0.2.12",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.5.0",
-    "tsc-multi": "https://github.com/stainless-api/tsc-multi/releases/download/v1.1.8/tsc-multi.tgz",
+    "tsc-multi": "https://github.com/stainless-api/tsc-multi/releases/download/v1.1.9/tsc-multi.tgz",
     "tsconfig-paths": "^4.0.0",
+    "tslib": "^2.8.1",
     "typescript": "5.8.3",
     "typescript-eslint": "8.31.1"
   },

@@ -32,6 +32,8 @@ export type ErrorObject =
 export interface ErrorResponse {
   error: ErrorObject;
 
+  request_id: string | null;
+
   type: 'error';
 }
 

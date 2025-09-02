@@ -240,6 +240,9 @@ export interface ClientOptions {
   logger?: Logger | undefined;
 }
 
+export const HUMAN_PROMPT = '\\n\\nHuman:';
+export const AI_PROMPT = '\\n\\nAssistant:';
+
 /**
  * Base class for Anthropic API clients.
  */
@@ -552,7 +555,7 @@ export class BaseAnthropic {
     const response = await this.fetchWithTimeout(url, req, timeout, controller).catch(castToError);
     const headersTime = Date.now();
 
-    if (response instanceof Error) {
+    if (response instanceof globalThis.Error) {
       const retryMessage = `retrying, ${retriesRemaining} attempts remaining`;
       if (options.signal?.aborted) {
         throw new Errors.APIUserAbortError();
@@ -802,7 +805,7 @@ export class BaseAnthropic {
   }
 
   public calculateNonstreamingTimeout(maxTokens: number, maxNonstreamingTokens?: number): number {
-    const maxTime = 60 * 60 * 1000; // 10 minutes
+    const maxTime = 60 * 60 * 1000; // 60 minutes
     const defaultTime = 60 * 10 * 1000; // 10 minutes
 
     const expectedTime = (maxTime * maxTokens) / 128000;
@@ -900,7 +903,7 @@ export class BaseAnthropic {
         // Preserve legacy string encoding behavior for now
         headers.values.has('content-type')) ||
       // `Blob` is superset of `File`
-      body instanceof Blob ||
+      ((globalThis as any).Blob && body instanceof (globalThis as any).Blob) ||
       // `FormData` -> `multipart/form-data`
       body instanceof FormData ||
       // `URLSearchParams` -> `application/x-www-form-urlencoded`
@@ -921,8 +924,8 @@ export class BaseAnthropic {
   }
 
   static Anthropic = this;
-  static HUMAN_PROMPT = '\n\nHuman:';
-  static AI_PROMPT = '\n\nAssistant:';
+  static HUMAN_PROMPT = HUMAN_PROMPT;
+  static AI_PROMPT = AI_PROMPT;
   static DEFAULT_TIMEOUT = 600000; // 10 minutes
 
   static AnthropicError = Errors.AnthropicError;
@@ -951,10 +954,12 @@ export class Anthropic extends BaseAnthropic {
   models: API.Models = new API.Models(this);
   beta: API.Beta = new API.Beta(this);
 }
+
 Anthropic.Completions = Completions;
 Anthropic.Messages = Messages;
 Anthropic.Models = Models;
 Anthropic.Beta = Beta;
+
 export declare namespace Anthropic {
   export type RequestOptions = Opts.RequestOptions;
 
@@ -1105,4 +1110,3 @@ export declare namespace Anthropic {
   export type PermissionError = API.PermissionError;
   export type RateLimitError = API.RateLimitError;
 }
-export const { HUMAN_PROMPT, AI_PROMPT } = Anthropic;

@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.61.0 (2025-09-02)
+
+Full Changelog: [sdk-v0.60.0...sdk-v0.61.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.60.0...sdk-v0.61.0)
+
+### Features
+
+* **client:** adds support for code-execution-2025-08-26 tool ([91dd1bb](https://github.com/anthropics/anthropic-sdk-typescript/commit/91dd1bb6ae63a2fbca28de543fadd8fc34a35e05))
+* **mcp:** add code execution tool ([2f9cfba](https://github.com/anthropics/anthropic-sdk-typescript/commit/2f9cfba68f843b12aa96885bbe7332567384be22))
+
+
+### Chores
+
+* add package to package.json ([3ee3632](https://github.com/anthropics/anthropic-sdk-typescript/commit/3ee36323eb384804f24ebded6f789b818f4473dc))
+* **client:** qualify global Blob ([e6bfd68](https://github.com/anthropics/anthropic-sdk-typescript/commit/e6bfd68de63ad0d4823aa1da81826fed50636d99))
+* **deps:** update dependency @types/node to v20.17.58 ([e3577f1](https://github.com/anthropics/anthropic-sdk-typescript/commit/e3577f11939a4af7df07bd6697cbde1aeb0fd4b3))
+* **internal:** formatting change ([c8f4029](https://github.com/anthropics/anthropic-sdk-typescript/commit/c8f4029d07da07624d319422a38266af6a17a8c7))
+* **internal:** update global Error reference ([c82be0d](https://github.com/anthropics/anthropic-sdk-typescript/commit/c82be0d1700cb722243aefba3d63c0e412af85c1))
+* update CI script ([92f4e99](https://github.com/anthropics/anthropic-sdk-typescript/commit/92f4e993c3565e729419d247aacab395ff8d3a16))
+
+
+### Documentation
+
+* fix default timeout comment ([#812](https://github.com/anthropics/anthropic-sdk-typescript/issues/812)) ([a59964d](https://github.com/anthropics/anthropic-sdk-typescript/commit/a59964d03726169df1991d43a634dbda77ff7997))
+
 ## 0.60.0 (2025-08-13)
 
 Full Changelog: [sdk-v0.59.0...sdk-v0.60.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.59.0...sdk-v0.60.0)
