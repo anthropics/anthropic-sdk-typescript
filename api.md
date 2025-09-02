@@ -176,6 +176,14 @@ Types:
 
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64ImageSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64PDFSource</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionOutputBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionOutputBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionResultBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultError</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultErrorParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheControlEphemeral</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheCreation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationCharLocation</a></code>
@@ -195,6 +203,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionTool20250522</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionTool20250825</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultBlockContent</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultBlockParam</a></code>
@@ -247,6 +256,16 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextCitation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextCitationParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextDelta</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionCreateResultBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionCreateResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionStrReplaceResultBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionStrReplaceResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionToolResultBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionToolResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionToolResultError</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionToolResultErrorParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionViewResultBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionViewResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigDisabled</a></code>

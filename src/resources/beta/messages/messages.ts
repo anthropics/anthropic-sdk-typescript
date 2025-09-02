@@ -126,6 +126,85 @@ export interface BetaBase64PDFSource {
   type: 'base64';
 }
 
+export interface BetaBashCodeExecutionOutputBlock {
+  file_id: string;
+
+  type: 'bash_code_execution_output';
+}
+
+export interface BetaBashCodeExecutionOutputBlockParam {
+  file_id: string;
+
+  type: 'bash_code_execution_output';
+}
+
+export interface BetaBashCodeExecutionResultBlock {
+  content: Array<BetaBashCodeExecutionOutputBlock>;
+
+  return_code: number;
+
+  stderr: string;
+
+  stdout: string;
+
+  type: 'bash_code_execution_result';
+}
+
+export interface BetaBashCodeExecutionResultBlockParam {
+  content: Array<BetaBashCodeExecutionOutputBlockParam>;
+
+  return_code: number;
+
+  stderr: string;
+
+  stdout: string;
+
+  type: 'bash_code_execution_result';
+}
+
+export interface BetaBashCodeExecutionToolResultBlock {
+  content: BetaBashCodeExecutionToolResultError | BetaBashCodeExecutionResultBlock;
+
+  tool_use_id: string;
+
+  type: 'bash_code_execution_tool_result';
+}
+
+export interface BetaBashCodeExecutionToolResultBlockParam {
+  content: BetaBashCodeExecutionToolResultErrorParam | BetaBashCodeExecutionResultBlockParam;
+
+  tool_use_id: string;
+
+  type: 'bash_code_execution_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export interface BetaBashCodeExecutionToolResultError {
+  error_code:
+    | 'invalid_tool_input'
+    | 'unavailable'
+    | 'too_many_requests'
+    | 'execution_time_exceeded'
+    | 'output_file_too_large';
+
+  type: 'bash_code_execution_tool_result_error';
+}
+
+export interface BetaBashCodeExecutionToolResultErrorParam {
+  error_code:
+    | 'invalid_tool_input'
+    | 'unavailable'
+    | 'too_many_requests'
+    | 'execution_time_exceeded'
+    | 'output_file_too_large';
+
+  type: 'bash_code_execution_tool_result_error';
+}
+
 export interface BetaCacheControlEphemeral {
   type: 'ephemeral';
 
@@ -367,6 +446,22 @@ export interface BetaCodeExecutionTool20250522 {
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
+export interface BetaCodeExecutionTool20250825 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'code_execution';
+
+  type: 'code_execution_20250825';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
 export interface BetaCodeExecutionToolResultBlock {
   content: BetaCodeExecutionToolResultBlockContent;
 
@@ -465,6 +560,8 @@ export type BetaContentBlock =
   | BetaServerToolUseBlock
   | BetaWebSearchToolResultBlock
   | BetaCodeExecutionToolResultBlock
+  | BetaBashCodeExecutionToolResultBlock
+  | BetaTextEditorCodeExecutionToolResultBlock
   | BetaMCPToolUseBlock
   | BetaMCPToolResultBlock
   | BetaContainerUploadBlock;
@@ -484,6 +581,8 @@ export type BetaContentBlockParam =
   | BetaServerToolUseBlockParam
   | BetaWebSearchToolResultBlockParam
   | BetaCodeExecutionToolResultBlockParam
+  | BetaBashCodeExecutionToolResultBlockParam
+  | BetaTextEditorCodeExecutionToolResultBlockParam
   | BetaMCPToolUseBlockParam
   | BetaRequestMCPToolResultBlockParam
   | BetaContainerUploadBlockParam;
@@ -778,6 +877,8 @@ export interface BetaRawContentBlockStartEvent {
     | BetaServerToolUseBlock
     | BetaWebSearchToolResultBlock
     | BetaCodeExecutionToolResultBlock
+    | BetaBashCodeExecutionToolResultBlock
+    | BetaTextEditorCodeExecutionToolResultBlock
     | BetaMCPToolUseBlock
     | BetaMCPToolResultBlock
     | BetaContainerUploadBlock;
@@ -946,7 +1047,7 @@ export interface BetaServerToolUseBlock {
 
   input: unknown;
 
-  name: 'web_search' | 'code_execution';
+  name: 'web_search' | 'code_execution' | 'bash_code_execution' | 'text_editor_code_execution';
 
   type: 'server_tool_use';
 }
@@ -956,7 +1057,7 @@ export interface BetaServerToolUseBlockParam {
 
   input: unknown;
 
-  name: 'web_search' | 'code_execution';
+  name: 'web_search' | 'code_execution' | 'bash_code_execution' | 'text_editor_code_execution';
 
   type: 'server_tool_use';
 
@@ -1026,6 +1127,129 @@ export interface BetaTextDelta {
   text: string;
 
   type: 'text_delta';
+}
+
+export interface BetaTextEditorCodeExecutionCreateResultBlock {
+  is_file_update: boolean;
+
+  type: 'text_editor_code_execution_create_result';
+}
+
+export interface BetaTextEditorCodeExecutionCreateResultBlockParam {
+  is_file_update: boolean;
+
+  type: 'text_editor_code_execution_create_result';
+}
+
+export interface BetaTextEditorCodeExecutionStrReplaceResultBlock {
+  lines: Array<string> | null;
+
+  new_lines: number | null;
+
+  new_start: number | null;
+
+  old_lines: number | null;
+
+  old_start: number | null;
+
+  type: 'text_editor_code_execution_str_replace_result';
+}
+
+export interface BetaTextEditorCodeExecutionStrReplaceResultBlockParam {
+  type: 'text_editor_code_execution_str_replace_result';
+
+  lines?: Array<string> | null;
+
+  new_lines?: number | null;
+
+  new_start?: number | null;
+
+  old_lines?: number | null;
+
+  old_start?: number | null;
+}
+
+export interface BetaTextEditorCodeExecutionToolResultBlock {
+  content:
+    | BetaTextEditorCodeExecutionToolResultError
+    | BetaTextEditorCodeExecutionViewResultBlock
+    | BetaTextEditorCodeExecutionCreateResultBlock
+    | BetaTextEditorCodeExecutionStrReplaceResultBlock;
+
+  tool_use_id: string;
+
+  type: 'text_editor_code_execution_tool_result';
+}
+
+export interface BetaTextEditorCodeExecutionToolResultBlockParam {
+  content:
+    | BetaTextEditorCodeExecutionToolResultErrorParam
+    | BetaTextEditorCodeExecutionViewResultBlockParam
+    | BetaTextEditorCodeExecutionCreateResultBlockParam
+    | BetaTextEditorCodeExecutionStrReplaceResultBlockParam;
+
+  tool_use_id: string;
+
+  type: 'text_editor_code_execution_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export interface BetaTextEditorCodeExecutionToolResultError {
+  error_code:
+    | 'invalid_tool_input'
+    | 'unavailable'
+    | 'too_many_requests'
+    | 'execution_time_exceeded'
+    | 'file_not_found';
+
+  error_message: string | null;
+
+  type: 'text_editor_code_execution_tool_result_error';
+}
+
+export interface BetaTextEditorCodeExecutionToolResultErrorParam {
+  error_code:
+    | 'invalid_tool_input'
+    | 'unavailable'
+    | 'too_many_requests'
+    | 'execution_time_exceeded'
+    | 'file_not_found';
+
+  type: 'text_editor_code_execution_tool_result_error';
+
+  error_message?: string | null;
+}
+
+export interface BetaTextEditorCodeExecutionViewResultBlock {
+  content: string;
+
+  file_type: 'text' | 'image' | 'pdf';
+
+  num_lines: number | null;
+
+  start_line: number | null;
+
+  total_lines: number | null;
+
+  type: 'text_editor_code_execution_view_result';
+}
+
+export interface BetaTextEditorCodeExecutionViewResultBlockParam {
+  content: string;
+
+  file_type: 'text' | 'image' | 'pdf';
+
+  type: 'text_editor_code_execution_view_result';
+
+  num_lines?: number | null;
+
+  start_line?: number | null;
+
+  total_lines?: number | null;
 }
 
 export interface BetaThinkingBlock {
@@ -1383,6 +1607,7 @@ export type BetaToolUnion =
   | BetaToolBash20241022
   | BetaToolBash20250124
   | BetaCodeExecutionTool20250522
+  | BetaCodeExecutionTool20250825
   | BetaToolComputerUse20241022
   | BetaToolComputerUse20250124
   | BetaToolTextEditor20241022
@@ -1685,30 +1910,7 @@ export interface MessageCreateParamsBase {
    * { "role": "user", "content": [{ "type": "text", "text": "Hello, Claude" }] }
    * ```
    *
-   * Starting with Claude 3 models, you can also send image content blocks:
-   *
-   * ```json
-   * {
-   *   "role": "user",
-   *   "content": [
-   *     {
-   *       "type": "image",
-   *       "source": {
-   *         "type": "base64",
-   *         "media_type": "image/jpeg",
-   *         "data": "/9j/4AAQSkZJRg..."
-   *       }
-   *     },
-   *     { "type": "text", "text": "What is in this image?" }
-   *   ]
-   * }
-   * ```
-   *
-   * We currently support the `base64` source type for images, and the `image/jpeg`,
-   * `image/png`, `image/gif`, and `image/webp` media types.
-   *
-   * See [examples](https://docs.anthropic.com/en/api/messages-examples#vision) for
-   * more input examples.
+   * See [input examples](https://docs.anthropic.com/en/api/messages-examples).
    *
    * Note that if you want to include a
    * [system prompt](https://docs.anthropic.com/en/docs/system-prompts), you can use
@@ -2007,30 +2209,7 @@ export interface MessageCountTokensParams {
    * { "role": "user", "content": [{ "type": "text", "text": "Hello, Claude" }] }
    * ```
    *
-   * Starting with Claude 3 models, you can also send image content blocks:
-   *
-   * ```json
-   * {
-   *   "role": "user",
-   *   "content": [
-   *     {
-   *       "type": "image",
-   *       "source": {
-   *         "type": "base64",
-   *         "media_type": "image/jpeg",
-   *         "data": "/9j/4AAQSkZJRg..."
-   *       }
-   *     },
-   *     { "type": "text", "text": "What is in this image?" }
-   *   ]
-   * }
-   * ```
-   *
-   * We currently support the `base64` source type for images, and the `image/jpeg`,
-   * `image/png`, `image/gif`, and `image/webp` media types.
-   *
-   * See [examples](https://docs.anthropic.com/en/api/messages-examples#vision) for
-   * more input examples.
+   * See [input examples](https://docs.anthropic.com/en/api/messages-examples).
    *
    * Note that if you want to include a
    * [system prompt](https://docs.anthropic.com/en/docs/system-prompts), you can use
@@ -2163,6 +2342,7 @@ export interface MessageCountTokensParams {
     | BetaToolBash20241022
     | BetaToolBash20250124
     | BetaCodeExecutionTool20250522
+    | BetaCodeExecutionTool20250825
     | BetaToolComputerUse20241022
     | BetaToolComputerUse20250124
     | BetaToolTextEditor20241022
@@ -2184,6 +2364,14 @@ export declare namespace Messages {
   export {
     type BetaBase64ImageSource as BetaBase64ImageSource,
     type BetaBase64PDFSource as BetaBase64PDFSource,
+    type BetaBashCodeExecutionOutputBlock as BetaBashCodeExecutionOutputBlock,
+    type BetaBashCodeExecutionOutputBlockParam as BetaBashCodeExecutionOutputBlockParam,
+    type BetaBashCodeExecutionResultBlock as BetaBashCodeExecutionResultBlock,
+    type BetaBashCodeExecutionResultBlockParam as BetaBashCodeExecutionResultBlockParam,
+    type BetaBashCodeExecutionToolResultBlock as BetaBashCodeExecutionToolResultBlock,
+    type BetaBashCodeExecutionToolResultBlockParam as BetaBashCodeExecutionToolResultBlockParam,
+    type BetaBashCodeExecutionToolResultError as BetaBashCodeExecutionToolResultError,
+    type BetaBashCodeExecutionToolResultErrorParam as BetaBashCodeExecutionToolResultErrorParam,
     type BetaCacheControlEphemeral as BetaCacheControlEphemeral,
     type BetaCacheCreation as BetaCacheCreation,
     type BetaCitationCharLocation as BetaCitationCharLocation,
@@ -2203,6 +2391,7 @@ export declare namespace Messages {
     type BetaCodeExecutionResultBlock as BetaCodeExecutionResultBlock,
     type BetaCodeExecutionResultBlockParam as BetaCodeExecutionResultBlockParam,
     type BetaCodeExecutionTool20250522 as BetaCodeExecutionTool20250522,
+    type BetaCodeExecutionTool20250825 as BetaCodeExecutionTool20250825,
     type BetaCodeExecutionToolResultBlock as BetaCodeExecutionToolResultBlock,
     type BetaCodeExecutionToolResultBlockContent as BetaCodeExecutionToolResultBlockContent,
     type BetaCodeExecutionToolResultBlockParam as BetaCodeExecutionToolResultBlockParam,
@@ -2255,6 +2444,16 @@ export declare namespace Messages {
     type BetaTextCitation as BetaTextCitation,
     type BetaTextCitationParam as BetaTextCitationParam,
     type BetaTextDelta as BetaTextDelta,
+    type BetaTextEditorCodeExecutionCreateResultBlock as BetaTextEditorCodeExecutionCreateResultBlock,
+    type BetaTextEditorCodeExecutionCreateResultBlockParam as BetaTextEditorCodeExecutionCreateResultBlockParam,
+    type BetaTextEditorCodeExecutionStrReplaceResultBlock as BetaTextEditorCodeExecutionStrReplaceResultBlock,
+    type BetaTextEditorCodeExecutionStrReplaceResultBlockParam as BetaTextEditorCodeExecutionStrReplaceResultBlockParam,
+    type BetaTextEditorCodeExecutionToolResultBlock as BetaTextEditorCodeExecutionToolResultBlock,
+    type BetaTextEditorCodeExecutionToolResultBlockParam as BetaTextEditorCodeExecutionToolResultBlockParam,
+    type BetaTextEditorCodeExecutionToolResultError as BetaTextEditorCodeExecutionToolResultError,
+    type BetaTextEditorCodeExecutionToolResultErrorParam as BetaTextEditorCodeExecutionToolResultErrorParam,
+    type BetaTextEditorCodeExecutionViewResultBlock as BetaTextEditorCodeExecutionViewResultBlock,
+    type BetaTextEditorCodeExecutionViewResultBlockParam as BetaTextEditorCodeExecutionViewResultBlockParam,
     type BetaThinkingBlock as BetaThinkingBlock,
     type BetaThinkingBlockParam as BetaThinkingBlockParam,
     type BetaThinkingConfigDisabled as BetaThinkingConfigDisabled,
