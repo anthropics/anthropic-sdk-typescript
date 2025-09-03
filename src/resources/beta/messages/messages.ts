@@ -1569,7 +1569,9 @@ export interface BetaToolResultBlockParam {
    */
   cache_control?: BetaCacheControlEphemeral | null;
 
-  content?: string | Array<BetaTextBlockParam | BetaImageBlockParam | BetaSearchResultBlockParam>;
+  content?:
+    | string
+    | Array<BetaTextBlockParam | BetaImageBlockParam | BetaSearchResultBlockParam | BetaRequestDocumentBlock>;
 
   is_error?: boolean;
 }

@@ -1000,7 +1000,7 @@ export interface ToolResultBlockParam {
    */
   cache_control?: CacheControlEphemeral | null;
 
-  content?: string | Array<TextBlockParam | ImageBlockParam | SearchResultBlockParam>;
+  content?: string | Array<TextBlockParam | ImageBlockParam | SearchResultBlockParam | DocumentBlockParam>;
 
   is_error?: boolean;
 }
