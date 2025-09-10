@@ -305,6 +305,10 @@ export interface BetaCitationCharLocationParam {
   type: 'char_location';
 }
 
+export interface BetaCitationConfig {
+  enabled: boolean;
+}
+
 export interface BetaCitationContentBlockLocation {
   cited_text: string;
 
@@ -601,6 +605,7 @@ export type BetaContentBlock =
   | BetaToolUseBlock
   | BetaServerToolUseBlock
   | BetaWebSearchToolResultBlock
+  | BetaWebFetchToolResultBlock
   | BetaCodeExecutionToolResultBlock
   | BetaBashCodeExecutionToolResultBlock
   | BetaTextEditorCodeExecutionToolResultBlock
@@ -622,6 +627,7 @@ export type BetaContentBlockParam =
   | BetaToolResultBlockParam
   | BetaServerToolUseBlockParam
   | BetaWebSearchToolResultBlockParam
+  | BetaWebFetchToolResultBlockParam
   | BetaCodeExecutionToolResultBlockParam
   | BetaBashCodeExecutionToolResultBlockParam
   | BetaTextEditorCodeExecutionToolResultBlockParam
@@ -636,6 +642,22 @@ export interface BetaContentBlockSource {
 }
 
 export type BetaContentBlockSourceContent = BetaTextBlockParam | BetaImageBlockParam;
+
+export interface BetaDocumentBlock {
+  /**
+   * Citation configuration for the document
+   */
+  citations: BetaCitationConfig | null;
+
+  source: BetaBase64PDFSource | BetaPlainTextSource;
+
+  /**
+   * The title of the document
+   */
+  title: string | null;
+
+  type: 'document';
+}
 
 export interface BetaFileDocumentSource {
   file_id: string;
@@ -918,6 +940,7 @@ export interface BetaRawContentBlockStartEvent {
     | BetaToolUseBlock
     | BetaServerToolUseBlock
     | BetaWebSearchToolResultBlock
+    | BetaWebFetchToolResultBlock
     | BetaCodeExecutionToolResultBlock
     | BetaBashCodeExecutionToolResultBlock
     | BetaTextEditorCodeExecutionToolResultBlock
@@ -1020,7 +1043,7 @@ export interface BetaRequestDocumentBlock {
    */
   cache_control?: BetaCacheControlEphemeral | null;
 
-  citations?: BetaCitationsConfigParam;
+  citations?: BetaCitationsConfigParam | null;
 
   context?: string | null;
 
@@ -1079,6 +1102,11 @@ export interface BetaSearchResultBlockParam {
 
 export interface BetaServerToolUsage {
   /**
+   * The number of web fetch tool requests.
+   */
+  web_fetch_requests: number;
+
+  /**
    * The number of web search tool requests.
    */
   web_search_requests: number;
@@ -1089,7 +1117,7 @@ export interface BetaServerToolUseBlock {
 
   input: unknown;
 
-  name: 'web_search' | 'code_execution' | 'bash_code_execution' | 'text_editor_code_execution';
+  name: 'web_search' | 'web_fetch' | 'code_execution' | 'bash_code_execution' | 'text_editor_code_execution';
 
   type: 'server_tool_use';
 }
@@ -1099,7 +1127,7 @@ export interface BetaServerToolUseBlockParam {
 
   input: unknown;
 
-  name: 'web_search' | 'code_execution' | 'bash_code_execution' | 'text_editor_code_execution';
+  name: 'web_search' | 'web_fetch' | 'code_execution' | 'bash_code_execution' | 'text_editor_code_execution';
 
   type: 'server_tool_use';
 
@@ -1658,7 +1686,8 @@ export type BetaToolUnion =
   | BetaToolTextEditor20250124
   | BetaToolTextEditor20250429
   | BetaToolTextEditor20250728
-  | BetaWebSearchTool20250305;
+  | BetaWebSearchTool20250305
+  | BetaWebFetchTool20250910;
 
 export interface BetaToolUseBlock {
   id: string;
@@ -1733,6 +1762,124 @@ export interface BetaUsage {
    */
   service_tier: 'standard' | 'priority' | 'batch' | null;
 }
+
+export interface BetaWebFetchBlock {
+  content: BetaDocumentBlock;
+
+  /**
+   * ISO 8601 timestamp when the content was retrieved
+   */
+  retrieved_at: string | null;
+
+  type: 'web_fetch_result';
+
+  /**
+   * Fetched content URL
+   */
+  url: string;
+}
+
+export interface BetaWebFetchBlockParam {
+  content: BetaRequestDocumentBlock;
+
+  type: 'web_fetch_result';
+
+  /**
+   * Fetched content URL
+   */
+  url: string;
+
+  /**
+   * ISO 8601 timestamp when the content was retrieved
+   */
+  retrieved_at?: string | null;
+}
+
+export interface BetaWebFetchTool20250910 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_fetch';
+
+  type: 'web_fetch_20250910';
+
+  /**
+   * List of domains to allow fetching from
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * List of domains to block fetching from
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Citations configuration for fetched documents. Citations are disabled by
+   * default.
+   */
+  citations?: BetaCitationsConfigParam | null;
+
+  /**
+   * Maximum number of tokens used by including web page text content in the context.
+   * The limit is approximate and does not apply to binary content such as PDFs.
+   */
+  max_content_tokens?: number | null;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+}
+
+export interface BetaWebFetchToolResultBlock {
+  content: BetaWebFetchToolResultErrorBlock | BetaWebFetchBlock;
+
+  tool_use_id: string;
+
+  type: 'web_fetch_tool_result';
+}
+
+export interface BetaWebFetchToolResultBlockParam {
+  content: BetaWebFetchToolResultErrorBlockParam | BetaWebFetchBlockParam;
+
+  tool_use_id: string;
+
+  type: 'web_fetch_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export interface BetaWebFetchToolResultErrorBlock {
+  error_code: BetaWebFetchToolResultErrorCode;
+
+  type: 'web_fetch_tool_result_error';
+}
+
+export interface BetaWebFetchToolResultErrorBlockParam {
+  error_code: BetaWebFetchToolResultErrorCode;
+
+  type: 'web_fetch_tool_result_error';
+}
+
+export type BetaWebFetchToolResultErrorCode =
+  | 'invalid_tool_input'
+  | 'url_too_long'
+  | 'url_not_allowed'
+  | 'url_not_accessible'
+  | 'unsupported_content_type'
+  | 'too_many_requests'
+  | 'max_uses_exceeded'
+  | 'unavailable';
 
 export interface BetaWebSearchResultBlock {
   encrypted_content: string;
@@ -2394,6 +2541,7 @@ export interface MessageCountTokensParams {
     | BetaToolTextEditor20250429
     | BetaToolTextEditor20250728
     | BetaWebSearchTool20250305
+    | BetaWebFetchTool20250910
   >;
 
   /**
@@ -2420,6 +2568,7 @@ export declare namespace Messages {
     type BetaCacheCreation as BetaCacheCreation,
     type BetaCitationCharLocation as BetaCitationCharLocation,
     type BetaCitationCharLocationParam as BetaCitationCharLocationParam,
+    type BetaCitationConfig as BetaCitationConfig,
     type BetaCitationContentBlockLocation as BetaCitationContentBlockLocation,
     type BetaCitationContentBlockLocationParam as BetaCitationContentBlockLocationParam,
     type BetaCitationPageLocation as BetaCitationPageLocation,
@@ -2450,6 +2599,7 @@ export declare namespace Messages {
     type BetaContentBlockParam as BetaContentBlockParam,
     type BetaContentBlockSource as BetaContentBlockSource,
     type BetaContentBlockSourceContent as BetaContentBlockSourceContent,
+    type BetaDocumentBlock as BetaDocumentBlock,
     type BetaFileDocumentSource as BetaFileDocumentSource,
     type BetaFileImageSource as BetaFileImageSource,
     type BetaImageBlockParam as BetaImageBlockParam,
@@ -2525,6 +2675,14 @@ export declare namespace Messages {
     type BetaURLImageSource as BetaURLImageSource,
     type BetaURLPDFSource as BetaURLPDFSource,
     type BetaUsage as BetaUsage,
+    type BetaWebFetchBlock as BetaWebFetchBlock,
+    type BetaWebFetchBlockParam as BetaWebFetchBlockParam,
+    type BetaWebFetchTool20250910 as BetaWebFetchTool20250910,
+    type BetaWebFetchToolResultBlock as BetaWebFetchToolResultBlock,
+    type BetaWebFetchToolResultBlockParam as BetaWebFetchToolResultBlockParam,
+    type BetaWebFetchToolResultErrorBlock as BetaWebFetchToolResultErrorBlock,
+    type BetaWebFetchToolResultErrorBlockParam as BetaWebFetchToolResultErrorBlockParam,
+    type BetaWebFetchToolResultErrorCode as BetaWebFetchToolResultErrorCode,
     type BetaWebSearchResultBlock as BetaWebSearchResultBlock,
     type BetaWebSearchResultBlockParam as BetaWebSearchResultBlockParam,
     type BetaWebSearchTool20250305 as BetaWebSearchTool20250305,
