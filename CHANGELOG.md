@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.62.0 (2025-09-10)
+
+Full Changelog: [sdk-v0.61.0...sdk-v0.62.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.61.0...sdk-v0.62.0)
+
+### Features
+
+* **api:** adds support for Documents in tool results ([5d971f9](https://github.com/anthropics/anthropic-sdk-typescript/commit/5d971f928897ff79acbd418ca9bf0dd9bc6e16a4))
+* **api:** adds support for web_fetch_20250910 tool ([c663898](https://github.com/anthropics/anthropic-sdk-typescript/commit/c663898d51f0e82b418e61814e2937256e70bad0))
+
 ## 0.61.0 (2025-09-02)
 
 Full Changelog: [sdk-v0.60.0...sdk-v0.61.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.60.0...sdk-v0.61.0)
