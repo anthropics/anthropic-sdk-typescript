@@ -333,7 +333,7 @@ export interface DocumentBlockParam {
    */
   cache_control?: CacheControlEphemeral | null;
 
-  citations?: CitationsConfigParam;
+  citations?: CitationsConfigParam | null;
 
   context?: string | null;
 

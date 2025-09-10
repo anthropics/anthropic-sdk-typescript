@@ -188,6 +188,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheCreation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationCharLocation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationCharLocationParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationContentBlockLocation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationContentBlockLocationParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationPageLocation</a></code>
@@ -218,6 +219,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContentBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContentBlockSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContentBlockSourceContent</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaDocumentBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFileDocumentSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFileImageSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaImageBlockParam</a></code>
@@ -293,6 +295,14 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaURLImageSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaURLPDFSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaUsage</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchTool20250910</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchToolResultBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchToolResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchToolResultErrorBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchToolResultErrorBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchToolResultErrorCode</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchTool20250305</a></code>
