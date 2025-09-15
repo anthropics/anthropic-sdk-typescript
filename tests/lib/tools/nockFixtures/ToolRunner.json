@@ -1,0 +1,584 @@
+[
+  {
+    "scope": "https://api.anthropic.com:443",
+    "method": "POST",
+    "path": "/v1/messages?beta=true",
+    "body": {
+      "model": "claude-sonnet-4-0",
+      "max_tokens": 1000,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use the test_tool with value \"test\", then provide a final response"
+        }
+      ],
+      "tools": [
+        {
+          "type": "custom",
+          "name": "test_tool",
+          "input_schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": ["value"],
+            "additionalProperties": false
+          },
+          "description": "A test tool"
+        }
+      ],
+      "stream": false
+    },
+    "status": 200,
+    "response": {
+      "id": "msg_01LGfAxK63MQNgvZtiogcuqG",
+      "type": "message",
+      "role": "assistant",
+      "model": "claude-sonnet-4-20250514",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'll use the test_tool with the value \"test\" as requested, then provide a final response."
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_01Ff6oGJapCYgEPy4WkqkoMJ",
+          "name": "test_tool",
+          "input": {
+            "value": "test"
+          }
+        }
+      ],
+      "stop_reason": "tool_use",
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 415,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 76,
+        "service_tier": "standard"
+      }
+    },
+    "rawHeaders": {
+      "anthropic-organization-id": "5576611f-a1ee-427c-9800-298d9579899c",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9725cdcadabede99-EWR",
+      "connection": "keep-alive",
+      "content-type": "application/json",
+      "date": "Wed, 20 Aug 2025 23:52:22 GMT",
+      "request-id": "req_011CSKrtXN58GU5sXu8LF5dX",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "transfer-encoding": "chunked",
+      "via": "1.1 google",
+      "x-envoy-upstream-service-time": "1581",
+      "x-robots-tag": "none"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.anthropic.com:443",
+    "method": "POST",
+    "path": "/v1/messages?beta=true",
+    "body": {
+      "model": "claude-sonnet-4-0",
+      "max_tokens": 1000,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use the test_tool with value \"test\", then provide a final response"
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "text",
+              "text": "I'll use the test_tool with the value \"test\" as requested, then provide a final response."
+            },
+            {
+              "type": "tool_use",
+              "id": "toolu_01Ff6oGJapCYgEPy4WkqkoMJ",
+              "name": "test_tool",
+              "input": {
+                "value": "test"
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "toolu_01Ff6oGJapCYgEPy4WkqkoMJ",
+              "content": "Tool result"
+            }
+          ]
+        }
+      ],
+      "tools": [
+        {
+          "type": "custom",
+          "name": "test_tool",
+          "input_schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": ["value"],
+            "additionalProperties": false
+          },
+          "description": "A test tool"
+        }
+      ],
+      "stream": false
+    },
+    "status": 200,
+    "response": {
+      "id": "msg_01NWDM8UhckwnmcyJS84U9o1",
+      "type": "message",
+      "role": "assistant",
+      "model": "claude-sonnet-4-20250514",
+      "content": [
+        {
+          "type": "text",
+          "text": "The test_tool has been successfully executed with the value \"test\". The tool completed its operation and returned a result. This demonstrates that the function call system is working properly and can process the specified parameters correctly."
+        }
+      ],
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 505,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 45,
+        "service_tier": "standard"
+      }
+    },
+    "rawHeaders": {
+      "anthropic-organization-id": "5576611f-a1ee-427c-9800-298d9579899c",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9725cdd5c944de99-EWR",
+      "connection": "keep-alive",
+      "content-type": "application/json",
+      "date": "Wed, 20 Aug 2025 23:52:25 GMT",
+      "request-id": "req_011CSKrteq3H1C4JP8ao7pvM",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "transfer-encoding": "chunked",
+      "via": "1.1 google",
+      "x-envoy-upstream-service-time": "2627",
+      "x-robots-tag": "none"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.anthropic.com:443",
+    "method": "POST",
+    "path": "/v1/messages?beta=true",
+    "body": {
+      "model": "claude-sonnet-4-0",
+      "max_tokens": 1000,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use the test_tool with count 1, then use it again with count 2"
+        }
+      ],
+      "tools": [
+        {
+          "type": "custom",
+          "name": "test_tool",
+          "input_schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "number"
+              }
+            },
+            "required": ["count"],
+            "additionalProperties": false
+          },
+          "description": "A test tool"
+        }
+      ],
+      "stream": false
+    },
+    "status": 200,
+    "response": {
+      "id": "msg_019TRvczheYztAPERcbH1sWv",
+      "type": "message",
+      "role": "assistant",
+      "model": "claude-sonnet-4-20250514",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'll use the test_tool twice as requested, first with count 1 and then with count 2."
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_0179r6ofLHbaispTuUAqMJfr",
+          "name": "test_tool",
+          "input": {
+            "count": 1
+          }
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_012uz9XtyrRxAoELvYgkQnxi",
+          "name": "test_tool",
+          "input": {
+            "count": 2
+          }
+        }
+      ],
+      "stop_reason": "tool_use",
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 418,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 114,
+        "service_tier": "standard"
+      }
+    },
+    "rawHeaders": {
+      "anthropic-organization-id": "5576611f-a1ee-427c-9800-298d9579899c",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9725cde70d0bde99-EWR",
+      "connection": "keep-alive",
+      "content-type": "application/json",
+      "date": "Wed, 20 Aug 2025 23:52:27 GMT",
+      "request-id": "req_011CSKrtrdhXsTmF4YL3GSBP",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "transfer-encoding": "chunked",
+      "via": "1.1 google",
+      "x-envoy-upstream-service-time": "1755",
+      "x-robots-tag": "none"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.anthropic.com:443",
+    "method": "POST",
+    "path": "/v1/messages?beta=true",
+    "body": {
+      "model": "claude-sonnet-4-0",
+      "max_tokens": 1000,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use the test_tool with count 1, then use it again with count 2"
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "text",
+              "text": "I'll use the test_tool twice as requested, first with count 1 and then with count 2."
+            },
+            {
+              "type": "tool_use",
+              "id": "toolu_0179r6ofLHbaispTuUAqMJfr",
+              "name": "test_tool",
+              "input": {
+                "count": 1
+              }
+            },
+            {
+              "type": "tool_use",
+              "id": "toolu_012uz9XtyrRxAoELvYgkQnxi",
+              "name": "test_tool",
+              "input": {
+                "count": 2
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "toolu_0179r6ofLHbaispTuUAqMJfr",
+              "content": "Called with 1"
+            },
+            {
+              "type": "tool_result",
+              "tool_use_id": "toolu_012uz9XtyrRxAoELvYgkQnxi",
+              "content": "Called with 2"
+            }
+          ]
+        }
+      ],
+      "tools": [
+        {
+          "type": "custom",
+          "name": "test_tool",
+          "input_schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "number"
+              }
+            },
+            "required": ["count"],
+            "additionalProperties": false
+          },
+          "description": "A test tool"
+        }
+      ],
+      "stream": false
+    },
+    "status": 200,
+    "response": {
+      "id": "msg_015fCZt44SEgbntRDB3YCyhs",
+      "type": "message",
+      "role": "assistant",
+      "model": "claude-sonnet-4-20250514",
+      "content": [
+        {
+          "type": "text",
+          "text": "Perfect! I've successfully called the test_tool twice:\n- First call with count=1 returned: \"Called with 1\"\n- Second call with count=2 returned: \"Called with 2\""
+        }
+      ],
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 603,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 49,
+        "service_tier": "standard"
+      }
+    },
+    "rawHeaders": {
+      "anthropic-organization-id": "5576611f-a1ee-427c-9800-298d9579899c",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9725cdf28e4fde99-EWR",
+      "connection": "keep-alive",
+      "content-type": "application/json",
+      "date": "Wed, 20 Aug 2025 23:52:28 GMT",
+      "request-id": "req_011CSKrtzVisW9Zam8hmYBfb",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "transfer-encoding": "chunked",
+      "via": "1.1 google",
+      "x-envoy-upstream-service-time": "1395",
+      "x-robots-tag": "none"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.anthropic.com:443",
+    "method": "POST",
+    "path": "/v1/messages?beta=true",
+    "body": {
+      "model": "claude-sonnet-4-0",
+      "max_tokens": 1000,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use the test_tool with input \"test\", then provide a final response"
+        }
+      ],
+      "tools": [
+        {
+          "type": "custom",
+          "name": "test_tool",
+          "input_schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "string"
+              }
+            },
+            "required": ["input"],
+            "additionalProperties": false
+          },
+          "description": "A test tool"
+        }
+      ],
+      "stream": false
+    },
+    "status": 200,
+    "response": {
+      "id": "msg_014RiKLdHKUTBG2NrRDoVw6P",
+      "type": "message",
+      "role": "assistant",
+      "model": "claude-sonnet-4-20250514",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'll use the test_tool with the input \"test\" as requested, then provide a final response."
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_01BWMUJrL8svmHce9y4j9Xmc",
+          "name": "test_tool",
+          "input": {
+            "input": "test"
+          }
+        }
+      ],
+      "stop_reason": "tool_use",
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 415,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 76,
+        "service_tier": "standard"
+      }
+    },
+    "rawHeaders": {
+      "anthropic-organization-id": "5576611f-a1ee-427c-9800-298d9579899c",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9725cdfb981ade99-EWR",
+      "connection": "keep-alive",
+      "content-type": "application/json",
+      "date": "Wed, 20 Aug 2025 23:52:30 GMT",
+      "request-id": "req_011CSKru6h34kqxdUmPzWZkE",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "transfer-encoding": "chunked",
+      "via": "1.1 google",
+      "x-envoy-upstream-service-time": "1457",
+      "x-robots-tag": "none"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.anthropic.com:443",
+    "method": "POST",
+    "path": "/v1/messages?beta=true",
+    "body": {
+      "model": "claude-sonnet-4-0",
+      "max_tokens": 1000,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use the test_tool with input \"test\", then provide a final response"
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "text",
+              "text": "I'll use the test_tool with the input \"test\" as requested, then provide a final response."
+            },
+            {
+              "type": "tool_use",
+              "id": "toolu_01BWMUJrL8svmHce9y4j9Xmc",
+              "name": "test_tool",
+              "input": {
+                "input": "test"
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "toolu_01BWMUJrL8svmHce9y4j9Xmc",
+              "content": "Tool result"
+            }
+          ]
+        }
+      ],
+      "tools": [
+        {
+          "type": "custom",
+          "name": "test_tool",
+          "input_schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "string"
+              }
+            },
+            "required": ["input"],
+            "additionalProperties": false
+          },
+          "description": "A test tool"
+        }
+      ],
+      "stream": false
+    },
+    "status": 200,
+    "response": {
+      "id": "msg_01CnyDshvvnXAp3uUT45m6Ph",
+      "type": "message",
+      "role": "assistant",
+      "model": "claude-sonnet-4-20250514",
+      "content": [
+        {
+          "type": "text",
+          "text": "The test_tool has been successfully executed with the input \"test\". The tool completed and returned a result. This demonstrates that the function call mechanism is working properly and can be used to invoke tools with the specified parameters."
+        }
+      ],
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 505,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 47,
+        "service_tier": "standard"
+      }
+    },
+    "rawHeaders": {
+      "anthropic-organization-id": "5576611f-a1ee-427c-9800-298d9579899c",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9725ce050a5cde99-EWR",
+      "connection": "keep-alive",
+      "content-type": "application/json",
+      "date": "Wed, 20 Aug 2025 23:52:31 GMT",
+      "request-id": "req_011CSKruD8Ej4UTs8WiwWajT",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "transfer-encoding": "chunked",
+      "via": "1.1 google",
+      "x-envoy-upstream-service-time": "1590",
+      "x-robots-tag": "none"
+    },
+    "responseIsBinary": false
+  }
+]
