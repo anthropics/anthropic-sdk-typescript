@@ -7,7 +7,7 @@ import { AnthropicVertex } from '@anthropic-ai/vertex-sdk';
 const client = new AnthropicVertex();
 
 async function main() {
-  const result = await client.messages.create({
+  const stream = client.messages.stream({
     messages: [
       {
         role: 'user',
@@ -17,7 +17,9 @@ async function main() {
     model: 'claude-3-7-sonnet@20250219',
     max_tokens: 300,
   });
-  console.log(JSON.stringify(result, null, 2));
+  for await (const event of stream) {
+    console.log('event', event);
+  }
 }
 
 main().catch((err) => {
