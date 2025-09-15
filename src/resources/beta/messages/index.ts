@@ -132,6 +132,7 @@ export {
   type BetaToolComputerUse20241022,
   type BetaToolComputerUse20250124,
   type BetaToolResultBlockParam,
+  type BetaToolResultContentBlockParam,
   type BetaToolTextEditor20241022,
   type BetaToolTextEditor20250124,
   type BetaToolTextEditor20250429,
@@ -167,3 +168,4 @@ export {
   type MessageCountTokensParams,
   type BetaMessageStreamParams,
 } from './messages';
+export { BetaToolRunner, type BetaToolRunnerParams } from './messages';

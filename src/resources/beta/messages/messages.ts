@@ -30,6 +30,9 @@ import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
 import type { Model } from '../../messages/messages';
 import { BetaMessageStream } from '../../../lib/BetaMessageStream';
+import { MODEL_NONSTREAMING_TOKENS } from '../../../internal/constants';
+import { BetaToolRunner, BetaToolRunnerParams } from '../../../lib/tools/BetaToolRunner';
+import { Anthropic } from '../../../client';
 
 const DEPRECATED_MODELS: {
   [K in Model]?: string;
@@ -46,7 +49,6 @@ const DEPRECATED_MODELS: {
   'claude-3-5-sonnet-20241022': 'October 22, 2025',
   'claude-3-5-sonnet-20240620': 'October 22, 2025',
 };
-import { MODEL_NONSTREAMING_TOKENS } from '../../../internal/constants';
 
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
@@ -147,6 +149,13 @@ export class Messages extends APIResource {
         options?.headers,
       ]),
     });
+  }
+
+  toolRunner(body: BetaToolRunnerParams & { stream?: false }): BetaToolRunner<false>;
+  toolRunner(body: BetaToolRunnerParams & { stream: true }): BetaToolRunner<true>;
+  toolRunner(body: BetaToolRunnerParams): BetaToolRunner<boolean>;
+  toolRunner(body: BetaToolRunnerParams): BetaToolRunner<boolean> {
+    return new BetaToolRunner(this._client as Anthropic, body);
   }
 }
 
@@ -1424,7 +1433,7 @@ export namespace BetaTool {
 
     properties?: unknown | null;
 
-    required?: Array<string> | null;
+    required?: string[] | readonly string[] | null;
 
     [k: string]: unknown;
   }
@@ -1603,6 +1612,8 @@ export interface BetaToolResultBlockParam {
 
   is_error?: boolean;
 }
+
+export type BetaToolResultContentBlockParam = Extract<BetaToolResultBlockParam['content'], any[]>[number];
 
 export interface BetaToolTextEditor20241022 {
   /**
@@ -2550,7 +2561,11 @@ export interface MessageCountTokensParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
+export { BetaToolRunner, type BetaToolRunnerParams } from '../../../lib/tools/BetaToolRunner';
+
 Messages.Batches = Batches;
+
+Messages.BetaToolRunner = BetaToolRunner;
 
 export declare namespace Messages {
   export {
@@ -2665,6 +2680,7 @@ export declare namespace Messages {
     type BetaToolComputerUse20241022 as BetaToolComputerUse20241022,
     type BetaToolComputerUse20250124 as BetaToolComputerUse20250124,
     type BetaToolResultBlockParam as BetaToolResultBlockParam,
+    type BetaToolResultContentBlockParam as BetaToolResultContentBlockParam,
     type BetaToolTextEditor20241022 as BetaToolTextEditor20241022,
     type BetaToolTextEditor20250124 as BetaToolTextEditor20250124,
     type BetaToolTextEditor20250429 as BetaToolTextEditor20250429,
@@ -2699,6 +2715,8 @@ export declare namespace Messages {
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
     type MessageCountTokensParams as MessageCountTokensParams,
   };
+
+  export { type BetaToolRunnerParams, BetaToolRunner };
 
   export {
     Batches as Batches,

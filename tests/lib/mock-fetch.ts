@@ -57,7 +57,7 @@ export function mockFetch(): {
           stream.write(`event: ${event.type}\n`);
           stream.write(`data: ${JSON.stringify(event)}\n\n`);
         }
-        stream.end(`done: [DONE]\n\n`);
+        stream.end(`\n`);
       })();
       return new Response(stream, {
         headers: {
@@ -76,7 +76,7 @@ export function mockFetch(): {
           stream.write(`event: ${chunk.type}\n`);
           stream.write(`data: ${JSON.stringify(chunk)}\n\n`);
         }
-        stream.end(`done: [DONE]\n\n`);
+        stream.end(`\n`);
       })();
       return new Response(stream, {
         headers: {
