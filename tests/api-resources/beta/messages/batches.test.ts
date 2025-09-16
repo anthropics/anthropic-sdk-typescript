@@ -8,7 +8,8 @@ const client = new Anthropic({
 });
 
 describe('resource batches', () => {
-  test('create: only required params', async () => {
+  // prism validates based on the non-beta endpoint
+  test.skip('create: only required params', async () => {
     const responsePromise = client.beta.messages.batches.create({
       requests: [
         {
@@ -30,7 +31,8 @@ describe('resource batches', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  test('create: required and optional params', async () => {
+  // prism validates based on the non-beta endpoint
+  test.skip('create: required and optional params', async () => {
     const response = await client.beta.messages.batches.create({
       requests: [
         {
