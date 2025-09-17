@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.63.0 (2025-09-17)
+
+Full Changelog: [sdk-v0.62.0...sdk-v0.63.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.62.0...sdk-v0.63.0)
+
+### Features
+
+* **client:** add support for toolRunner helpers ([28f5837](https://github.com/anthropics/anthropic-sdk-typescript/commit/28f583739d4f15c202ecc88002cd8abc9d3aed76))
+
+
+### Chores
+
+* **internal:** fix tests ([003617d](https://github.com/anthropics/anthropic-sdk-typescript/commit/003617d1b1386bbddadb102e0e8e7922d23c1643))
+* **vertex:** update model string to valid example ([7b77da0](https://github.com/anthropics/anthropic-sdk-typescript/commit/7b77da02620a886b50d984a797a74b650ea88181))
+
 ## 0.62.0 (2025-09-10)
 
 Full Changelog: [sdk-v0.61.0...sdk-v0.62.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.61.0...sdk-v0.62.0)
