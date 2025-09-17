@@ -1,5 +1,5 @@
 {
-  ".": "0.62.0",
-  "packages/vertex-sdk": "0.13.2",
-  "packages/bedrock-sdk": "0.24.0"
+  ".": "0.63.0",
+  "packages/vertex-sdk": "0.14.0",
+  "packages/bedrock-sdk": "0.25.0"
 }

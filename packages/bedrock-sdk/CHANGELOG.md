@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.25.0 (2025-09-17)
+
+Full Changelog: [bedrock-sdk-v0.24.0...bedrock-sdk-v0.25.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.24.0...bedrock-sdk-v0.25.0)
+
+### Features
+
+* **client:** add support for toolRunner helpers ([28f5837](https://github.com/anthropics/anthropic-sdk-typescript/commit/28f583739d4f15c202ecc88002cd8abc9d3aed76))
+
 ## 0.24.0 (2025-08-05)
 
 Full Changelog: [bedrock-sdk-v0.23.0...bedrock-sdk-v0.24.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.23.0...bedrock-sdk-v0.24.0)

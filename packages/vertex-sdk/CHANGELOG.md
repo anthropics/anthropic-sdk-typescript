@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.14.0 (2025-09-17)
+
+Full Changelog: [vertex-sdk-v0.13.2...vertex-sdk-v0.14.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.13.2...vertex-sdk-v0.14.0)
+
+### Features
+
+* **client:** add support for toolRunner helpers ([28f5837](https://github.com/anthropics/anthropic-sdk-typescript/commit/28f583739d4f15c202ecc88002cd8abc9d3aed76))
+
+
+### Chores
+
+* **vertex:** update model string to valid example ([7b77da0](https://github.com/anthropics/anthropic-sdk-typescript/commit/7b77da02620a886b50d984a797a74b650ea88181))
+
 ## 0.13.2 (2025-09-10)
 
 Full Changelog: [vertex-sdk-v0.13.1...vertex-sdk-v0.13.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.13.1...vertex-sdk-v0.13.2)
