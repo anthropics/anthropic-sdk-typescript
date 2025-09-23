@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.63.1 (2025-09-23)
+
+Full Changelog: [sdk-v0.63.0...sdk-v0.63.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.63.0...sdk-v0.63.1)
+
+### Bug Fixes
+
+* **helpers/zod:** fix compat with zod 3 ([a2952e1](https://github.com/anthropics/anthropic-sdk-typescript/commit/a2952e1a64e4dfb2a03f90c9af4e816627bf85e7))
+
+
+### Chores
+
+* do not install brew dependencies in ./scripts/bootstrap by default ([115d81a](https://github.com/anthropics/anthropic-sdk-typescript/commit/115d81aef0623746220fb13c58c4ba87603a511d))
+* **internal:** update CI ([dfa991a](https://github.com/anthropics/anthropic-sdk-typescript/commit/dfa991aca8f4cbbbf5af8ea32bb5be0a8dae1ace))
+* **package:** lower zod peer dependency constraints ([b40cfec](https://github.com/anthropics/anthropic-sdk-typescript/commit/b40cfeca234432f9a0b1b3ddd8b90c29ff25be02))
+
 ## 0.63.0 (2025-09-17)
 
 Full Changelog: [sdk-v0.62.0...sdk-v0.63.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.62.0...sdk-v0.63.0)
