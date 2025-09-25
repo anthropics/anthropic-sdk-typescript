@@ -5,8 +5,8 @@
   "compilerOptions": {
     "rootDir": "./dist/src",
     "paths": {
-      "@anthropic-ai/sdk/*": ["dist/src/*"],
-      "@anthropic-ai/sdk": ["dist/src/index.ts"]
+      "@anthropic-ai/sdk/*": ["./dist/src/*"],
+      "@anthropic-ai/sdk": ["./dist/src/index.ts"]
     },
     "noEmit": false,
     "declaration": true,
