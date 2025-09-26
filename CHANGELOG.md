@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.64.0 (2025-09-26)
+
+Full Changelog: [sdk-v0.63.1...sdk-v0.64.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.63.1...sdk-v0.64.0)
+
+### Features
+
+* **toolRunner:** support custom headers ([ac6a7a3](https://github.com/anthropics/anthropic-sdk-typescript/commit/ac6a7a39335258e09238d7c970b2d45f504df816))
+
+
+### Performance Improvements
+
+* faster formatting ([32d6185](https://github.com/anthropics/anthropic-sdk-typescript/commit/32d6185b0d944d12c9c160f3055dd9d5ade44d8a))
+
+
+### Chores
+
+* **internal:** fix incremental formatting in some cases ([2bdf8ee](https://github.com/anthropics/anthropic-sdk-typescript/commit/2bdf8ee858fec58e011218ae1c9925c66bf2b982))
+* **internal:** remove deprecated `compilerOptions.baseUrl` from tsconfig.json ([2817c45](https://github.com/anthropics/anthropic-sdk-typescript/commit/2817c4543abbcf10947e9ae812d88604cf812c33))
+
 ## 0.63.1 (2025-09-23)
 
 Full Changelog: [sdk-v0.63.0...sdk-v0.63.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.63.0...sdk-v0.63.1)
