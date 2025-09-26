@@ -31,7 +31,11 @@ import { RequestOptions } from '../../../internal/request-options';
 import type { Model } from '../../messages/messages';
 import { BetaMessageStream } from '../../../lib/BetaMessageStream';
 import { MODEL_NONSTREAMING_TOKENS } from '../../../internal/constants';
-import { BetaToolRunner, BetaToolRunnerParams } from '../../../lib/tools/BetaToolRunner';
+import {
+  BetaToolRunner,
+  BetaToolRunnerParams,
+  BetaToolRunnerRequestOptions,
+} from '../../../lib/tools/BetaToolRunner';
 import { Anthropic } from '../../../client';
 
 const DEPRECATED_MODELS: {
@@ -151,11 +155,17 @@ export class Messages extends APIResource {
     });
   }
 
-  toolRunner(body: BetaToolRunnerParams & { stream?: false }): BetaToolRunner<false>;
-  toolRunner(body: BetaToolRunnerParams & { stream: true }): BetaToolRunner<true>;
-  toolRunner(body: BetaToolRunnerParams): BetaToolRunner<boolean>;
-  toolRunner(body: BetaToolRunnerParams): BetaToolRunner<boolean> {
-    return new BetaToolRunner(this._client as Anthropic, body);
+  toolRunner(
+    body: BetaToolRunnerParams & { stream?: false },
+    options?: BetaToolRunnerRequestOptions,
+  ): BetaToolRunner<false>;
+  toolRunner(
+    body: BetaToolRunnerParams & { stream: true },
+    options?: BetaToolRunnerRequestOptions,
+  ): BetaToolRunner<true>;
+  toolRunner(body: BetaToolRunnerParams, options?: BetaToolRunnerRequestOptions): BetaToolRunner<boolean>;
+  toolRunner(body: BetaToolRunnerParams, options?: BetaToolRunnerRequestOptions): BetaToolRunner<boolean> {
+    return new BetaToolRunner(this._client as Anthropic, body, options);
   }
 }
 
