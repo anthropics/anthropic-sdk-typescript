@@ -3,6 +3,8 @@ import { Anthropic } from '../..';
 import { AnthropicError } from '../../core/error';
 import { BetaMessage, BetaMessageParam, BetaToolUnion, MessageCreateParams } from '../../resources/beta';
 import { BetaMessageStream } from '../BetaMessageStream';
+import { RequestOptions } from '../../internal/request-options';
+import { buildHeaders } from '../../internal/headers';
 
 /**
  * Just Promise.withResolvers(), which is not available in all environments.
@@ -34,6 +36,7 @@ export class BetaToolRunner<Stream extends boolean> {
   #mutated = false;
   /** Current state containing the request parameters */
   #state: { params: BetaToolRunnerParams };
+  #options: BetaToolRunnerRequestOptions;
   /** Promise for the last message received from the assistant */
   #message?: Promise<BetaMessage> | undefined;
   /** Cached tool response to avoid redundant executions */
@@ -50,6 +53,7 @@ export class BetaToolRunner<Stream extends boolean> {
   constructor(
     private client: Anthropic,
     params: BetaToolRunnerParams,
+    options?: BetaToolRunnerRequestOptions,
   ) {
     this.#state = {
       params: {
@@ -61,6 +65,10 @@ export class BetaToolRunner<Stream extends boolean> {
       },
     };
 
+    this.#options = {
+      ...options,
+      headers: buildHeaders([{ 'x-stainless-helper': 'BetaToolRunner' }, options?.headers]),
+    };
     this.#completion = promiseWithResolvers();
   }
 
@@ -95,11 +103,11 @@ export class BetaToolRunner<Stream extends boolean> {
 
           const { max_iterations, ...params } = this.#state.params;
           if (params.stream) {
-            stream = this.client.beta.messages.stream({ ...params });
+            stream = this.client.beta.messages.stream({ ...params }, this.#options);
             this.#message = stream.finalMessage();
             yield stream as any;
           } else {
-            this.#message = this.client.beta.messages.create({ ...params, stream: false });
+            this.#message = this.client.beta.messages.create({ ...params, stream: false }, this.#options);
             yield this.#message as any;
           }
 
@@ -372,3 +380,5 @@ export type BetaToolRunnerParams = Simplify<
     max_iterations?: number;
   }
 >;
+
+export type BetaToolRunnerRequestOptions = Pick<RequestOptions, 'headers'>;
