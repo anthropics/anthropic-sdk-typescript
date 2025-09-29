@@ -12,7 +12,7 @@ async function main() {
         content: 'Hey Claude!?',
       },
     ],
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-5-20250929',
   });
   console.dir(result);
 }

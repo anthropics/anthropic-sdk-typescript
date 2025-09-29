@@ -6,7 +6,7 @@ const client = new Anthropic(); // gets API Key from environment variable ANTHRO
 
 async function main() {
   const stream = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-5-20250929',
     stream: true,
     max_tokens: 500,
     messages: [
