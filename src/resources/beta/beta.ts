@@ -204,7 +204,8 @@ export type AnthropicBeta =
   | 'code-execution-2025-05-22'
   | 'extended-cache-ttl-2025-04-11'
   | 'context-1m-2025-08-07'
-  | 'context-management-2025-06-27';
+  | 'context-management-2025-06-27'
+  | 'model-context-window-exceeded-2025-08-26';
 
 export interface BetaAPIError {
   message: string;
