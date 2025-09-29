@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.65.0 (2025-09-29)
+
+Full Changelog: [sdk-v0.64.0...sdk-v0.65.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.64.0...sdk-v0.65.0)
+
+### Features
+
+* **api:** adds support for Claude Sonnet 4.5 and context management features ([3f0b0fb](https://github.com/anthropics/anthropic-sdk-typescript/commit/3f0b0fb25317ebc60f970eddfee0e4a7cf6f6fb8))
+
+
+### Chores
+
+* **internal:** codegen related update ([724a2b1](https://github.com/anthropics/anthropic-sdk-typescript/commit/724a2b1a0cea4631ccdbef5a1b7cc69a767e6c41))
+* **internal:** ignore .eslintcache ([56a5f30](https://github.com/anthropics/anthropic-sdk-typescript/commit/56a5f30285efab611c7c5bbbc3f308105ba0f031))
+
 ## 0.64.0 (2025-09-26)
 
 Full Changelog: [sdk-v0.63.1...sdk-v0.64.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.63.1...sdk-v0.64.0)
