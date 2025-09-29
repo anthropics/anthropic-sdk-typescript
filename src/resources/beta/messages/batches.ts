@@ -538,6 +538,11 @@ export namespace BatchCreateParams {
       container?: string | null;
 
       /**
+       * Configuration for context management operations.
+       */
+      context_management?: MessagesMessagesAPI.BetaContextManagementConfig | null;
+
+      /**
        * MCP servers to be utilized in this request
        */
       mcp_servers?: Array<MessagesMessagesAPI.BetaRequestMCPServerURLDefinition>;

@@ -398,6 +398,56 @@ export interface BetaCitationsWebSearchResultLocation {
   url: string;
 }
 
+export interface BetaClearToolUses20250919Edit {
+  type: 'clear_tool_uses_20250919';
+
+  /**
+   * Minimum number of tokens that must be cleared when triggered. Context will only
+   * be modified if at least this many tokens can be removed.
+   */
+  clear_at_least?: BetaInputTokensClearAtLeast | null;
+
+  /**
+   * Whether to clear all tool inputs (bool) or specific tool inputs to clear (list)
+   */
+  clear_tool_inputs?: boolean | Array<string> | null;
+
+  /**
+   * Tool names whose uses are preserved from clearing
+   */
+  exclude_tools?: Array<string> | null;
+
+  /**
+   * Number of tool uses to retain in the conversation
+   */
+  keep?: BetaToolUsesKeep;
+
+  /**
+   * Condition that triggers the context management strategy
+   */
+  trigger?: BetaInputTokensTrigger | BetaToolUsesTrigger;
+}
+
+/**
+ * Results for clear_tool_uses_20250919 edit.
+ */
+export interface BetaClearToolUses20250919EditResponse {
+  /**
+   * Number of input tokens cleared by this edit.
+   */
+  cleared_input_tokens: number;
+
+  /**
+   * Number of tool uses that were cleared.
+   */
+  cleared_tool_uses: number;
+
+  /**
+   * The type of context management edit applied.
+   */
+  type: 'clear_tool_uses_20250919';
+}
+
 export interface BetaCodeExecutionOutputBlock {
   file_id: string;
 
@@ -601,6 +651,33 @@ export interface BetaContentBlockSource {
 
 export type BetaContentBlockSourceContent = BetaTextBlockParam | BetaImageBlockParam;
 
+/**
+ * Configuration for context management operations.
+ */
+export interface BetaContextManagementConfig {
+  /**
+   * List of context management edits to apply
+   */
+  edits?: Array<BetaClearToolUses20250919Edit>;
+}
+
+/**
+ * Information about context management operations applied during the request.
+ */
+export interface BetaContextManagementResponse {
+  /**
+   * List of context management edits that were applied.
+   */
+  applied_edits: Array<BetaClearToolUses20250919EditResponse>;
+}
+
+export interface BetaCountTokensContextManagementResponse {
+  /**
+   * The original token count before context management was applied
+   */
+  original_input_tokens: number;
+}
+
 export interface BetaDocumentBlock {
   /**
    * Citation configuration for the document
@@ -644,6 +721,18 @@ export interface BetaInputJSONDelta {
   partial_json: string;
 
   type: 'input_json_delta';
+}
+
+export interface BetaInputTokensClearAtLeast {
+  type: 'input_tokens';
+
+  value: number;
+}
+
+export interface BetaInputTokensTrigger {
+  type: 'input_tokens';
+
+  value: number;
 }
 
 export interface BetaMCPToolResultBlock {
@@ -692,6 +781,137 @@ export interface BetaMCPToolUseBlockParam {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export interface BetaMemoryTool20250818 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'memory';
+
+  type: 'memory_20250818';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export type BetaMemoryTool20250818Command =
+  | BetaMemoryTool20250818ViewCommand
+  | BetaMemoryTool20250818CreateCommand
+  | BetaMemoryTool20250818StrReplaceCommand
+  | BetaMemoryTool20250818InsertCommand
+  | BetaMemoryTool20250818DeleteCommand
+  | BetaMemoryTool20250818RenameCommand;
+
+export interface BetaMemoryTool20250818CreateCommand {
+  /**
+   * Command type identifier
+   */
+  command: 'create';
+
+  /**
+   * Content to write to the file
+   */
+  file_text: string;
+
+  /**
+   * Path where the file should be created
+   */
+  path: string;
+}
+
+export interface BetaMemoryTool20250818DeleteCommand {
+  /**
+   * Command type identifier
+   */
+  command: 'delete';
+
+  /**
+   * Path to the file or directory to delete
+   */
+  path: string;
+}
+
+export interface BetaMemoryTool20250818InsertCommand {
+  /**
+   * Command type identifier
+   */
+  command: 'insert';
+
+  /**
+   * Line number where text should be inserted
+   */
+  insert_line: number;
+
+  /**
+   * Text to insert at the specified line
+   */
+  insert_text: string;
+
+  /**
+   * Path to the file where text should be inserted
+   */
+  path: string;
+}
+
+export interface BetaMemoryTool20250818RenameCommand {
+  /**
+   * Command type identifier
+   */
+  command: 'rename';
+
+  /**
+   * New path for the file or directory
+   */
+  new_path: string;
+
+  /**
+   * Current path of the file or directory
+   */
+  old_path: string;
+}
+
+export interface BetaMemoryTool20250818StrReplaceCommand {
+  /**
+   * Command type identifier
+   */
+  command: 'str_replace';
+
+  /**
+   * Text to replace with
+   */
+  new_str: string;
+
+  /**
+   * Text to search for and replace
+   */
+  old_str: string;
+
+  /**
+   * Path to the file where text should be replaced
+   */
+  path: string;
+}
+
+export interface BetaMemoryTool20250818ViewCommand {
+  /**
+   * Command type identifier
+   */
+  command: 'view';
+
+  /**
+   * Path to directory or file to view
+   */
+  path: string;
+
+  /**
+   * Optional line range for viewing specific lines
+   */
+  view_range?: Array<number>;
 }
 
 export interface BetaMessage {
@@ -743,6 +963,11 @@ export interface BetaMessage {
    * ```
    */
   content: Array<BetaContentBlock>;
+
+  /**
+   * Information about context management operations applied during the request.
+   */
+  context_management: BetaContextManagementResponse | null;
 
   /**
    * The model that will complete your prompt.\n\nSee
@@ -847,6 +1072,11 @@ export interface BetaMessageParam {
 
 export interface BetaMessageTokensCount {
   /**
+   * Information about context management applied to the message.
+   */
+  context_management: BetaCountTokensContextManagementResponse | null;
+
+  /**
    * The total number of tokens across the provided list of messages, system prompt,
    * and tools.
    */
@@ -918,6 +1148,11 @@ export interface BetaRawContentBlockStopEvent {
 }
 
 export interface BetaRawMessageDeltaEvent {
+  /**
+   * Information about context management operations applied during the request.
+   */
+  context_management: BetaContextManagementResponse | null;
+
   delta: BetaRawMessageDeltaEvent.Delta;
 
   type: 'message_delta';
@@ -1107,7 +1342,8 @@ export type BetaStopReason =
   | 'stop_sequence'
   | 'tool_use'
   | 'pause_turn'
-  | 'refusal';
+  | 'refusal'
+  | 'model_context_window_exceeded';
 
 export interface BetaTextBlock {
   /**
@@ -1639,6 +1875,7 @@ export type BetaToolUnion =
   | BetaCodeExecutionTool20250522
   | BetaCodeExecutionTool20250825
   | BetaToolComputerUse20241022
+  | BetaMemoryTool20250818
   | BetaToolComputerUse20250124
   | BetaToolTextEditor20241022
   | BetaToolTextEditor20250124
@@ -1670,6 +1907,18 @@ export interface BetaToolUseBlockParam {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export interface BetaToolUsesKeep {
+  type: 'tool_uses';
+
+  value: number;
+}
+
+export interface BetaToolUsesTrigger {
+  type: 'tool_uses';
+
+  value: number;
 }
 
 export interface BetaURLImageSource {
@@ -2083,6 +2332,11 @@ export interface MessageCreateParamsBase {
   container?: string | null;
 
   /**
+   * Body param: Configuration for context management operations.
+   */
+  context_management?: BetaContextManagementConfig | null;
+
+  /**
    * Body param: MCP servers to be utilized in this request
    */
   mcp_servers?: Array<BetaRequestMCPServerURLDefinition>;
@@ -2377,6 +2631,11 @@ export interface MessageCountTokensParams {
   model: MessagesAPI.Model;
 
   /**
+   * Body param: Configuration for context management operations.
+   */
+  context_management?: BetaContextManagementConfig | null;
+
+  /**
    * Body param: MCP servers to be utilized in this request
    */
   mcp_servers?: Array<BetaRequestMCPServerURLDefinition>;
@@ -2493,6 +2752,7 @@ export interface MessageCountTokensParams {
     | BetaCodeExecutionTool20250522
     | BetaCodeExecutionTool20250825
     | BetaToolComputerUse20241022
+    | BetaMemoryTool20250818
     | BetaToolComputerUse20250124
     | BetaToolTextEditor20241022
     | BetaToolTextEditor20250124
@@ -2537,6 +2797,8 @@ export declare namespace Messages {
     type BetaCitationsConfigParam as BetaCitationsConfigParam,
     type BetaCitationsDelta as BetaCitationsDelta,
     type BetaCitationsWebSearchResultLocation as BetaCitationsWebSearchResultLocation,
+    type BetaClearToolUses20250919Edit as BetaClearToolUses20250919Edit,
+    type BetaClearToolUses20250919EditResponse as BetaClearToolUses20250919EditResponse,
     type BetaCodeExecutionOutputBlock as BetaCodeExecutionOutputBlock,
     type BetaCodeExecutionOutputBlockParam as BetaCodeExecutionOutputBlockParam,
     type BetaCodeExecutionResultBlock as BetaCodeExecutionResultBlock,
@@ -2557,14 +2819,27 @@ export declare namespace Messages {
     type BetaContentBlockParam as BetaContentBlockParam,
     type BetaContentBlockSource as BetaContentBlockSource,
     type BetaContentBlockSourceContent as BetaContentBlockSourceContent,
+    type BetaContextManagementConfig as BetaContextManagementConfig,
+    type BetaContextManagementResponse as BetaContextManagementResponse,
+    type BetaCountTokensContextManagementResponse as BetaCountTokensContextManagementResponse,
     type BetaDocumentBlock as BetaDocumentBlock,
     type BetaFileDocumentSource as BetaFileDocumentSource,
     type BetaFileImageSource as BetaFileImageSource,
     type BetaImageBlockParam as BetaImageBlockParam,
     type BetaInputJSONDelta as BetaInputJSONDelta,
+    type BetaInputTokensClearAtLeast as BetaInputTokensClearAtLeast,
+    type BetaInputTokensTrigger as BetaInputTokensTrigger,
     type BetaMCPToolResultBlock as BetaMCPToolResultBlock,
     type BetaMCPToolUseBlock as BetaMCPToolUseBlock,
     type BetaMCPToolUseBlockParam as BetaMCPToolUseBlockParam,
+    type BetaMemoryTool20250818 as BetaMemoryTool20250818,
+    type BetaMemoryTool20250818Command as BetaMemoryTool20250818Command,
+    type BetaMemoryTool20250818CreateCommand as BetaMemoryTool20250818CreateCommand,
+    type BetaMemoryTool20250818DeleteCommand as BetaMemoryTool20250818DeleteCommand,
+    type BetaMemoryTool20250818InsertCommand as BetaMemoryTool20250818InsertCommand,
+    type BetaMemoryTool20250818RenameCommand as BetaMemoryTool20250818RenameCommand,
+    type BetaMemoryTool20250818StrReplaceCommand as BetaMemoryTool20250818StrReplaceCommand,
+    type BetaMemoryTool20250818ViewCommand as BetaMemoryTool20250818ViewCommand,
     type BetaMessage as BetaMessage,
     type BetaMessageDeltaUsage as BetaMessageDeltaUsage,
     type BetaMessageParam as BetaMessageParam,
@@ -2630,6 +2905,8 @@ export declare namespace Messages {
     type BetaToolUnion as BetaToolUnion,
     type BetaToolUseBlock as BetaToolUseBlock,
     type BetaToolUseBlockParam as BetaToolUseBlockParam,
+    type BetaToolUsesKeep as BetaToolUsesKeep,
+    type BetaToolUsesTrigger as BetaToolUsesTrigger,
     type BetaURLImageSource as BetaURLImageSource,
     type BetaURLPDFSource as BetaURLPDFSource,
     type BetaUsage as BetaUsage,

@@ -42,6 +42,18 @@ describe('resource batches', () => {
             messages: [{ content: 'Hello, world', role: 'user' }],
             model: 'claude-sonnet-4-20250514',
             container: 'container',
+            context_management: {
+              edits: [
+                {
+                  type: 'clear_tool_uses_20250919',
+                  clear_at_least: { type: 'input_tokens', value: 0 },
+                  clear_tool_inputs: true,
+                  exclude_tools: ['string'],
+                  keep: { type: 'tool_uses', value: 0 },
+                  trigger: { type: 'input_tokens', value: 1 },
+                },
+              ],
+            },
             mcp_servers: [
               {
                 name: 'name',
