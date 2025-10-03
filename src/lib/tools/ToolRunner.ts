@@ -97,6 +97,9 @@ export class BetaToolRunner<Stream extends boolean> {
           if (params.stream) {
             stream = this.client.beta.messages.stream({ ...params });
             this.#message = stream.finalMessage();
+            // Make sure that this promise doesn't throw before we get the option to do something about it.
+            // Error will be caught when we call await this.#message ultimately
+            this.#message.catch(() => {});
             yield stream as any;
           } else {
             this.#message = this.client.beta.messages.create({ ...params, stream: false });

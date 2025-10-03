@@ -505,6 +505,34 @@ describe('ToolRunner', () => {
       await expectDone(iterator);
     });
 
+    it('handles api errors streaming', async () => {
+      const { runner, handleRequest, handleAssistantMessageStream } = setupTest({
+        messages: [{ role: 'user', content: 'Test error handling' }],
+        tools: [weatherTool],
+        stream: true,
+      });
+
+      handleRequest(async () => {
+        return new Response(null, {
+          status: 400,
+        });
+      });
+      const iterator1 = runner[Symbol.asyncIterator]();
+      await expectEvent(iterator1, async (stream) => {
+        await expect(stream.finalMessage()).rejects.toThrow('400');
+      });
+      await expect(iterator1.next()).rejects.toThrow('400');
+      await expectDone(iterator1);
+
+      // We let you consume the iterator again to continue the conversation when there is an error.
+      handleAssistantMessageStream(getTextContent());
+      const iterator2 = runner[Symbol.asyncIterator]();
+      await expectEvent(iterator2, (message) => {
+        expect(message.finalMessage()).resolves.toMatchObject({ content: [getTextContent()] });
+      });
+      await expectDone(iterator2);
+    });
+
     it('handles api errors', async () => {
       const { runner, handleRequest, handleAssistantMessage } = setupTest({
         messages: [{ role: 'user', content: 'Test error handling' }],
