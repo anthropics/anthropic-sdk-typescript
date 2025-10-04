@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.65.1 (2025-10-04)
+
+Full Changelog: [sdk-v0.65.0...sdk-v0.65.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.65.0...sdk-v0.65.1)
+
+### Bug Fixes
+
+* **tool-runner:** fix unhandled promise error for streams ([4f6bc94](https://github.com/anthropics/anthropic-sdk-typescript/commit/4f6bc9476b3914c742dd5ef2302ca367c6a1169b))
+
+
+### Chores
+
+* **client:** add context-management-2025-06-27 beta header ([c6efc98](https://github.com/anthropics/anthropic-sdk-typescript/commit/c6efc98e9507ba41b9336687e78f9362345036f9))
+* **client:** add model-context-window-exceeded-2025-08-26 beta header ([06d2513](https://github.com/anthropics/anthropic-sdk-typescript/commit/06d25137453f44717c0ed6abffd12669fab5e29f))
+* **jsdoc:** fix [@link](https://github.com/link) annotations to refer only to parts of the package‘s public interface ([62c1b5e](https://github.com/anthropics/anthropic-sdk-typescript/commit/62c1b5ee6d2580eb9baa8ede08b24247d4457218))
+
 ## 0.65.0 (2025-09-29)
 
 Full Changelog: [sdk-v0.64.0...sdk-v0.65.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.64.0...sdk-v0.65.0)
