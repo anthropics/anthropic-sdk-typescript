@@ -179,7 +179,13 @@ export class AnthropicVertex extends BaseAnthropic {
         );
       }
 
-      options.path = `/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/count-tokens:rawPredict`;
+      if (!isObj(options.body)) {
+        throw new Error('Expected request body to be an object for post /v1/messages/count_tokens');
+      }
+
+      const model = options.body['model'];
+
+      options.path = `/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/${model}:rawPredict`;
     }
 
     return super.buildRequest(options);
