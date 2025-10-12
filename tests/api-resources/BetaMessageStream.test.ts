@@ -435,4 +435,33 @@ describe('BetaMessageStream class', () => {
 
     await expect(runStream).rejects.toThrow(APIConnectionError);
   });
+
+  it('does not throw unhandled rejection with withResponse()', async () => {
+    // NOTE: this test fails if there is an uncaught exception
+
+    const { fetch, handleRequest } = mockFetch();
+
+    const anthropic = new Anthropic({
+      apiKey: 'test-key',
+      fetch,
+      defaultHeaders: {
+        'anthropic-beta': 'fine-grained-tool-streaming-2025-05-14',
+      },
+    });
+
+    const stream = anthropic.beta.messages.stream(
+      {
+        max_tokens: 1024,
+        model: 'claude-3-7-sonnet-20250219',
+        messages: [{ role: 'user', content: 'Say hello there!' }],
+      },
+      { maxRetries: 0 },
+    );
+
+    handleRequest(async () => {
+      throw new Error('mock request error');
+    });
+
+    await expect(stream.withResponse()).rejects.toThrow(APIConnectionError);
+  });
 });
