@@ -113,6 +113,8 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
     response: Response;
     request_id: string | null | undefined;
   }> {
+    this.#catchingPromiseCreated = true;
+
     const response = await this.#connectedPromise;
     if (!response) {
       throw new Error('Could not resolve a `Response` object');
