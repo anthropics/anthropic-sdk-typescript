@@ -69,6 +69,7 @@ export {
   type BetaCodeExecutionToolResultErrorCode,
   type BetaCodeExecutionToolResultErrorParam,
   type BetaContainer,
+  type BetaContainerParams,
   type BetaContainerUploadBlock,
   type BetaContainerUploadBlockParam,
   type BetaContentBlock,
@@ -121,6 +122,8 @@ export {
   type BetaServerToolUseBlock,
   type BetaServerToolUseBlockParam,
   type BetaSignatureDelta,
+  type BetaSkill,
+  type BetaSkillParams,
   type BetaStopReason,
   type BetaTextBlock,
   type BetaTextBlockParam,
@@ -198,3 +201,15 @@ export {
   type ModelListParams,
   type BetaModelInfosPage,
 } from './models';
+export {
+  Skills,
+  type SkillCreateResponse,
+  type SkillRetrieveResponse,
+  type SkillListResponse,
+  type SkillDeleteResponse,
+  type SkillCreateParams,
+  type SkillRetrieveParams,
+  type SkillListParams,
+  type SkillDeleteParams,
+  type SkillListResponsesPageCursor,
+} from './skills/index';
