@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.67.0 (2025-10-16)
+
+Full Changelog: [sdk-v0.66.0...sdk-v0.67.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.66.0...sdk-v0.67.0)
+
+### Features
+
+* **api:** adding support for agent skills ([0b7d97f](https://github.com/anthropics/anthropic-sdk-typescript/commit/0b7d97ff19d6e262eb484652e5ba344acbb2f1f0))
+
 ## 0.66.0 (2025-10-15)
 
 Full Changelog: [sdk-v0.65.0...sdk-v0.66.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.65.0...sdk-v0.66.0)
