@@ -16,7 +16,7 @@ describe('resource batches', () => {
           params: {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-sonnet-4-5-20250929',
           },
         },
       ],
@@ -38,7 +38,7 @@ describe('resource batches', () => {
           params: {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-sonnet-4-5-20250929',
             metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
             service_tier: 'auto',
             stop_sequences: ['string'],

@@ -59,6 +59,7 @@ import {
   BetaCodeExecutionToolResultErrorCode,
   BetaCodeExecutionToolResultErrorParam,
   BetaContainer,
+  BetaContainerParams,
   BetaContainerUploadBlock,
   BetaContainerUploadBlockParam,
   BetaContentBlock,
@@ -111,6 +112,8 @@ import {
   BetaServerToolUseBlock,
   BetaServerToolUseBlockParam,
   BetaSignatureDelta,
+  BetaSkill,
+  BetaSkillParams,
   BetaStopReason,
   BetaTextBlock,
   BetaTextBlockParam,
@@ -181,11 +184,25 @@ import {
   MessageCreateParamsStreaming,
   Messages,
 } from './messages/messages';
+import * as SkillsAPI from './skills/skills';
+import {
+  SkillCreateParams,
+  SkillCreateResponse,
+  SkillDeleteParams,
+  SkillDeleteResponse,
+  SkillListParams,
+  SkillListResponse,
+  SkillListResponsesPageCursor,
+  SkillRetrieveParams,
+  SkillRetrieveResponse,
+  Skills,
+} from './skills/skills';
 
 export class Beta extends APIResource {
   models: ModelsAPI.Models = new ModelsAPI.Models(this._client);
   messages: MessagesAPI.Messages = new MessagesAPI.Messages(this._client);
   files: FilesAPI.Files = new FilesAPI.Files(this._client);
+  skills: SkillsAPI.Skills = new SkillsAPI.Skills(this._client);
 }
 
 export type AnthropicBeta =
@@ -206,7 +223,8 @@ export type AnthropicBeta =
   | 'extended-cache-ttl-2025-04-11'
   | 'context-1m-2025-08-07'
   | 'context-management-2025-06-27'
-  | 'model-context-window-exceeded-2025-08-26';
+  | 'model-context-window-exceeded-2025-08-26'
+  | 'skills-2025-10-02';
 
 export interface BetaAPIError {
   message: string;
@@ -284,6 +302,7 @@ export interface BetaRateLimitError {
 Beta.Models = Models;
 Beta.Messages = Messages;
 Beta.Files = Files;
+Beta.Skills = Skills;
 
 export declare namespace Beta {
   export {
@@ -352,6 +371,7 @@ export declare namespace Beta {
     type BetaCodeExecutionToolResultErrorCode as BetaCodeExecutionToolResultErrorCode,
     type BetaCodeExecutionToolResultErrorParam as BetaCodeExecutionToolResultErrorParam,
     type BetaContainer as BetaContainer,
+    type BetaContainerParams as BetaContainerParams,
     type BetaContainerUploadBlock as BetaContainerUploadBlock,
     type BetaContainerUploadBlockParam as BetaContainerUploadBlockParam,
     type BetaContentBlock as BetaContentBlock,
@@ -404,6 +424,8 @@ export declare namespace Beta {
     type BetaServerToolUseBlock as BetaServerToolUseBlock,
     type BetaServerToolUseBlockParam as BetaServerToolUseBlockParam,
     type BetaSignatureDelta as BetaSignatureDelta,
+    type BetaSkill as BetaSkill,
+    type BetaSkillParams as BetaSkillParams,
     type BetaStopReason as BetaStopReason,
     type BetaTextBlock as BetaTextBlock,
     type BetaTextBlockParam as BetaTextBlockParam,
@@ -485,5 +507,18 @@ export declare namespace Beta {
     type FileDownloadParams as FileDownloadParams,
     type FileRetrieveMetadataParams as FileRetrieveMetadataParams,
     type FileUploadParams as FileUploadParams,
+  };
+
+  export {
+    Skills as Skills,
+    type SkillCreateResponse as SkillCreateResponse,
+    type SkillRetrieveResponse as SkillRetrieveResponse,
+    type SkillListResponse as SkillListResponse,
+    type SkillDeleteResponse as SkillDeleteResponse,
+    type SkillListResponsesPageCursor as SkillListResponsesPageCursor,
+    type SkillCreateParams as SkillCreateParams,
+    type SkillRetrieveParams as SkillRetrieveParams,
+    type SkillListParams as SkillListParams,
+    type SkillDeleteParams as SkillDeleteParams,
   };
 }

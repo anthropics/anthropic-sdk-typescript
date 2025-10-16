@@ -13,7 +13,7 @@ describe('resource messages', () => {
     const responsePromise = client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5-20250929',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -29,8 +29,8 @@ describe('resource messages', () => {
     const response = await client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-sonnet-4-20250514',
-      container: 'container',
+      model: 'claude-sonnet-4-5-20250929',
+      container: { id: 'id', skills: [{ skill_id: 'x', type: 'anthropic', version: 'x' }] },
       context_management: {
         edits: [
           {
