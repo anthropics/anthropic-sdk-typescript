@@ -46,7 +46,7 @@ export class Messages extends APIResource {
    * const betaMessage = await client.beta.messages.create({
    *   max_tokens: 1024,
    *   messages: [{ content: 'Hello, world', role: 'user' }],
-   *   model: 'claude-sonnet-4-20250514',
+   *   model: 'claude-sonnet-4-5-20250929',
    * });
    * ```
    */
@@ -428,9 +428,6 @@ export interface BetaClearToolUses20250919Edit {
   trigger?: BetaInputTokensTrigger | BetaToolUsesTrigger;
 }
 
-/**
- * Results for clear_tool_uses_20250919 edit.
- */
 export interface BetaClearToolUses20250919EditResponse {
   /**
    * Number of input tokens cleared by this edit.
@@ -577,6 +574,26 @@ export interface BetaContainer {
    * The time at which the container will expire.
    */
   expires_at: string;
+
+  /**
+   * Skills loaded in the container
+   */
+  skills: Array<BetaSkill> | null;
+}
+
+/**
+ * Container parameters with skills to be loaded.
+ */
+export interface BetaContainerParams {
+  /**
+   * Container id
+   */
+  id?: string | null;
+
+  /**
+   * List of skills to load in the container
+   */
+  skills?: Array<BetaSkillParams> | null;
 }
 
 /**
@@ -651,9 +668,6 @@ export interface BetaContentBlockSource {
 
 export type BetaContentBlockSourceContent = BetaTextBlockParam | BetaImageBlockParam;
 
-/**
- * Configuration for context management operations.
- */
 export interface BetaContextManagementConfig {
   /**
    * List of context management edits to apply
@@ -661,9 +675,6 @@ export interface BetaContextManagementConfig {
   edits?: Array<BetaClearToolUses20250919Edit>;
 }
 
-/**
- * Information about context management operations applied during the request.
- */
 export interface BetaContextManagementResponse {
   /**
    * List of context management edits that were applied.
@@ -965,7 +976,9 @@ export interface BetaMessage {
   content: Array<BetaContentBlock>;
 
   /**
-   * Information about context management operations applied during the request.
+   * Context management response.
+   *
+   * Information about context management strategies applied during the request.
    */
   context_management: BetaContextManagementResponse | null;
 
@@ -1149,7 +1162,7 @@ export interface BetaRawContentBlockStopEvent {
 
 export interface BetaRawMessageDeltaEvent {
   /**
-   * Information about context management operations applied during the request.
+   * Information about context management strategies applied during the request
    */
   context_management: BetaContextManagementResponse | null;
 
@@ -1334,6 +1347,46 @@ export interface BetaSignatureDelta {
   signature: string;
 
   type: 'signature_delta';
+}
+
+/**
+ * A skill that was loaded in a container (response model).
+ */
+export interface BetaSkill {
+  /**
+   * Skill ID
+   */
+  skill_id: string;
+
+  /**
+   * Type of skill - either 'anthropic' (built-in) or 'custom' (user-defined)
+   */
+  type: 'anthropic' | 'custom';
+
+  /**
+   * Skill version or 'latest' for most recent version
+   */
+  version: string;
+}
+
+/**
+ * Specification for a skill to be loaded in a container (request model).
+ */
+export interface BetaSkillParams {
+  /**
+   * Skill ID
+   */
+  skill_id: string;
+
+  /**
+   * Type of skill - either 'anthropic' (built-in) or 'custom' (user-defined)
+   */
+  type: 'anthropic' | 'custom';
+
+  /**
+   * Skill version or 'latest' for most recent version
+   */
+  version?: string;
 }
 
 export type BetaStopReason =
@@ -1545,7 +1598,7 @@ export interface BetaThinkingConfigEnabled {
    * Must be ≥1024 and less than `max_tokens`.
    *
    * See
-   * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+   * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
    * for details.
    */
   budget_tokens: number;
@@ -1561,7 +1614,7 @@ export interface BetaThinkingConfigEnabled {
  * tokens and counts towards your `max_tokens` limit.
  *
  * See
- * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+ * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
  * for details.
  */
 export type BetaThinkingConfigParam = BetaThinkingConfigEnabled | BetaThinkingConfigDisabled;
@@ -2246,7 +2299,7 @@ export interface MessageCreateParamsBase {
    * only specifies the absolute maximum number of tokens to generate.
    *
    * Different models have different maximum values for this parameter. See
-   * [models](https://docs.anthropic.com/en/docs/models-overview) for details.
+   * [models](https://docs.claude.com/en/docs/models-overview) for details.
    */
   max_tokens: number;
 
@@ -2308,12 +2361,12 @@ export interface MessageCreateParamsBase {
    * { "role": "user", "content": [{ "type": "text", "text": "Hello, Claude" }] }
    * ```
    *
-   * See [input examples](https://docs.anthropic.com/en/api/messages-examples).
+   * See [input examples](https://docs.claude.com/en/api/messages-examples).
    *
    * Note that if you want to include a
-   * [system prompt](https://docs.anthropic.com/en/docs/system-prompts), you can use
-   * the top-level `system` parameter — there is no `"system"` role for input
-   * messages in the Messages API.
+   * [system prompt](https://docs.claude.com/en/docs/system-prompts), you can use the
+   * top-level `system` parameter — there is no `"system"` role for input messages in
+   * the Messages API.
    *
    * There is a limit of 100,000 messages in a single request.
    */
@@ -2329,10 +2382,13 @@ export interface MessageCreateParamsBase {
   /**
    * Body param: Container identifier for reuse across requests.
    */
-  container?: string | null;
+  container?: BetaContainerParams | string | null;
 
   /**
-   * Body param: Configuration for context management operations.
+   * Body param: Context management configuration.
+   *
+   * This allows you to control how Claude manages context across multiple requests,
+   * such as whether to clear function results or not.
    */
   context_management?: BetaContextManagementConfig | null;
 
@@ -2351,7 +2407,7 @@ export interface MessageCreateParamsBase {
    * standard capacity for this request.
    *
    * Anthropic offers different levels of service for your API requests. See
-   * [service-tiers](https://docs.anthropic.com/en/api/service-tiers) for details.
+   * [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
    */
   service_tier?: 'auto' | 'standard_only';
 
@@ -2372,8 +2428,7 @@ export interface MessageCreateParamsBase {
    * Body param: Whether to incrementally stream the response using server-sent
    * events.
    *
-   * See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for
-   * details.
+   * See [streaming](https://docs.claude.com/en/api/messages-streaming) for details.
    */
   stream?: boolean;
 
@@ -2382,7 +2437,7 @@ export interface MessageCreateParamsBase {
    *
    * A system prompt is a way of providing context and instructions to Claude, such
    * as specifying a particular goal or role. See our
-   * [guide to system prompts](https://docs.anthropic.com/en/docs/system-prompts).
+   * [guide to system prompts](https://docs.claude.com/en/docs/system-prompts).
    */
   system?: string | Array<BetaTextBlockParam>;
 
@@ -2406,7 +2461,7 @@ export interface MessageCreateParamsBase {
    * tokens and counts towards your `max_tokens` limit.
    *
    * See
-   * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+   * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
    * for details.
    */
   thinking?: BetaThinkingConfigParam;
@@ -2427,9 +2482,9 @@ export interface MessageCreateParamsBase {
    *
    * There are two types of tools: **client tools** and **server tools**. The
    * behavior described below applies to client tools. For
-   * [server tools](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
+   * [server tools](https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
    * see their individual documentation as each has its own behavior (e.g., the
-   * [web search tool](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
+   * [web search tool](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
    *
    * Each tool definition includes:
    *
@@ -2492,7 +2547,7 @@ export interface MessageCreateParamsBase {
    * functions, or more generally whenever you want the model to produce a particular
    * JSON structure of output.
    *
-   * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
+   * See our [guide](https://docs.claude.com/en/docs/tool-use) for more details.
    */
   tools?: Array<BetaToolUnion>;
 
@@ -2536,8 +2591,7 @@ export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase
    * Body param: Whether to incrementally stream the response using server-sent
    * events.
    *
-   * See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for
-   * details.
+   * See [streaming](https://docs.claude.com/en/api/messages-streaming) for details.
    */
   stream?: false;
 }
@@ -2547,8 +2601,7 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
    * Body param: Whether to incrementally stream the response using server-sent
    * events.
    *
-   * See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for
-   * details.
+   * See [streaming](https://docs.claude.com/en/api/messages-streaming) for details.
    */
   stream: true;
 }
@@ -2612,12 +2665,12 @@ export interface MessageCountTokensParams {
    * { "role": "user", "content": [{ "type": "text", "text": "Hello, Claude" }] }
    * ```
    *
-   * See [input examples](https://docs.anthropic.com/en/api/messages-examples).
+   * See [input examples](https://docs.claude.com/en/api/messages-examples).
    *
    * Note that if you want to include a
-   * [system prompt](https://docs.anthropic.com/en/docs/system-prompts), you can use
-   * the top-level `system` parameter — there is no `"system"` role for input
-   * messages in the Messages API.
+   * [system prompt](https://docs.claude.com/en/docs/system-prompts), you can use the
+   * top-level `system` parameter — there is no `"system"` role for input messages in
+   * the Messages API.
    *
    * There is a limit of 100,000 messages in a single request.
    */
@@ -2631,7 +2684,10 @@ export interface MessageCountTokensParams {
   model: MessagesAPI.Model;
 
   /**
-   * Body param: Configuration for context management operations.
+   * Body param: Context management configuration.
+   *
+   * This allows you to control how Claude manages context across multiple requests,
+   * such as whether to clear function results or not.
    */
   context_management?: BetaContextManagementConfig | null;
 
@@ -2645,7 +2701,7 @@ export interface MessageCountTokensParams {
    *
    * A system prompt is a way of providing context and instructions to Claude, such
    * as specifying a particular goal or role. See our
-   * [guide to system prompts](https://docs.anthropic.com/en/docs/system-prompts).
+   * [guide to system prompts](https://docs.claude.com/en/docs/system-prompts).
    */
   system?: string | Array<BetaTextBlockParam>;
 
@@ -2657,7 +2713,7 @@ export interface MessageCountTokensParams {
    * tokens and counts towards your `max_tokens` limit.
    *
    * See
-   * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+   * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
    * for details.
    */
   thinking?: BetaThinkingConfigParam;
@@ -2678,9 +2734,9 @@ export interface MessageCountTokensParams {
    *
    * There are two types of tools: **client tools** and **server tools**. The
    * behavior described below applies to client tools. For
-   * [server tools](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
+   * [server tools](https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
    * see their individual documentation as each has its own behavior (e.g., the
-   * [web search tool](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
+   * [web search tool](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
    *
    * Each tool definition includes:
    *
@@ -2743,7 +2799,7 @@ export interface MessageCountTokensParams {
    * functions, or more generally whenever you want the model to produce a particular
    * JSON structure of output.
    *
-   * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
+   * See our [guide](https://docs.claude.com/en/docs/tool-use) for more details.
    */
   tools?: Array<
     | BetaTool
@@ -2813,6 +2869,7 @@ export declare namespace Messages {
     type BetaCodeExecutionToolResultErrorCode as BetaCodeExecutionToolResultErrorCode,
     type BetaCodeExecutionToolResultErrorParam as BetaCodeExecutionToolResultErrorParam,
     type BetaContainer as BetaContainer,
+    type BetaContainerParams as BetaContainerParams,
     type BetaContainerUploadBlock as BetaContainerUploadBlock,
     type BetaContainerUploadBlockParam as BetaContainerUploadBlockParam,
     type BetaContentBlock as BetaContentBlock,
@@ -2865,6 +2922,8 @@ export declare namespace Messages {
     type BetaServerToolUseBlock as BetaServerToolUseBlock,
     type BetaServerToolUseBlockParam as BetaServerToolUseBlockParam,
     type BetaSignatureDelta as BetaSignatureDelta,
+    type BetaSkill as BetaSkill,
+    type BetaSkillParams as BetaSkillParams,
     type BetaStopReason as BetaStopReason,
     type BetaTextBlock as BetaTextBlock,
     type BetaTextBlockParam as BetaTextBlockParam,

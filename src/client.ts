@@ -14,7 +14,15 @@ import * as Opts from './internal/request-options';
 import { VERSION } from './version';
 import * as Errors from './core/error';
 import * as Pagination from './core/pagination';
-import { AbstractPage, type PageParams, PageResponse } from './core/pagination';
+import {
+  AbstractPage,
+  type PageCursorParams,
+  PageCursorResponse,
+  type PageParams,
+  PageResponse,
+  type TokenPageParams,
+  TokenPageResponse,
+} from './core/pagination';
 import * as Uploads from './core/uploads';
 import * as API from './resources/index';
 import { APIPromise } from './core/api-promise';
@@ -931,6 +939,12 @@ export declare namespace Anthropic {
 
   export import Page = Pagination.Page;
   export { type PageParams as PageParams, type PageResponse as PageResponse };
+
+  export import TokenPage = Pagination.TokenPage;
+  export { type TokenPageParams as TokenPageParams, type TokenPageResponse as TokenPageResponse };
+
+  export import PageCursor = Pagination.PageCursor;
+  export { type PageCursorParams as PageCursorParams, type PageCursorResponse as PageCursorResponse };
 
   export {
     Completions as Completions,

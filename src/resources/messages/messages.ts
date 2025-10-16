@@ -39,7 +39,7 @@ export class Messages extends APIResource {
    * const message = await client.messages.create({
    *   max_tokens: 1024,
    *   messages: [{ content: 'Hello, world', role: 'user' }],
-   *   model: 'claude-sonnet-4-20250514',
+   *   model: 'claude-sonnet-4-5-20250929',
    * });
    * ```
    */
@@ -719,14 +719,7 @@ export interface SignatureDelta {
   type: 'signature_delta';
 }
 
-export type StopReason =
-  | 'end_turn'
-  | 'max_tokens'
-  | 'stop_sequence'
-  | 'tool_use'
-  | 'pause_turn'
-  | 'refusal'
-  | 'model_context_window_exceeded';
+export type StopReason = 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | 'pause_turn' | 'refusal';
 
 export interface TextBlock {
   /**
@@ -805,7 +798,7 @@ export interface ThinkingConfigEnabled {
    * Must be ≥1024 and less than `max_tokens`.
    *
    * See
-   * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+   * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
    * for details.
    */
   budget_tokens: number;
@@ -821,7 +814,7 @@ export interface ThinkingConfigEnabled {
  * tokens and counts towards your `max_tokens` limit.
  *
  * See
- * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+ * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
  * for details.
  */
 export type ThinkingConfigParam = ThinkingConfigEnabled | ThinkingConfigDisabled;
@@ -1268,7 +1261,7 @@ export interface MessageCreateParamsBase {
    * only specifies the absolute maximum number of tokens to generate.
    *
    * Different models have different maximum values for this parameter. See
-   * [models](https://docs.anthropic.com/en/docs/models-overview) for details.
+   * [models](https://docs.claude.com/en/docs/models-overview) for details.
    */
   max_tokens: number;
 
@@ -1330,12 +1323,12 @@ export interface MessageCreateParamsBase {
    * { "role": "user", "content": [{ "type": "text", "text": "Hello, Claude" }] }
    * ```
    *
-   * See [input examples](https://docs.anthropic.com/en/api/messages-examples).
+   * See [input examples](https://docs.claude.com/en/api/messages-examples).
    *
    * Note that if you want to include a
-   * [system prompt](https://docs.anthropic.com/en/docs/system-prompts), you can use
-   * the top-level `system` parameter — there is no `"system"` role for input
-   * messages in the Messages API.
+   * [system prompt](https://docs.claude.com/en/docs/system-prompts), you can use the
+   * top-level `system` parameter — there is no `"system"` role for input messages in
+   * the Messages API.
    *
    * There is a limit of 100,000 messages in a single request.
    */
@@ -1358,7 +1351,7 @@ export interface MessageCreateParamsBase {
    * for this request.
    *
    * Anthropic offers different levels of service for your API requests. See
-   * [service-tiers](https://docs.anthropic.com/en/api/service-tiers) for details.
+   * [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
    */
   service_tier?: 'auto' | 'standard_only';
 
@@ -1378,8 +1371,7 @@ export interface MessageCreateParamsBase {
   /**
    * Whether to incrementally stream the response using server-sent events.
    *
-   * See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for
-   * details.
+   * See [streaming](https://docs.claude.com/en/api/messages-streaming) for details.
    */
   stream?: boolean;
 
@@ -1388,7 +1380,7 @@ export interface MessageCreateParamsBase {
    *
    * A system prompt is a way of providing context and instructions to Claude, such
    * as specifying a particular goal or role. See our
-   * [guide to system prompts](https://docs.anthropic.com/en/docs/system-prompts).
+   * [guide to system prompts](https://docs.claude.com/en/docs/system-prompts).
    */
   system?: string | Array<TextBlockParam>;
 
@@ -1412,7 +1404,7 @@ export interface MessageCreateParamsBase {
    * tokens and counts towards your `max_tokens` limit.
    *
    * See
-   * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+   * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
    * for details.
    */
   thinking?: ThinkingConfigParam;
@@ -1433,9 +1425,9 @@ export interface MessageCreateParamsBase {
    *
    * There are two types of tools: **client tools** and **server tools**. The
    * behavior described below applies to client tools. For
-   * [server tools](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
+   * [server tools](https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
    * see their individual documentation as each has its own behavior (e.g., the
-   * [web search tool](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
+   * [web search tool](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
    *
    * Each tool definition includes:
    *
@@ -1498,7 +1490,7 @@ export interface MessageCreateParamsBase {
    * functions, or more generally whenever you want the model to produce a particular
    * JSON structure of output.
    *
-   * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
+   * See our [guide](https://docs.claude.com/en/docs/tool-use) for more details.
    */
   tools?: Array<ToolUnion>;
 
@@ -1536,8 +1528,7 @@ export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase
   /**
    * Whether to incrementally stream the response using server-sent events.
    *
-   * See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for
-   * details.
+   * See [streaming](https://docs.claude.com/en/api/messages-streaming) for details.
    */
   stream?: false;
 }
@@ -1546,8 +1537,7 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
   /**
    * Whether to incrementally stream the response using server-sent events.
    *
-   * See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for
-   * details.
+   * See [streaming](https://docs.claude.com/en/api/messages-streaming) for details.
    */
   stream: true;
 }
@@ -1611,12 +1601,12 @@ export interface MessageCountTokensParams {
    * { "role": "user", "content": [{ "type": "text", "text": "Hello, Claude" }] }
    * ```
    *
-   * See [input examples](https://docs.anthropic.com/en/api/messages-examples).
+   * See [input examples](https://docs.claude.com/en/api/messages-examples).
    *
    * Note that if you want to include a
-   * [system prompt](https://docs.anthropic.com/en/docs/system-prompts), you can use
-   * the top-level `system` parameter — there is no `"system"` role for input
-   * messages in the Messages API.
+   * [system prompt](https://docs.claude.com/en/docs/system-prompts), you can use the
+   * top-level `system` parameter — there is no `"system"` role for input messages in
+   * the Messages API.
    *
    * There is a limit of 100,000 messages in a single request.
    */
@@ -1634,7 +1624,7 @@ export interface MessageCountTokensParams {
    *
    * A system prompt is a way of providing context and instructions to Claude, such
    * as specifying a particular goal or role. See our
-   * [guide to system prompts](https://docs.anthropic.com/en/docs/system-prompts).
+   * [guide to system prompts](https://docs.claude.com/en/docs/system-prompts).
    */
   system?: string | Array<TextBlockParam>;
 
@@ -1646,7 +1636,7 @@ export interface MessageCountTokensParams {
    * tokens and counts towards your `max_tokens` limit.
    *
    * See
-   * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+   * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
    * for details.
    */
   thinking?: ThinkingConfigParam;
@@ -1667,9 +1657,9 @@ export interface MessageCountTokensParams {
    *
    * There are two types of tools: **client tools** and **server tools**. The
    * behavior described below applies to client tools. For
-   * [server tools](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
+   * [server tools](https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
    * see their individual documentation as each has its own behavior (e.g., the
-   * [web search tool](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
+   * [web search tool](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
    *
    * Each tool definition includes:
    *
@@ -1732,7 +1722,7 @@ export interface MessageCountTokensParams {
    * functions, or more generally whenever you want the model to produce a particular
    * JSON structure of output.
    *
-   * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
+   * See our [guide](https://docs.claude.com/en/docs/tool-use) for more details.
    */
   tools?: Array<MessageCountTokensTool>;
 }

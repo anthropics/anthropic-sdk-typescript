@@ -38,6 +38,25 @@ Readable.fromWeb(res.body).pipe(process.stdout);
 
 Additionally, the `headers` property on `APIError` objects is now an instance of the Web [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) class. It was previously defined as `Record<string, string | null | undefined>`.
 
+### Named path parameters
+
+Methods that take multiple path parameters typically now use named instead of positional arguments for better clarity and to prevent a footgun where it was easy to accidentally pass arguments in the incorrect order.
+
+For example, for a method that would call an endpoint at `/v1/parents/{parent_id}/children/{child_id}`, only the _last_ path parameter is positional and the rest must be passed as named arguments.
+
+```ts
+// Before
+client.parents.children.retrieve('p_123', 'c_456');
+
+// After
+client.parents.children.retrieve('c_456', { parent_id: 'p_123' });
+```
+
+This affects the following methods:
+
+- `client.beta.skills.versions.retrieve()`
+- `client.beta.skills.versions.delete()`
+
 ### URI encoded path parameters
 
 Path params are now properly encoded by default. If you were manually encoding path parameters before giving them to the SDK, you must now stop doing that and pass the
@@ -81,6 +100,12 @@ This affects the following methods:
 - `client.beta.files.delete()`
 - `client.beta.files.download()`
 - `client.beta.files.retrieveMetadata()`
+- `client.beta.skills.create()`
+- `client.beta.skills.retrieve()`
+- `client.beta.skills.list()`
+- `client.beta.skills.delete()`
+- `client.beta.skills.versions.create()`
+- `client.beta.skills.versions.list()`
 
 ### Removed `httpAgent` in favor of `fetchOptions`
 

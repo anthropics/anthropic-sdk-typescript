@@ -194,3 +194,133 @@ export class Page<Item> extends AbstractPage<Item> implements PageResponse<Item>
     };
   }
 }
+
+export interface TokenPageResponse<Item> {
+  data: Array<Item>;
+
+  has_more: boolean;
+
+  next_page: string | null;
+}
+
+export interface TokenPageParams {
+  /**
+   * Number of items per page.
+   */
+  limit?: number;
+
+  page_token?: string;
+}
+
+export class TokenPage<Item> extends AbstractPage<Item> implements TokenPageResponse<Item> {
+  data: Array<Item>;
+
+  has_more: boolean;
+
+  next_page: string | null;
+
+  constructor(
+    client: BaseAnthropic,
+    response: Response,
+    body: TokenPageResponse<Item>,
+    options: FinalRequestOptions,
+  ) {
+    super(client, response, body, options);
+
+    this.data = body.data || [];
+    this.has_more = body.has_more || false;
+    this.next_page = body.next_page || null;
+  }
+
+  getPaginatedItems(): Item[] {
+    return this.data ?? [];
+  }
+
+  override hasNextPage(): boolean {
+    if (this.has_more === false) {
+      return false;
+    }
+
+    return super.hasNextPage();
+  }
+
+  nextPageRequestOptions(): PageRequestOptions | null {
+    const cursor = this.next_page;
+    if (!cursor) {
+      return null;
+    }
+
+    return {
+      ...this.options,
+      query: {
+        ...maybeObj(this.options.query),
+        page_token: cursor,
+      },
+    };
+  }
+}
+
+export interface PageCursorResponse<Item> {
+  data: Array<Item>;
+
+  has_more: boolean;
+
+  next_page: string | null;
+}
+
+export interface PageCursorParams {
+  /**
+   * Number of items per page.
+   */
+  limit?: number;
+
+  page?: string | null;
+}
+
+export class PageCursor<Item> extends AbstractPage<Item> implements PageCursorResponse<Item> {
+  data: Array<Item>;
+
+  has_more: boolean;
+
+  next_page: string | null;
+
+  constructor(
+    client: BaseAnthropic,
+    response: Response,
+    body: PageCursorResponse<Item>,
+    options: FinalRequestOptions,
+  ) {
+    super(client, response, body, options);
+
+    this.data = body.data || [];
+    this.has_more = body.has_more || false;
+    this.next_page = body.next_page || null;
+  }
+
+  getPaginatedItems(): Item[] {
+    return this.data ?? [];
+  }
+
+  override hasNextPage(): boolean {
+    if (this.has_more === false) {
+      return false;
+    }
+
+    return super.hasNextPage();
+  }
+
+  nextPageRequestOptions(): PageRequestOptions | null {
+    const cursor = this.next_page;
+    if (!cursor) {
+      return null;
+    }
+
+    return {
+      ...this.options,
+      query: {
+        ...maybeObj(this.options.query),
+        page: cursor,
+      },
+    };
+  }
+}

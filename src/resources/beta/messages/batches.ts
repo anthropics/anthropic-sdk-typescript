@@ -34,7 +34,7 @@ export class Batches extends APIResource {
    *           messages: [
    *             { content: 'Hello, world', role: 'user' },
    *           ],
-   *           model: 'claude-sonnet-4-20250514',
+   *           model: 'claude-sonnet-4-5-20250929',
    *         },
    *       },
    *     ],
@@ -452,7 +452,7 @@ export namespace BatchCreateParams {
        * only specifies the absolute maximum number of tokens to generate.
        *
        * Different models have different maximum values for this parameter. See
-       * [models](https://docs.anthropic.com/en/docs/models-overview) for details.
+       * [models](https://docs.claude.com/en/docs/models-overview) for details.
        */
       max_tokens: number;
 
@@ -514,12 +514,12 @@ export namespace BatchCreateParams {
        * { "role": "user", "content": [{ "type": "text", "text": "Hello, Claude" }] }
        * ```
        *
-       * See [input examples](https://docs.anthropic.com/en/api/messages-examples).
+       * See [input examples](https://docs.claude.com/en/api/messages-examples).
        *
        * Note that if you want to include a
-       * [system prompt](https://docs.anthropic.com/en/docs/system-prompts), you can use
-       * the top-level `system` parameter — there is no `"system"` role for input
-       * messages in the Messages API.
+       * [system prompt](https://docs.claude.com/en/docs/system-prompts), you can use the
+       * top-level `system` parameter — there is no `"system"` role for input messages in
+       * the Messages API.
        *
        * There is a limit of 100,000 messages in a single request.
        */
@@ -535,10 +535,13 @@ export namespace BatchCreateParams {
       /**
        * Container identifier for reuse across requests.
        */
-      container?: string | null;
+      container?: MessagesMessagesAPI.BetaContainerParams | string | null;
 
       /**
-       * Configuration for context management operations.
+       * Context management configuration.
+       *
+       * This allows you to control how Claude manages context across multiple requests,
+       * such as whether to clear function results or not.
        */
       context_management?: MessagesMessagesAPI.BetaContextManagementConfig | null;
 
@@ -557,7 +560,7 @@ export namespace BatchCreateParams {
        * for this request.
        *
        * Anthropic offers different levels of service for your API requests. See
-       * [service-tiers](https://docs.anthropic.com/en/api/service-tiers) for details.
+       * [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
        */
       service_tier?: 'auto' | 'standard_only';
 
@@ -577,8 +580,7 @@ export namespace BatchCreateParams {
       /**
        * Whether to incrementally stream the response using server-sent events.
        *
-       * See [streaming](https://docs.anthropic.com/en/api/messages-streaming) for
-       * details.
+       * See [streaming](https://docs.claude.com/en/api/messages-streaming) for details.
        */
       stream?: boolean;
 
@@ -587,7 +589,7 @@ export namespace BatchCreateParams {
        *
        * A system prompt is a way of providing context and instructions to Claude, such
        * as specifying a particular goal or role. See our
-       * [guide to system prompts](https://docs.anthropic.com/en/docs/system-prompts).
+       * [guide to system prompts](https://docs.claude.com/en/docs/system-prompts).
        */
       system?: string | Array<MessagesMessagesAPI.BetaTextBlockParam>;
 
@@ -611,7 +613,7 @@ export namespace BatchCreateParams {
        * tokens and counts towards your `max_tokens` limit.
        *
        * See
-       * [extended thinking](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
+       * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
        * for details.
        */
       thinking?: MessagesMessagesAPI.BetaThinkingConfigParam;
@@ -632,9 +634,9 @@ export namespace BatchCreateParams {
        *
        * There are two types of tools: **client tools** and **server tools**. The
        * behavior described below applies to client tools. For
-       * [server tools](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
+       * [server tools](https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
        * see their individual documentation as each has its own behavior (e.g., the
-       * [web search tool](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
+       * [web search tool](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
        *
        * Each tool definition includes:
        *
@@ -697,7 +699,7 @@ export namespace BatchCreateParams {
        * functions, or more generally whenever you want the model to produce a particular
        * JSON structure of output.
        *
-       * See our [guide](https://docs.anthropic.com/en/docs/tool-use) for more details.
+       * See our [guide](https://docs.claude.com/en/docs/tool-use) for more details.
        */
       tools?: Array<MessagesMessagesAPI.BetaToolUnion>;
 
