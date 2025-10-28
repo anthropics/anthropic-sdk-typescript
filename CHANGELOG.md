@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.68.0 (2025-10-28)
+
+Full Changelog: [sdk-v0.67.1...sdk-v0.68.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.67.1...sdk-v0.68.0)
+
+### Features
+
+* **api:** add ability to clear thinking in context management ([d8707d3](https://github.com/anthropics/anthropic-sdk-typescript/commit/d8707d3cc9f7f2fe59c0b4d4c84c184dd47f8689))
+
 ## 0.67.1 (2025-10-28)
 
 Full Changelog: [sdk-v0.67.0...sdk-v0.67.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.67.0...sdk-v0.67.1)
