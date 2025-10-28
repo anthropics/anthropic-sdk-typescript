@@ -187,6 +187,7 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaAllThinkingTurns</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64ImageSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64PDFSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionOutputBlock</a></code>
@@ -212,6 +213,8 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationsConfigParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationsDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationsWebSearchResultLocation</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaClearThinking20251015Edit</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaClearThinking20251015EditResponse</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaClearToolUses20250919Edit</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaClearToolUses20250919EditResponse</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionOutputBlock</a></code>
@@ -305,6 +308,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigEnabled</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingDelta</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingTurns</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTool</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolBash20241022</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolBash20250124</a></code>

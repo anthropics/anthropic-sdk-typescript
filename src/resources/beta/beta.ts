@@ -17,6 +17,7 @@ import * as ModelsAPI from './models';
 import { BetaModelInfo, BetaModelInfosPage, ModelListParams, ModelRetrieveParams, Models } from './models';
 import * as MessagesAPI from './messages/messages';
 import {
+  BetaAllThinkingTurns,
   BetaBase64ImageSource,
   BetaBase64PDFBlock,
   BetaBase64PDFSource,
@@ -43,6 +44,8 @@ import {
   BetaCitationsConfigParam,
   BetaCitationsDelta,
   BetaCitationsWebSearchResultLocation,
+  BetaClearThinking20251015Edit,
+  BetaClearThinking20251015EditResponse,
   BetaClearToolUses20250919Edit,
   BetaClearToolUses20250919EditResponse,
   BetaCodeExecutionOutputBlock,
@@ -136,6 +139,7 @@ import {
   BetaThinkingConfigEnabled,
   BetaThinkingConfigParam,
   BetaThinkingDelta,
+  BetaThinkingTurns,
   BetaTool,
   BetaToolBash20241022,
   BetaToolBash20250124,
@@ -330,6 +334,7 @@ export declare namespace Beta {
 
   export {
     Messages as Messages,
+    type BetaAllThinkingTurns as BetaAllThinkingTurns,
     type BetaBase64ImageSource as BetaBase64ImageSource,
     type BetaBase64PDFSource as BetaBase64PDFSource,
     type BetaBashCodeExecutionOutputBlock as BetaBashCodeExecutionOutputBlock,
@@ -355,6 +360,8 @@ export declare namespace Beta {
     type BetaCitationsConfigParam as BetaCitationsConfigParam,
     type BetaCitationsDelta as BetaCitationsDelta,
     type BetaCitationsWebSearchResultLocation as BetaCitationsWebSearchResultLocation,
+    type BetaClearThinking20251015Edit as BetaClearThinking20251015Edit,
+    type BetaClearThinking20251015EditResponse as BetaClearThinking20251015EditResponse,
     type BetaClearToolUses20250919Edit as BetaClearToolUses20250919Edit,
     type BetaClearToolUses20250919EditResponse as BetaClearToolUses20250919EditResponse,
     type BetaCodeExecutionOutputBlock as BetaCodeExecutionOutputBlock,
@@ -448,6 +455,7 @@ export declare namespace Beta {
     type BetaThinkingConfigEnabled as BetaThinkingConfigEnabled,
     type BetaThinkingConfigParam as BetaThinkingConfigParam,
     type BetaThinkingDelta as BetaThinkingDelta,
+    type BetaThinkingTurns as BetaThinkingTurns,
     type BetaTool as BetaTool,
     type BetaToolBash20241022 as BetaToolBash20241022,
     type BetaToolBash20250124 as BetaToolBash20250124,
