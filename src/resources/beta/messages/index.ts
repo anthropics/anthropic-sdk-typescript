@@ -21,6 +21,7 @@ export {
 } from './batches';
 export {
   Messages,
+  type BetaAllThinkingTurns,
   type BetaBase64ImageSource,
   type BetaBase64PDFSource,
   type BetaBashCodeExecutionOutputBlock,
@@ -46,6 +47,8 @@ export {
   type BetaCitationsConfigParam,
   type BetaCitationsDelta,
   type BetaCitationsWebSearchResultLocation,
+  type BetaClearThinking20251015Edit,
+  type BetaClearThinking20251015EditResponse,
   type BetaClearToolUses20250919Edit,
   type BetaClearToolUses20250919EditResponse,
   type BetaCodeExecutionOutputBlock,
@@ -139,6 +142,7 @@ export {
   type BetaThinkingConfigEnabled,
   type BetaThinkingConfigParam,
   type BetaThinkingDelta,
+  type BetaThinkingTurns,
   type BetaTool,
   type BetaToolBash20241022,
   type BetaToolBash20250124,

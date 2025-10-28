@@ -688,7 +688,7 @@ export interface ServerToolUsage {
 export interface ServerToolUseBlock {
   id: string;
 
-  input: unknown;
+  input: { [key: string]: unknown };
 
   name: 'web_search';
 
@@ -698,7 +698,7 @@ export interface ServerToolUseBlock {
 export interface ServerToolUseBlockParam {
   id: string;
 
-  input: unknown;
+  input: { [key: string]: unknown };
 
   name: 'web_search';
 
@@ -866,7 +866,7 @@ export namespace Tool {
   export interface InputSchema {
     type: 'object';
 
-    properties?: unknown | null;
+    properties?: { [key: string]: unknown } | null;
 
     required?: Array<string> | null;
 
@@ -1033,7 +1033,7 @@ export type ToolUnion =
 export interface ToolUseBlock {
   id: string;
 
-  input: unknown;
+  input: { [key: string]: unknown };
 
   name: string;
 
@@ -1043,7 +1043,7 @@ export interface ToolUseBlock {
 export interface ToolUseBlockParam {
   id: string;
 
-  input: unknown;
+  input: { [key: string]: unknown };
 
   name: string;
 

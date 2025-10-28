@@ -110,6 +110,10 @@ export class Messages extends APIResource {
   }
 }
 
+export interface BetaAllThinkingTurns {
+  type: 'all';
+}
+
 export interface BetaBase64ImageSource {
   data: string;
 
@@ -398,6 +402,33 @@ export interface BetaCitationsWebSearchResultLocation {
   url: string;
 }
 
+export interface BetaClearThinking20251015Edit {
+  type: 'clear_thinking_20251015';
+
+  /**
+   * Number of most recent assistant turns to keep thinking blocks for. Older turns
+   * will have their thinking blocks removed.
+   */
+  keep?: BetaThinkingTurns | BetaAllThinkingTurns | 'all';
+}
+
+export interface BetaClearThinking20251015EditResponse {
+  /**
+   * Number of input tokens cleared by this edit.
+   */
+  cleared_input_tokens: number;
+
+  /**
+   * Number of thinking turns that were cleared.
+   */
+  cleared_thinking_turns: number;
+
+  /**
+   * The type of context management edit applied.
+   */
+  type: 'clear_thinking_20251015';
+}
+
 export interface BetaClearToolUses20250919Edit {
   type: 'clear_tool_uses_20250919';
 
@@ -672,14 +703,14 @@ export interface BetaContextManagementConfig {
   /**
    * List of context management edits to apply
    */
-  edits?: Array<BetaClearToolUses20250919Edit>;
+  edits?: Array<BetaClearToolUses20250919Edit | BetaClearThinking20251015Edit>;
 }
 
 export interface BetaContextManagementResponse {
   /**
    * List of context management edits that were applied.
    */
-  applied_edits: Array<BetaClearToolUses20250919EditResponse>;
+  applied_edits: Array<BetaClearToolUses20250919EditResponse | BetaClearThinking20251015EditResponse>;
 }
 
 export interface BetaCountTokensContextManagementResponse {
@@ -759,7 +790,7 @@ export interface BetaMCPToolResultBlock {
 export interface BetaMCPToolUseBlock {
   id: string;
 
-  input: unknown;
+  input: { [key: string]: unknown };
 
   /**
    * The name of the MCP tool
@@ -777,7 +808,7 @@ export interface BetaMCPToolUseBlock {
 export interface BetaMCPToolUseBlockParam {
   id: string;
 
-  input: unknown;
+  input: { [key: string]: unknown };
 
   name: string;
 
@@ -1321,7 +1352,7 @@ export interface BetaServerToolUsage {
 export interface BetaServerToolUseBlock {
   id: string;
 
-  input: unknown;
+  input: { [key: string]: unknown };
 
   name: 'web_search' | 'web_fetch' | 'code_execution' | 'bash_code_execution' | 'text_editor_code_execution';
 
@@ -1331,7 +1362,7 @@ export interface BetaServerToolUseBlock {
 export interface BetaServerToolUseBlockParam {
   id: string;
 
-  input: unknown;
+  input: { [key: string]: unknown };
 
   name: 'web_search' | 'web_fetch' | 'code_execution' | 'bash_code_execution' | 'text_editor_code_execution';
 
@@ -1625,6 +1656,12 @@ export interface BetaThinkingDelta {
   type: 'thinking_delta';
 }
 
+export interface BetaThinkingTurns {
+  type: 'thinking_turns';
+
+  value: number;
+}
+
 export interface BetaTool {
   /**
    * [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
@@ -1669,7 +1706,7 @@ export namespace BetaTool {
   export interface InputSchema {
     type: 'object';
 
-    properties?: unknown | null;
+    properties?: { [key: string]: unknown } | null;
 
     required?: Array<string> | null;
 
@@ -1940,7 +1977,7 @@ export type BetaToolUnion =
 export interface BetaToolUseBlock {
   id: string;
 
-  input: unknown;
+  input: { [key: string]: unknown };
 
   name: string;
 
@@ -1950,7 +1987,7 @@ export interface BetaToolUseBlock {
 export interface BetaToolUseBlockParam {
   id: string;
 
-  input: unknown;
+  input: { [key: string]: unknown };
 
   name: string;
 
@@ -2828,6 +2865,7 @@ Messages.Batches = Batches;
 
 export declare namespace Messages {
   export {
+    type BetaAllThinkingTurns as BetaAllThinkingTurns,
     type BetaBase64ImageSource as BetaBase64ImageSource,
     type BetaBase64PDFSource as BetaBase64PDFSource,
     type BetaBashCodeExecutionOutputBlock as BetaBashCodeExecutionOutputBlock,
@@ -2853,6 +2891,8 @@ export declare namespace Messages {
     type BetaCitationsConfigParam as BetaCitationsConfigParam,
     type BetaCitationsDelta as BetaCitationsDelta,
     type BetaCitationsWebSearchResultLocation as BetaCitationsWebSearchResultLocation,
+    type BetaClearThinking20251015Edit as BetaClearThinking20251015Edit,
+    type BetaClearThinking20251015EditResponse as BetaClearThinking20251015EditResponse,
     type BetaClearToolUses20250919Edit as BetaClearToolUses20250919Edit,
     type BetaClearToolUses20250919EditResponse as BetaClearToolUses20250919EditResponse,
     type BetaCodeExecutionOutputBlock as BetaCodeExecutionOutputBlock,
@@ -2946,6 +2986,7 @@ export declare namespace Messages {
     type BetaThinkingConfigEnabled as BetaThinkingConfigEnabled,
     type BetaThinkingConfigParam as BetaThinkingConfigParam,
     type BetaThinkingDelta as BetaThinkingDelta,
+    type BetaThinkingTurns as BetaThinkingTurns,
     type BetaTool as BetaTool,
     type BetaToolBash20241022 as BetaToolBash20241022,
     type BetaToolBash20250124 as BetaToolBash20250124,
