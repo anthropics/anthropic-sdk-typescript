@@ -100,7 +100,7 @@ export class Messages extends APIResource {
    * const messageTokensCount =
    *   await client.messages.countTokens({
    *     messages: [{ content: 'string', role: 'user' }],
-   *     model: 'claude-3-7-sonnet-latest',
+   *     model: 'claude-sonnet-4-5',
    *   });
    * ```
    */
@@ -568,9 +568,6 @@ export type Model =
   | 'claude-4-sonnet-20250514'
   | 'claude-sonnet-4-5'
   | 'claude-sonnet-4-5-20250929'
-  | 'claude-3-5-sonnet-latest'
-  | 'claude-3-5-sonnet-20241022'
-  | 'claude-3-5-sonnet-20240620'
   | 'claude-opus-4-0'
   | 'claude-opus-4-20250514'
   | 'claude-4-opus-20250514'
@@ -592,8 +589,8 @@ const DEPRECATED_MODELS: {
   'claude-3-opus-20240229': 'January 5th, 2026',
   'claude-2.1': 'July 21st, 2025',
   'claude-2.0': 'July 21st, 2025',
-  'claude-3-5-sonnet-20241022': 'October 22, 2025',
-  'claude-3-5-sonnet-20240620': 'October 22, 2025',
+  'claude-3-7-sonnet-latest': 'February 19th, 2026',
+  'claude-3-7-sonnet-20250219': 'February 19th, 2026',
 };
 
 export interface PlainTextSource {

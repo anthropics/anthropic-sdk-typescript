@@ -76,7 +76,7 @@ describe('resource messages', () => {
   test('countTokens: only required params', async () => {
     const responsePromise = client.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
-      model: 'claude-3-7-sonnet-latest',
+      model: 'claude-sonnet-4-5',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -90,7 +90,7 @@ describe('resource messages', () => {
   test('countTokens: required and optional params', async () => {
     const response = await client.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
-      model: 'claude-3-7-sonnet-latest',
+      model: 'claude-sonnet-4-5',
       system: [
         {
           text: "Today's date is 2024-06-01.",

@@ -102,7 +102,7 @@ describe('resource messages', () => {
   test.skip('countTokens: only required params', async () => {
     const responsePromise = client.beta.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
-      model: 'claude-3-7-sonnet-latest',
+      model: 'claude-sonnet-4-5',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -117,7 +117,7 @@ describe('resource messages', () => {
   test.skip('countTokens: required and optional params', async () => {
     const response = await client.beta.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
-      model: 'claude-3-7-sonnet-latest',
+      model: 'claude-sonnet-4-5',
       context_management: {
         edits: [
           {

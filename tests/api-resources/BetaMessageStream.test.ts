@@ -70,7 +70,7 @@ const EXPECTED_TOOL_USE_EVENT_TYPES = [
 
 const EXPECTED_INCOMPLETE_MESSAGE = {
   id: 'msg_01UdjYBBipA9omjYhicnevgq',
-  model: 'claude-3-7-sonnet-20250219',
+  model: 'claude-sonnet-4-5',
   role: 'assistant',
   stop_reason: 'max_tokens',
   stop_sequence: null,
@@ -238,7 +238,7 @@ describe('BetaMessageStream class', () => {
 
     const stream = anthropic.beta.messages.stream({
       max_tokens: 1024,
-      model: 'claude-3-7-sonnet-20250219',
+      model: 'claude-sonnet-4-5',
       messages: [{ role: 'user', content: 'Create a tax guide' }],
     });
 
@@ -380,7 +380,7 @@ describe('BetaMessageStream class', () => {
     const stream = anthropic.beta.messages.stream(
       {
         max_tokens: 1024,
-        model: 'claude-3-7-sonnet-20250219',
+        model: 'claude-sonnet-4-5',
         messages: [{ role: 'user', content: 'Say hello there!' }],
       },
       { maxRetries: 0 },
@@ -411,7 +411,7 @@ describe('BetaMessageStream class', () => {
     const stream = anthropic.beta.messages.stream(
       {
         max_tokens: 1024,
-        model: 'claude-3-7-sonnet-20250219',
+        model: 'claude-sonnet-4-5',
         messages: [{ role: 'user', content: 'Say hello there!' }],
       },
       { maxRetries: 0 },
