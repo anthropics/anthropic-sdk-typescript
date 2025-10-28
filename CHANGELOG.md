@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.67.1 (2025-10-28)
+
+Full Changelog: [sdk-v0.67.0...sdk-v0.67.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.67.0...sdk-v0.67.1)
+
+### Chores
+
+* **api:** mark older sonnet models as deprecated ([64ad72d](https://github.com/anthropics/anthropic-sdk-typescript/commit/64ad72d04dcd1e229cf1ea1bdde35494822ee916))
+
 ## 0.67.0 (2025-10-16)
 
 Full Changelog: [sdk-v0.66.0...sdk-v0.67.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.66.0...sdk-v0.67.0)
