@@ -106,7 +106,7 @@ The SDK provides helper functions to create runnable tools that can be automatic
 ### Usage
 
 ```ts
-import { betaZodTool } from '@anthropic-ai/sdk/helpers/zod';
+import { betaZodTool } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { z } from 'zod';
 
 const weatherTool = betaZodTool({
@@ -185,7 +185,7 @@ in-depth example.
 Zod schemas can be used to define the input schema for your tools:
 
 ```ts
-import { betaZodTool } from '@anthropic-ai/sdk/helpers/zod';
+import { betaZodTool } from '@anthropic-ai/sdk/helpers/beta/zod';
 
 const weatherTool = betaZodTool({
   name: 'get_weather',
@@ -206,7 +206,7 @@ You can use JSON Schema to define the input schema for your tools. `betaTool` wi
 based on the supplied JSON Schema.
 
 ```ts
-import { betaTool } from '@anthropic-ai/sdk/helpers/json-schema';
+import { betaTool } from '@anthropic-ai/sdk/helpers/beta/json-schema';
 
 const calculatorTool = betaTool({
   name: 'calculator',
