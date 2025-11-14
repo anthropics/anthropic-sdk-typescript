@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.69.0 (2025-11-14)
+
+Full Changelog: [sdk-v0.68.0...sdk-v0.69.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.68.0...sdk-v0.69.0)
+
+### Features
+
+* **api:** add support for structured outputs beta ([e6562d7](https://github.com/anthropics/anthropic-sdk-typescript/commit/e6562d72502030e6cf90a31192b21b23c0b03422))
+
 ## 0.68.0 (2025-10-28)
 
 Full Changelog: [sdk-v0.67.1...sdk-v0.68.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.67.1...sdk-v0.68.0)
