@@ -87,6 +87,7 @@ export {
   type BetaFileImageSource,
   type BetaImageBlockParam,
   type BetaInputJSONDelta,
+  type BetaJSONOutputFormat,
   type BetaInputTokensClearAtLeast,
   type BetaInputTokensTrigger,
   type BetaMCPToolResultBlock,

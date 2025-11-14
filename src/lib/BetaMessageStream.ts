@@ -1,22 +1,24 @@
-import { isAbortError } from '../internal/errors';
+import { partialParse } from '../_vendor/partial-json-parser/parser';
 import { AnthropicError, APIUserAbortError } from '../error';
+import { isAbortError } from '../internal/errors';
+import { type RequestOptions } from '../internal/request-options';
 import {
   type BetaContentBlock,
-  Messages as BetaMessages,
+  type BetaMCPToolUseBlock,
   type BetaMessage,
-  type BetaRawMessageStreamEvent as BetaMessageStreamEvent,
   type BetaMessageParam,
-  type MessageCreateParams as BetaMessageCreateParams,
-  type MessageCreateParamsBase as BetaMessageCreateParamsBase,
+  Messages as BetaMessages,
+  type BetaRawMessageStreamEvent as BetaMessageStreamEvent,
+  type BetaServerToolUseBlock,
   type BetaTextBlock,
   type BetaTextCitation,
   type BetaToolUseBlock,
-  type BetaServerToolUseBlock,
-  type BetaMCPToolUseBlock,
+  type MessageCreateParams,
+  type MessageCreateParamsBase,
+  MessageCreateParamsStreaming,
 } from '../resources/beta/messages/messages';
 import { Stream } from '../streaming';
-import { partialParse } from '../_vendor/partial-json-parser/parser';
-import { type RequestOptions } from '../internal/request-options';
+import { maybeParseBetaMessage, type ParsedBetaMessage } from './beta-parser';
 
 export interface MessageStreamEvents {
   connect: () => void;
@@ -47,10 +49,11 @@ function tracksToolInput(content: BetaContentBlock): content is TracksToolInput 
   return content.type === 'tool_use' || content.type === 'server_tool_use' || content.type === 'mcp_tool_use';
 }
 
-export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> {
+export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMessageStreamEvent> {
   messages: BetaMessageParam[] = [];
-  receivedMessages: BetaMessage[] = [];
+  receivedMessages: ParsedBetaMessage<ParsedT>[] = [];
   #currentMessageSnapshot: BetaMessage | undefined;
+  #params: MessageCreateParams | null = null;
 
   controller: AbortController = new AbortController();
 
@@ -71,7 +74,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
   #response: Response | null | undefined;
   #request_id: string | null | undefined;
 
-  constructor() {
+  constructor(params: MessageCreateParamsBase | null) {
     this.#connectedPromise = new Promise<Response | null>((resolve, reject) => {
       this.#resolveConnectedPromise = resolve;
       this.#rejectConnectedPromise = reject;
@@ -88,6 +91,8 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
     // any promise-returning method.
     this.#connectedPromise.catch(() => {});
     this.#endPromise.catch(() => {});
+
+    this.#params = params;
   }
 
   get response(): Response | null | undefined {
@@ -109,7 +114,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
    * as no `Response` is available.
    */
   async withResponse(): Promise<{
-    data: BetaMessageStream;
+    data: BetaMessageStream<ParsedT>;
     response: Response;
     request_id: string | null | undefined;
   }> {
@@ -133,20 +138,21 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
    * in this context.
    */
   static fromReadableStream(stream: ReadableStream): BetaMessageStream {
-    const runner = new BetaMessageStream();
+    const runner = new BetaMessageStream(null);
     runner._run(() => runner._fromReadableStream(stream));
     return runner;
   }
 
-  static createMessage(
+  static createMessage<ParsedT>(
     messages: BetaMessages,
-    params: BetaMessageCreateParamsBase,
+    params: MessageCreateParamsBase,
     options?: RequestOptions,
-  ): BetaMessageStream {
-    const runner = new BetaMessageStream();
+  ): BetaMessageStream<ParsedT> {
+    const runner = new BetaMessageStream<ParsedT>(params as MessageCreateParamsStreaming);
     for (const message of params.messages) {
       runner._addMessageParam(message);
     }
+    runner.#params = { ...params, stream: true };
     runner._run(() =>
       runner._createMessage(
         messages,
@@ -168,7 +174,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
     this.messages.push(message);
   }
 
-  protected _addMessage(message: BetaMessage, emit = true) {
+  protected _addMessage(message: ParsedBetaMessage<ParsedT>, emit = true) {
     this.receivedMessages.push(message);
     if (emit) {
       this._emit('message', message);
@@ -177,7 +183,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
 
   protected async _createMessage(
     messages: BetaMessages,
-    params: BetaMessageCreateParams,
+    params: MessageCreateParams,
     options?: RequestOptions,
   ): Promise<void> {
     const signal = options?.signal;
@@ -306,7 +312,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
     return this.#currentMessageSnapshot;
   }
 
-  #getFinalMessage(): BetaMessage {
+  #getFinalMessage(): ParsedBetaMessage<ParsedT> {
     if (this.receivedMessages.length === 0) {
       throw new AnthropicError('stream ended without producing a Message with role=assistant');
     }
@@ -316,8 +322,9 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
   /**
    * @returns a promise that resolves with the the final assistant Message response,
    * or rejects if an error occurred or the stream ended prematurely without producing a Message.
+   * If structured outputs were used, this will be a ParsedMessage with a `parsed` field.
    */
-  async finalMessage(): Promise<BetaMessage> {
+  async finalMessage(): Promise<ParsedBetaMessage<ParsedT>> {
     await this.done();
     return this.#getFinalMessage();
   }
@@ -472,7 +479,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
       }
       case 'message_stop': {
         this._addMessageParam(messageSnapshot);
-        this._addMessage(messageSnapshot, true);
+        this._addMessage(maybeParseBetaMessage(messageSnapshot, this.#params), true);
         break;
       }
       case 'content_block_stop': {
@@ -488,7 +495,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
         break;
     }
   }
-  #endRequest(): BetaMessage {
+  #endRequest(): ParsedBetaMessage<ParsedT> {
     if (this.ended) {
       throw new AnthropicError(`stream has ended, this shouldn't happen`);
     }
@@ -497,7 +504,7 @@ export class BetaMessageStream implements AsyncIterable<BetaMessageStreamEvent> 
       throw new AnthropicError(`request ended without sending any chunks`);
     }
     this.#currentMessageSnapshot = undefined;
-    return snapshot;
+    return maybeParseBetaMessage(snapshot, this.#params);
   }
 
   protected async _fromReadableStream(

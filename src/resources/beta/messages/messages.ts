@@ -1,9 +1,26 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+import { Anthropic } from '../../../client';
+import { APIPromise } from '../../../core/api-promise';
 import { APIResource } from '../../../core/resource';
-import * as MessagesMessagesAPI from './messages';
-import * as BetaAPI from '../beta';
+import { Stream } from '../../../core/streaming';
+import { MODEL_NONSTREAMING_TOKENS } from '../../../internal/constants';
+import { buildHeaders } from '../../../internal/headers';
+import { RequestOptions } from '../../../internal/request-options';
+import {
+  parseBetaMessage,
+  type ExtractParsedContentFromBetaParams,
+  type ParsedBetaMessage,
+} from '../../../lib/beta-parser';
+import { BetaMessageStream } from '../../../lib/BetaMessageStream';
+import {
+  BetaToolRunner,
+  BetaToolRunnerParams,
+  BetaToolRunnerRequestOptions,
+} from '../../../lib/tools/BetaToolRunner';
+import type { Model } from '../../messages/messages';
 import * as MessagesAPI from '../../messages/messages';
+import * as BetaAPI from '../beta';
 import * as BatchesAPI from './batches';
 import {
   BatchCancelParams,
@@ -24,19 +41,7 @@ import {
   BetaMessageBatchSucceededResult,
   BetaMessageBatchesPage,
 } from './batches';
-import { APIPromise } from '../../../core/api-promise';
-import { Stream } from '../../../core/streaming';
-import { buildHeaders } from '../../../internal/headers';
-import { RequestOptions } from '../../../internal/request-options';
-import type { Model } from '../../messages/messages';
-import { BetaMessageStream } from '../../../lib/BetaMessageStream';
-import { MODEL_NONSTREAMING_TOKENS } from '../../../internal/constants';
-import {
-  BetaToolRunner,
-  BetaToolRunnerParams,
-  BetaToolRunnerRequestOptions,
-} from '../../../lib/tools/BetaToolRunner';
-import { Anthropic } from '../../../client';
+import * as MessagesMessagesAPI from './messages';
 
 const DEPRECATED_MODELS: {
   [K in Model]?: string;
@@ -64,7 +69,8 @@ export class Messages extends APIResource {
    * The Messages API can be used for either single queries or stateless multi-turn
    * conversations.
    *
-   * Learn more about the Messages API in our [user guide](/en/docs/initial-setup)
+   * Learn more about the Messages API in our
+   * [user guide](https://docs.claude.com/en/docs/initial-setup)
    *
    * @example
    * ```ts
@@ -116,9 +122,45 @@ export class Messages extends APIResource {
   }
 
   /**
+   * Send a structured list of input messages with text and/or image content, along with an expected `output_format` and
+   * the response will be automatically parsed and available in the `parsed` property of the message.
+   *
+   * @example
+   * ```ts
+   * const message = await client.beta.messages.parse({
+   *   model: 'claude-3-5-sonnet-20241022',
+   *   max_tokens: 1024,
+   *   messages: [{ role: 'user', content: 'What is 2+2?' }],
+   *   output_format: zodOutputFormat(z.object({ answer: z.number() }), 'math'),
+   * });
+   *
+   * console.log(message.parsed?.answer); // 4
+   * ```
+   */
+  parse<Params extends MessageCreateParamsNonStreaming>(
+    params: Params,
+    options?: RequestOptions,
+  ): APIPromise<ParsedBetaMessage<ExtractParsedContentFromBetaParams<Params>>> {
+    options = {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(params.betas ?? []), 'structured-outputs-2025-09-17'].toString() },
+        options?.headers,
+      ]),
+    };
+
+    return this.create(params, options).then((message) => parseBetaMessage(message, params)) as APIPromise<
+      ParsedBetaMessage<ExtractParsedContentFromBetaParams<Params>>
+    >;
+  }
+
+  /**
    * Create a Message stream
    */
-  stream(body: BetaMessageStreamParams, options?: RequestOptions): BetaMessageStream {
+  stream<Params extends BetaMessageStreamParams>(
+    body: Params,
+    options?: RequestOptions,
+  ): BetaMessageStream<ExtractParsedContentFromBetaParams<Params>> {
     return BetaMessageStream.createMessage(this, body, options);
   }
 
@@ -129,7 +171,7 @@ export class Messages extends APIResource {
    * including tools, images, and documents, without creating it.
    *
    * Learn more about token counting in our
-   * [user guide](/en/docs/build-with-claude/token-counting)
+   * [user guide](https://docs.claude.com/en/docs/build-with-claude/token-counting)
    *
    * @example
    * ```ts
@@ -587,6 +629,8 @@ export interface BetaCodeExecutionTool20250522 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  strict?: boolean;
 }
 
 export interface BetaCodeExecutionTool20250825 {
@@ -603,6 +647,8 @@ export interface BetaCodeExecutionTool20250825 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  strict?: boolean;
 }
 
 export interface BetaCodeExecutionToolResultBlock {
@@ -838,6 +884,15 @@ export interface BetaInputTokensTrigger {
   value: number;
 }
 
+export interface BetaJSONOutputFormat {
+  /**
+   * The JSON schema of the format
+   */
+  schema: { [key: string]: unknown };
+
+  type: 'json_schema';
+}
+
 export interface BetaMCPToolResultBlock {
   content: string | Array<BetaTextBlock>;
 
@@ -900,6 +955,8 @@ export interface BetaMemoryTool20250818 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  strict?: boolean;
 }
 
 export type BetaMemoryTool20250818Command =
@@ -1754,6 +1811,8 @@ export interface BetaTool {
    */
   description?: string;
 
+  strict?: boolean;
+
   type?: 'custom' | null;
 }
 
@@ -1789,6 +1848,8 @@ export interface BetaToolBash20241022 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  strict?: boolean;
 }
 
 export interface BetaToolBash20250124 {
@@ -1805,6 +1866,8 @@ export interface BetaToolBash20250124 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  strict?: boolean;
 }
 
 /**
@@ -1899,6 +1962,8 @@ export interface BetaToolComputerUse20241022 {
    * The X11 display number (e.g. 0, 1) for the display.
    */
   display_number?: number | null;
+
+  strict?: boolean;
 }
 
 export interface BetaToolComputerUse20250124 {
@@ -1930,6 +1995,8 @@ export interface BetaToolComputerUse20250124 {
    * The X11 display number (e.g. 0, 1) for the display.
    */
   display_number?: number | null;
+
+  strict?: boolean;
 }
 
 export interface BetaToolResultBlockParam {
@@ -1965,6 +2032,8 @@ export interface BetaToolTextEditor20241022 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  strict?: boolean;
 }
 
 export interface BetaToolTextEditor20250124 {
@@ -1981,6 +2050,8 @@ export interface BetaToolTextEditor20250124 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  strict?: boolean;
 }
 
 export interface BetaToolTextEditor20250429 {
@@ -1997,6 +2068,8 @@ export interface BetaToolTextEditor20250429 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  strict?: boolean;
 }
 
 export interface BetaToolTextEditor20250728 {
@@ -2019,6 +2092,8 @@ export interface BetaToolTextEditor20250728 {
    * defaults to displaying the full file.
    */
   max_characters?: number | null;
+
+  strict?: boolean;
 }
 
 export type BetaToolUnion =
@@ -2196,6 +2271,8 @@ export interface BetaWebFetchTool20250910 {
    * Maximum number of times the tool can be used in the API request.
    */
   max_uses?: number | null;
+
+  strict?: boolean;
 }
 
 export interface BetaWebFetchToolResultBlock {
@@ -2296,6 +2373,8 @@ export interface BetaWebSearchTool20250305 {
    * Maximum number of times the tool can be used in the API request.
    */
   max_uses?: number | null;
+
+  strict?: boolean;
 
   /**
    * Parameters for the user's location. Used to provide more relevant search
@@ -2501,6 +2580,11 @@ export interface MessageCreateParamsBase {
    * Body param: An object describing metadata about the request.
    */
   metadata?: BetaMetadata;
+
+  /**
+   * Body param: A schema to specify Claude's output format in responses.
+   */
+  output_format?: BetaJSONOutputFormat | null;
 
   /**
    * Body param: Determines whether to use priority capacity (if available) or
@@ -2797,6 +2881,11 @@ export interface MessageCountTokensParams {
   mcp_servers?: Array<BetaRequestMCPServerURLDefinition>;
 
   /**
+   * Body param: A schema to specify Claude's output format in responses.
+   */
+  output_format?: BetaJSONOutputFormat | null;
+
+  /**
    * Body param: System prompt.
    *
    * A system prompt is a way of providing context and instructions to Claude, such
@@ -2993,6 +3082,7 @@ export declare namespace Messages {
     type BetaInputJSONDelta as BetaInputJSONDelta,
     type BetaInputTokensClearAtLeast as BetaInputTokensClearAtLeast,
     type BetaInputTokensTrigger as BetaInputTokensTrigger,
+    type BetaJSONOutputFormat as BetaJSONOutputFormat,
     type BetaMCPToolResultBlock as BetaMCPToolResultBlock,
     type BetaMCPToolUseBlock as BetaMCPToolUseBlock,
     type BetaMCPToolUseBlockParam as BetaMCPToolUseBlockParam,

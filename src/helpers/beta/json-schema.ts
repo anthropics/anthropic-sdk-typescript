@@ -1,6 +1,9 @@
 import { FromSchema, JSONSchema } from 'json-schema-to-ts';
 import { Promisable, BetaRunnableTool } from '../../lib/tools/BetaRunnableTool';
 import { BetaToolResultContentBlockParam } from '../../resources/beta';
+import { AutoParseableBetaOutputFormat } from '../../lib/beta-parser';
+import { AnthropicError } from '../..';
+import { transformJSONSchema } from '../../lib/transform-json-schema';
 
 type NoInfer<T> = T extends infer R ? R : never;
 
@@ -29,4 +32,44 @@ export function betaTool<const Schema extends Exclude<JSONSchema, boolean> & { t
     run: options.run,
     parse: (content: unknown) => content as FromSchema<Schema>,
   } as any;
+}
+
+/**
+ * Creates a JSON schema output format object from the given JSON schema.
+ * If this is passed to the `.parse()` method then the response message will contain a
+ * `.parsed` property that is the result of parsing the content with the given JSON schema.
+ *
+ */
+export function betaJSONSchemaOutputFormat<
+  const Schema extends Exclude<JSONSchema, boolean> & { type: 'object' },
+>(
+  jsonSchema: Schema,
+  options?: {
+    transform?: boolean;
+  },
+): AutoParseableBetaOutputFormat<NoInfer<FromSchema<Schema>>> {
+  if (jsonSchema.type !== 'object') {
+    throw new Error(`JSON schema for tool must be an object, but got ${jsonSchema.type}`);
+  }
+
+  const transform = options?.transform ?? true;
+  if (transform) {
+    // todo: doing this is arguably necessary, but it does change the schema the user passed in
+    // so I'm not sure how we should handle that
+    jsonSchema = transformJSONSchema(jsonSchema) as Schema;
+  }
+
+  return {
+    type: 'json_schema',
+    schema: {
+      ...jsonSchema,
+    },
+    parse: (content) => {
+      try {
+        return JSON.parse(content);
+      } catch (error) {
+        throw new AnthropicError(`Failed to parse structured output: ${error}`);
+      }
+    },
+  };
 }
