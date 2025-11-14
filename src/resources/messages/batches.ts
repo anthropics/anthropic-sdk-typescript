@@ -19,7 +19,7 @@ export class Batches extends APIResource {
    * can take up to 24 hours to complete.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -49,7 +49,7 @@ export class Batches extends APIResource {
    * `results_url` field in the response.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -67,7 +67,7 @@ export class Batches extends APIResource {
    * returned first.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -91,7 +91,7 @@ export class Batches extends APIResource {
    * like to delete an in-progress batch, you must first cancel it.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -115,7 +115,7 @@ export class Batches extends APIResource {
    * non-interruptible.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -136,7 +136,7 @@ export class Batches extends APIResource {
    * requests. Use the `custom_id` field to match results to requests.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
    *
    * @example
    * ```ts

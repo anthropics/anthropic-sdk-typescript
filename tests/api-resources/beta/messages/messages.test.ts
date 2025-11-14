@@ -53,6 +53,7 @@ describe('resource messages', () => {
         },
       ],
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
+      output_format: { schema: { foo: 'bar' }, type: 'json_schema' },
       service_tier: 'auto',
       stop_sequences: ['string'],
       stream: false,
@@ -86,6 +87,7 @@ describe('resource messages', () => {
           name: 'name',
           cache_control: { type: 'ephemeral', ttl: '5m' },
           description: 'Get the current weather in a given location',
+          strict: true,
           type: 'custom',
         },
       ],
@@ -136,6 +138,7 @@ describe('resource messages', () => {
           tool_configuration: { allowed_tools: ['string'], enabled: true },
         },
       ],
+      output_format: { schema: { foo: 'bar' }, type: 'json_schema' },
       system: [
         {
           text: "Today's date is 2024-06-01.",
@@ -165,6 +168,7 @@ describe('resource messages', () => {
           name: 'name',
           cache_control: { type: 'ephemeral', ttl: '5m' },
           description: 'Get the current weather in a given location',
+          strict: true,
           type: 'custom',
         },
       ],

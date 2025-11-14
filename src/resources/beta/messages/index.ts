@@ -82,6 +82,7 @@ export {
   type BetaInputJSONDelta,
   type BetaInputTokensClearAtLeast,
   type BetaInputTokensTrigger,
+  type BetaJSONOutputFormat,
   type BetaMCPToolResultBlock,
   type BetaMCPToolUseBlock,
   type BetaMCPToolUseBlockParam,

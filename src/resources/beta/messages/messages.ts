@@ -39,7 +39,8 @@ export class Messages extends APIResource {
    * The Messages API can be used for either single queries or stateless multi-turn
    * conversations.
    *
-   * Learn more about the Messages API in our [user guide](/en/docs/initial-setup)
+   * Learn more about the Messages API in our
+   * [user guide](https://docs.claude.com/en/docs/initial-setup)
    *
    * @example
    * ```ts
@@ -83,7 +84,7 @@ export class Messages extends APIResource {
    * including tools, images, and documents, without creating it.
    *
    * Learn more about token counting in our
-   * [user guide](/en/docs/build-with-claude/token-counting)
+   * [user guide](https://docs.claude.com/en/docs/build-with-claude/token-counting)
    *
    * @example
    * ```ts
@@ -526,6 +527,8 @@ export interface BetaCodeExecutionTool20250522 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  strict?: boolean;
 }
 
 export interface BetaCodeExecutionTool20250825 {
@@ -542,6 +545,8 @@ export interface BetaCodeExecutionTool20250825 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  strict?: boolean;
 }
 
 export interface BetaCodeExecutionToolResultBlock {
@@ -777,6 +782,15 @@ export interface BetaInputTokensTrigger {
   value: number;
 }
 
+export interface BetaJSONOutputFormat {
+  /**
+   * The JSON schema of the format
+   */
+  schema: { [key: string]: unknown };
+
+  type: 'json_schema';
+}
+
 export interface BetaMCPToolResultBlock {
   content: string | Array<BetaTextBlock>;
 
@@ -839,6 +853,8 @@ export interface BetaMemoryTool20250818 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  strict?: boolean;
 }
 
 export type BetaMemoryTool20250818Command =
@@ -1693,6 +1709,8 @@ export interface BetaTool {
    */
   description?: string;
 
+  strict?: boolean;
+
   type?: 'custom' | null;
 }
 
@@ -1728,6 +1746,8 @@ export interface BetaToolBash20241022 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  strict?: boolean;
 }
 
 export interface BetaToolBash20250124 {
@@ -1744,6 +1764,8 @@ export interface BetaToolBash20250124 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  strict?: boolean;
 }
 
 /**
@@ -1838,6 +1860,8 @@ export interface BetaToolComputerUse20241022 {
    * The X11 display number (e.g. 0, 1) for the display.
    */
   display_number?: number | null;
+
+  strict?: boolean;
 }
 
 export interface BetaToolComputerUse20250124 {
@@ -1869,6 +1893,8 @@ export interface BetaToolComputerUse20250124 {
    * The X11 display number (e.g. 0, 1) for the display.
    */
   display_number?: number | null;
+
+  strict?: boolean;
 }
 
 export interface BetaToolResultBlockParam {
@@ -1902,6 +1928,8 @@ export interface BetaToolTextEditor20241022 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  strict?: boolean;
 }
 
 export interface BetaToolTextEditor20250124 {
@@ -1918,6 +1946,8 @@ export interface BetaToolTextEditor20250124 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  strict?: boolean;
 }
 
 export interface BetaToolTextEditor20250429 {
@@ -1934,6 +1964,8 @@ export interface BetaToolTextEditor20250429 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  strict?: boolean;
 }
 
 export interface BetaToolTextEditor20250728 {
@@ -1956,6 +1988,8 @@ export interface BetaToolTextEditor20250728 {
    * defaults to displaying the full file.
    */
   max_characters?: number | null;
+
+  strict?: boolean;
 }
 
 export type BetaToolUnion =
@@ -2133,6 +2167,8 @@ export interface BetaWebFetchTool20250910 {
    * Maximum number of times the tool can be used in the API request.
    */
   max_uses?: number | null;
+
+  strict?: boolean;
 }
 
 export interface BetaWebFetchToolResultBlock {
@@ -2233,6 +2269,8 @@ export interface BetaWebSearchTool20250305 {
    * Maximum number of times the tool can be used in the API request.
    */
   max_uses?: number | null;
+
+  strict?: boolean;
 
   /**
    * Parameters for the user's location. Used to provide more relevant search
@@ -2438,6 +2476,11 @@ export interface MessageCreateParamsBase {
    * Body param: An object describing metadata about the request.
    */
   metadata?: BetaMetadata;
+
+  /**
+   * Body param: A schema to specify Claude's output format in responses.
+   */
+  output_format?: BetaJSONOutputFormat | null;
 
   /**
    * Body param: Determines whether to use priority capacity (if available) or
@@ -2734,6 +2777,11 @@ export interface MessageCountTokensParams {
   mcp_servers?: Array<BetaRequestMCPServerURLDefinition>;
 
   /**
+   * Body param: A schema to specify Claude's output format in responses.
+   */
+  output_format?: BetaJSONOutputFormat | null;
+
+  /**
    * Body param: System prompt.
    *
    * A system prompt is a way of providing context and instructions to Claude, such
@@ -2926,6 +2974,7 @@ export declare namespace Messages {
     type BetaInputJSONDelta as BetaInputJSONDelta,
     type BetaInputTokensClearAtLeast as BetaInputTokensClearAtLeast,
     type BetaInputTokensTrigger as BetaInputTokensTrigger,
+    type BetaJSONOutputFormat as BetaJSONOutputFormat,
     type BetaMCPToolResultBlock as BetaMCPToolResultBlock,
     type BetaMCPToolUseBlock as BetaMCPToolUseBlock,
     type BetaMCPToolUseBlockParam as BetaMCPToolUseBlockParam,
