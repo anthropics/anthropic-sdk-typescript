@@ -34,3 +34,7 @@ echo "==> Installing vertex-sdk dependencies"
 echo
 echo "==> Installing bedrock-sdk dependencies"
 (cd packages/bedrock-sdk && $PACKAGE_MANAGER install)
+
+echo
+echo "==> Installing foundry-sdk dependencies"
+(cd packages/foundry-sdk && $PACKAGE_MANAGER install)

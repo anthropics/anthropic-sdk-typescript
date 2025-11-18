@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -exuo pipefail
+
+rm -rf dist; mkdir dist
+
+# Copy src to dist/src and build from dist/src into dist, so that
+# the source map for index.js.map will refer to ./src/index.ts etc
+cp -rp src README.md dist
+
+for file in LICENSE; do
+  if [ -e "../../${file}" ]; then cp "../../${file}" dist; fi
+done
+
+for file in CHANGELOG.md; do
+  if [ -e "${file}" ]; then cp "${file}" dist; fi
+done
+
+# this converts the export map paths for the dist directory
+# and does a few other minor things
+PKG_JSON_PATH=../../packages/foundry-sdk/package.json node ../../scripts/utils/make-dist-package-json.cjs > dist/package.json
+
+# updates the `@anthropic-ai/sdk` dependency to point to NPM
+node scripts/postprocess-dist-package-json.cjs
+
+# build to .js/.mjs/.d.ts files
+npm exec tsc-multi
+# we need to patch index.js so that `new module.exports()` works for cjs backwards
+# compat. No way to get that from index.ts because it would cause compile errors
+# when building .mjs
+DIST_PATH=./dist node ../../scripts/utils/fix-index-exports.cjs
+
+cp tsconfig.dist-src.json dist/src/tsconfig.json
+
+DIST_PATH=./dist PKG_IMPORT_PATH=@anthropic-ai/foundry-sdk/ node ../../scripts/utils/postprocess-files.cjs
+
+# make sure that nothing crashes when we require the output CJS or
+# import the output ESM
+(cd dist && node -e 'require("@anthropic-ai/foundry-sdk")')
+(cd dist && node -e 'import("@anthropic-ai/foundry-sdk")' --input-type=module)

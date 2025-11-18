@@ -8,7 +8,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-PACKAGES=("bedrock-sdk" "vertex-sdk")
+PACKAGES=("bedrock-sdk" "vertex-sdk" "foundry-sdk")
 
 for package in "${PACKAGES[@]}"; do
   PACKAGE_DIR="$ROOT_DIR/packages/$package"

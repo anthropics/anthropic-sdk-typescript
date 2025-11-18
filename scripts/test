@@ -62,3 +62,7 @@ echo "==> Running vertex-sdk tests"
 echo
 echo "==> Running bedrock-sdk tests"
 (cd packages/bedrock-sdk && ./node_modules/.bin/jest)
+
+echo
+echo "==> Running foundry-sdk tests"
+(cd packages/foundry-sdk && ./node_modules/.bin/jest)
