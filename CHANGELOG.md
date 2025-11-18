@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.70.0 (2025-11-18)
+
+Full Changelog: [sdk-v0.69.0...sdk-v0.70.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.69.0...sdk-v0.70.0)
+
+### Features
+
+* add Foundry SDK ([40b0e87](https://github.com/anthropics/anthropic-sdk-typescript/commit/40b0e87047887dee3f9fab6e02fa65a1d728cf1e))
+
 ## 0.69.0 (2025-11-14)
 
 Full Changelog: [sdk-v0.68.0...sdk-v0.69.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.68.0...sdk-v0.69.0)
