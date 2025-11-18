@@ -161,11 +161,21 @@ import {
 } from './internal/utils/log';
 import { isEmptyObj } from './internal/utils/values';
 
+export type ApiKeySetter = () => Promise<string>;
+
 export interface ClientOptions {
   /**
-   * Defaults to process.env['ANTHROPIC_API_KEY'].
+   * API key used for authentication.
+   *
+   * - Accepts either a static string or an async function that resolves to a string.
+   * - Defaults to process.env['ANTHROPIC_API_KEY'].
+   * - When a function is provided, it is invoked before each request so you can rotate
+   *   or refresh credentials at runtime.
+   * - The function must return a non-empty string; otherwise an AnthropicError is thrown.
+   * - If the function throws, the error is wrapped in an AnthropicError with the original
+   *   error available as `cause`.
    */
-  apiKey?: string | null | undefined;
+  apiKey?: string | ApiKeySetter | null | undefined;
 
   /**
    * Defaults to process.env['ANTHROPIC_AUTH_TOKEN'].
@@ -267,7 +277,7 @@ export class BaseAnthropic {
   private fetch: Fetch;
   #encoder: Opts.RequestEncoder;
   protected idempotencyHeader?: string;
-  private _options: ClientOptions;
+  protected _options: ClientOptions;
 
   /**
    * API Client for interfacing with the Anthropic API.
@@ -319,7 +329,7 @@ export class BaseAnthropic {
 
     this._options = options;
 
-    this.apiKey = apiKey;
+    this.apiKey = typeof apiKey === 'string' ? apiKey : null;
     this.authToken = authToken;
   }
 
@@ -355,6 +365,10 @@ export class BaseAnthropic {
   }
 
   protected validateHeaders({ values, nulls }: NullableHeaders) {
+    if (values.get('x-api-key') || values.get('authorization')) {
+      return;
+    }
+
     if (this.apiKey && values.get('x-api-key')) {
       return;
     }
@@ -969,6 +983,8 @@ Anthropic.Beta = Beta;
 
 export declare namespace Anthropic {
   export type RequestOptions = Opts.RequestOptions;
+
+  export type { ApiKeySetter };
 
   export import Page = Pagination.Page;
   export { type PageParams as PageParams, type PageResponse as PageResponse };
