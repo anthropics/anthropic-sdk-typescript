@@ -144,7 +144,7 @@ export class Messages extends APIResource {
     options = {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(params.betas ?? []), 'structured-outputs-2025-09-17'].toString() },
+        { 'anthropic-beta': [...(params.betas ?? []), 'structured-outputs-2025-11-13'].toString() },
         options?.headers,
       ]),
     };

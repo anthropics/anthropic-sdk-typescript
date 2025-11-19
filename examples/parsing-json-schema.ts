@@ -20,7 +20,7 @@ async function main() {
   const client = new Anthropic();
 
   const message = await client.beta.messages.parse({
-    model: 'claude-sonnet-4-5-20250929-structured-outputs',
+    model: 'claude-sonnet-4-5',
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
     output_format: betaJSONSchemaOutputFormat(NumbersResponse),

@@ -22,7 +22,7 @@ async function main() {
   const client = new Anthropic();
 
   const stream = client.beta.messages.stream({
-    model: 'claude-sonnet-4-5-20250929-structured-outputs',
+    model: 'claude-sonnet-4-5',
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Provide a weather report for San Francisco.' }],
     output_format: betaZodOutputFormat(WeatherResponse),
