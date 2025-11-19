@@ -6,7 +6,7 @@ async function main() {
   const client = new Anthropic();
 
   const message = await client.beta.messages.parse({
-    model: 'claude-sonnet-4-5-20250929-structured-outputs',
+    model: 'claude-sonnet-4-5',
     max_tokens: 100,
     output_format: {
       type: 'json_schema',
