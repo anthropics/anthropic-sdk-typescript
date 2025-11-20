@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.70.1 (2025-11-20)
+
+Full Changelog: [sdk-v0.70.0...sdk-v0.70.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.70.0...sdk-v0.70.1)
+
+### Bug Fixes
+
+* **structured outputs:** use correct beta header ([626662c](https://github.com/anthropics/anthropic-sdk-typescript/commit/626662cff81896fbbb691e0ed353eede4c463421))
+
 ## 0.70.0 (2025-11-18)
 
 Full Changelog: [sdk-v0.69.0...sdk-v0.70.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.69.0...sdk-v0.70.0)
