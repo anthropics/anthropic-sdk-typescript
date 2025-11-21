@@ -10,6 +10,9 @@
   "license": "MIT",
   "packageManager": "yarn@1.22.21",
   "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "test": "jest",
     "build": "bash ./build",
