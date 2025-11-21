@@ -7,6 +7,9 @@ import {
   parseBetaMessage,
 } from '../../src/lib/beta-parser';
 import type { BetaMessage } from '../../src/resources/beta/messages/messages';
+import { Logger } from '@anthropic-ai/sdk/client';
+
+const opts: { logger: Logger } = { logger: console };
 
 describe('Parser', () => {
   describe('zodOutputFormat', () => {
@@ -96,7 +99,7 @@ describe('Parser', () => {
         output_format: betaZodOutputFormat(schema),
       };
 
-      const parsed = parseBetaMessage(mockMessage, params);
+      const parsed = parseBetaMessage(mockMessage, params, opts);
 
       expect(parsed.parsed_output).toEqual({
         city: 'San Francisco',
@@ -136,7 +139,7 @@ describe('Parser', () => {
         ],
       };
 
-      expect(() => parseBetaMessage(invalidMessage, params)).toThrow();
+      expect(() => parseBetaMessage(invalidMessage, params, opts)).toThrow();
     });
 
     it('handles invalid JSON', () => {
@@ -162,7 +165,7 @@ describe('Parser', () => {
         ],
       };
 
-      expect(() => parseBetaMessage(invalidMessage, params)).toThrow(AnthropicError);
+      expect(() => parseBetaMessage(invalidMessage, params, opts)).toThrow(AnthropicError);
     });
 
     it('handles messages without text blocks', () => {
@@ -182,7 +185,7 @@ describe('Parser', () => {
         content: [],
       };
 
-      const parsed = parseBetaMessage(messageWithoutText, params);
+      const parsed = parseBetaMessage(messageWithoutText, params, opts);
 
       expect(parsed.parsed_output).toBe(null);
       expect(parsed.content).toEqual([]);
@@ -216,7 +219,7 @@ describe('Parser', () => {
         ],
       };
 
-      const parsed = parseBetaMessage(multiContentMessage, params);
+      const parsed = parseBetaMessage(multiContentMessage, params, opts);
 
       expect(parsed.parsed_output).toEqual({ city: 'San Francisco' });
       expect(parsed.content).toHaveLength(2);
@@ -269,9 +272,31 @@ describe('Parser', () => {
         output_format: betaZodOutputFormat(schema),
       };
 
-      const parsed = maybeParseBetaMessage(mockMessage, params);
+      const parsed = maybeParseBetaMessage(mockMessage, params, opts);
 
       expect(parsed.parsed_output).toEqual({ city: 'San Francisco' });
+    });
+
+    it('reports deprecation warnings for .parsed', () => {
+      const params: BetaParseableMessageCreateParams = {
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'test' }],
+        output_format: betaZodOutputFormat(z.object({ city: z.string() })),
+      };
+
+      const mockLogger = { warn: jest.fn() };
+
+      const parsed = maybeParseBetaMessage(mockMessage, params, { logger: mockLogger as any });
+      expect(parsed.parsed_output).toEqual({ city: 'San Francisco' });
+      expect((parsed.content[0] as any).parsed_output).toEqual({ city: 'San Francisco' });
+      expect(mockLogger.warn).toHaveBeenCalledTimes(0);
+
+      expect((parsed.content[0] as any).parsed).toEqual({ city: 'San Francisco' });
+      expect(mockLogger.warn).toHaveBeenCalledTimes(1);
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'The `parsed` property on `text` blocks is deprecated, please use `parsed_output` instead.',
+      );
     });
 
     it('does not parse when params have no auto-parseable input', () => {
@@ -281,7 +306,7 @@ describe('Parser', () => {
         messages: [{ role: 'user', content: 'test' }],
       };
 
-      const parsed = maybeParseBetaMessage(mockMessage, params);
+      const parsed = maybeParseBetaMessage(mockMessage, params, opts);
 
       expect(parsed.parsed_output).toBe(null);
       expect(parsed.content[0]).toMatchObject({
@@ -292,7 +317,7 @@ describe('Parser', () => {
     });
 
     it('handles null params', () => {
-      const parsed = maybeParseBetaMessage(mockMessage, null);
+      const parsed = maybeParseBetaMessage(mockMessage, null, opts);
 
       expect(parsed.parsed_output).toBe(null);
       expect(parsed.content[0]).toMatchObject({
