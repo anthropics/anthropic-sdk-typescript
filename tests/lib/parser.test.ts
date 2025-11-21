@@ -105,7 +105,7 @@ describe('Parser', () => {
       expect(parsed.content[0]).toMatchObject({
         type: 'text',
         text: '{"city":"San Francisco","temperature":72}',
-        parsed: {
+        parsed_output: {
           city: 'San Francisco',
           temperature: 72,
         },
@@ -221,10 +221,10 @@ describe('Parser', () => {
       expect(parsed.parsed_output).toEqual({ city: 'San Francisco' });
       expect(parsed.content).toHaveLength(2);
       expect(parsed.content[0]).toMatchObject({
-        parsed: { city: 'San Francisco' },
+        parsed_output: { city: 'San Francisco' },
       });
       expect(parsed.content[1]).toMatchObject({
-        parsed: { city: 'Los Angeles' },
+        parsed_output: { city: 'Los Angeles' },
       });
     });
   });
@@ -287,7 +287,7 @@ describe('Parser', () => {
       expect(parsed.content[0]).toMatchObject({
         type: 'text',
         text: '{"city":"San Francisco"}',
-        parsed: null,
+        parsed_output: null,
       });
     });
 
@@ -296,7 +296,7 @@ describe('Parser', () => {
 
       expect(parsed.parsed_output).toBe(null);
       expect(parsed.content[0]).toMatchObject({
-        parsed: null,
+        parsed_output: null,
       });
     });
   });

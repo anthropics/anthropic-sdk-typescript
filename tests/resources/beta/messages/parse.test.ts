@@ -81,7 +81,7 @@ describe('Messages.parse()', () => {
     expect(result.content[0]).toMatchObject({
       type: 'text',
       text: '{"city":"San Francisco","temperature":72,"conditions":["sunny","clear"]}',
-      parsed: {
+      parsed_output: {
         city: 'San Francisco',
         temperature: 72,
         conditions: ['sunny', 'clear'],

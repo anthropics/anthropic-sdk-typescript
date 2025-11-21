@@ -123,7 +123,7 @@ export class Messages extends APIResource {
 
   /**
    * Send a structured list of input messages with text and/or image content, along with an expected `output_format` and
-   * the response will be automatically parsed and available in the `parsed` property of the message.
+   * the response will be automatically parsed and available in the `parsed_output` property of the message.
    *
    * @example
    * ```ts
@@ -134,7 +134,7 @@ export class Messages extends APIResource {
    *   output_format: zodOutputFormat(z.object({ answer: z.number() }), 'math'),
    * });
    *
-   * console.log(message.parsed?.answer); // 4
+   * console.log(message.parsed_output?.answer); // 4
    * ```
    */
   parse<Params extends MessageCreateParamsNonStreaming>(
