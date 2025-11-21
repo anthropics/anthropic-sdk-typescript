@@ -149,9 +149,9 @@ export class Messages extends APIResource {
       ]),
     };
 
-    return this.create(params, options).then((message) => parseBetaMessage(message, params)) as APIPromise<
-      ParsedBetaMessage<ExtractParsedContentFromBetaParams<Params>>
-    >;
+    return this.create(params, options).then((message) =>
+      parseBetaMessage(message, params, { logger: this._client.logger ?? console }),
+    ) as APIPromise<ParsedBetaMessage<ExtractParsedContentFromBetaParams<Params>>>;
   }
 
   /**
