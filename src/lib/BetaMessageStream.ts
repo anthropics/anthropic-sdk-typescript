@@ -1,4 +1,5 @@
 import { partialParse } from '../_vendor/partial-json-parser/parser';
+import type { Logger } from '../client';
 import { AnthropicError, APIUserAbortError } from '../error';
 import { isAbortError } from '../internal/errors';
 import { type RequestOptions } from '../internal/request-options';
@@ -73,8 +74,9 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
   #catchingPromiseCreated = false;
   #response: Response | null | undefined;
   #request_id: string | null | undefined;
+  #logger: Logger;
 
-  constructor(params: MessageCreateParamsBase | null) {
+  constructor(params: MessageCreateParamsBase | null, opts?: { logger?: Logger | undefined }) {
     this.#connectedPromise = new Promise<Response | null>((resolve, reject) => {
       this.#resolveConnectedPromise = resolve;
       this.#rejectConnectedPromise = reject;
@@ -93,6 +95,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
     this.#endPromise.catch(() => {});
 
     this.#params = params;
+    this.#logger = opts?.logger ?? console;
   }
 
   get response(): Response | null | undefined {
@@ -147,8 +150,9 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
     messages: BetaMessages,
     params: MessageCreateParamsBase,
     options?: RequestOptions,
+    { logger }: { logger?: Logger | undefined } = {},
   ): BetaMessageStream<ParsedT> {
-    const runner = new BetaMessageStream<ParsedT>(params as MessageCreateParamsStreaming);
+    const runner = new BetaMessageStream<ParsedT>(params as MessageCreateParamsStreaming, { logger });
     for (const message of params.messages) {
       runner._addMessageParam(message);
     }
@@ -479,7 +483,10 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
       }
       case 'message_stop': {
         this._addMessageParam(messageSnapshot);
-        this._addMessage(maybeParseBetaMessage(messageSnapshot, this.#params), true);
+        this._addMessage(
+          maybeParseBetaMessage(messageSnapshot, this.#params, { logger: this.#logger }),
+          true,
+        );
         break;
       }
       case 'content_block_stop': {
@@ -504,7 +511,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
       throw new AnthropicError(`request ended without sending any chunks`);
     }
     this.#currentMessageSnapshot = undefined;
-    return maybeParseBetaMessage(snapshot, this.#params);
+    return maybeParseBetaMessage(snapshot, this.#params, { logger: this.#logger });
   }
 
   protected async _fromReadableStream(
