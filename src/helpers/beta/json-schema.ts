@@ -37,7 +37,7 @@ export function betaTool<const Schema extends Exclude<JSONSchema, boolean> & { t
 /**
  * Creates a JSON schema output format object from the given JSON schema.
  * If this is passed to the `.parse()` method then the response message will contain a
- * `.parsed` property that is the result of parsing the content with the given JSON schema.
+ * `.parsed_output` property that is the result of parsing the content with the given JSON schema.
  *
  */
 export function betaJSONSchemaOutputFormat<
