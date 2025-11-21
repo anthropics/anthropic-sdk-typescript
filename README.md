@@ -131,7 +131,7 @@ This SDK provides helpers for making it easy to create and run tools in the Mess
 ```ts
 import Anthropic from '@anthropic-ai/sdk';
 
-import { betaZodTool } from '@anthropic-ai/sdk/helpers';
+import { betaZodTool } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { z } from 'zod';
 
 const anthropic = new Anthropic();
