@@ -241,6 +241,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContextManagementConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContextManagementResponse</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCountTokensContextManagementResponse</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaDirectCaller</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaDocumentBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFileDocumentSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFileImageSource</a></code>
@@ -250,9 +251,12 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaInputTokensClearAtLeast</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaInputTokensTrigger</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaJSONOutputFormat</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolDefaultConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolUseBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolset</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMemoryTool20250818</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMemoryTool20250818Command</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMemoryTool20250818CreateCommand</a></code>
@@ -266,6 +270,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageTokensCount</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMetadata</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaOutputConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaPlainTextSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRawContentBlockDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRawContentBlockDeltaEvent</a></code>
@@ -282,6 +287,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestMCPServerURLDefinition</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestMCPToolResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSearchResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolCaller</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolUseBlockParam</a></code>
@@ -321,7 +327,18 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChoiceTool</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolComputerUse20241022</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolComputerUse20250124</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolComputerUse20251124</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolReferenceBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolReferenceBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolBm25_20251119</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolRegex20251119</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolResultBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolResultError</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolResultErrorParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolSearchResultBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolSearchToolSearchResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolTextEditor20241022</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolTextEditor20250124</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolTextEditor20250429</a></code>
