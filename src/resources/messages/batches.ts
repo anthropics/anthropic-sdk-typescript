@@ -361,8 +361,8 @@ export namespace BatchCreateParams {
     /**
      * Messages API creation parameters for the individual request.
      *
-     * See the [Messages API reference](/en/api/messages) for full documentation on
-     * available parameters.
+     * See the [Messages API reference](https://docs.claude.com/en/api/messages) for
+     * full documentation on available parameters.
      */
     params: Request.Params;
   }
@@ -371,8 +371,8 @@ export namespace BatchCreateParams {
     /**
      * Messages API creation parameters for the individual request.
      *
-     * See the [Messages API reference](/en/api/messages) for full documentation on
-     * available parameters.
+     * See the [Messages API reference](https://docs.claude.com/en/api/messages) for
+     * full documentation on available parameters.
      */
     export interface Params {
       /**

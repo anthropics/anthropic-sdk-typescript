@@ -431,8 +431,8 @@ export namespace BatchCreateParams {
     /**
      * Messages API creation parameters for the individual request.
      *
-     * See the [Messages API reference](/en/api/messages) for full documentation on
-     * available parameters.
+     * See the [Messages API reference](https://docs.claude.com/en/api/messages) for
+     * full documentation on available parameters.
      */
     params: Request.Params;
   }
@@ -441,8 +441,8 @@ export namespace BatchCreateParams {
     /**
      * Messages API creation parameters for the individual request.
      *
-     * See the [Messages API reference](/en/api/messages) for full documentation on
-     * available parameters.
+     * See the [Messages API reference](https://docs.claude.com/en/api/messages) for
+     * full documentation on available parameters.
      */
     export interface Params {
       /**
@@ -554,6 +554,12 @@ export namespace BatchCreateParams {
        * An object describing metadata about the request.
        */
       metadata?: MessagesMessagesAPI.BetaMetadata;
+
+      /**
+       * Configuration options for the model's output. Controls aspects like how much
+       * effort the model puts into its response.
+       */
+      output_config?: MessagesMessagesAPI.BetaOutputConfig;
 
       /**
        * A schema to specify Claude's output format in responses.

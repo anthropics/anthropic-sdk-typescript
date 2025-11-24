@@ -79,7 +79,7 @@ export class Messages extends APIResource {
    * const messageTokensCount =
    *   await client.messages.countTokens({
    *     messages: [{ content: 'string', role: 'user' }],
-   *     model: 'claude-3-7-sonnet-latest',
+   *     model: 'claude-opus-4-5-20251101',
    *   });
    * ```
    */
@@ -536,6 +536,8 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
+  | 'claude-opus-4-5-20251101'
+  | 'claude-opus-4-5'
   | 'claude-3-7-sonnet-latest'
   | 'claude-3-7-sonnet-20250219'
   | 'claude-3-5-haiku-latest'
