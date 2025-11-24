@@ -91,7 +91,6 @@ export {
   type BetaJSONOutputFormat,
   type BetaInputTokensClearAtLeast,
   type BetaInputTokensTrigger,
-  type BetaJSONOutputFormat,
   type BetaMCPToolConfig,
   type BetaMCPToolDefaultConfig,
   type BetaMCPToolResultBlock,
@@ -215,6 +214,7 @@ export {
   type MessageCreateParamsNonStreaming,
   type MessageCreateParamsStreaming,
   type MessageCountTokensParams,
+  type BetaToolResultContentBlockParam,
 } from './messages/index';
 export {
   Models,
