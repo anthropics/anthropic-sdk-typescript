@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.26.1 (2025-11-24)
+
+Full Changelog: [bedrock-sdk-v0.26.0...bedrock-sdk-v0.26.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.26.0...bedrock-sdk-v0.26.1)
+
+### Chores
+
+* include publishConfig in all package.json files ([4c72960](https://github.com/anthropics/anthropic-sdk-typescript/commit/4c72960c5f494317d3f88816b941ffa103bf24d5))
+
 ## 0.26.0 (2025-11-14)
 
 Full Changelog: [bedrock-sdk-v0.25.0...bedrock-sdk-v0.26.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.25.0...bedrock-sdk-v0.26.0)

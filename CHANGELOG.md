@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.71.0 (2025-11-24)
+
+Full Changelog: [sdk-v0.70.1...sdk-v0.71.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.70.1...sdk-v0.71.0)
+
+### Features
+
+* **api:** adds support for Claude Opus 4.5, Effort, Advance Tool Use Features, Autocompaction, and Computer Use v5 ([f3a0dac](https://github.com/anthropics/anthropic-sdk-typescript/commit/f3a0dac4c6248f4e06231868fd64eec8034a68ba))
+
+
+### Chores
+
+* fix ci errors ([8d96290](https://github.com/anthropics/anthropic-sdk-typescript/commit/8d9629004e35a77413a839c14874e323ced34f95))
+* include publishConfig in all package.json files ([4c72960](https://github.com/anthropics/anthropic-sdk-typescript/commit/4c72960c5f494317d3f88816b941ffa103bf24d5))
+* **readme:** fix example import ([4e8983a](https://github.com/anthropics/anthropic-sdk-typescript/commit/4e8983add6a035ea0a1dad2f84e68ead5cc9f29b))
+
 ## 0.70.1 (2025-11-20)
 
 Full Changelog: [sdk-v0.70.0...sdk-v0.70.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.70.0...sdk-v0.70.1)
