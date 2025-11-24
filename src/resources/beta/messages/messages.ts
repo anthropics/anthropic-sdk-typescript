@@ -178,7 +178,7 @@ export class Messages extends APIResource {
    * const betaMessageTokensCount =
    *   await client.beta.messages.countTokens({
    *     messages: [{ content: 'string', role: 'user' }],
-   *     model: 'claude-sonnet-4-5',
+   *     model: 'claude-opus-4-5-20251101',
    *   });
    * ```
    */
@@ -625,10 +625,18 @@ export interface BetaCodeExecutionTool20250522 {
 
   type: 'code_execution_20250522';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
 
   strict?: boolean;
 }
@@ -643,10 +651,18 @@ export interface BetaCodeExecutionTool20250825 {
 
   type: 'code_execution_20250825';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
 
   strict?: boolean;
 }
@@ -772,6 +788,7 @@ export type BetaContentBlock =
   | BetaCodeExecutionToolResultBlock
   | BetaBashCodeExecutionToolResultBlock
   | BetaTextEditorCodeExecutionToolResultBlock
+  | BetaToolSearchToolResultBlock
   | BetaMCPToolUseBlock
   | BetaMCPToolResultBlock
   | BetaContainerUploadBlock;
@@ -794,6 +811,7 @@ export type BetaContentBlockParam =
   | BetaCodeExecutionToolResultBlockParam
   | BetaBashCodeExecutionToolResultBlockParam
   | BetaTextEditorCodeExecutionToolResultBlockParam
+  | BetaToolSearchToolResultBlockParam
   | BetaMCPToolUseBlockParam
   | BetaRequestMCPToolResultBlockParam
   | BetaContainerUploadBlockParam;
@@ -825,6 +843,13 @@ export interface BetaCountTokensContextManagementResponse {
    * The original token count before context management was applied
    */
   original_input_tokens: number;
+}
+
+/**
+ * Tool invocation directly from the model.
+ */
+export interface BetaDirectCaller {
+  type: 'direct';
 }
 
 export interface BetaDocumentBlock {
@@ -893,6 +918,24 @@ export interface BetaJSONOutputFormat {
   type: 'json_schema';
 }
 
+/**
+ * Configuration for a specific tool in an MCP toolset.
+ */
+export interface BetaMCPToolConfig {
+  defer_loading?: boolean;
+
+  enabled?: boolean;
+}
+
+/**
+ * Default configuration for tools in an MCP toolset.
+ */
+export interface BetaMCPToolDefaultConfig {
+  defer_loading?: boolean;
+
+  enabled?: boolean;
+}
+
 export interface BetaMCPToolResultBlock {
   content: string | Array<BetaTextBlock>;
 
@@ -941,6 +984,36 @@ export interface BetaMCPToolUseBlockParam {
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
+/**
+ * Configuration for a group of tools from an MCP server.
+ *
+ * Allows configuring enabled status and defer_loading for all tools from an MCP
+ * server, with optional per-tool overrides.
+ */
+export interface BetaMCPToolset {
+  /**
+   * Name of the MCP server to configure tools for
+   */
+  mcp_server_name: string;
+
+  type: 'mcp_toolset';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Configuration overrides for specific tools, keyed by tool name
+   */
+  configs?: { [key: string]: BetaMCPToolConfig } | null;
+
+  /**
+   * Default configuration applied to all tools from this server
+   */
+  default_config?: BetaMCPToolDefaultConfig;
+}
+
 export interface BetaMemoryTool20250818 {
   /**
    * Name of the tool.
@@ -951,10 +1024,20 @@ export interface BetaMemoryTool20250818 {
 
   type: 'memory_20250818';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
 
   strict?: boolean;
 }
@@ -1256,6 +1339,13 @@ export interface BetaMetadata {
   user_id?: string | null;
 }
 
+export interface BetaOutputConfig {
+  /**
+   * All possible effort levels.
+   */
+  effort?: 'low' | 'medium' | 'high' | null;
+}
+
 export interface BetaPlainTextSource {
   data: string;
 
@@ -1294,6 +1384,7 @@ export interface BetaRawContentBlockStartEvent {
     | BetaCodeExecutionToolResultBlock
     | BetaBashCodeExecutionToolResultBlock
     | BetaTextEditorCodeExecutionToolResultBlock
+    | BetaToolSearchToolResultBlock
     | BetaMCPToolUseBlock
     | BetaMCPToolResultBlock
     | BetaContainerUploadBlock;
@@ -1455,6 +1546,15 @@ export interface BetaSearchResultBlockParam {
   citations?: BetaCitationsConfigParam;
 }
 
+/**
+ * Tool invocation generated by a server-side tool.
+ */
+export interface BetaServerToolCaller {
+  tool_id: string;
+
+  type: 'code_execution_20250825';
+}
+
 export interface BetaServerToolUsage {
   /**
    * The number of web fetch tool requests.
@@ -1470,9 +1570,21 @@ export interface BetaServerToolUsage {
 export interface BetaServerToolUseBlock {
   id: string;
 
-  input: unknown;
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller: BetaDirectCaller | BetaServerToolCaller;
 
-  name: 'web_search' | 'web_fetch' | 'code_execution' | 'bash_code_execution' | 'text_editor_code_execution';
+  input: { [key: string]: unknown };
+
+  name:
+    | 'web_search'
+    | 'web_fetch'
+    | 'code_execution'
+    | 'bash_code_execution'
+    | 'text_editor_code_execution'
+    | 'tool_search_tool_regex'
+    | 'tool_search_tool_bm25';
 
   type: 'server_tool_use';
 }
@@ -1482,7 +1594,14 @@ export interface BetaServerToolUseBlockParam {
 
   input: unknown;
 
-  name: 'web_search' | 'web_fetch' | 'code_execution' | 'bash_code_execution' | 'text_editor_code_execution';
+  name:
+    | 'web_search'
+    | 'web_fetch'
+    | 'code_execution'
+    | 'bash_code_execution'
+    | 'text_editor_code_execution'
+    | 'tool_search_tool_regex'
+    | 'tool_search_tool_bm25';
 
   type: 'server_tool_use';
 
@@ -1490,6 +1609,11 @@ export interface BetaServerToolUseBlockParam {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: BetaDirectCaller | BetaServerToolCaller;
 }
 
 export interface BetaSignatureDelta {
@@ -1796,10 +1920,18 @@ export interface BetaTool {
    */
   name: string;
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
 
   /**
    * Description of what this tool does.
@@ -1810,6 +1942,8 @@ export interface BetaTool {
    * aspects of the tool input JSON schema.
    */
   description?: string;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
 
   strict?: boolean;
 
@@ -1844,10 +1978,20 @@ export interface BetaToolBash20241022 {
 
   type: 'bash_20241022';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
 
   strict?: boolean;
 }
@@ -1862,10 +2006,20 @@ export interface BetaToolBash20250124 {
 
   type: 'bash_20250124';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
 
   strict?: boolean;
 }
@@ -1953,15 +2107,25 @@ export interface BetaToolComputerUse20241022 {
 
   type: 'computer_20241022';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
 
   /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
    * The X11 display number (e.g. 0, 1) for the display.
    */
   display_number?: number | null;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
 
   strict?: boolean;
 }
@@ -1986,17 +2150,95 @@ export interface BetaToolComputerUse20250124 {
 
   type: 'computer_20250124';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
 
   /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
    * The X11 display number (e.g. 0, 1) for the display.
    */
   display_number?: number | null;
 
+  input_examples?: Array<{ [key: string]: unknown }>;
+
   strict?: boolean;
+}
+
+export interface BetaToolComputerUse20251124 {
+  /**
+   * The height of the display in pixels.
+   */
+  display_height_px: number;
+
+  /**
+   * The width of the display in pixels.
+   */
+  display_width_px: number;
+
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'computer';
+
+  type: 'computer_20251124';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * The X11 display number (e.g. 0, 1) for the display.
+   */
+  display_number?: number | null;
+
+  /**
+   * Whether to enable an action to take a zoomed-in screenshot of the screen.
+   */
+  enable_zoom?: boolean;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
+
+  strict?: boolean;
+}
+
+export interface BetaToolReferenceBlock {
+  tool_name: string;
+
+  type: 'tool_reference';
+}
+
+/**
+ * Tool reference block that can be included in tool_result content.
+ */
+export interface BetaToolReferenceBlockParam {
+  tool_name: string;
+
+  type: 'tool_reference';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
 }
 
 export interface BetaToolResultBlockParam {
@@ -2011,9 +2253,114 @@ export interface BetaToolResultBlockParam {
 
   content?:
     | string
-    | Array<BetaTextBlockParam | BetaImageBlockParam | BetaSearchResultBlockParam | BetaRequestDocumentBlock>;
+    | Array<
+        | BetaTextBlockParam
+        | BetaImageBlockParam
+        | BetaSearchResultBlockParam
+        | BetaRequestDocumentBlock
+        | BetaToolReferenceBlockParam
+      >;
 
   is_error?: boolean;
+}
+
+export interface BetaToolSearchToolBm25_20251119 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'tool_search_tool_bm25';
+
+  type: 'tool_search_tool_bm25_20251119' | 'tool_search_tool_bm25';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  strict?: boolean;
+}
+
+export interface BetaToolSearchToolRegex20251119 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'tool_search_tool_regex';
+
+  type: 'tool_search_tool_regex_20251119' | 'tool_search_tool_regex';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  strict?: boolean;
+}
+
+export interface BetaToolSearchToolResultBlock {
+  content: BetaToolSearchToolResultError | BetaToolSearchToolSearchResultBlock;
+
+  tool_use_id: string;
+
+  type: 'tool_search_tool_result';
+}
+
+export interface BetaToolSearchToolResultBlockParam {
+  content: BetaToolSearchToolResultErrorParam | BetaToolSearchToolSearchResultBlockParam;
+
+  tool_use_id: string;
+
+  type: 'tool_search_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export interface BetaToolSearchToolResultError {
+  error_code: 'invalid_tool_input' | 'unavailable' | 'too_many_requests' | 'execution_time_exceeded';
+
+  error_message: string | null;
+
+  type: 'tool_search_tool_result_error';
+}
+
+export interface BetaToolSearchToolResultErrorParam {
+  error_code: 'invalid_tool_input' | 'unavailable' | 'too_many_requests' | 'execution_time_exceeded';
+
+  type: 'tool_search_tool_result_error';
+}
+
+export interface BetaToolSearchToolSearchResultBlock {
+  tool_references: Array<BetaToolReferenceBlock>;
+
+  type: 'tool_search_tool_search_result';
+}
+
+export interface BetaToolSearchToolSearchResultBlockParam {
+  tool_references: Array<BetaToolReferenceBlockParam>;
+
+  type: 'tool_search_tool_search_result';
 }
 
 export type BetaToolResultContentBlockParam = Extract<BetaToolResultBlockParam['content'], any[]>[number];
@@ -2028,10 +2375,20 @@ export interface BetaToolTextEditor20241022 {
 
   type: 'text_editor_20241022';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
 
   strict?: boolean;
 }
@@ -2046,10 +2403,20 @@ export interface BetaToolTextEditor20250124 {
 
   type: 'text_editor_20250124';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
 
   strict?: boolean;
 }
@@ -2064,10 +2431,20 @@ export interface BetaToolTextEditor20250429 {
 
   type: 'text_editor_20250429';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
 
   strict?: boolean;
 }
@@ -2082,10 +2459,20 @@ export interface BetaToolTextEditor20250728 {
 
   type: 'text_editor_20250728';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
 
   /**
    * Maximum number of characters to display when viewing a file. If not specified,
@@ -2096,6 +2483,12 @@ export interface BetaToolTextEditor20250728 {
   strict?: boolean;
 }
 
+/**
+ * Configuration for a group of tools from an MCP server.
+ *
+ * Allows configuring enabled status and defer_loading for all tools from an MCP
+ * server, with optional per-tool overrides.
+ */
 export type BetaToolUnion =
   | BetaTool
   | BetaToolBash20241022
@@ -2106,11 +2499,15 @@ export type BetaToolUnion =
   | BetaMemoryTool20250818
   | BetaToolComputerUse20250124
   | BetaToolTextEditor20241022
+  | BetaToolComputerUse20251124
   | BetaToolTextEditor20250124
   | BetaToolTextEditor20250429
   | BetaToolTextEditor20250728
   | BetaWebSearchTool20250305
-  | BetaWebFetchTool20250910;
+  | BetaWebFetchTool20250910
+  | BetaToolSearchToolBm25_20251119
+  | BetaToolSearchToolRegex20251119
+  | BetaMCPToolset;
 
 export interface BetaToolUseBlock {
   id: string;
@@ -2120,6 +2517,11 @@ export interface BetaToolUseBlock {
   name: string;
 
   type: 'tool_use';
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: BetaDirectCaller | BetaServerToolCaller;
 }
 
 export interface BetaToolUseBlockParam {
@@ -2135,6 +2537,11 @@ export interface BetaToolUseBlockParam {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: BetaDirectCaller | BetaServerToolCaller;
 }
 
 export interface BetaToolUsesKeep {
@@ -2240,6 +2647,8 @@ export interface BetaWebFetchTool20250910 {
 
   type: 'web_fetch_20250910';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
   /**
    * List of domains to allow fetching from
    */
@@ -2260,6 +2669,12 @@ export interface BetaWebFetchTool20250910 {
    * default.
    */
   citations?: BetaCitationsConfigParam | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
 
   /**
    * Maximum number of tokens used by including web page text content in the context.
@@ -2352,6 +2767,8 @@ export interface BetaWebSearchTool20250305 {
 
   type: 'web_search_20250305';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
   /**
    * If provided, only these domains will be included in results. Cannot be used
    * alongside `blocked_domains`.
@@ -2368,6 +2785,12 @@ export interface BetaWebSearchTool20250305 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
 
   /**
    * Maximum number of times the tool can be used in the API request.
@@ -2580,6 +3003,12 @@ export interface MessageCreateParamsBase {
    * Body param: An object describing metadata about the request.
    */
   metadata?: BetaMetadata;
+
+  /**
+   * Body param: Configuration options for the model's output. Controls aspects like
+   * how much effort the model puts into its response.
+   */
+  output_config?: BetaOutputConfig;
 
   /**
    * Body param: A schema to specify Claude's output format in responses.
@@ -2881,6 +3310,12 @@ export interface MessageCountTokensParams {
   mcp_servers?: Array<BetaRequestMCPServerURLDefinition>;
 
   /**
+   * Body param: Configuration options for the model's output. Controls aspects like
+   * how much effort the model puts into its response.
+   */
+  output_config?: BetaOutputConfig;
+
+  /**
    * Body param: A schema to specify Claude's output format in responses.
    */
   output_format?: BetaJSONOutputFormat | null;
@@ -3000,11 +3435,15 @@ export interface MessageCountTokensParams {
     | BetaMemoryTool20250818
     | BetaToolComputerUse20250124
     | BetaToolTextEditor20241022
+    | BetaToolComputerUse20251124
     | BetaToolTextEditor20250124
     | BetaToolTextEditor20250429
     | BetaToolTextEditor20250728
     | BetaWebSearchTool20250305
     | BetaWebFetchTool20250910
+    | BetaToolSearchToolBm25_20251119
+    | BetaToolSearchToolRegex20251119
+    | BetaMCPToolset
   >;
 
   /**
@@ -3075,6 +3514,7 @@ export declare namespace Messages {
     type BetaContextManagementConfig as BetaContextManagementConfig,
     type BetaContextManagementResponse as BetaContextManagementResponse,
     type BetaCountTokensContextManagementResponse as BetaCountTokensContextManagementResponse,
+    type BetaDirectCaller as BetaDirectCaller,
     type BetaDocumentBlock as BetaDocumentBlock,
     type BetaFileDocumentSource as BetaFileDocumentSource,
     type BetaFileImageSource as BetaFileImageSource,
@@ -3083,9 +3523,12 @@ export declare namespace Messages {
     type BetaInputTokensClearAtLeast as BetaInputTokensClearAtLeast,
     type BetaInputTokensTrigger as BetaInputTokensTrigger,
     type BetaJSONOutputFormat as BetaJSONOutputFormat,
+    type BetaMCPToolConfig as BetaMCPToolConfig,
+    type BetaMCPToolDefaultConfig as BetaMCPToolDefaultConfig,
     type BetaMCPToolResultBlock as BetaMCPToolResultBlock,
     type BetaMCPToolUseBlock as BetaMCPToolUseBlock,
     type BetaMCPToolUseBlockParam as BetaMCPToolUseBlockParam,
+    type BetaMCPToolset as BetaMCPToolset,
     type BetaMemoryTool20250818 as BetaMemoryTool20250818,
     type BetaMemoryTool20250818Command as BetaMemoryTool20250818Command,
     type BetaMemoryTool20250818CreateCommand as BetaMemoryTool20250818CreateCommand,
@@ -3099,6 +3542,7 @@ export declare namespace Messages {
     type BetaMessageParam as BetaMessageParam,
     type BetaMessageTokensCount as BetaMessageTokensCount,
     type BetaMetadata as BetaMetadata,
+    type BetaOutputConfig as BetaOutputConfig,
     type BetaPlainTextSource as BetaPlainTextSource,
     type BetaRawContentBlockDelta as BetaRawContentBlockDelta,
     type BetaRawContentBlockDeltaEvent as BetaRawContentBlockDeltaEvent,
@@ -3115,6 +3559,7 @@ export declare namespace Messages {
     type BetaRequestMCPServerURLDefinition as BetaRequestMCPServerURLDefinition,
     type BetaRequestMCPToolResultBlockParam as BetaRequestMCPToolResultBlockParam,
     type BetaSearchResultBlockParam as BetaSearchResultBlockParam,
+    type BetaServerToolCaller as BetaServerToolCaller,
     type BetaServerToolUsage as BetaServerToolUsage,
     type BetaServerToolUseBlock as BetaServerToolUseBlock,
     type BetaServerToolUseBlockParam as BetaServerToolUseBlockParam,
@@ -3154,8 +3599,19 @@ export declare namespace Messages {
     type BetaToolChoiceTool as BetaToolChoiceTool,
     type BetaToolComputerUse20241022 as BetaToolComputerUse20241022,
     type BetaToolComputerUse20250124 as BetaToolComputerUse20250124,
+    type BetaToolComputerUse20251124 as BetaToolComputerUse20251124,
+    type BetaToolReferenceBlock as BetaToolReferenceBlock,
+    type BetaToolReferenceBlockParam as BetaToolReferenceBlockParam,
     type BetaToolResultBlockParam as BetaToolResultBlockParam,
     type BetaToolResultContentBlockParam as BetaToolResultContentBlockParam,
+    type BetaToolSearchToolBm25_20251119 as BetaToolSearchToolBm25_20251119,
+    type BetaToolSearchToolRegex20251119 as BetaToolSearchToolRegex20251119,
+    type BetaToolSearchToolResultBlock as BetaToolSearchToolResultBlock,
+    type BetaToolSearchToolResultBlockParam as BetaToolSearchToolResultBlockParam,
+    type BetaToolSearchToolResultError as BetaToolSearchToolResultError,
+    type BetaToolSearchToolResultErrorParam as BetaToolSearchToolResultErrorParam,
+    type BetaToolSearchToolSearchResultBlock as BetaToolSearchToolSearchResultBlock,
+    type BetaToolSearchToolSearchResultBlockParam as BetaToolSearchToolSearchResultBlockParam,
     type BetaToolTextEditor20241022 as BetaToolTextEditor20241022,
     type BetaToolTextEditor20250124 as BetaToolTextEditor20250124,
     type BetaToolTextEditor20250429 as BetaToolTextEditor20250429,

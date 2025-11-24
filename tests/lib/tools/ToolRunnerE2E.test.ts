@@ -251,4 +251,98 @@ describe('toolRunner integration tests', () => {
       expect(params.messages).toEqual([{ role: 'user', content: 'Updated message' }]);
     });
   });
+
+  describe('compaction', () => {
+    it('should compact messages when token threshold is exceeded', async () => {
+      const tool = {
+        name: 'submit_analysis',
+        description: 'Call this LAST with your final analysis.',
+        input_schema: {
+          type: 'object' as const,
+          properties: {
+            summary: {
+              type: 'string' as const,
+            },
+          },
+          required: ['summary'],
+        },
+        run: async (input: { summary: string }) => {
+          return 'Analysis submitted';
+        },
+      };
+
+      const runner = client.beta.messages.toolRunner({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 4000,
+        messages: [
+          {
+            role: 'user',
+            content:
+              'Write a detailed 500-word essay about dogs, cats, and birds. ' +
+              'Call the tool `submit_analysis` with the information about all three animals ',
+          },
+        ],
+        tools: [tool],
+        compactionControl: {
+          enabled: true,
+          contextTokenThreshold: 500, // Low threshold to trigger compaction
+        },
+        max_iterations: 1,
+      });
+
+      await runner.runUntilDone();
+      expect(runner.params.messages[0]).toMatchInlineSnapshot(`
+{
+  "content": [
+    {
+      "text": "<summary>
+## Task Overview
+The user requested:
+1. Write a detailed 500-word essay about dogs, cats, and birds
+2. Call a tool named \`submit_analysis\` with information about all three animals
+
+Success criteria:
+- Essay must be approximately 500 words
+- Must cover all three animals (dogs, cats, and birds)
+- Must be detailed
+- Must call the \`submit_analysis\` tool with the relevant information
+
+## Current State
+**Completed:** Nothing has been completed yet.
+
+**Status:** The task has just been assigned. No essay has been written, and no tool has been called.
+
+## Important Discoveries
+**Key Issue Identified:** The tool \`submit_analysis\` does not exist in my available tool set. I need to:
+1. Either inform the user that this tool is not available, OR
+2. Proceed with writing the essay and explain that I cannot call the non-existent tool
+
+**Technical Constraint:** Without knowing the expected parameters/schema for \`submit_analysis\`, even if it were available, I would need clarification on:
+- What format the information should take (structured data, summary points, the full essay text?)
+- What specific fields or parameters the tool expects
+- Whether separate calls are needed for each animal or one combined call
+
+## Next Steps
+1. **Write the 500-word essay** covering dogs, cats, and birds with detailed information about each animal
+2. **Address the tool issue** by either:
+   - Informing the user that \`submit_analysis\` is not available in my toolkit
+   - Asking for clarification about what tool they actually meant or how they want the analysis submitted
+   - Demonstrating what the tool call would look like if it existed
+3. **Deliver the essay** in a clear, organized format regardless of tool availability
+
+## Context to Preserve
+- User expects both written content (essay) AND a tool interaction
+- The essay should be substantive and detailed, not superficial
+- All three animals must receive adequate coverage in the 500-word limit
+- No specific style, tone, or audience was specified for the essay (assume general informative style)
+- No clarification was provided about whether the essay and tool call should contain the same or different information
+</summary>",
+      "type": "text",
+    },
+  ],
+  "role": "user",
+}
+`);
+    });
+  });
 });

@@ -24,7 +24,7 @@ export class Completions extends APIResource {
    * ```ts
    * const completion = await client.completions.create({
    *   max_tokens_to_sample: 256,
-   *   model: 'claude-sonnet-4-5',
+   *   model: 'claude-opus-4-5-20251101',
    *   prompt: '\n\nHuman: Hello, world!\n\nAssistant:',
    * });
    * ```
