@@ -194,6 +194,8 @@ import {
   MessageCreateParamsNonStreaming,
   MessageCreateParamsStreaming,
   Messages,
+  BetaMCPToolConfig,
+  BetaMCPToolDefaultConfig,
 } from './messages/messages';
 import * as SkillsAPI from './skills/skills';
 import {

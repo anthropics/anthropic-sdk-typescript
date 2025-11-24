@@ -198,5 +198,16 @@ export {
   type MessageCreateParamsStreaming,
   type MessageCountTokensParams,
   type BetaMessageStreamParams,
+  type BetaToolSearchToolBm25_20251119,
+  type BetaToolSearchToolRegex20251119,
+  type BetaToolSearchToolResultBlock,
+  type BetaToolSearchToolResultBlockParam,
+  type BetaToolSearchToolResultError,
+  type BetaToolSearchToolResultErrorParam,
+  type BetaToolSearchToolSearchResultBlock,
+  type BetaToolSearchToolSearchResultBlockParam,
+  type BetaMCPToolConfig,
+  type BetaMCPToolDefaultConfig,
+  type BetaToolResultContentBlockParam,
 } from './messages';
 export { BetaToolRunner, type BetaToolRunnerParams } from './messages';

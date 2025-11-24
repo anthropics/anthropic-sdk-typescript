@@ -319,7 +319,7 @@ async function generateToolResponse(
 
   const toolResults = await Promise.all(
     toolUseBlocks.map(async (toolUse) => {
-      const tool = params.tools.find((t) => t.name === toolUse.name);
+      const tool = params.tools.find((t) => ('name' in t ? t.name : t.mcp_server_name) === toolUse.name);
       if (!tool || !('run' in tool)) {
         return {
           type: 'tool_result' as const,
