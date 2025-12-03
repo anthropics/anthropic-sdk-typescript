@@ -112,6 +112,8 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     response: Response;
     request_id: string | null | undefined;
   }> {
+    this.#catchingPromiseCreated = true;
+
     const response = await this.#connectedPromise;
     if (!response) {
       throw new Error('Could not resolve a `Response` object');
@@ -133,7 +135,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
    */
   static fromReadableStream(stream: ReadableStream): MessageStream {
     const runner = new MessageStream();
-    runner._run(() => runner._fromReadableStream(stream));
+    void runner._run(() => runner._fromReadableStream(stream));
     return runner;
   }
 
@@ -146,21 +148,24 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     for (const message of params.messages) {
       runner._addMessageParam(message);
     }
-    runner._run(() =>
-      runner._createMessage(
-        messages,
-        { ...params, stream: true },
-        { ...options, headers: { ...options?.headers, 'X-Stainless-Helper-Method': 'stream' } },
-      ),
-    );
+    void runner
+      ._run(
+        async () =>
+          await runner._createMessage(
+            messages,
+            { ...params, stream: true },
+            { ...options, headers: { ...options?.headers, 'X-Stainless-Helper-Method': 'stream' } },
+          ),
+      )
+      .catch(runner.#handleError);
     return runner;
   }
 
-  protected _run(executor: () => Promise<any>) {
-    executor().then(() => {
-      this._emitFinal();
-      this._emit('end');
-    }, this.#handleError);
+  protected async _run(executor: () => Promise<any>) {
+    await executor();
+
+    this._emitFinal();
+    this._emit('end');
   }
 
   protected _addMessageParam(message: MessageParam) {

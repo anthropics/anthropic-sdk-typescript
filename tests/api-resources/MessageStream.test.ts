@@ -225,4 +225,31 @@ describe('MessageStream class', () => {
     assertToolUseResponse(events, finalMessage);
     expect(finalText).toBe("I'll check the current weather in Paris for you.");
   });
+
+  it('does not throw unhandled rejection with withResponse()', async () => {
+    // NOTE: this test fails if there is an uncaught exception
+    const { fetch, handleRequest } = mockFetch();
+    const anthropic = new Anthropic({
+      apiKey: 'test-key',
+      fetch,
+      defaultHeaders: {
+        'anthropic-beta': 'fine-grained-tool-streaming-2025-05-14',
+      },
+    });
+    const stream = anthropic.beta.messages
+      .stream(
+        {
+          max_tokens: 1024,
+          model: 'claude-sonnet-4-0',
+          messages: [{ role: 'user', content: 'Say hello there!' }],
+        },
+        { maxRetries: 0 },
+      )
+      .withResponse();
+
+    handleRequest(async () => {
+      throw new Error('mock request error');
+    });
+    await expect(stream).rejects.toThrow(APIConnectionError);
+  });
 });
