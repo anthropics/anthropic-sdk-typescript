@@ -135,7 +135,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
    */
   static fromReadableStream(stream: ReadableStream): MessageStream {
     const runner = new MessageStream();
-    void runner._run(() => runner._fromReadableStream(stream));
+    runner._run(() => runner._fromReadableStream(stream));
     return runner;
   }
 
@@ -148,24 +148,21 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     for (const message of params.messages) {
       runner._addMessageParam(message);
     }
-    void runner
-      ._run(
-        async () =>
-          await runner._createMessage(
-            messages,
-            { ...params, stream: true },
-            { ...options, headers: { ...options?.headers, 'X-Stainless-Helper-Method': 'stream' } },
-          ),
-      )
-      .catch(runner.#handleError);
+    runner._run(() =>
+      runner._createMessage(
+        messages,
+        { ...params, stream: true },
+        { ...options, headers: { ...options?.headers, 'X-Stainless-Helper-Method': 'stream' } },
+      ),
+    );
     return runner;
   }
 
-  protected async _run(executor: () => Promise<any>) {
-    await executor();
-
-    this._emitFinal();
-    this._emit('end');
+  protected _run(executor: () => Promise<any>) {
+    executor().then(() => {
+      this._emitFinal();
+      this._emit('end');
+    }, this.#handleError);
   }
 
   protected _addMessageParam(message: MessageParam) {
