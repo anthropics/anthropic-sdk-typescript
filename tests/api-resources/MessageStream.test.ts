@@ -227,7 +227,6 @@ describe('MessageStream class', () => {
   });
 
   it('does not throw unhandled rejection with withResponse()', async () => {
-    // NOTE: this test fails if there is an uncaught exception
     const { fetch, handleRequest } = mockFetch();
     const anthropic = new Anthropic({
       apiKey: 'test-key',
@@ -236,7 +235,7 @@ describe('MessageStream class', () => {
         'anthropic-beta': 'fine-grained-tool-streaming-2025-05-14',
       },
     });
-    const stream = anthropic.beta.messages
+    const stream = anthropic.messages
       .stream(
         {
           max_tokens: 1024,
