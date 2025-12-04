@@ -41,10 +41,7 @@ export function maybeParseBetaMessage<Params extends BetaParseableMessageCreateP
       ...message,
       content: message.content.map((block) => {
         if (block.type === 'text') {
-          return {
-            ...block,
-            parsed: null,
-          };
+          return Object.defineProperty({ ...block }, 'parsed', { value: null, enumerable: false });
         }
         return block;
       }),
@@ -70,10 +67,10 @@ export function parseBetaMessage<Params extends BetaParseableMessageCreateParams
           firstParsed = parsed;
         }
 
-        return {
-          ...block,
-          parsed,
-        };
+        return Object.defineProperty({ ...block }, 'parsed', {
+          value: parsed,
+          enumerable: false,
+        }) as ParsedBetaContentBlock<ExtractParsedContentFromBetaParams<Params>>;
       }
       return block;
     });
