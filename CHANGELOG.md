@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.71.1 (2025-12-04)
+
+Full Changelog: [sdk-v0.71.0...sdk-v0.71.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.71.0...sdk-v0.71.1)
+
+### Bug Fixes
+
+* **parser:** use correct naming for parsed text blocks ([6472bcd](https://github.com/anthropics/anthropic-sdk-typescript/commit/6472bcd222f826a131d1abf20301a57749993d2f))
+* **structured outputs:** ensure parsed is not enumerable ([860175f](https://github.com/anthropics/anthropic-sdk-typescript/commit/860175ff77caf258a0ed3a0177f53f3a4a771064)), closes [#857](https://github.com/anthropics/anthropic-sdk-typescript/issues/857)
+
+
+### Chores
+
+* add deprecation warnings for accessing .parsed ([ae7a637](https://github.com/anthropics/anthropic-sdk-typescript/commit/ae7a637b86f8fa318df2257564c0a71ae37c0381))
+* **client:** fix logger property type ([e3e4d7c](https://github.com/anthropics/anthropic-sdk-typescript/commit/e3e4d7c40c986668ed46a3f4040d60bfd2c7e76b))
+* **internal:** upgrade eslint ([5fbe661](https://github.com/anthropics/anthropic-sdk-typescript/commit/5fbe661d009446ab98c7b7488a8955238276b55e))
+
 ## 0.71.0 (2025-11-24)
 
 Full Changelog: [sdk-v0.70.1...sdk-v0.71.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.70.1...sdk-v0.71.0)
