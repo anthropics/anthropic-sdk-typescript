@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.71.2 (2025-12-05)
+
+Full Changelog: [sdk-v0.71.1...sdk-v0.71.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.71.1...sdk-v0.71.2)
+
+### Bug Fixes
+
+* **streams:** ensure errors are catchable ([#856](https://github.com/anthropics/anthropic-sdk-typescript/issues/856)) ([a480eaf](https://github.com/anthropics/anthropic-sdk-typescript/commit/a480eafbcbebc83510446b6280f91f969de531f9))
+
 ## 0.71.1 (2025-12-04)
 
 Full Changelog: [sdk-v0.71.0...sdk-v0.71.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.71.0...sdk-v0.71.1)
