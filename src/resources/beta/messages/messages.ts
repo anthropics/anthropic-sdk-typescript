@@ -3192,6 +3192,16 @@ export interface MessageCreateParamsBase {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+
+  /**
+   * Body param: Whether to ignore tool parameter parse errors.
+   *
+   * If set to `true`, the model will ignore tool parameter parse errors and return them in the response.
+   *
+   * If set to `false`, the model will return an error if a tool parameter parse error occurs.
+   */
+  ignore_tool_parameter_parse_errors?: boolean;
 }
 
 export namespace MessageCreateParams {
