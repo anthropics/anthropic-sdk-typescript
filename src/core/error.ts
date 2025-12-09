@@ -4,6 +4,8 @@ import { castToError } from '../internal/errors';
 
 export class AnthropicError extends Error {}
 
+export class UnableToParseToolParameterError extends AnthropicError {}
+
 export class APIError<
   TStatus extends number | undefined = number | undefined,
   THeaders extends Headers | undefined = Headers | undefined,

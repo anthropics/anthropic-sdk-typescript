@@ -1,6 +1,6 @@
 import { partialParse } from '../_vendor/partial-json-parser/parser';
 import type { Logger } from '../client';
-import { AnthropicError, APIUserAbortError } from '../error';
+import { AnthropicError, APIUserAbortError, UnableToParseToolParameterError } from '../error';
 import { isAbortError } from '../internal/errors';
 import { type RequestOptions } from '../internal/request-options';
 import {
@@ -413,6 +413,9 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
       // NOTE: _emit('error', error) should only be called from #handleError().
 
       const error = args[0] as AnthropicError;
+      if (this.#params?.ignore_tool_parameter_parse_errors && error instanceof UnableToParseToolParameterError) {
+        return;
+      }
       if (!this.#catchingPromiseCreated && !listeners?.length) {
         // Trigger an unhandled rejection if the user hasn't registered any error handlers.
         // If you are seeing stack traces here, make sure to handle errors via either:
@@ -635,7 +638,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
                 try {
                   newContent.input = partialParse(jsonBuf);
                 } catch (err) {
-                  const error = new AnthropicError(
+                  const error = new UnableToParseToolParameterError(
                     `Unable to parse tool parameter JSON from model. Please retry your request or adjust your prompt. Error: ${err}. JSON: ${jsonBuf}`,
                   );
                   this.#handleError(error);
