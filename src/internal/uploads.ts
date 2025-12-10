@@ -49,7 +49,7 @@ export function makeFile(
   return new File(fileBits as any, fileName ?? 'unknown_file', options);
 }
 
-export function getName(value: any, strip: boolean): string | undefined {
+export function getName(value: any, stripPath: boolean): string | undefined {
   const val =
     (typeof value === 'object' &&
       value !== null &&
@@ -59,7 +59,7 @@ export function getName(value: any, strip: boolean): string | undefined {
         ('path' in value && value.path && String(value.path)))) ||
     '';
 
-  return strip ? val.split(/[\\/]/).pop() || undefined : val;
+  return stripPath ? val.split(/[\\/]/).pop() || undefined : val;
 }
 
 export const isAsyncIterable = (value: any): value is AsyncIterable<any> =>
