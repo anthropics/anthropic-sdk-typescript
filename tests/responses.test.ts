@@ -1,6 +1,7 @@
 import { APIPromise } from '@anthropic-ai/sdk/api-promise';
 import Anthropic from '@anthropic-ai/sdk/index';
 import { compareType } from './utils/typing';
+import { createResponseHeaders } from '@anthropic-ai/sdk/internal/headers';
 
 const client = new Anthropic({ apiKey: 'dummy' });
 
@@ -139,5 +140,28 @@ describe('request id', () => {
     const result = await promise;
     expect(result).toBe('hello world');
     expect((result as any)._request_id).toBeUndefined();
+  });
+});
+
+describe('response parsing', () => {
+  // TODO: test unicode characters
+  test('headers are case agnostic', async () => {
+    const headers = createResponseHeaders(new Headers({ 'Content-Type': 'foo', Accept: 'text/plain' }));
+    expect(headers['content-type']).toEqual('foo');
+    expect(headers['Content-type']).toEqual('foo');
+    expect(headers['Content-Type']).toEqual('foo');
+    expect(headers['accept']).toEqual('text/plain');
+    expect(headers['Accept']).toEqual('text/plain');
+    expect(headers['Hello-World']).toBeUndefined();
+  });
+
+  test('duplicate headers are concatenated', () => {
+    const headers = createResponseHeaders(
+      new Headers([
+        ['Content-Type', 'text/xml'],
+        ['Content-Type', 'application/json'],
+      ]),
+    );
+    expect(headers['content-type']).toBe('text/xml, application/json');
   });
 });
