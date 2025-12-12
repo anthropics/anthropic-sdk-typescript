@@ -741,3 +741,171 @@ describe('retries', () => {
     expect(count).toEqual(3);
   });
 });
+
+describe('authToken token provider', () => {
+  const mockFetch = jest.fn().mockImplementation(() => {
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Headers({ 'content-type': 'application/json' }),
+      json: () => Promise.resolve({}),
+      text: () => Promise.resolve('{}'),
+    });
+  });
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    global.fetch = mockFetch;
+    mockFetch.mockClear();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  test('accepts static string authToken', async () => {
+    const client = new Anthropic({
+      authToken: 'static-token',
+      apiKey: null,
+    });
+
+    expect(client.authToken).toBe('static-token');
+  });
+
+  test('accepts authToken as async function', async () => {
+    const tokenProvider = jest.fn().mockResolvedValue('dynamic-token');
+
+    const client = new Anthropic({
+      authToken: tokenProvider,
+      apiKey: null,
+    });
+
+    // authToken property should be null when using function provider
+    expect(client.authToken).toBe(null);
+    // Function should be stored in _options
+    expect((client as any)._options.authToken).toBe(tokenProvider);
+  });
+
+  test('calls authToken function on each request', async () => {
+    let callCount = 0;
+    const tokenProvider = jest.fn().mockImplementation(async () => {
+      callCount++;
+      return `token-${callCount}`;
+    });
+
+    const client = new Anthropic({
+      authToken: tokenProvider,
+      apiKey: null,
+    });
+
+    await client.get('/foo');
+    expect(tokenProvider).toHaveBeenCalledTimes(1);
+
+    const [, options1] = mockFetch.mock.calls[0];
+    expect((options1.headers as Headers).get('authorization')).toBe('Bearer token-1');
+
+    await client.get('/bar');
+    expect(tokenProvider).toHaveBeenCalledTimes(2);
+
+    const [, options2] = mockFetch.mock.calls[1];
+    expect((options2.headers as Headers).get('authorization')).toBe('Bearer token-2');
+  });
+
+  test('throws error when authToken function returns empty string', async () => {
+    const tokenProvider = jest.fn().mockResolvedValue('');
+
+    const client = new Anthropic({
+      authToken: tokenProvider,
+      apiKey: null,
+    });
+
+    await expect(client.get('/foo')).rejects.toThrow(
+      'Expected authToken function argument to return a non-empty string',
+    );
+  });
+
+  test('throws error when authToken function returns non-string', async () => {
+    const tokenProvider = jest.fn().mockResolvedValue(123);
+
+    const client = new Anthropic({
+      authToken: tokenProvider as any,
+      apiKey: null,
+    });
+
+    await expect(client.get('/foo')).rejects.toThrow(
+      'Expected authToken function argument to return a non-empty string',
+    );
+  });
+
+  test('wraps errors from authToken function', async () => {
+    const tokenProvider = jest.fn().mockRejectedValue(new Error('Token refresh failed'));
+
+    const client = new Anthropic({
+      authToken: tokenProvider,
+      apiKey: null,
+    });
+
+    await expect(client.get('/foo')).rejects.toThrow('Failed to get token from authToken provider');
+  });
+
+  test('preserves authToken function in withOptions', async () => {
+    const tokenProvider = jest.fn().mockResolvedValue('original-token');
+
+    const client = new Anthropic({
+      authToken: tokenProvider,
+      apiKey: null,
+    });
+
+    const newClient = client.withOptions({
+      baseURL: 'http://localhost:5001/',
+    });
+
+    // The token provider should be preserved
+    expect((newClient as any)._options.authToken).toBe(tokenProvider);
+
+    await newClient.get('/foo');
+    expect(tokenProvider).toHaveBeenCalled();
+  });
+
+  test('withOptions can override authToken function with new function', async () => {
+    const originalProvider = jest.fn().mockResolvedValue('original-token');
+    const newProvider = jest.fn().mockResolvedValue('new-token');
+
+    const client = new Anthropic({
+      authToken: originalProvider,
+      apiKey: null,
+    });
+
+    const newClient = client.withOptions({
+      authToken: newProvider,
+    });
+
+    await newClient.get('/foo');
+
+    expect(originalProvider).not.toHaveBeenCalled();
+    expect(newProvider).toHaveBeenCalled();
+  });
+
+  test('withOptions can override authToken function with static string', async () => {
+    const tokenProvider = jest.fn().mockResolvedValue('dynamic-token');
+
+    const client = new Anthropic({
+      authToken: tokenProvider,
+      apiKey: null,
+    });
+
+    const newClient = client.withOptions({
+      authToken: 'static-override',
+    });
+
+    expect(newClient.authToken).toBe('static-override');
+
+    await newClient.get('/foo');
+
+    expect(tokenProvider).not.toHaveBeenCalled();
+
+    const [, options] = mockFetch.mock.calls[0];
+    expect((options.headers as Headers).get('authorization')).toBe('Bearer static-override');
+  });
+});

@@ -162,6 +162,7 @@ import {
 import { isEmptyObj } from './internal/utils/values';
 
 export type ApiKeySetter = () => Promise<string>;
+export type AuthTokenSetter = () => Promise<string>;
 
 export interface ClientOptions {
   /**
@@ -178,9 +179,17 @@ export interface ClientOptions {
   apiKey?: string | ApiKeySetter | null | undefined;
 
   /**
-   * Defaults to process.env['ANTHROPIC_AUTH_TOKEN'].
+   * OAuth token used for authentication.
+   *
+   * - Accepts either a static string or an async function that resolves to a string.
+   * - Defaults to process.env['ANTHROPIC_AUTH_TOKEN'].
+   * - When a function is provided, it is invoked before each request so you can rotate
+   *   or refresh tokens at runtime (e.g., for OAuth token refresh flows).
+   * - The function must return a non-empty string; otherwise an AnthropicError is thrown.
+   * - If the function throws, the error is wrapped in an AnthropicError with the original
+   *   error available as `cause`.
    */
-  authToken?: string | null | undefined;
+  authToken?: string | AuthTokenSetter | null | undefined;
 
   /**
    * Override the default base URL for the API, e.g., "https://api.example.com/v2/"
@@ -330,7 +339,7 @@ export class BaseAnthropic {
     this._options = options;
 
     this.apiKey = typeof apiKey === 'string' ? apiKey : null;
-    this.authToken = authToken;
+    this.authToken = typeof authToken === 'string' ? authToken : null;
   }
 
   /**
@@ -346,8 +355,8 @@ export class BaseAnthropic {
       logLevel: this.logLevel,
       fetch: this.fetch,
       fetchOptions: this.fetchOptions,
-      apiKey: this.apiKey,
-      authToken: this.authToken,
+      apiKey: this._options.apiKey,
+      authToken: this._options.authToken,
       ...options,
     });
     return client;
@@ -376,7 +385,9 @@ export class BaseAnthropic {
       return;
     }
 
-    if (this.authToken && values.get('authorization')) {
+    // Check for authToken - either as a static string or a function provider
+    const hasAuthToken = this.authToken != null || typeof this._options.authToken === 'function';
+    if (hasAuthToken && values.get('authorization')) {
       return;
     }
     if (nulls.has('authorization')) {
@@ -400,10 +411,36 @@ export class BaseAnthropic {
   }
 
   protected async bearerAuth(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
-    if (this.authToken == null) {
+    const authTokenOption = this._options.authToken;
+    if (authTokenOption == null) {
       return undefined;
     }
-    return buildHeaders([{ Authorization: `Bearer ${this.authToken}` }]);
+
+    // If authToken is a function (token provider), call it to get fresh token
+    if (typeof authTokenOption === 'function') {
+      let token: unknown;
+      try {
+        token = await authTokenOption();
+      } catch (err: any) {
+        if (err instanceof Errors.AnthropicError) throw err;
+        throw new Errors.AnthropicError(
+          `Failed to get token from authToken provider: ${err.message}`,
+          // @ts-ignore
+          { cause: err },
+        );
+      }
+
+      if (typeof token !== 'string' || !token) {
+        throw new Errors.AnthropicError(
+          `Expected authToken function argument to return a non-empty string but it returned ${token}`,
+        );
+      }
+
+      return buildHeaders([{ Authorization: `Bearer ${token}` }]);
+    }
+
+    // Static string token
+    return buildHeaders([{ Authorization: `Bearer ${authTokenOption}` }]);
   }
 
   /**
@@ -985,6 +1022,7 @@ export declare namespace Anthropic {
   export type RequestOptions = Opts.RequestOptions;
 
   export type { ApiKeySetter };
+  export type { AuthTokenSetter };
 
   export import Page = Pagination.Page;
   export { type PageParams as PageParams, type PageResponse as PageResponse };
