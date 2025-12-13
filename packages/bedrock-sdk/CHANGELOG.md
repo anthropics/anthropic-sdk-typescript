@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.26.2 (2025-12-13)
+
+Full Changelog: [bedrock-sdk-v0.26.1...bedrock-sdk-v0.26.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.26.1...bedrock-sdk-v0.26.2)
+
+### Chores
+
+* **internal:** version bump ([f3e89e8](https://github.com/anthropics/anthropic-sdk-typescript/commit/f3e89e84a2c807d7ded1738a9a9090710cb6605e))
+
 ## 0.26.1 (2025-11-24)
 
 Full Changelog: [bedrock-sdk-v0.26.0...bedrock-sdk-v0.26.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.26.0...bedrock-sdk-v0.26.1)
