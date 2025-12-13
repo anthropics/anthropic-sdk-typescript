@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.2 (2025-12-13)
+
+Full Changelog: [foundry-sdk-v0.2.1...foundry-sdk-v0.2.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.2.1...foundry-sdk-v0.2.2)
+
+### Chores
+
+* **internal:** version bump ([f3e89e8](https://github.com/anthropics/anthropic-sdk-typescript/commit/f3e89e84a2c807d7ded1738a9a9090710cb6605e))
+
 ## 0.2.1 (2025-11-20)
 
 Full Changelog: [foundry-sdk-v0.2.0...foundry-sdk-v0.2.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.2.0...foundry-sdk-v0.2.1)

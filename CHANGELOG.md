@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.71.3 (2025-12-13)
+
+Full Changelog: [sdk-v0.71.2...sdk-v0.71.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.71.2...sdk-v0.71.3)
+
+### Bug Fixes
+
+* **mcp:** correct code tool API endpoint ([ba21721](https://github.com/anthropics/anthropic-sdk-typescript/commit/ba21721557b96dd0fd89e2b3459aed7e95dd733a))
+* **mcp:** return correct lines on typescript errors ([0b98943](https://github.com/anthropics/anthropic-sdk-typescript/commit/0b98943430f7d6c5c85047d9d676efbf2b6b8052))
+
+
+### Chores
+
+* **internal:** codegen related update ([a7fbcd8](https://github.com/anthropics/anthropic-sdk-typescript/commit/a7fbcd8733d554a7682d612ab0cf4873a4d05265))
+* **internal:** codegen related update ([2a6e2cd](https://github.com/anthropics/anthropic-sdk-typescript/commit/2a6e2cd068a6c5846054e4d0d0103be9750b1f57))
+* **internal:** version bump ([f3e89e8](https://github.com/anthropics/anthropic-sdk-typescript/commit/f3e89e84a2c807d7ded1738a9a9090710cb6605e))
+* **tests:** remove extraneous header test ([fd388c6](https://github.com/anthropics/anthropic-sdk-typescript/commit/fd388c6a113d655409659aff82dd3336b946f8b4))
+
 ## 0.71.2 (2025-12-05)
 
 Full Changelog: [sdk-v0.71.1...sdk-v0.71.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.71.1...sdk-v0.71.2)
