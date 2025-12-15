@@ -1,0 +1,204 @@
+name: Build Native Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (leave empty for current)'
+        required: false
+        type: string
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # macOS builds
+          - platform: darwin-x64
+            os: macos-13
+          - platform: darwin-arm64
+            os: macos-14
+
+          # Linux builds (glibc)
+          - platform: linux-x64
+            os: ubuntu-22.04
+          - platform: linux-arm64
+            os: ubuntu-22.04-arm
+
+          # Linux builds (musl) - using Alpine container
+          - platform: linux-x64-musl
+            os: ubuntu-22.04
+            container: alpine:latest
+          - platform: linux-arm64-musl
+            os: ubuntu-22.04-arm
+            container: alpine:latest
+
+          # Windows builds
+          - platform: win32-x64
+            os: windows-2022
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (Alpine)
+        if: contains(matrix.platform, 'musl')
+        run: |
+          apk add --no-cache bash curl unzip
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build TypeScript
+        run: yarn build
+
+      - name: Build native binary
+        run: node scripts/native/build-native.js --platform ${{ matrix.platform }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: anthropic-sdk-${{ matrix.platform }}
+          path: dist-native/${{ matrix.platform }}/
+          retention-days: 30
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          echo "$VERSION" > release/stable
+          echo "$VERSION" > release/latest
+
+          # Create manifest
+          echo "{" > release/manifest.json
+          echo '  "version": "'$VERSION'",' >> release/manifest.json
+          echo '  "generated": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",' >> release/manifest.json
+          echo '  "platforms": {' >> release/manifest.json
+
+          first=true
+          for dir in artifacts/anthropic-sdk-*/; do
+            platform=$(basename "$dir" | sed 's/anthropic-sdk-//')
+            binary=$(ls "$dir" | head -1)
+            checksum=$(sha256sum "$dir$binary" | cut -d' ' -f1)
+
+            if [ "$first" = true ]; then
+              first=false
+            else
+              echo ',' >> release/manifest.json
+            fi
+            echo -n "    \"$platform\": \"$checksum\"" >> release/manifest.json
+
+            # Create platform directory
+            mkdir -p "release/$platform"
+            cp "$dir$binary" "release/$platform/"
+          done
+
+          echo '' >> release/manifest.json
+          echo '  }' >> release/manifest.json
+          echo '}' >> release/manifest.json
+
+          cat release/manifest.json
+
+      - name: Upload to GCS
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          path: release
+          destination: anthropic-sdk-typescript/releases/${{ github.ref_name }}
+          parent: false
+
+      - name: Update stable pointer
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          path: release/stable
+          destination: anthropic-sdk-typescript/releases/
+          parent: false
+
+      - name: Update latest pointer
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          path: release/latest
+          destination: anthropic-sdk-typescript/releases/
+          parent: false
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            release/manifest.json
+          body: |
+            ## Native Binary Downloads
+
+            Install via native installer:
+            ```bash
+            # macOS/Linux
+            curl -fsSL https://sdk.anthropic.com/typescript/install.sh | bash
+
+            # Windows PowerShell
+            irm https://sdk.anthropic.com/typescript/install.ps1 | iex
+            ```
+
+            Or install via npm:
+            ```bash
+            npm install @anthropic-ai/sdk
+            ```
+
+            ## Checksums
+
+            See `manifest.json` for SHA256 checksums of all binaries.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  upload-installers:
+    name: Upload Installer Scripts
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Upload install scripts to GCS
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          path: scripts/native/install.sh
+          destination: anthropic-sdk-typescript/
+          parent: false
+
+      - name: Upload PowerShell install script to GCS
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          path: scripts/native/install.ps1
+          destination: anthropic-sdk-typescript/
+          parent: false
