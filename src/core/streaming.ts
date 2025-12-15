@@ -66,6 +66,11 @@ export class Stream<Item> implements AsyncIterable<Item> {
             sse.event === 'content_block_delta' ||
             sse.event === 'content_block_stop'
           ) {
+            // skip streaming events with no data
+            if(sse.data == null) {
+              continue;
+            }
+
             try {
               yield JSON.parse(sse.data);
             } catch (e) {
