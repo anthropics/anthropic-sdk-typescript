@@ -26,6 +26,11 @@ if [ -e "bin/migration-config.json" ]; then
   mkdir -p dist/bin
   cp -p "bin/migration-config.json" dist/bin/;
 fi
+# Copy postinstall script for native binary download
+if [ -e "scripts/postinstall.js" ]; then
+  mkdir -p dist/scripts
+  cp -p "scripts/postinstall.js" dist/scripts/;
+fi
 # this converts the export map paths for the dist directory
 # and does a few other minor things
 node scripts/utils/make-dist-package-json.cjs > dist/package.json
