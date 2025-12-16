@@ -49,20 +49,17 @@ export function makeFile(
   return new File(fileBits as any, fileName ?? 'unknown_file', options);
 }
 
-export function getName(value: any): string | undefined {
-  return (
-    (
-      (typeof value === 'object' &&
-        value !== null &&
-        (('name' in value && value.name && String(value.name)) ||
-          ('url' in value && value.url && String(value.url)) ||
-          ('filename' in value && value.filename && String(value.filename)) ||
-          ('path' in value && value.path && String(value.path)))) ||
-      ''
-    )
-      .split(/[\\/]/)
-      .pop() || undefined
-  );
+export function getName(value: any, stripPath: boolean): string | undefined {
+  const val =
+    (typeof value === 'object' &&
+      value !== null &&
+      (('name' in value && value.name && String(value.name)) ||
+        ('url' in value && value.url && String(value.url)) ||
+        ('filename' in value && value.filename && String(value.filename)) ||
+        ('path' in value && value.path && String(value.path)))) ||
+    '';
+
+  return stripPath ? val.split(/[\\/]/).pop() || undefined : val;
 }
 
 export const isAsyncIterable = (value: any): value is AsyncIterable<any> =>
@@ -86,8 +83,9 @@ type MultipartFormRequestOptions = Omit<RequestOptions, 'body'> & { body: unknow
 export const multipartFormRequestOptions = async (
   opts: MultipartFormRequestOptions,
   fetch: BaseAnthropic | Fetch,
+  stripFilenames: boolean = true,
 ): Promise<RequestOptions> => {
-  return { ...opts, body: await createForm(opts.body, fetch) };
+  return { ...opts, body: await createForm(opts.body, fetch, stripFilenames) };
 };
 
 const supportsFormDataMap = /* @__PURE__ */ new WeakMap<Fetch, Promise<boolean>>();
@@ -125,6 +123,7 @@ function supportsFormData(fetchObject: BaseAnthropic | Fetch): Promise<boolean> 
 export const createForm = async <T = Record<string, unknown>>(
   body: T | undefined,
   fetch: BaseAnthropic | Fetch,
+  stripFilenames: boolean = true,
 ): Promise<FormData> => {
   if (!(await supportsFormData(fetch))) {
     throw new TypeError(
@@ -132,7 +131,9 @@ export const createForm = async <T = Record<string, unknown>>(
     );
   }
   const form = new FormData();
-  await Promise.all(Object.entries(body || {}).map(([key, value]) => addFormValue(form, key, value)));
+  await Promise.all(
+    Object.entries(body || {}).map(([key, value]) => addFormValue(form, key, value, stripFilenames)),
+  );
   return form;
 };
 
@@ -156,7 +157,12 @@ const hasUploadableValue = (value: unknown): boolean => {
   return false;
 };
 
-const addFormValue = async (form: FormData, key: string, value: unknown): Promise<void> => {
+const addFormValue = async (
+  form: FormData,
+  key: string,
+  value: unknown,
+  stripFilenames: boolean,
+): Promise<void> => {
   if (value === undefined) return;
   if (value == null) {
     throw new TypeError(
@@ -174,16 +180,21 @@ const addFormValue = async (form: FormData, key: string, value: unknown): Promis
       options = { type: contentType };
     }
 
-    form.append(key, makeFile([await value.blob()], getName(value), options));
+    form.append(key, makeFile([await value.blob()], getName(value, stripFilenames), options));
   } else if (isAsyncIterable(value)) {
-    form.append(key, makeFile([await new Response(ReadableStreamFrom(value)).blob()], getName(value)));
+    form.append(
+      key,
+      makeFile([await new Response(ReadableStreamFrom(value)).blob()], getName(value, stripFilenames)),
+    );
   } else if (isNamedBlob(value)) {
-    form.append(key, makeFile([value], getName(value), { type: value.type }));
+    form.append(key, makeFile([value], getName(value, stripFilenames), { type: value.type }));
   } else if (Array.isArray(value)) {
-    await Promise.all(value.map((entry) => addFormValue(form, key + '[]', entry)));
+    await Promise.all(value.map((entry) => addFormValue(form, key + '[]', entry, stripFilenames)));
   } else if (typeof value === 'object') {
     await Promise.all(
-      Object.entries(value).map(([name, prop]) => addFormValue(form, `${key}[${name}]`, prop)),
+      Object.entries(value).map(([name, prop]) =>
+        addFormValue(form, `${key}[${name}]`, prop, stripFilenames),
+      ),
     );
   } else {
     throw new TypeError(
