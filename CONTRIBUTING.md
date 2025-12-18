@@ -60,7 +60,7 @@ $ yarn link @anthropic-ai/sdk
 # With pnpm
 $ pnpm link --global
 $ cd ../my-package
-$ pnpm link -—global @anthropic-ai/sdk
+$ pnpm link --global @anthropic-ai/sdk
 ```
 
 ## Running tests
