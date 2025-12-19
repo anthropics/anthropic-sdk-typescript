@@ -396,4 +396,233 @@ describe('idle timeout', () => {
     // Second call should timeout
     await expect(iterator.next()).rejects.toThrow(StreamIdleTimeoutError);
   });
+
+  test('cleans up timer on normal stream completion', async () => {
+    const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+
+    async function* body(): AsyncGenerator<Buffer> {
+      yield Buffer.from('event: message_start\n');
+      yield Buffer.from('data: {"type":"message_start"}\n');
+      yield Buffer.from('\n');
+      yield Buffer.from('event: message_stop\n');
+      yield Buffer.from('data: {"type":"message_stop"}\n');
+      yield Buffer.from('\n');
+    }
+
+    const controller = new AbortController();
+    const stream = _iterSSEMessages(new Response(ReadableStreamFrom(body())), controller, {
+      idleTimeout: 1000,
+    });
+
+    const events = [];
+    for await (const event of stream) {
+      events.push(event);
+    }
+
+    expect(events.length).toBe(2);
+    // Timer should have been cleared (once per chunk + final)
+    expect(clearTimeoutSpy).toHaveBeenCalled();
+    clearTimeoutSpy.mockRestore();
+  });
+
+  test('cleans up timer when user breaks out of loop', async () => {
+    const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+
+    async function* body(): AsyncGenerator<Buffer> {
+      yield Buffer.from('event: event1\n\n');
+      yield Buffer.from('event: event2\n\n');
+      yield Buffer.from('event: event3\n\n');
+      // More events that won't be consumed
+      yield Buffer.from('event: event4\n\n');
+    }
+
+    const controller = new AbortController();
+    const stream = _iterSSEMessages(new Response(ReadableStreamFrom(body())), controller, {
+      idleTimeout: 1000,
+    });
+
+    let count = 0;
+    for await (const _event of stream) {
+      count++;
+      if (count >= 2) break; // Break early
+    }
+
+    expect(count).toBe(2);
+    // Allow microtask queue to flush
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(clearTimeoutSpy).toHaveBeenCalled();
+    clearTimeoutSpy.mockRestore();
+  });
+
+  test('cleans up timer on manual abort', async () => {
+    const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+
+    async function* body(): AsyncGenerator<Buffer> {
+      yield Buffer.from('event: message_start\n\n');
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      yield Buffer.from('event: message_stop\n\n');
+    }
+
+    const controller = new AbortController();
+    const stream = _iterSSEMessages(new Response(ReadableStreamFrom(body())), controller, {
+      idleTimeout: 1000,
+    });
+
+    const iterator = stream[Symbol.asyncIterator]();
+
+    // Get first event
+    await iterator.next();
+
+    // Abort while waiting for second
+    setTimeout(() => controller.abort(), 20);
+
+    // The next call should handle the abort
+    try {
+      await iterator.next();
+    } catch (e) {
+      // Abort error is expected
+    }
+
+    expect(clearTimeoutSpy).toHaveBeenCalled();
+    clearTimeoutSpy.mockRestore();
+  });
+
+  test('handles very short idleTimeout', async () => {
+    // Test that a very short timeout (1ms) still works correctly
+    // Note: setTimeout(fn, 0) behavior allows synchronously-available data through,
+    // so we use 1ms and add a small delay to ensure timeout fires
+    async function* body(): AsyncGenerator<Buffer> {
+      yield Buffer.from('event: message_start\n\n');
+      await new Promise((resolve) => setTimeout(resolve, 20)); // Delay longer than timeout
+      yield Buffer.from('event: message_stop\n\n');
+    }
+
+    const controller = new AbortController();
+    const stream = _iterSSEMessages(new Response(ReadableStreamFrom(body())), controller, {
+      idleTimeout: 1, // Very short timeout
+    });
+
+    const events = [];
+    try {
+      for await (const event of stream) {
+        events.push(event);
+      }
+      fail('Should have thrown');
+    } catch (err) {
+      expect(err).toBeInstanceOf(StreamIdleTimeoutError);
+    }
+
+    // First event should have come through before timeout
+    expect(events.length).toBe(1);
+  });
+
+  test('works correctly with multiple sequential streams', async () => {
+    // Ensure no cross-contamination between streams
+    async function* fastBody(): AsyncGenerator<Buffer> {
+      yield Buffer.from('event: fast\n\n');
+    }
+
+    async function* slowBody(): AsyncGenerator<Buffer> {
+      yield Buffer.from('event: slow\n\n');
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      yield Buffer.from('event: slow2\n\n');
+    }
+
+    // First stream with short timeout
+    const stream1 = _iterSSEMessages(new Response(ReadableStreamFrom(fastBody())), new AbortController(), {
+      idleTimeout: 100,
+    });
+
+    const events1 = [];
+    for await (const event of stream1) {
+      events1.push(event);
+    }
+    expect(events1.length).toBe(1);
+
+    // Second stream with different timeout - should not be affected by first
+    const stream2 = _iterSSEMessages(new Response(ReadableStreamFrom(slowBody())), new AbortController(), {
+      idleTimeout: 100,
+    });
+
+    const events2 = [];
+    for await (const event of stream2) {
+      events2.push(event);
+    }
+    expect(events2.length).toBe(2);
+  });
+
+  test('timeout error includes accurate event count across multiple chunks', async () => {
+    async function* body(): AsyncGenerator<Buffer> {
+      // Send 5 chunks before stalling
+      for (let i = 0; i < 5; i++) {
+        yield Buffer.from(`event: event${i}\n\n`);
+      }
+      await new Promise(() => {}); // Stall
+    }
+
+    const controller = new AbortController();
+    const stream = _iterSSEMessages(new Response(ReadableStreamFrom(body())), controller, {
+      idleTimeout: 50,
+    });
+
+    const events = [];
+    try {
+      for await (const event of stream) {
+        events.push(event);
+      }
+      fail('Should have thrown');
+    } catch (err) {
+      expect(err).toBeInstanceOf(StreamIdleTimeoutError);
+      const timeoutErr = err as StreamIdleTimeoutError;
+      // We received 5 chunks before timeout
+      expect(timeoutErr.eventCount).toBe(5);
+    }
+
+    expect(events.length).toBe(5);
+  });
+
+  test('does not leak timers when error occurs during chunk processing', async () => {
+    const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+    const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+
+    async function* body(): AsyncGenerator<Buffer> {
+      yield Buffer.from('event: good\n\n');
+      yield Buffer.from('event: bad\n\n');
+    }
+
+    const controller = new AbortController();
+    const stream = _iterSSEMessages(new Response(ReadableStreamFrom(body())), controller, {
+      idleTimeout: 1000,
+    });
+
+    let errorThrown = false;
+    try {
+      let count = 0;
+      for await (const _event of stream) {
+        count++;
+        if (count === 2) {
+          throw new Error('Processing error');
+        }
+      }
+    } catch (e) {
+      if ((e as Error).message === 'Processing error') {
+        errorThrown = true;
+      } else {
+        throw e;
+      }
+    }
+
+    expect(errorThrown).toBe(true);
+
+    // Get counts before restore
+    const setCount = setTimeoutSpy.mock.calls.length;
+    const clearCount = clearTimeoutSpy.mock.calls.length;
+
+    setTimeoutSpy.mockRestore();
+    clearTimeoutSpy.mockRestore();
+
+    // Each setTimeout should have a corresponding clearTimeout
+    // (may have more clears than sets due to the error path)
+    expect(clearCount).toBeGreaterThanOrEqual(setCount - 1);
+  });
 });
