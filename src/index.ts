@@ -12,6 +12,7 @@ export {
   APIConnectionError,
   APIConnectionTimeoutError,
   APIUserAbortError,
+  StreamIdleTimeoutError,
   NotFoundError,
   ConflictError,
   RateLimitError,

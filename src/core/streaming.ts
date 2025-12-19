@@ -1,4 +1,4 @@
-import { AnthropicError } from './error';
+import { AnthropicError, StreamIdleTimeoutError } from './error';
 import { type ReadableStream } from '../internal/shim-types';
 import { makeReadableStream } from '../internal/shims';
 import { findDoubleNewlineIndex, LineDecoder } from '../internal/decoders/line';
@@ -11,6 +11,14 @@ import type { BaseAnthropic } from '../client';
 
 import { APIError } from './error';
 
+export type StreamOptions = {
+  /**
+   * Maximum time in milliseconds to wait between SSE events before considering
+   * the stream stalled and aborting.
+   */
+  idleTimeout?: number | undefined;
+};
+
 type Bytes = string | ArrayBuffer | Uint8Array | null | undefined;
 
 export type ServerSentEvent = {
@@ -22,23 +30,28 @@ export type ServerSentEvent = {
 export class Stream<Item> implements AsyncIterable<Item> {
   controller: AbortController;
   #client: BaseAnthropic | undefined;
+  #options: StreamOptions | undefined;
 
   constructor(
     private iterator: () => AsyncIterator<Item>,
     controller: AbortController,
     client?: BaseAnthropic,
+    options?: StreamOptions,
   ) {
     this.controller = controller;
     this.#client = client;
+    this.#options = options;
   }
 
   static fromSSEResponse<Item>(
     response: Response,
     controller: AbortController,
     client?: BaseAnthropic,
+    options?: StreamOptions,
   ): Stream<Item> {
     let consumed = false;
     const logger = client ? loggerFor(client) : console;
+    const idleTimeout = options?.idleTimeout ?? client?.idleTimeout;
 
     async function* iterator(): AsyncIterator<Item, any, undefined> {
       if (consumed) {
@@ -47,7 +60,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
       consumed = true;
       let done = false;
       try {
-        for await (const sse of _iterSSEMessages(response, controller)) {
+        for await (const sse of _iterSSEMessages(response, controller, { idleTimeout })) {
           if (sse.event === 'completion') {
             try {
               yield JSON.parse(sse.data);
@@ -94,7 +107,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
       }
     }
 
-    return new Stream(iterator, controller, client);
+    return new Stream(iterator, controller, client, options);
   }
 
   /**
@@ -175,8 +188,8 @@ export class Stream<Item> implements AsyncIterable<Item> {
     };
 
     return [
-      new Stream(() => teeIterator(left), this.controller, this.#client),
-      new Stream(() => teeIterator(right), this.controller, this.#client),
+      new Stream(() => teeIterator(left), this.controller, this.#client, this.#options),
+      new Stream(() => teeIterator(right), this.controller, this.#client, this.#options),
     ];
   }
 
@@ -215,6 +228,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
 export async function* _iterSSEMessages(
   response: Response,
   controller: AbortController,
+  options?: StreamOptions,
 ): AsyncGenerator<ServerSentEvent, void, unknown> {
   if (!response.body) {
     controller.abort();
@@ -229,17 +243,67 @@ export async function* _iterSSEMessages(
     throw new AnthropicError(`Attempted to iterate over a response with no body`);
   }
 
+  const idleTimeout = options?.idleTimeout;
+  let lastEventTime = Date.now();
+  let eventCount = 0;
+
   const sseDecoder = new SSEDecoder();
   const lineDecoder = new LineDecoder();
 
   const iter = ReadableStreamToAsyncIterable<Bytes>(response.body);
-  for await (const sseChunk of iterSSEChunks(iter)) {
-    for (const line of lineDecoder.decode(sseChunk)) {
-      const sse = sseDecoder.decode(line);
-      if (sse) yield sse;
+  const chunksIter = iterSSEChunks(iter)[Symbol.asyncIterator]();
+
+  while (true) {
+    // Create a promise that rejects after the idle timeout
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise =
+      idleTimeout ?
+        new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => {
+            const error = new StreamIdleTimeoutError({
+              idleTimeoutMs: idleTimeout,
+              lastEventTime: new Date(lastEventTime),
+              eventCount,
+            });
+            controller.abort();
+            reject(error);
+          }, idleTimeout);
+        })
+      : null;
+
+    try {
+      // Race between the next chunk and the timeout
+      const nextChunk = chunksIter.next();
+      const result = timeoutPromise ? await Promise.race([nextChunk, timeoutPromise]) : await nextChunk;
+
+      // Clear the timeout since we got data
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+
+      if (result.done) {
+        break;
+      }
+
+      // Update tracking for idle timeout
+      lastEventTime = Date.now();
+      eventCount++;
+
+      // Process the chunk
+      for (const line of lineDecoder.decode(result.value)) {
+        const sse = sseDecoder.decode(line);
+        if (sse) yield sse;
+      }
+    } catch (e) {
+      // Clear timeout on error
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      throw e;
     }
   }
 
+  // Flush any remaining data
   for (const line of lineDecoder.flush()) {
     const sse = sseDecoder.decode(line);
     if (sse) yield sse;
