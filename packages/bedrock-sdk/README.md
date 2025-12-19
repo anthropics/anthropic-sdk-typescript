@@ -1,10 +1,10 @@
-# Anthropic Bedrock TypeScript API Library
+# <img src=".github/logo.svg" alt="" width="32"> Claude SDK for AWS Bedrock
 
-[![NPM version](https://img.shields.io/npm/v/@anthropic-ai/bedrock-sdk.svg)](https://npmjs.org/package/@anthropic-ai/bedrock-sdk)
+[![NPM version](https://img.shields.io/npm/v/@anthropic-ai/bedrock-sdk.svg?color=blue)](https://npmjs.org/package/@anthropic-ai/bedrock-sdk)
 
-This library provides convenient access to the Anthropic Bedrock API.
+This library provides convenient access to the Claude API via AWS Bedrock. See the [documentation](https://platform.claude.com/docs/en/build-with-claude/claude-on-amazon-bedrock) for more details.
 
-For the non-Bedrock Anthropic API at api.anthropic.com, see [`@anthropic-ai/sdk`](https://github.com/anthropics/anthropic-sdk-typescript).
+For the direct Claude API at api.anthropic.com, see [`@anthropic-ai/sdk`](https://github.com/anthropics/anthropic-sdk-typescript).
 
 ## Installation
 
@@ -66,7 +66,7 @@ const client = new AnthropicBedrock({
 });
 ```
 
-For more details on how to use the SDK, see the [README.md for the main Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript/tree/main#anthropic-typescript-api-library) which this library extends.
+For more details on how to use the SDK, see the [README.md for the main Claude SDK](https://github.com/anthropics/anthropic-sdk-typescript/tree/main#readme) which this library extends.
 
 ## Requirements
 
