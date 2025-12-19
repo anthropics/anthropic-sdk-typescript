@@ -199,6 +199,22 @@ export interface ClientOptions {
    * @unit milliseconds
    */
   timeout?: number | undefined;
+
+  /**
+   * The maximum amount of time (in milliseconds) to wait between SSE events during streaming.
+   * If no event is received within this period, the stream will be aborted with a
+   * `StreamIdleTimeoutError`.
+   *
+   * This is distinct from `timeout` which applies to the overall request. `idleTimeout`
+   * specifically detects stalled streams where the connection is alive but no data is flowing.
+   *
+   * Can be overridden per-request via `RequestOptions.idleTimeout`.
+   *
+   * @unit milliseconds
+   * @default undefined (no idle timeout)
+   */
+  idleTimeout?: number | undefined;
+
   /**
    * Additional `RequestInit` options to be passed to `fetch` calls.
    * Properties will be overridden by per-request `fetchOptions`.
@@ -270,6 +286,7 @@ export class BaseAnthropic {
   baseURL: string;
   maxRetries: number;
   timeout: number;
+  idleTimeout: number | undefined;
   logger: Logger;
   logLevel: LogLevel | undefined;
   fetchOptions: MergedRequestInit | undefined;
@@ -314,6 +331,7 @@ export class BaseAnthropic {
 
     this.baseURL = options.baseURL!;
     this.timeout = options.timeout ?? BaseAnthropic.DEFAULT_TIMEOUT /* 10 minutes */;
+    this.idleTimeout = options.idleTimeout;
     this.logger = options.logger ?? console;
     const defaultLogLevel = 'warn';
     // Set default logLevel early so that we can log a warning in parseLogLevel.
@@ -342,6 +360,7 @@ export class BaseAnthropic {
       baseURL: this.baseURL,
       maxRetries: this.maxRetries,
       timeout: this.timeout,
+      idleTimeout: this.idleTimeout,
       logger: this.logger,
       logLevel: this.logLevel,
       fetch: this.fetch,
@@ -954,6 +973,7 @@ export class BaseAnthropic {
   static APIConnectionError = Errors.APIConnectionError;
   static APIConnectionTimeoutError = Errors.APIConnectionTimeoutError;
   static APIUserAbortError = Errors.APIUserAbortError;
+  static StreamIdleTimeoutError = Errors.StreamIdleTimeoutError;
   static NotFoundError = Errors.NotFoundError;
   static ConflictError = Errors.ConflictError;
   static RateLimitError = Errors.RateLimitError;

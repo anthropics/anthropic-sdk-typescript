@@ -116,6 +116,39 @@ export class APIConnectionTimeoutError extends APIConnectionError {
   }
 }
 
+/**
+ * Error thrown when a streaming response stalls - no SSE events received
+ * within the configured idle timeout period.
+ */
+export class StreamIdleTimeoutError extends APIConnectionError {
+  /** The configured idle timeout in milliseconds */
+  readonly idleTimeoutMs: number;
+  /** When the last SSE event was received */
+  readonly lastEventTime: Date;
+  /** Number of events received before the timeout */
+  readonly eventCount: number;
+
+  constructor({
+    idleTimeoutMs,
+    lastEventTime,
+    eventCount,
+    message,
+  }: {
+    idleTimeoutMs: number;
+    lastEventTime: Date;
+    eventCount: number;
+    message?: string;
+  }) {
+    super({
+      message:
+        message ?? `Stream stalled: no SSE event received for ${idleTimeoutMs}ms after ${eventCount} events`,
+    });
+    this.idleTimeoutMs = idleTimeoutMs;
+    this.lastEventTime = lastEventTime;
+    this.eventCount = eventCount;
+  }
+}
+
 export class BadRequestError extends APIError<400, Headers> {}
 
 export class AuthenticationError extends APIError<401, Headers> {}
