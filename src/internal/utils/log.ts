@@ -84,6 +84,16 @@ export function loggerFor(client: BaseAnthropic): Logger {
   return levelLogger;
 }
 
+/**
+ * SECURITY: Sanitizes sensitive headers before logging to prevent information disclosure.
+ *
+ * This function redacts authentication credentials and other sensitive data from headers
+ * before they are logged via debug/info logging. This prevents API keys, bearer tokens,
+ * and other secrets from being exposed in logs.
+ *
+ * @param details - Request/response details that may contain sensitive headers
+ * @returns Sanitized details safe for logging
+ */
 export const formatRequestDetails = (details: {
   options?: RequestOptions | undefined;
   headers?: Headers | Record<string, string> | undefined;
@@ -101,19 +111,26 @@ export const formatRequestDetails = (details: {
     delete details.options['headers']; // redundant + leaks internals
   }
   if (details.headers) {
+    // SECURITY: Redact sensitive authentication and credential headers
+    // This prevents API keys, tokens, and other secrets from leaking into logs
     details.headers = Object.fromEntries(
       (details.headers instanceof Headers ? [...details.headers] : Object.entries(details.headers)).map(
-        ([name, value]) => [
-          name,
-          (
-            name.toLowerCase() === 'x-api-key' ||
-            name.toLowerCase() === 'authorization' ||
-            name.toLowerCase() === 'cookie' ||
-            name.toLowerCase() === 'set-cookie'
-          ) ?
-            '***'
-          : value,
-        ],
+        ([name, value]) => {
+          const lowerName = name.toLowerCase();
+          // Redact authentication-related headers that may contain credentials
+          const isSensitive =
+            lowerName === 'x-api-key' ||           // Anthropic API key
+            lowerName === 'authorization' ||        // Bearer tokens, Basic auth
+            lowerName === 'cookie' ||               // Session cookies
+            lowerName === 'set-cookie' ||           // Set-Cookie headers
+            lowerName.includes('token') ||          // Any header with 'token'
+            lowerName.includes('key') ||            // Any header with 'key'
+            lowerName.includes('secret') ||         // Any header with 'secret'
+            lowerName.includes('password') ||       // Any header with 'password'
+            lowerName.includes('auth');             // Any header with 'auth'
+
+          return [name, isSensitive ? '***' : value];
+        },
       ),
     );
   }
