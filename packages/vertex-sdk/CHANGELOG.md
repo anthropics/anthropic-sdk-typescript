@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.14.2 (2025-12-27)
+
+Full Changelog: [vertex-sdk-v0.14.1...vertex-sdk-v0.14.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.14.1...vertex-sdk-v0.14.2)
+
+### Chores
+
+* **internal:** version bump ([f3e89e8](https://github.com/anthropics/anthropic-sdk-typescript/commit/f3e89e84a2c807d7ded1738a9a9090710cb6605e))
+
+
+### Documentation
+
+* update README with Claude branding ([#611](https://github.com/anthropics/anthropic-sdk-typescript/issues/611)) ([203223a](https://github.com/anthropics/anthropic-sdk-typescript/commit/203223ac1720b1387b37dc83d6e36a89c2af9179))
+
 ## 0.14.1 (2025-11-24)
 
 Full Changelog: [vertex-sdk-v0.14.0...vertex-sdk-v0.14.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.14.0...vertex-sdk-v0.14.1)
