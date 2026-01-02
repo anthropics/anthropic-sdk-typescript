@@ -203,7 +203,7 @@ for await (const entry of results) {
 
 ## Tool use
 
-This SDK provides support for tool use, aka function calling. More details can be found in [the documentation](https://docs.anthropic.com/claude/docs/tool-use).
+This SDK provides support for tool use, aka function calling. More details can be found in [the documentation](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview).
 
 ## AWS Bedrock
 
