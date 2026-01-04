@@ -504,7 +504,7 @@ may still be visible.
 #### Custom logger
 
 By default, this library logs to `globalThis.console`. You can also provide a custom logger.
-Most logging libraries are supported, including [pino](https://www.npmjs.com/package/pino), [winston](https://www.npmjs.com/package/winston), [bunyan](https://www.npmjs.com/package/bunyan), [consola](https://www.npmjs.com/package/consola), [signale](https://www.npmjs.com/package/signale), and [@std/log](https://jsr.io/@std/log). If your logger doesn't work, please open an issue.
+Most logging libraries are supported, including [pino](https://www.npmjs.com/package/pino), [winston](https://www.npmjs.com/package/winston), [bunyan](https://www.npmjs.com/package/bunyan), [consola](https://www.npmjs.com/package/consola), and [signale](https://www.npmjs.com/package/signale). If your logger doesn't work, please open an issue.
 
 When providing a custom logger, the `logLevel` option still controls which messages are emitted, messages
 below the configured level will not be sent to your logger.
