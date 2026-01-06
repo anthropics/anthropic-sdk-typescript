@@ -23,7 +23,12 @@ describe('resource files', () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.files.list(
-        { after_id: 'after_id', before_id: 'before_id', limit: 1, betas: ['string'] },
+        {
+          after_id: 'after_id',
+          before_id: 'before_id',
+          limit: 1,
+          betas: ['string'],
+        },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
