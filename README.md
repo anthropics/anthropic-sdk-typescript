@@ -316,7 +316,11 @@ const client = new Anthropic({
 });
 
 // Or, configure per-request:
-await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-sonnet-4-5-20250929' }, {
+await client.messages.create({
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'Hello, Claude' }],
+  model: 'claude-sonnet-4-5-20250929',
+}, {
   maxRetries: 5,
 });
 ```
@@ -344,7 +348,11 @@ const client = new Anthropic({
 });
 
 // Override per-request:
-await client.messages.create({ max_tokens: 1024, messages: [{ role: 'user', content: 'Hello, Claude' }], model: 'claude-sonnet-4-5-20250929' }, {
+await client.messages.create({
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'Hello, Claude' }],
+  model: 'claude-sonnet-4-5-20250929',
+}, {
   timeout: 5 * 1000,
 });
 ```
