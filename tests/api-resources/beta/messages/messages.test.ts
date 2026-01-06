@@ -30,7 +30,16 @@ describe('resource messages', () => {
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
       model: 'claude-sonnet-4-5-20250929',
-      container: { id: 'id', skills: [{ skill_id: 'x', type: 'anthropic', version: 'x' }] },
+      container: {
+        id: 'id',
+        skills: [
+          {
+            skill_id: 'x',
+            type: 'anthropic',
+            version: 'x',
+          },
+        ],
+      },
       context_management: {
         edits: [
           {
@@ -54,7 +63,10 @@ describe('resource messages', () => {
       ],
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
       output_config: { effort: 'low' },
-      output_format: { schema: { foo: 'bar' }, type: 'json_schema' },
+      output_format: {
+        schema: { foo: 'bar' },
+        type: 'json_schema',
+      },
       service_tier: 'auto',
       stop_sequences: ['string'],
       stream: false,
@@ -143,7 +155,10 @@ describe('resource messages', () => {
         },
       ],
       output_config: { effort: 'low' },
-      output_format: { schema: { foo: 'bar' }, type: 'json_schema' },
+      output_format: {
+        schema: { foo: 'bar' },
+        type: 'json_schema',
+      },
       system: [
         {
           text: "Today's date is 2024-06-01.",

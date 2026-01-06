@@ -110,7 +110,11 @@ describe('resource batches', () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.messages.batches.list(
-        { after_id: 'after_id', before_id: 'before_id', limit: 1 },
+        {
+          after_id: 'after_id',
+          before_id: 'before_id',
+          limit: 1,
+        },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
