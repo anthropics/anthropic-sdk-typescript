@@ -287,7 +287,7 @@ Updates the conversation parameters. Can accept new parameters or a mutator func
 // Direct parameter update
 runner.setMessagesParams({
   ...runner.params,
-  model: 'claude-3-5-haiku-20241022',
+  model: 'claude-haiku-4-5',
   max_tokens: 500,
 });
 
