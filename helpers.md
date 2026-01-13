@@ -301,7 +301,8 @@ runner.setMessagesParams((prevParams) => ({
 
 #### `BetaToolRunner.pushMessages()`
 
-Adds messages to the conversation history.
+Adds messages to the conversation history. This is useful for dynamically guiding the conversation based on tool results or intermediate findings.
+
 
 ```ts
 runner.pushMessages(
@@ -338,4 +339,6 @@ See the following example files for more usage patterns:
 
 - [`examples/tools-helpers-zod.ts`](examples/tools-helpers-zod.ts) - Zod-based tools
 - [`examples/tools-helpers-json-schema.ts`](examples/tools-helpers-json-schema.ts) - JSON Schema tools
+- [`examples/tools-helpers-advanced.ts`](examples/tools-helpers-advanced.ts) - Advanced tool runner patterns
+- [`examples/tools-helpers-pushmessages-simple.ts`](examples/tools-helpers-pushmessages-simple.ts) - Using `pushMessages()` to guide based on tool results
 - [`examples/tools.ts`](examples/tools.ts) - Basic tool usage
