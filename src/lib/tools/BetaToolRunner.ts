@@ -40,8 +40,8 @@ export class BetaToolRunner<Stream extends boolean> {
   #options: BetaToolRunnerRequestOptions;
   /** Promise for the last message received from the assistant */
   #message?: Promise<BetaMessage> | undefined;
-  /** JSON snapshot of the last message processed for tool response generation to invalidate the cache when the message content changes */
-  #lastProcessedMessageSnapshot?: string;
+  /** Reference to the last message processed for tool response generation to invalidate the cache when the message reference changes */
+  #lastProcessedMessage?: BetaMessageParam;
   /** Cached tool response to avoid redundant executions */
   #toolResponse?: Promise<BetaMessageParam | null> | undefined;
   /** Promise resolvers for waiting on completion */
@@ -207,7 +207,7 @@ export class BetaToolRunner<Stream extends boolean> {
               this.#state.params.messages.push({ role, content });
             }
 
-            const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
+            const toolMessage = await this.generateToolResponse();
             if (toolMessage) {
               this.#state.params.messages.push(toolMessage);
             } else if (!this.#mutated) {
@@ -287,21 +287,18 @@ export class BetaToolRunner<Stream extends boolean> {
     if (!message) {
       return null;
     }
-    return this.#generateToolResponse({
-      role: message.role,
-      content: message.content,
-    });
+    return this.#generateToolResponse(message);
   }
 
   async #generateToolResponse(lastMessage: BetaMessageParam) {
     if (
-      this.#lastProcessedMessageSnapshot &&
-      this.#lastProcessedMessageSnapshot === JSON.stringify(lastMessage) &&
+      this.#lastProcessedMessage &&
+      this.#lastProcessedMessage == lastMessage &&
       this.#toolResponse !== undefined
     ) {
       return this.#toolResponse;
     }
-    this.#lastProcessedMessageSnapshot = JSON.stringify(lastMessage);
+    this.#lastProcessedMessage = lastMessage;
     this.#toolResponse = generateToolResponse(this.#state.params, lastMessage);
     return this.#toolResponse;
   }

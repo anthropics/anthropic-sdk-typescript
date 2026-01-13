@@ -727,6 +727,56 @@ describe('ToolRunner', () => {
     });
   });
 
+  describe('.pushMessages()', () => {
+    it('adds messages to the conversation', () => {
+      const { runner } = setupTest({
+        messages: [{ role: 'user', content: 'Initial message' }],
+      });
+
+      expect(runner.params.messages).toHaveLength(1);
+
+      runner.pushMessages({ role: 'user', content: 'Second message' });
+
+      expect(runner.params.messages).toHaveLength(2);
+      expect(runner.params.messages[1]).toMatchObject({
+        role: 'user',
+        content: 'Second message',
+      });
+    });
+
+    it('prevents automatic tool result generation when called after tool_use', async () => {
+      const { runner, handleAssistantMessage } = setupTest({
+        messages: [{ role: 'user', content: 'Get weather' }],
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      handleAssistantMessage(getWeatherToolUse('Tokyo'));
+      await expectEvent(iterator, (message) => {
+        expect(message.content).toMatchObject([getWeatherToolUse('Tokyo')]);
+      });
+
+      runner.pushMessages({ role: 'user', content: 'Custom message' });
+
+      handleAssistantMessage(getTextContent());
+      await expectEvent(iterator, (message) => {
+        expect(message.content).toMatchObject([getTextContent()]);
+      });
+
+      expect(runner.params.messages).toHaveLength(2);
+      expect(runner.params.messages[0]).toMatchObject({
+        role: 'user',
+        content: 'Get weather',
+      });
+      expect(runner.params.messages[1]).toMatchObject({
+        role: 'user',
+        content: 'Custom message',
+      });
+
+      await expectDone(iterator);
+    });
+  });
+
   describe('.generateToolResponse()', () => {
     it('returns tool response for last message', async () => {
       const { runner, handleAssistantMessage } = setupTest({
