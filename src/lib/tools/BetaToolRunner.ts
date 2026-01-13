@@ -40,7 +40,7 @@ export class BetaToolRunner<Stream extends boolean> {
   #options: BetaToolRunnerRequestOptions;
   /** Promise for the last message received from the assistant */
   #message?: Promise<BetaMessage> | undefined;
-  /** Reference to the last message processed for tool response generation to invalidate the cache when the message reference changes */
+  /** JSON snapshot of the last message processed for tool response generation to invalidate the cache when the message content changes */
   #lastProcessedMessageSnapshot?: string;
   /** Cached tool response to avoid redundant executions */
   #toolResponse?: Promise<BetaMessageParam | null> | undefined;
