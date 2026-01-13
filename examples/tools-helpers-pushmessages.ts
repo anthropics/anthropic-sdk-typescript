@@ -64,7 +64,7 @@ async function main() {
       runner.pushMessages(
         {
           role: 'user',
-          content: `Please use farenhiet scale for temperature instead of celsius.`,
+          content: `Please use fahrenheit scale for temperature instead of celsius.`,
         },
         {
           role: message.role,
