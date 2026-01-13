@@ -41,7 +41,7 @@ export class BetaToolRunner<Stream extends boolean> {
   /** Promise for the last message received from the assistant */
   #message?: Promise<BetaMessage> | undefined;
   /** Reference to the last message processed for tool response generation to invalidate the cache when the message reference changes */
-  #lastProcessedMessage?: BetaMessageParam;
+  #lastProcessedMessageSnapshot?: string;
   /** Cached tool response to avoid redundant executions */
   #toolResponse?: Promise<BetaMessageParam | null> | undefined;
   /** Promise resolvers for waiting on completion */
@@ -283,18 +283,25 @@ export class BetaToolRunner<Stream extends boolean> {
    * }
    */
   async generateToolResponse() {
-    const message = this.params.messages.at(-1);
+    const message = (this.#mutated ? undefined : await this.#message) ?? this.params.messages.at(-1);
     if (!message) {
       return null;
     }
-    return this.#generateToolResponse(message);
+    return this.#generateToolResponse({
+      role: message.role,
+      content: message.content,
+    });
   }
 
   async #generateToolResponse(lastMessage: BetaMessageParam) {
-    if (this.#lastProcessedMessage === lastMessage && this.#toolResponse !== undefined) {
+    if (
+      this.#lastProcessedMessageSnapshot &&
+      this.#lastProcessedMessageSnapshot === JSON.stringify(lastMessage) &&
+      this.#toolResponse !== undefined
+    ) {
       return this.#toolResponse;
     }
-    this.#lastProcessedMessage = lastMessage;
+    this.#lastProcessedMessageSnapshot = JSON.stringify(lastMessage);
     this.#toolResponse = generateToolResponse(this.#state.params, lastMessage);
     return this.#toolResponse;
   }
