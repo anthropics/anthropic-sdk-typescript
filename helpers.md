@@ -340,5 +340,4 @@ See the following example files for more usage patterns:
 - [`examples/tools-helpers-zod.ts`](examples/tools-helpers-zod.ts) - Zod-based tools
 - [`examples/tools-helpers-json-schema.ts`](examples/tools-helpers-json-schema.ts) - JSON Schema tools
 - [`examples/tools-helpers-advanced.ts`](examples/tools-helpers-advanced.ts) - Advanced tool runner patterns
-- [`examples/tools-helpers-pushmessages.ts`](examples/tools-helpers-pushmessages.ts) - Using `pushMessages()` to guide based on tool results
 - [`examples/tools.ts`](examples/tools.ts) - Basic tool usage
