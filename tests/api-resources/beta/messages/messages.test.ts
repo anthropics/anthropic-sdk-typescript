@@ -62,7 +62,13 @@ describe('resource messages', () => {
         },
       ],
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
-      output_config: { effort: 'low' },
+      output_config: {
+        effort: 'low',
+        format: {
+          schema: { foo: 'bar' },
+          type: 'json_schema',
+        },
+      },
       output_format: {
         schema: { foo: 'bar' },
         type: 'json_schema',
@@ -154,7 +160,13 @@ describe('resource messages', () => {
           tool_configuration: { allowed_tools: ['string'], enabled: true },
         },
       ],
-      output_config: { effort: 'low' },
+      output_config: {
+        effort: 'low',
+        format: {
+          schema: { foo: 'bar' },
+          type: 'json_schema',
+        },
+      },
       output_format: {
         schema: { foo: 'bar' },
         type: 'json_schema',
