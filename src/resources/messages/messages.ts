@@ -1208,7 +1208,8 @@ export interface WebSearchToolRequestError {
     | 'unavailable'
     | 'max_uses_exceeded'
     | 'too_many_requests'
-    | 'query_too_long';
+    | 'query_too_long'
+    | 'request_too_large';
 
   type: 'web_search_tool_result_error';
 }
@@ -1246,7 +1247,8 @@ export interface WebSearchToolResultError {
     | 'unavailable'
     | 'max_uses_exceeded'
     | 'too_many_requests'
-    | 'query_too_long';
+    | 'query_too_long'
+    | 'request_too_large';
 
   type: 'web_search_tool_result_error';
 }

@@ -556,13 +556,17 @@ export namespace BatchCreateParams {
       metadata?: MessagesMessagesAPI.BetaMetadata;
 
       /**
-       * Configuration options for the model's output. Controls aspects like how much
-       * effort the model puts into its response.
+       * Configuration options for the model's output. Controls aspects like output
+       * format or how much effort the model puts into its response.
        */
       output_config?: MessagesMessagesAPI.BetaOutputConfig;
 
       /**
-       * A schema to specify Claude's output format in responses.
+       * @deprecated Deprecated: Use `output_config.format` instead. See
+       * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+       *
+       * A schema to specify Claude's output format in responses. This parameter will be
+       * removed in a future release.
        */
       output_format?: MessagesMessagesAPI.BetaJSONOutputFormat | null;
 

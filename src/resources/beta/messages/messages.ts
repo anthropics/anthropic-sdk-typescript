@@ -1242,6 +1242,12 @@ export interface BetaOutputConfig {
    * All possible effort levels.
    */
   effort?: 'low' | 'medium' | 'high' | null;
+
+  /**
+   * A schema to specify Claude's output format in responses. See
+   * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+   */
+  format?: BetaJSONOutputFormat | null;
 }
 
 export interface BetaPlainTextSource {
@@ -1468,11 +1474,6 @@ export interface BetaServerToolUsage {
 export interface BetaServerToolUseBlock {
   id: string;
 
-  /**
-   * Tool invocation directly from the model.
-   */
-  caller: BetaDirectCaller | BetaServerToolCaller;
-
   input: { [key: string]: unknown };
 
   name:
@@ -1485,6 +1486,11 @@ export interface BetaServerToolUseBlock {
     | 'tool_search_tool_bm25';
 
   type: 'server_tool_use';
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: BetaDirectCaller | BetaServerToolCaller;
 }
 
 export interface BetaServerToolUseBlockParam {
@@ -2780,7 +2786,8 @@ export type BetaWebSearchToolResultErrorCode =
   | 'unavailable'
   | 'max_uses_exceeded'
   | 'too_many_requests'
-  | 'query_too_long';
+  | 'query_too_long'
+  | 'request_too_large';
 
 /**
  * @deprecated BetaRequestDocumentBlock should be used insated
@@ -2902,12 +2909,16 @@ export interface MessageCreateParamsBase {
 
   /**
    * Body param: Configuration options for the model's output. Controls aspects like
-   * how much effort the model puts into its response.
+   * output format or how much effort the model puts into its response.
    */
   output_config?: BetaOutputConfig;
 
   /**
-   * Body param: A schema to specify Claude's output format in responses.
+   * Body param: Deprecated: Use `output_config.format` instead. See
+   * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+   *
+   * A schema to specify Claude's output format in responses. This parameter will be
+   * removed in a future release.
    */
   output_format?: BetaJSONOutputFormat | null;
 
@@ -3207,12 +3218,16 @@ export interface MessageCountTokensParams {
 
   /**
    * Body param: Configuration options for the model's output. Controls aspects like
-   * how much effort the model puts into its response.
+   * output format or how much effort the model puts into its response.
    */
   output_config?: BetaOutputConfig;
 
   /**
-   * Body param: A schema to specify Claude's output format in responses.
+   * Body param: Deprecated: Use `output_config.format` instead. See
+   * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+   *
+   * A schema to specify Claude's output format in responses. This parameter will be
+   * removed in a future release.
    */
   output_format?: BetaJSONOutputFormat | null;
 
