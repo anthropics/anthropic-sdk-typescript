@@ -15,7 +15,9 @@ async function main() {
     model: 'claude-sonnet-4-5',
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
-    output_format: betaZodOutputFormat(NumbersResponse),
+    output_config: {
+      format: betaZodOutputFormat(NumbersResponse),
+    },
   });
 
   console.log('=== Full Message ===');

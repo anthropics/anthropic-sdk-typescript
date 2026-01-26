@@ -1,5 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+import { AnthropicError } from '../../../error';
 import { Anthropic } from '../../../client';
 import { APIPromise } from '../../../core/api-promise';
 import { APIResource } from '../../../core/resource';
@@ -94,7 +95,10 @@ export class Messages extends APIResource {
     params: MessageCreateParams,
     options?: RequestOptions,
   ): APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>> {
-    const { betas, ...body } = params;
+    // Transform deprecated output_format to output_config.format
+    const modifiedParams = transformOutputFormat(params);
+
+    const { betas, ...body } = modifiedParams;
 
     if (body.model in DEPRECATED_MODELS) {
       console.warn(
@@ -117,7 +121,7 @@ export class Messages extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
-      stream: params.stream ?? false,
+      stream: modifiedParams.stream ?? false,
     }) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
   }
 
@@ -144,7 +148,7 @@ export class Messages extends APIResource {
     options = {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(params.betas ?? []), 'structured-outputs-2025-11-13'].toString() },
+        { 'anthropic-beta': [...(params.betas ?? []), 'structured-outputs-2025-12-15'].toString() },
         options?.headers,
       ]),
     };
@@ -186,7 +190,10 @@ export class Messages extends APIResource {
     params: MessageCountTokensParams,
     options?: RequestOptions,
   ): APIPromise<BetaMessageTokensCount> {
-    const { betas, ...body } = params;
+    // Transform deprecated output_format to output_config.format
+    const modifiedParams = transformOutputFormat(params);
+
+    const { betas, ...body } = modifiedParams;
     return this._client.post('/v1/messages/count_tokens?beta=true', {
       body,
       ...options,
@@ -209,6 +216,33 @@ export class Messages extends APIResource {
   toolRunner(body: BetaToolRunnerParams, options?: BetaToolRunnerRequestOptions): BetaToolRunner<boolean> {
     return new BetaToolRunner(this._client as Anthropic, body, options);
   }
+}
+
+/**
+ * Transform deprecated output_format to output_config.format
+ * Returns a modified copy of the params without mutating the original
+ */
+function transformOutputFormat<T extends MessageCreateParams | MessageCountTokensParams>(params: T): T {
+  if (!params.output_format) {
+    return params;
+  }
+
+  if (params.output_config?.format) {
+    throw new AnthropicError(
+      'Both output_format and output_config.format were provided. ' +
+        'Please use only output_config.format (output_format is deprecated).',
+    );
+  }
+
+  const { output_format, ...rest } = params;
+
+  return {
+    ...rest,
+    output_config: {
+      ...params.output_config,
+      format: output_format,
+    },
+  } as T;
 }
 
 export interface BetaAllThinkingTurns {

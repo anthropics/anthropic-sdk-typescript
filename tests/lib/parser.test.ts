@@ -96,7 +96,7 @@ describe('Parser', () => {
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'test' }],
-        output_format: betaZodOutputFormat(schema),
+        output_config: { format: betaZodOutputFormat(schema) },
       };
 
       const parsed = parseBetaMessage(mockMessage, params, opts);
@@ -125,7 +125,7 @@ describe('Parser', () => {
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'test' }],
-        output_format: betaZodOutputFormat(schema),
+        output_config: { format: betaZodOutputFormat(schema) },
       };
 
       const invalidMessage = {
@@ -151,7 +151,7 @@ describe('Parser', () => {
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'test' }],
-        output_format: betaZodOutputFormat(schema),
+        output_config: { format: betaZodOutputFormat(schema) },
       };
 
       const invalidMessage = {
@@ -177,7 +177,7 @@ describe('Parser', () => {
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'test' }],
-        output_format: betaZodOutputFormat(schema),
+        output_config: { format: betaZodOutputFormat(schema) },
       };
 
       const messageWithoutText = {
@@ -200,7 +200,7 @@ describe('Parser', () => {
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'test' }],
-        output_format: betaZodOutputFormat(schema),
+        output_config: { format: betaZodOutputFormat(schema) },
       };
 
       const multiContentMessage = {
@@ -269,7 +269,7 @@ describe('Parser', () => {
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'test' }],
-        output_format: betaZodOutputFormat(schema),
+        output_config: { format: betaZodOutputFormat(schema) },
       };
 
       const parsed = maybeParseBetaMessage(mockMessage, params, opts);
@@ -282,7 +282,7 @@ describe('Parser', () => {
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'test' }],
-        output_format: betaZodOutputFormat(z.object({ city: z.string() })),
+        output_config: { format: betaZodOutputFormat(z.object({ city: z.string() })) },
       };
 
       const mockLogger = { warn: jest.fn() };
