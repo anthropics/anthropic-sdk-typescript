@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# This script replaces "internal" symlinks in the bedrock and vertex packages
+# with the actual folder contents by copying the entire directory.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+PACKAGES=("bedrock-sdk" "vertex-sdk" "foundry-sdk")
+
+for package in "${PACKAGES[@]}"; do
+  PACKAGE_DIR="$ROOT_DIR/packages/$package"
+  INTERNAL_SYMLINK="$PACKAGE_DIR/src/internal"
+  
+  if [ -L "$INTERNAL_SYMLINK" ]; then
+    echo "Processing $package..."
+    
+    # Remove the symlink
+    rm "$INTERNAL_SYMLINK"
+    
+    # Create the directory
+    mkdir -p "$INTERNAL_SYMLINK"
+    
+    # Copy the contents from the source internal directory
+    cp -R "$ROOT_DIR/src/internal/"* "$INTERNAL_SYMLINK/"
+    
+    echo "Replaced symlink with directory in $package"
+  else
+    echo "No 'internal' symlink found in $package or it's not a symlink"
+  fi
+done

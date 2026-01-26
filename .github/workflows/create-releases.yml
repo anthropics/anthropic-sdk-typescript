@@ -26,19 +26,19 @@ jobs:
         if: ${{ steps.release.outputs.releases_created }}
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Install dependencies
         if: ${{ steps.release.outputs.releases_created }}
         run: |
           yarn install
 
+      - name: Update internal symlinks in third party packages
+        run: ./bin/replace-internal-symlinks
+
       - name: Publish to NPM
         if: ${{ steps.release.outputs.releases_created }}
         run: |
-          yarn tsn scripts/publish-packages.ts
-
+          bash ./bin/publish-npm
         env:
-          DATA: ${{ toJSON(steps.release.outputs) }}
           NPM_TOKEN: ${{ secrets.ANTHROPIC_NPM_TOKEN || secrets.NPM_TOKEN }}
-

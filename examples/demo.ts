@@ -12,7 +12,7 @@ async function main() {
         content: 'Hey Claude!?',
       },
     ],
-    model: 'claude-3-opus-20240229',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 1024,
   });
   console.dir(result);

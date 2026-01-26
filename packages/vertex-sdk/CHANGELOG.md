@@ -1,5 +1,241 @@
 # Changelog
 
+## 0.14.1 (2025-11-24)
+
+Full Changelog: [vertex-sdk-v0.14.0...vertex-sdk-v0.14.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.14.0...vertex-sdk-v0.14.1)
+
+### Chores
+
+* include publishConfig in all package.json files ([4c72960](https://github.com/anthropics/anthropic-sdk-typescript/commit/4c72960c5f494317d3f88816b941ffa103bf24d5))
+
+## 0.14.0 (2025-09-17)
+
+Full Changelog: [vertex-sdk-v0.13.2...vertex-sdk-v0.14.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.13.2...vertex-sdk-v0.14.0)
+
+### Features
+
+* **client:** add support for toolRunner helpers ([28f5837](https://github.com/anthropics/anthropic-sdk-typescript/commit/28f583739d4f15c202ecc88002cd8abc9d3aed76))
+
+
+### Chores
+
+* **vertex:** update model string to valid example ([7b77da0](https://github.com/anthropics/anthropic-sdk-typescript/commit/7b77da02620a886b50d984a797a74b650ea88181))
+
+## 0.13.2 (2025-09-10)
+
+Full Changelog: [vertex-sdk-v0.13.1...vertex-sdk-v0.13.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.13.1...vertex-sdk-v0.13.2)
+
+## 0.13.1 (2025-08-13)
+
+Full Changelog: [vertex-sdk-v0.13.0...vertex-sdk-v0.13.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.13.0...vertex-sdk-v0.13.1)
+
+## 0.13.0 (2025-08-05)
+
+Full Changelog: [vertex-sdk-v0.12.1...vertex-sdk-v0.13.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.12.1...vertex-sdk-v0.13.0)
+
+### Features
+
+* **vertex:** support global endpoint ([#449](https://github.com/anthropics/anthropic-sdk-typescript/issues/449)) ([1c42030](https://github.com/anthropics/anthropic-sdk-typescript/commit/1c420301c4a1e9a2bfacf45067eb5473a7cdb53c))
+
+
+### Chores
+
+* **internal:** version bump ([eb97e85](https://github.com/anthropics/anthropic-sdk-typescript/commit/eb97e8577279fb150582297d2a0924a297185c3c))
+
+## 0.12.1 (2025-07-21)
+
+Full Changelog: [vertex-sdk-v0.12.0...vertex-sdk-v0.12.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.12.0...vertex-sdk-v0.12.1)
+
+### Bug Fixes
+
+* **vertex:** fix lint errors ([7772f78](https://github.com/anthropics/anthropic-sdk-typescript/commit/7772f78a34dbfcf5c6fc1e149e4d851de9e722f8))
+
+## 0.12.0 (2025-07-03)
+
+Full Changelog: [vertex-sdk-v0.11.5...vertex-sdk-v0.12.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.11.5...vertex-sdk-v0.12.0)
+
+### Features
+
+* **vertex:** add AuthClient interface support for improved auth flexibility ([b6f86e2](https://github.com/anthropics/anthropic-sdk-typescript/commit/b6f86e29396f5521eeaae43d43084a76e3e518fe))
+
+## 0.11.5 (2025-06-24)
+
+Full Changelog: [vertex-sdk-v0.11.4...vertex-sdk-v0.11.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.11.4...vertex-sdk-v0.11.5)
+
+## 0.11.4 (2025-05-22)
+
+Full Changelog: [vertex-sdk-v0.11.3...vertex-sdk-v0.11.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.11.3...vertex-sdk-v0.11.4)
+
+### Chores
+
+* **internal:** version bump ([8ebaf61](https://github.com/anthropics/anthropic-sdk-typescript/commit/8ebaf616d2e5c6aebc153f19a403dde41ab5a9f1))
+
+## 0.11.3 (2025-05-15)
+
+Full Changelog: [vertex-sdk-v0.11.2...vertex-sdk-v0.11.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.11.2...vertex-sdk-v0.11.3)
+
+## 0.11.2 (2025-05-09)
+
+Full Changelog: [vertex-sdk-v0.11.1...vertex-sdk-v0.11.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.11.1...vertex-sdk-v0.11.2)
+
+### Bug Fixes
+
+* **client:** always overwrite when merging headers ([657912a](https://github.com/anthropics/anthropic-sdk-typescript/commit/657912ad66f86e878291a4cab5436844efbb633b))
+
+## 0.11.1 (2025-05-09)
+
+Full Changelog: [vertex-sdk-v0.11.0...vertex-sdk-v0.11.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.11.0...vertex-sdk-v0.11.1)
+
+### Chores
+
+* sync repo ([508e385](https://github.com/anthropics/anthropic-sdk-typescript/commit/508e38511c13ba8842065d0dafbc7f462abe0322))
+
+## 0.11.0 (2025-05-09)
+
+Full Changelog: [vertex-sdk-v0.10.0...vertex-sdk-v0.11.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.10.0...vertex-sdk-v0.11.0)
+
+### Features
+
+* **api:** add claude-3.7 + support for thinking ([456e7d5](https://github.com/anthropics/anthropic-sdk-typescript/commit/456e7d5ce518d773914e47db4b46ddd9805806bb))
+* **api:** add claude-3.7 + support for thinking ([01a985b](https://github.com/anthropics/anthropic-sdk-typescript/commit/01a985bfa732f2bd44b22d652a4fee16f79f9749))
+* **vertex:** add beta.messages.create() ([08a8928](https://github.com/anthropics/anthropic-sdk-typescript/commit/08a8928fb1fa701f4330720ea2e9d4db81b6b17a))
+* **vertex:** support token counting ([a4a3729](https://github.com/anthropics/anthropic-sdk-typescript/commit/a4a372947b250e195f5c45ffd928a2d966b23f0d))
+
+
+### Bug Fixes
+
+* **bedrock,vertex:** update to new SDK version ([cb620bb](https://github.com/anthropics/anthropic-sdk-typescript/commit/cb620bbb60e64f27168f74db7a48ad8c2d5f953e))
+* **vertex,bedrock:** correct build script ([df895a7](https://github.com/anthropics/anthropic-sdk-typescript/commit/df895a7d7cbd51422343fca95ab9f1d58918b2a1))
+* **vertex:** add beta.messages.countTokens method ([2cbeabc](https://github.com/anthropics/anthropic-sdk-typescript/commit/2cbeabc6f0175297c98b5d706a0038d793150e8e))
+* **vertex:** correct messages beta handling ([a41193d](https://github.com/anthropics/anthropic-sdk-typescript/commit/a41193d112f47faaae88872e8764b631dbad1941))
+* **vertex:** don't mutate request body inputs ([2709c1f](https://github.com/anthropics/anthropic-sdk-typescript/commit/2709c1fb255282321fab296e709651a79017fe37))
+* **vertex:** remove `anthropic_version` deletion for token counting ([beefeb7](https://github.com/anthropics/anthropic-sdk-typescript/commit/beefeb74060196c564de14ddb6a39734f7b0352e))
+
+
+### Chores
+
+* **bedrock,vertex:** remove unsupported countTokens method ([#597](https://github.com/anthropics/anthropic-sdk-typescript/issues/597)) ([6f6db16](https://github.com/anthropics/anthropic-sdk-typescript/commit/6f6db164d2526c2fb272151f4d68140da27ce1ea))
+* **internal:** migrate to eslint v9 ([1141664](https://github.com/anthropics/anthropic-sdk-typescript/commit/114166498a54e0b62cd9ea071fc736d714cefde6))
+* **vertex:** bump dependency on @anthropic-ai/sdk ([5795a68](https://github.com/anthropics/anthropic-sdk-typescript/commit/5795a681b55ef17d15e504504df143053e8518fa))
+
+
+### Documentation
+
+* use latest sonnet in example snippets ([#625](https://github.com/anthropics/anthropic-sdk-typescript/issues/625)) ([a965791](https://github.com/anthropics/anthropic-sdk-typescript/commit/a9657918aaf1246609105cbafaf4bb043b146356))
+
+## 0.10.0 (2025-05-09)
+
+Full Changelog: [vertex-sdk-v0.7.0...vertex-sdk-v0.7.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.7.0...vertex-sdk-v0.7.1)
+
+### Bug Fixes
+
+* **bedrock,vertex:** update to new SDK version ([cb620bb](https://github.com/anthropics/anthropic-sdk-typescript/commit/cb620bbb60e64f27168f74db7a48ad8c2d5f953e))
+* **vertex,bedrock:** correct build script ([df895a7](https://github.com/anthropics/anthropic-sdk-typescript/commit/df895a7d7cbd51422343fca95ab9f1d58918b2a1))
+
+## 0.7.0 (2025-02-24)
+
+Full Changelog: [vertex-sdk-v0.6.4...vertex-sdk-v0.7.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.6.4...vertex-sdk-v0.7.0)
+
+### Features
+
+* **api:** add claude-3.7 + support for thinking ([ffab311](https://github.com/anthropics/anthropic-sdk-typescript/commit/ffab3113ddb042951a35d71e571727f8cce184ee))
+
+## 0.6.4 (2025-01-23)
+
+Full Changelog: [vertex-sdk-v0.6.3...vertex-sdk-v0.6.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.6.3...vertex-sdk-v0.6.4)
+
+### Chores
+
+* **vertex:** bump dependency on @anthropic-ai/sdk ([a1c7fcd](https://github.com/anthropics/anthropic-sdk-typescript/commit/a1c7fcdce081f860cbb1148c3862e3303ddb8a62))
+
+## 0.6.3 (2025-01-21)
+
+Full Changelog: [vertex-sdk-v0.6.2...vertex-sdk-v0.6.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.6.2...vertex-sdk-v0.6.3)
+
+### Bug Fixes
+
+* **vertex:** add beta.messages.countTokens method ([51d3f23](https://github.com/anthropics/anthropic-sdk-typescript/commit/51d3f23a7cc1bea798cc8e4041e08114ebc3a4eb))
+
+
+### Chores
+
+* **internal:** temporary revert commit ([#643](https://github.com/anthropics/anthropic-sdk-typescript/issues/643)) ([43dd43c](https://github.com/anthropics/anthropic-sdk-typescript/commit/43dd43c4c8ab69d5a60e59473af7dff5f7799048))
+
+## 0.6.2 (2024-12-20)
+
+Full Changelog: [vertex-sdk-v0.6.1...vertex-sdk-v0.6.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.6.1...vertex-sdk-v0.6.2)
+
+### Chores
+
+* **internal:** temporary revert commit ([#643](https://github.com/anthropics/anthropic-sdk-typescript/issues/643)) ([8057b1e](https://github.com/anthropics/anthropic-sdk-typescript/commit/8057b1eb67ccccee042a45f2efe53cccced15682))
+
+## 0.6.1 (2024-12-17)
+
+Full Changelog: [vertex-sdk-v0.6.0...vertex-sdk-v0.6.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.6.0...vertex-sdk-v0.6.1)
+
+### Bug Fixes
+
+* **vertex:** remove `anthropic_version` deletion for token counting ([88221be](https://github.com/anthropics/anthropic-sdk-typescript/commit/88221be305d6e13ccf92e6e9cdb00daba45b57db))
+
+## 0.6.0 (2024-12-17)
+
+Full Changelog: [vertex-sdk-v0.5.2...vertex-sdk-v0.6.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.5.2...vertex-sdk-v0.6.0)
+
+### Features
+
+* **api:** general availability updates ([#631](https://github.com/anthropics/anthropic-sdk-typescript/issues/631)) ([b5c92e5](https://github.com/anthropics/anthropic-sdk-typescript/commit/b5c92e5b74c370ac3f9ba28e915bd54588a42be0))
+* **vertex:** support token counting ([9e76b4d](https://github.com/anthropics/anthropic-sdk-typescript/commit/9e76b4dc22d62b1239b382bb771b69ad8cff9442))
+
+
+### Chores
+
+* **bedrock,vertex:** remove unsupported countTokens method ([#597](https://github.com/anthropics/anthropic-sdk-typescript/issues/597)) ([17b7da5](https://github.com/anthropics/anthropic-sdk-typescript/commit/17b7da5ee6f35ea2bdd53a66a662871affae6341))
+
+
+### Documentation
+
+* use latest sonnet in example snippets ([#625](https://github.com/anthropics/anthropic-sdk-typescript/issues/625)) ([f70882b](https://github.com/anthropics/anthropic-sdk-typescript/commit/f70882b0e8119a414b01b9f0b85fbe1ccb06f122))
+
+## 0.5.2 (2024-11-05)
+
+Full Changelog: [vertex-sdk-v0.5.1...vertex-sdk-v0.5.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.5.1...vertex-sdk-v0.5.2)
+
+### Bug Fixes
+
+* **vertex:** don't mutate request body inputs ([e9a82e5](https://github.com/anthropics/anthropic-sdk-typescript/commit/e9a82e56f0d7fff956c2ebd19e103a190f8beb83))
+
+## 0.5.1 (2024-10-23)
+
+Full Changelog: [vertex-sdk-v0.5.0...vertex-sdk-v0.5.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.5.0...vertex-sdk-v0.5.1)
+
+### Bug Fixes
+
+* **vertex:** correct messages beta handling ([26f21ee](https://github.com/anthropics/anthropic-sdk-typescript/commit/26f21ee5f524f4cbfb7a97d40aa62553608b1d99))
+
+## 0.5.0 (2024-10-22)
+
+Full Changelog: [vertex-sdk-v0.4.3...vertex-sdk-v0.5.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.4.3...vertex-sdk-v0.5.0)
+
+### Features
+
+* **vertex:** add beta.messages.create() ([22cfdba](https://github.com/anthropics/anthropic-sdk-typescript/commit/22cfdba2a3a54e916f2efcbce62990544d3e5f5f))
+
+## 0.4.3 (2024-10-08)
+
+Full Changelog: [vertex-sdk-v0.4.2...vertex-sdk-v0.4.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.4.2...vertex-sdk-v0.4.3)
+
+### Refactors
+
+* **types:** improve metadata type names ([#547](https://github.com/anthropics/anthropic-sdk-typescript/issues/547)) ([cef499c](https://github.com/anthropics/anthropic-sdk-typescript/commit/cef499cf3b01643f7e5e3c09524f49e198b940be))
+
+## 0.4.2 (2024-10-04)
+
+Full Changelog: [vertex-sdk-v0.4.1...vertex-sdk-v0.4.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.4.1...vertex-sdk-v0.4.2)
+
+### Chores
+
+* better object fallback behaviour for casting errors ([#526](https://github.com/anthropics/anthropic-sdk-typescript/issues/526)) ([4ffb2e4](https://github.com/anthropics/anthropic-sdk-typescript/commit/4ffb2e4e1f5fef3ae58d9f4c99a63e75dd459c5b))
+
 ## 0.4.1 (2024-07-29)
 
 Full Changelog: [vertex-sdk-v0.4.0...vertex-sdk-v0.4.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.4.0...vertex-sdk-v0.4.1)

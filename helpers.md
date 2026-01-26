@@ -35,7 +35,7 @@ returns an accumulated `Message` which is progressively built-up over events.
 
 The event fired when a text delta is sent by the API. The second parameter returns a `textSnapshot`.
 
-#### `.on('inputJson', (patialJson: string, jsonSnapshot: unknown) => …)`
+#### `.on('inputJson', (partialJson: string, jsonSnapshot: unknown) => …)`
 
 The event fired when a json delta is sent by the API. The second parameter returns a `jsonSnapshot`.
 
@@ -98,3 +98,244 @@ A mutable array of all messages in the conversation.
 #### `.controller`
 
 The underlying `AbortController` for the runner.
+
+## Tool Helpers
+
+The SDK provides helper functions to create runnable tools that can be automatically invoked by the `.toolRunner()` method. These helpers simplify tool creation with JSON Schema or Zod validation.
+
+### Usage
+
+```ts
+import { betaZodTool } from '@anthropic-ai/sdk/helpers/zod';
+import { z } from 'zod';
+
+const weatherTool = betaZodTool({
+  name: 'get_weather',
+  inputSchema: z.object({
+    location: z.string(),
+  }),
+  description: 'Get the current weather in a given location',
+  run: (input) => {
+    return `The weather in ${input.location} is foggy and 60°F`;
+  },
+});
+
+const finalMessage = await anthropic.beta.messages.toolRunner({
+  model: 'claude-sonnet-4-5-20250929',
+  max_tokens: 1000,
+  messages: [{ role: 'user', content: 'What is the weather in San Francisco?' }],
+  tools: [weatherTool],
+});
+
+console.log(finalMessage.content);
+```
+
+#### Advanced usage
+
+When you need to process intermediate messages or control the conversation flow, you can iterate through
+`BetaToolRunner`.
+
+```ts
+const runner = anthropic.beta.messages.toolRunner({
+  model: 'claude-sonnet-4-5-20250929',
+  max_tokens: 1000,
+  messages: [{ role: 'user', content: 'What is the weather in San Francisco?' }],
+  tools: [weatherTool],
+});
+
+// Process each message as it arrives
+for await (const message of runner) {
+  console.log(message);
+}
+
+// Get the final result
+console.log(await runner);
+```
+
+See [`examples/tools-helpers-advanced.ts`](examples/tools-helpers-advanced.ts) for a more in-depth
+example.
+
+#### Streaming
+
+```ts
+const runner = anthropic.beta.messages.toolRunner({
+  model: 'claude-sonnet-4-5-20250929',
+  max_tokens: 1000,
+  messages: [{ role: 'user', content: 'What is the weather in San Francisco?' }],
+  tools: [calculatorTool],
+  stream: true,
+});
+
+// When streaming, the runner returns BetaMessageStream
+for await (const messageStream of runner) {
+  for await (const event of messageStream) {
+    console.log('event:', event);
+  }
+  console.log('message:', await messageStream.finalMessage());
+}
+
+console.log(await runner);
+```
+
+See [`examples/tools-helpers-advanced-streaming.ts`](examples/tools-helpers-advanced-streaming.ts) for a more
+in-depth example.
+
+### `betaZodTool`
+
+Zod schemas can be used to define the input schema for your tools:
+
+```ts
+import { betaZodTool } from '@anthropic-ai/sdk/helpers/zod';
+
+const weatherTool = betaZodTool({
+  name: 'get_weather',
+  inputSchema: z.object({
+    location: z.string().describe('The city and state, e.g. San Francisco, CA'),
+    unit: z.enum(['celsius', 'fahrenheit']).default('fahrenheit'),
+  }),
+  description: 'Get the current weather in a given location',
+  run: async (input) => {
+    return `The weather in ${input.location} is ${input.unit === 'celsius' ? '22°C' : '72°F'}`;
+  },
+});
+```
+
+### `betaTool`
+
+You can use JSON Schema to define the input schema for your tools. `betaTool` will infer the type of `input` for you
+based on the supplied JSON Schema.
+
+```ts
+import { betaTool } from '@anthropic-ai/sdk/helpers/json-schema';
+
+const calculatorTool = betaTool({
+  name: 'calculator',
+  input_schema: {
+    type: 'object',
+    properties: {
+      operation: { type: 'string', enum: ['add', 'subtract', 'multiply', 'divide'] },
+      a: { type: 'number' },
+      b: { type: 'number' },
+    },
+    required: ['operation', 'a', 'b'],
+  },
+  description: 'Perform basic arithmetic operations',
+  run: (input) => {
+    const { operation, a, b } = input;
+    switch (operation) {
+      case 'add':
+        return String(a + b);
+      case 'subtract':
+        return String(a - b);
+      case 'multiply':
+        return String(a * b);
+      case 'divide':
+        return String(a / b);
+      default:
+        throw new Error(`Unknown operation: ${operation}`);
+    }
+  },
+});
+```
+
+### `client.messages.toolRunner(params): BetaToolRunner`
+
+**Parameters:** All standard message parameters plus:
+
+- `tools: Array<BetaToolUnion | BetaRunnableTool>` - Array of tools
+- `max_iterations?: number` - Maximum number of tool execution iterations (default: no limit)
+
+**Returns:**: `BetaToolRunner`
+
+### `BetaToolRunner` API
+
+#### `BetaToolRunner.done()`
+
+Waits for the conversation to complete and returns the final message.
+
+```ts
+// Start consuming the iterator
+for await (const message of runner) {
+  console.log('Message:', message);
+}
+
+// Wait for completion
+const finalMessage = await runner.done();
+```
+
+#### `BetaToolRunner.runUntilDone()`
+
+Waits for the conversation and returns the final assistant message. Unlike `done()`, this will eagerly read the stream.
+
+```ts
+const finalMessage = await runner.runUntilDone();
+```
+
+#### Direct await
+
+The BetaToolRunner is directly awaitable, which is equivalent to calling `.runUntilDone()`:
+
+```ts
+const finalMessage = await runner;
+```
+
+#### `BetaToolRunner.setMessagesParams()`
+
+Updates the conversation parameters. Can accept new parameters or a mutator function.
+
+```ts
+// Direct parameter update
+runner.setMessagesParams({
+  ...runner.params,
+  model: 'claude-3-5-haiku-20241022',
+  max_tokens: 500,
+});
+
+// Using mutator function
+runner.setMessagesParams((prevParams) => ({
+  ...prevParams,
+  max_tokens: prevParams.max_tokens * 2,
+  messages: [...prevParams.messages, { role: 'user', content: 'Additional context' }],
+}));
+```
+
+#### `BetaToolRunner.pushMessages()`
+
+Adds messages to the conversation history.
+
+```ts
+runner.pushMessages(
+  { role: 'user', content: 'Please also consider this information...' },
+  { role: 'assistant', content: 'I understand, let me factor that in.' },
+);
+```
+
+#### `BetaToolRunner.generateToolResponse()`
+
+Gets the tool response for the last assistant message (if any tools need to be executed).
+
+```ts
+for await (const message of runner) {
+  const toolResponse = await runner.generateToolResponse();
+  if (toolResponse) {
+    console.log('Tool results:', toolResponse.content);
+  }
+}
+```
+
+#### `BetaToolRunner.params`
+
+Read-only access to the current conversation parameters.
+
+```ts
+console.log('Current model:', runner.params.model);
+console.log('Message count:', runner.params.messages.length);
+```
+
+### Examples
+
+See the following example files for more usage patterns:
+
+- [`examples/tools-helpers-zod.ts`](examples/tools-helpers-zod.ts) - Zod-based tools
+- [`examples/tools-helpers-json-schema.ts`](examples/tools-helpers-json-schema.ts) - JSON Schema tools
+- [`examples/tools.ts`](examples/tools.ts) - Basic tool usage

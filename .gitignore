@@ -4,7 +4,8 @@ yarn-error.log
 codegen.log
 Brewfile.lock.json
 dist
-/deno
+dist-deno
 /*.tgz
 .idea/
+.eslintcache
 

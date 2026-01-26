@@ -1,5 +1,5 @@
-import * as Core from '@anthropic-ai/sdk/core';
-import { AnthropicError, APIUserAbortError } from '@anthropic-ai/sdk/error';
+import { isAbortError } from '../internal/errors';
+import { AnthropicError, APIUserAbortError } from '../error';
 import {
   type ContentBlock,
   Messages,
@@ -9,16 +9,22 @@ import {
   type MessageCreateParams,
   type MessageCreateParamsBase,
   type TextBlock,
-} from '@anthropic-ai/sdk/resources/messages';
-import { type ReadableStream } from '@anthropic-ai/sdk/_shims/index';
-import { Stream } from '@anthropic-ai/sdk/streaming';
+  type TextCitation,
+  type ToolUseBlock,
+  type ServerToolUseBlock,
+} from '../resources/messages';
+import { Stream } from '../streaming';
 import { partialParse } from '../_vendor/partial-json-parser/parser';
+import { RequestOptions } from '../internal/request-options';
 
 export interface MessageStreamEvents {
   connect: () => void;
   streamEvent: (event: MessageStreamEvent, snapshot: Message) => void;
   text: (textDelta: string, textSnapshot: string) => void;
+  citation: (citation: TextCitation, citationsSnapshot: TextCitation[]) => void;
   inputJson: (partialJson: string, jsonSnapshot: unknown) => void;
+  thinking: (thinkingDelta: string, thinkingSnapshot: string) => void;
+  signature: (signature: string) => void;
   message: (message: Message) => void;
   contentBlock: (content: ContentBlock) => void;
   finalMessage: (message: Message) => void;
@@ -34,6 +40,12 @@ type MessageStreamEventListeners<Event extends keyof MessageStreamEvents> = {
 
 const JSON_BUF_PROPERTY = '__json_buf';
 
+export type TracksToolInput = ToolUseBlock | ServerToolUseBlock;
+
+function tracksToolInput(content: ContentBlock): content is TracksToolInput {
+  return content.type === 'tool_use' || content.type === 'server_tool_use';
+}
+
 export class MessageStream implements AsyncIterable<MessageStreamEvent> {
   messages: MessageParam[] = [];
   receivedMessages: Message[] = [];
@@ -41,8 +53,8 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
 
   controller: AbortController = new AbortController();
 
-  #connectedPromise: Promise<void>;
-  #resolveConnectedPromise: () => void = () => {};
+  #connectedPromise: Promise<Response | null>;
+  #resolveConnectedPromise: (response: Response | null) => void = () => {};
   #rejectConnectedPromise: (error: AnthropicError) => void = () => {};
 
   #endPromise: Promise<void>;
@@ -55,9 +67,11 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
   #errored = false;
   #aborted = false;
   #catchingPromiseCreated = false;
+  #response: Response | null | undefined;
+  #request_id: string | null | undefined;
 
   constructor() {
-    this.#connectedPromise = new Promise<void>((resolve, reject) => {
+    this.#connectedPromise = new Promise<Response | null>((resolve, reject) => {
       this.#resolveConnectedPromise = resolve;
       this.#rejectConnectedPromise = reject;
     });
@@ -73,6 +87,43 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     // any promise-returning method.
     this.#connectedPromise.catch(() => {});
     this.#endPromise.catch(() => {});
+  }
+
+  get response(): Response | null | undefined {
+    return this.#response;
+  }
+
+  get request_id(): string | null | undefined {
+    return this.#request_id;
+  }
+
+  /**
+   * Returns the `MessageStream` data, the raw `Response` instance and the ID of the request,
+   * returned vie the `request-id` header which is useful for debugging requests and resporting
+   * issues to Anthropic.
+   *
+   * This is the same as the `APIPromise.withResponse()` method.
+   *
+   * This method will raise an error if you created the stream using `MessageStream.fromReadableStream`
+   * as no `Response` is available.
+   */
+  async withResponse(): Promise<{
+    data: MessageStream;
+    response: Response;
+    request_id: string | null | undefined;
+  }> {
+    this.#catchingPromiseCreated = true;
+
+    const response = await this.#connectedPromise;
+    if (!response) {
+      throw new Error('Could not resolve a `Response` object');
+    }
+
+    return {
+      data: this,
+      response,
+      request_id: response.headers.get('request-id'),
+    };
   }
 
   /**
@@ -91,7 +142,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
   static createMessage(
     messages: Messages,
     params: MessageCreateParamsBase,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): MessageStream {
     const runner = new MessageStream();
     for (const message of params.messages) {
@@ -128,31 +179,40 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
   protected async _createMessage(
     messages: Messages,
     params: MessageCreateParams,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): Promise<void> {
     const signal = options?.signal;
+    let abortHandler: (() => void) | undefined;
     if (signal) {
       if (signal.aborted) this.controller.abort();
-      signal.addEventListener('abort', () => this.controller.abort());
+      abortHandler = this.controller.abort.bind(this.controller);
+      signal.addEventListener('abort', abortHandler);
     }
-    this.#beginRequest();
-    const stream = await messages.create(
-      { ...params, stream: true },
-      { ...options, signal: this.controller.signal },
-    );
-    this._connected();
-    for await (const event of stream) {
-      this.#addStreamEvent(event);
+    try {
+      this.#beginRequest();
+      const { response, data: stream } = await messages
+        .create({ ...params, stream: true }, { ...options, signal: this.controller.signal })
+        .withResponse();
+      this._connected(response);
+      for await (const event of stream) {
+        this.#addStreamEvent(event);
+      }
+      if (stream.controller.signal?.aborted) {
+        throw new APIUserAbortError();
+      }
+      this.#endRequest();
+    } finally {
+      if (signal && abortHandler) {
+        signal.removeEventListener('abort', abortHandler);
+      }
     }
-    if (stream.controller.signal?.aborted) {
-      throw new APIUserAbortError();
-    }
-    this.#endRequest();
   }
 
-  protected _connected() {
+  protected _connected(response: Response | null) {
     if (this.ended) return;
-    this.#resolveConnectedPromise();
+    this.#response = response;
+    this.#request_id = response?.headers.get('request-id');
+    this.#resolveConnectedPromise(response);
     this._emit('connect');
   }
 
@@ -289,7 +349,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
 
   #handleError = (error: unknown) => {
     this.#errored = true;
-    if (error instanceof Error && error.name === 'AbortError') {
+    if (isAbortError(error)) {
       error = new APIUserAbortError();
     }
     if (error instanceof APIUserAbortError) {
@@ -375,12 +435,39 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     switch (event.type) {
       case 'content_block_delta': {
         const content = messageSnapshot.content.at(-1)!;
-        if (event.delta.type === 'text_delta' && content.type === 'text') {
-          this._emit('text', event.delta.text, content.text || '');
-        } else if (event.delta.type === 'input_json_delta' && content.type === 'tool_use') {
-          if (content.input) {
-            this._emit('inputJson', event.delta.partial_json, content.input);
+        switch (event.delta.type) {
+          case 'text_delta': {
+            if (content.type === 'text') {
+              this._emit('text', event.delta.text, content.text || '');
+            }
+            break;
           }
+          case 'citations_delta': {
+            if (content.type === 'text') {
+              this._emit('citation', event.delta.citation, content.citations ?? []);
+            }
+            break;
+          }
+          case 'input_json_delta': {
+            if (tracksToolInput(content) && content.input) {
+              this._emit('inputJson', event.delta.partial_json, content.input);
+            }
+            break;
+          }
+          case 'thinking_delta': {
+            if (content.type === 'thinking') {
+              this._emit('thinking', event.delta.thinking, content.thinking);
+            }
+            break;
+          }
+          case 'signature_delta': {
+            if (content.type === 'thinking') {
+              this._emit('signature', content.signature);
+            }
+            break;
+          }
+          default:
+            checkNever(event.delta);
         }
         break;
       }
@@ -416,23 +503,31 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
 
   protected async _fromReadableStream(
     readableStream: ReadableStream,
-    options?: Core.RequestOptions,
+    options?: RequestOptions,
   ): Promise<void> {
     const signal = options?.signal;
+    let abortHandler: (() => void) | undefined;
     if (signal) {
       if (signal.aborted) this.controller.abort();
-      signal.addEventListener('abort', () => this.controller.abort());
+      abortHandler = this.controller.abort.bind(this.controller);
+      signal.addEventListener('abort', abortHandler);
     }
-    this.#beginRequest();
-    this._connected();
-    const stream = Stream.fromReadableStream<MessageStreamEvent>(readableStream, this.controller);
-    for await (const event of stream) {
-      this.#addStreamEvent(event);
+    try {
+      this.#beginRequest();
+      this._connected(null);
+      const stream = Stream.fromReadableStream<MessageStreamEvent>(readableStream, this.controller);
+      for await (const event of stream) {
+        this.#addStreamEvent(event);
+      }
+      if (stream.controller.signal?.aborted) {
+        throw new APIUserAbortError();
+      }
+      this.#endRequest();
+    } finally {
+      if (signal && abortHandler) {
+        signal.removeEventListener('abort', abortHandler);
+      }
     }
-    if (stream.controller.signal?.aborted) {
-      throw new APIUserAbortError();
-    }
-    this.#endRequest();
   }
 
   /**
@@ -461,31 +556,94 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
         snapshot.stop_reason = event.delta.stop_reason;
         snapshot.stop_sequence = event.delta.stop_sequence;
         snapshot.usage.output_tokens = event.usage.output_tokens;
+
+        // Update other usage fields if they exist in the event
+        if (event.usage.input_tokens != null) {
+          snapshot.usage.input_tokens = event.usage.input_tokens;
+        }
+
+        if (event.usage.cache_creation_input_tokens != null) {
+          snapshot.usage.cache_creation_input_tokens = event.usage.cache_creation_input_tokens;
+        }
+
+        if (event.usage.cache_read_input_tokens != null) {
+          snapshot.usage.cache_read_input_tokens = event.usage.cache_read_input_tokens;
+        }
+
+        if (event.usage.server_tool_use != null) {
+          snapshot.usage.server_tool_use = event.usage.server_tool_use;
+        }
+
         return snapshot;
       case 'content_block_start':
-        snapshot.content.push(event.content_block);
+        snapshot.content.push({ ...event.content_block });
         return snapshot;
       case 'content_block_delta': {
         const snapshotContent = snapshot.content.at(event.index);
-        if (snapshotContent?.type === 'text' && event.delta.type === 'text_delta') {
-          snapshotContent.text += event.delta.text;
-        } else if (snapshotContent?.type === 'tool_use' && event.delta.type === 'input_json_delta') {
-          // we need to keep track of the raw JSON string as well so that we can
-          // re-parse it for each delta, for now we just store it as an untyped
-          // non-enumerable property on the snapshot
-          let jsonBuf = (snapshotContent as any)[JSON_BUF_PROPERTY] || '';
-          jsonBuf += event.delta.partial_json;
 
-          Object.defineProperty(snapshotContent, JSON_BUF_PROPERTY, {
-            value: jsonBuf,
-            enumerable: false,
-            writable: true,
-          });
-
-          if (jsonBuf) {
-            snapshotContent.input = partialParse(jsonBuf);
+        switch (event.delta.type) {
+          case 'text_delta': {
+            if (snapshotContent?.type === 'text') {
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                text: (snapshotContent.text || '') + event.delta.text,
+              };
+            }
+            break;
           }
+          case 'citations_delta': {
+            if (snapshotContent?.type === 'text') {
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                citations: [...(snapshotContent.citations ?? []), event.delta.citation],
+              };
+            }
+            break;
+          }
+          case 'input_json_delta': {
+            if (snapshotContent && tracksToolInput(snapshotContent)) {
+              // we need to keep track of the raw JSON string as well so that we can
+              // re-parse it for each delta, for now we just store it as an untyped
+              // non-enumerable property on the snapshot
+              let jsonBuf = (snapshotContent as any)[JSON_BUF_PROPERTY] || '';
+              jsonBuf += event.delta.partial_json;
+
+              const newContent = { ...snapshotContent };
+              Object.defineProperty(newContent, JSON_BUF_PROPERTY, {
+                value: jsonBuf,
+                enumerable: false,
+                writable: true,
+              });
+
+              if (jsonBuf) {
+                newContent.input = partialParse(jsonBuf);
+              }
+              snapshot.content[event.index] = newContent;
+            }
+            break;
+          }
+          case 'thinking_delta': {
+            if (snapshotContent?.type === 'thinking') {
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                thinking: snapshotContent.thinking + event.delta.thinking,
+              };
+            }
+            break;
+          }
+          case 'signature_delta': {
+            if (snapshotContent?.type === 'thinking') {
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                signature: event.delta.signature,
+              };
+            }
+            break;
+          }
+          default:
+            checkNever(event.delta);
         }
+
         return snapshot;
       }
       case 'content_block_stop':
@@ -559,3 +717,6 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     return stream.toReadableStream();
   }
 }
+
+// used to ensure exhaustive case matching without throwing a runtime error
+function checkNever(x: never) {}

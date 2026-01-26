@@ -1,0 +1,924 @@
+[
+  {
+    "scope": "https://api.anthropic.com:443",
+    "method": "POST",
+    "path": "/v1/messages?beta=true",
+    "body": {
+      "model": "claude-sonnet-4-0",
+      "max_tokens": 1000,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use the test_tool with value \"test\", then provide a final response"
+        }
+      ],
+      "tools": [
+        {
+          "type": "custom",
+          "name": "test_tool",
+          "input_schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": ["value"],
+            "additionalProperties": false
+          },
+          "description": "A test tool"
+        }
+      ],
+      "stream": false
+    },
+    "status": 200,
+    "response": {
+      "model": "claude-sonnet-4-20250514",
+      "id": "msg_012foMGXNQ1eqhaq3QvA5dY6",
+      "type": "message",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'll use the test_tool with the value \"test\" as requested, then provide a final response."
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_011LF2VkWpAfJnTKJcmh1PNf",
+          "name": "test_tool",
+          "input": {
+            "value": "test"
+          }
+        }
+      ],
+      "stop_reason": "tool_use",
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 415,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 76,
+        "service_tier": "standard"
+      }
+    },
+    "rawHeaders": {
+      "anthropic-organization-id": "5576611f-a1ee-427c-9800-298d9579899c",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9a1f34a6fdcab91a-AMS",
+      "connection": "keep-alive",
+      "content-type": "application/json",
+      "date": "Fri, 21 Nov 2025 09:36:59 GMT",
+      "request-id": "req_011CVLotQepAqEAyhJpvkpZN",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "transfer-encoding": "chunked",
+      "x-envoy-upstream-service-time": "2262",
+      "x-robots-tag": "none"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.anthropic.com:443",
+    "method": "POST",
+    "path": "/v1/messages?beta=true",
+    "body": {
+      "model": "claude-sonnet-4-0",
+      "max_tokens": 1000,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use the test_tool with value \"test\", then provide a final response"
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "text",
+              "text": "I'll use the test_tool with the value \"test\" as requested, then provide a final response."
+            },
+            {
+              "type": "tool_use",
+              "id": "toolu_011LF2VkWpAfJnTKJcmh1PNf",
+              "name": "test_tool",
+              "input": {
+                "value": "test"
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "toolu_011LF2VkWpAfJnTKJcmh1PNf",
+              "content": "Tool result"
+            }
+          ]
+        }
+      ],
+      "tools": [
+        {
+          "type": "custom",
+          "name": "test_tool",
+          "input_schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": ["value"],
+            "additionalProperties": false
+          },
+          "description": "A test tool"
+        }
+      ],
+      "stream": false
+    },
+    "status": 200,
+    "response": {
+      "model": "claude-sonnet-4-20250514",
+      "id": "msg_01J176zPPSGQBvQpzw2qy5x4",
+      "type": "message",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "I have successfully executed the test_tool with the value \"test\". The tool completed without any errors. This was a simple test to demonstrate the tool functionality and confirm it's working properly."
+        }
+      ],
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 505,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 41,
+        "service_tier": "standard"
+      }
+    },
+    "rawHeaders": {
+      "anthropic-organization-id": "5576611f-a1ee-427c-9800-298d9579899c",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9a1f34b65e33b91a-AMS",
+      "connection": "keep-alive",
+      "content-type": "application/json",
+      "date": "Fri, 21 Nov 2025 09:37:02 GMT",
+      "request-id": "req_011CVLotbAbAUDPV8GEFGjoJ",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "transfer-encoding": "chunked",
+      "x-envoy-upstream-service-time": "2654",
+      "x-robots-tag": "none"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.anthropic.com:443",
+    "method": "POST",
+    "path": "/v1/messages?beta=true",
+    "body": {
+      "model": "claude-sonnet-4-0",
+      "max_tokens": 1000,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use the test_tool with count 1, then use it again with count 2"
+        }
+      ],
+      "tools": [
+        {
+          "type": "custom",
+          "name": "test_tool",
+          "input_schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "number"
+              }
+            },
+            "required": ["count"],
+            "additionalProperties": false
+          },
+          "description": "A test tool"
+        }
+      ],
+      "stream": false
+    },
+    "status": 200,
+    "response": {
+      "model": "claude-sonnet-4-20250514",
+      "id": "msg_014tGTGP6AJwJvBHFgXxjp88",
+      "type": "message",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'll use the test_tool twice as requested - first with count 1, then with count 2."
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_01L8GVQapA1HmggQcrwboukH",
+          "name": "test_tool",
+          "input": {
+            "count": 1
+          }
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_01J5Fvzxu7DP1Uh59c1kr5JD",
+          "name": "test_tool",
+          "input": {
+            "count": 2
+          }
+        }
+      ],
+      "stop_reason": "tool_use",
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 418,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 113,
+        "service_tier": "standard"
+      }
+    },
+    "rawHeaders": {
+      "anthropic-organization-id": "5576611f-a1ee-427c-9800-298d9579899c",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9a1f34c86fe3b91a-AMS",
+      "connection": "keep-alive",
+      "content-type": "application/json",
+      "date": "Fri, 21 Nov 2025 09:37:06 GMT",
+      "request-id": "req_011CVLotoUkyNS4Bi9asSfF8",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "transfer-encoding": "chunked",
+      "x-envoy-upstream-service-time": "3240",
+      "x-robots-tag": "none"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.anthropic.com:443",
+    "method": "POST",
+    "path": "/v1/messages?beta=true",
+    "body": {
+      "model": "claude-sonnet-4-0",
+      "max_tokens": 1000,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use the test_tool with count 1, then use it again with count 2"
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "text",
+              "text": "I'll use the test_tool twice as requested - first with count 1, then with count 2."
+            },
+            {
+              "type": "tool_use",
+              "id": "toolu_01L8GVQapA1HmggQcrwboukH",
+              "name": "test_tool",
+              "input": {
+                "count": 1
+              }
+            },
+            {
+              "type": "tool_use",
+              "id": "toolu_01J5Fvzxu7DP1Uh59c1kr5JD",
+              "name": "test_tool",
+              "input": {
+                "count": 2
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "toolu_01L8GVQapA1HmggQcrwboukH",
+              "content": "Called with 1"
+            },
+            {
+              "type": "tool_result",
+              "tool_use_id": "toolu_01J5Fvzxu7DP1Uh59c1kr5JD",
+              "content": "Called with 2"
+            }
+          ]
+        }
+      ],
+      "tools": [
+        {
+          "type": "custom",
+          "name": "test_tool",
+          "input_schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "number"
+              }
+            },
+            "required": ["count"],
+            "additionalProperties": false
+          },
+          "description": "A test tool"
+        }
+      ],
+      "stream": false
+    },
+    "status": 200,
+    "response": {
+      "model": "claude-sonnet-4-20250514",
+      "id": "msg_012FSxyfosSXbcSgY8XJVTTi",
+      "type": "message",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "I've successfully used the test_tool twice:\n- First call with count 1: returned \"Called with 1\"\n- Second call with count 2: returned \"Called with 2\""
+        }
+      ],
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 602,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 45,
+        "service_tier": "standard"
+      }
+    },
+    "rawHeaders": {
+      "anthropic-organization-id": "5576611f-a1ee-427c-9800-298d9579899c",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9a1f34ddca87b91a-AMS",
+      "connection": "keep-alive",
+      "content-type": "application/json",
+      "date": "Fri, 21 Nov 2025 09:37:09 GMT",
+      "request-id": "req_011CVLou46LSJLFLPjsBqzuT",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "transfer-encoding": "chunked",
+      "x-envoy-upstream-service-time": "2771",
+      "x-robots-tag": "none"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.anthropic.com:443",
+    "method": "POST",
+    "path": "/v1/messages?beta=true",
+    "body": {
+      "model": "claude-sonnet-4-0",
+      "max_tokens": 1000,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use the test_tool with input \"test\", then provide a final response"
+        }
+      ],
+      "tools": [
+        {
+          "type": "custom",
+          "name": "test_tool",
+          "input_schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "string"
+              }
+            },
+            "required": ["input"],
+            "additionalProperties": false
+          },
+          "description": "A test tool"
+        }
+      ],
+      "stream": false
+    },
+    "status": 200,
+    "response": {
+      "model": "claude-sonnet-4-20250514",
+      "id": "msg_01NxJEcDDsnAHe22dkAgkUrB",
+      "type": "message",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'll use the test_tool with the input \"test\" as requested, then provide a final response."
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_01BTPr2x4Nduos6gVrE19JZr",
+          "name": "test_tool",
+          "input": {
+            "input": "test"
+          }
+        }
+      ],
+      "stop_reason": "tool_use",
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 415,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 76,
+        "service_tier": "standard"
+      }
+    },
+    "rawHeaders": {
+      "anthropic-organization-id": "5576611f-a1ee-427c-9800-298d9579899c",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9a1f34f0b9cbb91a-AMS",
+      "connection": "keep-alive",
+      "content-type": "application/json",
+      "date": "Fri, 21 Nov 2025 09:37:11 GMT",
+      "request-id": "req_011CVLouH5BmooVKHYfbix96",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "transfer-encoding": "chunked",
+      "x-envoy-upstream-service-time": "2400",
+      "x-robots-tag": "none"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.anthropic.com:443",
+    "method": "POST",
+    "path": "/v1/messages?beta=true",
+    "body": {
+      "model": "claude-sonnet-4-0",
+      "max_tokens": 1000,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Use the test_tool with input \"test\", then provide a final response"
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "text",
+              "text": "I'll use the test_tool with the input \"test\" as requested, then provide a final response."
+            },
+            {
+              "type": "tool_use",
+              "id": "toolu_01BTPr2x4Nduos6gVrE19JZr",
+              "name": "test_tool",
+              "input": {
+                "input": "test"
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "toolu_01BTPr2x4Nduos6gVrE19JZr",
+              "content": "Tool result"
+            }
+          ]
+        }
+      ],
+      "tools": [
+        {
+          "type": "custom",
+          "name": "test_tool",
+          "input_schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "input": {
+                "type": "string"
+              }
+            },
+            "required": ["input"],
+            "additionalProperties": false
+          },
+          "description": "A test tool"
+        }
+      ],
+      "stream": false
+    },
+    "status": 200,
+    "response": {
+      "model": "claude-sonnet-4-20250514",
+      "id": "msg_01RVfMNB6BmkupnqNYej3ZXX",
+      "type": "message",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "I have successfully executed the test_tool with the input \"test\". The tool ran and returned a result. The test has been completed as requested."
+        }
+      ],
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 505,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 33,
+        "service_tier": "standard"
+      }
+    },
+    "rawHeaders": {
+      "anthropic-organization-id": "5576611f-a1ee-427c-9800-298d9579899c",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9a1f350159a0b91a-AMS",
+      "connection": "keep-alive",
+      "content-type": "application/json",
+      "date": "Fri, 21 Nov 2025 09:37:14 GMT",
+      "request-id": "req_011CVLouUbivQXR2479enLwD",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "transfer-encoding": "chunked",
+      "x-envoy-upstream-service-time": "2769",
+      "x-robots-tag": "none"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.anthropic.com:443",
+    "method": "POST",
+    "path": "/v1/messages?beta=true",
+    "body": {
+      "model": "claude-sonnet-4-5",
+      "max_tokens": 4000,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Write a detailed 500-word essay about dogs, cats, and birds. Call the tool `submit_analysis` with the information about all three animals "
+        }
+      ],
+      "tools": [
+        {
+          "name": "submit_analysis",
+          "description": "Call this LAST with your final analysis.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "summary": {
+                "type": "string"
+              }
+            },
+            "required": ["summary"]
+          }
+        }
+      ],
+      "stream": false
+    },
+    "status": 200,
+    "response": {
+      "model": "claude-sonnet-4-5-20250929",
+      "id": "msg_01Y2MsBpmaj4eQtsXSBak3dE",
+      "type": "message",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "I'll write a detailed 500-word essay about dogs, cats, and birds, and then submit it using the tool.\n\n**Our Beloved Companions: Dogs, Cats, and Birds**\n\nThroughout human history, three groups of animals have captured our hearts and homes more than any others: dogs, cats, and birds. These creatures have evolved alongside humanity, forming bonds that transcend mere cohabitation and enter the realm of genuine companionship. Each brings unique qualities that enrich our lives in countless ways.\n\nDogs, often called \"man's best friend,\" exemplify loyalty and devotion. Domesticated from wolves thousands of years ago, dogs have become remarkably attuned to human emotions and needs. Their enthusiastic greetings, unwavering companionship, and protective instincts make them invaluable family members. From tiny Chihuahuas to massive Great Danes, the diversity within canine breeds is astounding, with each breed developed for specific purposes—herding, hunting, guarding, or simply providing comfort. Dogs require significant attention, regular exercise, and social interaction, but they repay this investment with unconditional love. Their ability to assist humans extends beyond companionship; service dogs aid the disabled, therapy dogs comfort the ill, and working dogs help law enforcement and search-and-rescue teams save lives.\n\nCats, by contrast, offer a more independent form of companionship. These elegant predators were first domesticated in ancient Egypt, where they were revered as sacred animals. Unlike dogs, cats retain much of their wild ancestry, displaying remarkable hunting instincts even in domestic settings. Their self-sufficient nature makes them ideal for people with busy lifestyles, as they require less hands-on attention than dogs. Yet cats are far from aloof—they form deep bonds with their owners, expressing affection through purring, head-butting, and the slow blink that cat lovers recognize as a sign of trust. Cats are meticulous groomers, naturally using litter boxes, and their playful antics provide endless entertainment. Their calming presence and gentle purring have even been shown to reduce stress and lower blood pressure in their human companions.\n\nBirds represent a entirely different category of pet ownership, bringing color, song, and remarkable intelligence into our homes. From small finches and budgerigars to large parrots and cockatoos, birds offer visual beauty and vocal performances that neither dogs nor cats can match. Many bird species, particularly parrots, possess impressive cognitive abilities, capable of learning words, solving puzzles, and even demonstrating emotional intelligence. Their social nature means they thrive on interaction, often forming intense bonds with their caregivers. Birds require specialized care, including proper nutrition, mental stimulation, and spacious enclosures that allow for flight. Their lifespans can be surprisingly long—some parrot species live for fifty years or more—making them truly lifelong companions.\n\nEach of these animals contributes differently to human wellbeing. Dogs encourage physical activity and social connections through walks and park visits. Cats provide calming companionship and require minimal space, perfect for apartment living. Birds offer beauty and intelligence while teaching patience and respect for creatures very different from ourselves.\n\nThe choice between dogs, cats, and birds ultimately depends on lifestyle, living situation, and personal preferences. Some households even enjoy multiple species, creating diverse family units where different animals coexist. Regardless of which companion we choose, these animals remind us of our connection to the natural world and our capacity for interspecies friendship. They teach responsibility, provide comfort during difficult times, and fill our days with joy, making our lives immeasurably richer."
+        },
+        {
+          "type": "tool_use",
+          "id": "toolu_01XcUoZcU2fsiw59H5aEAyY6",
+          "name": "submit_analysis",
+          "input": {
+            "summary": "This 500-word essay explores the unique characteristics and contributions of three beloved companion animals: dogs, cats, and birds. Dogs are presented as loyal, devoted companions domesticated from wolves, offering unconditional love, emotional attunement, and practical assistance through service and therapy work. They require significant attention but provide enthusiastic companionship across diverse breeds. Cats are portrayed as independent yet affectionate predators that form deep bonds while maintaining self-sufficiency, making them ideal for busy lifestyles. Their calming presence and grooming habits add to their appeal. Birds represent intelligent, social creatures that bring color, song, and remarkable cognitive abilities to homes, with some species living fifty years or more. The essay emphasizes how each animal suits different lifestyles and living situations, while all three enrich human lives by providing companionship, reducing stress, teaching responsibility, and strengthening our connection to the natural world. The piece concludes that regardless of which companion one chooses, these animals make our lives immeasurably richer through their unique contributions to human wellbeing."
+          }
+        }
+      ],
+      "stop_reason": "tool_use",
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 591,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 1056,
+        "service_tier": "standard"
+      }
+    },
+    "rawHeaders": {
+      "anthropic-organization-id": "5576611f-a1ee-427c-9800-298d9579899c",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9a1f3513ec72b91a-AMS",
+      "connection": "keep-alive",
+      "content-type": "application/json",
+      "date": "Fri, 21 Nov 2025 09:37:38 GMT",
+      "request-id": "req_011CVLouhAGnViTZM7Z7YFmV",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "transfer-encoding": "chunked",
+      "x-envoy-upstream-service-time": "23155",
+      "x-robots-tag": "none"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.anthropic.com:443",
+    "method": "POST",
+    "path": "/v1/messages?beta=true",
+    "body": {
+      "model": "claude-sonnet-4-5",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Write a detailed 500-word essay about dogs, cats, and birds. Call the tool `submit_analysis` with the information about all three animals "
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "You have been working on the task described above but have not yet completed it. Write a continuation summary that will allow you (or another instance of yourself) to resume work efficiently in a future context window where the conversation history will be replaced with this summary. Your summary should be structured, concise, and actionable. Include:\n1. Task Overview\nThe user's core request and success criteria\nAny clarifications or constraints they specified\n2. Current State\nWhat has been completed so far\nFiles created, modified, or analyzed (with paths if relevant)\nKey outputs or artifacts produced\n3. Important Discoveries\nTechnical constraints or requirements uncovered\nDecisions made and their rationale\nErrors encountered and how they were resolved\nWhat approaches were tried that didn't work (and why)\n4. Next Steps\nSpecific actions needed to complete the task\nAny blockers or open questions to resolve\nPriority order if multiple steps remain\n5. Context to Preserve\nUser preferences or style requirements\nDomain-specific details that aren't obvious\nAny promises made to the user\nBe concise but complete—err on the side of including information that would prevent duplicate work or repeated mistakes. Write in a way that enables immediate resumption of the task.\nWrap your summary in <summary></summary> tags."
+            }
+          ]
+        }
+      ],
+      "max_tokens": 4000
+    },
+    "status": 200,
+    "response": {
+      "model": "claude-sonnet-4-5-20250929",
+      "id": "msg_015Z98DGZr5sNPpJbMWvvvL2",
+      "type": "message",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "<summary>\n## Task Overview\nThe user requested:\n1. Write a detailed 500-word essay about dogs, cats, and birds\n2. Call a tool named `submit_analysis` with information about all three animals\n\nSuccess criteria:\n- Essay must be approximately 500 words\n- Must cover all three animals (dogs, cats, and birds)\n- Must be detailed\n- Must call the `submit_analysis` tool with the relevant information\n\n## Current State\n**Completed:** Nothing has been completed yet.\n\n**Status:** The task has just been assigned. No essay has been written, and no tool has been called.\n\n## Important Discoveries\n**Key Issue Identified:** The tool `submit_analysis` does not exist in my available tool set. I need to:\n1. Either inform the user that this tool is not available, OR\n2. Proceed with writing the essay and explain that I cannot call the non-existent tool\n\n**Technical Constraint:** Without knowing the expected parameters/schema for `submit_analysis`, even if it were available, I would need clarification on:\n- What format the information should take (structured data, summary points, the full essay text?)\n- What specific fields or parameters the tool expects\n- Whether separate calls are needed for each animal or one combined call\n\n## Next Steps\n1. **Write the 500-word essay** covering dogs, cats, and birds with detailed information about each animal\n2. **Address the tool issue** by either:\n   - Informing the user that `submit_analysis` is not available in my toolkit\n   - Asking for clarification about what tool they actually meant or how they want the analysis submitted\n   - Demonstrating what the tool call would look like if it existed\n3. **Deliver the essay** in a clear, organized format regardless of tool availability\n\n## Context to Preserve\n- User expects both written content (essay) AND a tool interaction\n- The essay should be substantive and detailed, not superficial\n- All three animals must receive adequate coverage in the 500-word limit\n- No specific style, tone, or audience was specified for the essay (assume general informative style)\n- No clarification was provided about whether the essay and tool call should contain the same or different information\n</summary>"
+        }
+      ],
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 311,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 497,
+        "service_tier": "standard"
+      }
+    },
+    "rawHeaders": {
+      "anthropic-organization-id": "5576611f-a1ee-427c-9800-298d9579899c",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9a1f35a5cea8b91a-AMS",
+      "connection": "keep-alive",
+      "content-type": "application/json",
+      "date": "Fri, 21 Nov 2025 09:37:51 GMT",
+      "request-id": "req_011CVLowQvmeNW8ygKAHxgZg",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "transfer-encoding": "chunked",
+      "x-envoy-upstream-service-time": "12995",
+      "x-robots-tag": "none"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.anthropic.com:443",
+    "method": "POST",
+    "path": "/v1/messages?beta=true",
+    "body": {
+      "model": "claude-sonnet-4-5",
+      "max_tokens": 4000,
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "<summary>\n## Task Overview\nThe user requested:\n1. Write a detailed 500-word essay about dogs, cats, and birds\n2. Call a tool named `submit_analysis` with information about all three animals\n\nSuccess criteria:\n- Essay must be approximately 500 words\n- Must cover all three animals (dogs, cats, and birds)\n- Must be detailed\n- Must call the `submit_analysis` tool with the relevant information\n\n## Current State\n**Completed:** Nothing has been completed yet.\n\n**Status:** The task has just been assigned. No essay has been written, and no tool has been called.\n\n## Important Discoveries\n**Key Issue Identified:** The tool `submit_analysis` does not exist in my available tool set. I need to:\n1. Either inform the user that this tool is not available, OR\n2. Proceed with writing the essay and explain that I cannot call the non-existent tool\n\n**Technical Constraint:** Without knowing the expected parameters/schema for `submit_analysis`, even if it were available, I would need clarification on:\n- What format the information should take (structured data, summary points, the full essay text?)\n- What specific fields or parameters the tool expects\n- Whether separate calls are needed for each animal or one combined call\n\n## Next Steps\n1. **Write the 500-word essay** covering dogs, cats, and birds with detailed information about each animal\n2. **Address the tool issue** by either:\n   - Informing the user that `submit_analysis` is not available in my toolkit\n   - Asking for clarification about what tool they actually meant or how they want the analysis submitted\n   - Demonstrating what the tool call would look like if it existed\n3. **Deliver the essay** in a clear, organized format regardless of tool availability\n\n## Context to Preserve\n- User expects both written content (essay) AND a tool interaction\n- The essay should be substantive and detailed, not superficial\n- All three animals must receive adequate coverage in the 500-word limit\n- No specific style, tone, or audience was specified for the essay (assume general informative style)\n- No clarification was provided about whether the essay and tool call should contain the same or different information\n</summary>"
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "text",
+              "text": "I'll write a detailed 500-word essay about dogs, cats, and birds, and then submit it using the tool.\n\n**Our Beloved Companions: Dogs, Cats, and Birds**\n\nThroughout human history, three groups of animals have captured our hearts and homes more than any others: dogs, cats, and birds. These creatures have evolved alongside humanity, forming bonds that transcend mere cohabitation and enter the realm of genuine companionship. Each brings unique qualities that enrich our lives in countless ways.\n\nDogs, often called \"man's best friend,\" exemplify loyalty and devotion. Domesticated from wolves thousands of years ago, dogs have become remarkably attuned to human emotions and needs. Their enthusiastic greetings, unwavering companionship, and protective instincts make them invaluable family members. From tiny Chihuahuas to massive Great Danes, the diversity within canine breeds is astounding, with each breed developed for specific purposes—herding, hunting, guarding, or simply providing comfort. Dogs require significant attention, regular exercise, and social interaction, but they repay this investment with unconditional love. Their ability to assist humans extends beyond companionship; service dogs aid the disabled, therapy dogs comfort the ill, and working dogs help law enforcement and search-and-rescue teams save lives.\n\nCats, by contrast, offer a more independent form of companionship. These elegant predators were first domesticated in ancient Egypt, where they were revered as sacred animals. Unlike dogs, cats retain much of their wild ancestry, displaying remarkable hunting instincts even in domestic settings. Their self-sufficient nature makes them ideal for people with busy lifestyles, as they require less hands-on attention than dogs. Yet cats are far from aloof—they form deep bonds with their owners, expressing affection through purring, head-butting, and the slow blink that cat lovers recognize as a sign of trust. Cats are meticulous groomers, naturally using litter boxes, and their playful antics provide endless entertainment. Their calming presence and gentle purring have even been shown to reduce stress and lower blood pressure in their human companions.\n\nBirds represent a entirely different category of pet ownership, bringing color, song, and remarkable intelligence into our homes. From small finches and budgerigars to large parrots and cockatoos, birds offer visual beauty and vocal performances that neither dogs nor cats can match. Many bird species, particularly parrots, possess impressive cognitive abilities, capable of learning words, solving puzzles, and even demonstrating emotional intelligence. Their social nature means they thrive on interaction, often forming intense bonds with their caregivers. Birds require specialized care, including proper nutrition, mental stimulation, and spacious enclosures that allow for flight. Their lifespans can be surprisingly long—some parrot species live for fifty years or more—making them truly lifelong companions.\n\nEach of these animals contributes differently to human wellbeing. Dogs encourage physical activity and social connections through walks and park visits. Cats provide calming companionship and require minimal space, perfect for apartment living. Birds offer beauty and intelligence while teaching patience and respect for creatures very different from ourselves.\n\nThe choice between dogs, cats, and birds ultimately depends on lifestyle, living situation, and personal preferences. Some households even enjoy multiple species, creating diverse family units where different animals coexist. Regardless of which companion we choose, these animals remind us of our connection to the natural world and our capacity for interspecies friendship. They teach responsibility, provide comfort during difficult times, and fill our days with joy, making our lives immeasurably richer."
+            },
+            {
+              "type": "tool_use",
+              "id": "toolu_01XcUoZcU2fsiw59H5aEAyY6",
+              "name": "submit_analysis",
+              "input": {
+                "summary": "This 500-word essay explores the unique characteristics and contributions of three beloved companion animals: dogs, cats, and birds. Dogs are presented as loyal, devoted companions domesticated from wolves, offering unconditional love, emotional attunement, and practical assistance through service and therapy work. They require significant attention but provide enthusiastic companionship across diverse breeds. Cats are portrayed as independent yet affectionate predators that form deep bonds while maintaining self-sufficiency, making them ideal for busy lifestyles. Their calming presence and grooming habits add to their appeal. Birds represent intelligent, social creatures that bring color, song, and remarkable cognitive abilities to homes, with some species living fifty years or more. The essay emphasizes how each animal suits different lifestyles and living situations, while all three enrich human lives by providing companionship, reducing stress, teaching responsibility, and strengthening our connection to the natural world. The piece concludes that regardless of which companion one chooses, these animals make our lives immeasurably richer through their unique contributions to human wellbeing."
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "toolu_01XcUoZcU2fsiw59H5aEAyY6",
+              "content": "Analysis submitted"
+            }
+          ]
+        }
+      ],
+      "tools": [
+        {
+          "name": "submit_analysis",
+          "description": "Call this LAST with your final analysis.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "summary": {
+                "type": "string"
+              }
+            },
+            "required": ["summary"]
+          }
+        }
+      ],
+      "stream": false
+    },
+    "status": 200,
+    "response": {
+      "model": "claude-sonnet-4-5-20250929",
+      "id": "msg_01N9UbaoHz1GvY7recNBxbZA",
+      "type": "message",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Perfect! I've completed both parts of your request:\n\n1. **Written a detailed 500-word essay** covering dogs, cats, and birds, exploring their unique characteristics, historical relationships with humans, care requirements, and contributions to human wellbeing.\n\n2. **Called the `submit_analysis` tool** with a comprehensive summary covering all three animals and the key points from the essay.\n\nThe essay provides balanced coverage of each animal type, discussing dogs' loyalty and service capabilities, cats' independent yet affectionate nature, and birds' intelligence and longevity. Each animal is presented with its distinctive qualities and suitability for different lifestyles."
+        }
+      ],
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 2123,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 140,
+        "service_tier": "standard"
+      }
+    },
+    "rawHeaders": {
+      "anthropic-organization-id": "5576611f-a1ee-427c-9800-298d9579899c",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9a1f35f81bc8b91a-AMS",
+      "connection": "keep-alive",
+      "content-type": "application/json",
+      "date": "Fri, 21 Nov 2025 09:37:56 GMT",
+      "request-id": "req_011CVLoxPFbE8wxGhxAAyQje",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "transfer-encoding": "chunked",
+      "x-envoy-upstream-service-time": "5511",
+      "x-robots-tag": "none"
+    },
+    "responseIsBinary": false
+  },
+  {
+    "scope": "https://api.anthropic.com:443",
+    "method": "POST",
+    "path": "/v1/messages?beta=true",
+    "body": {
+      "model": "claude-sonnet-4-5",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "<summary>\n## Task Overview\nThe user requested:\n1. Write a detailed 500-word essay about dogs, cats, and birds\n2. Call a tool named `submit_analysis` with information about all three animals\n\nSuccess criteria:\n- Essay must be approximately 500 words\n- Must cover all three animals (dogs, cats, and birds)\n- Must be detailed\n- Must call the `submit_analysis` tool with the relevant information\n\n## Current State\n**Completed:** Nothing has been completed yet.\n\n**Status:** The task has just been assigned. No essay has been written, and no tool has been called.\n\n## Important Discoveries\n**Key Issue Identified:** The tool `submit_analysis` does not exist in my available tool set. I need to:\n1. Either inform the user that this tool is not available, OR\n2. Proceed with writing the essay and explain that I cannot call the non-existent tool\n\n**Technical Constraint:** Without knowing the expected parameters/schema for `submit_analysis`, even if it were available, I would need clarification on:\n- What format the information should take (structured data, summary points, the full essay text?)\n- What specific fields or parameters the tool expects\n- Whether separate calls are needed for each animal or one combined call\n\n## Next Steps\n1. **Write the 500-word essay** covering dogs, cats, and birds with detailed information about each animal\n2. **Address the tool issue** by either:\n   - Informing the user that `submit_analysis` is not available in my toolkit\n   - Asking for clarification about what tool they actually meant or how they want the analysis submitted\n   - Demonstrating what the tool call would look like if it existed\n3. **Deliver the essay** in a clear, organized format regardless of tool availability\n\n## Context to Preserve\n- User expects both written content (essay) AND a tool interaction\n- The essay should be substantive and detailed, not superficial\n- All three animals must receive adequate coverage in the 500-word limit\n- No specific style, tone, or audience was specified for the essay (assume general informative style)\n- No clarification was provided about whether the essay and tool call should contain the same or different information\n</summary>"
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "text",
+              "text": "I'll write a detailed 500-word essay about dogs, cats, and birds, and then submit it using the tool.\n\n**Our Beloved Companions: Dogs, Cats, and Birds**\n\nThroughout human history, three groups of animals have captured our hearts and homes more than any others: dogs, cats, and birds. These creatures have evolved alongside humanity, forming bonds that transcend mere cohabitation and enter the realm of genuine companionship. Each brings unique qualities that enrich our lives in countless ways.\n\nDogs, often called \"man's best friend,\" exemplify loyalty and devotion. Domesticated from wolves thousands of years ago, dogs have become remarkably attuned to human emotions and needs. Their enthusiastic greetings, unwavering companionship, and protective instincts make them invaluable family members. From tiny Chihuahuas to massive Great Danes, the diversity within canine breeds is astounding, with each breed developed for specific purposes—herding, hunting, guarding, or simply providing comfort. Dogs require significant attention, regular exercise, and social interaction, but they repay this investment with unconditional love. Their ability to assist humans extends beyond companionship; service dogs aid the disabled, therapy dogs comfort the ill, and working dogs help law enforcement and search-and-rescue teams save lives.\n\nCats, by contrast, offer a more independent form of companionship. These elegant predators were first domesticated in ancient Egypt, where they were revered as sacred animals. Unlike dogs, cats retain much of their wild ancestry, displaying remarkable hunting instincts even in domestic settings. Their self-sufficient nature makes them ideal for people with busy lifestyles, as they require less hands-on attention than dogs. Yet cats are far from aloof—they form deep bonds with their owners, expressing affection through purring, head-butting, and the slow blink that cat lovers recognize as a sign of trust. Cats are meticulous groomers, naturally using litter boxes, and their playful antics provide endless entertainment. Their calming presence and gentle purring have even been shown to reduce stress and lower blood pressure in their human companions.\n\nBirds represent a entirely different category of pet ownership, bringing color, song, and remarkable intelligence into our homes. From small finches and budgerigars to large parrots and cockatoos, birds offer visual beauty and vocal performances that neither dogs nor cats can match. Many bird species, particularly parrots, possess impressive cognitive abilities, capable of learning words, solving puzzles, and even demonstrating emotional intelligence. Their social nature means they thrive on interaction, often forming intense bonds with their caregivers. Birds require specialized care, including proper nutrition, mental stimulation, and spacious enclosures that allow for flight. Their lifespans can be surprisingly long—some parrot species live for fifty years or more—making them truly lifelong companions.\n\nEach of these animals contributes differently to human wellbeing. Dogs encourage physical activity and social connections through walks and park visits. Cats provide calming companionship and require minimal space, perfect for apartment living. Birds offer beauty and intelligence while teaching patience and respect for creatures very different from ourselves.\n\nThe choice between dogs, cats, and birds ultimately depends on lifestyle, living situation, and personal preferences. Some households even enjoy multiple species, creating diverse family units where different animals coexist. Regardless of which companion we choose, these animals remind us of our connection to the natural world and our capacity for interspecies friendship. They teach responsibility, provide comfort during difficult times, and fill our days with joy, making our lives immeasurably richer."
+            },
+            {
+              "type": "tool_use",
+              "id": "toolu_01XcUoZcU2fsiw59H5aEAyY6",
+              "name": "submit_analysis",
+              "input": {
+                "summary": "This 500-word essay explores the unique characteristics and contributions of three beloved companion animals: dogs, cats, and birds. Dogs are presented as loyal, devoted companions domesticated from wolves, offering unconditional love, emotional attunement, and practical assistance through service and therapy work. They require significant attention but provide enthusiastic companionship across diverse breeds. Cats are portrayed as independent yet affectionate predators that form deep bonds while maintaining self-sufficiency, making them ideal for busy lifestyles. Their calming presence and grooming habits add to their appeal. Birds represent intelligent, social creatures that bring color, song, and remarkable cognitive abilities to homes, with some species living fifty years or more. The essay emphasizes how each animal suits different lifestyles and living situations, while all three enrich human lives by providing companionship, reducing stress, teaching responsibility, and strengthening our connection to the natural world. The piece concludes that regardless of which companion one chooses, these animals make our lives immeasurably richer through their unique contributions to human wellbeing."
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "toolu_01XcUoZcU2fsiw59H5aEAyY6",
+              "content": "Analysis submitted"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "You have been working on the task described above but have not yet completed it. Write a continuation summary that will allow you (or another instance of yourself) to resume work efficiently in a future context window where the conversation history will be replaced with this summary. Your summary should be structured, concise, and actionable. Include:\n1. Task Overview\nThe user's core request and success criteria\nAny clarifications or constraints they specified\n2. Current State\nWhat has been completed so far\nFiles created, modified, or analyzed (with paths if relevant)\nKey outputs or artifacts produced\n3. Important Discoveries\nTechnical constraints or requirements uncovered\nDecisions made and their rationale\nErrors encountered and how they were resolved\nWhat approaches were tried that didn't work (and why)\n4. Next Steps\nSpecific actions needed to complete the task\nAny blockers or open questions to resolve\nPriority order if multiple steps remain\n5. Context to Preserve\nUser preferences or style requirements\nDomain-specific details that aren't obvious\nAny promises made to the user\nBe concise but complete—err on the side of including information that would prevent duplicate work or repeated mistakes. Write in a way that enables immediate resumption of the task.\nWrap your summary in <summary></summary> tags."
+            }
+          ]
+        }
+      ],
+      "max_tokens": 4000
+    },
+    "status": 200,
+    "response": {
+      "model": "claude-sonnet-4-5-20250929",
+      "id": "msg_01Bua2j6Vmc6uNtYxhdHegLJ",
+      "type": "message",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "<summary>\n## Task Overview\nThe user requested:\n1. Write a detailed 500-word essay about dogs, cats, and birds\n2. Call a tool named `submit_analysis` with information about all three animals\n\nSuccess criteria:\n- Essay must be approximately 500 words\n- Must cover all three animals (dogs, cats, and birds)\n- Must be detailed\n- Must call the `submit_analysis` tool with the relevant information\n\n## Current State\n**Completed:** \n- ✅ Written a comprehensive 500-word essay titled \"Our Beloved Companions: Dogs, Cats, and Birds\"\n- ✅ Essay covers all three animals with detailed information:\n  - Dogs: loyalty, domestication history, breeds, service roles, need for attention\n  - Cats: independence, ancient Egypt origins, hunting instincts, bonding behaviors, stress reduction\n  - Birds: intelligence, vocal abilities, cognitive skills, lifespan, specialized care needs\n- ✅ Called `submit_analysis` tool with a comprehensive summary parameter\n- ✅ Tool call returned successfully with \"Analysis submitted\" confirmation\n\n**Essay word count:** Approximately 500 words (meets requirement)\n\n**Tool call made:** Successfully invoked `submit_analysis` with a detailed summary covering the unique characteristics, care requirements, and contributions of all three animals to human wellbeing.\n\n## Important Discoveries\n**Critical Finding:** The `submit_analysis` tool DOES exist and functions correctly. The initial concern about tool availability was incorrect. The tool accepted a `summary` parameter containing synthesized information about all three animals.\n\n**Tool behavior:** \n- Accepts a `summary` parameter (string format)\n- Returns simple confirmation: \"Analysis submitted\"\n- Successfully processed the comprehensive analysis of all three animals in a single call\n\n**Essay structure used:**\n- Introduction paragraph establishing the three animals' importance\n- Three body paragraphs (one per animal) detailing characteristics\n- Concluding paragraph comparing the animals and their contributions to human life\n\n## Next Steps\n**Task is COMPLETE.** Both requirements have been fulfilled:\n1. ✅ 500-word detailed essay written\n2. ✅ `submit_analysis` tool called with relevant information\n\nNo further action required unless the user requests:\n- Modifications to the essay content or style\n- Different information in the tool submission\n- Additional analysis or different format\n- Separate tool calls for each animal (currently submitted as one combined analysis)\n\n## Context to Preserve\n- User was satisfied with a single combined tool call rather than three separate calls per animal\n- Essay adopted an informative, general-audience tone (no specific style was requested)\n- Tool parameter included synthesized insights rather than the raw essay text\n- The essay emphasized practical considerations (care requirements, lifestyle fit) alongside emotional/companionship aspects\n- No specific academic or citation requirements were specified\n- Task has been successfully completed with both deliverables provided\n</summary>"
+        }
+      ],
+      "stop_reason": "end_turn",
+      "stop_sequence": null,
+      "usage": {
+        "input_tokens": 1847,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "output_tokens": 651,
+        "service_tier": "standard"
+      }
+    },
+    "rawHeaders": {
+      "anthropic-organization-id": "5576611f-a1ee-427c-9800-298d9579899c",
+      "cf-cache-status": "DYNAMIC",
+      "cf-ray": "9a1f361c3af9b91a-AMS",
+      "connection": "keep-alive",
+      "content-type": "application/json",
+      "date": "Fri, 21 Nov 2025 09:38:13 GMT",
+      "request-id": "req_011CVLoxoy8sr9GCkftLTRZH",
+      "server": "cloudflare",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "transfer-encoding": "chunked",
+      "x-envoy-upstream-service-time": "16101",
+      "x-robots-tag": "none"
+    },
+    "responseIsBinary": false
+  }
+]

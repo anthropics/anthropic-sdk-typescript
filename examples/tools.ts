@@ -22,7 +22,7 @@ async function main() {
   ];
 
   const message = await client.messages.create({
-    model: 'claude-3-opus-20240229',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 1024,
     messages: [userMessage],
     tools,
@@ -38,7 +38,7 @@ async function main() {
   assert(tool);
 
   const result = await client.messages.create({
-    model: 'claude-3-opus-20240229',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 1024,
     messages: [
       userMessage,
@@ -49,7 +49,7 @@ async function main() {
           {
             type: 'tool_result',
             tool_use_id: tool.id,
-            content: [{ type: 'text', text: 'The weather is 73f' }],
+            content: 'The weather is 73f',
           },
         ],
       },

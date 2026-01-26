@@ -1,17 +1,15 @@
 {
   "include": ["src", "tests", "examples"],
-  "exclude": ["src/_shims/**/*-deno.ts"],
+  "exclude": [],
   "compilerOptions": {
     "target": "es2020",
     "lib": ["es2020"],
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "baseUrl": "./",
     "paths": {
-      "@anthropic-ai/sdk/_shims/auto/*": ["src/_shims/auto/*-node"],
-      "@anthropic-ai/sdk/*": ["src/*"],
-      "@anthropic-ai/sdk": ["src/index.ts"],
+      "@anthropic-ai/sdk/*": ["./src/*"],
+      "@anthropic-ai/sdk": ["./src/index.ts"]
     },
     "noEmit": true,
 
@@ -32,6 +30,7 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
+    "isolatedModules": false,
 
     "skipLibCheck": true
   }
