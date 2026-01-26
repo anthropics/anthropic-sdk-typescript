@@ -1,4 +1,5 @@
 import { BetaRunnableTool } from './BetaRunnableTool';
+import { ToolError } from './ToolError';
 import { Anthropic } from '../..';
 import { AnthropicError } from '../../core/error';
 import { BetaMessage, BetaMessageParam, BetaToolUnion, MessageCreateParams } from '../../resources/beta';
@@ -345,7 +346,10 @@ async function generateToolResponse(
         return {
           type: 'tool_result' as const,
           tool_use_id: toolUse.id,
-          content: `Error: ${error instanceof Error ? error.message : String(error)}`,
+          content:
+            error instanceof ToolError ?
+              error.content
+            : `Error: ${error instanceof Error ? error.message : String(error)}`,
           is_error: true,
         };
       }
