@@ -3,7 +3,9 @@
 import { APIPromise } from '../../core/api-promise';
 import { APIResource } from '../../core/resource';
 import { Stream } from '../../core/streaming';
+import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { stainlessHelperHeader } from '../../lib/stainless-helper-header';
 import { MessageStream } from '../../lib/MessageStream';
 import * as BatchesAPI from './batches';
 import {
@@ -72,10 +74,15 @@ export class Messages extends APIResource {
       const maxNonstreamingTokens = MODEL_NONSTREAMING_TOKENS[body.model] ?? undefined;
       timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
     }
+
+    // Collect helper info from tools and messages
+    const helperHeader = stainlessHelperHeader(body.tools, body.messages);
+
     return this._client.post('/v1/messages', {
       body,
       timeout: timeout ?? 600000,
       ...options,
+      headers: buildHeaders([helperHeader, options?.headers]),
       stream: body.stream ?? false,
     }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
   }

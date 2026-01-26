@@ -8,6 +8,7 @@ import { Stream } from '../../../core/streaming';
 import { MODEL_NONSTREAMING_TOKENS } from '../../../internal/constants';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { stainlessHelperHeader } from '../../../lib/stainless-helper-header';
 import {
   parseBetaMessage,
   type ExtractParsedContentFromBetaParams,
@@ -19,6 +20,7 @@ import {
   BetaToolRunnerParams,
   BetaToolRunnerRequestOptions,
 } from '../../../lib/tools/BetaToolRunner';
+import { ToolError } from '../../../lib/tools/ToolError';
 import type { Model } from '../../messages/messages';
 import * as MessagesAPI from '../../messages/messages';
 import * as BetaAPI from '../beta';
@@ -113,12 +115,17 @@ export class Messages extends APIResource {
       const maxNonstreamingTokens = MODEL_NONSTREAMING_TOKENS[body.model] ?? undefined;
       timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
     }
+
+    // Collect helper info from tools and messages
+    const helperHeader = stainlessHelperHeader(body.tools, body.messages);
+
     return this._client.post('/v1/messages?beta=true', {
       body,
       timeout: timeout ?? 600000,
       ...options,
       headers: buildHeaders([
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        helperHeader,
         options?.headers,
       ]),
       stream: modifiedParams.stream ?? false,
@@ -3502,10 +3509,12 @@ export interface MessageCountTokensParams {
 }
 
 export { BetaToolRunner, type BetaToolRunnerParams } from '../../../lib/tools/BetaToolRunner';
+export { ToolError } from '../../../lib/tools/ToolError';
 
 Messages.Batches = Batches;
 
 Messages.BetaToolRunner = BetaToolRunner;
+Messages.ToolError = ToolError;
 
 export declare namespace Messages {
   export {
@@ -3699,6 +3708,7 @@ export declare namespace Messages {
   };
 
   export { type BetaToolRunnerParams, BetaToolRunner };
+  export { ToolError };
 
   export {
     Batches as Batches,
