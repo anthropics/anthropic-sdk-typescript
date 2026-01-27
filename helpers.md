@@ -332,6 +332,38 @@ console.log('Current model:', runner.params.model);
 console.log('Message count:', runner.params.messages.length);
 ```
 
+### `ToolError`
+
+When a tool encounters an error, you can throw a `ToolError` to return structured content blocks as the error result instead of just a string message. The ToolRunner will catch this error and send the content back to the model with `is_error: true`.
+
+```ts
+import { ToolError } from '@anthropic-ai/sdk/resources/beta/messages';
+
+const screenshotTool = betaZodTool({
+  name: 'take_screenshot',
+  inputSchema: z.object({ url: z.string() }),
+  description: 'Take a screenshot of a webpage',
+  run: async (input) => {
+    try {
+      const screenshot = await takeScreenshot(input.url);
+      return [{ type: 'image', source: { type: 'base64', data: screenshot, media_type: 'image/png' } }];
+    } catch (e) {
+      // Return structured error content with an image showing what went wrong
+      throw new ToolError([
+        { type: 'text', text: `Failed to screenshot ${input.url}: ${e.message}` },
+        { type: 'image', source: { type: 'base64', data: errorScreenshot, media_type: 'image/png' } },
+      ]);
+    }
+  },
+});
+```
+
+You can also throw a `ToolError` with a simple string:
+
+```ts
+throw new ToolError('Invalid input: URL must start with https://');
+```
+
 ### How the Tool Runner Works
 
 #### Iteration Lifecycle

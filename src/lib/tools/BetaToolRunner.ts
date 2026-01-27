@@ -1,4 +1,5 @@
 import { BetaRunnableTool } from './BetaRunnableTool';
+import { ToolError } from './ToolError';
 import { Anthropic } from '../..';
 import { AnthropicError } from '../../core/error';
 import { BetaMessage, BetaMessageParam, BetaToolUnion, MessageCreateParams } from '../../resources/beta';
@@ -6,6 +7,7 @@ import { BetaMessageStream } from '../BetaMessageStream';
 import { RequestOptions } from '../../internal/request-options';
 import { buildHeaders } from '../../internal/headers';
 import { CompactionControl, DEFAULT_SUMMARY_PROMPT, DEFAULT_TOKEN_THRESHOLD } from './CompactionControl';
+import { collectStainlessHelpers } from '../stainless-helper-header';
 
 /**
  * Just Promise.withResolvers(), which is not available in all environments.
@@ -66,9 +68,12 @@ export class BetaToolRunner<Stream extends boolean> {
       },
     };
 
+    const helpers = collectStainlessHelpers(params.tools, params.messages);
+    const helperValue = ['BetaToolRunner', ...helpers].join(', ');
+
     this.#options = {
       ...options,
-      headers: buildHeaders([{ 'x-stainless-helper': 'BetaToolRunner' }, options?.headers]),
+      headers: buildHeaders([{ 'x-stainless-helper': helperValue }, options?.headers]),
     };
     this.#completion = promiseWithResolvers();
   }
@@ -438,7 +443,10 @@ async function generateToolResponse(
         return {
           type: 'tool_result' as const,
           tool_use_id: toolUse.id,
-          content: `Error: ${error instanceof Error ? error.message : String(error)}`,
+          content:
+            error instanceof ToolError ?
+              error.content
+            : `Error: ${error instanceof Error ? error.message : String(error)}`,
           is_error: true,
         };
       }

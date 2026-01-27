@@ -7,6 +7,7 @@ import { Page, type PageParams, PagePromise } from '../../core/pagination';
 import { type Uploadable } from '../../core/uploads';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { stainlessHelperHeaderFromFile } from '../../lib/stainless-helper-header';
 import { multipartFormRequestOptions } from '../../internal/uploads';
 import { path } from '../../internal/utils/path';
 
@@ -130,6 +131,7 @@ export class Files extends APIResource {
    */
   upload(params: FileUploadParams, options?: RequestOptions): APIPromise<FileMetadata> {
     const { betas, ...body } = params;
+
     return this._client.post(
       '/v1/files',
       multipartFormRequestOptions(
@@ -138,6 +140,7 @@ export class Files extends APIResource {
           ...options,
           headers: buildHeaders([
             { 'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString() },
+            stainlessHelperHeaderFromFile(body.file),
             options?.headers,
           ]),
         },

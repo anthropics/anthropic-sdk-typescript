@@ -210,4 +210,4 @@ export {
   type BetaMCPToolDefaultConfig,
   type BetaToolResultContentBlockParam,
 } from './messages';
-export { BetaToolRunner, type BetaToolRunnerParams } from './messages';
+export { BetaToolRunner, type BetaToolRunnerParams, ToolError } from './messages';

@@ -122,6 +122,72 @@ Streaming with `client.messages.stream(...)` exposes [various helpers for your c
 
 Alternatively, you can use `client.messages.create({ ..., stream: true })` which only returns an async iterable of the events in the stream and thus uses less memory (it does not build up a final message object for you).
 
+## MCP Helpers
+
+This SDK provides helpers for integrating with [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) servers. These helpers convert MCP types to Anthropic API types, reducing boilerplate when working with MCP tools, prompts, and resources.
+
+> **Note:** The Claude API also supports an [`mcp_servers` parameter](https://docs.anthropic.com/en/docs/agents-and-tools/mcp) that lets Claude connect directly to remote MCP servers.
+>
+> - Use `mcp_servers` when you have remote servers accessible via URL and only need tool support.
+> - Use the MCP helpers when you need local MCP servers, prompts, resources, or more control over the MCP connection.
+
+```ts
+import Anthropic from '@anthropic-ai/sdk';
+import {
+  mcpTools,
+  mcpMessages,
+  mcpResourceToContent,
+  mcpResourceToFile,
+} from '@anthropic-ai/sdk/helpers/beta/mcp';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+
+const anthropic = new Anthropic();
+
+// Connect to an MCP server
+const transport = new StdioClientTransport({ command: 'mcp-server', args: [] });
+const mcpClient = new Client({ name: 'my-client', version: '1.0.0' });
+await mcpClient.connect(transport);
+
+// Use MCP prompts
+const { messages } = await mcpClient.getPrompt({ name: 'my-prompt' });
+const response = await anthropic.beta.messages.create({
+  model: 'claude-sonnet-4-20250514',
+  max_tokens: 1024,
+  messages: mcpMessages(messages),
+});
+
+// Use MCP tools with toolRunner
+const { tools } = await mcpClient.listTools();
+const runner = await anthropic.beta.messages.toolRunner({
+  model: 'claude-sonnet-4-20250514',
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'Use the available tools' }],
+  tools: mcpTools(tools, mcpClient),
+});
+
+// Use MCP resources as content
+const resource = await mcpClient.readResource({ uri: 'file:///path/to/doc.txt' });
+await anthropic.beta.messages.create({
+  model: 'claude-sonnet-4-20250514',
+  max_tokens: 1024,
+  messages: [
+    {
+      role: 'user',
+      content: [mcpResourceToContent(resource), { type: 'text', text: 'Summarize this document' }],
+    },
+  ],
+});
+
+// Upload MCP resources as files
+const resource = await mcpClient.readResource({ uri: 'file:///path/to/data.json' });
+await anthropic.beta.files.upload({ file: mcpResourceToFile(resource) });
+```
+
+### MCP Error Handling
+
+The conversion functions throw `UnsupportedMCPValueError` if an MCP value is not supported by the Claude API (e.g., unsupported content type, unsupported MIME type, non-http/https resource link).
+
 ## Message Batches
 
 This SDK provides support for the [Message Batches API](https://platform.claude.com/docs/en/api/typescript/messages/batches/create) under the `client.messages.batches` namespace.
@@ -197,6 +263,33 @@ const finalMessage = await anthropic.beta.messages.toolRunner({
   tools: [weatherTool],
 });
 ```
+
+To report an error from a tool back to the model, throw a `ToolError` from the `run` function. Unlike a plain `Error`, `ToolError` accepts content blocks, allowing you to include images or other structured content in the error response:
+
+```ts
+import { ToolError } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
+
+const screenshotTool = betaZodTool({
+  name: 'take_screenshot',
+  inputSchema: z.object({ url: z.string() }),
+  run: async (input) => {
+    if (!isValidUrl(input.url)) {
+      throw new ToolError(`Invalid URL: ${input.url}`);
+    }
+    const result = await takeScreenshot(input.url);
+    if (result.error) {
+      // Include the error screenshot so the model can see what went wrong
+      throw new ToolError([
+        { type: 'text', text: `Failed to load page: ${result.error}` },
+        { type: 'image', source: { type: 'base64', data: result.screenshot, media_type: 'image/png' } },
+      ]);
+    }
+    return { type: 'image', source: { type: 'base64', data: result.screenshot, media_type: 'image/png' } };
+  },
+});
+```
+
+If a plain `Error` is thrown, the message will be converted to a text content block.
 
 ## AWS Bedrock
 
