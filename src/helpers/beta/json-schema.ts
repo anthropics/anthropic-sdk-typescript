@@ -1,5 +1,5 @@
 import { FromSchema, JSONSchema } from 'json-schema-to-ts';
-import { Promisable, BetaRunnableTool } from '../../lib/tools/BetaRunnableTool';
+import { Promisable, BetaRunnableTool, BetaToolRunMeta } from '../../lib/tools/BetaRunnableTool';
 import { BetaToolResultContentBlockParam } from '../../resources/beta';
 import { AutoParseableBetaOutputFormat } from '../../lib/beta-parser';
 import { AnthropicError } from '../..';
@@ -16,7 +16,10 @@ export function betaTool<const Schema extends Exclude<JSONSchema, boolean> & { t
   name: string;
   inputSchema: Schema;
   description: string;
-  run: (args: NoInfer<FromSchema<Schema>>) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
+  run: (
+    args: NoInfer<FromSchema<Schema>>,
+    meta?: BetaToolRunMeta,
+  ) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
 }): BetaRunnableTool<NoInfer<FromSchema<Schema>>> {
   if (options.inputSchema.type !== 'object') {
     throw new Error(
