@@ -332,6 +332,83 @@ console.log('Current model:', runner.params.model);
 console.log('Message count:', runner.params.messages.length);
 ```
 
+### How the Tool Runner Works
+
+#### Iteration Lifecycle
+
+On each iteration, the tool runner performs these key operations:
+
+1. **Next request:** It sends a new request to the API using the current internal state (before yield), and yields the new message to the user.
+
+2. **User code execution:** The code inside the user's `for` loop block runs, with access to the current message response. The user can optionally change state via `pushMessages()` or `setMessagesParams()`.
+
+3. **State update (only if unchanged):** The tool runner appends the last message from the API response (the one yielded to the client) to its internal state only if the state wasn't modified during that iteration via pushMessages() or setMessagesParams(). If the state was mutated, it ignores that message and continues using the user-mutated state.
+
+4. **Tool handling (always):** The tool runner inspects the last message. If it contains any tool_use blocks, it handles them and appends an appropriate message containing the corresponding tool_result blocks to `runner.params.messages` — regardless of whether the `runner.params` was mutated by the consumer.
+
+5. **Repeat:** It repeats the loop.
+
+#### generateToolResponse()
+
+The `generateToolResponse()` method is a helper that reads the `tool_use` blocks, calls the tools, and generates a message containing the corresponding `tool_result` blocks. This is what the tool runner calls internally on each iteration during the tool handling step. Note that:
+
+- It **does not mutate state** — calling generateToolResponse alone won’t prevent the loop from adding its message to state
+- It **caches results** to avoid redundant calls — if you pass the same state, it returns the cached result
+
+If you push both the last message and the result of `generateToolResponse()` into the state, the tool runner will effectively do nothing except send the next request:
+
+```ts
+for await (const message of runner) {
+  const defaultResponse = await runner.generateToolResponse();
+
+  if (defaultResponse) {
+    runner.pushMessages(
+      {
+        role: message.role,
+        content: message.content,
+      },
+      defaultResponse,
+    );
+  }
+}
+```
+
+#### Execution Flow Diagram
+
+> **Note:** If the Mermaid diagram below doesn't render in your environment, view it on GitHub: https://github.com/anthropics/anthropic-sdk-typescript/blob/main/helpers.md#how-the-tool-runner-works
+        
+```mermaid
+sequenceDiagram
+  autonumber
+  participant U as User
+  participant TR as ToolRunner
+  participant API as Model API
+  participant Tools as Tools
+
+  loop Repeat until done
+    TR->>API: Send request (using current state)
+    API-->>TR: Message
+    TR-->>U: Yield message
+
+    note over U: User can read message<br/>and optionally change state via<br/>pushMessages or setMessagesParams
+    U->>TR: Resume iteration
+
+    alt User did not change state
+      TR->>TR: Append message to history
+    else User changed state
+      TR->>TR: Keep user state (no auto-append)
+    end
+
+    alt Message contains tool request
+      TR->>Tools: Run tools (with generateToolResponse)
+      Tools-->>TR: Tool results
+      TR->>TR: Append tool results
+    else No tool request
+      TR->>TR: Finish
+    end
+  end
+```
+
 ### Examples
 
 See the following example files for more usage patterns:
