@@ -247,6 +247,44 @@ const calculatorTool = betaTool({
 
 **Returns:**: `BetaToolRunner`
 
+### Tool Run Meta
+
+The `run` function receives an optional second parameter `meta` containing:
+
+- `toolUseBlock` - The toolUseBlock object representing the tool invocation metadata.
+
+```ts
+const calculatorTool = betaTool({
+  name: 'calculator',
+  input_schema: {
+    type: 'object',
+    properties: {
+      operation: { type: 'string', enum: ['add', 'subtract', 'multiply', 'divide'] },
+      a: { type: 'number' },
+      b: { type: 'number' },
+    },
+    required: ['operation', 'a', 'b'],
+  },
+  description: 'Perform basic arithmetic operations',
+  run: (input, meta) => {
+    console.log(meta?.toolUseBlock); // Access tool invocation metadata
+    const { operation, a, b } = input;
+    switch (operation) {
+      case 'add':
+        return String(a + b);
+      case 'subtract':
+        return String(a - b);
+      case 'multiply':
+        return String(a * b);
+      case 'divide':
+        return String(a / b);
+      default:
+        throw new Error(`Unknown operation: ${operation}`);
+    }
+  },
+});
+```
+
 ### `BetaToolRunner` API
 
 #### `BetaToolRunner.done()`

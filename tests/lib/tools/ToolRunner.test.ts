@@ -1131,4 +1131,42 @@ describe('ToolRunner', () => {
       expect(capturedHelperHeader).toContain('mcpContent');
     });
   });
+  describe('meta parameter', () => {
+    it('passes BetaToolUseBlock meta to tools', async () => {
+      let capturedMeta: any = null;
+
+      const toolWithMeta: BetaRunnableTool<{ location: string }> = {
+        type: 'custom',
+        name: 'getWeather',
+        description: 'Get weather',
+        input_schema: { type: 'object', properties: { location: { type: 'string' } } },
+        run: async (args, meta) => {
+          capturedMeta = meta;
+          return `Sunny in ${args.location}`;
+        },
+        parse: (input: unknown) => input as { location: string },
+      };
+
+      const { runner, handleAssistantMessage } = setupTest({
+        messages: [{ role: 'user', content: 'What is the weather in NYC?' }],
+        tools: [toolWithMeta],
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      handleAssistantMessage(getWeatherToolUse('NYC', 'tool_123'));
+      await iterator.next();
+
+      handleAssistantMessage(getTextContent());
+      await iterator.next();
+
+      await expectDone(iterator);
+
+      expect(capturedMeta).toBeDefined();
+      expect(capturedMeta.toolUseBlock.id).toBe('tool_123');
+      expect(capturedMeta.toolUseBlock.name).toBe('getWeather');
+      expect(capturedMeta.toolUseBlock.type).toBe('tool_use');
+      expect(capturedMeta.toolUseBlock.input).toEqual({ location: 'NYC' });
+    });
+  });
 });

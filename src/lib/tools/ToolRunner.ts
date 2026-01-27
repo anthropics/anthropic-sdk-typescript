@@ -336,7 +336,9 @@ async function generateToolResponse(
           input = tool.parse(input);
         }
 
-        const result = await tool.run(input);
+        const result = await tool.run(input, {
+          toolUseBlock: toolUse,
+        });
         return {
           type: 'tool_result' as const,
           tool_use_id: toolUse.id,
