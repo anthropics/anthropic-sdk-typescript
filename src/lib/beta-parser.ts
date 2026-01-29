@@ -4,6 +4,7 @@ import {
   BetaContentBlock,
   BetaJSONOutputFormat,
   BetaMessage,
+  BetaOutputConfig,
   BetaTextBlock,
   MessageCreateParams,
 } from '../resources/beta/messages/messages';
@@ -11,14 +12,25 @@ import {
 // vendored from typefest just to make things look a bit nicer on hover
 type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {};
 
+type AutoParseableBetaOutputConfig = Omit<BetaOutputConfig, 'format'> & {
+  format?: BetaJSONOutputFormat | AutoParseableBetaOutputFormat<any> | null;
+};
+
 export type BetaParseableMessageCreateParams = Simplify<
-  Omit<MessageCreateParams, 'output_format'> & {
+  Omit<MessageCreateParams, 'output_format' | 'output_config'> & {
+    /**
+     * @deprecated Use `output_config.format` instead. This parameter will be removed in a future
+     *   release.
+     */
     output_format?: BetaJSONOutputFormat | AutoParseableBetaOutputFormat<any> | null;
+    output_config?: AutoParseableBetaOutputConfig | null;
   }
 >;
 
 export type ExtractParsedContentFromBetaParams<Params extends BetaParseableMessageCreateParams> =
-  Params['output_format'] extends AutoParseableBetaOutputFormat<infer P> ? P : null;
+  Params['output_format'] extends AutoParseableBetaOutputFormat<infer P> ? P
+  : Params['output_config'] extends { format: AutoParseableBetaOutputFormat<infer P> } ? P
+  : null;
 
 export type AutoParseableBetaOutputFormat<ParsedT> = BetaJSONOutputFormat & {
   parse(content: string): ParsedT;
@@ -33,12 +45,20 @@ export type ParsedBetaContentBlock<ParsedT> =
   | (BetaTextBlock & { parsed_output: ParsedT | null })
   | Exclude<BetaContentBlock, BetaTextBlock>;
 
+function getOutputFormat(
+  params: BetaParseableMessageCreateParams | null,
+): BetaJSONOutputFormat | AutoParseableBetaOutputFormat<any> | null | undefined {
+  // Prefer output_format (deprecated) over output_config.format for backward compatibility
+  return params?.output_format ?? params?.output_config?.format;
+}
+
 export function maybeParseBetaMessage<Params extends BetaParseableMessageCreateParams | null>(
   message: BetaMessage,
   params: Params,
   opts: { logger: Logger },
 ): ParsedBetaMessage<ExtractParsedContentFromBetaParams<NonNullable<Params>>> {
-  if (!params || !('parse' in (params.output_format ?? {}))) {
+  const outputFormat = getOutputFormat(params);
+  if (!params || !('parse' in (outputFormat ?? {}))) {
     return {
       ...message,
       content: message.content.map((block) => {
@@ -111,13 +131,14 @@ function parseBetaOutputFormat<Params extends BetaParseableMessageCreateParams>(
   params: Params,
   content: string,
 ): ExtractParsedContentFromBetaParams<Params> | null {
-  if (params.output_format?.type !== 'json_schema') {
+  const outputFormat = getOutputFormat(params);
+  if (outputFormat?.type !== 'json_schema') {
     return null;
   }
 
   try {
-    if ('parse' in params.output_format) {
-      return params.output_format.parse(content);
+    if ('parse' in outputFormat) {
+      return outputFormat.parse(content);
     }
 
     return JSON.parse(content);

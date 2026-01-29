@@ -90,7 +90,7 @@ export async function toFile(
   // If it's a promise, resolve it.
   value = await value;
 
-  name ||= getName(value);
+  name ||= getName(value, true);
 
   // If we've been given a `File` we don't need to do anything if the name / options
   // have not been customised.

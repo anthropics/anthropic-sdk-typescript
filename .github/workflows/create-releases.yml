@@ -14,7 +14,7 @@ jobs:
     environment: production-release
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: stainless-api/trigger-release-please@v1
         id: release
@@ -39,6 +39,7 @@ jobs:
       - name: Publish to NPM
         if: ${{ steps.release.outputs.releases_created }}
         run: |
-          bash ./bin/publish-npm
+          yarn tsn scripts/publish-packages.ts
         env:
+          DATA: ${{ toJSON(steps.release.outputs) }}
           NPM_TOKEN: ${{ secrets.ANTHROPIC_NPM_TOKEN || secrets.NPM_TOKEN }}
