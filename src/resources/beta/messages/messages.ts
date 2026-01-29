@@ -679,6 +679,9 @@ export interface BetaCodeExecutionTool20250522 {
    */
   defer_loading?: boolean;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -705,6 +708,9 @@ export interface BetaCodeExecutionTool20250825 {
    */
   defer_loading?: boolean;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -1080,6 +1086,9 @@ export interface BetaMemoryTool20250818 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -1382,7 +1391,10 @@ export interface BetaMetadata {
 
 export interface BetaOutputConfig {
   /**
-   * All possible effort levels.
+   * How much effort the model should put into its response. Higher effort levels may
+   * result in more thorough analysis but take longer.
+   *
+   * Valid values are `low`, `medium`, or `high`.
    */
   effort?: 'low' | 'medium' | 'high' | null;
 
@@ -1992,6 +2004,9 @@ export interface BetaTool {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 
   type?: 'custom' | null;
@@ -2040,6 +2055,9 @@ export interface BetaToolBash20241022 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2068,6 +2086,9 @@ export interface BetaToolBash20250124 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2174,6 +2195,9 @@ export interface BetaToolComputerUse20241022 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2217,6 +2241,9 @@ export interface BetaToolComputerUse20250124 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2265,6 +2292,9 @@ export interface BetaToolComputerUse20251124 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2334,6 +2364,9 @@ export interface BetaToolSearchToolBm25_20251119 {
    */
   defer_loading?: boolean;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2360,6 +2393,9 @@ export interface BetaToolSearchToolRegex20251119 {
    */
   defer_loading?: boolean;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2437,6 +2473,9 @@ export interface BetaToolTextEditor20241022 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2465,6 +2504,9 @@ export interface BetaToolTextEditor20250124 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2493,6 +2535,9 @@ export interface BetaToolTextEditor20250429 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2527,6 +2572,9 @@ export interface BetaToolTextEditor20250728 {
    */
   max_characters?: number | null;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2734,6 +2782,9 @@ export interface BetaWebFetchTool20250910 {
    */
   max_uses?: number | null;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2844,6 +2895,9 @@ export interface BetaWebSearchTool20250305 {
    */
   max_uses?: number | null;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 
   /**
@@ -3053,8 +3107,8 @@ export interface MessageCreateParamsBase {
   metadata?: BetaMetadata;
 
   /**
-   * Body param: Configuration options for the model's output. Controls aspects like
-   * output format or how much effort the model puts into its response.
+   * Body param: Configuration options for the model's output, such as the output
+   * format.
    */
   output_config?: BetaOutputConfig;
 
@@ -3362,8 +3416,8 @@ export interface MessageCountTokensParams {
   mcp_servers?: Array<BetaRequestMCPServerURLDefinition>;
 
   /**
-   * Body param: Configuration options for the model's output. Controls aspects like
-   * output format or how much effort the model puts into its response.
+   * Body param: Configuration options for the model's output, such as the output
+   * format.
    */
   output_config?: BetaOutputConfig;
 

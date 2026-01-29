@@ -564,8 +564,7 @@ export namespace BatchCreateParams {
       metadata?: BetaMessagesAPI.BetaMetadata;
 
       /**
-       * Configuration options for the model's output. Controls aspects like output
-       * format or how much effort the model puts into its response.
+       * Configuration options for the model's output, such as the output format.
        */
       output_config?: BetaMessagesAPI.BetaOutputConfig;
 

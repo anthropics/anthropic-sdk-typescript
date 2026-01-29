@@ -21,3 +21,12 @@ export {
   PermissionDeniedError,
   UnprocessableEntityError,
 } from './core/error';
+
+export { jsonSchemaOutputFormat, zodOutputFormat } from './helpers';
+export type {
+  AutoParseableOutputFormat,
+  ParsedMessage,
+  ParsedContentBlock,
+  ParseableMessageCreateParams,
+  ExtractParsedContentFromParams,
+} from './lib/parser';

@@ -7,6 +7,12 @@ import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
 import { stainlessHelperHeader } from '../../lib/stainless-helper-header';
 import { MessageStream } from '../../lib/MessageStream';
+import {
+  parseMessage,
+  type ExtractParsedContentFromParams,
+  type ParseableMessageCreateParams,
+  type ParsedMessage,
+} from '../../lib/parser';
 import * as BatchesAPI from './batches';
 import {
   BatchCreateParams,
@@ -88,10 +94,63 @@ export class Messages extends APIResource {
   }
 
   /**
-   * Create a Message stream
+   * Send a structured list of input messages with text and/or image content, along with an expected `output_config.format` and
+   * the response will be automatically parsed and available in the `parsed_output` property of the message.
+   *
+   * @example
+   * ```ts
+   * const message = await client.messages.parse({
+   *   model: 'claude-sonnet-4-5-20250929',
+   *   max_tokens: 1024,
+   *   messages: [{ role: 'user', content: 'What is 2+2?' }],
+   *   output_config: {
+   *     format: zodOutputFormat(z.object({ answer: z.number() })),
+   *   },
+   * });
+   *
+   * console.log(message.parsed_output?.answer); // 4
+   * ```
    */
-  stream(body: MessageStreamParams, options?: RequestOptions): MessageStream {
-    return MessageStream.createMessage(this, body, options);
+  parse<Params extends MessageCreateParamsNonStreaming>(
+    params: Params,
+    options?: RequestOptions,
+  ): APIPromise<ParsedMessage<ExtractParsedContentFromParams<Params>>> {
+    return this.create(params, options).then((message) =>
+      parseMessage(message, params, { logger: this._client.logger ?? console }),
+    ) as APIPromise<ParsedMessage<ExtractParsedContentFromParams<Params>>>;
+  }
+
+  /**
+   * Create a Message stream.
+   *
+   * If `output_config.format` is provided with a parseable format (like `zodOutputFormat()`),
+   * the final message will include a `parsed_output` property with the parsed content.
+   *
+   * @example
+   * ```ts
+   * const stream = client.messages.stream({
+   *   model: 'claude-sonnet-4-5-20250929',
+   *   max_tokens: 1024,
+   *   messages: [{ role: 'user', content: 'What is 2+2?' }],
+   *   output_config: {
+   *     format: zodOutputFormat(z.object({ answer: z.number() })),
+   *   },
+   * });
+   *
+   * const message = await stream.finalMessage();
+   * console.log(message.parsed_output?.answer); // 4
+   * ```
+   */
+  stream<Params extends MessageStreamParams>(
+    body: Params,
+    options?: RequestOptions,
+  ): MessageStream<ExtractParsedContentFromParams<Params>> {
+    return MessageStream.createMessage<ExtractParsedContentFromParams<Params>>(
+      this,
+      body as MessageCreateParamsBase,
+      options,
+      { logger: this._client.logger ?? console },
+    );
   }
 
   /**
@@ -387,6 +446,15 @@ export interface InputJSONDelta {
   type: 'input_json_delta';
 }
 
+export interface JSONOutputFormat {
+  /**
+   * The JSON schema of the format
+   */
+  schema: { [key: string]: unknown };
+
+  type: 'json_schema';
+}
+
 export interface Message {
   /**
    * Unique object identifier.
@@ -586,6 +654,14 @@ export type Model =
   | 'claude-3-opus-20240229'
   | 'claude-3-haiku-20240307'
   | (string & {});
+
+export interface OutputConfig {
+  /**
+   * A schema to specify Claude's output format in responses. See
+   * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+   */
+  format?: JSONOutputFormat | null;
+}
 
 const DEPRECATED_MODELS: {
   [K in Model]?: string;
@@ -903,6 +979,11 @@ export interface Tool {
    */
   description?: string;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+
   type?: 'custom' | null;
 }
 
@@ -938,6 +1019,11 @@ export interface ToolBash20250124 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 }
 
 /**
@@ -1032,6 +1118,11 @@ export interface ToolTextEditor20250124 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 }
 
 export interface ToolTextEditor20250429 {
@@ -1048,6 +1139,11 @@ export interface ToolTextEditor20250429 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 }
 
 export interface ToolTextEditor20250728 {
@@ -1070,6 +1166,11 @@ export interface ToolTextEditor20250728 {
    * defaults to displaying the full file.
    */
   max_characters?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 }
 
 export type ToolUnion =
@@ -1209,6 +1310,11 @@ export interface WebSearchTool20250305 {
    * Maximum number of times the tool can be used in the API request.
    */
   max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 
   /**
    * Parameters for the user's location. Used to provide more relevant search
@@ -1410,6 +1516,11 @@ export interface MessageCreateParamsBase {
   metadata?: Metadata;
 
   /**
+   * Configuration options for the model's output, such as the output format.
+   */
+  output_config?: OutputConfig;
+
+  /**
    * Determines whether to use priority capacity (if available) or standard capacity
    * for this request.
    *
@@ -1605,7 +1716,7 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
   stream: true;
 }
 
-export type MessageStreamParams = MessageCreateParamsBase;
+export type MessageStreamParams = ParseableMessageCreateParams;
 
 export interface MessageCountTokensParams {
   /**
@@ -1683,6 +1794,11 @@ export interface MessageCountTokensParams {
    * details and options.
    */
   model: Model;
+
+  /**
+   * Configuration options for the model's output, such as the output format.
+   */
+  output_config?: OutputConfig;
 
   /**
    * System prompt.
@@ -1821,6 +1937,7 @@ export declare namespace Messages {
     type DocumentBlockParam as DocumentBlockParam,
     type ImageBlockParam as ImageBlockParam,
     type InputJSONDelta as InputJSONDelta,
+    type JSONOutputFormat as JSONOutputFormat,
     type Message as Message,
     type MessageCountTokensTool as MessageCountTokensTool,
     type MessageDeltaEvent as MessageDeltaEvent,
@@ -1829,6 +1946,7 @@ export declare namespace Messages {
     type MessageTokensCount as MessageTokensCount,
     type Metadata as Metadata,
     type Model as Model,
+    type OutputConfig as OutputConfig,
     type PlainTextSource as PlainTextSource,
     type RawContentBlockDelta as RawContentBlockDelta,
     type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,

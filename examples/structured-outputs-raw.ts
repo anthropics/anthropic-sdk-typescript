@@ -5,18 +5,20 @@ import Anthropic from '@anthropic-ai/sdk';
 async function main() {
   const client = new Anthropic();
 
-  const message = await client.beta.messages.parse({
+  const message = await client.messages.parse({
     model: 'claude-sonnet-4-5',
     max_tokens: 100,
-    output_format: {
-      type: 'json_schema',
-      schema: {
-        type: 'object',
-        properties: {
-          answer: { type: 'string', description: 'The final answer' },
+    output_config: {
+      format: {
+        type: 'json_schema',
+        schema: {
+          type: 'object',
+          properties: {
+            answer: { type: 'string', description: 'The final answer' },
+          },
+          required: ['answer'],
+          additionalProperties: false,
         },
-        required: ['answer'],
-        additionalProperties: false,
       },
     },
     messages: [
