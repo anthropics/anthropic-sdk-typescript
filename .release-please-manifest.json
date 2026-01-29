@@ -1,6 +1,6 @@
 {
-  ".": "0.71.2",
-  "packages/vertex-sdk": "0.14.1",
-  "packages/bedrock-sdk": "0.26.1",
-  "packages/foundry-sdk": "0.2.1"
+  ".": "0.72.0",
+  "packages/vertex-sdk": "0.14.2",
+  "packages/bedrock-sdk": "0.26.2",
+  "packages/foundry-sdk": "0.2.2"
 }

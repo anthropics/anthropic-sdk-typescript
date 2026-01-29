@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.26.2 (2026-01-29)
+
+Full Changelog: [bedrock-sdk-v0.26.1...bedrock-sdk-v0.26.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.26.1...bedrock-sdk-v0.26.2)
+
+### Chores
+
+* **internal:** version bump ([24ecc83](https://github.com/anthropics/anthropic-sdk-typescript/commit/24ecc838b0adbb837b14fe24fac0895d81ea8891))
+
+
+### Documentation
+
+* update README with Claude branding ([#611](https://github.com/anthropics/anthropic-sdk-typescript/issues/611)) ([2a9a5f7](https://github.com/anthropics/anthropic-sdk-typescript/commit/2a9a5f7f94d2fe807bcc73aa6a3a92f8e50db763))
+
 ## 0.26.1 (2025-11-24)
 
 Full Changelog: [bedrock-sdk-v0.26.0...bedrock-sdk-v0.26.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.26.0...bedrock-sdk-v0.26.1)
