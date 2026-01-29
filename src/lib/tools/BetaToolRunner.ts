@@ -204,13 +204,13 @@ export class BetaToolRunner<Stream extends boolean> {
               const { role, content } = await this.#message;
               this.#state.params.messages.push({ role, content });
             }
+          }
 
-            const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
-            if (toolMessage) {
-              this.#state.params.messages.push(toolMessage);
-            } else if (!this.#mutated) {
-              break;
-            }
+          const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
+          if (toolMessage) {
+            this.#state.params.messages.push(toolMessage);
+          } else if (!this.#mutated) {
+            break;
           }
         } finally {
           if (stream) {
