@@ -468,6 +468,11 @@ export namespace BatchCreateParams {
       metadata?: MessagesAPI.Metadata;
 
       /**
+       * Configuration options for the model's output, such as the output format.
+       */
+      output_config?: MessagesAPI.OutputConfig;
+
+      /**
        * Determines whether to use priority capacity (if available) or standard capacity
        * for this request.
        *

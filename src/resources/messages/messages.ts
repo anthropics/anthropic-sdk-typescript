@@ -358,6 +358,15 @@ export interface InputJSONDelta {
   type: 'input_json_delta';
 }
 
+export interface JSONOutputFormat {
+  /**
+   * The JSON schema of the format
+   */
+  schema: { [key: string]: unknown };
+
+  type: 'json_schema';
+}
+
 export interface Message {
   /**
    * Unique object identifier.
@@ -557,6 +566,14 @@ export type Model =
   | 'claude-3-opus-20240229'
   | 'claude-3-haiku-20240307'
   | (string & {});
+
+export interface OutputConfig {
+  /**
+   * A schema to specify Claude's output format in responses. See
+   * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+   */
+  format?: JSONOutputFormat | null;
+}
 
 export interface PlainTextSource {
   data: string;
@@ -856,6 +873,11 @@ export interface Tool {
    */
   description?: string;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+
   type?: 'custom' | null;
 }
 
@@ -891,6 +913,11 @@ export interface ToolBash20250124 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 }
 
 /**
@@ -985,6 +1012,11 @@ export interface ToolTextEditor20250124 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 }
 
 export interface ToolTextEditor20250429 {
@@ -1001,6 +1033,11 @@ export interface ToolTextEditor20250429 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 }
 
 export interface ToolTextEditor20250728 {
@@ -1023,6 +1060,11 @@ export interface ToolTextEditor20250728 {
    * defaults to displaying the full file.
    */
   max_characters?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 }
 
 export type ToolUnion =
@@ -1162,6 +1204,11 @@ export interface WebSearchTool20250305 {
    * Maximum number of times the tool can be used in the API request.
    */
   max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 
   /**
    * Parameters for the user's location. Used to provide more relevant search
@@ -1347,6 +1394,11 @@ export interface MessageCreateParamsBase {
    * An object describing metadata about the request.
    */
   metadata?: Metadata;
+
+  /**
+   * Configuration options for the model's output, such as the output format.
+   */
+  output_config?: OutputConfig;
 
   /**
    * Determines whether to use priority capacity (if available) or standard capacity
@@ -1622,6 +1674,11 @@ export interface MessageCountTokensParams {
   model: Model;
 
   /**
+   * Configuration options for the model's output, such as the output format.
+   */
+  output_config?: OutputConfig;
+
+  /**
    * System prompt.
    *
    * A system prompt is a way of providing context and instructions to Claude, such
@@ -1756,6 +1813,7 @@ export declare namespace Messages {
     type DocumentBlockParam as DocumentBlockParam,
     type ImageBlockParam as ImageBlockParam,
     type InputJSONDelta as InputJSONDelta,
+    type JSONOutputFormat as JSONOutputFormat,
     type Message as Message,
     type MessageCountTokensTool as MessageCountTokensTool,
     type MessageDeltaUsage as MessageDeltaUsage,
@@ -1763,6 +1821,7 @@ export declare namespace Messages {
     type MessageTokensCount as MessageTokensCount,
     type Metadata as Metadata,
     type Model as Model,
+    type OutputConfig as OutputConfig,
     type PlainTextSource as PlainTextSource,
     type RawContentBlockDelta as RawContentBlockDelta,
     type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,
