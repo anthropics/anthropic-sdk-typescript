@@ -198,7 +198,11 @@ export class Stream<Item> implements AsyncIterable<Item> {
           const { value, done } = await iter.next();
           if (done) return ctrl.close();
 
-          const bytes = encodeUTF8(JSON.stringify(value) + '\n');
+          const json = JSON.stringify(value)
+            // Escape U+2028/U+2029 so JSONL consumers that treat them as newlines do not split lines.
+            .replace(/\u2028/g, '\\u2028')
+            .replace(/\u2029/g, '\\u2029');
+          const bytes = encodeUTF8(json + '\n');
 
           ctrl.enqueue(bytes);
         } catch (err) {
