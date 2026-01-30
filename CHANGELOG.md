@@ -538,7 +538,7 @@ Full Changelog: [sdk-v0.50.0...sdk-v0.50.1](https://github.com/anthropics/anthro
 
 ## 0.50.0 (2025-05-09)
 
-Full Changelog: [sdk-v0.41.0...sdk-v0.50.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.41.0...sdk-v0.42.0)
+Full Changelog: [sdk-v0.41.0...sdk-v0.50.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.41.0...sdk-v0.50.0)
 
 ### Features
 
@@ -1648,7 +1648,7 @@ Full Changelog: [sdk-v0.12.4...sdk-v0.12.5](https://github.com/anthropics/anthro
 
 ## 0.12.4 (2024-01-23)
 
-Full Changelog: [sdk-v0.12.3...sdk-v0.12.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.12.3...sdk-v0.12.4)
+Full Changelog: [v0.12.3...sdk-v0.12.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/v0.12.3...sdk-v0.12.4)
 
 ### Chores
 

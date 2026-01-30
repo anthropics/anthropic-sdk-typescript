@@ -122,7 +122,7 @@ Full Changelog: [bedrock-sdk-v0.21.0...bedrock-sdk-v0.21.1](https://github.com/a
 
 ## 0.21.0 (2025-05-09)
 
-Full Changelog: [bedrock-sdk-v0.20.0...bedrock-sdk-v0.21.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.20.0...bedrock-sdk-v0.21.0)
+Full Changelog: [bedrock-sdk-v0.12.7...bedrock-sdk-v0.21.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.12.7...bedrock-sdk-v0.21.0)
 
 ### Features
 
@@ -158,7 +158,7 @@ Full Changelog: [bedrock-sdk-v0.20.0...bedrock-sdk-v0.21.0](https://github.com/a
 
 ## 0.20.0 (2025-05-09)
 
-Full Changelog: [bedrock-sdk-v0.12.6...bedrock-sdk-v0.12.7](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.12.6...bedrock-sdk-v0.12.7)
+~~Full Changelog: bedrock-sdk-v0.12.6...bedrock-sdk-v0.12.7~~ *
 
 ### Bug Fixes
 
@@ -387,7 +387,7 @@ Full Changelog: [bedrock-sdk-v0.7.1...bedrock-sdk-v0.8.0](https://github.com/ant
 
 ## 0.7.1 (2024-01-31)
 
-Full Changelog: [bedrock-sdk-v0.7.0...bedrock-sdk-v0.7.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.7.0...bedrock-sdk-v0.7.1)
+~~Full Changelog: bedrock-sdk-v0.7.0...bedrock-sdk-v0.7.1~~ *
 
 ### Chores
 
@@ -619,3 +619,7 @@ Full Changelog: [v0.0.1...v0.1.0](https://github.com/anthropics/anthropic-bedroc
 ### Features
 
 * **init:** initial commit ([#1](https://github.com/anthropics/anthropic-bedrock-typescript/issues/1)) ([17f9073](https://github.com/anthropics/anthropic-bedrock-typescript/commit/17f9073f1545f9f578e67c56f827322a7691ca21))
+
+---
+
+\* _Invalid compare link: referenced git tag does not exist. See PR for details._
