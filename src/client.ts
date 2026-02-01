@@ -722,7 +722,7 @@ export class BaseAnthropic {
     controller: AbortController,
   ): Promise<Response> {
     const { signal, method, ...options } = init || {};
-    // Avoid creating a closure over `this`, `## init`, or `options` to prevent memory leaks.
+    // Avoid creating a closure over `this`, `init`, or `options` to prevent memory leaks.
     // An arrow function like `() => controller.abort()` captures the surrounding scope,
     // which includes the request body and other large objects. When the user passes a
     // long-lived AbortSignal, the listener prevents those objects from being GC'd for
