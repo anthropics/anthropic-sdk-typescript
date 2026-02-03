@@ -722,15 +722,9 @@ export class BaseAnthropic {
     controller: AbortController,
   ): Promise<Response> {
     const { signal, method, ...options } = init || {};
-    // Avoid creating a closure over `this`, `init`, or `options` to prevent memory leaks.
-    // An arrow function like `() => controller.abort()` captures the surrounding scope,
-    // which includes the request body and other large objects. When the user passes a
-    // long-lived AbortSignal, the listener prevents those objects from being GC'd for
-    // the lifetime of the signal. Using `.bind()` only retains a reference to the
-    // controller itself.
     const abort = controller.abort.bind(controller);
-    if (signal) signal.addEventListener('abort', abort, { once: true });
-
+    if (signal) signal.addEventListener('abort', abort);
+    
     const timeout = setTimeout(abort, ms);
 
     const isReadableBody =
@@ -754,6 +748,7 @@ export class BaseAnthropic {
       return await this.fetch.call(undefined, url, fetchOptions);
     } finally {
       clearTimeout(timeout);
+      if (signal) signal.removeEventListener('abort', abort);
     }
   }
 
