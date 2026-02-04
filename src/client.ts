@@ -728,7 +728,7 @@ export class BaseAnthropic {
     // long-lived AbortSignal, the listener prevents those objects from being GC'd for
     // the lifetime of the signal. Using `.bind()` only retains a reference to the
     // controller itself.
-    const abort = controller.abort.bind(controller);
+    const abort = this._makeAbort(controller);
     if (signal) signal.addEventListener('abort', abort, { once: true });
 
     const timeout = setTimeout(abort, ms);
@@ -754,6 +754,7 @@ export class BaseAnthropic {
       return await this.fetch.call(undefined, url, fetchOptions);
     } finally {
       clearTimeout(timeout);
+      if (signal) signal.removeEventListener('abort', abort);
     }
   }
 
@@ -914,6 +915,12 @@ export class BaseAnthropic {
     this.validateHeaders(headers);
 
     return headers.values;
+  }
+
+  private _makeAbort(controller: AbortController) {
+    // note: we can't just inline this method inside `fetchWithTimeout()` because then the closure
+    //       would capture all request options, and cause a memory leak.
+    return () => controller.abort();
   }
 
   private buildBody({ options: { body, headers: rawHeaders } }: { options: FinalRequestOptions }): {
