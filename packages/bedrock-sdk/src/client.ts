@@ -28,6 +28,24 @@ export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
 
   /** Custom provider chain resolver for AWS credentials. Useful for non-Node environments, like edge workers, where the default credential provider chain may not work. */
   providerChainResolver?: (() => Promise<AwsCredentialIdentityProvider>) | null;
+
+  /**
+   * The identifier (ID or ARN) of the Bedrock Guardrail to apply to requests.
+   * When set, the `X-Amzn-Bedrock-GuardrailIdentifier` header is sent with invoke requests.
+   *
+   * Defaults to process.env['BEDROCK_GUARDRAIL_IDENTIFIER'].
+   *
+   * Requires `guardrailVersion` to also be set.
+   */
+  guardrailIdentifier?: string | undefined;
+
+  /**
+   * The version of the Bedrock Guardrail to apply. For example, "1" or "DRAFT".
+   * When set, the `X-Amzn-Bedrock-GuardrailVersion` header is sent with invoke requests.
+   *
+   * Defaults to process.env['BEDROCK_GUARDRAIL_VERSION'].
+   */
+  guardrailVersion?: string | undefined;
 };
 
 /** API Client for interfacing with the Anthropic Bedrock API. */
@@ -38,6 +56,8 @@ export class AnthropicBedrock extends BaseAnthropic {
   awsSessionToken: string | null;
   skipAuth: boolean = false;
   providerChainResolver: (() => Promise<AwsCredentialIdentityProvider>) | null;
+  guardrailIdentifier: string | undefined;
+  guardrailVersion: string | undefined;
 
   /**
    * API Client for interfacing with the Anthropic Bedrock API.
@@ -56,6 +76,8 @@ export class AnthropicBedrock extends BaseAnthropic {
    * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
    * @param {boolean} [opts.dangerouslyAllowBrowser=false] - By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
    * @param {boolean} [opts.skipAuth=false] - Skip authentication for this request. This is useful if you have an internal proxy that handles authentication for you.
+   * @param {string | undefined} [opts.guardrailIdentifier=process.env['BEDROCK_GUARDRAIL_IDENTIFIER']] - The identifier (ID or ARN) of the Bedrock Guardrail to apply to requests.
+   * @param {string | undefined} [opts.guardrailVersion=process.env['BEDROCK_GUARDRAIL_VERSION']] - The version of the Bedrock Guardrail (e.g. "1" or "DRAFT").
    */
   constructor({
     awsRegion = readEnv('AWS_REGION') ?? 'us-east-1',
@@ -64,6 +86,8 @@ export class AnthropicBedrock extends BaseAnthropic {
     awsAccessKey = null,
     awsSessionToken = null,
     providerChainResolver = null,
+    guardrailIdentifier = readEnv('BEDROCK_GUARDRAIL_IDENTIFIER') ?? undefined,
+    guardrailVersion = readEnv('BEDROCK_GUARDRAIL_VERSION') ?? undefined,
     ...opts
   }: ClientOptions = {}) {
     super({
@@ -77,6 +101,12 @@ export class AnthropicBedrock extends BaseAnthropic {
     this.awsSessionToken = awsSessionToken;
     this.skipAuth = opts.skipAuth ?? false;
     this.providerChainResolver = providerChainResolver;
+    this.guardrailIdentifier = guardrailIdentifier;
+    this.guardrailVersion = guardrailVersion;
+
+    if (this.guardrailIdentifier && !this.guardrailVersion) {
+      throw new Error('guardrailVersion is required when guardrailIdentifier is provided');
+    }
   }
 
   messages: MessagesResource = makeMessagesResource(this);
@@ -154,6 +184,18 @@ export class AnthropicBedrock extends BaseAnthropic {
         options.path = path`/model/${model}/invoke-with-response-stream`;
       } else {
         options.path = path`/model/${model}/invoke`;
+      }
+
+      // Inject guardrail headers for Bedrock invoke endpoints
+      const guardrailHeaders: Record<string, string> = {};
+      if (this.guardrailIdentifier) {
+        guardrailHeaders['X-Amzn-Bedrock-GuardrailIdentifier'] = this.guardrailIdentifier;
+      }
+      if (this.guardrailVersion) {
+        guardrailHeaders['X-Amzn-Bedrock-GuardrailVersion'] = this.guardrailVersion;
+      }
+      if (Object.keys(guardrailHeaders).length > 0) {
+        options.headers = buildHeaders([options.headers, guardrailHeaders]).values;
       }
     }
 

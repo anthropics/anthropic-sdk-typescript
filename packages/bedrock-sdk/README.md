@@ -66,6 +66,28 @@ const client = new AnthropicBedrock({
 });
 ```
 
+### Bedrock Guardrails
+
+You can apply [Bedrock Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) to your requests by passing `guardrailIdentifier` and `guardrailVersion` to the constructor:
+
+```js
+import { AnthropicBedrock } from '@anthropic-ai/bedrock-sdk';
+
+const client = new AnthropicBedrock({
+  guardrailIdentifier: 'your-guardrail-id', // or a full ARN
+  guardrailVersion: '1', // e.g. "1", "2", or "DRAFT"
+});
+```
+
+Or via environment variables:
+
+```sh
+export BEDROCK_GUARDRAIL_IDENTIFIER=your-guardrail-id
+export BEDROCK_GUARDRAIL_VERSION=1
+```
+
+When configured, the SDK sends the `X-Amzn-Bedrock-GuardrailIdentifier` and `X-Amzn-Bedrock-GuardrailVersion` headers on invoke requests. Constructor parameters take precedence over environment variables.
+
 For more details on how to use the SDK, see the [README.md for the main Claude SDK](https://github.com/anthropics/anthropic-sdk-typescript/tree/main#readme) which this library extends.
 
 ## Requirements
