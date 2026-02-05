@@ -244,8 +244,3 @@ function makeBetaResource(client: AnthropicBedrock): BetaResource {
 
   return resource;
 }
-
-new AnthropicBedrock({
-  awsAccessKey: 'test',
-  awsSecretKey: 'test',
-});
