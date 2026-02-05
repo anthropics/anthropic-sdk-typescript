@@ -50,12 +50,9 @@ export const getAuthHeaders = async (req: RequestInit, props: AuthProps): Promis
         secretAccessKey: props.awsSecretKey,
         ...(props.awsSessionToken != null && { sessionToken: props.awsSessionToken }),
       }
-    : await (async () => {
-        const providerChain = await (props.providerChainResolver ?
-          props.providerChainResolver()
-        : DEFAULT_PROVIDER_CHAIN_RESOLVER());
-        return providerChain();
-      })();
+    : await (props.providerChainResolver ?
+        props.providerChainResolver()
+      : DEFAULT_PROVIDER_CHAIN_RESOLVER())();
 
   const signer = new SignatureV4({
     service: 'bedrock',
