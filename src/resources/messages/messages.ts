@@ -51,7 +51,7 @@ export class Messages extends APIResource {
    * const message = await client.messages.create({
    *   max_tokens: 1024,
    *   messages: [{ content: 'Hello, world', role: 'user' }],
-   *   model: 'claude-sonnet-4-5-20250929',
+   *   model: 'claude-opus-4-6',
    * });
    * ```
    */
@@ -75,6 +75,16 @@ export class Messages extends APIResource {
         }\nPlease migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information.`,
       );
     }
+    if (
+      body.model in MODELS_TO_WARN_WITH_THINKING_ENABLED &&
+      body.thinking &&
+      body.thinking.type === 'enabled'
+    ) {
+      console.warn(
+        `Using Claude with ${body.model} and 'thinking.type=enabled' is deprecated. Use 'thinking.type=adaptive' instead which results in better model performance in our testing: https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking`,
+      );
+    }
+
     let timeout = (this._client as any)._options.timeout as number | null;
     if (!body.stream && timeout == null) {
       const maxNonstreamingTokens = MODEL_NONSTREAMING_TOKENS[body.model] ?? undefined;
@@ -167,7 +177,7 @@ export class Messages extends APIResource {
    * const messageTokensCount =
    *   await client.messages.countTokens({
    *     messages: [{ content: 'string', role: 'user' }],
-   *     model: 'claude-opus-4-5-20251101',
+   *     model: 'claude-opus-4-6',
    *   });
    * ```
    */
@@ -633,6 +643,7 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
+  | 'claude-opus-4-6'
   | 'claude-opus-4-5-20251101'
   | 'claude-opus-4-5'
   | 'claude-3-7-sonnet-latest'
@@ -657,6 +668,11 @@ export type Model =
 
 export interface OutputConfig {
   /**
+   * All possible effort levels.
+   */
+  effort?: 'low' | 'medium' | 'high' | 'max' | null;
+
+  /**
    * A schema to specify Claude's output format in responses. See
    * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
    */
@@ -680,6 +696,8 @@ const DEPRECATED_MODELS: {
   'claude-3-5-haiku-latest': 'February 19th, 2026',
   'claude-3-5-haiku-20241022': 'February 19th, 2026',
 };
+
+const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-opus-4-6'];
 
 export interface PlainTextSource {
   data: string;
@@ -908,6 +926,10 @@ export interface ThinkingBlockParam {
   type: 'thinking';
 }
 
+export interface ThinkingConfigAdaptive {
+  type: 'adaptive';
+}
+
 export interface ThinkingConfigDisabled {
   type: 'disabled';
 }
@@ -940,7 +962,7 @@ export interface ThinkingConfigEnabled {
  * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
  * for details.
  */
-export type ThinkingConfigParam = ThinkingConfigEnabled | ThinkingConfigDisabled;
+export type ThinkingConfigParam = ThinkingConfigEnabled | ThinkingConfigDisabled | ThinkingConfigAdaptive;
 
 export interface ThinkingDelta {
   thinking: string;
@@ -978,6 +1000,15 @@ export interface Tool {
    * aspects of the tool input JSON schema.
    */
   description?: string;
+
+  /**
+   * Enable eager input streaming for this tool. When true, tool input parameters
+   * will be streamed incrementally as they are generated, and types will be inferred
+   * on-the-fly rather than buffering the full JSON output. When false, streaming is
+   * disabled for this tool even if the fine-grained-tool-streaming beta is active.
+   * When null (default), uses the default behavior based on beta headers.
+   */
+  eager_input_streaming?: boolean | null;
 
   /**
    * When true, guarantees schema validation on tool names and inputs
@@ -1233,6 +1264,11 @@ export interface Usage {
    * The number of input tokens read from the cache.
    */
   cache_read_input_tokens: number | null;
+
+  /**
+   * The geographic region where inference was performed for this request.
+   */
+  inference_geo: string | null;
 
   /**
    * The number of input tokens which were used.
@@ -1509,6 +1545,12 @@ export interface MessageCreateParamsBase {
    * details and options.
    */
   model: Model;
+
+  /**
+   * Specifies the geographic region for inference processing. If not specified, the
+   * workspace's `default_inference_geo` is used.
+   */
+  inference_geo?: string | null;
 
   /**
    * An object describing metadata about the request.
@@ -1971,6 +2013,7 @@ export declare namespace Messages {
     type TextDelta as TextDelta,
     type ThinkingBlock as ThinkingBlock,
     type ThinkingBlockParam as ThinkingBlockParam,
+    type ThinkingConfigAdaptive as ThinkingConfigAdaptive,
     type ThinkingConfigDisabled as ThinkingConfigDisabled,
     type ThinkingConfigEnabled as ThinkingConfigEnabled,
     type ThinkingConfigParam as ThinkingConfigParam,

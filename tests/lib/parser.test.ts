@@ -85,6 +85,8 @@ describe('Beta Parser', () => {
         cache_read_input_tokens: 0,
         server_tool_use: null,
         service_tier: null,
+        inference_geo: null,
+        iterations: null,
       },
       container: null,
     };
@@ -259,6 +261,8 @@ describe('Beta Parser', () => {
         cache_read_input_tokens: 0,
         server_tool_use: null,
         service_tier: null,
+        inference_geo: null,
+        iterations: null,
       },
       container: null,
     };
@@ -477,6 +481,7 @@ describe('GA Parser', () => {
         cache_read_input_tokens: 0,
         server_tool_use: null,
         service_tier: null,
+        inference_geo: null,
       },
     };
 
@@ -649,6 +654,7 @@ describe('GA Parser', () => {
         cache_read_input_tokens: 0,
         server_tool_use: null,
         service_tier: null,
+        inference_geo: null,
       },
     };
 

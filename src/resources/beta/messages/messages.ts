@@ -62,6 +62,8 @@ const DEPRECATED_MODELS: {
   'claude-3-7-sonnet-20250219': 'February 19th, 2026',
 };
 
+const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-opus-4-6'];
+
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
 
@@ -80,7 +82,7 @@ export class Messages extends APIResource {
    * const betaMessage = await client.beta.messages.create({
    *   max_tokens: 1024,
    *   messages: [{ content: 'Hello, world', role: 'user' }],
-   *   model: 'claude-sonnet-4-5-20250929',
+   *   model: 'claude-opus-4-6',
    * });
    * ```
    */
@@ -107,6 +109,16 @@ export class Messages extends APIResource {
         `The model '${body.model}' is deprecated and will reach end-of-life on ${
           DEPRECATED_MODELS[body.model]
         }\nPlease migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information.`,
+      );
+    }
+
+    if (
+      body.model in MODELS_TO_WARN_WITH_THINKING_ENABLED &&
+      body.thinking &&
+      body.thinking.type === 'enabled'
+    ) {
+      console.warn(
+        `Using Claude with ${body.model} and 'thinking.type=enabled' is deprecated. Use 'thinking.type=adaptive' instead which results in better model performance in our testing: https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking`,
       );
     }
 
@@ -189,7 +201,7 @@ export class Messages extends APIResource {
    * const betaMessageTokensCount =
    *   await client.beta.messages.countTokens({
    *     messages: [{ content: 'string', role: 'user' }],
-   *     model: 'claude-opus-4-5-20251101',
+   *     model: 'claude-opus-4-6',
    *   });
    * ```
    */
@@ -762,6 +774,109 @@ export interface BetaCodeExecutionToolResultErrorParam {
 }
 
 /**
+ * Automatically compact older context when reaching the configured trigger
+ * threshold.
+ */
+export interface BetaCompact20260112Edit {
+  type: 'compact_20260112';
+
+  /**
+   * Additional instructions for summarization.
+   */
+  instructions?: string | null;
+
+  /**
+   * Whether to pause after compaction and return the compaction block to the user.
+   */
+  pause_after_compaction?: boolean;
+
+  /**
+   * When to trigger compaction. Defaults to 150000 input tokens.
+   */
+  trigger?: BetaInputTokensTrigger | null;
+}
+
+/**
+ * A compaction block returned when autocompact is triggered.
+ *
+ * When content is None, it indicates the compaction failed to produce a valid
+ * summary (e.g., malformed output from the model). Clients may round-trip
+ * compaction blocks with null content; the server treats them as no-ops.
+ */
+export interface BetaCompactionBlock {
+  /**
+   * Summary of compacted content, or null if compaction failed
+   */
+  content: string | null;
+
+  type: 'compaction';
+}
+
+/**
+ * A compaction block containing summary of previous context.
+ *
+ * Users should round-trip these blocks from responses to subsequent requests to
+ * maintain context across compaction boundaries.
+ *
+ * When content is None, the block represents a failed compaction. The server
+ * treats these as no-ops. Empty string content is not allowed.
+ */
+export interface BetaCompactionBlockParam {
+  /**
+   * Summary of previously compacted content, or null if compaction failed
+   */
+  content: string | null;
+
+  type: 'compaction';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export interface BetaCompactionContentBlockDelta {
+  content: string | null;
+
+  type: 'compaction_delta';
+}
+
+/**
+ * Token usage for a compaction iteration.
+ */
+export interface BetaCompactionIterationUsage {
+  /**
+   * Breakdown of cached tokens by TTL
+   */
+  cache_creation: BetaCacheCreation | null;
+
+  /**
+   * The number of input tokens used to create the cache entry.
+   */
+  cache_creation_input_tokens: number;
+
+  /**
+   * The number of input tokens read from the cache.
+   */
+  cache_read_input_tokens: number;
+
+  /**
+   * The number of input tokens which were used.
+   */
+  input_tokens: number;
+
+  /**
+   * The number of output tokens which were used.
+   */
+  output_tokens: number;
+
+  /**
+   * Usage for a compaction iteration
+   */
+  type: 'compaction';
+}
+
+/**
  * Information about the container used in the request (for the code execution
  * tool)
  */
@@ -838,7 +953,8 @@ export type BetaContentBlock =
   | BetaToolSearchToolResultBlock
   | BetaMCPToolUseBlock
   | BetaMCPToolResultBlock
-  | BetaContainerUploadBlock;
+  | BetaContainerUploadBlock
+  | BetaCompactionBlock;
 
 /**
  * Regular text content.
@@ -861,7 +977,8 @@ export type BetaContentBlockParam =
   | BetaToolSearchToolResultBlockParam
   | BetaMCPToolUseBlockParam
   | BetaRequestMCPToolResultBlockParam
-  | BetaContainerUploadBlockParam;
+  | BetaContainerUploadBlockParam
+  | BetaCompactionBlockParam;
 
 export interface BetaContentBlockSource {
   content: string | Array<BetaContentBlockSourceContent>;
@@ -875,7 +992,7 @@ export interface BetaContextManagementConfig {
   /**
    * List of context management edits to apply
    */
-  edits?: Array<BetaClearToolUses20250919Edit | BetaClearThinking20251015Edit>;
+  edits?: Array<BetaClearToolUses20250919Edit | BetaClearThinking20251015Edit | BetaCompact20260112Edit>;
 }
 
 export interface BetaContextManagementResponse {
@@ -955,6 +1072,18 @@ export interface BetaInputTokensTrigger {
 
   value: number;
 }
+
+/**
+ * Per-iteration token usage breakdown.
+ *
+ * Each entry represents one sampling iteration, with its own input/output token
+ * counts and cache statistics. This allows you to:
+ *
+ * - Determine which iterations exceeded long context thresholds (>=200k tokens)
+ * - Calculate the true context window size from the last iteration
+ * - Understand token accumulation across server-side tool use loops
+ */
+export type BetaIterationsUsage = Array<BetaMessageIterationUsage | BetaCompactionIterationUsage>;
 
 export interface BetaJSONOutputFormat {
   /**
@@ -1349,6 +1478,18 @@ export interface BetaMessageDeltaUsage {
   input_tokens: number | null;
 
   /**
+   * Per-iteration token usage breakdown.
+   *
+   * Each entry represents one sampling iteration, with its own input/output token
+   * counts and cache statistics. This allows you to:
+   *
+   * - Determine which iterations exceeded long context thresholds (>=200k tokens)
+   * - Calculate the true context window size from the last iteration
+   * - Understand token accumulation across server-side tool use loops
+   */
+  iterations: BetaIterationsUsage | null;
+
+  /**
    * The cumulative number of output tokens which were used.
    */
   output_tokens: number;
@@ -1357,6 +1498,41 @@ export interface BetaMessageDeltaUsage {
    * The number of server tool requests.
    */
   server_tool_use: BetaServerToolUsage | null;
+}
+
+/**
+ * Token usage for a sampling iteration.
+ */
+export interface BetaMessageIterationUsage {
+  /**
+   * Breakdown of cached tokens by TTL
+   */
+  cache_creation: BetaCacheCreation | null;
+
+  /**
+   * The number of input tokens used to create the cache entry.
+   */
+  cache_creation_input_tokens: number;
+
+  /**
+   * The number of input tokens read from the cache.
+   */
+  cache_read_input_tokens: number;
+
+  /**
+   * The number of input tokens which were used.
+   */
+  input_tokens: number;
+
+  /**
+   * The number of output tokens which were used.
+   */
+  output_tokens: number;
+
+  /**
+   * Usage for a sampling iteration
+   */
+  type: 'message';
 }
 
 export interface BetaMessageParam {
@@ -1391,12 +1567,9 @@ export interface BetaMetadata {
 
 export interface BetaOutputConfig {
   /**
-   * How much effort the model should put into its response. Higher effort levels may
-   * result in more thorough analysis but take longer.
-   *
-   * Valid values are `low`, `medium`, or `high`.
+   * All possible effort levels.
    */
-  effort?: 'low' | 'medium' | 'high' | null;
+  effort?: 'low' | 'medium' | 'high' | 'max' | null;
 
   /**
    * A schema to specify Claude's output format in responses. See
@@ -1418,7 +1591,8 @@ export type BetaRawContentBlockDelta =
   | BetaInputJSONDelta
   | BetaCitationsDelta
   | BetaThinkingDelta
-  | BetaSignatureDelta;
+  | BetaSignatureDelta
+  | BetaCompactionContentBlockDelta;
 
 export interface BetaRawContentBlockDeltaEvent {
   delta: BetaRawContentBlockDelta;
@@ -1446,7 +1620,8 @@ export interface BetaRawContentBlockStartEvent {
     | BetaToolSearchToolResultBlock
     | BetaMCPToolUseBlock
     | BetaMCPToolResultBlock
-    | BetaContainerUploadBlock;
+    | BetaContainerUploadBlock
+    | BetaCompactionBlock;
 
   index: number;
 
@@ -1727,6 +1902,7 @@ export type BetaStopReason =
   | 'stop_sequence'
   | 'tool_use'
   | 'pause_turn'
+  | 'compaction'
   | 'refusal'
   | 'model_context_window_exceeded';
 
@@ -1917,6 +2093,10 @@ export interface BetaThinkingBlockParam {
   type: 'thinking';
 }
 
+export interface BetaThinkingConfigAdaptive {
+  type: 'adaptive';
+}
+
 export interface BetaThinkingConfigDisabled {
   type: 'disabled';
 }
@@ -1949,7 +2129,10 @@ export interface BetaThinkingConfigEnabled {
  * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
  * for details.
  */
-export type BetaThinkingConfigParam = BetaThinkingConfigEnabled | BetaThinkingConfigDisabled;
+export type BetaThinkingConfigParam =
+  | BetaThinkingConfigEnabled
+  | BetaThinkingConfigDisabled
+  | BetaThinkingConfigAdaptive;
 
 export interface BetaThinkingDelta {
   thinking: string;
@@ -2001,6 +2184,15 @@ export interface BetaTool {
    * aspects of the tool input JSON schema.
    */
   description?: string;
+
+  /**
+   * Enable eager input streaming for this tool. When true, tool input parameters
+   * will be streamed incrementally as they are generated, and types will be inferred
+   * on-the-fly rather than buffering the full JSON output. When false, streaming is
+   * disabled for this tool even if the fine-grained-tool-streaming beta is active.
+   * When null (default), uses the default behavior based on beta headers.
+   */
+  eager_input_streaming?: boolean | null;
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
@@ -2680,9 +2872,26 @@ export interface BetaUsage {
   cache_read_input_tokens: number | null;
 
   /**
+   * The geographic region where inference was performed for this request.
+   */
+  inference_geo: string | null;
+
+  /**
    * The number of input tokens which were used.
    */
   input_tokens: number;
+
+  /**
+   * Per-iteration token usage breakdown.
+   *
+   * Each entry represents one sampling iteration, with its own input/output token
+   * counts and cache statistics. This allows you to:
+   *
+   * - Determine which iterations exceeded long context thresholds (>=200k tokens)
+   * - Calculate the true context window size from the last iteration
+   * - Understand token accumulation across server-side tool use loops
+   */
+  iterations: BetaIterationsUsage | null;
 
   /**
    * The number of output tokens which were used.
@@ -3095,6 +3304,12 @@ export interface MessageCreateParamsBase {
    * such as whether to clear function results or not.
    */
   context_management?: BetaContextManagementConfig | null;
+
+  /**
+   * Body param: Specifies the geographic region for inference processing. If not
+   * specified, the workspace's `default_inference_geo` is used.
+   */
+  inference_geo?: string | null;
 
   /**
    * Body param: MCP servers to be utilized in this request
@@ -3615,6 +3830,11 @@ export declare namespace Messages {
     type BetaCodeExecutionToolResultError as BetaCodeExecutionToolResultError,
     type BetaCodeExecutionToolResultErrorCode as BetaCodeExecutionToolResultErrorCode,
     type BetaCodeExecutionToolResultErrorParam as BetaCodeExecutionToolResultErrorParam,
+    type BetaCompact20260112Edit as BetaCompact20260112Edit,
+    type BetaCompactionBlock as BetaCompactionBlock,
+    type BetaCompactionBlockParam as BetaCompactionBlockParam,
+    type BetaCompactionContentBlockDelta as BetaCompactionContentBlockDelta,
+    type BetaCompactionIterationUsage as BetaCompactionIterationUsage,
     type BetaContainer as BetaContainer,
     type BetaContainerParams as BetaContainerParams,
     type BetaContainerUploadBlock as BetaContainerUploadBlock,
@@ -3634,6 +3854,7 @@ export declare namespace Messages {
     type BetaInputJSONDelta as BetaInputJSONDelta,
     type BetaInputTokensClearAtLeast as BetaInputTokensClearAtLeast,
     type BetaInputTokensTrigger as BetaInputTokensTrigger,
+    type BetaIterationsUsage as BetaIterationsUsage,
     type BetaJSONOutputFormat as BetaJSONOutputFormat,
     type BetaMCPToolConfig as BetaMCPToolConfig,
     type BetaMCPToolDefaultConfig as BetaMCPToolDefaultConfig,
@@ -3651,6 +3872,7 @@ export declare namespace Messages {
     type BetaMemoryTool20250818ViewCommand as BetaMemoryTool20250818ViewCommand,
     type BetaMessage as BetaMessage,
     type BetaMessageDeltaUsage as BetaMessageDeltaUsage,
+    type BetaMessageIterationUsage as BetaMessageIterationUsage,
     type BetaMessageParam as BetaMessageParam,
     type BetaMessageTokensCount as BetaMessageTokensCount,
     type BetaMetadata as BetaMetadata,
@@ -3696,6 +3918,7 @@ export declare namespace Messages {
     type BetaTextEditorCodeExecutionViewResultBlockParam as BetaTextEditorCodeExecutionViewResultBlockParam,
     type BetaThinkingBlock as BetaThinkingBlock,
     type BetaThinkingBlockParam as BetaThinkingBlockParam,
+    type BetaThinkingConfigAdaptive as BetaThinkingConfigAdaptive,
     type BetaThinkingConfigDisabled as BetaThinkingConfigDisabled,
     type BetaThinkingConfigEnabled as BetaThinkingConfigEnabled,
     type BetaThinkingConfigParam as BetaThinkingConfigParam,
