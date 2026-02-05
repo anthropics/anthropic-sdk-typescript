@@ -35,7 +35,7 @@ export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
    *
    * Defaults to process.env['BEDROCK_GUARDRAIL_IDENTIFIER'].
    *
-   * Requires `guardrailVersion` to also be set.
+   * Must be paired with `guardrailVersion`.
    */
   guardrailIdentifier?: string | undefined;
 
@@ -44,8 +44,20 @@ export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
    * When set, the `X-Amzn-Bedrock-GuardrailVersion` header is sent with invoke requests.
    *
    * Defaults to process.env['BEDROCK_GUARDRAIL_VERSION'].
+   *
+   * Must be paired with `guardrailIdentifier`.
    */
   guardrailVersion?: string | undefined;
+
+  /**
+   * Enable Bedrock invocation trace output. Controls the `X-Amzn-Bedrock-Trace` header.
+   *
+   * When guardrails are configured, `ENABLED` or `ENABLED_FULL` causes the response to include
+   * `amazon-bedrock-trace` with guardrail evaluation details.
+   *
+   * Defaults to process.env['BEDROCK_TRACE'].
+   */
+  trace?: 'ENABLED' | 'DISABLED' | 'ENABLED_FULL' | undefined;
 };
 
 /** API Client for interfacing with the Anthropic Bedrock API. */
@@ -58,6 +70,7 @@ export class AnthropicBedrock extends BaseAnthropic {
   providerChainResolver: (() => Promise<AwsCredentialIdentityProvider>) | null;
   guardrailIdentifier: string | undefined;
   guardrailVersion: string | undefined;
+  trace: 'ENABLED' | 'DISABLED' | 'ENABLED_FULL' | undefined;
 
   /**
    * API Client for interfacing with the Anthropic Bedrock API.
@@ -78,6 +91,7 @@ export class AnthropicBedrock extends BaseAnthropic {
    * @param {boolean} [opts.skipAuth=false] - Skip authentication for this request. This is useful if you have an internal proxy that handles authentication for you.
    * @param {string | undefined} [opts.guardrailIdentifier=process.env['BEDROCK_GUARDRAIL_IDENTIFIER']] - The identifier (ID or ARN) of the Bedrock Guardrail to apply to requests.
    * @param {string | undefined} [opts.guardrailVersion=process.env['BEDROCK_GUARDRAIL_VERSION']] - The version of the Bedrock Guardrail (e.g. "1" or "DRAFT").
+   * @param {'ENABLED' | 'DISABLED' | 'ENABLED_FULL' | undefined} [opts.trace=process.env['BEDROCK_TRACE']] - Enable Bedrock invocation trace output for debugging guardrail evaluations.
    */
   constructor({
     awsRegion = readEnv('AWS_REGION') ?? 'us-east-1',
@@ -88,6 +102,7 @@ export class AnthropicBedrock extends BaseAnthropic {
     providerChainResolver = null,
     guardrailIdentifier = readEnv('BEDROCK_GUARDRAIL_IDENTIFIER') ?? undefined,
     guardrailVersion = readEnv('BEDROCK_GUARDRAIL_VERSION') ?? undefined,
+    trace = (readEnv('BEDROCK_TRACE') as ClientOptions['trace']) ?? undefined,
     ...opts
   }: ClientOptions = {}) {
     super({
@@ -103,9 +118,13 @@ export class AnthropicBedrock extends BaseAnthropic {
     this.providerChainResolver = providerChainResolver;
     this.guardrailIdentifier = guardrailIdentifier;
     this.guardrailVersion = guardrailVersion;
+    this.trace = trace;
 
     if (this.guardrailIdentifier && !this.guardrailVersion) {
       throw new Error('guardrailVersion is required when guardrailIdentifier is provided');
+    }
+    if (this.guardrailVersion && !this.guardrailIdentifier) {
+      throw new Error('guardrailIdentifier is required when guardrailVersion is provided');
     }
   }
 
@@ -186,16 +205,19 @@ export class AnthropicBedrock extends BaseAnthropic {
         options.path = path`/model/${model}/invoke`;
       }
 
-      // Inject guardrail headers for Bedrock invoke endpoints
-      const guardrailHeaders: Record<string, string> = {};
+      // Inject Bedrock-specific headers for invoke endpoints
+      const bedrockHeaders: Record<string, string> = {};
       if (this.guardrailIdentifier) {
-        guardrailHeaders['X-Amzn-Bedrock-GuardrailIdentifier'] = this.guardrailIdentifier;
+        bedrockHeaders['X-Amzn-Bedrock-GuardrailIdentifier'] = this.guardrailIdentifier;
       }
       if (this.guardrailVersion) {
-        guardrailHeaders['X-Amzn-Bedrock-GuardrailVersion'] = this.guardrailVersion;
+        bedrockHeaders['X-Amzn-Bedrock-GuardrailVersion'] = this.guardrailVersion;
       }
-      if (Object.keys(guardrailHeaders).length > 0) {
-        options.headers = buildHeaders([options.headers, guardrailHeaders]).values;
+      if (this.trace) {
+        bedrockHeaders['X-Amzn-Bedrock-Trace'] = this.trace;
+      }
+      if (Object.keys(bedrockHeaders).length > 0) {
+        options.headers = buildHeaders([options.headers, bedrockHeaders]).values;
       }
     }
 

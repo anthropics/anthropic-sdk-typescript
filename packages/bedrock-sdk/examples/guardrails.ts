@@ -12,10 +12,11 @@ import { AnthropicBedrock } from '@anthropic-ai/bedrock-sdk';
 const anthropic = new AnthropicBedrock({
   guardrailIdentifier: 'your-guardrail-id', // or a full ARN
   guardrailVersion: '1', // e.g. "1", "2", or "DRAFT"
+  trace: 'ENABLED', // optional: enable trace output for debugging guardrail evaluations
 });
 
 // Option 2: Configure guardrails via environment variables
-// Set BEDROCK_GUARDRAIL_IDENTIFIER and BEDROCK_GUARDRAIL_VERSION
+// Set BEDROCK_GUARDRAIL_IDENTIFIER, BEDROCK_GUARDRAIL_VERSION, and optionally BEDROCK_TRACE
 // const anthropic = new AnthropicBedrock();
 
 async function main() {

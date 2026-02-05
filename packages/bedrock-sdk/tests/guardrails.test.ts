@@ -20,6 +20,9 @@ describe('Bedrock guardrail configuration', () => {
   beforeEach(() => {
     global.fetch = mockFetch;
     mockFetch.mockClear();
+    // Reset modules so each test gets a fresh require() and env var reads
+    // are not cached from a previous test's module load.
+    jest.resetModules();
   });
 
   afterEach(() => {
@@ -44,7 +47,7 @@ describe('Bedrock guardrail configuration', () => {
         messages: [{ content: 'Test message', role: 'user' }],
       });
     } catch (e) {
-      // Errors expected due to mocking
+      // Errors expected due to mocked empty response body
     }
 
     expect(mockFetch).toHaveBeenCalled();
@@ -72,7 +75,7 @@ describe('Bedrock guardrail configuration', () => {
         stream: true,
       });
     } catch (e) {
-      // Errors expected due to mocking
+      // Errors expected due to mocked empty response body
     }
 
     expect(mockFetch).toHaveBeenCalled();
@@ -99,7 +102,7 @@ describe('Bedrock guardrail configuration', () => {
         messages: [{ content: 'Test message', role: 'user' }],
       });
     } catch (e) {
-      // Errors expected due to mocking
+      // Errors expected due to mocked empty response body
     }
 
     expect(mockFetch).toHaveBeenCalled();
@@ -107,14 +110,13 @@ describe('Bedrock guardrail configuration', () => {
     const headers = new Headers(fetchInit.headers);
     expect(headers.get('X-Amzn-Bedrock-GuardrailIdentifier')).toBeNull();
     expect(headers.get('X-Amzn-Bedrock-GuardrailVersion')).toBeNull();
+    expect(headers.get('X-Amzn-Bedrock-Trace')).toBeNull();
   });
 
   test('reads guardrail config from environment variables', async () => {
     process.env['BEDROCK_GUARDRAIL_IDENTIFIER'] = 'env-guardrail-id';
     process.env['BEDROCK_GUARDRAIL_VERSION'] = '3';
 
-    // Clear module cache so env vars are re-read
-    jest.resetModules();
     const { AnthropicBedrock } = require('../src');
 
     const client = new AnthropicBedrock({
@@ -129,7 +131,7 @@ describe('Bedrock guardrail configuration', () => {
         messages: [{ content: 'Test message', role: 'user' }],
       });
     } catch (e) {
-      // Errors expected due to mocking
+      // Errors expected due to mocked empty response body
     }
 
     expect(mockFetch).toHaveBeenCalled();
@@ -143,7 +145,6 @@ describe('Bedrock guardrail configuration', () => {
     process.env['BEDROCK_GUARDRAIL_IDENTIFIER'] = 'env-guardrail-id';
     process.env['BEDROCK_GUARDRAIL_VERSION'] = '3';
 
-    jest.resetModules();
     const { AnthropicBedrock } = require('../src');
 
     const client = new AnthropicBedrock({
@@ -160,7 +161,7 @@ describe('Bedrock guardrail configuration', () => {
         messages: [{ content: 'Test message', role: 'user' }],
       });
     } catch (e) {
-      // Errors expected due to mocking
+      // Errors expected due to mocked empty response body
     }
 
     expect(mockFetch).toHaveBeenCalled();
@@ -180,6 +181,18 @@ describe('Bedrock guardrail configuration', () => {
         guardrailIdentifier: 'my-guardrail-id',
       });
     }).toThrow('guardrailVersion is required when guardrailIdentifier is provided');
+  });
+
+  test('throws when guardrailVersion is set without guardrailIdentifier', () => {
+    const { AnthropicBedrock } = require('../src');
+
+    expect(() => {
+      new AnthropicBedrock({
+        awsRegion: 'us-east-1',
+        baseURL: 'http://localhost:4010',
+        guardrailVersion: '1',
+      });
+    }).toThrow('guardrailIdentifier is required when guardrailVersion is provided');
   });
 
   test('preserves other custom headers alongside guardrail headers', async () => {
@@ -202,7 +215,7 @@ describe('Bedrock guardrail configuration', () => {
         messages: [{ content: 'Test message', role: 'user' }],
       });
     } catch (e) {
-      // Errors expected due to mocking
+      // Errors expected due to mocked empty response body
     }
 
     expect(mockFetch).toHaveBeenCalled();
@@ -234,7 +247,7 @@ describe('Bedrock guardrail configuration', () => {
         messages: [{ content: 'Test message', role: 'user' }],
       });
     } catch (e) {
-      // Errors expected due to mocking
+      // Errors expected due to mocked empty response body
     }
 
     expect(mockFetch).toHaveBeenCalled();
@@ -242,5 +255,125 @@ describe('Bedrock guardrail configuration', () => {
     const headers = new Headers(fetchInit.headers);
     expect(headers.get('X-Amzn-Bedrock-GuardrailIdentifier')).toBe('param-guardrail-id');
     expect(headers.get('X-Amzn-Bedrock-GuardrailVersion')).toBe('2');
+  });
+});
+
+describe('Bedrock trace configuration', () => {
+  beforeEach(() => {
+    global.fetch = mockFetch;
+    mockFetch.mockClear();
+    jest.resetModules();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    process.env = { ...originalEnv };
+  });
+
+  test('sends trace header when configured via constructor', async () => {
+    const { AnthropicBedrock } = require('../src');
+
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+      trace: 'ENABLED',
+    });
+
+    try {
+      await client.messages.create({
+        model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+        max_tokens: 1024,
+        messages: [{ content: 'Test message', role: 'user' }],
+      });
+    } catch (e) {
+      // Errors expected due to mocked empty response body
+    }
+
+    expect(mockFetch).toHaveBeenCalled();
+    const [, fetchInit] = mockFetch.mock.calls[0];
+    const headers = new Headers(fetchInit.headers);
+    expect(headers.get('X-Amzn-Bedrock-Trace')).toBe('ENABLED');
+  });
+
+  test('sends ENABLED_FULL trace value', async () => {
+    const { AnthropicBedrock } = require('../src');
+
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+      guardrailIdentifier: 'my-guardrail-id',
+      guardrailVersion: '1',
+      trace: 'ENABLED_FULL',
+    });
+
+    try {
+      await client.messages.create({
+        model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+        max_tokens: 1024,
+        messages: [{ content: 'Test message', role: 'user' }],
+      });
+    } catch (e) {
+      // Errors expected due to mocked empty response body
+    }
+
+    expect(mockFetch).toHaveBeenCalled();
+    const [, fetchInit] = mockFetch.mock.calls[0];
+    const headers = new Headers(fetchInit.headers);
+    expect(headers.get('X-Amzn-Bedrock-Trace')).toBe('ENABLED_FULL');
+    expect(headers.get('X-Amzn-Bedrock-GuardrailIdentifier')).toBe('my-guardrail-id');
+    expect(headers.get('X-Amzn-Bedrock-GuardrailVersion')).toBe('1');
+  });
+
+  test('reads trace from environment variable', async () => {
+    process.env['BEDROCK_TRACE'] = 'ENABLED';
+
+    const { AnthropicBedrock } = require('../src');
+
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+    });
+
+    try {
+      await client.messages.create({
+        model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+        max_tokens: 1024,
+        messages: [{ content: 'Test message', role: 'user' }],
+      });
+    } catch (e) {
+      // Errors expected due to mocked empty response body
+    }
+
+    expect(mockFetch).toHaveBeenCalled();
+    const [, fetchInit] = mockFetch.mock.calls[0];
+    const headers = new Headers(fetchInit.headers);
+    expect(headers.get('X-Amzn-Bedrock-Trace')).toBe('ENABLED');
+  });
+
+  test('trace works independently of guardrail configuration', async () => {
+    const { AnthropicBedrock } = require('../src');
+
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+      trace: 'DISABLED',
+    });
+
+    try {
+      await client.messages.create({
+        model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+        max_tokens: 1024,
+        messages: [{ content: 'Test message', role: 'user' }],
+      });
+    } catch (e) {
+      // Errors expected due to mocked empty response body
+    }
+
+    expect(mockFetch).toHaveBeenCalled();
+    const [, fetchInit] = mockFetch.mock.calls[0];
+    const headers = new Headers(fetchInit.headers);
+    expect(headers.get('X-Amzn-Bedrock-Trace')).toBe('DISABLED');
+    expect(headers.get('X-Amzn-Bedrock-GuardrailIdentifier')).toBeNull();
+    expect(headers.get('X-Amzn-Bedrock-GuardrailVersion')).toBeNull();
   });
 });

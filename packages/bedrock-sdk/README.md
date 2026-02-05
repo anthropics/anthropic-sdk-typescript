@@ -76,6 +76,7 @@ import { AnthropicBedrock } from '@anthropic-ai/bedrock-sdk';
 const client = new AnthropicBedrock({
   guardrailIdentifier: 'your-guardrail-id', // or a full ARN
   guardrailVersion: '1', // e.g. "1", "2", or "DRAFT"
+  trace: 'ENABLED', // optional: enable trace output for debugging
 });
 ```
 
@@ -84,9 +85,12 @@ Or via environment variables:
 ```sh
 export BEDROCK_GUARDRAIL_IDENTIFIER=your-guardrail-id
 export BEDROCK_GUARDRAIL_VERSION=1
+export BEDROCK_TRACE=ENABLED  # optional: ENABLED, DISABLED, or ENABLED_FULL
 ```
 
-When configured, the SDK sends the `X-Amzn-Bedrock-GuardrailIdentifier` and `X-Amzn-Bedrock-GuardrailVersion` headers on invoke requests. Constructor parameters take precedence over environment variables.
+When configured, the SDK sends `X-Amzn-Bedrock-GuardrailIdentifier`, `X-Amzn-Bedrock-GuardrailVersion`, and optionally `X-Amzn-Bedrock-Trace` headers on invoke requests. Constructor parameters take precedence over environment variables.
+
+Both `guardrailIdentifier` and `guardrailVersion` must be provided together — the constructor throws if only one is set. The `trace` option can be used independently to enable Bedrock invocation tracing.
 
 For more details on how to use the SDK, see the [README.md for the main Claude SDK](https://github.com/anthropics/anthropic-sdk-typescript/tree/main#readme) which this library extends.
 
