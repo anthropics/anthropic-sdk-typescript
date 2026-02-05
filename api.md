@@ -79,6 +79,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">TextDelta</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThinkingConfigAdaptive</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingConfigDisabled</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingConfigEnabled</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingConfigParam</a></code>
@@ -232,6 +233,11 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultError</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultErrorCode</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultErrorParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCompact20260112Edit</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionContentBlockDelta</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionIterationUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContainer</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContainerParams</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContainerUploadBlock</a></code>
@@ -252,6 +258,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaJSONOutputFormat</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaInputTokensClearAtLeast</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaInputTokensTrigger</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaIterationsUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaJSONOutputFormat</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolDefaultConfig</a></code>
@@ -269,6 +276,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMemoryTool20250818ViewCommand</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageDeltaUsage</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageIterationUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageTokensCount</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMetadata</a></code>
@@ -314,6 +322,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionViewResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigAdaptive</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigDisabled</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigEnabled</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigParam</a></code>

@@ -13,7 +13,7 @@ describe('resource messages', () => {
     const responsePromise = client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-sonnet-4-5-20250929',
+      model: 'claude-opus-4-6',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -29,7 +29,7 @@ describe('resource messages', () => {
     const response = await client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-sonnet-4-5-20250929',
+      model: 'claude-opus-4-6',
       container: {
         id: 'id',
         skills: [
@@ -52,6 +52,7 @@ describe('resource messages', () => {
           },
         ],
       },
+      inference_geo: 'inference_geo',
       mcp_servers: [
         {
           name: 'name',
@@ -108,6 +109,7 @@ describe('resource messages', () => {
           cache_control: { type: 'ephemeral', ttl: '5m' },
           defer_loading: true,
           description: 'Get the current weather in a given location',
+          eager_input_streaming: true,
           input_examples: [{ foo: 'bar' }],
           strict: true,
           type: 'custom',
@@ -123,7 +125,7 @@ describe('resource messages', () => {
   test.skip('countTokens: only required params', async () => {
     const responsePromise = client.beta.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
-      model: 'claude-opus-4-5-20251101',
+      model: 'claude-opus-4-6',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -138,7 +140,7 @@ describe('resource messages', () => {
   test.skip('countTokens: required and optional params', async () => {
     const response = await client.beta.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
-      model: 'claude-opus-4-5-20251101',
+      model: 'claude-opus-4-6',
       context_management: {
         edits: [
           {
@@ -202,6 +204,7 @@ describe('resource messages', () => {
           cache_control: { type: 'ephemeral', ttl: '5m' },
           defer_loading: true,
           description: 'Get the current weather in a given location',
+          eager_input_streaming: true,
           input_examples: [{ foo: 'bar' }],
           strict: true,
           type: 'custom',

@@ -110,6 +110,8 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
         output_tokens: 0,
         server_tool_use: null,
         service_tier: null,
+        inference_geo: null,
+        iterations: null,
       },
     },
   });
@@ -186,6 +188,7 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
       cache_creation_input_tokens: null,
       cache_read_input_tokens: null,
       server_tool_use: null,
+      iterations: null,
     },
   });
 
@@ -235,6 +238,8 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
         cache_read_input_tokens: null,
         server_tool_use: null,
         service_tier: null,
+        inference_geo: null,
+        iterations: null,
       },
     };
     handleRequest(async () => {
@@ -268,6 +273,8 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
         cache_read_input_tokens: null,
         server_tool_use: null,
         service_tier: null,
+        inference_geo: null,
+        iterations: null,
       },
     };
 
