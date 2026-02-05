@@ -17,7 +17,7 @@ describe('resource batches', () => {
           params: {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-sonnet-4-5-20250929',
+            model: 'claude-opus-4-6',
           },
         },
       ],
@@ -40,7 +40,7 @@ describe('resource batches', () => {
           params: {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-sonnet-4-5-20250929',
+            model: 'claude-opus-4-6',
             container: {
               id: 'id',
               skills: [
@@ -63,6 +63,7 @@ describe('resource batches', () => {
                 },
               ],
             },
+            inference_geo: 'inference_geo',
             mcp_servers: [
               {
                 name: 'name',
@@ -119,6 +120,7 @@ describe('resource batches', () => {
                 cache_control: { type: 'ephemeral', ttl: '5m' },
                 defer_loading: true,
                 description: 'Get the current weather in a given location',
+                eager_input_streaming: true,
                 input_examples: [{ foo: 'bar' }],
                 strict: true,
                 type: 'custom',

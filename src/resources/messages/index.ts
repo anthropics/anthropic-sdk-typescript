@@ -73,6 +73,7 @@ export {
   type TextDelta,
   type ThinkingBlock,
   type ThinkingBlockParam,
+  type ThinkingConfigAdaptive,
   type ThinkingConfigDisabled,
   type ThinkingConfigEnabled,
   type ThinkingConfigParam,

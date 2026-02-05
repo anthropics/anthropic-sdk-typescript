@@ -32,7 +32,7 @@ export class Batches extends APIResource {
    *         messages: [
    *           { content: 'Hello, world', role: 'user' },
    *         ],
-   *         model: 'claude-sonnet-4-5-20250929',
+   *         model: 'claude-opus-4-6',
    *       },
    *     },
    *   ],
@@ -461,6 +461,12 @@ export namespace BatchCreateParams {
        * details and options.
        */
       model: MessagesAPI.Model;
+
+      /**
+       * Specifies the geographic region for inference processing. If not specified, the
+       * workspace's `default_inference_geo` is used.
+       */
+      inference_geo?: string | null;
 
       /**
        * An object describing metadata about the request.
