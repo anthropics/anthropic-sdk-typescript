@@ -1,3 +1,7 @@
+## Contributing to documentation
+
+The documentation for this SDK lives at [docs.anthropic.com/en/api/sdks/typescript](https://docs.anthropic.com/en/api/sdks/typescript). To suggest changes, hover over any paragraph on the docs site and click the pencil icon that appears to the right. You can then collaborate with Claude on an edit that we'll review and publish.
+
 ## Setting up the environment
 
 This repository uses [`yarn@v1`](https://classic.yarnpkg.com/lang/en/docs/install).
