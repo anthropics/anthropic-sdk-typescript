@@ -6,7 +6,7 @@ Full Changelog: [sdk-v0.72.1...sdk-v0.73.0](https://github.com/anthropics/anthro
 
 ### Features
 
-* **api:** manual updates ([f741f92](https://github.com/anthropics/anthropic-sdk-typescript/commit/f741f921d10e020d3c67c7a3f8442f0c4adf229d))
+* **api:** Release Claude Opus 4.6, adaptive thinking, and other features ([f741f92](https://github.com/anthropics/anthropic-sdk-typescript/commit/f741f921d10e020d3c67c7a3f8442f0c4adf229d))
 
 
 ### Bug Fixes
