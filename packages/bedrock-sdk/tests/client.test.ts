@@ -111,3 +111,48 @@ describe('Bedrock model ARN URL encoding integration test', () => {
     expect(fetchUrl).toBe(expectedUrl);
   });
 });
+
+describe('AnthropicBedrock constructor deprecation warnings', () => {
+  let consoleWarnSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    jest.resetModules();
+  });
+
+  afterEach(() => {
+    consoleWarnSpy.mockRestore();
+  });
+
+  test('does not warn when both credentials are provided', () => {
+    const { AnthropicBedrock } = require('../src');
+    new AnthropicBedrock({
+      awsAccessKey: 'access-key',
+      awsSecretKey: 'secret-key',
+      awsRegion: 'us-east-1',
+    });
+
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  test('does not warn when neither credential is provided', () => {
+    const { AnthropicBedrock } = require('../src');
+    new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+    });
+
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  test('warns when only one credential is provided', () => {
+    const { AnthropicBedrock } = require('../src');
+    new AnthropicBedrock({
+      awsAccessKey: 'access-key',
+      awsRegion: 'us-east-1',
+    });
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Passing only one of `awsAccessKey` or `awsSecretKey` is deprecated'),
+    );
+  });
+});
