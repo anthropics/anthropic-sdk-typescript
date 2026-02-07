@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.74.0 (2026-02-07)
+
+Full Changelog: [sdk-v0.73.0...sdk-v0.74.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.73.0...sdk-v0.74.0)
+
+### Features
+
+* **api:** enabling fast-mode in claude-opus-4-6 ([e337981](https://github.com/anthropics/anthropic-sdk-typescript/commit/e337981a7b7dad1dc3d836b1dcfbc7c61e5e13eb))
+
 ## 0.73.0 (2026-02-05)
 
 Full Changelog: [sdk-v0.72.1...sdk-v0.73.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.72.1...sdk-v0.73.0)
