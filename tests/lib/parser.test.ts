@@ -87,6 +87,7 @@ describe('Beta Parser', () => {
         service_tier: null,
         inference_geo: null,
         iterations: null,
+        speed: null,
       },
       container: null,
     };
@@ -263,6 +264,7 @@ describe('Beta Parser', () => {
         service_tier: null,
         inference_geo: null,
         iterations: null,
+        speed: null,
       },
       container: null,
     };

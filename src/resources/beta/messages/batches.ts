@@ -593,6 +593,12 @@ export namespace BatchCreateParams {
       service_tier?: 'auto' | 'standard_only';
 
       /**
+       * The inference speed mode for this request. `"fast"` enables high
+       * output-tokens-per-second inference.
+       */
+      speed?: 'standard' | 'fast' | null;
+
+      /**
        * Custom text sequences that will cause the model to stop generating.
        *
        * Our models will normally stop when they have naturally completed their turn,

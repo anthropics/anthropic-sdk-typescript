@@ -112,6 +112,7 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
         service_tier: null,
         inference_geo: null,
         iterations: null,
+        speed: null,
       },
     },
   });
@@ -240,6 +241,7 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
         service_tier: null,
         inference_geo: null,
         iterations: null,
+        speed: null,
       },
     };
     handleRequest(async () => {
@@ -275,6 +277,7 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
         service_tier: null,
         inference_geo: null,
         iterations: null,
+        speed: null,
       },
     };
 
