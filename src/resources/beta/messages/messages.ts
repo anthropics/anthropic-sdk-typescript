@@ -2750,6 +2750,11 @@ export interface BetaUsage {
    * If the request used the priority, standard, or batch tier.
    */
   service_tier: 'standard' | 'priority' | 'batch' | null;
+
+  /**
+   * The inference speed mode used for this request.
+   */
+  speed: 'standard' | 'fast' | null;
 }
 
 export interface BetaWebFetchBlock {
@@ -3189,6 +3194,12 @@ export interface MessageCreateParamsBase {
   service_tier?: 'auto' | 'standard_only';
 
   /**
+   * Body param: The inference speed mode for this request. `"fast"` enables high
+   * output-tokens-per-second inference.
+   */
+  speed?: 'standard' | 'fast' | null;
+
+  /**
    * Body param: Custom text sequences that will cause the model to stop generating.
    *
    * Our models will normally stop when they have naturally completed their turn,
@@ -3487,6 +3498,12 @@ export interface MessageCountTokensParams {
    * removed in a future release.
    */
   output_format?: BetaJSONOutputFormat | null;
+
+  /**
+   * Body param: The inference speed mode for this request. `"fast"` enables high
+   * output-tokens-per-second inference.
+   */
+  speed?: 'standard' | 'fast' | null;
 
   /**
    * Body param: System prompt.

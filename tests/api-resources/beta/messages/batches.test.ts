@@ -86,6 +86,7 @@ describe('resource batches', () => {
               type: 'json_schema',
             },
             service_tier: 'auto',
+            speed: 'standard',
             stop_sequences: ['string'],
             stream: true,
             system: [
