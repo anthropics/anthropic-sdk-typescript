@@ -48,7 +48,7 @@ async function main() {
         },
       }),
     ],
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-sonnet-4-5',
     max_tokens: 1024,
     // This limits the conversation to at most 10 back and forth between the API.
     max_iterations: 10,
@@ -59,6 +59,19 @@ async function main() {
   for await (const message of runner) {
     console.log(`┌─ Message ${message.id} `.padEnd(process.stdout.columns, '─'));
     console.log();
+
+    if (message.content.some((b) => b.type === 'tool_use')) {
+      runner.pushMessages(
+        {
+          role: 'user',
+          content: `Please use fahrenheit scale for temperature instead of celsius.`,
+        },
+        {
+          role: message.role,
+          content: message.content,
+        },
+      );
+    }
 
     for (const block of message.content) {
       switch (block.type) {

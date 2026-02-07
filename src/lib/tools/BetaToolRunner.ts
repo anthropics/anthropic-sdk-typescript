@@ -42,6 +42,8 @@ export class BetaToolRunner<Stream extends boolean> {
   #options: BetaToolRunnerRequestOptions;
   /** Promise for the last message received from the assistant */
   #message?: Promise<BetaMessage> | undefined;
+  /** Reference to the last message processed for tool response generation to invalidate the cache when the message reference changes */
+  #lastProcessedMessage?: BetaMessageParam;
   /** Cached tool response to avoid redundant executions */
   #toolResponse?: Promise<BetaMessageParam | null> | undefined;
   /** Promise resolvers for waiting on completion */
@@ -210,7 +212,7 @@ export class BetaToolRunner<Stream extends boolean> {
               this.#state.params.messages.push({ role, content });
             }
 
-            const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
+            const toolMessage = await this.generateToolResponse();
             if (toolMessage) {
               this.#state.params.messages.push(toolMessage);
             } else if (!this.#mutated) {
@@ -286,7 +288,7 @@ export class BetaToolRunner<Stream extends boolean> {
    * }
    */
   async generateToolResponse() {
-    const message = (await this.#message) ?? this.params.messages.at(-1);
+    const message = (this.#mutated ? undefined : await this.#message) ?? this.params.messages.at(-1);
     if (!message) {
       return null;
     }
@@ -294,9 +296,14 @@ export class BetaToolRunner<Stream extends boolean> {
   }
 
   async #generateToolResponse(lastMessage: BetaMessageParam) {
-    if (this.#toolResponse !== undefined) {
+    if (
+      this.#lastProcessedMessage &&
+      this.#lastProcessedMessage == lastMessage &&
+      this.#toolResponse !== undefined
+    ) {
       return this.#toolResponse;
     }
+    this.#lastProcessedMessage = lastMessage;
     this.#toolResponse = generateToolResponse(this.#state.params, lastMessage);
     return this.#toolResponse;
   }
