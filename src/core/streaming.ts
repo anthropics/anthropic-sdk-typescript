@@ -49,6 +49,11 @@ export class Stream<Item> implements AsyncIterable<Item> {
       try {
         for await (const sse of _iterSSEMessages(response, controller)) {
           if (sse.event === 'completion') {
+            // Skip events with empty data — can occur in edge/cloud environments
+            // when network proxies split SSE chunks between event and data lines
+            if (!sse.data) {
+              continue;
+            }
             try {
               yield JSON.parse(sse.data);
             } catch (e) {
@@ -66,6 +71,11 @@ export class Stream<Item> implements AsyncIterable<Item> {
             sse.event === 'content_block_delta' ||
             sse.event === 'content_block_stop'
           ) {
+            // Skip events with empty data — can occur in edge/cloud environments
+            // when network proxies split SSE chunks between event and data lines
+            if (!sse.data) {
+              continue;
+            }
             try {
               yield JSON.parse(sse.data);
             } catch (e) {
