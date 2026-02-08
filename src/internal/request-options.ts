@@ -56,6 +56,19 @@ export type RequestOptions = {
   timeout?: number;
 
   /**
+   * The maximum amount of time (in milliseconds) to wait between SSE events during streaming.
+   * If no event is received within this period, the stream will be aborted with a
+   * `StreamIdleTimeoutError`.
+   *
+   * This is distinct from `timeout` which applies to the overall request. `idleTimeout`
+   * specifically detects stalled streams where the connection is alive but no data is flowing.
+   *
+   * @unit milliseconds
+   * @default undefined (no idle timeout)
+   */
+  idleTimeout?: number;
+
+  /**
    * Additional `RequestInit` options to be passed to the underlying `fetch` call.
    * These options will be merged with the client's default fetch options.
    */

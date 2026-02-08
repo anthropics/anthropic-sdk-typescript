@@ -27,11 +27,21 @@ export async function defaultParseResponse<T>(
       // Note: there is an invariant here that isn't represented in the type system
       // that if you set `stream: true` the response type must also be `Stream<T>`
 
+      // Pass through idle timeout from request options or client defaults
+      const streamOptions = {
+        idleTimeout: props.options.idleTimeout ?? client.idleTimeout,
+      };
+
       if (props.options.__streamClass) {
-        return props.options.__streamClass.fromSSEResponse(response, props.controller) as any;
+        return props.options.__streamClass.fromSSEResponse(
+          response,
+          props.controller,
+          client,
+          streamOptions,
+        ) as any;
       }
 
-      return Stream.fromSSEResponse(response, props.controller) as any;
+      return Stream.fromSSEResponse(response, props.controller, client, streamOptions) as any;
     }
 
     // fetch refuses to read the body when the status code is 204.
