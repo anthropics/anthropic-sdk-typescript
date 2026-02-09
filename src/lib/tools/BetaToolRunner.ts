@@ -203,19 +203,18 @@ export class BetaToolRunner<Stream extends boolean> {
             yield this.#message as any;
           }
 
-          const isCompacted = await this.#checkAndCompact();
-          if (!isCompacted) {
-            if (!this.#mutated) {
-              const { role, content } = await this.#message;
-              this.#state.params.messages.push({ role, content });
-            }
+          await this.#checkAndCompact();
 
-            const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
-            if (toolMessage) {
-              this.#state.params.messages.push(toolMessage);
-            } else if (!this.#mutated) {
-              break;
-            }
+          if (!this.#mutated) {
+            const { role, content } = await this.#message;
+            this.#state.params.messages.push({ role, content });
+          }
+
+          const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
+          if (toolMessage) {
+            this.#state.params.messages.push(toolMessage);
+          } else if (!this.#mutated) {
+            break;
           }
         } finally {
           if (stream) {
