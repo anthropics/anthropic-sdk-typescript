@@ -28,6 +28,36 @@ export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
 
   /** Custom provider chain resolver for AWS credentials. Useful for non-Node environments, like edge workers, where the default credential provider chain may not work. */
   providerChainResolver?: (() => Promise<AwsCredentialIdentityProvider>) | null;
+
+  /**
+   * The identifier (ID or ARN) of the Bedrock Guardrail to apply to requests.
+   * When set, the `X-Amzn-Bedrock-GuardrailIdentifier` header is sent with invoke requests.
+   *
+   * Defaults to process.env['BEDROCK_GUARDRAIL_IDENTIFIER'].
+   *
+   * Must be paired with `guardrailVersion`.
+   */
+  guardrailIdentifier?: string | undefined;
+
+  /**
+   * The version of the Bedrock Guardrail to apply. For example, "1" or "DRAFT".
+   * When set, the `X-Amzn-Bedrock-GuardrailVersion` header is sent with invoke requests.
+   *
+   * Defaults to process.env['BEDROCK_GUARDRAIL_VERSION'].
+   *
+   * Must be paired with `guardrailIdentifier`.
+   */
+  guardrailVersion?: string | undefined;
+
+  /**
+   * Enable Bedrock invocation trace output. Controls the `X-Amzn-Bedrock-Trace` header.
+   *
+   * When guardrails are configured, `ENABLED` or `ENABLED_FULL` causes the response to include
+   * `amazon-bedrock-trace` with guardrail evaluation details.
+   *
+   * Defaults to process.env['BEDROCK_TRACE'].
+   */
+  trace?: 'ENABLED' | 'DISABLED' | 'ENABLED_FULL' | undefined;
 };
 
 /** API Client for interfacing with the Anthropic Bedrock API. */
@@ -38,6 +68,9 @@ export class AnthropicBedrock extends BaseAnthropic {
   awsSessionToken: string | null;
   skipAuth: boolean = false;
   providerChainResolver: (() => Promise<AwsCredentialIdentityProvider>) | null;
+  guardrailIdentifier: string | undefined;
+  guardrailVersion: string | undefined;
+  trace: 'ENABLED' | 'DISABLED' | 'ENABLED_FULL' | undefined;
 
   /**
    * API Client for interfacing with the Anthropic Bedrock API.
@@ -56,6 +89,9 @@ export class AnthropicBedrock extends BaseAnthropic {
    * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
    * @param {boolean} [opts.dangerouslyAllowBrowser=false] - By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
    * @param {boolean} [opts.skipAuth=false] - Skip authentication for this request. This is useful if you have an internal proxy that handles authentication for you.
+   * @param {string | undefined} [opts.guardrailIdentifier=process.env['BEDROCK_GUARDRAIL_IDENTIFIER']] - The identifier (ID or ARN) of the Bedrock Guardrail to apply to requests.
+   * @param {string | undefined} [opts.guardrailVersion=process.env['BEDROCK_GUARDRAIL_VERSION']] - The version of the Bedrock Guardrail (e.g. "1" or "DRAFT").
+   * @param {'ENABLED' | 'DISABLED' | 'ENABLED_FULL' | undefined} [opts.trace=process.env['BEDROCK_TRACE']] - Enable Bedrock invocation trace output for debugging guardrail evaluations.
    */
   constructor({
     awsRegion = readEnv('AWS_REGION') ?? 'us-east-1',
@@ -64,6 +100,9 @@ export class AnthropicBedrock extends BaseAnthropic {
     awsAccessKey = null,
     awsSessionToken = null,
     providerChainResolver = null,
+    guardrailIdentifier = readEnv('BEDROCK_GUARDRAIL_IDENTIFIER') ?? undefined,
+    guardrailVersion = readEnv('BEDROCK_GUARDRAIL_VERSION') ?? undefined,
+    trace = (readEnv('BEDROCK_TRACE') as ClientOptions['trace']) ?? undefined,
     ...opts
   }: ClientOptions = {}) {
     super({
@@ -77,6 +116,16 @@ export class AnthropicBedrock extends BaseAnthropic {
     this.awsSessionToken = awsSessionToken;
     this.skipAuth = opts.skipAuth ?? false;
     this.providerChainResolver = providerChainResolver;
+    this.guardrailIdentifier = guardrailIdentifier;
+    this.guardrailVersion = guardrailVersion;
+    this.trace = trace;
+
+    if (this.guardrailIdentifier && !this.guardrailVersion) {
+      throw new Error('guardrailVersion is required when guardrailIdentifier is provided');
+    }
+    if (this.guardrailVersion && !this.guardrailIdentifier) {
+      throw new Error('guardrailIdentifier is required when guardrailVersion is provided');
+    }
   }
 
   messages: MessagesResource = makeMessagesResource(this);
@@ -154,6 +203,21 @@ export class AnthropicBedrock extends BaseAnthropic {
         options.path = path`/model/${model}/invoke-with-response-stream`;
       } else {
         options.path = path`/model/${model}/invoke`;
+      }
+
+      // Inject Bedrock-specific headers for invoke endpoints
+      const bedrockHeaders: Record<string, string> = {};
+      if (this.guardrailIdentifier) {
+        bedrockHeaders['X-Amzn-Bedrock-GuardrailIdentifier'] = this.guardrailIdentifier;
+      }
+      if (this.guardrailVersion) {
+        bedrockHeaders['X-Amzn-Bedrock-GuardrailVersion'] = this.guardrailVersion;
+      }
+      if (this.trace) {
+        bedrockHeaders['X-Amzn-Bedrock-Trace'] = this.trace;
+      }
+      if (Object.keys(bedrockHeaders).length > 0) {
+        options.headers = buildHeaders([options.headers, bedrockHeaders]).values;
       }
     }
 
