@@ -1,6 +1,6 @@
 # <img src=".github/logo.svg" alt="" width="32"> Claude SDK for TypeScript
 
-[![NPM version](<https://img.shields.io/npm/v/@anthropic-ai/sdk.svg?label=npm%20(stable)>)](https://npmjs.org/package/@anthropic-ai/sdk) ![npm bundle size](https://img.shields.io/bundlephobia/minzip/@anthropic-ai/sdk)
+[![NPM version](<https://img.shields.io/npm/v/@anthropic-ai/sdk.svg?label=npm%20(stable)&color=blue>)](https://npmjs.org/package/@anthropic-ai/sdk) ![npm bundle size](https://img.shields.io/bundlephobia/minzip/@anthropic-ai/sdk)
 
 This library provides convenient access to the Claude API from TypeScript or JavaScript.
 
