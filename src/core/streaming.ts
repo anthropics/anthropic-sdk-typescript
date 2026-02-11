@@ -50,7 +50,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
         for await (const sse of _iterSSEMessages(response, controller)) {
           if (sse.event === 'completion') {
             try {
-              yield JSON.parse(sse.data);
+              yield JSON.parse(sse.data) as Item;
             } catch (e) {
               logger.error(`Could not parse message into JSON:`, sse.data);
               logger.error(`From chunk:`, sse.raw);
@@ -67,7 +67,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
             sse.event === 'content_block_stop'
           ) {
             try {
-              yield JSON.parse(sse.data);
+              yield JSON.parse(sse.data) as Item;
             } catch (e) {
               logger.error(`Could not parse message into JSON:`, sse.data);
               logger.error(`From chunk:`, sse.raw);
@@ -132,7 +132,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
       try {
         for await (const line of iterLines()) {
           if (done) continue;
-          if (line) yield JSON.parse(line);
+          if (line) yield JSON.parse(line) as Item;
         }
         done = true;
       } catch (e) {
