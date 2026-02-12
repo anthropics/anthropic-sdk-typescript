@@ -43,16 +43,19 @@ const DEFAULT_PROVIDER_CHAIN_RESOLVER: () => Promise<AwsCredentialIdentityProvid
 export const getAuthHeaders = async (req: RequestInit, props: AuthProps): Promise<Record<string, string>> => {
   assert(req.method, 'Expected request method property to be set');
 
-  const credentials =
-    props.awsAccessKey && props.awsSecretKey ?
-      {
-        accessKeyId: props.awsAccessKey,
-        secretAccessKey: props.awsSecretKey,
-        ...(props.awsSessionToken != null && { sessionToken: props.awsSessionToken }),
-      }
-    : await (props.providerChainResolver ?
-        props.providerChainResolver()
-      : DEFAULT_PROVIDER_CHAIN_RESOLVER())();
+  let credentials;
+  if (props.awsAccessKey && props.awsSecretKey) {
+    credentials = {
+      accessKeyId: props.awsAccessKey,
+      secretAccessKey: props.awsSecretKey,
+      ...(props.awsSessionToken != null && { sessionToken: props.awsSessionToken }),
+    };
+  } else {
+    const provider = await (props.providerChainResolver ?
+      props.providerChainResolver()
+    : DEFAULT_PROVIDER_CHAIN_RESOLVER());
+    credentials = await provider();
+  }
 
   const signer = new SignatureV4({
     service: 'bedrock',
