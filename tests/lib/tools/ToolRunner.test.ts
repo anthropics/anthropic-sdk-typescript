@@ -666,6 +666,65 @@ describe('ToolRunner', () => {
         content: [getWeatherToolUse('Berlin', 'tool_2')],
       });
     });
+
+    it('continues loop on pause_turn', async () => {
+      const { runner, handleRequest } = setupTest({
+        messages: [{ role: 'user', content: 'What is the weather?' }],
+      });
+
+      let requestCount = 0;
+      const iterator = runner[Symbol.asyncIterator]();
+
+      handleRequest(async () => {
+        requestCount++;
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Let me check that for you.', citations: null }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'pause_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 20 },
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      await expectEvent(iterator, (message) => {
+        expect(message.stop_reason).toBe('pause_turn');
+      });
+
+      handleRequest(async () => {
+        requestCount++;
+        return new Response(
+          JSON.stringify({
+            id: 'msg_2',
+            type: 'message',
+            role: 'assistant',
+            content: [getTextContent('Done!')],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 20 },
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      await expectEvent(iterator, (message) => {
+        expect(message.stop_reason).toBe('end_turn');
+      });
+
+      await expectDone(iterator);
+
+      expect(requestCount).toBe(2);
+    });
   });
 
   describe('iterator.return()', () => {
