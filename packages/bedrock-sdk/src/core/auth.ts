@@ -43,31 +43,19 @@ const DEFAULT_PROVIDER_CHAIN_RESOLVER: () => Promise<AwsCredentialIdentityProvid
 export const getAuthHeaders = async (req: RequestInit, props: AuthProps): Promise<Record<string, string>> => {
   assert(req.method, 'Expected request method property to be set');
 
-  const providerChain = await (props.providerChainResolver ?
-    props.providerChainResolver()
-  : DEFAULT_PROVIDER_CHAIN_RESOLVER());
-
-  const credentials = await withTempEnv(
-    () => {
-      // Temporarily set the appropriate environment variables if we've been
-      // explicitly given credentials so that the credentials provider can
-      // resolve them.
-      //
-      // Note: the environment provider is only not run first if the `AWS_PROFILE`
-      // environment variable is set.
-      // https://github.com/aws/aws-sdk-js-v3/blob/44a18a34b2c93feccdfcd162928d13e6dbdcaf30/packages/credential-provider-node/src/defaultProvider.ts#L49
-      if (props.awsAccessKey) {
-        process.env['AWS_ACCESS_KEY_ID'] = props.awsAccessKey;
-      }
-      if (props.awsSecretKey) {
-        process.env['AWS_SECRET_ACCESS_KEY'] = props.awsSecretKey;
-      }
-      if (props.awsSessionToken) {
-        process.env['AWS_SESSION_TOKEN'] = props.awsSessionToken;
-      }
-    },
-    () => providerChain(),
-  );
+  let credentials;
+  if (props.awsAccessKey && props.awsSecretKey) {
+    credentials = {
+      accessKeyId: props.awsAccessKey,
+      secretAccessKey: props.awsSecretKey,
+      ...(props.awsSessionToken != null && { sessionToken: props.awsSessionToken }),
+    };
+  } else {
+    const provider = await (props.providerChainResolver ?
+      props.providerChainResolver()
+    : DEFAULT_PROVIDER_CHAIN_RESOLVER());
+    credentials = await provider();
+  }
 
   const signer = new SignatureV4({
     service: 'bedrock',
@@ -100,15 +88,4 @@ export const getAuthHeaders = async (req: RequestInit, props: AuthProps): Promis
 
   const signed = await signer.sign(request);
   return signed.headers;
-};
-
-const withTempEnv = async <R>(updateEnv: () => void, fn: () => Promise<R>): Promise<R> => {
-  const previousEnv = { ...process.env };
-
-  try {
-    updateEnv();
-    return await fn();
-  } finally {
-    process.env = previousEnv;
-  }
 };
