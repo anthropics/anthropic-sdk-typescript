@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.74.1 (2026-02-15)
+
+Full Changelog: [sdk-v0.74.0...sdk-v0.74.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.74.0...sdk-v0.74.1)
+
+### Chores
+
+* **internal:** avoid type checking errors with ts-reset ([c723296](https://github.com/anthropics/anthropic-sdk-typescript/commit/c723296478726adece8fbc72d2b0bf434e83eee8))
+* **readme:** change badge color to blue ([3f7e788](https://github.com/anthropics/anthropic-sdk-typescript/commit/3f7e7881ce851049fb1aa208d52eaa3796b6b6e1))
+
 ## 0.74.0 (2026-02-07)
 
 Full Changelog: [sdk-v0.73.0...sdk-v0.74.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.73.0...sdk-v0.74.0)
