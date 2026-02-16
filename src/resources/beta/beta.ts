@@ -61,6 +61,11 @@ import {
   BetaCodeExecutionToolResultError,
   BetaCodeExecutionToolResultErrorCode,
   BetaCodeExecutionToolResultErrorParam,
+  BetaCompact20260112Edit,
+  BetaCompactionBlock,
+  BetaCompactionBlockParam,
+  BetaCompactionContentBlockDelta,
+  BetaCompactionIterationUsage,
   BetaContainer,
   BetaContainerParams,
   BetaContainerUploadBlock,
@@ -95,6 +100,7 @@ import {
   BetaMemoryTool20250818ViewCommand,
   BetaMessage,
   BetaMessageDeltaUsage,
+  BetaMessageIterationUsage,
   BetaMessageParam,
   BetaMessageTokensCount,
   BetaMetadata,
@@ -140,6 +146,7 @@ import {
   BetaTextEditorCodeExecutionViewResultBlockParam,
   BetaThinkingBlock,
   BetaThinkingBlockParam,
+  BetaThinkingConfigAdaptive,
   BetaThinkingConfigDisabled,
   BetaThinkingConfigEnabled,
   BetaThinkingConfigParam,
@@ -238,7 +245,8 @@ export type AnthropicBeta =
   | 'context-1m-2025-08-07'
   | 'context-management-2025-06-27'
   | 'model-context-window-exceeded-2025-08-26'
-  | 'skills-2025-10-02';
+  | 'skills-2025-10-02'
+  | 'fast-mode-2026-02-01';
 
 export interface BetaAPIError {
   message: string;
@@ -387,6 +395,11 @@ export declare namespace Beta {
     type BetaCodeExecutionToolResultError as BetaCodeExecutionToolResultError,
     type BetaCodeExecutionToolResultErrorCode as BetaCodeExecutionToolResultErrorCode,
     type BetaCodeExecutionToolResultErrorParam as BetaCodeExecutionToolResultErrorParam,
+    type BetaCompact20260112Edit as BetaCompact20260112Edit,
+    type BetaCompactionBlock as BetaCompactionBlock,
+    type BetaCompactionBlockParam as BetaCompactionBlockParam,
+    type BetaCompactionContentBlockDelta as BetaCompactionContentBlockDelta,
+    type BetaCompactionIterationUsage as BetaCompactionIterationUsage,
     type BetaContainer as BetaContainer,
     type BetaContainerParams as BetaContainerParams,
     type BetaContainerUploadBlock as BetaContainerUploadBlock,
@@ -423,6 +436,7 @@ export declare namespace Beta {
     type BetaMemoryTool20250818ViewCommand as BetaMemoryTool20250818ViewCommand,
     type BetaMessage as BetaMessage,
     type BetaMessageDeltaUsage as BetaMessageDeltaUsage,
+    type BetaMessageIterationUsage as BetaMessageIterationUsage,
     type BetaMessageParam as BetaMessageParam,
     type BetaMessageTokensCount as BetaMessageTokensCount,
     type BetaMetadata as BetaMetadata,
@@ -468,6 +482,7 @@ export declare namespace Beta {
     type BetaTextEditorCodeExecutionViewResultBlockParam as BetaTextEditorCodeExecutionViewResultBlockParam,
     type BetaThinkingBlock as BetaThinkingBlock,
     type BetaThinkingBlockParam as BetaThinkingBlockParam,
+    type BetaThinkingConfigAdaptive as BetaThinkingConfigAdaptive,
     type BetaThinkingConfigDisabled as BetaThinkingConfigDisabled,
     type BetaThinkingConfigEnabled as BetaThinkingConfigEnabled,
     type BetaThinkingConfigParam as BetaThinkingConfigParam,

@@ -16,7 +16,7 @@ describe('resource batches', () => {
           params: {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-sonnet-4-5-20250929',
+            model: 'claude-opus-4-6',
           },
         },
       ],
@@ -38,8 +38,16 @@ describe('resource batches', () => {
           params: {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-sonnet-4-5-20250929',
+            model: 'claude-opus-4-6',
+            inference_geo: 'inference_geo',
             metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
+            output_config: {
+              effort: 'low',
+              format: {
+                schema: { foo: 'bar' },
+                type: 'json_schema',
+              },
+            },
             service_tier: 'auto',
             stop_sequences: ['string'],
             system: [
@@ -72,6 +80,8 @@ describe('resource batches', () => {
                 name: 'name',
                 cache_control: { type: 'ephemeral', ttl: '5m' },
                 description: 'Get the current weather in a given location',
+                eager_input_streaming: true,
+                strict: true,
                 type: 'custom',
               },
             ],
@@ -109,7 +119,11 @@ describe('resource batches', () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.messages.batches.list(
-        { after_id: 'after_id', before_id: 'before_id', limit: 1 },
+        {
+          after_id: 'after_id',
+          before_id: 'before_id',
+          limit: 1,
+        },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

@@ -1,6 +1,6 @@
 #!/usr/bin/env -S npm run tsn -T
 
-import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
+import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 
@@ -21,11 +21,13 @@ const WeatherResponse = z.object({
 async function main() {
   const client = new Anthropic();
 
-  const stream = client.beta.messages.stream({
+  const stream = client.messages.stream({
     model: 'claude-sonnet-4-5',
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Provide a weather report for San Francisco.' }],
-    output_format: betaZodOutputFormat(WeatherResponse),
+    output_config: {
+      format: zodOutputFormat(WeatherResponse),
+    },
   });
 
   for await (const event of stream) {

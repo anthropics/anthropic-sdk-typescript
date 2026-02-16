@@ -13,7 +13,7 @@ describe('resource messages', () => {
     const responsePromise = client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-sonnet-4-5-20250929',
+      model: 'claude-opus-4-6',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -29,8 +29,17 @@ describe('resource messages', () => {
     const response = await client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-sonnet-4-5-20250929',
-      container: { id: 'id', skills: [{ skill_id: 'x', type: 'anthropic', version: 'x' }] },
+      model: 'claude-opus-4-6',
+      container: {
+        id: 'id',
+        skills: [
+          {
+            skill_id: 'x',
+            type: 'anthropic',
+            version: 'x',
+          },
+        ],
+      },
       context_management: {
         edits: [
           {
@@ -43,6 +52,7 @@ describe('resource messages', () => {
           },
         ],
       },
+      inference_geo: 'inference_geo',
       mcp_servers: [
         {
           name: 'name',
@@ -53,9 +63,19 @@ describe('resource messages', () => {
         },
       ],
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
-      output_config: { effort: 'low' },
-      output_format: { schema: { foo: 'bar' }, type: 'json_schema' },
+      output_config: {
+        effort: 'low',
+        format: {
+          schema: { foo: 'bar' },
+          type: 'json_schema',
+        },
+      },
+      output_format: {
+        schema: { foo: 'bar' },
+        type: 'json_schema',
+      },
       service_tier: 'auto',
+      speed: 'standard',
       stop_sequences: ['string'],
       stream: false,
       system: [
@@ -90,6 +110,7 @@ describe('resource messages', () => {
           cache_control: { type: 'ephemeral', ttl: '5m' },
           defer_loading: true,
           description: 'Get the current weather in a given location',
+          eager_input_streaming: true,
           input_examples: [{ foo: 'bar' }],
           strict: true,
           type: 'custom',
@@ -105,7 +126,7 @@ describe('resource messages', () => {
   test.skip('countTokens: only required params', async () => {
     const responsePromise = client.beta.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
-      model: 'claude-opus-4-5-20251101',
+      model: 'claude-opus-4-6',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -120,7 +141,7 @@ describe('resource messages', () => {
   test.skip('countTokens: required and optional params', async () => {
     const response = await client.beta.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
-      model: 'claude-opus-4-5-20251101',
+      model: 'claude-opus-4-6',
       context_management: {
         edits: [
           {
@@ -142,8 +163,18 @@ describe('resource messages', () => {
           tool_configuration: { allowed_tools: ['string'], enabled: true },
         },
       ],
-      output_config: { effort: 'low' },
-      output_format: { schema: { foo: 'bar' }, type: 'json_schema' },
+      output_config: {
+        effort: 'low',
+        format: {
+          schema: { foo: 'bar' },
+          type: 'json_schema',
+        },
+      },
+      output_format: {
+        schema: { foo: 'bar' },
+        type: 'json_schema',
+      },
+      speed: 'standard',
       system: [
         {
           text: "Today's date is 2024-06-01.",
@@ -175,6 +206,7 @@ describe('resource messages', () => {
           cache_control: { type: 'ephemeral', ttl: '5m' },
           defer_loading: true,
           description: 'Get the current weather in a given location',
+          eager_input_streaming: true,
           input_examples: [{ foo: 'bar' }],
           strict: true,
           type: 'custom',

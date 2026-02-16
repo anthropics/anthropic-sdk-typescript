@@ -17,7 +17,7 @@ describe('resource batches', () => {
           params: {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-sonnet-4-5-20250929',
+            model: 'claude-opus-4-6',
           },
         },
       ],
@@ -40,8 +40,17 @@ describe('resource batches', () => {
           params: {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-sonnet-4-5-20250929',
-            container: { id: 'id', skills: [{ skill_id: 'x', type: 'anthropic', version: 'x' }] },
+            model: 'claude-opus-4-6',
+            container: {
+              id: 'id',
+              skills: [
+                {
+                  skill_id: 'x',
+                  type: 'anthropic',
+                  version: 'x',
+                },
+              ],
+            },
             context_management: {
               edits: [
                 {
@@ -54,6 +63,7 @@ describe('resource batches', () => {
                 },
               ],
             },
+            inference_geo: 'inference_geo',
             mcp_servers: [
               {
                 name: 'name',
@@ -64,9 +74,19 @@ describe('resource batches', () => {
               },
             ],
             metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
-            output_config: { effort: 'low' },
-            output_format: { schema: { foo: 'bar' }, type: 'json_schema' },
+            output_config: {
+              effort: 'low',
+              format: {
+                schema: { foo: 'bar' },
+                type: 'json_schema',
+              },
+            },
+            output_format: {
+              schema: { foo: 'bar' },
+              type: 'json_schema',
+            },
             service_tier: 'auto',
+            speed: 'standard',
             stop_sequences: ['string'],
             stream: false,
             system: [
@@ -101,6 +121,7 @@ describe('resource batches', () => {
                 cache_control: { type: 'ephemeral', ttl: '5m' },
                 defer_loading: true,
                 description: 'Get the current weather in a given location',
+                eager_input_streaming: true,
                 input_examples: [{ foo: 'bar' }],
                 strict: true,
                 type: 'custom',
@@ -152,7 +173,12 @@ describe('resource batches', () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.messages.batches.list(
-        { after_id: 'after_id', before_id: 'before_id', limit: 1, betas: ['string'] },
+        {
+          after_id: 'after_id',
+          before_id: 'before_id',
+          limit: 1,
+          betas: ['string'],
+        },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

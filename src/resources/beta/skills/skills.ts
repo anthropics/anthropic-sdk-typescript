@@ -51,6 +51,7 @@ export class Skills extends APIResource {
           ]),
         },
         this._client,
+        false,
       ),
     );
   }

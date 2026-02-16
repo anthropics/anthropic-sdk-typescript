@@ -1,5 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+import { AnthropicError } from '../../../error';
 import { Anthropic } from '../../../client';
 import { APIPromise } from '../../../core/api-promise';
 import { APIResource } from '../../../core/resource';
@@ -7,6 +8,7 @@ import { Stream } from '../../../core/streaming';
 import { MODEL_NONSTREAMING_TOKENS } from '../../../internal/constants';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { stainlessHelperHeader } from '../../../lib/stainless-helper-header';
 import {
   parseBetaMessage,
   type ExtractParsedContentFromBetaParams,
@@ -18,6 +20,7 @@ import {
   BetaToolRunnerParams,
   BetaToolRunnerRequestOptions,
 } from '../../../lib/tools/BetaToolRunner';
+import { ToolError } from '../../../lib/tools/ToolError';
 import type { Model } from '../../messages/messages';
 import * as MessagesAPI from '../../messages/messages';
 import * as BetaAPI from '../beta';
@@ -59,6 +62,8 @@ const DEPRECATED_MODELS: {
   'claude-3-7-sonnet-20250219': 'February 19th, 2026',
 };
 
+const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-opus-4-6'];
+
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
 
@@ -77,7 +82,7 @@ export class Messages extends APIResource {
    * const betaMessage = await client.beta.messages.create({
    *   max_tokens: 1024,
    *   messages: [{ content: 'Hello, world', role: 'user' }],
-   *   model: 'claude-sonnet-4-5-20250929',
+   *   model: 'claude-opus-4-6',
    * });
    * ```
    */
@@ -94,7 +99,10 @@ export class Messages extends APIResource {
     params: MessageCreateParams,
     options?: RequestOptions,
   ): APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>> {
-    const { betas, ...body } = params;
+    // Transform deprecated output_format to output_config.format
+    const modifiedParams = transformOutputFormat(params);
+
+    const { betas, ...body } = modifiedParams;
 
     if (body.model in DEPRECATED_MODELS) {
       console.warn(
@@ -104,20 +112,35 @@ export class Messages extends APIResource {
       );
     }
 
+    if (
+      body.model in MODELS_TO_WARN_WITH_THINKING_ENABLED &&
+      body.thinking &&
+      body.thinking.type === 'enabled'
+    ) {
+      console.warn(
+        `Using Claude with ${body.model} and 'thinking.type=enabled' is deprecated. Use 'thinking.type=adaptive' instead which results in better model performance in our testing: https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking`,
+      );
+    }
+
     let timeout = (this._client as any)._options.timeout as number | null;
     if (!body.stream && timeout == null) {
       const maxNonstreamingTokens = MODEL_NONSTREAMING_TOKENS[body.model] ?? undefined;
       timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
     }
+
+    // Collect helper info from tools and messages
+    const helperHeader = stainlessHelperHeader(body.tools, body.messages);
+
     return this._client.post('/v1/messages?beta=true', {
       body,
       timeout: timeout ?? 600000,
       ...options,
       headers: buildHeaders([
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        helperHeader,
         options?.headers,
       ]),
-      stream: params.stream ?? false,
+      stream: modifiedParams.stream ?? false,
     }) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
   }
 
@@ -144,7 +167,7 @@ export class Messages extends APIResource {
     options = {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(params.betas ?? []), 'structured-outputs-2025-11-13'].toString() },
+        { 'anthropic-beta': [...(params.betas ?? []), 'structured-outputs-2025-12-15'].toString() },
         options?.headers,
       ]),
     };
@@ -178,7 +201,7 @@ export class Messages extends APIResource {
    * const betaMessageTokensCount =
    *   await client.beta.messages.countTokens({
    *     messages: [{ content: 'string', role: 'user' }],
-   *     model: 'claude-opus-4-5-20251101',
+   *     model: 'claude-opus-4-6',
    *   });
    * ```
    */
@@ -186,7 +209,10 @@ export class Messages extends APIResource {
     params: MessageCountTokensParams,
     options?: RequestOptions,
   ): APIPromise<BetaMessageTokensCount> {
-    const { betas, ...body } = params;
+    // Transform deprecated output_format to output_config.format
+    const modifiedParams = transformOutputFormat(params);
+
+    const { betas, ...body } = modifiedParams;
     return this._client.post('/v1/messages/count_tokens?beta=true', {
       body,
       ...options,
@@ -209,6 +235,33 @@ export class Messages extends APIResource {
   toolRunner(body: BetaToolRunnerParams, options?: BetaToolRunnerRequestOptions): BetaToolRunner<boolean> {
     return new BetaToolRunner(this._client as Anthropic, body, options);
   }
+}
+
+/**
+ * Transform deprecated output_format to output_config.format
+ * Returns a modified copy of the params without mutating the original
+ */
+function transformOutputFormat<T extends MessageCreateParams | MessageCountTokensParams>(params: T): T {
+  if (!params.output_format) {
+    return params;
+  }
+
+  if (params.output_config?.format) {
+    throw new AnthropicError(
+      'Both output_format and output_config.format were provided. ' +
+        'Please use only output_config.format (output_format is deprecated).',
+    );
+  }
+
+  const { output_format, ...rest } = params;
+
+  return {
+    ...rest,
+    output_config: {
+      ...params.output_config,
+      format: output_format,
+    },
+  } as T;
 }
 
 export interface BetaAllThinkingTurns {
@@ -638,6 +691,9 @@ export interface BetaCodeExecutionTool20250522 {
    */
   defer_loading?: boolean;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -664,6 +720,9 @@ export interface BetaCodeExecutionTool20250825 {
    */
   defer_loading?: boolean;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -712,6 +771,109 @@ export interface BetaCodeExecutionToolResultErrorParam {
   error_code: BetaCodeExecutionToolResultErrorCode;
 
   type: 'code_execution_tool_result_error';
+}
+
+/**
+ * Automatically compact older context when reaching the configured trigger
+ * threshold.
+ */
+export interface BetaCompact20260112Edit {
+  type: 'compact_20260112';
+
+  /**
+   * Additional instructions for summarization.
+   */
+  instructions?: string | null;
+
+  /**
+   * Whether to pause after compaction and return the compaction block to the user.
+   */
+  pause_after_compaction?: boolean;
+
+  /**
+   * When to trigger compaction. Defaults to 150000 input tokens.
+   */
+  trigger?: BetaInputTokensTrigger | null;
+}
+
+/**
+ * A compaction block returned when autocompact is triggered.
+ *
+ * When content is None, it indicates the compaction failed to produce a valid
+ * summary (e.g., malformed output from the model). Clients may round-trip
+ * compaction blocks with null content; the server treats them as no-ops.
+ */
+export interface BetaCompactionBlock {
+  /**
+   * Summary of compacted content, or null if compaction failed
+   */
+  content: string | null;
+
+  type: 'compaction';
+}
+
+/**
+ * A compaction block containing summary of previous context.
+ *
+ * Users should round-trip these blocks from responses to subsequent requests to
+ * maintain context across compaction boundaries.
+ *
+ * When content is None, the block represents a failed compaction. The server
+ * treats these as no-ops. Empty string content is not allowed.
+ */
+export interface BetaCompactionBlockParam {
+  /**
+   * Summary of previously compacted content, or null if compaction failed
+   */
+  content: string | null;
+
+  type: 'compaction';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export interface BetaCompactionContentBlockDelta {
+  content: string | null;
+
+  type: 'compaction_delta';
+}
+
+/**
+ * Token usage for a compaction iteration.
+ */
+export interface BetaCompactionIterationUsage {
+  /**
+   * Breakdown of cached tokens by TTL
+   */
+  cache_creation: BetaCacheCreation | null;
+
+  /**
+   * The number of input tokens used to create the cache entry.
+   */
+  cache_creation_input_tokens: number;
+
+  /**
+   * The number of input tokens read from the cache.
+   */
+  cache_read_input_tokens: number;
+
+  /**
+   * The number of input tokens which were used.
+   */
+  input_tokens: number;
+
+  /**
+   * The number of output tokens which were used.
+   */
+  output_tokens: number;
+
+  /**
+   * Usage for a compaction iteration
+   */
+  type: 'compaction';
 }
 
 /**
@@ -791,7 +953,8 @@ export type BetaContentBlock =
   | BetaToolSearchToolResultBlock
   | BetaMCPToolUseBlock
   | BetaMCPToolResultBlock
-  | BetaContainerUploadBlock;
+  | BetaContainerUploadBlock
+  | BetaCompactionBlock;
 
 /**
  * Regular text content.
@@ -814,7 +977,8 @@ export type BetaContentBlockParam =
   | BetaToolSearchToolResultBlockParam
   | BetaMCPToolUseBlockParam
   | BetaRequestMCPToolResultBlockParam
-  | BetaContainerUploadBlockParam;
+  | BetaContainerUploadBlockParam
+  | BetaCompactionBlockParam;
 
 export interface BetaContentBlockSource {
   content: string | Array<BetaContentBlockSourceContent>;
@@ -828,7 +992,7 @@ export interface BetaContextManagementConfig {
   /**
    * List of context management edits to apply
    */
-  edits?: Array<BetaClearToolUses20250919Edit | BetaClearThinking20251015Edit>;
+  edits?: Array<BetaClearToolUses20250919Edit | BetaClearThinking20251015Edit | BetaCompact20260112Edit>;
 }
 
 export interface BetaContextManagementResponse {
@@ -908,6 +1072,18 @@ export interface BetaInputTokensTrigger {
 
   value: number;
 }
+
+/**
+ * Per-iteration token usage breakdown.
+ *
+ * Each entry represents one sampling iteration, with its own input/output token
+ * counts and cache statistics. This allows you to:
+ *
+ * - Determine which iterations exceeded long context thresholds (>=200k tokens)
+ * - Calculate the true context window size from the last iteration
+ * - Understand token accumulation across server-side tool use loops
+ */
+export type BetaIterationsUsage = Array<BetaMessageIterationUsage | BetaCompactionIterationUsage>;
 
 export interface BetaJSONOutputFormat {
   /**
@@ -1039,6 +1215,9 @@ export interface BetaMemoryTool20250818 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -1299,6 +1478,18 @@ export interface BetaMessageDeltaUsage {
   input_tokens: number | null;
 
   /**
+   * Per-iteration token usage breakdown.
+   *
+   * Each entry represents one sampling iteration, with its own input/output token
+   * counts and cache statistics. This allows you to:
+   *
+   * - Determine which iterations exceeded long context thresholds (>=200k tokens)
+   * - Calculate the true context window size from the last iteration
+   * - Understand token accumulation across server-side tool use loops
+   */
+  iterations: BetaIterationsUsage | null;
+
+  /**
    * The cumulative number of output tokens which were used.
    */
   output_tokens: number;
@@ -1307,6 +1498,41 @@ export interface BetaMessageDeltaUsage {
    * The number of server tool requests.
    */
   server_tool_use: BetaServerToolUsage | null;
+}
+
+/**
+ * Token usage for a sampling iteration.
+ */
+export interface BetaMessageIterationUsage {
+  /**
+   * Breakdown of cached tokens by TTL
+   */
+  cache_creation: BetaCacheCreation | null;
+
+  /**
+   * The number of input tokens used to create the cache entry.
+   */
+  cache_creation_input_tokens: number;
+
+  /**
+   * The number of input tokens read from the cache.
+   */
+  cache_read_input_tokens: number;
+
+  /**
+   * The number of input tokens which were used.
+   */
+  input_tokens: number;
+
+  /**
+   * The number of output tokens which were used.
+   */
+  output_tokens: number;
+
+  /**
+   * Usage for a sampling iteration
+   */
+  type: 'message';
 }
 
 export interface BetaMessageParam {
@@ -1343,7 +1569,13 @@ export interface BetaOutputConfig {
   /**
    * All possible effort levels.
    */
-  effort?: 'low' | 'medium' | 'high' | null;
+  effort?: 'low' | 'medium' | 'high' | 'max' | null;
+
+  /**
+   * A schema to specify Claude's output format in responses. See
+   * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+   */
+  format?: BetaJSONOutputFormat | null;
 }
 
 export interface BetaPlainTextSource {
@@ -1359,7 +1591,8 @@ export type BetaRawContentBlockDelta =
   | BetaInputJSONDelta
   | BetaCitationsDelta
   | BetaThinkingDelta
-  | BetaSignatureDelta;
+  | BetaSignatureDelta
+  | BetaCompactionContentBlockDelta;
 
 export interface BetaRawContentBlockDeltaEvent {
   delta: BetaRawContentBlockDelta;
@@ -1387,7 +1620,8 @@ export interface BetaRawContentBlockStartEvent {
     | BetaToolSearchToolResultBlock
     | BetaMCPToolUseBlock
     | BetaMCPToolResultBlock
-    | BetaContainerUploadBlock;
+    | BetaContainerUploadBlock
+    | BetaCompactionBlock;
 
   index: number;
 
@@ -1570,11 +1804,6 @@ export interface BetaServerToolUsage {
 export interface BetaServerToolUseBlock {
   id: string;
 
-  /**
-   * Tool invocation directly from the model.
-   */
-  caller: BetaDirectCaller | BetaServerToolCaller;
-
   input: { [key: string]: unknown };
 
   name:
@@ -1587,6 +1816,11 @@ export interface BetaServerToolUseBlock {
     | 'tool_search_tool_bm25';
 
   type: 'server_tool_use';
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: BetaDirectCaller | BetaServerToolCaller;
 }
 
 export interface BetaServerToolUseBlockParam {
@@ -1668,6 +1902,7 @@ export type BetaStopReason =
   | 'stop_sequence'
   | 'tool_use'
   | 'pause_turn'
+  | 'compaction'
   | 'refusal'
   | 'model_context_window_exceeded';
 
@@ -1858,6 +2093,10 @@ export interface BetaThinkingBlockParam {
   type: 'thinking';
 }
 
+export interface BetaThinkingConfigAdaptive {
+  type: 'adaptive';
+}
+
 export interface BetaThinkingConfigDisabled {
   type: 'disabled';
 }
@@ -1890,7 +2129,10 @@ export interface BetaThinkingConfigEnabled {
  * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
  * for details.
  */
-export type BetaThinkingConfigParam = BetaThinkingConfigEnabled | BetaThinkingConfigDisabled;
+export type BetaThinkingConfigParam =
+  | BetaThinkingConfigEnabled
+  | BetaThinkingConfigDisabled
+  | BetaThinkingConfigAdaptive;
 
 export interface BetaThinkingDelta {
   thinking: string;
@@ -1943,8 +2185,20 @@ export interface BetaTool {
    */
   description?: string;
 
+  /**
+   * Enable eager input streaming for this tool. When true, tool input parameters
+   * will be streamed incrementally as they are generated, and types will be inferred
+   * on-the-fly rather than buffering the full JSON output. When false, streaming is
+   * disabled for this tool even if the fine-grained-tool-streaming beta is active.
+   * When null (default), uses the default behavior based on beta headers.
+   */
+  eager_input_streaming?: boolean | null;
+
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 
   type?: 'custom' | null;
@@ -1993,6 +2247,9 @@ export interface BetaToolBash20241022 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2021,6 +2278,9 @@ export interface BetaToolBash20250124 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2127,6 +2387,9 @@ export interface BetaToolComputerUse20241022 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2170,6 +2433,9 @@ export interface BetaToolComputerUse20250124 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2218,6 +2484,9 @@ export interface BetaToolComputerUse20251124 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2287,6 +2556,9 @@ export interface BetaToolSearchToolBm25_20251119 {
    */
   defer_loading?: boolean;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2313,6 +2585,9 @@ export interface BetaToolSearchToolRegex20251119 {
    */
   defer_loading?: boolean;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2390,6 +2665,9 @@ export interface BetaToolTextEditor20241022 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2418,6 +2696,9 @@ export interface BetaToolTextEditor20250124 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2446,6 +2727,9 @@ export interface BetaToolTextEditor20250429 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2480,6 +2764,9 @@ export interface BetaToolTextEditor20250728 {
    */
   max_characters?: number | null;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2585,9 +2872,26 @@ export interface BetaUsage {
   cache_read_input_tokens: number | null;
 
   /**
+   * The geographic region where inference was performed for this request.
+   */
+  inference_geo: string | null;
+
+  /**
    * The number of input tokens which were used.
    */
   input_tokens: number;
+
+  /**
+   * Per-iteration token usage breakdown.
+   *
+   * Each entry represents one sampling iteration, with its own input/output token
+   * counts and cache statistics. This allows you to:
+   *
+   * - Determine which iterations exceeded long context thresholds (>=200k tokens)
+   * - Calculate the true context window size from the last iteration
+   * - Understand token accumulation across server-side tool use loops
+   */
+  iterations: BetaIterationsUsage | null;
 
   /**
    * The number of output tokens which were used.
@@ -2603,6 +2907,11 @@ export interface BetaUsage {
    * If the request used the priority, standard, or batch tier.
    */
   service_tier: 'standard' | 'priority' | 'batch' | null;
+
+  /**
+   * The inference speed mode used for this request.
+   */
+  speed: 'standard' | 'fast' | null;
 }
 
 export interface BetaWebFetchBlock {
@@ -2687,6 +2996,9 @@ export interface BetaWebFetchTool20250910 {
    */
   max_uses?: number | null;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2797,6 +3109,9 @@ export interface BetaWebSearchTool20250305 {
    */
   max_uses?: number | null;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 
   /**
@@ -2884,7 +3199,8 @@ export type BetaWebSearchToolResultErrorCode =
   | 'unavailable'
   | 'max_uses_exceeded'
   | 'too_many_requests'
-  | 'query_too_long';
+  | 'query_too_long'
+  | 'request_too_large';
 
 /**
  * @deprecated BetaRequestDocumentBlock should be used insated
@@ -2995,6 +3311,12 @@ export interface MessageCreateParamsBase {
   context_management?: BetaContextManagementConfig | null;
 
   /**
+   * Body param: Specifies the geographic region for inference processing. If not
+   * specified, the workspace's `default_inference_geo` is used.
+   */
+  inference_geo?: string | null;
+
+  /**
    * Body param: MCP servers to be utilized in this request
    */
   mcp_servers?: Array<BetaRequestMCPServerURLDefinition>;
@@ -3005,13 +3327,17 @@ export interface MessageCreateParamsBase {
   metadata?: BetaMetadata;
 
   /**
-   * Body param: Configuration options for the model's output. Controls aspects like
-   * how much effort the model puts into its response.
+   * Body param: Configuration options for the model's output, such as the output
+   * format.
    */
   output_config?: BetaOutputConfig;
 
   /**
-   * Body param: A schema to specify Claude's output format in responses.
+   * Body param: Deprecated: Use `output_config.format` instead. See
+   * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+   *
+   * A schema to specify Claude's output format in responses. This parameter will be
+   * removed in a future release.
    */
   output_format?: BetaJSONOutputFormat | null;
 
@@ -3023,6 +3349,12 @@ export interface MessageCreateParamsBase {
    * [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
    */
   service_tier?: 'auto' | 'standard_only';
+
+  /**
+   * Body param: The inference speed mode for this request. `"fast"` enables high
+   * output-tokens-per-second inference.
+   */
+  speed?: 'standard' | 'fast' | null;
 
   /**
    * Body param: Custom text sequences that will cause the model to stop generating.
@@ -3310,15 +3642,25 @@ export interface MessageCountTokensParams {
   mcp_servers?: Array<BetaRequestMCPServerURLDefinition>;
 
   /**
-   * Body param: Configuration options for the model's output. Controls aspects like
-   * how much effort the model puts into its response.
+   * Body param: Configuration options for the model's output, such as the output
+   * format.
    */
   output_config?: BetaOutputConfig;
 
   /**
-   * Body param: A schema to specify Claude's output format in responses.
+   * Body param: Deprecated: Use `output_config.format` instead. See
+   * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+   *
+   * A schema to specify Claude's output format in responses. This parameter will be
+   * removed in a future release.
    */
   output_format?: BetaJSONOutputFormat | null;
+
+  /**
+   * Body param: The inference speed mode for this request. `"fast"` enables high
+   * output-tokens-per-second inference.
+   */
+  speed?: 'standard' | 'fast' | null;
 
   /**
    * Body param: System prompt.
@@ -3453,10 +3795,12 @@ export interface MessageCountTokensParams {
 }
 
 export { BetaToolRunner, type BetaToolRunnerParams } from '../../../lib/tools/BetaToolRunner';
+export { ToolError } from '../../../lib/tools/ToolError';
 
 Messages.Batches = Batches;
 
 Messages.BetaToolRunner = BetaToolRunner;
+Messages.ToolError = ToolError;
 
 export declare namespace Messages {
   export {
@@ -3503,6 +3847,11 @@ export declare namespace Messages {
     type BetaCodeExecutionToolResultError as BetaCodeExecutionToolResultError,
     type BetaCodeExecutionToolResultErrorCode as BetaCodeExecutionToolResultErrorCode,
     type BetaCodeExecutionToolResultErrorParam as BetaCodeExecutionToolResultErrorParam,
+    type BetaCompact20260112Edit as BetaCompact20260112Edit,
+    type BetaCompactionBlock as BetaCompactionBlock,
+    type BetaCompactionBlockParam as BetaCompactionBlockParam,
+    type BetaCompactionContentBlockDelta as BetaCompactionContentBlockDelta,
+    type BetaCompactionIterationUsage as BetaCompactionIterationUsage,
     type BetaContainer as BetaContainer,
     type BetaContainerParams as BetaContainerParams,
     type BetaContainerUploadBlock as BetaContainerUploadBlock,
@@ -3522,6 +3871,7 @@ export declare namespace Messages {
     type BetaInputJSONDelta as BetaInputJSONDelta,
     type BetaInputTokensClearAtLeast as BetaInputTokensClearAtLeast,
     type BetaInputTokensTrigger as BetaInputTokensTrigger,
+    type BetaIterationsUsage as BetaIterationsUsage,
     type BetaJSONOutputFormat as BetaJSONOutputFormat,
     type BetaMCPToolConfig as BetaMCPToolConfig,
     type BetaMCPToolDefaultConfig as BetaMCPToolDefaultConfig,
@@ -3539,6 +3889,7 @@ export declare namespace Messages {
     type BetaMemoryTool20250818ViewCommand as BetaMemoryTool20250818ViewCommand,
     type BetaMessage as BetaMessage,
     type BetaMessageDeltaUsage as BetaMessageDeltaUsage,
+    type BetaMessageIterationUsage as BetaMessageIterationUsage,
     type BetaMessageParam as BetaMessageParam,
     type BetaMessageTokensCount as BetaMessageTokensCount,
     type BetaMetadata as BetaMetadata,
@@ -3584,6 +3935,7 @@ export declare namespace Messages {
     type BetaTextEditorCodeExecutionViewResultBlockParam as BetaTextEditorCodeExecutionViewResultBlockParam,
     type BetaThinkingBlock as BetaThinkingBlock,
     type BetaThinkingBlockParam as BetaThinkingBlockParam,
+    type BetaThinkingConfigAdaptive as BetaThinkingConfigAdaptive,
     type BetaThinkingConfigDisabled as BetaThinkingConfigDisabled,
     type BetaThinkingConfigEnabled as BetaThinkingConfigEnabled,
     type BetaThinkingConfigParam as BetaThinkingConfigParam,
@@ -3650,6 +4002,7 @@ export declare namespace Messages {
   };
 
   export { type BetaToolRunnerParams, BetaToolRunner };
+  export { ToolError };
 
   export {
     Batches as Batches,

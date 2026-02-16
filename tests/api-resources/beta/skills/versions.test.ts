@@ -66,7 +66,11 @@ describe('resource versions', () => {
     await expect(
       client.beta.skills.versions.list(
         'skill_id',
-        { limit: 0, page: 'page', betas: ['string'] },
+        {
+          limit: 0,
+          page: 'page',
+          betas: ['string'],
+        },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

@@ -75,6 +75,7 @@ import {
   DocumentBlockParam,
   ImageBlockParam,
   InputJSONDelta,
+  JSONOutputFormat,
   Message,
   MessageStreamParams,
   MessageCountTokensParams,
@@ -92,6 +93,7 @@ import {
   Messages,
   Metadata,
   Model,
+  OutputConfig,
   PlainTextSource,
   RawContentBlockDelta,
   RawContentBlockDeltaEvent,
@@ -116,6 +118,7 @@ import {
   TextDelta,
   ThinkingBlock,
   ThinkingBlockParam,
+  ThinkingConfigAdaptive,
   ThinkingConfigDisabled,
   ThinkingConfigEnabled,
   ThinkingConfigParam,
@@ -697,9 +700,14 @@ export class BaseAnthropic {
   getAPIList<Item, PageClass extends Pagination.AbstractPage<Item> = Pagination.AbstractPage<Item>>(
     path: string,
     Page: new (...args: any[]) => PageClass,
-    opts?: RequestOptions,
+    opts?: PromiseOrValue<RequestOptions>,
   ): Pagination.PagePromise<PageClass, Item> {
-    return this.requestAPIList(Page, { method: 'get', path, ...opts });
+    return this.requestAPIList(
+      Page,
+      opts && 'then' in opts ?
+        opts.then((opts) => ({ method: 'get', path, ...opts }))
+      : { method: 'get', path, ...opts },
+    );
   }
 
   requestAPIList<
@@ -707,7 +715,7 @@ export class BaseAnthropic {
     PageClass extends Pagination.AbstractPage<Item> = Pagination.AbstractPage<Item>,
   >(
     Page: new (...args: ConstructorParameters<typeof Pagination.AbstractPage>) => PageClass,
-    options: FinalRequestOptions,
+    options: PromiseOrValue<FinalRequestOptions>,
   ): Pagination.PagePromise<PageClass, Item> {
     const request = this.makeRequest(options, null, undefined);
     return new Pagination.PagePromise<PageClass, Item>(this as any as Anthropic, request, Page);
@@ -720,9 +728,16 @@ export class BaseAnthropic {
     controller: AbortController,
   ): Promise<Response> {
     const { signal, method, ...options } = init || {};
-    if (signal) signal.addEventListener('abort', () => controller.abort());
+    // Avoid creating a closure over `this`, `init`, or `options` to prevent memory leaks.
+    // An arrow function like `() => controller.abort()` captures the surrounding scope,
+    // which includes the request body and other large objects. When the user passes a
+    // long-lived AbortSignal, the listener prevents those objects from being GC'd for
+    // the lifetime of the signal. Using `.bind()` only retains a reference to the
+    // controller itself.
+    const abort = this._makeAbort(controller);
+    if (signal) signal.addEventListener('abort', abort, { once: true });
 
-    const timeout = setTimeout(() => controller.abort(), ms);
+    const timeout = setTimeout(abort, ms);
 
     const isReadableBody =
       ((globalThis as any).ReadableStream && options.body instanceof (globalThis as any).ReadableStream) ||
@@ -907,6 +922,12 @@ export class BaseAnthropic {
     return headers.values;
   }
 
+  private _makeAbort(controller: AbortController) {
+    // note: we can't just inline this method inside `fetchWithTimeout()` because then the closure
+    //       would capture all request options, and cause a memory leak.
+    return () => controller.abort();
+  }
+
   private buildBody({ options: { body, headers: rawHeaders } }: { options: FinalRequestOptions }): {
     bodyHeaders: HeadersLike;
     body: BodyInit | undefined;
@@ -1031,6 +1052,7 @@ export declare namespace Anthropic {
     type DocumentBlockParam as DocumentBlockParam,
     type ImageBlockParam as ImageBlockParam,
     type InputJSONDelta as InputJSONDelta,
+    type JSONOutputFormat as JSONOutputFormat,
     type Message as Message,
     type MessageCountTokensTool as MessageCountTokensTool,
     type MessageDeltaEvent as MessageDeltaEvent,
@@ -1042,6 +1064,7 @@ export declare namespace Anthropic {
     type MessageTokensCount as MessageTokensCount,
     type Metadata as Metadata,
     type Model as Model,
+    type OutputConfig as OutputConfig,
     type PlainTextSource as PlainTextSource,
     type RawContentBlockDelta as RawContentBlockDelta,
     type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,
@@ -1066,6 +1089,7 @@ export declare namespace Anthropic {
     type TextDelta as TextDelta,
     type ThinkingBlock as ThinkingBlock,
     type ThinkingBlockParam as ThinkingBlockParam,
+    type ThinkingConfigAdaptive as ThinkingConfigAdaptive,
     type ThinkingConfigDisabled as ThinkingConfigDisabled,
     type ThinkingConfigEnabled as ThinkingConfigEnabled,
     type ThinkingConfigParam as ThinkingConfigParam,

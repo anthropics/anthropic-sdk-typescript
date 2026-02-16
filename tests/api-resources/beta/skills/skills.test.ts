@@ -68,7 +68,12 @@ describe('resource skills', () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.skills.list(
-        { limit: 0, page: 'page', source: 'source', betas: ['string'] },
+        {
+          limit: 0,
+          page: 'page',
+          source: 'source',
+          betas: ['string'],
+        },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

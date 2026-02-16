@@ -3,8 +3,16 @@
 import { APIPromise } from '../../core/api-promise';
 import { APIResource } from '../../core/resource';
 import { Stream } from '../../core/streaming';
+import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { stainlessHelperHeader } from '../../lib/stainless-helper-header';
 import { MessageStream } from '../../lib/MessageStream';
+import {
+  parseMessage,
+  type ExtractParsedContentFromParams,
+  type ParseableMessageCreateParams,
+  type ParsedMessage,
+} from '../../lib/parser';
 import * as BatchesAPI from './batches';
 import {
   BatchCreateParams,
@@ -43,7 +51,7 @@ export class Messages extends APIResource {
    * const message = await client.messages.create({
    *   max_tokens: 1024,
    *   messages: [{ content: 'Hello, world', role: 'user' }],
-   *   model: 'claude-sonnet-4-5-20250929',
+   *   model: 'claude-opus-4-6',
    * });
    * ```
    */
@@ -67,24 +75,92 @@ export class Messages extends APIResource {
         }\nPlease migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information.`,
       );
     }
+    if (
+      body.model in MODELS_TO_WARN_WITH_THINKING_ENABLED &&
+      body.thinking &&
+      body.thinking.type === 'enabled'
+    ) {
+      console.warn(
+        `Using Claude with ${body.model} and 'thinking.type=enabled' is deprecated. Use 'thinking.type=adaptive' instead which results in better model performance in our testing: https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking`,
+      );
+    }
+
     let timeout = (this._client as any)._options.timeout as number | null;
     if (!body.stream && timeout == null) {
       const maxNonstreamingTokens = MODEL_NONSTREAMING_TOKENS[body.model] ?? undefined;
       timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
     }
+
+    // Collect helper info from tools and messages
+    const helperHeader = stainlessHelperHeader(body.tools, body.messages);
+
     return this._client.post('/v1/messages', {
       body,
       timeout: timeout ?? 600000,
       ...options,
+      headers: buildHeaders([helperHeader, options?.headers]),
       stream: body.stream ?? false,
     }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
   }
 
   /**
-   * Create a Message stream
+   * Send a structured list of input messages with text and/or image content, along with an expected `output_config.format` and
+   * the response will be automatically parsed and available in the `parsed_output` property of the message.
+   *
+   * @example
+   * ```ts
+   * const message = await client.messages.parse({
+   *   model: 'claude-sonnet-4-5-20250929',
+   *   max_tokens: 1024,
+   *   messages: [{ role: 'user', content: 'What is 2+2?' }],
+   *   output_config: {
+   *     format: zodOutputFormat(z.object({ answer: z.number() })),
+   *   },
+   * });
+   *
+   * console.log(message.parsed_output?.answer); // 4
+   * ```
    */
-  stream(body: MessageStreamParams, options?: RequestOptions): MessageStream {
-    return MessageStream.createMessage(this, body, options);
+  parse<Params extends MessageCreateParamsNonStreaming>(
+    params: Params,
+    options?: RequestOptions,
+  ): APIPromise<ParsedMessage<ExtractParsedContentFromParams<Params>>> {
+    return this.create(params, options).then((message) =>
+      parseMessage(message, params, { logger: this._client.logger ?? console }),
+    ) as APIPromise<ParsedMessage<ExtractParsedContentFromParams<Params>>>;
+  }
+
+  /**
+   * Create a Message stream.
+   *
+   * If `output_config.format` is provided with a parseable format (like `zodOutputFormat()`),
+   * the final message will include a `parsed_output` property with the parsed content.
+   *
+   * @example
+   * ```ts
+   * const stream = client.messages.stream({
+   *   model: 'claude-sonnet-4-5-20250929',
+   *   max_tokens: 1024,
+   *   messages: [{ role: 'user', content: 'What is 2+2?' }],
+   *   output_config: {
+   *     format: zodOutputFormat(z.object({ answer: z.number() })),
+   *   },
+   * });
+   *
+   * const message = await stream.finalMessage();
+   * console.log(message.parsed_output?.answer); // 4
+   * ```
+   */
+  stream<Params extends MessageStreamParams>(
+    body: Params,
+    options?: RequestOptions,
+  ): MessageStream<ExtractParsedContentFromParams<Params>> {
+    return MessageStream.createMessage<ExtractParsedContentFromParams<Params>>(
+      this,
+      body as MessageCreateParamsBase,
+      options,
+      { logger: this._client.logger ?? console },
+    );
   }
 
   /**
@@ -101,7 +177,7 @@ export class Messages extends APIResource {
    * const messageTokensCount =
    *   await client.messages.countTokens({
    *     messages: [{ content: 'string', role: 'user' }],
-   *     model: 'claude-opus-4-5-20251101',
+   *     model: 'claude-opus-4-6',
    *   });
    * ```
    */
@@ -380,6 +456,15 @@ export interface InputJSONDelta {
   type: 'input_json_delta';
 }
 
+export interface JSONOutputFormat {
+  /**
+   * The JSON schema of the format
+   */
+  schema: { [key: string]: unknown };
+
+  type: 'json_schema';
+}
+
 export interface Message {
   /**
    * Unique object identifier.
@@ -558,6 +643,7 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
+  | 'claude-opus-4-6'
   | 'claude-opus-4-5-20251101'
   | 'claude-opus-4-5'
   | 'claude-3-7-sonnet-latest'
@@ -580,6 +666,19 @@ export type Model =
   | 'claude-3-haiku-20240307'
   | (string & {});
 
+export interface OutputConfig {
+  /**
+   * All possible effort levels.
+   */
+  effort?: 'low' | 'medium' | 'high' | 'max' | null;
+
+  /**
+   * A schema to specify Claude's output format in responses. See
+   * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+   */
+  format?: JSONOutputFormat | null;
+}
+
 const DEPRECATED_MODELS: {
   [K in Model]?: string;
 } = {
@@ -594,7 +693,11 @@ const DEPRECATED_MODELS: {
   'claude-2.0': 'July 21st, 2025',
   'claude-3-7-sonnet-latest': 'February 19th, 2026',
   'claude-3-7-sonnet-20250219': 'February 19th, 2026',
+  'claude-3-5-haiku-latest': 'February 19th, 2026',
+  'claude-3-5-haiku-20241022': 'February 19th, 2026',
 };
+
+const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-opus-4-6'];
 
 export interface PlainTextSource {
   data: string;
@@ -823,6 +926,10 @@ export interface ThinkingBlockParam {
   type: 'thinking';
 }
 
+export interface ThinkingConfigAdaptive {
+  type: 'adaptive';
+}
+
 export interface ThinkingConfigDisabled {
   type: 'disabled';
 }
@@ -855,7 +962,7 @@ export interface ThinkingConfigEnabled {
  * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
  * for details.
  */
-export type ThinkingConfigParam = ThinkingConfigEnabled | ThinkingConfigDisabled;
+export type ThinkingConfigParam = ThinkingConfigEnabled | ThinkingConfigDisabled | ThinkingConfigAdaptive;
 
 export interface ThinkingDelta {
   thinking: string;
@@ -894,6 +1001,20 @@ export interface Tool {
    */
   description?: string;
 
+  /**
+   * Enable eager input streaming for this tool. When true, tool input parameters
+   * will be streamed incrementally as they are generated, and types will be inferred
+   * on-the-fly rather than buffering the full JSON output. When false, streaming is
+   * disabled for this tool even if the fine-grained-tool-streaming beta is active.
+   * When null (default), uses the default behavior based on beta headers.
+   */
+  eager_input_streaming?: boolean | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+
   type?: 'custom' | null;
 }
 
@@ -929,6 +1050,11 @@ export interface ToolBash20250124 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 }
 
 /**
@@ -1023,6 +1149,11 @@ export interface ToolTextEditor20250124 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 }
 
 export interface ToolTextEditor20250429 {
@@ -1039,6 +1170,11 @@ export interface ToolTextEditor20250429 {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 }
 
 export interface ToolTextEditor20250728 {
@@ -1061,6 +1197,11 @@ export interface ToolTextEditor20250728 {
    * defaults to displaying the full file.
    */
   max_characters?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 }
 
 export type ToolUnion =
@@ -1123,6 +1264,11 @@ export interface Usage {
    * The number of input tokens read from the cache.
    */
   cache_read_input_tokens: number | null;
+
+  /**
+   * The geographic region where inference was performed for this request.
+   */
+  inference_geo: string | null;
 
   /**
    * The number of input tokens which were used.
@@ -1202,6 +1348,11 @@ export interface WebSearchTool20250305 {
   max_uses?: number | null;
 
   /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+
+  /**
    * Parameters for the user's location. Used to provide more relevant search
    * results.
    */
@@ -1246,7 +1397,8 @@ export interface WebSearchToolRequestError {
     | 'unavailable'
     | 'max_uses_exceeded'
     | 'too_many_requests'
-    | 'query_too_long';
+    | 'query_too_long'
+    | 'request_too_large';
 
   type: 'web_search_tool_result_error';
 }
@@ -1284,7 +1436,8 @@ export interface WebSearchToolResultError {
     | 'unavailable'
     | 'max_uses_exceeded'
     | 'too_many_requests'
-    | 'query_too_long';
+    | 'query_too_long'
+    | 'request_too_large';
 
   type: 'web_search_tool_result_error';
 }
@@ -1394,9 +1547,20 @@ export interface MessageCreateParamsBase {
   model: Model;
 
   /**
+   * Specifies the geographic region for inference processing. If not specified, the
+   * workspace's `default_inference_geo` is used.
+   */
+  inference_geo?: string | null;
+
+  /**
    * An object describing metadata about the request.
    */
   metadata?: Metadata;
+
+  /**
+   * Configuration options for the model's output, such as the output format.
+   */
+  output_config?: OutputConfig;
 
   /**
    * Determines whether to use priority capacity (if available) or standard capacity
@@ -1594,7 +1758,7 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
   stream: true;
 }
 
-export type MessageStreamParams = MessageCreateParamsBase;
+export type MessageStreamParams = ParseableMessageCreateParams;
 
 export interface MessageCountTokensParams {
   /**
@@ -1672,6 +1836,11 @@ export interface MessageCountTokensParams {
    * details and options.
    */
   model: Model;
+
+  /**
+   * Configuration options for the model's output, such as the output format.
+   */
+  output_config?: OutputConfig;
 
   /**
    * System prompt.
@@ -1810,6 +1979,7 @@ export declare namespace Messages {
     type DocumentBlockParam as DocumentBlockParam,
     type ImageBlockParam as ImageBlockParam,
     type InputJSONDelta as InputJSONDelta,
+    type JSONOutputFormat as JSONOutputFormat,
     type Message as Message,
     type MessageCountTokensTool as MessageCountTokensTool,
     type MessageDeltaEvent as MessageDeltaEvent,
@@ -1818,6 +1988,7 @@ export declare namespace Messages {
     type MessageTokensCount as MessageTokensCount,
     type Metadata as Metadata,
     type Model as Model,
+    type OutputConfig as OutputConfig,
     type PlainTextSource as PlainTextSource,
     type RawContentBlockDelta as RawContentBlockDelta,
     type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,
@@ -1842,6 +2013,7 @@ export declare namespace Messages {
     type TextDelta as TextDelta,
     type ThinkingBlock as ThinkingBlock,
     type ThinkingBlockParam as ThinkingBlockParam,
+    type ThinkingConfigAdaptive as ThinkingConfigAdaptive,
     type ThinkingConfigDisabled as ThinkingConfigDisabled,
     type ThinkingConfigEnabled as ThinkingConfigEnabled,
     type ThinkingConfigParam as ThinkingConfigParam,

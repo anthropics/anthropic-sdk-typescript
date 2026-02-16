@@ -239,14 +239,14 @@ describe('toolRunner integration tests', () => {
 
       // Update parameters
       runner.setMessagesParams({
-        model: 'claude-3-5-haiku-20241022',
+        model: 'claude-haiku-4-5',
         max_tokens: 500,
         messages: [{ role: 'user', content: 'Updated message' }],
         tools: [tool],
       });
 
       const params = runner.params;
-      expect(params.model).toBe('claude-3-5-haiku-20241022');
+      expect(params.model).toBe('claude-haiku-4-5');
       expect(params.max_tokens).toBe(500);
       expect(params.messages).toEqual([{ role: 'user', content: 'Updated message' }]);
     });

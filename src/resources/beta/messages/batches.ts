@@ -35,7 +35,7 @@ export class Batches extends APIResource {
    *           messages: [
    *             { content: 'Hello, world', role: 'user' },
    *           ],
-   *           model: 'claude-sonnet-4-5-20250929',
+   *           model: 'claude-opus-4-6',
    *         },
    *       },
    *     ],
@@ -554,6 +554,12 @@ export namespace BatchCreateParams {
       context_management?: BetaMessagesAPI.BetaContextManagementConfig | null;
 
       /**
+       * Specifies the geographic region for inference processing. If not specified, the
+       * workspace's `default_inference_geo` is used.
+       */
+      inference_geo?: string | null;
+
+      /**
        * MCP servers to be utilized in this request
        */
       mcp_servers?: Array<BetaMessagesAPI.BetaRequestMCPServerURLDefinition>;
@@ -564,13 +570,16 @@ export namespace BatchCreateParams {
       metadata?: BetaMessagesAPI.BetaMetadata;
 
       /**
-       * Configuration options for the model's output. Controls aspects like how much
-       * effort the model puts into its response.
+       * Configuration options for the model's output, such as the output format.
        */
       output_config?: BetaMessagesAPI.BetaOutputConfig;
 
       /**
-       * A schema to specify Claude's output format in responses.
+       * @deprecated Deprecated: Use `output_config.format` instead. See
+       * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+       *
+       * A schema to specify Claude's output format in responses. This parameter will be
+       * removed in a future release.
        */
       output_format?: BetaMessagesAPI.BetaJSONOutputFormat | null;
 
@@ -582,6 +591,12 @@ export namespace BatchCreateParams {
        * [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
        */
       service_tier?: 'auto' | 'standard_only';
+
+      /**
+       * The inference speed mode for this request. `"fast"` enables high
+       * output-tokens-per-second inference.
+       */
+      speed?: 'standard' | 'fast' | null;
 
       /**
        * Custom text sequences that will cause the model to stop generating.
