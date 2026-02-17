@@ -39,6 +39,7 @@ describe('resource batches', () => {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
             model: 'claude-opus-4-6',
+            container: 'container',
             inference_geo: 'inference_geo',
             metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
             output_config: {
@@ -49,6 +50,7 @@ describe('resource batches', () => {
               },
             },
             service_tier: 'auto',
+            speed: 'standard',
             stop_sequences: ['string'],
             system: [
               {
@@ -78,9 +80,12 @@ describe('resource batches', () => {
                   required: ['location'],
                 },
                 name: 'name',
+                allowed_callers: ['direct'],
                 cache_control: { type: 'ephemeral', ttl: '5m' },
+                defer_loading: true,
                 description: 'Get the current weather in a given location',
                 eager_input_streaming: true,
+                input_examples: [{ foo: 'bar' }],
                 strict: true,
                 type: 'custom',
               },

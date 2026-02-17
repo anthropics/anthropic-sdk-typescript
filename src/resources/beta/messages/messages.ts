@@ -726,7 +726,43 @@ export interface BetaCodeExecutionTool20250825 {
   strict?: boolean;
 }
 
+/**
+ * Code execution tool with REPL state persistence (daemon mode + gVisor
+ * checkpoint).
+ */
+export interface BetaCodeExecutionTool20260120 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'code_execution';
+
+  type: 'code_execution_20260120';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
 export interface BetaCodeExecutionToolResultBlock {
+  /**
+   * Code execution result with encrypted stdout for PFC + web_search results.
+   */
   content: BetaCodeExecutionToolResultBlockContent;
 
   tool_use_id: string;
@@ -734,11 +770,18 @@ export interface BetaCodeExecutionToolResultBlock {
   type: 'code_execution_tool_result';
 }
 
+/**
+ * Code execution result with encrypted stdout for PFC + web_search results.
+ */
 export type BetaCodeExecutionToolResultBlockContent =
   | BetaCodeExecutionToolResultError
-  | BetaCodeExecutionResultBlock;
+  | BetaCodeExecutionResultBlock
+  | BetaEncryptedCodeExecutionResultBlock;
 
 export interface BetaCodeExecutionToolResultBlockParam {
+  /**
+   * Code execution result with encrypted stdout for PFC + web_search results.
+   */
   content: BetaCodeExecutionToolResultBlockParamContent;
 
   tool_use_id: string;
@@ -751,9 +794,13 @@ export interface BetaCodeExecutionToolResultBlockParam {
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
+/**
+ * Code execution result with encrypted stdout for PFC + web_search results.
+ */
 export type BetaCodeExecutionToolResultBlockParamContent =
   | BetaCodeExecutionToolResultErrorParam
-  | BetaCodeExecutionResultBlockParam;
+  | BetaCodeExecutionResultBlockParam
+  | BetaEncryptedCodeExecutionResultBlockParam;
 
 export interface BetaCodeExecutionToolResultError {
   error_code: BetaCodeExecutionToolResultErrorCode;
@@ -1030,6 +1077,36 @@ export interface BetaDocumentBlock {
   title: string | null;
 
   type: 'document';
+}
+
+/**
+ * Code execution result with encrypted stdout for PFC + web_search results.
+ */
+export interface BetaEncryptedCodeExecutionResultBlock {
+  content: Array<BetaCodeExecutionOutputBlock>;
+
+  encrypted_stdout: string;
+
+  return_code: number;
+
+  stderr: string;
+
+  type: 'encrypted_code_execution_result';
+}
+
+/**
+ * Code execution result with encrypted stdout for PFC + web_search results.
+ */
+export interface BetaEncryptedCodeExecutionResultBlockParam {
+  content: Array<BetaCodeExecutionOutputBlockParam>;
+
+  encrypted_stdout: string;
+
+  return_code: number;
+
+  stderr: string;
+
+  type: 'encrypted_code_execution_result';
 }
 
 export interface BetaFileDocumentSource {
@@ -1789,6 +1866,12 @@ export interface BetaServerToolCaller {
   type: 'code_execution_20250825';
 }
 
+export interface BetaServerToolCaller20260120 {
+  tool_id: string;
+
+  type: 'code_execution_20260120';
+}
+
 export interface BetaServerToolUsage {
   /**
    * The number of web fetch tool requests.
@@ -1820,7 +1903,7 @@ export interface BetaServerToolUseBlock {
   /**
    * Tool invocation directly from the model.
    */
-  caller?: BetaDirectCaller | BetaServerToolCaller;
+  caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
 export interface BetaServerToolUseBlockParam {
@@ -1847,7 +1930,7 @@ export interface BetaServerToolUseBlockParam {
   /**
    * Tool invocation directly from the model.
    */
-  caller?: BetaDirectCaller | BetaServerToolCaller;
+  caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
 export interface BetaSignatureDelta {
@@ -2771,10 +2854,8 @@ export interface BetaToolTextEditor20250728 {
 }
 
 /**
- * Configuration for a group of tools from an MCP server.
- *
- * Allows configuring enabled status and defer_loading for all tools from an MCP
- * server, with optional per-tool overrides.
+ * Code execution tool with REPL state persistence (daemon mode + gVisor
+ * checkpoint).
  */
 export type BetaToolUnion =
   | BetaTool
@@ -2782,6 +2863,7 @@ export type BetaToolUnion =
   | BetaToolBash20250124
   | BetaCodeExecutionTool20250522
   | BetaCodeExecutionTool20250825
+  | BetaCodeExecutionTool20260120
   | BetaToolComputerUse20241022
   | BetaMemoryTool20250818
   | BetaToolComputerUse20250124
@@ -2792,6 +2874,8 @@ export type BetaToolUnion =
   | BetaToolTextEditor20250728
   | BetaWebSearchTool20250305
   | BetaWebFetchTool20250910
+  | BetaWebSearchTool20260209
+  | BetaWebFetchTool20260209
   | BetaToolSearchToolBm25_20251119
   | BetaToolSearchToolRegex20251119
   | BetaMCPToolset;
@@ -2808,7 +2892,7 @@ export interface BetaToolUseBlock {
   /**
    * Tool invocation directly from the model.
    */
-  caller?: BetaDirectCaller | BetaServerToolCaller;
+  caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
 export interface BetaToolUseBlockParam {
@@ -2828,7 +2912,7 @@ export interface BetaToolUseBlockParam {
   /**
    * Tool invocation directly from the model.
    */
-  caller?: BetaDirectCaller | BetaServerToolCaller;
+  caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
 export interface BetaToolUsesKeep {
@@ -2912,6 +2996,32 @@ export interface BetaUsage {
    * The inference speed mode used for this request.
    */
   speed: 'standard' | 'fast' | null;
+}
+
+export interface BetaUserLocation {
+  type: 'approximate';
+
+  /**
+   * The city of the user.
+   */
+  city?: string | null;
+
+  /**
+   * The two letter
+   * [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the
+   * user.
+   */
+  country?: string | null;
+
+  /**
+   * The region of the user.
+   */
+  region?: string | null;
+
+  /**
+   * The [IANA timezone](https://nodatime.org/TimeZones) of the user.
+   */
+  timezone?: string | null;
 }
 
 export interface BetaWebFetchBlock {
@@ -3002,12 +3112,73 @@ export interface BetaWebFetchTool20250910 {
   strict?: boolean;
 }
 
+export interface BetaWebFetchTool20260209 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_fetch';
+
+  type: 'web_fetch_20260209';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
+  /**
+   * List of domains to allow fetching from
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * List of domains to block fetching from
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Citations configuration for fetched documents. Citations are disabled by
+   * default.
+   */
+  citations?: BetaCitationsConfigParam | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of tokens used by including web page text content in the context.
+   * The limit is approximate and does not apply to binary content such as PDFs.
+   */
+  max_content_tokens?: number | null;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
 export interface BetaWebFetchToolResultBlock {
   content: BetaWebFetchToolResultErrorBlock | BetaWebFetchBlock;
 
   tool_use_id: string;
 
   type: 'web_fetch_tool_result';
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
 export interface BetaWebFetchToolResultBlockParam {
@@ -3021,6 +3192,11 @@ export interface BetaWebFetchToolResultBlockParam {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
 export interface BetaWebFetchToolResultErrorBlock {
@@ -3118,39 +3294,59 @@ export interface BetaWebSearchTool20250305 {
    * Parameters for the user's location. Used to provide more relevant search
    * results.
    */
-  user_location?: BetaWebSearchTool20250305.UserLocation | null;
+  user_location?: BetaUserLocation | null;
 }
 
-export namespace BetaWebSearchTool20250305 {
+export interface BetaWebSearchTool20260209 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_search';
+
+  type: 'web_search_20260209';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+
+  /**
+   * If provided, only these domains will be included in results. Cannot be used
+   * alongside `blocked_domains`.
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * If provided, these domains will never appear in results. Cannot be used
+   * alongside `allowed_domains`.
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+
   /**
    * Parameters for the user's location. Used to provide more relevant search
    * results.
    */
-  export interface UserLocation {
-    type: 'approximate';
-
-    /**
-     * The city of the user.
-     */
-    city?: string | null;
-
-    /**
-     * The two letter
-     * [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the
-     * user.
-     */
-    country?: string | null;
-
-    /**
-     * The region of the user.
-     */
-    region?: string | null;
-
-    /**
-     * The [IANA timezone](https://nodatime.org/TimeZones) of the user.
-     */
-    timezone?: string | null;
-  }
+  user_location?: BetaUserLocation | null;
 }
 
 export interface BetaWebSearchToolRequestError {
@@ -3165,6 +3361,11 @@ export interface BetaWebSearchToolResultBlock {
   tool_use_id: string;
 
   type: 'web_search_tool_result';
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
 export type BetaWebSearchToolResultBlockContent =
@@ -3182,6 +3383,11 @@ export interface BetaWebSearchToolResultBlockParam {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
 export type BetaWebSearchToolResultBlockParamContent =
@@ -3773,6 +3979,7 @@ export interface MessageCountTokensParams {
     | BetaToolBash20250124
     | BetaCodeExecutionTool20250522
     | BetaCodeExecutionTool20250825
+    | BetaCodeExecutionTool20260120
     | BetaToolComputerUse20241022
     | BetaMemoryTool20250818
     | BetaToolComputerUse20250124
@@ -3783,6 +3990,8 @@ export interface MessageCountTokensParams {
     | BetaToolTextEditor20250728
     | BetaWebSearchTool20250305
     | BetaWebFetchTool20250910
+    | BetaWebSearchTool20260209
+    | BetaWebFetchTool20260209
     | BetaToolSearchToolBm25_20251119
     | BetaToolSearchToolRegex20251119
     | BetaMCPToolset
@@ -3840,6 +4049,7 @@ export declare namespace Messages {
     type BetaCodeExecutionResultBlockParam as BetaCodeExecutionResultBlockParam,
     type BetaCodeExecutionTool20250522 as BetaCodeExecutionTool20250522,
     type BetaCodeExecutionTool20250825 as BetaCodeExecutionTool20250825,
+    type BetaCodeExecutionTool20260120 as BetaCodeExecutionTool20260120,
     type BetaCodeExecutionToolResultBlock as BetaCodeExecutionToolResultBlock,
     type BetaCodeExecutionToolResultBlockContent as BetaCodeExecutionToolResultBlockContent,
     type BetaCodeExecutionToolResultBlockParam as BetaCodeExecutionToolResultBlockParam,
@@ -3865,6 +4075,8 @@ export declare namespace Messages {
     type BetaCountTokensContextManagementResponse as BetaCountTokensContextManagementResponse,
     type BetaDirectCaller as BetaDirectCaller,
     type BetaDocumentBlock as BetaDocumentBlock,
+    type BetaEncryptedCodeExecutionResultBlock as BetaEncryptedCodeExecutionResultBlock,
+    type BetaEncryptedCodeExecutionResultBlockParam as BetaEncryptedCodeExecutionResultBlockParam,
     type BetaFileDocumentSource as BetaFileDocumentSource,
     type BetaFileImageSource as BetaFileImageSource,
     type BetaImageBlockParam as BetaImageBlockParam,
@@ -3911,6 +4123,7 @@ export declare namespace Messages {
     type BetaRequestMCPToolResultBlockParam as BetaRequestMCPToolResultBlockParam,
     type BetaSearchResultBlockParam as BetaSearchResultBlockParam,
     type BetaServerToolCaller as BetaServerToolCaller,
+    type BetaServerToolCaller20260120 as BetaServerToolCaller20260120,
     type BetaServerToolUsage as BetaServerToolUsage,
     type BetaServerToolUseBlock as BetaServerToolUseBlock,
     type BetaServerToolUseBlockParam as BetaServerToolUseBlockParam,
@@ -3976,9 +4189,11 @@ export declare namespace Messages {
     type BetaURLImageSource as BetaURLImageSource,
     type BetaURLPDFSource as BetaURLPDFSource,
     type BetaUsage as BetaUsage,
+    type BetaUserLocation as BetaUserLocation,
     type BetaWebFetchBlock as BetaWebFetchBlock,
     type BetaWebFetchBlockParam as BetaWebFetchBlockParam,
     type BetaWebFetchTool20250910 as BetaWebFetchTool20250910,
+    type BetaWebFetchTool20260209 as BetaWebFetchTool20260209,
     type BetaWebFetchToolResultBlock as BetaWebFetchToolResultBlock,
     type BetaWebFetchToolResultBlockParam as BetaWebFetchToolResultBlockParam,
     type BetaWebFetchToolResultErrorBlock as BetaWebFetchToolResultErrorBlock,
@@ -3987,6 +4202,7 @@ export declare namespace Messages {
     type BetaWebSearchResultBlock as BetaWebSearchResultBlock,
     type BetaWebSearchResultBlockParam as BetaWebSearchResultBlockParam,
     type BetaWebSearchTool20250305 as BetaWebSearchTool20250305,
+    type BetaWebSearchTool20260209 as BetaWebSearchTool20260209,
     type BetaWebSearchToolRequestError as BetaWebSearchToolRequestError,
     type BetaWebSearchToolResultBlock as BetaWebSearchToolResultBlock,
     type BetaWebSearchToolResultBlockContent as BetaWebSearchToolResultBlockContent,
