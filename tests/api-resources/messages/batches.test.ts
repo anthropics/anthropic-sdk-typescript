@@ -50,7 +50,6 @@ describe('resource batches', () => {
               },
             },
             service_tier: 'auto',
-            speed: 'standard',
             stop_sequences: ['string'],
             stream: true,
             system: [

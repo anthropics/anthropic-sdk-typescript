@@ -39,7 +39,6 @@ describe('resource messages', () => {
         },
       },
       service_tier: 'auto',
-      speed: 'standard',
       stop_sequences: ['string'],
       stream: false,
       system: [
@@ -110,7 +109,6 @@ describe('resource messages', () => {
           type: 'json_schema',
         },
       },
-      speed: 'standard',
       system: [
         {
           text: "Today's date is 2024-06-01.",
