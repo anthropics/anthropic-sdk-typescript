@@ -2450,11 +2450,6 @@ export interface Usage {
    * If the request used the priority, standard, or batch tier.
    */
   service_tier: 'standard' | 'priority' | 'batch' | null;
-
-  /**
-   * The inference speed mode used for this request.
-   */
-  speed: 'standard' | 'fast' | null;
 }
 
 export interface WebFetchBlock {
@@ -2934,12 +2929,6 @@ export interface MessageCreateParamsBase {
   service_tier?: 'auto' | 'standard_only';
 
   /**
-   * The inference speed mode for this request. `"fast"` enables high
-   * output-tokens-per-second inference.
-   */
-  speed?: 'standard' | 'fast' | null;
-
-  /**
    * Custom text sequences that will cause the model to stop generating.
    *
    * Our models will normally stop when they have naturally completed their turn,
@@ -3209,12 +3198,6 @@ export interface MessageCountTokensParams {
    * Configuration options for the model's output, such as the output format.
    */
   output_config?: OutputConfig;
-
-  /**
-   * The inference speed mode for this request. `"fast"` enables high
-   * output-tokens-per-second inference.
-   */
-  speed?: 'standard' | 'fast' | null;
 
   /**
    * System prompt.
