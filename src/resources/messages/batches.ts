@@ -463,6 +463,11 @@ export namespace BatchCreateParams {
       model: MessagesAPI.Model;
 
       /**
+       * Container identifier for reuse across requests.
+       */
+      container?: string | null;
+
+      /**
        * Specifies the geographic region for inference processing. If not specified, the
        * workspace's `default_inference_geo` is used.
        */
@@ -486,6 +491,12 @@ export namespace BatchCreateParams {
        * [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
        */
       service_tier?: 'auto' | 'standard_only';
+
+      /**
+       * The inference speed mode for this request. `"fast"` enables high
+       * output-tokens-per-second inference.
+       */
+      speed?: 'standard' | 'fast' | null;
 
       /**
        * Custom text sequences that will cause the model to stop generating.
