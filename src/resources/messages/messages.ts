@@ -2408,6 +2408,15 @@ export interface WebSearchTool20250305 {
   user_location?: UserLocation | null;
 }
 
+// backward compat
+export namespace WebSearchTool20250305 {
+  /**
+   * @deprecated Import `UserLocation` from `anthropic` directly instead of using
+   *   `WebSearchTool20250305.UserLocation`.
+   */
+  export type UserLocation = Messages.UserLocation;
+}
+
 export interface WebSearchTool20260209 {
   /**
    * Name of the tool.
@@ -2458,6 +2467,15 @@ export interface WebSearchTool20260209 {
    * results.
    */
   user_location?: UserLocation | null;
+}
+
+// backward compat
+export namespace WebSearchTool20260209 {
+  /**
+   * @deprecated Import `UserLocation` from `anthropic` directly instead of using
+   *   `WebSearchTool20260209.UserLocation`.
+   */
+  export type UserLocation = Messages.UserLocation;
 }
 
 export interface WebSearchToolRequestError {
