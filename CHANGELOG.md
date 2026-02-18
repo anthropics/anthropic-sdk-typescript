@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.77.0 (2026-02-18)
+
+Full Changelog: [sdk-v0.76.0...sdk-v0.77.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.76.0...sdk-v0.77.0)
+
+### Features
+
+* **api:** fix shared UserLocation and error code types ([c84038f](https://github.com/anthropics/anthropic-sdk-typescript/commit/c84038f4eddafc2c5415ab4eaef40326b7af376c))
+
+
+### Bug Fixes
+
+* add backward-compat namespace re-exports for UserLocation ([#706](https://github.com/anthropics/anthropic-sdk-typescript/issues/706)) ([b88834f](https://github.com/anthropics/anthropic-sdk-typescript/commit/b88834fc82bb9d1ae0cf16bd264d5ef4d1edbcff))
+
 ## 0.76.0 (2026-02-18)
 
 Full Changelog: [sdk-v0.75.0...sdk-v0.76.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.75.0...sdk-v0.76.0)
