@@ -678,7 +678,7 @@ export interface BetaCodeExecutionTool20250522 {
 
   type: 'code_execution_20250522';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -707,7 +707,7 @@ export interface BetaCodeExecutionTool20250825 {
 
   type: 'code_execution_20250825';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -740,7 +740,7 @@ export interface BetaCodeExecutionTool20260120 {
 
   type: 'code_execution_20260120';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -1277,7 +1277,7 @@ export interface BetaMemoryTool20250818 {
 
   type: 'memory_20250818';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2245,7 +2245,7 @@ export interface BetaTool {
    */
   name: string;
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2315,7 +2315,7 @@ export interface BetaToolBash20241022 {
 
   type: 'bash_20241022';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2346,7 +2346,7 @@ export interface BetaToolBash20250124 {
 
   type: 'bash_20250124';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2450,7 +2450,7 @@ export interface BetaToolComputerUse20241022 {
 
   type: 'computer_20241022';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2496,7 +2496,7 @@ export interface BetaToolComputerUse20250124 {
 
   type: 'computer_20250124';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2542,7 +2542,7 @@ export interface BetaToolComputerUse20251124 {
 
   type: 'computer_20251124';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2626,7 +2626,7 @@ export interface BetaToolSearchToolBm25_20251119 {
 
   type: 'tool_search_tool_bm25_20251119' | 'tool_search_tool_bm25';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2655,7 +2655,7 @@ export interface BetaToolSearchToolRegex20251119 {
 
   type: 'tool_search_tool_regex_20251119' | 'tool_search_tool_regex';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2733,7 +2733,7 @@ export interface BetaToolTextEditor20241022 {
 
   type: 'text_editor_20241022';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2764,7 +2764,7 @@ export interface BetaToolTextEditor20250124 {
 
   type: 'text_editor_20250124';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2795,7 +2795,7 @@ export interface BetaToolTextEditor20250429 {
 
   type: 'text_editor_20250429';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2826,7 +2826,7 @@ export interface BetaToolTextEditor20250728 {
 
   type: 'text_editor_20250728';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -3066,7 +3066,7 @@ export interface BetaWebFetchTool20250910 {
 
   type: 'web_fetch_20250910';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * List of domains to allow fetching from
@@ -3122,7 +3122,7 @@ export interface BetaWebFetchTool20260209 {
 
   type: 'web_fetch_20260209';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * List of domains to allow fetching from
@@ -3255,7 +3255,7 @@ export interface BetaWebSearchTool20250305 {
 
   type: 'web_search_20250305';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * If provided, only these domains will be included in results. Cannot be used
@@ -3307,7 +3307,7 @@ export interface BetaWebSearchTool20260209 {
 
   type: 'web_search_20260209';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * If provided, only these domains will be included in results. Cannot be used

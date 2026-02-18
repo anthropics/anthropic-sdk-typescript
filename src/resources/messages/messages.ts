@@ -517,7 +517,7 @@ export interface CodeExecutionTool20250522 {
 
   type: 'code_execution_20250522';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -546,7 +546,40 @@ export interface CodeExecutionTool20250825 {
 
   type: 'code_execution_20250825';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
+/**
+ * Code execution tool with REPL state persistence (daemon mode + gVisor
+ * checkpoint).
+ */
+export interface CodeExecutionTool20260120 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'code_execution';
+
+  type: 'code_execution_20260120';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -818,7 +851,7 @@ export interface MemoryTool20250818 {
 
   type: 'memory_20250818';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -966,192 +999,17 @@ export type MessageCountTokensTool =
   | ToolBash20250124
   | CodeExecutionTool20250522
   | CodeExecutionTool20250825
-  | MessageCountTokensTool.CodeExecutionTool20260120
+  | CodeExecutionTool20260120
   | MemoryTool20250818
   | ToolTextEditor20250124
   | ToolTextEditor20250429
   | ToolTextEditor20250728
   | WebSearchTool20250305
   | WebFetchTool20250910
-  | MessageCountTokensTool.WebSearchTool20260209
-  | MessageCountTokensTool.WebFetchTool20260209
+  | WebSearchTool20260209
+  | WebFetchTool20260209
   | ToolSearchToolBm25_20251119
   | ToolSearchToolRegex20251119;
-
-export namespace MessageCountTokensTool {
-  /**
-   * Code execution tool with REPL state persistence (daemon mode + gVisor
-   * checkpoint).
-   */
-  export interface CodeExecutionTool20260120 {
-    /**
-     * Name of the tool.
-     *
-     * This is how the tool will be called by the model and in `tool_use` blocks.
-     */
-    name: 'code_execution';
-
-    type: 'code_execution_20260120';
-
-    allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
-
-    /**
-     * Create a cache control breakpoint at this content block.
-     */
-    cache_control?: MessagesAPI.CacheControlEphemeral | null;
-
-    /**
-     * If true, tool will not be included in initial system prompt. Only loaded when
-     * returned via tool_reference from tool search.
-     */
-    defer_loading?: boolean;
-
-    /**
-     * When true, guarantees schema validation on tool names and inputs
-     */
-    strict?: boolean;
-  }
-
-  export interface WebSearchTool20260209 {
-    /**
-     * Name of the tool.
-     *
-     * This is how the tool will be called by the model and in `tool_use` blocks.
-     */
-    name: 'web_search';
-
-    type: 'web_search_20260209';
-
-    allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
-
-    /**
-     * If provided, only these domains will be included in results. Cannot be used
-     * alongside `blocked_domains`.
-     */
-    allowed_domains?: Array<string> | null;
-
-    /**
-     * If provided, these domains will never appear in results. Cannot be used
-     * alongside `allowed_domains`.
-     */
-    blocked_domains?: Array<string> | null;
-
-    /**
-     * Create a cache control breakpoint at this content block.
-     */
-    cache_control?: MessagesAPI.CacheControlEphemeral | null;
-
-    /**
-     * If true, tool will not be included in initial system prompt. Only loaded when
-     * returned via tool_reference from tool search.
-     */
-    defer_loading?: boolean;
-
-    /**
-     * Maximum number of times the tool can be used in the API request.
-     */
-    max_uses?: number | null;
-
-    /**
-     * When true, guarantees schema validation on tool names and inputs
-     */
-    strict?: boolean;
-
-    /**
-     * Parameters for the user's location. Used to provide more relevant search
-     * results.
-     */
-    user_location?: WebSearchTool20260209.UserLocation | null;
-  }
-
-  export namespace WebSearchTool20260209 {
-    /**
-     * Parameters for the user's location. Used to provide more relevant search
-     * results.
-     */
-    export interface UserLocation {
-      type: 'approximate';
-
-      /**
-       * The city of the user.
-       */
-      city?: string | null;
-
-      /**
-       * The two letter
-       * [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the
-       * user.
-       */
-      country?: string | null;
-
-      /**
-       * The region of the user.
-       */
-      region?: string | null;
-
-      /**
-       * The [IANA timezone](https://nodatime.org/TimeZones) of the user.
-       */
-      timezone?: string | null;
-    }
-  }
-
-  export interface WebFetchTool20260209 {
-    /**
-     * Name of the tool.
-     *
-     * This is how the tool will be called by the model and in `tool_use` blocks.
-     */
-    name: 'web_fetch';
-
-    type: 'web_fetch_20260209';
-
-    allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
-
-    /**
-     * List of domains to allow fetching from
-     */
-    allowed_domains?: Array<string> | null;
-
-    /**
-     * List of domains to block fetching from
-     */
-    blocked_domains?: Array<string> | null;
-
-    /**
-     * Create a cache control breakpoint at this content block.
-     */
-    cache_control?: MessagesAPI.CacheControlEphemeral | null;
-
-    /**
-     * Citations configuration for fetched documents. Citations are disabled by
-     * default.
-     */
-    citations?: MessagesAPI.CitationsConfigParam | null;
-
-    /**
-     * If true, tool will not be included in initial system prompt. Only loaded when
-     * returned via tool_reference from tool search.
-     */
-    defer_loading?: boolean;
-
-    /**
-     * Maximum number of tokens used by including web page text content in the context.
-     * The limit is approximate and does not apply to binary content such as PDFs.
-     */
-    max_content_tokens?: number | null;
-
-    /**
-     * Maximum number of times the tool can be used in the API request.
-     */
-    max_uses?: number | null;
-
-    /**
-     * When true, guarantees schema validation on tool names and inputs
-     */
-    strict?: boolean;
-  }
-}
 
 export interface MessageDeltaUsage {
   /**
@@ -1415,6 +1273,12 @@ export interface ServerToolCaller {
   type: 'code_execution_20250825';
 }
 
+export interface ServerToolCaller20260120 {
+  tool_id: string;
+
+  type: 'code_execution_20260120';
+}
+
 export interface ServerToolUsage {
   /**
    * The number of web fetch tool requests.
@@ -1433,7 +1297,7 @@ export interface ServerToolUseBlock {
   /**
    * Tool invocation directly from the model.
    */
-  caller: DirectCaller | ServerToolCaller | ServerToolUseBlock.ServerToolCaller20260120;
+  caller: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 
   input: unknown;
 
@@ -1447,14 +1311,6 @@ export interface ServerToolUseBlock {
     | 'tool_search_tool_bm25';
 
   type: 'server_tool_use';
-}
-
-export namespace ServerToolUseBlock {
-  export interface ServerToolCaller20260120 {
-    tool_id: string;
-
-    type: 'code_execution_20260120';
-  }
 }
 
 export interface ServerToolUseBlockParam {
@@ -1481,15 +1337,7 @@ export interface ServerToolUseBlockParam {
   /**
    * Tool invocation directly from the model.
    */
-  caller?: DirectCaller | ServerToolCaller | ServerToolUseBlockParam.ServerToolCaller20260120;
-}
-
-export namespace ServerToolUseBlockParam {
-  export interface ServerToolCaller20260120 {
-    tool_id: string;
-
-    type: 'code_execution_20260120';
-  }
+  caller?: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 }
 
 export interface SignatureDelta {
@@ -1744,7 +1592,7 @@ export interface Tool {
    */
   name: string;
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -1814,7 +1662,7 @@ export interface ToolBash20250124 {
 
   type: 'bash_20250124';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -1951,7 +1799,7 @@ export interface ToolSearchToolBm25_20251119 {
 
   type: 'tool_search_tool_bm25_20251119' | 'tool_search_tool_bm25';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -1980,7 +1828,7 @@ export interface ToolSearchToolRegex20251119 {
 
   type: 'tool_search_tool_regex_20251119' | 'tool_search_tool_regex';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2062,7 +1910,7 @@ export interface ToolTextEditor20250124 {
 
   type: 'text_editor_20250124';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2093,7 +1941,7 @@ export interface ToolTextEditor20250429 {
 
   type: 'text_editor_20250429';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2124,7 +1972,7 @@ export interface ToolTextEditor20250728 {
 
   type: 'text_editor_20250728';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2160,192 +2008,17 @@ export type ToolUnion =
   | ToolBash20250124
   | CodeExecutionTool20250522
   | CodeExecutionTool20250825
-  | ToolUnion.CodeExecutionTool20260120
+  | CodeExecutionTool20260120
   | MemoryTool20250818
   | ToolTextEditor20250124
   | ToolTextEditor20250429
   | ToolTextEditor20250728
   | WebSearchTool20250305
   | WebFetchTool20250910
-  | ToolUnion.WebSearchTool20260209
-  | ToolUnion.WebFetchTool20260209
+  | WebSearchTool20260209
+  | WebFetchTool20260209
   | ToolSearchToolBm25_20251119
   | ToolSearchToolRegex20251119;
-
-export namespace ToolUnion {
-  /**
-   * Code execution tool with REPL state persistence (daemon mode + gVisor
-   * checkpoint).
-   */
-  export interface CodeExecutionTool20260120 {
-    /**
-     * Name of the tool.
-     *
-     * This is how the tool will be called by the model and in `tool_use` blocks.
-     */
-    name: 'code_execution';
-
-    type: 'code_execution_20260120';
-
-    allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
-
-    /**
-     * Create a cache control breakpoint at this content block.
-     */
-    cache_control?: MessagesAPI.CacheControlEphemeral | null;
-
-    /**
-     * If true, tool will not be included in initial system prompt. Only loaded when
-     * returned via tool_reference from tool search.
-     */
-    defer_loading?: boolean;
-
-    /**
-     * When true, guarantees schema validation on tool names and inputs
-     */
-    strict?: boolean;
-  }
-
-  export interface WebSearchTool20260209 {
-    /**
-     * Name of the tool.
-     *
-     * This is how the tool will be called by the model and in `tool_use` blocks.
-     */
-    name: 'web_search';
-
-    type: 'web_search_20260209';
-
-    allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
-
-    /**
-     * If provided, only these domains will be included in results. Cannot be used
-     * alongside `blocked_domains`.
-     */
-    allowed_domains?: Array<string> | null;
-
-    /**
-     * If provided, these domains will never appear in results. Cannot be used
-     * alongside `allowed_domains`.
-     */
-    blocked_domains?: Array<string> | null;
-
-    /**
-     * Create a cache control breakpoint at this content block.
-     */
-    cache_control?: MessagesAPI.CacheControlEphemeral | null;
-
-    /**
-     * If true, tool will not be included in initial system prompt. Only loaded when
-     * returned via tool_reference from tool search.
-     */
-    defer_loading?: boolean;
-
-    /**
-     * Maximum number of times the tool can be used in the API request.
-     */
-    max_uses?: number | null;
-
-    /**
-     * When true, guarantees schema validation on tool names and inputs
-     */
-    strict?: boolean;
-
-    /**
-     * Parameters for the user's location. Used to provide more relevant search
-     * results.
-     */
-    user_location?: WebSearchTool20260209.UserLocation | null;
-  }
-
-  export namespace WebSearchTool20260209 {
-    /**
-     * Parameters for the user's location. Used to provide more relevant search
-     * results.
-     */
-    export interface UserLocation {
-      type: 'approximate';
-
-      /**
-       * The city of the user.
-       */
-      city?: string | null;
-
-      /**
-       * The two letter
-       * [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the
-       * user.
-       */
-      country?: string | null;
-
-      /**
-       * The region of the user.
-       */
-      region?: string | null;
-
-      /**
-       * The [IANA timezone](https://nodatime.org/TimeZones) of the user.
-       */
-      timezone?: string | null;
-    }
-  }
-
-  export interface WebFetchTool20260209 {
-    /**
-     * Name of the tool.
-     *
-     * This is how the tool will be called by the model and in `tool_use` blocks.
-     */
-    name: 'web_fetch';
-
-    type: 'web_fetch_20260209';
-
-    allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
-
-    /**
-     * List of domains to allow fetching from
-     */
-    allowed_domains?: Array<string> | null;
-
-    /**
-     * List of domains to block fetching from
-     */
-    blocked_domains?: Array<string> | null;
-
-    /**
-     * Create a cache control breakpoint at this content block.
-     */
-    cache_control?: MessagesAPI.CacheControlEphemeral | null;
-
-    /**
-     * Citations configuration for fetched documents. Citations are disabled by
-     * default.
-     */
-    citations?: MessagesAPI.CitationsConfigParam | null;
-
-    /**
-     * If true, tool will not be included in initial system prompt. Only loaded when
-     * returned via tool_reference from tool search.
-     */
-    defer_loading?: boolean;
-
-    /**
-     * Maximum number of tokens used by including web page text content in the context.
-     * The limit is approximate and does not apply to binary content such as PDFs.
-     */
-    max_content_tokens?: number | null;
-
-    /**
-     * Maximum number of times the tool can be used in the API request.
-     */
-    max_uses?: number | null;
-
-    /**
-     * When true, guarantees schema validation on tool names and inputs
-     */
-    strict?: boolean;
-  }
-}
 
 export interface ToolUseBlock {
   id: string;
@@ -2353,21 +2026,13 @@ export interface ToolUseBlock {
   /**
    * Tool invocation directly from the model.
    */
-  caller: DirectCaller | ServerToolCaller | ToolUseBlock.ServerToolCaller20260120;
+  caller: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 
   input: unknown;
 
   name: string;
 
   type: 'tool_use';
-}
-
-export namespace ToolUseBlock {
-  export interface ServerToolCaller20260120 {
-    tool_id: string;
-
-    type: 'code_execution_20260120';
-  }
 }
 
 export interface ToolUseBlockParam {
@@ -2387,15 +2052,7 @@ export interface ToolUseBlockParam {
   /**
    * Tool invocation directly from the model.
    */
-  caller?: DirectCaller | ServerToolCaller | ToolUseBlockParam.ServerToolCaller20260120;
-}
-
-export namespace ToolUseBlockParam {
-  export interface ServerToolCaller20260120 {
-    tool_id: string;
-
-    type: 'code_execution_20260120';
-  }
+  caller?: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 }
 
 export interface URLImageSource {
@@ -2494,7 +2151,63 @@ export interface WebFetchTool20250910 {
 
   type: 'web_fetch_20250910';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * List of domains to allow fetching from
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * List of domains to block fetching from
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * Citations configuration for fetched documents. Citations are disabled by
+   * default.
+   */
+  citations?: CitationsConfigParam | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of tokens used by including web page text content in the context.
+   * The limit is approximate and does not apply to binary content such as PDFs.
+   */
+  max_content_tokens?: number | null;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
+export interface WebFetchTool20260209 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_fetch';
+
+  type: 'web_fetch_20260209';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * List of domains to allow fetching from
@@ -2544,21 +2257,13 @@ export interface WebFetchToolResultBlock {
   /**
    * Tool invocation directly from the model.
    */
-  caller: DirectCaller | ServerToolCaller | WebFetchToolResultBlock.ServerToolCaller20260120;
+  caller: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 
   content: WebFetchToolResultErrorBlock | WebFetchBlock;
 
   tool_use_id: string;
 
   type: 'web_fetch_tool_result';
-}
-
-export namespace WebFetchToolResultBlock {
-  export interface ServerToolCaller20260120 {
-    tool_id: string;
-
-    type: 'code_execution_20260120';
-  }
 }
 
 export interface WebFetchToolResultBlockParam {
@@ -2576,15 +2281,7 @@ export interface WebFetchToolResultBlockParam {
   /**
    * Tool invocation directly from the model.
    */
-  caller?: DirectCaller | ServerToolCaller | WebFetchToolResultBlockParam.ServerToolCaller20260120;
-}
-
-export namespace WebFetchToolResultBlockParam {
-  export interface ServerToolCaller20260120 {
-    tool_id: string;
-
-    type: 'code_execution_20260120';
-  }
+  caller?: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 }
 
 export interface WebFetchToolResultErrorBlock {
@@ -2643,7 +2340,7 @@ export interface WebSearchTool20250305 {
 
   type: 'web_search_20250305';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * If provided, only these domains will be included in results. Cannot be used
@@ -2717,6 +2414,90 @@ export namespace WebSearchTool20250305 {
   }
 }
 
+export interface WebSearchTool20260209 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_search';
+
+  type: 'web_search_20260209';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * If provided, only these domains will be included in results. Cannot be used
+   * alongside `blocked_domains`.
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * If provided, these domains will never appear in results. Cannot be used
+   * alongside `allowed_domains`.
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+
+  /**
+   * Parameters for the user's location. Used to provide more relevant search
+   * results.
+   */
+  user_location?: WebSearchTool20260209.UserLocation | null;
+}
+
+export namespace WebSearchTool20260209 {
+  /**
+   * Parameters for the user's location. Used to provide more relevant search
+   * results.
+   */
+  export interface UserLocation {
+    type: 'approximate';
+
+    /**
+     * The city of the user.
+     */
+    city?: string | null;
+
+    /**
+     * The two letter
+     * [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the
+     * user.
+     */
+    country?: string | null;
+
+    /**
+     * The region of the user.
+     */
+    region?: string | null;
+
+    /**
+     * The [IANA timezone](https://nodatime.org/TimeZones) of the user.
+     */
+    timezone?: string | null;
+  }
+}
+
 export interface WebSearchToolRequestError {
   error_code:
     | 'invalid_tool_input'
@@ -2733,21 +2514,13 @@ export interface WebSearchToolResultBlock {
   /**
    * Tool invocation directly from the model.
    */
-  caller: DirectCaller | ServerToolCaller | WebSearchToolResultBlock.ServerToolCaller20260120;
+  caller: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 
   content: WebSearchToolResultBlockContent;
 
   tool_use_id: string;
 
   type: 'web_search_tool_result';
-}
-
-export namespace WebSearchToolResultBlock {
-  export interface ServerToolCaller20260120 {
-    tool_id: string;
-
-    type: 'code_execution_20260120';
-  }
 }
 
 export type WebSearchToolResultBlockContent = WebSearchToolResultError | Array<WebSearchResultBlock>;
@@ -2767,15 +2540,7 @@ export interface WebSearchToolResultBlockParam {
   /**
    * Tool invocation directly from the model.
    */
-  caller?: DirectCaller | ServerToolCaller | WebSearchToolResultBlockParam.ServerToolCaller20260120;
-}
-
-export namespace WebSearchToolResultBlockParam {
-  export interface ServerToolCaller20260120 {
-    tool_id: string;
-
-    type: 'code_execution_20260120';
-  }
+  caller?: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 }
 
 export type WebSearchToolResultBlockParamContent =
@@ -3343,6 +3108,7 @@ export declare namespace Messages {
     type CodeExecutionResultBlockParam as CodeExecutionResultBlockParam,
     type CodeExecutionTool20250522 as CodeExecutionTool20250522,
     type CodeExecutionTool20250825 as CodeExecutionTool20250825,
+    type CodeExecutionTool20260120 as CodeExecutionTool20260120,
     type CodeExecutionToolResultBlock as CodeExecutionToolResultBlock,
     type CodeExecutionToolResultBlockContent as CodeExecutionToolResultBlockContent,
     type CodeExecutionToolResultBlockParam as CodeExecutionToolResultBlockParam,
@@ -3390,6 +3156,7 @@ export declare namespace Messages {
     type RedactedThinkingBlockParam as RedactedThinkingBlockParam,
     type SearchResultBlockParam as SearchResultBlockParam,
     type ServerToolCaller as ServerToolCaller,
+    type ServerToolCaller20260120 as ServerToolCaller20260120,
     type ServerToolUsage as ServerToolUsage,
     type ServerToolUseBlock as ServerToolUseBlock,
     type ServerToolUseBlockParam as ServerToolUseBlockParam,
@@ -3449,6 +3216,7 @@ export declare namespace Messages {
     type WebFetchBlock as WebFetchBlock,
     type WebFetchBlockParam as WebFetchBlockParam,
     type WebFetchTool20250910 as WebFetchTool20250910,
+    type WebFetchTool20260209 as WebFetchTool20260209,
     type WebFetchToolResultBlock as WebFetchToolResultBlock,
     type WebFetchToolResultBlockParam as WebFetchToolResultBlockParam,
     type WebFetchToolResultErrorBlock as WebFetchToolResultErrorBlock,
@@ -3457,6 +3225,7 @@ export declare namespace Messages {
     type WebSearchResultBlock as WebSearchResultBlock,
     type WebSearchResultBlockParam as WebSearchResultBlockParam,
     type WebSearchTool20250305 as WebSearchTool20250305,
+    type WebSearchTool20260209 as WebSearchTool20260209,
     type WebSearchToolRequestError as WebSearchToolRequestError,
     type WebSearchToolResultBlock as WebSearchToolResultBlock,
     type WebSearchToolResultBlockContent as WebSearchToolResultBlockContent,
