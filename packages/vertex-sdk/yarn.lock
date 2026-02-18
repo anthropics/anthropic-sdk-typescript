@@ -17,7 +17,7 @@
 
 "@anthropic-ai/sdk@file:../../dist":
   # x-release-please-start-version
-  version "0.76.0"
+  version "0.77.0"
   # x-release-please-end-version
   dependencies:
     json-schema-to-ts "^3.1.1"
