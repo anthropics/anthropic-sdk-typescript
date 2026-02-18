@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.76.0 (2026-02-18)
+
+Full Changelog: [sdk-v0.75.0...sdk-v0.76.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.75.0...sdk-v0.76.0)
+
+### Features
+
+* **api:** manual updates ([25fe41c](https://github.com/anthropics/anthropic-sdk-typescript/commit/25fe41cdf61a1d8c0a5700955bf3c00f28900339))
+
 ## 0.75.0 (2026-02-17)
 
 Full Changelog: [sdk-v0.74.0...sdk-v0.75.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.74.0...sdk-v0.75.0)
