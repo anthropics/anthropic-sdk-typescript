@@ -189,6 +189,7 @@ import {
   URLImageSource,
   URLPDFSource,
   Usage,
+  UserLocation,
   WebFetchBlock,
   WebFetchBlockParam,
   WebFetchTool20250910,
@@ -208,6 +209,7 @@ import {
   WebSearchToolResultBlockParam,
   WebSearchToolResultBlockParamContent,
   WebSearchToolResultError,
+  WebSearchToolResultErrorCode,
 } from './resources/messages/messages';
 import { type Fetch } from './internal/builtin-types';
 import { isRunningInBrowser } from './internal/detect-platform';
@@ -1179,6 +1181,7 @@ export declare namespace Anthropic {
     type URLImageSource as URLImageSource,
     type URLPDFSource as URLPDFSource,
     type Usage as Usage,
+    type UserLocation as UserLocation,
     type WebFetchBlock as WebFetchBlock,
     type WebFetchBlockParam as WebFetchBlockParam,
     type WebFetchTool20250910 as WebFetchTool20250910,
@@ -1198,6 +1201,7 @@ export declare namespace Anthropic {
     type WebSearchToolResultBlockParam as WebSearchToolResultBlockParam,
     type WebSearchToolResultBlockParamContent as WebSearchToolResultBlockParamContent,
     type WebSearchToolResultError as WebSearchToolResultError,
+    type WebSearchToolResultErrorCode as WebSearchToolResultErrorCode,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,

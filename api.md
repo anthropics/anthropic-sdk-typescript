@@ -152,6 +152,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">URLImageSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">URLPDFSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Usage</a></code>
+- <code><a href="./src/resources/messages/messages.ts">UserLocation</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchTool20250910</a></code>
@@ -171,6 +172,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultBlockParamContent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultError</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultErrorCode</a></code>
 
 Methods:
 
