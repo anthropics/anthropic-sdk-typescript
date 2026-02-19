@@ -30,6 +30,7 @@ describe('resource messages', () => {
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
       model: 'claude-opus-4-6',
+      cache_control: { type: 'ephemeral', ttl: '5m' },
       container: {
         id: 'id',
         skills: [
@@ -142,6 +143,7 @@ describe('resource messages', () => {
     const response = await client.beta.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
       model: 'claude-opus-4-6',
+      cache_control: { type: 'ephemeral', ttl: '5m' },
       context_management: {
         edits: [
           {

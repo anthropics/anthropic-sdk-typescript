@@ -2490,6 +2490,12 @@ export interface MessageCreateParamsBase {
   model: Model;
 
   /**
+   * Top-level cache control automatically applies a cache_control marker to the last
+   * cacheable block in the request.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
    * Container identifier for reuse across requests.
    */
   container?: string | null;
@@ -2782,6 +2788,12 @@ export interface MessageCountTokensParams {
    * details and options.
    */
   model: Model;
+
+  /**
+   * Top-level cache control automatically applies a cache_control marker to the last
+   * cacheable block in the request.
+   */
+  cache_control?: CacheControlEphemeral | null;
 
   /**
    * Configuration options for the model's output, such as the output format.

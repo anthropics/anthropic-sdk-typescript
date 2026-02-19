@@ -41,6 +41,7 @@ describe('resource batches', () => {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
             model: 'claude-opus-4-6',
+            cache_control: { type: 'ephemeral', ttl: '5m' },
             container: {
               id: 'id',
               skills: [
