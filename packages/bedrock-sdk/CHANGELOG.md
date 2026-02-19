@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.26.4 (2026-02-19)
+
+Full Changelog: [bedrock-sdk-v0.26.3...bedrock-sdk-v0.26.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.26.3...bedrock-sdk-v0.26.4)
+
+### Bug Fixes
+
+* **bedrock:** eliminate race condition in AWS credential resolution ([#901](https://github.com/anthropics/anthropic-sdk-typescript/issues/901)) ([e5a101d](https://github.com/anthropics/anthropic-sdk-typescript/commit/e5a101d060cdce65872ec787e792c94799dcc295))
+
 ## 0.26.3 (2026-02-05)
 
 Full Changelog: [bedrock-sdk-v0.26.2...bedrock-sdk-v0.26.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.26.2...bedrock-sdk-v0.26.3)
