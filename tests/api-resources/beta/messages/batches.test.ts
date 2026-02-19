@@ -232,13 +232,6 @@ describe('resource batches', () => {
   // Mock server doesn't support application/x-jsonl responses
   test.skip('results', async () => {
     const responsePromise = client.beta.messages.batches.results('message_batch_id');
-    const rawResponse = await responsePromise.asResponse();
-    expect(rawResponse).toBeInstanceOf(Response);
-    const response = await responsePromise;
-    expect(response).not.toBeInstanceOf(Response);
-    const dataAndResponse = await responsePromise.withResponse();
-    expect(dataAndResponse.data).toBe(response);
-    expect(dataAndResponse.response).toBe(rawResponse);
   });
 
   // Mock server doesn't support application/x-jsonl responses
