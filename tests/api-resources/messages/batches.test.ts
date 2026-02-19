@@ -156,7 +156,7 @@ describe('resource batches', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Prism doesn't support application/x-jsonl responses
+  // Mock server doesn't support application/x-jsonl responses
   test.skip('results', async () => {
     const responsePromise = client.messages.batches.results('message_batch_id');
     const rawResponse = await responsePromise.asResponse();
