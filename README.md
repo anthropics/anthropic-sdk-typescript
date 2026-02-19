@@ -429,7 +429,7 @@ const calculated = (60 * 60 * maxTokens) / 128_000;
 return calculated < minimum ? minimum * 1000 : calculated * 1000;
 ```
 
-which will result in a timeout up to 60 minutes, scaled by the `max_tokens` parameter, unless overriden at the request or client level.
+which will result in a timeout up to 60 minutes, scaled by the `max_tokens` parameter, unless overridden at the request or client level.
 
 You can configure this with a `timeout` option:
 
@@ -471,7 +471,7 @@ will result in the client terminating the connection and retrying without receiv
 
 When supported by the `fetch` implementation, we set a [TCP socket keep-alive](https://tldp.org/HOWTO/TCP-Keepalive-HOWTO/overview.html) option in order
 to reduce the impact of idle connection timeouts on some networks.
-This can be [overriden](#configuring-an-https-agent-eg-for-proxies) by configuring a custom proxy.
+This can be [overridden](#configuring-an-https-agent-eg-for-proxies) by configuring a custom proxy.
 
 ## Auto-pagination
 
