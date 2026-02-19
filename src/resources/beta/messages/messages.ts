@@ -3504,6 +3504,12 @@ export interface MessageCreateParamsBase {
   model: MessagesAPI.Model;
 
   /**
+   * Body param: Top-level cache control automatically applies a cache_control marker
+   * to the last cacheable block in the request.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
    * Body param: Container identifier for reuse across requests.
    */
   container?: BetaContainerParams | string | null;
@@ -3833,6 +3839,12 @@ export interface MessageCountTokensParams {
    * details and options.
    */
   model: MessagesAPI.Model;
+
+  /**
+   * Body param: Top-level cache control automatically applies a cache_control marker
+   * to the last cacheable block in the request.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
 
   /**
    * Body param: Context management configuration.

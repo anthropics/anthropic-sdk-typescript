@@ -541,6 +541,12 @@ export namespace BatchCreateParams {
       model: MessagesApi.Model;
 
       /**
+       * Top-level cache control automatically applies a cache_control marker to the last
+       * cacheable block in the request.
+       */
+      cache_control?: BetaMessagesAPI.BetaCacheControlEphemeral | null;
+
+      /**
        * Container identifier for reuse across requests.
        */
       container?: BetaMessagesAPI.BetaContainerParams | string | null;
