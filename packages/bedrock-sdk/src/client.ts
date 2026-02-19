@@ -9,6 +9,7 @@ import { isObj } from './internal/utils/values';
 import { buildHeaders } from './internal/headers';
 import { FinalizedRequestInit } from './internal/types';
 import { path } from './internal/utils/path';
+import { loggerFor } from './internal/utils/log';
 
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 
@@ -30,6 +31,30 @@ export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
   providerChainResolver?: (() => Promise<AwsCredentialIdentityProvider>) | null;
 };
 
+type BothStaticCreds = {
+  awsAccessKey: string;
+  awsSecretKey: string;
+  awsSessionToken?: string | null | undefined;
+};
+
+type NoStaticCreds = {
+  awsAccessKey?: null | undefined;
+  awsSecretKey?: null | undefined;
+  awsSessionToken?: null | undefined;
+};
+
+type AccessOnly = {
+  awsAccessKey: string;
+  awsSecretKey?: null | undefined;
+  awsSessionToken?: string | null | undefined;
+};
+
+type SecretOnly = {
+  awsSecretKey: string;
+  awsAccessKey?: null | undefined;
+  awsSessionToken?: string | null | undefined;
+};
+
 /** API Client for interfacing with the Anthropic Bedrock API. */
 export class AnthropicBedrock extends BaseAnthropic {
   awsSecretKey: string | null;
@@ -38,6 +63,21 @@ export class AnthropicBedrock extends BaseAnthropic {
   awsSessionToken: string | null;
   skipAuth: boolean = false;
   providerChainResolver: (() => Promise<AwsCredentialIdentityProvider>) | null;
+
+  constructor(opts: ClientOptions & BothStaticCreds);
+  constructor(opts?: ClientOptions & NoStaticCreds);
+
+  /**
+   * @deprecated Passing only `awsAccessKey` without `awsSecretKey` is deprecated.
+   * Provide both keys, or provide neither and rely on the AWS credential provider chain.
+   */
+  constructor(opts: ClientOptions & AccessOnly);
+
+  /**
+   * @deprecated Passing only `awsSecretKey` without `awsAccessKey` is deprecated.
+   * Provide both keys, or provide neither and rely on the AWS credential provider chain.
+   */
+  constructor(opts: ClientOptions & SecretOnly);
 
   /**
    * API Client for interfacing with the Anthropic Bedrock API.
@@ -66,10 +106,16 @@ export class AnthropicBedrock extends BaseAnthropic {
     providerChainResolver = null,
     ...opts
   }: ClientOptions = {}) {
-    super({
-      baseURL,
-      ...opts,
-    });
+    super({ baseURL, ...opts });
+
+    const hasAccess = awsAccessKey != null;
+    const hasSecret = awsSecretKey != null;
+    if (hasAccess !== hasSecret) {
+      loggerFor(this).warn(
+        'Warning: Passing only one of `awsAccessKey` or `awsSecretKey` is deprecated. ' +
+          'Please provide both keys, or provide neither and rely on the AWS credential provider chain.',
+      );
+    }
 
     this.awsSecretKey = awsSecretKey;
     this.awsAccessKey = awsAccessKey;
