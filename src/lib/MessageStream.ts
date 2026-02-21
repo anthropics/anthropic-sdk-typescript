@@ -519,6 +519,14 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
       throw new AnthropicError(`request ended without sending any chunks`);
     }
     this.#currentMessageSnapshot = undefined;
+    // If stop_reason is null, the stream was interrupted before receiving a
+    // terminal event (message_delta with stop_reason). This typically indicates
+    // a server-side error that caused the stream to close prematurely.
+    if (snapshot.stop_reason == null) {
+      throw new AnthropicError(
+        'stream ended without receiving a terminal event; the response may be incomplete due to a server-side error',
+      );
+    }
     return maybeParseMessage(snapshot, this.#params, { logger: this.#logger });
   }
 
