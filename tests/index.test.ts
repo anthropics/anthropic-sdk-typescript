@@ -772,4 +772,73 @@ describe('retries', () => {
     ).toEqual(JSON.stringify({ a: 1 }));
     expect(count).toEqual(3);
   });
+
+  test('no retry when x-should-retry header is false', async () => {
+    let count = 0;
+    const testFetch = async (): Promise<Response> => {
+      count++;
+      if (count === 1) {
+        return new Response(JSON.stringify({ error: { message: 'server error' } }), {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            'x-should-retry': 'false',
+          },
+        });
+      }
+      return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+    };
+
+    const client = new Anthropic({ apiKey: 'my-anthropic-api-key', fetch: testFetch, maxRetries: 3 });
+
+    await expect(client.request({ path: '/foo', method: 'get' })).rejects.toThrow();
+    // Should NOT retry when x-should-retry is false, so count should be 1
+    expect(count).toEqual(1);
+  });
+
+  test('retry when x-should-retry header is true despite non-retryable status', async () => {
+    let count = 0;
+    const testFetch = async (): Promise<Response> => {
+      count++;
+      if (count === 1) {
+        return new Response(JSON.stringify({ error: { message: 'bad request' } }), {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'x-should-retry': 'true',
+          },
+        });
+      }
+      return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+    };
+
+    const client = new Anthropic({ apiKey: 'my-anthropic-api-key', fetch: testFetch, maxRetries: 3 });
+
+    expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
+    // Should retry when x-should-retry is true, even for 400 status
+    expect(count).toEqual(2);
+  });
+
+  test('no retry when x-should-retry header is false (case insensitive)', async () => {
+    let count = 0;
+    const testFetch = async (): Promise<Response> => {
+      count++;
+      if (count === 1) {
+        return new Response(JSON.stringify({ error: { message: 'server error' } }), {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            'x-should-retry': 'False',
+          },
+        });
+      }
+      return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+    };
+
+    const client = new Anthropic({ apiKey: 'my-anthropic-api-key', fetch: testFetch, maxRetries: 3 });
+
+    await expect(client.request({ path: '/foo', method: 'get' })).rejects.toThrow();
+    // Should NOT retry when x-should-retry is False (case insensitive), so count should be 1
+    expect(count).toEqual(1);
+  });
 });

@@ -833,7 +833,7 @@ export class BaseAnthropic {
 
   private async shouldRetry(response: Response): Promise<boolean> {
     // Note this is not a standard header.
-    const shouldRetryHeader = response.headers.get('x-should-retry');
+    const shouldRetryHeader = response.headers.get('x-should-retry')?.toLowerCase();
 
     // If the server explicitly says whether or not to retry, obey.
     if (shouldRetryHeader === 'true') return true;
