@@ -525,7 +525,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
     // a server-side error that caused the stream to close prematurely.
     if (snapshot.stop_reason == null) {
       throw new AnthropicError(
-        'stream ended without receiving a terminal event; the response may be incomplete due to a server-side error',
+        'Stream ended without receiving a terminal event; the response may be incomplete due to a server-side error',
       );
     }
     return maybeParseBetaMessage(snapshot, this.#params, { logger: this.#logger });

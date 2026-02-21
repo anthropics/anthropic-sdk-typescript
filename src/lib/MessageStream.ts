@@ -524,7 +524,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
     // a server-side error that caused the stream to close prematurely.
     if (snapshot.stop_reason == null) {
       throw new AnthropicError(
-        'stream ended without receiving a terminal event; the response may be incomplete due to a server-side error',
+        'Stream ended without receiving a terminal event; the response may be incomplete due to a server-side error',
       );
     }
     return maybeParseMessage(snapshot, this.#params, { logger: this.#logger });

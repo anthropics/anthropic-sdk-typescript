@@ -292,7 +292,7 @@ describe('MessageStream class', () => {
     });
 
     await expect(stream.done()).rejects.toThrow(
-      'stream ended without receiving a terminal event; the response may be incomplete due to a server-side error',
+      'Stream ended without receiving a terminal event; the response may be incomplete due to a server-side error',
     );
   });
 
