@@ -1,3 +1,7 @@
+## Contributing to documentation
+
+The documentation for this SDK lives at [platform.claude.com/docs/en/api/sdks/typescript](https://platform.claude.com/docs/en/api/sdks/typescript). To suggest changes, open an issue.
+
 ## Setting up the environment
 
 This repository uses [`yarn@v1`](https://classic.yarnpkg.com/lang/en/docs/install).
