@@ -157,8 +157,7 @@ describe('resource batches', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Mock server doesn't support application/x-jsonl responses
-  test.skip('results', async () => {
+  test('results', async () => {
     const responsePromise = client.messages.batches.results('message_batch_id');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);

@@ -65,7 +65,7 @@ $ pnpm link --global @anthropic-ai/sdk
 
 ## Running tests
 
-Most tests require you to [set up a mock server](https://github.com/stoplightio/prism) against the OpenAPI spec to run the tests.
+Most tests require you to [set up a mock server](https://github.com/dgellow/steady) against the OpenAPI spec to run the tests.
 
 ```sh
 $ ./scripts/mock

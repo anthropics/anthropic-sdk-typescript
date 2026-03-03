@@ -229,8 +229,7 @@ describe('resource batches', () => {
     ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
-  // Mock server doesn't support application/x-jsonl responses
-  test.skip('results', async () => {
+  test('results', async () => {
     const responsePromise = client.beta.messages.batches.results('message_batch_id');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -241,8 +240,7 @@ describe('resource batches', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Mock server doesn't support application/x-jsonl responses
-  test.skip('results: request options and params are passed correctly', async () => {
+  test('results: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.messages.batches.results(
