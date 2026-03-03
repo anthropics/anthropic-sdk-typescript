@@ -1,6 +1,7 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import Anthropic from '@anthropic-ai/sdk';
+import { mockFetch } from '../../lib/mock-fetch';
 
 const client = new Anthropic({
   apiKey: 'my-anthropic-api-key',
@@ -156,9 +157,36 @@ describe('resource batches', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Mock server doesn't support application/x-jsonl responses
-  test.skip('results', async () => {
-    const responsePromise = client.messages.batches.results('message_batch_id');
+  test('results', async () => {
+    // results() makes two calls: retrieve (to get results_url) then GET results_url.
+    // The mock server returns results_url pointing to the real API, so we use mockFetch
+    // to queue responses for both calls, mirroring the Python SDK's respx_mock approach.
+    const { fetch, handleRequest } = mockFetch();
+    const batchClient = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
+      fetch,
+    });
+
+    handleRequest(
+      async () =>
+        new Response(
+          JSON.stringify({ id: 'msgbatch_xyz', results_url: '/v1/messages/batches/msgbatch_xyz/results' }),
+          {
+            headers: { 'content-type': 'application/json' },
+          },
+        ),
+    );
+    handleRequest(
+      async () =>
+        new Response(
+          JSON.stringify({ custom_id: 'req_1', result: { type: 'succeeded', message: null } }) + '\n',
+          { headers: { 'content-type': 'application/x-jsonl' } },
+        ),
+    );
+
+    const response = await batchClient.messages.batches.results('message_batch_id');
+    expect(response).not.toBeInstanceOf(Response);
   });
 
   test('cancel: request options instead of params are passed correctly', async () => {
