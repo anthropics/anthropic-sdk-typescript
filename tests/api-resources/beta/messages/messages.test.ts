@@ -8,8 +8,7 @@ const client = new Anthropic({
 });
 
 describe('resource messages', () => {
-  // prism validates based on the non-beta endpoint
-  test.skip('create: only required params', async () => {
+  test('create: only required params', async () => {
     const responsePromise = client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
@@ -24,8 +23,7 @@ describe('resource messages', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // prism validates based on the non-beta endpoint
-  test.skip('create: required and optional params', async () => {
+  test('create: required and optional params', async () => {
     const response = await client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
@@ -123,8 +121,7 @@ describe('resource messages', () => {
     });
   });
 
-  // prism validates based on the non-beta endpoint
-  test.skip('countTokens: only required params', async () => {
+  test('countTokens: only required params', async () => {
     const responsePromise = client.beta.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
       model: 'claude-opus-4-6',
@@ -138,8 +135,7 @@ describe('resource messages', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // prism validates based on the non-beta endpoint
-  test.skip('countTokens: required and optional params', async () => {
+  test('countTokens: required and optional params', async () => {
     const response = await client.beta.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
       model: 'claude-opus-4-6',
