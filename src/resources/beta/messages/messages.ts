@@ -1,7 +1,7 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIResource } from '../../../core/resource';
-import * as MessagesMessagesAPI from './messages';
+import * as BetaMessagesAPI from './messages';
 import * as BetaAPI from '../beta';
 import * as MessagesAPI from '../../messages/messages';
 import * as BatchesAPI from './batches';
@@ -1592,9 +1592,9 @@ export namespace BetaRawMessageDeltaEvent {
      * Information about the container used in the request (for the code execution
      * tool)
      */
-    container: MessagesMessagesAPI.BetaContainer | null;
+    container: BetaMessagesAPI.BetaContainer | null;
 
-    stop_reason: MessagesMessagesAPI.BetaStopReason | null;
+    stop_reason: BetaMessagesAPI.BetaStopReason | null;
 
     stop_sequence: string | null;
   }
@@ -3582,8 +3582,8 @@ export interface MessageCreateParamsBase {
 }
 
 export namespace MessageCreateParams {
-  export type MessageCreateParamsNonStreaming = MessagesMessagesAPI.MessageCreateParamsNonStreaming;
-  export type MessageCreateParamsStreaming = MessagesMessagesAPI.MessageCreateParamsStreaming;
+  export type MessageCreateParamsNonStreaming = BetaMessagesAPI.MessageCreateParamsNonStreaming;
+  export type MessageCreateParamsStreaming = BetaMessagesAPI.MessageCreateParamsStreaming;
 }
 
 export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase {

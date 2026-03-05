@@ -3,7 +3,7 @@
 import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
 import * as MessagesAPI from '../../messages/messages';
-import * as MessagesMessagesAPI from './messages';
+import * as BetaMessagesAPI from './messages';
 import { APIPromise } from '../../../core/api-promise';
 import { Page, type PageParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
@@ -400,7 +400,7 @@ export type BetaMessageBatchResult =
   | BetaMessageBatchExpiredResult;
 
 export interface BetaMessageBatchSucceededResult {
-  message: MessagesMessagesAPI.BetaMessage;
+  message: BetaMessagesAPI.BetaMessage;
 
   type: 'succeeded';
 }
@@ -523,7 +523,7 @@ export namespace BatchCreateParams {
        *
        * There is a limit of 100,000 messages in a single request.
        */
-      messages: Array<MessagesMessagesAPI.BetaMessageParam>;
+      messages: Array<BetaMessagesAPI.BetaMessageParam>;
 
       /**
        * The model that will complete your prompt.\n\nSee
@@ -536,12 +536,12 @@ export namespace BatchCreateParams {
        * Top-level cache control automatically applies a cache_control marker to the last
        * cacheable block in the request.
        */
-      cache_control?: MessagesMessagesAPI.BetaCacheControlEphemeral | null;
+      cache_control?: BetaMessagesAPI.BetaCacheControlEphemeral | null;
 
       /**
        * Container identifier for reuse across requests.
        */
-      container?: MessagesMessagesAPI.BetaContainerParams | string | null;
+      container?: BetaMessagesAPI.BetaContainerParams | string | null;
 
       /**
        * Context management configuration.
@@ -549,7 +549,7 @@ export namespace BatchCreateParams {
        * This allows you to control how Claude manages context across multiple requests,
        * such as whether to clear function results or not.
        */
-      context_management?: MessagesMessagesAPI.BetaContextManagementConfig | null;
+      context_management?: BetaMessagesAPI.BetaContextManagementConfig | null;
 
       /**
        * Specifies the geographic region for inference processing. If not specified, the
@@ -560,17 +560,17 @@ export namespace BatchCreateParams {
       /**
        * MCP servers to be utilized in this request
        */
-      mcp_servers?: Array<MessagesMessagesAPI.BetaRequestMCPServerURLDefinition>;
+      mcp_servers?: Array<BetaMessagesAPI.BetaRequestMCPServerURLDefinition>;
 
       /**
        * An object describing metadata about the request.
        */
-      metadata?: MessagesMessagesAPI.BetaMetadata;
+      metadata?: BetaMessagesAPI.BetaMetadata;
 
       /**
        * Configuration options for the model's output, such as the output format.
        */
-      output_config?: MessagesMessagesAPI.BetaOutputConfig;
+      output_config?: BetaMessagesAPI.BetaOutputConfig;
 
       /**
        * @deprecated Deprecated: Use `output_config.format` instead. See
@@ -579,7 +579,7 @@ export namespace BatchCreateParams {
        * A schema to specify Claude's output format in responses. This parameter will be
        * removed in a future release.
        */
-      output_format?: MessagesMessagesAPI.BetaJSONOutputFormat | null;
+      output_format?: BetaMessagesAPI.BetaJSONOutputFormat | null;
 
       /**
        * Determines whether to use priority capacity (if available) or standard capacity
@@ -623,7 +623,7 @@ export namespace BatchCreateParams {
        * as specifying a particular goal or role. See our
        * [guide to system prompts](https://docs.claude.com/en/docs/system-prompts).
        */
-      system?: string | Array<MessagesMessagesAPI.BetaTextBlockParam>;
+      system?: string | Array<BetaMessagesAPI.BetaTextBlockParam>;
 
       /**
        * Amount of randomness injected into the response.
@@ -648,13 +648,13 @@ export namespace BatchCreateParams {
        * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
        * for details.
        */
-      thinking?: MessagesMessagesAPI.BetaThinkingConfigParam;
+      thinking?: BetaMessagesAPI.BetaThinkingConfigParam;
 
       /**
        * How the model should use the provided tools. The model can use a specific tool,
        * any available tool, decide by itself, or not use tools at all.
        */
-      tool_choice?: MessagesMessagesAPI.BetaToolChoice;
+      tool_choice?: BetaMessagesAPI.BetaToolChoice;
 
       /**
        * Definitions of tools that the model may use.
@@ -733,7 +733,7 @@ export namespace BatchCreateParams {
        *
        * See our [guide](https://docs.claude.com/en/docs/tool-use) for more details.
        */
-      tools?: Array<MessagesMessagesAPI.BetaToolUnion>;
+      tools?: Array<BetaMessagesAPI.BetaToolUnion>;
 
       /**
        * Only sample from the top K options for each subsequent token.
