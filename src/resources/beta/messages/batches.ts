@@ -766,7 +766,6 @@ export namespace BatchCreateParams {
        * `temperature`.
        */
       top_p?: number;
-
     }
   }
 }

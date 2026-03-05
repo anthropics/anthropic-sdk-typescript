@@ -45,7 +45,6 @@ import {
   BetaMessageBatchSucceededResult,
   BetaMessageBatchesPage,
 } from './batches';
-import * as MessagesMessagesAPI from './messages';
 
 const DEPRECATED_MODELS: {
   [K in Model]?: string;
