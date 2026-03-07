@@ -25,7 +25,7 @@ describe('resource skills', () => {
       client.beta.skills.create(
         {
           display_title: 'display_title',
-          files: [await toFile(Buffer.from('# my file contents'), 'README.md')],
+          files: [await toFile(Buffer.from('Example data'), 'README.md')],
           betas: ['string'],
         },
         { path: '/_stainless_unknown_path' },
