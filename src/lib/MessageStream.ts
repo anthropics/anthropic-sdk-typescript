@@ -637,7 +637,13 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
               });
 
               if (jsonBuf) {
-                newContent.input = partialParse(jsonBuf);
+                Object.defineProperty(newContent, 'input', {
+                  get() {
+                    return partialParse(this[JSON_BUF_PROPERTY]);
+                  },
+                  enumerable: true,
+                  configurable: true,
+                });
               }
               snapshot.content[event.index] = newContent;
             }
