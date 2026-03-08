@@ -603,7 +603,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
 
         return snapshot;
       case 'content_block_start':
-        snapshot.content.push(event.content_block);
+        snapshot.content.push({ ...event.content_block });
         return snapshot;
       case 'content_block_delta': {
         const snapshotContent = snapshot.content.at(event.index);
