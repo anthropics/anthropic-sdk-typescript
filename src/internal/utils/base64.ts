@@ -3,6 +3,9 @@
 import { AnthropicError } from '../../core/error';
 import { encodeUTF8 } from './bytes';
 
+declare const btoa: any;
+declare const atob: any;
+
 export const toBase64 = (data: string | Uint8Array | null | undefined): string => {
   if (!data) return '';
 
@@ -15,7 +18,12 @@ export const toBase64 = (data: string | Uint8Array | null | undefined): string =
   }
 
   if (typeof btoa !== 'undefined') {
-    return btoa(String.fromCharCode.apply(null, data as any));
+    const CHUNK_SIZE = 0x8000; // 32KB chunks
+    let str = '';
+    for (let i = 0; i < data.length; i += CHUNK_SIZE) {
+      str += String.fromCharCode.apply(null, data.subarray(i, i + CHUNK_SIZE) as any);
+    }
+    return btoa(str);
   }
 
   throw new AnthropicError('Cannot generate base64 string; Expected `Buffer` or `btoa` to be defined');
