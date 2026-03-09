@@ -67,6 +67,17 @@
   "bin": {
     "anthropic-ai-sdk": "bin/cli"
   },
+  "overrides": {
+    "minimatch": "^9.0.5"
+  },
+  "pnpm": {
+    "overrides": {
+      "minimatch": "^9.0.5"
+    }
+  },
+  "resolutions": {
+    "minimatch": "^9.0.5"
+  },
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
