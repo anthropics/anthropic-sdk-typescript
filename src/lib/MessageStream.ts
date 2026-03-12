@@ -637,7 +637,26 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
               });
 
               if (jsonBuf) {
-                newContent.input = partialParse(jsonBuf);
+                // Use a lazy getter so partialParse is only called when
+                // .input is actually accessed, avoiding O(N²) re-parsing
+                // when consumers don't need intermediate snapshots.
+                let cachedInput: unknown;
+                let inputParsed = false;
+                Object.defineProperty(newContent, 'input', {
+                  get() {
+                    if (!inputParsed) {
+                      cachedInput = partialParse(jsonBuf);
+                      inputParsed = true;
+                    }
+                    return cachedInput;
+                  },
+                  set(value: unknown) {
+                    cachedInput = value;
+                    inputParsed = true;
+                  },
+                  enumerable: true,
+                  configurable: true,
+                });
               }
               snapshot.content[event.index] = newContent;
             }
