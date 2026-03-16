@@ -8,8 +8,7 @@ const client = new Anthropic({
 });
 
 describe('resource versions', () => {
-  // prism binary unsupported
-  test.skip('create', async () => {
+  test('create', async () => {
     const responsePromise = client.beta.skills.versions.create('skill_id');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -20,13 +19,12 @@ describe('resource versions', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // prism binary unsupported
-  test.skip('create: request options and params are passed correctly', async () => {
+  test('create: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.skills.versions.create(
         'skill_id',
-        { files: [await toFile(Buffer.from('# my file contents'), 'README.md')], betas: ['string'] },
+        { files: [await toFile(Buffer.from('Example data'), 'README.md')], betas: ['string'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

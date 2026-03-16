@@ -8,8 +8,7 @@ const client = new Anthropic({
 });
 
 describe('resource messages', () => {
-  // prism validates based on the non-beta endpoint
-  test.skip('create: only required params', async () => {
+  test('create: only required params', async () => {
     const responsePromise = client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
@@ -24,8 +23,7 @@ describe('resource messages', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // prism validates based on the non-beta endpoint
-  test.skip('create: required and optional params', async () => {
+  test('create: required and optional params', async () => {
     const response = await client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
@@ -71,10 +69,6 @@ describe('resource messages', () => {
           type: 'json_schema',
         },
       },
-      output_format: {
-        schema: { foo: 'bar' },
-        type: 'json_schema',
-      },
       service_tier: 'auto',
       speed: 'standard',
       stop_sequences: ['string'],
@@ -97,7 +91,7 @@ describe('resource messages', () => {
         },
       ],
       temperature: 1,
-      thinking: { budget_tokens: 1024, type: 'enabled' },
+      thinking: { type: 'adaptive', display: 'summarized' },
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
         {
@@ -123,8 +117,7 @@ describe('resource messages', () => {
     });
   });
 
-  // prism validates based on the non-beta endpoint
-  test.skip('countTokens: only required params', async () => {
+  test('countTokens: only required params', async () => {
     const responsePromise = client.beta.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
       model: 'claude-opus-4-6',
@@ -138,8 +131,7 @@ describe('resource messages', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // prism validates based on the non-beta endpoint
-  test.skip('countTokens: required and optional params', async () => {
+  test('countTokens: required and optional params', async () => {
     const response = await client.beta.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
       model: 'claude-opus-4-6',
@@ -172,10 +164,6 @@ describe('resource messages', () => {
           type: 'json_schema',
         },
       },
-      output_format: {
-        schema: { foo: 'bar' },
-        type: 'json_schema',
-      },
       speed: 'standard',
       system: [
         {
@@ -194,7 +182,7 @@ describe('resource messages', () => {
           ],
         },
       ],
-      thinking: { budget_tokens: 1024, type: 'enabled' },
+      thinking: { type: 'adaptive', display: 'summarized' },
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
         {
