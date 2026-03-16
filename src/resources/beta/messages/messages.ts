@@ -2178,6 +2178,14 @@ export interface BetaThinkingBlockParam {
 
 export interface BetaThinkingConfigAdaptive {
   type: 'adaptive';
+
+  /**
+   * Controls how thinking content appears in the response. When set to `summarized`,
+   * thinking is returned normally. When set to `omitted`, thinking content is
+   * redacted but a signature is returned for multi-turn continuity. Defaults to
+   * `summarized`.
+   */
+  display?: 'summarized' | 'omitted' | null;
 }
 
 export interface BetaThinkingConfigDisabled {
@@ -2199,6 +2207,14 @@ export interface BetaThinkingConfigEnabled {
   budget_tokens: number;
 
   type: 'enabled';
+
+  /**
+   * Controls how thinking content appears in the response. When set to `summarized`,
+   * thinking is returned normally. When set to `omitted`, thinking content is
+   * redacted but a signature is returned for multi-turn continuity. Defaults to
+   * `summarized`.
+   */
+  display?: 'summarized' | 'omitted' | null;
 }
 
 /**
@@ -2876,6 +2892,7 @@ export type BetaToolUnion =
   | BetaWebFetchTool20250910
   | BetaWebSearchTool20260209
   | BetaWebFetchTool20260209
+  | BetaWebFetchTool20260309
   | BetaToolSearchToolBm25_20251119
   | BetaToolSearchToolRegex20251119
   | BetaMCPToolset;
@@ -3166,6 +3183,72 @@ export interface BetaWebFetchTool20260209 {
    * When true, guarantees schema validation on tool names and inputs
    */
   strict?: boolean;
+}
+
+/**
+ * Web fetch tool with use_cache parameter for bypassing cached content.
+ */
+export interface BetaWebFetchTool20260309 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_fetch';
+
+  type: 'web_fetch_20260309';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * List of domains to allow fetching from
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * List of domains to block fetching from
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Citations configuration for fetched documents. Citations are disabled by
+   * default.
+   */
+  citations?: BetaCitationsConfigParam | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of tokens used by including web page text content in the context.
+   * The limit is approximate and does not apply to binary content such as PDFs.
+   */
+  max_content_tokens?: number | null;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+
+  /**
+   * Whether to use cached content. Set to false to bypass the cache and fetch fresh
+   * content. Only set to false when the user explicitly requests fresh content or
+   * when fetching rapidly-changing sources.
+   */
+  use_cache?: boolean;
 }
 
 export interface BetaWebFetchToolResultBlock {
@@ -4004,6 +4087,7 @@ export interface MessageCountTokensParams {
     | BetaWebFetchTool20250910
     | BetaWebSearchTool20260209
     | BetaWebFetchTool20260209
+    | BetaWebFetchTool20260309
     | BetaToolSearchToolBm25_20251119
     | BetaToolSearchToolRegex20251119
     | BetaMCPToolset
@@ -4206,6 +4290,7 @@ export declare namespace Messages {
     type BetaWebFetchBlockParam as BetaWebFetchBlockParam,
     type BetaWebFetchTool20250910 as BetaWebFetchTool20250910,
     type BetaWebFetchTool20260209 as BetaWebFetchTool20260209,
+    type BetaWebFetchTool20260309 as BetaWebFetchTool20260309,
     type BetaWebFetchToolResultBlock as BetaWebFetchToolResultBlock,
     type BetaWebFetchToolResultBlockParam as BetaWebFetchToolResultBlockParam,
     type BetaWebFetchToolResultErrorBlock as BetaWebFetchToolResultErrorBlock,

@@ -107,7 +107,7 @@ describe('resource batches', () => {
               },
             ],
             temperature: 1,
-            thinking: { budget_tokens: 1024, type: 'enabled' },
+            thinking: { type: 'adaptive', display: 'summarized' },
             tool_choice: { type: 'auto', disable_parallel_tool_use: true },
             tools: [
               {

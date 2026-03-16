@@ -91,7 +91,7 @@ describe('resource messages', () => {
         },
       ],
       temperature: 1,
-      thinking: { type: 'adaptive' },
+      thinking: { type: 'adaptive', display: 'summarized' },
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
         {
@@ -182,7 +182,7 @@ describe('resource messages', () => {
           ],
         },
       ],
-      thinking: { type: 'adaptive' },
+      thinking: { type: 'adaptive', display: 'summarized' },
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
         {

@@ -190,6 +190,7 @@ export {
   type BetaWebFetchBlockParam,
   type BetaWebFetchTool20250910,
   type BetaWebFetchTool20260209,
+  type BetaWebFetchTool20260309,
   type BetaWebFetchToolResultBlock,
   type BetaWebFetchToolResultBlockParam,
   type BetaWebFetchToolResultErrorBlock,
