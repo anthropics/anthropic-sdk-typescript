@@ -910,6 +910,7 @@ export type MessageCountTokensTool =
   | WebFetchTool20250910
   | WebSearchTool20260209
   | WebFetchTool20260209
+  | WebFetchTool20260309
   | ToolSearchToolBm25_20251119
   | ToolSearchToolRegex20251119;
 
@@ -1409,6 +1410,14 @@ export interface ThinkingBlockParam {
 
 export interface ThinkingConfigAdaptive {
   type: 'adaptive';
+
+  /**
+   * Controls how thinking content appears in the response. When set to `summarized`,
+   * thinking is returned normally. When set to `omitted`, thinking content is
+   * redacted but a signature is returned for multi-turn continuity. Defaults to
+   * `summarized`.
+   */
+  display?: 'summarized' | 'omitted' | null;
 }
 
 export interface ThinkingConfigDisabled {
@@ -1430,6 +1439,14 @@ export interface ThinkingConfigEnabled {
   budget_tokens: number;
 
   type: 'enabled';
+
+  /**
+   * Controls how thinking content appears in the response. When set to `summarized`,
+   * thinking is returned normally. When set to `omitted`, thinking content is
+   * redacted but a signature is returned for multi-turn continuity. Defaults to
+   * `summarized`.
+   */
+  display?: 'summarized' | 'omitted' | null;
 }
 
 /**
@@ -1892,6 +1909,7 @@ export type ToolUnion =
   | WebFetchTool20250910
   | WebSearchTool20260209
   | WebFetchTool20260209
+  | WebFetchTool20260309
   | ToolSearchToolBm25_20251119
   | ToolSearchToolRegex20251119;
 
@@ -2152,6 +2170,72 @@ export interface WebFetchTool20260209 {
    * When true, guarantees schema validation on tool names and inputs
    */
   strict?: boolean;
+}
+
+/**
+ * Web fetch tool with use_cache parameter for bypassing cached content.
+ */
+export interface WebFetchTool20260309 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_fetch';
+
+  type: 'web_fetch_20260309';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * List of domains to allow fetching from
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * List of domains to block fetching from
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * Citations configuration for fetched documents. Citations are disabled by
+   * default.
+   */
+  citations?: CitationsConfigParam | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of tokens used by including web page text content in the context.
+   * The limit is approximate and does not apply to binary content such as PDFs.
+   */
+  max_content_tokens?: number | null;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+
+  /**
+   * Whether to use cached content. Set to false to bypass the cache and fetch fresh
+   * content. Only set to false when the user explicitly requests fresh content or
+   * when fetching rapidly-changing sources.
+   */
+  use_cache?: boolean;
 }
 
 export interface WebFetchToolResultBlock {
@@ -3044,6 +3128,7 @@ export declare namespace Messages {
     type WebFetchBlockParam as WebFetchBlockParam,
     type WebFetchTool20250910 as WebFetchTool20250910,
     type WebFetchTool20260209 as WebFetchTool20260209,
+    type WebFetchTool20260309 as WebFetchTool20260309,
     type WebFetchToolResultBlock as WebFetchToolResultBlock,
     type WebFetchToolResultBlockParam as WebFetchToolResultBlockParam,
     type WebFetchToolResultErrorBlock as WebFetchToolResultErrorBlock,

@@ -60,7 +60,7 @@ describe('resource messages', () => {
         },
       ],
       temperature: 1,
-      thinking: { budget_tokens: 1024, type: 'enabled' },
+      thinking: { type: 'adaptive', display: 'summarized' },
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
         {
@@ -128,7 +128,7 @@ describe('resource messages', () => {
           ],
         },
       ],
-      thinking: { budget_tokens: 1024, type: 'enabled' },
+      thinking: { type: 'adaptive', display: 'summarized' },
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
         {

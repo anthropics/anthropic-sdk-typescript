@@ -156,6 +156,7 @@ export {
   type WebFetchBlockParam,
   type WebFetchTool20250910,
   type WebFetchTool20260209,
+  type WebFetchTool20260309,
   type WebFetchToolResultBlock,
   type WebFetchToolResultBlockParam,
   type WebFetchToolResultErrorBlock,
