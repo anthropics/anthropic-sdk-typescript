@@ -9,6 +9,7 @@ Types:
 - <code><a href="./src/resources/shared.ts">BillingError</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorObject</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorResponse</a></code>
+- <code><a href="./src/resources/shared.ts">ErrorType</a></code>
 - <code><a href="./src/resources/shared.ts">GatewayTimeoutError</a></code>
 - <code><a href="./src/resources/shared.ts">InvalidRequestError</a></code>
 - <code><a href="./src/resources/shared.ts">NotFoundError</a></code>
