@@ -33,9 +33,9 @@ describe('resource messages', () => {
         id: 'id',
         skills: [
           {
-            skill_id: 'x',
+            skill_id: 'pdf',
             type: 'anthropic',
-            version: 'x',
+            version: 'latest',
           },
         ],
       },
