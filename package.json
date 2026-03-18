@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/sdk",
-  "version": "0.78.0",
+  "version": "0.79.0",
   "description": "The official TypeScript library for the Anthropic API",
   "author": "Anthropic <support@anthropic.com>",
   "types": "dist/index.d.ts",
@@ -66,6 +66,17 @@
   },
   "bin": {
     "anthropic-ai-sdk": "bin/cli"
+  },
+  "overrides": {
+    "minimatch": "^9.0.5"
+  },
+  "pnpm": {
+    "overrides": {
+      "minimatch": "^9.0.5"
+    }
+  },
+  "resolutions": {
+    "minimatch": "^9.0.5"
   },
   "exports": {
     ".": {
