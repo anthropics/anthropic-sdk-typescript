@@ -1228,6 +1228,7 @@ export declare namespace Anthropic {
   export type BillingError = API.BillingError;
   export type ErrorObject = API.ErrorObject;
   export type ErrorResponse = API.ErrorResponse;
+  export type ErrorType = API.ErrorType;
   export type GatewayTimeoutError = API.GatewayTimeoutError;
   export type InvalidRequestError = API.InvalidRequestError;
   export type NotFoundError = API.NotFoundError;
