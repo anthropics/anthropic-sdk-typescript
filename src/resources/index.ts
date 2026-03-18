@@ -188,7 +188,13 @@ export {
 } from './messages/messages';
 export {
   Models,
+  type CapabilitySupport,
+  type ContextManagementCapability,
+  type EffortCapability,
+  type ModelCapabilities,
   type ModelInfo,
+  type ThinkingCapability,
+  type ThinkingTypes,
   type ModelRetrieveParams,
   type ModelListParams,
   type ModelInfosPage,
