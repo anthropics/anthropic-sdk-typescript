@@ -637,7 +637,58 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
               });
 
               if (jsonBuf) {
-                newContent.input = partialParse(jsonBuf);
+                // PERFORMANCE FIX: Use lazy evaluation instead of eager parsing
+                // This eliminates O(N²) complexity where N is the number of deltas
+                // Before: partialParse called on every delta with growing buffer
+                // After: partialParse called only when .input is accessed (typically once)
+                // 
+                // Generation counter used to invalidate cache when buffer changes
+                const generation = ((newContent as any).__parseGeneration || 0) + 1;
+                Object.defineProperty(newContent, '__parseGeneration', {
+                  value: generation,
+                  enumerable: false,
+                  writable: true,
+                  configurable: true,
+                });
+
+                // Define lazy getter for input
+                Object.defineProperty(newContent, 'input', {
+                  get(this: any) {
+                    // Check if we have a cached result for this generation
+                    if (
+                      this.__cachedInput !== undefined &&
+                      this.__cacheGeneration === generation
+                    ) {
+                      return this.__cachedInput;
+                    }
+
+                    // Parse and cache
+                    const parsed = partialParse(this[JSON_BUF_PROPERTY] || '');
+
+                    // Store cached result
+                    Object.defineProperty(this, '__cachedInput', {
+                      value: parsed,
+                      writable: true,
+                      enumerable: false,
+                      configurable: true,
+                    });
+                    Object.defineProperty(this, '__cacheGeneration', {
+                      value: generation,
+                      writable: true,
+                      enumerable: false,
+                      configurable: true,
+                    });
+
+                    return parsed;
+                  },
+                  set(this: any, value: unknown) {
+                    // Allow setting for backward compatibility
+                    this.__cachedInput = value;
+                    this.__cacheGeneration = generation;
+                  },
+                  enumerable: true,
+                  configurable: true,
+                });
               }
               snapshot.content[event.index] = newContent;
             }
