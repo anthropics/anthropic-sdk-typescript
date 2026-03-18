@@ -355,7 +355,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
     if (textBlocks.length === 0) {
       throw new AnthropicError('stream ended without producing a content block with type=text');
     }
-    return textBlocks.join(' ');
+    return textBlocks.join('');
   }
 
   /**
