@@ -27,7 +27,7 @@ Full Changelog: [foundry-sdk-v0.2.0...foundry-sdk-v0.2.1](https://github.com/ant
 
 ## 0.2.0 (2025-11-18)
 
-Full Changelog: [foundry-sdk-v0.1.0...foundry-sdk-v0.2.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.1.0...foundry-sdk-v0.2.0)
+Full Changelog: [foundry-sdk-v0.2.0](https://github.com/anthropics/anthropic-sdk-typescript/releases/tag/foundry-sdk-v0.2.0)
 
 ### Features
 

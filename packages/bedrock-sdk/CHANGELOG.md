@@ -138,7 +138,7 @@ Full Changelog: [bedrock-sdk-v0.21.0...bedrock-sdk-v0.21.1](https://github.com/a
 
 ## 0.21.0 (2025-05-09)
 
-Full Changelog: [bedrock-sdk-v0.20.0...bedrock-sdk-v0.21.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.20.0...bedrock-sdk-v0.21.0)
+Full Changelog: [bedrock-sdk-v0.12.7...bedrock-sdk-v0.21.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.12.7...bedrock-sdk-v0.21.0)
 
 ### Features
 
