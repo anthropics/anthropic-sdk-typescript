@@ -243,3 +243,43 @@ test('error handling', async () => {
   );
   await err.toBeInstanceOf(APIError);
 });
+
+test('APIError.generate() exposes error type', () => {
+  const error = APIError.generate(
+    400,
+    { type: 'error', error: { type: 'invalid_request_error', message: 'Bad request' } },
+    undefined,
+    new Headers({ 'request-id': 'req_123' }),
+  );
+  expect(error.type).toBe('invalid_request_error');
+  expect(error.status).toBe(400);
+});
+
+test('APIError.generate() sets type to null when absent', () => {
+  const error = APIError.generate(500, { message: 'Internal error' }, undefined, new Headers());
+  expect(error.type).toBeNull();
+});
+
+test('error event exposes error type', async () => {
+  async function* body(): AsyncGenerator<Buffer> {
+    yield Buffer.from('event: error\n');
+    yield Buffer.from('data: {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}');
+    yield Buffer.from('\n\n');
+  }
+
+  const stream = Stream.fromSSEResponse(
+    new Response(await ReadableStreamFrom(body())),
+    new AbortController(),
+  );
+
+  try {
+    for await (const _event of stream) {
+    }
+    throw new Error('Expected stream to throw');
+  } catch (err) {
+    expect(err).toBeInstanceOf(APIError);
+    if (err instanceof APIError) {
+      expect(err.type).toBe('overloaded_error');
+    }
+  }
+});
