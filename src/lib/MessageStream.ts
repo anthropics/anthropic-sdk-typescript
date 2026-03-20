@@ -412,6 +412,14 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
       // Release large internal state to prevent memory leaks when stream references
       // are retained (e.g. in long-running tool loops). The final message is preserved
       // in #cachedFinalMessage so finalMessage() / finalText() continue to work.
+      //
+      // Behavioral notes for callers:
+      // - 'abort' cannot fire after 'end': the `if (this.#ended) return` guard at the
+      //   top of this method prevents any further events once end has fired.
+      // - 'end' listeners that read `receivedMessages` directly will see an empty array.
+      //   Use `finalMessage()` instead, which reads from #cachedFinalMessage.
+      // - `messages` (the input params array) is also cleared. Post-end access to
+      //   `messages` is no longer supported; it too can hold O(n²) data across turns.
       this.messages.length = 0;
       this.receivedMessages.length = 0;
       this.#currentMessageSnapshot = undefined;
