@@ -9,6 +9,7 @@ Types:
 - <code><a href="./src/resources/shared.ts">BillingError</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorObject</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorResponse</a></code>
+- <code><a href="./src/resources/shared.ts">ErrorType</a></code>
 - <code><a href="./src/resources/shared.ts">GatewayTimeoutError</a></code>
 - <code><a href="./src/resources/shared.ts">InvalidRequestError</a></code>
 - <code><a href="./src/resources/shared.ts">NotFoundError</a></code>
@@ -220,7 +221,13 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/models.ts">CapabilitySupport</a></code>
+- <code><a href="./src/resources/models.ts">ContextManagementCapability</a></code>
+- <code><a href="./src/resources/models.ts">EffortCapability</a></code>
+- <code><a href="./src/resources/models.ts">ModelCapabilities</a></code>
 - <code><a href="./src/resources/models.ts">ModelInfo</a></code>
+- <code><a href="./src/resources/models.ts">ThinkingCapability</a></code>
+- <code><a href="./src/resources/models.ts">ThinkingTypes</a></code>
 
 Methods:
 
@@ -248,7 +255,13 @@ Types:
 
 Types:
 
+- <code><a href="./src/resources/beta/models.ts">BetaCapabilitySupport</a></code>
+- <code><a href="./src/resources/beta/models.ts">BetaContextManagementCapability</a></code>
+- <code><a href="./src/resources/beta/models.ts">BetaEffortCapability</a></code>
+- <code><a href="./src/resources/beta/models.ts">BetaModelCapabilities</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaModelInfo</a></code>
+- <code><a href="./src/resources/beta/models.ts">BetaThinkingCapability</a></code>
+- <code><a href="./src/resources/beta/models.ts">BetaThinkingTypes</a></code>
 
 Methods:
 

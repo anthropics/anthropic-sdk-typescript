@@ -14,7 +14,19 @@ import {
   Files,
 } from './files';
 import * as ModelsAPI from './models';
-import { BetaModelInfo, BetaModelInfosPage, ModelListParams, ModelRetrieveParams, Models } from './models';
+import {
+  BetaCapabilitySupport,
+  BetaContextManagementCapability,
+  BetaEffortCapability,
+  BetaModelCapabilities,
+  BetaModelInfo,
+  BetaModelInfosPage,
+  BetaThinkingCapability,
+  BetaThinkingTypes,
+  ModelListParams,
+  ModelRetrieveParams,
+  Models,
+} from './models';
 import * as MessagesAPI from './messages/messages';
 import {
   BetaAllThinkingTurns,
@@ -352,7 +364,13 @@ export declare namespace Beta {
 
   export {
     Models as Models,
+    type BetaCapabilitySupport as BetaCapabilitySupport,
+    type BetaContextManagementCapability as BetaContextManagementCapability,
+    type BetaEffortCapability as BetaEffortCapability,
+    type BetaModelCapabilities as BetaModelCapabilities,
     type BetaModelInfo as BetaModelInfo,
+    type BetaThinkingCapability as BetaThinkingCapability,
+    type BetaThinkingTypes as BetaThinkingTypes,
     type BetaModelInfosPage as BetaModelInfosPage,
     type ModelRetrieveParams as ModelRetrieveParams,
     type ModelListParams as ModelListParams,

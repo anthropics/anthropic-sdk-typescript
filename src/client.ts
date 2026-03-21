@@ -33,7 +33,19 @@ import {
   CompletionCreateParamsStreaming,
   Completions,
 } from './resources/completions';
-import { ModelInfo, ModelInfosPage, ModelListParams, ModelRetrieveParams, Models } from './resources/models';
+import {
+  CapabilitySupport,
+  ContextManagementCapability,
+  EffortCapability,
+  ModelCapabilities,
+  ModelInfo,
+  ModelInfosPage,
+  ModelListParams,
+  ModelRetrieveParams,
+  Models,
+  ThinkingCapability,
+  ThinkingTypes,
+} from './resources/models';
 import {
   AnthropicBeta,
   Beta,
@@ -1264,7 +1276,13 @@ export declare namespace Anthropic {
 
   export {
     Models as Models,
+    type CapabilitySupport as CapabilitySupport,
+    type ContextManagementCapability as ContextManagementCapability,
+    type EffortCapability as EffortCapability,
+    type ModelCapabilities as ModelCapabilities,
     type ModelInfo as ModelInfo,
+    type ThinkingCapability as ThinkingCapability,
+    type ThinkingTypes as ThinkingTypes,
     type ModelInfosPage as ModelInfosPage,
     type ModelRetrieveParams as ModelRetrieveParams,
     type ModelListParams as ModelListParams,
@@ -1291,6 +1309,7 @@ export declare namespace Anthropic {
   export type BillingError = API.BillingError;
   export type ErrorObject = API.ErrorObject;
   export type ErrorResponse = API.ErrorResponse;
+  export type ErrorType = API.ErrorType;
   export type GatewayTimeoutError = API.GatewayTimeoutError;
   export type InvalidRequestError = API.InvalidRequestError;
   export type NotFoundError = API.NotFoundError;

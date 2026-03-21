@@ -233,7 +233,13 @@ export {
 } from './messages/index';
 export {
   Models,
+  type BetaCapabilitySupport,
+  type BetaContextManagementCapability,
+  type BetaEffortCapability,
+  type BetaModelCapabilities,
   type BetaModelInfo,
+  type BetaThinkingCapability,
+  type BetaThinkingTypes,
   type ModelRetrieveParams,
   type ModelListParams,
   type BetaModelInfosPage,
