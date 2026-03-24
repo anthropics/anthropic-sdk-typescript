@@ -6,7 +6,12 @@ import { BetaMessage, BetaMessageParam, BetaToolUnion, MessageCreateParams } fro
 import { BetaMessageStream } from '../BetaMessageStream';
 import { RequestOptions } from '../../internal/request-options';
 import { buildHeaders } from '../../internal/headers';
-import { CompactionControl, DEFAULT_SUMMARY_PROMPT, DEFAULT_TOKEN_THRESHOLD } from './CompactionControl';
+import {
+  CompactionControl,
+  COMPACTION_SUMMARY_MAX_TOKENS,
+  DEFAULT_SUMMARY_PROMPT,
+  DEFAULT_TOKEN_THRESHOLD,
+} from './CompactionControl';
 import { collectStainlessHelpers } from '../stainless-helper-header';
 
 /**
@@ -141,7 +146,10 @@ export class BetaToolRunner<Stream extends boolean> {
             ],
           },
         ],
-        max_tokens: this.#state.params.max_tokens,
+        // Cap max_tokens for the summary request. The SDK throws "Streaming is
+        // required" when max_tokens implies a response > 10 min without streaming.
+        // Summaries need far fewer tokens than a full tool-runner response.
+        max_tokens: Math.min(this.#state.params.max_tokens, COMPACTION_SUMMARY_MAX_TOKENS),
       },
       {
         headers: { 'x-stainless-helper': 'compaction' },

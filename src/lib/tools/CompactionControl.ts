@@ -2,6 +2,16 @@ import { Model } from '../../resources';
 
 export const DEFAULT_TOKEN_THRESHOLD = 100_000;
 
+/**
+ * Maximum tokens for the compaction summary request.
+ *
+ * The summary API call is non-streaming. The SDK's pre-flight timeout check
+ * throws "Streaming is required" when max_tokens implies a response that could
+ * take longer than 10 minutes. Capping at 4096 keeps the call well within the
+ * allowed range for all models while still allowing a thorough summary.
+ */
+export const COMPACTION_SUMMARY_MAX_TOKENS = 4096;
+
 export const DEFAULT_SUMMARY_PROMPT = `You have been working on the task described above but have not yet completed it. Write a continuation summary that will allow you (or another instance of yourself) to resume work efficiently in a future context window where the conversation history will be replaced with this summary. Your summary should be structured, concise, and actionable. Include:
 1. Task Overview
 The user's core request and success criteria
