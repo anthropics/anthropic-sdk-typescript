@@ -56,6 +56,20 @@ export type RequestOptions = {
   timeout?: number;
 
   /**
+   * The maximum amount of time (in milliseconds) to wait for new data on a streaming
+   * response before considering the connection idle and aborting.
+   *
+   * This is useful for detecting stalled streams (e.g., when the server stops sending
+   * data mid-stream without closing the connection). The timer resets on every received
+   * chunk, so it only fires when the stream goes completely silent.
+   *
+   * Only applies to streaming requests (`stream: true`).
+   *
+   * @unit milliseconds
+   */
+  idleTimeout?: number;
+
+  /**
    * Additional `RequestInit` options to be passed to the underlying `fetch` call.
    * These options will be merged with the client's default fetch options.
    */

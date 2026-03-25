@@ -19,6 +19,12 @@ export type ServerSentEvent = {
   raw: string[];
 };
 
+export class StreamIdleTimeoutError extends AnthropicError {
+  constructor(idleTimeout: number) {
+    super(`Stream timed out: no data received for ${idleTimeout}ms`);
+  }
+}
+
 export class Stream<Item> implements AsyncIterable<Item> {
   controller: AbortController;
   #client: BaseAnthropic | undefined;
@@ -36,6 +42,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
     response: Response,
     controller: AbortController,
     client?: BaseAnthropic,
+    options?: { idleTimeout?: number | undefined },
   ): Stream<Item> {
     let consumed = false;
     const logger = client ? loggerFor(client) : console;
@@ -47,7 +54,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
       consumed = true;
       let done = false;
       try {
-        for await (const sse of _iterSSEMessages(response, controller)) {
+        for await (const sse of _iterSSEMessages(response, controller, options?.idleTimeout)) {
           if (sse.event === 'completion') {
             try {
               yield JSON.parse(sse.data) as Item;
@@ -215,6 +222,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
 export async function* _iterSSEMessages(
   response: Response,
   controller: AbortController,
+  idleTimeout?: number,
 ): AsyncGenerator<ServerSentEvent, void, unknown> {
   if (!response.body) {
     controller.abort();
@@ -233,7 +241,8 @@ export async function* _iterSSEMessages(
   const lineDecoder = new LineDecoder();
 
   const iter = ReadableStreamToAsyncIterable<Bytes>(response.body);
-  for await (const sseChunk of iterSSEChunks(iter)) {
+  const source = idleTimeout != null ? withIdleTimeout(iter, idleTimeout, controller) : iterSSEChunks(iter);
+  for await (const sseChunk of source) {
     for (const line of lineDecoder.decode(sseChunk)) {
       const sse = sseDecoder.decode(line);
       if (sse) yield sse;
@@ -277,6 +286,50 @@ async function* iterSSEChunks(iterator: AsyncIterableIterator<Bytes>): AsyncGene
 
   if (data.length > 0) {
     yield data;
+  }
+}
+
+/**
+ * Wraps iterSSEChunks with an idle timeout. If no new SSE chunk is yielded
+ * within `idleTimeout` milliseconds, the controller is aborted and a
+ * StreamIdleTimeoutError is thrown.
+ */
+async function* withIdleTimeout(
+  iterator: AsyncIterableIterator<Bytes>,
+  idleTimeout: number,
+  controller: AbortController,
+): AsyncGenerator<Uint8Array> {
+  const inner = iterSSEChunks(iterator);
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  const clear = () => {
+    if (timer !== null) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  };
+
+  try {
+    while (true) {
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+          controller.abort();
+          reject(new StreamIdleTimeoutError(idleTimeout));
+        }, idleTimeout);
+      });
+
+      const result = await Promise.race([inner.next(), timeoutPromise]);
+
+      clear();
+
+      if (result.done) {
+        return;
+      }
+
+      yield result.value;
+    }
+  } finally {
+    clear();
   }
 }
 

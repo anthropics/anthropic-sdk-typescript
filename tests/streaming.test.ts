@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Stream, _iterSSEMessages } from '@anthropic-ai/sdk/core/streaming';
+import { Stream, _iterSSEMessages, StreamIdleTimeoutError } from '@anthropic-ai/sdk/core/streaming';
 import { APIError } from '@anthropic-ai/sdk/core/error';
 import { ReadableStreamFrom } from '@anthropic-ai/sdk/internal/shims';
 
@@ -242,4 +242,102 @@ test('error handling', async () => {
     `[Error: {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}]`,
   );
   await err.toBeInstanceOf(APIError);
+});
+
+describe('idle timeout', () => {
+  test('throws StreamIdleTimeoutError when stream stalls', async () => {
+    async function* body(): AsyncGenerator<Buffer> {
+      yield Buffer.from('event: message_start\n');
+      yield Buffer.from('data: {"type":"message_start"}\n');
+      yield Buffer.from('\n');
+      // Simulate a stall — no more data arrives
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      yield Buffer.from('event: message_delta\n');
+      yield Buffer.from('data: {"type":"message_delta"}\n');
+      yield Buffer.from('\n');
+    }
+
+    const controller = new AbortController();
+    const stream = Stream.fromSSEResponse<any>(
+      new Response(ReadableStreamFrom(body())),
+      controller,
+      undefined,
+      { idleTimeout: 100 },
+    );
+
+    const items: any[] = [];
+    await expect(
+      (async () => {
+        for await (const item of stream) {
+          items.push(item);
+        }
+      })(),
+    ).rejects.toThrow(StreamIdleTimeoutError);
+
+    // Should have received the first event before the stall
+    expect(items).toHaveLength(1);
+    expect(items[0].type).toBe('message_start');
+    // Controller should be aborted
+    expect(controller.signal.aborted).toBe(true);
+  });
+
+  test('does not time out when data arrives within threshold', async () => {
+    async function* body(): AsyncGenerator<Buffer> {
+      yield Buffer.from('event: message_start\n');
+      yield Buffer.from('data: {"type":"message_start"}\n');
+      yield Buffer.from('\n');
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      yield Buffer.from('event: content_block_start\n');
+      yield Buffer.from('data: {"type":"content_block_start"}\n');
+      yield Buffer.from('\n');
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      yield Buffer.from('event: message_stop\n');
+      yield Buffer.from('data: {"type":"message_stop"}\n');
+      yield Buffer.from('\n');
+    }
+
+    const controller = new AbortController();
+    const stream = Stream.fromSSEResponse<any>(
+      new Response(ReadableStreamFrom(body())),
+      controller,
+      undefined,
+      { idleTimeout: 500 },
+    );
+
+    const items: any[] = [];
+    for await (const item of stream) {
+      items.push(item);
+    }
+
+    expect(items).toHaveLength(3);
+    expect(controller.signal.aborted).toBe(false);
+  });
+
+  test('works without idleTimeout (default behavior unchanged)', async () => {
+    async function* body(): AsyncGenerator<Buffer> {
+      yield Buffer.from('event: completion\n');
+      yield Buffer.from('data: {"foo":true}\n');
+      yield Buffer.from('\n');
+    }
+
+    const controller = new AbortController();
+    const stream = Stream.fromSSEResponse<any>(
+      new Response(ReadableStreamFrom(body())),
+      controller,
+    );
+
+    const items: any[] = [];
+    for await (const item of stream) {
+      items.push(item);
+    }
+
+    expect(items).toHaveLength(1);
+    expect(items[0]).toEqual({ foo: true });
+  });
+
+  test('StreamIdleTimeoutError is an instance of AnthropicError', () => {
+    const err = new StreamIdleTimeoutError(5000);
+    expect(err).toBeInstanceOf(StreamIdleTimeoutError);
+    expect(err.message).toBe('Stream timed out: no data received for 5000ms');
+  });
 });

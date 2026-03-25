@@ -22,6 +22,8 @@ export {
   UnprocessableEntityError,
 } from './core/error';
 
+export { StreamIdleTimeoutError } from './core/streaming';
+
 export type {
   AutoParseableOutputFormat,
   ParsedMessage,
