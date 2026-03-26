@@ -144,7 +144,8 @@ export class BetaToolRunner<Stream extends boolean> {
         max_tokens: this.#state.params.max_tokens,
       },
       {
-        headers: { 'x-stainless-helper': 'compaction' },
+        ...this.#options,
+        headers: buildHeaders([{ 'x-stainless-helper': 'compaction' }, this.#options?.headers]),
       },
     );
 

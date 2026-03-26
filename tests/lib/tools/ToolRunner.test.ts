@@ -1141,4 +1141,150 @@ describe('ToolRunner', () => {
       expect(capturedHelperHeader).toContain('mcpContent');
     });
   });
+
+  describe('request options headers', () => {
+    it('forwards custom headers on every API call across tool-use turns', async () => {
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+
+      const capturedHeaders: (string | null)[] = [];
+
+      // First call: assistant requests a tool
+      handleRequest(async (_req, init) => {
+        const headers = init?.headers;
+        if (headers instanceof Headers) {
+          capturedHeaders.push(headers.get('x-custom-header'));
+        }
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'tool_use', id: 'tool_1', name: 'getWeather', input: { location: 'SF' } }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'tool_use',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      // Second call: assistant gives final response after tool result
+      handleRequest(async (_req, init) => {
+        const headers = init?.headers;
+        if (headers instanceof Headers) {
+          capturedHeaders.push(headers.get('x-custom-header'));
+        }
+        return new Response(
+          JSON.stringify({
+            id: 'msg_2',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'The weather is sunny', citations: null }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 20, output_tokens: 10 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      const runner = client.beta.messages.toolRunner(
+        {
+          model: 'claude-3-5-sonnet-latest',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: 'What is the weather?' }],
+          tools: [weatherTool],
+        },
+        {
+          headers: { 'x-custom-header': 'my-custom-value' },
+        },
+      );
+
+      await runner.runUntilDone();
+
+      // Both API calls should have received the custom header
+      expect(capturedHeaders).toHaveLength(2);
+      expect(capturedHeaders[0]).toBe('my-custom-value');
+      expect(capturedHeaders[1]).toBe('my-custom-value');
+    });
+
+    it('forwards defaultHeaders on every API call across tool-use turns', async () => {
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({
+        apiKey: 'test-key',
+        fetch,
+        maxRetries: 0,
+        defaultHeaders: { 'x-default-header': 'default-value' },
+      });
+
+      const capturedHeaders: (string | null)[] = [];
+
+      // First call: assistant requests a tool
+      handleRequest(async (_req, init) => {
+        const headers = init?.headers;
+        if (headers instanceof Headers) {
+          capturedHeaders.push(headers.get('x-default-header'));
+        }
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'tool_use', id: 'tool_1', name: 'getWeather', input: { location: 'NYC' } }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'tool_use',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      // Second call: assistant gives final response
+      handleRequest(async (_req, init) => {
+        const headers = init?.headers;
+        if (headers instanceof Headers) {
+          capturedHeaders.push(headers.get('x-default-header'));
+        }
+        return new Response(
+          JSON.stringify({
+            id: 'msg_2',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'It is sunny in NYC', citations: null }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 20, output_tokens: 10 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      const runner = client.beta.messages.toolRunner({
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: 'What is the weather in NYC?' }],
+        tools: [weatherTool],
+      });
+
+      await runner.runUntilDone();
+
+      // Both API calls should have the default header from the client
+      expect(capturedHeaders).toHaveLength(2);
+      expect(capturedHeaders[0]).toBe('default-value');
+      expect(capturedHeaders[1]).toBe('default-value');
+    });
+  });
 });
