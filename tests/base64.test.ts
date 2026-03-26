@@ -50,6 +50,24 @@ describe.each(['Buffer', 'atob'])('with %s', (mode) => {
     });
   });
 
+  test('toBase64 handles large input without stack overflow', () => {
+    // 200KB of data - would cause "Maximum call stack size exceeded"
+    // with the old String.fromCharCode.apply/spread approach
+    const size = 200 * 1024;
+    const largeData = new Uint8Array(size);
+    for (let i = 0; i < size; i++) {
+      largeData[i] = i % 256;
+    }
+
+    const encoded = toBase64(largeData);
+    expect(typeof encoded).toBe('string');
+    expect(encoded.length).toBeGreaterThan(0);
+
+    // Round-trip: decode and verify it matches
+    const decoded = fromBase64(encoded);
+    expect(decoded).toEqual(largeData);
+  });
+
   test('fromBase64', () => {
     const testCases = [
       {
