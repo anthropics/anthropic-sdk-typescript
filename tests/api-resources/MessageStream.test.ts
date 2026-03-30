@@ -198,6 +198,78 @@ describe('MessageStream class', () => {
     expect(finalText).toBe('Hello there!');
   });
 
+  it('handles strict TextDecoder behavior on messages.stream()', async () => {
+    const OriginalTextDecoder = globalThis.TextDecoder;
+    const nativeDecoder = new OriginalTextDecoder();
+
+    class ArrayBufferOnlyTextDecoder {
+      readonly encoding = 'utf-8';
+      readonly fatal = false;
+      readonly ignoreBOM = false;
+
+      constructor(label?: string, options?: TextDecoderOptions) {
+        void label;
+        void options;
+      }
+
+      decode(input?: ArrayBuffer | ArrayBufferView | null) {
+        if (input == null) {
+          return nativeDecoder.decode();
+        }
+
+        if (!(input instanceof ArrayBuffer)) {
+          throw new TypeError(
+            "Failed to execute 'decode' on 'TextDecoder': parameter 1 is not of type 'ArrayBuffer'",
+          );
+        }
+
+        return nativeDecoder.decode(input);
+      }
+    }
+
+    Object.defineProperty(globalThis, 'TextDecoder', {
+      configurable: true,
+      writable: true,
+      value: ArrayBufferOnlyTextDecoder as unknown as typeof TextDecoder,
+    });
+    jest.resetModules();
+
+    try {
+      const { default: ReloadedAnthropic } = await import('@anthropic-ai/sdk');
+      const { fetch, handleStreamEvents } = mockFetch();
+      const anthropic = new ReloadedAnthropic({ apiKey: '...', fetch });
+
+      const fixtureContent = loadFixture('basic_response.txt');
+      const streamEvents = await parseSSEFixture(fixtureContent);
+      handleStreamEvents(streamEvents);
+
+      const stream = anthropic.messages.stream({
+        max_tokens: 1024,
+        model: 'claude-opus-4-20250514',
+        messages: [{ role: 'user', content: 'Say hello there!' }],
+      });
+
+      const events: MessageStreamEvent[] = [];
+      for await (const event of stream) {
+        events.push(event);
+      }
+
+      await stream.done();
+      const finalMessage = await stream.finalMessage();
+      const finalText = await stream.finalText();
+
+      assertBasicResponse(events, finalMessage);
+      expect(finalText).toBe('Hello there!');
+    } finally {
+      Object.defineProperty(globalThis, 'TextDecoder', {
+        configurable: true,
+        writable: true,
+        value: OriginalTextDecoder,
+      });
+      jest.resetModules();
+    }
+  });
+
   it('handles tool use response fixture', async () => {
     const { fetch, handleStreamEvents } = mockFetch();
 
