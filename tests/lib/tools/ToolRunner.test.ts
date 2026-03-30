@@ -200,6 +200,38 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
   return events;
 }
 
+function createAssistantMessage(
+  content: BetaContentBlock[],
+  overrides: Partial<BetaMessage> = {},
+): BetaMessage {
+  const hasToolUse = content.some((block) => block.type === 'tool_use' || block.type === 'server_tool_use');
+
+  return {
+    id: overrides.id ?? 'msg_custom',
+    type: 'message',
+    role: 'assistant',
+    content,
+    model: 'claude-3-5-sonnet-latest',
+    stop_reason: hasToolUse ? 'tool_use' : 'end_turn',
+    stop_sequence: null,
+    container: null,
+    context_management: null,
+    usage: {
+      input_tokens: 10,
+      output_tokens: 20,
+      cache_creation: null,
+      cache_creation_input_tokens: null,
+      cache_read_input_tokens: null,
+      server_tool_use: null,
+      service_tier: null,
+      inference_geo: null,
+      iterations: null,
+      speed: null,
+    },
+    ...overrides,
+  };
+}
+
 // Overloaded setupTest function for both streaming and non-streaming
 interface SetupTestResult<Stream extends boolean> {
   runner: Anthropic.Beta.Messages.BetaToolRunner<Stream>;
@@ -766,6 +798,105 @@ describe('ToolRunner', () => {
         role: 'user',
         content: [getWeatherToolResult('London', 'tool_2')],
       });
+      await expectDone(iterator);
+    });
+
+    it('preserves assistant tool messages when only non-message params change', async () => {
+      const { runner, handleRequest } = setupTest({
+        messages: [{ role: 'user', content: 'Get weather' }],
+      });
+
+      const requestBodies: Array<Record<string, unknown>> = [];
+      const firstMessage = createAssistantMessage([getWeatherToolUse('Paris')], { id: 'msg_0' });
+      const finalMessage = createAssistantMessage([getTextContent('Done')], { id: 'msg_1' });
+
+      handleRequest(async (_req, init) => {
+        requestBodies.push(JSON.parse(String(init?.body ?? '{}')));
+        return new Response(JSON.stringify(firstMessage), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      });
+
+      handleRequest(async (_req, init) => {
+        requestBodies.push(JSON.parse(String(init?.body ?? '{}')));
+        return new Response(JSON.stringify(finalMessage), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      await expectEvent(iterator, (message) => {
+        expect(message.content).toMatchObject([getWeatherToolUse('Paris')]);
+      });
+
+      runner.setMessagesParams((params) => ({
+        ...params,
+        max_tokens: 200,
+      }));
+
+      await expectEvent(iterator, (message) => {
+        expect(message.content).toMatchObject([getTextContent('Done')]);
+      });
+
+      expect(requestBodies).toHaveLength(2);
+      expect(requestBodies[1]?.max_tokens).toBe(200);
+      expect(requestBodies[1]?.messages).toMatchObject([
+        { role: 'user', content: 'Get weather' },
+        { role: 'assistant', content: [getWeatherToolUse('Paris')] },
+        { role: 'user', content: [getWeatherToolResult('Paris')] },
+      ]);
+
+      await expectDone(iterator);
+    });
+
+    it('forwards container.id from the assistant response to the next iteration', async () => {
+      const { runner, handleRequest } = setupTest({
+        messages: [{ role: 'user', content: 'Get weather' }],
+      });
+
+      const requestBodies: Array<Record<string, unknown>> = [];
+      const firstMessage = createAssistantMessage([getWeatherToolUse('Paris')], {
+        id: 'msg_0',
+        container: {
+          id: 'container_123',
+          expires_at: '2026-03-31T00:00:00Z',
+          skills: null,
+        },
+      });
+      const finalMessage = createAssistantMessage([getTextContent('Done')], { id: 'msg_1' });
+
+      handleRequest(async (_req, init) => {
+        requestBodies.push(JSON.parse(String(init?.body ?? '{}')));
+        return new Response(JSON.stringify(firstMessage), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      });
+
+      handleRequest(async (_req, init) => {
+        requestBodies.push(JSON.parse(String(init?.body ?? '{}')));
+        return new Response(JSON.stringify(finalMessage), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      await expectEvent(iterator, (message) => {
+        expect(message.container).toMatchObject({ id: 'container_123' });
+      });
+
+      await expectEvent(iterator, (message) => {
+        expect(message.content).toMatchObject([getTextContent('Done')]);
+      });
+
+      expect(requestBodies).toHaveLength(2);
+      expect(requestBodies[1]?.container).toBe('container_123');
+
       await expectDone(iterator);
     });
   });
