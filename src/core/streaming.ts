@@ -10,6 +10,7 @@ import { loggerFor } from '../internal/utils/log';
 import type { BaseAnthropic } from '../client';
 
 import { APIError } from './error';
+import type { ErrorType } from '../resources/shared';
 
 type Bytes = string | ArrayBuffer | Uint8Array | null | undefined;
 
@@ -80,7 +81,9 @@ export class Stream<Item> implements AsyncIterable<Item> {
           }
 
           if (sse.event === 'error') {
-            throw new APIError(undefined, safeJSON(sse.data) ?? sse.data, undefined, response.headers);
+            const body = safeJSON(sse.data) ?? sse.data;
+            const type = body?.error?.type as ErrorType | undefined;
+            throw new APIError(undefined, body, undefined, response.headers, type);
           }
         }
         done = true;

@@ -1,6 +1,7 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIPromise } from '@anthropic-ai/sdk/core/api-promise';
+import { APIError } from '@anthropic-ai/sdk/core/error';
 
 import util from 'node:util';
 import Anthropic from '@anthropic-ai/sdk';
@@ -771,5 +772,36 @@ describe('retries', () => {
         .then((r) => r.text()),
     ).toEqual(JSON.stringify({ a: 1 }));
     expect(count).toEqual(3);
+  });
+
+  test('HTTP error response exposes error type', async () => {
+    const client = new Anthropic({
+      apiKey: 'test-key',
+      fetch: () =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              type: 'error',
+              error: { type: 'invalid_request_error', message: 'Bad request' },
+            }),
+            { status: 400, headers: { 'Content-Type': 'application/json' } },
+          ),
+        ),
+    });
+
+    try {
+      await client.messages.create({
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 1,
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+      throw new Error('Expected request to throw');
+    } catch (err) {
+      expect(err).toBeInstanceOf(APIError);
+      if (err instanceof APIError) {
+        expect(err.type).toBe('invalid_request_error');
+        expect(err.status).toBe(400);
+      }
+    }
   });
 });
