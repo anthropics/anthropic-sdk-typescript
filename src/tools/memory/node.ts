@@ -73,7 +73,7 @@ async function validateNoSymlinkEscape(targetPath: string, memoryRoot: string): 
   while (true) {
     try {
       const resolved = await fs.realpath(current);
-      if (!resolved.startsWith(resolvedRoot)) {
+      if (resolved !== resolvedRoot && !resolved.startsWith(resolvedRoot + path.sep)) {
         throw new Error(`Path would escape /memories directory via symlink`);
       }
       return;
@@ -141,7 +141,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
 
     const resolvedPath = path.resolve(fullPath);
     const resolvedRoot = path.resolve(this.memoryRoot);
-    if (!resolvedPath.startsWith(resolvedRoot)) {
+    if (resolvedPath !== resolvedRoot && !resolvedPath.startsWith(resolvedRoot + path.sep)) {
       throw new Error(`Path ${memoryPath} would escape /memories directory`);
     }
 

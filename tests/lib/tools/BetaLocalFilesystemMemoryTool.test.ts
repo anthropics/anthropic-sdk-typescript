@@ -510,6 +510,42 @@ describe('BetaLocalFilesystemMemoryTool', () => {
     });
   });
 
+  describe('sibling directory prefix attack', () => {
+    it('should reject symlink to a sibling directory whose name shares the memory root prefix', async () => {
+      // Attack: create a sibling directory memories_backup next to memories,
+      // then symlink from inside memories to it. Without the trailing separator
+      // fix, validateNoSymlinkEscape's startsWith check would pass because
+      // "/tmp/.../memories_backup".startsWith("/tmp/.../memories") is true.
+      const memoriesDir = path.join(tempDir, 'memories');
+      const siblingDir = path.join(tempDir, 'memories_backup');
+      await fs.mkdir(siblingDir, { recursive: true });
+      await fs.writeFile(path.join(siblingDir, 'secret.txt'), 'stolen data', 'utf-8');
+
+      // Symlink from inside memories to the sibling
+      await fs.symlink(siblingDir, path.join(memoriesDir, 'escape_link'), 'dir');
+
+      await expect(
+        tool.view({
+          command: 'view',
+          path: '/memories/escape_link/secret.txt',
+        }),
+      ).rejects.toThrow('would escape /memories directory');
+    });
+
+    it('should reject path traversal to a sibling prefix-matching directory', async () => {
+      const siblingDir = path.join(tempDir, 'memories_backup');
+      await fs.mkdir(siblingDir, { recursive: true });
+      await fs.writeFile(path.join(siblingDir, 'secret.txt'), 'stolen data', 'utf-8');
+
+      await expect(
+        tool.view({
+          command: 'view',
+          path: '/memories/../memories_backup/secret.txt',
+        }),
+      ).rejects.toThrow('would escape /memories directory');
+    });
+  });
+
   describe('symlink validation', () => {
     let outsideDir: string;
 
