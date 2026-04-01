@@ -94,6 +94,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">RawMessageStreamEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">RedactedThinkingBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">RedactedThinkingBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">RefusalStopDetails</a></code>
 - <code><a href="./src/resources/messages/messages.ts">SearchResultBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ServerToolCaller</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ServerToolCaller20260120</a></code>
@@ -363,6 +364,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRawMessageStreamEvent</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRedactedThinkingBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRedactedThinkingBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaRefusalStopDetails</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestDocumentBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestMCPServerToolConfiguration</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestMCPServerURLDefinition</a></code>

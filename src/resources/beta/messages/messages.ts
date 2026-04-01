@@ -1330,6 +1330,11 @@ export interface BetaMessage {
   role: 'assistant';
 
   /**
+   * Structured information about a refusal.
+   */
+  stop_details: BetaRefusalStopDetails | null;
+
+  /**
    * The reason that we stopped.
    *
    * This may be one the following values:
@@ -1594,6 +1599,11 @@ export namespace BetaRawMessageDeltaEvent {
      */
     container: BetaMessagesAPI.BetaContainer | null;
 
+    /**
+     * Structured information about a refusal.
+     */
+    stop_details: BetaMessagesAPI.BetaRefusalStopDetails | null;
+
     stop_reason: BetaMessagesAPI.BetaStopReason | null;
 
     stop_sequence: string | null;
@@ -1628,6 +1638,28 @@ export interface BetaRedactedThinkingBlockParam {
   data: string;
 
   type: 'redacted_thinking';
+}
+
+/**
+ * Structured information about a refusal.
+ */
+export interface BetaRefusalStopDetails {
+  /**
+   * The policy category that triggered the refusal.
+   *
+   * `null` when the refusal doesn't map to a named category.
+   */
+  category: 'cyber' | 'bio' | null;
+
+  /**
+   * Human-readable explanation of the refusal.
+   *
+   * This text is not guaranteed to be stable. `null` when no explanation is
+   * available for the category.
+   */
+  explanation: string | null;
+
+  type: 'refusal';
 }
 
 export interface BetaRequestDocumentBlock {
@@ -4050,6 +4082,7 @@ export declare namespace Messages {
     type BetaRawMessageStreamEvent as BetaRawMessageStreamEvent,
     type BetaRedactedThinkingBlock as BetaRedactedThinkingBlock,
     type BetaRedactedThinkingBlockParam as BetaRedactedThinkingBlockParam,
+    type BetaRefusalStopDetails as BetaRefusalStopDetails,
     type BetaRequestDocumentBlock as BetaRequestDocumentBlock,
     type BetaRequestMCPServerToolConfiguration as BetaRequestMCPServerToolConfiguration,
     type BetaRequestMCPServerURLDefinition as BetaRequestMCPServerURLDefinition,

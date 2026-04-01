@@ -125,6 +125,7 @@ export {
   type BetaRawMessageStreamEvent,
   type BetaRedactedThinkingBlock,
   type BetaRedactedThinkingBlockParam,
+  type BetaRefusalStopDetails,
   type BetaRequestDocumentBlock,
   type BetaRequestMCPServerToolConfiguration,
   type BetaRequestMCPServerURLDefinition,
