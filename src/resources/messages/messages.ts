@@ -937,6 +937,11 @@ export interface Message {
   role: 'assistant';
 
   /**
+   * Structured information about a refusal.
+   */
+  stop_details: RefusalStopDetails | null;
+
+  /**
    * The reason that we stopped.
    *
    * This may be one the following values:
@@ -1205,6 +1210,11 @@ export namespace RawMessageDeltaEvent {
      */
     container: MessagesAPI.Container | null;
 
+    /**
+     * Structured information about a refusal.
+     */
+    stop_details: MessagesAPI.RefusalStopDetails | null;
+
     stop_reason: MessagesAPI.StopReason | null;
 
     stop_sequence: string | null;
@@ -1239,6 +1249,28 @@ export interface RedactedThinkingBlockParam {
   data: string;
 
   type: 'redacted_thinking';
+}
+
+/**
+ * Structured information about a refusal.
+ */
+export interface RefusalStopDetails {
+  /**
+   * The policy category that triggered the refusal.
+   *
+   * `null` when the refusal doesn't map to a named category.
+   */
+  category: 'cyber' | 'bio' | null;
+
+  /**
+   * Human-readable explanation of the refusal.
+   *
+   * This text is not guaranteed to be stable. `null` when no explanation is
+   * available for the category.
+   */
+  explanation: string | null;
+
+  type: 'refusal';
 }
 
 export interface SearchResultBlockParam {
@@ -3219,6 +3251,7 @@ export declare namespace Messages {
     type RawMessageStreamEvent as RawMessageStreamEvent,
     type RedactedThinkingBlock as RedactedThinkingBlock,
     type RedactedThinkingBlockParam as RedactedThinkingBlockParam,
+    type RefusalStopDetails as RefusalStopDetails,
     type SearchResultBlockParam as SearchResultBlockParam,
     type ServerToolCaller as ServerToolCaller,
     type ServerToolCaller20260120 as ServerToolCaller20260120,

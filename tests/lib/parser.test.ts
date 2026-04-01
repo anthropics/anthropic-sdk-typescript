@@ -75,6 +75,7 @@ describe('Beta Parser', () => {
         },
       ],
       context_management: null,
+      stop_details: null,
       stop_reason: 'end_turn',
       stop_sequence: null,
       usage: {
@@ -252,6 +253,7 @@ describe('Beta Parser', () => {
         },
       ],
       context_management: null,
+      stop_details: null,
       stop_reason: 'end_turn',
       stop_sequence: null,
       usage: {
@@ -473,6 +475,7 @@ describe('GA Parser', () => {
           citations: null,
         },
       ],
+      stop_details: null,
       stop_reason: 'end_turn',
       stop_sequence: null,
       usage: {
@@ -647,6 +650,7 @@ describe('GA Parser', () => {
           citations: null,
         },
       ],
+      stop_details: null,
       stop_reason: 'end_turn',
       stop_sequence: null,
       usage: {

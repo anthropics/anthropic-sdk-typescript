@@ -98,6 +98,7 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
       role: message.role,
       model: message.model,
       content: [],
+      stop_details: null,
       stop_reason: null,
       stop_sequence: null,
       container: null,
@@ -178,6 +179,7 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
   events.push({
     type: 'message_delta',
     delta: {
+      stop_details: message.stop_details,
       stop_reason: message.stop_reason,
       container: message.container,
       stop_sequence: message.stop_sequence,
@@ -227,6 +229,7 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
       role: 'assistant',
       content,
       model: 'claude-3-5-sonnet-latest',
+      stop_details: null,
       stop_reason,
       stop_sequence: null,
       container: null,
@@ -263,6 +266,7 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
       role: 'assistant',
       content,
       model: 'claude-3-5-sonnet-latest',
+      stop_details: null,
       stop_reason,
       stop_sequence: null,
       container: null,
