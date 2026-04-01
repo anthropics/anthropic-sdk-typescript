@@ -76,6 +76,14 @@ export class BetaToolRunner<Stream extends boolean> {
       headers: buildHeaders([{ 'x-stainless-helper': helperValue }, options?.headers]),
     };
     this.#completion = promiseWithResolvers();
+
+    if (params.compactionControl?.enabled) {
+      console.warn(
+        'Anthropic: The `compactionControl` parameter is deprecated and will be removed in a future version. ' +
+          'Use server-side compaction instead by passing `edits: [{ type: "compact_20260112" }]` in the params passed to `toolRunner()`. ' +
+          'See https://platform.claude.com/docs/en/build-with-claude/compaction',
+      );
+    }
   }
 
   async #checkAndCompact(): Promise<boolean> {
@@ -474,6 +482,11 @@ export type BetaToolRunnerParams = Simplify<
      * When exceeded, the loop will terminate even if tools are still being requested.
      */
     max_iterations?: number;
+    /**
+     * @deprecated Use server-side compaction instead by passing
+     * `edits: [{ type: 'compact_20260112' }]` in the params passed to `toolRunner()`.
+     * See https://platform.claude.com/docs/en/build-with-claude/compaction
+     */
     compactionControl?: CompactionControl;
   }
 >;
