@@ -3,7 +3,8 @@
     ".": {},
     "packages/vertex-sdk": {},
     "packages/bedrock-sdk": {},
-    "packages/foundry-sdk": {}
+    "packages/foundry-sdk": {},
+    "packages/aws-sdk": {}
   },
   "$schema": "https://raw.githubusercontent.com/stainless-api/release-please/main/schemas/config.json",
   "include-v-in-tag": true,
@@ -68,6 +69,7 @@
     "README.md",
     "packages/vertex-sdk/yarn.lock",
     "packages/bedrock-sdk/yarn.lock",
-    "packages/foundry-sdk/yarn.lock"
+    "packages/foundry-sdk/yarn.lock",
+    "packages/aws-sdk/yarn.lock"
   ]
 }

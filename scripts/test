@@ -66,3 +66,7 @@ echo "==> Running bedrock-sdk tests"
 echo
 echo "==> Running foundry-sdk tests"
 (cd packages/foundry-sdk && ./node_modules/.bin/jest)
+
+echo
+echo "==> Running aws-sdk tests"
+(cd packages/aws-sdk && ./node_modules/.bin/jest)
