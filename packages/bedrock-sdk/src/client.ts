@@ -17,6 +17,11 @@ const DEFAULT_VERSION = 'bedrock-2023-05-31';
 const MODEL_ENDPOINTS = new Set<string>(['/v1/complete', '/v1/messages', '/v1/messages?beta=true']);
 
 export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
+  /**
+   * Defaults to process.env['AWS_BEARER_TOKEN_BEDROCK'].
+   */
+  apiKey?: string | undefined;
+
   awsSecretKey?: string | null | undefined;
   awsAccessKey?: string | null | undefined;
 
@@ -100,13 +105,14 @@ export class AnthropicBedrock extends BaseAnthropic {
   constructor({
     awsRegion = readEnv('AWS_REGION') ?? 'us-east-1',
     baseURL = readEnv('ANTHROPIC_BEDROCK_BASE_URL') ?? `https://bedrock-runtime.${awsRegion}.amazonaws.com`,
+    apiKey = readEnv('AWS_BEARER_TOKEN_BEDROCK'),
     awsSecretKey = null,
     awsAccessKey = null,
     awsSessionToken = null,
     providerChainResolver = null,
     ...opts
   }: ClientOptions = {}) {
-    super({ baseURL, ...opts });
+    super({ baseURL, authToken: apiKey, ...opts });
 
     const hasAccess = awsAccessKey != null;
     const hasSecret = awsSecretKey != null;
@@ -138,8 +144,15 @@ export class AnthropicBedrock extends BaseAnthropic {
     { url, options }: { url: string; options: FinalRequestOptions },
   ): Promise<void> {
     if (this.skipAuth) {
+      // Authorization header is added in `buildRequest` so we need to remove it
+      request.headers.delete('Authorization');
       return;
     }
+
+    if (this.authToken) {
+      return;
+    }
+
     const regionName = this.awsRegion;
     if (!regionName) {
       throw new Error(

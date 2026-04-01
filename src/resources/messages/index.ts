@@ -95,6 +95,7 @@ export {
   type RawMessageStreamEvent,
   type RedactedThinkingBlock,
   type RedactedThinkingBlockParam,
+  type RefusalStopDetails,
   type SearchResultBlockParam,
   type ServerToolCaller,
   type ServerToolCaller20260120,
