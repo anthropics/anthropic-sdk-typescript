@@ -245,16 +245,22 @@ const tokenize = (input: string): Token[] => {
   },
   generate = (tokens: Token[]): string => {
     let output = '';
+    let prevType: string | null = null;
 
     tokens.map((token) => {
       switch (token.type) {
         case 'string':
-          output += '"' + token.value + '"';
+          if (prevType === 'string') {
+            output = output.slice(0, -1) + '\\"' + token.value + '"';
+          } else {
+            output += '"' + token.value + '"';
+          }
           break;
         default:
           output += token.value;
           break;
       }
+      prevType = token.type;
     });
 
     return output;
