@@ -86,21 +86,12 @@ export class AnthropicVertex extends BaseAnthropic {
       );
     }
 
-    if (!baseURL) {
-      switch (region) {
-        case 'global':
-          baseURL = 'https://aiplatform.googleapis.com/v1';
-          break;
-        case 'us':
-          baseURL = 'https://aiplatform.us.rep.googleapis.com/v1';
-          break;
-        default:
-          baseURL = `https://${region}-aiplatform.googleapis.com/v1`;
-      }
-    }
-
     super({
-      baseURL,
+      baseURL:
+        baseURL ||
+        (region === 'global' ?
+          'https://aiplatform.googleapis.com/v1'
+        : `https://${region}-aiplatform.googleapis.com/v1`),
       ...opts,
     });
 

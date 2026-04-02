@@ -25,15 +25,6 @@ describe('AnthropicVertex', () => {
       expect(client.baseURL).toBe('https://aiplatform.googleapis.com/v1');
     });
 
-    test('us region uses correct base URL', () => {
-      const client = new AnthropicVertex({
-        region: 'us',
-        projectId: 'test-project',
-        accessToken: 'fake-token',
-      });
-      expect(client.baseURL).toBe('https://aiplatform.us.rep.googleapis.com/v1');
-    });
-
     test.each(['us-central1', 'europe-west1', 'asia-southeast1'])(
       'regional endpoint %s uses correct base URL format',
       (region) => {
