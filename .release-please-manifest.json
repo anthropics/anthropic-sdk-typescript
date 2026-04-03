@@ -1,7 +1,7 @@
 {
-  ".": "0.82.0",
-  "packages/vertex-sdk": "0.14.4",
+  ".": "0.83.0",
+  "packages/vertex-sdk": "0.15.0",
   "packages/bedrock-sdk": "0.27.0",
   "packages/foundry-sdk": "0.2.3",
-  "packages/aws-sdk": "0.2.0"
+  "packages/aws-sdk": "0.2.1"
 }
