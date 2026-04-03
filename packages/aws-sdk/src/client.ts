@@ -5,6 +5,8 @@ import { readEnv } from './internal/utils';
 import { Anthropic, ClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
+import { loadConfig } from '@smithy/node-config-provider';
+import { NODE_REGION_CONFIG_OPTIONS, NODE_REGION_CONFIG_FILE_OPTIONS } from '@smithy/config-resolver';
 import { getAuthHeaders } from './core/auth';
 import { FinalRequestOptions } from './internal/request-options';
 import { FinalizedRequestInit } from './internal/types';
@@ -15,7 +17,13 @@ export interface AwsClientOptions extends ClientOptions {
   /**
    * AWS region for the API gateway.
    *
-   * Resolved by precedence: `awsRegion` arg > `AWS_REGION` env var > `AWS_DEFAULT_REGION` env var.
+   * Resolved by precedence: `awsRegion` arg > `AWS_REGION` env var >
+   * `AWS_DEFAULT_REGION` env var > region from the AWS shared config file
+   * (`~/.aws/config`) for the given `awsProfile` (or `[default]`).
+   *
+   * When resolution falls through to the config file, the region is loaded
+   * asynchronously. It will be available after `await client.ready` or the
+   * first request; until then `awsRegion` and `baseURL` are `undefined`.
    */
   awsRegion?: string | undefined;
 
@@ -48,10 +56,11 @@ export interface AwsClientOptions extends ClientOptions {
   awsSessionToken?: string | null | undefined;
 
   /**
-   * AWS named profile for credential resolution.
+   * AWS named profile for credential and region resolution.
    *
-   * When set, credentials are loaded from the AWS credential chain
-   * using this profile.
+   * When set, credentials are loaded from the AWS credential chain using this
+   * profile, and the profile's `region` from `~/.aws/config` is used as a
+   * fallback when no region is provided via arg or environment variable.
    */
   awsProfile?: string | undefined;
 
@@ -78,6 +87,13 @@ export interface AwsClientOptions extends ClientOptions {
   skipAuth?: boolean;
 }
 
+const noRegionError = () =>
+  new Errors.AnthropicError(
+    'No AWS region or base URL found. Set `awsRegion` in the constructor, the `AWS_REGION` / `AWS_DEFAULT_REGION` ' +
+      'environment variable, configure a `region` for your profile in `~/.aws/config`, or provide a `baseURL` / ' +
+      '`ANTHROPIC_AWS_BASE_URL` environment variable.',
+  );
+
 /** API Client for interfacing with the Anthropic AWS API. */
 export class AnthropicAws extends Anthropic {
   awsRegion: string | undefined;
@@ -88,6 +104,13 @@ export class AnthropicAws extends Anthropic {
   providerChainResolver: (() => Promise<AwsCredentialIdentityProvider>) | null;
   workspaceId: string | undefined;
   skipAuth: boolean = false;
+
+  /**
+   * Resolves once the client is fully configured (region and base URL
+   * resolved). Rejects if region resolution fails. Await this to fail fast on
+   * misconfiguration instead of waiting for the first request.
+   */
+  readonly ready: Promise<void>;
 
   private _useSigV4: boolean;
 
@@ -102,8 +125,8 @@ export class AnthropicAws extends Anthropic {
    * @param {string | null | undefined} [opts.awsAccessKey] - AWS access key ID for SigV4 authentication.
    * @param {string | null | undefined} [opts.awsSecretAccessKey] - AWS secret access key for SigV4 authentication.
    * @param {string | null | undefined} [opts.awsSessionToken] - AWS session token for temporary credentials.
-   * @param {string | undefined} [opts.awsProfile] - AWS named profile for credential resolution.
-   * @param {string | undefined} [opts.awsRegion] - AWS region. Resolved by precedence: arg > `AWS_REGION` env > `AWS_DEFAULT_REGION` env.
+   * @param {string | undefined} [opts.awsProfile] - AWS named profile for credential and region resolution.
+   * @param {string | undefined} [opts.awsRegion] - AWS region. Resolved by precedence: arg > `AWS_REGION` env > `AWS_DEFAULT_REGION` env > `~/.aws/config`.
    * @param {(() => Promise<AwsCredentialIdentityProvider>) | null} [opts.providerChainResolver] - Custom provider chain resolver for AWS credentials.
    * @param {string | undefined} [opts.workspaceId] - Workspace ID sent as `anthropic-workspace-id` header. Resolved by precedence: arg > `ANTHROPIC_AWS_WORKSPACE_ID` env var.
    * @param {string} [opts.baseURL=process.env['ANTHROPIC_AWS_BASE_URL'] ?? https://aws-external-anthropic.{awsRegion}.api.aws] - Override the default base URL for the API.
@@ -129,18 +152,21 @@ export class AnthropicAws extends Anthropic {
     skipAuth = false,
     ...opts
   }: AwsClientOptions = {}) {
-    // Region resolution: arg > AWS_REGION env > AWS_DEFAULT_REGION env
-    const resolvedRegion = awsRegion ?? readEnv('AWS_REGION') ?? readEnv('AWS_DEFAULT_REGION');
+    // Region resolution: arg > AWS_REGION env > AWS_DEFAULT_REGION env > ~/.aws/config (async).
+    // The first three are resolved here; config-file fallback is kicked off below and
+    // awaited on `ready` / first request.
+    const syncRegion = awsRegion ?? readEnv('AWS_REGION') ?? readEnv('AWS_DEFAULT_REGION');
 
-    const resolvedBaseURL =
-      baseURL ??
-      readEnv('ANTHROPIC_AWS_BASE_URL') ??
-      (resolvedRegion ? `https://aws-external-anthropic.${resolvedRegion}.api.aws` : undefined);
-
-    if (!resolvedBaseURL && !skipAuth) {
-      throw new Errors.AnthropicError(
-        'No AWS region or base URL found. Set `awsRegion` in the constructor, the `AWS_REGION` / `AWS_DEFAULT_REGION` environment variable, or provide a `baseURL` / `ANTHROPIC_AWS_BASE_URL` environment variable.',
-      );
+    const explicitBaseURL = baseURL ?? readEnv('ANTHROPIC_AWS_BASE_URL');
+    let resolvedBaseURL: string | undefined;
+    if (explicitBaseURL) {
+      resolvedBaseURL = explicitBaseURL;
+    } else if (syncRegion) {
+      resolvedBaseURL = `https://aws-external-anthropic.${syncRegion}.api.aws`;
+    } else {
+      // No region known yet (or skipAuth) — will be resolved async from ~/.aws/config,
+      // or is not needed at all.
+      resolvedBaseURL = undefined;
     }
 
     // Precedence-based auth resolution:
@@ -180,7 +206,7 @@ export class AnthropicAws extends Anthropic {
       defaultHeaders: buildHeaders([{ 'anthropic-workspace-id': resolvedWorkspaceId }, opts.defaultHeaders]),
     });
 
-    this.awsRegion = resolvedRegion;
+    this.awsRegion = syncRegion;
     this.awsAccessKey = awsAccessKey;
     this.awsSecretAccessKey = awsSecretAccessKey;
     this.awsSessionToken = awsSessionToken;
@@ -189,6 +215,37 @@ export class AnthropicAws extends Anthropic {
     this.workspaceId = resolvedWorkspaceId;
     this.skipAuth = skipAuth;
     this._useSigV4 = resolvedApiKey == null;
+
+    if (syncRegion || explicitBaseURL || skipAuth) {
+      this.ready = Promise.resolve();
+    } else {
+      this.ready = this._resolveRegionFromConfig(awsProfile).then((region: string) => {
+        this.awsRegion = region;
+        this.baseURL = `https://aws-external-anthropic.${region}.api.aws`;
+      });
+      // Suppress unhandledRejection; the error surfaces via `await ready` or the first request.
+      this.ready.catch(() => {});
+    }
+  }
+
+  private _resolveRegionFromConfig(profile: string | undefined): Promise<string> {
+    return loadConfig(
+      {
+        ...NODE_REGION_CONFIG_OPTIONS,
+        default: () => {
+          throw noRegionError();
+        },
+      },
+      {
+        ...NODE_REGION_CONFIG_FILE_OPTIONS,
+        ...(profile && { profile }),
+      },
+    )();
+  }
+
+  protected override async prepareOptions(options: FinalRequestOptions): Promise<void> {
+    await super.prepareOptions(options);
+    await this.ready;
   }
 
   protected override async authHeaders(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
@@ -217,16 +274,14 @@ export class AnthropicAws extends Anthropic {
       return;
     }
 
-    const regionName = this.awsRegion;
-    if (!regionName) {
-      throw new Errors.AnthropicError(
-        'No AWS region found. Set `awsRegion` in the constructor or the `AWS_REGION` / `AWS_DEFAULT_REGION` environment variable.',
-      );
+    if (!this.awsRegion) {
+      // Only reachable when an explicit baseURL was provided without a region.
+      throw noRegionError();
     }
 
     const headers = await getAuthHeaders(request, {
       url,
-      regionName,
+      regionName: this.awsRegion,
       serviceName: DEFAULT_SERVICE_NAME,
       awsAccessKey: this.awsAccessKey,
       awsSecretAccessKey: this.awsSecretAccessKey,
