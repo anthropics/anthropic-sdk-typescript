@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1 (2026-04-03)
+
+Full Changelog: [aws-sdk-v0.2.0...aws-sdk-v0.2.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.2.0...aws-sdk-v0.2.1)
+
+### Chores
+
+* **client:** internal updates ([3d64763](https://github.com/anthropics/anthropic-sdk-typescript/commit/3d6476315480508cff8462a5b4523944579dbd32))
+
 ## 0.2.0 (2026-04-01)
 
 Full Changelog: [aws-sdk-v0.1.0...aws-sdk-v0.2.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.1.0...aws-sdk-v0.2.0)

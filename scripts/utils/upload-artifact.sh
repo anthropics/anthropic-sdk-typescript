@@ -25,30 +25,3 @@ else
   echo -e "\033[31mFailed to upload artifact.\033[0m"
   exit 1
 fi
-
-# Upload aws-sdk tarball
-
-AWS_RESPONSE=$(curl -X POST "$URL" \
-  -H "Authorization: Bearer $AUTH" \
-  -H "Content-Type: application/json")
-
-AWS_SIGNED_URL=$(echo "$AWS_RESPONSE" | jq -r '.url')
-
-if [[ "$AWS_SIGNED_URL" == "null" ]]; then
-  echo -e "\033[31mFailed to get signed URL for aws-sdk.\033[0m"
-  exit 1
-fi
-
-AWS_TARBALL=$(cd packages/aws-sdk/dist && npm pack --silent)
-
-AWS_UPLOAD_RESPONSE=$(curl -v -X PUT \
-  -H "Content-Type: application/gzip" \
-  --data-binary "@packages/aws-sdk/dist/$AWS_TARBALL" "$AWS_SIGNED_URL" 2>&1)
-
-if echo "$AWS_UPLOAD_RESPONSE" | grep -q "HTTP/[0-9.]* 200"; then
-  echo -e "\033[32mUploaded aws-sdk build to Stainless storage.\033[0m"
-  echo -e "\033[32mInstallation: npm install 'https://pkg.stainless.com/s/anthropic-typescript/$SHA'\033[0m"
-else
-  echo -e "\033[31mFailed to upload aws-sdk artifact.\033[0m"
-  exit 1
-fi
