@@ -1145,4 +1145,131 @@ describe('ToolRunner', () => {
       expect(capturedHelperHeader).toContain('mcpContent');
     });
   });
+
+  describe('compaction', () => {
+    it('caps max_tokens in the compaction summary request to avoid "Streaming is required" error', async () => {
+      // The bug: #checkAndCompact() passed the full max_tokens (e.g. 64_000) to a
+      // non-streaming messages.create() call. The SDK's calculateNonstreamingTimeout
+      // throws when max_tokens implies a response > 10 min, so compaction always
+      // failed for users with large max_tokens.
+      //
+      // The fix: cap max_tokens at COMPACTION_SUMMARY_MAX_TOKENS (4096) for the
+      // summary request.
+      //
+      // Reproduce by running the tool runner in streaming mode (so the main loop
+      // uses messages.stream(), bypassing the timeout check) with max_tokens large
+      // enough to trigger the check in the non-streaming compaction call.
+      const { fetch, handleStreamEvents, handleRequest } = mockFetch();
+      const largeMaxTokens = 64_000; // would throw in non-streaming without the cap
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+
+      let compactionMaxTokens: number | null = null;
+
+      // Build a streaming BetaMessage with tool_use and high token usage
+      const toolUseMsg: BetaMessage = {
+        id: 'msg_1',
+        type: 'message',
+        role: 'assistant',
+        content: [getWeatherToolUse('Tokyo')],
+        model: 'claude-3-5-sonnet-latest',
+        stop_reason: 'tool_use',
+        stop_sequence: null,
+        container: null,
+        context_management: null,
+        usage: {
+          input_tokens: 90_000,
+          output_tokens: 10_000,
+          cache_creation: null,
+          cache_creation_input_tokens: null,
+          cache_read_input_tokens: null,
+          server_tool_use: null,
+          service_tier: null,
+          inference_geo: null,
+          iterations: null,
+          speed: null,
+        },
+      };
+
+      // Request 1 (streaming): assistant requests tool, high token count exceeds threshold
+      handleStreamEvents(betaMessageToStreamEvents(toolUseMsg));
+
+      // Request 2 (non-streaming): compaction summary — capture max_tokens
+      handleRequest(async (_req, init) => {
+        const body = JSON.parse((init?.body as string) ?? '{}');
+        compactionMaxTokens = body.max_tokens ?? null;
+        return new Response(
+          JSON.stringify({
+            id: 'msg_compaction',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: '<summary>Compact summary.</summary>' }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: {
+              input_tokens: 100,
+              output_tokens: 20,
+              cache_creation: null,
+              cache_creation_input_tokens: null,
+              cache_read_input_tokens: null,
+              server_tool_use: null,
+              service_tier: null,
+              inference_geo: null,
+              iterations: null,
+              speed: null,
+            },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      // Request 3 (streaming): final assistant turn after compaction
+      const finalMsg: BetaMessage = {
+        id: 'msg_3',
+        type: 'message',
+        role: 'assistant',
+        content: [{ type: 'text', text: 'Done.' }],
+        model: 'claude-3-5-sonnet-latest',
+        stop_reason: 'end_turn',
+        stop_sequence: null,
+        container: null,
+        context_management: null,
+        usage: {
+          input_tokens: 50,
+          output_tokens: 5,
+          cache_creation: null,
+          cache_creation_input_tokens: null,
+          cache_read_input_tokens: null,
+          server_tool_use: null,
+          service_tier: null,
+          inference_geo: null,
+          iterations: null,
+          speed: null,
+        },
+      };
+      handleStreamEvents(betaMessageToStreamEvents(finalMsg));
+
+      const runner = client.beta.messages.toolRunner({
+        stream: true,
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: largeMaxTokens,
+        messages: [{ role: 'user', content: 'What is the weather in Tokyo?' }],
+        tools: [weatherTool],
+        compactionControl: {
+          enabled: true,
+          contextTokenThreshold: 50_000, // low enough to trigger after first response
+        },
+      });
+
+      await runner.runUntilDone();
+
+      // Compaction must have fired and used a capped max_tokens.
+      // Without the fix, the non-streaming compaction call would have thrown
+      // "Streaming is required for operations that may take longer than 10 minutes."
+      expect(compactionMaxTokens).not.toBeNull();
+      expect(compactionMaxTokens).toBeLessThanOrEqual(4096);
+    });
+  });
 });
