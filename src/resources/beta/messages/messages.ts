@@ -73,20 +73,19 @@ function hasGlobalCacheScope(body: Omit<MessageCreateParams, 'betas'>): boolean 
     cc != null && typeof cc === 'object' && (cc as Record<string, unknown>)['scope'] === 'global';
 
   if (Array.isArray(body.system)) {
-    if (body.system.some((b: any) => isGlobal(b.cache_control))) return true;
+    if (body.system.some((b) => isGlobal((b as { cache_control?: unknown }).cache_control))) return true;
   }
   if (Array.isArray(body.tools)) {
-    if (body.tools.some((t: any) => isGlobal(t.cache_control))) return true;
+    if (body.tools.some((t) => isGlobal((t as { cache_control?: unknown }).cache_control))) return true;
   }
   for (const message of body.messages ?? []) {
     const content = message.content;
     if (Array.isArray(content)) {
-      if (content.some((b: any) => isGlobal(b.cache_control))) return true;
+      if (content.some((b) => isGlobal((b as { cache_control?: unknown }).cache_control))) return true;
     }
   }
   return false;
 }
-
 
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
@@ -131,6 +130,7 @@ export class Messages extends APIResource {
     // Auto-inject required beta headers based on request params so callers
     // don't have to track which betas go with which fields.
     const activeBetas: string[] = betas ? [...betas] : [];
+    // authToken lives on the concrete Anthropic class, not BaseAnthropic; cast is unavoidable.
     if ((this._client as any).authToken && !activeBetas.includes('oauth-2025-04-20')) {
       activeBetas.push('oauth-2025-04-20');
     }
@@ -201,15 +201,15 @@ export class Messages extends APIResource {
     params: Params,
     options?: RequestOptions,
   ): APIPromise<ParsedBetaMessage<ExtractParsedContentFromBetaParams<Params>>> {
-    options = {
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(params.betas ?? []), 'structured-outputs-2025-12-15'].toString() },
-        options?.headers,
-      ]),
-    };
+    // Route structured-outputs beta through params.betas so create()'s activeBetas
+    // logic handles all header construction in one place. Avoids options.headers
+    // arriving after activeBetas in buildHeaders and clobbering auto-injected betas.
+    const paramsWithBeta = {
+      ...params,
+      betas: [...(params.betas ?? []), 'structured-outputs-2025-12-15'],
+    } as Params;
 
-    return this.create(params, options).then((message) =>
+    return this.create(paramsWithBeta, options).then((message) =>
       parseBetaMessage(message, params, { logger: this._client.logger ?? console }),
     ) as APIPromise<ParsedBetaMessage<ExtractParsedContentFromBetaParams<Params>>>;
   }
@@ -1724,7 +1724,7 @@ export interface BetaOutputConfigTaskBudget {
   /**
    * Remaining token budget. Claude will stop generating once this reaches zero.
    */
-  remaining: number;
+  remaining?: number;
 }
 
 export interface BetaPlainTextSource {

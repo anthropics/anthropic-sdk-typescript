@@ -33,6 +33,29 @@ import * as MessagesAPI from './messages';
 
 import { MODEL_NONSTREAMING_TOKENS } from '../../internal/constants';
 
+/**
+ * Returns true if any cache_control block in the request has scope: 'global'.
+ * Used to auto-inject the prompt-caching-scope-2026-01-05 beta header.
+ */
+function hasGlobalCacheScope(body: MessageCreateParams): boolean {
+  const isGlobal = (cc: unknown): boolean =>
+    cc != null && typeof cc === 'object' && (cc as Record<string, unknown>)['scope'] === 'global';
+
+  if (Array.isArray(body.system)) {
+    if (body.system.some((b) => isGlobal((b as { cache_control?: unknown }).cache_control))) return true;
+  }
+  if (Array.isArray(body.tools)) {
+    if (body.tools.some((t) => isGlobal((t as { cache_control?: unknown }).cache_control))) return true;
+  }
+  for (const message of body.messages ?? []) {
+    const content = message.content;
+    if (Array.isArray(content)) {
+      if (content.some((b) => isGlobal((b as { cache_control?: unknown }).cache_control))) return true;
+    }
+  }
+  return false;
+}
+
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
 
@@ -91,6 +114,13 @@ export class Messages extends APIResource {
       timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
     }
 
+    // Auto-inject required beta headers for fields that have implicit beta requirements.
+    // Explicit options.headers (processed last in buildHeaders) take precedence, matching
+    // the same override semantics as the beta Messages path.
+    const autoBetas: string[] = [];
+    if (body.output_config?.task_budget) autoBetas.push('task-budgets-2026-03-13');
+    if (hasGlobalCacheScope(body)) autoBetas.push('prompt-caching-scope-2026-01-05');
+
     // Collect helper info from tools and messages
     const helperHeader = stainlessHelperHeader(body.tools, body.messages);
 
@@ -98,7 +128,11 @@ export class Messages extends APIResource {
       body,
       timeout: timeout ?? 600000,
       ...options,
-      headers: buildHeaders([helperHeader, options?.headers]),
+      headers: buildHeaders([
+        autoBetas.length > 0 ? { 'anthropic-beta': autoBetas.toString() } : undefined,
+        helperHeader,
+        options?.headers,
+      ]),
       stream: body.stream ?? false,
     }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
   }
@@ -1132,7 +1166,7 @@ export interface OutputConfigTaskBudget {
   /**
    * Remaining token budget. Claude will stop generating once this reaches zero.
    */
-  remaining: number;
+  remaining?: number;
 }
 
 const DEPRECATED_MODELS: {
