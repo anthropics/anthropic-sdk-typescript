@@ -11,6 +11,7 @@ import {
   BetaToolTextEditor20250124,
   BetaToolTextEditor20250429,
   BetaToolTextEditor20250728,
+  BetaToolUseBlock,
 } from '../../resources/beta';
 
 export type Promisable<T> = T | Promise<T>;
@@ -32,9 +33,17 @@ export type BetaClientRunnableToolType =
   | BetaToolTextEditor20250429
   | BetaToolTextEditor20250728;
 
+export type BetaToolRunContext = {
+  toolUseBlock: BetaToolUseBlock;
+  signal?: AbortSignal | null | undefined;
+};
+
 // this type is just an extension of BetaTool with a run and parse method
 // that will be called by `toolRunner()` helpers
 export type BetaRunnableTool<Input = any> = BetaClientRunnableToolType & {
-  run: (args: Input) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
+  run: (
+    args: Input,
+    context?: BetaToolRunContext,
+  ) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
   parse: (content: unknown) => Input;
 };
