@@ -8,6 +8,7 @@ import { RequestOptions } from '../../internal/request-options';
 import { buildHeaders } from '../../internal/headers';
 import { CompactionControl, DEFAULT_SUMMARY_PROMPT, DEFAULT_TOKEN_THRESHOLD } from './CompactionControl';
 import { collectStainlessHelpers } from '../stainless-helper-header';
+import { Simplify } from '../type-utils';
 
 /**
  * Just Promise.withResolvers(), which is not available in all environments.
@@ -467,8 +468,6 @@ async function generateToolResponse(
   };
 }
 
-// vendored from typefest just to make things look a bit nicer on hover
-type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {};
 
 /**
  * Parameters for creating a ToolRunner, extending MessageCreateParams with runnable tools.

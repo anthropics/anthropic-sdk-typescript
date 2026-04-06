@@ -9,9 +9,7 @@ import {
   MessageCreateParams,
 } from '../resources/beta/messages/messages';
 
-// vendored from typefest just to make things look a bit nicer on hover
-type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {};
-
+import { Simplify } from './type-utils';
 type AutoParseableBetaOutputConfig = Omit<BetaOutputConfig, 'format'> & {
   format?: BetaJSONOutputFormat | AutoParseableBetaOutputFormat<any> | null;
 };

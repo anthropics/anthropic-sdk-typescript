@@ -9,8 +9,7 @@ import {
   MessageCreateParams,
 } from '../resources/messages/messages';
 
-// vendored from typefest just to make things look a bit nicer on hover
-type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {};
+import { Simplify } from './type-utils';
 
 type AutoParseableOutputConfig = Omit<OutputConfig, 'format'> & {
   format?: JSONOutputFormat | AutoParseableOutputFormat<any> | null;

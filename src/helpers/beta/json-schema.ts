@@ -5,7 +5,6 @@ import { AutoParseableBetaOutputFormat } from '../../lib/beta-parser';
 import { AnthropicError } from '../..';
 import { transformJSONSchema } from '../../lib/transform-json-schema';
 
-type NoInfer<T> = T extends infer R ? R : never;
 
 /**
  * Creates a Tool with a provided JSON schema that can be passed
