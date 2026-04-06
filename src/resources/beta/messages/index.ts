@@ -111,6 +111,7 @@ export {
   type BetaMessageTokensCount,
   type BetaMetadata,
   type BetaOutputConfig,
+  type BetaOutputConfigTaskBudget,
   type BetaPlainTextSource,
   type BetaRawContentBlockDelta,
   type BetaRawContentBlockDeltaEvent,

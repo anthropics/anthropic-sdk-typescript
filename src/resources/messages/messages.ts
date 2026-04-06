@@ -292,6 +292,13 @@ export interface CacheControlEphemeral {
    * Defaults to `5m`.
    */
   ttl?: '5m' | '1h';
+
+  /**
+   * Cache scope. When set to `'global'`, the cache entry is shared across all API
+   * requests using the same content, regardless of session. Requires the
+   * `prompt-caching-scope-2026-01-05` beta header.
+   */
+  scope?: 'global';
 }
 
 export interface CacheCreation {
@@ -1103,6 +1110,29 @@ export interface OutputConfig {
    * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
    */
   format?: JSONOutputFormat | null;
+
+  /**
+   * Token budget for this task. When provided with the `task-budgets-2026-03-13`
+   * beta, Claude will stop generating output once the remaining budget reaches zero.
+   */
+  task_budget?: OutputConfigTaskBudget | null;
+}
+
+export interface OutputConfigTaskBudget {
+  /**
+   * The type of budget unit.
+   */
+  type: 'tokens';
+
+  /**
+   * Total token budget allocated for this task.
+   */
+  total: number;
+
+  /**
+   * Remaining token budget. Claude will stop generating once this reaches zero.
+   */
+  remaining: number;
 }
 
 const DEPRECATED_MODELS: {
@@ -3240,6 +3270,7 @@ export declare namespace Messages {
     type Metadata as Metadata,
     type Model as Model,
     type OutputConfig as OutputConfig,
+    type OutputConfigTaskBudget as OutputConfigTaskBudget,
     type PlainTextSource as PlainTextSource,
     type RawContentBlockDelta as RawContentBlockDelta,
     type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,

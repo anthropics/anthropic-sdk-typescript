@@ -268,7 +268,11 @@ export type AnthropicBeta =
   | 'model-context-window-exceeded-2025-08-26'
   | 'skills-2025-10-02'
   | 'fast-mode-2026-02-01'
-  | 'output-300k-2026-03-24';
+  | 'output-300k-2026-03-24'
+  | 'prompt-caching-scope-2026-01-05'
+  | 'redact-thinking-2026-02-12'
+  | 'token-efficient-tools-2026-03-28'
+  | 'task-budgets-2026-03-13';
 
 export interface BetaAPIError {
   message: string;

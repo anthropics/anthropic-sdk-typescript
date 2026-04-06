@@ -84,6 +84,7 @@ export {
   type Metadata,
   type Model,
   type OutputConfig,
+  type OutputConfigTaskBudget,
   type PlainTextSource,
   type RawContentBlockDelta,
   type RawContentBlockDeltaEvent,

@@ -64,6 +64,30 @@ const DEPRECATED_MODELS: {
 
 const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-opus-4-6'];
 
+/**
+ * Returns true if any cache_control block in the request has scope: 'global'.
+ * Used to auto-inject the prompt-caching-scope-2026-01-05 beta header.
+ */
+function hasGlobalCacheScope(body: Omit<MessageCreateParams, 'betas'>): boolean {
+  const isGlobal = (cc: unknown): boolean =>
+    cc != null && typeof cc === 'object' && (cc as Record<string, unknown>)['scope'] === 'global';
+
+  if (Array.isArray(body.system)) {
+    if (body.system.some((b: any) => isGlobal(b.cache_control))) return true;
+  }
+  if (Array.isArray(body.tools)) {
+    if (body.tools.some((t: any) => isGlobal(t.cache_control))) return true;
+  }
+  for (const message of body.messages ?? []) {
+    const content = message.content;
+    if (Array.isArray(content)) {
+      if (content.some((b: any) => isGlobal(b.cache_control))) return true;
+    }
+  }
+  return false;
+}
+
+
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
 
@@ -104,6 +128,19 @@ export class Messages extends APIResource {
 
     const { betas, ...body } = modifiedParams;
 
+    // Auto-inject required beta headers based on request params so callers
+    // don't have to track which betas go with which fields.
+    const activeBetas: string[] = betas ? [...betas] : [];
+    if ((this._client as any).authToken && !activeBetas.includes('oauth-2025-04-20')) {
+      activeBetas.push('oauth-2025-04-20');
+    }
+    if (body.output_config?.task_budget && !activeBetas.includes('task-budgets-2026-03-13')) {
+      activeBetas.push('task-budgets-2026-03-13');
+    }
+    if (hasGlobalCacheScope(body) && !activeBetas.includes('prompt-caching-scope-2026-01-05')) {
+      activeBetas.push('prompt-caching-scope-2026-01-05');
+    }
+
     if (body.model in DEPRECATED_MODELS) {
       console.warn(
         `The model '${body.model}' is deprecated and will reach end-of-life on ${
@@ -136,7 +173,7 @@ export class Messages extends APIResource {
       timeout: timeout ?? 600000,
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        { ...(activeBetas.length > 0 ? { 'anthropic-beta': activeBetas.toString() } : undefined) },
         helperHeader,
         options?.headers,
       ]),
@@ -379,6 +416,13 @@ export interface BetaCacheControlEphemeral {
    * Defaults to `5m`.
    */
   ttl?: '5m' | '1h';
+
+  /**
+   * Cache scope. When set to `'global'`, the cache entry is shared across all API
+   * requests using the same content, regardless of session. Requires the
+   * `prompt-caching-scope-2026-01-05` beta header.
+   */
+  scope?: 'global';
 }
 
 export interface BetaCacheCreation {
@@ -1658,6 +1702,29 @@ export interface BetaOutputConfig {
    * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
    */
   format?: BetaJSONOutputFormat | null;
+
+  /**
+   * Token budget for this task. When provided with the `task-budgets-2026-03-13`
+   * beta, Claude will stop generating output once the remaining budget reaches zero.
+   */
+  task_budget?: BetaOutputConfigTaskBudget | null;
+}
+
+export interface BetaOutputConfigTaskBudget {
+  /**
+   * The type of budget unit.
+   */
+  type: 'tokens';
+
+  /**
+   * Total token budget allocated for this task.
+   */
+  total: number;
+
+  /**
+   * Remaining token budget. Claude will stop generating once this reaches zero.
+   */
+  remaining: number;
 }
 
 export interface BetaPlainTextSource {
@@ -4234,6 +4301,7 @@ export declare namespace Messages {
     type BetaMessageTokensCount as BetaMessageTokensCount,
     type BetaMetadata as BetaMetadata,
     type BetaOutputConfig as BetaOutputConfig,
+    type BetaOutputConfigTaskBudget as BetaOutputConfigTaskBudget,
     type BetaPlainTextSource as BetaPlainTextSource,
     type BetaRawContentBlockDelta as BetaRawContentBlockDelta,
     type BetaRawContentBlockDeltaEvent as BetaRawContentBlockDeltaEvent,
