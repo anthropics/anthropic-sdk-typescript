@@ -8,6 +8,15 @@ jest.mock('../src/core/auth', () => ({
   }),
 }));
 
+const mockLoadConfig = jest.fn();
+jest.mock('@smithy/node-config-provider', () => ({
+  loadConfig: (...args: unknown[]) => mockLoadConfig(...args),
+}));
+jest.mock('@smithy/config-resolver', () => ({
+  NODE_REGION_CONFIG_OPTIONS: { __mock: 'options' },
+  NODE_REGION_CONFIG_FILE_OPTIONS: { __mock: 'fileOptions' },
+}));
+
 const mockGetAuthHeaders = getAuthHeaders as jest.MockedFunction<typeof getAuthHeaders>;
 
 const mockFetch = jest.fn().mockImplementation(() => {
@@ -42,7 +51,28 @@ describe('AnthropicAws', () => {
     global.fetch = mockFetch;
     mockFetch.mockClear();
     mockGetAuthHeaders.mockClear();
+    mockLoadConfig.mockReset();
+    // Simulate no region found: invoke the `default` callback from the config options,
+    // mirroring what @smithy/node-config-provider does when no region is configured.
+    mockLoadConfig.mockImplementation((selectors?: { default?: () => unknown }) => {
+      return () => {
+        if (selectors?.default) {
+          try {
+            return Promise.resolve(selectors.default());
+          } catch (e) {
+            return Promise.reject(e);
+          }
+        }
+        return Promise.reject(new Error('no region configured'));
+      };
+    });
     process.env = { ...originalEnv };
+    delete process.env['AWS_REGION'];
+    delete process.env['AWS_DEFAULT_REGION'];
+    delete process.env['ANTHROPIC_API_KEY'];
+    delete process.env['ANTHROPIC_AWS_BASE_URL'];
+    delete process.env['ANTHROPIC_AWS_API_KEY'];
+    delete process.env['ANTHROPIC_AWS_WORKSPACE_ID'];
   });
 
   afterEach(() => {
@@ -137,6 +167,119 @@ describe('AnthropicAws', () => {
     });
   });
 
+  describe('region from AWS config file', () => {
+    test('ready resolves immediately when awsRegion is passed explicitly', async () => {
+      const client = new AnthropicAws({
+        awsRegion: 'us-east-1',
+        workspaceId: 'ws-test',
+      });
+
+      await expect(client.ready).resolves.toBeUndefined();
+      expect(mockLoadConfig).not.toHaveBeenCalled();
+    });
+
+    test('ready resolves immediately when AWS_REGION env is set', async () => {
+      process.env['AWS_REGION'] = 'us-west-2';
+
+      const client = new AnthropicAws({ workspaceId: 'ws-test' });
+
+      await expect(client.ready).resolves.toBeUndefined();
+      expect(mockLoadConfig).not.toHaveBeenCalled();
+    });
+
+    test('ready resolves immediately when baseURL is explicit', async () => {
+      const client = new AnthropicAws({
+        baseURL: 'https://custom.example.com',
+        workspaceId: 'ws-test',
+      });
+
+      await expect(client.ready).resolves.toBeUndefined();
+      expect(mockLoadConfig).not.toHaveBeenCalled();
+    });
+
+    test('ready resolves immediately when skipAuth is true', async () => {
+      const client = new AnthropicAws({ skipAuth: true });
+
+      await expect(client.ready).resolves.toBeUndefined();
+      expect(mockLoadConfig).not.toHaveBeenCalled();
+    });
+
+    test('resolves region from config file for awsProfile', async () => {
+      mockLoadConfig.mockReturnValue(() => Promise.resolve('eu-west-2'));
+
+      const client = new AnthropicAws({
+        awsProfile: 'my-profile',
+        workspaceId: 'ws-test',
+      });
+
+      expect(client.awsRegion).toBeUndefined();
+      await client.ready;
+      expect(client.awsRegion).toBe('eu-west-2');
+      expect(client.baseURL).toBe('https://aws-external-anthropic.eu-west-2.api.aws');
+
+      expect(mockLoadConfig).toHaveBeenCalledTimes(1);
+      const fileOptions = mockLoadConfig.mock.calls[0]![1];
+      expect(fileOptions.profile).toBe('my-profile');
+    });
+
+    test('resolves region from config file default profile when no awsProfile given', async () => {
+      mockLoadConfig.mockReturnValue(() => Promise.resolve('ap-southeast-2'));
+
+      const client = new AnthropicAws({ workspaceId: 'ws-test' });
+
+      await client.ready;
+      expect(client.awsRegion).toBe('ap-southeast-2');
+
+      const fileOptions = mockLoadConfig.mock.calls[0]![1];
+      expect(fileOptions.profile).toBeUndefined();
+    });
+
+    test('request uses config-file region when no explicit region given', async () => {
+      mockLoadConfig.mockReturnValue(() => Promise.resolve('ca-central-1'));
+
+      const client = new AnthropicAws({
+        awsProfile: 'my-profile',
+        workspaceId: 'ws-test',
+        maxRetries: 0,
+      });
+
+      await makeRequest(client);
+
+      const [url] = mockFetch.mock.calls[0]!;
+      expect(url).toBe('https://aws-external-anthropic.ca-central-1.api.aws/v1/messages');
+
+      const props = mockGetAuthHeaders.mock.calls[0]![1];
+      expect(props.regionName).toBe('ca-central-1');
+    });
+
+    test('explicit awsRegion takes precedence over config file', async () => {
+      mockLoadConfig.mockReturnValue(() => Promise.resolve('from-config'));
+
+      const client = new AnthropicAws({
+        awsRegion: 'from-arg',
+        awsProfile: 'my-profile',
+        workspaceId: 'ws-test',
+      });
+
+      await client.ready;
+      expect(client.awsRegion).toBe('from-arg');
+      expect(mockLoadConfig).not.toHaveBeenCalled();
+    });
+
+    test('does not emit unhandledRejection when ready rejects and is not awaited', async () => {
+      const handler = jest.fn();
+      process.on('unhandledRejection', handler);
+      try {
+        new AnthropicAws({ workspaceId: 'ws-test' });
+        // Let any microtask/rejection settle
+        await new Promise((r) => setImmediate(r));
+        expect(handler).not.toHaveBeenCalled();
+      } finally {
+        process.off('unhandledRejection', handler);
+      }
+    });
+  });
+
   describe('partial credential validation', () => {
     test('throws when only awsAccessKey is provided', () => {
       expect(
@@ -193,6 +336,25 @@ describe('AnthropicAws', () => {
       expect(client.baseURL).toBe('https://custom.gateway.api.aws');
     });
 
+    test('ANTHROPIC_AWS_BASE_URL env var skips async region resolution', async () => {
+      process.env['ANTHROPIC_AWS_BASE_URL'] = 'https://custom.gateway.api.aws';
+
+      const client = new AnthropicAws({
+        workspaceId: 'ws-test',
+        maxRetries: 0,
+      });
+
+      // ready resolves immediately — no async config-file lookup needed
+      await client.ready;
+      expect(client.baseURL).toBe('https://custom.gateway.api.aws');
+
+      // region is still undefined since none was provided, but requests work
+      expect(client.awsRegion).toBeUndefined();
+
+      // config-file resolver should not have been called
+      expect(mockLoadConfig).not.toHaveBeenCalled();
+    });
+
     test('uses AWS_DEFAULT_REGION env var as fallback', () => {
       process.env['AWS_DEFAULT_REGION'] = 'eu-central-1';
 
@@ -231,10 +393,14 @@ describe('AnthropicAws', () => {
       expect(client.baseURL).toBe('https://aws-external-anthropic.from-arg.api.aws');
     });
 
-    test('throws when no region or base URL is provided', () => {
-      expect(() => new AnthropicAws({ apiKey: 'test-key', workspaceId: 'ws-test' })).toThrow(
-        'No AWS region or base URL found.',
-      );
+    test('rejects ready when no region or base URL is resolvable', async () => {
+      const client = new AnthropicAws({ apiKey: 'test-key', workspaceId: 'ws-test' });
+      await expect(client.ready).rejects.toThrow('No AWS region or base URL found.');
+    });
+
+    test('first request throws when no region or base URL is resolvable', async () => {
+      const client = new AnthropicAws({ apiKey: 'test-key', workspaceId: 'ws-test', maxRetries: 0 });
+      await expect(makeRequest(client)).rejects.toThrow('No AWS region or base URL found.');
     });
 
     test('allows missing region when baseURL is provided', () => {

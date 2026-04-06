@@ -253,6 +253,14 @@ describe('toolRunner integration tests', () => {
   });
 
   describe('compaction', () => {
+    let warnSpy: jest.SpyInstance;
+    beforeEach(() => {
+      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+    afterEach(() => {
+      warnSpy.mockRestore();
+    });
+
     it('should compact messages when token threshold is exceeded', async () => {
       const tool = {
         name: 'submit_analysis',
@@ -291,6 +299,7 @@ describe('toolRunner integration tests', () => {
       });
 
       await runner.runUntilDone();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('compactionControl'));
       expect(runner.params.messages[0]).toMatchInlineSnapshot(`
 {
   "content": [
