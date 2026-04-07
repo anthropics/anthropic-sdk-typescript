@@ -256,6 +256,48 @@ console.log(await runner);
 See [`examples/tools-helpers-advanced-streaming.ts`](examples/tools-helpers-advanced-streaming.ts) for a more
 in-depth example.
 
+#### Cancellation
+
+The `BetaToolRunner` supports cancellation via `AbortSignal`. The signal is passed to both API calls and tool `run` methods via the `BetaToolRunContext`.
+
+```ts
+const controller = new AbortController();
+
+const runner = anthropic.beta.messages.toolRunner(
+  {
+    model: 'claude-sonnet-4-5-20250929',
+    max_tokens: 1000,
+    messages: [{ role: 'user', content: 'Do a long task' }],
+    tools: [
+      betaZodTool({
+        name: 'long_task',
+        inputSchema: z.object({ query: z.string() }),
+        description: 'A long-running task',
+        run: async (input, context) => {
+          // Throws AbortError if already cancelled before run() was called
+          context?.signal?.throwIfAborted();
+          // Pass the signal to downstream operations for mid-flight cancellation
+          const result = await fetch(url, { signal: context?.signal });
+          return result.text();
+        },
+      }),
+    ],
+  },
+  { signal: controller.signal },
+);
+
+// Cancel after 5 seconds
+setTimeout(() => controller.abort(), 5000);
+
+const finalMessage = await runner;
+```
+
+You can also set or update the signal after creating the runner:
+
+```ts
+runner.setRequestOptions({ signal: controller.signal });
+```
+
 ### `betaZodTool`
 
 Zod schemas can be used to define the input schema for your tools:
@@ -386,9 +428,25 @@ runner.pushMessages(
 );
 ```
 
-#### `BetaToolRunner.generateToolResponse()`
+#### `BetaToolRunner.setRequestOptions()`
 
-Gets the tool response for the last assistant message (if any tools need to be executed).
+Updates the request options (e.g., headers, abort signal) for future API calls and tool executions.
+
+```ts
+// Direct options update
+const controller = new AbortController();
+runner.setRequestOptions({ signal: controller.signal });
+
+// Using mutator function to preserve existing options
+runner.setRequestOptions((prev) => ({
+  ...prev,
+  signal: controller.signal,
+}));
+```
+
+#### `BetaToolRunner.generateToolResponse(signal?)`
+
+Gets the tool response for the last assistant message (if any tools need to be executed). Accepts an optional `AbortSignal` parameter that will be passed to tool `run` methods; defaults to the signal from request options.
 
 ```ts
 for await (const message of runner) {
