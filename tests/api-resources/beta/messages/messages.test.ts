@@ -124,7 +124,7 @@ describe('resource messages', () => {
   test('countTokens: only required params', async () => {
     const responsePromise = client.beta.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
-      model: 'claude-opus-4-6',
+      model: 'claude-mythos-preview',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -138,7 +138,7 @@ describe('resource messages', () => {
   test('countTokens: required and optional params', async () => {
     const response = await client.beta.messages.countTokens({
       messages: [{ content: 'string', role: 'user' }],
-      model: 'claude-opus-4-6',
+      model: 'claude-mythos-preview',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       context_management: {
         edits: [
