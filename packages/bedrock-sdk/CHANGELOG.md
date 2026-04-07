@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.28.0 (2026-04-07)
+
+Full Changelog: [bedrock-sdk-v0.27.0...bedrock-sdk-v0.28.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.27.0...bedrock-sdk-v0.28.0)
+
+### Features
+
+* **client:** Create Bedrock Mantle client ([#810](https://github.com/anthropics/anthropic-sdk-typescript/issues/810)) ([2f1f4a1](https://github.com/anthropics/anthropic-sdk-typescript/commit/2f1f4a1f565a6c12afc1dd7fd98d2adf735dd68b))
+
 ## 0.27.0 (2026-04-01)
 
 Full Changelog: [bedrock-sdk-v0.26.4...bedrock-sdk-v0.27.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.26.4...bedrock-sdk-v0.27.0)
