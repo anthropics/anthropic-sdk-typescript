@@ -15,7 +15,7 @@ for package in "${PACKAGES[@]}"; do
   INTERNAL_SYMLINK="$PACKAGE_DIR/src/internal"
   
   if [ -L "$INTERNAL_SYMLINK" ]; then
-    echo "Processing $package..."
+    echo "Processing $package internal symlink..."
     
     # Remove the symlink
     rm "$INTERNAL_SYMLINK"
@@ -31,3 +31,13 @@ for package in "${PACKAGES[@]}"; do
     echo "No 'internal' symlink found in $package or it's not a symlink"
   fi
 done
+
+# Replace individual file symlinks within packages
+BEDROCK_AWS_AUTH="$ROOT_DIR/packages/bedrock-sdk/src/core/aws-auth.ts"
+if [ -L "$BEDROCK_AWS_AUTH" ]; then
+  echo "Processing bedrock-sdk aws-auth symlink..."
+  RESOLVED="$(realpath "$BEDROCK_AWS_AUTH")"
+  rm "$BEDROCK_AWS_AUTH"
+  cp "$RESOLVED" "$BEDROCK_AWS_AUTH"
+  echo "Replaced aws-auth.ts symlink with file copy"
+fi
