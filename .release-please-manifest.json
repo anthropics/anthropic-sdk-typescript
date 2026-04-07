@@ -3,5 +3,5 @@
   "packages/vertex-sdk": "0.15.0",
   "packages/bedrock-sdk": "0.28.0",
   "packages/foundry-sdk": "0.2.3",
-  "packages/aws-sdk": "0.2.3"
+  "packages/aws-sdk": "0.2.4"
 }
