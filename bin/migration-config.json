@@ -5,6 +5,265 @@
   "baseClientClass": "BaseAnthropic",
   "methods": [
     {
+      "base": "beta.sessions.resources",
+      "name": "retrieve",
+      "params": [
+        {
+          "type": "param",
+          "key": "resource_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "session_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "resource_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.sessions.resources",
+      "name": "update",
+      "params": [
+        {
+          "type": "param",
+          "key": "resource_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "session_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "resource_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.sessions.resources",
+      "name": "delete",
+      "params": [
+        {
+          "type": "param",
+          "key": "resource_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "session_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "resource_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.vaults.credentials",
+      "name": "retrieve",
+      "params": [
+        {
+          "type": "param",
+          "key": "credential_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "vault_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "credential_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.vaults.credentials",
+      "name": "update",
+      "params": [
+        {
+          "type": "param",
+          "key": "credential_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "vault_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "credential_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.vaults.credentials",
+      "name": "delete",
+      "params": [
+        {
+          "type": "param",
+          "key": "credential_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "vault_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "credential_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.vaults.credentials",
+      "name": "archive",
+      "params": [
+        {
+          "type": "param",
+          "key": "credential_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "vault_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "credential_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
       "base": "beta.skills.versions",
       "name": "retrieve",
       "params": [

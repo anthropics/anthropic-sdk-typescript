@@ -64,7 +64,8 @@ export class Stream<Item> implements AsyncIterable<Item> {
             sse.event === 'message_stop' ||
             sse.event === 'content_block_start' ||
             sse.event === 'content_block_delta' ||
-            sse.event === 'content_block_stop'
+            sse.event === 'content_block_stop' ||
+            sse.event === 'message'
           ) {
             try {
               yield JSON.parse(sse.data) as Item;

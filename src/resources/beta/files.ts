@@ -149,6 +149,18 @@ export class Files extends APIResource {
 
 export type FileMetadataPage = Page<FileMetadata>;
 
+export interface BetaFileScope {
+  /**
+   * The ID of the scoping resource (e.g., the session ID).
+   */
+  id: string;
+
+  /**
+   * The type of scope (e.g., `"session"`).
+   */
+  type: 'session';
+}
+
 export interface DeletedFile {
   /**
    * ID of the deleted file.
@@ -202,9 +214,21 @@ export interface FileMetadata {
    * Whether the file can be downloaded.
    */
   downloadable?: boolean;
+
+  /**
+   * The scope of this file, indicating the context in which it was created (e.g., a
+   * session).
+   */
+  scope?: BetaFileScope | null;
 }
 
 export interface FileListParams extends PageParams {
+  /**
+   * Query param: Filter by scope ID. Only returns files associated with the
+   * specified scope (e.g., a session ID).
+   */
+  scope_id?: string;
+
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
@@ -246,6 +270,7 @@ export interface FileUploadParams {
 
 export declare namespace Files {
   export {
+    type BetaFileScope as BetaFileScope,
     type DeletedFile as DeletedFile,
     type FileMetadata as FileMetadata,
     type FileMetadataPage as FileMetadataPage,

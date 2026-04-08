@@ -263,8 +263,6 @@ export class TokenPage<Item> extends AbstractPage<Item> implements TokenPageResp
 export interface PageCursorResponse<Item> {
   data: Array<Item>;
 
-  has_more: boolean;
-
   next_page: string | null;
 }
 
@@ -280,8 +278,6 @@ export interface PageCursorParams {
 export class PageCursor<Item> extends AbstractPage<Item> implements PageCursorResponse<Item> {
   data: Array<Item>;
 
-  has_more: boolean;
-
   next_page: string | null;
 
   constructor(
@@ -293,20 +289,11 @@ export class PageCursor<Item> extends AbstractPage<Item> implements PageCursorRe
     super(client, response, body, options);
 
     this.data = body.data || [];
-    this.has_more = body.has_more || false;
     this.next_page = body.next_page || null;
   }
 
   getPaginatedItems(): Item[] {
     return this.data ?? [];
-  }
-
-  override hasNextPage(): boolean {
-    if (this.has_more === false) {
-      return false;
-    }
-
-    return super.hasNextPage();
   }
 
   nextPageRequestOptions(): PageRequestOptions | null {
