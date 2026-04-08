@@ -27,6 +27,7 @@ describe('resource files', () => {
           after_id: 'after_id',
           before_id: 'before_id',
           limit: 1,
+          scope_id: 'scope_id',
           betas: ['string'],
         },
         { path: '/_stainless_unknown_path' },
