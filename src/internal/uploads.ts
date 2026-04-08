@@ -83,7 +83,7 @@ type MultipartFormRequestOptions = Omit<RequestOptions, 'body'> & { body: unknow
 export const multipartFormRequestOptions = async (
   opts: MultipartFormRequestOptions,
   fetch: BaseAnthropic | Fetch,
-  stripFilenames: boolean = true,
+  stripFilenames: boolean = false,
 ): Promise<RequestOptions> => {
   return { ...opts, body: await createForm(opts.body, fetch, stripFilenames) };
 };
@@ -123,7 +123,7 @@ function supportsFormData(fetchObject: BaseAnthropic | Fetch): Promise<boolean> 
 export const createForm = async <T = Record<string, unknown>>(
   body: T | undefined,
   fetch: BaseAnthropic | Fetch,
-  stripFilenames: boolean = true,
+  stripFilenames: boolean = false,
 ): Promise<FormData> => {
   if (!(await supportsFormData(fetch))) {
     throw new TypeError(
