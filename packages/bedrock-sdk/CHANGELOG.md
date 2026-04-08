@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.28.1 (2026-04-08)
+
+Full Changelog: [bedrock-sdk-v0.28.0...bedrock-sdk-v0.28.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.28.0...bedrock-sdk-v0.28.1)
+
+### Chores
+
+* update @anthropic-ai/sdk dependency version ([#870](https://github.com/anthropics/anthropic-sdk-typescript/issues/870)) ([036342b](https://github.com/anthropics/anthropic-sdk-typescript/commit/036342bdbf9867e223465510d4a39146f1b721dd))
+
 ## 0.28.0 (2026-04-07)
 
 Full Changelog: [bedrock-sdk-v0.27.0...bedrock-sdk-v0.28.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.27.0...bedrock-sdk-v0.28.0)
