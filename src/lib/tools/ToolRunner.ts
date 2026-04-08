@@ -110,6 +110,13 @@ export class BetaToolRunner<Stream extends boolean> {
           if (!this.#mutated) {
             const { role, content } = await this.#message;
             this.#state.params.messages.push({ role, content });
+            // Forward container.id from response to next request for code_execution_20250120
+            if (this.#message?.container?.id) {
+              this.#state.params.container = {
+                id: this.#message.container.id,
+                skills: (this.#message.container as any).skills ?? undefined,
+              };
+            }
           }
 
           const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
