@@ -16,10 +16,10 @@ import { VERSION } from './version';
 import * as Errors from './core/error';
 import * as Pagination from './core/pagination';
 import {
-  type PageParams,
-  PageResponse,
   type PageCursorParams,
   PageCursorResponse,
+  type PageParams,
+  PageResponse,
   type TokenPageParams,
   TokenPageResponse,
 } from './core/pagination';

@@ -15,6 +15,14 @@ TEST_PATHS=(
 	tests/api-resources/beta/models.test.ts
 	tests/api-resources/beta/messages/messages.test.ts
 	tests/api-resources/beta/messages/batches.test.ts
+	tests/api-resources/beta/agents/agents.test.ts
+	tests/api-resources/beta/agents/versions.test.ts
+	tests/api-resources/beta/environments.test.ts
+	tests/api-resources/beta/sessions/sessions.test.ts
+	tests/api-resources/beta/sessions/events.test.ts
+	tests/api-resources/beta/sessions/resources.test.ts
+	tests/api-resources/beta/vaults/vaults.test.ts
+	tests/api-resources/beta/vaults/credentials.test.ts
 	tests/api-resources/beta/files.test.ts
 	tests/api-resources/beta/skills/skills.test.ts
 	tests/api-resources/beta/skills/versions.test.ts

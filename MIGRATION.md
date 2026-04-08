@@ -54,6 +54,13 @@ client.parents.children.retrieve('c_456', { parent_id: 'p_123' });
 
 This affects the following methods:
 
+- `client.beta.sessions.resources.retrieve()`
+- `client.beta.sessions.resources.update()`
+- `client.beta.sessions.resources.delete()`
+- `client.beta.vaults.credentials.retrieve()`
+- `client.beta.vaults.credentials.update()`
+- `client.beta.vaults.credentials.delete()`
+- `client.beta.vaults.credentials.archive()`
 - `client.beta.skills.versions.retrieve()`
 - `client.beta.skills.versions.delete()`
 
@@ -84,7 +91,9 @@ client.example.list(undefined, { headers: { ... } });
 + client.example.list({}, { headers: { ... } });
 ```
 
-This affects the following methods:
+<details>
+
+<summary>This affects the following methods</summary>
 
 - `client.messages.batches.list()`
 - `client.models.retrieve()`
@@ -96,6 +105,26 @@ This affects the following methods:
 - `client.beta.messages.batches.delete()`
 - `client.beta.messages.batches.cancel()`
 - `client.beta.messages.batches.results()`
+- `client.beta.agents.retrieve()`
+- `client.beta.agents.list()`
+- `client.beta.agents.archive()`
+- `client.beta.agents.versions.list()`
+- `client.beta.environments.retrieve()`
+- `client.beta.environments.list()`
+- `client.beta.environments.delete()`
+- `client.beta.environments.archive()`
+- `client.beta.sessions.retrieve()`
+- `client.beta.sessions.list()`
+- `client.beta.sessions.delete()`
+- `client.beta.sessions.archive()`
+- `client.beta.sessions.events.list()`
+- `client.beta.sessions.events.stream()`
+- `client.beta.sessions.resources.list()`
+- `client.beta.vaults.retrieve()`
+- `client.beta.vaults.list()`
+- `client.beta.vaults.delete()`
+- `client.beta.vaults.archive()`
+- `client.beta.vaults.credentials.list()`
 - `client.beta.files.list()`
 - `client.beta.files.delete()`
 - `client.beta.files.download()`
@@ -106,6 +135,8 @@ This affects the following methods:
 - `client.beta.skills.delete()`
 - `client.beta.skills.versions.create()`
 - `client.beta.skills.versions.list()`
+
+</details>
 
 ### Removed `httpAgent` in favor of `fetchOptions`
 
