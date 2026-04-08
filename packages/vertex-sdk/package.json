@@ -26,11 +26,12 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "file:../../dist/",
-    "google-auth-library": "^9.4.2"
+    "google-auth-library": "^9.4.2",
+    "jws": "4.0.1"
   },
   "devDependencies": {
-    "@types/node": "^20.17.6",
     "@types/jest": "^29.4.0",
+    "@types/node": "^20.17.6",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.7.0",
     "eslint": "^8.49.0",
