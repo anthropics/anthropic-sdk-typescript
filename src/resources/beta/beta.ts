@@ -88,6 +88,16 @@ import {
 } from './agents/agents';
 import * as MessagesAPI from './messages/messages';
 import {
+  BetaAdvisorMessageIterationUsage,
+  BetaAdvisorRedactedResultBlock,
+  BetaAdvisorRedactedResultBlockParam,
+  BetaAdvisorResultBlock,
+  BetaAdvisorResultBlockParam,
+  BetaAdvisorTool20260301,
+  BetaAdvisorToolResultBlock,
+  BetaAdvisorToolResultBlockParam,
+  BetaAdvisorToolResultError,
+  BetaAdvisorToolResultErrorParam,
   BetaAllThinkingTurns,
   BetaBase64ImageSource,
   BetaBase64PDFBlock,
@@ -366,7 +376,8 @@ export type AnthropicBeta =
   | 'model-context-window-exceeded-2025-08-26'
   | 'skills-2025-10-02'
   | 'fast-mode-2026-02-01'
-  | 'output-300k-2026-03-24';
+  | 'output-300k-2026-03-24'
+  | 'advisor-tool-2026-03-01';
 
 export interface BetaAPIError {
   message: string;
@@ -482,6 +493,16 @@ export declare namespace Beta {
 
   export {
     Messages as Messages,
+    type BetaAdvisorMessageIterationUsage as BetaAdvisorMessageIterationUsage,
+    type BetaAdvisorRedactedResultBlock as BetaAdvisorRedactedResultBlock,
+    type BetaAdvisorRedactedResultBlockParam as BetaAdvisorRedactedResultBlockParam,
+    type BetaAdvisorResultBlock as BetaAdvisorResultBlock,
+    type BetaAdvisorResultBlockParam as BetaAdvisorResultBlockParam,
+    type BetaAdvisorTool20260301 as BetaAdvisorTool20260301,
+    type BetaAdvisorToolResultBlock as BetaAdvisorToolResultBlock,
+    type BetaAdvisorToolResultBlockParam as BetaAdvisorToolResultBlockParam,
+    type BetaAdvisorToolResultError as BetaAdvisorToolResultError,
+    type BetaAdvisorToolResultErrorParam as BetaAdvisorToolResultErrorParam,
     type BetaAllThinkingTurns as BetaAllThinkingTurns,
     type BetaBase64ImageSource as BetaBase64ImageSource,
     type BetaBase64PDFSource as BetaBase64PDFSource,
