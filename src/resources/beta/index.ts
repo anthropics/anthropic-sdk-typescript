@@ -85,6 +85,16 @@ export {
 } from './files';
 export {
   Messages,
+  type BetaAdvisorMessageIterationUsage,
+  type BetaAdvisorRedactedResultBlock,
+  type BetaAdvisorRedactedResultBlockParam,
+  type BetaAdvisorResultBlock,
+  type BetaAdvisorResultBlockParam,
+  type BetaAdvisorTool20260301,
+  type BetaAdvisorToolResultBlock,
+  type BetaAdvisorToolResultBlockParam,
+  type BetaAdvisorToolResultError,
+  type BetaAdvisorToolResultErrorParam,
   type BetaAllThinkingTurns,
   type BetaBase64ImageSource,
   type BetaBase64PDFSource,
