@@ -111,6 +111,175 @@ export class Messages extends APIResource {
   }
 }
 
+/**
+ * Token usage for an advisor sub-inference iteration.
+ */
+export interface BetaAdvisorMessageIterationUsage {
+  /**
+   * Breakdown of cached tokens by TTL
+   */
+  cache_creation: BetaCacheCreation | null;
+
+  /**
+   * The number of input tokens used to create the cache entry.
+   */
+  cache_creation_input_tokens: number;
+
+  /**
+   * The number of input tokens read from the cache.
+   */
+  cache_read_input_tokens: number;
+
+  /**
+   * The number of input tokens which were used.
+   */
+  input_tokens: number;
+
+  /**
+   * The model that will complete your prompt.\n\nSee
+   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * details and options.
+   */
+  model: MessagesAPI.Model;
+
+  /**
+   * The number of output tokens which were used.
+   */
+  output_tokens: number;
+
+  /**
+   * Usage for an advisor sub-inference iteration
+   */
+  type: 'advisor_message';
+}
+
+export interface BetaAdvisorRedactedResultBlock {
+  /**
+   * Opaque blob containing the advisor's output. Round-trip verbatim; do not inspect
+   * or modify.
+   */
+  encrypted_content: string;
+
+  type: 'advisor_redacted_result';
+}
+
+export interface BetaAdvisorRedactedResultBlockParam {
+  /**
+   * Opaque blob produced by a prior response; must be round-tripped verbatim.
+   */
+  encrypted_content: string;
+
+  type: 'advisor_redacted_result';
+}
+
+export interface BetaAdvisorResultBlock {
+  text: string;
+
+  type: 'advisor_result';
+}
+
+export interface BetaAdvisorResultBlockParam {
+  text: string;
+
+  type: 'advisor_result';
+}
+
+export interface BetaAdvisorTool20260301 {
+  /**
+   * The model that will complete your prompt.\n\nSee
+   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * details and options.
+   */
+  model: MessagesAPI.Model;
+
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'advisor';
+
+  type: 'advisor_20260301';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Caching for the advisor's own prompt. When set, each advisor call writes a cache
+   * entry at the given TTL so subsequent calls in the same conversation read the
+   * stable prefix. When omitted, the advisor prompt is not cached.
+   */
+  caching?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
+export interface BetaAdvisorToolResultBlock {
+  content: BetaAdvisorToolResultError | BetaAdvisorResultBlock | BetaAdvisorRedactedResultBlock;
+
+  tool_use_id: string;
+
+  type: 'advisor_tool_result';
+}
+
+export interface BetaAdvisorToolResultBlockParam {
+  content:
+    | BetaAdvisorToolResultErrorParam
+    | BetaAdvisorResultBlockParam
+    | BetaAdvisorRedactedResultBlockParam;
+
+  tool_use_id: string;
+
+  type: 'advisor_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export interface BetaAdvisorToolResultError {
+  error_code:
+    | 'max_uses_exceeded'
+    | 'prompt_too_long'
+    | 'too_many_requests'
+    | 'overloaded'
+    | 'unavailable'
+    | 'execution_time_exceeded';
+
+  type: 'advisor_tool_result_error';
+}
+
+export interface BetaAdvisorToolResultErrorParam {
+  error_code:
+    | 'max_uses_exceeded'
+    | 'prompt_too_long'
+    | 'too_many_requests'
+    | 'overloaded'
+    | 'unavailable'
+    | 'execution_time_exceeded';
+
+  type: 'advisor_tool_result_error';
+}
+
 export interface BetaAllThinkingTurns {
   type: 'all';
 }
@@ -839,6 +1008,7 @@ export type BetaContentBlock =
   | BetaServerToolUseBlock
   | BetaWebSearchToolResultBlock
   | BetaWebFetchToolResultBlock
+  | BetaAdvisorToolResultBlock
   | BetaCodeExecutionToolResultBlock
   | BetaBashCodeExecutionToolResultBlock
   | BetaTextEditorCodeExecutionToolResultBlock
@@ -863,6 +1033,7 @@ export type BetaContentBlockParam =
   | BetaServerToolUseBlockParam
   | BetaWebSearchToolResultBlockParam
   | BetaWebFetchToolResultBlockParam
+  | BetaAdvisorToolResultBlockParam
   | BetaCodeExecutionToolResultBlockParam
   | BetaBashCodeExecutionToolResultBlockParam
   | BetaTextEditorCodeExecutionToolResultBlockParam
@@ -1005,7 +1176,9 @@ export interface BetaInputTokensTrigger {
  * - Calculate the true context window size from the last iteration
  * - Understand token accumulation across server-side tool use loops
  */
-export type BetaIterationsUsage = Array<BetaMessageIterationUsage | BetaCompactionIterationUsage>;
+export type BetaIterationsUsage = Array<
+  BetaMessageIterationUsage | BetaCompactionIterationUsage | BetaAdvisorMessageIterationUsage
+>;
 
 export interface BetaJSONOutputFormat {
   /**
@@ -1541,6 +1714,7 @@ export interface BetaRawContentBlockStartEvent {
     | BetaServerToolUseBlock
     | BetaWebSearchToolResultBlock
     | BetaWebFetchToolResultBlock
+    | BetaAdvisorToolResultBlock
     | BetaCodeExecutionToolResultBlock
     | BetaBashCodeExecutionToolResultBlock
     | BetaTextEditorCodeExecutionToolResultBlock
@@ -1767,6 +1941,7 @@ export interface BetaServerToolUseBlock {
   input: { [key: string]: unknown };
 
   name:
+    | 'advisor'
     | 'web_search'
     | 'web_fetch'
     | 'code_execution'
@@ -1789,6 +1964,7 @@ export interface BetaServerToolUseBlockParam {
   input: { [key: string]: unknown };
 
   name:
+    | 'advisor'
     | 'web_search'
     | 'web_fetch'
     | 'code_execution'
@@ -2768,6 +2944,7 @@ export type BetaToolUnion =
   | BetaWebSearchTool20260209
   | BetaWebFetchTool20260209
   | BetaWebFetchTool20260309
+  | BetaAdvisorTool20260301
   | BetaToolSearchToolBm25_20251119
   | BetaToolSearchToolRegex20251119
   | BetaMCPToolset;
@@ -3947,6 +4124,7 @@ export interface MessageCountTokensParams {
     | BetaWebSearchTool20260209
     | BetaWebFetchTool20260209
     | BetaWebFetchTool20260309
+    | BetaAdvisorTool20260301
     | BetaToolSearchToolBm25_20251119
     | BetaToolSearchToolRegex20251119
     | BetaMCPToolset
@@ -3962,6 +4140,16 @@ Messages.Batches = Batches;
 
 export declare namespace Messages {
   export {
+    type BetaAdvisorMessageIterationUsage as BetaAdvisorMessageIterationUsage,
+    type BetaAdvisorRedactedResultBlock as BetaAdvisorRedactedResultBlock,
+    type BetaAdvisorRedactedResultBlockParam as BetaAdvisorRedactedResultBlockParam,
+    type BetaAdvisorResultBlock as BetaAdvisorResultBlock,
+    type BetaAdvisorResultBlockParam as BetaAdvisorResultBlockParam,
+    type BetaAdvisorTool20260301 as BetaAdvisorTool20260301,
+    type BetaAdvisorToolResultBlock as BetaAdvisorToolResultBlock,
+    type BetaAdvisorToolResultBlockParam as BetaAdvisorToolResultBlockParam,
+    type BetaAdvisorToolResultError as BetaAdvisorToolResultError,
+    type BetaAdvisorToolResultErrorParam as BetaAdvisorToolResultErrorParam,
     type BetaAllThinkingTurns as BetaAllThinkingTurns,
     type BetaBase64ImageSource as BetaBase64ImageSource,
     type BetaBase64PDFSource as BetaBase64PDFSource,

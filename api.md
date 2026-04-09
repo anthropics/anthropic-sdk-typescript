@@ -260,6 +260,16 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorMessageIterationUsage</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorRedactedResultBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorRedactedResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorResultBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorTool20260301</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorToolResultBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorToolResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorToolResultError</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorToolResultErrorParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaAllThinkingTurns</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64ImageSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64PDFSource</a></code>
