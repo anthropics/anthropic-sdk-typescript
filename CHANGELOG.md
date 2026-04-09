@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.87.0 (2026-04-09)
+
+Full Changelog: [sdk-v0.86.1...sdk-v0.87.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.86.1...sdk-v0.87.0)
+
+### Features
+
+* **api:** Add beta advisor tool ([1e99a8d](https://github.com/anthropics/anthropic-sdk-typescript/commit/1e99a8db387b8dbc2ce5cd43e3c4e4ca440aa01b))
+
 ## 0.86.1 (2026-04-08)
 
 Full Changelog: [sdk-v0.86.0...sdk-v0.86.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.86.0...sdk-v0.86.1)
