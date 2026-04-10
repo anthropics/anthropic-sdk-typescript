@@ -87,8 +87,8 @@ describe('resource messages', () => {
 
   test('countTokens: only required params', async () => {
     const responsePromise = client.messages.countTokens({
-      messages: [{ content: [{ text: 'What is a quaternion?', type: 'text' }], role: 'user' }],
-      model: 'claude-mythos-preview',
+      messages: [{ content: 'Hello, world', role: 'user' }],
+      model: 'claude-opus-4-6',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -101,29 +101,8 @@ describe('resource messages', () => {
 
   test('countTokens: required and optional params', async () => {
     const response = await client.messages.countTokens({
-      messages: [
-        {
-          content: [
-            {
-              text: 'What is a quaternion?',
-              type: 'text',
-              cache_control: { type: 'ephemeral', ttl: '5m' },
-              citations: [
-                {
-                  cited_text: 'cited_text',
-                  document_index: 0,
-                  document_title: 'x',
-                  end_char_index: 0,
-                  start_char_index: 0,
-                  type: 'char_location',
-                },
-              ],
-            },
-          ],
-          role: 'user',
-        },
-      ],
-      model: 'claude-mythos-preview',
+      messages: [{ content: 'Hello, world', role: 'user' }],
+      model: 'claude-opus-4-6',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       output_config: {
         effort: 'low',
