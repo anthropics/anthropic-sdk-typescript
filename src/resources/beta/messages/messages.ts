@@ -90,7 +90,14 @@ export class Messages extends APIResource {
    * ```ts
    * const betaMessageTokensCount =
    *   await client.beta.messages.countTokens({
-   *     messages: [{ content: 'string', role: 'user' }],
+   *     messages: [
+   *       {
+   *         content: [
+   *           { text: 'What is a quaternion?', type: 'text' },
+   *         ],
+   *         role: 'user',
+   *       },
+   *     ],
    *     model: 'claude-mythos-preview',
    *   });
    * ```

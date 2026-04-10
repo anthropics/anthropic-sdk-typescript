@@ -30,7 +30,7 @@ describe('resource events', () => {
           limit: 0,
           order: 'asc',
           page: 'page',
-          betas: ['string'],
+          betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -53,7 +53,7 @@ describe('resource events', () => {
   test('send: required and optional params', async () => {
     const response = await client.beta.sessions.events.send('sesn_011CZkZAtmR3yMPDzynEDxu7', {
       events: [{ content: [{ text: 'Where is my order #1234?', type: 'text' }], type: 'user.message' }],
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
@@ -73,7 +73,7 @@ describe('resource events', () => {
     await expect(
       client.beta.sessions.events.stream(
         'sesn_011CZkZAtmR3yMPDzynEDxu7',
-        { betas: ['string'] },
+        { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

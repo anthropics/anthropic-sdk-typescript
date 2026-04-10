@@ -117,13 +117,13 @@ describe('resource messages', () => {
       ],
       top_k: 5,
       top_p: 0.7,
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
   test('countTokens: only required params', async () => {
     const responsePromise = client.beta.messages.countTokens({
-      messages: [{ content: 'string', role: 'user' }],
+      messages: [{ content: [{ text: 'What is a quaternion?', type: 'text' }], role: 'user' }],
       model: 'claude-mythos-preview',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -137,7 +137,28 @@ describe('resource messages', () => {
 
   test('countTokens: required and optional params', async () => {
     const response = await client.beta.messages.countTokens({
-      messages: [{ content: 'string', role: 'user' }],
+      messages: [
+        {
+          content: [
+            {
+              text: 'What is a quaternion?',
+              type: 'text',
+              cache_control: { type: 'ephemeral', ttl: '5m' },
+              citations: [
+                {
+                  cited_text: 'cited_text',
+                  document_index: 0,
+                  document_title: 'x',
+                  end_char_index: 0,
+                  start_char_index: 0,
+                  type: 'char_location',
+                },
+              ],
+            },
+          ],
+          role: 'user',
+        },
+      ],
       model: 'claude-mythos-preview',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       context_management: {
@@ -210,7 +231,7 @@ describe('resource messages', () => {
           type: 'custom',
         },
       ],
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 });

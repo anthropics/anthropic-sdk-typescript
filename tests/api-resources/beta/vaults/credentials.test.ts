@@ -34,7 +34,7 @@ describe('resource credentials', () => {
       },
       display_name: 'Example credential',
       metadata: { environment: 'production' },
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
@@ -54,7 +54,7 @@ describe('resource credentials', () => {
   test('retrieve: required and optional params', async () => {
     const response = await client.beta.vaults.credentials.retrieve('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
@@ -86,7 +86,7 @@ describe('resource credentials', () => {
       },
       display_name: 'Example credential',
       metadata: { environment: 'production' },
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
@@ -112,7 +112,7 @@ describe('resource credentials', () => {
           include_archived: true,
           limit: 0,
           page: 'page',
-          betas: ['string'],
+          betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -135,7 +135,7 @@ describe('resource credentials', () => {
   test('delete: required and optional params', async () => {
     const response = await client.beta.vaults.credentials.delete('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
@@ -155,7 +155,7 @@ describe('resource credentials', () => {
   test('archive: required and optional params', async () => {
     const response = await client.beta.vaults.credentials.archive('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 });

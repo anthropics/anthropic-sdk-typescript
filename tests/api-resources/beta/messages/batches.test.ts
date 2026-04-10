@@ -131,7 +131,7 @@ describe('resource batches', () => {
           },
         },
       ],
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
@@ -151,7 +151,7 @@ describe('resource batches', () => {
     await expect(
       client.beta.messages.batches.retrieve(
         'message_batch_id',
-        { betas: ['string'] },
+        { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -176,7 +176,7 @@ describe('resource batches', () => {
           after_id: 'after_id',
           before_id: 'before_id',
           limit: 1,
-          betas: ['string'],
+          betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -199,7 +199,7 @@ describe('resource batches', () => {
     await expect(
       client.beta.messages.batches.delete(
         'message_batch_id',
-        { betas: ['string'] },
+        { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -221,7 +221,7 @@ describe('resource batches', () => {
     await expect(
       client.beta.messages.batches.cancel(
         'message_batch_id',
-        { betas: ['string'] },
+        { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -243,7 +243,7 @@ describe('resource batches', () => {
     await expect(
       client.beta.messages.batches.results(
         'message_batch_id',
-        { betas: ['string'] },
+        { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

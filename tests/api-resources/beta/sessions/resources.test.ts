@@ -26,7 +26,7 @@ describe('resource resources', () => {
   test.skip('retrieve: required and optional params', async () => {
     const response = await client.beta.sessions.resources.retrieve('sesrsc_011CZkZBJq5dWxk9fVLNcPht', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
@@ -50,7 +50,7 @@ describe('resource resources', () => {
     const response = await client.beta.sessions.resources.update('sesrsc_011CZkZBJq5dWxk9fVLNcPht', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
       authorization_token: 'ghp_exampletoken',
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
@@ -75,7 +75,7 @@ describe('resource resources', () => {
         {
           limit: 0,
           page: 'page',
-          betas: ['string'],
+          betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -100,7 +100,7 @@ describe('resource resources', () => {
   test.skip('delete: required and optional params', async () => {
     const response = await client.beta.sessions.resources.delete('sesrsc_011CZkZBJq5dWxk9fVLNcPht', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
@@ -125,7 +125,7 @@ describe('resource resources', () => {
       file_id: 'file_011CNha8iCJcU1wXNR6q4V8w',
       type: 'file',
       mount_path: '/uploads/receipt.pdf',
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 });

@@ -24,7 +24,10 @@ describe('resource versions', () => {
     await expect(
       client.beta.skills.versions.create(
         'skill_id',
-        { files: [await toFile(Buffer.from('Example data'), 'README.md')], betas: ['string'] },
+        {
+          files: [await toFile(Buffer.from('Example data'), 'README.md')],
+          betas: ['message-batches-2024-09-24'],
+        },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -44,7 +47,7 @@ describe('resource versions', () => {
   test('retrieve: required and optional params', async () => {
     const response = await client.beta.skills.versions.retrieve('version', {
       skill_id: 'skill_id',
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
@@ -67,7 +70,7 @@ describe('resource versions', () => {
         {
           limit: 0,
           page: 'page',
-          betas: ['string'],
+          betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -88,7 +91,7 @@ describe('resource versions', () => {
   test('delete: required and optional params', async () => {
     const response = await client.beta.skills.versions.delete('version', {
       skill_id: 'skill_id',
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 });
