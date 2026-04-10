@@ -57,7 +57,7 @@ describe('resource agents', () => {
           },
         },
       ],
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
@@ -79,7 +79,7 @@ describe('resource agents', () => {
     await expect(
       client.beta.agents.retrieve(
         'agent_011CZkYpogX7uDKUyvBTophP',
-        { version: 0, betas: ['string'] },
+        { version: 0, betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -108,7 +108,7 @@ describe('resource agents', () => {
         },
       ],
       metadata: { foo: 'string' },
-      model: 'claude-opus-4-6',
+      model: { id: 'claude-opus-4-6', speed: 'standard' },
       name: 'name',
       skills: [
         {
@@ -135,7 +135,7 @@ describe('resource agents', () => {
           },
         },
       ],
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
@@ -162,7 +162,7 @@ describe('resource agents', () => {
           include_archived: true,
           limit: 0,
           page: 'page',
-          betas: ['string'],
+          betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -185,7 +185,7 @@ describe('resource agents', () => {
     await expect(
       client.beta.agents.archive(
         'agent_011CZkYpogX7uDKUyvBTophP',
-        { betas: ['string'] },
+        { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

@@ -29,7 +29,7 @@ describe('resource versions', () => {
         {
           limit: 0,
           page: 'page',
-          betas: ['string'],
+          betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },
       ),

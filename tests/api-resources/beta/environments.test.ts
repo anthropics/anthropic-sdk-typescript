@@ -42,7 +42,7 @@ describe('resource environments', () => {
       },
       description: 'Python environment with data-analysis packages.',
       metadata: { foo: 'string' },
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
@@ -62,7 +62,7 @@ describe('resource environments', () => {
     await expect(
       client.beta.environments.retrieve(
         'env_011CZkZ9X2dpNyB7HsEFoRfW',
-        { betas: ['string'] },
+        { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -98,7 +98,7 @@ describe('resource environments', () => {
           include_archived: true,
           limit: 1,
           page: 'page',
-          betas: ['string'],
+          betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -121,7 +121,7 @@ describe('resource environments', () => {
     await expect(
       client.beta.environments.delete(
         'env_011CZkZ9X2dpNyB7HsEFoRfW',
-        { betas: ['string'] },
+        { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -143,7 +143,7 @@ describe('resource environments', () => {
     await expect(
       client.beta.environments.archive(
         'env_011CZkZ9X2dpNyB7HsEFoRfW',
-        { betas: ['string'] },
+        { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
