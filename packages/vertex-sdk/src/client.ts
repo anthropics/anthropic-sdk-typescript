@@ -94,6 +94,9 @@ export class AnthropicVertex extends BaseAnthropic {
         case 'us':
           baseURL = 'https://aiplatform.us.rep.googleapis.com/v1';
           break;
+        case 'eu':
+          baseURL = 'https://aiplatform.eu.rep.googleapis.com/v1';
+          break;
         default:
           baseURL = `https://${region}-aiplatform.googleapis.com/v1`;
       }

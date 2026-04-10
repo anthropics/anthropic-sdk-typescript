@@ -113,14 +113,14 @@ describe('resource messages', () => {
       ],
       top_k: 5,
       top_p: 0.7,
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
   test('countTokens: only required params', async () => {
     const responsePromise = client.beta.messages.countTokens({
-      messages: [{ content: 'string', role: 'user' }],
-      model: 'claude-mythos-preview',
+      messages: [{ content: 'Hello, world', role: 'user' }],
+      model: 'claude-opus-4-6',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -133,8 +133,8 @@ describe('resource messages', () => {
 
   test('countTokens: required and optional params', async () => {
     const response = await client.beta.messages.countTokens({
-      messages: [{ content: 'string', role: 'user' }],
-      model: 'claude-mythos-preview',
+      messages: [{ content: 'Hello, world', role: 'user' }],
+      model: 'claude-opus-4-6',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       context_management: {
         edits: [
@@ -202,7 +202,7 @@ describe('resource messages', () => {
           type: 'custom',
         },
       ],
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 });

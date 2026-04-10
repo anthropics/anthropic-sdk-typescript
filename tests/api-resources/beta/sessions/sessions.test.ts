@@ -36,7 +36,7 @@ describe('resource sessions', () => {
       ],
       title: 'Order #1234 inquiry',
       vault_ids: ['string'],
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
@@ -56,7 +56,7 @@ describe('resource sessions', () => {
     await expect(
       client.beta.sessions.retrieve(
         'sesn_011CZkZAtmR3yMPDzynEDxu7',
-        { betas: ['string'] },
+        { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -101,7 +101,7 @@ describe('resource sessions', () => {
           limit: 0,
           order: 'asc',
           page: 'page',
-          betas: ['string'],
+          betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -124,7 +124,7 @@ describe('resource sessions', () => {
     await expect(
       client.beta.sessions.delete(
         'sesn_011CZkZAtmR3yMPDzynEDxu7',
-        { betas: ['string'] },
+        { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -146,7 +146,7 @@ describe('resource sessions', () => {
     await expect(
       client.beta.sessions.archive(
         'sesn_011CZkZAtmR3yMPDzynEDxu7',
-        { betas: ['string'] },
+        { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

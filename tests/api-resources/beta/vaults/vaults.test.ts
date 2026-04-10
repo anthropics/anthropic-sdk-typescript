@@ -23,7 +23,7 @@ describe('resource vaults', () => {
     const response = await client.beta.vaults.create({
       display_name: 'Example vault',
       metadata: { environment: 'production' },
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
@@ -43,7 +43,7 @@ describe('resource vaults', () => {
     await expect(
       client.beta.vaults.retrieve(
         'vlt_011CZkZDLs7fYzm1hXNPeRjv',
-        { betas: ['string'] },
+        { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -81,7 +81,7 @@ describe('resource vaults', () => {
           include_archived: true,
           limit: 0,
           page: 'page',
-          betas: ['string'],
+          betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -104,7 +104,7 @@ describe('resource vaults', () => {
     await expect(
       client.beta.vaults.delete(
         'vlt_011CZkZDLs7fYzm1hXNPeRjv',
-        { betas: ['string'] },
+        { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -126,7 +126,7 @@ describe('resource vaults', () => {
     await expect(
       client.beta.vaults.archive(
         'vlt_011CZkZDLs7fYzm1hXNPeRjv',
-        { betas: ['string'] },
+        { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.16.0 (2026-04-10)
+
+Full Changelog: [vertex-sdk-v0.15.0...vertex-sdk-v0.16.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.15.0...vertex-sdk-v0.16.0)
+
+### Features
+
+* vertex eu region ([#882](https://github.com/anthropics/anthropic-sdk-typescript/issues/882)) ([1933857](https://github.com/anthropics/anthropic-sdk-typescript/commit/193385760676b1c941a1f500aa91d0f7a3204b40))
+
 ## 0.15.0 (2026-04-03)
 
 Full Changelog: [vertex-sdk-v0.14.4...vertex-sdk-v0.15.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.14.4...vertex-sdk-v0.15.0)

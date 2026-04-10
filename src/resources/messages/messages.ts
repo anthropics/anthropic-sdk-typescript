@@ -176,8 +176,8 @@ export class Messages extends APIResource {
    * ```ts
    * const messageTokensCount =
    *   await client.messages.countTokens({
-   *     messages: [{ content: 'string', role: 'user' }],
-   *     model: 'claude-mythos-preview',
+   *     messages: [{ content: 'Hello, world', role: 'user' }],
+   *     model: 'claude-opus-4-6',
    *   });
    * ```
    */
