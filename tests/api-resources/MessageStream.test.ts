@@ -226,6 +226,69 @@ describe('MessageStream class', () => {
     expect(finalText).toBe("I'll check the current weather in Paris for you.");
   });
 
+  it('accumulates large text responses in linear time', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    const NUM_DELTAS = 5000;
+    const CHUNK = 'abcdefghij'; // 10 chars per delta
+
+    // Build a synthetic stream with many text deltas
+    const events: any[] = [
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_perf_test',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-20250514',
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { input_tokens: 10, output_tokens: 1 },
+        },
+      },
+      {
+        type: 'content_block_start',
+        index: 0,
+        content_block: { type: 'text', text: '' },
+      },
+    ];
+
+    for (let i = 0; i < NUM_DELTAS; i++) {
+      events.push({
+        type: 'content_block_delta',
+        index: 0,
+        delta: { type: 'text_delta', text: CHUNK },
+      });
+    }
+
+    events.push(
+      { type: 'content_block_stop', index: 0 },
+      { type: 'message_delta', delta: { stop_reason: 'end_turn', stop_sequence: null }, usage: { output_tokens: NUM_DELTAS } },
+      { type: 'message_stop' },
+    );
+
+    handleStreamEvents(events);
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-20250514',
+      messages: [{ role: 'user', content: 'test' }],
+    });
+
+    const finalMessage = await stream.finalMessage();
+    const finalText = await stream.finalText();
+
+    // Verify correctness
+    expect(finalText).toBe(CHUNK.repeat(NUM_DELTAS));
+    expect(finalMessage.content[0]!.type).toBe('text');
+    if (finalMessage.content[0]!.type === 'text') {
+      expect(finalMessage.content[0]!.text).toBe(CHUNK.repeat(NUM_DELTAS));
+    }
+  });
+
   it('does not throw unhandled rejection with withResponse()', async () => {
     const { fetch, handleRequest } = mockFetch();
     const anthropic = new Anthropic({
