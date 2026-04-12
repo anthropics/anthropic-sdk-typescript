@@ -215,8 +215,18 @@ export class BetaToolRunner<Stream extends boolean> {
           const isCompacted = await this.#checkAndCompact();
           if (!isCompacted) {
             if (!this.#mutated) {
-              const { role, content } = await this.#message;
+              const message = await this.#message;
+              const { role, content } = message;
               this.#state.params.messages.push({ role, content });
+
+              // Propagate container.id from the response so subsequent
+              // iterations reuse the same container.  Without this, tools
+              // like code_execution that create a container on the first
+              // call will fail on follow-up calls because the request
+              // doesn't include the container reference.  See #964.
+              if (message.container?.id && this.#state.params.container !== message.container.id) {
+                this.#state.params.container = message.container.id;
+              }
             }
 
             const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
