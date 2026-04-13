@@ -66,7 +66,27 @@ export class Stream<Item> implements AsyncIterable<Item> {
             sse.event === 'content_block_start' ||
             sse.event === 'content_block_delta' ||
             sse.event === 'content_block_stop' ||
-            sse.event === 'message'
+            sse.event === 'message' ||
+            sse.event === 'user.message' ||
+            sse.event === 'user.interrupt' ||
+            sse.event === 'user.tool_confirmation' ||
+            sse.event === 'user.custom_tool_result' ||
+            sse.event === 'agent.message' ||
+            sse.event === 'agent.thinking' ||
+            sse.event === 'agent.tool_use' ||
+            sse.event === 'agent.tool_result' ||
+            sse.event === 'agent.mcp_tool_use' ||
+            sse.event === 'agent.mcp_tool_result' ||
+            sse.event === 'agent.custom_tool_use' ||
+            sse.event === 'agent.thread_context_compacted' ||
+            sse.event === 'session.status_running' ||
+            sse.event === 'session.status_idle' ||
+            sse.event === 'session.status_rescheduled' ||
+            sse.event === 'session.status_terminated' ||
+            sse.event === 'session.error' ||
+            sse.event === 'session.deleted' ||
+            sse.event === 'span.model_request_start' ||
+            sse.event === 'span.model_request_end'
           ) {
             try {
               yield JSON.parse(sse.data) as Item;
