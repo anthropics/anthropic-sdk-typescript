@@ -175,7 +175,7 @@ test('create: does not warn for non-deprecated models', async () => {
   await client.messages.create({
     max_tokens: 1024,
     messages: [{ content: 'Hello, world', role: 'user' }],
-    model: 'claude-opus-4-0',
+    model: 'claude-opus-4-6',
   });
 
   expect(consoleSpy).not.toHaveBeenCalled();
