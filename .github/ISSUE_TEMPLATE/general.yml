@@ -1,0 +1,157 @@
+name: General issue
+description: File a bug, feature request, docs request, question, or proposal.
+title: "[Type] "
+labels: []
+assignees: []
+body:
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue type
+      description: Select the type that best fits this issue.
+      options:
+        - Bug
+        - Feature
+        - Enhancement
+        - Docs
+        - Question
+        - Proposal
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Briefly describe the issue or request (1-3 sentences).
+      placeholder: A concise description of the problem or request.
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation / problem
+      description: Why does this matter? What are you trying to achieve?
+      placeholder: Describe impact, context, or pain points.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Proposed solution
+      description: |
+        Optional. For bugs: expected behavior and any ideas for a fix.
+        For features/proposals: desired behavior/API and expected outcome.
+      placeholder: Describe your proposed solution.
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Optional - other approaches you considered.
+      placeholder: List alternatives and trade-offs.
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: "### Environment (if applicable)"
+
+  - type: input
+    id: sdk_version
+    attributes:
+      label: SDK version
+      description: The `@anthropic-ai/sdk` version you're using.
+      placeholder: e.g. 0.x.y
+    validations:
+      required: false
+
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: Runtime
+      description: Select your runtime/environment (if relevant).
+      options:
+        - Node.js
+        - Deno
+        - Bun
+        - Cloudflare Workers
+        - Vercel Edge Runtime
+        - Nitro
+        - Web browser (only if `dangerouslyAllowBrowser: true`)
+        - Other / Not sure
+    validations:
+      required: false
+
+  - type: input
+    id: runtime_version
+    attributes:
+      label: Runtime version
+      placeholder: e.g. Node 20.12.2, Deno 1.40.0, Bun 1.1.0
+    validations:
+      required: false
+
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      placeholder: e.g. macOS 14, Ubuntu 22.04, Windows 11
+    validations:
+      required: false
+
+  - type: input
+    id: framework
+    attributes:
+      label: Framework / test runner (if relevant)
+      placeholder: e.g. Jest 29 (node), Next.js 14, Nitro 2.9
+    validations:
+      required: false
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction (if applicable)
+      description: Provide minimal reproducible code or clear steps.
+      placeholder: |
+        Steps:
+        1.
+        2.
+
+        Minimal code:
+        ```ts
+        // ...
+        ```
+    validations:
+      required: false
+
+  - type: textarea
+    id: error_output
+    attributes:
+      label: Error output / logs (if applicable)
+      description: Paste exact error messages or logs.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: Links, screenshots, related issues, or anything else helpful.
+      placeholder: Add extra details here.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submit checklist
+      options:
+        - label: I searched existing issues to avoid creating a duplicate.
+          required: true
+        - label: I provided enough detail for maintainers to understand and triage this issue.
+          required: true
