@@ -170,6 +170,7 @@ export {
   type BetaThinkingConfigParam,
   type BetaThinkingDelta,
   type BetaThinkingTurns,
+  type BetaTokenTaskBudget,
   type BetaTool,
   type BetaToolBash20241022,
   type BetaToolBash20250124,

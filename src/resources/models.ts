@@ -117,6 +117,11 @@ export interface EffortCapability {
    * Whether this capability is supported by the model.
    */
   supported: boolean;
+
+  /**
+   * Indicates whether a capability is supported.
+   */
+  xhigh: CapabilitySupport | null;
 }
 
 /**
