@@ -237,6 +237,7 @@ export {
   type BetaThinkingConfigParam,
   type BetaThinkingDelta,
   type BetaThinkingTurns,
+  type BetaTokenTaskBudget,
   type BetaTool,
   type BetaToolBash20241022,
   type BetaToolBash20250124,
@@ -345,6 +346,18 @@ export {
   type SkillDeleteParams,
   type SkillListResponsesPageCursor,
 } from './skills/index';
+export {
+  UserProfiles,
+  type BetaUserProfile,
+  type BetaUserProfileEnrollmentURL,
+  type BetaUserProfileTrustGrant,
+  type UserProfileCreateParams,
+  type UserProfileRetrieveParams,
+  type UserProfileUpdateParams,
+  type UserProfileListParams,
+  type UserProfileCreateEnrollmentURLParams,
+  type BetaUserProfilesPageCursor,
+} from './user-profiles';
 export {
   Vaults,
   type BetaManagedAgentsDeletedVault,

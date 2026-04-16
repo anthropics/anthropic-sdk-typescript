@@ -26,6 +26,7 @@ TEST_PATHS=(
 	tests/api-resources/beta/files.test.ts
 	tests/api-resources/beta/skills/skills.test.ts
 	tests/api-resources/beta/skills/versions.test.ts
+	tests/api-resources/beta/user-profiles.test.ts
 	tests/index.test.ts
 )
 

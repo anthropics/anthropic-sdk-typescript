@@ -977,6 +977,7 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
+  | 'claude-opus-4-7'
   | 'claude-mythos-preview'
   | 'claude-opus-4-6'
   | 'claude-sonnet-4-6'
@@ -999,7 +1000,7 @@ export interface OutputConfig {
   /**
    * All possible effort levels.
    */
-  effort?: 'low' | 'medium' | 'high' | 'max' | null;
+  effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | null;
 
   /**
    * A schema to specify Claude's output format in responses. See
