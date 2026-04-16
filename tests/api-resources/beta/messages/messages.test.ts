@@ -68,6 +68,11 @@ describe('resource messages', () => {
           schema: { foo: 'bar' },
           type: 'json_schema',
         },
+        task_budget: {
+          total: 1024,
+          type: 'tokens',
+          remaining: 0,
+        },
       },
       service_tier: 'auto',
       speed: 'standard',
@@ -113,6 +118,7 @@ describe('resource messages', () => {
       ],
       top_k: 5,
       top_p: 0.7,
+      user_profile_id: 'user_profile_id',
       betas: ['message-batches-2024-09-24'],
     });
   });
@@ -162,6 +168,11 @@ describe('resource messages', () => {
         format: {
           schema: { foo: 'bar' },
           type: 'json_schema',
+        },
+        task_budget: {
+          total: 1024,
+          type: 'tokens',
+          remaining: 0,
         },
       },
       speed: 'standard',
