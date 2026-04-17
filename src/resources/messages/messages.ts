@@ -76,7 +76,7 @@ export class Messages extends APIResource {
       );
     }
     if (
-      body.model in MODELS_TO_WARN_WITH_THINKING_ENABLED &&
+      MODELS_TO_WARN_WITH_THINKING_ENABLED.includes(body.model) &&
       body.thinking &&
       body.thinking.type === 'enabled'
     ) {
@@ -1075,6 +1075,7 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
+  | 'claude-opus-4-7'
   | 'claude-mythos-preview'
   | 'claude-opus-4-6'
   | 'claude-sonnet-4-6'
@@ -1097,7 +1098,7 @@ export interface OutputConfig {
   /**
    * All possible effort levels.
    */
-  effort?: 'low' | 'medium' | 'high' | 'max' | null;
+  effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | null;
 
   /**
    * A schema to specify Claude's output format in responses. See
@@ -1128,7 +1129,7 @@ const DEPRECATED_MODELS: {
   'claude-sonnet-4-20250514': 'June 15th, 2026',
 };
 
-const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-opus-4-6'];
+const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-mythos-preview', 'claude-opus-4-6'];
 
 export interface PlainTextSource {
   data: string;

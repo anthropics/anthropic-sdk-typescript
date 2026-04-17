@@ -426,6 +426,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingTurns</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaTokenTaskBudget</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTool</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolBash20241022</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolBash20250124</a></code>
@@ -785,3 +786,19 @@ Methods:
 - <code title="get /v1/skills/{skill_id}/versions/{version}?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">retrieve</a>(version, { ...params }) -> VersionRetrieveResponse</code>
 - <code title="get /v1/skills/{skill_id}/versions?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">list</a>(skillID, { ...params }) -> VersionListResponsesPageCursor</code>
 - <code title="delete /v1/skills/{skill_id}/versions/{version}?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">delete</a>(version, { ...params }) -> VersionDeleteResponse</code>
+
+## UserProfiles
+
+Types:
+
+- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfile</a></code>
+- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileEnrollmentURL</a></code>
+- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileTrustGrant</a></code>
+
+Methods:
+
+- <code title="post /v1/user_profiles?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">create</a>({ ...params }) -> BetaUserProfile</code>
+- <code title="get /v1/user_profiles/{user_profile_id}?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">retrieve</a>(userProfileID, { ...params }) -> BetaUserProfile</code>
+- <code title="post /v1/user_profiles/{user_profile_id}?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">update</a>(userProfileID, { ...params }) -> BetaUserProfile</code>
+- <code title="get /v1/user_profiles?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">list</a>({ ...params }) -> BetaUserProfilesPageCursor</code>
+- <code title="post /v1/user_profiles/{user_profile_id}/enrollment_url?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">createEnrollmentURL</a>(userProfileID, { ...params }) -> BetaUserProfileEnrollmentURL</code>
