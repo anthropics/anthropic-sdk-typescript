@@ -637,7 +637,11 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
               });
 
               if (jsonBuf) {
-                newContent.input = partialParse(jsonBuf);
+                try {
+                  newContent.input = partialParse(jsonBuf);
+                } catch {
+                  // invalid escape sequences (e.g. \d, \p, \s) — skip this delta, stream continues
+                }
               }
               snapshot.content[event.index] = newContent;
             }
