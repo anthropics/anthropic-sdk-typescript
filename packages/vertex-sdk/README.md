@@ -39,6 +39,25 @@ async function main() {
 main();
 ```
 
+### TypeScript: Tool Search tool definitions
+
+When using Tool Search in TypeScript, use the exact tool type literals below:
+
+```ts
+tools: [
+  {
+    type: 'tool_search_tool_regex_20251119',
+    name: 'tool_search_tool_regex',
+  },
+  {
+    type: 'tool_search_tool_bm25_20251119',
+    name: 'tool_search_tool_bm25',
+  },
+];
+```
+
+`defer_loading` is also available on tool definitions for deferred tool loading.
+
 For more details on how to use the SDK, see the [README.md for the main Claude SDK](https://github.com/anthropics/anthropic-sdk-typescript/tree/main#readme) which this library extends.
 
 ## Authentication
