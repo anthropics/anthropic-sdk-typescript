@@ -146,6 +146,9 @@ client.example.list(undefined, { headers: { ... } });
 - `client.beta.skills.delete()`
 - `client.beta.skills.versions.create()`
 - `client.beta.skills.versions.list()`
+- `client.beta.userProfiles.retrieve()`
+- `client.beta.userProfiles.list()`
+- `client.beta.userProfiles.createEnrollmentURL()`
 
 </details>
 

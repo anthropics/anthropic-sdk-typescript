@@ -742,6 +742,12 @@ export namespace BatchCreateParams {
        * other values will be rejected with a 400 error.
        */
       top_p?: number;
+
+      /**
+       * The user profile ID to attribute this request to. Use when acting on behalf of a
+       * party other than your organization.
+       */
+      user_profile_id?: string | null;
     }
   }
 }
