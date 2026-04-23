@@ -7,9 +7,9 @@ const client = new Anthropic({
   baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
 });
 
-describe('resource userProfiles', () => {
-  test('create', async () => {
-    const responsePromise = client.beta.userProfiles.create({});
+describe('resource memoryStores', () => {
+  test('create: only required params', async () => {
+    const responsePromise = client.beta.memoryStores.create({ name: 'x' });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -19,8 +19,17 @@ describe('resource userProfiles', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
+  test('create: required and optional params', async () => {
+    const response = await client.beta.memoryStores.create({
+      name: 'x',
+      description: 'description',
+      metadata: { foo: 'string' },
+      betas: ['message-batches-2024-09-24'],
+    });
+  });
+
   test('retrieve', async () => {
-    const responsePromise = client.beta.userProfiles.retrieve('uprof_011CZkZCu8hGbp5mYRQgUmz9');
+    const responsePromise = client.beta.memoryStores.retrieve('memory_store_id');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -33,8 +42,8 @@ describe('resource userProfiles', () => {
   test('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
-      client.beta.userProfiles.retrieve(
-        'uprof_011CZkZCu8hGbp5mYRQgUmz9',
+      client.beta.memoryStores.retrieve(
+        'memory_store_id',
         { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
@@ -42,7 +51,7 @@ describe('resource userProfiles', () => {
   });
 
   test('update', async () => {
-    const responsePromise = client.beta.userProfiles.update('uprof_011CZkZCu8hGbp5mYRQgUmz9', {});
+    const responsePromise = client.beta.memoryStores.update('memory_store_id', {});
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -52,8 +61,9 @@ describe('resource userProfiles', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  test('list', async () => {
-    const responsePromise = client.beta.userProfiles.list();
+  // buildURL drops path-level query params (SDK-4349)
+  test.skip('list', async () => {
+    const responsePromise = client.beta.memoryStores.list();
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -63,13 +73,16 @@ describe('resource userProfiles', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  test('list: request options and params are passed correctly', async () => {
+  // buildURL drops path-level query params (SDK-4349)
+  test.skip('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
-      client.beta.userProfiles.list(
+      client.beta.memoryStores.list(
         {
+          'created_at[gte]': '2019-12-27T18:11:19.117Z',
+          'created_at[lte]': '2019-12-27T18:11:19.117Z',
+          include_archived: true,
           limit: 0,
-          order: 'asc',
           page: 'page',
           betas: ['message-batches-2024-09-24'],
         },
@@ -78,8 +91,8 @@ describe('resource userProfiles', () => {
     ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
-  test('createEnrollmentURL', async () => {
-    const responsePromise = client.beta.userProfiles.createEnrollmentURL('uprof_011CZkZCu8hGbp5mYRQgUmz9');
+  test('delete', async () => {
+    const responsePromise = client.beta.memoryStores.delete('memory_store_id');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -89,11 +102,33 @@ describe('resource userProfiles', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  test('createEnrollmentURL: request options and params are passed correctly', async () => {
+  test('delete: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
-      client.beta.userProfiles.createEnrollmentURL(
-        'uprof_011CZkZCu8hGbp5mYRQgUmz9',
+      client.beta.memoryStores.delete(
+        'memory_store_id',
+        { betas: ['message-batches-2024-09-24'] },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
+  });
+
+  test('archive', async () => {
+    const responsePromise = client.beta.memoryStores.archive('memory_store_id');
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('archive: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.beta.memoryStores.archive(
+        'memory_store_id',
         { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),

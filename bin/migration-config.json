@@ -264,6 +264,191 @@
       ]
     },
     {
+      "base": "beta.memoryStores.memories",
+      "name": "retrieve",
+      "params": [
+        {
+          "type": "param",
+          "key": "memory_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "memory_store_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "memory_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.memoryStores.memories",
+      "name": "update",
+      "params": [
+        {
+          "type": "param",
+          "key": "memory_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "memory_store_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "memory_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.memoryStores.memories",
+      "name": "delete",
+      "params": [
+        {
+          "type": "param",
+          "key": "memory_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "memory_store_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "memory_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.memoryStores.memoryVersions",
+      "name": "retrieve",
+      "params": [
+        {
+          "type": "param",
+          "key": "memory_version_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "memory_store_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "memory_version_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.memoryStores.memoryVersions",
+      "name": "redact",
+      "params": [
+        {
+          "type": "param",
+          "key": "memory_version_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "memory_store_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "memory_version_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
       "base": "beta.skills.versions",
       "name": "retrieve",
       "params": [
