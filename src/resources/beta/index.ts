@@ -84,6 +84,18 @@ export {
   type FileMetadataPage,
 } from './files';
 export {
+  MemoryStores,
+  type BetaManagedAgentsDeletedMemoryStore,
+  type BetaManagedAgentsMemoryStore,
+  type MemoryStoreCreateParams,
+  type MemoryStoreRetrieveParams,
+  type MemoryStoreUpdateParams,
+  type MemoryStoreListParams,
+  type MemoryStoreDeleteParams,
+  type MemoryStoreArchiveParams,
+  type BetaManagedAgentsMemoryStoresPageCursor,
+} from './memory-stores/index';
+export {
   Messages,
   type BetaAdvisorMessageIterationUsage,
   type BetaAdvisorRedactedResultBlock,
@@ -236,7 +248,6 @@ export {
   type BetaThinkingConfigParam,
   type BetaThinkingDelta,
   type BetaThinkingTurns,
-  type BetaTokenTaskBudget,
   type BetaTool,
   type BetaToolBash20241022,
   type BetaToolBash20250124,
@@ -322,6 +333,7 @@ export {
   type BetaManagedAgentsDeletedSession,
   type BetaManagedAgentsFileResourceParams,
   type BetaManagedAgentsGitHubRepositoryResourceParams,
+  type BetaManagedAgentsMemoryStoreResourceParam,
   type BetaManagedAgentsSession,
   type BetaManagedAgentsSessionAgent,
   type BetaManagedAgentsSessionStats,
@@ -346,18 +358,6 @@ export {
   type SkillDeleteParams,
   type SkillListResponsesPageCursor,
 } from './skills/index';
-export {
-  UserProfiles,
-  type BetaUserProfile,
-  type BetaUserProfileEnrollmentURL,
-  type BetaUserProfileTrustGrant,
-  type UserProfileCreateParams,
-  type UserProfileRetrieveParams,
-  type UserProfileUpdateParams,
-  type UserProfileListParams,
-  type UserProfileCreateEnrollmentURLParams,
-  type BetaUserProfilesPageCursor,
-} from './user-profiles';
 export {
   Vaults,
   type BetaManagedAgentsDeletedVault,

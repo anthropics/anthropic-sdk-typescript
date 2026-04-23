@@ -1025,11 +1025,6 @@ export interface BetaCompactionBlock {
    */
   content: string | null;
 
-  /**
-   * Opaque metadata from prior compaction, to be round-tripped verbatim
-   */
-  encrypted_content: string | null;
-
   type: 'compaction';
 }
 
@@ -1054,20 +1049,10 @@ export interface BetaCompactionBlockParam {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
-
-  /**
-   * Opaque metadata from prior compaction, to be round-tripped verbatim
-   */
-  encrypted_content?: string | null;
 }
 
 export interface BetaCompactionContentBlockDelta {
   content: string | null;
-
-  /**
-   * Opaque metadata from prior compaction, to be round-tripped verbatim
-   */
-  encrypted_content: string | null;
 
   type: 'compaction_delta';
 }
@@ -1839,18 +1824,13 @@ export interface BetaOutputConfig {
   /**
    * All possible effort levels.
    */
-  effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | null;
+  effort?: 'low' | 'medium' | 'high' | 'max' | null;
 
   /**
    * A schema to specify Claude's output format in responses. See
    * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
    */
   format?: BetaJSONOutputFormat | null;
-
-  /**
-   * User-configurable total token budget across contexts.
-   */
-  task_budget?: BetaTokenTaskBudget | null;
 }
 
 export interface BetaPlainTextSource {
@@ -2471,27 +2451,6 @@ export interface BetaThinkingTurns {
   type: 'thinking_turns';
 
   value: number;
-}
-
-/**
- * User-configurable total token budget across contexts.
- */
-export interface BetaTokenTaskBudget {
-  /**
-   * Total token budget across all contexts in the session.
-   */
-  total: number;
-
-  /**
-   * The budget type. Currently only 'tokens' is supported.
-   */
-  type: 'tokens';
-
-  /**
-   * Remaining tokens in the budget. Use this to track usage across contexts when
-   * implementing compaction client-side. Defaults to total if not provided.
-   */
-  remaining?: number | null;
 }
 
 export interface BetaTool {
@@ -4050,12 +4009,6 @@ export interface MessageCreateParamsBase {
   top_p?: number;
 
   /**
-   * Body param: The user profile ID to attribute this request to. Use when acting on
-   * behalf of a party other than your organization.
-   */
-  user_profile_id?: string | null;
-
-  /**
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
@@ -4502,7 +4455,6 @@ export declare namespace Messages {
     type BetaThinkingConfigParam as BetaThinkingConfigParam,
     type BetaThinkingDelta as BetaThinkingDelta,
     type BetaThinkingTurns as BetaThinkingTurns,
-    type BetaTokenTaskBudget as BetaTokenTaskBudget,
     type BetaTool as BetaTool,
     type BetaToolBash20241022 as BetaToolBash20241022,
     type BetaToolBash20250124 as BetaToolBash20250124,

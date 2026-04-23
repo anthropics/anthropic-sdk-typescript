@@ -23,10 +23,12 @@ TEST_PATHS=(
 	tests/api-resources/beta/sessions/resources.test.ts
 	tests/api-resources/beta/vaults/vaults.test.ts
 	tests/api-resources/beta/vaults/credentials.test.ts
+	tests/api-resources/beta/memory-stores/memory-stores.test.ts
+	tests/api-resources/beta/memory-stores/memories.test.ts
+	tests/api-resources/beta/memory-stores/memory-versions.test.ts
 	tests/api-resources/beta/files.test.ts
 	tests/api-resources/beta/skills/skills.test.ts
 	tests/api-resources/beta/skills/versions.test.ts
-	tests/api-resources/beta/user-profiles.test.ts
 	tests/index.test.ts
 )
 

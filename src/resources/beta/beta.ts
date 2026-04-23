@@ -48,19 +48,6 @@ import {
   ModelRetrieveParams,
   Models,
 } from './models';
-import * as UserProfilesAPI from './user-profiles';
-import {
-  BetaUserProfile,
-  BetaUserProfileEnrollmentURL,
-  BetaUserProfileTrustGrant,
-  BetaUserProfilesPageCursor,
-  UserProfileCreateEnrollmentURLParams,
-  UserProfileCreateParams,
-  UserProfileListParams,
-  UserProfileRetrieveParams,
-  UserProfileUpdateParams,
-  UserProfiles,
-} from './user-profiles';
 import * as AgentsAPI from './agents/agents';
 import {
   AgentArchiveParams,
@@ -99,6 +86,19 @@ import {
   BetaManagedAgentsSkillParams,
   BetaManagedAgentsURLMCPServerParams,
 } from './agents/agents';
+import * as MemoryStoresAPI from './memory-stores/memory-stores';
+import {
+  BetaManagedAgentsDeletedMemoryStore,
+  BetaManagedAgentsMemoryStore,
+  BetaManagedAgentsMemoryStoresPageCursor,
+  MemoryStoreArchiveParams,
+  MemoryStoreCreateParams,
+  MemoryStoreDeleteParams,
+  MemoryStoreListParams,
+  MemoryStoreRetrieveParams,
+  MemoryStoreUpdateParams,
+  MemoryStores,
+} from './memory-stores/memory-stores';
 import * as MessagesAPI from './messages/messages';
 import {
   BetaAdvisorMessageIterationUsage,
@@ -251,7 +251,6 @@ import {
   BetaThinkingConfigParam,
   BetaThinkingDelta,
   BetaThinkingTurns,
-  BetaTokenTaskBudget,
   BetaTool,
   BetaToolBash20241022,
   BetaToolBash20250124,
@@ -317,6 +316,7 @@ import {
   BetaManagedAgentsDeletedSession,
   BetaManagedAgentsFileResourceParams,
   BetaManagedAgentsGitHubRepositoryResourceParams,
+  BetaManagedAgentsMemoryStoreResourceParam,
   BetaManagedAgentsSession,
   BetaManagedAgentsSessionAgent,
   BetaManagedAgentsSessionStats,
@@ -364,9 +364,9 @@ export class Beta extends APIResource {
   environments: EnvironmentsAPI.Environments = new EnvironmentsAPI.Environments(this._client);
   sessions: SessionsAPI.Sessions = new SessionsAPI.Sessions(this._client);
   vaults: VaultsAPI.Vaults = new VaultsAPI.Vaults(this._client);
+  memoryStores: MemoryStoresAPI.MemoryStores = new MemoryStoresAPI.MemoryStores(this._client);
   files: FilesAPI.Files = new FilesAPI.Files(this._client);
   skills: SkillsAPI.Skills = new SkillsAPI.Skills(this._client);
-  userProfiles: UserProfilesAPI.UserProfiles = new UserProfilesAPI.UserProfiles(this._client);
 }
 
 export type AnthropicBeta =
@@ -392,8 +392,7 @@ export type AnthropicBeta =
   | 'skills-2025-10-02'
   | 'fast-mode-2026-02-01'
   | 'output-300k-2026-03-24'
-  | 'advisor-tool-2026-03-01'
-  | 'user-profiles-2026-03-24';
+  | 'advisor-tool-2026-03-01';
 
 export interface BetaAPIError {
   message: string;
@@ -474,9 +473,9 @@ Beta.Agents = Agents;
 Beta.Environments = Environments;
 Beta.Sessions = Sessions;
 Beta.Vaults = Vaults;
+Beta.MemoryStores = MemoryStores;
 Beta.Files = Files;
 Beta.Skills = Skills;
-Beta.UserProfiles = UserProfiles;
 
 export declare namespace Beta {
   export {
@@ -661,7 +660,6 @@ export declare namespace Beta {
     type BetaThinkingConfigParam as BetaThinkingConfigParam,
     type BetaThinkingDelta as BetaThinkingDelta,
     type BetaThinkingTurns as BetaThinkingTurns,
-    type BetaTokenTaskBudget as BetaTokenTaskBudget,
     type BetaTool as BetaTool,
     type BetaToolBash20241022 as BetaToolBash20241022,
     type BetaToolBash20250124 as BetaToolBash20250124,
@@ -784,6 +782,7 @@ export declare namespace Beta {
     type BetaManagedAgentsDeletedSession as BetaManagedAgentsDeletedSession,
     type BetaManagedAgentsFileResourceParams as BetaManagedAgentsFileResourceParams,
     type BetaManagedAgentsGitHubRepositoryResourceParams as BetaManagedAgentsGitHubRepositoryResourceParams,
+    type BetaManagedAgentsMemoryStoreResourceParam as BetaManagedAgentsMemoryStoreResourceParam,
     type BetaManagedAgentsSession as BetaManagedAgentsSession,
     type BetaManagedAgentsSessionAgent as BetaManagedAgentsSessionAgent,
     type BetaManagedAgentsSessionStats as BetaManagedAgentsSessionStats,
@@ -811,6 +810,19 @@ export declare namespace Beta {
   };
 
   export {
+    MemoryStores as MemoryStores,
+    type BetaManagedAgentsDeletedMemoryStore as BetaManagedAgentsDeletedMemoryStore,
+    type BetaManagedAgentsMemoryStore as BetaManagedAgentsMemoryStore,
+    type BetaManagedAgentsMemoryStoresPageCursor as BetaManagedAgentsMemoryStoresPageCursor,
+    type MemoryStoreCreateParams as MemoryStoreCreateParams,
+    type MemoryStoreRetrieveParams as MemoryStoreRetrieveParams,
+    type MemoryStoreUpdateParams as MemoryStoreUpdateParams,
+    type MemoryStoreListParams as MemoryStoreListParams,
+    type MemoryStoreDeleteParams as MemoryStoreDeleteParams,
+    type MemoryStoreArchiveParams as MemoryStoreArchiveParams,
+  };
+
+  export {
     Files as Files,
     type BetaFileScope as BetaFileScope,
     type DeletedFile as DeletedFile,
@@ -834,18 +846,5 @@ export declare namespace Beta {
     type SkillRetrieveParams as SkillRetrieveParams,
     type SkillListParams as SkillListParams,
     type SkillDeleteParams as SkillDeleteParams,
-  };
-
-  export {
-    UserProfiles as UserProfiles,
-    type BetaUserProfile as BetaUserProfile,
-    type BetaUserProfileEnrollmentURL as BetaUserProfileEnrollmentURL,
-    type BetaUserProfileTrustGrant as BetaUserProfileTrustGrant,
-    type BetaUserProfilesPageCursor as BetaUserProfilesPageCursor,
-    type UserProfileCreateParams as UserProfileCreateParams,
-    type UserProfileRetrieveParams as UserProfileRetrieveParams,
-    type UserProfileUpdateParams as UserProfileUpdateParams,
-    type UserProfileListParams as UserProfileListParams,
-    type UserProfileCreateEnrollmentURLParams as UserProfileCreateEnrollmentURLParams,
   };
 }

@@ -132,11 +132,6 @@ export interface BetaEffortCapability {
    * Whether this capability is supported by the model.
    */
   supported: boolean;
-
-  /**
-   * Indicates whether a capability is supported.
-   */
-  xhigh: BetaCapabilitySupport | null;
 }
 
 /**
