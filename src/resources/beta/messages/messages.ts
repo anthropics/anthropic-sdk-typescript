@@ -1839,7 +1839,7 @@ export interface BetaOutputConfig {
   /**
    * All possible effort levels.
    */
-  effort?: 'low' | 'medium' | 'high' | 'max' | null;
+  effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | null;
 
   /**
    * A schema to specify Claude's output format in responses. See
