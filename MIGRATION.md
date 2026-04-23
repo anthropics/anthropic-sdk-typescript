@@ -61,6 +61,11 @@ This affects the following methods:
 - `client.beta.vaults.credentials.update()`
 - `client.beta.vaults.credentials.delete()`
 - `client.beta.vaults.credentials.archive()`
+- `client.beta.memoryStores.memories.retrieve()`
+- `client.beta.memoryStores.memories.update()`
+- `client.beta.memoryStores.memories.delete()`
+- `client.beta.memoryStores.memoryVersions.retrieve()`
+- `client.beta.memoryStores.memoryVersions.redact()`
 - `client.beta.skills.versions.retrieve()`
 - `client.beta.skills.versions.delete()`
 
@@ -125,6 +130,12 @@ client.example.list(undefined, { headers: { ... } });
 - `client.beta.vaults.delete()`
 - `client.beta.vaults.archive()`
 - `client.beta.vaults.credentials.list()`
+- `client.beta.memoryStores.retrieve()`
+- `client.beta.memoryStores.list()`
+- `client.beta.memoryStores.delete()`
+- `client.beta.memoryStores.archive()`
+- `client.beta.memoryStores.memories.list()`
+- `client.beta.memoryStores.memoryVersions.list()`
 - `client.beta.files.list()`
 - `client.beta.files.delete()`
 - `client.beta.files.download()`

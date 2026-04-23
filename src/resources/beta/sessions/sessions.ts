@@ -68,6 +68,7 @@ import {
   BetaManagedAgentsDeleteSessionResource,
   BetaManagedAgentsFileResource,
   BetaManagedAgentsGitHubRepositoryResource,
+  BetaManagedAgentsMemoryStoreResource,
   BetaManagedAgentsSessionResource,
   BetaManagedAgentsSessionResourcesPageCursor,
   ResourceAddParams,
@@ -353,6 +354,30 @@ export interface BetaManagedAgentsGitHubRepositoryResourceParams {
 }
 
 /**
+ * Parameters for attaching a memory store to an agent session.
+ */
+export interface BetaManagedAgentsMemoryStoreResourceParam {
+  /**
+   * The memory store ID (memstore\_...). Must belong to the caller's organization
+   * and workspace.
+   */
+  memory_store_id: string;
+
+  type: 'memory_store';
+
+  /**
+   * Access mode for an attached memory store.
+   */
+  access?: 'read_write' | 'read_only' | null;
+
+  /**
+   * Per-attachment guidance for the agent on how to use this store. Rendered into
+   * the memory section of the system prompt. Max 4096 chars.
+   */
+  instructions?: string | null;
+}
+
+/**
  * A Managed Agents `session`.
  */
 export interface BetaManagedAgentsSession {
@@ -510,7 +535,11 @@ export interface SessionCreateParams {
    * Body param: Resources (e.g. repositories, files) to mount into the session's
    * container.
    */
-  resources?: Array<BetaManagedAgentsGitHubRepositoryResourceParams | BetaManagedAgentsFileResourceParams>;
+  resources?: Array<
+    | BetaManagedAgentsGitHubRepositoryResourceParams
+    | BetaManagedAgentsFileResourceParams
+    | BetaManagedAgentsMemoryStoreResourceParam
+  >;
 
   /**
    * Body param: Human-readable session title.
@@ -635,6 +664,7 @@ export declare namespace Sessions {
     type BetaManagedAgentsDeletedSession as BetaManagedAgentsDeletedSession,
     type BetaManagedAgentsFileResourceParams as BetaManagedAgentsFileResourceParams,
     type BetaManagedAgentsGitHubRepositoryResourceParams as BetaManagedAgentsGitHubRepositoryResourceParams,
+    type BetaManagedAgentsMemoryStoreResourceParam as BetaManagedAgentsMemoryStoreResourceParam,
     type BetaManagedAgentsSession as BetaManagedAgentsSession,
     type BetaManagedAgentsSessionAgent as BetaManagedAgentsSessionAgent,
     type BetaManagedAgentsSessionStats as BetaManagedAgentsSessionStats,
@@ -713,6 +743,7 @@ export declare namespace Sessions {
     type BetaManagedAgentsDeleteSessionResource as BetaManagedAgentsDeleteSessionResource,
     type BetaManagedAgentsFileResource as BetaManagedAgentsFileResource,
     type BetaManagedAgentsGitHubRepositoryResource as BetaManagedAgentsGitHubRepositoryResource,
+    type BetaManagedAgentsMemoryStoreResource as BetaManagedAgentsMemoryStoreResource,
     type BetaManagedAgentsSessionResource as BetaManagedAgentsSessionResource,
     type ResourceRetrieveResponse as ResourceRetrieveResponse,
     type ResourceUpdateResponse as ResourceUpdateResponse,

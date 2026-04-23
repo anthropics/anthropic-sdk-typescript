@@ -84,6 +84,18 @@ export {
   type FileMetadataPage,
 } from './files';
 export {
+  MemoryStores,
+  type BetaManagedAgentsDeletedMemoryStore,
+  type BetaManagedAgentsMemoryStore,
+  type MemoryStoreCreateParams,
+  type MemoryStoreRetrieveParams,
+  type MemoryStoreUpdateParams,
+  type MemoryStoreListParams,
+  type MemoryStoreDeleteParams,
+  type MemoryStoreArchiveParams,
+  type BetaManagedAgentsMemoryStoresPageCursor,
+} from './memory-stores/index';
+export {
   Messages,
   type BetaAdvisorMessageIterationUsage,
   type BetaAdvisorRedactedResultBlock,
@@ -322,6 +334,7 @@ export {
   type BetaManagedAgentsDeletedSession,
   type BetaManagedAgentsFileResourceParams,
   type BetaManagedAgentsGitHubRepositoryResourceParams,
+  type BetaManagedAgentsMemoryStoreResourceParam,
   type BetaManagedAgentsSession,
   type BetaManagedAgentsSessionAgent,
   type BetaManagedAgentsSessionStats,
