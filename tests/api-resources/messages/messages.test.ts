@@ -87,7 +87,7 @@ describe('resource messages', () => {
 
   test('countTokens: only required params', async () => {
     const responsePromise = client.messages.countTokens({
-      messages: [{ content: 'string', role: 'user' }],
+      messages: [{ content: 'Hello, world', role: 'user' }],
       model: 'claude-opus-4-6',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -101,7 +101,7 @@ describe('resource messages', () => {
 
   test('countTokens: required and optional params', async () => {
     const response = await client.messages.countTokens({
-      messages: [{ content: 'string', role: 'user' }],
+      messages: [{ content: 'Hello, world', role: 'user' }],
       model: 'claude-opus-4-6',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       output_config: {
@@ -175,7 +175,7 @@ test('create: does not warn for non-deprecated models', async () => {
   await client.messages.create({
     max_tokens: 1024,
     messages: [{ content: 'Hello, world', role: 'user' }],
-    model: 'claude-opus-4-0',
+    model: 'claude-opus-4-6',
   });
 
   expect(consoleSpy).not.toHaveBeenCalled();

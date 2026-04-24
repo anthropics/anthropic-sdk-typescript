@@ -27,7 +27,8 @@ describe('resource files', () => {
           after_id: 'after_id',
           before_id: 'before_id',
           limit: 1,
-          betas: ['string'],
+          scope_id: 'scope_id',
+          betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -48,14 +49,22 @@ describe('resource files', () => {
   test('delete: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
-      client.beta.files.delete('file_id', { betas: ['string'] }, { path: '/_stainless_unknown_path' }),
+      client.beta.files.delete(
+        'file_id',
+        { betas: ['message-batches-2024-09-24'] },
+        { path: '/_stainless_unknown_path' },
+      ),
     ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
   test('download: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
-      client.beta.files.download('file_id', { betas: ['string'] }, { path: '/_stainless_unknown_path' }),
+      client.beta.files.download(
+        'file_id',
+        { betas: ['message-batches-2024-09-24'] },
+        { path: '/_stainless_unknown_path' },
+      ),
     ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
@@ -75,7 +84,7 @@ describe('resource files', () => {
     await expect(
       client.beta.files.retrieveMetadata(
         'file_id',
-        { betas: ['string'] },
+        { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -97,7 +106,7 @@ describe('resource files', () => {
   test('upload: required and optional params', async () => {
     const response = await client.beta.files.upload({
       file: await toFile(Buffer.from('Example data'), 'README.md'),
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 });

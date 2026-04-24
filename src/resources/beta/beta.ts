@@ -1,8 +1,29 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIResource } from '../../core/resource';
+import * as EnvironmentsAPI from './environments';
+import {
+  BetaCloudConfig,
+  BetaCloudConfigParams,
+  BetaEnvironment,
+  BetaEnvironmentDeleteResponse,
+  BetaEnvironmentsPageCursor,
+  BetaLimitedNetwork,
+  BetaLimitedNetworkParams,
+  BetaPackages,
+  BetaPackagesParams,
+  BetaUnrestrictedNetwork,
+  EnvironmentArchiveParams,
+  EnvironmentCreateParams,
+  EnvironmentDeleteParams,
+  EnvironmentListParams,
+  EnvironmentRetrieveParams,
+  EnvironmentUpdateParams,
+  Environments,
+} from './environments';
 import * as FilesAPI from './files';
 import {
+  BetaFileScope,
   DeletedFile,
   FileDeleteParams,
   FileDownloadParams,
@@ -27,8 +48,82 @@ import {
   ModelRetrieveParams,
   Models,
 } from './models';
+import * as UserProfilesAPI from './user-profiles';
+import {
+  BetaUserProfile,
+  BetaUserProfileEnrollmentURL,
+  BetaUserProfileTrustGrant,
+  BetaUserProfilesPageCursor,
+  UserProfileCreateEnrollmentURLParams,
+  UserProfileCreateParams,
+  UserProfileListParams,
+  UserProfileRetrieveParams,
+  UserProfileUpdateParams,
+  UserProfiles,
+} from './user-profiles';
+import * as AgentsAPI from './agents/agents';
+import {
+  AgentArchiveParams,
+  AgentCreateParams,
+  AgentListParams,
+  AgentRetrieveParams,
+  AgentUpdateParams,
+  Agents,
+  BetaManagedAgentsAgent,
+  BetaManagedAgentsAgentToolConfig,
+  BetaManagedAgentsAgentToolConfigParams,
+  BetaManagedAgentsAgentToolset20260401,
+  BetaManagedAgentsAgentToolset20260401Params,
+  BetaManagedAgentsAgentToolsetDefaultConfig,
+  BetaManagedAgentsAgentToolsetDefaultConfigParams,
+  BetaManagedAgentsAgentsPageCursor,
+  BetaManagedAgentsAlwaysAllowPolicy,
+  BetaManagedAgentsAlwaysAskPolicy,
+  BetaManagedAgentsAnthropicSkill,
+  BetaManagedAgentsAnthropicSkillParams,
+  BetaManagedAgentsCustomSkill,
+  BetaManagedAgentsCustomSkillParams,
+  BetaManagedAgentsCustomTool,
+  BetaManagedAgentsCustomToolInputSchema,
+  BetaManagedAgentsCustomToolParams,
+  BetaManagedAgentsMCPServerURLDefinition,
+  BetaManagedAgentsMCPToolConfig,
+  BetaManagedAgentsMCPToolConfigParams,
+  BetaManagedAgentsMCPToolset,
+  BetaManagedAgentsMCPToolsetDefaultConfig,
+  BetaManagedAgentsMCPToolsetDefaultConfigParams,
+  BetaManagedAgentsMCPToolsetParams,
+  BetaManagedAgentsModel,
+  BetaManagedAgentsModelConfig,
+  BetaManagedAgentsModelConfigParams,
+  BetaManagedAgentsSkillParams,
+  BetaManagedAgentsURLMCPServerParams,
+} from './agents/agents';
+import * as MemoryStoresAPI from './memory-stores/memory-stores';
+import {
+  BetaManagedAgentsDeletedMemoryStore,
+  BetaManagedAgentsMemoryStore,
+  BetaManagedAgentsMemoryStoresPageCursor,
+  MemoryStoreArchiveParams,
+  MemoryStoreCreateParams,
+  MemoryStoreDeleteParams,
+  MemoryStoreListParams,
+  MemoryStoreRetrieveParams,
+  MemoryStoreUpdateParams,
+  MemoryStores,
+} from './memory-stores/memory-stores';
 import * as MessagesAPI from './messages/messages';
 import {
+  BetaAdvisorMessageIterationUsage,
+  BetaAdvisorRedactedResultBlock,
+  BetaAdvisorRedactedResultBlockParam,
+  BetaAdvisorResultBlock,
+  BetaAdvisorResultBlockParam,
+  BetaAdvisorTool20260301,
+  BetaAdvisorToolResultBlock,
+  BetaAdvisorToolResultBlockParam,
+  BetaAdvisorToolResultError,
+  BetaAdvisorToolResultErrorParam,
   BetaAllThinkingTurns,
   BetaBase64ImageSource,
   BetaBase64PDFBlock,
@@ -131,6 +226,7 @@ import {
   BetaRawMessageStreamEvent,
   BetaRedactedThinkingBlock,
   BetaRedactedThinkingBlockParam,
+  BetaRefusalStopDetails,
   BetaRequestDocumentBlock,
   BetaRequestMCPServerToolConfiguration,
   BetaRequestMCPServerURLDefinition,
@@ -168,6 +264,7 @@ import {
   BetaThinkingConfigParam,
   BetaThinkingDelta,
   BetaThinkingTurns,
+  BetaTokenTaskBudget,
   BetaTool,
   BetaToolBash20241022,
   BetaToolBash20250124,
@@ -224,6 +321,29 @@ import {
   BetaMCPToolConfig,
   BetaMCPToolDefaultConfig,
 } from './messages/messages';
+import * as SessionsAPI from './sessions/sessions';
+import {
+  BetaManagedAgentsAgentParams,
+  BetaManagedAgentsBranchCheckout,
+  BetaManagedAgentsCacheCreationUsage,
+  BetaManagedAgentsCommitCheckout,
+  BetaManagedAgentsDeletedSession,
+  BetaManagedAgentsFileResourceParams,
+  BetaManagedAgentsGitHubRepositoryResourceParams,
+  BetaManagedAgentsMemoryStoreResourceParam,
+  BetaManagedAgentsSession,
+  BetaManagedAgentsSessionAgent,
+  BetaManagedAgentsSessionStats,
+  BetaManagedAgentsSessionUsage,
+  BetaManagedAgentsSessionsPageCursor,
+  SessionArchiveParams,
+  SessionCreateParams,
+  SessionDeleteParams,
+  SessionListParams,
+  SessionRetrieveParams,
+  SessionUpdateParams,
+  Sessions,
+} from './sessions/sessions';
 import * as SkillsAPI from './skills/skills';
 import {
   SkillCreateParams,
@@ -237,12 +357,31 @@ import {
   SkillRetrieveResponse,
   Skills,
 } from './skills/skills';
+import * as VaultsAPI from './vaults/vaults';
+import {
+  BetaManagedAgentsDeletedVault,
+  BetaManagedAgentsVault,
+  BetaManagedAgentsVaultsPageCursor,
+  VaultArchiveParams,
+  VaultCreateParams,
+  VaultDeleteParams,
+  VaultListParams,
+  VaultRetrieveParams,
+  VaultUpdateParams,
+  Vaults,
+} from './vaults/vaults';
 
 export class Beta extends APIResource {
   models: ModelsAPI.Models = new ModelsAPI.Models(this._client);
   messages: MessagesAPI.Messages = new MessagesAPI.Messages(this._client);
+  agents: AgentsAPI.Agents = new AgentsAPI.Agents(this._client);
+  environments: EnvironmentsAPI.Environments = new EnvironmentsAPI.Environments(this._client);
+  sessions: SessionsAPI.Sessions = new SessionsAPI.Sessions(this._client);
+  vaults: VaultsAPI.Vaults = new VaultsAPI.Vaults(this._client);
+  memoryStores: MemoryStoresAPI.MemoryStores = new MemoryStoresAPI.MemoryStores(this._client);
   files: FilesAPI.Files = new FilesAPI.Files(this._client);
   skills: SkillsAPI.Skills = new SkillsAPI.Skills(this._client);
+  userProfiles: UserProfilesAPI.UserProfiles = new UserProfilesAPI.UserProfiles(this._client);
 }
 
 export type AnthropicBeta =
@@ -266,7 +405,10 @@ export type AnthropicBeta =
   | 'context-management-2025-06-27'
   | 'model-context-window-exceeded-2025-08-26'
   | 'skills-2025-10-02'
-  | 'fast-mode-2026-02-01';
+  | 'fast-mode-2026-02-01'
+  | 'output-300k-2026-03-24'
+  | 'user-profiles-2026-03-24'
+  | 'advisor-tool-2026-03-01';
 
 export interface BetaAPIError {
   message: string;
@@ -343,8 +485,14 @@ export interface BetaRateLimitError {
 
 Beta.Models = Models;
 Beta.Messages = Messages;
+Beta.Agents = Agents;
+Beta.Environments = Environments;
+Beta.Sessions = Sessions;
+Beta.Vaults = Vaults;
+Beta.MemoryStores = MemoryStores;
 Beta.Files = Files;
 Beta.Skills = Skills;
+Beta.UserProfiles = UserProfiles;
 
 export declare namespace Beta {
   export {
@@ -378,6 +526,16 @@ export declare namespace Beta {
 
   export {
     Messages as Messages,
+    type BetaAdvisorMessageIterationUsage as BetaAdvisorMessageIterationUsage,
+    type BetaAdvisorRedactedResultBlock as BetaAdvisorRedactedResultBlock,
+    type BetaAdvisorRedactedResultBlockParam as BetaAdvisorRedactedResultBlockParam,
+    type BetaAdvisorResultBlock as BetaAdvisorResultBlock,
+    type BetaAdvisorResultBlockParam as BetaAdvisorResultBlockParam,
+    type BetaAdvisorTool20260301 as BetaAdvisorTool20260301,
+    type BetaAdvisorToolResultBlock as BetaAdvisorToolResultBlock,
+    type BetaAdvisorToolResultBlockParam as BetaAdvisorToolResultBlockParam,
+    type BetaAdvisorToolResultError as BetaAdvisorToolResultError,
+    type BetaAdvisorToolResultErrorParam as BetaAdvisorToolResultErrorParam,
     type BetaAllThinkingTurns as BetaAllThinkingTurns,
     type BetaBase64ImageSource as BetaBase64ImageSource,
     type BetaBase64PDFSource as BetaBase64PDFSource,
@@ -481,6 +639,7 @@ export declare namespace Beta {
     type BetaRawMessageStreamEvent as BetaRawMessageStreamEvent,
     type BetaRedactedThinkingBlock as BetaRedactedThinkingBlock,
     type BetaRedactedThinkingBlockParam as BetaRedactedThinkingBlockParam,
+    type BetaRefusalStopDetails as BetaRefusalStopDetails,
     type BetaRequestDocumentBlock as BetaRequestDocumentBlock,
     type BetaRequestMCPServerToolConfiguration as BetaRequestMCPServerToolConfiguration,
     type BetaRequestMCPServerURLDefinition as BetaRequestMCPServerURLDefinition,
@@ -518,6 +677,7 @@ export declare namespace Beta {
     type BetaThinkingConfigParam as BetaThinkingConfigParam,
     type BetaThinkingDelta as BetaThinkingDelta,
     type BetaThinkingTurns as BetaThinkingTurns,
+    type BetaTokenTaskBudget as BetaTokenTaskBudget,
     type BetaTool as BetaTool,
     type BetaToolBash20241022 as BetaToolBash20241022,
     type BetaToolBash20250124 as BetaToolBash20250124,
@@ -574,7 +734,115 @@ export declare namespace Beta {
   };
 
   export {
+    Agents as Agents,
+    type BetaManagedAgentsAgent as BetaManagedAgentsAgent,
+    type BetaManagedAgentsAgentToolConfig as BetaManagedAgentsAgentToolConfig,
+    type BetaManagedAgentsAgentToolConfigParams as BetaManagedAgentsAgentToolConfigParams,
+    type BetaManagedAgentsAgentToolsetDefaultConfig as BetaManagedAgentsAgentToolsetDefaultConfig,
+    type BetaManagedAgentsAgentToolsetDefaultConfigParams as BetaManagedAgentsAgentToolsetDefaultConfigParams,
+    type BetaManagedAgentsAgentToolset20260401 as BetaManagedAgentsAgentToolset20260401,
+    type BetaManagedAgentsAgentToolset20260401Params as BetaManagedAgentsAgentToolset20260401Params,
+    type BetaManagedAgentsAlwaysAllowPolicy as BetaManagedAgentsAlwaysAllowPolicy,
+    type BetaManagedAgentsAlwaysAskPolicy as BetaManagedAgentsAlwaysAskPolicy,
+    type BetaManagedAgentsAnthropicSkill as BetaManagedAgentsAnthropicSkill,
+    type BetaManagedAgentsAnthropicSkillParams as BetaManagedAgentsAnthropicSkillParams,
+    type BetaManagedAgentsCustomSkill as BetaManagedAgentsCustomSkill,
+    type BetaManagedAgentsCustomSkillParams as BetaManagedAgentsCustomSkillParams,
+    type BetaManagedAgentsCustomTool as BetaManagedAgentsCustomTool,
+    type BetaManagedAgentsCustomToolInputSchema as BetaManagedAgentsCustomToolInputSchema,
+    type BetaManagedAgentsCustomToolParams as BetaManagedAgentsCustomToolParams,
+    type BetaManagedAgentsMCPServerURLDefinition as BetaManagedAgentsMCPServerURLDefinition,
+    type BetaManagedAgentsMCPToolConfig as BetaManagedAgentsMCPToolConfig,
+    type BetaManagedAgentsMCPToolConfigParams as BetaManagedAgentsMCPToolConfigParams,
+    type BetaManagedAgentsMCPToolset as BetaManagedAgentsMCPToolset,
+    type BetaManagedAgentsMCPToolsetDefaultConfig as BetaManagedAgentsMCPToolsetDefaultConfig,
+    type BetaManagedAgentsMCPToolsetDefaultConfigParams as BetaManagedAgentsMCPToolsetDefaultConfigParams,
+    type BetaManagedAgentsMCPToolsetParams as BetaManagedAgentsMCPToolsetParams,
+    type BetaManagedAgentsModel as BetaManagedAgentsModel,
+    type BetaManagedAgentsModelConfig as BetaManagedAgentsModelConfig,
+    type BetaManagedAgentsModelConfigParams as BetaManagedAgentsModelConfigParams,
+    type BetaManagedAgentsSkillParams as BetaManagedAgentsSkillParams,
+    type BetaManagedAgentsURLMCPServerParams as BetaManagedAgentsURLMCPServerParams,
+    type BetaManagedAgentsAgentsPageCursor as BetaManagedAgentsAgentsPageCursor,
+    type AgentCreateParams as AgentCreateParams,
+    type AgentRetrieveParams as AgentRetrieveParams,
+    type AgentUpdateParams as AgentUpdateParams,
+    type AgentListParams as AgentListParams,
+    type AgentArchiveParams as AgentArchiveParams,
+  };
+
+  export {
+    Environments as Environments,
+    type BetaCloudConfig as BetaCloudConfig,
+    type BetaCloudConfigParams as BetaCloudConfigParams,
+    type BetaEnvironment as BetaEnvironment,
+    type BetaEnvironmentDeleteResponse as BetaEnvironmentDeleteResponse,
+    type BetaLimitedNetwork as BetaLimitedNetwork,
+    type BetaLimitedNetworkParams as BetaLimitedNetworkParams,
+    type BetaPackages as BetaPackages,
+    type BetaPackagesParams as BetaPackagesParams,
+    type BetaUnrestrictedNetwork as BetaUnrestrictedNetwork,
+    type BetaEnvironmentsPageCursor as BetaEnvironmentsPageCursor,
+    type EnvironmentCreateParams as EnvironmentCreateParams,
+    type EnvironmentRetrieveParams as EnvironmentRetrieveParams,
+    type EnvironmentUpdateParams as EnvironmentUpdateParams,
+    type EnvironmentListParams as EnvironmentListParams,
+    type EnvironmentDeleteParams as EnvironmentDeleteParams,
+    type EnvironmentArchiveParams as EnvironmentArchiveParams,
+  };
+
+  export {
+    Sessions as Sessions,
+    type BetaManagedAgentsAgentParams as BetaManagedAgentsAgentParams,
+    type BetaManagedAgentsBranchCheckout as BetaManagedAgentsBranchCheckout,
+    type BetaManagedAgentsCacheCreationUsage as BetaManagedAgentsCacheCreationUsage,
+    type BetaManagedAgentsCommitCheckout as BetaManagedAgentsCommitCheckout,
+    type BetaManagedAgentsDeletedSession as BetaManagedAgentsDeletedSession,
+    type BetaManagedAgentsFileResourceParams as BetaManagedAgentsFileResourceParams,
+    type BetaManagedAgentsGitHubRepositoryResourceParams as BetaManagedAgentsGitHubRepositoryResourceParams,
+    type BetaManagedAgentsMemoryStoreResourceParam as BetaManagedAgentsMemoryStoreResourceParam,
+    type BetaManagedAgentsSession as BetaManagedAgentsSession,
+    type BetaManagedAgentsSessionAgent as BetaManagedAgentsSessionAgent,
+    type BetaManagedAgentsSessionStats as BetaManagedAgentsSessionStats,
+    type BetaManagedAgentsSessionUsage as BetaManagedAgentsSessionUsage,
+    type BetaManagedAgentsSessionsPageCursor as BetaManagedAgentsSessionsPageCursor,
+    type SessionCreateParams as SessionCreateParams,
+    type SessionRetrieveParams as SessionRetrieveParams,
+    type SessionUpdateParams as SessionUpdateParams,
+    type SessionListParams as SessionListParams,
+    type SessionDeleteParams as SessionDeleteParams,
+    type SessionArchiveParams as SessionArchiveParams,
+  };
+
+  export {
+    Vaults as Vaults,
+    type BetaManagedAgentsDeletedVault as BetaManagedAgentsDeletedVault,
+    type BetaManagedAgentsVault as BetaManagedAgentsVault,
+    type BetaManagedAgentsVaultsPageCursor as BetaManagedAgentsVaultsPageCursor,
+    type VaultCreateParams as VaultCreateParams,
+    type VaultRetrieveParams as VaultRetrieveParams,
+    type VaultUpdateParams as VaultUpdateParams,
+    type VaultListParams as VaultListParams,
+    type VaultDeleteParams as VaultDeleteParams,
+    type VaultArchiveParams as VaultArchiveParams,
+  };
+
+  export {
+    MemoryStores as MemoryStores,
+    type BetaManagedAgentsDeletedMemoryStore as BetaManagedAgentsDeletedMemoryStore,
+    type BetaManagedAgentsMemoryStore as BetaManagedAgentsMemoryStore,
+    type BetaManagedAgentsMemoryStoresPageCursor as BetaManagedAgentsMemoryStoresPageCursor,
+    type MemoryStoreCreateParams as MemoryStoreCreateParams,
+    type MemoryStoreRetrieveParams as MemoryStoreRetrieveParams,
+    type MemoryStoreUpdateParams as MemoryStoreUpdateParams,
+    type MemoryStoreListParams as MemoryStoreListParams,
+    type MemoryStoreDeleteParams as MemoryStoreDeleteParams,
+    type MemoryStoreArchiveParams as MemoryStoreArchiveParams,
+  };
+
+  export {
     Files as Files,
+    type BetaFileScope as BetaFileScope,
     type DeletedFile as DeletedFile,
     type FileMetadata as FileMetadata,
     type FileMetadataPage as FileMetadataPage,
@@ -596,5 +864,18 @@ export declare namespace Beta {
     type SkillRetrieveParams as SkillRetrieveParams,
     type SkillListParams as SkillListParams,
     type SkillDeleteParams as SkillDeleteParams,
+  };
+
+  export {
+    UserProfiles as UserProfiles,
+    type BetaUserProfile as BetaUserProfile,
+    type BetaUserProfileEnrollmentURL as BetaUserProfileEnrollmentURL,
+    type BetaUserProfileTrustGrant as BetaUserProfileTrustGrant,
+    type BetaUserProfilesPageCursor as BetaUserProfilesPageCursor,
+    type UserProfileCreateParams as UserProfileCreateParams,
+    type UserProfileRetrieveParams as UserProfileRetrieveParams,
+    type UserProfileUpdateParams as UserProfileUpdateParams,
+    type UserProfileListParams as UserProfileListParams,
+    type UserProfileCreateEnrollmentURLParams as UserProfileCreateEnrollmentURLParams,
   };
 }

@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { mockFetch } from '../../lib/mock-fetch';
 import { BetaMessage, BetaContentBlock, BetaToolResultBlockParam } from '@anthropic-ai/sdk/resources/beta';
-import { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
+import { BetaRunnableTool, BetaToolRunContext } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
 import { BetaRawMessageStreamEvent, ToolError } from '@anthropic-ai/sdk/resources/beta/messages';
 import { Fetch } from '@anthropic-ai/sdk/internal/builtin-types';
 import { SDK_HELPER_SYMBOL } from '../../../src/lib/stainless-helper-header';
@@ -98,6 +98,7 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
       role: message.role,
       model: message.model,
       content: [],
+      stop_details: null,
       stop_reason: null,
       stop_sequence: null,
       container: null,
@@ -178,6 +179,7 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
   events.push({
     type: 'message_delta',
     delta: {
+      stop_details: message.stop_details,
       stop_reason: message.stop_reason,
       container: message.container,
       stop_sequence: message.stop_sequence,
@@ -227,6 +229,7 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
       role: 'assistant',
       content,
       model: 'claude-3-5-sonnet-latest',
+      stop_details: null,
       stop_reason,
       stop_sequence: null,
       container: null,
@@ -263,6 +266,7 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
       role: 'assistant',
       content,
       model: 'claude-3-5-sonnet-latest',
+      stop_details: null,
       stop_reason,
       stop_sequence: null,
       container: null,
@@ -1092,6 +1096,48 @@ describe('ToolRunner', () => {
       expect(capturedHelperHeader).toBe('BetaToolRunner, mcpTool');
     });
 
+    it('preserves x-stainless-helper header when signal is passed via constructor options', async () => {
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+
+      const controller = new AbortController();
+      let capturedHelperHeader: string | null = null;
+      handleRequest(async (_req, init) => {
+        const headers = init?.headers;
+        if (headers instanceof Headers) {
+          capturedHelperHeader = headers.get('x-stainless-helper');
+        }
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Hello!' }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      const runner = client.beta.messages.toolRunner(
+        {
+          model: 'claude-3-5-sonnet-latest',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: 'Hello' }],
+          tools: [weatherTool],
+        },
+        { signal: controller.signal },
+      );
+
+      await runner.runUntilDone();
+      expect(capturedHelperHeader).toBe('BetaToolRunner');
+    });
+
     it('includes message helpers when using marked messages', async () => {
       const { fetch, handleRequest } = mockFetch();
       const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
@@ -1142,130 +1188,285 @@ describe('ToolRunner', () => {
     });
   });
 
-  describe('compaction', () => {
-    it('caps max_tokens in the compaction summary request to avoid "Streaming is required" error', async () => {
-      // The bug: #checkAndCompact() passed the full max_tokens (e.g. 64_000) to a
-      // non-streaming messages.create() call. The SDK's calculateNonstreamingTimeout
-      // throws when max_tokens implies a response > 10 min, so compaction always
-      // failed for users with large max_tokens.
-      //
-      // The fix: cap max_tokens at COMPACTION_SUMMARY_MAX_TOKENS (4096) for the
-      // summary request.
-      //
-      // Reproduce by running the tool runner in streaming mode (so the main loop
-      // uses messages.stream(), bypassing the timeout check) with max_tokens large
-      // enough to trigger the check in the non-streaming compaction call.
-      const { fetch, handleStreamEvents, handleRequest } = mockFetch();
-      const largeMaxTokens = 64_000; // would throw in non-streaming without the cap
-      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+  describe('abort signal support', () => {
+    it('passes abort signal and toolUseBlock to tool run method', async () => {
+      let capturedContext: BetaToolRunContext | undefined = undefined;
 
-      let compactionMaxTokens: number | null = null;
-
-      // Build a streaming BetaMessage with tool_use and high token usage
-      const toolUseMsg: BetaMessage = {
-        id: 'msg_1',
-        type: 'message',
-        role: 'assistant',
-        content: [getWeatherToolUse('Tokyo')],
-        model: 'claude-3-5-sonnet-latest',
-        stop_reason: 'tool_use',
-        stop_sequence: null,
-        container: null,
-        context_management: null,
-        usage: {
-          input_tokens: 90_000,
-          output_tokens: 10_000,
-          cache_creation: null,
-          cache_creation_input_tokens: null,
-          cache_read_input_tokens: null,
-          server_tool_use: null,
-          service_tier: null,
-          inference_geo: null,
-          iterations: null,
-          speed: null,
+      const signalTool: BetaRunnableTool<{ value: string }> = {
+        type: 'custom',
+        name: 'signalTool',
+        description: 'Tool that captures signal',
+        input_schema: { type: 'object', properties: { value: { type: 'string' } } },
+        run: async (args, context) => {
+          capturedContext = context;
+          return `Received: ${args.value}`;
         },
+        parse: (input: unknown) => input as { value: string },
       };
 
-      // Request 1 (streaming): assistant requests tool, high token count exceeds threshold
-      handleStreamEvents(betaMessageToStreamEvents(toolUseMsg));
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+      const controller = new AbortController();
 
-      // Request 2 (non-streaming): compaction summary — capture max_tokens
-      handleRequest(async (_req, init) => {
-        const body = JSON.parse((init?.body as string) ?? '{}');
-        compactionMaxTokens = body.max_tokens ?? null;
+      // First response: tool use
+      handleRequest(async () => {
         return new Response(
           JSON.stringify({
-            id: 'msg_compaction',
+            id: 'msg_1',
             type: 'message',
             role: 'assistant',
-            content: [{ type: 'text', text: '<summary>Compact summary.</summary>' }],
+            content: [{ type: 'tool_use', id: 'tool_1', name: 'signalTool', input: { value: 'hello' } }],
             model: 'claude-3-5-sonnet-latest',
-            stop_reason: 'end_turn',
+            stop_reason: 'tool_use',
             stop_sequence: null,
             container: null,
             context_management: null,
-            usage: {
-              input_tokens: 100,
-              output_tokens: 20,
-              cache_creation: null,
-              cache_creation_input_tokens: null,
-              cache_read_input_tokens: null,
-              server_tool_use: null,
-              service_tier: null,
-              inference_geo: null,
-              iterations: null,
-              speed: null,
-            },
+            usage: { input_tokens: 10, output_tokens: 20 },
           }),
           { headers: { 'content-type': 'application/json' } },
         );
       });
 
-      // Request 3 (streaming): final assistant turn after compaction
-      const finalMsg: BetaMessage = {
-        id: 'msg_3',
-        type: 'message',
-        role: 'assistant',
-        content: [{ type: 'text', text: 'Done.' }],
-        model: 'claude-3-5-sonnet-latest',
-        stop_reason: 'end_turn',
-        stop_sequence: null,
-        container: null,
-        context_management: null,
-        usage: {
-          input_tokens: 50,
-          output_tokens: 5,
-          cache_creation: null,
-          cache_creation_input_tokens: null,
-          cache_read_input_tokens: null,
-          server_tool_use: null,
-          service_tier: null,
-          inference_geo: null,
-          iterations: null,
-          speed: null,
-        },
-      };
-      handleStreamEvents(betaMessageToStreamEvents(finalMsg));
-
-      const runner = client.beta.messages.toolRunner({
-        stream: true,
-        model: 'claude-3-5-sonnet-latest',
-        max_tokens: largeMaxTokens,
-        messages: [{ role: 'user', content: 'What is the weather in Tokyo?' }],
-        tools: [weatherTool],
-        compactionControl: {
-          enabled: true,
-          contextTokenThreshold: 50_000, // low enough to trigger after first response
-        },
+      // Second response: final text
+      handleRequest(async () => {
+        return new Response(
+          JSON.stringify({
+            id: 'msg_2',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Done!', citations: null }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
       });
+
+      const runner = client.beta.messages.toolRunner(
+        {
+          model: 'claude-3-5-sonnet-latest',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: 'Test signal' }],
+          tools: [signalTool],
+        },
+        { signal: controller.signal },
+      );
 
       await runner.runUntilDone();
 
-      // Compaction must have fired and used a capped max_tokens.
-      // Without the fix, the non-streaming compaction call would have thrown
-      // "Streaming is required for operations that may take longer than 10 minutes."
-      expect(compactionMaxTokens).not.toBeNull();
-      expect(compactionMaxTokens).toBeLessThanOrEqual(4096);
+      expect(capturedContext).toBeDefined();
+      expect(capturedContext!.signal).toBe(controller.signal);
+      expect(capturedContext!.toolUseBlock).toMatchObject({
+        type: 'tool_use',
+        id: 'tool_1',
+        name: 'signalTool',
+        input: { value: 'hello' },
+      });
+    });
+
+    it('passes undefined signal when no signal is provided', async () => {
+      let capturedContext: BetaToolRunContext | undefined = undefined;
+
+      const signalTool: BetaRunnableTool<{ value: string }> = {
+        type: 'custom',
+        name: 'signalTool',
+        description: 'Tool that captures signal',
+        input_schema: { type: 'object', properties: { value: { type: 'string' } } },
+        run: async (_args, context) => {
+          capturedContext = context;
+          return 'done';
+        },
+        parse: (input: unknown) => input as { value: string },
+      };
+
+      const { runner, handleAssistantMessage } = setupTest({
+        tools: [signalTool],
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      handleAssistantMessage({
+        type: 'tool_use',
+        id: 'tool_1',
+        name: 'signalTool',
+        input: { value: 'test' },
+      });
+      await iterator.next();
+
+      handleAssistantMessage(getTextContent());
+      await iterator.next();
+      await expectDone(iterator);
+
+      expect(capturedContext).toBeDefined();
+      expect(capturedContext!.signal).toBeUndefined();
+      expect(capturedContext!.toolUseBlock).toMatchObject({
+        type: 'tool_use',
+        id: 'tool_1',
+        name: 'signalTool',
+      });
+    });
+  });
+
+  describe('.setRequestOptions()', () => {
+    it('updates options with direct object and preserves helper headers', async () => {
+      let capturedContext: BetaToolRunContext | undefined = undefined;
+      let capturedHelperHeader: string | null = null;
+
+      const signalTool: BetaRunnableTool<{ value: string }> = {
+        type: 'custom',
+        name: 'signalTool',
+        description: 'Tool that captures signal',
+        input_schema: { type: 'object', properties: { value: { type: 'string' } } },
+        run: async (_args, context) => {
+          capturedContext = context;
+          return 'done';
+        },
+        parse: (input: unknown) => input as { value: string },
+      };
+
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+      const controller = new AbortController();
+
+      // First response: tool use
+      handleRequest(async (_req, init) => {
+        const headers = init?.headers;
+        if (headers instanceof Headers) {
+          capturedHelperHeader = headers.get('x-stainless-helper');
+        }
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'tool_use', id: 'tool_1', name: 'signalTool', input: { value: 'hello' } }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'tool_use',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 20 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      // Second response: final text
+      handleRequest(async () => {
+        return new Response(
+          JSON.stringify({
+            id: 'msg_2',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Done!', citations: null }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      // Create runner without signal initially
+      const runner = client.beta.messages.toolRunner({
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: 'Test' }],
+        tools: [signalTool],
+      });
+
+      // Set signal via setRequestOptions
+      runner.setRequestOptions({ signal: controller.signal });
+
+      await runner.runUntilDone();
+
+      expect(capturedContext).toBeDefined();
+      expect(capturedContext!.signal).toBe(controller.signal);
+      // setRequestOptions with direct object should not drop the helper header
+      expect(capturedHelperHeader).toContain('BetaToolRunner');
+    });
+
+    it('updates options with mutator function', async () => {
+      let capturedContext: BetaToolRunContext | undefined = undefined;
+
+      const signalTool: BetaRunnableTool<{ value: string }> = {
+        type: 'custom',
+        name: 'signalTool',
+        description: 'Tool that captures signal',
+        input_schema: { type: 'object', properties: { value: { type: 'string' } } },
+        run: async (_args, context) => {
+          capturedContext = context;
+          return 'done';
+        },
+        parse: (input: unknown) => input as { value: string },
+      };
+
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+      const controller = new AbortController();
+
+      // First response: tool use
+      handleRequest(async () => {
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'tool_use', id: 'tool_1', name: 'signalTool', input: { value: 'hello' } }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'tool_use',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 20 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      // Second response: final text
+      handleRequest(async () => {
+        return new Response(
+          JSON.stringify({
+            id: 'msg_2',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Done!', citations: null }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      const runner = client.beta.messages.toolRunner({
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: 'Test' }],
+        tools: [signalTool],
+      });
+
+      // Set signal via mutator function
+      runner.setRequestOptions((prev) => ({
+        ...prev,
+        signal: controller.signal,
+      }));
+
+      await runner.runUntilDone();
+
+      expect(capturedContext).toBeDefined();
+      expect(capturedContext!.signal).toBe(controller.signal);
     });
   });
 });

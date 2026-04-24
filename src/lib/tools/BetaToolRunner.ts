@@ -81,6 +81,14 @@ export class BetaToolRunner<Stream extends boolean> {
       headers: buildHeaders([{ 'x-stainless-helper': helperValue }, options?.headers]),
     };
     this.#completion = promiseWithResolvers();
+
+    if (params.compactionControl?.enabled) {
+      console.warn(
+        'Anthropic: The `compactionControl` parameter is deprecated and will be removed in a future version. ' +
+          'Use server-side compaction instead by passing `edits: [{ type: "compact_20260112" }]` in the params passed to `toolRunner()`. ' +
+          'See https://platform.claude.com/docs/en/build-with-claude/compaction',
+      );
+    }
   }
 
   async #checkAndCompact(): Promise<boolean> {
@@ -152,7 +160,8 @@ export class BetaToolRunner<Stream extends boolean> {
         max_tokens: Math.min(this.#state.params.max_tokens, COMPACTION_SUMMARY_MAX_TOKENS),
       },
       {
-        headers: { 'x-stainless-helper': 'compaction' },
+        signal: this.#options.signal,
+        headers: buildHeaders([this.#options.headers, { 'x-stainless-helper': 'compaction' }]),
       },
     );
 
@@ -282,6 +291,40 @@ export class BetaToolRunner<Stream extends boolean> {
   }
 
   /**
+   * Update the request options for future API calls.
+   *
+   * @param optionsOrMutator - Either new options or a function to mutate existing options
+   *
+   * @example
+   * // Direct options update
+   * runner.setRequestOptions({
+   *   signal: controller.signal,
+   * });
+   *
+   * @example
+   * // Using a mutator function
+   * runner.setRequestOptions((prevOptions) => ({
+   *   ...prevOptions,
+   *   signal: controller.signal,
+   * }));
+   */
+  setRequestOptions(options: BetaToolRunnerRequestOptions): void;
+  setRequestOptions(
+    mutator: (prevOptions: BetaToolRunnerRequestOptions) => BetaToolRunnerRequestOptions,
+  ): void;
+  setRequestOptions(
+    optionsOrMutator:
+      | BetaToolRunnerRequestOptions
+      | ((prevOptions: BetaToolRunnerRequestOptions) => BetaToolRunnerRequestOptions),
+  ) {
+    if (typeof optionsOrMutator === 'function') {
+      this.#options = optionsOrMutator(this.#options);
+    } else {
+      this.#options = { ...this.#options, ...optionsOrMutator };
+    }
+  }
+
+  /**
    * Get the tool response for the last message from the assistant.
    * Avoids redundant tool executions by caching results.
    *
@@ -293,19 +336,25 @@ export class BetaToolRunner<Stream extends boolean> {
    *   console.log('Tool results:', toolResponse.content);
    * }
    */
-  async generateToolResponse() {
+  async generateToolResponse(signal: AbortSignal | null | undefined = this.#options.signal) {
     const message = (await this.#message) ?? this.params.messages.at(-1);
     if (!message) {
       return null;
     }
-    return this.#generateToolResponse(message);
+    return this.#generateToolResponse(message, signal);
   }
 
-  async #generateToolResponse(lastMessage: BetaMessageParam) {
+  async #generateToolResponse(
+    lastMessage: BetaMessageParam,
+    signal: AbortSignal | null | undefined = this.#options.signal,
+  ) {
     if (this.#toolResponse !== undefined) {
       return this.#toolResponse;
     }
-    this.#toolResponse = generateToolResponse(this.#state.params, lastMessage);
+    this.#toolResponse = generateToolResponse(this.#state.params, lastMessage, {
+      ...this.#options,
+      signal,
+    });
     return this.#toolResponse;
   }
 
@@ -407,6 +456,7 @@ export class BetaToolRunner<Stream extends boolean> {
 async function generateToolResponse(
   params: BetaToolRunnerParams,
   lastMessage = params.messages.at(-1),
+  requestOptions?: BetaToolRunnerRequestOptions,
 ): Promise<BetaMessageParam | null> {
   // Only process if the last message is from the assistant and has tool use blocks
   if (
@@ -441,7 +491,10 @@ async function generateToolResponse(
           input = tool.parse(input);
         }
 
-        const result = await tool.run(input);
+        const result = await tool.run(input, {
+          toolUseBlock: toolUse,
+          signal: requestOptions?.signal,
+        });
         return {
           type: 'tool_result' as const,
           tool_use_id: toolUse.id,
@@ -482,8 +535,13 @@ export type BetaToolRunnerParams = Simplify<
      * When exceeded, the loop will terminate even if tools are still being requested.
      */
     max_iterations?: number;
+    /**
+     * @deprecated Use server-side compaction instead by passing
+     * `edits: [{ type: 'compact_20260112' }]` in the params passed to `toolRunner()`.
+     * See https://platform.claude.com/docs/en/build-with-claude/compaction
+     */
     compactionControl?: CompactionControl;
   }
 >;
 
-export type BetaToolRunnerRequestOptions = Pick<RequestOptions, 'headers'>;
+export type BetaToolRunnerRequestOptions = Pick<RequestOptions, 'headers' | 'signal'>;

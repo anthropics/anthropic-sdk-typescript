@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.29.0 (2026-04-23)
+
+Full Changelog: [bedrock-sdk-v0.28.1...bedrock-sdk-v0.29.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.28.1...bedrock-sdk-v0.29.0)
+
+### Features
+
+* **bedrock:** use auth header for mantle client ([#866](https://github.com/anthropics/anthropic-sdk-typescript/issues/866)) ([aec801a](https://github.com/anthropics/anthropic-sdk-typescript/commit/aec801afc7d37d9e8ca1471748ca599b442cbce4))
+
+## 0.28.1 (2026-04-08)
+
+Full Changelog: [bedrock-sdk-v0.28.0...bedrock-sdk-v0.28.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.28.0...bedrock-sdk-v0.28.1)
+
+### Chores
+
+* update @anthropic-ai/sdk dependency version ([#870](https://github.com/anthropics/anthropic-sdk-typescript/issues/870)) ([036342b](https://github.com/anthropics/anthropic-sdk-typescript/commit/036342bdbf9867e223465510d4a39146f1b721dd))
+
+## 0.28.0 (2026-04-07)
+
+Full Changelog: [bedrock-sdk-v0.27.0...bedrock-sdk-v0.28.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.27.0...bedrock-sdk-v0.28.0)
+
+### Features
+
+* **client:** Create Bedrock Mantle client ([#810](https://github.com/anthropics/anthropic-sdk-typescript/issues/810)) ([2f1f4a1](https://github.com/anthropics/anthropic-sdk-typescript/commit/2f1f4a1f565a6c12afc1dd7fd98d2adf735dd68b))
+
+## 0.27.0 (2026-04-01)
+
+Full Changelog: [bedrock-sdk-v0.26.4...bedrock-sdk-v0.27.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.26.4...bedrock-sdk-v0.27.0)
+
+### Features
+
+* support API keys in Bedrock SDK ([#824](https://github.com/anthropics/anthropic-sdk-typescript/issues/824)) ([be6c608](https://github.com/anthropics/anthropic-sdk-typescript/commit/be6c608bf0de9ceb2c09974b28f7f80db96ed42e))
+
 ## 0.26.4 (2026-02-19)
 
 Full Changelog: [bedrock-sdk-v0.26.3...bedrock-sdk-v0.26.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.26.3...bedrock-sdk-v0.26.4)

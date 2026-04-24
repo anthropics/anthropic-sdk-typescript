@@ -62,7 +62,7 @@ const DEPRECATED_MODELS: {
   'claude-3-7-sonnet-20250219': 'February 19th, 2026',
 };
 
-const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-opus-4-6'];
+const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-mythos-preview', 'claude-opus-4-6'];
 
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
@@ -113,7 +113,7 @@ export class Messages extends APIResource {
     }
 
     if (
-      body.model in MODELS_TO_WARN_WITH_THINKING_ENABLED &&
+      MODELS_TO_WARN_WITH_THINKING_ENABLED.includes(body.model) &&
       body.thinking &&
       body.thinking.type === 'enabled'
     ) {
@@ -200,7 +200,7 @@ export class Messages extends APIResource {
    * ```ts
    * const betaMessageTokensCount =
    *   await client.beta.messages.countTokens({
-   *     messages: [{ content: 'string', role: 'user' }],
+   *     messages: [{ content: 'Hello, world', role: 'user' }],
    *     model: 'claude-opus-4-6',
    *   });
    * ```
@@ -262,6 +262,175 @@ function transformOutputFormat<T extends MessageCreateParams | MessageCountToken
       format: output_format,
     },
   } as T;
+}
+
+/**
+ * Token usage for an advisor sub-inference iteration.
+ */
+export interface BetaAdvisorMessageIterationUsage {
+  /**
+   * Breakdown of cached tokens by TTL
+   */
+  cache_creation: BetaCacheCreation | null;
+
+  /**
+   * The number of input tokens used to create the cache entry.
+   */
+  cache_creation_input_tokens: number;
+
+  /**
+   * The number of input tokens read from the cache.
+   */
+  cache_read_input_tokens: number;
+
+  /**
+   * The number of input tokens which were used.
+   */
+  input_tokens: number;
+
+  /**
+   * The model that will complete your prompt.\n\nSee
+   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * details and options.
+   */
+  model: MessagesAPI.Model;
+
+  /**
+   * The number of output tokens which were used.
+   */
+  output_tokens: number;
+
+  /**
+   * Usage for an advisor sub-inference iteration
+   */
+  type: 'advisor_message';
+}
+
+export interface BetaAdvisorRedactedResultBlock {
+  /**
+   * Opaque blob containing the advisor's output. Round-trip verbatim; do not inspect
+   * or modify.
+   */
+  encrypted_content: string;
+
+  type: 'advisor_redacted_result';
+}
+
+export interface BetaAdvisorRedactedResultBlockParam {
+  /**
+   * Opaque blob produced by a prior response; must be round-tripped verbatim.
+   */
+  encrypted_content: string;
+
+  type: 'advisor_redacted_result';
+}
+
+export interface BetaAdvisorResultBlock {
+  text: string;
+
+  type: 'advisor_result';
+}
+
+export interface BetaAdvisorResultBlockParam {
+  text: string;
+
+  type: 'advisor_result';
+}
+
+export interface BetaAdvisorTool20260301 {
+  /**
+   * The model that will complete your prompt.\n\nSee
+   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * details and options.
+   */
+  model: MessagesAPI.Model;
+
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'advisor';
+
+  type: 'advisor_20260301';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Caching for the advisor's own prompt. When set, each advisor call writes a cache
+   * entry at the given TTL so subsequent calls in the same conversation read the
+   * stable prefix. When omitted, the advisor prompt is not cached.
+   */
+  caching?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
+export interface BetaAdvisorToolResultBlock {
+  content: BetaAdvisorToolResultError | BetaAdvisorResultBlock | BetaAdvisorRedactedResultBlock;
+
+  tool_use_id: string;
+
+  type: 'advisor_tool_result';
+}
+
+export interface BetaAdvisorToolResultBlockParam {
+  content:
+    | BetaAdvisorToolResultErrorParam
+    | BetaAdvisorResultBlockParam
+    | BetaAdvisorRedactedResultBlockParam;
+
+  tool_use_id: string;
+
+  type: 'advisor_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export interface BetaAdvisorToolResultError {
+  error_code:
+    | 'max_uses_exceeded'
+    | 'prompt_too_long'
+    | 'too_many_requests'
+    | 'overloaded'
+    | 'unavailable'
+    | 'execution_time_exceeded';
+
+  type: 'advisor_tool_result_error';
+}
+
+export interface BetaAdvisorToolResultErrorParam {
+  error_code:
+    | 'max_uses_exceeded'
+    | 'prompt_too_long'
+    | 'too_many_requests'
+    | 'overloaded'
+    | 'unavailable'
+    | 'execution_time_exceeded';
+
+  type: 'advisor_tool_result_error';
 }
 
 export interface BetaAllThinkingTurns {
@@ -856,6 +1025,11 @@ export interface BetaCompactionBlock {
    */
   content: string | null;
 
+  /**
+   * Opaque metadata from prior compaction, to be round-tripped verbatim
+   */
+  encrypted_content: string | null;
+
   type: 'compaction';
 }
 
@@ -880,10 +1054,20 @@ export interface BetaCompactionBlockParam {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Opaque metadata from prior compaction, to be round-tripped verbatim
+   */
+  encrypted_content?: string | null;
 }
 
 export interface BetaCompactionContentBlockDelta {
   content: string | null;
+
+  /**
+   * Opaque metadata from prior compaction, to be round-tripped verbatim
+   */
+  encrypted_content: string | null;
 
   type: 'compaction_delta';
 }
@@ -994,6 +1178,7 @@ export type BetaContentBlock =
   | BetaServerToolUseBlock
   | BetaWebSearchToolResultBlock
   | BetaWebFetchToolResultBlock
+  | BetaAdvisorToolResultBlock
   | BetaCodeExecutionToolResultBlock
   | BetaBashCodeExecutionToolResultBlock
   | BetaTextEditorCodeExecutionToolResultBlock
@@ -1018,6 +1203,7 @@ export type BetaContentBlockParam =
   | BetaServerToolUseBlockParam
   | BetaWebSearchToolResultBlockParam
   | BetaWebFetchToolResultBlockParam
+  | BetaAdvisorToolResultBlockParam
   | BetaCodeExecutionToolResultBlockParam
   | BetaBashCodeExecutionToolResultBlockParam
   | BetaTextEditorCodeExecutionToolResultBlockParam
@@ -1160,7 +1346,9 @@ export interface BetaInputTokensTrigger {
  * - Calculate the true context window size from the last iteration
  * - Understand token accumulation across server-side tool use loops
  */
-export type BetaIterationsUsage = Array<BetaMessageIterationUsage | BetaCompactionIterationUsage>;
+export type BetaIterationsUsage = Array<
+  BetaMessageIterationUsage | BetaCompactionIterationUsage | BetaAdvisorMessageIterationUsage
+>;
 
 export interface BetaJSONOutputFormat {
   /**
@@ -1485,6 +1673,11 @@ export interface BetaMessage {
   role: 'assistant';
 
   /**
+   * Structured information about a refusal.
+   */
+  stop_details: BetaRefusalStopDetails | null;
+
+  /**
    * The reason that we stopped.
    *
    * This may be one the following values:
@@ -1646,13 +1839,18 @@ export interface BetaOutputConfig {
   /**
    * All possible effort levels.
    */
-  effort?: 'low' | 'medium' | 'high' | 'max' | null;
+  effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | null;
 
   /**
    * A schema to specify Claude's output format in responses. See
    * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
    */
   format?: BetaJSONOutputFormat | null;
+
+  /**
+   * User-configurable total token budget across contexts.
+   */
+  task_budget?: BetaTokenTaskBudget | null;
 }
 
 export interface BetaPlainTextSource {
@@ -1691,6 +1889,7 @@ export interface BetaRawContentBlockStartEvent {
     | BetaServerToolUseBlock
     | BetaWebSearchToolResultBlock
     | BetaWebFetchToolResultBlock
+    | BetaAdvisorToolResultBlock
     | BetaCodeExecutionToolResultBlock
     | BetaBashCodeExecutionToolResultBlock
     | BetaTextEditorCodeExecutionToolResultBlock
@@ -1749,6 +1948,11 @@ export namespace BetaRawMessageDeltaEvent {
      */
     container: BetaMessagesAPI.BetaContainer | null;
 
+    /**
+     * Structured information about a refusal.
+     */
+    stop_details: BetaMessagesAPI.BetaRefusalStopDetails | null;
+
     stop_reason: BetaMessagesAPI.BetaStopReason | null;
 
     stop_sequence: string | null;
@@ -1783,6 +1987,28 @@ export interface BetaRedactedThinkingBlockParam {
   data: string;
 
   type: 'redacted_thinking';
+}
+
+/**
+ * Structured information about a refusal.
+ */
+export interface BetaRefusalStopDetails {
+  /**
+   * The policy category that triggered the refusal.
+   *
+   * `null` when the refusal doesn't map to a named category.
+   */
+  category: 'cyber' | 'bio' | null;
+
+  /**
+   * Human-readable explanation of the refusal.
+   *
+   * This text is not guaranteed to be stable. `null` when no explanation is
+   * available for the category.
+   */
+  explanation: string | null;
+
+  type: 'refusal';
 }
 
 export interface BetaRequestDocumentBlock {
@@ -1890,6 +2116,7 @@ export interface BetaServerToolUseBlock {
   input: { [key: string]: unknown };
 
   name:
+    | 'advisor'
     | 'web_search'
     | 'web_fetch'
     | 'code_execution'
@@ -1912,6 +2139,7 @@ export interface BetaServerToolUseBlockParam {
   input: unknown;
 
   name:
+    | 'advisor'
     | 'web_search'
     | 'web_fetch'
     | 'code_execution'
@@ -2243,6 +2471,27 @@ export interface BetaThinkingTurns {
   type: 'thinking_turns';
 
   value: number;
+}
+
+/**
+ * User-configurable total token budget across contexts.
+ */
+export interface BetaTokenTaskBudget {
+  /**
+   * Total token budget across all contexts in the session.
+   */
+  total: number;
+
+  /**
+   * The budget type. Currently only 'tokens' is supported.
+   */
+  type: 'tokens';
+
+  /**
+   * Remaining tokens in the budget. Use this to track usage across contexts when
+   * implementing compaction client-side. Defaults to total if not provided.
+   */
+  remaining?: number | null;
 }
 
 export interface BetaTool {
@@ -2893,6 +3142,7 @@ export type BetaToolUnion =
   | BetaWebSearchTool20260209
   | BetaWebFetchTool20260209
   | BetaWebFetchTool20260309
+  | BetaAdvisorTool20260301
   | BetaToolSearchToolBm25_20251119
   | BetaToolSearchToolRegex20251119
   | BetaMCPToolset;
@@ -3682,14 +3932,9 @@ export interface MessageCreateParamsBase {
   system?: string | Array<BetaTextBlockParam>;
 
   /**
-   * Body param: Amount of randomness injected into the response.
-   *
-   * Defaults to `1.0`. Ranges from `0.0` to `1.0`. Use `temperature` closer to `0.0`
-   * for analytical / multiple choice, and closer to `1.0` for creative and
-   * generative tasks.
-   *
-   * Note that even with `temperature` of `0.0`, the results will not be fully
-   * deterministic.
+   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
+   * setting temperature. A value of 1.0 of will be accepted for backwards
+   * compatibility, all other values will be rejected with a 400 error.
    */
   temperature?: number;
 
@@ -3792,28 +4037,23 @@ export interface MessageCreateParamsBase {
   tools?: Array<BetaToolUnion>;
 
   /**
-   * Body param: Only sample from the top K options for each subsequent token.
-   *
-   * Used to remove "long tail" low probability responses.
-   * [Learn more technical details here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
-   *
-   * Recommended for advanced use cases only. You usually only need to use
-   * `temperature`.
+   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not accept
+   * top_k; any value will be rejected with a 400 error.
    */
   top_k?: number;
 
   /**
-   * Body param: Use nucleus sampling.
-   *
-   * In nucleus sampling, we compute the cumulative distribution over all the options
-   * for each subsequent token in decreasing probability order and cut it off once it
-   * reaches a particular probability specified by `top_p`. You should either alter
-   * `temperature` or `top_p`, but not both.
-   *
-   * Recommended for advanced use cases only. You usually only need to use
-   * `temperature`.
+   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
+   * setting top_p. A value >= 0.99 will be accepted for backwards compatibility, all
+   * other values will be rejected with a 400 error.
    */
   top_p?: number;
+
+  /**
+   * Body param: The user profile ID to attribute this request to. Use when acting on
+   * behalf of a party other than your organization.
+   */
+  user_profile_id?: string | null;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
@@ -4088,6 +4328,7 @@ export interface MessageCountTokensParams {
     | BetaWebSearchTool20260209
     | BetaWebFetchTool20260209
     | BetaWebFetchTool20260309
+    | BetaAdvisorTool20260301
     | BetaToolSearchToolBm25_20251119
     | BetaToolSearchToolRegex20251119
     | BetaMCPToolset
@@ -4109,6 +4350,16 @@ Messages.ToolError = ToolError;
 
 export declare namespace Messages {
   export {
+    type BetaAdvisorMessageIterationUsage as BetaAdvisorMessageIterationUsage,
+    type BetaAdvisorRedactedResultBlock as BetaAdvisorRedactedResultBlock,
+    type BetaAdvisorRedactedResultBlockParam as BetaAdvisorRedactedResultBlockParam,
+    type BetaAdvisorResultBlock as BetaAdvisorResultBlock,
+    type BetaAdvisorResultBlockParam as BetaAdvisorResultBlockParam,
+    type BetaAdvisorTool20260301 as BetaAdvisorTool20260301,
+    type BetaAdvisorToolResultBlock as BetaAdvisorToolResultBlock,
+    type BetaAdvisorToolResultBlockParam as BetaAdvisorToolResultBlockParam,
+    type BetaAdvisorToolResultError as BetaAdvisorToolResultError,
+    type BetaAdvisorToolResultErrorParam as BetaAdvisorToolResultErrorParam,
     type BetaAllThinkingTurns as BetaAllThinkingTurns,
     type BetaBase64ImageSource as BetaBase64ImageSource,
     type BetaBase64PDFSource as BetaBase64PDFSource,
@@ -4213,6 +4464,7 @@ export declare namespace Messages {
     type BetaRawMessageStreamEvent as BetaRawMessageStreamEvent,
     type BetaRedactedThinkingBlock as BetaRedactedThinkingBlock,
     type BetaRedactedThinkingBlockParam as BetaRedactedThinkingBlockParam,
+    type BetaRefusalStopDetails as BetaRefusalStopDetails,
     type BetaRequestDocumentBlock as BetaRequestDocumentBlock,
     type BetaRequestMCPServerToolConfiguration as BetaRequestMCPServerToolConfiguration,
     type BetaRequestMCPServerURLDefinition as BetaRequestMCPServerURLDefinition,
@@ -4250,6 +4502,7 @@ export declare namespace Messages {
     type BetaThinkingConfigParam as BetaThinkingConfigParam,
     type BetaThinkingDelta as BetaThinkingDelta,
     type BetaThinkingTurns as BetaThinkingTurns,
+    type BetaTokenTaskBudget as BetaTokenTaskBudget,
     type BetaTool as BetaTool,
     type BetaToolBash20241022 as BetaToolBash20241022,
     type BetaToolBash20250124 as BetaToolBash20250124,

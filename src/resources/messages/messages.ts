@@ -76,7 +76,7 @@ export class Messages extends APIResource {
       );
     }
     if (
-      body.model in MODELS_TO_WARN_WITH_THINKING_ENABLED &&
+      MODELS_TO_WARN_WITH_THINKING_ENABLED.includes(body.model) &&
       body.thinking &&
       body.thinking.type === 'enabled'
     ) {
@@ -176,7 +176,7 @@ export class Messages extends APIResource {
    * ```ts
    * const messageTokensCount =
    *   await client.messages.countTokens({
-   *     messages: [{ content: 'string', role: 'user' }],
+   *     messages: [{ content: 'Hello, world', role: 'user' }],
    *     model: 'claude-opus-4-6',
    *   });
    * ```
@@ -937,6 +937,11 @@ export interface Message {
   role: 'assistant';
 
   /**
+   * Structured information about a refusal.
+   */
+  stop_details: RefusalStopDetails | null;
+
+  /**
    * The reason that we stopped.
    *
    * This may be one the following values:
@@ -1070,6 +1075,8 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
+  | 'claude-opus-4-7'
+  | 'claude-mythos-preview'
   | 'claude-opus-4-6'
   | 'claude-sonnet-4-6'
   | 'claude-haiku-4-5'
@@ -1091,7 +1098,7 @@ export interface OutputConfig {
   /**
    * All possible effort levels.
    */
-  effort?: 'low' | 'medium' | 'high' | 'max' | null;
+  effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | null;
 
   /**
    * A schema to specify Claude's output format in responses. See
@@ -1116,9 +1123,13 @@ const DEPRECATED_MODELS: {
   'claude-3-7-sonnet-20250219': 'February 19th, 2026',
   'claude-3-5-haiku-latest': 'February 19th, 2026',
   'claude-3-5-haiku-20241022': 'February 19th, 2026',
+  'claude-opus-4-0': 'June 15th, 2026',
+  'claude-opus-4-20250514': 'June 15th, 2026',
+  'claude-sonnet-4-0': 'June 15th, 2026',
+  'claude-sonnet-4-20250514': 'June 15th, 2026',
 };
 
-const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-opus-4-6'];
+const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-mythos-preview', 'claude-opus-4-6'];
 
 export interface PlainTextSource {
   data: string;
@@ -1205,6 +1216,11 @@ export namespace RawMessageDeltaEvent {
      */
     container: MessagesAPI.Container | null;
 
+    /**
+     * Structured information about a refusal.
+     */
+    stop_details: MessagesAPI.RefusalStopDetails | null;
+
     stop_reason: MessagesAPI.StopReason | null;
 
     stop_sequence: string | null;
@@ -1239,6 +1255,28 @@ export interface RedactedThinkingBlockParam {
   data: string;
 
   type: 'redacted_thinking';
+}
+
+/**
+ * Structured information about a refusal.
+ */
+export interface RefusalStopDetails {
+  /**
+   * The policy category that triggered the refusal.
+   *
+   * `null` when the refusal doesn't map to a named category.
+   */
+  category: 'cyber' | 'bio' | null;
+
+  /**
+   * Human-readable explanation of the refusal.
+   *
+   * This text is not guaranteed to be stable. `null` when no explanation is
+   * available for the category.
+   */
+  explanation: string | null;
+
+  type: 'refusal';
 }
 
 export interface SearchResultBlockParam {
@@ -2782,14 +2820,9 @@ export interface MessageCreateParamsBase {
   system?: string | Array<TextBlockParam>;
 
   /**
-   * Amount of randomness injected into the response.
-   *
-   * Defaults to `1.0`. Ranges from `0.0` to `1.0`. Use `temperature` closer to `0.0`
-   * for analytical / multiple choice, and closer to `1.0` for creative and
-   * generative tasks.
-   *
-   * Note that even with `temperature` of `0.0`, the results will not be fully
-   * deterministic.
+   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
+   * setting temperature. A value of 1.0 of will be accepted for backwards
+   * compatibility, all other values will be rejected with a 400 error.
    */
   temperature?: number;
 
@@ -2892,26 +2925,15 @@ export interface MessageCreateParamsBase {
   tools?: Array<ToolUnion>;
 
   /**
-   * Only sample from the top K options for each subsequent token.
-   *
-   * Used to remove "long tail" low probability responses.
-   * [Learn more technical details here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
-   *
-   * Recommended for advanced use cases only. You usually only need to use
-   * `temperature`.
+   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not accept
+   * top_k; any value will be rejected with a 400 error.
    */
   top_k?: number;
 
   /**
-   * Use nucleus sampling.
-   *
-   * In nucleus sampling, we compute the cumulative distribution over all the options
-   * for each subsequent token in decreasing probability order and cut it off once it
-   * reaches a particular probability specified by `top_p`. You should either alter
-   * `temperature` or `top_p`, but not both.
-   *
-   * Recommended for advanced use cases only. You usually only need to use
-   * `temperature`.
+   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
+   * setting top_p. A value >= 0.99 will be accepted for backwards compatibility, all
+   * other values will be rejected with a 400 error.
    */
   top_p?: number;
 }
@@ -3219,6 +3241,7 @@ export declare namespace Messages {
     type RawMessageStreamEvent as RawMessageStreamEvent,
     type RedactedThinkingBlock as RedactedThinkingBlock,
     type RedactedThinkingBlockParam as RedactedThinkingBlockParam,
+    type RefusalStopDetails as RefusalStopDetails,
     type SearchResultBlockParam as SearchResultBlockParam,
     type ServerToolCaller as ServerToolCaller,
     type ServerToolCaller20260120 as ServerToolCaller20260120,

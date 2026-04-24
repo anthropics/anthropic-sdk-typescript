@@ -68,6 +68,11 @@ describe('resource messages', () => {
           schema: { foo: 'bar' },
           type: 'json_schema',
         },
+        task_budget: {
+          total: 1024,
+          type: 'tokens',
+          remaining: 0,
+        },
       },
       service_tier: 'auto',
       speed: 'standard',
@@ -113,13 +118,14 @@ describe('resource messages', () => {
       ],
       top_k: 5,
       top_p: 0.7,
-      betas: ['string'],
+      user_profile_id: 'user_profile_id',
+      betas: ['message-batches-2024-09-24'],
     });
   });
 
   test('countTokens: only required params', async () => {
     const responsePromise = client.beta.messages.countTokens({
-      messages: [{ content: 'string', role: 'user' }],
+      messages: [{ content: 'Hello, world', role: 'user' }],
       model: 'claude-opus-4-6',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -133,7 +139,7 @@ describe('resource messages', () => {
 
   test('countTokens: required and optional params', async () => {
     const response = await client.beta.messages.countTokens({
-      messages: [{ content: 'string', role: 'user' }],
+      messages: [{ content: 'Hello, world', role: 'user' }],
       model: 'claude-opus-4-6',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       context_management: {
@@ -162,6 +168,11 @@ describe('resource messages', () => {
         format: {
           schema: { foo: 'bar' },
           type: 'json_schema',
+        },
+        task_budget: {
+          total: 1024,
+          type: 'tokens',
+          remaining: 0,
         },
       },
       speed: 'standard',
@@ -202,7 +213,7 @@ describe('resource messages', () => {
           type: 'custom',
         },
       ],
-      betas: ['string'],
+      betas: ['message-batches-2024-09-24'],
     });
   });
 });
