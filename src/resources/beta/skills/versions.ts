@@ -21,26 +21,9 @@ export class Versions extends APIResource {
    * );
    * ```
    */
-  create(
-    skillID: string,
-    params: VersionCreateParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<VersionCreateResponse> {
-    const { betas, ...body } = params ?? {};
-    return this._client.post(
-      path`/v1/skills/${skillID}/versions?beta=true`,
-      multipartFormRequestOptions(
-        {
-          body,
-          ...options,
-          headers: buildHeaders([
-            { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
-            options?.headers,
-          ]),
-        },
-        this._client,
-      ),
-    );
+  create(skillID: string, params: VersionCreateParams | null | undefined = {}, options?: RequestOptions): APIPromise<VersionCreateResponse> {
+    const { betas, ...body } = params ?? {}
+    return this._client.post(path`/v1/skills/${skillID}/versions?beta=true`, multipartFormRequestOptions({ body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString()}, options?.headers]) }, this._client));
   }
 
   /**
@@ -54,19 +37,9 @@ export class Versions extends APIResource {
    * );
    * ```
    */
-  retrieve(
-    version: string,
-    params: VersionRetrieveParams,
-    options?: RequestOptions,
-  ): APIPromise<VersionRetrieveResponse> {
-    const { skill_id, betas } = params;
-    return this._client.get(path`/v1/skills/${skill_id}/versions/${version}?beta=true`, {
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
-        options?.headers,
-      ]),
-    });
+  retrieve(version: string, params: VersionRetrieveParams, options?: RequestOptions): APIPromise<VersionRetrieveResponse> {
+    const { skill_id, betas } = params
+    return this._client.get(path`/v1/skills/${skill_id}/versions/${version}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString()}, options?.headers]) });
   }
 
   /**
@@ -82,24 +55,9 @@ export class Versions extends APIResource {
    * }
    * ```
    */
-  list(
-    skillID: string,
-    params: VersionListParams | null | undefined = {},
-    options?: RequestOptions,
-  ): PagePromise<VersionListResponsesPageCursor, VersionListResponse> {
-    const { betas, ...query } = params ?? {};
-    return this._client.getAPIList(
-      path`/v1/skills/${skillID}/versions?beta=true`,
-      PageCursor<VersionListResponse>,
-      {
-        query,
-        ...options,
-        headers: buildHeaders([
-          { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
-          options?.headers,
-        ]),
-      },
-    );
+  list(skillID: string, params: VersionListParams | null | undefined = {}, options?: RequestOptions): PagePromise<VersionListResponsesPageCursor, VersionListResponse> {
+    const { betas, ...query } = params ?? {}
+    return this._client.getAPIList(path`/v1/skills/${skillID}/versions?beta=true`, PageCursor<VersionListResponse>, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString()}, options?.headers]) });
   }
 
   /**
@@ -113,23 +71,13 @@ export class Versions extends APIResource {
    * );
    * ```
    */
-  delete(
-    version: string,
-    params: VersionDeleteParams,
-    options?: RequestOptions,
-  ): APIPromise<VersionDeleteResponse> {
-    const { skill_id, betas } = params;
-    return this._client.delete(path`/v1/skills/${skill_id}/versions/${version}?beta=true`, {
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
-        options?.headers,
-      ]),
-    });
+  delete(version: string, params: VersionDeleteParams, options?: RequestOptions): APIPromise<VersionDeleteResponse> {
+    const { skill_id, betas } = params
+    return this._client.delete(path`/v1/skills/${skill_id}/versions/${version}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString()}, options?.headers]) });
   }
 }
 
-export type VersionListResponsesPageCursor = PageCursor<VersionListResponse>;
+export type VersionListResponsesPageCursor = PageCursor<VersionListResponse>
 
 export interface VersionCreateResponse {
   /**
@@ -369,6 +317,6 @@ export declare namespace Versions {
     type VersionCreateParams as VersionCreateParams,
     type VersionRetrieveParams as VersionRetrieveParams,
     type VersionListParams as VersionListParams,
-    type VersionDeleteParams as VersionDeleteParams,
+    type VersionDeleteParams as VersionDeleteParams
   };
 }

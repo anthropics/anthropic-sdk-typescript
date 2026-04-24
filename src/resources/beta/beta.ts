@@ -2,383 +2,25 @@
 
 import { APIResource } from '../../core/resource';
 import * as EnvironmentsAPI from './environments';
-import {
-  BetaCloudConfig,
-  BetaCloudConfigParams,
-  BetaEnvironment,
-  BetaEnvironmentDeleteResponse,
-  BetaEnvironmentsPageCursor,
-  BetaLimitedNetwork,
-  BetaLimitedNetworkParams,
-  BetaPackages,
-  BetaPackagesParams,
-  BetaUnrestrictedNetwork,
-  EnvironmentArchiveParams,
-  EnvironmentCreateParams,
-  EnvironmentDeleteParams,
-  EnvironmentListParams,
-  EnvironmentRetrieveParams,
-  EnvironmentUpdateParams,
-  Environments,
-} from './environments';
+import { BetaCloudConfig, BetaCloudConfigParams, BetaEnvironment, BetaEnvironmentDeleteResponse, BetaEnvironmentsPageCursor, BetaLimitedNetwork, BetaLimitedNetworkParams, BetaPackages, BetaPackagesParams, BetaUnrestrictedNetwork, EnvironmentArchiveParams, EnvironmentCreateParams, EnvironmentDeleteParams, EnvironmentListParams, EnvironmentRetrieveParams, EnvironmentUpdateParams, Environments } from './environments';
 import * as FilesAPI from './files';
-import {
-  BetaFileScope,
-  DeletedFile,
-  FileDeleteParams,
-  FileDownloadParams,
-  FileListParams,
-  FileMetadata,
-  FileMetadataPage,
-  FileRetrieveMetadataParams,
-  FileUploadParams,
-  Files,
-} from './files';
+import { BetaFileScope, DeletedFile, FileDeleteParams, FileDownloadParams, FileListParams, FileMetadata, FileMetadataPage, FileRetrieveMetadataParams, FileUploadParams, Files } from './files';
 import * as ModelsAPI from './models';
-import {
-  BetaCapabilitySupport,
-  BetaContextManagementCapability,
-  BetaEffortCapability,
-  BetaModelCapabilities,
-  BetaModelInfo,
-  BetaModelInfosPage,
-  BetaThinkingCapability,
-  BetaThinkingTypes,
-  ModelListParams,
-  ModelRetrieveParams,
-  Models,
-} from './models';
+import { BetaCapabilitySupport, BetaContextManagementCapability, BetaEffortCapability, BetaModelCapabilities, BetaModelInfo, BetaModelInfosPage, BetaThinkingCapability, BetaThinkingTypes, ModelListParams, ModelRetrieveParams, Models } from './models';
 import * as UserProfilesAPI from './user-profiles';
-import {
-  BetaUserProfile,
-  BetaUserProfileEnrollmentURL,
-  BetaUserProfileTrustGrant,
-  BetaUserProfilesPageCursor,
-  UserProfileCreateEnrollmentURLParams,
-  UserProfileCreateParams,
-  UserProfileListParams,
-  UserProfileRetrieveParams,
-  UserProfileUpdateParams,
-  UserProfiles,
-} from './user-profiles';
+import { BetaUserProfile, BetaUserProfileEnrollmentURL, BetaUserProfileTrustGrant, BetaUserProfilesPageCursor, UserProfileCreateEnrollmentURLParams, UserProfileCreateParams, UserProfileListParams, UserProfileRetrieveParams, UserProfileUpdateParams, UserProfiles } from './user-profiles';
 import * as AgentsAPI from './agents/agents';
-import {
-  AgentArchiveParams,
-  AgentCreateParams,
-  AgentListParams,
-  AgentRetrieveParams,
-  AgentUpdateParams,
-  Agents,
-  BetaManagedAgentsAgent,
-  BetaManagedAgentsAgentToolConfig,
-  BetaManagedAgentsAgentToolConfigParams,
-  BetaManagedAgentsAgentToolset20260401,
-  BetaManagedAgentsAgentToolset20260401Params,
-  BetaManagedAgentsAgentToolsetDefaultConfig,
-  BetaManagedAgentsAgentToolsetDefaultConfigParams,
-  BetaManagedAgentsAgentsPageCursor,
-  BetaManagedAgentsAlwaysAllowPolicy,
-  BetaManagedAgentsAlwaysAskPolicy,
-  BetaManagedAgentsAnthropicSkill,
-  BetaManagedAgentsAnthropicSkillParams,
-  BetaManagedAgentsCustomSkill,
-  BetaManagedAgentsCustomSkillParams,
-  BetaManagedAgentsCustomTool,
-  BetaManagedAgentsCustomToolInputSchema,
-  BetaManagedAgentsCustomToolParams,
-  BetaManagedAgentsMCPServerURLDefinition,
-  BetaManagedAgentsMCPToolConfig,
-  BetaManagedAgentsMCPToolConfigParams,
-  BetaManagedAgentsMCPToolset,
-  BetaManagedAgentsMCPToolsetDefaultConfig,
-  BetaManagedAgentsMCPToolsetDefaultConfigParams,
-  BetaManagedAgentsMCPToolsetParams,
-  BetaManagedAgentsModel,
-  BetaManagedAgentsModelConfig,
-  BetaManagedAgentsModelConfigParams,
-  BetaManagedAgentsSkillParams,
-  BetaManagedAgentsURLMCPServerParams,
-} from './agents/agents';
+import { AgentArchiveParams, AgentCreateParams, AgentListParams, AgentRetrieveParams, AgentUpdateParams, Agents, BetaManagedAgentsAgent, BetaManagedAgentsAgentToolConfig, BetaManagedAgentsAgentToolConfigParams, BetaManagedAgentsAgentToolset20260401, BetaManagedAgentsAgentToolset20260401Params, BetaManagedAgentsAgentToolsetDefaultConfig, BetaManagedAgentsAgentToolsetDefaultConfigParams, BetaManagedAgentsAgentsPageCursor, BetaManagedAgentsAlwaysAllowPolicy, BetaManagedAgentsAlwaysAskPolicy, BetaManagedAgentsAnthropicSkill, BetaManagedAgentsAnthropicSkillParams, BetaManagedAgentsCustomSkill, BetaManagedAgentsCustomSkillParams, BetaManagedAgentsCustomTool, BetaManagedAgentsCustomToolInputSchema, BetaManagedAgentsCustomToolParams, BetaManagedAgentsMCPServerURLDefinition, BetaManagedAgentsMCPToolConfig, BetaManagedAgentsMCPToolConfigParams, BetaManagedAgentsMCPToolset, BetaManagedAgentsMCPToolsetDefaultConfig, BetaManagedAgentsMCPToolsetDefaultConfigParams, BetaManagedAgentsMCPToolsetParams, BetaManagedAgentsModel, BetaManagedAgentsModelConfig, BetaManagedAgentsModelConfigParams, BetaManagedAgentsSkillParams, BetaManagedAgentsURLMCPServerParams } from './agents/agents';
 import * as MemoryStoresAPI from './memory-stores/memory-stores';
-import {
-  BetaManagedAgentsDeletedMemoryStore,
-  BetaManagedAgentsMemoryStore,
-  BetaManagedAgentsMemoryStoresPageCursor,
-  MemoryStoreArchiveParams,
-  MemoryStoreCreateParams,
-  MemoryStoreDeleteParams,
-  MemoryStoreListParams,
-  MemoryStoreRetrieveParams,
-  MemoryStoreUpdateParams,
-  MemoryStores,
-} from './memory-stores/memory-stores';
+import { BetaManagedAgentsDeletedMemoryStore, BetaManagedAgentsMemoryStore, BetaManagedAgentsMemoryStoresPageCursor, MemoryStoreArchiveParams, MemoryStoreCreateParams, MemoryStoreDeleteParams, MemoryStoreListParams, MemoryStoreRetrieveParams, MemoryStoreUpdateParams, MemoryStores } from './memory-stores/memory-stores';
 import * as MessagesAPI from './messages/messages';
-import {
-  BetaAdvisorMessageIterationUsage,
-  BetaAdvisorRedactedResultBlock,
-  BetaAdvisorRedactedResultBlockParam,
-  BetaAdvisorResultBlock,
-  BetaAdvisorResultBlockParam,
-  BetaAdvisorTool20260301,
-  BetaAdvisorToolResultBlock,
-  BetaAdvisorToolResultBlockParam,
-  BetaAdvisorToolResultError,
-  BetaAdvisorToolResultErrorParam,
-  BetaAllThinkingTurns,
-  BetaBase64ImageSource,
-  BetaBase64PDFBlock,
-  BetaBase64PDFSource,
-  BetaBashCodeExecutionOutputBlock,
-  BetaBashCodeExecutionOutputBlockParam,
-  BetaBashCodeExecutionResultBlock,
-  BetaBashCodeExecutionResultBlockParam,
-  BetaBashCodeExecutionToolResultBlock,
-  BetaBashCodeExecutionToolResultBlockParam,
-  BetaBashCodeExecutionToolResultError,
-  BetaBashCodeExecutionToolResultErrorParam,
-  BetaCacheControlEphemeral,
-  BetaCacheCreation,
-  BetaCitationCharLocation,
-  BetaCitationCharLocationParam,
-  BetaCitationConfig,
-  BetaCitationContentBlockLocation,
-  BetaCitationContentBlockLocationParam,
-  BetaCitationPageLocation,
-  BetaCitationPageLocationParam,
-  BetaCitationSearchResultLocation,
-  BetaCitationSearchResultLocationParam,
-  BetaCitationWebSearchResultLocationParam,
-  BetaCitationsConfigParam,
-  BetaCitationsDelta,
-  BetaCitationsWebSearchResultLocation,
-  BetaClearThinking20251015Edit,
-  BetaClearThinking20251015EditResponse,
-  BetaClearToolUses20250919Edit,
-  BetaClearToolUses20250919EditResponse,
-  BetaCodeExecutionOutputBlock,
-  BetaCodeExecutionOutputBlockParam,
-  BetaCodeExecutionResultBlock,
-  BetaCodeExecutionResultBlockParam,
-  BetaCodeExecutionTool20250522,
-  BetaCodeExecutionTool20250825,
-  BetaCodeExecutionTool20260120,
-  BetaCodeExecutionToolResultBlock,
-  BetaCodeExecutionToolResultBlockContent,
-  BetaCodeExecutionToolResultBlockParam,
-  BetaCodeExecutionToolResultBlockParamContent,
-  BetaCodeExecutionToolResultError,
-  BetaCodeExecutionToolResultErrorCode,
-  BetaCodeExecutionToolResultErrorParam,
-  BetaCompact20260112Edit,
-  BetaCompactionBlock,
-  BetaCompactionBlockParam,
-  BetaCompactionContentBlockDelta,
-  BetaCompactionIterationUsage,
-  BetaContainer,
-  BetaContainerParams,
-  BetaContainerUploadBlock,
-  BetaContainerUploadBlockParam,
-  BetaContentBlock,
-  BetaContentBlockParam,
-  BetaContentBlockSource,
-  BetaContentBlockSourceContent,
-  BetaContextManagementConfig,
-  BetaContextManagementResponse,
-  BetaCountTokensContextManagementResponse,
-  BetaDirectCaller,
-  BetaDocumentBlock,
-  BetaEncryptedCodeExecutionResultBlock,
-  BetaEncryptedCodeExecutionResultBlockParam,
-  BetaFileDocumentSource,
-  BetaFileImageSource,
-  BetaImageBlockParam,
-  BetaInputJSONDelta,
-  BetaInputTokensClearAtLeast,
-  BetaInputTokensTrigger,
-  BetaIterationsUsage,
-  BetaJSONOutputFormat,
-  BetaMCPToolConfig,
-  BetaMCPToolDefaultConfig,
-  BetaMCPToolResultBlock,
-  BetaMCPToolUseBlock,
-  BetaMCPToolUseBlockParam,
-  BetaMCPToolset,
-  BetaMemoryTool20250818,
-  BetaMemoryTool20250818Command,
-  BetaMemoryTool20250818CreateCommand,
-  BetaMemoryTool20250818DeleteCommand,
-  BetaMemoryTool20250818InsertCommand,
-  BetaMemoryTool20250818RenameCommand,
-  BetaMemoryTool20250818StrReplaceCommand,
-  BetaMemoryTool20250818ViewCommand,
-  BetaMessage,
-  BetaMessageDeltaUsage,
-  BetaMessageIterationUsage,
-  BetaMessageParam,
-  BetaMessageTokensCount,
-  BetaMetadata,
-  BetaOutputConfig,
-  BetaPlainTextSource,
-  BetaRawContentBlockDelta,
-  BetaRawContentBlockDeltaEvent,
-  BetaRawContentBlockStartEvent,
-  BetaRawContentBlockStopEvent,
-  BetaRawMessageDeltaEvent,
-  BetaRawMessageStartEvent,
-  BetaRawMessageStopEvent,
-  BetaRawMessageStreamEvent,
-  BetaRedactedThinkingBlock,
-  BetaRedactedThinkingBlockParam,
-  BetaRefusalStopDetails,
-  BetaRequestDocumentBlock,
-  BetaRequestMCPServerToolConfiguration,
-  BetaRequestMCPServerURLDefinition,
-  BetaRequestMCPToolResultBlockParam,
-  BetaSearchResultBlockParam,
-  BetaServerToolCaller,
-  BetaServerToolCaller20260120,
-  BetaServerToolUsage,
-  BetaServerToolUseBlock,
-  BetaServerToolUseBlockParam,
-  BetaSignatureDelta,
-  BetaSkill,
-  BetaSkillParams,
-  BetaStopReason,
-  BetaTextBlock,
-  BetaTextBlockParam,
-  BetaTextCitation,
-  BetaTextCitationParam,
-  BetaTextDelta,
-  BetaTextEditorCodeExecutionCreateResultBlock,
-  BetaTextEditorCodeExecutionCreateResultBlockParam,
-  BetaTextEditorCodeExecutionStrReplaceResultBlock,
-  BetaTextEditorCodeExecutionStrReplaceResultBlockParam,
-  BetaTextEditorCodeExecutionToolResultBlock,
-  BetaTextEditorCodeExecutionToolResultBlockParam,
-  BetaTextEditorCodeExecutionToolResultError,
-  BetaTextEditorCodeExecutionToolResultErrorParam,
-  BetaTextEditorCodeExecutionViewResultBlock,
-  BetaTextEditorCodeExecutionViewResultBlockParam,
-  BetaThinkingBlock,
-  BetaThinkingBlockParam,
-  BetaThinkingConfigAdaptive,
-  BetaThinkingConfigDisabled,
-  BetaThinkingConfigEnabled,
-  BetaThinkingConfigParam,
-  BetaThinkingDelta,
-  BetaThinkingTurns,
-  BetaTokenTaskBudget,
-  BetaTool,
-  BetaToolBash20241022,
-  BetaToolBash20250124,
-  BetaToolChoice,
-  BetaToolChoiceAny,
-  BetaToolChoiceAuto,
-  BetaToolChoiceNone,
-  BetaToolChoiceTool,
-  BetaToolComputerUse20241022,
-  BetaToolComputerUse20250124,
-  BetaToolComputerUse20251124,
-  BetaToolReferenceBlock,
-  BetaToolReferenceBlockParam,
-  BetaToolResultBlockParam,
-  BetaToolSearchToolBm25_20251119,
-  BetaToolSearchToolRegex20251119,
-  BetaToolSearchToolResultBlock,
-  BetaToolSearchToolResultBlockParam,
-  BetaToolSearchToolResultError,
-  BetaToolSearchToolResultErrorParam,
-  BetaToolSearchToolSearchResultBlock,
-  BetaToolSearchToolSearchResultBlockParam,
-  BetaToolTextEditor20241022,
-  BetaToolTextEditor20250124,
-  BetaToolTextEditor20250429,
-  BetaToolTextEditor20250728,
-  BetaToolUnion,
-  BetaToolUseBlock,
-  BetaToolUseBlockParam,
-  BetaToolUsesKeep,
-  BetaToolUsesTrigger,
-  BetaURLImageSource,
-  BetaURLPDFSource,
-  BetaUsage,
-  BetaUserLocation,
-  BetaWebFetchBlock,
-  BetaWebFetchBlockParam,
-  BetaWebFetchTool20250910,
-  BetaWebFetchTool20260209,
-  BetaWebFetchTool20260309,
-  BetaWebFetchToolResultBlock,
-  BetaWebFetchToolResultBlockParam,
-  BetaWebFetchToolResultErrorBlock,
-  BetaWebFetchToolResultErrorBlockParam,
-  BetaWebFetchToolResultErrorCode,
-  BetaWebSearchResultBlock,
-  BetaWebSearchResultBlockParam,
-  BetaWebSearchTool20250305,
-  BetaWebSearchTool20260209,
-  BetaWebSearchToolRequestError,
-  BetaWebSearchToolResultBlock,
-  BetaWebSearchToolResultBlockContent,
-  BetaWebSearchToolResultBlockParam,
-  BetaWebSearchToolResultBlockParamContent,
-  BetaWebSearchToolResultError,
-  BetaWebSearchToolResultErrorCode,
-  MessageCountTokensParams,
-  MessageCreateParams,
-  MessageCreateParamsNonStreaming,
-  MessageCreateParamsStreaming,
-  Messages,
-} from './messages/messages';
+import { BetaAdvisorMessageIterationUsage, BetaAdvisorRedactedResultBlock, BetaAdvisorRedactedResultBlockParam, BetaAdvisorResultBlock, BetaAdvisorResultBlockParam, BetaAdvisorTool20260301, BetaAdvisorToolResultBlock, BetaAdvisorToolResultBlockParam, BetaAdvisorToolResultError, BetaAdvisorToolResultErrorParam, BetaAllThinkingTurns, BetaBase64ImageSource, BetaBase64PDFBlock, BetaBase64PDFSource, BetaBashCodeExecutionOutputBlock, BetaBashCodeExecutionOutputBlockParam, BetaBashCodeExecutionResultBlock, BetaBashCodeExecutionResultBlockParam, BetaBashCodeExecutionToolResultBlock, BetaBashCodeExecutionToolResultBlockParam, BetaBashCodeExecutionToolResultError, BetaBashCodeExecutionToolResultErrorParam, BetaCacheControlEphemeral, BetaCacheCreation, BetaCitationCharLocation, BetaCitationCharLocationParam, BetaCitationConfig, BetaCitationContentBlockLocation, BetaCitationContentBlockLocationParam, BetaCitationPageLocation, BetaCitationPageLocationParam, BetaCitationSearchResultLocation, BetaCitationSearchResultLocationParam, BetaCitationWebSearchResultLocationParam, BetaCitationsConfigParam, BetaCitationsDelta, BetaCitationsWebSearchResultLocation, BetaClearThinking20251015Edit, BetaClearThinking20251015EditResponse, BetaClearToolUses20250919Edit, BetaClearToolUses20250919EditResponse, BetaCodeExecutionOutputBlock, BetaCodeExecutionOutputBlockParam, BetaCodeExecutionResultBlock, BetaCodeExecutionResultBlockParam, BetaCodeExecutionTool20250522, BetaCodeExecutionTool20250825, BetaCodeExecutionTool20260120, BetaCodeExecutionToolResultBlock, BetaCodeExecutionToolResultBlockContent, BetaCodeExecutionToolResultBlockParam, BetaCodeExecutionToolResultBlockParamContent, BetaCodeExecutionToolResultError, BetaCodeExecutionToolResultErrorCode, BetaCodeExecutionToolResultErrorParam, BetaCompact20260112Edit, BetaCompactionBlock, BetaCompactionBlockParam, BetaCompactionContentBlockDelta, BetaCompactionIterationUsage, BetaContainer, BetaContainerParams, BetaContainerUploadBlock, BetaContainerUploadBlockParam, BetaContentBlock, BetaContentBlockParam, BetaContentBlockSource, BetaContentBlockSourceContent, BetaContextManagementConfig, BetaContextManagementResponse, BetaCountTokensContextManagementResponse, BetaDirectCaller, BetaDocumentBlock, BetaEncryptedCodeExecutionResultBlock, BetaEncryptedCodeExecutionResultBlockParam, BetaFileDocumentSource, BetaFileImageSource, BetaImageBlockParam, BetaInputJSONDelta, BetaInputTokensClearAtLeast, BetaInputTokensTrigger, BetaIterationsUsage, BetaJSONOutputFormat, BetaMCPToolConfig, BetaMCPToolDefaultConfig, BetaMCPToolResultBlock, BetaMCPToolUseBlock, BetaMCPToolUseBlockParam, BetaMCPToolset, BetaMemoryTool20250818, BetaMemoryTool20250818Command, BetaMemoryTool20250818CreateCommand, BetaMemoryTool20250818DeleteCommand, BetaMemoryTool20250818InsertCommand, BetaMemoryTool20250818RenameCommand, BetaMemoryTool20250818StrReplaceCommand, BetaMemoryTool20250818ViewCommand, BetaMessage, BetaMessageDeltaUsage, BetaMessageIterationUsage, BetaMessageParam, BetaMessageTokensCount, BetaMetadata, BetaOutputConfig, BetaPlainTextSource, BetaRawContentBlockDelta, BetaRawContentBlockDeltaEvent, BetaRawContentBlockStartEvent, BetaRawContentBlockStopEvent, BetaRawMessageDeltaEvent, BetaRawMessageStartEvent, BetaRawMessageStopEvent, BetaRawMessageStreamEvent, BetaRedactedThinkingBlock, BetaRedactedThinkingBlockParam, BetaRefusalStopDetails, BetaRequestDocumentBlock, BetaRequestMCPServerToolConfiguration, BetaRequestMCPServerURLDefinition, BetaRequestMCPToolResultBlockParam, BetaSearchResultBlockParam, BetaServerToolCaller, BetaServerToolCaller20260120, BetaServerToolUsage, BetaServerToolUseBlock, BetaServerToolUseBlockParam, BetaSignatureDelta, BetaSkill, BetaSkillParams, BetaStopReason, BetaTextBlock, BetaTextBlockParam, BetaTextCitation, BetaTextCitationParam, BetaTextDelta, BetaTextEditorCodeExecutionCreateResultBlock, BetaTextEditorCodeExecutionCreateResultBlockParam, BetaTextEditorCodeExecutionStrReplaceResultBlock, BetaTextEditorCodeExecutionStrReplaceResultBlockParam, BetaTextEditorCodeExecutionToolResultBlock, BetaTextEditorCodeExecutionToolResultBlockParam, BetaTextEditorCodeExecutionToolResultError, BetaTextEditorCodeExecutionToolResultErrorParam, BetaTextEditorCodeExecutionViewResultBlock, BetaTextEditorCodeExecutionViewResultBlockParam, BetaThinkingBlock, BetaThinkingBlockParam, BetaThinkingConfigAdaptive, BetaThinkingConfigDisabled, BetaThinkingConfigEnabled, BetaThinkingConfigParam, BetaThinkingDelta, BetaThinkingTurns, BetaTokenTaskBudget, BetaTool, BetaToolBash20241022, BetaToolBash20250124, BetaToolChoice, BetaToolChoiceAny, BetaToolChoiceAuto, BetaToolChoiceNone, BetaToolChoiceTool, BetaToolComputerUse20241022, BetaToolComputerUse20250124, BetaToolComputerUse20251124, BetaToolReferenceBlock, BetaToolReferenceBlockParam, BetaToolResultBlockParam, BetaToolSearchToolBm25_20251119, BetaToolSearchToolRegex20251119, BetaToolSearchToolResultBlock, BetaToolSearchToolResultBlockParam, BetaToolSearchToolResultError, BetaToolSearchToolResultErrorParam, BetaToolSearchToolSearchResultBlock, BetaToolSearchToolSearchResultBlockParam, BetaToolTextEditor20241022, BetaToolTextEditor20250124, BetaToolTextEditor20250429, BetaToolTextEditor20250728, BetaToolUnion, BetaToolUseBlock, BetaToolUseBlockParam, BetaToolUsesKeep, BetaToolUsesTrigger, BetaURLImageSource, BetaURLPDFSource, BetaUsage, BetaUserLocation, BetaWebFetchBlock, BetaWebFetchBlockParam, BetaWebFetchTool20250910, BetaWebFetchTool20260209, BetaWebFetchTool20260309, BetaWebFetchToolResultBlock, BetaWebFetchToolResultBlockParam, BetaWebFetchToolResultErrorBlock, BetaWebFetchToolResultErrorBlockParam, BetaWebFetchToolResultErrorCode, BetaWebSearchResultBlock, BetaWebSearchResultBlockParam, BetaWebSearchTool20250305, BetaWebSearchTool20260209, BetaWebSearchToolRequestError, BetaWebSearchToolResultBlock, BetaWebSearchToolResultBlockContent, BetaWebSearchToolResultBlockParam, BetaWebSearchToolResultBlockParamContent, BetaWebSearchToolResultError, BetaWebSearchToolResultErrorCode, MessageCountTokensParams, MessageCreateParams, MessageCreateParamsNonStreaming, MessageCreateParamsStreaming, Messages } from './messages/messages';
 import * as SessionsAPI from './sessions/sessions';
-import {
-  BetaManagedAgentsAgentParams,
-  BetaManagedAgentsBranchCheckout,
-  BetaManagedAgentsCacheCreationUsage,
-  BetaManagedAgentsCommitCheckout,
-  BetaManagedAgentsDeletedSession,
-  BetaManagedAgentsFileResourceParams,
-  BetaManagedAgentsGitHubRepositoryResourceParams,
-  BetaManagedAgentsMemoryStoreResourceParam,
-  BetaManagedAgentsSession,
-  BetaManagedAgentsSessionAgent,
-  BetaManagedAgentsSessionStats,
-  BetaManagedAgentsSessionUsage,
-  BetaManagedAgentsSessionsPageCursor,
-  SessionArchiveParams,
-  SessionCreateParams,
-  SessionDeleteParams,
-  SessionListParams,
-  SessionRetrieveParams,
-  SessionUpdateParams,
-  Sessions,
-} from './sessions/sessions';
+import { BetaManagedAgentsAgentParams, BetaManagedAgentsBranchCheckout, BetaManagedAgentsCacheCreationUsage, BetaManagedAgentsCommitCheckout, BetaManagedAgentsDeletedSession, BetaManagedAgentsFileResourceParams, BetaManagedAgentsGitHubRepositoryResourceParams, BetaManagedAgentsMemoryStoreResourceParam, BetaManagedAgentsSession, BetaManagedAgentsSessionAgent, BetaManagedAgentsSessionStats, BetaManagedAgentsSessionUsage, BetaManagedAgentsSessionsPageCursor, SessionArchiveParams, SessionCreateParams, SessionDeleteParams, SessionListParams, SessionRetrieveParams, SessionUpdateParams, Sessions } from './sessions/sessions';
 import * as SkillsAPI from './skills/skills';
-import {
-  SkillCreateParams,
-  SkillCreateResponse,
-  SkillDeleteParams,
-  SkillDeleteResponse,
-  SkillListParams,
-  SkillListResponse,
-  SkillListResponsesPageCursor,
-  SkillRetrieveParams,
-  SkillRetrieveResponse,
-  Skills,
-} from './skills/skills';
+import { SkillCreateParams, SkillCreateResponse, SkillDeleteParams, SkillDeleteResponse, SkillListParams, SkillListResponse, SkillListResponsesPageCursor, SkillRetrieveParams, SkillRetrieveResponse, Skills } from './skills/skills';
 import * as VaultsAPI from './vaults/vaults';
-import {
-  BetaManagedAgentsDeletedVault,
-  BetaManagedAgentsVault,
-  BetaManagedAgentsVaultsPageCursor,
-  VaultArchiveParams,
-  VaultCreateParams,
-  VaultDeleteParams,
-  VaultListParams,
-  VaultRetrieveParams,
-  VaultUpdateParams,
-  Vaults,
-} from './vaults/vaults';
+import { BetaManagedAgentsDeletedVault, BetaManagedAgentsVault, BetaManagedAgentsVaultsPageCursor, VaultArchiveParams, VaultCreateParams, VaultDeleteParams, VaultListParams, VaultRetrieveParams, VaultUpdateParams, Vaults } from './vaults/vaults';
 
 export class Beta extends APIResource {
   models: ModelsAPI.Models = new ModelsAPI.Models(this._client);
@@ -393,31 +35,7 @@ export class Beta extends APIResource {
   userProfiles: UserProfilesAPI.UserProfiles = new UserProfilesAPI.UserProfiles(this._client);
 }
 
-export type AnthropicBeta =
-  | (string & {})
-  | 'message-batches-2024-09-24'
-  | 'prompt-caching-2024-07-31'
-  | 'computer-use-2024-10-22'
-  | 'computer-use-2025-01-24'
-  | 'pdfs-2024-09-25'
-  | 'token-counting-2024-11-01'
-  | 'token-efficient-tools-2025-02-19'
-  | 'output-128k-2025-02-19'
-  | 'files-api-2025-04-14'
-  | 'mcp-client-2025-04-04'
-  | 'mcp-client-2025-11-20'
-  | 'dev-full-thinking-2025-05-14'
-  | 'interleaved-thinking-2025-05-14'
-  | 'code-execution-2025-05-22'
-  | 'extended-cache-ttl-2025-04-11'
-  | 'context-1m-2025-08-07'
-  | 'context-management-2025-06-27'
-  | 'model-context-window-exceeded-2025-08-26'
-  | 'skills-2025-10-02'
-  | 'fast-mode-2026-02-01'
-  | 'output-300k-2026-03-24'
-  | 'user-profiles-2026-03-24'
-  | 'advisor-tool-2026-03-01';
+export type AnthropicBeta = (string & {}) | 'message-batches-2024-09-24' | 'prompt-caching-2024-07-31' | 'computer-use-2024-10-22' | 'computer-use-2025-01-24' | 'pdfs-2024-09-25' | 'token-counting-2024-11-01' | 'token-efficient-tools-2025-02-19' | 'output-128k-2025-02-19' | 'files-api-2025-04-14' | 'mcp-client-2025-04-04' | 'mcp-client-2025-11-20' | 'dev-full-thinking-2025-05-14' | 'interleaved-thinking-2025-05-14' | 'code-execution-2025-05-22' | 'extended-cache-ttl-2025-04-11' | 'context-1m-2025-08-07' | 'context-management-2025-06-27' | 'model-context-window-exceeded-2025-08-26' | 'skills-2025-10-02' | 'fast-mode-2026-02-01' | 'output-300k-2026-03-24' | 'user-profiles-2026-03-24' | 'advisor-tool-2026-03-01'
 
 export interface BetaAPIError {
   message: string;
@@ -437,16 +55,7 @@ export interface BetaBillingError {
   type: 'billing_error';
 }
 
-export type BetaError =
-  | BetaInvalidRequestError
-  | BetaAuthenticationError
-  | BetaBillingError
-  | BetaPermissionError
-  | BetaNotFoundError
-  | BetaRateLimitError
-  | BetaGatewayTimeoutError
-  | BetaAPIError
-  | BetaOverloadedError;
+export type BetaError = BetaInvalidRequestError | BetaAuthenticationError | BetaBillingError | BetaPermissionError | BetaNotFoundError | BetaRateLimitError | BetaGatewayTimeoutError | BetaAPIError | BetaOverloadedError
 
 export interface BetaErrorResponse {
   error: BetaError;
@@ -516,7 +125,7 @@ export declare namespace Beta {
     type BetaNotFoundError as BetaNotFoundError,
     type BetaOverloadedError as BetaOverloadedError,
     type BetaPermissionError as BetaPermissionError,
-    type BetaRateLimitError as BetaRateLimitError,
+    type BetaRateLimitError as BetaRateLimitError
   };
 
   export {
@@ -530,7 +139,7 @@ export declare namespace Beta {
     type BetaThinkingTypes as BetaThinkingTypes,
     type BetaModelInfosPage as BetaModelInfosPage,
     type ModelRetrieveParams as ModelRetrieveParams,
-    type ModelListParams as ModelListParams,
+    type ModelListParams as ModelListParams
   };
 
   export {
@@ -748,7 +357,7 @@ export declare namespace Beta {
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
-    type MessageCountTokensParams as MessageCountTokensParams,
+    type MessageCountTokensParams as MessageCountTokensParams
   };
 
   export {
@@ -786,7 +395,7 @@ export declare namespace Beta {
     type AgentRetrieveParams as AgentRetrieveParams,
     type AgentUpdateParams as AgentUpdateParams,
     type AgentListParams as AgentListParams,
-    type AgentArchiveParams as AgentArchiveParams,
+    type AgentArchiveParams as AgentArchiveParams
   };
 
   export {
@@ -806,7 +415,7 @@ export declare namespace Beta {
     type EnvironmentUpdateParams as EnvironmentUpdateParams,
     type EnvironmentListParams as EnvironmentListParams,
     type EnvironmentDeleteParams as EnvironmentDeleteParams,
-    type EnvironmentArchiveParams as EnvironmentArchiveParams,
+    type EnvironmentArchiveParams as EnvironmentArchiveParams
   };
 
   export {
@@ -829,7 +438,7 @@ export declare namespace Beta {
     type SessionUpdateParams as SessionUpdateParams,
     type SessionListParams as SessionListParams,
     type SessionDeleteParams as SessionDeleteParams,
-    type SessionArchiveParams as SessionArchiveParams,
+    type SessionArchiveParams as SessionArchiveParams
   };
 
   export {
@@ -842,7 +451,7 @@ export declare namespace Beta {
     type VaultUpdateParams as VaultUpdateParams,
     type VaultListParams as VaultListParams,
     type VaultDeleteParams as VaultDeleteParams,
-    type VaultArchiveParams as VaultArchiveParams,
+    type VaultArchiveParams as VaultArchiveParams
   };
 
   export {
@@ -855,7 +464,7 @@ export declare namespace Beta {
     type MemoryStoreUpdateParams as MemoryStoreUpdateParams,
     type MemoryStoreListParams as MemoryStoreListParams,
     type MemoryStoreDeleteParams as MemoryStoreDeleteParams,
-    type MemoryStoreArchiveParams as MemoryStoreArchiveParams,
+    type MemoryStoreArchiveParams as MemoryStoreArchiveParams
   };
 
   export {
@@ -868,7 +477,7 @@ export declare namespace Beta {
     type FileDeleteParams as FileDeleteParams,
     type FileDownloadParams as FileDownloadParams,
     type FileRetrieveMetadataParams as FileRetrieveMetadataParams,
-    type FileUploadParams as FileUploadParams,
+    type FileUploadParams as FileUploadParams
   };
 
   export {
@@ -881,7 +490,7 @@ export declare namespace Beta {
     type SkillCreateParams as SkillCreateParams,
     type SkillRetrieveParams as SkillRetrieveParams,
     type SkillListParams as SkillListParams,
-    type SkillDeleteParams as SkillDeleteParams,
+    type SkillDeleteParams as SkillDeleteParams
   };
 
   export {
@@ -894,6 +503,6 @@ export declare namespace Beta {
     type UserProfileRetrieveParams as UserProfileRetrieveParams,
     type UserProfileUpdateParams as UserProfileUpdateParams,
     type UserProfileListParams as UserProfileListParams,
-    type UserProfileCreateEnrollmentURLParams as UserProfileCreateEnrollmentURLParams,
+    type UserProfileCreateEnrollmentURLParams as UserProfileCreateEnrollmentURLParams
   };
 }

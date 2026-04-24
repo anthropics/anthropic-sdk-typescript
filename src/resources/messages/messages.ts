@@ -3,21 +3,7 @@
 import { APIResource } from '../../core/resource';
 import * as MessagesAPI from './messages';
 import * as BatchesAPI from './batches';
-import {
-  BatchCreateParams,
-  BatchListParams,
-  Batches,
-  DeletedMessageBatch,
-  MessageBatch,
-  MessageBatchCanceledResult,
-  MessageBatchErroredResult,
-  MessageBatchExpiredResult,
-  MessageBatchIndividualResponse,
-  MessageBatchRequestCounts,
-  MessageBatchResult,
-  MessageBatchSucceededResult,
-  MessageBatchesPage,
-} from './batches';
+import { BatchCreateParams, BatchListParams, Batches, DeletedMessageBatch, MessageBatch, MessageBatchCanceledResult, MessageBatchErroredResult, MessageBatchExpiredResult, MessageBatchIndividualResponse, MessageBatchRequestCounts, MessageBatchResult, MessageBatchSucceededResult, MessageBatchesPage } from './batches';
 import { APIPromise } from '../../core/api-promise';
 import { Stream } from '../../core/streaming';
 import { RequestOptions } from '../../internal/request-options';
@@ -44,25 +30,11 @@ export class Messages extends APIResource {
    * });
    * ```
    */
-  create(body: MessageCreateParamsNonStreaming, options?: RequestOptions): APIPromise<Message>;
-  create(
-    body: MessageCreateParamsStreaming,
-    options?: RequestOptions,
-  ): APIPromise<Stream<RawMessageStreamEvent>>;
-  create(
-    body: MessageCreateParamsBase,
-    options?: RequestOptions,
-  ): APIPromise<Stream<RawMessageStreamEvent> | Message>;
-  create(
-    body: MessageCreateParams,
-    options?: RequestOptions,
-  ): APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>> {
-    return this._client.post('/v1/messages', {
-      body,
-      timeout: (this._client as any)._options.timeout ?? 600000,
-      ...options,
-      stream: body.stream ?? false,
-    }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
+  create(body: MessageCreateParamsNonStreaming, options?: RequestOptions): APIPromise<Message>
+  create(body: MessageCreateParamsStreaming, options?: RequestOptions): APIPromise<Stream<RawMessageStreamEvent>>
+  create(body: MessageCreateParamsBase, options?: RequestOptions): APIPromise<Stream<RawMessageStreamEvent> | Message>
+  create(body: MessageCreateParams, options?: RequestOptions): APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>> {
+    return this._client.post('/v1/messages', { body, timeout: (this._client as any)._options.timeout ?? 600000, ...options, stream: body.stream ?? false }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
   }
 
   /**
@@ -167,12 +139,7 @@ export interface BashCodeExecutionToolResultError {
   type: 'bash_code_execution_tool_result_error';
 }
 
-export type BashCodeExecutionToolResultErrorCode =
-  | 'invalid_tool_input'
-  | 'unavailable'
-  | 'too_many_requests'
-  | 'execution_time_exceeded'
-  | 'output_file_too_large';
+export type BashCodeExecutionToolResultErrorCode = 'invalid_tool_input' | 'unavailable' | 'too_many_requests' | 'execution_time_exceeded' | 'output_file_too_large'
 
 export interface BashCodeExecutionToolResultErrorParam {
   error_code: BashCodeExecutionToolResultErrorCode;
@@ -335,12 +302,7 @@ export interface CitationsConfigParam {
 }
 
 export interface CitationsDelta {
-  citation:
-    | CitationCharLocation
-    | CitationPageLocation
-    | CitationContentBlockLocation
-    | CitationsWebSearchResultLocation
-    | CitationsSearchResultLocation;
+  citation: CitationCharLocation | CitationPageLocation | CitationContentBlockLocation | CitationsWebSearchResultLocation | CitationsSearchResultLocation;
 
   type: 'citations_delta';
 }
@@ -514,10 +476,7 @@ export interface CodeExecutionToolResultBlock {
 /**
  * Code execution result with encrypted stdout for PFC + web_search results.
  */
-export type CodeExecutionToolResultBlockContent =
-  | CodeExecutionToolResultError
-  | CodeExecutionResultBlock
-  | EncryptedCodeExecutionResultBlock;
+export type CodeExecutionToolResultBlockContent = CodeExecutionToolResultError | CodeExecutionResultBlock | EncryptedCodeExecutionResultBlock
 
 export interface CodeExecutionToolResultBlockParam {
   /**
@@ -538,10 +497,7 @@ export interface CodeExecutionToolResultBlockParam {
 /**
  * Code execution result with encrypted stdout for PFC + web_search results.
  */
-export type CodeExecutionToolResultBlockParamContent =
-  | CodeExecutionToolResultErrorParam
-  | CodeExecutionResultBlockParam
-  | EncryptedCodeExecutionResultBlockParam;
+export type CodeExecutionToolResultBlockParamContent = CodeExecutionToolResultErrorParam | CodeExecutionResultBlockParam | EncryptedCodeExecutionResultBlockParam
 
 export interface CodeExecutionToolResultError {
   error_code: CodeExecutionToolResultErrorCode;
@@ -549,11 +505,7 @@ export interface CodeExecutionToolResultError {
   type: 'code_execution_tool_result_error';
 }
 
-export type CodeExecutionToolResultErrorCode =
-  | 'invalid_tool_input'
-  | 'unavailable'
-  | 'too_many_requests'
-  | 'execution_time_exceeded';
+export type CodeExecutionToolResultErrorCode = 'invalid_tool_input' | 'unavailable' | 'too_many_requests' | 'execution_time_exceeded'
 
 export interface CodeExecutionToolResultErrorParam {
   error_code: CodeExecutionToolResultErrorCode;
@@ -604,40 +556,12 @@ export interface ContainerUploadBlockParam {
 /**
  * Response model for a file uploaded to the container.
  */
-export type ContentBlock =
-  | TextBlock
-  | ThinkingBlock
-  | RedactedThinkingBlock
-  | ToolUseBlock
-  | ServerToolUseBlock
-  | WebSearchToolResultBlock
-  | WebFetchToolResultBlock
-  | CodeExecutionToolResultBlock
-  | BashCodeExecutionToolResultBlock
-  | TextEditorCodeExecutionToolResultBlock
-  | ToolSearchToolResultBlock
-  | ContainerUploadBlock;
+export type ContentBlock = TextBlock | ThinkingBlock | RedactedThinkingBlock | ToolUseBlock | ServerToolUseBlock | WebSearchToolResultBlock | WebFetchToolResultBlock | CodeExecutionToolResultBlock | BashCodeExecutionToolResultBlock | TextEditorCodeExecutionToolResultBlock | ToolSearchToolResultBlock | ContainerUploadBlock
 
 /**
  * Regular text content.
  */
-export type ContentBlockParam =
-  | TextBlockParam
-  | ImageBlockParam
-  | DocumentBlockParam
-  | SearchResultBlockParam
-  | ThinkingBlockParam
-  | RedactedThinkingBlockParam
-  | ToolUseBlockParam
-  | ToolResultBlockParam
-  | ServerToolUseBlockParam
-  | WebSearchToolResultBlockParam
-  | WebFetchToolResultBlockParam
-  | CodeExecutionToolResultBlockParam
-  | BashCodeExecutionToolResultBlockParam
-  | TextEditorCodeExecutionToolResultBlockParam
-  | ToolSearchToolResultBlockParam
-  | ContainerUploadBlockParam;
+export type ContentBlockParam = TextBlockParam | ImageBlockParam | DocumentBlockParam | SearchResultBlockParam | ThinkingBlockParam | RedactedThinkingBlockParam | ToolUseBlockParam | ToolResultBlockParam | ServerToolUseBlockParam | WebSearchToolResultBlockParam | WebFetchToolResultBlockParam | CodeExecutionToolResultBlockParam | BashCodeExecutionToolResultBlockParam | TextEditorCodeExecutionToolResultBlockParam | ToolSearchToolResultBlockParam | ContainerUploadBlockParam
 
 export interface ContentBlockSource {
   content: string | Array<ContentBlockSourceContent>;
@@ -645,7 +569,7 @@ export interface ContentBlockSource {
   type: 'content';
 }
 
-export type ContentBlockSourceContent = TextBlockParam | ImageBlockParam;
+export type ContentBlockSourceContent = TextBlockParam | ImageBlockParam
 
 /**
  * Tool invocation directly from the model.
@@ -901,23 +825,7 @@ export interface Message {
  * Code execution tool with REPL state persistence (daemon mode + gVisor
  * checkpoint).
  */
-export type MessageCountTokensTool =
-  | Tool
-  | ToolBash20250124
-  | CodeExecutionTool20250522
-  | CodeExecutionTool20250825
-  | CodeExecutionTool20260120
-  | MemoryTool20250818
-  | ToolTextEditor20250124
-  | ToolTextEditor20250429
-  | ToolTextEditor20250728
-  | WebSearchTool20250305
-  | WebFetchTool20250910
-  | WebSearchTool20260209
-  | WebFetchTool20260209
-  | WebFetchTool20260309
-  | ToolSearchToolBm25_20251119
-  | ToolSearchToolRegex20251119;
+export type MessageCountTokensTool = Tool | ToolBash20250124 | CodeExecutionTool20250522 | CodeExecutionTool20250825 | CodeExecutionTool20260120 | MemoryTool20250818 | ToolTextEditor20250124 | ToolTextEditor20250429 | ToolTextEditor20250728 | WebSearchTool20250305 | WebFetchTool20250910 | WebSearchTool20260209 | WebFetchTool20260209 | WebFetchTool20260309 | ToolSearchToolBm25_20251119 | ToolSearchToolRegex20251119
 
 export interface MessageDeltaUsage {
   /**
@@ -976,25 +884,7 @@ export interface Metadata {
  * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
  * details and options.
  */
-export type Model =
-  | 'claude-opus-4-7'
-  | 'claude-mythos-preview'
-  | 'claude-opus-4-6'
-  | 'claude-sonnet-4-6'
-  | 'claude-haiku-4-5'
-  | 'claude-haiku-4-5-20251001'
-  | 'claude-opus-4-5'
-  | 'claude-opus-4-5-20251101'
-  | 'claude-sonnet-4-5'
-  | 'claude-sonnet-4-5-20250929'
-  | 'claude-opus-4-1'
-  | 'claude-opus-4-1-20250805'
-  | 'claude-opus-4-0'
-  | 'claude-opus-4-20250514'
-  | 'claude-sonnet-4-0'
-  | 'claude-sonnet-4-20250514'
-  | 'claude-3-haiku-20240307'
-  | (string & {});
+export type Model = 'claude-opus-4-7' | 'claude-mythos-preview' | 'claude-opus-4-6' | 'claude-sonnet-4-6' | 'claude-haiku-4-5' | 'claude-haiku-4-5-20251001' | 'claude-opus-4-5' | 'claude-opus-4-5-20251101' | 'claude-sonnet-4-5' | 'claude-sonnet-4-5-20250929' | 'claude-opus-4-1' | 'claude-opus-4-1-20250805' | 'claude-opus-4-0' | 'claude-opus-4-20250514' | 'claude-sonnet-4-0' | 'claude-sonnet-4-20250514' | 'claude-3-haiku-20240307' | (string & {})
 
 export interface OutputConfig {
   /**
@@ -1017,12 +907,7 @@ export interface PlainTextSource {
   type: 'text';
 }
 
-export type RawContentBlockDelta =
-  | TextDelta
-  | InputJSONDelta
-  | CitationsDelta
-  | ThinkingDelta
-  | SignatureDelta;
+export type RawContentBlockDelta = TextDelta | InputJSONDelta | CitationsDelta | ThinkingDelta | SignatureDelta
 
 export interface RawContentBlockDeltaEvent {
   delta: RawContentBlockDelta;
@@ -1036,19 +921,7 @@ export interface RawContentBlockStartEvent {
   /**
    * Response model for a file uploaded to the container.
    */
-  content_block:
-    | TextBlock
-    | ThinkingBlock
-    | RedactedThinkingBlock
-    | ToolUseBlock
-    | ServerToolUseBlock
-    | WebSearchToolResultBlock
-    | WebFetchToolResultBlock
-    | CodeExecutionToolResultBlock
-    | BashCodeExecutionToolResultBlock
-    | TextEditorCodeExecutionToolResultBlock
-    | ToolSearchToolResultBlock
-    | ContainerUploadBlock;
+  content_block: TextBlock | ThinkingBlock | RedactedThinkingBlock | ToolUseBlock | ServerToolUseBlock | WebSearchToolResultBlock | WebFetchToolResultBlock | CodeExecutionToolResultBlock | BashCodeExecutionToolResultBlock | TextEditorCodeExecutionToolResultBlock | ToolSearchToolResultBlock | ContainerUploadBlock;
 
   index: number;
 
@@ -1115,13 +988,7 @@ export interface RawMessageStopEvent {
   type: 'message_stop';
 }
 
-export type RawMessageStreamEvent =
-  | RawMessageStartEvent
-  | RawMessageDeltaEvent
-  | RawMessageStopEvent
-  | RawContentBlockStartEvent
-  | RawContentBlockDeltaEvent
-  | RawContentBlockStopEvent;
+export type RawMessageStreamEvent = RawMessageStartEvent | RawMessageDeltaEvent | RawMessageStopEvent | RawContentBlockStartEvent | RawContentBlockDeltaEvent | RawContentBlockStopEvent
 
 export interface RedactedThinkingBlock {
   data: string;
@@ -1211,14 +1078,7 @@ export interface ServerToolUseBlock {
 
   input: { [key: string]: unknown };
 
-  name:
-    | 'web_search'
-    | 'web_fetch'
-    | 'code_execution'
-    | 'bash_code_execution'
-    | 'text_editor_code_execution'
-    | 'tool_search_tool_regex'
-    | 'tool_search_tool_bm25';
+  name: 'web_search' | 'web_fetch' | 'code_execution' | 'bash_code_execution' | 'text_editor_code_execution' | 'tool_search_tool_regex' | 'tool_search_tool_bm25';
 
   type: 'server_tool_use';
 }
@@ -1228,14 +1088,7 @@ export interface ServerToolUseBlockParam {
 
   input: { [key: string]: unknown };
 
-  name:
-    | 'web_search'
-    | 'web_fetch'
-    | 'code_execution'
-    | 'bash_code_execution'
-    | 'text_editor_code_execution'
-    | 'tool_search_tool_regex'
-    | 'tool_search_tool_bm25';
+  name: 'web_search' | 'web_fetch' | 'code_execution' | 'bash_code_execution' | 'text_editor_code_execution' | 'tool_search_tool_regex' | 'tool_search_tool_bm25';
 
   type: 'server_tool_use';
 
@@ -1256,7 +1109,7 @@ export interface SignatureDelta {
   type: 'signature_delta';
 }
 
-export type StopReason = 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | 'pause_turn' | 'refusal';
+export type StopReason = 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | 'pause_turn' | 'refusal'
 
 export interface TextBlock {
   /**
@@ -1286,19 +1139,9 @@ export interface TextBlockParam {
   citations?: Array<TextCitationParam> | null;
 }
 
-export type TextCitation =
-  | CitationCharLocation
-  | CitationPageLocation
-  | CitationContentBlockLocation
-  | CitationsWebSearchResultLocation
-  | CitationsSearchResultLocation;
+export type TextCitation = CitationCharLocation | CitationPageLocation | CitationContentBlockLocation | CitationsWebSearchResultLocation | CitationsSearchResultLocation
 
-export type TextCitationParam =
-  | CitationCharLocationParam
-  | CitationPageLocationParam
-  | CitationContentBlockLocationParam
-  | CitationWebSearchResultLocationParam
-  | CitationSearchResultLocationParam;
+export type TextCitationParam = CitationCharLocationParam | CitationPageLocationParam | CitationContentBlockLocationParam | CitationWebSearchResultLocationParam | CitationSearchResultLocationParam
 
 export interface TextDelta {
   text: string;
@@ -1347,11 +1190,7 @@ export interface TextEditorCodeExecutionStrReplaceResultBlockParam {
 }
 
 export interface TextEditorCodeExecutionToolResultBlock {
-  content:
-    | TextEditorCodeExecutionToolResultError
-    | TextEditorCodeExecutionViewResultBlock
-    | TextEditorCodeExecutionCreateResultBlock
-    | TextEditorCodeExecutionStrReplaceResultBlock;
+  content: TextEditorCodeExecutionToolResultError | TextEditorCodeExecutionViewResultBlock | TextEditorCodeExecutionCreateResultBlock | TextEditorCodeExecutionStrReplaceResultBlock;
 
   tool_use_id: string;
 
@@ -1359,11 +1198,7 @@ export interface TextEditorCodeExecutionToolResultBlock {
 }
 
 export interface TextEditorCodeExecutionToolResultBlockParam {
-  content:
-    | TextEditorCodeExecutionToolResultErrorParam
-    | TextEditorCodeExecutionViewResultBlockParam
-    | TextEditorCodeExecutionCreateResultBlockParam
-    | TextEditorCodeExecutionStrReplaceResultBlockParam;
+  content: TextEditorCodeExecutionToolResultErrorParam | TextEditorCodeExecutionViewResultBlockParam | TextEditorCodeExecutionCreateResultBlockParam | TextEditorCodeExecutionStrReplaceResultBlockParam;
 
   tool_use_id: string;
 
@@ -1383,12 +1218,7 @@ export interface TextEditorCodeExecutionToolResultError {
   type: 'text_editor_code_execution_tool_result_error';
 }
 
-export type TextEditorCodeExecutionToolResultErrorCode =
-  | 'invalid_tool_input'
-  | 'unavailable'
-  | 'too_many_requests'
-  | 'execution_time_exceeded'
-  | 'file_not_found';
+export type TextEditorCodeExecutionToolResultErrorCode = 'invalid_tool_input' | 'unavailable' | 'too_many_requests' | 'execution_time_exceeded' | 'file_not_found'
 
 export interface TextEditorCodeExecutionToolResultErrorParam {
   error_code: TextEditorCodeExecutionToolResultErrorCode;
@@ -1494,7 +1324,7 @@ export interface ThinkingConfigEnabled {
  * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
  * for details.
  */
-export type ThinkingConfigParam = ThinkingConfigEnabled | ThinkingConfigDisabled | ThinkingConfigAdaptive;
+export type ThinkingConfigParam = ThinkingConfigEnabled | ThinkingConfigDisabled | ThinkingConfigAdaptive
 
 export interface ThinkingDelta {
   thinking: string;
@@ -1574,7 +1404,7 @@ export namespace Tool {
 
     required?: Array<string> | null;
 
-    [k: string]: unknown;
+  [k: string]: unknown
   }
 }
 
@@ -1613,7 +1443,7 @@ export interface ToolBash20250124 {
  * How the model should use the provided tools. The model can use a specific tool,
  * any available tool, decide by itself, or not use tools at all.
  */
-export type ToolChoice = ToolChoiceAuto | ToolChoiceAny | ToolChoiceTool | ToolChoiceNone;
+export type ToolChoice = ToolChoiceAuto | ToolChoiceAny | ToolChoiceTool | ToolChoiceNone
 
 /**
  * The model will use any available tools.
@@ -1702,15 +1532,7 @@ export interface ToolResultBlockParam {
    */
   cache_control?: CacheControlEphemeral | null;
 
-  content?:
-    | string
-    | Array<
-        | TextBlockParam
-        | ImageBlockParam
-        | SearchResultBlockParam
-        | DocumentBlockParam
-        | ToolReferenceBlockParam
-      >;
+  content?: string | Array<TextBlockParam | ImageBlockParam | SearchResultBlockParam | DocumentBlockParam | ToolReferenceBlockParam>;
 
   is_error?: boolean;
 }
@@ -1802,11 +1624,7 @@ export interface ToolSearchToolResultError {
   type: 'tool_search_tool_result_error';
 }
 
-export type ToolSearchToolResultErrorCode =
-  | 'invalid_tool_input'
-  | 'unavailable'
-  | 'too_many_requests'
-  | 'execution_time_exceeded';
+export type ToolSearchToolResultErrorCode = 'invalid_tool_input' | 'unavailable' | 'too_many_requests' | 'execution_time_exceeded'
 
 export interface ToolSearchToolResultErrorParam {
   error_code: ToolSearchToolResultErrorCode;
@@ -1929,23 +1747,7 @@ export interface ToolTextEditor20250728 {
  * Code execution tool with REPL state persistence (daemon mode + gVisor
  * checkpoint).
  */
-export type ToolUnion =
-  | Tool
-  | ToolBash20250124
-  | CodeExecutionTool20250522
-  | CodeExecutionTool20250825
-  | CodeExecutionTool20260120
-  | MemoryTool20250818
-  | ToolTextEditor20250124
-  | ToolTextEditor20250429
-  | ToolTextEditor20250728
-  | WebSearchTool20250305
-  | WebFetchTool20250910
-  | WebSearchTool20260209
-  | WebFetchTool20260209
-  | WebFetchTool20260309
-  | ToolSearchToolBm25_20251119
-  | ToolSearchToolRegex20251119;
+export type ToolUnion = Tool | ToolBash20250124 | CodeExecutionTool20250522 | CodeExecutionTool20250825 | CodeExecutionTool20260120 | MemoryTool20250818 | ToolTextEditor20250124 | ToolTextEditor20250429 | ToolTextEditor20250728 | WebSearchTool20250305 | WebFetchTool20250910 | WebSearchTool20260209 | WebFetchTool20260209 | WebFetchTool20260309 | ToolSearchToolBm25_20251119 | ToolSearchToolRegex20251119
 
 export interface ToolUseBlock {
   id: string;
@@ -2315,15 +2117,7 @@ export interface WebFetchToolResultErrorBlockParam {
   type: 'web_fetch_tool_result_error';
 }
 
-export type WebFetchToolResultErrorCode =
-  | 'invalid_tool_input'
-  | 'url_too_long'
-  | 'url_not_allowed'
-  | 'url_not_accessible'
-  | 'unsupported_content_type'
-  | 'too_many_requests'
-  | 'max_uses_exceeded'
-  | 'unavailable';
+export type WebFetchToolResultErrorCode = 'invalid_tool_input' | 'url_too_long' | 'url_not_allowed' | 'url_not_accessible' | 'unsupported_content_type' | 'too_many_requests' | 'max_uses_exceeded' | 'unavailable'
 
 export interface WebSearchResultBlock {
   encrypted_content: string;
@@ -2472,7 +2266,7 @@ export interface WebSearchToolResultBlock {
   type: 'web_search_tool_result';
 }
 
-export type WebSearchToolResultBlockContent = WebSearchToolResultError | Array<WebSearchResultBlock>;
+export type WebSearchToolResultBlockContent = WebSearchToolResultError | Array<WebSearchResultBlock>
 
 export interface WebSearchToolResultBlockParam {
   content: WebSearchToolResultBlockParamContent;
@@ -2492,9 +2286,7 @@ export interface WebSearchToolResultBlockParam {
   caller?: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 }
 
-export type WebSearchToolResultBlockParamContent =
-  | Array<WebSearchResultBlockParam>
-  | WebSearchToolRequestError;
+export type WebSearchToolResultBlockParamContent = Array<WebSearchResultBlockParam> | WebSearchToolRequestError
 
 export interface WebSearchToolResultError {
   error_code: WebSearchToolResultErrorCode;
@@ -2502,15 +2294,9 @@ export interface WebSearchToolResultError {
   type: 'web_search_tool_result_error';
 }
 
-export type WebSearchToolResultErrorCode =
-  | 'invalid_tool_input'
-  | 'unavailable'
-  | 'max_uses_exceeded'
-  | 'too_many_requests'
-  | 'query_too_long'
-  | 'request_too_large';
+export type WebSearchToolResultErrorCode = 'invalid_tool_input' | 'unavailable' | 'max_uses_exceeded' | 'too_many_requests' | 'query_too_long' | 'request_too_large'
 
-export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreateParamsStreaming;
+export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreateParamsStreaming
 
 export interface MessageCreateParamsBase {
   /**
@@ -2785,8 +2571,8 @@ export interface MessageCreateParamsBase {
 }
 
 export namespace MessageCreateParams {
-  export type MessageCreateParamsNonStreaming = MessagesAPI.MessageCreateParamsNonStreaming;
-  export type MessageCreateParamsStreaming = MessagesAPI.MessageCreateParamsStreaming;
+  export type MessageCreateParamsNonStreaming = MessagesAPI.MessageCreateParamsNonStreaming
+  export type MessageCreateParamsStreaming = MessagesAPI.MessageCreateParamsStreaming
 }
 
 export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase {
@@ -3167,7 +2953,7 @@ export declare namespace Messages {
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
-    type MessageCountTokensParams as MessageCountTokensParams,
+    type MessageCountTokensParams as MessageCountTokensParams
   };
 
   export {
@@ -3183,6 +2969,6 @@ export declare namespace Messages {
     type MessageBatchSucceededResult as MessageBatchSucceededResult,
     type MessageBatchesPage as MessageBatchesPage,
     type BatchCreateParams as BatchCreateParams,
-    type BatchListParams as BatchListParams,
+    type BatchListParams as BatchListParams
   };
 }

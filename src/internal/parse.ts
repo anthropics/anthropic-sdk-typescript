@@ -56,15 +56,6 @@ export async function defaultParseResponse<T>(client: BaseAnthropic, props: APIR
     const text = await response.text();
     return text as unknown as T;
   })();
-  loggerFor(client).debug(
-    `[${requestLogID}] response parsed`,
-    formatRequestDetails({
-      retryOfRequestLogID,
-      url: response.url,
-      status: response.status,
-      body,
-      durationMs: Date.now() - startTime,
-    }),
-  );
+  loggerFor(client).debug(`[${requestLogID}] response parsed`, formatRequestDetails({ retryOfRequestLogID, url: response.url, status: response.status, body, durationMs: Date.now() - startTime }));
   return body;
 }

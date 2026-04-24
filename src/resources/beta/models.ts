@@ -22,19 +22,9 @@ export class Models extends APIResource {
    * );
    * ```
    */
-  retrieve(
-    modelID: string,
-    params: ModelRetrieveParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<BetaModelInfo> {
-    const { betas } = params ?? {};
-    return this._client.get(path`/v1/models/${modelID}?beta=true`, {
-      ...options,
-      headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
-        options?.headers,
-      ]),
-    });
+  retrieve(modelID: string, params: ModelRetrieveParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaModelInfo> {
+    const { betas } = params ?? {}
+    return this._client.get(path`/v1/models/${modelID}?beta=true`, { ...options, headers: buildHeaders([{...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined)}, options?.headers]) });
   }
 
   /**
@@ -51,23 +41,13 @@ export class Models extends APIResource {
    * }
    * ```
    */
-  list(
-    params: ModelListParams | null | undefined = {},
-    options?: RequestOptions,
-  ): PagePromise<BetaModelInfosPage, BetaModelInfo> {
-    const { betas, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/models?beta=true', Page<BetaModelInfo>, {
-      query,
-      ...options,
-      headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
-        options?.headers,
-      ]),
-    });
+  list(params: ModelListParams | null | undefined = {}, options?: RequestOptions): PagePromise<BetaModelInfosPage, BetaModelInfo> {
+    const { betas, ...query } = params ?? {}
+    return this._client.getAPIList('/v1/models?beta=true', Page<BetaModelInfo>, { query, ...options, headers: buildHeaders([{...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined)}, options?.headers]) });
   }
 }
 
-export type BetaModelInfosPage = Page<BetaModelInfo>;
+export type BetaModelInfosPage = Page<BetaModelInfo>
 
 /**
  * Indicates whether a capability is supported.
@@ -284,6 +264,6 @@ export declare namespace Models {
     type BetaThinkingTypes as BetaThinkingTypes,
     type BetaModelInfosPage as BetaModelInfosPage,
     type ModelRetrieveParams as ModelRetrieveParams,
-    type ModelListParams as ModelListParams,
+    type ModelListParams as ModelListParams
   };
 }

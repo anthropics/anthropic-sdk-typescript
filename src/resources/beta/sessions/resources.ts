@@ -22,19 +22,9 @@ export class Resources extends APIResource {
    *   );
    * ```
    */
-  retrieve(
-    resourceID: string,
-    params: ResourceRetrieveParams,
-    options?: RequestOptions,
-  ): APIPromise<ResourceRetrieveResponse> {
-    const { session_id, betas } = params;
-    return this._client.get(path`/v1/sessions/${session_id}/resources/${resourceID}?beta=true`, {
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-        options?.headers,
-      ]),
-    });
+  retrieve(resourceID: string, params: ResourceRetrieveParams, options?: RequestOptions): APIPromise<ResourceRetrieveResponse> {
+    const { session_id, betas } = params
+    return this._client.get(path`/v1/sessions/${session_id}/resources/${resourceID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 
   /**
@@ -52,20 +42,9 @@ export class Resources extends APIResource {
    *   );
    * ```
    */
-  update(
-    resourceID: string,
-    params: ResourceUpdateParams,
-    options?: RequestOptions,
-  ): APIPromise<ResourceUpdateResponse> {
-    const { session_id, betas, ...body } = params;
-    return this._client.post(path`/v1/sessions/${session_id}/resources/${resourceID}?beta=true`, {
-      body,
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-        options?.headers,
-      ]),
-    });
+  update(resourceID: string, params: ResourceUpdateParams, options?: RequestOptions): APIPromise<ResourceUpdateResponse> {
+    const { session_id, betas, ...body } = params
+    return this._client.post(path`/v1/sessions/${session_id}/resources/${resourceID}?beta=true`, { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 
   /**
@@ -81,24 +60,9 @@ export class Resources extends APIResource {
    * }
    * ```
    */
-  list(
-    sessionID: string,
-    params: ResourceListParams | null | undefined = {},
-    options?: RequestOptions,
-  ): PagePromise<BetaManagedAgentsSessionResourcesPageCursor, BetaManagedAgentsSessionResource> {
-    const { betas, ...query } = params ?? {};
-    return this._client.getAPIList(
-      path`/v1/sessions/${sessionID}/resources?beta=true`,
-      PageCursor<BetaManagedAgentsSessionResource>,
-      {
-        query,
-        ...options,
-        headers: buildHeaders([
-          { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-          options?.headers,
-        ]),
-      },
-    );
+  list(sessionID: string, params: ResourceListParams | null | undefined = {}, options?: RequestOptions): PagePromise<BetaManagedAgentsSessionResourcesPageCursor, BetaManagedAgentsSessionResource> {
+    const { betas, ...query } = params ?? {}
+    return this._client.getAPIList(path`/v1/sessions/${sessionID}/resources?beta=true`, PageCursor<BetaManagedAgentsSessionResource>, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 
   /**
@@ -113,19 +77,9 @@ export class Resources extends APIResource {
    *   );
    * ```
    */
-  delete(
-    resourceID: string,
-    params: ResourceDeleteParams,
-    options?: RequestOptions,
-  ): APIPromise<BetaManagedAgentsDeleteSessionResource> {
-    const { session_id, betas } = params;
-    return this._client.delete(path`/v1/sessions/${session_id}/resources/${resourceID}?beta=true`, {
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-        options?.headers,
-      ]),
-    });
+  delete(resourceID: string, params: ResourceDeleteParams, options?: RequestOptions): APIPromise<BetaManagedAgentsDeleteSessionResource> {
+    const { session_id, betas } = params
+    return this._client.delete(path`/v1/sessions/${session_id}/resources/${resourceID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 
   /**
@@ -143,24 +97,13 @@ export class Resources extends APIResource {
    *   );
    * ```
    */
-  add(
-    sessionID: string,
-    params: ResourceAddParams,
-    options?: RequestOptions,
-  ): APIPromise<BetaManagedAgentsFileResource> {
-    const { betas, ...body } = params;
-    return this._client.post(path`/v1/sessions/${sessionID}/resources?beta=true`, {
-      body,
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-        options?.headers,
-      ]),
-    });
+  add(sessionID: string, params: ResourceAddParams, options?: RequestOptions): APIPromise<BetaManagedAgentsFileResource> {
+    const { betas, ...body } = params
+    return this._client.post(path`/v1/sessions/${sessionID}/resources?beta=true`, { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 }
 
-export type BetaManagedAgentsSessionResourcesPageCursor = PageCursor<BetaManagedAgentsSessionResource>;
+export type BetaManagedAgentsSessionResourcesPageCursor = PageCursor<BetaManagedAgentsSessionResource>
 
 /**
  * Confirmation of resource deletion.
@@ -258,26 +201,17 @@ export interface BetaManagedAgentsMemoryStoreResource {
 /**
  * A memory store attached to an agent session.
  */
-export type BetaManagedAgentsSessionResource =
-  | BetaManagedAgentsGitHubRepositoryResource
-  | BetaManagedAgentsFileResource
-  | BetaManagedAgentsMemoryStoreResource;
+export type BetaManagedAgentsSessionResource = BetaManagedAgentsGitHubRepositoryResource | BetaManagedAgentsFileResource | BetaManagedAgentsMemoryStoreResource
 
 /**
  * The requested session resource.
  */
-export type ResourceRetrieveResponse =
-  | BetaManagedAgentsGitHubRepositoryResource
-  | BetaManagedAgentsFileResource
-  | BetaManagedAgentsMemoryStoreResource;
+export type ResourceRetrieveResponse = BetaManagedAgentsGitHubRepositoryResource | BetaManagedAgentsFileResource | BetaManagedAgentsMemoryStoreResource
 
 /**
  * The updated session resource.
  */
-export type ResourceUpdateResponse =
-  | BetaManagedAgentsGitHubRepositoryResource
-  | BetaManagedAgentsFileResource
-  | BetaManagedAgentsMemoryStoreResource;
+export type ResourceUpdateResponse = BetaManagedAgentsGitHubRepositoryResource | BetaManagedAgentsFileResource | BetaManagedAgentsMemoryStoreResource
 
 export interface ResourceRetrieveParams {
   /**
@@ -365,6 +299,6 @@ export declare namespace Resources {
     type ResourceUpdateParams as ResourceUpdateParams,
     type ResourceListParams as ResourceListParams,
     type ResourceDeleteParams as ResourceDeleteParams,
-    type ResourceAddParams as ResourceAddParams,
+    type ResourceAddParams as ResourceAddParams
   };
 }

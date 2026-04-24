@@ -77,10 +77,7 @@ export class Batches extends APIResource {
    * }
    * ```
    */
-  list(
-    query: BatchListParams | null | undefined = {},
-    options?: RequestOptions,
-  ): PagePromise<MessageBatchesPage, MessageBatch> {
+  list(query: BatchListParams | null | undefined = {}, options?: RequestOptions): PagePromise<MessageBatchesPage, MessageBatch> {
     return this._client.getAPIList('/v1/messages/batches', Page<MessageBatch>, { query, ...options });
   }
 
@@ -144,24 +141,12 @@ export class Batches extends APIResource {
    *   await client.messages.batches.results('message_batch_id');
    * ```
    */
-  results(
-    messageBatchID: string,
-    options?: RequestOptions,
-  ): APIPromise<JSONLDecoder<MessageBatchIndividualResponse>> {
-    return this._client
-      .get(path`/v1/messages/batches/${messageBatchID}/results`, {
-        ...options,
-        headers: buildHeaders([{ Accept: 'application/x-jsonl' }, options?.headers]),
-        stream: true,
-        __binaryResponse: true,
-      })
-      ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller)) as APIPromise<
-      JSONLDecoder<MessageBatchIndividualResponse>
-    >;
+  results(messageBatchID: string, options?: RequestOptions): APIPromise<JSONLDecoder<MessageBatchIndividualResponse>> {
+    return this._client.get(path`/v1/messages/batches/${messageBatchID}/results`, { ...options, headers: buildHeaders([{Accept: 'application/x-jsonl'}, options?.headers]), stream: true, __binaryResponse: true })._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller)) as APIPromise<JSONLDecoder<MessageBatchIndividualResponse>>;
   }
 }
 
-export type MessageBatchesPage = Page<MessageBatch>;
+export type MessageBatchesPage = Page<MessageBatch>
 
 export interface DeletedMessageBatch {
   /**
@@ -328,11 +313,7 @@ export interface MessageBatchRequestCounts {
  * processing failed, or the reason why processing was not attempted, such as
  * cancellation or expiration.
  */
-export type MessageBatchResult =
-  | MessageBatchSucceededResult
-  | MessageBatchErroredResult
-  | MessageBatchCanceledResult
-  | MessageBatchExpiredResult;
+export type MessageBatchResult = MessageBatchSucceededResult | MessageBatchErroredResult | MessageBatchCanceledResult | MessageBatchExpiredResult
 
 export interface MessageBatchSucceededResult {
   message: MessagesAPI.Message;
@@ -648,7 +629,8 @@ export namespace BatchCreateParams {
   }
 }
 
-export interface BatchListParams extends PageParams {}
+export interface BatchListParams extends PageParams {
+}
 
 export declare namespace Batches {
   export {
@@ -663,6 +645,6 @@ export declare namespace Batches {
     type MessageBatchSucceededResult as MessageBatchSucceededResult,
     type MessageBatchesPage as MessageBatchesPage,
     type BatchCreateParams as BatchCreateParams,
-    type BatchListParams as BatchListParams,
+    type BatchListParams as BatchListParams
   };
 }

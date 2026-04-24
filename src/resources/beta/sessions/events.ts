@@ -23,24 +23,9 @@ export class Events extends APIResource {
    * }
    * ```
    */
-  list(
-    sessionID: string,
-    params: EventListParams | null | undefined = {},
-    options?: RequestOptions,
-  ): PagePromise<BetaManagedAgentsSessionEventsPageCursor, BetaManagedAgentsSessionEvent> {
-    const { betas, ...query } = params ?? {};
-    return this._client.getAPIList(
-      path`/v1/sessions/${sessionID}/events?beta=true`,
-      PageCursor<BetaManagedAgentsSessionEvent>,
-      {
-        query,
-        ...options,
-        headers: buildHeaders([
-          { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-          options?.headers,
-        ]),
-      },
-    );
+  list(sessionID: string, params: EventListParams | null | undefined = {}, options?: RequestOptions): PagePromise<BetaManagedAgentsSessionEventsPageCursor, BetaManagedAgentsSessionEvent> {
+    const { betas, ...query } = params ?? {}
+    return this._client.getAPIList(path`/v1/sessions/${sessionID}/events?beta=true`, PageCursor<BetaManagedAgentsSessionEvent>, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 
   /**
@@ -67,20 +52,9 @@ export class Events extends APIResource {
    *   );
    * ```
    */
-  send(
-    sessionID: string,
-    params: EventSendParams,
-    options?: RequestOptions,
-  ): APIPromise<BetaManagedAgentsSendSessionEvents> {
-    const { betas, ...body } = params;
-    return this._client.post(path`/v1/sessions/${sessionID}/events?beta=true`, {
-      body,
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-        options?.headers,
-      ]),
-    });
+  send(sessionID: string, params: EventSendParams, options?: RequestOptions): APIPromise<BetaManagedAgentsSendSessionEvents> {
+    const { betas, ...body } = params
+    return this._client.post(path`/v1/sessions/${sessionID}/events?beta=true`, { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 
   /**
@@ -94,24 +68,13 @@ export class Events extends APIResource {
    *   );
    * ```
    */
-  stream(
-    sessionID: string,
-    params: EventStreamParams | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<Stream<BetaManagedAgentsStreamSessionEvents>> {
-    const { betas } = params ?? {};
-    return this._client.get(path`/v1/sessions/${sessionID}/events/stream?beta=true`, {
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-        options?.headers,
-      ]),
-      stream: true,
-    }) as APIPromise<Stream<BetaManagedAgentsStreamSessionEvents>>;
+  stream(sessionID: string, params: EventStreamParams | undefined = {}, options?: RequestOptions): APIPromise<Stream<BetaManagedAgentsStreamSessionEvents>> {
+    const { betas } = params ?? {}
+    return this._client.get(path`/v1/sessions/${sessionID}/events/stream?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]), stream: true }) as APIPromise<Stream<BetaManagedAgentsStreamSessionEvents>>;
   }
 }
 
-export type BetaManagedAgentsSessionEventsPageCursor = PageCursor<BetaManagedAgentsSessionEvent>;
+export type BetaManagedAgentsSessionEventsPageCursor = PageCursor<BetaManagedAgentsSessionEvent>
 
 /**
  * Event emitted when the agent calls a custom tool. The session goes idle until
@@ -380,10 +343,7 @@ export interface BetaManagedAgentsBillingError {
   /**
    * What the client should do next in response to this error.
    */
-  retry_status:
-    | BetaManagedAgentsRetryStatusRetrying
-    | BetaManagedAgentsRetryStatusExhausted
-    | BetaManagedAgentsRetryStatusTerminal;
+  retry_status: BetaManagedAgentsRetryStatusRetrying | BetaManagedAgentsRetryStatusExhausted | BetaManagedAgentsRetryStatusTerminal;
 
   type: 'billing_error';
 }
@@ -396,11 +356,7 @@ export interface BetaManagedAgentsDocumentBlock {
   /**
    * Union type for document source variants.
    */
-  source:
-    | BetaManagedAgentsBase64DocumentSource
-    | BetaManagedAgentsPlainTextDocumentSource
-    | BetaManagedAgentsURLDocumentSource
-    | BetaManagedAgentsFileDocumentSource;
+  source: BetaManagedAgentsBase64DocumentSource | BetaManagedAgentsPlainTextDocumentSource | BetaManagedAgentsURLDocumentSource | BetaManagedAgentsFileDocumentSource;
 
   type: 'document';
 
@@ -418,11 +374,7 @@ export interface BetaManagedAgentsDocumentBlock {
 /**
  * Union type for event parameters that can be sent to a session.
  */
-export type BetaManagedAgentsEventParams =
-  | BetaManagedAgentsUserMessageEventParams
-  | BetaManagedAgentsUserInterruptEventParams
-  | BetaManagedAgentsUserToolConfirmationEventParams
-  | BetaManagedAgentsUserCustomToolResultEventParams;
+export type BetaManagedAgentsEventParams = BetaManagedAgentsUserMessageEventParams | BetaManagedAgentsUserInterruptEventParams | BetaManagedAgentsUserToolConfirmationEventParams | BetaManagedAgentsUserCustomToolResultEventParams
 
 /**
  * Document referenced by file ID.
@@ -455,10 +407,7 @@ export interface BetaManagedAgentsImageBlock {
   /**
    * Union type for image source variants.
    */
-  source:
-    | BetaManagedAgentsBase64ImageSource
-    | BetaManagedAgentsURLImageSource
-    | BetaManagedAgentsFileImageSource;
+  source: BetaManagedAgentsBase64ImageSource | BetaManagedAgentsURLImageSource | BetaManagedAgentsFileImageSource;
 
   type: 'image';
 }
@@ -480,10 +429,7 @@ export interface BetaManagedAgentsMCPAuthenticationFailedError {
   /**
    * What the client should do next in response to this error.
    */
-  retry_status:
-    | BetaManagedAgentsRetryStatusRetrying
-    | BetaManagedAgentsRetryStatusExhausted
-    | BetaManagedAgentsRetryStatusTerminal;
+  retry_status: BetaManagedAgentsRetryStatusRetrying | BetaManagedAgentsRetryStatusExhausted | BetaManagedAgentsRetryStatusTerminal;
 
   type: 'mcp_authentication_failed_error';
 }
@@ -505,10 +451,7 @@ export interface BetaManagedAgentsMCPConnectionFailedError {
   /**
    * What the client should do next in response to this error.
    */
-  retry_status:
-    | BetaManagedAgentsRetryStatusRetrying
-    | BetaManagedAgentsRetryStatusExhausted
-    | BetaManagedAgentsRetryStatusTerminal;
+  retry_status: BetaManagedAgentsRetryStatusRetrying | BetaManagedAgentsRetryStatusExhausted | BetaManagedAgentsRetryStatusTerminal;
 
   type: 'mcp_connection_failed_error';
 }
@@ -526,10 +469,7 @@ export interface BetaManagedAgentsModelOverloadedError {
   /**
    * What the client should do next in response to this error.
    */
-  retry_status:
-    | BetaManagedAgentsRetryStatusRetrying
-    | BetaManagedAgentsRetryStatusExhausted
-    | BetaManagedAgentsRetryStatusTerminal;
+  retry_status: BetaManagedAgentsRetryStatusRetrying | BetaManagedAgentsRetryStatusExhausted | BetaManagedAgentsRetryStatusTerminal;
 
   type: 'model_overloaded_error';
 }
@@ -546,10 +486,7 @@ export interface BetaManagedAgentsModelRateLimitedError {
   /**
    * What the client should do next in response to this error.
    */
-  retry_status:
-    | BetaManagedAgentsRetryStatusRetrying
-    | BetaManagedAgentsRetryStatusExhausted
-    | BetaManagedAgentsRetryStatusTerminal;
+  retry_status: BetaManagedAgentsRetryStatusRetrying | BetaManagedAgentsRetryStatusExhausted | BetaManagedAgentsRetryStatusTerminal;
 
   type: 'model_rate_limited_error';
 }
@@ -566,10 +503,7 @@ export interface BetaManagedAgentsModelRequestFailedError {
   /**
    * What the client should do next in response to this error.
    */
-  retry_status:
-    | BetaManagedAgentsRetryStatusRetrying
-    | BetaManagedAgentsRetryStatusExhausted
-    | BetaManagedAgentsRetryStatusTerminal;
+  retry_status: BetaManagedAgentsRetryStatusRetrying | BetaManagedAgentsRetryStatusExhausted | BetaManagedAgentsRetryStatusTerminal;
 
   type: 'model_request_failed_error';
 }
@@ -623,12 +557,7 @@ export interface BetaManagedAgentsSendSessionEvents {
   /**
    * Sent events
    */
-  data?: Array<
-    | BetaManagedAgentsUserMessageEvent
-    | BetaManagedAgentsUserInterruptEvent
-    | BetaManagedAgentsUserToolConfirmationEvent
-    | BetaManagedAgentsUserCustomToolResultEvent
-  >;
+  data?: Array<BetaManagedAgentsUserMessageEvent | BetaManagedAgentsUserInterruptEvent | BetaManagedAgentsUserToolConfirmationEvent | BetaManagedAgentsUserCustomToolResultEvent>;
 }
 
 /**
@@ -670,14 +599,7 @@ export interface BetaManagedAgentsSessionErrorEvent {
    * variant; clients that don't recognize a new error code can match on
    * `retry_status` and `message` alone.
    */
-  error:
-    | BetaManagedAgentsUnknownError
-    | BetaManagedAgentsModelOverloadedError
-    | BetaManagedAgentsModelRateLimitedError
-    | BetaManagedAgentsModelRequestFailedError
-    | BetaManagedAgentsMCPConnectionFailedError
-    | BetaManagedAgentsMCPAuthenticationFailedError
-    | BetaManagedAgentsBillingError;
+  error: BetaManagedAgentsUnknownError | BetaManagedAgentsModelOverloadedError | BetaManagedAgentsModelRateLimitedError | BetaManagedAgentsModelRequestFailedError | BetaManagedAgentsMCPConnectionFailedError | BetaManagedAgentsMCPAuthenticationFailedError | BetaManagedAgentsBillingError;
 
   /**
    * A timestamp in RFC 3339 format
@@ -690,27 +612,7 @@ export interface BetaManagedAgentsSessionErrorEvent {
 /**
  * Union type for all event types in a session.
  */
-export type BetaManagedAgentsSessionEvent =
-  | BetaManagedAgentsUserMessageEvent
-  | BetaManagedAgentsUserInterruptEvent
-  | BetaManagedAgentsUserToolConfirmationEvent
-  | BetaManagedAgentsUserCustomToolResultEvent
-  | BetaManagedAgentsAgentCustomToolUseEvent
-  | BetaManagedAgentsAgentMessageEvent
-  | BetaManagedAgentsAgentThinkingEvent
-  | BetaManagedAgentsAgentMCPToolUseEvent
-  | BetaManagedAgentsAgentMCPToolResultEvent
-  | BetaManagedAgentsAgentToolUseEvent
-  | BetaManagedAgentsAgentToolResultEvent
-  | BetaManagedAgentsAgentThreadContextCompactedEvent
-  | BetaManagedAgentsSessionErrorEvent
-  | BetaManagedAgentsSessionStatusRescheduledEvent
-  | BetaManagedAgentsSessionStatusRunningEvent
-  | BetaManagedAgentsSessionStatusIdleEvent
-  | BetaManagedAgentsSessionStatusTerminatedEvent
-  | BetaManagedAgentsSpanModelRequestStartEvent
-  | BetaManagedAgentsSpanModelRequestEndEvent
-  | BetaManagedAgentsSessionDeletedEvent;
+export type BetaManagedAgentsSessionEvent = BetaManagedAgentsUserMessageEvent | BetaManagedAgentsUserInterruptEvent | BetaManagedAgentsUserToolConfirmationEvent | BetaManagedAgentsUserCustomToolResultEvent | BetaManagedAgentsAgentCustomToolUseEvent | BetaManagedAgentsAgentMessageEvent | BetaManagedAgentsAgentThinkingEvent | BetaManagedAgentsAgentMCPToolUseEvent | BetaManagedAgentsAgentMCPToolResultEvent | BetaManagedAgentsAgentToolUseEvent | BetaManagedAgentsAgentToolResultEvent | BetaManagedAgentsAgentThreadContextCompactedEvent | BetaManagedAgentsSessionErrorEvent | BetaManagedAgentsSessionStatusRescheduledEvent | BetaManagedAgentsSessionStatusRunningEvent | BetaManagedAgentsSessionStatusIdleEvent | BetaManagedAgentsSessionStatusTerminatedEvent | BetaManagedAgentsSpanModelRequestStartEvent | BetaManagedAgentsSpanModelRequestEndEvent | BetaManagedAgentsSessionDeletedEvent
 
 /**
  * The agent is idle waiting on one or more blocking user-input events (tool
@@ -752,10 +654,7 @@ export interface BetaManagedAgentsSessionStatusIdleEvent {
   /**
    * The agent completed its turn naturally and is ready for the next user message.
    */
-  stop_reason:
-    | BetaManagedAgentsSessionEndTurn
-    | BetaManagedAgentsSessionRequiresAction
-    | BetaManagedAgentsSessionRetriesExhausted;
+  stop_reason: BetaManagedAgentsSessionEndTurn | BetaManagedAgentsSessionRequiresAction | BetaManagedAgentsSessionRetriesExhausted;
 
   type: 'session.status_idle';
 }
@@ -896,27 +795,7 @@ export interface BetaManagedAgentsSpanModelUsage {
 /**
  * Server-sent event in the session stream.
  */
-export type BetaManagedAgentsStreamSessionEvents =
-  | BetaManagedAgentsUserMessageEvent
-  | BetaManagedAgentsUserInterruptEvent
-  | BetaManagedAgentsUserToolConfirmationEvent
-  | BetaManagedAgentsUserCustomToolResultEvent
-  | BetaManagedAgentsAgentCustomToolUseEvent
-  | BetaManagedAgentsAgentMessageEvent
-  | BetaManagedAgentsAgentThinkingEvent
-  | BetaManagedAgentsAgentMCPToolUseEvent
-  | BetaManagedAgentsAgentMCPToolResultEvent
-  | BetaManagedAgentsAgentToolUseEvent
-  | BetaManagedAgentsAgentToolResultEvent
-  | BetaManagedAgentsAgentThreadContextCompactedEvent
-  | BetaManagedAgentsSessionErrorEvent
-  | BetaManagedAgentsSessionStatusRescheduledEvent
-  | BetaManagedAgentsSessionStatusRunningEvent
-  | BetaManagedAgentsSessionStatusIdleEvent
-  | BetaManagedAgentsSessionStatusTerminatedEvent
-  | BetaManagedAgentsSpanModelRequestStartEvent
-  | BetaManagedAgentsSpanModelRequestEndEvent
-  | BetaManagedAgentsSessionDeletedEvent;
+export type BetaManagedAgentsStreamSessionEvents = BetaManagedAgentsUserMessageEvent | BetaManagedAgentsUserInterruptEvent | BetaManagedAgentsUserToolConfirmationEvent | BetaManagedAgentsUserCustomToolResultEvent | BetaManagedAgentsAgentCustomToolUseEvent | BetaManagedAgentsAgentMessageEvent | BetaManagedAgentsAgentThinkingEvent | BetaManagedAgentsAgentMCPToolUseEvent | BetaManagedAgentsAgentMCPToolResultEvent | BetaManagedAgentsAgentToolUseEvent | BetaManagedAgentsAgentToolResultEvent | BetaManagedAgentsAgentThreadContextCompactedEvent | BetaManagedAgentsSessionErrorEvent | BetaManagedAgentsSessionStatusRescheduledEvent | BetaManagedAgentsSessionStatusRunningEvent | BetaManagedAgentsSessionStatusIdleEvent | BetaManagedAgentsSessionStatusTerminatedEvent | BetaManagedAgentsSpanModelRequestStartEvent | BetaManagedAgentsSpanModelRequestEndEvent | BetaManagedAgentsSessionDeletedEvent
 
 /**
  * Regular text content.
@@ -944,10 +823,7 @@ export interface BetaManagedAgentsUnknownError {
   /**
    * What the client should do next in response to this error.
    */
-  retry_status:
-    | BetaManagedAgentsRetryStatusRetrying
-    | BetaManagedAgentsRetryStatusExhausted
-    | BetaManagedAgentsRetryStatusTerminal;
+  retry_status: BetaManagedAgentsRetryStatusRetrying | BetaManagedAgentsRetryStatusExhausted | BetaManagedAgentsRetryStatusTerminal;
 
   type: 'unknown_error';
 }
@@ -1245,6 +1121,6 @@ export declare namespace Events {
     type BetaManagedAgentsSessionEventsPageCursor as BetaManagedAgentsSessionEventsPageCursor,
     type EventListParams as EventListParams,
     type EventSendParams as EventSendParams,
-    type EventStreamParams as EventStreamParams,
+    type EventStreamParams as EventStreamParams
   };
 }

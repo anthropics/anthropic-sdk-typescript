@@ -3,18 +3,7 @@
 import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
 import * as VersionsAPI from './versions';
-import {
-  VersionCreateParams,
-  VersionCreateResponse,
-  VersionDeleteParams,
-  VersionDeleteResponse,
-  VersionListParams,
-  VersionListResponse,
-  VersionListResponsesPageCursor,
-  VersionRetrieveParams,
-  VersionRetrieveResponse,
-  Versions,
-} from './versions';
+import { VersionCreateParams, VersionCreateResponse, VersionDeleteParams, VersionDeleteResponse, VersionListParams, VersionListResponse, VersionListResponsesPageCursor, VersionRetrieveParams, VersionRetrieveResponse, Versions } from './versions';
 import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { type Uploadable } from '../../../core/uploads';
@@ -34,25 +23,9 @@ export class Skills extends APIResource {
    * const skill = await client.beta.skills.create();
    * ```
    */
-  create(
-    params: SkillCreateParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<SkillCreateResponse> {
-    const { betas, ...body } = params ?? {};
-    return this._client.post(
-      '/v1/skills?beta=true',
-      multipartFormRequestOptions(
-        {
-          body,
-          ...options,
-          headers: buildHeaders([
-            { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
-            options?.headers,
-          ]),
-        },
-        this._client,
-      ),
-    );
+  create(params: SkillCreateParams | null | undefined = {}, options?: RequestOptions): APIPromise<SkillCreateResponse> {
+    const { betas, ...body } = params ?? {}
+    return this._client.post('/v1/skills?beta=true', multipartFormRequestOptions({ body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString()}, options?.headers]) }, this._client));
   }
 
   /**
@@ -63,19 +36,9 @@ export class Skills extends APIResource {
    * const skill = await client.beta.skills.retrieve('skill_id');
    * ```
    */
-  retrieve(
-    skillID: string,
-    params: SkillRetrieveParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<SkillRetrieveResponse> {
-    const { betas } = params ?? {};
-    return this._client.get(path`/v1/skills/${skillID}?beta=true`, {
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
-        options?.headers,
-      ]),
-    });
+  retrieve(skillID: string, params: SkillRetrieveParams | null | undefined = {}, options?: RequestOptions): APIPromise<SkillRetrieveResponse> {
+    const { betas } = params ?? {}
+    return this._client.get(path`/v1/skills/${skillID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString()}, options?.headers]) });
   }
 
   /**
@@ -89,19 +52,9 @@ export class Skills extends APIResource {
    * }
    * ```
    */
-  list(
-    params: SkillListParams | null | undefined = {},
-    options?: RequestOptions,
-  ): PagePromise<SkillListResponsesPageCursor, SkillListResponse> {
-    const { betas, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/skills?beta=true', PageCursor<SkillListResponse>, {
-      query,
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
-        options?.headers,
-      ]),
-    });
+  list(params: SkillListParams | null | undefined = {}, options?: RequestOptions): PagePromise<SkillListResponsesPageCursor, SkillListResponse> {
+    const { betas, ...query } = params ?? {}
+    return this._client.getAPIList('/v1/skills?beta=true', PageCursor<SkillListResponse>, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString()}, options?.headers]) });
   }
 
   /**
@@ -112,23 +65,13 @@ export class Skills extends APIResource {
    * const skill = await client.beta.skills.delete('skill_id');
    * ```
    */
-  delete(
-    skillID: string,
-    params: SkillDeleteParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<SkillDeleteResponse> {
-    const { betas } = params ?? {};
-    return this._client.delete(path`/v1/skills/${skillID}?beta=true`, {
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
-        options?.headers,
-      ]),
-    });
+  delete(skillID: string, params: SkillDeleteParams | null | undefined = {}, options?: RequestOptions): APIPromise<SkillDeleteResponse> {
+    const { betas } = params ?? {}
+    return this._client.delete(path`/v1/skills/${skillID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString()}, options?.headers]) });
   }
 }
 
-export type SkillListResponsesPageCursor = PageCursor<SkillListResponse>;
+export type SkillListResponsesPageCursor = PageCursor<SkillListResponse>
 
 export interface SkillCreateResponse {
   /**
@@ -365,7 +308,7 @@ export declare namespace Skills {
     type SkillCreateParams as SkillCreateParams,
     type SkillRetrieveParams as SkillRetrieveParams,
     type SkillListParams as SkillListParams,
-    type SkillDeleteParams as SkillDeleteParams,
+    type SkillDeleteParams as SkillDeleteParams
   };
 
   export {
@@ -378,6 +321,6 @@ export declare namespace Skills {
     type VersionCreateParams as VersionCreateParams,
     type VersionRetrieveParams as VersionRetrieveParams,
     type VersionListParams as VersionListParams,
-    type VersionDeleteParams as VersionDeleteParams,
+    type VersionDeleteParams as VersionDeleteParams
   };
 }

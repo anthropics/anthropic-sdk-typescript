@@ -21,21 +21,9 @@ export class Memories extends APIResource {
    *   );
    * ```
    */
-  create(
-    memoryStoreID: string,
-    params: MemoryCreateParams,
-    options?: RequestOptions,
-  ): APIPromise<BetaManagedAgentsMemory> {
-    const { view, betas, ...body } = params;
-    return this._client.post(path`/v1/memory_stores/${memoryStoreID}/memories?beta=true`, {
-      query: { view },
-      body,
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-        options?.headers,
-      ]),
-    });
+  create(memoryStoreID: string, params: MemoryCreateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsMemory> {
+    const { view, betas, ...body } = params
+    return this._client.post(path`/v1/memory_stores/${memoryStoreID}/memories?beta=true`, { query: { view }, body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 
   /**
@@ -50,20 +38,9 @@ export class Memories extends APIResource {
    *   );
    * ```
    */
-  retrieve(
-    memoryID: string,
-    params: MemoryRetrieveParams,
-    options?: RequestOptions,
-  ): APIPromise<BetaManagedAgentsMemory> {
-    const { memory_store_id, betas, ...query } = params;
-    return this._client.get(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}?beta=true`, {
-      query,
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-        options?.headers,
-      ]),
-    });
+  retrieve(memoryID: string, params: MemoryRetrieveParams, options?: RequestOptions): APIPromise<BetaManagedAgentsMemory> {
+    const { memory_store_id, betas, ...query } = params
+    return this._client.get(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}?beta=true`, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 
   /**
@@ -78,21 +55,9 @@ export class Memories extends APIResource {
    *   );
    * ```
    */
-  update(
-    memoryID: string,
-    params: MemoryUpdateParams,
-    options?: RequestOptions,
-  ): APIPromise<BetaManagedAgentsMemory> {
-    const { memory_store_id, view, betas, ...body } = params;
-    return this._client.post(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}?beta=true`, {
-      query: { view },
-      body,
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-        options?.headers,
-      ]),
-    });
+  update(memoryID: string, params: MemoryUpdateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsMemory> {
+    const { memory_store_id, view, betas, ...body } = params
+    return this._client.post(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}?beta=true`, { query: { view }, body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 
   /**
@@ -108,24 +73,9 @@ export class Memories extends APIResource {
    * }
    * ```
    */
-  list(
-    memoryStoreID: string,
-    params: MemoryListParams | null | undefined = {},
-    options?: RequestOptions,
-  ): PagePromise<BetaManagedAgentsMemoryListItemsPageCursor, BetaManagedAgentsMemoryListItem> {
-    const { betas, ...query } = params ?? {};
-    return this._client.getAPIList(
-      path`/v1/memory_stores/${memoryStoreID}/memories?beta=true`,
-      PageCursor<BetaManagedAgentsMemoryListItem>,
-      {
-        query,
-        ...options,
-        headers: buildHeaders([
-          { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-          options?.headers,
-        ]),
-      },
-    );
+  list(memoryStoreID: string, params: MemoryListParams | null | undefined = {}, options?: RequestOptions): PagePromise<BetaManagedAgentsMemoryListItemsPageCursor, BetaManagedAgentsMemoryListItem> {
+    const { betas, ...query } = params ?? {}
+    return this._client.getAPIList(path`/v1/memory_stores/${memoryStoreID}/memories?beta=true`, PageCursor<BetaManagedAgentsMemoryListItem>, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 
   /**
@@ -140,24 +90,13 @@ export class Memories extends APIResource {
    *   );
    * ```
    */
-  delete(
-    memoryID: string,
-    params: MemoryDeleteParams,
-    options?: RequestOptions,
-  ): APIPromise<BetaManagedAgentsDeletedMemory> {
-    const { memory_store_id, expected_content_sha256, betas } = params;
-    return this._client.delete(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}?beta=true`, {
-      query: { expected_content_sha256 },
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-        options?.headers,
-      ]),
-    });
+  delete(memoryID: string, params: MemoryDeleteParams, options?: RequestOptions): APIPromise<BetaManagedAgentsDeletedMemory> {
+    const { memory_store_id, expected_content_sha256, betas } = params
+    return this._client.delete(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}?beta=true`, { query: { expected_content_sha256 }, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 }
 
-export type BetaManagedAgentsMemoryListItemsPageCursor = PageCursor<BetaManagedAgentsMemoryListItem>;
+export type BetaManagedAgentsMemoryListItemsPageCursor = PageCursor<BetaManagedAgentsMemoryListItem>
 
 export interface BetaManagedAgentsConflictError {
   type: 'conflict_error';
@@ -177,19 +116,7 @@ export interface BetaManagedAgentsDeletedMemory {
   type: 'memory_deleted';
 }
 
-export type BetaManagedAgentsError =
-  | BetaAPI.BetaInvalidRequestError
-  | BetaAPI.BetaAuthenticationError
-  | BetaAPI.BetaBillingError
-  | BetaAPI.BetaPermissionError
-  | BetaAPI.BetaNotFoundError
-  | BetaAPI.BetaRateLimitError
-  | BetaAPI.BetaGatewayTimeoutError
-  | BetaAPI.BetaAPIError
-  | BetaAPI.BetaOverloadedError
-  | BetaManagedAgentsMemoryPreconditionFailedError
-  | BetaManagedAgentsMemoryPathConflictError
-  | BetaManagedAgentsConflictError;
+export type BetaManagedAgentsError = BetaAPI.BetaInvalidRequestError | BetaAPI.BetaAuthenticationError | BetaAPI.BetaBillingError | BetaAPI.BetaPermissionError | BetaAPI.BetaNotFoundError | BetaAPI.BetaRateLimitError | BetaAPI.BetaGatewayTimeoutError | BetaAPI.BetaAPIError | BetaAPI.BetaOverloadedError | BetaManagedAgentsMemoryPreconditionFailedError | BetaManagedAgentsMemoryPathConflictError | BetaManagedAgentsConflictError
 
 export interface BetaManagedAgentsMemory {
   id: string;
@@ -219,7 +146,7 @@ export interface BetaManagedAgentsMemory {
   content?: string | null;
 }
 
-export type BetaManagedAgentsMemoryListItem = BetaManagedAgentsMemory | BetaManagedAgentsMemoryPrefix;
+export type BetaManagedAgentsMemoryListItem = BetaManagedAgentsMemory | BetaManagedAgentsMemoryPrefix
 
 export interface BetaManagedAgentsMemoryPathConflictError {
   type: 'memory_path_conflict_error';
@@ -246,7 +173,7 @@ export interface BetaManagedAgentsMemoryPrefix {
 /**
  * MemoryView enum
  */
-export type BetaManagedAgentsMemoryView = 'basic' | 'full';
+export type BetaManagedAgentsMemoryView = 'basic' | 'full'
 
 export interface BetaManagedAgentsPrecondition {
   type: 'content_sha256';
@@ -394,6 +321,6 @@ export declare namespace Memories {
     type MemoryRetrieveParams as MemoryRetrieveParams,
     type MemoryUpdateParams as MemoryUpdateParams,
     type MemoryListParams as MemoryListParams,
-    type MemoryDeleteParams as MemoryDeleteParams,
+    type MemoryDeleteParams as MemoryDeleteParams
   };
 }

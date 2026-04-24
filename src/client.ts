@@ -15,229 +15,20 @@ import { stringifyQuery } from './internal/utils/query';
 import { VERSION } from './version';
 import * as Errors from './core/error';
 import * as Pagination from './core/pagination';
-import {
-  AbstractPage,
-  type PageCursorParams,
-  PageCursorResponse,
-  type PageParams,
-  PageResponse,
-  type TokenPageParams,
-  TokenPageResponse,
-} from './core/pagination';
+import { AbstractPage, type PageCursorParams, PageCursorResponse, type PageParams, PageResponse, type TokenPageParams, TokenPageResponse } from './core/pagination';
 import * as Uploads from './core/uploads';
 import * as API from './resources/index';
 import { APIPromise } from './core/api-promise';
-import {
-  Completion,
-  CompletionCreateParams,
-  CompletionCreateParamsNonStreaming,
-  CompletionCreateParamsStreaming,
-  Completions,
-} from './resources/completions';
-import {
-  CapabilitySupport,
-  ContextManagementCapability,
-  EffortCapability,
-  ModelCapabilities,
-  ModelInfo,
-  ModelInfosPage,
-  ModelListParams,
-  ModelRetrieveParams,
-  Models,
-  ThinkingCapability,
-  ThinkingTypes,
-} from './resources/models';
-import {
-  AnthropicBeta,
-  Beta,
-  BetaAPIError,
-  BetaAuthenticationError,
-  BetaBillingError,
-  BetaError,
-  BetaErrorResponse,
-  BetaGatewayTimeoutError,
-  BetaInvalidRequestError,
-  BetaNotFoundError,
-  BetaOverloadedError,
-  BetaPermissionError,
-  BetaRateLimitError,
-} from './resources/beta/beta';
-import {
-  Base64ImageSource,
-  Base64PDFSource,
-  BashCodeExecutionOutputBlock,
-  BashCodeExecutionOutputBlockParam,
-  BashCodeExecutionResultBlock,
-  BashCodeExecutionResultBlockParam,
-  BashCodeExecutionToolResultBlock,
-  BashCodeExecutionToolResultBlockParam,
-  BashCodeExecutionToolResultError,
-  BashCodeExecutionToolResultErrorCode,
-  BashCodeExecutionToolResultErrorParam,
-  CacheControlEphemeral,
-  CacheCreation,
-  CitationCharLocation,
-  CitationCharLocationParam,
-  CitationContentBlockLocation,
-  CitationContentBlockLocationParam,
-  CitationPageLocation,
-  CitationPageLocationParam,
-  CitationSearchResultLocationParam,
-  CitationWebSearchResultLocationParam,
-  CitationsConfig,
-  CitationsConfigParam,
-  CitationsDelta,
-  CitationsSearchResultLocation,
-  CitationsWebSearchResultLocation,
-  CodeExecutionOutputBlock,
-  CodeExecutionOutputBlockParam,
-  CodeExecutionResultBlock,
-  CodeExecutionResultBlockParam,
-  CodeExecutionTool20250522,
-  CodeExecutionTool20250825,
-  CodeExecutionTool20260120,
-  CodeExecutionToolResultBlock,
-  CodeExecutionToolResultBlockContent,
-  CodeExecutionToolResultBlockParam,
-  CodeExecutionToolResultBlockParamContent,
-  CodeExecutionToolResultError,
-  CodeExecutionToolResultErrorCode,
-  CodeExecutionToolResultErrorParam,
-  Container,
-  ContainerUploadBlock,
-  ContainerUploadBlockParam,
-  ContentBlock,
-  ContentBlockParam,
-  ContentBlockSource,
-  ContentBlockSourceContent,
-  DirectCaller,
-  DocumentBlock,
-  DocumentBlockParam,
-  EncryptedCodeExecutionResultBlock,
-  EncryptedCodeExecutionResultBlockParam,
-  ImageBlockParam,
-  InputJSONDelta,
-  JSONOutputFormat,
-  MemoryTool20250818,
-  Message,
-  MessageCountTokensParams,
-  MessageCountTokensTool,
-  MessageCreateParams,
-  MessageCreateParamsNonStreaming,
-  MessageCreateParamsStreaming,
-  MessageDeltaUsage,
-  MessageParam,
-  MessageTokensCount,
-  Messages,
-  Metadata,
-  Model,
-  OutputConfig,
-  PlainTextSource,
-  RawContentBlockDelta,
-  RawContentBlockDeltaEvent,
-  RawContentBlockStartEvent,
-  RawContentBlockStopEvent,
-  RawMessageDeltaEvent,
-  RawMessageStartEvent,
-  RawMessageStopEvent,
-  RawMessageStreamEvent,
-  RedactedThinkingBlock,
-  RedactedThinkingBlockParam,
-  RefusalStopDetails,
-  SearchResultBlockParam,
-  ServerToolCaller,
-  ServerToolCaller20260120,
-  ServerToolUsage,
-  ServerToolUseBlock,
-  ServerToolUseBlockParam,
-  SignatureDelta,
-  StopReason,
-  TextBlock,
-  TextBlockParam,
-  TextCitation,
-  TextCitationParam,
-  TextDelta,
-  TextEditorCodeExecutionCreateResultBlock,
-  TextEditorCodeExecutionCreateResultBlockParam,
-  TextEditorCodeExecutionStrReplaceResultBlock,
-  TextEditorCodeExecutionStrReplaceResultBlockParam,
-  TextEditorCodeExecutionToolResultBlock,
-  TextEditorCodeExecutionToolResultBlockParam,
-  TextEditorCodeExecutionToolResultError,
-  TextEditorCodeExecutionToolResultErrorCode,
-  TextEditorCodeExecutionToolResultErrorParam,
-  TextEditorCodeExecutionViewResultBlock,
-  TextEditorCodeExecutionViewResultBlockParam,
-  ThinkingBlock,
-  ThinkingBlockParam,
-  ThinkingConfigAdaptive,
-  ThinkingConfigDisabled,
-  ThinkingConfigEnabled,
-  ThinkingConfigParam,
-  ThinkingDelta,
-  Tool,
-  ToolBash20250124,
-  ToolChoice,
-  ToolChoiceAny,
-  ToolChoiceAuto,
-  ToolChoiceNone,
-  ToolChoiceTool,
-  ToolReferenceBlock,
-  ToolReferenceBlockParam,
-  ToolResultBlockParam,
-  ToolSearchToolBm25_20251119,
-  ToolSearchToolRegex20251119,
-  ToolSearchToolResultBlock,
-  ToolSearchToolResultBlockParam,
-  ToolSearchToolResultError,
-  ToolSearchToolResultErrorCode,
-  ToolSearchToolResultErrorParam,
-  ToolSearchToolSearchResultBlock,
-  ToolSearchToolSearchResultBlockParam,
-  ToolTextEditor20250124,
-  ToolTextEditor20250429,
-  ToolTextEditor20250728,
-  ToolUnion,
-  ToolUseBlock,
-  ToolUseBlockParam,
-  URLImageSource,
-  URLPDFSource,
-  Usage,
-  UserLocation,
-  WebFetchBlock,
-  WebFetchBlockParam,
-  WebFetchTool20250910,
-  WebFetchTool20260209,
-  WebFetchTool20260309,
-  WebFetchToolResultBlock,
-  WebFetchToolResultBlockParam,
-  WebFetchToolResultErrorBlock,
-  WebFetchToolResultErrorBlockParam,
-  WebFetchToolResultErrorCode,
-  WebSearchResultBlock,
-  WebSearchResultBlockParam,
-  WebSearchTool20250305,
-  WebSearchTool20260209,
-  WebSearchToolRequestError,
-  WebSearchToolResultBlock,
-  WebSearchToolResultBlockContent,
-  WebSearchToolResultBlockParam,
-  WebSearchToolResultBlockParamContent,
-  WebSearchToolResultError,
-  WebSearchToolResultErrorCode,
-} from './resources/messages/messages';
+import { Completion, CompletionCreateParams, CompletionCreateParamsNonStreaming, CompletionCreateParamsStreaming, Completions } from './resources/completions';
+import { CapabilitySupport, ContextManagementCapability, EffortCapability, ModelCapabilities, ModelInfo, ModelInfosPage, ModelListParams, ModelRetrieveParams, Models, ThinkingCapability, ThinkingTypes } from './resources/models';
+import { AnthropicBeta, Beta, BetaAPIError, BetaAuthenticationError, BetaBillingError, BetaError, BetaErrorResponse, BetaGatewayTimeoutError, BetaInvalidRequestError, BetaNotFoundError, BetaOverloadedError, BetaPermissionError, BetaRateLimitError } from './resources/beta/beta';
+import { Base64ImageSource, Base64PDFSource, BashCodeExecutionOutputBlock, BashCodeExecutionOutputBlockParam, BashCodeExecutionResultBlock, BashCodeExecutionResultBlockParam, BashCodeExecutionToolResultBlock, BashCodeExecutionToolResultBlockParam, BashCodeExecutionToolResultError, BashCodeExecutionToolResultErrorCode, BashCodeExecutionToolResultErrorParam, CacheControlEphemeral, CacheCreation, CitationCharLocation, CitationCharLocationParam, CitationContentBlockLocation, CitationContentBlockLocationParam, CitationPageLocation, CitationPageLocationParam, CitationSearchResultLocationParam, CitationWebSearchResultLocationParam, CitationsConfig, CitationsConfigParam, CitationsDelta, CitationsSearchResultLocation, CitationsWebSearchResultLocation, CodeExecutionOutputBlock, CodeExecutionOutputBlockParam, CodeExecutionResultBlock, CodeExecutionResultBlockParam, CodeExecutionTool20250522, CodeExecutionTool20250825, CodeExecutionTool20260120, CodeExecutionToolResultBlock, CodeExecutionToolResultBlockContent, CodeExecutionToolResultBlockParam, CodeExecutionToolResultBlockParamContent, CodeExecutionToolResultError, CodeExecutionToolResultErrorCode, CodeExecutionToolResultErrorParam, Container, ContainerUploadBlock, ContainerUploadBlockParam, ContentBlock, ContentBlockParam, ContentBlockSource, ContentBlockSourceContent, DirectCaller, DocumentBlock, DocumentBlockParam, EncryptedCodeExecutionResultBlock, EncryptedCodeExecutionResultBlockParam, ImageBlockParam, InputJSONDelta, JSONOutputFormat, MemoryTool20250818, Message, MessageCountTokensParams, MessageCountTokensTool, MessageCreateParams, MessageCreateParamsNonStreaming, MessageCreateParamsStreaming, MessageDeltaUsage, MessageParam, MessageTokensCount, Messages, Metadata, Model, OutputConfig, PlainTextSource, RawContentBlockDelta, RawContentBlockDeltaEvent, RawContentBlockStartEvent, RawContentBlockStopEvent, RawMessageDeltaEvent, RawMessageStartEvent, RawMessageStopEvent, RawMessageStreamEvent, RedactedThinkingBlock, RedactedThinkingBlockParam, RefusalStopDetails, SearchResultBlockParam, ServerToolCaller, ServerToolCaller20260120, ServerToolUsage, ServerToolUseBlock, ServerToolUseBlockParam, SignatureDelta, StopReason, TextBlock, TextBlockParam, TextCitation, TextCitationParam, TextDelta, TextEditorCodeExecutionCreateResultBlock, TextEditorCodeExecutionCreateResultBlockParam, TextEditorCodeExecutionStrReplaceResultBlock, TextEditorCodeExecutionStrReplaceResultBlockParam, TextEditorCodeExecutionToolResultBlock, TextEditorCodeExecutionToolResultBlockParam, TextEditorCodeExecutionToolResultError, TextEditorCodeExecutionToolResultErrorCode, TextEditorCodeExecutionToolResultErrorParam, TextEditorCodeExecutionViewResultBlock, TextEditorCodeExecutionViewResultBlockParam, ThinkingBlock, ThinkingBlockParam, ThinkingConfigAdaptive, ThinkingConfigDisabled, ThinkingConfigEnabled, ThinkingConfigParam, ThinkingDelta, Tool, ToolBash20250124, ToolChoice, ToolChoiceAny, ToolChoiceAuto, ToolChoiceNone, ToolChoiceTool, ToolReferenceBlock, ToolReferenceBlockParam, ToolResultBlockParam, ToolSearchToolBm25_20251119, ToolSearchToolRegex20251119, ToolSearchToolResultBlock, ToolSearchToolResultBlockParam, ToolSearchToolResultError, ToolSearchToolResultErrorCode, ToolSearchToolResultErrorParam, ToolSearchToolSearchResultBlock, ToolSearchToolSearchResultBlockParam, ToolTextEditor20250124, ToolTextEditor20250429, ToolTextEditor20250728, ToolUnion, ToolUseBlock, ToolUseBlockParam, URLImageSource, URLPDFSource, Usage, UserLocation, WebFetchBlock, WebFetchBlockParam, WebFetchTool20250910, WebFetchTool20260209, WebFetchTool20260309, WebFetchToolResultBlock, WebFetchToolResultBlockParam, WebFetchToolResultErrorBlock, WebFetchToolResultErrorBlockParam, WebFetchToolResultErrorCode, WebSearchResultBlock, WebSearchResultBlockParam, WebSearchTool20250305, WebSearchTool20260209, WebSearchToolRequestError, WebSearchToolResultBlock, WebSearchToolResultBlockContent, WebSearchToolResultBlockParam, WebSearchToolResultBlockParamContent, WebSearchToolResultError, WebSearchToolResultErrorCode } from './resources/messages/messages';
 import { type Fetch } from './internal/builtin-types';
 import { isRunningInBrowser } from './internal/detect-platform';
 import { HeadersLike, NullableHeaders, buildHeaders } from './internal/headers';
 import { FinalRequestOptions, RequestOptions } from './internal/request-options';
 import { readEnv } from './internal/utils/env';
-import {
-  type LogLevel,
-  type Logger,
-  formatRequestDetails,
-  loggerFor,
-  parseLogLevel,
-} from './internal/utils/log';
+import { type LogLevel, type Logger, formatRequestDetails, loggerFor, parseLogLevel } from './internal/utils/log';
 import { isEmptyObj } from './internal/utils/values';
 
 export interface ClientOptions {
@@ -326,8 +117,8 @@ export interface ClientOptions {
   logger?: Logger | undefined;
 }
 
-export const HUMAN_PROMPT = '\\n\\nHuman:';
-export const AI_PROMPT = '\\n\\nAssistant:';
+export const HUMAN_PROMPT = '\\n\\nHuman:'
+export const AI_PROMPT = '\\n\\nAssistant:'
 
 /**
  * Base class for Anthropic API clients.
@@ -368,6 +159,7 @@ export class BaseAnthropic {
     authToken = readEnv('ANTHROPIC_AUTH_TOKEN') ?? null,
     ...opts
   }: ClientOptions = {}) {
+
     const options: ClientOptions = {
       apiKey,
       authToken,
@@ -376,9 +168,7 @@ export class BaseAnthropic {
     };
 
     if (!options.dangerouslyAllowBrowser && isRunningInBrowser()) {
-      throw new Errors.AnthropicError(
-        "It looks like you're running in a browser-like environment.\n\nThis is disabled by default, as it risks exposing your secret API credentials to attackers.\nIf you understand the risks and have appropriate mitigations in place,\nyou can set the `dangerouslyAllowBrowser` option to `true`, e.g.,\n\nnew Anthropic({ apiKey, dangerouslyAllowBrowser: true });\n",
-      );
+      throw new Errors.AnthropicError('It looks like you\'re running in a browser-like environment.\n\nThis is disabled by default, as it risks exposing your secret API credentials to attackers.\nIf you understand the risks and have appropriate mitigations in place,\nyou can set the `dangerouslyAllowBrowser` option to `true`, e.g.,\n\nnew Anthropic({ apiKey, dangerouslyAllowBrowser: true });\n')
     }
 
     this.baseURL = options.baseURL!;
@@ -387,10 +177,7 @@ export class BaseAnthropic {
     const defaultLogLevel = 'warn';
     // Set default logLevel early so that we can log a warning in parseLogLevel.
     this.logLevel = defaultLogLevel;
-    this.logLevel =
-      parseLogLevel(options.logLevel, 'ClientOptions.logLevel', this) ??
-      parseLogLevel(readEnv('ANTHROPIC_LOG'), "process.env['ANTHROPIC_LOG']", this) ??
-      defaultLogLevel;
+    this.logLevel = parseLogLevel(options.logLevel, 'ClientOptions.logLevel', this) ?? parseLogLevel(readEnv('ANTHROPIC_LOG'), 'process.env[\'ANTHROPIC_LOG\']', this) ?? defaultLogLevel;
     this.fetchOptions = options.fetchOptions;
     this.maxRetries = options.maxRetries ?? 2;
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
@@ -417,7 +204,7 @@ export class BaseAnthropic {
       fetchOptions: this.fetchOptions,
       apiKey: this.apiKey,
       authToken: this.authToken,
-      ...options,
+      ...options
     });
     return client;
   }
@@ -430,7 +217,7 @@ export class BaseAnthropic {
   }
 
   protected defaultQuery(): Record<string, string | undefined> | undefined {
-    return this._options.defaultQuery;
+    return this._options.defaultQuery
   }
 
   protected validateHeaders({ values, nulls }: NullableHeaders) {
@@ -448,9 +235,7 @@ export class BaseAnthropic {
       return;
     }
 
-    throw new Error(
-      'Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted',
-    );
+    throw new Error('Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted')
   }
 
   protected async authHeaders(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
@@ -495,11 +280,7 @@ export class BaseAnthropic {
     return Errors.APIError.generate(status, error, message, headers);
   }
 
-  buildURL(
-    path: string,
-    query: Record<string, unknown> | null | undefined,
-    defaultBaseURL?: string | undefined,
-  ): string {
+  buildURL(path: string, query: Record<string, unknown> | null | undefined, defaultBaseURL?: string | undefined): string {
     const baseURL = (!this.#baseURLOverridden() && defaultBaseURL) || this.baseURL;
     const url =
       isAbsoluteURL(path) ?
@@ -587,9 +368,7 @@ export class BaseAnthropic {
 
     await this.prepareOptions(options);
 
-    const { req, url, timeout } = await this.buildRequest(options, {
-      retryCount: maxRetries - retriesRemaining,
-    });
+    const { req, url, timeout } = await this.buildRequest(options, { retryCount: maxRetries - retriesRemaining });
 
     await this.prepareRequest(req, { url, options });
 
@@ -598,16 +377,7 @@ export class BaseAnthropic {
     const retryLogStr = retryOfRequestLogID === undefined ? '' : `, retryOf: ${retryOfRequestLogID}`;
     const startTime = Date.now();
 
-    loggerFor(this).debug(
-      `[${requestLogID}] sending request`,
-      formatRequestDetails({
-        retryOfRequestLogID,
-        method: options.method,
-        url,
-        options,
-        headers: req.headers,
-      }),
-    );
+    loggerFor(this).debug(`[${requestLogID}] sending request`, formatRequestDetails({ retryOfRequestLogID, method: options.method, url, options, headers: req.headers }));
 
     if (options.signal?.aborted) {
       throw new Errors.APIUserAbortError();
@@ -626,49 +396,22 @@ export class BaseAnthropic {
       // deno throws "TypeError: error sending request for url (https://example/): client error (Connect): tcp connect error: Operation timed out (os error 60): Operation timed out (os error 60)"
       // undici throws "TypeError: fetch failed" with cause "ConnectTimeoutError: Connect Timeout Error (attempted address: example:443, timeout: 1ms)"
       // others do not provide enough information to distinguish timeouts from other connection errors
-      const isTimeout =
-        isAbortError(response) ||
-        /timed? ?out/i.test(String(response) + ('cause' in response ? String(response.cause) : ''));
+      const isTimeout = isAbortError(response) || /timed? ?out/i.test(String(response) + ('cause' in response ? String(response.cause) : ''))
       if (retriesRemaining) {
-        loggerFor(this).info(
-          `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - ${retryMessage}`,
-        );
-        loggerFor(this).debug(
-          `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (${retryMessage})`,
-          formatRequestDetails({
-            retryOfRequestLogID,
-            url,
-            durationMs: headersTime - startTime,
-            message: response.message,
-          }),
-        );
+        loggerFor(this).info(`[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - ${retryMessage}`)
+        loggerFor(this).debug(`[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (${retryMessage})`, formatRequestDetails({ retryOfRequestLogID, url, durationMs: headersTime - startTime, message: response.message }));
         return this.retryRequest(options, retriesRemaining, retryOfRequestLogID ?? requestLogID);
       }
-      loggerFor(this).info(
-        `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - error; no more retries left`,
-      );
-      loggerFor(this).debug(
-        `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (error; no more retries left)`,
-        formatRequestDetails({
-          retryOfRequestLogID,
-          url,
-          durationMs: headersTime - startTime,
-          message: response.message,
-        }),
-      );
+      loggerFor(this).info(`[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - error; no more retries left`)
+      loggerFor(this).debug(`[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (error; no more retries left)`, formatRequestDetails({ retryOfRequestLogID, url, durationMs: headersTime - startTime, message: response.message }));
       if (isTimeout) {
         throw new Errors.APIConnectionTimeoutError();
       }
       throw new Errors.APIConnectionError({ cause: response });
     }
 
-    const specialHeaders = [...response.headers.entries()]
-      .filter(([name]) => name === 'request-id')
-      .map(([name, value]) => ', ' + name + ': ' + JSON.stringify(value))
-      .join('');
-    const responseInfo = `[${requestLogID}${retryLogStr}${specialHeaders}] ${req.method} ${url} ${
-      response.ok ? 'succeeded' : 'failed'
-    } with status ${response.status} in ${headersTime - startTime}ms`;
+    const specialHeaders = [...response.headers.entries()].filter(([name]) => name === 'request-id').map(([name, value]) => ', ' + name + ': ' + JSON.stringify(value)).join("");
+    const responseInfo = `[${requestLogID}${retryLogStr}${specialHeaders}] ${req.method} ${url} ${response.ok ? 'succeeded' : 'failed'} with status ${response.status} in ${headersTime - startTime}ms`;
 
     if (!response.ok) {
       const shouldRetry = await this.shouldRetry(response);
@@ -677,60 +420,27 @@ export class BaseAnthropic {
 
         // We don't need the body of this response.
         await Shims.CancelReadableStream(response.body);
-        loggerFor(this).info(`${responseInfo} - ${retryMessage}`);
-        loggerFor(this).debug(
-          `[${requestLogID}] response error (${retryMessage})`,
-          formatRequestDetails({
-            retryOfRequestLogID,
-            url: response.url,
-            status: response.status,
-            headers: response.headers,
-            durationMs: headersTime - startTime,
-          }),
-        );
-        return this.retryRequest(
-          options,
-          retriesRemaining,
-          retryOfRequestLogID ?? requestLogID,
-          response.headers,
-        );
+        loggerFor(this).info(`${responseInfo} - ${retryMessage}`)
+        loggerFor(this).debug(`[${requestLogID}] response error (${retryMessage})`, formatRequestDetails({ retryOfRequestLogID, url: response.url, status: response.status, headers: response.headers, durationMs: headersTime - startTime }));
+        return this.retryRequest(options, retriesRemaining, retryOfRequestLogID ?? requestLogID, response.headers);
       }
 
       const retryMessage = shouldRetry ? `error; no more retries left` : `error; not retryable`;
 
-      loggerFor(this).info(`${responseInfo} - ${retryMessage}`);
+      loggerFor(this).info(`${responseInfo} - ${retryMessage}`)
 
       const errText = await response.text().catch((err: any) => castToError(err).message);
       const errJSON = safeJSON(errText) as any;
       const errMessage = errJSON ? undefined : errText;
 
-      loggerFor(this).debug(
-        `[${requestLogID}] response error (${retryMessage})`,
-        formatRequestDetails({
-          retryOfRequestLogID,
-          url: response.url,
-          status: response.status,
-          headers: response.headers,
-          message: errMessage,
-          durationMs: Date.now() - startTime,
-        }),
-      );
+      loggerFor(this).debug(`[${requestLogID}] response error (${retryMessage})`, formatRequestDetails({ retryOfRequestLogID, url: response.url, status: response.status, headers: response.headers, message: errMessage, durationMs: Date.now() - startTime }));
 
       const err = this.makeStatusError(response.status, errJSON, errMessage, response.headers);
       throw err;
     }
 
-    loggerFor(this).info(responseInfo);
-    loggerFor(this).debug(
-      `[${requestLogID}] response start`,
-      formatRequestDetails({
-        retryOfRequestLogID,
-        url: response.url,
-        status: response.status,
-        headers: response.headers,
-        durationMs: headersTime - startTime,
-      }),
-    );
+    loggerFor(this).info(responseInfo)
+    loggerFor(this).debug(`[${requestLogID}] response start`, formatRequestDetails({ retryOfRequestLogID, url: response.url, status: response.status, headers: response.headers, durationMs: headersTime - startTime }));
 
     return { response, options, controller, requestLogID, retryOfRequestLogID, startTime };
   }
@@ -748,10 +458,7 @@ export class BaseAnthropic {
     );
   }
 
-  requestAPIList<
-    Item = unknown,
-    PageClass extends Pagination.AbstractPage<Item> = Pagination.AbstractPage<Item>,
-  >(
+  requestAPIList<Item = unknown, PageClass extends Pagination.AbstractPage<Item> = Pagination.AbstractPage<Item>>(
     Page: new (...args: ConstructorParameters<typeof Pagination.AbstractPage>) => PageClass,
     options: PromiseOrValue<FinalRequestOptions>,
   ): Pagination.PagePromise<PageClass, Item> {
@@ -771,9 +478,7 @@ export class BaseAnthropic {
 
     const timeout = setTimeout(abort, ms);
 
-    const isReadableBody =
-      ((globalThis as any).ReadableStream && options.body instanceof (globalThis as any).ReadableStream) ||
-      (typeof options.body === 'object' && options.body !== null && Symbol.asyncIterator in options.body);
+    const isReadableBody = ((globalThis as any).ReadableStream && options.body instanceof (globalThis as any).ReadableStream) || (typeof options.body === "object" && options.body !== null && Symbol.asyncIterator in options.body);
 
     const fetchOptions: RequestInit = {
       signal: controller.signal as any,
@@ -788,6 +493,7 @@ export class BaseAnthropic {
     }
 
     try {
+
       // use undefined this binding; fetch errors if bound to something else in browser/cloudflare
       return await this.fetch.call(undefined, url, fetchOptions);
     } finally {
@@ -888,12 +594,11 @@ export class BaseAnthropic {
     const req: FinalizedRequestInit = {
       method,
       headers: reqHeaders,
-      ...(options.signal && { signal: options.signal }),
-      ...((globalThis as any).ReadableStream &&
-        body instanceof (globalThis as any).ReadableStream && { duplex: 'half' }),
+      ...(options.signal && { signal: options.signal}),
+      ...((globalThis as any).ReadableStream && body instanceof (globalThis as any).ReadableStream && { duplex: "half" }),
       ...(body && { body }),
-      ...((this.fetchOptions as any) ?? {}),
-      ...((options.fetchOptions as any) ?? {}),
+      ...(this.fetchOptions as any ?? {}),
+      ...(options.fetchOptions as any ?? {}),
     };
 
     return { req, url, timeout: options.timeout };
@@ -918,21 +623,17 @@ export class BaseAnthropic {
 
     const headers = buildHeaders([
       idempotencyHeaders,
-      {
-        Accept: 'application/json',
-        'User-Agent': this.getUserAgent(),
-        'X-Stainless-Retry-Count': String(retryCount),
-        ...(options.timeout ? { 'X-Stainless-Timeout': String(Math.trunc(options.timeout / 1000)) } : {}),
-        ...getPlatformHeaders(),
-        ...(this._options.dangerouslyAllowBrowser ?
-          { 'anthropic-dangerous-direct-browser-access': 'true' }
-        : undefined),
-        'anthropic-version': '2023-06-01',
-      },
+      {Accept: 'application/json',
+      'User-Agent': this.getUserAgent(),
+      'X-Stainless-Retry-Count': String(retryCount),
+      ...(options.timeout ? { 'X-Stainless-Timeout': String(Math.trunc(options.timeout / 1000)) } : {}),
+      ...getPlatformHeaders(),
+      ...(this._options.dangerouslyAllowBrowser ? {'anthropic-dangerous-direct-browser-access': 'true'} : undefined),
+      'anthropic-version': '2023-06-01'},
       await this.authHeaders(options),
       this._options.defaultHeaders,
       bodyHeaders,
-      options.headers,
+      options.headers
     ]);
 
     this.validateHeaders(headers);
@@ -959,9 +660,11 @@ export class BaseAnthropic {
       ArrayBuffer.isView(body) ||
       body instanceof ArrayBuffer ||
       body instanceof DataView ||
-      (typeof body === 'string' &&
+      (
+        typeof body === 'string' &&
         // Preserve legacy string encoding behavior for now
-        headers.values.has('content-type')) ||
+        headers.values.has('content-type')
+      ) ||
       // `Blob` is superset of `File`
       ((globalThis as any).Blob && body instanceof (globalThis as any).Blob) ||
       // `FormData` -> `multipart/form-data`
@@ -992,9 +695,9 @@ export class BaseAnthropic {
   }
 
   static Anthropic = this;
-  static HUMAN_PROMPT = HUMAN_PROMPT;
-  static AI_PROMPT = AI_PROMPT;
-  static DEFAULT_TIMEOUT = 600000; // 10 minutes
+  static HUMAN_PROMPT = HUMAN_PROMPT
+  static AI_PROMPT = AI_PROMPT
+  static DEFAULT_TIMEOUT = 600000 // 10 minutes
 
   static AnthropicError = Errors.AnthropicError;
   static APIError = Errors.APIError;
@@ -1014,7 +717,7 @@ export class BaseAnthropic {
 }
 
 /**
- * API Client for interfacing with the Anthropic API.
+ * API Client for interfacing with the Anthropic API. 
  */
 export class Anthropic extends BaseAnthropic {
   completions: API.Completions = new API.Completions(this);
@@ -1029,230 +732,239 @@ Anthropic.Models = Models;
 Anthropic.Beta = Beta;
 
 export declare namespace Anthropic {
-  export type RequestOptions = Opts.RequestOptions;
+      export type RequestOptions = Opts.RequestOptions;
 
-  export import Page = Pagination.Page;
-  export { type PageParams as PageParams, type PageResponse as PageResponse };
+      export import Page = Pagination.Page;
+export {
+  type PageParams as PageParams,
+  type PageResponse as PageResponse
+};
 
-  export import TokenPage = Pagination.TokenPage;
-  export { type TokenPageParams as TokenPageParams, type TokenPageResponse as TokenPageResponse };
+export import TokenPage = Pagination.TokenPage;
+export {
+  type TokenPageParams as TokenPageParams,
+  type TokenPageResponse as TokenPageResponse
+};
 
-  export import PageCursor = Pagination.PageCursor;
-  export { type PageCursorParams as PageCursorParams, type PageCursorResponse as PageCursorResponse };
+export import PageCursor = Pagination.PageCursor;
+export {
+  type PageCursorParams as PageCursorParams,
+  type PageCursorResponse as PageCursorResponse
+};
 
-  export {
-    Completions as Completions,
-    type Completion as Completion,
-    type CompletionCreateParams as CompletionCreateParams,
-    type CompletionCreateParamsNonStreaming as CompletionCreateParamsNonStreaming,
-    type CompletionCreateParamsStreaming as CompletionCreateParamsStreaming,
-  };
+export {
+  Completions as Completions,
+  type Completion as Completion,
+  type CompletionCreateParams as CompletionCreateParams,
+  type CompletionCreateParamsNonStreaming as CompletionCreateParamsNonStreaming,
+  type CompletionCreateParamsStreaming as CompletionCreateParamsStreaming
+};
 
-  export {
-    Messages as Messages,
-    type Base64ImageSource as Base64ImageSource,
-    type Base64PDFSource as Base64PDFSource,
-    type BashCodeExecutionOutputBlock as BashCodeExecutionOutputBlock,
-    type BashCodeExecutionOutputBlockParam as BashCodeExecutionOutputBlockParam,
-    type BashCodeExecutionResultBlock as BashCodeExecutionResultBlock,
-    type BashCodeExecutionResultBlockParam as BashCodeExecutionResultBlockParam,
-    type BashCodeExecutionToolResultBlock as BashCodeExecutionToolResultBlock,
-    type BashCodeExecutionToolResultBlockParam as BashCodeExecutionToolResultBlockParam,
-    type BashCodeExecutionToolResultError as BashCodeExecutionToolResultError,
-    type BashCodeExecutionToolResultErrorCode as BashCodeExecutionToolResultErrorCode,
-    type BashCodeExecutionToolResultErrorParam as BashCodeExecutionToolResultErrorParam,
-    type CacheControlEphemeral as CacheControlEphemeral,
-    type CacheCreation as CacheCreation,
-    type CitationCharLocation as CitationCharLocation,
-    type CitationCharLocationParam as CitationCharLocationParam,
-    type CitationContentBlockLocation as CitationContentBlockLocation,
-    type CitationContentBlockLocationParam as CitationContentBlockLocationParam,
-    type CitationPageLocation as CitationPageLocation,
-    type CitationPageLocationParam as CitationPageLocationParam,
-    type CitationSearchResultLocationParam as CitationSearchResultLocationParam,
-    type CitationWebSearchResultLocationParam as CitationWebSearchResultLocationParam,
-    type CitationsConfig as CitationsConfig,
-    type CitationsConfigParam as CitationsConfigParam,
-    type CitationsDelta as CitationsDelta,
-    type CitationsSearchResultLocation as CitationsSearchResultLocation,
-    type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
-    type CodeExecutionOutputBlock as CodeExecutionOutputBlock,
-    type CodeExecutionOutputBlockParam as CodeExecutionOutputBlockParam,
-    type CodeExecutionResultBlock as CodeExecutionResultBlock,
-    type CodeExecutionResultBlockParam as CodeExecutionResultBlockParam,
-    type CodeExecutionTool20250522 as CodeExecutionTool20250522,
-    type CodeExecutionTool20250825 as CodeExecutionTool20250825,
-    type CodeExecutionTool20260120 as CodeExecutionTool20260120,
-    type CodeExecutionToolResultBlock as CodeExecutionToolResultBlock,
-    type CodeExecutionToolResultBlockContent as CodeExecutionToolResultBlockContent,
-    type CodeExecutionToolResultBlockParam as CodeExecutionToolResultBlockParam,
-    type CodeExecutionToolResultBlockParamContent as CodeExecutionToolResultBlockParamContent,
-    type CodeExecutionToolResultError as CodeExecutionToolResultError,
-    type CodeExecutionToolResultErrorCode as CodeExecutionToolResultErrorCode,
-    type CodeExecutionToolResultErrorParam as CodeExecutionToolResultErrorParam,
-    type Container as Container,
-    type ContainerUploadBlock as ContainerUploadBlock,
-    type ContainerUploadBlockParam as ContainerUploadBlockParam,
-    type ContentBlock as ContentBlock,
-    type ContentBlockParam as ContentBlockParam,
-    type ContentBlockSource as ContentBlockSource,
-    type ContentBlockSourceContent as ContentBlockSourceContent,
-    type DirectCaller as DirectCaller,
-    type DocumentBlock as DocumentBlock,
-    type DocumentBlockParam as DocumentBlockParam,
-    type EncryptedCodeExecutionResultBlock as EncryptedCodeExecutionResultBlock,
-    type EncryptedCodeExecutionResultBlockParam as EncryptedCodeExecutionResultBlockParam,
-    type ImageBlockParam as ImageBlockParam,
-    type InputJSONDelta as InputJSONDelta,
-    type JSONOutputFormat as JSONOutputFormat,
-    type MemoryTool20250818 as MemoryTool20250818,
-    type Message as Message,
-    type MessageCountTokensTool as MessageCountTokensTool,
-    type MessageDeltaUsage as MessageDeltaUsage,
-    type MessageParam as MessageParam,
-    type MessageTokensCount as MessageTokensCount,
-    type Metadata as Metadata,
-    type Model as Model,
-    type OutputConfig as OutputConfig,
-    type PlainTextSource as PlainTextSource,
-    type RawContentBlockDelta as RawContentBlockDelta,
-    type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,
-    type RawContentBlockStartEvent as RawContentBlockStartEvent,
-    type RawContentBlockStopEvent as RawContentBlockStopEvent,
-    type RawMessageDeltaEvent as RawMessageDeltaEvent,
-    type RawMessageStartEvent as RawMessageStartEvent,
-    type RawMessageStopEvent as RawMessageStopEvent,
-    type RawMessageStreamEvent as RawMessageStreamEvent,
-    type RedactedThinkingBlock as RedactedThinkingBlock,
-    type RedactedThinkingBlockParam as RedactedThinkingBlockParam,
-    type RefusalStopDetails as RefusalStopDetails,
-    type SearchResultBlockParam as SearchResultBlockParam,
-    type ServerToolCaller as ServerToolCaller,
-    type ServerToolCaller20260120 as ServerToolCaller20260120,
-    type ServerToolUsage as ServerToolUsage,
-    type ServerToolUseBlock as ServerToolUseBlock,
-    type ServerToolUseBlockParam as ServerToolUseBlockParam,
-    type SignatureDelta as SignatureDelta,
-    type StopReason as StopReason,
-    type TextBlock as TextBlock,
-    type TextBlockParam as TextBlockParam,
-    type TextCitation as TextCitation,
-    type TextCitationParam as TextCitationParam,
-    type TextDelta as TextDelta,
-    type TextEditorCodeExecutionCreateResultBlock as TextEditorCodeExecutionCreateResultBlock,
-    type TextEditorCodeExecutionCreateResultBlockParam as TextEditorCodeExecutionCreateResultBlockParam,
-    type TextEditorCodeExecutionStrReplaceResultBlock as TextEditorCodeExecutionStrReplaceResultBlock,
-    type TextEditorCodeExecutionStrReplaceResultBlockParam as TextEditorCodeExecutionStrReplaceResultBlockParam,
-    type TextEditorCodeExecutionToolResultBlock as TextEditorCodeExecutionToolResultBlock,
-    type TextEditorCodeExecutionToolResultBlockParam as TextEditorCodeExecutionToolResultBlockParam,
-    type TextEditorCodeExecutionToolResultError as TextEditorCodeExecutionToolResultError,
-    type TextEditorCodeExecutionToolResultErrorCode as TextEditorCodeExecutionToolResultErrorCode,
-    type TextEditorCodeExecutionToolResultErrorParam as TextEditorCodeExecutionToolResultErrorParam,
-    type TextEditorCodeExecutionViewResultBlock as TextEditorCodeExecutionViewResultBlock,
-    type TextEditorCodeExecutionViewResultBlockParam as TextEditorCodeExecutionViewResultBlockParam,
-    type ThinkingBlock as ThinkingBlock,
-    type ThinkingBlockParam as ThinkingBlockParam,
-    type ThinkingConfigAdaptive as ThinkingConfigAdaptive,
-    type ThinkingConfigDisabled as ThinkingConfigDisabled,
-    type ThinkingConfigEnabled as ThinkingConfigEnabled,
-    type ThinkingConfigParam as ThinkingConfigParam,
-    type ThinkingDelta as ThinkingDelta,
-    type Tool as Tool,
-    type ToolBash20250124 as ToolBash20250124,
-    type ToolChoice as ToolChoice,
-    type ToolChoiceAny as ToolChoiceAny,
-    type ToolChoiceAuto as ToolChoiceAuto,
-    type ToolChoiceNone as ToolChoiceNone,
-    type ToolChoiceTool as ToolChoiceTool,
-    type ToolReferenceBlock as ToolReferenceBlock,
-    type ToolReferenceBlockParam as ToolReferenceBlockParam,
-    type ToolResultBlockParam as ToolResultBlockParam,
-    type ToolSearchToolBm25_20251119 as ToolSearchToolBm25_20251119,
-    type ToolSearchToolRegex20251119 as ToolSearchToolRegex20251119,
-    type ToolSearchToolResultBlock as ToolSearchToolResultBlock,
-    type ToolSearchToolResultBlockParam as ToolSearchToolResultBlockParam,
-    type ToolSearchToolResultError as ToolSearchToolResultError,
-    type ToolSearchToolResultErrorCode as ToolSearchToolResultErrorCode,
-    type ToolSearchToolResultErrorParam as ToolSearchToolResultErrorParam,
-    type ToolSearchToolSearchResultBlock as ToolSearchToolSearchResultBlock,
-    type ToolSearchToolSearchResultBlockParam as ToolSearchToolSearchResultBlockParam,
-    type ToolTextEditor20250124 as ToolTextEditor20250124,
-    type ToolTextEditor20250429 as ToolTextEditor20250429,
-    type ToolTextEditor20250728 as ToolTextEditor20250728,
-    type ToolUnion as ToolUnion,
-    type ToolUseBlock as ToolUseBlock,
-    type ToolUseBlockParam as ToolUseBlockParam,
-    type URLImageSource as URLImageSource,
-    type URLPDFSource as URLPDFSource,
-    type Usage as Usage,
-    type UserLocation as UserLocation,
-    type WebFetchBlock as WebFetchBlock,
-    type WebFetchBlockParam as WebFetchBlockParam,
-    type WebFetchTool20250910 as WebFetchTool20250910,
-    type WebFetchTool20260209 as WebFetchTool20260209,
-    type WebFetchTool20260309 as WebFetchTool20260309,
-    type WebFetchToolResultBlock as WebFetchToolResultBlock,
-    type WebFetchToolResultBlockParam as WebFetchToolResultBlockParam,
-    type WebFetchToolResultErrorBlock as WebFetchToolResultErrorBlock,
-    type WebFetchToolResultErrorBlockParam as WebFetchToolResultErrorBlockParam,
-    type WebFetchToolResultErrorCode as WebFetchToolResultErrorCode,
-    type WebSearchResultBlock as WebSearchResultBlock,
-    type WebSearchResultBlockParam as WebSearchResultBlockParam,
-    type WebSearchTool20250305 as WebSearchTool20250305,
-    type WebSearchTool20260209 as WebSearchTool20260209,
-    type WebSearchToolRequestError as WebSearchToolRequestError,
-    type WebSearchToolResultBlock as WebSearchToolResultBlock,
-    type WebSearchToolResultBlockContent as WebSearchToolResultBlockContent,
-    type WebSearchToolResultBlockParam as WebSearchToolResultBlockParam,
-    type WebSearchToolResultBlockParamContent as WebSearchToolResultBlockParamContent,
-    type WebSearchToolResultError as WebSearchToolResultError,
-    type WebSearchToolResultErrorCode as WebSearchToolResultErrorCode,
-    type MessageCreateParams as MessageCreateParams,
-    type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
-    type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
-    type MessageCountTokensParams as MessageCountTokensParams,
-  };
+export {
+  Messages as Messages,
+  type Base64ImageSource as Base64ImageSource,
+  type Base64PDFSource as Base64PDFSource,
+  type BashCodeExecutionOutputBlock as BashCodeExecutionOutputBlock,
+  type BashCodeExecutionOutputBlockParam as BashCodeExecutionOutputBlockParam,
+  type BashCodeExecutionResultBlock as BashCodeExecutionResultBlock,
+  type BashCodeExecutionResultBlockParam as BashCodeExecutionResultBlockParam,
+  type BashCodeExecutionToolResultBlock as BashCodeExecutionToolResultBlock,
+  type BashCodeExecutionToolResultBlockParam as BashCodeExecutionToolResultBlockParam,
+  type BashCodeExecutionToolResultError as BashCodeExecutionToolResultError,
+  type BashCodeExecutionToolResultErrorCode as BashCodeExecutionToolResultErrorCode,
+  type BashCodeExecutionToolResultErrorParam as BashCodeExecutionToolResultErrorParam,
+  type CacheControlEphemeral as CacheControlEphemeral,
+  type CacheCreation as CacheCreation,
+  type CitationCharLocation as CitationCharLocation,
+  type CitationCharLocationParam as CitationCharLocationParam,
+  type CitationContentBlockLocation as CitationContentBlockLocation,
+  type CitationContentBlockLocationParam as CitationContentBlockLocationParam,
+  type CitationPageLocation as CitationPageLocation,
+  type CitationPageLocationParam as CitationPageLocationParam,
+  type CitationSearchResultLocationParam as CitationSearchResultLocationParam,
+  type CitationWebSearchResultLocationParam as CitationWebSearchResultLocationParam,
+  type CitationsConfig as CitationsConfig,
+  type CitationsConfigParam as CitationsConfigParam,
+  type CitationsDelta as CitationsDelta,
+  type CitationsSearchResultLocation as CitationsSearchResultLocation,
+  type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
+  type CodeExecutionOutputBlock as CodeExecutionOutputBlock,
+  type CodeExecutionOutputBlockParam as CodeExecutionOutputBlockParam,
+  type CodeExecutionResultBlock as CodeExecutionResultBlock,
+  type CodeExecutionResultBlockParam as CodeExecutionResultBlockParam,
+  type CodeExecutionTool20250522 as CodeExecutionTool20250522,
+  type CodeExecutionTool20250825 as CodeExecutionTool20250825,
+  type CodeExecutionTool20260120 as CodeExecutionTool20260120,
+  type CodeExecutionToolResultBlock as CodeExecutionToolResultBlock,
+  type CodeExecutionToolResultBlockContent as CodeExecutionToolResultBlockContent,
+  type CodeExecutionToolResultBlockParam as CodeExecutionToolResultBlockParam,
+  type CodeExecutionToolResultBlockParamContent as CodeExecutionToolResultBlockParamContent,
+  type CodeExecutionToolResultError as CodeExecutionToolResultError,
+  type CodeExecutionToolResultErrorCode as CodeExecutionToolResultErrorCode,
+  type CodeExecutionToolResultErrorParam as CodeExecutionToolResultErrorParam,
+  type Container as Container,
+  type ContainerUploadBlock as ContainerUploadBlock,
+  type ContainerUploadBlockParam as ContainerUploadBlockParam,
+  type ContentBlock as ContentBlock,
+  type ContentBlockParam as ContentBlockParam,
+  type ContentBlockSource as ContentBlockSource,
+  type ContentBlockSourceContent as ContentBlockSourceContent,
+  type DirectCaller as DirectCaller,
+  type DocumentBlock as DocumentBlock,
+  type DocumentBlockParam as DocumentBlockParam,
+  type EncryptedCodeExecutionResultBlock as EncryptedCodeExecutionResultBlock,
+  type EncryptedCodeExecutionResultBlockParam as EncryptedCodeExecutionResultBlockParam,
+  type ImageBlockParam as ImageBlockParam,
+  type InputJSONDelta as InputJSONDelta,
+  type JSONOutputFormat as JSONOutputFormat,
+  type MemoryTool20250818 as MemoryTool20250818,
+  type Message as Message,
+  type MessageCountTokensTool as MessageCountTokensTool,
+  type MessageDeltaUsage as MessageDeltaUsage,
+  type MessageParam as MessageParam,
+  type MessageTokensCount as MessageTokensCount,
+  type Metadata as Metadata,
+  type Model as Model,
+  type OutputConfig as OutputConfig,
+  type PlainTextSource as PlainTextSource,
+  type RawContentBlockDelta as RawContentBlockDelta,
+  type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,
+  type RawContentBlockStartEvent as RawContentBlockStartEvent,
+  type RawContentBlockStopEvent as RawContentBlockStopEvent,
+  type RawMessageDeltaEvent as RawMessageDeltaEvent,
+  type RawMessageStartEvent as RawMessageStartEvent,
+  type RawMessageStopEvent as RawMessageStopEvent,
+  type RawMessageStreamEvent as RawMessageStreamEvent,
+  type RedactedThinkingBlock as RedactedThinkingBlock,
+  type RedactedThinkingBlockParam as RedactedThinkingBlockParam,
+  type RefusalStopDetails as RefusalStopDetails,
+  type SearchResultBlockParam as SearchResultBlockParam,
+  type ServerToolCaller as ServerToolCaller,
+  type ServerToolCaller20260120 as ServerToolCaller20260120,
+  type ServerToolUsage as ServerToolUsage,
+  type ServerToolUseBlock as ServerToolUseBlock,
+  type ServerToolUseBlockParam as ServerToolUseBlockParam,
+  type SignatureDelta as SignatureDelta,
+  type StopReason as StopReason,
+  type TextBlock as TextBlock,
+  type TextBlockParam as TextBlockParam,
+  type TextCitation as TextCitation,
+  type TextCitationParam as TextCitationParam,
+  type TextDelta as TextDelta,
+  type TextEditorCodeExecutionCreateResultBlock as TextEditorCodeExecutionCreateResultBlock,
+  type TextEditorCodeExecutionCreateResultBlockParam as TextEditorCodeExecutionCreateResultBlockParam,
+  type TextEditorCodeExecutionStrReplaceResultBlock as TextEditorCodeExecutionStrReplaceResultBlock,
+  type TextEditorCodeExecutionStrReplaceResultBlockParam as TextEditorCodeExecutionStrReplaceResultBlockParam,
+  type TextEditorCodeExecutionToolResultBlock as TextEditorCodeExecutionToolResultBlock,
+  type TextEditorCodeExecutionToolResultBlockParam as TextEditorCodeExecutionToolResultBlockParam,
+  type TextEditorCodeExecutionToolResultError as TextEditorCodeExecutionToolResultError,
+  type TextEditorCodeExecutionToolResultErrorCode as TextEditorCodeExecutionToolResultErrorCode,
+  type TextEditorCodeExecutionToolResultErrorParam as TextEditorCodeExecutionToolResultErrorParam,
+  type TextEditorCodeExecutionViewResultBlock as TextEditorCodeExecutionViewResultBlock,
+  type TextEditorCodeExecutionViewResultBlockParam as TextEditorCodeExecutionViewResultBlockParam,
+  type ThinkingBlock as ThinkingBlock,
+  type ThinkingBlockParam as ThinkingBlockParam,
+  type ThinkingConfigAdaptive as ThinkingConfigAdaptive,
+  type ThinkingConfigDisabled as ThinkingConfigDisabled,
+  type ThinkingConfigEnabled as ThinkingConfigEnabled,
+  type ThinkingConfigParam as ThinkingConfigParam,
+  type ThinkingDelta as ThinkingDelta,
+  type Tool as Tool,
+  type ToolBash20250124 as ToolBash20250124,
+  type ToolChoice as ToolChoice,
+  type ToolChoiceAny as ToolChoiceAny,
+  type ToolChoiceAuto as ToolChoiceAuto,
+  type ToolChoiceNone as ToolChoiceNone,
+  type ToolChoiceTool as ToolChoiceTool,
+  type ToolReferenceBlock as ToolReferenceBlock,
+  type ToolReferenceBlockParam as ToolReferenceBlockParam,
+  type ToolResultBlockParam as ToolResultBlockParam,
+  type ToolSearchToolBm25_20251119 as ToolSearchToolBm25_20251119,
+  type ToolSearchToolRegex20251119 as ToolSearchToolRegex20251119,
+  type ToolSearchToolResultBlock as ToolSearchToolResultBlock,
+  type ToolSearchToolResultBlockParam as ToolSearchToolResultBlockParam,
+  type ToolSearchToolResultError as ToolSearchToolResultError,
+  type ToolSearchToolResultErrorCode as ToolSearchToolResultErrorCode,
+  type ToolSearchToolResultErrorParam as ToolSearchToolResultErrorParam,
+  type ToolSearchToolSearchResultBlock as ToolSearchToolSearchResultBlock,
+  type ToolSearchToolSearchResultBlockParam as ToolSearchToolSearchResultBlockParam,
+  type ToolTextEditor20250124 as ToolTextEditor20250124,
+  type ToolTextEditor20250429 as ToolTextEditor20250429,
+  type ToolTextEditor20250728 as ToolTextEditor20250728,
+  type ToolUnion as ToolUnion,
+  type ToolUseBlock as ToolUseBlock,
+  type ToolUseBlockParam as ToolUseBlockParam,
+  type URLImageSource as URLImageSource,
+  type URLPDFSource as URLPDFSource,
+  type Usage as Usage,
+  type UserLocation as UserLocation,
+  type WebFetchBlock as WebFetchBlock,
+  type WebFetchBlockParam as WebFetchBlockParam,
+  type WebFetchTool20250910 as WebFetchTool20250910,
+  type WebFetchTool20260209 as WebFetchTool20260209,
+  type WebFetchTool20260309 as WebFetchTool20260309,
+  type WebFetchToolResultBlock as WebFetchToolResultBlock,
+  type WebFetchToolResultBlockParam as WebFetchToolResultBlockParam,
+  type WebFetchToolResultErrorBlock as WebFetchToolResultErrorBlock,
+  type WebFetchToolResultErrorBlockParam as WebFetchToolResultErrorBlockParam,
+  type WebFetchToolResultErrorCode as WebFetchToolResultErrorCode,
+  type WebSearchResultBlock as WebSearchResultBlock,
+  type WebSearchResultBlockParam as WebSearchResultBlockParam,
+  type WebSearchTool20250305 as WebSearchTool20250305,
+  type WebSearchTool20260209 as WebSearchTool20260209,
+  type WebSearchToolRequestError as WebSearchToolRequestError,
+  type WebSearchToolResultBlock as WebSearchToolResultBlock,
+  type WebSearchToolResultBlockContent as WebSearchToolResultBlockContent,
+  type WebSearchToolResultBlockParam as WebSearchToolResultBlockParam,
+  type WebSearchToolResultBlockParamContent as WebSearchToolResultBlockParamContent,
+  type WebSearchToolResultError as WebSearchToolResultError,
+  type WebSearchToolResultErrorCode as WebSearchToolResultErrorCode,
+  type MessageCreateParams as MessageCreateParams,
+  type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
+  type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
+  type MessageCountTokensParams as MessageCountTokensParams
+};
 
-  export {
-    Models as Models,
-    type CapabilitySupport as CapabilitySupport,
-    type ContextManagementCapability as ContextManagementCapability,
-    type EffortCapability as EffortCapability,
-    type ModelCapabilities as ModelCapabilities,
-    type ModelInfo as ModelInfo,
-    type ThinkingCapability as ThinkingCapability,
-    type ThinkingTypes as ThinkingTypes,
-    type ModelInfosPage as ModelInfosPage,
-    type ModelRetrieveParams as ModelRetrieveParams,
-    type ModelListParams as ModelListParams,
-  };
+export {
+  Models as Models,
+  type CapabilitySupport as CapabilitySupport,
+  type ContextManagementCapability as ContextManagementCapability,
+  type EffortCapability as EffortCapability,
+  type ModelCapabilities as ModelCapabilities,
+  type ModelInfo as ModelInfo,
+  type ThinkingCapability as ThinkingCapability,
+  type ThinkingTypes as ThinkingTypes,
+  type ModelInfosPage as ModelInfosPage,
+  type ModelRetrieveParams as ModelRetrieveParams,
+  type ModelListParams as ModelListParams
+};
 
-  export {
-    Beta as Beta,
-    type AnthropicBeta as AnthropicBeta,
-    type BetaAPIError as BetaAPIError,
-    type BetaAuthenticationError as BetaAuthenticationError,
-    type BetaBillingError as BetaBillingError,
-    type BetaError as BetaError,
-    type BetaErrorResponse as BetaErrorResponse,
-    type BetaGatewayTimeoutError as BetaGatewayTimeoutError,
-    type BetaInvalidRequestError as BetaInvalidRequestError,
-    type BetaNotFoundError as BetaNotFoundError,
-    type BetaOverloadedError as BetaOverloadedError,
-    type BetaPermissionError as BetaPermissionError,
-    type BetaRateLimitError as BetaRateLimitError,
-  };
+export {
+  Beta as Beta,
+  type AnthropicBeta as AnthropicBeta,
+  type BetaAPIError as BetaAPIError,
+  type BetaAuthenticationError as BetaAuthenticationError,
+  type BetaBillingError as BetaBillingError,
+  type BetaError as BetaError,
+  type BetaErrorResponse as BetaErrorResponse,
+  type BetaGatewayTimeoutError as BetaGatewayTimeoutError,
+  type BetaInvalidRequestError as BetaInvalidRequestError,
+  type BetaNotFoundError as BetaNotFoundError,
+  type BetaOverloadedError as BetaOverloadedError,
+  type BetaPermissionError as BetaPermissionError,
+  type BetaRateLimitError as BetaRateLimitError
+};
 
-  export type APIErrorObject = API.APIErrorObject;
-  export type AuthenticationError = API.AuthenticationError;
-  export type BillingError = API.BillingError;
-  export type ErrorObject = API.ErrorObject;
-  export type ErrorResponse = API.ErrorResponse;
-  export type ErrorType = API.ErrorType;
-  export type GatewayTimeoutError = API.GatewayTimeoutError;
-  export type InvalidRequestError = API.InvalidRequestError;
-  export type NotFoundError = API.NotFoundError;
-  export type OverloadedError = API.OverloadedError;
-  export type PermissionError = API.PermissionError;
-  export type RateLimitError = API.RateLimitError;
-}
+export type APIErrorObject = API.APIErrorObject;
+export type AuthenticationError = API.AuthenticationError;
+export type BillingError = API.BillingError;
+export type ErrorObject = API.ErrorObject;
+export type ErrorResponse = API.ErrorResponse;
+export type ErrorType = API.ErrorType;
+export type GatewayTimeoutError = API.GatewayTimeoutError;
+export type InvalidRequestError = API.InvalidRequestError;
+export type NotFoundError = API.NotFoundError;
+export type OverloadedError = API.OverloadedError;
+export type PermissionError = API.PermissionError;
+export type RateLimitError = API.RateLimitError;
+    }

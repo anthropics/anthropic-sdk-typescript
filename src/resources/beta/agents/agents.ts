@@ -26,15 +26,8 @@ export class Agents extends APIResource {
    * ```
    */
   create(params: AgentCreateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsAgent> {
-    const { betas, ...body } = params;
-    return this._client.post('/v1/agents?beta=true', {
-      body,
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-        options?.headers,
-      ]),
-    });
+    const { betas, ...body } = params
+    return this._client.post('/v1/agents?beta=true', { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 
   /**
@@ -48,20 +41,9 @@ export class Agents extends APIResource {
    *   );
    * ```
    */
-  retrieve(
-    agentID: string,
-    params: AgentRetrieveParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<BetaManagedAgentsAgent> {
-    const { betas, ...query } = params ?? {};
-    return this._client.get(path`/v1/agents/${agentID}?beta=true`, {
-      query,
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-        options?.headers,
-      ]),
-    });
+  retrieve(agentID: string, params: AgentRetrieveParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaManagedAgentsAgent> {
+    const { betas, ...query } = params ?? {}
+    return this._client.get(path`/v1/agents/${agentID}?beta=true`, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 
   /**
@@ -76,20 +58,9 @@ export class Agents extends APIResource {
    *   );
    * ```
    */
-  update(
-    agentID: string,
-    params: AgentUpdateParams,
-    options?: RequestOptions,
-  ): APIPromise<BetaManagedAgentsAgent> {
-    const { betas, ...body } = params;
-    return this._client.post(path`/v1/agents/${agentID}?beta=true`, {
-      body,
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-        options?.headers,
-      ]),
-    });
+  update(agentID: string, params: AgentUpdateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsAgent> {
+    const { betas, ...body } = params
+    return this._client.post(path`/v1/agents/${agentID}?beta=true`, { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 
   /**
@@ -103,19 +74,9 @@ export class Agents extends APIResource {
    * }
    * ```
    */
-  list(
-    params: AgentListParams | null | undefined = {},
-    options?: RequestOptions,
-  ): PagePromise<BetaManagedAgentsAgentsPageCursor, BetaManagedAgentsAgent> {
-    const { betas, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/agents?beta=true', PageCursor<BetaManagedAgentsAgent>, {
-      query,
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-        options?.headers,
-      ]),
-    });
+  list(params: AgentListParams | null | undefined = {}, options?: RequestOptions): PagePromise<BetaManagedAgentsAgentsPageCursor, BetaManagedAgentsAgent> {
+    const { betas, ...query } = params ?? {}
+    return this._client.getAPIList('/v1/agents?beta=true', PageCursor<BetaManagedAgentsAgent>, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 
   /**
@@ -129,23 +90,13 @@ export class Agents extends APIResource {
    *   );
    * ```
    */
-  archive(
-    agentID: string,
-    params: AgentArchiveParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<BetaManagedAgentsAgent> {
-    const { betas } = params ?? {};
-    return this._client.post(path`/v1/agents/${agentID}/archive?beta=true`, {
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-        options?.headers,
-      ]),
-    });
+  archive(agentID: string, params: AgentArchiveParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaManagedAgentsAgent> {
+    const { betas } = params ?? {}
+    return this._client.post(path`/v1/agents/${agentID}/archive?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
   }
 }
 
-export type BetaManagedAgentsAgentsPageCursor = PageCursor<BetaManagedAgentsAgent>;
+export type BetaManagedAgentsAgentsPageCursor = PageCursor<BetaManagedAgentsAgent>
 
 /**
  * A Managed Agents `agent`.
@@ -180,9 +131,7 @@ export interface BetaManagedAgentsAgent {
 
   system: string | null;
 
-  tools: Array<
-    BetaManagedAgentsAgentToolset20260401 | BetaManagedAgentsMCPToolset | BetaManagedAgentsCustomTool
-  >;
+  tools: Array<BetaManagedAgentsAgentToolset20260401 | BetaManagedAgentsMCPToolset | BetaManagedAgentsCustomTool>;
 
   type: 'agent';
 
@@ -539,17 +488,7 @@ export interface BetaManagedAgentsMCPToolsetParams {
  * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
  * details and options.
  */
-export type BetaManagedAgentsModel =
-  | 'claude-opus-4-7'
-  | 'claude-opus-4-6'
-  | 'claude-sonnet-4-6'
-  | 'claude-haiku-4-5'
-  | 'claude-haiku-4-5-20251001'
-  | 'claude-opus-4-5'
-  | 'claude-opus-4-5-20251101'
-  | 'claude-sonnet-4-5'
-  | 'claude-sonnet-4-5-20250929'
-  | (string & {});
+export type BetaManagedAgentsModel = 'claude-opus-4-7' | 'claude-opus-4-6' | 'claude-sonnet-4-6' | 'claude-haiku-4-5' | 'claude-haiku-4-5-20251001' | 'claude-opus-4-5' | 'claude-opus-4-5-20251101' | 'claude-sonnet-4-5' | 'claude-sonnet-4-5-20250929' | (string & {})
 
 /**
  * Model identifier and configuration.
@@ -592,9 +531,7 @@ export interface BetaManagedAgentsModelConfigParams {
 /**
  * Skill to load in the session container.
  */
-export type BetaManagedAgentsSkillParams =
-  | BetaManagedAgentsAnthropicSkillParams
-  | BetaManagedAgentsCustomSkillParams;
+export type BetaManagedAgentsSkillParams = BetaManagedAgentsAnthropicSkillParams | BetaManagedAgentsCustomSkillParams
 
 /**
  * URL-based MCP server connection.
@@ -659,11 +596,7 @@ export interface AgentCreateParams {
    * Body param: Tool configurations available to the agent. Maximum of 128 tools
    * across all toolsets allowed.
    */
-  tools?: Array<
-    | BetaManagedAgentsAgentToolset20260401Params
-    | BetaManagedAgentsMCPToolsetParams
-    | BetaManagedAgentsCustomToolParams
-  >;
+  tools?: Array<BetaManagedAgentsAgentToolset20260401Params | BetaManagedAgentsMCPToolsetParams | BetaManagedAgentsCustomToolParams>;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
@@ -742,11 +675,7 @@ export interface AgentUpdateParams {
    * to preserve; send empty array or null to clear. Maximum of 128 tools across all
    * toolsets allowed.
    */
-  tools?: Array<
-    | BetaManagedAgentsAgentToolset20260401Params
-    | BetaManagedAgentsMCPToolsetParams
-    | BetaManagedAgentsCustomToolParams
-  > | null;
+  tools?: Array<BetaManagedAgentsAgentToolset20260401Params | BetaManagedAgentsMCPToolsetParams | BetaManagedAgentsCustomToolParams> | null;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
@@ -820,8 +749,11 @@ export declare namespace Agents {
     type AgentRetrieveParams as AgentRetrieveParams,
     type AgentUpdateParams as AgentUpdateParams,
     type AgentListParams as AgentListParams,
-    type AgentArchiveParams as AgentArchiveParams,
+    type AgentArchiveParams as AgentArchiveParams
   };
 
-  export { Versions as Versions, type VersionListParams as VersionListParams };
+  export {
+    Versions as Versions,
+    type VersionListParams as VersionListParams
+  };
 }

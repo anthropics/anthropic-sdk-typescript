@@ -2,10 +2,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 
-const client = new Anthropic({
-  apiKey: 'my-anthropic-api-key',
-  baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
-});
+const client = new Anthropic({ apiKey: 'my-anthropic-api-key', baseURL: process.env["TEST_API_BASE_URL"] ?? 'http://127.0.0.1:4010' });
 
 describe('resource models', () => {
   test('retrieve', async () => {
@@ -21,13 +18,9 @@ describe('resource models', () => {
 
   test('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(
-      client.beta.models.retrieve(
-        'model_id',
-        { betas: ['message-batches-2024-09-24'] },
-        { path: '/_stainless_unknown_path' },
-      ),
-    ).rejects.toThrow(Anthropic.NotFoundError);
+    await expect(client.beta.models.retrieve('model_id', { betas: ['message-batches-2024-09-24'] }, { path: '/_stainless_unknown_path' }))
+      .rejects
+      .toThrow(Anthropic.NotFoundError);
   });
 
   test('list', async () => {
@@ -43,16 +36,13 @@ describe('resource models', () => {
 
   test('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(
-      client.beta.models.list(
-        {
-          after_id: 'after_id',
-          before_id: 'before_id',
-          limit: 1,
-          betas: ['message-batches-2024-09-24'],
-        },
-        { path: '/_stainless_unknown_path' },
-      ),
-    ).rejects.toThrow(Anthropic.NotFoundError);
+    await expect(client.beta.models.list({
+    after_id: 'after_id',
+    before_id: 'before_id',
+    limit: 1,
+    betas: ['message-batches-2024-09-24'],
+  }, { path: '/_stainless_unknown_path' }))
+      .rejects
+      .toThrow(Anthropic.NotFoundError);
   });
 });

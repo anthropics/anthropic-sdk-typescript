@@ -19,15 +19,8 @@ export class UserProfiles extends APIResource {
    * ```
    */
   create(params: UserProfileCreateParams, options?: RequestOptions): APIPromise<BetaUserProfile> {
-    const { betas, ...body } = params;
-    return this._client.post('/v1/user_profiles?beta=true', {
-      body,
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-03-24'].toString() },
-        options?.headers,
-      ]),
-    });
+    const { betas, ...body } = params
+    return this._client.post('/v1/user_profiles?beta=true', { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-03-24'].toString()}, options?.headers]) });
   }
 
   /**
@@ -41,19 +34,9 @@ export class UserProfiles extends APIResource {
    *   );
    * ```
    */
-  retrieve(
-    userProfileID: string,
-    params: UserProfileRetrieveParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<BetaUserProfile> {
-    const { betas } = params ?? {};
-    return this._client.get(path`/v1/user_profiles/${userProfileID}?beta=true`, {
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-03-24'].toString() },
-        options?.headers,
-      ]),
-    });
+  retrieve(userProfileID: string, params: UserProfileRetrieveParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaUserProfile> {
+    const { betas } = params ?? {}
+    return this._client.get(path`/v1/user_profiles/${userProfileID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-03-24'].toString()}, options?.headers]) });
   }
 
   /**
@@ -67,20 +50,9 @@ export class UserProfiles extends APIResource {
    *   );
    * ```
    */
-  update(
-    userProfileID: string,
-    params: UserProfileUpdateParams,
-    options?: RequestOptions,
-  ): APIPromise<BetaUserProfile> {
-    const { betas, ...body } = params;
-    return this._client.post(path`/v1/user_profiles/${userProfileID}?beta=true`, {
-      body,
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-03-24'].toString() },
-        options?.headers,
-      ]),
-    });
+  update(userProfileID: string, params: UserProfileUpdateParams, options?: RequestOptions): APIPromise<BetaUserProfile> {
+    const { betas, ...body } = params
+    return this._client.post(path`/v1/user_profiles/${userProfileID}?beta=true`, { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-03-24'].toString()}, options?.headers]) });
   }
 
   /**
@@ -94,19 +66,9 @@ export class UserProfiles extends APIResource {
    * }
    * ```
    */
-  list(
-    params: UserProfileListParams | null | undefined = {},
-    options?: RequestOptions,
-  ): PagePromise<BetaUserProfilesPageCursor, BetaUserProfile> {
-    const { betas, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/user_profiles?beta=true', PageCursor<BetaUserProfile>, {
-      query,
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-03-24'].toString() },
-        options?.headers,
-      ]),
-    });
+  list(params: UserProfileListParams | null | undefined = {}, options?: RequestOptions): PagePromise<BetaUserProfilesPageCursor, BetaUserProfile> {
+    const { betas, ...query } = params ?? {}
+    return this._client.getAPIList('/v1/user_profiles?beta=true', PageCursor<BetaUserProfile>, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-03-24'].toString()}, options?.headers]) });
   }
 
   /**
@@ -120,23 +82,13 @@ export class UserProfiles extends APIResource {
    *   );
    * ```
    */
-  createEnrollmentURL(
-    userProfileID: string,
-    params: UserProfileCreateEnrollmentURLParams | null | undefined = {},
-    options?: RequestOptions,
-  ): APIPromise<BetaUserProfileEnrollmentURL> {
-    const { betas } = params ?? {};
-    return this._client.post(path`/v1/user_profiles/${userProfileID}/enrollment_url?beta=true`, {
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-03-24'].toString() },
-        options?.headers,
-      ]),
-    });
+  createEnrollmentURL(userProfileID: string, params: UserProfileCreateEnrollmentURLParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaUserProfileEnrollmentURL> {
+    const { betas } = params ?? {}
+    return this._client.post(path`/v1/user_profiles/${userProfileID}/enrollment_url?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-03-24'].toString()}, options?.headers]) });
   }
 }
 
-export type BetaUserProfilesPageCursor = PageCursor<BetaUserProfile>;
+export type BetaUserProfilesPageCursor = PageCursor<BetaUserProfile>
 
 export interface BetaUserProfile {
   /**
@@ -278,6 +230,6 @@ export declare namespace UserProfiles {
     type UserProfileRetrieveParams as UserProfileRetrieveParams,
     type UserProfileUpdateParams as UserProfileUpdateParams,
     type UserProfileListParams as UserProfileListParams,
-    type UserProfileCreateEnrollmentURLParams as UserProfileCreateEnrollmentURLParams,
+    type UserProfileCreateEnrollmentURLParams as UserProfileCreateEnrollmentURLParams
   };
 }
