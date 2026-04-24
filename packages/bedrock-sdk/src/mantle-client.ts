@@ -20,7 +20,7 @@ export interface BedrockMantleClientOptions extends ClientOptions {
   awsRegion?: string | undefined;
 
   /**
-   * API key for x-api-key authentication.
+   * API key for Bearer token authentication.
    *
    * Takes precedence over AWS credential options. If neither `apiKey` nor
    * AWS credentials are provided, falls back to the `AWS_BEARER_TOKEN_BEDROCK`
@@ -100,7 +100,7 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
    * credentials > `awsProfile` > `AWS_BEARER_TOKEN_BEDROCK` env var > default
    * AWS credential chain.
    *
-   * @param {string | undefined} [opts.apiKey] - API key for x-api-key authentication.
+   * @param {string | undefined} [opts.apiKey] - API key for Bearer token authentication.
    * @param {string | null | undefined} [opts.awsAccessKey] - AWS access key ID for SigV4 authentication.
    * @param {string | null | undefined} [opts.awsSecretAccessKey] - AWS secret access key for SigV4 authentication.
    * @param {string | null | undefined} [opts.awsSessionToken] - AWS session token for temporary credentials.
@@ -188,8 +188,8 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
     }
 
     if (!this._useSigV4) {
-      // API key mode — use inherited x-api-key auth
-      return super.authHeaders(opts);
+      // API key / bearer token mode — use Authorization: Bearer header
+      return buildHeaders([{ Authorization: `Bearer ${this.apiKey}` }]);
     }
 
     // SigV4 mode — auth is handled in prepareRequest since it needs the full request

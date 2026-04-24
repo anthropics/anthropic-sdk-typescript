@@ -120,6 +120,52 @@ describe('AnthropicBedrockMantle', () => {
     });
   });
 
+  describe('bearer token auth', () => {
+    test('sends Authorization: Bearer header when using apiKey', async () => {
+      const client = new AnthropicBedrockMantle({
+        apiKey: 'test-bearer-token',
+        awsRegion: 'us-east-1',
+        maxRetries: 0,
+      });
+
+      await makeRequest(client);
+
+      const requestInit = mockFetch.mock.calls[0]![1] as RequestInit;
+      const headers = new Headers(requestInit.headers as HeadersInit);
+      expect(headers.get('authorization')).toBe('Bearer test-bearer-token');
+      expect(headers.get('x-api-key')).toBeNull();
+    });
+
+    test('sends Authorization: Bearer header when using AWS_BEARER_TOKEN_BEDROCK env var', async () => {
+      process.env['AWS_BEARER_TOKEN_BEDROCK'] = 'env-bearer-token';
+
+      const client = new AnthropicBedrockMantle({
+        awsRegion: 'us-east-1',
+        maxRetries: 0,
+      });
+
+      await makeRequest(client);
+
+      const requestInit = mockFetch.mock.calls[0]![1] as RequestInit;
+      const headers = new Headers(requestInit.headers as HeadersInit);
+      expect(headers.get('authorization')).toBe('Bearer env-bearer-token');
+      expect(headers.get('x-api-key')).toBeNull();
+    });
+
+    test('does not send Authorization: Bearer header when using SigV4', async () => {
+      const client = new AnthropicBedrockMantle({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-east-1',
+        maxRetries: 0,
+      });
+
+      await makeRequest(client);
+
+      expect(mockGetAuthHeaders).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('endpoint restrictions', () => {
     test('completions resource is not available', () => {
       const client = new AnthropicBedrockMantle({

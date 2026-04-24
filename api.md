@@ -594,6 +594,7 @@ Types:
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsDeletedSession</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsFileResourceParams</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsGitHubRepositoryResourceParams</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsMemoryStoreResourceParam</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSession</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionAgent</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionStats</a></code>
@@ -678,6 +679,7 @@ Types:
 - <code><a href="./src/resources/beta/sessions/resources.ts">BetaManagedAgentsDeleteSessionResource</a></code>
 - <code><a href="./src/resources/beta/sessions/resources.ts">BetaManagedAgentsFileResource</a></code>
 - <code><a href="./src/resources/beta/sessions/resources.ts">BetaManagedAgentsGitHubRepositoryResource</a></code>
+- <code><a href="./src/resources/beta/sessions/resources.ts">BetaManagedAgentsMemoryStoreResource</a></code>
 - <code><a href="./src/resources/beta/sessions/resources.ts">BetaManagedAgentsSessionResource</a></code>
 - <code><a href="./src/resources/beta/sessions/resources.ts">ResourceRetrieveResponse</a></code>
 - <code><a href="./src/resources/beta/sessions/resources.ts">ResourceUpdateResponse</a></code>
@@ -738,6 +740,63 @@ Methods:
 - <code title="get /v1/vaults/{vault_id}/credentials?beta=true">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">list</a>(vaultID, { ...params }) -> BetaManagedAgentsCredentialsPageCursor</code>
 - <code title="delete /v1/vaults/{vault_id}/credentials/{credential_id}?beta=true">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">delete</a>(credentialID, { ...params }) -> BetaManagedAgentsDeletedCredential</code>
 - <code title="post /v1/vaults/{vault_id}/credentials/{credential_id}/archive?beta=true">client.beta.vaults.credentials.<a href="./src/resources/beta/vaults/credentials.ts">archive</a>(credentialID, { ...params }) -> BetaManagedAgentsCredential</code>
+
+## MemoryStores
+
+Types:
+
+- <code><a href="./src/resources/beta/memory-stores/memory-stores.ts">BetaManagedAgentsDeletedMemoryStore</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memory-stores.ts">BetaManagedAgentsMemoryStore</a></code>
+
+Methods:
+
+- <code title="post /v1/memory_stores?beta=true">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">create</a>({ ...params }) -> BetaManagedAgentsMemoryStore</code>
+- <code title="get /v1/memory_stores/{memory_store_id}?beta=true">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">retrieve</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemoryStore</code>
+- <code title="post /v1/memory_stores/{memory_store_id}?beta=true">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">update</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemoryStore</code>
+- <code title="get /v1/memory_stores?beta=true">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">list</a>({ ...params }) -> BetaManagedAgentsMemoryStoresPageCursor</code>
+- <code title="delete /v1/memory_stores/{memory_store_id}?beta=true">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">delete</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsDeletedMemoryStore</code>
+- <code title="post /v1/memory_stores/{memory_store_id}/archive?beta=true">client.beta.memoryStores.<a href="./src/resources/beta/memory-stores/memory-stores.ts">archive</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemoryStore</code>
+
+### Memories
+
+Types:
+
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsConflictError</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsContentSha256Precondition</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsDeletedMemory</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsError</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsMemory</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsMemoryListItem</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsMemoryPathConflictError</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsMemoryPreconditionFailedError</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsMemoryPrefix</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsMemoryView</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memories.ts">BetaManagedAgentsPrecondition</a></code>
+
+Methods:
+
+- <code title="post /v1/memory_stores/{memory_store_id}/memories?beta=true">client.beta.memoryStores.memories.<a href="./src/resources/beta/memory-stores/memories.ts">create</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemory</code>
+- <code title="get /v1/memory_stores/{memory_store_id}/memories/{memory_id}?beta=true">client.beta.memoryStores.memories.<a href="./src/resources/beta/memory-stores/memories.ts">retrieve</a>(memoryID, { ...params }) -> BetaManagedAgentsMemory</code>
+- <code title="post /v1/memory_stores/{memory_store_id}/memories/{memory_id}?beta=true">client.beta.memoryStores.memories.<a href="./src/resources/beta/memory-stores/memories.ts">update</a>(memoryID, { ...params }) -> BetaManagedAgentsMemory</code>
+- <code title="get /v1/memory_stores/{memory_store_id}/memories?beta=true">client.beta.memoryStores.memories.<a href="./src/resources/beta/memory-stores/memories.ts">list</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemoryListItemsPageCursor</code>
+- <code title="delete /v1/memory_stores/{memory_store_id}/memories/{memory_id}?beta=true">client.beta.memoryStores.memories.<a href="./src/resources/beta/memory-stores/memories.ts">delete</a>(memoryID, { ...params }) -> BetaManagedAgentsDeletedMemory</code>
+
+### MemoryVersions
+
+Types:
+
+- <code><a href="./src/resources/beta/memory-stores/memory-versions.ts">BetaManagedAgentsActor</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memory-versions.ts">BetaManagedAgentsAPIActor</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memory-versions.ts">BetaManagedAgentsMemoryVersion</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memory-versions.ts">BetaManagedAgentsMemoryVersionOperation</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memory-versions.ts">BetaManagedAgentsSessionActor</a></code>
+- <code><a href="./src/resources/beta/memory-stores/memory-versions.ts">BetaManagedAgentsUserActor</a></code>
+
+Methods:
+
+- <code title="get /v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}?beta=true">client.beta.memoryStores.memoryVersions.<a href="./src/resources/beta/memory-stores/memory-versions.ts">retrieve</a>(memoryVersionID, { ...params }) -> BetaManagedAgentsMemoryVersion</code>
+- <code title="get /v1/memory_stores/{memory_store_id}/memory_versions?beta=true">client.beta.memoryStores.memoryVersions.<a href="./src/resources/beta/memory-stores/memory-versions.ts">list</a>(memoryStoreID, { ...params }) -> BetaManagedAgentsMemoryVersionsPageCursor</code>
+- <code title="post /v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}/redact?beta=true">client.beta.memoryStores.memoryVersions.<a href="./src/resources/beta/memory-stores/memory-versions.ts">redact</a>(memoryVersionID, { ...params }) -> BetaManagedAgentsMemoryVersion</code>
 
 ## Files
 

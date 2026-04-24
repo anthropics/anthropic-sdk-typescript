@@ -213,23 +213,71 @@ export interface BetaManagedAgentsGitHubRepositoryResource {
   checkout?: SessionsAPI.BetaManagedAgentsBranchCheckout | SessionsAPI.BetaManagedAgentsCommitCheckout | null;
 }
 
+/**
+ * A memory store attached to an agent session.
+ */
+export interface BetaManagedAgentsMemoryStoreResource {
+  /**
+   * The memory store ID (memstore\_...). Must belong to the caller's organization
+   * and workspace.
+   */
+  memory_store_id: string;
+
+  type: 'memory_store';
+
+  /**
+   * Access mode for an attached memory store.
+   */
+  access?: 'read_write' | 'read_only' | null;
+
+  /**
+   * Description of the memory store, snapshotted at attach time. Rendered into the
+   * agent's system prompt. Empty string when the store has no description.
+   */
+  description?: string;
+
+  /**
+   * Per-attachment guidance for the agent on how to use this store. Rendered into
+   * the memory section of the system prompt. Max 4096 chars.
+   */
+  instructions?: string | null;
+
+  /**
+   * Filesystem path where the store is mounted in the session container, e.g.
+   * /mnt/memory/user-preferences. Derived from the store's name. Output-only.
+   */
+  mount_path?: string | null;
+
+  /**
+   * Display name of the memory store, snapshotted at attach time. Later edits to the
+   * store's name do not propagate to this resource.
+   */
+  name?: string | null;
+}
+
+/**
+ * A memory store attached to an agent session.
+ */
 export type BetaManagedAgentsSessionResource =
   | BetaManagedAgentsGitHubRepositoryResource
-  | BetaManagedAgentsFileResource;
+  | BetaManagedAgentsFileResource
+  | BetaManagedAgentsMemoryStoreResource;
 
 /**
  * The requested session resource.
  */
 export type ResourceRetrieveResponse =
   | BetaManagedAgentsGitHubRepositoryResource
-  | BetaManagedAgentsFileResource;
+  | BetaManagedAgentsFileResource
+  | BetaManagedAgentsMemoryStoreResource;
 
 /**
  * The updated session resource.
  */
 export type ResourceUpdateResponse =
   | BetaManagedAgentsGitHubRepositoryResource
-  | BetaManagedAgentsFileResource;
+  | BetaManagedAgentsFileResource
+  | BetaManagedAgentsMemoryStoreResource;
 
 export interface ResourceRetrieveParams {
   /**
@@ -308,6 +356,7 @@ export declare namespace Resources {
     type BetaManagedAgentsDeleteSessionResource as BetaManagedAgentsDeleteSessionResource,
     type BetaManagedAgentsFileResource as BetaManagedAgentsFileResource,
     type BetaManagedAgentsGitHubRepositoryResource as BetaManagedAgentsGitHubRepositoryResource,
+    type BetaManagedAgentsMemoryStoreResource as BetaManagedAgentsMemoryStoreResource,
     type BetaManagedAgentsSessionResource as BetaManagedAgentsSessionResource,
     type ResourceRetrieveResponse as ResourceRetrieveResponse,
     type ResourceUpdateResponse as ResourceUpdateResponse,
