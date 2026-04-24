@@ -9,6 +9,7 @@ import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pa
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
 import { path } from '../../../internal/utils/path';
+import type { BetaThinkingConfigParam, BetaOutputConfig } from '../messages/messages';
 
 export class Agents extends APIResource {
   versions: VersionsAPI.Versions = new VersionsAPI.Versions(this._client);
@@ -587,6 +588,24 @@ export interface BetaManagedAgentsModelConfigParams {
    * combinations are rejected at create time.
    */
   speed?: 'standard' | 'fast' | null;
+
+  /**
+   * Configuration for enabling Claude's extended thinking.
+   *
+   * When enabled, responses include `thinking` content blocks showing Claude's
+   * thinking process before the final answer. Requires a minimum budget of 1,024
+   * tokens and counts towards your `max_tokens` limit.
+   *
+   * See
+   * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
+   * for details.
+   */
+  thinking?: BetaThinkingConfigParam | null;
+
+  /**
+   * Controls output options like effort level, format, and task token budget.
+   */
+  output_config?: BetaOutputConfig | null;
 }
 
 /**
