@@ -602,4 +602,83 @@ describe('BetaLocalFilesystemMemoryTool', () => {
       ).rejects.toThrow('Path would escape /memories directory via symlink');
     });
   });
+
+  describe('file permissions', () => {
+    const itPosix = process.platform === 'win32' ? it.skip : it;
+    let prevUmask: number;
+
+    beforeEach(() => {
+      prevUmask = process.umask(0o000);
+    });
+
+    afterEach(() => {
+      process.umask(prevUmask);
+    });
+
+    itPosix('should create the memory root with mode 0o700', async () => {
+      const freshDir = await fs.mkdtemp(path.join(os.tmpdir(), 'memory-perm-'));
+      try {
+        await BetaLocalFilesystemMemoryTool.init(freshDir);
+        const stat = await fs.stat(path.join(freshDir, 'memories'));
+        expect(stat.mode & 0o777).toBe(0o700);
+      } finally {
+        await fs.rm(freshDir, { recursive: true, force: true });
+      }
+    });
+
+    itPosix('should create files with mode 0o600', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: 'secret',
+        path: '/memories/perm-test.txt',
+      });
+
+      const stat = await fs.stat(path.join(tempDir, 'memories', 'perm-test.txt'));
+      expect(stat.mode & 0o777).toBe(0o600);
+    });
+
+    itPosix('should create intermediate directories with mode 0o700', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: 'secret',
+        path: '/memories/nested/perm-test.txt',
+      });
+
+      const stat = await fs.stat(path.join(tempDir, 'memories', 'nested'));
+      expect(stat.mode & 0o777).toBe(0o700);
+    });
+
+    itPosix('should create rename destination directories with mode 0o700', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: 'x',
+        path: '/memories/src.txt',
+      });
+      await tool.rename({
+        command: 'rename',
+        old_path: '/memories/src.txt',
+        new_path: '/memories/renamed/dst.txt',
+      });
+
+      const stat = await fs.stat(path.join(tempDir, 'memories', 'renamed'));
+      expect(stat.mode & 0o777).toBe(0o700);
+    });
+
+    itPosix('should write atomic temp files with mode 0o600', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: 'old',
+        path: '/memories/perm-test.txt',
+      });
+      await tool.str_replace({
+        command: 'str_replace',
+        path: '/memories/perm-test.txt',
+        old_str: 'old',
+        new_str: 'new',
+      });
+
+      const stat = await fs.stat(path.join(tempDir, 'memories', 'perm-test.txt'));
+      expect(stat.mode & 0o777).toBe(0o600);
+    });
+  });
 });
