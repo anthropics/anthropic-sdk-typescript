@@ -347,7 +347,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
     if (textBlocks.length === 0) {
       throw new AnthropicError('stream ended without producing a content block with type=text');
     }
-    return textBlocks.join(' ');
+    return textBlocks.join('');
   }
 
   /**
