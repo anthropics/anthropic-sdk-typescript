@@ -14,6 +14,14 @@ import {
   BetaMemoryTool20250818ViewCommand,
 } from '../../resources/beta';
 
+// Owner read/write only. Avoids the Node.js default of 0o666 which, in
+// environments with a permissive umask (e.g. Docker where umask is often
+// 0o000), would make memory files world-readable or even world-writable.
+const FILE_CREATE_MODE = 0o600;
+// fs.mkdir defaults to 0o777; restrict memory directories so they aren't
+// world-accessible in environments with permissive umasks.
+const DIR_CREATE_MODE = 0o700;
+
 async function exists(path: string) {
   return await fs
     .access(path)
@@ -40,7 +48,7 @@ async function atomicWriteFile(targetPath: string, content: string): Promise<voi
 
   let handle: fs.FileHandle | undefined;
   try {
-    handle = await fs.open(tempPath, 'wx');
+    handle = await fs.open(tempPath, 'wx', FILE_CREATE_MODE);
     await handle.writeFile(content, 'utf-8');
     await handle.sync();
     await handle.close();
@@ -126,7 +134,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   static async init(basePath: string = './memory'): Promise<BetaLocalFilesystemMemoryTool> {
     const memory = new BetaLocalFilesystemMemoryTool(basePath);
 
-    await fs.mkdir(memory.memoryRoot, { recursive: true });
+    await fs.mkdir(memory.memoryRoot, { recursive: true, mode: DIR_CREATE_MODE });
 
     return memory;
   }
@@ -240,11 +248,11 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   async create(command: BetaMemoryTool20250818CreateCommand): Promise<string> {
     const fullPath = await this.validatePath(command.path);
 
-    await fs.mkdir(path.dirname(fullPath), { recursive: true });
+    await fs.mkdir(path.dirname(fullPath), { recursive: true, mode: DIR_CREATE_MODE });
 
     let handle: fs.FileHandle | undefined;
     try {
-      handle = await fs.open(fullPath, 'wx');
+      handle = await fs.open(fullPath, 'wx', FILE_CREATE_MODE);
       await handle.writeFile(command.file_text, 'utf-8');
       await handle.sync();
     } catch (err: any) {
@@ -376,7 +384,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
     }
 
     const newDir = path.dirname(newFullPath);
-    await fs.mkdir(newDir, { recursive: true });
+    await fs.mkdir(newDir, { recursive: true, mode: DIR_CREATE_MODE });
 
     try {
       await fs.rename(oldFullPath, newFullPath);

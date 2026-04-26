@@ -28,7 +28,7 @@ export class Files extends APIResource {
     options?: RequestOptions,
   ): PagePromise<FileMetadataPage, FileMetadata> {
     const { betas, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/files', Page<FileMetadata>, {
+    return this._client.getAPIList('/v1/files?beta=true', Page<FileMetadata>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -54,7 +54,7 @@ export class Files extends APIResource {
     options?: RequestOptions,
   ): APIPromise<DeletedFile> {
     const { betas } = params ?? {};
-    return this._client.delete(path`/v1/files/${fileID}`, {
+    return this._client.delete(path`/v1/files/${fileID}?beta=true`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString() },
@@ -82,7 +82,7 @@ export class Files extends APIResource {
     options?: RequestOptions,
   ): APIPromise<Response> {
     const { betas } = params ?? {};
-    return this._client.get(path`/v1/files/${fileID}/content`, {
+    return this._client.get(path`/v1/files/${fileID}/content?beta=true`, {
       ...options,
       headers: buildHeaders([
         {
@@ -110,7 +110,7 @@ export class Files extends APIResource {
     options?: RequestOptions,
   ): APIPromise<FileMetadata> {
     const { betas } = params ?? {};
-    return this._client.get(path`/v1/files/${fileID}`, {
+    return this._client.get(path`/v1/files/${fileID}?beta=true`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString() },
@@ -133,7 +133,7 @@ export class Files extends APIResource {
     const { betas, ...body } = params;
 
     return this._client.post(
-      '/v1/files',
+      '/v1/files?beta=true',
       multipartFormRequestOptions(
         {
           body,
