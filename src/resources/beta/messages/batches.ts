@@ -227,7 +227,7 @@ export class Batches extends APIResource {
         ]),
         stream: true,
         __binaryResponse: true,
-      })
+    })
       ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller)) as APIPromise<
       JSONLDecoder<BetaMessageBatchIndividualResponse>
     >;
