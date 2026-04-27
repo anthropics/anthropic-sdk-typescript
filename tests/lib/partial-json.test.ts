@@ -78,4 +78,16 @@ describe('partialParse', () => {
   test('deeply nested partial JSON objects', () => {
     expect(partialParse(`{"a": {"b": {"c": {"d": "e`)).toEqual({ a: { b: { c: {} } } });
   });
+
+  test('string with invalid JSON escape sequences (e.g. PHP namespaces)', () => {
+    expect(partialParse(`{"code": "use App\\Http\\Middleware"}`)).toEqual({
+      code: 'use App\\Http\\Middleware',
+    });
+  });
+
+  test('string with mixed valid and invalid escape sequences', () => {
+    expect(partialParse(`{"text": "line1\\nApp\\Http\\nline2"}`)).toEqual({
+      text: 'line1\nApp\\Http\nline2',
+    });
+  });
 });
