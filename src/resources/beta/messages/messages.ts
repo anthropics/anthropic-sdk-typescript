@@ -2,6 +2,7 @@
 
 import { AnthropicError } from '../../../error';
 import { Anthropic } from '../../../client';
+import * as BatchesAPI from './batches';
 import { APIPromise } from '../../../core/api-promise';
 import { APIResource } from '../../../core/resource';
 import { Stream } from '../../../core/streaming';
@@ -25,7 +26,6 @@ import type { Model } from '../../messages/messages';
 import * as BetaMessagesAPI from './messages';
 import * as MessagesAPI from '../../messages/messages';
 import * as BetaAPI from '../beta';
-import * as BatchesAPI from './batches';
 import {
   BatchCancelParams,
   BatchCreateParams,
