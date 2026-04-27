@@ -1,5 +1,66 @@
 # Changelog
 
+## 0.29.0 (2026-04-23)
+
+Full Changelog: [bedrock-sdk-v0.28.1...bedrock-sdk-v0.29.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.28.1...bedrock-sdk-v0.29.0)
+
+### Features
+
+* **bedrock:** use auth header for mantle client ([#866](https://github.com/anthropics/anthropic-sdk-typescript/issues/866)) ([aec801a](https://github.com/anthropics/anthropic-sdk-typescript/commit/aec801afc7d37d9e8ca1471748ca599b442cbce4))
+
+## 0.28.1 (2026-04-08)
+
+Full Changelog: [bedrock-sdk-v0.28.0...bedrock-sdk-v0.28.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.28.0...bedrock-sdk-v0.28.1)
+
+### Chores
+
+* update @anthropic-ai/sdk dependency version ([#870](https://github.com/anthropics/anthropic-sdk-typescript/issues/870)) ([036342b](https://github.com/anthropics/anthropic-sdk-typescript/commit/036342bdbf9867e223465510d4a39146f1b721dd))
+
+## 0.28.0 (2026-04-07)
+
+Full Changelog: [bedrock-sdk-v0.27.0...bedrock-sdk-v0.28.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.27.0...bedrock-sdk-v0.28.0)
+
+### Features
+
+* **client:** Create Bedrock Mantle client ([#810](https://github.com/anthropics/anthropic-sdk-typescript/issues/810)) ([2f1f4a1](https://github.com/anthropics/anthropic-sdk-typescript/commit/2f1f4a1f565a6c12afc1dd7fd98d2adf735dd68b))
+
+## 0.27.0 (2026-04-01)
+
+Full Changelog: [bedrock-sdk-v0.26.4...bedrock-sdk-v0.27.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.26.4...bedrock-sdk-v0.27.0)
+
+### Features
+
+* support API keys in Bedrock SDK ([#824](https://github.com/anthropics/anthropic-sdk-typescript/issues/824)) ([be6c608](https://github.com/anthropics/anthropic-sdk-typescript/commit/be6c608bf0de9ceb2c09974b28f7f80db96ed42e))
+
+## 0.26.4 (2026-02-19)
+
+Full Changelog: [bedrock-sdk-v0.26.3...bedrock-sdk-v0.26.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.26.3...bedrock-sdk-v0.26.4)
+
+### Bug Fixes
+
+* **bedrock:** eliminate race condition in AWS credential resolution ([#901](https://github.com/anthropics/anthropic-sdk-typescript/issues/901)) ([e5a101d](https://github.com/anthropics/anthropic-sdk-typescript/commit/e5a101d060cdce65872ec787e792c94799dcc295))
+
+## 0.26.3 (2026-02-05)
+
+Full Changelog: [bedrock-sdk-v0.26.2...bedrock-sdk-v0.26.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.26.2...bedrock-sdk-v0.26.3)
+
+### Bug Fixes
+
+* **client:** avoid memory leak with abort signals ([53e47df](https://github.com/anthropics/anthropic-sdk-typescript/commit/53e47dfa6985e6a206c475b8c920b8a97c27e17e))
+
+## 0.26.2 (2026-01-29)
+
+Full Changelog: [bedrock-sdk-v0.26.1...bedrock-sdk-v0.26.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.26.1...bedrock-sdk-v0.26.2)
+
+### Chores
+
+* **internal:** version bump ([24ecc83](https://github.com/anthropics/anthropic-sdk-typescript/commit/24ecc838b0adbb837b14fe24fac0895d81ea8891))
+
+
+### Documentation
+
+* update README with Claude branding ([#611](https://github.com/anthropics/anthropic-sdk-typescript/issues/611)) ([2a9a5f7](https://github.com/anthropics/anthropic-sdk-typescript/commit/2a9a5f7f94d2fe807bcc73aa6a3a92f8e50db763))
+
 ## 0.26.1 (2025-11-24)
 
 Full Changelog: [bedrock-sdk-v0.26.0...bedrock-sdk-v0.26.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.26.0...bedrock-sdk-v0.26.1)

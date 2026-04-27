@@ -1,7 +1,10 @@
-# Anthropic Foundry
+# <img src=".github/logo.svg" alt="" width="32"> Claude SDK for Microsoft Foundry
 
-To use this library with Foundry, use the `AnthropicFoundry`
-class instead of the `Anthropic` class.
+[![NPM version](https://img.shields.io/npm/v/@anthropic-ai/foundry-sdk.svg?color=blue)](https://npmjs.org/package/@anthropic-ai/foundry-sdk)
+
+This library provides convenient access to the Claude API via Microsoft Azure AI Foundry. See the [documentation](https://platform.claude.com/docs/en/build-with-claude/claude-in-microsoft-foundry) for more details.
+
+For the direct Claude API at api.anthropic.com, see [`@anthropic-ai/sdk`](https://github.com/anthropics/anthropic-sdk-typescript).
 
 ## Installation
 

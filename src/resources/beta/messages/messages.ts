@@ -1,5 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+import { AnthropicError } from '../../../error';
 import { Anthropic } from '../../../client';
 import { APIPromise } from '../../../core/api-promise';
 import { APIResource } from '../../../core/resource';
@@ -7,6 +8,7 @@ import { Stream } from '../../../core/streaming';
 import { MODEL_NONSTREAMING_TOKENS } from '../../../internal/constants';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { stainlessHelperHeader } from '../../../lib/stainless-helper-header';
 import {
   parseBetaMessage,
   type ExtractParsedContentFromBetaParams,
@@ -18,7 +20,9 @@ import {
   BetaToolRunnerParams,
   BetaToolRunnerRequestOptions,
 } from '../../../lib/tools/BetaToolRunner';
+import { ToolError } from '../../../lib/tools/ToolError';
 import type { Model } from '../../messages/messages';
+import * as BetaMessagesAPI from './messages';
 import * as MessagesAPI from '../../messages/messages';
 import * as BetaAPI from '../beta';
 import * as BatchesAPI from './batches';
@@ -41,7 +45,6 @@ import {
   BetaMessageBatchSucceededResult,
   BetaMessageBatchesPage,
 } from './batches';
-import * as MessagesMessagesAPI from './messages';
 
 const DEPRECATED_MODELS: {
   [K in Model]?: string;
@@ -58,6 +61,8 @@ const DEPRECATED_MODELS: {
   'claude-3-7-sonnet-latest': 'February 19th, 2026',
   'claude-3-7-sonnet-20250219': 'February 19th, 2026',
 };
+
+const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-mythos-preview', 'claude-opus-4-6'];
 
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
@@ -77,7 +82,7 @@ export class Messages extends APIResource {
    * const betaMessage = await client.beta.messages.create({
    *   max_tokens: 1024,
    *   messages: [{ content: 'Hello, world', role: 'user' }],
-   *   model: 'claude-sonnet-4-5-20250929',
+   *   model: 'claude-opus-4-6',
    * });
    * ```
    */
@@ -94,7 +99,10 @@ export class Messages extends APIResource {
     params: MessageCreateParams,
     options?: RequestOptions,
   ): APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>> {
-    const { betas, ...body } = params;
+    // Transform deprecated output_format to output_config.format
+    const modifiedParams = transformOutputFormat(params);
+
+    const { betas, ...body } = modifiedParams;
 
     if (body.model in DEPRECATED_MODELS) {
       console.warn(
@@ -104,20 +112,35 @@ export class Messages extends APIResource {
       );
     }
 
+    if (
+      MODELS_TO_WARN_WITH_THINKING_ENABLED.includes(body.model) &&
+      body.thinking &&
+      body.thinking.type === 'enabled'
+    ) {
+      console.warn(
+        `Using Claude with ${body.model} and 'thinking.type=enabled' is deprecated. Use 'thinking.type=adaptive' instead which results in better model performance in our testing: https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking`,
+      );
+    }
+
     let timeout = (this._client as any)._options.timeout as number | null;
     if (!body.stream && timeout == null) {
       const maxNonstreamingTokens = MODEL_NONSTREAMING_TOKENS[body.model] ?? undefined;
       timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
     }
+
+    // Collect helper info from tools and messages
+    const helperHeader = stainlessHelperHeader(body.tools, body.messages);
+
     return this._client.post('/v1/messages?beta=true', {
       body,
       timeout: timeout ?? 600000,
       ...options,
       headers: buildHeaders([
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        helperHeader,
         options?.headers,
       ]),
-      stream: params.stream ?? false,
+      stream: modifiedParams.stream ?? false,
     }) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
   }
 
@@ -144,7 +167,7 @@ export class Messages extends APIResource {
     options = {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(params.betas ?? []), 'structured-outputs-2025-11-13'].toString() },
+        { 'anthropic-beta': [...(params.betas ?? []), 'structured-outputs-2025-12-15'].toString() },
         options?.headers,
       ]),
     };
@@ -177,8 +200,8 @@ export class Messages extends APIResource {
    * ```ts
    * const betaMessageTokensCount =
    *   await client.beta.messages.countTokens({
-   *     messages: [{ content: 'string', role: 'user' }],
-   *     model: 'claude-opus-4-5-20251101',
+   *     messages: [{ content: 'Hello, world', role: 'user' }],
+   *     model: 'claude-opus-4-6',
    *   });
    * ```
    */
@@ -186,7 +209,10 @@ export class Messages extends APIResource {
     params: MessageCountTokensParams,
     options?: RequestOptions,
   ): APIPromise<BetaMessageTokensCount> {
-    const { betas, ...body } = params;
+    // Transform deprecated output_format to output_config.format
+    const modifiedParams = transformOutputFormat(params);
+
+    const { betas, ...body } = modifiedParams;
     return this._client.post('/v1/messages/count_tokens?beta=true', {
       body,
       ...options,
@@ -209,6 +235,202 @@ export class Messages extends APIResource {
   toolRunner(body: BetaToolRunnerParams, options?: BetaToolRunnerRequestOptions): BetaToolRunner<boolean> {
     return new BetaToolRunner(this._client as Anthropic, body, options);
   }
+}
+
+/**
+ * Transform deprecated output_format to output_config.format
+ * Returns a modified copy of the params without mutating the original
+ */
+function transformOutputFormat<T extends MessageCreateParams | MessageCountTokensParams>(params: T): T {
+  if (!params.output_format) {
+    return params;
+  }
+
+  if (params.output_config?.format) {
+    throw new AnthropicError(
+      'Both output_format and output_config.format were provided. ' +
+        'Please use only output_config.format (output_format is deprecated).',
+    );
+  }
+
+  const { output_format, ...rest } = params;
+
+  return {
+    ...rest,
+    output_config: {
+      ...params.output_config,
+      format: output_format,
+    },
+  } as T;
+}
+
+/**
+ * Token usage for an advisor sub-inference iteration.
+ */
+export interface BetaAdvisorMessageIterationUsage {
+  /**
+   * Breakdown of cached tokens by TTL
+   */
+  cache_creation: BetaCacheCreation | null;
+
+  /**
+   * The number of input tokens used to create the cache entry.
+   */
+  cache_creation_input_tokens: number;
+
+  /**
+   * The number of input tokens read from the cache.
+   */
+  cache_read_input_tokens: number;
+
+  /**
+   * The number of input tokens which were used.
+   */
+  input_tokens: number;
+
+  /**
+   * The model that will complete your prompt.\n\nSee
+   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * details and options.
+   */
+  model: MessagesAPI.Model;
+
+  /**
+   * The number of output tokens which were used.
+   */
+  output_tokens: number;
+
+  /**
+   * Usage for an advisor sub-inference iteration
+   */
+  type: 'advisor_message';
+}
+
+export interface BetaAdvisorRedactedResultBlock {
+  /**
+   * Opaque blob containing the advisor's output. Round-trip verbatim; do not inspect
+   * or modify.
+   */
+  encrypted_content: string;
+
+  type: 'advisor_redacted_result';
+}
+
+export interface BetaAdvisorRedactedResultBlockParam {
+  /**
+   * Opaque blob produced by a prior response; must be round-tripped verbatim.
+   */
+  encrypted_content: string;
+
+  type: 'advisor_redacted_result';
+}
+
+export interface BetaAdvisorResultBlock {
+  text: string;
+
+  type: 'advisor_result';
+}
+
+export interface BetaAdvisorResultBlockParam {
+  text: string;
+
+  type: 'advisor_result';
+}
+
+export interface BetaAdvisorTool20260301 {
+  /**
+   * The model that will complete your prompt.\n\nSee
+   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * details and options.
+   */
+  model: MessagesAPI.Model;
+
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'advisor';
+
+  type: 'advisor_20260301';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Caching for the advisor's own prompt. When set, each advisor call writes a cache
+   * entry at the given TTL so subsequent calls in the same conversation read the
+   * stable prefix. When omitted, the advisor prompt is not cached.
+   */
+  caching?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
+export interface BetaAdvisorToolResultBlock {
+  content: BetaAdvisorToolResultError | BetaAdvisorResultBlock | BetaAdvisorRedactedResultBlock;
+
+  tool_use_id: string;
+
+  type: 'advisor_tool_result';
+}
+
+export interface BetaAdvisorToolResultBlockParam {
+  content:
+    | BetaAdvisorToolResultErrorParam
+    | BetaAdvisorResultBlockParam
+    | BetaAdvisorRedactedResultBlockParam;
+
+  tool_use_id: string;
+
+  type: 'advisor_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+export interface BetaAdvisorToolResultError {
+  error_code:
+    | 'max_uses_exceeded'
+    | 'prompt_too_long'
+    | 'too_many_requests'
+    | 'overloaded'
+    | 'unavailable'
+    | 'execution_time_exceeded';
+
+  type: 'advisor_tool_result_error';
+}
+
+export interface BetaAdvisorToolResultErrorParam {
+  error_code:
+    | 'max_uses_exceeded'
+    | 'prompt_too_long'
+    | 'too_many_requests'
+    | 'overloaded'
+    | 'unavailable'
+    | 'execution_time_exceeded';
+
+  type: 'advisor_tool_result_error';
 }
 
 export interface BetaAllThinkingTurns {
@@ -625,7 +847,7 @@ export interface BetaCodeExecutionTool20250522 {
 
   type: 'code_execution_20250522';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -638,6 +860,9 @@ export interface BetaCodeExecutionTool20250522 {
    */
   defer_loading?: boolean;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -651,7 +876,7 @@ export interface BetaCodeExecutionTool20250825 {
 
   type: 'code_execution_20250825';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -664,10 +889,49 @@ export interface BetaCodeExecutionTool20250825 {
    */
   defer_loading?: boolean;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
+/**
+ * Code execution tool with REPL state persistence (daemon mode + gVisor
+ * checkpoint).
+ */
+export interface BetaCodeExecutionTool20260120 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'code_execution';
+
+  type: 'code_execution_20260120';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
 export interface BetaCodeExecutionToolResultBlock {
+  /**
+   * Code execution result with encrypted stdout for PFC + web_search results.
+   */
   content: BetaCodeExecutionToolResultBlockContent;
 
   tool_use_id: string;
@@ -675,11 +939,18 @@ export interface BetaCodeExecutionToolResultBlock {
   type: 'code_execution_tool_result';
 }
 
+/**
+ * Code execution result with encrypted stdout for PFC + web_search results.
+ */
 export type BetaCodeExecutionToolResultBlockContent =
   | BetaCodeExecutionToolResultError
-  | BetaCodeExecutionResultBlock;
+  | BetaCodeExecutionResultBlock
+  | BetaEncryptedCodeExecutionResultBlock;
 
 export interface BetaCodeExecutionToolResultBlockParam {
+  /**
+   * Code execution result with encrypted stdout for PFC + web_search results.
+   */
   content: BetaCodeExecutionToolResultBlockParamContent;
 
   tool_use_id: string;
@@ -692,9 +963,13 @@ export interface BetaCodeExecutionToolResultBlockParam {
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
+/**
+ * Code execution result with encrypted stdout for PFC + web_search results.
+ */
 export type BetaCodeExecutionToolResultBlockParamContent =
   | BetaCodeExecutionToolResultErrorParam
-  | BetaCodeExecutionResultBlockParam;
+  | BetaCodeExecutionResultBlockParam
+  | BetaEncryptedCodeExecutionResultBlockParam;
 
 export interface BetaCodeExecutionToolResultError {
   error_code: BetaCodeExecutionToolResultErrorCode;
@@ -712,6 +987,124 @@ export interface BetaCodeExecutionToolResultErrorParam {
   error_code: BetaCodeExecutionToolResultErrorCode;
 
   type: 'code_execution_tool_result_error';
+}
+
+/**
+ * Automatically compact older context when reaching the configured trigger
+ * threshold.
+ */
+export interface BetaCompact20260112Edit {
+  type: 'compact_20260112';
+
+  /**
+   * Additional instructions for summarization.
+   */
+  instructions?: string | null;
+
+  /**
+   * Whether to pause after compaction and return the compaction block to the user.
+   */
+  pause_after_compaction?: boolean;
+
+  /**
+   * When to trigger compaction. Defaults to 150000 input tokens.
+   */
+  trigger?: BetaInputTokensTrigger | null;
+}
+
+/**
+ * A compaction block returned when autocompact is triggered.
+ *
+ * When content is None, it indicates the compaction failed to produce a valid
+ * summary (e.g., malformed output from the model). Clients may round-trip
+ * compaction blocks with null content; the server treats them as no-ops.
+ */
+export interface BetaCompactionBlock {
+  /**
+   * Summary of compacted content, or null if compaction failed
+   */
+  content: string | null;
+
+  /**
+   * Opaque metadata from prior compaction, to be round-tripped verbatim
+   */
+  encrypted_content: string | null;
+
+  type: 'compaction';
+}
+
+/**
+ * A compaction block containing summary of previous context.
+ *
+ * Users should round-trip these blocks from responses to subsequent requests to
+ * maintain context across compaction boundaries.
+ *
+ * When content is None, the block represents a failed compaction. The server
+ * treats these as no-ops. Empty string content is not allowed.
+ */
+export interface BetaCompactionBlockParam {
+  /**
+   * Summary of previously compacted content, or null if compaction failed
+   */
+  content: string | null;
+
+  type: 'compaction';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Opaque metadata from prior compaction, to be round-tripped verbatim
+   */
+  encrypted_content?: string | null;
+}
+
+export interface BetaCompactionContentBlockDelta {
+  content: string | null;
+
+  /**
+   * Opaque metadata from prior compaction, to be round-tripped verbatim
+   */
+  encrypted_content: string | null;
+
+  type: 'compaction_delta';
+}
+
+/**
+ * Token usage for a compaction iteration.
+ */
+export interface BetaCompactionIterationUsage {
+  /**
+   * Breakdown of cached tokens by TTL
+   */
+  cache_creation: BetaCacheCreation | null;
+
+  /**
+   * The number of input tokens used to create the cache entry.
+   */
+  cache_creation_input_tokens: number;
+
+  /**
+   * The number of input tokens read from the cache.
+   */
+  cache_read_input_tokens: number;
+
+  /**
+   * The number of input tokens which were used.
+   */
+  input_tokens: number;
+
+  /**
+   * The number of output tokens which were used.
+   */
+  output_tokens: number;
+
+  /**
+   * Usage for a compaction iteration
+   */
+  type: 'compaction';
 }
 
 /**
@@ -785,13 +1178,15 @@ export type BetaContentBlock =
   | BetaServerToolUseBlock
   | BetaWebSearchToolResultBlock
   | BetaWebFetchToolResultBlock
+  | BetaAdvisorToolResultBlock
   | BetaCodeExecutionToolResultBlock
   | BetaBashCodeExecutionToolResultBlock
   | BetaTextEditorCodeExecutionToolResultBlock
   | BetaToolSearchToolResultBlock
   | BetaMCPToolUseBlock
   | BetaMCPToolResultBlock
-  | BetaContainerUploadBlock;
+  | BetaContainerUploadBlock
+  | BetaCompactionBlock;
 
 /**
  * Regular text content.
@@ -808,13 +1203,15 @@ export type BetaContentBlockParam =
   | BetaServerToolUseBlockParam
   | BetaWebSearchToolResultBlockParam
   | BetaWebFetchToolResultBlockParam
+  | BetaAdvisorToolResultBlockParam
   | BetaCodeExecutionToolResultBlockParam
   | BetaBashCodeExecutionToolResultBlockParam
   | BetaTextEditorCodeExecutionToolResultBlockParam
   | BetaToolSearchToolResultBlockParam
   | BetaMCPToolUseBlockParam
   | BetaRequestMCPToolResultBlockParam
-  | BetaContainerUploadBlockParam;
+  | BetaContainerUploadBlockParam
+  | BetaCompactionBlockParam;
 
 export interface BetaContentBlockSource {
   content: string | Array<BetaContentBlockSourceContent>;
@@ -828,7 +1225,7 @@ export interface BetaContextManagementConfig {
   /**
    * List of context management edits to apply
    */
-  edits?: Array<BetaClearToolUses20250919Edit | BetaClearThinking20251015Edit>;
+  edits?: Array<BetaClearToolUses20250919Edit | BetaClearThinking20251015Edit | BetaCompact20260112Edit>;
 }
 
 export interface BetaContextManagementResponse {
@@ -866,6 +1263,36 @@ export interface BetaDocumentBlock {
   title: string | null;
 
   type: 'document';
+}
+
+/**
+ * Code execution result with encrypted stdout for PFC + web_search results.
+ */
+export interface BetaEncryptedCodeExecutionResultBlock {
+  content: Array<BetaCodeExecutionOutputBlock>;
+
+  encrypted_stdout: string;
+
+  return_code: number;
+
+  stderr: string;
+
+  type: 'encrypted_code_execution_result';
+}
+
+/**
+ * Code execution result with encrypted stdout for PFC + web_search results.
+ */
+export interface BetaEncryptedCodeExecutionResultBlockParam {
+  content: Array<BetaCodeExecutionOutputBlockParam>;
+
+  encrypted_stdout: string;
+
+  return_code: number;
+
+  stderr: string;
+
+  type: 'encrypted_code_execution_result';
 }
 
 export interface BetaFileDocumentSource {
@@ -908,6 +1335,20 @@ export interface BetaInputTokensTrigger {
 
   value: number;
 }
+
+/**
+ * Per-iteration token usage breakdown.
+ *
+ * Each entry represents one sampling iteration, with its own input/output token
+ * counts and cache statistics. This allows you to:
+ *
+ * - Determine which iterations exceeded long context thresholds (>=200k tokens)
+ * - Calculate the true context window size from the last iteration
+ * - Understand token accumulation across server-side tool use loops
+ */
+export type BetaIterationsUsage = Array<
+  BetaMessageIterationUsage | BetaCompactionIterationUsage | BetaAdvisorMessageIterationUsage
+>;
 
 export interface BetaJSONOutputFormat {
   /**
@@ -1024,7 +1465,7 @@ export interface BetaMemoryTool20250818 {
 
   type: 'memory_20250818';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -1039,6 +1480,9 @@ export interface BetaMemoryTool20250818 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -1229,6 +1673,11 @@ export interface BetaMessage {
   role: 'assistant';
 
   /**
+   * Structured information about a refusal.
+   */
+  stop_details: BetaRefusalStopDetails | null;
+
+  /**
    * The reason that we stopped.
    *
    * This may be one the following values:
@@ -1299,6 +1748,18 @@ export interface BetaMessageDeltaUsage {
   input_tokens: number | null;
 
   /**
+   * Per-iteration token usage breakdown.
+   *
+   * Each entry represents one sampling iteration, with its own input/output token
+   * counts and cache statistics. This allows you to:
+   *
+   * - Determine which iterations exceeded long context thresholds (>=200k tokens)
+   * - Calculate the true context window size from the last iteration
+   * - Understand token accumulation across server-side tool use loops
+   */
+  iterations: BetaIterationsUsage | null;
+
+  /**
    * The cumulative number of output tokens which were used.
    */
   output_tokens: number;
@@ -1307,6 +1768,41 @@ export interface BetaMessageDeltaUsage {
    * The number of server tool requests.
    */
   server_tool_use: BetaServerToolUsage | null;
+}
+
+/**
+ * Token usage for a sampling iteration.
+ */
+export interface BetaMessageIterationUsage {
+  /**
+   * Breakdown of cached tokens by TTL
+   */
+  cache_creation: BetaCacheCreation | null;
+
+  /**
+   * The number of input tokens used to create the cache entry.
+   */
+  cache_creation_input_tokens: number;
+
+  /**
+   * The number of input tokens read from the cache.
+   */
+  cache_read_input_tokens: number;
+
+  /**
+   * The number of input tokens which were used.
+   */
+  input_tokens: number;
+
+  /**
+   * The number of output tokens which were used.
+   */
+  output_tokens: number;
+
+  /**
+   * Usage for a sampling iteration
+   */
+  type: 'message';
 }
 
 export interface BetaMessageParam {
@@ -1343,7 +1839,18 @@ export interface BetaOutputConfig {
   /**
    * All possible effort levels.
    */
-  effort?: 'low' | 'medium' | 'high' | null;
+  effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | null;
+
+  /**
+   * A schema to specify Claude's output format in responses. See
+   * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+   */
+  format?: BetaJSONOutputFormat | null;
+
+  /**
+   * User-configurable total token budget across contexts.
+   */
+  task_budget?: BetaTokenTaskBudget | null;
 }
 
 export interface BetaPlainTextSource {
@@ -1359,7 +1866,8 @@ export type BetaRawContentBlockDelta =
   | BetaInputJSONDelta
   | BetaCitationsDelta
   | BetaThinkingDelta
-  | BetaSignatureDelta;
+  | BetaSignatureDelta
+  | BetaCompactionContentBlockDelta;
 
 export interface BetaRawContentBlockDeltaEvent {
   delta: BetaRawContentBlockDelta;
@@ -1381,13 +1889,15 @@ export interface BetaRawContentBlockStartEvent {
     | BetaServerToolUseBlock
     | BetaWebSearchToolResultBlock
     | BetaWebFetchToolResultBlock
+    | BetaAdvisorToolResultBlock
     | BetaCodeExecutionToolResultBlock
     | BetaBashCodeExecutionToolResultBlock
     | BetaTextEditorCodeExecutionToolResultBlock
     | BetaToolSearchToolResultBlock
     | BetaMCPToolUseBlock
     | BetaMCPToolResultBlock
-    | BetaContainerUploadBlock;
+    | BetaContainerUploadBlock
+    | BetaCompactionBlock;
 
   index: number;
 
@@ -1436,9 +1946,14 @@ export namespace BetaRawMessageDeltaEvent {
      * Information about the container used in the request (for the code execution
      * tool)
      */
-    container: MessagesMessagesAPI.BetaContainer | null;
+    container: BetaMessagesAPI.BetaContainer | null;
 
-    stop_reason: MessagesMessagesAPI.BetaStopReason | null;
+    /**
+     * Structured information about a refusal.
+     */
+    stop_details: BetaMessagesAPI.BetaRefusalStopDetails | null;
+
+    stop_reason: BetaMessagesAPI.BetaStopReason | null;
 
     stop_sequence: string | null;
   }
@@ -1472,6 +1987,28 @@ export interface BetaRedactedThinkingBlockParam {
   data: string;
 
   type: 'redacted_thinking';
+}
+
+/**
+ * Structured information about a refusal.
+ */
+export interface BetaRefusalStopDetails {
+  /**
+   * The policy category that triggered the refusal.
+   *
+   * `null` when the refusal doesn't map to a named category.
+   */
+  category: 'cyber' | 'bio' | null;
+
+  /**
+   * Human-readable explanation of the refusal.
+   *
+   * This text is not guaranteed to be stable. `null` when no explanation is
+   * available for the category.
+   */
+  explanation: string | null;
+
+  type: 'refusal';
 }
 
 export interface BetaRequestDocumentBlock {
@@ -1555,6 +2092,12 @@ export interface BetaServerToolCaller {
   type: 'code_execution_20250825';
 }
 
+export interface BetaServerToolCaller20260120 {
+  tool_id: string;
+
+  type: 'code_execution_20260120';
+}
+
 export interface BetaServerToolUsage {
   /**
    * The number of web fetch tool requests.
@@ -1570,14 +2113,10 @@ export interface BetaServerToolUsage {
 export interface BetaServerToolUseBlock {
   id: string;
 
-  /**
-   * Tool invocation directly from the model.
-   */
-  caller: BetaDirectCaller | BetaServerToolCaller;
-
   input: { [key: string]: unknown };
 
   name:
+    | 'advisor'
     | 'web_search'
     | 'web_fetch'
     | 'code_execution'
@@ -1587,6 +2126,11 @@ export interface BetaServerToolUseBlock {
     | 'tool_search_tool_bm25';
 
   type: 'server_tool_use';
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
 export interface BetaServerToolUseBlockParam {
@@ -1595,6 +2139,7 @@ export interface BetaServerToolUseBlockParam {
   input: unknown;
 
   name:
+    | 'advisor'
     | 'web_search'
     | 'web_fetch'
     | 'code_execution'
@@ -1613,7 +2158,7 @@ export interface BetaServerToolUseBlockParam {
   /**
    * Tool invocation directly from the model.
    */
-  caller?: BetaDirectCaller | BetaServerToolCaller;
+  caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
 export interface BetaSignatureDelta {
@@ -1668,6 +2213,7 @@ export type BetaStopReason =
   | 'stop_sequence'
   | 'tool_use'
   | 'pause_turn'
+  | 'compaction'
   | 'refusal'
   | 'model_context_window_exceeded';
 
@@ -1858,6 +2404,18 @@ export interface BetaThinkingBlockParam {
   type: 'thinking';
 }
 
+export interface BetaThinkingConfigAdaptive {
+  type: 'adaptive';
+
+  /**
+   * Controls how thinking content appears in the response. When set to `summarized`,
+   * thinking is returned normally. When set to `omitted`, thinking content is
+   * redacted but a signature is returned for multi-turn continuity. Defaults to
+   * `summarized`.
+   */
+  display?: 'summarized' | 'omitted' | null;
+}
+
 export interface BetaThinkingConfigDisabled {
   type: 'disabled';
 }
@@ -1877,6 +2435,14 @@ export interface BetaThinkingConfigEnabled {
   budget_tokens: number;
 
   type: 'enabled';
+
+  /**
+   * Controls how thinking content appears in the response. When set to `summarized`,
+   * thinking is returned normally. When set to `omitted`, thinking content is
+   * redacted but a signature is returned for multi-turn continuity. Defaults to
+   * `summarized`.
+   */
+  display?: 'summarized' | 'omitted' | null;
 }
 
 /**
@@ -1890,7 +2456,10 @@ export interface BetaThinkingConfigEnabled {
  * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
  * for details.
  */
-export type BetaThinkingConfigParam = BetaThinkingConfigEnabled | BetaThinkingConfigDisabled;
+export type BetaThinkingConfigParam =
+  | BetaThinkingConfigEnabled
+  | BetaThinkingConfigDisabled
+  | BetaThinkingConfigAdaptive;
 
 export interface BetaThinkingDelta {
   thinking: string;
@@ -1902,6 +2471,27 @@ export interface BetaThinkingTurns {
   type: 'thinking_turns';
 
   value: number;
+}
+
+/**
+ * User-configurable total token budget across contexts.
+ */
+export interface BetaTokenTaskBudget {
+  /**
+   * Total token budget across all contexts in the session.
+   */
+  total: number;
+
+  /**
+   * The budget type. Currently only 'tokens' is supported.
+   */
+  type: 'tokens';
+
+  /**
+   * Remaining tokens in the budget. Use this to track usage across contexts when
+   * implementing compaction client-side. Defaults to total if not provided.
+   */
+  remaining?: number | null;
 }
 
 export interface BetaTool {
@@ -1920,7 +2510,7 @@ export interface BetaTool {
    */
   name: string;
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -1943,8 +2533,20 @@ export interface BetaTool {
    */
   description?: string;
 
+  /**
+   * Enable eager input streaming for this tool. When true, tool input parameters
+   * will be streamed incrementally as they are generated, and types will be inferred
+   * on-the-fly rather than buffering the full JSON output. When false, streaming is
+   * disabled for this tool even if the fine-grained-tool-streaming beta is active.
+   * When null (default), uses the default behavior based on beta headers.
+   */
+  eager_input_streaming?: boolean | null;
+
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 
   type?: 'custom' | null;
@@ -1978,7 +2580,7 @@ export interface BetaToolBash20241022 {
 
   type: 'bash_20241022';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -1993,6 +2595,9 @@ export interface BetaToolBash20241022 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2006,7 +2611,7 @@ export interface BetaToolBash20250124 {
 
   type: 'bash_20250124';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2021,6 +2626,9 @@ export interface BetaToolBash20250124 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2107,7 +2715,7 @@ export interface BetaToolComputerUse20241022 {
 
   type: 'computer_20241022';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2127,6 +2735,9 @@ export interface BetaToolComputerUse20241022 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2150,7 +2761,7 @@ export interface BetaToolComputerUse20250124 {
 
   type: 'computer_20250124';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2170,6 +2781,9 @@ export interface BetaToolComputerUse20250124 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2193,7 +2807,7 @@ export interface BetaToolComputerUse20251124 {
 
   type: 'computer_20251124';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2218,6 +2832,9 @@ export interface BetaToolComputerUse20251124 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2274,7 +2891,7 @@ export interface BetaToolSearchToolBm25_20251119 {
 
   type: 'tool_search_tool_bm25_20251119' | 'tool_search_tool_bm25';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2287,6 +2904,9 @@ export interface BetaToolSearchToolBm25_20251119 {
    */
   defer_loading?: boolean;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2300,7 +2920,7 @@ export interface BetaToolSearchToolRegex20251119 {
 
   type: 'tool_search_tool_regex_20251119' | 'tool_search_tool_regex';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2313,6 +2933,9 @@ export interface BetaToolSearchToolRegex20251119 {
    */
   defer_loading?: boolean;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2375,7 +2998,7 @@ export interface BetaToolTextEditor20241022 {
 
   type: 'text_editor_20241022';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2390,6 +3013,9 @@ export interface BetaToolTextEditor20241022 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2403,7 +3029,7 @@ export interface BetaToolTextEditor20250124 {
 
   type: 'text_editor_20250124';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2418,6 +3044,9 @@ export interface BetaToolTextEditor20250124 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2431,7 +3060,7 @@ export interface BetaToolTextEditor20250429 {
 
   type: 'text_editor_20250429';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2446,6 +3075,9 @@ export interface BetaToolTextEditor20250429 {
 
   input_examples?: Array<{ [key: string]: unknown }>;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
@@ -2459,7 +3091,7 @@ export interface BetaToolTextEditor20250728 {
 
   type: 'text_editor_20250728';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2480,14 +3112,15 @@ export interface BetaToolTextEditor20250728 {
    */
   max_characters?: number | null;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 }
 
 /**
- * Configuration for a group of tools from an MCP server.
- *
- * Allows configuring enabled status and defer_loading for all tools from an MCP
- * server, with optional per-tool overrides.
+ * Code execution tool with REPL state persistence (daemon mode + gVisor
+ * checkpoint).
  */
 export type BetaToolUnion =
   | BetaTool
@@ -2495,6 +3128,7 @@ export type BetaToolUnion =
   | BetaToolBash20250124
   | BetaCodeExecutionTool20250522
   | BetaCodeExecutionTool20250825
+  | BetaCodeExecutionTool20260120
   | BetaToolComputerUse20241022
   | BetaMemoryTool20250818
   | BetaToolComputerUse20250124
@@ -2505,6 +3139,10 @@ export type BetaToolUnion =
   | BetaToolTextEditor20250728
   | BetaWebSearchTool20250305
   | BetaWebFetchTool20250910
+  | BetaWebSearchTool20260209
+  | BetaWebFetchTool20260209
+  | BetaWebFetchTool20260309
+  | BetaAdvisorTool20260301
   | BetaToolSearchToolBm25_20251119
   | BetaToolSearchToolRegex20251119
   | BetaMCPToolset;
@@ -2521,7 +3159,7 @@ export interface BetaToolUseBlock {
   /**
    * Tool invocation directly from the model.
    */
-  caller?: BetaDirectCaller | BetaServerToolCaller;
+  caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
 export interface BetaToolUseBlockParam {
@@ -2541,7 +3179,7 @@ export interface BetaToolUseBlockParam {
   /**
    * Tool invocation directly from the model.
    */
-  caller?: BetaDirectCaller | BetaServerToolCaller;
+  caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
 export interface BetaToolUsesKeep {
@@ -2585,9 +3223,26 @@ export interface BetaUsage {
   cache_read_input_tokens: number | null;
 
   /**
+   * The geographic region where inference was performed for this request.
+   */
+  inference_geo: string | null;
+
+  /**
    * The number of input tokens which were used.
    */
   input_tokens: number;
+
+  /**
+   * Per-iteration token usage breakdown.
+   *
+   * Each entry represents one sampling iteration, with its own input/output token
+   * counts and cache statistics. This allows you to:
+   *
+   * - Determine which iterations exceeded long context thresholds (>=200k tokens)
+   * - Calculate the true context window size from the last iteration
+   * - Understand token accumulation across server-side tool use loops
+   */
+  iterations: BetaIterationsUsage | null;
 
   /**
    * The number of output tokens which were used.
@@ -2603,6 +3258,37 @@ export interface BetaUsage {
    * If the request used the priority, standard, or batch tier.
    */
   service_tier: 'standard' | 'priority' | 'batch' | null;
+
+  /**
+   * The inference speed mode used for this request.
+   */
+  speed: 'standard' | 'fast' | null;
+}
+
+export interface BetaUserLocation {
+  type: 'approximate';
+
+  /**
+   * The city of the user.
+   */
+  city?: string | null;
+
+  /**
+   * The two letter
+   * [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the
+   * user.
+   */
+  country?: string | null;
+
+  /**
+   * The region of the user.
+   */
+  region?: string | null;
+
+  /**
+   * The [IANA timezone](https://nodatime.org/TimeZones) of the user.
+   */
+  timezone?: string | null;
 }
 
 export interface BetaWebFetchBlock {
@@ -2647,7 +3333,7 @@ export interface BetaWebFetchTool20250910 {
 
   type: 'web_fetch_20250910';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * List of domains to allow fetching from
@@ -2687,7 +3373,132 @@ export interface BetaWebFetchTool20250910 {
    */
   max_uses?: number | null;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
+}
+
+export interface BetaWebFetchTool20260209 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_fetch';
+
+  type: 'web_fetch_20260209';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * List of domains to allow fetching from
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * List of domains to block fetching from
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Citations configuration for fetched documents. Citations are disabled by
+   * default.
+   */
+  citations?: BetaCitationsConfigParam | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of tokens used by including web page text content in the context.
+   * The limit is approximate and does not apply to binary content such as PDFs.
+   */
+  max_content_tokens?: number | null;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
+/**
+ * Web fetch tool with use_cache parameter for bypassing cached content.
+ */
+export interface BetaWebFetchTool20260309 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_fetch';
+
+  type: 'web_fetch_20260309';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * List of domains to allow fetching from
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * List of domains to block fetching from
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Citations configuration for fetched documents. Citations are disabled by
+   * default.
+   */
+  citations?: BetaCitationsConfigParam | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of tokens used by including web page text content in the context.
+   * The limit is approximate and does not apply to binary content such as PDFs.
+   */
+  max_content_tokens?: number | null;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+
+  /**
+   * Whether to use cached content. Set to false to bypass the cache and fetch fresh
+   * content. Only set to false when the user explicitly requests fresh content or
+   * when fetching rapidly-changing sources.
+   */
+  use_cache?: boolean;
 }
 
 export interface BetaWebFetchToolResultBlock {
@@ -2696,6 +3507,11 @@ export interface BetaWebFetchToolResultBlock {
   tool_use_id: string;
 
   type: 'web_fetch_tool_result';
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
 export interface BetaWebFetchToolResultBlockParam {
@@ -2709,6 +3525,11 @@ export interface BetaWebFetchToolResultBlockParam {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
 export interface BetaWebFetchToolResultErrorBlock {
@@ -2767,7 +3588,7 @@ export interface BetaWebSearchTool20250305 {
 
   type: 'web_search_20250305';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825'>;
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
 
   /**
    * If provided, only these domains will be included in results. Cannot be used
@@ -2797,45 +3618,68 @@ export interface BetaWebSearchTool20250305 {
    */
   max_uses?: number | null;
 
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
   strict?: boolean;
 
   /**
    * Parameters for the user's location. Used to provide more relevant search
    * results.
    */
-  user_location?: BetaWebSearchTool20250305.UserLocation | null;
+  user_location?: BetaUserLocation | null;
 }
 
-export namespace BetaWebSearchTool20250305 {
+export interface BetaWebSearchTool20260209 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_search';
+
+  type: 'web_search_20260209';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * If provided, only these domains will be included in results. Cannot be used
+   * alongside `blocked_domains`.
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * If provided, these domains will never appear in results. Cannot be used
+   * alongside `allowed_domains`.
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+
   /**
    * Parameters for the user's location. Used to provide more relevant search
    * results.
    */
-  export interface UserLocation {
-    type: 'approximate';
-
-    /**
-     * The city of the user.
-     */
-    city?: string | null;
-
-    /**
-     * The two letter
-     * [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the
-     * user.
-     */
-    country?: string | null;
-
-    /**
-     * The region of the user.
-     */
-    region?: string | null;
-
-    /**
-     * The [IANA timezone](https://nodatime.org/TimeZones) of the user.
-     */
-    timezone?: string | null;
-  }
+  user_location?: BetaUserLocation | null;
 }
 
 export interface BetaWebSearchToolRequestError {
@@ -2850,6 +3694,11 @@ export interface BetaWebSearchToolResultBlock {
   tool_use_id: string;
 
   type: 'web_search_tool_result';
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
 export type BetaWebSearchToolResultBlockContent =
@@ -2867,6 +3716,11 @@ export interface BetaWebSearchToolResultBlockParam {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
 export type BetaWebSearchToolResultBlockParamContent =
@@ -2884,7 +3738,8 @@ export type BetaWebSearchToolResultErrorCode =
   | 'unavailable'
   | 'max_uses_exceeded'
   | 'too_many_requests'
-  | 'query_too_long';
+  | 'query_too_long'
+  | 'request_too_large';
 
 /**
  * @deprecated BetaRequestDocumentBlock should be used insated
@@ -2982,6 +3837,12 @@ export interface MessageCreateParamsBase {
   model: MessagesAPI.Model;
 
   /**
+   * Body param: Top-level cache control automatically applies a cache_control marker
+   * to the last cacheable block in the request.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
    * Body param: Container identifier for reuse across requests.
    */
   container?: BetaContainerParams | string | null;
@@ -2995,6 +3856,12 @@ export interface MessageCreateParamsBase {
   context_management?: BetaContextManagementConfig | null;
 
   /**
+   * Body param: Specifies the geographic region for inference processing. If not
+   * specified, the workspace's `default_inference_geo` is used.
+   */
+  inference_geo?: string | null;
+
+  /**
    * Body param: MCP servers to be utilized in this request
    */
   mcp_servers?: Array<BetaRequestMCPServerURLDefinition>;
@@ -3005,13 +3872,17 @@ export interface MessageCreateParamsBase {
   metadata?: BetaMetadata;
 
   /**
-   * Body param: Configuration options for the model's output. Controls aspects like
-   * how much effort the model puts into its response.
+   * Body param: Configuration options for the model's output, such as the output
+   * format.
    */
   output_config?: BetaOutputConfig;
 
   /**
-   * Body param: A schema to specify Claude's output format in responses.
+   * Body param: Deprecated: Use `output_config.format` instead. See
+   * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+   *
+   * A schema to specify Claude's output format in responses. This parameter will be
+   * removed in a future release.
    */
   output_format?: BetaJSONOutputFormat | null;
 
@@ -3023,6 +3894,12 @@ export interface MessageCreateParamsBase {
    * [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
    */
   service_tier?: 'auto' | 'standard_only';
+
+  /**
+   * Body param: The inference speed mode for this request. `"fast"` enables high
+   * output-tokens-per-second inference.
+   */
+  speed?: 'standard' | 'fast' | null;
 
   /**
    * Body param: Custom text sequences that will cause the model to stop generating.
@@ -3055,14 +3932,9 @@ export interface MessageCreateParamsBase {
   system?: string | Array<BetaTextBlockParam>;
 
   /**
-   * Body param: Amount of randomness injected into the response.
-   *
-   * Defaults to `1.0`. Ranges from `0.0` to `1.0`. Use `temperature` closer to `0.0`
-   * for analytical / multiple choice, and closer to `1.0` for creative and
-   * generative tasks.
-   *
-   * Note that even with `temperature` of `0.0`, the results will not be fully
-   * deterministic.
+   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
+   * setting temperature. A value of 1.0 of will be accepted for backwards
+   * compatibility, all other values will be rejected with a 400 error.
    */
   temperature?: number;
 
@@ -3165,28 +4037,23 @@ export interface MessageCreateParamsBase {
   tools?: Array<BetaToolUnion>;
 
   /**
-   * Body param: Only sample from the top K options for each subsequent token.
-   *
-   * Used to remove "long tail" low probability responses.
-   * [Learn more technical details here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
-   *
-   * Recommended for advanced use cases only. You usually only need to use
-   * `temperature`.
+   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not accept
+   * top_k; any value will be rejected with a 400 error.
    */
   top_k?: number;
 
   /**
-   * Body param: Use nucleus sampling.
-   *
-   * In nucleus sampling, we compute the cumulative distribution over all the options
-   * for each subsequent token in decreasing probability order and cut it off once it
-   * reaches a particular probability specified by `top_p`. You should either alter
-   * `temperature` or `top_p`, but not both.
-   *
-   * Recommended for advanced use cases only. You usually only need to use
-   * `temperature`.
+   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
+   * setting top_p. A value >= 0.99 will be accepted for backwards compatibility, all
+   * other values will be rejected with a 400 error.
    */
   top_p?: number;
+
+  /**
+   * Body param: The user profile ID to attribute this request to. Use when acting on
+   * behalf of a party other than your organization.
+   */
+  user_profile_id?: string | null;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
@@ -3195,8 +4062,8 @@ export interface MessageCreateParamsBase {
 }
 
 export namespace MessageCreateParams {
-  export type MessageCreateParamsNonStreaming = MessagesMessagesAPI.MessageCreateParamsNonStreaming;
-  export type MessageCreateParamsStreaming = MessagesMessagesAPI.MessageCreateParamsStreaming;
+  export type MessageCreateParamsNonStreaming = BetaMessagesAPI.MessageCreateParamsNonStreaming;
+  export type MessageCreateParamsStreaming = BetaMessagesAPI.MessageCreateParamsStreaming;
 }
 
 export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase {
@@ -3297,6 +4164,12 @@ export interface MessageCountTokensParams {
   model: MessagesAPI.Model;
 
   /**
+   * Body param: Top-level cache control automatically applies a cache_control marker
+   * to the last cacheable block in the request.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
    * Body param: Context management configuration.
    *
    * This allows you to control how Claude manages context across multiple requests,
@@ -3310,15 +4183,25 @@ export interface MessageCountTokensParams {
   mcp_servers?: Array<BetaRequestMCPServerURLDefinition>;
 
   /**
-   * Body param: Configuration options for the model's output. Controls aspects like
-   * how much effort the model puts into its response.
+   * Body param: Configuration options for the model's output, such as the output
+   * format.
    */
   output_config?: BetaOutputConfig;
 
   /**
-   * Body param: A schema to specify Claude's output format in responses.
+   * Body param: Deprecated: Use `output_config.format` instead. See
+   * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+   *
+   * A schema to specify Claude's output format in responses. This parameter will be
+   * removed in a future release.
    */
   output_format?: BetaJSONOutputFormat | null;
+
+  /**
+   * Body param: The inference speed mode for this request. `"fast"` enables high
+   * output-tokens-per-second inference.
+   */
+  speed?: 'standard' | 'fast' | null;
 
   /**
    * Body param: System prompt.
@@ -3431,6 +4314,7 @@ export interface MessageCountTokensParams {
     | BetaToolBash20250124
     | BetaCodeExecutionTool20250522
     | BetaCodeExecutionTool20250825
+    | BetaCodeExecutionTool20260120
     | BetaToolComputerUse20241022
     | BetaMemoryTool20250818
     | BetaToolComputerUse20250124
@@ -3441,6 +4325,10 @@ export interface MessageCountTokensParams {
     | BetaToolTextEditor20250728
     | BetaWebSearchTool20250305
     | BetaWebFetchTool20250910
+    | BetaWebSearchTool20260209
+    | BetaWebFetchTool20260209
+    | BetaWebFetchTool20260309
+    | BetaAdvisorTool20260301
     | BetaToolSearchToolBm25_20251119
     | BetaToolSearchToolRegex20251119
     | BetaMCPToolset
@@ -3453,13 +4341,25 @@ export interface MessageCountTokensParams {
 }
 
 export { BetaToolRunner, type BetaToolRunnerParams } from '../../../lib/tools/BetaToolRunner';
+export { ToolError } from '../../../lib/tools/ToolError';
 
 Messages.Batches = Batches;
 
 Messages.BetaToolRunner = BetaToolRunner;
+Messages.ToolError = ToolError;
 
 export declare namespace Messages {
   export {
+    type BetaAdvisorMessageIterationUsage as BetaAdvisorMessageIterationUsage,
+    type BetaAdvisorRedactedResultBlock as BetaAdvisorRedactedResultBlock,
+    type BetaAdvisorRedactedResultBlockParam as BetaAdvisorRedactedResultBlockParam,
+    type BetaAdvisorResultBlock as BetaAdvisorResultBlock,
+    type BetaAdvisorResultBlockParam as BetaAdvisorResultBlockParam,
+    type BetaAdvisorTool20260301 as BetaAdvisorTool20260301,
+    type BetaAdvisorToolResultBlock as BetaAdvisorToolResultBlock,
+    type BetaAdvisorToolResultBlockParam as BetaAdvisorToolResultBlockParam,
+    type BetaAdvisorToolResultError as BetaAdvisorToolResultError,
+    type BetaAdvisorToolResultErrorParam as BetaAdvisorToolResultErrorParam,
     type BetaAllThinkingTurns as BetaAllThinkingTurns,
     type BetaBase64ImageSource as BetaBase64ImageSource,
     type BetaBase64PDFSource as BetaBase64PDFSource,
@@ -3496,6 +4396,7 @@ export declare namespace Messages {
     type BetaCodeExecutionResultBlockParam as BetaCodeExecutionResultBlockParam,
     type BetaCodeExecutionTool20250522 as BetaCodeExecutionTool20250522,
     type BetaCodeExecutionTool20250825 as BetaCodeExecutionTool20250825,
+    type BetaCodeExecutionTool20260120 as BetaCodeExecutionTool20260120,
     type BetaCodeExecutionToolResultBlock as BetaCodeExecutionToolResultBlock,
     type BetaCodeExecutionToolResultBlockContent as BetaCodeExecutionToolResultBlockContent,
     type BetaCodeExecutionToolResultBlockParam as BetaCodeExecutionToolResultBlockParam,
@@ -3503,6 +4404,11 @@ export declare namespace Messages {
     type BetaCodeExecutionToolResultError as BetaCodeExecutionToolResultError,
     type BetaCodeExecutionToolResultErrorCode as BetaCodeExecutionToolResultErrorCode,
     type BetaCodeExecutionToolResultErrorParam as BetaCodeExecutionToolResultErrorParam,
+    type BetaCompact20260112Edit as BetaCompact20260112Edit,
+    type BetaCompactionBlock as BetaCompactionBlock,
+    type BetaCompactionBlockParam as BetaCompactionBlockParam,
+    type BetaCompactionContentBlockDelta as BetaCompactionContentBlockDelta,
+    type BetaCompactionIterationUsage as BetaCompactionIterationUsage,
     type BetaContainer as BetaContainer,
     type BetaContainerParams as BetaContainerParams,
     type BetaContainerUploadBlock as BetaContainerUploadBlock,
@@ -3516,12 +4422,15 @@ export declare namespace Messages {
     type BetaCountTokensContextManagementResponse as BetaCountTokensContextManagementResponse,
     type BetaDirectCaller as BetaDirectCaller,
     type BetaDocumentBlock as BetaDocumentBlock,
+    type BetaEncryptedCodeExecutionResultBlock as BetaEncryptedCodeExecutionResultBlock,
+    type BetaEncryptedCodeExecutionResultBlockParam as BetaEncryptedCodeExecutionResultBlockParam,
     type BetaFileDocumentSource as BetaFileDocumentSource,
     type BetaFileImageSource as BetaFileImageSource,
     type BetaImageBlockParam as BetaImageBlockParam,
     type BetaInputJSONDelta as BetaInputJSONDelta,
     type BetaInputTokensClearAtLeast as BetaInputTokensClearAtLeast,
     type BetaInputTokensTrigger as BetaInputTokensTrigger,
+    type BetaIterationsUsage as BetaIterationsUsage,
     type BetaJSONOutputFormat as BetaJSONOutputFormat,
     type BetaMCPToolConfig as BetaMCPToolConfig,
     type BetaMCPToolDefaultConfig as BetaMCPToolDefaultConfig,
@@ -3539,6 +4448,7 @@ export declare namespace Messages {
     type BetaMemoryTool20250818ViewCommand as BetaMemoryTool20250818ViewCommand,
     type BetaMessage as BetaMessage,
     type BetaMessageDeltaUsage as BetaMessageDeltaUsage,
+    type BetaMessageIterationUsage as BetaMessageIterationUsage,
     type BetaMessageParam as BetaMessageParam,
     type BetaMessageTokensCount as BetaMessageTokensCount,
     type BetaMetadata as BetaMetadata,
@@ -3554,12 +4464,14 @@ export declare namespace Messages {
     type BetaRawMessageStreamEvent as BetaRawMessageStreamEvent,
     type BetaRedactedThinkingBlock as BetaRedactedThinkingBlock,
     type BetaRedactedThinkingBlockParam as BetaRedactedThinkingBlockParam,
+    type BetaRefusalStopDetails as BetaRefusalStopDetails,
     type BetaRequestDocumentBlock as BetaRequestDocumentBlock,
     type BetaRequestMCPServerToolConfiguration as BetaRequestMCPServerToolConfiguration,
     type BetaRequestMCPServerURLDefinition as BetaRequestMCPServerURLDefinition,
     type BetaRequestMCPToolResultBlockParam as BetaRequestMCPToolResultBlockParam,
     type BetaSearchResultBlockParam as BetaSearchResultBlockParam,
     type BetaServerToolCaller as BetaServerToolCaller,
+    type BetaServerToolCaller20260120 as BetaServerToolCaller20260120,
     type BetaServerToolUsage as BetaServerToolUsage,
     type BetaServerToolUseBlock as BetaServerToolUseBlock,
     type BetaServerToolUseBlockParam as BetaServerToolUseBlockParam,
@@ -3584,11 +4496,13 @@ export declare namespace Messages {
     type BetaTextEditorCodeExecutionViewResultBlockParam as BetaTextEditorCodeExecutionViewResultBlockParam,
     type BetaThinkingBlock as BetaThinkingBlock,
     type BetaThinkingBlockParam as BetaThinkingBlockParam,
+    type BetaThinkingConfigAdaptive as BetaThinkingConfigAdaptive,
     type BetaThinkingConfigDisabled as BetaThinkingConfigDisabled,
     type BetaThinkingConfigEnabled as BetaThinkingConfigEnabled,
     type BetaThinkingConfigParam as BetaThinkingConfigParam,
     type BetaThinkingDelta as BetaThinkingDelta,
     type BetaThinkingTurns as BetaThinkingTurns,
+    type BetaTokenTaskBudget as BetaTokenTaskBudget,
     type BetaTool as BetaTool,
     type BetaToolBash20241022 as BetaToolBash20241022,
     type BetaToolBash20250124 as BetaToolBash20250124,
@@ -3624,9 +4538,12 @@ export declare namespace Messages {
     type BetaURLImageSource as BetaURLImageSource,
     type BetaURLPDFSource as BetaURLPDFSource,
     type BetaUsage as BetaUsage,
+    type BetaUserLocation as BetaUserLocation,
     type BetaWebFetchBlock as BetaWebFetchBlock,
     type BetaWebFetchBlockParam as BetaWebFetchBlockParam,
     type BetaWebFetchTool20250910 as BetaWebFetchTool20250910,
+    type BetaWebFetchTool20260209 as BetaWebFetchTool20260209,
+    type BetaWebFetchTool20260309 as BetaWebFetchTool20260309,
     type BetaWebFetchToolResultBlock as BetaWebFetchToolResultBlock,
     type BetaWebFetchToolResultBlockParam as BetaWebFetchToolResultBlockParam,
     type BetaWebFetchToolResultErrorBlock as BetaWebFetchToolResultErrorBlock,
@@ -3635,6 +4552,7 @@ export declare namespace Messages {
     type BetaWebSearchResultBlock as BetaWebSearchResultBlock,
     type BetaWebSearchResultBlockParam as BetaWebSearchResultBlockParam,
     type BetaWebSearchTool20250305 as BetaWebSearchTool20250305,
+    type BetaWebSearchTool20260209 as BetaWebSearchTool20260209,
     type BetaWebSearchToolRequestError as BetaWebSearchToolRequestError,
     type BetaWebSearchToolResultBlock as BetaWebSearchToolResultBlock,
     type BetaWebSearchToolResultBlockContent as BetaWebSearchToolResultBlockContent,
@@ -3650,6 +4568,7 @@ export declare namespace Messages {
   };
 
   export { type BetaToolRunnerParams, BetaToolRunner };
+  export { ToolError };
 
   export {
     Batches as Batches,

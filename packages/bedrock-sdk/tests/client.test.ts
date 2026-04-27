@@ -1,3 +1,6 @@
+import { getAuthHeaders } from '@anthropic-ai/bedrock-sdk/core/auth';
+import AnthropicBedrock from '../src';
+
 // Mock the client to allow for a more integration-style test
 // We're mocking specific parts of the AnthropicBedrock client to avoid
 // dependencies while still testing the integration behavior
@@ -109,5 +112,151 @@ describe('Bedrock model ARN URL encoding integration test', () => {
 
     // Verify the exact URL matches what we expect
     expect(fetchUrl).toBe(expectedUrl);
+  });
+});
+
+describe('Bedrock bearer token authentication', () => {
+  const mockFetch = jest.fn().mockImplementation(() => {
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Headers({ 'content-type': 'application/json' }),
+      json: () => Promise.resolve({}),
+      text: () => Promise.resolve('{}'),
+    });
+  });
+
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    global.fetch = mockFetch;
+    mockFetch.mockClear();
+    (getAuthHeaders as jest.Mock).mockClear();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  test('sends Authorization Bearer header when apiKey is provided', async () => {
+    const { AnthropicBedrock } = require('../src');
+
+    const client = new AnthropicBedrock({
+      apiKey: 'test-bearer-token',
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+    });
+
+    try {
+      await client.messages.create({
+        model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+        max_tokens: 1024,
+        messages: [{ content: 'Hello', role: 'user' }],
+      });
+    } catch (e) {
+      // may error due to mocking, we only care about the request
+    }
+
+    expect(mockFetch).toHaveBeenCalled();
+
+    const [_url, init] = mockFetch.mock.calls[0];
+    const headers = new Headers(init.headers);
+
+    expect(headers.get('Authorization')).toBe('Bearer test-bearer-token');
+  });
+
+  test('does not send Authorization header when no apiKey is provided', async () => {
+    const { AnthropicBedrock } = require('../src');
+
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+    });
+
+    try {
+      await client.messages.create({
+        model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+        max_tokens: 1024,
+        messages: [{ content: 'Hello', role: 'user' }],
+      });
+    } catch (e) {
+      // may error due to mocking
+    }
+
+    expect(mockFetch).toHaveBeenCalled();
+
+    const [, init] = mockFetch.mock.calls[0];
+    const headers = new Headers(init.headers);
+
+    expect(headers.get('Authorization')).toBeNull();
+  });
+
+  test('skips SigV4 signing when apiKey is provided', async () => {
+    const authModule = require('../src/core/auth');
+    const getAuthHeadersSpy = jest.spyOn(authModule, 'getAuthHeaders');
+
+    const { AnthropicBedrock } = require('../src');
+
+    const client = new AnthropicBedrock({
+      apiKey: 'test-bearer-token',
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+    });
+
+    try {
+      await client.messages.create({
+        model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+        max_tokens: 1024,
+        messages: [{ content: 'Hello', role: 'user' }],
+      });
+    } catch (e) {
+      // may error due to mocking
+    }
+
+    expect(getAuthHeadersSpy).not.toHaveBeenCalled();
+    getAuthHeadersSpy.mockRestore();
+  });
+});
+
+describe('AnthropicBedrock constructor deprecation warnings', () => {
+  let consoleWarnSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    jest.resetModules();
+  });
+
+  afterEach(() => {
+    consoleWarnSpy.mockRestore();
+  });
+
+  test('does not warn when both credentials are provided', () => {
+    new AnthropicBedrock({
+      awsAccessKey: 'access-key',
+      awsSecretKey: 'secret-key',
+      awsRegion: 'us-east-1',
+    });
+
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  test('does not warn when neither credential is provided', () => {
+    new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+    });
+
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  test('warns when only one credential is provided', () => {
+    new AnthropicBedrock({
+      awsAccessKey: 'access-key',
+      awsRegion: 'us-east-1',
+    });
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Passing only one of `awsAccessKey` or `awsSecretKey` is deprecated'),
+    );
   });
 });

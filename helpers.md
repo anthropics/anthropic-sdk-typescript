@@ -99,6 +99,82 @@ A mutable array of all messages in the conversation.
 
 The underlying `AbortController` for the runner.
 
+## Structured Outputs
+
+The SDK provides helpers for parsing structured JSON outputs from Claude using JSON Schema or Zod validation.
+
+### Usage with Zod
+
+```ts
+import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
+import Anthropic from '@anthropic-ai/sdk';
+import { z } from 'zod';
+
+const client = new Anthropic();
+
+const NumbersResponse = z.object({
+  primes: z.array(z.number()),
+});
+
+const message = await client.messages.parse({
+  model: 'claude-sonnet-4-5',
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
+  output_config: {
+    format: zodOutputFormat(NumbersResponse),
+  },
+});
+
+console.log(message.parsed_output?.primes); // [2, 3, 5]
+```
+
+### Usage with JSON Schema
+
+```ts
+import { jsonSchemaOutputFormat } from '@anthropic-ai/sdk/helpers/json-schema';
+import Anthropic from '@anthropic-ai/sdk';
+
+const client = new Anthropic();
+
+const NumbersResponse = {
+  type: 'object',
+  properties: {
+    primes: { type: 'array', items: { type: 'number' } },
+  },
+  required: ['primes'],
+} as const;
+
+const message = await client.messages.parse({
+  model: 'claude-sonnet-4-5',
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
+  output_config: {
+    format: jsonSchemaOutputFormat(NumbersResponse),
+  },
+});
+
+console.log(message.parsed_output?.primes); // [2, 3, 5]
+```
+
+### `zodOutputFormat(zodObject)`
+
+Creates a JSON schema output format from a Zod schema. The response will be validated and parsed using Zod.
+
+### `jsonSchemaOutputFormat(schema, options?)`
+
+Creates a JSON schema output format from a raw JSON schema. Options:
+
+- `transform?: boolean` - Whether to transform the schema for Claude compatibility (default: `true`)
+
+### Examples
+
+See the following example files:
+
+- [`examples/structured-outputs-zod.ts`](examples/structured-outputs-zod.ts)
+- [`examples/structured-outputs-json-schema.ts`](examples/structured-outputs-json-schema.ts)
+- [`examples/structured-outputs-streaming.ts`](examples/structured-outputs-streaming.ts)
+- [`examples/structured-outputs-raw.ts`](examples/structured-outputs-raw.ts)
+
 ## Tool Helpers
 
 The SDK provides helper functions to create runnable tools that can be automatically invoked by the `.toolRunner()` method. These helpers simplify tool creation with JSON Schema or Zod validation.
@@ -179,6 +255,48 @@ console.log(await runner);
 
 See [`examples/tools-helpers-advanced-streaming.ts`](examples/tools-helpers-advanced-streaming.ts) for a more
 in-depth example.
+
+#### Cancellation
+
+The `BetaToolRunner` supports cancellation via `AbortSignal`. The signal is passed to both API calls and tool `run` methods via the `BetaToolRunContext`.
+
+```ts
+const controller = new AbortController();
+
+const runner = anthropic.beta.messages.toolRunner(
+  {
+    model: 'claude-sonnet-4-5-20250929',
+    max_tokens: 1000,
+    messages: [{ role: 'user', content: 'Do a long task' }],
+    tools: [
+      betaZodTool({
+        name: 'long_task',
+        inputSchema: z.object({ query: z.string() }),
+        description: 'A long-running task',
+        run: async (input, context) => {
+          // Throws AbortError if already cancelled before run() was called
+          context?.signal?.throwIfAborted();
+          // Pass the signal to downstream operations for mid-flight cancellation
+          const result = await fetch(url, { signal: context?.signal });
+          return result.text();
+        },
+      }),
+    ],
+  },
+  { signal: controller.signal },
+);
+
+// Cancel after 5 seconds
+setTimeout(() => controller.abort(), 5000);
+
+const finalMessage = await runner;
+```
+
+You can also set or update the signal after creating the runner:
+
+```ts
+runner.setRequestOptions({ signal: controller.signal });
+```
 
 ### `betaZodTool`
 
@@ -287,7 +405,7 @@ Updates the conversation parameters. Can accept new parameters or a mutator func
 // Direct parameter update
 runner.setMessagesParams({
   ...runner.params,
-  model: 'claude-3-5-haiku-20241022',
+  model: 'claude-haiku-4-5',
   max_tokens: 500,
 });
 
@@ -310,9 +428,25 @@ runner.pushMessages(
 );
 ```
 
-#### `BetaToolRunner.generateToolResponse()`
+#### `BetaToolRunner.setRequestOptions()`
 
-Gets the tool response for the last assistant message (if any tools need to be executed).
+Updates the request options (e.g., headers, abort signal) for future API calls and tool executions.
+
+```ts
+// Direct options update
+const controller = new AbortController();
+runner.setRequestOptions({ signal: controller.signal });
+
+// Using mutator function to preserve existing options
+runner.setRequestOptions((prev) => ({
+  ...prev,
+  signal: controller.signal,
+}));
+```
+
+#### `BetaToolRunner.generateToolResponse(signal?)`
+
+Gets the tool response for the last assistant message (if any tools need to be executed). Accepts an optional `AbortSignal` parameter that will be passed to tool `run` methods; defaults to the signal from request options.
 
 ```ts
 for await (const message of runner) {
@@ -330,6 +464,38 @@ Read-only access to the current conversation parameters.
 ```ts
 console.log('Current model:', runner.params.model);
 console.log('Message count:', runner.params.messages.length);
+```
+
+### `ToolError`
+
+When a tool encounters an error, you can throw a `ToolError` to return structured content blocks as the error result instead of just a string message. The ToolRunner will catch this error and send the content back to the model with `is_error: true`.
+
+```ts
+import { ToolError } from '@anthropic-ai/sdk/resources/beta/messages';
+
+const screenshotTool = betaZodTool({
+  name: 'take_screenshot',
+  inputSchema: z.object({ url: z.string() }),
+  description: 'Take a screenshot of a webpage',
+  run: async (input) => {
+    try {
+      const screenshot = await takeScreenshot(input.url);
+      return [{ type: 'image', source: { type: 'base64', data: screenshot, media_type: 'image/png' } }];
+    } catch (e) {
+      // Return structured error content with an image showing what went wrong
+      throw new ToolError([
+        { type: 'text', text: `Failed to screenshot ${input.url}: ${e.message}` },
+        { type: 'image', source: { type: 'base64', data: errorScreenshot, media_type: 'image/png' } },
+      ]);
+    }
+  },
+});
+```
+
+You can also throw a `ToolError` with a simple string:
+
+```ts
+throw new ToolError('Invalid input: URL must start with https://');
 ```
 
 ### Examples

@@ -239,20 +239,28 @@ describe('toolRunner integration tests', () => {
 
       // Update parameters
       runner.setMessagesParams({
-        model: 'claude-3-5-haiku-20241022',
+        model: 'claude-haiku-4-5',
         max_tokens: 500,
         messages: [{ role: 'user', content: 'Updated message' }],
         tools: [tool],
       });
 
       const params = runner.params;
-      expect(params.model).toBe('claude-3-5-haiku-20241022');
+      expect(params.model).toBe('claude-haiku-4-5');
       expect(params.max_tokens).toBe(500);
       expect(params.messages).toEqual([{ role: 'user', content: 'Updated message' }]);
     });
   });
 
   describe('compaction', () => {
+    let warnSpy: jest.SpyInstance;
+    beforeEach(() => {
+      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+    afterEach(() => {
+      warnSpy.mockRestore();
+    });
+
     it('should compact messages when token threshold is exceeded', async () => {
       const tool = {
         name: 'submit_analysis',
@@ -291,6 +299,7 @@ describe('toolRunner integration tests', () => {
       });
 
       await runner.runUntilDone();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('compactionControl'));
       expect(runner.params.messages[0]).toMatchInlineSnapshot(`
 {
   "content": [

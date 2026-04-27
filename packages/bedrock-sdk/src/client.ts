@@ -9,6 +9,7 @@ import { isObj } from './internal/utils/values';
 import { buildHeaders } from './internal/headers';
 import { FinalizedRequestInit } from './internal/types';
 import { path } from './internal/utils/path';
+import { loggerFor } from './internal/utils/log';
 
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 
@@ -16,6 +17,11 @@ const DEFAULT_VERSION = 'bedrock-2023-05-31';
 const MODEL_ENDPOINTS = new Set<string>(['/v1/complete', '/v1/messages', '/v1/messages?beta=true']);
 
 export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
+  /**
+   * Defaults to process.env['AWS_BEARER_TOKEN_BEDROCK'].
+   */
+  apiKey?: string | undefined;
+
   awsSecretKey?: string | null | undefined;
   awsAccessKey?: string | null | undefined;
 
@@ -30,6 +36,30 @@ export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
   providerChainResolver?: (() => Promise<AwsCredentialIdentityProvider>) | null;
 };
 
+type BothStaticCreds = {
+  awsAccessKey: string;
+  awsSecretKey: string;
+  awsSessionToken?: string | null | undefined;
+};
+
+type NoStaticCreds = {
+  awsAccessKey?: null | undefined;
+  awsSecretKey?: null | undefined;
+  awsSessionToken?: null | undefined;
+};
+
+type AccessOnly = {
+  awsAccessKey: string;
+  awsSecretKey?: null | undefined;
+  awsSessionToken?: string | null | undefined;
+};
+
+type SecretOnly = {
+  awsSecretKey: string;
+  awsAccessKey?: null | undefined;
+  awsSessionToken?: string | null | undefined;
+};
+
 /** API Client for interfacing with the Anthropic Bedrock API. */
 export class AnthropicBedrock extends BaseAnthropic {
   awsSecretKey: string | null;
@@ -38,6 +68,21 @@ export class AnthropicBedrock extends BaseAnthropic {
   awsSessionToken: string | null;
   skipAuth: boolean = false;
   providerChainResolver: (() => Promise<AwsCredentialIdentityProvider>) | null;
+
+  constructor(opts: ClientOptions & BothStaticCreds);
+  constructor(opts?: ClientOptions & NoStaticCreds);
+
+  /**
+   * @deprecated Passing only `awsAccessKey` without `awsSecretKey` is deprecated.
+   * Provide both keys, or provide neither and rely on the AWS credential provider chain.
+   */
+  constructor(opts: ClientOptions & AccessOnly);
+
+  /**
+   * @deprecated Passing only `awsSecretKey` without `awsAccessKey` is deprecated.
+   * Provide both keys, or provide neither and rely on the AWS credential provider chain.
+   */
+  constructor(opts: ClientOptions & SecretOnly);
 
   /**
    * API Client for interfacing with the Anthropic Bedrock API.
@@ -60,16 +105,23 @@ export class AnthropicBedrock extends BaseAnthropic {
   constructor({
     awsRegion = readEnv('AWS_REGION') ?? 'us-east-1',
     baseURL = readEnv('ANTHROPIC_BEDROCK_BASE_URL') ?? `https://bedrock-runtime.${awsRegion}.amazonaws.com`,
+    apiKey = readEnv('AWS_BEARER_TOKEN_BEDROCK'),
     awsSecretKey = null,
     awsAccessKey = null,
     awsSessionToken = null,
     providerChainResolver = null,
     ...opts
   }: ClientOptions = {}) {
-    super({
-      baseURL,
-      ...opts,
-    });
+    super({ baseURL, authToken: apiKey, ...opts });
+
+    const hasAccess = awsAccessKey != null;
+    const hasSecret = awsSecretKey != null;
+    if (hasAccess !== hasSecret) {
+      loggerFor(this).warn(
+        'Warning: Passing only one of `awsAccessKey` or `awsSecretKey` is deprecated. ' +
+          'Please provide both keys, or provide neither and rely on the AWS credential provider chain.',
+      );
+    }
 
     this.awsSecretKey = awsSecretKey;
     this.awsAccessKey = awsAccessKey;
@@ -92,8 +144,15 @@ export class AnthropicBedrock extends BaseAnthropic {
     { url, options }: { url: string; options: FinalRequestOptions },
   ): Promise<void> {
     if (this.skipAuth) {
+      // Authorization header is added in `buildRequest` so we need to remove it
+      request.headers.delete('Authorization');
       return;
     }
+
+    if (this.authToken) {
+      return;
+    }
+
     const regionName = this.awsRegion;
     if (!regionName) {
       throw new Error(

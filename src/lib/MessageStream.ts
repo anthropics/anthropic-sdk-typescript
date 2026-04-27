@@ -16,8 +16,10 @@ import {
 import { Stream } from '../streaming';
 import { partialParse } from '../_vendor/partial-json-parser/parser';
 import { RequestOptions } from '../internal/request-options';
+import type { Logger } from '../client';
+import { maybeParseMessage, type ParsedMessage } from './parser';
 
-export interface MessageStreamEvents {
+export interface MessageStreamEvents<ParsedT = null> {
   connect: () => void;
   streamEvent: (event: MessageStreamEvent, snapshot: Message) => void;
   text: (textDelta: string, textSnapshot: string) => void;
@@ -25,16 +27,16 @@ export interface MessageStreamEvents {
   inputJson: (partialJson: string, jsonSnapshot: unknown) => void;
   thinking: (thinkingDelta: string, thinkingSnapshot: string) => void;
   signature: (signature: string) => void;
-  message: (message: Message) => void;
+  message: (message: ParsedMessage<ParsedT>) => void;
   contentBlock: (content: ContentBlock) => void;
-  finalMessage: (message: Message) => void;
+  finalMessage: (message: ParsedMessage<ParsedT>) => void;
   error: (error: AnthropicError) => void;
   abort: (error: APIUserAbortError) => void;
   end: () => void;
 }
 
-type MessageStreamEventListeners<Event extends keyof MessageStreamEvents> = {
-  listener: MessageStreamEvents[Event];
+type MessageStreamEventListeners<ParsedT, Event extends keyof MessageStreamEvents<ParsedT>> = {
+  listener: MessageStreamEvents<ParsedT>[Event];
   once?: boolean;
 }[];
 
@@ -46,10 +48,11 @@ function tracksToolInput(content: ContentBlock): content is TracksToolInput {
   return content.type === 'tool_use' || content.type === 'server_tool_use';
 }
 
-export class MessageStream implements AsyncIterable<MessageStreamEvent> {
+export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStreamEvent> {
   messages: MessageParam[] = [];
-  receivedMessages: Message[] = [];
+  receivedMessages: ParsedMessage<ParsedT>[] = [];
   #currentMessageSnapshot: Message | undefined;
+  #params: MessageCreateParams | null = null;
 
   controller: AbortController = new AbortController();
 
@@ -61,7 +64,9 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
   #resolveEndPromise: () => void = () => {};
   #rejectEndPromise: (error: AnthropicError) => void = () => {};
 
-  #listeners: { [Event in keyof MessageStreamEvents]?: MessageStreamEventListeners<Event> } = {};
+  #listeners: {
+    [Event in keyof MessageStreamEvents<ParsedT>]?: MessageStreamEventListeners<ParsedT, Event>;
+  } = {};
 
   #ended = false;
   #errored = false;
@@ -69,8 +74,9 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
   #catchingPromiseCreated = false;
   #response: Response | null | undefined;
   #request_id: string | null | undefined;
+  #logger: Logger;
 
-  constructor() {
+  constructor(params: MessageCreateParamsBase | null, opts?: { logger?: Logger | undefined }) {
     this.#connectedPromise = new Promise<Response | null>((resolve, reject) => {
       this.#resolveConnectedPromise = resolve;
       this.#rejectConnectedPromise = reject;
@@ -87,6 +93,9 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     // any promise-returning method.
     this.#connectedPromise.catch(() => {});
     this.#endPromise.catch(() => {});
+
+    this.#params = params;
+    this.#logger = opts?.logger ?? console;
   }
 
   get response(): Response | null | undefined {
@@ -108,7 +117,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
    * as no `Response` is available.
    */
   async withResponse(): Promise<{
-    data: MessageStream;
+    data: MessageStream<ParsedT>;
     response: Response;
     request_id: string | null | undefined;
   }> {
@@ -134,20 +143,22 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
    * in this context.
    */
   static fromReadableStream(stream: ReadableStream): MessageStream {
-    const runner = new MessageStream();
+    const runner = new MessageStream(null);
     runner._run(() => runner._fromReadableStream(stream));
     return runner;
   }
 
-  static createMessage(
+  static createMessage<ParsedT>(
     messages: Messages,
     params: MessageCreateParamsBase,
     options?: RequestOptions,
-  ): MessageStream {
-    const runner = new MessageStream();
+    { logger }: { logger?: Logger | undefined } = {},
+  ): MessageStream<ParsedT> {
+    const runner = new MessageStream<ParsedT>(params, { logger });
     for (const message of params.messages) {
       runner._addMessageParam(message);
     }
+    runner.#params = { ...params, stream: true };
     runner._run(() =>
       runner._createMessage(
         messages,
@@ -169,7 +180,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     this.messages.push(message);
   }
 
-  protected _addMessage(message: Message, emit = true) {
+  protected _addMessage(message: ParsedMessage<ParsedT>, emit = true) {
     this.receivedMessages.push(message);
     if (emit) {
       this._emit('message', message);
@@ -239,8 +250,11 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
    * called, multiple times.
    * @returns this MessageStream, so that calls can be chained
    */
-  on<Event extends keyof MessageStreamEvents>(event: Event, listener: MessageStreamEvents[Event]): this {
-    const listeners: MessageStreamEventListeners<Event> =
+  on<Event extends keyof MessageStreamEvents<ParsedT>>(
+    event: Event,
+    listener: MessageStreamEvents<ParsedT>[Event],
+  ): this {
+    const listeners: MessageStreamEventListeners<ParsedT, Event> =
       this.#listeners[event] || (this.#listeners[event] = []);
     listeners.push({ listener });
     return this;
@@ -253,7 +267,10 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
    * off() must be called multiple times to remove each instance.
    * @returns this MessageStream, so that calls can be chained
    */
-  off<Event extends keyof MessageStreamEvents>(event: Event, listener: MessageStreamEvents[Event]): this {
+  off<Event extends keyof MessageStreamEvents<ParsedT>>(
+    event: Event,
+    listener: MessageStreamEvents<ParsedT>[Event],
+  ): this {
     const listeners = this.#listeners[event];
     if (!listeners) return this;
     const index = listeners.findIndex((l) => l.listener === listener);
@@ -266,8 +283,11 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
    * this listener is removed and then invoked.
    * @returns this MessageStream, so that calls can be chained
    */
-  once<Event extends keyof MessageStreamEvents>(event: Event, listener: MessageStreamEvents[Event]): this {
-    const listeners: MessageStreamEventListeners<Event> =
+  once<Event extends keyof MessageStreamEvents<ParsedT>>(
+    event: Event,
+    listener: MessageStreamEvents<ParsedT>[Event],
+  ): this {
+    const listeners: MessageStreamEventListeners<ParsedT, Event> =
       this.#listeners[event] || (this.#listeners[event] = []);
     listeners.push({ listener, once: true });
     return this;
@@ -284,12 +304,12 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
    *
    *   const message = await stream.emitted('message') // rejects if the stream errors
    */
-  emitted<Event extends keyof MessageStreamEvents>(
+  emitted<Event extends keyof MessageStreamEvents<ParsedT>>(
     event: Event,
   ): Promise<
-    Parameters<MessageStreamEvents[Event]> extends [infer Param] ? Param
-    : Parameters<MessageStreamEvents[Event]> extends [] ? void
-    : Parameters<MessageStreamEvents[Event]>
+    Parameters<MessageStreamEvents<ParsedT>[Event]> extends [infer Param] ? Param
+    : Parameters<MessageStreamEvents<ParsedT>[Event]> extends [] ? void
+    : Parameters<MessageStreamEvents<ParsedT>[Event]>
   > {
     return new Promise((resolve, reject) => {
       this.#catchingPromiseCreated = true;
@@ -307,7 +327,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     return this.#currentMessageSnapshot;
   }
 
-  #getFinalMessage(): Message {
+  #getFinalMessage(): ParsedMessage<ParsedT> {
     if (this.receivedMessages.length === 0) {
       throw new AnthropicError('stream ended without producing a Message with role=assistant');
     }
@@ -317,8 +337,9 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
   /**
    * @returns a promise that resolves with the the final assistant Message response,
    * or rejects if an error occurred or the stream ended prematurely without producing a Message.
+   * If structured outputs were used, this will be a ParsedMessage with a `parsed_output` field.
    */
-  async finalMessage(): Promise<Message> {
+  async finalMessage(): Promise<ParsedMessage<ParsedT>> {
     await this.done();
     return this.#getFinalMessage();
   }
@@ -368,9 +389,9 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
     return this._emit('error', new AnthropicError(String(error)));
   };
 
-  protected _emit<Event extends keyof MessageStreamEvents>(
+  protected _emit<Event extends keyof MessageStreamEvents<ParsedT>>(
     event: Event,
-    ...args: Parameters<MessageStreamEvents[Event]>
+    ...args: Parameters<MessageStreamEvents<ParsedT>[Event]>
   ) {
     // make sure we don't emit any MessageStreamEvents after end
     if (this.#ended) return;
@@ -380,9 +401,9 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
       this.#resolveEndPromise();
     }
 
-    const listeners: MessageStreamEventListeners<Event> | undefined = this.#listeners[event];
+    const listeners: MessageStreamEventListeners<ParsedT, Event> | undefined = this.#listeners[event];
     if (listeners) {
-      this.#listeners[event] = listeners.filter((l) => !l.once) as any;
+      this.#listeners[event] = listeners.filter((l: { once?: boolean }) => !l.once) as any;
       listeners.forEach(({ listener }: any) => listener(...args));
     }
 
@@ -473,7 +494,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
       }
       case 'message_stop': {
         this._addMessageParam(messageSnapshot);
-        this._addMessage(messageSnapshot, true);
+        this._addMessage(maybeParseMessage(messageSnapshot, this.#params, { logger: this.#logger }), true);
         break;
       }
       case 'content_block_stop': {
@@ -489,7 +510,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
         break;
     }
   }
-  #endRequest(): Message {
+  #endRequest(): ParsedMessage<ParsedT> {
     if (this.ended) {
       throw new AnthropicError(`stream has ended, this shouldn't happen`);
     }
@@ -498,7 +519,7 @@ export class MessageStream implements AsyncIterable<MessageStreamEvent> {
       throw new AnthropicError(`request ended without sending any chunks`);
     }
     this.#currentMessageSnapshot = undefined;
-    return snapshot;
+    return maybeParseMessage(snapshot, this.#params, { logger: this.#logger });
   }
 
   protected async _fromReadableStream(

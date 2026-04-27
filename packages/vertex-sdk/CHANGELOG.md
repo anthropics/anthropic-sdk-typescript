@@ -1,5 +1,47 @@
 # Changelog
 
+## 0.16.0 (2026-04-10)
+
+Full Changelog: [vertex-sdk-v0.15.0...vertex-sdk-v0.16.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.15.0...vertex-sdk-v0.16.0)
+
+### Features
+
+* vertex eu region ([#882](https://github.com/anthropics/anthropic-sdk-typescript/issues/882)) ([1933857](https://github.com/anthropics/anthropic-sdk-typescript/commit/193385760676b1c941a1f500aa91d0f7a3204b40))
+
+## 0.15.0 (2026-04-03)
+
+Full Changelog: [vertex-sdk-v0.14.4...vertex-sdk-v0.15.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.14.4...vertex-sdk-v0.15.0)
+
+### Features
+
+* **vertex:** add support for US multi-region endpoint ([5e5aea7](https://github.com/anthropics/anthropic-sdk-typescript/commit/5e5aea72e8af1d0cd0af7770f7c98a716fa24629))
+* **vertex:** add support for US multi-region endpoint ([0de0e98](https://github.com/anthropics/anthropic-sdk-typescript/commit/0de0e98aace311d7f6b5617b597d73324de73e2f))
+
+## 0.14.4 (2026-02-19)
+
+Full Changelog: [vertex-sdk-v0.14.3...vertex-sdk-v0.14.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.14.3...vertex-sdk-v0.14.4)
+
+## 0.14.3 (2026-02-05)
+
+Full Changelog: [vertex-sdk-v0.14.2...vertex-sdk-v0.14.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.14.2...vertex-sdk-v0.14.3)
+
+### Bug Fixes
+
+* **client:** avoid memory leak with abort signals ([53e47df](https://github.com/anthropics/anthropic-sdk-typescript/commit/53e47dfa6985e6a206c475b8c920b8a97c27e17e))
+
+## 0.14.2 (2026-01-29)
+
+Full Changelog: [vertex-sdk-v0.14.1...vertex-sdk-v0.14.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.14.1...vertex-sdk-v0.14.2)
+
+### Chores
+
+* **internal:** version bump ([24ecc83](https://github.com/anthropics/anthropic-sdk-typescript/commit/24ecc838b0adbb837b14fe24fac0895d81ea8891))
+
+
+### Documentation
+
+* update README with Claude branding ([#611](https://github.com/anthropics/anthropic-sdk-typescript/issues/611)) ([2a9a5f7](https://github.com/anthropics/anthropic-sdk-typescript/commit/2a9a5f7f94d2fe807bcc73aa6a3a92f8e50db763))
+
 ## 0.14.1 (2025-11-24)
 
 Full Changelog: [vertex-sdk-v0.14.0...vertex-sdk-v0.14.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.14.0...vertex-sdk-v0.14.1)

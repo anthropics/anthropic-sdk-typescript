@@ -69,11 +69,136 @@ export class Models extends APIResource {
 
 export type BetaModelInfosPage = Page<BetaModelInfo>;
 
+/**
+ * Indicates whether a capability is supported.
+ */
+export interface BetaCapabilitySupport {
+  /**
+   * Whether this capability is supported by the model.
+   */
+  supported: boolean;
+}
+
+/**
+ * Context management capability details.
+ */
+export interface BetaContextManagementCapability {
+  /**
+   * Indicates whether a capability is supported.
+   */
+  clear_thinking_20251015: BetaCapabilitySupport | null;
+
+  /**
+   * Indicates whether a capability is supported.
+   */
+  clear_tool_uses_20250919: BetaCapabilitySupport | null;
+
+  /**
+   * Indicates whether a capability is supported.
+   */
+  compact_20260112: BetaCapabilitySupport | null;
+
+  /**
+   * Whether this capability is supported by the model.
+   */
+  supported: boolean;
+}
+
+/**
+ * Effort (reasoning_effort) capability details.
+ */
+export interface BetaEffortCapability {
+  /**
+   * Whether the model supports high effort level.
+   */
+  high: BetaCapabilitySupport;
+
+  /**
+   * Whether the model supports low effort level.
+   */
+  low: BetaCapabilitySupport;
+
+  /**
+   * Whether the model supports max effort level.
+   */
+  max: BetaCapabilitySupport;
+
+  /**
+   * Whether the model supports medium effort level.
+   */
+  medium: BetaCapabilitySupport;
+
+  /**
+   * Whether this capability is supported by the model.
+   */
+  supported: boolean;
+
+  /**
+   * Indicates whether a capability is supported.
+   */
+  xhigh: BetaCapabilitySupport | null;
+}
+
+/**
+ * Model capability information.
+ */
+export interface BetaModelCapabilities {
+  /**
+   * Whether the model supports the Batch API.
+   */
+  batch: BetaCapabilitySupport;
+
+  /**
+   * Whether the model supports citation generation.
+   */
+  citations: BetaCapabilitySupport;
+
+  /**
+   * Whether the model supports code execution tools.
+   */
+  code_execution: BetaCapabilitySupport;
+
+  /**
+   * Context management support and available strategies.
+   */
+  context_management: BetaContextManagementCapability;
+
+  /**
+   * Effort (reasoning_effort) support and available levels.
+   */
+  effort: BetaEffortCapability;
+
+  /**
+   * Whether the model accepts image content blocks.
+   */
+  image_input: BetaCapabilitySupport;
+
+  /**
+   * Whether the model accepts PDF content blocks.
+   */
+  pdf_input: BetaCapabilitySupport;
+
+  /**
+   * Whether the model supports structured output / JSON mode / strict tool schemas.
+   */
+  structured_outputs: BetaCapabilitySupport;
+
+  /**
+   * Thinking capability and supported type configurations.
+   */
+  thinking: BetaThinkingCapability;
+}
+
 export interface BetaModelInfo {
   /**
    * Unique model identifier.
    */
   id: string;
+
+  /**
+   * Model capability information.
+   */
+  capabilities: BetaModelCapabilities | null;
 
   /**
    * RFC 3339 datetime string representing the time at which the model was released.
@@ -87,11 +212,51 @@ export interface BetaModelInfo {
   display_name: string;
 
   /**
+   * Maximum input context window size in tokens for this model.
+   */
+  max_input_tokens: number | null;
+
+  /**
+   * Maximum value for the `max_tokens` parameter when using this model.
+   */
+  max_tokens: number | null;
+
+  /**
    * Object type.
    *
    * For Models, this is always `"model"`.
    */
   type: 'model';
+}
+
+/**
+ * Thinking capability details.
+ */
+export interface BetaThinkingCapability {
+  /**
+   * Whether this capability is supported by the model.
+   */
+  supported: boolean;
+
+  /**
+   * Supported thinking type configurations.
+   */
+  types: BetaThinkingTypes;
+}
+
+/**
+ * Supported thinking type configurations.
+ */
+export interface BetaThinkingTypes {
+  /**
+   * Whether the model supports thinking with type 'adaptive' (auto).
+   */
+  adaptive: BetaCapabilitySupport;
+
+  /**
+   * Whether the model supports thinking with type 'enabled'.
+   */
+  enabled: BetaCapabilitySupport;
 }
 
 export interface ModelRetrieveParams {
@@ -110,7 +275,13 @@ export interface ModelListParams extends PageParams {
 
 export declare namespace Models {
   export {
+    type BetaCapabilitySupport as BetaCapabilitySupport,
+    type BetaContextManagementCapability as BetaContextManagementCapability,
+    type BetaEffortCapability as BetaEffortCapability,
+    type BetaModelCapabilities as BetaModelCapabilities,
     type BetaModelInfo as BetaModelInfo,
+    type BetaThinkingCapability as BetaThinkingCapability,
+    type BetaThinkingTypes as BetaThinkingTypes,
     type BetaModelInfosPage as BetaModelInfosPage,
     type ModelRetrieveParams as ModelRetrieveParams,
     type ModelListParams as ModelListParams,

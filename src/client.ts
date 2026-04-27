@@ -11,14 +11,15 @@ import type { APIResponseProps } from './internal/parse';
 import { getPlatformHeaders } from './internal/detect-platform';
 import * as Shims from './internal/shims';
 import * as Opts from './internal/request-options';
+import { stringifyQuery } from './internal/utils/query';
 import { VERSION } from './version';
 import * as Errors from './core/error';
 import * as Pagination from './core/pagination';
 import {
-  type PageParams,
-  PageResponse,
   type PageCursorParams,
   PageCursorResponse,
+  type PageParams,
+  PageResponse,
   type TokenPageParams,
   TokenPageResponse,
 } from './core/pagination';
@@ -32,7 +33,19 @@ import {
   CompletionCreateParamsStreaming,
   Completions,
 } from './resources/completions';
-import { ModelInfo, ModelInfosPage, ModelListParams, ModelRetrieveParams, Models } from './resources/models';
+import {
+  CapabilitySupport,
+  ContextManagementCapability,
+  EffortCapability,
+  ModelCapabilities,
+  ModelInfo,
+  ModelInfosPage,
+  ModelListParams,
+  ModelRetrieveParams,
+  Models,
+  ThinkingCapability,
+  ThinkingTypes,
+} from './resources/models';
 import {
   AnthropicBeta,
   Beta,
@@ -51,6 +64,15 @@ import {
 import {
   Base64ImageSource,
   Base64PDFSource,
+  BashCodeExecutionOutputBlock,
+  BashCodeExecutionOutputBlockParam,
+  BashCodeExecutionResultBlock,
+  BashCodeExecutionResultBlockParam,
+  BashCodeExecutionToolResultBlock,
+  BashCodeExecutionToolResultBlockParam,
+  BashCodeExecutionToolResultError,
+  BashCodeExecutionToolResultErrorCode,
+  BashCodeExecutionToolResultErrorParam,
   CacheControlEphemeral,
   CacheCreation,
   CitationCharLocation,
@@ -61,10 +83,28 @@ import {
   CitationPageLocationParam,
   CitationSearchResultLocationParam,
   CitationWebSearchResultLocationParam,
+  CitationsConfig,
   CitationsConfigParam,
   CitationsDelta,
   CitationsSearchResultLocation,
   CitationsWebSearchResultLocation,
+  CodeExecutionOutputBlock,
+  CodeExecutionOutputBlockParam,
+  CodeExecutionResultBlock,
+  CodeExecutionResultBlockParam,
+  CodeExecutionTool20250522,
+  CodeExecutionTool20250825,
+  CodeExecutionTool20260120,
+  CodeExecutionToolResultBlock,
+  CodeExecutionToolResultBlockContent,
+  CodeExecutionToolResultBlockParam,
+  CodeExecutionToolResultBlockParamContent,
+  CodeExecutionToolResultError,
+  CodeExecutionToolResultErrorCode,
+  CodeExecutionToolResultErrorParam,
+  Container,
+  ContainerUploadBlock,
+  ContainerUploadBlockParam,
   ContentBlock,
   ContentBlockDeltaEvent,
   ContentBlockParam,
@@ -72,9 +112,15 @@ import {
   ContentBlockStopEvent,
   ContentBlockSource,
   ContentBlockSourceContent,
+  DirectCaller,
+  DocumentBlock,
   DocumentBlockParam,
+  EncryptedCodeExecutionResultBlock,
+  EncryptedCodeExecutionResultBlockParam,
   ImageBlockParam,
   InputJSONDelta,
+  JSONOutputFormat,
+  MemoryTool20250818,
   Message,
   MessageStreamParams,
   MessageCountTokensParams,
@@ -92,6 +138,7 @@ import {
   Messages,
   Metadata,
   Model,
+  OutputConfig,
   PlainTextSource,
   RawContentBlockDelta,
   RawContentBlockDeltaEvent,
@@ -103,7 +150,10 @@ import {
   RawMessageStreamEvent,
   RedactedThinkingBlock,
   RedactedThinkingBlockParam,
+  RefusalStopDetails,
   SearchResultBlockParam,
+  ServerToolCaller,
+  ServerToolCaller20260120,
   ServerToolUsage,
   ServerToolUseBlock,
   ServerToolUseBlockParam,
@@ -114,8 +164,20 @@ import {
   TextCitation,
   TextCitationParam,
   TextDelta,
+  TextEditorCodeExecutionCreateResultBlock,
+  TextEditorCodeExecutionCreateResultBlockParam,
+  TextEditorCodeExecutionStrReplaceResultBlock,
+  TextEditorCodeExecutionStrReplaceResultBlockParam,
+  TextEditorCodeExecutionToolResultBlock,
+  TextEditorCodeExecutionToolResultBlockParam,
+  TextEditorCodeExecutionToolResultError,
+  TextEditorCodeExecutionToolResultErrorCode,
+  TextEditorCodeExecutionToolResultErrorParam,
+  TextEditorCodeExecutionViewResultBlock,
+  TextEditorCodeExecutionViewResultBlockParam,
   ThinkingBlock,
   ThinkingBlockParam,
+  ThinkingConfigAdaptive,
   ThinkingConfigDisabled,
   ThinkingConfigEnabled,
   ThinkingConfigParam,
@@ -127,7 +189,18 @@ import {
   ToolChoiceAuto,
   ToolChoiceNone,
   ToolChoiceTool,
+  ToolReferenceBlock,
+  ToolReferenceBlockParam,
   ToolResultBlockParam,
+  ToolSearchToolBm25_20251119,
+  ToolSearchToolRegex20251119,
+  ToolSearchToolResultBlock,
+  ToolSearchToolResultBlockParam,
+  ToolSearchToolResultError,
+  ToolSearchToolResultErrorCode,
+  ToolSearchToolResultErrorParam,
+  ToolSearchToolSearchResultBlock,
+  ToolSearchToolSearchResultBlockParam,
   ToolTextEditor20250124,
   ToolTextEditor20250429,
   ToolTextEditor20250728,
@@ -137,15 +210,28 @@ import {
   URLImageSource,
   URLPDFSource,
   Usage,
+  UserLocation,
+  WebFetchBlock,
+  WebFetchBlockParam,
+  WebFetchTool20250910,
+  WebFetchTool20260209,
+  WebFetchTool20260309,
+  WebFetchToolResultBlock,
+  WebFetchToolResultBlockParam,
+  WebFetchToolResultErrorBlock,
+  WebFetchToolResultErrorBlockParam,
+  WebFetchToolResultErrorCode,
   WebSearchResultBlock,
   WebSearchResultBlockParam,
   WebSearchTool20250305,
+  WebSearchTool20260209,
   WebSearchToolRequestError,
   WebSearchToolResultBlock,
   WebSearchToolResultBlockContent,
   WebSearchToolResultBlockParam,
   WebSearchToolResultBlockParamContent,
   WebSearchToolResultError,
+  WebSearchToolResultErrorCode,
 } from './resources/messages/messages';
 import { type Fetch } from './internal/builtin-types';
 import { isRunningInBrowser } from './internal/detect-platform';
@@ -409,21 +495,8 @@ export class BaseAnthropic {
   /**
    * Basic re-implementation of `qs.stringify` for primitive types.
    */
-  protected stringifyQuery(query: Record<string, unknown>): string {
-    return Object.entries(query)
-      .filter(([_, value]) => typeof value !== 'undefined')
-      .map(([key, value]) => {
-        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-          return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
-        }
-        if (value === null) {
-          return `${encodeURIComponent(key)}=`;
-        }
-        throw new Errors.AnthropicError(
-          `Cannot stringify type ${typeof value}; Expected string, number, boolean, or null. If you need to pass nested query parameters, you can manually encode them, e.g. { query: { 'foo[key1]': value1, 'foo[key2]': value2 } }, and please open a GitHub issue requesting better support for your use case.`,
-        );
-      })
-      .join('&');
+  protected stringifyQuery(query: object | Record<string, unknown>): string {
+    return stringifyQuery(query);
   }
 
   private getUserAgent(): string {
@@ -455,12 +528,13 @@ export class BaseAnthropic {
       : new URL(baseURL + (baseURL.endsWith('/') && path.startsWith('/') ? path.slice(1) : path));
 
     const defaultQuery = this.defaultQuery();
-    if (!isEmptyObj(defaultQuery)) {
-      query = { ...defaultQuery, ...query };
+    const pathQuery = Object.fromEntries(url.searchParams);
+    if (!isEmptyObj(defaultQuery) || !isEmptyObj(pathQuery)) {
+      query = { ...pathQuery, ...defaultQuery, ...query };
     }
 
     if (typeof query === 'object' && query && !Array.isArray(query)) {
-      url.search = this.stringifyQuery(query as Record<string, unknown>);
+      url.search = this.stringifyQuery(query);
     }
 
     return url.toString();
@@ -660,7 +734,7 @@ export class BaseAnthropic {
       loggerFor(this).info(`${responseInfo} - ${retryMessage}`);
 
       const errText = await response.text().catch((err: any) => castToError(err).message);
-      const errJSON = safeJSON(errText);
+      const errJSON = safeJSON(errText) as any;
       const errMessage = errJSON ? undefined : errText;
 
       loggerFor(this).debug(
@@ -697,9 +771,14 @@ export class BaseAnthropic {
   getAPIList<Item, PageClass extends Pagination.AbstractPage<Item> = Pagination.AbstractPage<Item>>(
     path: string,
     Page: new (...args: any[]) => PageClass,
-    opts?: RequestOptions,
+    opts?: PromiseOrValue<RequestOptions>,
   ): Pagination.PagePromise<PageClass, Item> {
-    return this.requestAPIList(Page, { method: 'get', path, ...opts });
+    return this.requestAPIList(
+      Page,
+      opts && 'then' in opts ?
+        opts.then((opts) => ({ method: 'get', path, ...opts }))
+      : { method: 'get', path, ...opts },
+    );
   }
 
   requestAPIList<
@@ -707,7 +786,7 @@ export class BaseAnthropic {
     PageClass extends Pagination.AbstractPage<Item> = Pagination.AbstractPage<Item>,
   >(
     Page: new (...args: ConstructorParameters<typeof Pagination.AbstractPage>) => PageClass,
-    options: FinalRequestOptions,
+    options: PromiseOrValue<FinalRequestOptions>,
   ): Pagination.PagePromise<PageClass, Item> {
     const request = this.makeRequest(options, null, undefined);
     return new Pagination.PagePromise<PageClass, Item>(this as any as Anthropic, request, Page);
@@ -720,9 +799,16 @@ export class BaseAnthropic {
     controller: AbortController,
   ): Promise<Response> {
     const { signal, method, ...options } = init || {};
-    if (signal) signal.addEventListener('abort', () => controller.abort());
+    // Avoid creating a closure over `this`, `init`, or `options` to prevent memory leaks.
+    // An arrow function like `() => controller.abort()` captures the surrounding scope,
+    // which includes the request body and other large objects. When the user passes a
+    // long-lived AbortSignal, the listener prevents those objects from being GC'd for
+    // the lifetime of the signal. Using `.bind()` only retains a reference to the
+    // controller itself.
+    const abort = this._makeAbort(controller);
+    if (signal) signal.addEventListener('abort', abort, { once: true });
 
-    const timeout = setTimeout(() => controller.abort(), ms);
+    const timeout = setTimeout(abort, ms);
 
     const isReadableBody =
       ((globalThis as any).ReadableStream && options.body instanceof (globalThis as any).ReadableStream) ||
@@ -799,9 +885,9 @@ export class BaseAnthropic {
       }
     }
 
-    // If the API asks us to wait a certain amount of time (and it's a reasonable amount),
-    // just do what it says, but otherwise calculate a default
-    if (!(timeoutMillis && 0 <= timeoutMillis && timeoutMillis < 60 * 1000)) {
+    // If the API asks us to wait a certain amount of time, just do what it
+    // says, but otherwise calculate a default
+    if (timeoutMillis === undefined) {
       const maxRetries = options.maxRetries ?? this.maxRetries;
       timeoutMillis = this.calculateDefaultRetryTimeoutMillis(retriesRemaining, maxRetries);
     }
@@ -907,6 +993,12 @@ export class BaseAnthropic {
     return headers.values;
   }
 
+  private _makeAbort(controller: AbortController) {
+    // note: we can't just inline this method inside `fetchWithTimeout()` because then the closure
+    //       would capture all request options, and cause a memory leak.
+    return () => controller.abort();
+  }
+
   private buildBody({ options: { body, headers: rawHeaders } }: { options: FinalRequestOptions }): {
     bodyHeaders: HeadersLike;
     body: BodyInit | undefined;
@@ -939,6 +1031,14 @@ export class BaseAnthropic {
         (Symbol.iterator in body && 'next' in body && typeof body.next === 'function'))
     ) {
       return { bodyHeaders: undefined, body: Shims.ReadableStreamFrom(body as AsyncIterable<Uint8Array>) };
+    } else if (
+      typeof body === 'object' &&
+      headers.values.get('content-type') === 'application/x-www-form-urlencoded'
+    ) {
+      return {
+        bodyHeaders: { 'content-type': 'application/x-www-form-urlencoded' },
+        body: this.stringifyQuery(body),
+      };
     } else {
       return this.#encoder({ body, headers });
     }
@@ -1007,6 +1107,15 @@ export declare namespace Anthropic {
     Messages as Messages,
     type Base64ImageSource as Base64ImageSource,
     type Base64PDFSource as Base64PDFSource,
+    type BashCodeExecutionOutputBlock as BashCodeExecutionOutputBlock,
+    type BashCodeExecutionOutputBlockParam as BashCodeExecutionOutputBlockParam,
+    type BashCodeExecutionResultBlock as BashCodeExecutionResultBlock,
+    type BashCodeExecutionResultBlockParam as BashCodeExecutionResultBlockParam,
+    type BashCodeExecutionToolResultBlock as BashCodeExecutionToolResultBlock,
+    type BashCodeExecutionToolResultBlockParam as BashCodeExecutionToolResultBlockParam,
+    type BashCodeExecutionToolResultError as BashCodeExecutionToolResultError,
+    type BashCodeExecutionToolResultErrorCode as BashCodeExecutionToolResultErrorCode,
+    type BashCodeExecutionToolResultErrorParam as BashCodeExecutionToolResultErrorParam,
     type CacheControlEphemeral as CacheControlEphemeral,
     type CacheCreation as CacheCreation,
     type CitationCharLocation as CitationCharLocation,
@@ -1017,10 +1126,28 @@ export declare namespace Anthropic {
     type CitationPageLocationParam as CitationPageLocationParam,
     type CitationSearchResultLocationParam as CitationSearchResultLocationParam,
     type CitationWebSearchResultLocationParam as CitationWebSearchResultLocationParam,
+    type CitationsConfig as CitationsConfig,
     type CitationsConfigParam as CitationsConfigParam,
     type CitationsDelta as CitationsDelta,
     type CitationsSearchResultLocation as CitationsSearchResultLocation,
     type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
+    type CodeExecutionOutputBlock as CodeExecutionOutputBlock,
+    type CodeExecutionOutputBlockParam as CodeExecutionOutputBlockParam,
+    type CodeExecutionResultBlock as CodeExecutionResultBlock,
+    type CodeExecutionResultBlockParam as CodeExecutionResultBlockParam,
+    type CodeExecutionTool20250522 as CodeExecutionTool20250522,
+    type CodeExecutionTool20250825 as CodeExecutionTool20250825,
+    type CodeExecutionTool20260120 as CodeExecutionTool20260120,
+    type CodeExecutionToolResultBlock as CodeExecutionToolResultBlock,
+    type CodeExecutionToolResultBlockContent as CodeExecutionToolResultBlockContent,
+    type CodeExecutionToolResultBlockParam as CodeExecutionToolResultBlockParam,
+    type CodeExecutionToolResultBlockParamContent as CodeExecutionToolResultBlockParamContent,
+    type CodeExecutionToolResultError as CodeExecutionToolResultError,
+    type CodeExecutionToolResultErrorCode as CodeExecutionToolResultErrorCode,
+    type CodeExecutionToolResultErrorParam as CodeExecutionToolResultErrorParam,
+    type Container as Container,
+    type ContainerUploadBlock as ContainerUploadBlock,
+    type ContainerUploadBlockParam as ContainerUploadBlockParam,
     type ContentBlock as ContentBlock,
     type ContentBlockDeltaEvent as ContentBlockDeltaEvent,
     type ContentBlockParam as ContentBlockParam,
@@ -1028,9 +1155,15 @@ export declare namespace Anthropic {
     type ContentBlockStopEvent as ContentBlockStopEvent,
     type ContentBlockSource as ContentBlockSource,
     type ContentBlockSourceContent as ContentBlockSourceContent,
+    type DirectCaller as DirectCaller,
+    type DocumentBlock as DocumentBlock,
     type DocumentBlockParam as DocumentBlockParam,
+    type EncryptedCodeExecutionResultBlock as EncryptedCodeExecutionResultBlock,
+    type EncryptedCodeExecutionResultBlockParam as EncryptedCodeExecutionResultBlockParam,
     type ImageBlockParam as ImageBlockParam,
     type InputJSONDelta as InputJSONDelta,
+    type JSONOutputFormat as JSONOutputFormat,
+    type MemoryTool20250818 as MemoryTool20250818,
     type Message as Message,
     type MessageCountTokensTool as MessageCountTokensTool,
     type MessageDeltaEvent as MessageDeltaEvent,
@@ -1042,6 +1175,7 @@ export declare namespace Anthropic {
     type MessageTokensCount as MessageTokensCount,
     type Metadata as Metadata,
     type Model as Model,
+    type OutputConfig as OutputConfig,
     type PlainTextSource as PlainTextSource,
     type RawContentBlockDelta as RawContentBlockDelta,
     type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,
@@ -1053,7 +1187,10 @@ export declare namespace Anthropic {
     type RawMessageStreamEvent as RawMessageStreamEvent,
     type RedactedThinkingBlock as RedactedThinkingBlock,
     type RedactedThinkingBlockParam as RedactedThinkingBlockParam,
+    type RefusalStopDetails as RefusalStopDetails,
     type SearchResultBlockParam as SearchResultBlockParam,
+    type ServerToolCaller as ServerToolCaller,
+    type ServerToolCaller20260120 as ServerToolCaller20260120,
     type ServerToolUsage as ServerToolUsage,
     type ServerToolUseBlock as ServerToolUseBlock,
     type ServerToolUseBlockParam as ServerToolUseBlockParam,
@@ -1064,8 +1201,20 @@ export declare namespace Anthropic {
     type TextCitation as TextCitation,
     type TextCitationParam as TextCitationParam,
     type TextDelta as TextDelta,
+    type TextEditorCodeExecutionCreateResultBlock as TextEditorCodeExecutionCreateResultBlock,
+    type TextEditorCodeExecutionCreateResultBlockParam as TextEditorCodeExecutionCreateResultBlockParam,
+    type TextEditorCodeExecutionStrReplaceResultBlock as TextEditorCodeExecutionStrReplaceResultBlock,
+    type TextEditorCodeExecutionStrReplaceResultBlockParam as TextEditorCodeExecutionStrReplaceResultBlockParam,
+    type TextEditorCodeExecutionToolResultBlock as TextEditorCodeExecutionToolResultBlock,
+    type TextEditorCodeExecutionToolResultBlockParam as TextEditorCodeExecutionToolResultBlockParam,
+    type TextEditorCodeExecutionToolResultError as TextEditorCodeExecutionToolResultError,
+    type TextEditorCodeExecutionToolResultErrorCode as TextEditorCodeExecutionToolResultErrorCode,
+    type TextEditorCodeExecutionToolResultErrorParam as TextEditorCodeExecutionToolResultErrorParam,
+    type TextEditorCodeExecutionViewResultBlock as TextEditorCodeExecutionViewResultBlock,
+    type TextEditorCodeExecutionViewResultBlockParam as TextEditorCodeExecutionViewResultBlockParam,
     type ThinkingBlock as ThinkingBlock,
     type ThinkingBlockParam as ThinkingBlockParam,
+    type ThinkingConfigAdaptive as ThinkingConfigAdaptive,
     type ThinkingConfigDisabled as ThinkingConfigDisabled,
     type ThinkingConfigEnabled as ThinkingConfigEnabled,
     type ThinkingConfigParam as ThinkingConfigParam,
@@ -1077,7 +1226,18 @@ export declare namespace Anthropic {
     type ToolChoiceAuto as ToolChoiceAuto,
     type ToolChoiceNone as ToolChoiceNone,
     type ToolChoiceTool as ToolChoiceTool,
+    type ToolReferenceBlock as ToolReferenceBlock,
+    type ToolReferenceBlockParam as ToolReferenceBlockParam,
     type ToolResultBlockParam as ToolResultBlockParam,
+    type ToolSearchToolBm25_20251119 as ToolSearchToolBm25_20251119,
+    type ToolSearchToolRegex20251119 as ToolSearchToolRegex20251119,
+    type ToolSearchToolResultBlock as ToolSearchToolResultBlock,
+    type ToolSearchToolResultBlockParam as ToolSearchToolResultBlockParam,
+    type ToolSearchToolResultError as ToolSearchToolResultError,
+    type ToolSearchToolResultErrorCode as ToolSearchToolResultErrorCode,
+    type ToolSearchToolResultErrorParam as ToolSearchToolResultErrorParam,
+    type ToolSearchToolSearchResultBlock as ToolSearchToolSearchResultBlock,
+    type ToolSearchToolSearchResultBlockParam as ToolSearchToolSearchResultBlockParam,
     type ToolTextEditor20250124 as ToolTextEditor20250124,
     type ToolTextEditor20250429 as ToolTextEditor20250429,
     type ToolTextEditor20250728 as ToolTextEditor20250728,
@@ -1087,15 +1247,28 @@ export declare namespace Anthropic {
     type URLImageSource as URLImageSource,
     type URLPDFSource as URLPDFSource,
     type Usage as Usage,
+    type UserLocation as UserLocation,
+    type WebFetchBlock as WebFetchBlock,
+    type WebFetchBlockParam as WebFetchBlockParam,
+    type WebFetchTool20250910 as WebFetchTool20250910,
+    type WebFetchTool20260209 as WebFetchTool20260209,
+    type WebFetchTool20260309 as WebFetchTool20260309,
+    type WebFetchToolResultBlock as WebFetchToolResultBlock,
+    type WebFetchToolResultBlockParam as WebFetchToolResultBlockParam,
+    type WebFetchToolResultErrorBlock as WebFetchToolResultErrorBlock,
+    type WebFetchToolResultErrorBlockParam as WebFetchToolResultErrorBlockParam,
+    type WebFetchToolResultErrorCode as WebFetchToolResultErrorCode,
     type WebSearchResultBlock as WebSearchResultBlock,
     type WebSearchResultBlockParam as WebSearchResultBlockParam,
     type WebSearchTool20250305 as WebSearchTool20250305,
+    type WebSearchTool20260209 as WebSearchTool20260209,
     type WebSearchToolRequestError as WebSearchToolRequestError,
     type WebSearchToolResultBlock as WebSearchToolResultBlock,
     type WebSearchToolResultBlockContent as WebSearchToolResultBlockContent,
     type WebSearchToolResultBlockParam as WebSearchToolResultBlockParam,
     type WebSearchToolResultBlockParamContent as WebSearchToolResultBlockParamContent,
     type WebSearchToolResultError as WebSearchToolResultError,
+    type WebSearchToolResultErrorCode as WebSearchToolResultErrorCode,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
@@ -1105,7 +1278,13 @@ export declare namespace Anthropic {
 
   export {
     Models as Models,
+    type CapabilitySupport as CapabilitySupport,
+    type ContextManagementCapability as ContextManagementCapability,
+    type EffortCapability as EffortCapability,
+    type ModelCapabilities as ModelCapabilities,
     type ModelInfo as ModelInfo,
+    type ThinkingCapability as ThinkingCapability,
+    type ThinkingTypes as ThinkingTypes,
     type ModelInfosPage as ModelInfosPage,
     type ModelRetrieveParams as ModelRetrieveParams,
     type ModelListParams as ModelListParams,
@@ -1132,6 +1311,7 @@ export declare namespace Anthropic {
   export type BillingError = API.BillingError;
   export type ErrorObject = API.ErrorObject;
   export type ErrorResponse = API.ErrorResponse;
+  export type ErrorType = API.ErrorType;
   export type GatewayTimeoutError = API.GatewayTimeoutError;
   export type InvalidRequestError = API.InvalidRequestError;
   export type NotFoundError = API.NotFoundError;

@@ -1,0 +1,1 @@
+../../../aws-sdk/src/core/auth.ts

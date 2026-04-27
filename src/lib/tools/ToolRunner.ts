@@ -1,4 +1,5 @@
 import { BetaRunnableTool } from './BetaRunnableTool';
+import { ToolError } from './ToolError';
 import { Anthropic } from '../..';
 import { AnthropicError } from '../../core/error';
 import { BetaMessage, BetaMessageParam, BetaToolUnion, MessageCreateParams } from '../../resources/beta';
@@ -149,7 +150,7 @@ export class BetaToolRunner<Stream extends boolean> {
    * @example
    * // Direct parameter update
    * runner.setMessagesParams({
-   *   model: 'claude-3-5-haiku-latest',
+   *   model: 'claude-haiku-4-5',
    *   max_tokens: 500,
    * });
    *
@@ -345,7 +346,10 @@ async function generateToolResponse(
         return {
           type: 'tool_result' as const,
           tool_use_id: toolUse.id,
-          content: `Error: ${error instanceof Error ? error.message : String(error)}`,
+          content:
+            error instanceof ToolError ?
+              error.content
+            : `Error: ${error instanceof Error ? error.message : String(error)}`,
           is_error: true,
         };
       }

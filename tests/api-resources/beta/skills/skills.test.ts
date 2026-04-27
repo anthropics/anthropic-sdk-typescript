@@ -8,8 +8,7 @@ const client = new Anthropic({
 });
 
 describe('resource skills', () => {
-  // prism binary unsupported
-  test.skip('create', async () => {
+  test('create', async () => {
     const responsePromise = client.beta.skills.create();
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -20,15 +19,14 @@ describe('resource skills', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // prism binary unsupported
-  test.skip('create: request options and params are passed correctly', async () => {
+  test('create: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.skills.create(
         {
           display_title: 'display_title',
-          files: [await toFile(Buffer.from('# my file contents'), 'README.md')],
-          betas: ['string'],
+          files: [await toFile(Buffer.from('Example data'), 'README.md')],
+          betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -49,7 +47,11 @@ describe('resource skills', () => {
   test('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
-      client.beta.skills.retrieve('skill_id', { betas: ['string'] }, { path: '/_stainless_unknown_path' }),
+      client.beta.skills.retrieve(
+        'skill_id',
+        { betas: ['message-batches-2024-09-24'] },
+        { path: '/_stainless_unknown_path' },
+      ),
     ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
@@ -68,7 +70,12 @@ describe('resource skills', () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.skills.list(
-        { limit: 0, page: 'page', source: 'source', betas: ['string'] },
+        {
+          limit: 0,
+          page: 'page',
+          source: 'source',
+          betas: ['message-batches-2024-09-24'],
+        },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -88,7 +95,11 @@ describe('resource skills', () => {
   test('delete: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
-      client.beta.skills.delete('skill_id', { betas: ['string'] }, { path: '/_stainless_unknown_path' }),
+      client.beta.skills.delete(
+        'skill_id',
+        { betas: ['message-batches-2024-09-24'] },
+        { path: '/_stainless_unknown_path' },
+      ),
     ).rejects.toThrow(Anthropic.NotFoundError);
   });
 });

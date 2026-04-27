@@ -29,6 +29,7 @@ export interface MessageStreamEvents {
   inputJson: (partialJson: string, jsonSnapshot: unknown) => void;
   thinking: (thinkingDelta: string, thinkingSnapshot: string) => void;
   signature: (signature: string) => void;
+  compaction: (compactedContent: string) => void;
   message: (message: BetaMessage) => void;
   contentBlock: (content: BetaContentBlock) => void;
   finalMessage: (message: BetaMessage) => void;
@@ -478,6 +479,12 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
             }
             break;
           }
+          case 'compaction_delta': {
+            if (content.type === 'compaction' && content.content) {
+              this._emit('compaction', content.content);
+            }
+            break;
+          }
           default:
             checkNever(event.delta);
         }
@@ -590,6 +597,10 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
           snapshot.usage.server_tool_use = event.usage.server_tool_use;
         }
 
+        if (event.usage.iterations != null) {
+          snapshot.usage.iterations = event.usage.iterations;
+        }
+
         return snapshot;
       case 'content_block_start':
         snapshot.content.push(event.content_block);
@@ -659,6 +670,15 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
               snapshot.content[event.index] = {
                 ...snapshotContent,
                 signature: event.delta.signature,
+              };
+            }
+            break;
+          }
+          case 'compaction_delta': {
+            if (snapshotContent?.type === 'compaction') {
+              snapshot.content[event.index] = {
+                ...snapshotContent,
+                content: (snapshotContent.content || '') + event.delta.content,
               };
             }
             break;

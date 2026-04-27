@@ -7,6 +7,7 @@ import { Page, type PageParams, PagePromise } from '../../core/pagination';
 import { type Uploadable } from '../../core/uploads';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { stainlessHelperHeaderFromFile } from '../../lib/stainless-helper-header';
 import { multipartFormRequestOptions } from '../../internal/uploads';
 import { path } from '../../internal/utils/path';
 
@@ -27,7 +28,7 @@ export class Files extends APIResource {
     options?: RequestOptions,
   ): PagePromise<FileMetadataPage, FileMetadata> {
     const { betas, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/files', Page<FileMetadata>, {
+    return this._client.getAPIList('/v1/files?beta=true', Page<FileMetadata>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -53,7 +54,7 @@ export class Files extends APIResource {
     options?: RequestOptions,
   ): APIPromise<DeletedFile> {
     const { betas } = params ?? {};
-    return this._client.delete(path`/v1/files/${fileID}`, {
+    return this._client.delete(path`/v1/files/${fileID}?beta=true`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString() },
@@ -81,7 +82,7 @@ export class Files extends APIResource {
     options?: RequestOptions,
   ): APIPromise<Response> {
     const { betas } = params ?? {};
-    return this._client.get(path`/v1/files/${fileID}/content`, {
+    return this._client.get(path`/v1/files/${fileID}/content?beta=true`, {
       ...options,
       headers: buildHeaders([
         {
@@ -109,7 +110,7 @@ export class Files extends APIResource {
     options?: RequestOptions,
   ): APIPromise<FileMetadata> {
     const { betas } = params ?? {};
-    return this._client.get(path`/v1/files/${fileID}`, {
+    return this._client.get(path`/v1/files/${fileID}?beta=true`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString() },
@@ -130,14 +131,16 @@ export class Files extends APIResource {
    */
   upload(params: FileUploadParams, options?: RequestOptions): APIPromise<FileMetadata> {
     const { betas, ...body } = params;
+
     return this._client.post(
-      '/v1/files',
+      '/v1/files?beta=true',
       multipartFormRequestOptions(
         {
           body,
           ...options,
           headers: buildHeaders([
             { 'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString() },
+            stainlessHelperHeaderFromFile(body.file),
             options?.headers,
           ]),
         },
@@ -148,6 +151,18 @@ export class Files extends APIResource {
 }
 
 export type FileMetadataPage = Page<FileMetadata>;
+
+export interface BetaFileScope {
+  /**
+   * The ID of the scoping resource (e.g., the session ID).
+   */
+  id: string;
+
+  /**
+   * The type of scope (e.g., `"session"`).
+   */
+  type: 'session';
+}
 
 export interface DeletedFile {
   /**
@@ -202,9 +217,21 @@ export interface FileMetadata {
    * Whether the file can be downloaded.
    */
   downloadable?: boolean;
+
+  /**
+   * The scope of this file, indicating the context in which it was created (e.g., a
+   * session).
+   */
+  scope?: BetaFileScope | null;
 }
 
 export interface FileListParams extends PageParams {
+  /**
+   * Query param: Filter by scope ID. Only returns files associated with the
+   * specified scope (e.g., a session ID).
+   */
+  scope_id?: string;
+
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
@@ -246,6 +273,7 @@ export interface FileUploadParams {
 
 export declare namespace Files {
   export {
+    type BetaFileScope as BetaFileScope,
     type DeletedFile as DeletedFile,
     type FileMetadata as FileMetadata,
     type FileMetadataPage as FileMetadataPage,

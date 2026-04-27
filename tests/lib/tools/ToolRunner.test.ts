@@ -1,9 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { mockFetch } from '../../lib/mock-fetch';
 import { BetaMessage, BetaContentBlock, BetaToolResultBlockParam } from '@anthropic-ai/sdk/resources/beta';
-import { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
-import { BetaRawMessageStreamEvent } from '@anthropic-ai/sdk/resources/beta/messages';
+import { BetaRunnableTool, BetaToolRunContext } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
+import { BetaRawMessageStreamEvent, ToolError } from '@anthropic-ai/sdk/resources/beta/messages';
 import { Fetch } from '@anthropic-ai/sdk/internal/builtin-types';
+import { SDK_HELPER_SYMBOL } from '../../../src/lib/stainless-helper-header';
 
 const weatherTool: BetaRunnableTool<{ location: string }> = {
   type: 'custom',
@@ -97,6 +98,7 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
       role: message.role,
       model: message.model,
       content: [],
+      stop_details: null,
       stop_reason: null,
       stop_sequence: null,
       container: null,
@@ -109,6 +111,9 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
         output_tokens: 0,
         server_tool_use: null,
         service_tier: null,
+        inference_geo: null,
+        iterations: null,
+        speed: null,
       },
     },
   });
@@ -174,6 +179,7 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
   events.push({
     type: 'message_delta',
     delta: {
+      stop_details: message.stop_details,
       stop_reason: message.stop_reason,
       container: message.container,
       stop_sequence: message.stop_sequence,
@@ -185,6 +191,7 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
       cache_creation_input_tokens: null,
       cache_read_input_tokens: null,
       server_tool_use: null,
+      iterations: null,
     },
   });
 
@@ -222,6 +229,7 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
       role: 'assistant',
       content,
       model: 'claude-3-5-sonnet-latest',
+      stop_details: null,
       stop_reason,
       stop_sequence: null,
       container: null,
@@ -234,6 +242,9 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
         cache_read_input_tokens: null,
         server_tool_use: null,
         service_tier: null,
+        inference_geo: null,
+        iterations: null,
+        speed: null,
       },
     };
     handleRequest(async () => {
@@ -255,6 +266,7 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
       role: 'assistant',
       content,
       model: 'claude-3-5-sonnet-latest',
+      stop_details: null,
       stop_reason,
       stop_sequence: null,
       container: null,
@@ -267,6 +279,9 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
         cache_read_input_tokens: null,
         server_tool_use: null,
         service_tier: null,
+        inference_geo: null,
+        iterations: null,
+        speed: null,
       },
     };
 
@@ -497,6 +512,71 @@ describe('ToolRunner', () => {
             type: 'tool_result',
             tool_use_id: 'tool_1',
             content: expect.stringContaining('Error: Tool execution failed'),
+            is_error: true,
+          },
+        ],
+      });
+
+      await expectDone(iterator);
+    });
+
+    it('handles ToolError with structured content', async () => {
+      const toolErrorTool: BetaRunnableTool<{ shouldFail: boolean }> = {
+        type: 'custom',
+        name: 'toolErrorTool',
+        description: 'Tool that throws ToolError',
+        input_schema: { type: 'object', properties: { shouldFail: { type: 'boolean' } } },
+        run: async ({ shouldFail }) => {
+          if (shouldFail) {
+            throw new ToolError([
+              { type: 'text', text: 'Something went wrong' },
+              { type: 'text', text: 'Here are more details' },
+            ]);
+          }
+          return 'Success';
+        },
+        parse: (input: unknown) => input as { shouldFail: boolean },
+      };
+
+      const { runner, handleAssistantMessage } = setupTest({
+        messages: [{ role: 'user', content: 'Test ToolError handling' }],
+        tools: [toolErrorTool],
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      // Assistant requests the tool with failure flag
+      handleAssistantMessage({
+        type: 'tool_use',
+        id: 'tool_1',
+        name: 'toolErrorTool',
+        input: { shouldFail: true },
+      });
+      await expectEvent(iterator, (message) => {
+        expect(message.content[0]).toMatchObject({
+          type: 'tool_use',
+          name: 'toolErrorTool',
+        });
+      });
+
+      // Assistant handles the error
+      handleAssistantMessage(getTextContent());
+      await expectEvent(iterator, (message) => {
+        expect(message.content[0]).toMatchObject(getTextContent());
+      });
+
+      // Check that the ToolError content was properly added to the messages
+      expect(runner.params.messages).toHaveLength(3);
+      expect(runner.params.messages[2]).toMatchObject({
+        role: 'user',
+        content: [
+          {
+            type: 'tool_result',
+            tool_use_id: 'tool_1',
+            content: [
+              { type: 'text', text: 'Something went wrong' },
+              { type: 'text', text: 'Here are more details' },
+            ],
             is_error: true,
           },
         ],
@@ -818,6 +898,575 @@ describe('ToolRunner', () => {
       const toolResponse = await runner.generateToolResponse();
       expect(toolResponse).toBeNull();
       await expectDone(iterator);
+    });
+  });
+
+  describe('x-stainless-helper header', () => {
+    it('includes BetaToolRunner for regular tools', async () => {
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+
+      let capturedHelperHeader: string | null = null;
+      handleRequest(async (_req, init) => {
+        const headers = init?.headers;
+        if (headers instanceof Headers) {
+          capturedHelperHeader = headers.get('x-stainless-helper');
+        }
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Hello!' }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      const runner = client.beta.messages.toolRunner({
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: 'Hello' }],
+        tools: [weatherTool],
+      });
+
+      await runner.runUntilDone();
+
+      expect(capturedHelperHeader).toBe('BetaToolRunner');
+    });
+
+    it('includes BetaToolRunner,mcpTool for MCP tools', async () => {
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+
+      // Create an MCP-like tool with the symbol
+      const mcpMarkedTool = {
+        type: 'custom' as const,
+        name: 'getMCPWeather',
+        description: 'Get weather from MCP',
+        input_schema: { type: 'object' as const, properties: { location: { type: 'string' } } },
+        run: async ({ location }: { location: string }) => `Sunny in ${location}`,
+        parse: (input: unknown) => input as { location: string },
+        [SDK_HELPER_SYMBOL]: 'mcpTool',
+      };
+
+      let capturedHelperHeader: string | null = null;
+      handleRequest(async (_req, init) => {
+        const headers = init?.headers;
+        if (headers instanceof Headers) {
+          capturedHelperHeader = headers.get('x-stainless-helper');
+        }
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Hello!' }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      const runner = client.beta.messages.toolRunner({
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: 'Hello' }],
+        tools: [mcpMarkedTool],
+      });
+
+      await runner.runUntilDone();
+
+      expect(capturedHelperHeader).toBe('BetaToolRunner, mcpTool');
+    });
+
+    it('includes only BetaToolRunner,mcpTool once for multiple MCP tools', async () => {
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+
+      // Create multiple MCP-like tools
+      const mcpTool1 = {
+        type: 'custom' as const,
+        name: 'tool1',
+        input_schema: { type: 'object' as const },
+        run: async () => 'result1',
+        [SDK_HELPER_SYMBOL]: 'mcpTool',
+      };
+
+      const mcpTool2 = {
+        type: 'custom' as const,
+        name: 'tool2',
+        input_schema: { type: 'object' as const },
+        run: async () => 'result2',
+        [SDK_HELPER_SYMBOL]: 'mcpTool',
+      };
+
+      let capturedHelperHeader: string | null = null;
+      handleRequest(async (_req, init) => {
+        const headers = init?.headers;
+        if (headers instanceof Headers) {
+          capturedHelperHeader = headers.get('x-stainless-helper');
+        }
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Hello!' }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      const runner = client.beta.messages.toolRunner({
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: 'Hello' }],
+        tools: [mcpTool1, mcpTool2],
+      });
+
+      await runner.runUntilDone();
+
+      // mcpTool should appear only once even with multiple MCP tools
+      expect(capturedHelperHeader).toBe('BetaToolRunner, mcpTool');
+    });
+
+    it('includes BetaToolRunner,mcpTool for mixed tools (MCP and regular)', async () => {
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+
+      const mcpMarkedTool = {
+        type: 'custom' as const,
+        name: 'mcpTool',
+        input_schema: { type: 'object' as const },
+        run: async () => 'mcp result',
+        [SDK_HELPER_SYMBOL]: 'mcpTool',
+      };
+
+      let capturedHelperHeader: string | null = null;
+      handleRequest(async (_req, init) => {
+        const headers = init?.headers;
+        if (headers instanceof Headers) {
+          capturedHelperHeader = headers.get('x-stainless-helper');
+        }
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Hello!' }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      const runner = client.beta.messages.toolRunner({
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: 'Hello' }],
+        tools: [weatherTool, mcpMarkedTool], // Mix of regular and MCP tools
+      });
+
+      await runner.runUntilDone();
+
+      // Should include both BetaToolRunner and mcpTool
+      expect(capturedHelperHeader).toBe('BetaToolRunner, mcpTool');
+    });
+
+    it('preserves x-stainless-helper header when signal is passed via constructor options', async () => {
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+
+      const controller = new AbortController();
+      let capturedHelperHeader: string | null = null;
+      handleRequest(async (_req, init) => {
+        const headers = init?.headers;
+        if (headers instanceof Headers) {
+          capturedHelperHeader = headers.get('x-stainless-helper');
+        }
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Hello!' }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      const runner = client.beta.messages.toolRunner(
+        {
+          model: 'claude-3-5-sonnet-latest',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: 'Hello' }],
+          tools: [weatherTool],
+        },
+        { signal: controller.signal },
+      );
+
+      await runner.runUntilDone();
+      expect(capturedHelperHeader).toBe('BetaToolRunner');
+    });
+
+    it('includes message helpers when using marked messages', async () => {
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+
+      // Create a message marked with the symbol (simulating mcpMessage)
+      const markedMessage = {
+        role: 'user' as const,
+        content: [{ type: 'text' as const, text: 'Hello', [SDK_HELPER_SYMBOL]: 'mcpContent' }],
+        [SDK_HELPER_SYMBOL]: 'mcpMessage',
+      };
+
+      let capturedHelperHeader: string | null = null;
+      handleRequest(async (_req, init) => {
+        const headers = init?.headers;
+        if (headers instanceof Headers) {
+          capturedHelperHeader = headers.get('x-stainless-helper');
+        }
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Hello!' }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      const runner = client.beta.messages.toolRunner({
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 1000,
+        messages: [markedMessage],
+        tools: [weatherTool],
+      });
+
+      await runner.runUntilDone();
+
+      // Should include BetaToolRunner, mcpMessage, and mcpContent
+      expect(capturedHelperHeader).toContain('BetaToolRunner');
+      expect(capturedHelperHeader).toContain('mcpMessage');
+      expect(capturedHelperHeader).toContain('mcpContent');
+    });
+  });
+
+  describe('abort signal support', () => {
+    it('passes abort signal and toolUseBlock to tool run method', async () => {
+      let capturedContext: BetaToolRunContext | undefined = undefined;
+
+      const signalTool: BetaRunnableTool<{ value: string }> = {
+        type: 'custom',
+        name: 'signalTool',
+        description: 'Tool that captures signal',
+        input_schema: { type: 'object', properties: { value: { type: 'string' } } },
+        run: async (args, context) => {
+          capturedContext = context;
+          return `Received: ${args.value}`;
+        },
+        parse: (input: unknown) => input as { value: string },
+      };
+
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+      const controller = new AbortController();
+
+      // First response: tool use
+      handleRequest(async () => {
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'tool_use', id: 'tool_1', name: 'signalTool', input: { value: 'hello' } }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'tool_use',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 20 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      // Second response: final text
+      handleRequest(async () => {
+        return new Response(
+          JSON.stringify({
+            id: 'msg_2',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Done!', citations: null }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      const runner = client.beta.messages.toolRunner(
+        {
+          model: 'claude-3-5-sonnet-latest',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: 'Test signal' }],
+          tools: [signalTool],
+        },
+        { signal: controller.signal },
+      );
+
+      await runner.runUntilDone();
+
+      expect(capturedContext).toBeDefined();
+      expect(capturedContext!.signal).toBe(controller.signal);
+      expect(capturedContext!.toolUseBlock).toMatchObject({
+        type: 'tool_use',
+        id: 'tool_1',
+        name: 'signalTool',
+        input: { value: 'hello' },
+      });
+    });
+
+    it('passes undefined signal when no signal is provided', async () => {
+      let capturedContext: BetaToolRunContext | undefined = undefined;
+
+      const signalTool: BetaRunnableTool<{ value: string }> = {
+        type: 'custom',
+        name: 'signalTool',
+        description: 'Tool that captures signal',
+        input_schema: { type: 'object', properties: { value: { type: 'string' } } },
+        run: async (_args, context) => {
+          capturedContext = context;
+          return 'done';
+        },
+        parse: (input: unknown) => input as { value: string },
+      };
+
+      const { runner, handleAssistantMessage } = setupTest({
+        tools: [signalTool],
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      handleAssistantMessage({
+        type: 'tool_use',
+        id: 'tool_1',
+        name: 'signalTool',
+        input: { value: 'test' },
+      });
+      await iterator.next();
+
+      handleAssistantMessage(getTextContent());
+      await iterator.next();
+      await expectDone(iterator);
+
+      expect(capturedContext).toBeDefined();
+      expect(capturedContext!.signal).toBeUndefined();
+      expect(capturedContext!.toolUseBlock).toMatchObject({
+        type: 'tool_use',
+        id: 'tool_1',
+        name: 'signalTool',
+      });
+    });
+  });
+
+  describe('.setRequestOptions()', () => {
+    it('updates options with direct object and preserves helper headers', async () => {
+      let capturedContext: BetaToolRunContext | undefined = undefined;
+      let capturedHelperHeader: string | null = null;
+
+      const signalTool: BetaRunnableTool<{ value: string }> = {
+        type: 'custom',
+        name: 'signalTool',
+        description: 'Tool that captures signal',
+        input_schema: { type: 'object', properties: { value: { type: 'string' } } },
+        run: async (_args, context) => {
+          capturedContext = context;
+          return 'done';
+        },
+        parse: (input: unknown) => input as { value: string },
+      };
+
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+      const controller = new AbortController();
+
+      // First response: tool use
+      handleRequest(async (_req, init) => {
+        const headers = init?.headers;
+        if (headers instanceof Headers) {
+          capturedHelperHeader = headers.get('x-stainless-helper');
+        }
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'tool_use', id: 'tool_1', name: 'signalTool', input: { value: 'hello' } }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'tool_use',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 20 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      // Second response: final text
+      handleRequest(async () => {
+        return new Response(
+          JSON.stringify({
+            id: 'msg_2',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Done!', citations: null }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      // Create runner without signal initially
+      const runner = client.beta.messages.toolRunner({
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: 'Test' }],
+        tools: [signalTool],
+      });
+
+      // Set signal via setRequestOptions
+      runner.setRequestOptions({ signal: controller.signal });
+
+      await runner.runUntilDone();
+
+      expect(capturedContext).toBeDefined();
+      expect(capturedContext!.signal).toBe(controller.signal);
+      // setRequestOptions with direct object should not drop the helper header
+      expect(capturedHelperHeader).toContain('BetaToolRunner');
+    });
+
+    it('updates options with mutator function', async () => {
+      let capturedContext: BetaToolRunContext | undefined = undefined;
+
+      const signalTool: BetaRunnableTool<{ value: string }> = {
+        type: 'custom',
+        name: 'signalTool',
+        description: 'Tool that captures signal',
+        input_schema: { type: 'object', properties: { value: { type: 'string' } } },
+        run: async (_args, context) => {
+          capturedContext = context;
+          return 'done';
+        },
+        parse: (input: unknown) => input as { value: string },
+      };
+
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+      const controller = new AbortController();
+
+      // First response: tool use
+      handleRequest(async () => {
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'tool_use', id: 'tool_1', name: 'signalTool', input: { value: 'hello' } }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'tool_use',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 20 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      // Second response: final text
+      handleRequest(async () => {
+        return new Response(
+          JSON.stringify({
+            id: 'msg_2',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Done!', citations: null }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      const runner = client.beta.messages.toolRunner({
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: 'Test' }],
+        tools: [signalTool],
+      });
+
+      // Set signal via mutator function
+      runner.setRequestOptions((prev) => ({
+        ...prev,
+        signal: controller.signal,
+      }));
+
+      await runner.runUntilDone();
+
+      expect(capturedContext).toBeDefined();
+      expect(capturedContext!.signal).toBe(controller.signal);
     });
   });
 });

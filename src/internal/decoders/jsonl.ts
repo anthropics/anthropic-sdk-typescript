@@ -16,12 +16,12 @@ export class JSONLDecoder<T> {
     const lineDecoder = new LineDecoder();
     for await (const chunk of this.iterator) {
       for (const line of lineDecoder.decode(chunk)) {
-        yield JSON.parse(line);
+        yield JSON.parse(line) as T;
       }
     }
 
     for (const line of lineDecoder.flush()) {
-      yield JSON.parse(line);
+      yield JSON.parse(line) as T;
     }
   }
 

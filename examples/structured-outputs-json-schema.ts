@@ -1,7 +1,7 @@
 #!/usr/bin/env -S npm run tsn -T
 
 import Anthropic from '@anthropic-ai/sdk';
-import { betaJSONSchemaOutputFormat } from '@anthropic-ai/sdk/helpers/beta/json-schema';
+import { jsonSchemaOutputFormat } from '@anthropic-ai/sdk/helpers/json-schema';
 
 const NumbersResponse = {
   type: 'object',
@@ -19,11 +19,13 @@ const NumbersResponse = {
 async function main() {
   const client = new Anthropic();
 
-  const message = await client.beta.messages.parse({
+  const message = await client.messages.parse({
     model: 'claude-sonnet-4-5',
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
-    output_format: betaJSONSchemaOutputFormat(NumbersResponse),
+    output_config: {
+      format: jsonSchemaOutputFormat(NumbersResponse),
+    },
   });
 
   console.log('=== Full Message ===');

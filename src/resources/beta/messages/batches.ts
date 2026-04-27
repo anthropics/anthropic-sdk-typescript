@@ -35,7 +35,7 @@ export class Batches extends APIResource {
    *           messages: [
    *             { content: 'Hello, world', role: 'user' },
    *           ],
-   *           model: 'claude-sonnet-4-5-20250929',
+   *           model: 'claude-opus-4-6',
    *         },
    *       },
    *     ],
@@ -541,6 +541,12 @@ export namespace BatchCreateParams {
       model: MessagesApi.Model;
 
       /**
+       * Top-level cache control automatically applies a cache_control marker to the last
+       * cacheable block in the request.
+       */
+      cache_control?: BetaMessagesAPI.BetaCacheControlEphemeral | null;
+
+      /**
        * Container identifier for reuse across requests.
        */
       container?: BetaMessagesAPI.BetaContainerParams | string | null;
@@ -554,6 +560,12 @@ export namespace BatchCreateParams {
       context_management?: BetaMessagesAPI.BetaContextManagementConfig | null;
 
       /**
+       * Specifies the geographic region for inference processing. If not specified, the
+       * workspace's `default_inference_geo` is used.
+       */
+      inference_geo?: string | null;
+
+      /**
        * MCP servers to be utilized in this request
        */
       mcp_servers?: Array<BetaMessagesAPI.BetaRequestMCPServerURLDefinition>;
@@ -564,13 +576,16 @@ export namespace BatchCreateParams {
       metadata?: BetaMessagesAPI.BetaMetadata;
 
       /**
-       * Configuration options for the model's output. Controls aspects like how much
-       * effort the model puts into its response.
+       * Configuration options for the model's output, such as the output format.
        */
       output_config?: BetaMessagesAPI.BetaOutputConfig;
 
       /**
-       * A schema to specify Claude's output format in responses.
+       * @deprecated Deprecated: Use `output_config.format` instead. See
+       * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+       *
+       * A schema to specify Claude's output format in responses. This parameter will be
+       * removed in a future release.
        */
       output_format?: BetaMessagesAPI.BetaJSONOutputFormat | null;
 
@@ -582,6 +597,12 @@ export namespace BatchCreateParams {
        * [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
        */
       service_tier?: 'auto' | 'standard_only';
+
+      /**
+       * The inference speed mode for this request. `"fast"` enables high
+       * output-tokens-per-second inference.
+       */
+      speed?: 'standard' | 'fast' | null;
 
       /**
        * Custom text sequences that will cause the model to stop generating.
@@ -613,14 +634,9 @@ export namespace BatchCreateParams {
       system?: string | Array<BetaMessagesAPI.BetaTextBlockParam>;
 
       /**
-       * Amount of randomness injected into the response.
-       *
-       * Defaults to `1.0`. Ranges from `0.0` to `1.0`. Use `temperature` closer to `0.0`
-       * for analytical / multiple choice, and closer to `1.0` for creative and
-       * generative tasks.
-       *
-       * Note that even with `temperature` of `0.0`, the results will not be fully
-       * deterministic.
+       * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
+       * setting temperature. A value of 1.0 of will be accepted for backwards
+       * compatibility, all other values will be rejected with a 400 error.
        */
       temperature?: number;
 
@@ -723,28 +739,23 @@ export namespace BatchCreateParams {
       tools?: Array<BetaMessagesAPI.BetaToolUnion>;
 
       /**
-       * Only sample from the top K options for each subsequent token.
-       *
-       * Used to remove "long tail" low probability responses.
-       * [Learn more technical details here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
-       *
-       * Recommended for advanced use cases only. You usually only need to use
-       * `temperature`.
+       * @deprecated Deprecated. Models released after Claude Opus 4.6 do not accept
+       * top_k; any value will be rejected with a 400 error.
        */
       top_k?: number;
 
       /**
-       * Use nucleus sampling.
-       *
-       * In nucleus sampling, we compute the cumulative distribution over all the options
-       * for each subsequent token in decreasing probability order and cut it off once it
-       * reaches a particular probability specified by `top_p`. You should either alter
-       * `temperature` or `top_p`, but not both.
-       *
-       * Recommended for advanced use cases only. You usually only need to use
-       * `temperature`.
+       * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
+       * setting top_p. A value >= 0.99 will be accepted for backwards compatibility, all
+       * other values will be rejected with a 400 error.
        */
       top_p?: number;
+
+      /**
+       * The user profile ID to attribute this request to. Use when acting on behalf of a
+       * party other than your organization.
+       */
+      user_profile_id?: string | null;
     }
   }
 }

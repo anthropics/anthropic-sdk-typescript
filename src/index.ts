@@ -21,3 +21,11 @@ export {
   PermissionDeniedError,
   UnprocessableEntityError,
 } from './core/error';
+
+export type {
+  AutoParseableOutputFormat,
+  ParsedMessage,
+  ParsedContentBlock,
+  ParseableMessageCreateParams,
+  ExtractParsedContentFromParams,
+} from './lib/parser';

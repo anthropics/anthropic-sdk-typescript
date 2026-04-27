@@ -10,6 +10,7 @@ import { loggerFor } from '../internal/utils/log';
 import type { BaseAnthropic } from '../client';
 
 import { APIError } from './error';
+import type { ErrorType } from '../resources/shared';
 
 type Bytes = string | ArrayBuffer | Uint8Array | null | undefined;
 
@@ -50,7 +51,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
         for await (const sse of _iterSSEMessages(response, controller)) {
           if (sse.event === 'completion') {
             try {
-              yield JSON.parse(sse.data);
+              yield JSON.parse(sse.data) as Item;
             } catch (e) {
               logger.error(`Could not parse message into JSON:`, sse.data);
               logger.error(`From chunk:`, sse.raw);
@@ -64,10 +65,31 @@ export class Stream<Item> implements AsyncIterable<Item> {
             sse.event === 'message_stop' ||
             sse.event === 'content_block_start' ||
             sse.event === 'content_block_delta' ||
-            sse.event === 'content_block_stop'
+            sse.event === 'content_block_stop' ||
+            sse.event === 'message' ||
+            sse.event === 'user.message' ||
+            sse.event === 'user.interrupt' ||
+            sse.event === 'user.tool_confirmation' ||
+            sse.event === 'user.custom_tool_result' ||
+            sse.event === 'agent.message' ||
+            sse.event === 'agent.thinking' ||
+            sse.event === 'agent.tool_use' ||
+            sse.event === 'agent.tool_result' ||
+            sse.event === 'agent.mcp_tool_use' ||
+            sse.event === 'agent.mcp_tool_result' ||
+            sse.event === 'agent.custom_tool_use' ||
+            sse.event === 'agent.thread_context_compacted' ||
+            sse.event === 'session.status_running' ||
+            sse.event === 'session.status_idle' ||
+            sse.event === 'session.status_rescheduled' ||
+            sse.event === 'session.status_terminated' ||
+            sse.event === 'session.error' ||
+            sse.event === 'session.deleted' ||
+            sse.event === 'span.model_request_start' ||
+            sse.event === 'span.model_request_end'
           ) {
             try {
-              yield JSON.parse(sse.data);
+              yield JSON.parse(sse.data) as Item;
             } catch (e) {
               logger.error(`Could not parse message into JSON:`, sse.data);
               logger.error(`From chunk:`, sse.raw);
@@ -80,7 +102,9 @@ export class Stream<Item> implements AsyncIterable<Item> {
           }
 
           if (sse.event === 'error') {
-            throw new APIError(undefined, safeJSON(sse.data) ?? sse.data, undefined, response.headers);
+            const body = safeJSON(sse.data) ?? sse.data;
+            const type = body?.error?.type as ErrorType | undefined;
+            throw new APIError(undefined, body, undefined, response.headers, type);
           }
         }
         done = true;
@@ -132,7 +156,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
       try {
         for await (const line of iterLines()) {
           if (done) continue;
-          if (line) yield JSON.parse(line);
+          if (line) yield JSON.parse(line) as Item;
         }
         done = true;
       } catch (e) {

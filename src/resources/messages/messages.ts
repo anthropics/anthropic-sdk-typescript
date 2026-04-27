@@ -3,8 +3,16 @@
 import { APIPromise } from '../../core/api-promise';
 import { APIResource } from '../../core/resource';
 import { Stream } from '../../core/streaming';
+import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { stainlessHelperHeader } from '../../lib/stainless-helper-header';
 import { MessageStream } from '../../lib/MessageStream';
+import {
+  parseMessage,
+  type ExtractParsedContentFromParams,
+  type ParseableMessageCreateParams,
+  type ParsedMessage,
+} from '../../lib/parser';
 import * as BatchesAPI from './batches';
 import {
   BatchCreateParams,
@@ -43,7 +51,7 @@ export class Messages extends APIResource {
    * const message = await client.messages.create({
    *   max_tokens: 1024,
    *   messages: [{ content: 'Hello, world', role: 'user' }],
-   *   model: 'claude-sonnet-4-5-20250929',
+   *   model: 'claude-opus-4-6',
    * });
    * ```
    */
@@ -67,24 +75,92 @@ export class Messages extends APIResource {
         }\nPlease migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information.`,
       );
     }
+    if (
+      MODELS_TO_WARN_WITH_THINKING_ENABLED.includes(body.model) &&
+      body.thinking &&
+      body.thinking.type === 'enabled'
+    ) {
+      console.warn(
+        `Using Claude with ${body.model} and 'thinking.type=enabled' is deprecated. Use 'thinking.type=adaptive' instead which results in better model performance in our testing: https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking`,
+      );
+    }
+
     let timeout = (this._client as any)._options.timeout as number | null;
     if (!body.stream && timeout == null) {
       const maxNonstreamingTokens = MODEL_NONSTREAMING_TOKENS[body.model] ?? undefined;
       timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
     }
+
+    // Collect helper info from tools and messages
+    const helperHeader = stainlessHelperHeader(body.tools, body.messages);
+
     return this._client.post('/v1/messages', {
       body,
       timeout: timeout ?? 600000,
       ...options,
+      headers: buildHeaders([helperHeader, options?.headers]),
       stream: body.stream ?? false,
     }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
   }
 
   /**
-   * Create a Message stream
+   * Send a structured list of input messages with text and/or image content, along with an expected `output_config.format` and
+   * the response will be automatically parsed and available in the `parsed_output` property of the message.
+   *
+   * @example
+   * ```ts
+   * const message = await client.messages.parse({
+   *   model: 'claude-sonnet-4-5-20250929',
+   *   max_tokens: 1024,
+   *   messages: [{ role: 'user', content: 'What is 2+2?' }],
+   *   output_config: {
+   *     format: zodOutputFormat(z.object({ answer: z.number() })),
+   *   },
+   * });
+   *
+   * console.log(message.parsed_output?.answer); // 4
+   * ```
    */
-  stream(body: MessageStreamParams, options?: RequestOptions): MessageStream {
-    return MessageStream.createMessage(this, body, options);
+  parse<Params extends MessageCreateParamsNonStreaming>(
+    params: Params,
+    options?: RequestOptions,
+  ): APIPromise<ParsedMessage<ExtractParsedContentFromParams<Params>>> {
+    return this.create(params, options).then((message) =>
+      parseMessage(message, params, { logger: this._client.logger ?? console }),
+    ) as APIPromise<ParsedMessage<ExtractParsedContentFromParams<Params>>>;
+  }
+
+  /**
+   * Create a Message stream.
+   *
+   * If `output_config.format` is provided with a parseable format (like `zodOutputFormat()`),
+   * the final message will include a `parsed_output` property with the parsed content.
+   *
+   * @example
+   * ```ts
+   * const stream = client.messages.stream({
+   *   model: 'claude-sonnet-4-5-20250929',
+   *   max_tokens: 1024,
+   *   messages: [{ role: 'user', content: 'What is 2+2?' }],
+   *   output_config: {
+   *     format: zodOutputFormat(z.object({ answer: z.number() })),
+   *   },
+   * });
+   *
+   * const message = await stream.finalMessage();
+   * console.log(message.parsed_output?.answer); // 4
+   * ```
+   */
+  stream<Params extends MessageStreamParams>(
+    body: Params,
+    options?: RequestOptions,
+  ): MessageStream<ExtractParsedContentFromParams<Params>> {
+    return MessageStream.createMessage<ExtractParsedContentFromParams<Params>>(
+      this,
+      body as MessageCreateParamsBase,
+      options,
+      { logger: this._client.logger ?? console },
+    );
   }
 
   /**
@@ -100,8 +176,8 @@ export class Messages extends APIResource {
    * ```ts
    * const messageTokensCount =
    *   await client.messages.countTokens({
-   *     messages: [{ content: 'string', role: 'user' }],
-   *     model: 'claude-opus-4-5-20251101',
+   *     messages: [{ content: 'Hello, world', role: 'user' }],
+   *     model: 'claude-opus-4-6',
    *   });
    * ```
    */
@@ -124,6 +200,82 @@ export interface Base64PDFSource {
   media_type: 'application/pdf';
 
   type: 'base64';
+}
+
+export interface BashCodeExecutionOutputBlock {
+  file_id: string;
+
+  type: 'bash_code_execution_output';
+}
+
+export interface BashCodeExecutionOutputBlockParam {
+  file_id: string;
+
+  type: 'bash_code_execution_output';
+}
+
+export interface BashCodeExecutionResultBlock {
+  content: Array<BashCodeExecutionOutputBlock>;
+
+  return_code: number;
+
+  stderr: string;
+
+  stdout: string;
+
+  type: 'bash_code_execution_result';
+}
+
+export interface BashCodeExecutionResultBlockParam {
+  content: Array<BashCodeExecutionOutputBlockParam>;
+
+  return_code: number;
+
+  stderr: string;
+
+  stdout: string;
+
+  type: 'bash_code_execution_result';
+}
+
+export interface BashCodeExecutionToolResultBlock {
+  content: BashCodeExecutionToolResultError | BashCodeExecutionResultBlock;
+
+  tool_use_id: string;
+
+  type: 'bash_code_execution_tool_result';
+}
+
+export interface BashCodeExecutionToolResultBlockParam {
+  content: BashCodeExecutionToolResultErrorParam | BashCodeExecutionResultBlockParam;
+
+  tool_use_id: string;
+
+  type: 'bash_code_execution_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+}
+
+export interface BashCodeExecutionToolResultError {
+  error_code: BashCodeExecutionToolResultErrorCode;
+
+  type: 'bash_code_execution_tool_result_error';
+}
+
+export type BashCodeExecutionToolResultErrorCode =
+  | 'invalid_tool_input'
+  | 'unavailable'
+  | 'too_many_requests'
+  | 'execution_time_exceeded'
+  | 'output_file_too_large';
+
+export interface BashCodeExecutionToolResultErrorParam {
+  error_code: BashCodeExecutionToolResultErrorCode;
+
+  type: 'bash_code_execution_tool_result_error';
 }
 
 export interface CacheControlEphemeral {
@@ -272,6 +424,10 @@ export interface CitationWebSearchResultLocationParam {
   url: string;
 }
 
+export interface CitationsConfig {
+  enabled: boolean;
+}
+
 export interface CitationsConfigParam {
   enabled?: boolean;
 }
@@ -315,13 +471,250 @@ export interface CitationsWebSearchResultLocation {
   url: string;
 }
 
+export interface CodeExecutionOutputBlock {
+  file_id: string;
+
+  type: 'code_execution_output';
+}
+
+export interface CodeExecutionOutputBlockParam {
+  file_id: string;
+
+  type: 'code_execution_output';
+}
+
+export interface CodeExecutionResultBlock {
+  content: Array<CodeExecutionOutputBlock>;
+
+  return_code: number;
+
+  stderr: string;
+
+  stdout: string;
+
+  type: 'code_execution_result';
+}
+
+export interface CodeExecutionResultBlockParam {
+  content: Array<CodeExecutionOutputBlockParam>;
+
+  return_code: number;
+
+  stderr: string;
+
+  stdout: string;
+
+  type: 'code_execution_result';
+}
+
+export interface CodeExecutionTool20250522 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'code_execution';
+
+  type: 'code_execution_20250522';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
+export interface CodeExecutionTool20250825 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'code_execution';
+
+  type: 'code_execution_20250825';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
+/**
+ * Code execution tool with REPL state persistence (daemon mode + gVisor
+ * checkpoint).
+ */
+export interface CodeExecutionTool20260120 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'code_execution';
+
+  type: 'code_execution_20260120';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
+export interface CodeExecutionToolResultBlock {
+  /**
+   * Code execution result with encrypted stdout for PFC + web_search results.
+   */
+  content: CodeExecutionToolResultBlockContent;
+
+  tool_use_id: string;
+
+  type: 'code_execution_tool_result';
+}
+
+/**
+ * Code execution result with encrypted stdout for PFC + web_search results.
+ */
+export type CodeExecutionToolResultBlockContent =
+  | CodeExecutionToolResultError
+  | CodeExecutionResultBlock
+  | EncryptedCodeExecutionResultBlock;
+
+export interface CodeExecutionToolResultBlockParam {
+  /**
+   * Code execution result with encrypted stdout for PFC + web_search results.
+   */
+  content: CodeExecutionToolResultBlockParamContent;
+
+  tool_use_id: string;
+
+  type: 'code_execution_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+}
+
+/**
+ * Code execution result with encrypted stdout for PFC + web_search results.
+ */
+export type CodeExecutionToolResultBlockParamContent =
+  | CodeExecutionToolResultErrorParam
+  | CodeExecutionResultBlockParam
+  | EncryptedCodeExecutionResultBlockParam;
+
+export interface CodeExecutionToolResultError {
+  error_code: CodeExecutionToolResultErrorCode;
+
+  type: 'code_execution_tool_result_error';
+}
+
+export type CodeExecutionToolResultErrorCode =
+  | 'invalid_tool_input'
+  | 'unavailable'
+  | 'too_many_requests'
+  | 'execution_time_exceeded';
+
+export interface CodeExecutionToolResultErrorParam {
+  error_code: CodeExecutionToolResultErrorCode;
+
+  type: 'code_execution_tool_result_error';
+}
+
+/**
+ * Information about the container used in the request (for the code execution
+ * tool)
+ */
+export interface Container {
+  /**
+   * Identifier for the container used in this request
+   */
+  id: string;
+
+  /**
+   * The time at which the container will expire.
+   */
+  expires_at: string;
+}
+
+/**
+ * Response model for a file uploaded to the container.
+ */
+export interface ContainerUploadBlock {
+  file_id: string;
+
+  type: 'container_upload';
+}
+
+/**
+ * A content block that represents a file to be uploaded to the container Files
+ * uploaded via this block will be available in the container's input directory.
+ */
+export interface ContainerUploadBlockParam {
+  file_id: string;
+
+  type: 'container_upload';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+}
+
+/**
+ * Response model for a file uploaded to the container.
+ */
 export type ContentBlock =
   | TextBlock
   | ThinkingBlock
   | RedactedThinkingBlock
   | ToolUseBlock
   | ServerToolUseBlock
-  | WebSearchToolResultBlock;
+  | WebSearchToolResultBlock
+  | WebFetchToolResultBlock
+  | CodeExecutionToolResultBlock
+  | BashCodeExecutionToolResultBlock
+  | TextEditorCodeExecutionToolResultBlock
+  | ToolSearchToolResultBlock
+  | ContainerUploadBlock;
 
 /**
  * Regular text content.
@@ -336,7 +729,13 @@ export type ContentBlockParam =
   | ToolUseBlockParam
   | ToolResultBlockParam
   | ServerToolUseBlockParam
-  | WebSearchToolResultBlockParam;
+  | WebSearchToolResultBlockParam
+  | WebFetchToolResultBlockParam
+  | CodeExecutionToolResultBlockParam
+  | BashCodeExecutionToolResultBlockParam
+  | TextEditorCodeExecutionToolResultBlockParam
+  | ToolSearchToolResultBlockParam
+  | ContainerUploadBlockParam;
 
 export interface ContentBlockSource {
   content: string | Array<ContentBlockSourceContent>;
@@ -345,6 +744,29 @@ export interface ContentBlockSource {
 }
 
 export type ContentBlockSourceContent = TextBlockParam | ImageBlockParam;
+
+/**
+ * Tool invocation directly from the model.
+ */
+export interface DirectCaller {
+  type: 'direct';
+}
+
+export interface DocumentBlock {
+  /**
+   * Citation configuration for the document
+   */
+  citations: CitationsConfig | null;
+
+  source: Base64PDFSource | PlainTextSource;
+
+  /**
+   * The title of the document
+   */
+  title: string | null;
+
+  type: 'document';
+}
 
 export interface DocumentBlockParam {
   source: Base64PDFSource | PlainTextSource | ContentBlockSource | URLPDFSource;
@@ -361,6 +783,36 @@ export interface DocumentBlockParam {
   context?: string | null;
 
   title?: string | null;
+}
+
+/**
+ * Code execution result with encrypted stdout for PFC + web_search results.
+ */
+export interface EncryptedCodeExecutionResultBlock {
+  content: Array<CodeExecutionOutputBlock>;
+
+  encrypted_stdout: string;
+
+  return_code: number;
+
+  stderr: string;
+
+  type: 'encrypted_code_execution_result';
+}
+
+/**
+ * Code execution result with encrypted stdout for PFC + web_search results.
+ */
+export interface EncryptedCodeExecutionResultBlockParam {
+  content: Array<CodeExecutionOutputBlockParam>;
+
+  encrypted_stdout: string;
+
+  return_code: number;
+
+  stderr: string;
+
+  type: 'encrypted_code_execution_result';
 }
 
 export interface ImageBlockParam {
@@ -380,6 +832,46 @@ export interface InputJSONDelta {
   type: 'input_json_delta';
 }
 
+export interface JSONOutputFormat {
+  /**
+   * The JSON schema of the format
+   */
+  schema: { [key: string]: unknown };
+
+  type: 'json_schema';
+}
+
+export interface MemoryTool20250818 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'memory';
+
+  type: 'memory_20250818';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
 export interface Message {
   /**
    * Unique object identifier.
@@ -387,6 +879,12 @@ export interface Message {
    * The format and length of IDs may change over time.
    */
   id: string;
+
+  /**
+   * Information about the container used in the request (for the code execution
+   * tool)
+   */
+  container: Container | null;
 
   /**
    * Content generated by the model.
@@ -437,6 +935,11 @@ export interface Message {
    * This will always be `"assistant"`.
    */
   role: 'assistant';
+
+  /**
+   * Structured information about a refusal.
+   */
+  stop_details: RefusalStopDetails | null;
 
   /**
    * The reason that we stopped.
@@ -492,13 +995,27 @@ export interface Message {
   usage: Usage;
 }
 
+/**
+ * Code execution tool with REPL state persistence (daemon mode + gVisor
+ * checkpoint).
+ */
 export type MessageCountTokensTool =
   | Tool
   | ToolBash20250124
+  | CodeExecutionTool20250522
+  | CodeExecutionTool20250825
+  | CodeExecutionTool20260120
+  | MemoryTool20250818
   | ToolTextEditor20250124
   | ToolTextEditor20250429
   | ToolTextEditor20250728
-  | WebSearchTool20250305;
+  | WebSearchTool20250305
+  | WebFetchTool20250910
+  | WebSearchTool20260209
+  | WebFetchTool20260209
+  | WebFetchTool20260309
+  | ToolSearchToolBm25_20251119
+  | ToolSearchToolRegex20251119;
 
 export interface MessageDeltaUsage {
   /**
@@ -558,27 +1075,37 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
-  | 'claude-opus-4-5-20251101'
-  | 'claude-opus-4-5'
-  | 'claude-3-7-sonnet-latest'
-  | 'claude-3-7-sonnet-20250219'
-  | 'claude-3-5-haiku-latest'
-  | 'claude-3-5-haiku-20241022'
+  | 'claude-opus-4-7'
+  | 'claude-mythos-preview'
+  | 'claude-opus-4-6'
+  | 'claude-sonnet-4-6'
   | 'claude-haiku-4-5'
   | 'claude-haiku-4-5-20251001'
-  | 'claude-sonnet-4-20250514'
-  | 'claude-sonnet-4-0'
-  | 'claude-4-sonnet-20250514'
+  | 'claude-opus-4-5'
+  | 'claude-opus-4-5-20251101'
   | 'claude-sonnet-4-5'
   | 'claude-sonnet-4-5-20250929'
+  | 'claude-opus-4-1'
+  | 'claude-opus-4-1-20250805'
   | 'claude-opus-4-0'
   | 'claude-opus-4-20250514'
-  | 'claude-4-opus-20250514'
-  | 'claude-opus-4-1-20250805'
-  | 'claude-3-opus-latest'
-  | 'claude-3-opus-20240229'
+  | 'claude-sonnet-4-0'
+  | 'claude-sonnet-4-20250514'
   | 'claude-3-haiku-20240307'
   | (string & {});
+
+export interface OutputConfig {
+  /**
+   * All possible effort levels.
+   */
+  effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | null;
+
+  /**
+   * A schema to specify Claude's output format in responses. See
+   * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
+   */
+  format?: JSONOutputFormat | null;
+}
 
 const DEPRECATED_MODELS: {
   [K in Model]?: string;
@@ -594,7 +1121,15 @@ const DEPRECATED_MODELS: {
   'claude-2.0': 'July 21st, 2025',
   'claude-3-7-sonnet-latest': 'February 19th, 2026',
   'claude-3-7-sonnet-20250219': 'February 19th, 2026',
+  'claude-3-5-haiku-latest': 'February 19th, 2026',
+  'claude-3-5-haiku-20241022': 'February 19th, 2026',
+  'claude-opus-4-0': 'June 15th, 2026',
+  'claude-opus-4-20250514': 'June 15th, 2026',
+  'claude-sonnet-4-0': 'June 15th, 2026',
+  'claude-sonnet-4-20250514': 'June 15th, 2026',
 };
+
+const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-mythos-preview', 'claude-opus-4-6'];
 
 export interface PlainTextSource {
   data: string;
@@ -620,13 +1155,22 @@ export interface RawContentBlockDeltaEvent {
 }
 
 export interface RawContentBlockStartEvent {
+  /**
+   * Response model for a file uploaded to the container.
+   */
   content_block:
     | TextBlock
     | ThinkingBlock
     | RedactedThinkingBlock
     | ToolUseBlock
     | ServerToolUseBlock
-    | WebSearchToolResultBlock;
+    | WebSearchToolResultBlock
+    | WebFetchToolResultBlock
+    | CodeExecutionToolResultBlock
+    | BashCodeExecutionToolResultBlock
+    | TextEditorCodeExecutionToolResultBlock
+    | ToolSearchToolResultBlock
+    | ContainerUploadBlock;
 
   index: number;
 
@@ -666,6 +1210,17 @@ export interface RawMessageDeltaEvent {
 
 export namespace RawMessageDeltaEvent {
   export interface Delta {
+    /**
+     * Information about the container used in the request (for the code execution
+     * tool)
+     */
+    container: MessagesAPI.Container | null;
+
+    /**
+     * Structured information about a refusal.
+     */
+    stop_details: MessagesAPI.RefusalStopDetails | null;
+
     stop_reason: MessagesAPI.StopReason | null;
 
     stop_sequence: string | null;
@@ -702,6 +1257,28 @@ export interface RedactedThinkingBlockParam {
   type: 'redacted_thinking';
 }
 
+/**
+ * Structured information about a refusal.
+ */
+export interface RefusalStopDetails {
+  /**
+   * The policy category that triggered the refusal.
+   *
+   * `null` when the refusal doesn't map to a named category.
+   */
+  category: 'cyber' | 'bio' | null;
+
+  /**
+   * Human-readable explanation of the refusal.
+   *
+   * This text is not guaranteed to be stable. `null` when no explanation is
+   * available for the category.
+   */
+  explanation: string | null;
+
+  type: 'refusal';
+}
+
 export interface SearchResultBlockParam {
   content: Array<TextBlockParam>;
 
@@ -719,7 +1296,27 @@ export interface SearchResultBlockParam {
   citations?: CitationsConfigParam;
 }
 
+/**
+ * Tool invocation generated by a server-side tool.
+ */
+export interface ServerToolCaller {
+  tool_id: string;
+
+  type: 'code_execution_20250825';
+}
+
+export interface ServerToolCaller20260120 {
+  tool_id: string;
+
+  type: 'code_execution_20260120';
+}
+
 export interface ServerToolUsage {
+  /**
+   * The number of web fetch tool requests.
+   */
+  web_fetch_requests: number;
+
   /**
    * The number of web search tool requests.
    */
@@ -729,9 +1326,21 @@ export interface ServerToolUsage {
 export interface ServerToolUseBlock {
   id: string;
 
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
+
   input: unknown;
 
-  name: 'web_search';
+  name:
+    | 'web_search'
+    | 'web_fetch'
+    | 'code_execution'
+    | 'bash_code_execution'
+    | 'text_editor_code_execution'
+    | 'tool_search_tool_regex'
+    | 'tool_search_tool_bm25';
 
   type: 'server_tool_use';
 }
@@ -741,7 +1350,14 @@ export interface ServerToolUseBlockParam {
 
   input: unknown;
 
-  name: 'web_search';
+  name:
+    | 'web_search'
+    | 'web_fetch'
+    | 'code_execution'
+    | 'bash_code_execution'
+    | 'text_editor_code_execution'
+    | 'tool_search_tool_regex'
+    | 'tool_search_tool_bm25';
 
   type: 'server_tool_use';
 
@@ -749,6 +1365,11 @@ export interface ServerToolUseBlockParam {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 }
 
 export interface SignatureDelta {
@@ -807,6 +1428,126 @@ export interface TextDelta {
   type: 'text_delta';
 }
 
+export interface TextEditorCodeExecutionCreateResultBlock {
+  is_file_update: boolean;
+
+  type: 'text_editor_code_execution_create_result';
+}
+
+export interface TextEditorCodeExecutionCreateResultBlockParam {
+  is_file_update: boolean;
+
+  type: 'text_editor_code_execution_create_result';
+}
+
+export interface TextEditorCodeExecutionStrReplaceResultBlock {
+  lines: Array<string> | null;
+
+  new_lines: number | null;
+
+  new_start: number | null;
+
+  old_lines: number | null;
+
+  old_start: number | null;
+
+  type: 'text_editor_code_execution_str_replace_result';
+}
+
+export interface TextEditorCodeExecutionStrReplaceResultBlockParam {
+  type: 'text_editor_code_execution_str_replace_result';
+
+  lines?: Array<string> | null;
+
+  new_lines?: number | null;
+
+  new_start?: number | null;
+
+  old_lines?: number | null;
+
+  old_start?: number | null;
+}
+
+export interface TextEditorCodeExecutionToolResultBlock {
+  content:
+    | TextEditorCodeExecutionToolResultError
+    | TextEditorCodeExecutionViewResultBlock
+    | TextEditorCodeExecutionCreateResultBlock
+    | TextEditorCodeExecutionStrReplaceResultBlock;
+
+  tool_use_id: string;
+
+  type: 'text_editor_code_execution_tool_result';
+}
+
+export interface TextEditorCodeExecutionToolResultBlockParam {
+  content:
+    | TextEditorCodeExecutionToolResultErrorParam
+    | TextEditorCodeExecutionViewResultBlockParam
+    | TextEditorCodeExecutionCreateResultBlockParam
+    | TextEditorCodeExecutionStrReplaceResultBlockParam;
+
+  tool_use_id: string;
+
+  type: 'text_editor_code_execution_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+}
+
+export interface TextEditorCodeExecutionToolResultError {
+  error_code: TextEditorCodeExecutionToolResultErrorCode;
+
+  error_message: string | null;
+
+  type: 'text_editor_code_execution_tool_result_error';
+}
+
+export type TextEditorCodeExecutionToolResultErrorCode =
+  | 'invalid_tool_input'
+  | 'unavailable'
+  | 'too_many_requests'
+  | 'execution_time_exceeded'
+  | 'file_not_found';
+
+export interface TextEditorCodeExecutionToolResultErrorParam {
+  error_code: TextEditorCodeExecutionToolResultErrorCode;
+
+  type: 'text_editor_code_execution_tool_result_error';
+
+  error_message?: string | null;
+}
+
+export interface TextEditorCodeExecutionViewResultBlock {
+  content: string;
+
+  file_type: 'text' | 'image' | 'pdf';
+
+  num_lines: number | null;
+
+  start_line: number | null;
+
+  total_lines: number | null;
+
+  type: 'text_editor_code_execution_view_result';
+}
+
+export interface TextEditorCodeExecutionViewResultBlockParam {
+  content: string;
+
+  file_type: 'text' | 'image' | 'pdf';
+
+  type: 'text_editor_code_execution_view_result';
+
+  num_lines?: number | null;
+
+  start_line?: number | null;
+
+  total_lines?: number | null;
+}
+
 export interface ThinkingBlock {
   signature: string;
 
@@ -821,6 +1562,18 @@ export interface ThinkingBlockParam {
   thinking: string;
 
   type: 'thinking';
+}
+
+export interface ThinkingConfigAdaptive {
+  type: 'adaptive';
+
+  /**
+   * Controls how thinking content appears in the response. When set to `summarized`,
+   * thinking is returned normally. When set to `omitted`, thinking content is
+   * redacted but a signature is returned for multi-turn continuity. Defaults to
+   * `summarized`.
+   */
+  display?: 'summarized' | 'omitted' | null;
 }
 
 export interface ThinkingConfigDisabled {
@@ -842,6 +1595,14 @@ export interface ThinkingConfigEnabled {
   budget_tokens: number;
 
   type: 'enabled';
+
+  /**
+   * Controls how thinking content appears in the response. When set to `summarized`,
+   * thinking is returned normally. When set to `omitted`, thinking content is
+   * redacted but a signature is returned for multi-turn continuity. Defaults to
+   * `summarized`.
+   */
+  display?: 'summarized' | 'omitted' | null;
 }
 
 /**
@@ -855,7 +1616,7 @@ export interface ThinkingConfigEnabled {
  * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
  * for details.
  */
-export type ThinkingConfigParam = ThinkingConfigEnabled | ThinkingConfigDisabled;
+export type ThinkingConfigParam = ThinkingConfigEnabled | ThinkingConfigDisabled | ThinkingConfigAdaptive;
 
 export interface ThinkingDelta {
   thinking: string;
@@ -879,10 +1640,18 @@ export interface Tool {
    */
   name: string;
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
 
   /**
    * Description of what this tool does.
@@ -893,6 +1662,22 @@ export interface Tool {
    * aspects of the tool input JSON schema.
    */
   description?: string;
+
+  /**
+   * Enable eager input streaming for this tool. When true, tool input parameters
+   * will be streamed incrementally as they are generated, and types will be inferred
+   * on-the-fly rather than buffering the full JSON output. When false, streaming is
+   * disabled for this tool even if the fine-grained-tool-streaming beta is active.
+   * When null (default), uses the default behavior based on beta headers.
+   */
+  eager_input_streaming?: boolean | null;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 
   type?: 'custom' | null;
 }
@@ -925,10 +1710,25 @@ export interface ToolBash20250124 {
 
   type: 'bash_20250124';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 }
 
 /**
@@ -994,6 +1794,26 @@ export interface ToolChoiceTool {
   disable_parallel_tool_use?: boolean;
 }
 
+export interface ToolReferenceBlock {
+  tool_name: string;
+
+  type: 'tool_reference';
+}
+
+/**
+ * Tool reference block that can be included in tool_result content.
+ */
+export interface ToolReferenceBlockParam {
+  tool_name: string;
+
+  type: 'tool_reference';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+}
+
 export interface ToolResultBlockParam {
   tool_use_id: string;
 
@@ -1004,9 +1824,128 @@ export interface ToolResultBlockParam {
    */
   cache_control?: CacheControlEphemeral | null;
 
-  content?: string | Array<TextBlockParam | ImageBlockParam | SearchResultBlockParam | DocumentBlockParam>;
+  content?:
+    | string
+    | Array<
+        | TextBlockParam
+        | ImageBlockParam
+        | SearchResultBlockParam
+        | DocumentBlockParam
+        | ToolReferenceBlockParam
+      >;
 
   is_error?: boolean;
+}
+
+export interface ToolSearchToolBm25_20251119 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'tool_search_tool_bm25';
+
+  type: 'tool_search_tool_bm25_20251119' | 'tool_search_tool_bm25';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
+export interface ToolSearchToolRegex20251119 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'tool_search_tool_regex';
+
+  type: 'tool_search_tool_regex_20251119' | 'tool_search_tool_regex';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
+export interface ToolSearchToolResultBlock {
+  content: ToolSearchToolResultError | ToolSearchToolSearchResultBlock;
+
+  tool_use_id: string;
+
+  type: 'tool_search_tool_result';
+}
+
+export interface ToolSearchToolResultBlockParam {
+  content: ToolSearchToolResultErrorParam | ToolSearchToolSearchResultBlockParam;
+
+  tool_use_id: string;
+
+  type: 'tool_search_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+}
+
+export interface ToolSearchToolResultError {
+  error_code: ToolSearchToolResultErrorCode;
+
+  error_message: string | null;
+
+  type: 'tool_search_tool_result_error';
+}
+
+export type ToolSearchToolResultErrorCode =
+  | 'invalid_tool_input'
+  | 'unavailable'
+  | 'too_many_requests'
+  | 'execution_time_exceeded';
+
+export interface ToolSearchToolResultErrorParam {
+  error_code: ToolSearchToolResultErrorCode;
+
+  type: 'tool_search_tool_result_error';
+}
+
+export interface ToolSearchToolSearchResultBlock {
+  tool_references: Array<ToolReferenceBlock>;
+
+  type: 'tool_search_tool_search_result';
+}
+
+export interface ToolSearchToolSearchResultBlockParam {
+  tool_references: Array<ToolReferenceBlockParam>;
+
+  type: 'tool_search_tool_search_result';
 }
 
 export interface ToolTextEditor20250124 {
@@ -1019,10 +1958,25 @@ export interface ToolTextEditor20250124 {
 
   type: 'text_editor_20250124';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 }
 
 export interface ToolTextEditor20250429 {
@@ -1035,10 +1989,25 @@ export interface ToolTextEditor20250429 {
 
   type: 'text_editor_20250429';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 }
 
 export interface ToolTextEditor20250728 {
@@ -1051,28 +2020,62 @@ export interface ToolTextEditor20250728 {
 
   type: 'text_editor_20250728';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
 
   /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
+
+  /**
    * Maximum number of characters to display when viewing a file. If not specified,
    * defaults to displaying the full file.
    */
   max_characters?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
 }
 
+/**
+ * Code execution tool with REPL state persistence (daemon mode + gVisor
+ * checkpoint).
+ */
 export type ToolUnion =
   | Tool
   | ToolBash20250124
+  | CodeExecutionTool20250522
+  | CodeExecutionTool20250825
+  | CodeExecutionTool20260120
+  | MemoryTool20250818
   | ToolTextEditor20250124
   | ToolTextEditor20250429
   | ToolTextEditor20250728
-  | WebSearchTool20250305;
+  | WebSearchTool20250305
+  | WebFetchTool20250910
+  | WebSearchTool20260209
+  | WebFetchTool20260209
+  | WebFetchTool20260309
+  | ToolSearchToolBm25_20251119
+  | ToolSearchToolRegex20251119;
 
 export interface ToolUseBlock {
   id: string;
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 
   input: unknown;
 
@@ -1094,6 +2097,11 @@ export interface ToolUseBlockParam {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 }
 
 export interface URLImageSource {
@@ -1125,6 +2133,11 @@ export interface Usage {
   cache_read_input_tokens: number | null;
 
   /**
+   * The geographic region where inference was performed for this request.
+   */
+  inference_geo: string | null;
+
+  /**
    * The number of input tokens which were used.
    */
   input_tokens: number;
@@ -1144,6 +2157,295 @@ export interface Usage {
    */
   service_tier: 'standard' | 'priority' | 'batch' | null;
 }
+
+export interface UserLocation {
+  type: 'approximate';
+
+  /**
+   * The city of the user.
+   */
+  city?: string | null;
+
+  /**
+   * The two letter
+   * [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the
+   * user.
+   */
+  country?: string | null;
+
+  /**
+   * The region of the user.
+   */
+  region?: string | null;
+
+  /**
+   * The [IANA timezone](https://nodatime.org/TimeZones) of the user.
+   */
+  timezone?: string | null;
+}
+
+export interface WebFetchBlock {
+  content: DocumentBlock;
+
+  /**
+   * ISO 8601 timestamp when the content was retrieved
+   */
+  retrieved_at: string | null;
+
+  type: 'web_fetch_result';
+
+  /**
+   * Fetched content URL
+   */
+  url: string;
+}
+
+export interface WebFetchBlockParam {
+  content: DocumentBlockParam;
+
+  type: 'web_fetch_result';
+
+  /**
+   * Fetched content URL
+   */
+  url: string;
+
+  /**
+   * ISO 8601 timestamp when the content was retrieved
+   */
+  retrieved_at?: string | null;
+}
+
+export interface WebFetchTool20250910 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_fetch';
+
+  type: 'web_fetch_20250910';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * List of domains to allow fetching from
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * List of domains to block fetching from
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * Citations configuration for fetched documents. Citations are disabled by
+   * default.
+   */
+  citations?: CitationsConfigParam | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of tokens used by including web page text content in the context.
+   * The limit is approximate and does not apply to binary content such as PDFs.
+   */
+  max_content_tokens?: number | null;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
+export interface WebFetchTool20260209 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_fetch';
+
+  type: 'web_fetch_20260209';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * List of domains to allow fetching from
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * List of domains to block fetching from
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * Citations configuration for fetched documents. Citations are disabled by
+   * default.
+   */
+  citations?: CitationsConfigParam | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of tokens used by including web page text content in the context.
+   * The limit is approximate and does not apply to binary content such as PDFs.
+   */
+  max_content_tokens?: number | null;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
+/**
+ * Web fetch tool with use_cache parameter for bypassing cached content.
+ */
+export interface WebFetchTool20260309 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_fetch';
+
+  type: 'web_fetch_20260309';
+
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * List of domains to allow fetching from
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * List of domains to block fetching from
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * Citations configuration for fetched documents. Citations are disabled by
+   * default.
+   */
+  citations?: CitationsConfigParam | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of tokens used by including web page text content in the context.
+   * The limit is approximate and does not apply to binary content such as PDFs.
+   */
+  max_content_tokens?: number | null;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+
+  /**
+   * Whether to use cached content. Set to false to bypass the cache and fetch fresh
+   * content. Only set to false when the user explicitly requests fresh content or
+   * when fetching rapidly-changing sources.
+   */
+  use_cache?: boolean;
+}
+
+export interface WebFetchToolResultBlock {
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
+
+  content: WebFetchToolResultErrorBlock | WebFetchBlock;
+
+  tool_use_id: string;
+
+  type: 'web_fetch_tool_result';
+}
+
+export interface WebFetchToolResultBlockParam {
+  content: WebFetchToolResultErrorBlockParam | WebFetchBlockParam;
+
+  tool_use_id: string;
+
+  type: 'web_fetch_tool_result';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
+}
+
+export interface WebFetchToolResultErrorBlock {
+  error_code: WebFetchToolResultErrorCode;
+
+  type: 'web_fetch_tool_result_error';
+}
+
+export interface WebFetchToolResultErrorBlockParam {
+  error_code: WebFetchToolResultErrorCode;
+
+  type: 'web_fetch_tool_result_error';
+}
+
+export type WebFetchToolResultErrorCode =
+  | 'invalid_tool_input'
+  | 'url_too_long'
+  | 'url_not_allowed'
+  | 'url_not_accessible'
+  | 'unsupported_content_type'
+  | 'too_many_requests'
+  | 'max_uses_exceeded'
+  | 'unavailable';
 
 export interface WebSearchResultBlock {
   encrypted_content: string;
@@ -1179,6 +2481,8 @@ export interface WebSearchTool20250305 {
 
   type: 'web_search_20250305';
 
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
   /**
    * If provided, only these domains will be included in results. Cannot be used
    * alongside `blocked_domains`.
@@ -1197,61 +2501,110 @@ export interface WebSearchTool20250305 {
   cache_control?: CacheControlEphemeral | null;
 
   /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
    * Maximum number of times the tool can be used in the API request.
    */
   max_uses?: number | null;
 
   /**
-   * Parameters for the user's location. Used to provide more relevant search
-   * results.
+   * When true, guarantees schema validation on tool names and inputs
    */
-  user_location?: WebSearchTool20250305.UserLocation | null;
-}
+  strict?: boolean;
 
-export namespace WebSearchTool20250305 {
   /**
    * Parameters for the user's location. Used to provide more relevant search
    * results.
    */
-  export interface UserLocation {
-    type: 'approximate';
+  user_location?: UserLocation | null;
+}
 
-    /**
-     * The city of the user.
-     */
-    city?: string | null;
+// backward compat
+export namespace WebSearchTool20250305 {
+  /**
+   * @deprecated Import `UserLocation` from `anthropic` directly instead of using
+   *   `WebSearchTool20250305.UserLocation`.
+   */
+  export type UserLocation = Messages.UserLocation;
+}
 
-    /**
-     * The two letter
-     * [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the
-     * user.
-     */
-    country?: string | null;
+export interface WebSearchTool20260209 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_search';
 
-    /**
-     * The region of the user.
-     */
-    region?: string | null;
+  type: 'web_search_20260209';
 
-    /**
-     * The [IANA timezone](https://nodatime.org/TimeZones) of the user.
-     */
-    timezone?: string | null;
-  }
+  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+
+  /**
+   * If provided, only these domains will be included in results. Cannot be used
+   * alongside `blocked_domains`.
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * If provided, these domains will never appear in results. Cannot be used
+   * alongside `allowed_domains`.
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+
+  /**
+   * Parameters for the user's location. Used to provide more relevant search
+   * results.
+   */
+  user_location?: UserLocation | null;
+}
+
+// backward compat
+export namespace WebSearchTool20260209 {
+  /**
+   * @deprecated Import `UserLocation` from `anthropic` directly instead of using
+   *   `WebSearchTool20260209.UserLocation`.
+   */
+  export type UserLocation = Messages.UserLocation;
 }
 
 export interface WebSearchToolRequestError {
-  error_code:
-    | 'invalid_tool_input'
-    | 'unavailable'
-    | 'max_uses_exceeded'
-    | 'too_many_requests'
-    | 'query_too_long';
+  error_code: WebSearchToolResultErrorCode;
 
   type: 'web_search_tool_result_error';
 }
 
 export interface WebSearchToolResultBlock {
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
+
   content: WebSearchToolResultBlockContent;
 
   tool_use_id: string;
@@ -1272,6 +2625,11 @@ export interface WebSearchToolResultBlockParam {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * Tool invocation directly from the model.
+   */
+  caller?: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 }
 
 export type WebSearchToolResultBlockParamContent =
@@ -1279,15 +2637,18 @@ export type WebSearchToolResultBlockParamContent =
   | WebSearchToolRequestError;
 
 export interface WebSearchToolResultError {
-  error_code:
-    | 'invalid_tool_input'
-    | 'unavailable'
-    | 'max_uses_exceeded'
-    | 'too_many_requests'
-    | 'query_too_long';
+  error_code: WebSearchToolResultErrorCode;
 
   type: 'web_search_tool_result_error';
 }
+
+export type WebSearchToolResultErrorCode =
+  | 'invalid_tool_input'
+  | 'unavailable'
+  | 'max_uses_exceeded'
+  | 'too_many_requests'
+  | 'query_too_long'
+  | 'request_too_large';
 
 export type MessageStreamEvent = RawMessageStreamEvent;
 
@@ -1394,9 +2755,31 @@ export interface MessageCreateParamsBase {
   model: Model;
 
   /**
+   * Top-level cache control automatically applies a cache_control marker to the last
+   * cacheable block in the request.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * Container identifier for reuse across requests.
+   */
+  container?: string | null;
+
+  /**
+   * Specifies the geographic region for inference processing. If not specified, the
+   * workspace's `default_inference_geo` is used.
+   */
+  inference_geo?: string | null;
+
+  /**
    * An object describing metadata about the request.
    */
   metadata?: Metadata;
+
+  /**
+   * Configuration options for the model's output, such as the output format.
+   */
+  output_config?: OutputConfig;
 
   /**
    * Determines whether to use priority capacity (if available) or standard capacity
@@ -1437,14 +2820,9 @@ export interface MessageCreateParamsBase {
   system?: string | Array<TextBlockParam>;
 
   /**
-   * Amount of randomness injected into the response.
-   *
-   * Defaults to `1.0`. Ranges from `0.0` to `1.0`. Use `temperature` closer to `0.0`
-   * for analytical / multiple choice, and closer to `1.0` for creative and
-   * generative tasks.
-   *
-   * Note that even with `temperature` of `0.0`, the results will not be fully
-   * deterministic.
+   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
+   * setting temperature. A value of 1.0 of will be accepted for backwards
+   * compatibility, all other values will be rejected with a 400 error.
    */
   temperature?: number;
 
@@ -1547,26 +2925,15 @@ export interface MessageCreateParamsBase {
   tools?: Array<ToolUnion>;
 
   /**
-   * Only sample from the top K options for each subsequent token.
-   *
-   * Used to remove "long tail" low probability responses.
-   * [Learn more technical details here](https://towardsdatascience.com/how-to-sample-from-language-models-682bceb97277).
-   *
-   * Recommended for advanced use cases only. You usually only need to use
-   * `temperature`.
+   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not accept
+   * top_k; any value will be rejected with a 400 error.
    */
   top_k?: number;
 
   /**
-   * Use nucleus sampling.
-   *
-   * In nucleus sampling, we compute the cumulative distribution over all the options
-   * for each subsequent token in decreasing probability order and cut it off once it
-   * reaches a particular probability specified by `top_p`. You should either alter
-   * `temperature` or `top_p`, but not both.
-   *
-   * Recommended for advanced use cases only. You usually only need to use
-   * `temperature`.
+   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
+   * setting top_p. A value >= 0.99 will be accepted for backwards compatibility, all
+   * other values will be rejected with a 400 error.
    */
   top_p?: number;
 }
@@ -1594,7 +2961,7 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
   stream: true;
 }
 
-export type MessageStreamParams = MessageCreateParamsBase;
+export type MessageStreamParams = ParseableMessageCreateParams;
 
 export interface MessageCountTokensParams {
   /**
@@ -1672,6 +3039,17 @@ export interface MessageCountTokensParams {
    * details and options.
    */
   model: Model;
+
+  /**
+   * Top-level cache control automatically applies a cache_control marker to the last
+   * cacheable block in the request.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * Configuration options for the model's output, such as the output format.
+   */
+  output_config?: OutputConfig;
 
   /**
    * System prompt.
@@ -1787,6 +3165,15 @@ export declare namespace Messages {
   export {
     type Base64ImageSource as Base64ImageSource,
     type Base64PDFSource as Base64PDFSource,
+    type BashCodeExecutionOutputBlock as BashCodeExecutionOutputBlock,
+    type BashCodeExecutionOutputBlockParam as BashCodeExecutionOutputBlockParam,
+    type BashCodeExecutionResultBlock as BashCodeExecutionResultBlock,
+    type BashCodeExecutionResultBlockParam as BashCodeExecutionResultBlockParam,
+    type BashCodeExecutionToolResultBlock as BashCodeExecutionToolResultBlock,
+    type BashCodeExecutionToolResultBlockParam as BashCodeExecutionToolResultBlockParam,
+    type BashCodeExecutionToolResultError as BashCodeExecutionToolResultError,
+    type BashCodeExecutionToolResultErrorCode as BashCodeExecutionToolResultErrorCode,
+    type BashCodeExecutionToolResultErrorParam as BashCodeExecutionToolResultErrorParam,
     type CacheControlEphemeral as CacheControlEphemeral,
     type CacheCreation as CacheCreation,
     type CitationCharLocation as CitationCharLocation,
@@ -1797,19 +3184,43 @@ export declare namespace Messages {
     type CitationPageLocationParam as CitationPageLocationParam,
     type CitationSearchResultLocationParam as CitationSearchResultLocationParam,
     type CitationWebSearchResultLocationParam as CitationWebSearchResultLocationParam,
+    type CitationsConfig as CitationsConfig,
     type CitationsConfigParam as CitationsConfigParam,
     type CitationsDelta as CitationsDelta,
     type CitationsSearchResultLocation as CitationsSearchResultLocation,
     type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
+    type CodeExecutionOutputBlock as CodeExecutionOutputBlock,
+    type CodeExecutionOutputBlockParam as CodeExecutionOutputBlockParam,
+    type CodeExecutionResultBlock as CodeExecutionResultBlock,
+    type CodeExecutionResultBlockParam as CodeExecutionResultBlockParam,
+    type CodeExecutionTool20250522 as CodeExecutionTool20250522,
+    type CodeExecutionTool20250825 as CodeExecutionTool20250825,
+    type CodeExecutionTool20260120 as CodeExecutionTool20260120,
+    type CodeExecutionToolResultBlock as CodeExecutionToolResultBlock,
+    type CodeExecutionToolResultBlockContent as CodeExecutionToolResultBlockContent,
+    type CodeExecutionToolResultBlockParam as CodeExecutionToolResultBlockParam,
+    type CodeExecutionToolResultBlockParamContent as CodeExecutionToolResultBlockParamContent,
+    type CodeExecutionToolResultError as CodeExecutionToolResultError,
+    type CodeExecutionToolResultErrorCode as CodeExecutionToolResultErrorCode,
+    type CodeExecutionToolResultErrorParam as CodeExecutionToolResultErrorParam,
+    type Container as Container,
+    type ContainerUploadBlock as ContainerUploadBlock,
+    type ContainerUploadBlockParam as ContainerUploadBlockParam,
     type ContentBlock as ContentBlock,
     type ContentBlockParam as ContentBlockParam,
     type ContentBlockStartEvent as ContentBlockStartEvent,
     type ContentBlockStopEvent as ContentBlockStopEvent,
     type ContentBlockSource as ContentBlockSource,
     type ContentBlockSourceContent as ContentBlockSourceContent,
+    type DirectCaller as DirectCaller,
+    type DocumentBlock as DocumentBlock,
     type DocumentBlockParam as DocumentBlockParam,
+    type EncryptedCodeExecutionResultBlock as EncryptedCodeExecutionResultBlock,
+    type EncryptedCodeExecutionResultBlockParam as EncryptedCodeExecutionResultBlockParam,
     type ImageBlockParam as ImageBlockParam,
     type InputJSONDelta as InputJSONDelta,
+    type JSONOutputFormat as JSONOutputFormat,
+    type MemoryTool20250818 as MemoryTool20250818,
     type Message as Message,
     type MessageCountTokensTool as MessageCountTokensTool,
     type MessageDeltaEvent as MessageDeltaEvent,
@@ -1818,6 +3229,7 @@ export declare namespace Messages {
     type MessageTokensCount as MessageTokensCount,
     type Metadata as Metadata,
     type Model as Model,
+    type OutputConfig as OutputConfig,
     type PlainTextSource as PlainTextSource,
     type RawContentBlockDelta as RawContentBlockDelta,
     type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,
@@ -1829,7 +3241,10 @@ export declare namespace Messages {
     type RawMessageStreamEvent as RawMessageStreamEvent,
     type RedactedThinkingBlock as RedactedThinkingBlock,
     type RedactedThinkingBlockParam as RedactedThinkingBlockParam,
+    type RefusalStopDetails as RefusalStopDetails,
     type SearchResultBlockParam as SearchResultBlockParam,
+    type ServerToolCaller as ServerToolCaller,
+    type ServerToolCaller20260120 as ServerToolCaller20260120,
     type ServerToolUsage as ServerToolUsage,
     type ServerToolUseBlock as ServerToolUseBlock,
     type ServerToolUseBlockParam as ServerToolUseBlockParam,
@@ -1840,8 +3255,20 @@ export declare namespace Messages {
     type TextCitation as TextCitation,
     type TextCitationParam as TextCitationParam,
     type TextDelta as TextDelta,
+    type TextEditorCodeExecutionCreateResultBlock as TextEditorCodeExecutionCreateResultBlock,
+    type TextEditorCodeExecutionCreateResultBlockParam as TextEditorCodeExecutionCreateResultBlockParam,
+    type TextEditorCodeExecutionStrReplaceResultBlock as TextEditorCodeExecutionStrReplaceResultBlock,
+    type TextEditorCodeExecutionStrReplaceResultBlockParam as TextEditorCodeExecutionStrReplaceResultBlockParam,
+    type TextEditorCodeExecutionToolResultBlock as TextEditorCodeExecutionToolResultBlock,
+    type TextEditorCodeExecutionToolResultBlockParam as TextEditorCodeExecutionToolResultBlockParam,
+    type TextEditorCodeExecutionToolResultError as TextEditorCodeExecutionToolResultError,
+    type TextEditorCodeExecutionToolResultErrorCode as TextEditorCodeExecutionToolResultErrorCode,
+    type TextEditorCodeExecutionToolResultErrorParam as TextEditorCodeExecutionToolResultErrorParam,
+    type TextEditorCodeExecutionViewResultBlock as TextEditorCodeExecutionViewResultBlock,
+    type TextEditorCodeExecutionViewResultBlockParam as TextEditorCodeExecutionViewResultBlockParam,
     type ThinkingBlock as ThinkingBlock,
     type ThinkingBlockParam as ThinkingBlockParam,
+    type ThinkingConfigAdaptive as ThinkingConfigAdaptive,
     type ThinkingConfigDisabled as ThinkingConfigDisabled,
     type ThinkingConfigEnabled as ThinkingConfigEnabled,
     type ThinkingConfigParam as ThinkingConfigParam,
@@ -1853,7 +3280,18 @@ export declare namespace Messages {
     type ToolChoiceAuto as ToolChoiceAuto,
     type ToolChoiceNone as ToolChoiceNone,
     type ToolChoiceTool as ToolChoiceTool,
+    type ToolReferenceBlock as ToolReferenceBlock,
+    type ToolReferenceBlockParam as ToolReferenceBlockParam,
     type ToolResultBlockParam as ToolResultBlockParam,
+    type ToolSearchToolBm25_20251119 as ToolSearchToolBm25_20251119,
+    type ToolSearchToolRegex20251119 as ToolSearchToolRegex20251119,
+    type ToolSearchToolResultBlock as ToolSearchToolResultBlock,
+    type ToolSearchToolResultBlockParam as ToolSearchToolResultBlockParam,
+    type ToolSearchToolResultError as ToolSearchToolResultError,
+    type ToolSearchToolResultErrorCode as ToolSearchToolResultErrorCode,
+    type ToolSearchToolResultErrorParam as ToolSearchToolResultErrorParam,
+    type ToolSearchToolSearchResultBlock as ToolSearchToolSearchResultBlock,
+    type ToolSearchToolSearchResultBlockParam as ToolSearchToolSearchResultBlockParam,
     type ToolTextEditor20250124 as ToolTextEditor20250124,
     type ToolTextEditor20250429 as ToolTextEditor20250429,
     type ToolTextEditor20250728 as ToolTextEditor20250728,
@@ -1863,9 +3301,21 @@ export declare namespace Messages {
     type URLImageSource as URLImageSource,
     type URLPDFSource as URLPDFSource,
     type Usage as Usage,
+    type UserLocation as UserLocation,
+    type WebFetchBlock as WebFetchBlock,
+    type WebFetchBlockParam as WebFetchBlockParam,
+    type WebFetchTool20250910 as WebFetchTool20250910,
+    type WebFetchTool20260209 as WebFetchTool20260209,
+    type WebFetchTool20260309 as WebFetchTool20260309,
+    type WebFetchToolResultBlock as WebFetchToolResultBlock,
+    type WebFetchToolResultBlockParam as WebFetchToolResultBlockParam,
+    type WebFetchToolResultErrorBlock as WebFetchToolResultErrorBlock,
+    type WebFetchToolResultErrorBlockParam as WebFetchToolResultErrorBlockParam,
+    type WebFetchToolResultErrorCode as WebFetchToolResultErrorCode,
     type WebSearchResultBlock as WebSearchResultBlock,
     type WebSearchResultBlockParam as WebSearchResultBlockParam,
     type WebSearchTool20250305 as WebSearchTool20250305,
+    type WebSearchTool20260209 as WebSearchTool20260209,
     type WebSearchToolRequestError as WebSearchToolRequestError,
     type WebSearchToolResultBlock as WebSearchToolResultBlock,
     type WebSearchToolResultBlockContent as WebSearchToolResultBlockContent,

@@ -1,6 +1,7 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { castToError } from '../internal/errors';
+import type { ErrorType } from '../resources/shared';
 
 export class AnthropicError extends Error {}
 
@@ -18,12 +19,22 @@ export class APIError<
 
   readonly requestID: string | null | undefined;
 
-  constructor(status: TStatus, error: TError, message: string | undefined, headers: THeaders) {
+  /** The `error.type` from the API response body, e.g. `"rate_limit_error"` */
+  readonly type: ErrorType | null;
+
+  constructor(
+    status: TStatus,
+    error: TError,
+    message: string | undefined,
+    headers: THeaders,
+    type?: ErrorType | null,
+  ) {
     super(`${APIError.makeMessage(status, error, message)}`);
     this.status = status;
     this.headers = headers;
     this.requestID = headers?.get('request-id');
     this.error = error;
+    this.type = type ?? null;
   }
 
   private static makeMessage(status: number | undefined, error: any, message: string | undefined) {
@@ -58,40 +69,41 @@ export class APIError<
     }
 
     const error = errorResponse as Record<string, any>;
+    const type = error?.['error']?.['type'] as ErrorType | undefined;
 
     if (status === 400) {
-      return new BadRequestError(status, error, message, headers);
+      return new BadRequestError(status, error, message, headers, type);
     }
 
     if (status === 401) {
-      return new AuthenticationError(status, error, message, headers);
+      return new AuthenticationError(status, error, message, headers, type);
     }
 
     if (status === 403) {
-      return new PermissionDeniedError(status, error, message, headers);
+      return new PermissionDeniedError(status, error, message, headers, type);
     }
 
     if (status === 404) {
-      return new NotFoundError(status, error, message, headers);
+      return new NotFoundError(status, error, message, headers, type);
     }
 
     if (status === 409) {
-      return new ConflictError(status, error, message, headers);
+      return new ConflictError(status, error, message, headers, type);
     }
 
     if (status === 422) {
-      return new UnprocessableEntityError(status, error, message, headers);
+      return new UnprocessableEntityError(status, error, message, headers, type);
     }
 
     if (status === 429) {
-      return new RateLimitError(status, error, message, headers);
+      return new RateLimitError(status, error, message, headers, type);
     }
 
     if (status >= 500) {
-      return new InternalServerError(status, error, message, headers);
+      return new InternalServerError(status, error, message, headers, type);
     }
 
-    return new APIError(status, error, message, headers);
+    return new APIError(status, error, message, headers, type);
   }
 }
 

@@ -1,6 +1,7 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIPromise } from '@anthropic-ai/sdk/core/api-promise';
+import { APIError } from '@anthropic-ai/sdk/core/error';
 
 import util from 'node:util';
 import Anthropic from '@anthropic-ai/sdk';
@@ -87,7 +88,11 @@ describe('instantiate client', () => {
         error: jest.fn(),
       };
 
-      const client = new Anthropic({ logger: logger, logLevel: 'debug', apiKey: 'my-anthropic-api-key' });
+      const client = new Anthropic({
+        logger: logger,
+        logLevel: 'debug',
+        apiKey: 'my-anthropic-api-key',
+      });
 
       await forceAPIResponseForClient(client);
       expect(debugMock).toHaveBeenCalled();
@@ -107,7 +112,11 @@ describe('instantiate client', () => {
         error: jest.fn(),
       };
 
-      const client = new Anthropic({ logger: logger, logLevel: 'info', apiKey: 'my-anthropic-api-key' });
+      const client = new Anthropic({
+        logger: logger,
+        logLevel: 'info',
+        apiKey: 'my-anthropic-api-key',
+      });
 
       await forceAPIResponseForClient(client);
       expect(debugMock).not.toHaveBeenCalled();
@@ -157,7 +166,11 @@ describe('instantiate client', () => {
       };
 
       process.env['ANTHROPIC_LOG'] = 'debug';
-      const client = new Anthropic({ logger: logger, logLevel: 'off', apiKey: 'my-anthropic-api-key' });
+      const client = new Anthropic({
+        logger: logger,
+        logLevel: 'off',
+        apiKey: 'my-anthropic-api-key',
+      });
 
       await forceAPIResponseForClient(client);
       expect(debugMock).not.toHaveBeenCalled();
@@ -173,7 +186,11 @@ describe('instantiate client', () => {
       };
 
       process.env['ANTHROPIC_LOG'] = 'not a log level';
-      const client = new Anthropic({ logger: logger, logLevel: 'debug', apiKey: 'my-anthropic-api-key' });
+      const client = new Anthropic({
+        logger: logger,
+        logLevel: 'debug',
+        apiKey: 'my-anthropic-api-key',
+      });
       expect(client.logLevel).toBe('debug');
       expect(warnMock).not.toHaveBeenCalled();
     });
@@ -552,7 +569,11 @@ describe('retries', () => {
       return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
     };
 
-    const client = new Anthropic({ apiKey: 'my-anthropic-api-key', timeout: 10, fetch: testFetch });
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      timeout: 10,
+      fetch: testFetch,
+    });
 
     expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
     expect(count).toEqual(2);
@@ -582,7 +603,11 @@ describe('retries', () => {
       return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
     };
 
-    const client = new Anthropic({ apiKey: 'my-anthropic-api-key', fetch: testFetch, maxRetries: 4 });
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      fetch: testFetch,
+      maxRetries: 4,
+    });
 
     expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
 
@@ -606,7 +631,11 @@ describe('retries', () => {
       capturedRequest = init;
       return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
     };
-    const client = new Anthropic({ apiKey: 'my-anthropic-api-key', fetch: testFetch, maxRetries: 4 });
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      fetch: testFetch,
+      maxRetries: 4,
+    });
 
     expect(
       await client.request({
@@ -668,7 +697,11 @@ describe('retries', () => {
       capturedRequest = init;
       return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
     };
-    const client = new Anthropic({ apiKey: 'my-anthropic-api-key', fetch: testFetch, maxRetries: 4 });
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      fetch: testFetch,
+      maxRetries: 4,
+    });
 
     expect(
       await client.request({
@@ -739,5 +772,36 @@ describe('retries', () => {
         .then((r) => r.text()),
     ).toEqual(JSON.stringify({ a: 1 }));
     expect(count).toEqual(3);
+  });
+
+  test('HTTP error response exposes error type', async () => {
+    const client = new Anthropic({
+      apiKey: 'test-key',
+      fetch: () =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              type: 'error',
+              error: { type: 'invalid_request_error', message: 'Bad request' },
+            }),
+            { status: 400, headers: { 'Content-Type': 'application/json' } },
+          ),
+        ),
+    });
+
+    try {
+      await client.messages.create({
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 1,
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+      throw new Error('Expected request to throw');
+    } catch (err) {
+      expect(err).toBeInstanceOf(APIError);
+      if (err instanceof APIError) {
+        expect(err.type).toBe('invalid_request_error');
+        expect(err.status).toBe(400);
+      }
+    }
   });
 });
