@@ -14,7 +14,7 @@ import {
   BetaToolUseBlock,
 } from '../../resources/beta';
 
-export type Promisable<T> = T | Promise<T>;
+export type { Promisable } from '../type-utils';
 
 /**
  * Tool types that can be implemented on the client.

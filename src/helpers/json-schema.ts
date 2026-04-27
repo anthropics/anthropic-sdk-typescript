@@ -3,7 +3,6 @@ import { AutoParseableOutputFormat } from '../lib/parser';
 import { AnthropicError } from '../core/error';
 import { transformJSONSchema } from '../lib/transform-json-schema';
 
-type NoInfer<T> = T extends infer R ? R : never;
 
 /**
  * Creates a JSON schema output format object from the given JSON schema.

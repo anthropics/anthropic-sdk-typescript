@@ -3,7 +3,7 @@ import { fromBase64, toBase64 } from '@smithy/util-base64';
 import { streamCollector } from '@smithy/fetch-http-handler';
 import { EventStreamSerdeContext, SerdeContext } from '@smithy/types';
 import { Stream as CoreStream, ServerSentEvent } from '@anthropic-ai/sdk/streaming';
-import { AnthropicError } from '@anthropic-ai/sdk/error';
+import { AnthropicError, isAbortError } from '@anthropic-ai/sdk/error';
 import { APIError, BaseAnthropic } from '@anthropic-ai/sdk';
 import { de_ResponseStream } from '../AWS_restJson1';
 import { ReadableStreamToAsyncIterable } from '../internal/shims';
@@ -105,13 +105,3 @@ export class Stream<Item> extends CoreStream<Item> {
   }
 }
 
-function isAbortError(err: unknown) {
-  return (
-    typeof err === 'object' &&
-    err !== null &&
-    // Spec-compliant fetch implementations
-    (('name' in err && (err as any).name === 'AbortError') ||
-      // Expo fetch
-      ('message' in err && String((err as any).message).includes('FetchRequestCanceledException')))
-  );
-}

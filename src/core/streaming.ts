@@ -1,7 +1,7 @@
 import { AnthropicError } from './error';
 import { type ReadableStream } from '../internal/shim-types';
 import { makeReadableStream } from '../internal/shims';
-import { findDoubleNewlineIndex, LineDecoder } from '../internal/decoders/line';
+import { findDoubleNewlineIndex, LineDecoder, type Bytes } from '../internal/decoders/line';
 import { ReadableStreamToAsyncIterable } from '../internal/shims';
 import { isAbortError } from '../internal/errors';
 import { safeJSON } from '../internal/utils/values';
@@ -11,8 +11,6 @@ import type { BaseAnthropic } from '../client';
 
 import { APIError } from './error';
 import type { ErrorType } from '../resources/shared';
-
-type Bytes = string | ArrayBuffer | Uint8Array | null | undefined;
 
 export type ServerSentEvent = {
   event: string | null;
