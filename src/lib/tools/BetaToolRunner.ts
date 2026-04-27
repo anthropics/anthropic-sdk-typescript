@@ -212,19 +212,24 @@ export class BetaToolRunner<Stream extends boolean> {
             yield this.#message as any;
           }
 
-          const isCompacted = await this.#checkAndCompact();
-          if (!isCompacted) {
-            if (!this.#mutated) {
-              const { role, content } = await this.#message;
-              this.#state.params.messages.push({ role, content });
-            }
+          // Push the assistant message to history BEFORE compaction so the
+          // compaction scope includes the current turn (fixes #892).  Previously
+          // compaction only saw older messages, leaving the token-heavy tool
+          // results out of the summary.
+          if (!this.#mutated) {
+            const { role, content } = await this.#message;
+            this.#state.params.messages.push({ role, content });
+          }
 
-            const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
-            if (toolMessage) {
-              this.#state.params.messages.push(toolMessage);
-            } else if (!this.#mutated) {
-              break;
-            }
+          const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
+          if (toolMessage) {
+            this.#state.params.messages.push(toolMessage);
+
+            // Compact after pushing both the assistant message and tool results
+            // so the summary covers the full conversation context.
+            await this.#checkAndCompact();
+          } else if (!this.#mutated) {
+            break;
           }
         } finally {
           if (stream) {

@@ -1048,6 +1048,133 @@ describe('ToolRunner', () => {
       expect(capturedHelperHeader).toBe('BetaToolRunner, mcpTool');
     });
 
+    it('compaction includes current turn messages in scope (fixes #892)', async () => {
+      // Verify that when compaction fires, the messages sent to the summarization
+      // API include the current assistant message AND tool results — not just
+      // the older conversation history.
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+
+      let compactionMessages: any[] | null = null;
+
+      // Request 1: assistant responds with tool_use (high token count to trigger compaction)
+      handleRequest(async () => {
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [getWeatherToolUse('Tokyo')],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'tool_use',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: {
+              input_tokens: 90000,
+              output_tokens: 5000,
+              cache_creation: null,
+              cache_creation_input_tokens: 0,
+              cache_read_input_tokens: 0,
+              server_tool_use: null,
+              service_tier: null,
+              inference_geo: null,
+              iterations: null,
+              speed: null,
+            },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      // Request 2: compaction summary — capture the messages to verify scope
+      handleRequest(async (_req, init) => {
+        const body = JSON.parse(init?.body as string);
+        compactionMessages = body.messages;
+        return new Response(
+          JSON.stringify({
+            id: 'msg_compact',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Summary including tool results.', citations: null }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: {
+              input_tokens: 100,
+              output_tokens: 50,
+              cache_creation: null,
+              cache_creation_input_tokens: null,
+              cache_read_input_tokens: null,
+              server_tool_use: null,
+              service_tier: null,
+              inference_geo: null,
+              iterations: null,
+              speed: null,
+            },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      // Request 3: final response after compaction
+      handleRequest(async () => {
+        return new Response(
+          JSON.stringify({
+            id: 'msg_3',
+            type: 'message',
+            role: 'assistant',
+            content: [getTextContent('The weather in Tokyo is sunny.')],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: {
+              input_tokens: 50,
+              output_tokens: 20,
+              cache_creation: null,
+              cache_creation_input_tokens: null,
+              cache_read_input_tokens: null,
+              server_tool_use: null,
+              service_tier: null,
+              inference_geo: null,
+              iterations: null,
+              speed: null,
+            },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      const runner = client.beta.messages.toolRunner({
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: 'What is the weather in Tokyo?' }],
+        tools: [weatherTool],
+        compactionControl: {
+          enabled: true,
+          contextTokenThreshold: 50000,
+        },
+      });
+
+      await runner.runUntilDone();
+
+      // The compaction request should include the tool_result from the current turn
+      expect(compactionMessages).not.toBeNull();
+
+      // Verify tool_result is in the compaction scope (the key assertion for #892)
+      const toolResultMsg = compactionMessages!.find(
+        (m: any) =>
+          m.role === 'user' &&
+          Array.isArray(m.content) &&
+          m.content.some((c: any) => c.type === 'tool_result'),
+      );
+      expect(toolResultMsg).toBeDefined();
+    });
+
     it('includes BetaToolRunner,mcpTool for mixed tools (MCP and regular)', async () => {
       const { fetch, handleRequest } = mockFetch();
       const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
