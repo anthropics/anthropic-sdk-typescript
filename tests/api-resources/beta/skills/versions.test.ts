@@ -1,6 +1,7 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import Anthropic, { toFile } from '@anthropic-ai/sdk';
+import { mockFetch } from '../../../lib/mock-fetch';
 
 const client = new Anthropic({
   apiKey: 'my-anthropic-api-key',
@@ -31,6 +32,39 @@ describe('resource versions', () => {
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
+  });
+
+  test('create: preserves nested skill filenames in multipart uploads', async () => {
+    const { fetch: mock, handleRequest } = mockFetch();
+    const fetch: typeof globalThis.fetch = (req, init) => {
+      if (typeof req === 'string' && req.startsWith('data:,')) {
+        return globalThis.fetch(req, init);
+      }
+
+      return mock(req, init);
+    };
+    const skillsClient = new Anthropic({ apiKey: 'my-anthropic-api-key', fetch, maxRetries: 0 });
+
+    handleRequest(async (_req, init) => {
+      expect(init?.body).toBeInstanceOf(FormData);
+
+      const form = init?.body as FormData;
+      const file = form.get('files[]');
+      expect(file).toBeInstanceOf(File);
+      expect((file as File).name).toBe('my-skill/SKILL.md');
+
+      return new Response(JSON.stringify({ id: 'skill_version_123' }), {
+        headers: { 'content-type': 'application/json' },
+      });
+    });
+
+    const response = await skillsClient.beta.skills.versions
+      .create('skill_id', {
+        files: [await toFile(Buffer.from('Example data'), 'my-skill/SKILL.md')],
+      })
+      .asResponse();
+
+    expect(response).toBeInstanceOf(Response);
   });
 
   test('retrieve: only required params', async () => {
