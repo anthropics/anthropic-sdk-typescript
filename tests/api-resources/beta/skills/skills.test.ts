@@ -2,7 +2,10 @@
 
 import Anthropic, { toFile } from '@anthropic-ai/sdk';
 
-const client = new Anthropic({ apiKey: 'my-anthropic-api-key', baseURL: process.env["TEST_API_BASE_URL"] ?? 'http://127.0.0.1:4010' });
+const client = new Anthropic({
+  apiKey: 'my-anthropic-api-key',
+  baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
+});
 
 describe('resource skills', () => {
   test('create', async () => {
@@ -18,13 +21,16 @@ describe('resource skills', () => {
 
   test('create: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(client.beta.skills.create({
-    display_title: 'display_title',
-    files: [await toFile(Buffer.from('Example data'), 'README.md')],
-    betas: ['message-batches-2024-09-24'],
-  }, { path: '/_stainless_unknown_path' }))
-      .rejects
-      .toThrow(Anthropic.NotFoundError);
+    await expect(
+      client.beta.skills.create(
+        {
+          display_title: 'display_title',
+          files: [await toFile(Buffer.from('Example data'), 'README.md')],
+          betas: ['message-batches-2024-09-24'],
+        },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
   test('retrieve', async () => {
@@ -40,9 +46,13 @@ describe('resource skills', () => {
 
   test('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(client.beta.skills.retrieve('skill_id', { betas: ['message-batches-2024-09-24'] }, { path: '/_stainless_unknown_path' }))
-      .rejects
-      .toThrow(Anthropic.NotFoundError);
+    await expect(
+      client.beta.skills.retrieve(
+        'skill_id',
+        { betas: ['message-batches-2024-09-24'] },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
   test('list', async () => {
@@ -58,14 +68,17 @@ describe('resource skills', () => {
 
   test('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(client.beta.skills.list({
-    limit: 0,
-    page: 'page',
-    source: 'source',
-    betas: ['message-batches-2024-09-24'],
-  }, { path: '/_stainless_unknown_path' }))
-      .rejects
-      .toThrow(Anthropic.NotFoundError);
+    await expect(
+      client.beta.skills.list(
+        {
+          limit: 0,
+          page: 'page',
+          source: 'source',
+          betas: ['message-batches-2024-09-24'],
+        },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
   test('delete', async () => {
@@ -81,8 +94,12 @@ describe('resource skills', () => {
 
   test('delete: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(client.beta.skills.delete('skill_id', { betas: ['message-batches-2024-09-24'] }, { path: '/_stainless_unknown_path' }))
-      .rejects
-      .toThrow(Anthropic.NotFoundError);
+    await expect(
+      client.beta.skills.delete(
+        'skill_id',
+        { betas: ['message-batches-2024-09-24'] },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
   });
 });

@@ -3,9 +3,40 @@
 import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
 import * as MemoriesAPI from './memories';
-import { BetaManagedAgentsConflictError, BetaManagedAgentsContentSha256Precondition, BetaManagedAgentsDeletedMemory, BetaManagedAgentsError, BetaManagedAgentsMemory, BetaManagedAgentsMemoryListItem, BetaManagedAgentsMemoryListItemsPageCursor, BetaManagedAgentsMemoryPathConflictError, BetaManagedAgentsMemoryPreconditionFailedError, BetaManagedAgentsMemoryPrefix, BetaManagedAgentsMemoryView, BetaManagedAgentsPrecondition, Memories, MemoryCreateParams, MemoryDeleteParams, MemoryListParams, MemoryRetrieveParams, MemoryUpdateParams } from './memories';
+import {
+  BetaManagedAgentsConflictError,
+  BetaManagedAgentsContentSha256Precondition,
+  BetaManagedAgentsDeletedMemory,
+  BetaManagedAgentsError,
+  BetaManagedAgentsMemory,
+  BetaManagedAgentsMemoryListItem,
+  BetaManagedAgentsMemoryListItemsPageCursor,
+  BetaManagedAgentsMemoryPathConflictError,
+  BetaManagedAgentsMemoryPreconditionFailedError,
+  BetaManagedAgentsMemoryPrefix,
+  BetaManagedAgentsMemoryView,
+  BetaManagedAgentsPrecondition,
+  Memories,
+  MemoryCreateParams,
+  MemoryDeleteParams,
+  MemoryListParams,
+  MemoryRetrieveParams,
+  MemoryUpdateParams,
+} from './memories';
 import * as MemoryVersionsAPI from './memory-versions';
-import { BetaManagedAgentsAPIActor, BetaManagedAgentsActor, BetaManagedAgentsMemoryVersion, BetaManagedAgentsMemoryVersionOperation, BetaManagedAgentsMemoryVersionsPageCursor, BetaManagedAgentsSessionActor, BetaManagedAgentsUserActor, MemoryVersionListParams, MemoryVersionRedactParams, MemoryVersionRetrieveParams, MemoryVersions } from './memory-versions';
+import {
+  BetaManagedAgentsAPIActor,
+  BetaManagedAgentsActor,
+  BetaManagedAgentsMemoryVersion,
+  BetaManagedAgentsMemoryVersionOperation,
+  BetaManagedAgentsMemoryVersionsPageCursor,
+  BetaManagedAgentsSessionActor,
+  BetaManagedAgentsUserActor,
+  MemoryVersionListParams,
+  MemoryVersionRedactParams,
+  MemoryVersionRetrieveParams,
+  MemoryVersions,
+} from './memory-versions';
 import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
@@ -25,9 +56,19 @@ export class MemoryStores extends APIResource {
    *   await client.beta.memoryStores.create({ name: 'x' });
    * ```
    */
-  create(params: MemoryStoreCreateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsMemoryStore> {
-    const { betas, ...body } = params
-    return this._client.post('/v1/memory_stores?beta=true', { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  create(
+    params: MemoryStoreCreateParams,
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsMemoryStore> {
+    const { betas, ...body } = params;
+    return this._client.post('/v1/memory_stores?beta=true', {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -41,9 +82,19 @@ export class MemoryStores extends APIResource {
    *   );
    * ```
    */
-  retrieve(memoryStoreID: string, params: MemoryStoreRetrieveParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaManagedAgentsMemoryStore> {
-    const { betas } = params ?? {}
-    return this._client.get(path`/v1/memory_stores/${memoryStoreID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  retrieve(
+    memoryStoreID: string,
+    params: MemoryStoreRetrieveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsMemoryStore> {
+    const { betas } = params ?? {};
+    return this._client.get(path`/v1/memory_stores/${memoryStoreID}?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -55,9 +106,20 @@ export class MemoryStores extends APIResource {
    *   await client.beta.memoryStores.update('memory_store_id');
    * ```
    */
-  update(memoryStoreID: string, params: MemoryStoreUpdateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsMemoryStore> {
-    const { betas, ...body } = params
-    return this._client.post(path`/v1/memory_stores/${memoryStoreID}?beta=true`, { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  update(
+    memoryStoreID: string,
+    params: MemoryStoreUpdateParams,
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsMemoryStore> {
+    const { betas, ...body } = params;
+    return this._client.post(path`/v1/memory_stores/${memoryStoreID}?beta=true`, {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -71,9 +133,19 @@ export class MemoryStores extends APIResource {
    * }
    * ```
    */
-  list(params: MemoryStoreListParams | null | undefined = {}, options?: RequestOptions): PagePromise<BetaManagedAgentsMemoryStoresPageCursor, BetaManagedAgentsMemoryStore> {
-    const { betas, ...query } = params ?? {}
-    return this._client.getAPIList('/v1/memory_stores?beta=true', PageCursor<BetaManagedAgentsMemoryStore>, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  list(
+    params: MemoryStoreListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<BetaManagedAgentsMemoryStoresPageCursor, BetaManagedAgentsMemoryStore> {
+    const { betas, ...query } = params ?? {};
+    return this._client.getAPIList('/v1/memory_stores?beta=true', PageCursor<BetaManagedAgentsMemoryStore>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -85,9 +157,19 @@ export class MemoryStores extends APIResource {
    *   await client.beta.memoryStores.delete('memory_store_id');
    * ```
    */
-  delete(memoryStoreID: string, params: MemoryStoreDeleteParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaManagedAgentsDeletedMemoryStore> {
-    const { betas } = params ?? {}
-    return this._client.delete(path`/v1/memory_stores/${memoryStoreID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  delete(
+    memoryStoreID: string,
+    params: MemoryStoreDeleteParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsDeletedMemoryStore> {
+    const { betas } = params ?? {};
+    return this._client.delete(path`/v1/memory_stores/${memoryStoreID}?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -99,13 +181,23 @@ export class MemoryStores extends APIResource {
    *   await client.beta.memoryStores.archive('memory_store_id');
    * ```
    */
-  archive(memoryStoreID: string, params: MemoryStoreArchiveParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaManagedAgentsMemoryStore> {
-    const { betas } = params ?? {}
-    return this._client.post(path`/v1/memory_stores/${memoryStoreID}/archive?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  archive(
+    memoryStoreID: string,
+    params: MemoryStoreArchiveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsMemoryStore> {
+    const { betas } = params ?? {};
+    return this._client.post(path`/v1/memory_stores/${memoryStoreID}/archive?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 }
 
-export type BetaManagedAgentsMemoryStoresPageCursor = PageCursor<BetaManagedAgentsMemoryStore>
+export type BetaManagedAgentsMemoryStoresPageCursor = PageCursor<BetaManagedAgentsMemoryStore>;
 
 export interface BetaManagedAgentsDeletedMemoryStore {
   id: string;
@@ -242,7 +334,7 @@ export declare namespace MemoryStores {
     type MemoryStoreUpdateParams as MemoryStoreUpdateParams,
     type MemoryStoreListParams as MemoryStoreListParams,
     type MemoryStoreDeleteParams as MemoryStoreDeleteParams,
-    type MemoryStoreArchiveParams as MemoryStoreArchiveParams
+    type MemoryStoreArchiveParams as MemoryStoreArchiveParams,
   };
 
   export {
@@ -263,7 +355,7 @@ export declare namespace MemoryStores {
     type MemoryRetrieveParams as MemoryRetrieveParams,
     type MemoryUpdateParams as MemoryUpdateParams,
     type MemoryListParams as MemoryListParams,
-    type MemoryDeleteParams as MemoryDeleteParams
+    type MemoryDeleteParams as MemoryDeleteParams,
   };
 
   export {
@@ -277,6 +369,6 @@ export declare namespace MemoryStores {
     type BetaManagedAgentsMemoryVersionsPageCursor as BetaManagedAgentsMemoryVersionsPageCursor,
     type MemoryVersionRetrieveParams as MemoryVersionRetrieveParams,
     type MemoryVersionListParams as MemoryVersionListParams,
-    type MemoryVersionRedactParams as MemoryVersionRedactParams
+    type MemoryVersionRedactParams as MemoryVersionRedactParams,
   };
 }

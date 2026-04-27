@@ -3,7 +3,35 @@
 import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
 import * as CredentialsAPI from './credentials';
-import { BetaManagedAgentsCredential, BetaManagedAgentsCredentialsPageCursor, BetaManagedAgentsDeletedCredential, BetaManagedAgentsMCPOAuthAuthResponse, BetaManagedAgentsMCPOAuthCreateParams, BetaManagedAgentsMCPOAuthRefreshParams, BetaManagedAgentsMCPOAuthRefreshResponse, BetaManagedAgentsMCPOAuthRefreshUpdateParams, BetaManagedAgentsMCPOAuthUpdateParams, BetaManagedAgentsStaticBearerAuthResponse, BetaManagedAgentsStaticBearerCreateParams, BetaManagedAgentsStaticBearerUpdateParams, BetaManagedAgentsTokenEndpointAuthBasicParam, BetaManagedAgentsTokenEndpointAuthBasicResponse, BetaManagedAgentsTokenEndpointAuthBasicUpdateParam, BetaManagedAgentsTokenEndpointAuthNoneParam, BetaManagedAgentsTokenEndpointAuthNoneResponse, BetaManagedAgentsTokenEndpointAuthPostParam, BetaManagedAgentsTokenEndpointAuthPostResponse, BetaManagedAgentsTokenEndpointAuthPostUpdateParam, CredentialArchiveParams, CredentialCreateParams, CredentialDeleteParams, CredentialListParams, CredentialRetrieveParams, CredentialUpdateParams, Credentials } from './credentials';
+import {
+  BetaManagedAgentsCredential,
+  BetaManagedAgentsCredentialsPageCursor,
+  BetaManagedAgentsDeletedCredential,
+  BetaManagedAgentsMCPOAuthAuthResponse,
+  BetaManagedAgentsMCPOAuthCreateParams,
+  BetaManagedAgentsMCPOAuthRefreshParams,
+  BetaManagedAgentsMCPOAuthRefreshResponse,
+  BetaManagedAgentsMCPOAuthRefreshUpdateParams,
+  BetaManagedAgentsMCPOAuthUpdateParams,
+  BetaManagedAgentsStaticBearerAuthResponse,
+  BetaManagedAgentsStaticBearerCreateParams,
+  BetaManagedAgentsStaticBearerUpdateParams,
+  BetaManagedAgentsTokenEndpointAuthBasicParam,
+  BetaManagedAgentsTokenEndpointAuthBasicResponse,
+  BetaManagedAgentsTokenEndpointAuthBasicUpdateParam,
+  BetaManagedAgentsTokenEndpointAuthNoneParam,
+  BetaManagedAgentsTokenEndpointAuthNoneResponse,
+  BetaManagedAgentsTokenEndpointAuthPostParam,
+  BetaManagedAgentsTokenEndpointAuthPostResponse,
+  BetaManagedAgentsTokenEndpointAuthPostUpdateParam,
+  CredentialArchiveParams,
+  CredentialCreateParams,
+  CredentialDeleteParams,
+  CredentialListParams,
+  CredentialRetrieveParams,
+  CredentialUpdateParams,
+  Credentials,
+} from './credentials';
 import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
@@ -25,8 +53,15 @@ export class Vaults extends APIResource {
    * ```
    */
   create(params: VaultCreateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsVault> {
-    const { betas, ...body } = params
-    return this._client.post('/v1/vaults?beta=true', { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+    const { betas, ...body } = params;
+    return this._client.post('/v1/vaults?beta=true', {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -40,9 +75,19 @@ export class Vaults extends APIResource {
    *   );
    * ```
    */
-  retrieve(vaultID: string, params: VaultRetrieveParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaManagedAgentsVault> {
-    const { betas } = params ?? {}
-    return this._client.get(path`/v1/vaults/${vaultID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  retrieve(
+    vaultID: string,
+    params: VaultRetrieveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsVault> {
+    const { betas } = params ?? {};
+    return this._client.get(path`/v1/vaults/${vaultID}?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -56,9 +101,20 @@ export class Vaults extends APIResource {
    *   );
    * ```
    */
-  update(vaultID: string, params: VaultUpdateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsVault> {
-    const { betas, ...body } = params
-    return this._client.post(path`/v1/vaults/${vaultID}?beta=true`, { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  update(
+    vaultID: string,
+    params: VaultUpdateParams,
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsVault> {
+    const { betas, ...body } = params;
+    return this._client.post(path`/v1/vaults/${vaultID}?beta=true`, {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -72,9 +128,19 @@ export class Vaults extends APIResource {
    * }
    * ```
    */
-  list(params: VaultListParams | null | undefined = {}, options?: RequestOptions): PagePromise<BetaManagedAgentsVaultsPageCursor, BetaManagedAgentsVault> {
-    const { betas, ...query } = params ?? {}
-    return this._client.getAPIList('/v1/vaults?beta=true', PageCursor<BetaManagedAgentsVault>, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  list(
+    params: VaultListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<BetaManagedAgentsVaultsPageCursor, BetaManagedAgentsVault> {
+    const { betas, ...query } = params ?? {};
+    return this._client.getAPIList('/v1/vaults?beta=true', PageCursor<BetaManagedAgentsVault>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -88,9 +154,19 @@ export class Vaults extends APIResource {
    *   );
    * ```
    */
-  delete(vaultID: string, params: VaultDeleteParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaManagedAgentsDeletedVault> {
-    const { betas } = params ?? {}
-    return this._client.delete(path`/v1/vaults/${vaultID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  delete(
+    vaultID: string,
+    params: VaultDeleteParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsDeletedVault> {
+    const { betas } = params ?? {};
+    return this._client.delete(path`/v1/vaults/${vaultID}?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -104,13 +180,23 @@ export class Vaults extends APIResource {
    *   );
    * ```
    */
-  archive(vaultID: string, params: VaultArchiveParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaManagedAgentsVault> {
-    const { betas } = params ?? {}
-    return this._client.post(path`/v1/vaults/${vaultID}/archive?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  archive(
+    vaultID: string,
+    params: VaultArchiveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsVault> {
+    const { betas } = params ?? {};
+    return this._client.post(path`/v1/vaults/${vaultID}/archive?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 }
 
-export type BetaManagedAgentsVaultsPageCursor = PageCursor<BetaManagedAgentsVault>
+export type BetaManagedAgentsVaultsPageCursor = PageCursor<BetaManagedAgentsVault>;
 
 /**
  * Confirmation of a deleted vault.
@@ -242,7 +328,7 @@ export declare namespace Vaults {
     type VaultUpdateParams as VaultUpdateParams,
     type VaultListParams as VaultListParams,
     type VaultDeleteParams as VaultDeleteParams,
-    type VaultArchiveParams as VaultArchiveParams
+    type VaultArchiveParams as VaultArchiveParams,
   };
 
   export {
@@ -272,6 +358,6 @@ export declare namespace Vaults {
     type CredentialUpdateParams as CredentialUpdateParams,
     type CredentialListParams as CredentialListParams,
     type CredentialDeleteParams as CredentialDeleteParams,
-    type CredentialArchiveParams as CredentialArchiveParams
+    type CredentialArchiveParams as CredentialArchiveParams,
   };
 }

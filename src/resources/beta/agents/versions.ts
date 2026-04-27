@@ -23,9 +23,24 @@ export class Versions extends APIResource {
    * }
    * ```
    */
-  list(agentID: string, params: VersionListParams | null | undefined = {}, options?: RequestOptions): PagePromise<BetaManagedAgentsAgentsPageCursor, AgentsAPI.BetaManagedAgentsAgent> {
-    const { betas, ...query } = params ?? {}
-    return this._client.getAPIList(path`/v1/agents/${agentID}/versions?beta=true`, PageCursor<AgentsAPI.BetaManagedAgentsAgent>, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  list(
+    agentID: string,
+    params: VersionListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<BetaManagedAgentsAgentsPageCursor, AgentsAPI.BetaManagedAgentsAgent> {
+    const { betas, ...query } = params ?? {};
+    return this._client.getAPIList(
+      path`/v1/agents/${agentID}/versions?beta=true`,
+      PageCursor<AgentsAPI.BetaManagedAgentsAgent>,
+      {
+        query,
+        ...options,
+        headers: buildHeaders([
+          { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+          options?.headers,
+        ]),
+      },
+    );
   }
 }
 
@@ -37,9 +52,7 @@ export interface VersionListParams extends PageCursorParams {
 }
 
 export declare namespace Versions {
-  export {
-    type VersionListParams as VersionListParams
-  };
+  export { type VersionListParams as VersionListParams };
 }
 
-export { type BetaManagedAgentsAgentsPageCursor }
+export { type BetaManagedAgentsAgentsPageCursor };

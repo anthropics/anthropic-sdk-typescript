@@ -87,7 +87,8 @@ export class PagePromise<
     super(
       client,
       request,
-      async (client, props) => new Page(client, props.response, await defaultParseResponse(client, props), props.options)
+      async (client, props) =>
+        new Page(client, props.response, await defaultParseResponse(client, props), props.options),
     );
   }
 
@@ -136,7 +137,12 @@ export class Page<Item> extends AbstractPage<Item> implements PageResponse<Item>
 
   last_id: string | null;
 
-  constructor(client: BaseAnthropic, response: Response, body: PageResponse<Item>, options: FinalRequestOptions) {
+  constructor(
+    client: BaseAnthropic,
+    response: Response,
+    body: PageResponse<Item>,
+    options: FinalRequestOptions,
+  ) {
     super(client, response, body, options);
 
     this.data = body.data || [];
@@ -160,7 +166,7 @@ export class Page<Item> extends AbstractPage<Item> implements PageResponse<Item>
   nextPageRequestOptions(): PageRequestOptions | null {
     if ((this.options.query as Record<string, unknown>)?.['before_id']) {
       // in reverse
-      const first_id = this.first_id
+      const first_id = this.first_id;
       if (!first_id) {
         return null;
       }
@@ -174,7 +180,7 @@ export class Page<Item> extends AbstractPage<Item> implements PageResponse<Item>
       };
     }
 
-    const cursor = this.last_id
+    const cursor = this.last_id;
     if (!cursor) {
       return null;
     }
@@ -213,7 +219,12 @@ export class TokenPage<Item> extends AbstractPage<Item> implements TokenPageResp
 
   next_page: string | null;
 
-  constructor(client: BaseAnthropic, response: Response, body: TokenPageResponse<Item>, options: FinalRequestOptions) {
+  constructor(
+    client: BaseAnthropic,
+    response: Response,
+    body: TokenPageResponse<Item>,
+    options: FinalRequestOptions,
+  ) {
     super(client, response, body, options);
 
     this.data = body.data || [];
@@ -234,7 +245,7 @@ export class TokenPage<Item> extends AbstractPage<Item> implements TokenPageResp
   }
 
   nextPageRequestOptions(): PageRequestOptions | null {
-    const cursor = this.next_page
+    const cursor = this.next_page;
     if (!cursor) {
       return null;
     }
@@ -269,7 +280,12 @@ export class PageCursor<Item> extends AbstractPage<Item> implements PageCursorRe
 
   next_page: string | null;
 
-  constructor(client: BaseAnthropic, response: Response, body: PageCursorResponse<Item>, options: FinalRequestOptions) {
+  constructor(
+    client: BaseAnthropic,
+    response: Response,
+    body: PageCursorResponse<Item>,
+    options: FinalRequestOptions,
+  ) {
     super(client, response, body, options);
 
     this.data = body.data || [];
@@ -281,7 +297,7 @@ export class PageCursor<Item> extends AbstractPage<Item> implements PageCursorRe
   }
 
   nextPageRequestOptions(): PageRequestOptions | null {
-    const cursor = this.next_page
+    const cursor = this.next_page;
     if (!cursor) {
       return null;
     }

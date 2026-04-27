@@ -5,7 +5,25 @@ import * as BetaMessagesAPI from './messages';
 import * as BetaAPI from '../beta';
 import * as MessagesAPI from '../../messages/messages';
 import * as BatchesAPI from './batches';
-import { BatchCancelParams, BatchCreateParams, BatchDeleteParams, BatchListParams, BatchResultsParams, BatchRetrieveParams, Batches, BetaDeletedMessageBatch, BetaMessageBatch, BetaMessageBatchCanceledResult, BetaMessageBatchErroredResult, BetaMessageBatchExpiredResult, BetaMessageBatchIndividualResponse, BetaMessageBatchRequestCounts, BetaMessageBatchResult, BetaMessageBatchSucceededResult, BetaMessageBatchesPage } from './batches';
+import {
+  BatchCancelParams,
+  BatchCreateParams,
+  BatchDeleteParams,
+  BatchListParams,
+  BatchResultsParams,
+  BatchRetrieveParams,
+  Batches,
+  BetaDeletedMessageBatch,
+  BetaMessageBatch,
+  BetaMessageBatchCanceledResult,
+  BetaMessageBatchErroredResult,
+  BetaMessageBatchExpiredResult,
+  BetaMessageBatchIndividualResponse,
+  BetaMessageBatchRequestCounts,
+  BetaMessageBatchResult,
+  BetaMessageBatchSucceededResult,
+  BetaMessageBatchesPage,
+} from './batches';
 import { APIPromise } from '../../../core/api-promise';
 import { Stream } from '../../../core/streaming';
 import { buildHeaders } from '../../../internal/headers';
@@ -33,12 +51,30 @@ export class Messages extends APIResource {
    * });
    * ```
    */
-  create(params: MessageCreateParamsNonStreaming, options?: RequestOptions): APIPromise<BetaMessage>
-  create(params: MessageCreateParamsStreaming, options?: RequestOptions): APIPromise<Stream<BetaRawMessageStreamEvent>>
-  create(params: MessageCreateParamsBase, options?: RequestOptions): APIPromise<Stream<BetaRawMessageStreamEvent> | BetaMessage>
-  create(params: MessageCreateParams, options?: RequestOptions): APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>> {
-    const { betas, ...body } = params
-    return this._client.post('/v1/messages?beta=true', { body, timeout: (this._client as any)._options.timeout ?? 600000, ...options, headers: buildHeaders([{...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined)}, options?.headers]), stream: params.stream ?? false }) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
+  create(params: MessageCreateParamsNonStreaming, options?: RequestOptions): APIPromise<BetaMessage>;
+  create(
+    params: MessageCreateParamsStreaming,
+    options?: RequestOptions,
+  ): APIPromise<Stream<BetaRawMessageStreamEvent>>;
+  create(
+    params: MessageCreateParamsBase,
+    options?: RequestOptions,
+  ): APIPromise<Stream<BetaRawMessageStreamEvent> | BetaMessage>;
+  create(
+    params: MessageCreateParams,
+    options?: RequestOptions,
+  ): APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>> {
+    const { betas, ...body } = params;
+    return this._client.post('/v1/messages?beta=true', {
+      body,
+      timeout: (this._client as any)._options.timeout ?? 600000,
+      ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+      stream: params.stream ?? false,
+    }) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
   }
 
   /**
@@ -59,9 +95,19 @@ export class Messages extends APIResource {
    *   });
    * ```
    */
-  countTokens(params: MessageCountTokensParams, options?: RequestOptions): APIPromise<BetaMessageTokensCount> {
-    const { betas, ...body } = params
-    return this._client.post('/v1/messages/count_tokens?beta=true', { body, ...options, headers: buildHeaders([{...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined)}, options?.headers]) });
+  countTokens(
+    params: MessageCountTokensParams,
+    options?: RequestOptions,
+  ): APIPromise<BetaMessageTokensCount> {
+    const { betas, ...body } = params;
+    return this._client.post('/v1/messages/count_tokens?beta=true', {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 }
 
@@ -195,7 +241,10 @@ export interface BetaAdvisorToolResultBlock {
 }
 
 export interface BetaAdvisorToolResultBlockParam {
-  content: BetaAdvisorToolResultErrorParam | BetaAdvisorResultBlockParam | BetaAdvisorRedactedResultBlockParam;
+  content:
+    | BetaAdvisorToolResultErrorParam
+    | BetaAdvisorResultBlockParam
+    | BetaAdvisorRedactedResultBlockParam;
 
   tool_use_id: string;
 
@@ -208,13 +257,25 @@ export interface BetaAdvisorToolResultBlockParam {
 }
 
 export interface BetaAdvisorToolResultError {
-  error_code: 'max_uses_exceeded' | 'prompt_too_long' | 'too_many_requests' | 'overloaded' | 'unavailable' | 'execution_time_exceeded';
+  error_code:
+    | 'max_uses_exceeded'
+    | 'prompt_too_long'
+    | 'too_many_requests'
+    | 'overloaded'
+    | 'unavailable'
+    | 'execution_time_exceeded';
 
   type: 'advisor_tool_result_error';
 }
 
 export interface BetaAdvisorToolResultErrorParam {
-  error_code: 'max_uses_exceeded' | 'prompt_too_long' | 'too_many_requests' | 'overloaded' | 'unavailable' | 'execution_time_exceeded';
+  error_code:
+    | 'max_uses_exceeded'
+    | 'prompt_too_long'
+    | 'too_many_requests'
+    | 'overloaded'
+    | 'unavailable'
+    | 'execution_time_exceeded';
 
   type: 'advisor_tool_result_error';
 }
@@ -297,13 +358,23 @@ export interface BetaBashCodeExecutionToolResultBlockParam {
 }
 
 export interface BetaBashCodeExecutionToolResultError {
-  error_code: 'invalid_tool_input' | 'unavailable' | 'too_many_requests' | 'execution_time_exceeded' | 'output_file_too_large';
+  error_code:
+    | 'invalid_tool_input'
+    | 'unavailable'
+    | 'too_many_requests'
+    | 'execution_time_exceeded'
+    | 'output_file_too_large';
 
   type: 'bash_code_execution_tool_result_error';
 }
 
 export interface BetaBashCodeExecutionToolResultErrorParam {
-  error_code: 'invalid_tool_input' | 'unavailable' | 'too_many_requests' | 'execution_time_exceeded' | 'output_file_too_large';
+  error_code:
+    | 'invalid_tool_input'
+    | 'unavailable'
+    | 'too_many_requests'
+    | 'execution_time_exceeded'
+    | 'output_file_too_large';
 
   type: 'bash_code_execution_tool_result_error';
 }
@@ -479,7 +550,12 @@ export interface BetaCitationsConfigParam {
 }
 
 export interface BetaCitationsDelta {
-  citation: BetaCitationCharLocation | BetaCitationPageLocation | BetaCitationContentBlockLocation | BetaCitationsWebSearchResultLocation | BetaCitationSearchResultLocation;
+  citation:
+    | BetaCitationCharLocation
+    | BetaCitationPageLocation
+    | BetaCitationContentBlockLocation
+    | BetaCitationsWebSearchResultLocation
+    | BetaCitationSearchResultLocation;
 
   type: 'citations_delta';
 }
@@ -711,7 +787,10 @@ export interface BetaCodeExecutionToolResultBlock {
 /**
  * Code execution result with encrypted stdout for PFC + web_search results.
  */
-export type BetaCodeExecutionToolResultBlockContent = BetaCodeExecutionToolResultError | BetaCodeExecutionResultBlock | BetaEncryptedCodeExecutionResultBlock
+export type BetaCodeExecutionToolResultBlockContent =
+  | BetaCodeExecutionToolResultError
+  | BetaCodeExecutionResultBlock
+  | BetaEncryptedCodeExecutionResultBlock;
 
 export interface BetaCodeExecutionToolResultBlockParam {
   /**
@@ -732,7 +811,10 @@ export interface BetaCodeExecutionToolResultBlockParam {
 /**
  * Code execution result with encrypted stdout for PFC + web_search results.
  */
-export type BetaCodeExecutionToolResultBlockParamContent = BetaCodeExecutionToolResultErrorParam | BetaCodeExecutionResultBlockParam | BetaEncryptedCodeExecutionResultBlockParam
+export type BetaCodeExecutionToolResultBlockParamContent =
+  | BetaCodeExecutionToolResultErrorParam
+  | BetaCodeExecutionResultBlockParam
+  | BetaEncryptedCodeExecutionResultBlockParam;
 
 export interface BetaCodeExecutionToolResultError {
   error_code: BetaCodeExecutionToolResultErrorCode;
@@ -740,7 +822,11 @@ export interface BetaCodeExecutionToolResultError {
   type: 'code_execution_tool_result_error';
 }
 
-export type BetaCodeExecutionToolResultErrorCode = 'invalid_tool_input' | 'unavailable' | 'too_many_requests' | 'execution_time_exceeded'
+export type BetaCodeExecutionToolResultErrorCode =
+  | 'invalid_tool_input'
+  | 'unavailable'
+  | 'too_many_requests'
+  | 'execution_time_exceeded';
 
 export interface BetaCodeExecutionToolResultErrorParam {
   error_code: BetaCodeExecutionToolResultErrorCode;
@@ -929,12 +1015,48 @@ export interface BetaContainerUploadBlockParam {
 /**
  * Response model for a file uploaded to the container.
  */
-export type BetaContentBlock = BetaTextBlock | BetaThinkingBlock | BetaRedactedThinkingBlock | BetaToolUseBlock | BetaServerToolUseBlock | BetaWebSearchToolResultBlock | BetaWebFetchToolResultBlock | BetaAdvisorToolResultBlock | BetaCodeExecutionToolResultBlock | BetaBashCodeExecutionToolResultBlock | BetaTextEditorCodeExecutionToolResultBlock | BetaToolSearchToolResultBlock | BetaMCPToolUseBlock | BetaMCPToolResultBlock | BetaContainerUploadBlock | BetaCompactionBlock
+export type BetaContentBlock =
+  | BetaTextBlock
+  | BetaThinkingBlock
+  | BetaRedactedThinkingBlock
+  | BetaToolUseBlock
+  | BetaServerToolUseBlock
+  | BetaWebSearchToolResultBlock
+  | BetaWebFetchToolResultBlock
+  | BetaAdvisorToolResultBlock
+  | BetaCodeExecutionToolResultBlock
+  | BetaBashCodeExecutionToolResultBlock
+  | BetaTextEditorCodeExecutionToolResultBlock
+  | BetaToolSearchToolResultBlock
+  | BetaMCPToolUseBlock
+  | BetaMCPToolResultBlock
+  | BetaContainerUploadBlock
+  | BetaCompactionBlock;
 
 /**
  * Regular text content.
  */
-export type BetaContentBlockParam = BetaTextBlockParam | BetaImageBlockParam | BetaRequestDocumentBlock | BetaSearchResultBlockParam | BetaThinkingBlockParam | BetaRedactedThinkingBlockParam | BetaToolUseBlockParam | BetaToolResultBlockParam | BetaServerToolUseBlockParam | BetaWebSearchToolResultBlockParam | BetaWebFetchToolResultBlockParam | BetaAdvisorToolResultBlockParam | BetaCodeExecutionToolResultBlockParam | BetaBashCodeExecutionToolResultBlockParam | BetaTextEditorCodeExecutionToolResultBlockParam | BetaToolSearchToolResultBlockParam | BetaMCPToolUseBlockParam | BetaRequestMCPToolResultBlockParam | BetaContainerUploadBlockParam | BetaCompactionBlockParam
+export type BetaContentBlockParam =
+  | BetaTextBlockParam
+  | BetaImageBlockParam
+  | BetaRequestDocumentBlock
+  | BetaSearchResultBlockParam
+  | BetaThinkingBlockParam
+  | BetaRedactedThinkingBlockParam
+  | BetaToolUseBlockParam
+  | BetaToolResultBlockParam
+  | BetaServerToolUseBlockParam
+  | BetaWebSearchToolResultBlockParam
+  | BetaWebFetchToolResultBlockParam
+  | BetaAdvisorToolResultBlockParam
+  | BetaCodeExecutionToolResultBlockParam
+  | BetaBashCodeExecutionToolResultBlockParam
+  | BetaTextEditorCodeExecutionToolResultBlockParam
+  | BetaToolSearchToolResultBlockParam
+  | BetaMCPToolUseBlockParam
+  | BetaRequestMCPToolResultBlockParam
+  | BetaContainerUploadBlockParam
+  | BetaCompactionBlockParam;
 
 export interface BetaContentBlockSource {
   content: string | Array<BetaContentBlockSourceContent>;
@@ -942,7 +1064,7 @@ export interface BetaContentBlockSource {
   type: 'content';
 }
 
-export type BetaContentBlockSourceContent = BetaTextBlockParam | BetaImageBlockParam
+export type BetaContentBlockSourceContent = BetaTextBlockParam | BetaImageBlockParam;
 
 export interface BetaContextManagementConfig {
   /**
@@ -1069,7 +1191,9 @@ export interface BetaInputTokensTrigger {
  * - Calculate the true context window size from the last iteration
  * - Understand token accumulation across server-side tool use loops
  */
-export type BetaIterationsUsage = Array<BetaMessageIterationUsage | BetaCompactionIterationUsage | BetaAdvisorMessageIterationUsage>
+export type BetaIterationsUsage = Array<
+  BetaMessageIterationUsage | BetaCompactionIterationUsage | BetaAdvisorMessageIterationUsage
+>;
 
 export interface BetaJSONOutputFormat {
   /**
@@ -1207,7 +1331,13 @@ export interface BetaMemoryTool20250818 {
   strict?: boolean;
 }
 
-export type BetaMemoryTool20250818Command = BetaMemoryTool20250818ViewCommand | BetaMemoryTool20250818CreateCommand | BetaMemoryTool20250818StrReplaceCommand | BetaMemoryTool20250818InsertCommand | BetaMemoryTool20250818DeleteCommand | BetaMemoryTool20250818RenameCommand
+export type BetaMemoryTool20250818Command =
+  | BetaMemoryTool20250818ViewCommand
+  | BetaMemoryTool20250818CreateCommand
+  | BetaMemoryTool20250818StrReplaceCommand
+  | BetaMemoryTool20250818InsertCommand
+  | BetaMemoryTool20250818DeleteCommand
+  | BetaMemoryTool20250818RenameCommand;
 
 export interface BetaMemoryTool20250818CreateCommand {
   /**
@@ -1576,7 +1706,13 @@ export interface BetaPlainTextSource {
   type: 'text';
 }
 
-export type BetaRawContentBlockDelta = BetaTextDelta | BetaInputJSONDelta | BetaCitationsDelta | BetaThinkingDelta | BetaSignatureDelta | BetaCompactionContentBlockDelta
+export type BetaRawContentBlockDelta =
+  | BetaTextDelta
+  | BetaInputJSONDelta
+  | BetaCitationsDelta
+  | BetaThinkingDelta
+  | BetaSignatureDelta
+  | BetaCompactionContentBlockDelta;
 
 export interface BetaRawContentBlockDeltaEvent {
   delta: BetaRawContentBlockDelta;
@@ -1590,7 +1726,23 @@ export interface BetaRawContentBlockStartEvent {
   /**
    * Response model for a file uploaded to the container.
    */
-  content_block: BetaTextBlock | BetaThinkingBlock | BetaRedactedThinkingBlock | BetaToolUseBlock | BetaServerToolUseBlock | BetaWebSearchToolResultBlock | BetaWebFetchToolResultBlock | BetaAdvisorToolResultBlock | BetaCodeExecutionToolResultBlock | BetaBashCodeExecutionToolResultBlock | BetaTextEditorCodeExecutionToolResultBlock | BetaToolSearchToolResultBlock | BetaMCPToolUseBlock | BetaMCPToolResultBlock | BetaContainerUploadBlock | BetaCompactionBlock;
+  content_block:
+    | BetaTextBlock
+    | BetaThinkingBlock
+    | BetaRedactedThinkingBlock
+    | BetaToolUseBlock
+    | BetaServerToolUseBlock
+    | BetaWebSearchToolResultBlock
+    | BetaWebFetchToolResultBlock
+    | BetaAdvisorToolResultBlock
+    | BetaCodeExecutionToolResultBlock
+    | BetaBashCodeExecutionToolResultBlock
+    | BetaTextEditorCodeExecutionToolResultBlock
+    | BetaToolSearchToolResultBlock
+    | BetaMCPToolUseBlock
+    | BetaMCPToolResultBlock
+    | BetaContainerUploadBlock
+    | BetaCompactionBlock;
 
   index: number;
 
@@ -1662,7 +1814,13 @@ export interface BetaRawMessageStopEvent {
   type: 'message_stop';
 }
 
-export type BetaRawMessageStreamEvent = BetaRawMessageStartEvent | BetaRawMessageDeltaEvent | BetaRawMessageStopEvent | BetaRawContentBlockStartEvent | BetaRawContentBlockDeltaEvent | BetaRawContentBlockStopEvent
+export type BetaRawMessageStreamEvent =
+  | BetaRawMessageStartEvent
+  | BetaRawMessageDeltaEvent
+  | BetaRawMessageStopEvent
+  | BetaRawContentBlockStartEvent
+  | BetaRawContentBlockDeltaEvent
+  | BetaRawContentBlockStopEvent;
 
 export interface BetaRedactedThinkingBlock {
   data: string;
@@ -1699,7 +1857,12 @@ export interface BetaRefusalStopDetails {
 }
 
 export interface BetaRequestDocumentBlock {
-  source: BetaBase64PDFSource | BetaPlainTextSource | BetaContentBlockSource | BetaURLPDFSource | BetaFileDocumentSource;
+  source:
+    | BetaBase64PDFSource
+    | BetaPlainTextSource
+    | BetaContentBlockSource
+    | BetaURLPDFSource
+    | BetaFileDocumentSource;
 
   type: 'document';
 
@@ -1797,7 +1960,15 @@ export interface BetaServerToolUseBlock {
 
   input: { [key: string]: unknown };
 
-  name: 'advisor' | 'web_search' | 'web_fetch' | 'code_execution' | 'bash_code_execution' | 'text_editor_code_execution' | 'tool_search_tool_regex' | 'tool_search_tool_bm25';
+  name:
+    | 'advisor'
+    | 'web_search'
+    | 'web_fetch'
+    | 'code_execution'
+    | 'bash_code_execution'
+    | 'text_editor_code_execution'
+    | 'tool_search_tool_regex'
+    | 'tool_search_tool_bm25';
 
   type: 'server_tool_use';
 
@@ -1812,7 +1983,15 @@ export interface BetaServerToolUseBlockParam {
 
   input: { [key: string]: unknown };
 
-  name: 'advisor' | 'web_search' | 'web_fetch' | 'code_execution' | 'bash_code_execution' | 'text_editor_code_execution' | 'tool_search_tool_regex' | 'tool_search_tool_bm25';
+  name:
+    | 'advisor'
+    | 'web_search'
+    | 'web_fetch'
+    | 'code_execution'
+    | 'bash_code_execution'
+    | 'text_editor_code_execution'
+    | 'tool_search_tool_regex'
+    | 'tool_search_tool_bm25';
 
   type: 'server_tool_use';
 
@@ -1873,7 +2052,15 @@ export interface BetaSkillParams {
   version?: string;
 }
 
-export type BetaStopReason = 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | 'pause_turn' | 'compaction' | 'refusal' | 'model_context_window_exceeded'
+export type BetaStopReason =
+  | 'end_turn'
+  | 'max_tokens'
+  | 'stop_sequence'
+  | 'tool_use'
+  | 'pause_turn'
+  | 'compaction'
+  | 'refusal'
+  | 'model_context_window_exceeded';
 
 export interface BetaTextBlock {
   /**
@@ -1903,9 +2090,19 @@ export interface BetaTextBlockParam {
   citations?: Array<BetaTextCitationParam> | null;
 }
 
-export type BetaTextCitation = BetaCitationCharLocation | BetaCitationPageLocation | BetaCitationContentBlockLocation | BetaCitationsWebSearchResultLocation | BetaCitationSearchResultLocation
+export type BetaTextCitation =
+  | BetaCitationCharLocation
+  | BetaCitationPageLocation
+  | BetaCitationContentBlockLocation
+  | BetaCitationsWebSearchResultLocation
+  | BetaCitationSearchResultLocation;
 
-export type BetaTextCitationParam = BetaCitationCharLocationParam | BetaCitationPageLocationParam | BetaCitationContentBlockLocationParam | BetaCitationWebSearchResultLocationParam | BetaCitationSearchResultLocationParam
+export type BetaTextCitationParam =
+  | BetaCitationCharLocationParam
+  | BetaCitationPageLocationParam
+  | BetaCitationContentBlockLocationParam
+  | BetaCitationWebSearchResultLocationParam
+  | BetaCitationSearchResultLocationParam;
 
 export interface BetaTextDelta {
   text: string;
@@ -1954,7 +2151,11 @@ export interface BetaTextEditorCodeExecutionStrReplaceResultBlockParam {
 }
 
 export interface BetaTextEditorCodeExecutionToolResultBlock {
-  content: BetaTextEditorCodeExecutionToolResultError | BetaTextEditorCodeExecutionViewResultBlock | BetaTextEditorCodeExecutionCreateResultBlock | BetaTextEditorCodeExecutionStrReplaceResultBlock;
+  content:
+    | BetaTextEditorCodeExecutionToolResultError
+    | BetaTextEditorCodeExecutionViewResultBlock
+    | BetaTextEditorCodeExecutionCreateResultBlock
+    | BetaTextEditorCodeExecutionStrReplaceResultBlock;
 
   tool_use_id: string;
 
@@ -1962,7 +2163,11 @@ export interface BetaTextEditorCodeExecutionToolResultBlock {
 }
 
 export interface BetaTextEditorCodeExecutionToolResultBlockParam {
-  content: BetaTextEditorCodeExecutionToolResultErrorParam | BetaTextEditorCodeExecutionViewResultBlockParam | BetaTextEditorCodeExecutionCreateResultBlockParam | BetaTextEditorCodeExecutionStrReplaceResultBlockParam;
+  content:
+    | BetaTextEditorCodeExecutionToolResultErrorParam
+    | BetaTextEditorCodeExecutionViewResultBlockParam
+    | BetaTextEditorCodeExecutionCreateResultBlockParam
+    | BetaTextEditorCodeExecutionStrReplaceResultBlockParam;
 
   tool_use_id: string;
 
@@ -1975,7 +2180,12 @@ export interface BetaTextEditorCodeExecutionToolResultBlockParam {
 }
 
 export interface BetaTextEditorCodeExecutionToolResultError {
-  error_code: 'invalid_tool_input' | 'unavailable' | 'too_many_requests' | 'execution_time_exceeded' | 'file_not_found';
+  error_code:
+    | 'invalid_tool_input'
+    | 'unavailable'
+    | 'too_many_requests'
+    | 'execution_time_exceeded'
+    | 'file_not_found';
 
   error_message: string | null;
 
@@ -1983,7 +2193,12 @@ export interface BetaTextEditorCodeExecutionToolResultError {
 }
 
 export interface BetaTextEditorCodeExecutionToolResultErrorParam {
-  error_code: 'invalid_tool_input' | 'unavailable' | 'too_many_requests' | 'execution_time_exceeded' | 'file_not_found';
+  error_code:
+    | 'invalid_tool_input'
+    | 'unavailable'
+    | 'too_many_requests'
+    | 'execution_time_exceeded'
+    | 'file_not_found';
 
   type: 'text_editor_code_execution_tool_result_error';
 
@@ -2086,7 +2301,10 @@ export interface BetaThinkingConfigEnabled {
  * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
  * for details.
  */
-export type BetaThinkingConfigParam = BetaThinkingConfigEnabled | BetaThinkingConfigDisabled | BetaThinkingConfigAdaptive
+export type BetaThinkingConfigParam =
+  | BetaThinkingConfigEnabled
+  | BetaThinkingConfigDisabled
+  | BetaThinkingConfigAdaptive;
 
 export interface BetaThinkingDelta {
   thinking: string;
@@ -2193,7 +2411,7 @@ export namespace BetaTool {
 
     required?: Array<string> | null;
 
-  [k: string]: unknown
+    [k: string]: unknown;
   }
 }
 
@@ -2263,7 +2481,7 @@ export interface BetaToolBash20250124 {
  * How the model should use the provided tools. The model can use a specific tool,
  * any available tool, decide by itself, or not use tools at all.
  */
-export type BetaToolChoice = BetaToolChoiceAuto | BetaToolChoiceAny | BetaToolChoiceTool | BetaToolChoiceNone
+export type BetaToolChoice = BetaToolChoiceAuto | BetaToolChoiceAny | BetaToolChoiceTool | BetaToolChoiceNone;
 
 /**
  * The model will use any available tools.
@@ -2495,7 +2713,15 @@ export interface BetaToolResultBlockParam {
    */
   cache_control?: BetaCacheControlEphemeral | null;
 
-  content?: string | Array<BetaTextBlockParam | BetaImageBlockParam | BetaSearchResultBlockParam | BetaRequestDocumentBlock | BetaToolReferenceBlockParam>;
+  content?:
+    | string
+    | Array<
+        | BetaTextBlockParam
+        | BetaImageBlockParam
+        | BetaSearchResultBlockParam
+        | BetaRequestDocumentBlock
+        | BetaToolReferenceBlockParam
+      >;
 
   is_error?: boolean;
 }
@@ -2739,7 +2965,30 @@ export interface BetaToolTextEditor20250728 {
  * Code execution tool with REPL state persistence (daemon mode + gVisor
  * checkpoint).
  */
-export type BetaToolUnion = BetaTool | BetaToolBash20241022 | BetaToolBash20250124 | BetaCodeExecutionTool20250522 | BetaCodeExecutionTool20250825 | BetaCodeExecutionTool20260120 | BetaToolComputerUse20241022 | BetaMemoryTool20250818 | BetaToolComputerUse20250124 | BetaToolTextEditor20241022 | BetaToolComputerUse20251124 | BetaToolTextEditor20250124 | BetaToolTextEditor20250429 | BetaToolTextEditor20250728 | BetaWebSearchTool20250305 | BetaWebFetchTool20250910 | BetaWebSearchTool20260209 | BetaWebFetchTool20260209 | BetaWebFetchTool20260309 | BetaAdvisorTool20260301 | BetaToolSearchToolBm25_20251119 | BetaToolSearchToolRegex20251119 | BetaMCPToolset
+export type BetaToolUnion =
+  | BetaTool
+  | BetaToolBash20241022
+  | BetaToolBash20250124
+  | BetaCodeExecutionTool20250522
+  | BetaCodeExecutionTool20250825
+  | BetaCodeExecutionTool20260120
+  | BetaToolComputerUse20241022
+  | BetaMemoryTool20250818
+  | BetaToolComputerUse20250124
+  | BetaToolTextEditor20241022
+  | BetaToolComputerUse20251124
+  | BetaToolTextEditor20250124
+  | BetaToolTextEditor20250429
+  | BetaToolTextEditor20250728
+  | BetaWebSearchTool20250305
+  | BetaWebFetchTool20250910
+  | BetaWebSearchTool20260209
+  | BetaWebFetchTool20260209
+  | BetaWebFetchTool20260309
+  | BetaAdvisorTool20260301
+  | BetaToolSearchToolBm25_20251119
+  | BetaToolSearchToolRegex20251119
+  | BetaMCPToolset;
 
 export interface BetaToolUseBlock {
   id: string;
@@ -3138,7 +3387,15 @@ export interface BetaWebFetchToolResultErrorBlockParam {
   type: 'web_fetch_tool_result_error';
 }
 
-export type BetaWebFetchToolResultErrorCode = 'invalid_tool_input' | 'url_too_long' | 'url_not_allowed' | 'url_not_accessible' | 'unsupported_content_type' | 'too_many_requests' | 'max_uses_exceeded' | 'unavailable'
+export type BetaWebFetchToolResultErrorCode =
+  | 'invalid_tool_input'
+  | 'url_too_long'
+  | 'url_not_allowed'
+  | 'url_not_accessible'
+  | 'unsupported_content_type'
+  | 'too_many_requests'
+  | 'max_uses_exceeded'
+  | 'unavailable';
 
 export interface BetaWebSearchResultBlock {
   encrypted_content: string;
@@ -3287,7 +3544,9 @@ export interface BetaWebSearchToolResultBlock {
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
-export type BetaWebSearchToolResultBlockContent = BetaWebSearchToolResultError | Array<BetaWebSearchResultBlock>
+export type BetaWebSearchToolResultBlockContent =
+  | BetaWebSearchToolResultError
+  | Array<BetaWebSearchResultBlock>;
 
 export interface BetaWebSearchToolResultBlockParam {
   content: BetaWebSearchToolResultBlockParamContent;
@@ -3307,7 +3566,9 @@ export interface BetaWebSearchToolResultBlockParam {
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
-export type BetaWebSearchToolResultBlockParamContent = Array<BetaWebSearchResultBlockParam> | BetaWebSearchToolRequestError
+export type BetaWebSearchToolResultBlockParamContent =
+  | Array<BetaWebSearchResultBlockParam>
+  | BetaWebSearchToolRequestError;
 
 export interface BetaWebSearchToolResultError {
   error_code: BetaWebSearchToolResultErrorCode;
@@ -3315,14 +3576,20 @@ export interface BetaWebSearchToolResultError {
   type: 'web_search_tool_result_error';
 }
 
-export type BetaWebSearchToolResultErrorCode = 'invalid_tool_input' | 'unavailable' | 'max_uses_exceeded' | 'too_many_requests' | 'query_too_long' | 'request_too_large'
+export type BetaWebSearchToolResultErrorCode =
+  | 'invalid_tool_input'
+  | 'unavailable'
+  | 'max_uses_exceeded'
+  | 'too_many_requests'
+  | 'query_too_long'
+  | 'request_too_large';
 
 /**
  * @deprecated BetaRequestDocumentBlock should be used insated
  */
-export type BetaBase64PDFBlock = BetaRequestDocumentBlock
+export type BetaBase64PDFBlock = BetaRequestDocumentBlock;
 
-export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreateParamsStreaming
+export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreateParamsStreaming;
 
 export interface MessageCreateParamsBase {
   /**
@@ -3638,8 +3905,8 @@ export interface MessageCreateParamsBase {
 }
 
 export namespace MessageCreateParams {
-  export type MessageCreateParamsNonStreaming = BetaMessagesAPI.MessageCreateParamsNonStreaming
-  export type MessageCreateParamsStreaming = BetaMessagesAPI.MessageCreateParamsStreaming
+  export type MessageCreateParamsNonStreaming = BetaMessagesAPI.MessageCreateParamsNonStreaming;
+  export type MessageCreateParamsStreaming = BetaMessagesAPI.MessageCreateParamsStreaming;
 }
 
 export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase {
@@ -3884,7 +4151,31 @@ export interface MessageCountTokensParams {
    *
    * See our [guide](https://docs.claude.com/en/docs/tool-use) for more details.
    */
-  tools?: Array<BetaTool | BetaToolBash20241022 | BetaToolBash20250124 | BetaCodeExecutionTool20250522 | BetaCodeExecutionTool20250825 | BetaCodeExecutionTool20260120 | BetaToolComputerUse20241022 | BetaMemoryTool20250818 | BetaToolComputerUse20250124 | BetaToolTextEditor20241022 | BetaToolComputerUse20251124 | BetaToolTextEditor20250124 | BetaToolTextEditor20250429 | BetaToolTextEditor20250728 | BetaWebSearchTool20250305 | BetaWebFetchTool20250910 | BetaWebSearchTool20260209 | BetaWebFetchTool20260209 | BetaWebFetchTool20260309 | BetaAdvisorTool20260301 | BetaToolSearchToolBm25_20251119 | BetaToolSearchToolRegex20251119 | BetaMCPToolset>;
+  tools?: Array<
+    | BetaTool
+    | BetaToolBash20241022
+    | BetaToolBash20250124
+    | BetaCodeExecutionTool20250522
+    | BetaCodeExecutionTool20250825
+    | BetaCodeExecutionTool20260120
+    | BetaToolComputerUse20241022
+    | BetaMemoryTool20250818
+    | BetaToolComputerUse20250124
+    | BetaToolTextEditor20241022
+    | BetaToolComputerUse20251124
+    | BetaToolTextEditor20250124
+    | BetaToolTextEditor20250429
+    | BetaToolTextEditor20250728
+    | BetaWebSearchTool20250305
+    | BetaWebFetchTool20250910
+    | BetaWebSearchTool20260209
+    | BetaWebFetchTool20260209
+    | BetaWebFetchTool20260309
+    | BetaAdvisorTool20260301
+    | BetaToolSearchToolBm25_20251119
+    | BetaToolSearchToolRegex20251119
+    | BetaMCPToolset
+  >;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
@@ -4109,7 +4400,7 @@ export declare namespace Messages {
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
-    type MessageCountTokensParams as MessageCountTokensParams
+    type MessageCountTokensParams as MessageCountTokensParams,
   };
 
   export {
@@ -4129,6 +4420,6 @@ export declare namespace Messages {
     type BatchListParams as BatchListParams,
     type BatchDeleteParams as BatchDeleteParams,
     type BatchCancelParams as BatchCancelParams,
-    type BatchResultsParams as BatchResultsParams
+    type BatchResultsParams as BatchResultsParams,
   };
 }

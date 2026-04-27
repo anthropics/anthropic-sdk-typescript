@@ -21,8 +21,15 @@ export class Environments extends APIResource {
    * ```
    */
   create(params: EnvironmentCreateParams, options?: RequestOptions): APIPromise<BetaEnvironment> {
-    const { betas, ...body } = params
-    return this._client.post('/v1/environments?beta=true', { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+    const { betas, ...body } = params;
+    return this._client.post('/v1/environments?beta=true', {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -36,9 +43,19 @@ export class Environments extends APIResource {
    *   );
    * ```
    */
-  retrieve(environmentID: string, params: EnvironmentRetrieveParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaEnvironment> {
-    const { betas } = params ?? {}
-    return this._client.get(path`/v1/environments/${environmentID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  retrieve(
+    environmentID: string,
+    params: EnvironmentRetrieveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaEnvironment> {
+    const { betas } = params ?? {};
+    return this._client.get(path`/v1/environments/${environmentID}?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -52,9 +69,20 @@ export class Environments extends APIResource {
    *   );
    * ```
    */
-  update(environmentID: string, params: EnvironmentUpdateParams, options?: RequestOptions): APIPromise<BetaEnvironment> {
-    const { betas, ...body } = params
-    return this._client.post(path`/v1/environments/${environmentID}?beta=true`, { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  update(
+    environmentID: string,
+    params: EnvironmentUpdateParams,
+    options?: RequestOptions,
+  ): APIPromise<BetaEnvironment> {
+    const { betas, ...body } = params;
+    return this._client.post(path`/v1/environments/${environmentID}?beta=true`, {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -68,9 +96,19 @@ export class Environments extends APIResource {
    * }
    * ```
    */
-  list(params: EnvironmentListParams | null | undefined = {}, options?: RequestOptions): PagePromise<BetaEnvironmentsPageCursor, BetaEnvironment> {
-    const { betas, ...query } = params ?? {}
-    return this._client.getAPIList('/v1/environments?beta=true', PageCursor<BetaEnvironment>, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  list(
+    params: EnvironmentListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<BetaEnvironmentsPageCursor, BetaEnvironment> {
+    const { betas, ...query } = params ?? {};
+    return this._client.getAPIList('/v1/environments?beta=true', PageCursor<BetaEnvironment>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -84,9 +122,19 @@ export class Environments extends APIResource {
    *   );
    * ```
    */
-  delete(environmentID: string, params: EnvironmentDeleteParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaEnvironmentDeleteResponse> {
-    const { betas } = params ?? {}
-    return this._client.delete(path`/v1/environments/${environmentID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  delete(
+    environmentID: string,
+    params: EnvironmentDeleteParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaEnvironmentDeleteResponse> {
+    const { betas } = params ?? {};
+    return this._client.delete(path`/v1/environments/${environmentID}?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -101,13 +149,23 @@ export class Environments extends APIResource {
    *   );
    * ```
    */
-  archive(environmentID: string, params: EnvironmentArchiveParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaEnvironment> {
-    const { betas } = params ?? {}
-    return this._client.post(path`/v1/environments/${environmentID}/archive?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  archive(
+    environmentID: string,
+    params: EnvironmentArchiveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaEnvironment> {
+    const { betas } = params ?? {};
+    return this._client.post(path`/v1/environments/${environmentID}/archive?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 }
 
-export type BetaEnvironmentsPageCursor = PageCursor<BetaEnvironment>
+export type BetaEnvironmentsPageCursor = PageCursor<BetaEnvironment>;
 
 /**
  * `cloud` environment configuration.
@@ -479,6 +537,6 @@ export declare namespace Environments {
     type EnvironmentUpdateParams as EnvironmentUpdateParams,
     type EnvironmentListParams as EnvironmentListParams,
     type EnvironmentDeleteParams as EnvironmentDeleteParams,
-    type EnvironmentArchiveParams as EnvironmentArchiveParams
+    type EnvironmentArchiveParams as EnvironmentArchiveParams,
   };
 }

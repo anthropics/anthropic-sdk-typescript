@@ -4,9 +4,82 @@ import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
 import * as AgentsAPI from '../agents/agents';
 import * as EventsAPI from './events';
-import { BetaManagedAgentsAgentCustomToolUseEvent, BetaManagedAgentsAgentMCPToolResultEvent, BetaManagedAgentsAgentMCPToolUseEvent, BetaManagedAgentsAgentMessageEvent, BetaManagedAgentsAgentThinkingEvent, BetaManagedAgentsAgentThreadContextCompactedEvent, BetaManagedAgentsAgentToolResultEvent, BetaManagedAgentsAgentToolUseEvent, BetaManagedAgentsBase64DocumentSource, BetaManagedAgentsBase64ImageSource, BetaManagedAgentsBillingError, BetaManagedAgentsDocumentBlock, BetaManagedAgentsEventParams, BetaManagedAgentsFileDocumentSource, BetaManagedAgentsFileImageSource, BetaManagedAgentsImageBlock, BetaManagedAgentsMCPAuthenticationFailedError, BetaManagedAgentsMCPConnectionFailedError, BetaManagedAgentsModelOverloadedError, BetaManagedAgentsModelRateLimitedError, BetaManagedAgentsModelRequestFailedError, BetaManagedAgentsPlainTextDocumentSource, BetaManagedAgentsRetryStatusExhausted, BetaManagedAgentsRetryStatusRetrying, BetaManagedAgentsRetryStatusTerminal, BetaManagedAgentsSendSessionEvents, BetaManagedAgentsSessionDeletedEvent, BetaManagedAgentsSessionEndTurn, BetaManagedAgentsSessionErrorEvent, BetaManagedAgentsSessionEvent, BetaManagedAgentsSessionEventsPageCursor, BetaManagedAgentsSessionRequiresAction, BetaManagedAgentsSessionRetriesExhausted, BetaManagedAgentsSessionStatusIdleEvent, BetaManagedAgentsSessionStatusRescheduledEvent, BetaManagedAgentsSessionStatusRunningEvent, BetaManagedAgentsSessionStatusTerminatedEvent, BetaManagedAgentsSpanModelRequestEndEvent, BetaManagedAgentsSpanModelRequestStartEvent, BetaManagedAgentsSpanModelUsage, BetaManagedAgentsStreamSessionEvents, BetaManagedAgentsTextBlock, BetaManagedAgentsURLDocumentSource, BetaManagedAgentsURLImageSource, BetaManagedAgentsUnknownError, BetaManagedAgentsUserCustomToolResultEvent, BetaManagedAgentsUserCustomToolResultEventParams, BetaManagedAgentsUserInterruptEvent, BetaManagedAgentsUserInterruptEventParams, BetaManagedAgentsUserMessageEvent, BetaManagedAgentsUserMessageEventParams, BetaManagedAgentsUserToolConfirmationEvent, BetaManagedAgentsUserToolConfirmationEventParams, EventListParams, EventSendParams, EventStreamParams, Events } from './events';
+import {
+  BetaManagedAgentsAgentCustomToolUseEvent,
+  BetaManagedAgentsAgentMCPToolResultEvent,
+  BetaManagedAgentsAgentMCPToolUseEvent,
+  BetaManagedAgentsAgentMessageEvent,
+  BetaManagedAgentsAgentThinkingEvent,
+  BetaManagedAgentsAgentThreadContextCompactedEvent,
+  BetaManagedAgentsAgentToolResultEvent,
+  BetaManagedAgentsAgentToolUseEvent,
+  BetaManagedAgentsBase64DocumentSource,
+  BetaManagedAgentsBase64ImageSource,
+  BetaManagedAgentsBillingError,
+  BetaManagedAgentsDocumentBlock,
+  BetaManagedAgentsEventParams,
+  BetaManagedAgentsFileDocumentSource,
+  BetaManagedAgentsFileImageSource,
+  BetaManagedAgentsImageBlock,
+  BetaManagedAgentsMCPAuthenticationFailedError,
+  BetaManagedAgentsMCPConnectionFailedError,
+  BetaManagedAgentsModelOverloadedError,
+  BetaManagedAgentsModelRateLimitedError,
+  BetaManagedAgentsModelRequestFailedError,
+  BetaManagedAgentsPlainTextDocumentSource,
+  BetaManagedAgentsRetryStatusExhausted,
+  BetaManagedAgentsRetryStatusRetrying,
+  BetaManagedAgentsRetryStatusTerminal,
+  BetaManagedAgentsSendSessionEvents,
+  BetaManagedAgentsSessionDeletedEvent,
+  BetaManagedAgentsSessionEndTurn,
+  BetaManagedAgentsSessionErrorEvent,
+  BetaManagedAgentsSessionEvent,
+  BetaManagedAgentsSessionEventsPageCursor,
+  BetaManagedAgentsSessionRequiresAction,
+  BetaManagedAgentsSessionRetriesExhausted,
+  BetaManagedAgentsSessionStatusIdleEvent,
+  BetaManagedAgentsSessionStatusRescheduledEvent,
+  BetaManagedAgentsSessionStatusRunningEvent,
+  BetaManagedAgentsSessionStatusTerminatedEvent,
+  BetaManagedAgentsSpanModelRequestEndEvent,
+  BetaManagedAgentsSpanModelRequestStartEvent,
+  BetaManagedAgentsSpanModelUsage,
+  BetaManagedAgentsStreamSessionEvents,
+  BetaManagedAgentsTextBlock,
+  BetaManagedAgentsURLDocumentSource,
+  BetaManagedAgentsURLImageSource,
+  BetaManagedAgentsUnknownError,
+  BetaManagedAgentsUserCustomToolResultEvent,
+  BetaManagedAgentsUserCustomToolResultEventParams,
+  BetaManagedAgentsUserInterruptEvent,
+  BetaManagedAgentsUserInterruptEventParams,
+  BetaManagedAgentsUserMessageEvent,
+  BetaManagedAgentsUserMessageEventParams,
+  BetaManagedAgentsUserToolConfirmationEvent,
+  BetaManagedAgentsUserToolConfirmationEventParams,
+  EventListParams,
+  EventSendParams,
+  EventStreamParams,
+  Events,
+} from './events';
 import * as ResourcesAPI from './resources';
-import { BetaManagedAgentsDeleteSessionResource, BetaManagedAgentsFileResource, BetaManagedAgentsGitHubRepositoryResource, BetaManagedAgentsMemoryStoreResource, BetaManagedAgentsSessionResource, BetaManagedAgentsSessionResourcesPageCursor, ResourceAddParams, ResourceDeleteParams, ResourceListParams, ResourceRetrieveParams, ResourceRetrieveResponse, ResourceUpdateParams, ResourceUpdateResponse, Resources } from './resources';
+import {
+  BetaManagedAgentsDeleteSessionResource,
+  BetaManagedAgentsFileResource,
+  BetaManagedAgentsGitHubRepositoryResource,
+  BetaManagedAgentsMemoryStoreResource,
+  BetaManagedAgentsSessionResource,
+  BetaManagedAgentsSessionResourcesPageCursor,
+  ResourceAddParams,
+  ResourceDeleteParams,
+  ResourceListParams,
+  ResourceRetrieveParams,
+  ResourceRetrieveResponse,
+  ResourceUpdateParams,
+  ResourceUpdateResponse,
+  Resources,
+} from './resources';
 import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
@@ -30,8 +103,15 @@ export class Sessions extends APIResource {
    * ```
    */
   create(params: SessionCreateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsSession> {
-    const { betas, ...body } = params
-    return this._client.post('/v1/sessions?beta=true', { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+    const { betas, ...body } = params;
+    return this._client.post('/v1/sessions?beta=true', {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -45,9 +125,19 @@ export class Sessions extends APIResource {
    *   );
    * ```
    */
-  retrieve(sessionID: string, params: SessionRetrieveParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaManagedAgentsSession> {
-    const { betas } = params ?? {}
-    return this._client.get(path`/v1/sessions/${sessionID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  retrieve(
+    sessionID: string,
+    params: SessionRetrieveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsSession> {
+    const { betas } = params ?? {};
+    return this._client.get(path`/v1/sessions/${sessionID}?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -61,9 +151,20 @@ export class Sessions extends APIResource {
    *   );
    * ```
    */
-  update(sessionID: string, params: SessionUpdateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsSession> {
-    const { betas, ...body } = params
-    return this._client.post(path`/v1/sessions/${sessionID}?beta=true`, { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  update(
+    sessionID: string,
+    params: SessionUpdateParams,
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsSession> {
+    const { betas, ...body } = params;
+    return this._client.post(path`/v1/sessions/${sessionID}?beta=true`, {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -77,9 +178,19 @@ export class Sessions extends APIResource {
    * }
    * ```
    */
-  list(params: SessionListParams | null | undefined = {}, options?: RequestOptions): PagePromise<BetaManagedAgentsSessionsPageCursor, BetaManagedAgentsSession> {
-    const { betas, ...query } = params ?? {}
-    return this._client.getAPIList('/v1/sessions?beta=true', PageCursor<BetaManagedAgentsSession>, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  list(
+    params: SessionListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<BetaManagedAgentsSessionsPageCursor, BetaManagedAgentsSession> {
+    const { betas, ...query } = params ?? {};
+    return this._client.getAPIList('/v1/sessions?beta=true', PageCursor<BetaManagedAgentsSession>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -93,9 +204,19 @@ export class Sessions extends APIResource {
    *   );
    * ```
    */
-  delete(sessionID: string, params: SessionDeleteParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaManagedAgentsDeletedSession> {
-    const { betas } = params ?? {}
-    return this._client.delete(path`/v1/sessions/${sessionID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  delete(
+    sessionID: string,
+    params: SessionDeleteParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsDeletedSession> {
+    const { betas } = params ?? {};
+    return this._client.delete(path`/v1/sessions/${sessionID}?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -109,13 +230,23 @@ export class Sessions extends APIResource {
    *   );
    * ```
    */
-  archive(sessionID: string, params: SessionArchiveParams | null | undefined = {}, options?: RequestOptions): APIPromise<BetaManagedAgentsSession> {
-    const { betas } = params ?? {}
-    return this._client.post(path`/v1/sessions/${sessionID}/archive?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  archive(
+    sessionID: string,
+    params: SessionArchiveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsSession> {
+    const { betas } = params ?? {};
+    return this._client.post(path`/v1/sessions/${sessionID}/archive?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 }
 
-export type BetaManagedAgentsSessionsPageCursor = PageCursor<BetaManagedAgentsSession>
+export type BetaManagedAgentsSessionsPageCursor = PageCursor<BetaManagedAgentsSession>;
 
 /**
  * Specification for an Agent. Provide a specific `version` or use the short-form
@@ -327,7 +458,11 @@ export interface BetaManagedAgentsSessionAgent {
 
   system: string | null;
 
-  tools: Array<AgentsAPI.BetaManagedAgentsAgentToolset20260401 | AgentsAPI.BetaManagedAgentsMCPToolset | AgentsAPI.BetaManagedAgentsCustomTool>;
+  tools: Array<
+    | AgentsAPI.BetaManagedAgentsAgentToolset20260401
+    | AgentsAPI.BetaManagedAgentsMCPToolset
+    | AgentsAPI.BetaManagedAgentsCustomTool
+  >;
 
   type: 'agent';
 
@@ -400,7 +535,11 @@ export interface SessionCreateParams {
    * Body param: Resources (e.g. repositories, files) to mount into the session's
    * container.
    */
-  resources?: Array<BetaManagedAgentsGitHubRepositoryResourceParams | BetaManagedAgentsFileResourceParams | BetaManagedAgentsMemoryStoreResourceParam>;
+  resources?: Array<
+    | BetaManagedAgentsGitHubRepositoryResourceParams
+    | BetaManagedAgentsFileResourceParams
+    | BetaManagedAgentsMemoryStoreResourceParam
+  >;
 
   /**
    * Body param: Human-readable session title.
@@ -536,7 +675,7 @@ export declare namespace Sessions {
     type SessionUpdateParams as SessionUpdateParams,
     type SessionListParams as SessionListParams,
     type SessionDeleteParams as SessionDeleteParams,
-    type SessionArchiveParams as SessionArchiveParams
+    type SessionArchiveParams as SessionArchiveParams,
   };
 
   export {
@@ -596,7 +735,7 @@ export declare namespace Sessions {
     type BetaManagedAgentsSessionEventsPageCursor as BetaManagedAgentsSessionEventsPageCursor,
     type EventListParams as EventListParams,
     type EventSendParams as EventSendParams,
-    type EventStreamParams as EventStreamParams
+    type EventStreamParams as EventStreamParams,
   };
 
   export {
@@ -613,6 +752,6 @@ export declare namespace Sessions {
     type ResourceUpdateParams as ResourceUpdateParams,
     type ResourceListParams as ResourceListParams,
     type ResourceDeleteParams as ResourceDeleteParams,
-    type ResourceAddParams as ResourceAddParams
+    type ResourceAddParams as ResourceAddParams,
   };
 }

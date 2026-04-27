@@ -28,9 +28,20 @@ export class Credentials extends APIResource {
    *   );
    * ```
    */
-  create(vaultID: string, params: CredentialCreateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsCredential> {
-    const { betas, ...body } = params
-    return this._client.post(path`/v1/vaults/${vaultID}/credentials?beta=true`, { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  create(
+    vaultID: string,
+    params: CredentialCreateParams,
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsCredential> {
+    const { betas, ...body } = params;
+    return this._client.post(path`/v1/vaults/${vaultID}/credentials?beta=true`, {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -45,9 +56,19 @@ export class Credentials extends APIResource {
    *   );
    * ```
    */
-  retrieve(credentialID: string, params: CredentialRetrieveParams, options?: RequestOptions): APIPromise<BetaManagedAgentsCredential> {
-    const { vault_id, betas } = params
-    return this._client.get(path`/v1/vaults/${vault_id}/credentials/${credentialID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  retrieve(
+    credentialID: string,
+    params: CredentialRetrieveParams,
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsCredential> {
+    const { vault_id, betas } = params;
+    return this._client.get(path`/v1/vaults/${vault_id}/credentials/${credentialID}?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -62,9 +83,20 @@ export class Credentials extends APIResource {
    *   );
    * ```
    */
-  update(credentialID: string, params: CredentialUpdateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsCredential> {
-    const { vault_id, betas, ...body } = params
-    return this._client.post(path`/v1/vaults/${vault_id}/credentials/${credentialID}?beta=true`, { body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  update(
+    credentialID: string,
+    params: CredentialUpdateParams,
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsCredential> {
+    const { vault_id, betas, ...body } = params;
+    return this._client.post(path`/v1/vaults/${vault_id}/credentials/${credentialID}?beta=true`, {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -80,9 +112,24 @@ export class Credentials extends APIResource {
    * }
    * ```
    */
-  list(vaultID: string, params: CredentialListParams | null | undefined = {}, options?: RequestOptions): PagePromise<BetaManagedAgentsCredentialsPageCursor, BetaManagedAgentsCredential> {
-    const { betas, ...query } = params ?? {}
-    return this._client.getAPIList(path`/v1/vaults/${vaultID}/credentials?beta=true`, PageCursor<BetaManagedAgentsCredential>, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  list(
+    vaultID: string,
+    params: CredentialListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<BetaManagedAgentsCredentialsPageCursor, BetaManagedAgentsCredential> {
+    const { betas, ...query } = params ?? {};
+    return this._client.getAPIList(
+      path`/v1/vaults/${vaultID}/credentials?beta=true`,
+      PageCursor<BetaManagedAgentsCredential>,
+      {
+        query,
+        ...options,
+        headers: buildHeaders([
+          { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+          options?.headers,
+        ]),
+      },
+    );
   }
 
   /**
@@ -97,9 +144,19 @@ export class Credentials extends APIResource {
    *   );
    * ```
    */
-  delete(credentialID: string, params: CredentialDeleteParams, options?: RequestOptions): APIPromise<BetaManagedAgentsDeletedCredential> {
-    const { vault_id, betas } = params
-    return this._client.delete(path`/v1/vaults/${vault_id}/credentials/${credentialID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  delete(
+    credentialID: string,
+    params: CredentialDeleteParams,
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsDeletedCredential> {
+    const { vault_id, betas } = params;
+    return this._client.delete(path`/v1/vaults/${vault_id}/credentials/${credentialID}?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -114,13 +171,23 @@ export class Credentials extends APIResource {
    *   );
    * ```
    */
-  archive(credentialID: string, params: CredentialArchiveParams, options?: RequestOptions): APIPromise<BetaManagedAgentsCredential> {
-    const { vault_id, betas } = params
-    return this._client.post(path`/v1/vaults/${vault_id}/credentials/${credentialID}/archive?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  archive(
+    credentialID: string,
+    params: CredentialArchiveParams,
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsCredential> {
+    const { vault_id, betas } = params;
+    return this._client.post(path`/v1/vaults/${vault_id}/credentials/${credentialID}/archive?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 }
 
-export type BetaManagedAgentsCredentialsPageCursor = PageCursor<BetaManagedAgentsCredential>
+export type BetaManagedAgentsCredentialsPageCursor = PageCursor<BetaManagedAgentsCredential>;
 
 /**
  * A credential stored in a vault. Sensitive fields are never returned in
@@ -253,7 +320,10 @@ export interface BetaManagedAgentsMCPOAuthRefreshParams {
   /**
    * Token endpoint requires no client authentication.
    */
-  token_endpoint_auth: BetaManagedAgentsTokenEndpointAuthNoneParam | BetaManagedAgentsTokenEndpointAuthBasicParam | BetaManagedAgentsTokenEndpointAuthPostParam;
+  token_endpoint_auth:
+    | BetaManagedAgentsTokenEndpointAuthNoneParam
+    | BetaManagedAgentsTokenEndpointAuthBasicParam
+    | BetaManagedAgentsTokenEndpointAuthPostParam;
 
   /**
    * OAuth resource indicator.
@@ -283,7 +353,10 @@ export interface BetaManagedAgentsMCPOAuthRefreshResponse {
   /**
    * Token endpoint requires no client authentication.
    */
-  token_endpoint_auth: BetaManagedAgentsTokenEndpointAuthNoneResponse | BetaManagedAgentsTokenEndpointAuthBasicResponse | BetaManagedAgentsTokenEndpointAuthPostResponse;
+  token_endpoint_auth:
+    | BetaManagedAgentsTokenEndpointAuthNoneResponse
+    | BetaManagedAgentsTokenEndpointAuthBasicResponse
+    | BetaManagedAgentsTokenEndpointAuthPostResponse;
 
   /**
    * OAuth resource indicator.
@@ -313,7 +386,9 @@ export interface BetaManagedAgentsMCPOAuthRefreshUpdateParams {
   /**
    * Updated HTTP Basic authentication parameters for the token endpoint.
    */
-  token_endpoint_auth?: BetaManagedAgentsTokenEndpointAuthBasicUpdateParam | BetaManagedAgentsTokenEndpointAuthPostUpdateParam;
+  token_endpoint_auth?:
+    | BetaManagedAgentsTokenEndpointAuthBasicUpdateParam
+    | BetaManagedAgentsTokenEndpointAuthPostUpdateParam;
 }
 
 /**
@@ -583,6 +658,6 @@ export declare namespace Credentials {
     type CredentialUpdateParams as CredentialUpdateParams,
     type CredentialListParams as CredentialListParams,
     type CredentialDeleteParams as CredentialDeleteParams,
-    type CredentialArchiveParams as CredentialArchiveParams
+    type CredentialArchiveParams as CredentialArchiveParams,
   };
 }

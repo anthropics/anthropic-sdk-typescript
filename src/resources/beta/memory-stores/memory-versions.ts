@@ -22,9 +22,23 @@ export class MemoryVersions extends APIResource {
    *   );
    * ```
    */
-  retrieve(memoryVersionID: string, params: MemoryVersionRetrieveParams, options?: RequestOptions): APIPromise<BetaManagedAgentsMemoryVersion> {
-    const { memory_store_id, betas, ...query } = params
-    return this._client.get(path`/v1/memory_stores/${memory_store_id}/memory_versions/${memoryVersionID}?beta=true`, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  retrieve(
+    memoryVersionID: string,
+    params: MemoryVersionRetrieveParams,
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsMemoryVersion> {
+    const { memory_store_id, betas, ...query } = params;
+    return this._client.get(
+      path`/v1/memory_stores/${memory_store_id}/memory_versions/${memoryVersionID}?beta=true`,
+      {
+        query,
+        ...options,
+        headers: buildHeaders([
+          { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+          options?.headers,
+        ]),
+      },
+    );
   }
 
   /**
@@ -40,9 +54,24 @@ export class MemoryVersions extends APIResource {
    * }
    * ```
    */
-  list(memoryStoreID: string, params: MemoryVersionListParams | null | undefined = {}, options?: RequestOptions): PagePromise<BetaManagedAgentsMemoryVersionsPageCursor, BetaManagedAgentsMemoryVersion> {
-    const { betas, ...query } = params ?? {}
-    return this._client.getAPIList(path`/v1/memory_stores/${memoryStoreID}/memory_versions?beta=true`, PageCursor<BetaManagedAgentsMemoryVersion>, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  list(
+    memoryStoreID: string,
+    params: MemoryVersionListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<BetaManagedAgentsMemoryVersionsPageCursor, BetaManagedAgentsMemoryVersion> {
+    const { betas, ...query } = params ?? {};
+    return this._client.getAPIList(
+      path`/v1/memory_stores/${memoryStoreID}/memory_versions?beta=true`,
+      PageCursor<BetaManagedAgentsMemoryVersion>,
+      {
+        query,
+        ...options,
+        headers: buildHeaders([
+          { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+          options?.headers,
+        ]),
+      },
+    );
   }
 
   /**
@@ -57,15 +86,31 @@ export class MemoryVersions extends APIResource {
    *   );
    * ```
    */
-  redact(memoryVersionID: string, params: MemoryVersionRedactParams, options?: RequestOptions): APIPromise<BetaManagedAgentsMemoryVersion> {
-    const { memory_store_id, betas } = params
-    return this._client.post(path`/v1/memory_stores/${memory_store_id}/memory_versions/${memoryVersionID}/redact?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString()}, options?.headers]) });
+  redact(
+    memoryVersionID: string,
+    params: MemoryVersionRedactParams,
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsMemoryVersion> {
+    const { memory_store_id, betas } = params;
+    return this._client.post(
+      path`/v1/memory_stores/${memory_store_id}/memory_versions/${memoryVersionID}/redact?beta=true`,
+      {
+        ...options,
+        headers: buildHeaders([
+          { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+          options?.headers,
+        ]),
+      },
+    );
   }
 }
 
-export type BetaManagedAgentsMemoryVersionsPageCursor = PageCursor<BetaManagedAgentsMemoryVersion>
+export type BetaManagedAgentsMemoryVersionsPageCursor = PageCursor<BetaManagedAgentsMemoryVersion>;
 
-export type BetaManagedAgentsActor = BetaManagedAgentsSessionActor | BetaManagedAgentsAPIActor | BetaManagedAgentsUserActor
+export type BetaManagedAgentsActor =
+  | BetaManagedAgentsSessionActor
+  | BetaManagedAgentsAPIActor
+  | BetaManagedAgentsUserActor;
 
 export interface BetaManagedAgentsAPIActor {
   api_key_id: string;
@@ -113,7 +158,7 @@ export interface BetaManagedAgentsMemoryVersion {
 /**
  * MemoryVersionOperation enum
  */
-export type BetaManagedAgentsMemoryVersionOperation = 'created' | 'modified' | 'deleted'
+export type BetaManagedAgentsMemoryVersionOperation = 'created' | 'modified' | 'deleted';
 
 export interface BetaManagedAgentsSessionActor {
   session_id: string;
@@ -209,6 +254,6 @@ export declare namespace MemoryVersions {
     type BetaManagedAgentsMemoryVersionsPageCursor as BetaManagedAgentsMemoryVersionsPageCursor,
     type MemoryVersionRetrieveParams as MemoryVersionRetrieveParams,
     type MemoryVersionListParams as MemoryVersionListParams,
-    type MemoryVersionRedactParams as MemoryVersionRedactParams
+    type MemoryVersionRedactParams as MemoryVersionRedactParams,
   };
 }

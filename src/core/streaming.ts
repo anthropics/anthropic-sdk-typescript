@@ -9,7 +9,7 @@ import { encodeUTF8 } from '../internal/utils/bytes';
 import { loggerFor } from '../internal/utils/log';
 import type { BaseAnthropic } from '../client';
 
-import { APIError } from './error';;
+import { APIError } from './error';
 
 type Bytes = string | ArrayBuffer | Uint8Array | null | undefined;
 
@@ -32,17 +32,17 @@ export class Stream<Item> implements AsyncIterable<Item> {
     this.#client = client;
   }
 
-  static fromSSEResponse<Item>(response: Response,
-controller: AbortController,
-client?: BaseAnthropic,): Stream<Item> {
+  static fromSSEResponse<Item>(
+    response: Response,
+    controller: AbortController,
+    client?: BaseAnthropic,
+  ): Stream<Item> {
     let consumed = false;
     const logger = client ? loggerFor(client) : console;
 
     async function* iterator(): AsyncIterator<Item, any, undefined> {
       if (consumed) {
-        throw new AnthropicError(
-          'Cannot iterate over a consumed stream, use `.tee()` to split the stream.',
-        );
+        throw new AnthropicError('Cannot iterate over a consumed stream, use `.tee()` to split the stream.');
       }
       consumed = true;
       let done = false;
@@ -57,8 +57,36 @@ client?: BaseAnthropic,): Stream<Item> {
               throw e;
             }
           }
-          
-          if (sse.event === 'message_start' || sse.event === 'message_delta' || sse.event === 'message_stop' || sse.event === 'content_block_start' || sse.event === 'content_block_delta' || sse.event === 'content_block_stop' || sse.event === 'message' || sse.event === 'user.message' || sse.event === 'user.interrupt' || sse.event === 'user.tool_confirmation' || sse.event === 'user.custom_tool_result' || sse.event === 'agent.message' || sse.event === 'agent.thinking' || sse.event === 'agent.tool_use' || sse.event === 'agent.tool_result' || sse.event === 'agent.mcp_tool_use' || sse.event === 'agent.mcp_tool_result' || sse.event === 'agent.custom_tool_use' || sse.event === 'agent.thread_context_compacted' || sse.event === 'session.status_running' || sse.event === 'session.status_idle' || sse.event === 'session.status_rescheduled' || sse.event === 'session.status_terminated' || sse.event === 'session.error' || sse.event === 'session.deleted' || sse.event === 'span.model_request_start' || sse.event === 'span.model_request_end') {
+
+          if (
+            sse.event === 'message_start' ||
+            sse.event === 'message_delta' ||
+            sse.event === 'message_stop' ||
+            sse.event === 'content_block_start' ||
+            sse.event === 'content_block_delta' ||
+            sse.event === 'content_block_stop' ||
+            sse.event === 'message' ||
+            sse.event === 'user.message' ||
+            sse.event === 'user.interrupt' ||
+            sse.event === 'user.tool_confirmation' ||
+            sse.event === 'user.custom_tool_result' ||
+            sse.event === 'agent.message' ||
+            sse.event === 'agent.thinking' ||
+            sse.event === 'agent.tool_use' ||
+            sse.event === 'agent.tool_result' ||
+            sse.event === 'agent.mcp_tool_use' ||
+            sse.event === 'agent.mcp_tool_result' ||
+            sse.event === 'agent.custom_tool_use' ||
+            sse.event === 'agent.thread_context_compacted' ||
+            sse.event === 'session.status_running' ||
+            sse.event === 'session.status_idle' ||
+            sse.event === 'session.status_rescheduled' ||
+            sse.event === 'session.status_terminated' ||
+            sse.event === 'session.error' ||
+            sse.event === 'session.deleted' ||
+            sse.event === 'span.model_request_start' ||
+            sse.event === 'span.model_request_end'
+          ) {
             try {
               yield JSON.parse(sse.data) as Item;
             } catch (e) {
@@ -67,14 +95,14 @@ client?: BaseAnthropic,): Stream<Item> {
               throw e;
             }
           }
-          
+
           if (sse.event === 'ping') {
-            continue
+            continue;
           }
-          
+
           if (sse.event === 'error') {
             throw new APIError(undefined, safeJSON(sse.data) ?? sse.data, undefined, response.headers);
-          };
+          }
         }
         done = true;
       } catch (e) {
@@ -118,9 +146,7 @@ client?: BaseAnthropic,): Stream<Item> {
 
     async function* iterator(): AsyncIterator<Item, any, undefined> {
       if (consumed) {
-        throw new AnthropicError(
-          'Cannot iterate over a consumed stream, use `.tee()` to split the stream.',
-        );
+        throw new AnthropicError('Cannot iterate over a consumed stream, use `.tee()` to split the stream.');
       }
       consumed = true;
       let done = false;

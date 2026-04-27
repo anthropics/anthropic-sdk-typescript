@@ -15,9 +15,19 @@ export class Models extends APIResource {
    * The Models API response can be used to determine information about a specific
    * model or resolve a model alias to a model ID.
    */
-  retrieve(modelID: string, params: ModelRetrieveParams | null | undefined = {}, options?: RequestOptions): APIPromise<ModelInfo> {
-    const { betas } = params ?? {}
-    return this._client.get(path`/v1/models/${modelID}`, { ...options, headers: buildHeaders([{...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined)}, options?.headers]) });
+  retrieve(
+    modelID: string,
+    params: ModelRetrieveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<ModelInfo> {
+    const { betas } = params ?? {};
+    return this._client.get(path`/v1/models/${modelID}`, {
+      ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -26,13 +36,23 @@ export class Models extends APIResource {
    * The Models API response can be used to determine which models are available for
    * use in the API. More recently released models are listed first.
    */
-  list(params: ModelListParams | null | undefined = {}, options?: RequestOptions): PagePromise<ModelInfosPage, ModelInfo> {
-    const { betas, ...query } = params ?? {}
-    return this._client.getAPIList('/v1/models', Page<ModelInfo>, { query, ...options, headers: buildHeaders([{...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined)}, options?.headers]) });
+  list(
+    params: ModelListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<ModelInfosPage, ModelInfo> {
+    const { betas, ...query } = params ?? {};
+    return this._client.getAPIList('/v1/models', Page<ModelInfo>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 }
 
-export type ModelInfosPage = Page<ModelInfo>
+export type ModelInfosPage = Page<ModelInfo>;
 
 /**
  * Indicates whether a capability is supported.
@@ -249,6 +269,6 @@ export declare namespace Models {
     type ThinkingTypes as ThinkingTypes,
     type ModelInfosPage as ModelInfosPage,
     type ModelRetrieveParams as ModelRetrieveParams,
-    type ModelListParams as ModelListParams
+    type ModelListParams as ModelListParams,
   };
 }

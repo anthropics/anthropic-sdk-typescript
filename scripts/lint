@@ -4,9 +4,6 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-echo "==> Running prettier --check"
-./node_modules/.bin/prettier --check .
-
 echo "==> Running eslint"
 ./node_modules/.bin/eslint .
 

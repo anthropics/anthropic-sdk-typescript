@@ -242,4 +242,4 @@ test('error handling', async () => {
     `[Error: {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}]`,
   );
   await err.toBeInstanceOf(APIError);
-});;
+});

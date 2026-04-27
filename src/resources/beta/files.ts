@@ -22,9 +22,19 @@ export class Files extends APIResource {
    * }
    * ```
    */
-  list(params: FileListParams | null | undefined = {}, options?: RequestOptions): PagePromise<FileMetadataPage, FileMetadata> {
-    const { betas, ...query } = params ?? {}
-    return this._client.getAPIList('/v1/files?beta=true', Page<FileMetadata>, { query, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString()}, options?.headers]) });
+  list(
+    params: FileListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<FileMetadataPage, FileMetadata> {
+    const { betas, ...query } = params ?? {};
+    return this._client.getAPIList('/v1/files?beta=true', Page<FileMetadata>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -37,9 +47,19 @@ export class Files extends APIResource {
    * );
    * ```
    */
-  delete(fileID: string, params: FileDeleteParams | null | undefined = {}, options?: RequestOptions): APIPromise<DeletedFile> {
-    const { betas } = params ?? {}
-    return this._client.delete(path`/v1/files/${fileID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString()}, options?.headers]) });
+  delete(
+    fileID: string,
+    params: FileDeleteParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<DeletedFile> {
+    const { betas } = params ?? {};
+    return this._client.delete(path`/v1/files/${fileID}?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -55,9 +75,23 @@ export class Files extends APIResource {
    * console.log(content);
    * ```
    */
-  download(fileID: string, params: FileDownloadParams | null | undefined = {}, options?: RequestOptions): APIPromise<Response> {
-    const { betas } = params ?? {}
-    return this._client.get(path`/v1/files/${fileID}/content?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString(), Accept: 'application/binary'}, options?.headers]), __binaryResponse: true });
+  download(
+    fileID: string,
+    params: FileDownloadParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<Response> {
+    const { betas } = params ?? {};
+    return this._client.get(path`/v1/files/${fileID}/content?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        {
+          'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString(),
+          Accept: 'application/binary',
+        },
+        options?.headers,
+      ]),
+      __binaryResponse: true,
+    });
   }
 
   /**
@@ -69,9 +103,19 @@ export class Files extends APIResource {
    *   await client.beta.files.retrieveMetadata('file_id');
    * ```
    */
-  retrieveMetadata(fileID: string, params: FileRetrieveMetadataParams | null | undefined = {}, options?: RequestOptions): APIPromise<FileMetadata> {
-    const { betas } = params ?? {}
-    return this._client.get(path`/v1/files/${fileID}?beta=true`, { ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString()}, options?.headers]) });
+  retrieveMetadata(
+    fileID: string,
+    params: FileRetrieveMetadataParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<FileMetadata> {
+    const { betas } = params ?? {};
+    return this._client.get(path`/v1/files/${fileID}?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString() },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -85,12 +129,25 @@ export class Files extends APIResource {
    * ```
    */
   upload(params: FileUploadParams, options?: RequestOptions): APIPromise<FileMetadata> {
-    const { betas, ...body } = params
-    return this._client.post('/v1/files?beta=true', multipartFormRequestOptions({ body, ...options, headers: buildHeaders([{'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString()}, options?.headers]) }, this._client));
+    const { betas, ...body } = params;
+    return this._client.post(
+      '/v1/files?beta=true',
+      multipartFormRequestOptions(
+        {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { 'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString() },
+            options?.headers,
+          ]),
+        },
+        this._client,
+      ),
+    );
   }
 }
 
-export type FileMetadataPage = Page<FileMetadata>
+export type FileMetadataPage = Page<FileMetadata>;
 
 export interface BetaFileScope {
   /**
@@ -221,6 +278,6 @@ export declare namespace Files {
     type FileDeleteParams as FileDeleteParams,
     type FileDownloadParams as FileDownloadParams,
     type FileRetrieveMetadataParams as FileRetrieveMetadataParams,
-    type FileUploadParams as FileUploadParams
+    type FileUploadParams as FileUploadParams,
   };
 }

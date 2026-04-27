@@ -2,7 +2,10 @@
 
 import Anthropic, { toFile } from '@anthropic-ai/sdk';
 
-const client = new Anthropic({ apiKey: 'my-anthropic-api-key', baseURL: process.env["TEST_API_BASE_URL"] ?? 'http://127.0.0.1:4010' });
+const client = new Anthropic({
+  apiKey: 'my-anthropic-api-key',
+  baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
+});
 
 describe('resource versions', () => {
   test('create', async () => {
@@ -18,9 +21,16 @@ describe('resource versions', () => {
 
   test('create: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(client.beta.skills.versions.create('skill_id', { files: [await toFile(Buffer.from('Example data'), 'README.md')], betas: ['message-batches-2024-09-24'] }, { path: '/_stainless_unknown_path' }))
-      .rejects
-      .toThrow(Anthropic.NotFoundError);
+    await expect(
+      client.beta.skills.versions.create(
+        'skill_id',
+        {
+          files: [await toFile(Buffer.from('Example data'), 'README.md')],
+          betas: ['message-batches-2024-09-24'],
+        },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
   test('retrieve: only required params', async () => {
@@ -35,7 +45,10 @@ describe('resource versions', () => {
   });
 
   test('retrieve: required and optional params', async () => {
-    const response = await client.beta.skills.versions.retrieve('version', { skill_id: 'skill_id', betas: ['message-batches-2024-09-24'] });
+    const response = await client.beta.skills.versions.retrieve('version', {
+      skill_id: 'skill_id',
+      betas: ['message-batches-2024-09-24'],
+    });
   });
 
   test('list', async () => {
@@ -51,13 +64,17 @@ describe('resource versions', () => {
 
   test('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(client.beta.skills.versions.list('skill_id', {
-    limit: 0,
-    page: 'page',
-    betas: ['message-batches-2024-09-24'],
-  }, { path: '/_stainless_unknown_path' }))
-      .rejects
-      .toThrow(Anthropic.NotFoundError);
+    await expect(
+      client.beta.skills.versions.list(
+        'skill_id',
+        {
+          limit: 0,
+          page: 'page',
+          betas: ['message-batches-2024-09-24'],
+        },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
   test('delete: only required params', async () => {
@@ -72,6 +89,9 @@ describe('resource versions', () => {
   });
 
   test('delete: required and optional params', async () => {
-    const response = await client.beta.skills.versions.delete('version', { skill_id: 'skill_id', betas: ['message-batches-2024-09-24'] });
+    const response = await client.beta.skills.versions.delete('version', {
+      skill_id: 'skill_id',
+      betas: ['message-batches-2024-09-24'],
+    });
   });
 });
