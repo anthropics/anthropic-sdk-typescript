@@ -22,11 +22,17 @@ export function encodeUTF8(str: string) {
   )(str);
 }
 
-let decodeUTF8_: (bytes: Uint8Array) => string;
+let decodeUTF8Decoder_: { decode: (input?: ArrayBuffer | ArrayBufferView | null) => string };
 export function decodeUTF8(bytes: Uint8Array) {
-  let decoder;
-  return (
-    decodeUTF8_ ??
-    ((decoder = new (globalThis as any).TextDecoder()), (decodeUTF8_ = decoder.decode.bind(decoder)))
-  )(bytes);
+  const decoder = decodeUTF8Decoder_ ?? (decodeUTF8Decoder_ = new (globalThis as any).TextDecoder());
+
+  try {
+    return decoder.decode(bytes);
+  } catch (error) {
+    if (!(error instanceof TypeError)) {
+      throw error;
+    }
+
+    return decoder.decode(bytes.slice().buffer);
+  }
 }
