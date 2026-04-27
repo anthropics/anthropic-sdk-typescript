@@ -251,4 +251,105 @@ describe('MessageStream class', () => {
     });
     await expect(stream).rejects.toThrow(APIConnectionError);
   });
+
+  describe('state cleanup and caching after end', () => {
+    it('finalMessage() resolves via cache after receivedMessages is cleared', async () => {
+      const { fetch, handleStreamEvents } = mockFetch();
+      const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+      const fixtureContent = loadFixture('basic_response.txt');
+      const streamEvents = await parseSSEFixture(fixtureContent);
+      handleStreamEvents(streamEvents);
+
+      const stream = anthropic.messages.stream({
+        max_tokens: 1024,
+        model: 'claude-opus-4-20250514',
+        messages: [{ role: 'user', content: 'Say hello there!' }],
+      });
+
+      await stream.done();
+
+      // receivedMessages is cleared after end — finalMessage() must use the cache
+      expect(stream.receivedMessages).toHaveLength(0);
+      const msg = await stream.finalMessage();
+      expect(msg).toMatchObject(EXPECTED_BASIC_MESSAGE);
+    });
+
+    it('finalText() resolves via cache after end fires', async () => {
+      const { fetch, handleStreamEvents } = mockFetch();
+      const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+      const fixtureContent = loadFixture('basic_response.txt');
+      const streamEvents = await parseSSEFixture(fixtureContent);
+      handleStreamEvents(streamEvents);
+
+      const stream = anthropic.messages.stream({
+        max_tokens: 1024,
+        model: 'claude-opus-4-20250514',
+        messages: [{ role: 'user', content: 'Say hello there!' }],
+      });
+
+      await stream.done();
+      expect(await stream.finalText()).toBe('Hello there!');
+    });
+
+    it('clears receivedMessages and messages after end to prevent memory leaks', async () => {
+      const { fetch, handleStreamEvents } = mockFetch();
+      const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+      const fixtureContent = loadFixture('basic_response.txt');
+      const streamEvents = await parseSSEFixture(fixtureContent);
+      handleStreamEvents(streamEvents);
+
+      const stream = anthropic.messages.stream({
+        max_tokens: 1024,
+        model: 'claude-opus-4-20250514',
+        messages: [{ role: 'user', content: 'Say hello there!' }],
+      });
+
+      // Capture array lengths from within the finalMessage listener (fires before end cleanup)
+      let messagesLengthBeforeCleanup = -1;
+      let receivedMessagesLengthBeforeCleanup = -1;
+      stream.on('finalMessage', () => {
+        messagesLengthBeforeCleanup = stream.messages.length;
+        receivedMessagesLengthBeforeCleanup = stream.receivedMessages.length;
+      });
+
+      await stream.done();
+
+      // Arrays were populated before cleanup fired
+      expect(messagesLengthBeforeCleanup).toBeGreaterThan(0);
+      expect(receivedMessagesLengthBeforeCleanup).toBeGreaterThan(0);
+
+      // Arrays are cleared after end fires
+      expect(stream.messages).toHaveLength(0);
+      expect(stream.receivedMessages).toHaveLength(0);
+    });
+
+    it('finalMessage listener receives message before arrays are cleared', async () => {
+      const { fetch, handleStreamEvents } = mockFetch();
+      const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+      const fixtureContent = loadFixture('basic_response.txt');
+      const streamEvents = await parseSSEFixture(fixtureContent);
+      handleStreamEvents(streamEvents);
+
+      const stream = anthropic.messages.stream({
+        max_tokens: 1024,
+        model: 'claude-opus-4-20250514',
+        messages: [{ role: 'user', content: 'Say hello there!' }],
+      });
+
+      let messageInListener: Message | undefined;
+      stream.on('finalMessage', (msg) => {
+        messageInListener = msg;
+      });
+
+      await stream.done();
+
+      expect(messageInListener).toMatchObject(EXPECTED_BASIC_MESSAGE);
+      // Cache still works after end
+      expect(await stream.finalMessage()).toMatchObject(EXPECTED_BASIC_MESSAGE);
+    });
+  });
 });
