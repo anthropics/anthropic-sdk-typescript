@@ -99,6 +99,7 @@ describe('resource sessions', () => {
           'created_at[lte]': '2019-12-27T18:11:19.117Z',
           include_archived: true,
           limit: 0,
+          memory_store_id: 'memory_store_id',
           order: 'asc',
           page: 'page',
           betas: ['message-batches-2024-09-24'],
