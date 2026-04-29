@@ -2,14 +2,14 @@
 
 import { AnthropicVertex } from '../src/client';
 
+const mockGetRequestHeaders = jest.fn().mockResolvedValue({ authorization: 'Bearer fake-token' });
+
 // Mock GoogleAuth to prevent credential loading during tests
 jest.mock('google-auth-library', () => ({
   GoogleAuth: jest.fn().mockImplementation(() => ({
     getClient: jest.fn().mockResolvedValue({
       projectId: 'test-project',
-      getRequestHeaders: jest.fn().mockResolvedValue({
-        authorization: 'Bearer fake-token',
-      }),
+      getRequestHeaders: mockGetRequestHeaders,
     }),
   })),
 }));
@@ -86,6 +86,59 @@ describe('AnthropicVertex', () => {
           process.env['CLOUD_ML_REGION'] = originalEnv;
         }
       }
+    });
+  });
+
+  describe('countTokens request', () => {
+    let client: AnthropicVertex;
+
+    beforeEach(() => {
+      client = new AnthropicVertex({
+        region: 'us-central1',
+        projectId: 'test-project',
+        accessToken: 'fake-token',
+      });
+    });
+
+    test('strips anthropic-beta header from non-beta count_tokens requests', async () => {
+      const { req } = await client.buildRequest({
+        path: '/v1/messages/count_tokens',
+        method: 'post',
+        headers: { 'anthropic-beta': 'effort-2025-11-24' },
+        body: { model: 'claude-haiku-4-5', messages: [] },
+      });
+      expect(req.headers.has('anthropic-beta')).toBe(false);
+    });
+
+    test('strips anthropic-beta header from beta count_tokens requests', async () => {
+      const { req } = await client.buildRequest({
+        path: '/v1/messages/count_tokens?beta=true',
+        method: 'post',
+        headers: { 'anthropic-beta': 'token-counting-2024-11-01,effort-2025-11-24' },
+        body: { model: 'claude-haiku-4-5', messages: [] },
+      });
+      expect(req.headers.has('anthropic-beta')).toBe(false);
+    });
+
+    test('does not strip anthropic-beta from regular messages requests', async () => {
+      const { req } = await client.buildRequest({
+        path: '/v1/messages',
+        method: 'post',
+        headers: { 'anthropic-beta': 'effort-2025-11-24' },
+        body: { model: 'claude-haiku-4-5', messages: [], max_tokens: 10 },
+      });
+      expect(req.headers.get('anthropic-beta')).toBe('effort-2025-11-24');
+    });
+
+    test('routes non-beta count_tokens to Vertex rawPredict endpoint', async () => {
+      const { url } = await client.buildRequest({
+        path: '/v1/messages/count_tokens',
+        method: 'post',
+        body: { model: 'claude-haiku-4-5', messages: [] },
+      });
+      expect(url).toContain('count-tokens:rawPredict');
+      expect(url).toContain('test-project');
+      expect(url).toContain('us-central1');
     });
   });
 });
