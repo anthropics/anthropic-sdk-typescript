@@ -2,6 +2,7 @@
 
 import { AnthropicError } from '../../../error';
 import { Anthropic } from '../../../client';
+import * as BatchesAPI from './batches';
 import { APIPromise } from '../../../core/api-promise';
 import { APIResource } from '../../../core/resource';
 import { Stream } from '../../../core/streaming';
@@ -25,7 +26,6 @@ import type { Model } from '../../messages/messages';
 import * as BetaMessagesAPI from './messages';
 import * as MessagesAPI from '../../messages/messages';
 import * as BetaAPI from '../beta';
-import * as BatchesAPI from './batches';
 import {
   BatchCancelParams,
   BatchCreateParams,
@@ -3754,6 +3754,10 @@ export interface MessageCreateParamsBase {
    *
    * Note that our models may stop _before_ reaching this maximum. This parameter
    * only specifies the absolute maximum number of tokens to generate.
+   *
+   * Set to `0` to populate the
+   * [prompt cache](https://docs.claude.com/en/docs/build-with-claude/prompt-caching#pre-warming-the-cache)
+   * without generating a response.
    *
    * Different models have different maximum values for this parameter. See
    * [models](https://docs.claude.com/en/docs/models-overview) for details.
