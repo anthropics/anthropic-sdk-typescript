@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.92.0 (2026-04-29)
+
+Full Changelog: [sdk-v0.91.1...sdk-v0.92.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.91.1...sdk-v0.92.0)
+
+### Features
+
+* **api:** improve Managed Agents APIs ([b0a471b](https://github.com/anthropics/anthropic-sdk-typescript/commit/b0a471be099efdc3cc0ab11e4f4b385575283bc4))
+* support setting headers via env ([642dd21](https://github.com/anthropics/anthropic-sdk-typescript/commit/642dd210105f601ef795476b1cfaff7e16440bbd))
+
+
+### Chores
+
+* **format:** run eslint and prettier separately ([fc78475](https://github.com/anthropics/anthropic-sdk-typescript/commit/fc78475751d995f7b8684f88759251fa85357a98))
+* **internal:** codegen related update ([d8b1351](https://github.com/anthropics/anthropic-sdk-typescript/commit/d8b1351a005405e955387d2c74895855f8969d46))
+
 ## 0.91.1 (2026-04-24)
 
 Full Changelog: [sdk-v0.91.0...sdk-v0.91.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.91.0...sdk-v0.91.1)
