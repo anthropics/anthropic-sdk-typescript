@@ -192,6 +192,10 @@ export class AnthropicVertex extends BaseAnthropic {
       }
 
       options.path = `/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/count-tokens:rawPredict`;
+
+      // Vertex's count-tokens endpoint does not support anthropic-beta features and will
+      // reject unknown beta values from model backends that have not yet received that beta.
+      options.headers = buildHeaders([options.headers, { 'anthropic-beta': null }]);
     }
 
     return super.buildRequest(options);
