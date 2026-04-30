@@ -23,11 +23,25 @@ async function postprocess() {
 
     // strip out lib="dom", types="node", and types="react" references; these
     // are needed at build time, but would pollute the user's TS environment
-    const transformed = code.replace(
+    let transformed = code.replace(
       /^ *\/\/\/ *<reference +(lib="dom"|types="(node|react)").*?\n/gm,
       // replace with same number of characters to avoid breaking source maps
       (match) => ' '.repeat(match.length - 1) + '\n',
     );
+
+    // In emitted declaration files, TypeScript collapses `/** @ts-ignore <msg> */`
+    // and the following declaration onto a single line.  A block comment on the same
+    // line as the declaration has no suppression effect; TypeScript only recognises
+    // the single-line `// @ts-ignore` form on its own line immediately before the
+    // offending statement.  Rewrite every occurrence so that the directive is on its
+    // own preceding line, which avoids spurious TS2307 errors for users who don't have
+    // optional peer dependencies (undici, node-fetch, …) installed.
+    if (/\.d\.[cm]?ts$/.test(file)) {
+      transformed = transformed.replace(
+        /\/\*\*\s*@ts-ignore\s+(.*?)\s*\*\/[ \t]*\n?/g,
+        (_, msg) => `// @ts-ignore${msg.trim() ? ' ' + msg.trim() : ''}\n`,
+      );
+    }
 
     if (transformed !== code) {
       console.error(`wrote ${path.relative(process.cwd(), file)}`);
