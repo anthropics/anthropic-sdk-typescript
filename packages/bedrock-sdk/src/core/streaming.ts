@@ -63,7 +63,7 @@ export class Stream<Item> extends CoreStream<Item> {
       }
     }
 
-    // Note: this function is copied entirely from the core SDK
+    // Note: this function is adapted from the core SDK
     async function* iterator(): AsyncIterator<Item, any, undefined> {
       if (consumed) {
         throw new Error('Cannot iterate over a consumed stream, use `.tee()` to split the stream.');
@@ -73,13 +73,19 @@ export class Stream<Item> extends CoreStream<Item> {
       try {
         for await (const sse of iterMessages()) {
           if (sse.event === 'chunk') {
+            let parsed;
             try {
-              yield JSON.parse(sse.data);
+              parsed = JSON.parse(sse.data);
             } catch (e) {
               logger.error(`Could not parse message into JSON:`, sse.data);
               logger.error(`From chunk:`, sse.raw);
               throw e;
             }
+            if (parsed && typeof parsed === 'object' && parsed.type === 'error') {
+              // Anthropic-format error delivered inside a Bedrock chunk frame
+              throw new APIError(undefined, parsed, undefined, response.headers, parsed.error?.type);
+            }
+            yield parsed;
           }
 
           if (sse.event === 'error') {
