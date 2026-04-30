@@ -48,7 +48,7 @@ export class MemoryStores extends APIResource {
   memoryVersions: MemoryVersionsAPI.MemoryVersions = new MemoryVersionsAPI.MemoryVersions(this._client);
 
   /**
-   * CreateMemoryStore
+   * Create a memory store
    *
    * @example
    * ```ts
@@ -72,7 +72,7 @@ export class MemoryStores extends APIResource {
   }
 
   /**
-   * GetMemoryStore
+   * Retrieve a memory store
    *
    * @example
    * ```ts
@@ -98,7 +98,7 @@ export class MemoryStores extends APIResource {
   }
 
   /**
-   * UpdateMemoryStore
+   * Update a memory store
    *
    * @example
    * ```ts
@@ -123,7 +123,7 @@ export class MemoryStores extends APIResource {
   }
 
   /**
-   * ListMemoryStores
+   * List memory stores
    *
    * @example
    * ```ts
@@ -149,7 +149,7 @@ export class MemoryStores extends APIResource {
   }
 
   /**
-   * DeleteMemoryStore
+   * Delete a memory store
    *
    * @example
    * ```ts
@@ -173,7 +173,7 @@ export class MemoryStores extends APIResource {
   }
 
   /**
-   * ArchiveMemoryStore
+   * Archive a memory store
    *
    * @example
    * ```ts
@@ -199,13 +199,30 @@ export class MemoryStores extends APIResource {
 
 export type BetaManagedAgentsMemoryStoresPageCursor = PageCursor<BetaManagedAgentsMemoryStore>;
 
+/**
+ * Confirmation that a `memory_store` was deleted.
+ */
 export interface BetaManagedAgentsDeletedMemoryStore {
+  /**
+   * ID of the deleted memory store (a `memstore_...` identifier). The store and all
+   * its memories and versions are no longer retrievable.
+   */
   id: string;
 
   type: 'memory_store_deleted';
 }
 
+/**
+ * A `memory_store`: a named container for agent memories, scoped to a workspace.
+ * Attach a store to a session via `resources[]` to mount it as a directory the
+ * agent can read and write.
+ */
 export interface BetaManagedAgentsMemoryStore {
+  /**
+   * Unique identifier for the memory store (a `memstore_...` tagged ID). Use this
+   * when attaching the store to a session, or in the `{memory_store_id}` path
+   * parameter of subsequent calls.
+   */
   id: string;
 
   /**
@@ -213,6 +230,10 @@ export interface BetaManagedAgentsMemoryStore {
    */
   created_at: string;
 
+  /**
+   * Human-readable name for the store. 1–255 characters. The store's mount-path slug
+   * under `/mnt/memory/` is derived from this name.
+   */
   name: string;
 
   type: 'memory_store';
@@ -227,24 +248,41 @@ export interface BetaManagedAgentsMemoryStore {
    */
   archived_at?: string | null;
 
+  /**
+   * Free-text description of what the store contains, up to 1024 characters.
+   * Included in the agent's system prompt when the store is attached, so word it to
+   * be useful to the agent. Empty string when unset.
+   */
   description?: string;
 
+  /**
+   * Arbitrary key-value tags for your own bookkeeping (such as the end user a store
+   * belongs to). Up to 16 pairs; keys 1–64 characters; values up to 512 characters.
+   * Returned on retrieve/list but not filterable.
+   */
   metadata?: { [key: string]: string };
 }
 
 export interface MemoryStoreCreateParams {
   /**
-   * Body param
+   * Body param: Human-readable name for the store. Required; 1–255 characters; no
+   * control characters. The mount-path slug under `/mnt/memory/` is derived from
+   * this name (lowercased, non-alphanumeric runs collapsed to a hyphen). Names need
+   * not be unique within a workspace.
    */
   name: string;
 
   /**
-   * Body param
+   * Body param: Free-text description of what the store contains, up to 1024
+   * characters. Included in the agent's system prompt when the store is attached, so
+   * word it to be useful to the agent.
    */
   description?: string;
 
   /**
-   * Body param
+   * Body param: Arbitrary key-value tags for your own bookkeeping (such as the end
+   * user a store belongs to). Up to 16 pairs; keys 1–64 characters; values up to 512
+   * characters. Not visible to the agent.
    */
   metadata?: { [key: string]: string };
 
@@ -263,7 +301,8 @@ export interface MemoryStoreRetrieveParams {
 
 export interface MemoryStoreUpdateParams {
   /**
-   * Body param
+   * Body param: New description for the store, up to 1024 characters. Pass an empty
+   * string to clear it.
    */
   description?: string | null;
 
@@ -275,7 +314,9 @@ export interface MemoryStoreUpdateParams {
   metadata?: { [key: string]: string | null } | null;
 
   /**
-   * Body param
+   * Body param: New human-readable name for the store. 1–255 characters; no control
+   * characters. Renaming changes the slug used for the store's `mount_path` in
+   * sessions created after the update.
    */
   name?: string | null;
 
@@ -287,17 +328,20 @@ export interface MemoryStoreUpdateParams {
 
 export interface MemoryStoreListParams extends PageCursorParams {
   /**
-   * Query param: Return stores created at or after this time (inclusive).
+   * Query param: Return only stores whose `created_at` is at or after this time
+   * (inclusive). Sent on the wire as `created_at[gte]`.
    */
   'created_at[gte]'?: string;
 
   /**
-   * Query param: Return stores created at or before this time (inclusive).
+   * Query param: Return only stores whose `created_at` is at or before this time
+   * (inclusive). Sent on the wire as `created_at[lte]`.
    */
   'created_at[lte]'?: string;
 
   /**
-   * Query param: Query parameter for include_archived
+   * Query param: When `true`, archived stores are included in the results. Defaults
+   * to `false` (archived stores are excluded).
    */
   include_archived?: boolean;
 

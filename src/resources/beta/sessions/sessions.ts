@@ -627,6 +627,12 @@ export interface SessionListParams extends PageCursorParams {
   include_archived?: boolean;
 
   /**
+   * Query param: Filter sessions whose resources contain a memory_store with this
+   * memory store ID.
+   */
+  memory_store_id?: string;
+
+  /**
    * Query param: Sort direction for results, ordered by created_at. Defaults to desc
    * (newest first).
    */
