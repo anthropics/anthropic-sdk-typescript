@@ -1,5 +1,5 @@
 import type { Logger } from '../client';
-import { AnthropicError } from '../core/error';
+import { parseAccumulatedFormat } from './core-parser';
 import {
   ContentBlock,
   JSONOutputFormat,
@@ -9,8 +9,7 @@ import {
   MessageCreateParams,
 } from '../resources/messages/messages';
 
-// vendored from typefest just to make things look a bit nicer on hover
-type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {};
+import { Simplify } from './type-utils';
 
 type AutoParseableOutputConfig = Omit<OutputConfig, 'format'> & {
   format?: JSONOutputFormat | AutoParseableOutputFormat<any> | null;
@@ -108,18 +107,8 @@ function parseOutputFormat<Params extends ParseableMessageCreateParams>(
   params: Params,
   content: string,
 ): ExtractParsedContentFromParams<Params> | null {
-  const outputFormat = getOutputFormat(params);
-  if (outputFormat?.type !== 'json_schema') {
-    return null;
-  }
-
-  try {
-    if ('parse' in outputFormat) {
-      return outputFormat.parse(content);
-    }
-
-    return JSON.parse(content);
-  } catch (error) {
-    throw new AnthropicError(`Failed to parse structured output: ${error}`);
-  }
+  return parseAccumulatedFormat(
+    getOutputFormat(params),
+    content,
+  ) as ExtractParsedContentFromParams<Params> | null;
 }
