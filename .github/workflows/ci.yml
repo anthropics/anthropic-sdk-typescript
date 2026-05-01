@@ -110,22 +110,21 @@ jobs:
       - name: Run tests
         run: ./scripts/test
 
-  detect_breaking_changes:
+  detect_breaking_changes_vs_main:
     timeout-minutes: 10
-    name: detect-breaking-changes
+    name: detect-breaking-changes-vs-main
     runs-on: ${{ github.repository == 'stainless-sdks/anthropic-typescript' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
     if: |
       (github.event_name == 'push' &&
-       github.ref != 'refs/heads/next' &&
        !startsWith(github.ref, 'refs/heads/release-please--')) ||
       github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v6
 
-      - name: Fetch history for current branch and target branches
+      - name: Fetch history for current branch and main
         run: |
           git fetch origin --filter=blob:none --no-tags --depth=2147483647 ${{ github.sha }}
-          git fetch origin --filter=blob:none --no-tags next main 2>/dev/null || true
+          git fetch origin --filter=blob:none --no-tags main 2>/dev/null || true
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -137,14 +136,10 @@ jobs:
 
       - name: Determine base SHA
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "BASE_SHA=${{ github.event.pull_request.base.sha }}" >> $GITHUB_ENV
-          else
-            BASE_SHA=$(git merge-base HEAD origin/next 2>/dev/null || git merge-base HEAD origin/main 2>/dev/null || echo "")
-            echo "BASE_SHA=$BASE_SHA" >> $GITHUB_ENV
-          fi
+          BASE_SHA=$(git merge-base HEAD origin/main 2>/dev/null || echo "")
+          echo "BASE_SHA=$BASE_SHA" >> $GITHUB_ENV
 
-      - name: Detect breaking changes
+      - name: Detect breaking changes vs. main
         if: env.BASE_SHA != ''
         run: |
           # Try to check out previous versions of the breaking change detection script. This ensures that
