@@ -47,3 +47,31 @@ export type BetaRunnableTool<Input = any> = BetaClientRunnableToolType & {
   ) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
   parse: (content: unknown) => Input;
 };
+
+/**
+ * A runnable custom tool (type: 'custom') created by helpers like `betaZodTool`.
+ *
+ * Unlike the more general {@link BetaRunnableTool}, this type is structurally
+ * compatible with `ToolUnion` so it can be passed directly to
+ * `client.messages.stream()` and `client.messages.create()` in addition to
+ * `client.beta.messages.toolRunner()`.
+ *
+ * The narrower `input_schema` shape (no `readonly` arrays) is what makes the
+ * assignability work under `strictNullChecks` + `exactOptionalPropertyTypes`.
+ */
+export type BetaRunnableCustomTool<Input = any> = {
+  type: 'custom';
+  name: string;
+  description?: string;
+  input_schema: {
+    type: 'object';
+    properties?: unknown | null;
+    required?: string[] | null;
+    [k: string]: unknown;
+  };
+  run: (
+    args: Input,
+    context?: BetaToolRunContext,
+  ) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
+  parse: (content: unknown) => Input;
+};
