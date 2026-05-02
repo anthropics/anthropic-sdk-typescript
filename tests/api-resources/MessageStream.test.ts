@@ -1,4 +1,4 @@
-import Anthropic, { APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
+import Anthropic, { AnthropicError, APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
 import { Message, MessageStreamEvent } from '@anthropic-ai/sdk/resources/messages';
 import { mockFetch } from '../lib/mock-fetch';
 import { loadFixture, parseSSEFixture } from '../lib/sse-helpers';
@@ -224,6 +224,76 @@ describe('MessageStream class', () => {
 
     assertToolUseResponse(events, finalMessage);
     expect(finalText).toBe("I'll check the current weather in Paris for you.");
+  });
+
+  it('throws error when stream ends without message_stop', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    // Send message_start + content blocks but omit message_delta and message_stop
+    const truncatedEvents = [
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_truncated',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-20250514',
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { input_tokens: 11, output_tokens: 1 },
+        },
+      },
+      { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+      { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Hello' } },
+      { type: 'content_block_stop', index: 0 },
+    ];
+    handleStreamEvents(truncatedEvents);
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-20250514',
+      messages: [{ role: 'user', content: 'Say hello there!' }],
+    });
+
+    await expect(stream.done()).rejects.toThrow(AnthropicError);
+    await expect(stream.finalMessage()).rejects.toThrow(/terminal event/);
+  });
+
+  it('throws error when stream ends after message_start only', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    // Send only message_start, then end the stream
+    const truncatedEvents = [
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_truncated_2',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-20250514',
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { input_tokens: 11, output_tokens: 1 },
+        },
+      },
+    ];
+    handleStreamEvents(truncatedEvents);
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-20250514',
+      messages: [{ role: 'user', content: 'Say hello there!' }],
+    });
+
+    await expect(stream.done()).rejects.toThrow(
+      'Stream ended without receiving a terminal event; the response may be incomplete due to a server-side error',
+    );
   });
 
   it('does not throw unhandled rejection with withResponse()', async () => {
