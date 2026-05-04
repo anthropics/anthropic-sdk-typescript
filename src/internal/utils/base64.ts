@@ -15,7 +15,14 @@ export const toBase64 = (data: string | Uint8Array | null | undefined): string =
   }
 
   if (typeof btoa !== 'undefined') {
-    return btoa(String.fromCharCode.apply(null, data as any));
+    // Process in chunks to avoid stack overflow with large inputs.
+    // String.fromCharCode.apply has a max argument count (~65536).
+    let binary = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < data.length; i += chunkSize) {
+      binary += String.fromCharCode(...data.subarray(i, Math.min(i + chunkSize, data.length)));
+    }
+    return btoa(binary);
   }
 
   throw new AnthropicError('Cannot generate base64 string; Expected `Buffer` or `btoa` to be defined');
