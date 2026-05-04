@@ -50,6 +50,17 @@ describe.each(['Buffer', 'atob'])('with %s', (mode) => {
     });
   });
 
+  test('toBase64 does not stack-overflow on large inputs', () => {
+    // 200 KB — large enough to exceed the call stack with .apply(null, array)
+    const large = new Uint8Array(200 * 1024);
+    for (let i = 0; i < large.length; i++) large[i] = i & 0xff;
+    const result = toBase64(large);
+    expect(typeof result).toBe('string');
+    expect(result.length).toBeGreaterThan(0);
+    // Round-trip check
+    expect(fromBase64(result)).toEqual(large);
+  });
+
   test('fromBase64', () => {
     const testCases = [
       {
