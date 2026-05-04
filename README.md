@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/anthropics-anthropic-sdk-typescript-badge.png)](https://mseep.ai/app/anthropics-anthropic-sdk-typescript)
+
 # <img src=".github/logo.svg" alt="" width="32"> Claude SDK for TypeScript
 
 [![NPM version](https://img.shields.io/npm/v/@anthropic-ai/sdk.svg)](https://npmjs.org/package/@anthropic-ai/sdk)
