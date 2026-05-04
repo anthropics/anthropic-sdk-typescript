@@ -14,6 +14,11 @@ import * as Opts from './internal/request-options';
 import { stringifyQuery } from './internal/utils/query';
 import { VERSION } from './version';
 import * as Errors from './core/error';
+import type { AccessTokenProvider } from './lib/credentials/types';
+import { OAUTH_API_BETA_HEADER } from './lib/credentials/types';
+import { TokenCache } from './lib/credentials/token-cache';
+import { defaultCredentials, resolveCredentialsFromConfig } from './lib/credentials/credential-chain';
+import type { AnthropicConfig } from './core/credentials';
 import * as Pagination from './core/pagination';
 import {
   type PageCursorParams,
@@ -247,6 +252,40 @@ import {
 } from './internal/utils/log';
 import { isEmptyObj } from './internal/utils/values';
 
+/**
+ * Shared auth state. A `withOptions()` clone receives the parent's instance
+ * (unless the caller overrides auth options) so a clone created before lazy
+ * resolution settles observes the same provider/tokenCache/error/extraHeaders
+ * as the parent rather than starting an independent resolution.
+ */
+type AuthState = {
+  provider: AccessTokenProvider | null;
+  tokenCache: TokenCache | null;
+  resolution: Promise<void> | null;
+  error: unknown;
+  extraHeaders: Record<string, string>;
+  /**
+   * `base_url` from the resolved profile/config, normalized (no trailing
+   * slash). Stored on the shared auth state so `withOptions()` clones created
+   * before lazy resolution settles can still adopt it on their first request.
+   */
+  baseURL?: string | undefined;
+};
+
+/**
+ * Per-request auth flags, keyed by the FinalRequestOptions object so
+ * caller-owned options aren't mutated.
+ */
+type RequestAuthFlags = {
+  usedTokenCache: boolean;
+  didRefreshFor401: boolean;
+};
+
+type InternalClientOptions = ClientOptions & {
+  __auth?: AuthState | undefined;
+  __baseURLIsExplicit?: boolean | undefined;
+};
+
 export type ApiKeySetter = () => Promise<string>;
 
 export interface ClientOptions {
@@ -267,6 +306,40 @@ export interface ClientOptions {
    * Defaults to process.env['ANTHROPIC_AUTH_TOKEN'].
    */
   authToken?: string | null | undefined;
+
+  /**
+   * An {@link AccessTokenProvider} for OAuth/workload-identity authentication.
+   *
+   * When set, the provider is wrapped in a {@link TokenCache} and used for
+   * Bearer token auth on every request. Takes precedence over `authToken`
+   * but not `apiKey`.
+   *
+   * If omitted (and no `apiKey` or `authToken` is provided), the client
+   * automatically resolves credentials from config files or environment
+   * variables on the first request.
+   */
+  credentials?: AccessTokenProvider | null | undefined;
+
+  /**
+   * An {@link AnthropicConfig} object to resolve credentials from directly,
+   * bypassing config-file and environment-variable lookup. This is the
+   * TypeScript equivalent of Go's `option.WithConfig(cfg)`.
+   *
+   * Ignored when `credentials` is set. For `oidc_federation`, the SDK
+   * performs the jwt-bearer exchange in-process; for `user_oauth`,
+   * `authentication.credentials_path` must point at the credentials file.
+   */
+  config?: AnthropicConfig | null | undefined;
+
+  /**
+   * Name of a profile to load from `<config_dir>/configs/<profile>.json`.
+   *
+   * Equivalent to setting the `ANTHROPIC_PROFILE` environment variable, but
+   * scoped to this client instance. As an explicit constructor argument it
+   * takes precedence over `ANTHROPIC_API_KEY` / `ANTHROPIC_AUTH_TOKEN` in the
+   * environment. Mutually exclusive with `credentials` and `config`.
+   */
+  profile?: string | null | undefined;
 
   /**
    * Override the default base URL for the API, e.g., "https://api.example.com/v2/"
@@ -353,6 +426,23 @@ export class BaseAnthropic {
   apiKey: string | null;
   authToken: string | null;
 
+  /**
+   * The active credential provider. Default credential resolution runs once
+   * at construction time. If it fails, the error is surfaced on every
+   * request and the client must be reconstructed — there is no retry path.
+   *
+   * Clones returned by {@link withOptions} share the parent's auth state
+   * (provider, token cache, pending resolution, and any resolution error)
+   * unless the caller passes an explicit `apiKey`, `authToken`,
+   * `credentials`, `config`, or `profile` override.
+   */
+  get credentials(): AccessTokenProvider | null {
+    return this._authState.provider;
+  }
+  private _authState: AuthState;
+  private _baseURLIsExplicit: boolean;
+  private _requestAuthFlags = new WeakMap<FinalRequestOptions, RequestAuthFlags>();
+
   baseURL: string;
   maxRetries: number;
   timeout: number;
@@ -379,12 +469,18 @@ export class BaseAnthropic {
    * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
    * @param {boolean} [opts.dangerouslyAllowBrowser=false] - By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
    */
-  constructor({
-    baseURL = readEnv('ANTHROPIC_BASE_URL'),
-    apiKey = readEnv('ANTHROPIC_API_KEY') ?? null,
-    authToken = readEnv('ANTHROPIC_AUTH_TOKEN') ?? null,
-    ...opts
-  }: ClientOptions = {}) {
+  constructor({ baseURL = readEnv('ANTHROPIC_BASE_URL'), apiKey, authToken, ...opts }: ClientOptions = {}) {
+    // An explicit `profile` is a constructor-level credential choice; when set,
+    // do not let env ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN shadow it.
+    if (apiKey === undefined) {
+      apiKey = opts.profile != null ? null : readEnv('ANTHROPIC_API_KEY') ?? null;
+    }
+    if (authToken === undefined) {
+      authToken = opts.profile != null ? null : readEnv('ANTHROPIC_AUTH_TOKEN') ?? null;
+    }
+    if (opts.profile != null && (opts.credentials != null || opts.config != null)) {
+      throw new TypeError('Pass at most one of `profile`, `credentials`, or `config`.');
+    }
     const options: ClientOptions = {
       apiKey,
       authToken,
@@ -399,6 +495,13 @@ export class BaseAnthropic {
     }
 
     this.baseURL = options.baseURL!;
+    // After destructuring, `baseURL` is the constructor arg or
+    // ANTHROPIC_BASE_URL — both count as an explicit choice that a profile
+    // base_url must not override. A falsy value means we fell through to the
+    // hardcoded default above and a profile may supply the host. withOptions()
+    // propagates the parent's flag via __baseURLIsExplicit so a non-overriding
+    // clone doesn't mistake the inherited baseURL for a caller-supplied one.
+    this._baseURLIsExplicit = (opts as InternalClientOptions).__baseURLIsExplicit ?? !!baseURL;
     this.timeout = options.timeout ?? BaseAnthropic.DEFAULT_TIMEOUT /* 10 minutes */;
     this.logger = options.logger ?? console;
     const defaultLogLevel = 'warn';
@@ -425,19 +528,114 @@ export class BaseAnthropic {
       options.defaultHeaders = { ...parsed, ...options.defaultHeaders };
     }
 
+    const inherited = (opts as InternalClientOptions).__auth;
+    // Never persist the internal __auth handle on _options — it's a
+    // one-shot constructor signal, and leaking it through _options would
+    // cause withOptions() to spread a stale value into clones.
+    delete (options as InternalClientOptions).__auth;
+    delete (options as InternalClientOptions).__baseURLIsExplicit;
     this._options = options;
 
     this.apiKey = typeof apiKey === 'string' ? apiKey : null;
     this.authToken = authToken;
+
+    if (inherited) {
+      this._authState = inherited;
+      if (!this._baseURLIsExplicit && inherited.baseURL) {
+        this.baseURL = inherited.baseURL;
+      }
+    } else {
+      this._authState = { provider: null, tokenCache: null, resolution: null, error: null, extraHeaders: {} };
+
+      // apiKey/authToken win over credentials/config/profile; don't build a
+      // token cache or resolve a config that the request path will then ignore.
+      if (this.apiKey == null && this.authToken == null) {
+        const credentials = options.credentials ?? null;
+        if (credentials) {
+          this._authState.provider = credentials;
+          this._authState.tokenCache = this._makeTokenCache(credentials);
+        } else if (options.config != null) {
+          const result = resolveCredentialsFromConfig(options.config, this._credentialResolverOptions());
+          this._authState.provider = result.provider;
+          this._authState.tokenCache = this._makeTokenCache(result.provider);
+          this._authState.extraHeaders = result.extraHeaders;
+          this._applyCredentialBaseURL(result.baseURL);
+        } else if (options.profile != null) {
+          this._authState.resolution = this._resolveDefaultCredentials(options.profile);
+        } else {
+          // No explicit auth provided — lazily resolve from the credential
+          // chain on first request. Errors are captured into _auth.error and
+          // surfaced on first use rather than as an unhandled rejection.
+          this._authState.resolution = this._resolveDefaultCredentials();
+        }
+      }
+    }
+  }
+
+  /**
+   * Stores a profile/config-supplied base URL on the shared auth state and, if
+   * the caller did not pin `baseURL` via constructor option or env, adopts it
+   * as this client's outbound API host. Precedence: ctor opt > env > profile >
+   * hardcoded default.
+   */
+  private _applyCredentialBaseURL(baseURL: string | undefined): void {
+    if (!baseURL) return;
+    const normalized = baseURL.replace(/\/+$/, '');
+    this._authState.baseURL = normalized;
+    if (!this._baseURLIsExplicit) {
+      this.baseURL = normalized;
+    }
+  }
+
+  /**
+   * Options bag passed into the credential chain. `baseURL` here is only the
+   * fallback host for the token-exchange POST when the config itself omits
+   * `base_url`; the chain returns the config's own `base_url` (if any) on
+   * {@link CredentialResult.baseURL}, which {@link _applyCredentialBaseURL}
+   * then adopts for outbound API requests. The two are deliberately decoupled
+   * so this fallback never round-trips into precedence.
+   */
+  private _credentialResolverOptions() {
+    return {
+      baseURL: this.baseURL,
+      fetch: this.fetch,
+      userAgent: this.getUserAgent(),
+      onCacheWriteError: (err: unknown) => {
+        loggerFor(this).debug('credential cache write failed (best-effort)', err);
+      },
+      onSafetyWarning: (msg: string) => {
+        loggerFor(this).warn(msg);
+      },
+    };
+  }
+
+  private _makeTokenCache(provider: AccessTokenProvider): TokenCache {
+    return new TokenCache(provider, (err) => {
+      loggerFor(this).debug('advisory token refresh failed; serving cached token', err);
+    });
   }
 
   /**
    * Create a new client instance re-using the same options given to the current client with optional overriding.
    */
   withOptions(options: Partial<ClientOptions>): this {
-    const client = new (this.constructor as any as new (props: ClientOptions) => typeof this)({
+    // Share the auth state object unless the caller passes any auth-related
+    // key. The `in` check is intentional: even `apiKey: undefined` opts the
+    // clone out of sharing (it gets its own _auth and TokenCache, though it
+    // may still wrap the parent's provider via the credentials spread below).
+    const overridesStructuredAuth = 'credentials' in options || 'config' in options || 'profile' in options;
+    const overridesAuth = 'apiKey' in options || 'authToken' in options || overridesStructuredAuth;
+    const internal: InternalClientOptions = {
       ...this._options,
-      baseURL: this.baseURL,
+      // Only forward baseURL when the caller (or env) explicitly chose it.
+      // For a non-explicit parent, this.baseURL may have been mutated to the
+      // profile-resolved host; pinning that as the clone's options.baseURL
+      // would make _options on the clone misreport caller intent and would
+      // leave the clone stuck on the parent's host across an auth override.
+      // The clone instead receives the construction-time value via
+      // ...this._options above and re-adopts the profile host through the
+      // shared _authState.baseURL + __baseURLIsExplicit=false path.
+      ...(this._baseURLIsExplicit ? { baseURL: this.baseURL } : {}),
       maxRetries: this.maxRetries,
       timeout: this.timeout,
       logger: this.logger,
@@ -446,13 +644,61 @@ export class BaseAnthropic {
       fetchOptions: this.fetchOptions,
       apiKey: this.apiKey,
       authToken: this.authToken,
+      // credentials: this.credentials is a no-op when __auth is shared (the
+      // ctor takes the inherited path and ignores options.credentials); when
+      // overridesAuth is true via apiKey/authToken only, it lets the clone
+      // build a fresh TokenCache around the parent's provider.
+      credentials: this.credentials,
+      // When the caller passes a structured-credential override, drop inherited
+      // structured-credential options so only `...options` supplies them —
+      // otherwise an inherited `credentials`/`config`/`profile` would trip the
+      // mutual-exclusion check or precedence over the override.
+      ...(overridesStructuredAuth ? { credentials: undefined, config: undefined, profile: undefined } : {}),
       ...options,
-    });
-    return client;
+      // Always set __auth so any stale value from ...this._options is
+      // overwritten. undefined means "build fresh auth from these options".
+      __auth: overridesAuth ? undefined : this._authState,
+      __baseURLIsExplicit: 'baseURL' in options ? true : this._baseURLIsExplicit,
+    };
+    return new (this.constructor as any as new (props: ClientOptions) => typeof this)(internal);
+  }
+
+  /**
+   * Lazily resolves credentials from config files or environment variables.
+   * Called once from the constructor when no explicit auth is provided, or
+   * when an explicit `profile` was passed (in which case a missing/unresolved
+   * profile is surfaced as an error instead of falling through to "no auth").
+   * The returned promise is stored and awaited on the first request.
+   */
+  private async _resolveDefaultCredentials(profile?: string): Promise<void> {
+    try {
+      const result = await defaultCredentials(this._credentialResolverOptions(), profile);
+      if (result) {
+        this._authState.provider = result.provider;
+        this._authState.tokenCache = this._makeTokenCache(result.provider);
+        this._authState.extraHeaders = result.extraHeaders;
+        this._applyCredentialBaseURL(result.baseURL);
+      } else if (profile != null) {
+        throw new Errors.AnthropicError(
+          `Profile "${profile}" could not be resolved (no <config_dir>/configs/${profile}.json found).`,
+        );
+      }
+    } catch (err) {
+      this._authState.error = err;
+    } finally {
+      this._authState.resolution = null;
+    }
   }
 
   /**
    * Check whether the base URL is set to its default.
+   *
+   * A profile-supplied `base_url` counts as an override here: a profile that
+   * pins a non-default host is declaring "this whole client targets deployment
+   * X", so per-endpoint {@link RequestOptions.defaultBaseURL} hints must not
+   * silently route individual calls back to production. No generated resource
+   * currently sets `defaultBaseURL`, so this is documenting intent for when
+   * one does.
    */
   #baseURLOverridden(): boolean {
     return this.baseURL !== 'https://api.anthropic.com';
@@ -465,6 +711,12 @@ export class BaseAnthropic {
   protected validateHeaders({ values, nulls }: NullableHeaders) {
     if (values.get('x-api-key') || values.get('authorization')) {
       return;
+    }
+    if (this._authState.error) {
+      throw this._authState.error;
+    }
+    if (this._authState.tokenCache || this._authState.resolution) {
+      return; // auth will be injected per-request via authHeaders
     }
 
     if (this.apiKey && values.get('x-api-key')) {
@@ -482,11 +734,35 @@ export class BaseAnthropic {
     }
 
     throw new Error(
-      'Could not resolve authentication method. Expected either apiKey or authToken to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted',
+      'Could not resolve authentication method. Expected one of apiKey, authToken, credentials, config, or profile to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted',
     );
   }
 
+  private _authFlags(opts: FinalRequestOptions): RequestAuthFlags {
+    let flags = this._requestAuthFlags.get(opts);
+    if (!flags) {
+      flags = { usedTokenCache: false, didRefreshFor401: false };
+      this._requestAuthFlags.set(opts, flags);
+    }
+    return flags;
+  }
+
   protected async authHeaders(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
+    // Wait for lazy credential resolution if it's in progress. If it failed,
+    // return no auth headers — validateHeaders surfaces the stored error
+    // after the explicit-header escape hatch has had a chance to apply.
+    if (this._authState.resolution) {
+      await this._authState.resolution;
+    }
+    if (this._authState.error) {
+      return undefined;
+    }
+    // If we have a token cache and no API key is set, use token auth
+    if (this._authState.tokenCache && this.apiKey == null) {
+      const token = await this._authState.tokenCache.getToken();
+      this._authFlags(opts).usedTokenCache = true;
+      return buildHeaders([{ Authorization: `Bearer ${token}` }]);
+    }
     return buildHeaders([await this.apiKeyAuth(opts), await this.bearerAuth(opts)]);
   }
 
@@ -578,7 +854,28 @@ export class BaseAnthropic {
   protected async prepareRequest(
     request: RequestInit,
     { url, options }: { url: string; options: FinalRequestOptions },
-  ): Promise<void> {}
+  ): Promise<void> {
+    // Append auth-derived headers when using token auth. Done here (after all
+    // header merging) rather than in authHeaders() so we append to any existing
+    // anthropic-beta values instead of being overwritten by later header sources.
+    if (this._authState.tokenCache && this.apiKey == null) {
+      // Normalize to a Headers instance — custom fetch impls or polyfills can
+      // hand back arrays / plain objects, and silently dropping the beta
+      // header in that case would surface as a confusing server-side 4xx.
+      const headers = request.headers instanceof Headers ? request.headers : new Headers(request.headers);
+      for (const [k, v] of Object.entries(this._authState.extraHeaders)) {
+        if (!headers.has(k)) headers.set(k, v);
+      }
+      const existing = headers
+        .get('anthropic-beta')
+        ?.split(',')
+        .map((s) => s.trim());
+      if (!existing?.includes(OAUTH_API_BETA_HEADER)) {
+        headers.append('anthropic-beta', OAUTH_API_BETA_HEADER);
+      }
+      request.headers = headers;
+    }
+  }
 
   get<Rsp>(path: string, opts?: PromiseOrValue<RequestOptions>): APIPromise<Rsp> {
     return this.methodRequest('get', path, opts);
@@ -628,6 +925,9 @@ export class BaseAnthropic {
     const maxRetries = options.maxRetries ?? this.maxRetries;
     if (retriesRemaining == null) {
       retriesRemaining = maxRetries;
+      // Top-level call: reset per-request auth flags so a reused options object
+      // (via client.request(opts)) doesn't carry stale 401-refresh state.
+      this._requestAuthFlags.delete(options);
     }
 
     await this.prepareOptions(options);
@@ -716,7 +1016,7 @@ export class BaseAnthropic {
     } with status ${response.status} in ${headersTime - startTime}ms`;
 
     if (!response.ok) {
-      const shouldRetry = await this.shouldRetry(response);
+      const shouldRetry = await this.shouldRetry(response, options);
       if (retriesRemaining && shouldRetry) {
         const retryMessage = `retrying, ${retriesRemaining} attempts remaining`;
 
@@ -846,7 +1146,24 @@ export class BaseAnthropic {
     }
   }
 
-  private async shouldRetry(response: Response): Promise<boolean> {
+  private async shouldRetry(response: Response, options: FinalRequestOptions): Promise<boolean> {
+    // Reactive refresh: on a 401 from a request that used the token cache,
+    // invalidate and retry once. Only fires when this specific request was
+    // bearer-authenticated (not when an apiKey was used) and only once per
+    // request — a second 401 after refresh falls through to the normal
+    // retry policy below (which treats 4xx as non-retryable).
+    const flags = this._authFlags(options);
+    if (
+      response.status === 401 &&
+      this._authState.tokenCache &&
+      flags.usedTokenCache &&
+      !flags.didRefreshFor401
+    ) {
+      flags.didRefreshFor401 = true;
+      this._authState.tokenCache.invalidate();
+      return true;
+    }
+
     // Note this is not a standard header.
     const shouldRetryHeader = response.headers.get('x-should-retry');
 
@@ -943,6 +1260,17 @@ export class BaseAnthropic {
   ): Promise<{ req: FinalizedRequestInit; url: string; timeout: number }> {
     const options = { ...inputOptions };
     const { method, path, query, defaultBaseURL } = options;
+
+    // Lazy credential resolution may carry a profile-supplied baseURL. Await
+    // it before building the request URL so the very first request — and
+    // requests on withOptions() clones created before resolution settled —
+    // hit the profile's host rather than the hardcoded default.
+    if (this._authState.resolution) {
+      await this._authState.resolution;
+    }
+    if (!this._baseURLIsExplicit && this._authState.baseURL && this.baseURL !== this._authState.baseURL) {
+      this.baseURL = this._authState.baseURL;
+    }
 
     const url = this.buildURL(path!, query as Record<string, unknown>, defaultBaseURL);
     if ('timeout' in options) validatePositiveInteger('timeout', options.timeout);
