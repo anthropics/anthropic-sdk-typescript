@@ -105,6 +105,7 @@ function validateProfileName(name: string): void {
  *     in the file take precedence — env vars only fill gaps:
  *       - `ANTHROPIC_BASE_URL` → `base_url`
  *       - `ANTHROPIC_ORGANIZATION_ID` → `organization_id`
+ *       - `ANTHROPIC_WORKSPACE_ID` → `workspace_id`
  *       - `ANTHROPIC_SCOPE` → `authentication.scope`
  *       - `ANTHROPIC_FEDERATION_RULE_ID` → `authentication.federation_rule_id` (oidc_federation)
  *       - `ANTHROPIC_IDENTITY_TOKEN_FILE` → `authentication.identity_token` (oidc_federation)
@@ -114,6 +115,26 @@ function validateProfileName(name: string): void {
  *     and `ANTHROPIC_ORGANIZATION_ID` are set.
  */
 export const loadConfig = async (profile?: string): Promise<AnthropicConfig | null> => {
+  return (await loadConfigWithSource(profile))?.config ?? null;
+};
+
+/**
+ * Source-tagged result of {@link loadConfigWithSource}. `fromFile` is `true`
+ * when `<config_dir>/configs/<profile>.json` exists on disk; `false` when the
+ * config was synthesized purely from environment variables.
+ *
+ * The credential chain uses this distinction to decide whether to back the
+ * federation exchange with a disk cache: file-backed profiles get a cache at
+ * `<config_dir>/credentials/<profile>.json`, env-only configs do not.
+ */
+export type LoadedConfig = { config: AnthropicConfig; fromFile: boolean };
+
+/**
+ * Same as {@link loadConfig}, but also reports whether the config was loaded
+ * from a profile file on disk (`fromFile: true`) or synthesized entirely from
+ * environment variables (`fromFile: false`).
+ */
+export const loadConfigWithSource = async (profile?: string): Promise<LoadedConfig | null> => {
   const rootConfigPath = await getRootConfigPath();
   if (rootConfigPath === null) {
     return null;
@@ -143,14 +164,22 @@ export const loadConfig = async (profile?: string): Promise<AnthropicConfig | nu
     const federationRuleId = readEnv('ANTHROPIC_FEDERATION_RULE_ID');
     if (federationRuleId && organizationId) {
       return {
-        organization_id: organizationId,
-        base_url: readEnv('ANTHROPIC_BASE_URL'),
-        authentication: {
-          type: 'oidc_federation',
-          federation_rule_id: federationRuleId,
-          service_account_id: readEnv('ANTHROPIC_SERVICE_ACCOUNT_ID'),
-          identity_token: identityTokenFile ? { source: 'file', path: identityTokenFile } : undefined,
-          scope: readEnv('ANTHROPIC_SCOPE'),
+        fromFile: false,
+        config: {
+          organization_id: organizationId,
+          // A defaulted-but-empty CI variable (`ANTHROPIC_WORKSPACE_ID=""`) is
+          // treated as unset — readEnv coerces empty to undefined, and the body
+          // builder's truthy check skips it — so `"workspace_id": ""` never goes
+          // on the wire.
+          workspace_id: readEnv('ANTHROPIC_WORKSPACE_ID'),
+          base_url: readEnv('ANTHROPIC_BASE_URL'),
+          authentication: {
+            type: 'oidc_federation',
+            federation_rule_id: federationRuleId,
+            service_account_id: readEnv('ANTHROPIC_SERVICE_ACCOUNT_ID'),
+            identity_token: identityTokenFile ? { source: 'file', path: identityTokenFile } : undefined,
+            scope: readEnv('ANTHROPIC_SCOPE'),
+          },
         },
       };
     }
@@ -173,6 +202,7 @@ export const loadConfig = async (profile?: string): Promise<AnthropicConfig | nu
 
   // File values are authoritative; env vars only fill fields the file left unset.
   config.organization_id ??= readEnv('ANTHROPIC_ORGANIZATION_ID');
+  config.workspace_id ??= readEnv('ANTHROPIC_WORKSPACE_ID');
   config.base_url ??= readEnv('ANTHROPIC_BASE_URL');
   config.authentication.scope ??= readEnv('ANTHROPIC_SCOPE');
 
@@ -197,7 +227,7 @@ export const loadConfig = async (profile?: string): Promise<AnthropicConfig | nu
     config.authentication.service_account_id ??= readEnv('ANTHROPIC_SERVICE_ACCOUNT_ID');
   }
 
-  return config;
+  return { config, fromFile: true };
 };
 
 /**
