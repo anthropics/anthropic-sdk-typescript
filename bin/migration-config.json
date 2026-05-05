@@ -116,6 +116,154 @@
       ]
     },
     {
+      "base": "beta.sessions.threads",
+      "name": "retrieve",
+      "params": [
+        {
+          "type": "param",
+          "key": "thread_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "session_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "thread_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.sessions.threads",
+      "name": "archive",
+      "params": [
+        {
+          "type": "param",
+          "key": "thread_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "session_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "thread_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.sessions.threads.events",
+      "name": "list",
+      "params": [
+        {
+          "type": "param",
+          "key": "thread_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "session_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "thread_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.sessions.threads.events",
+      "name": "stream",
+      "params": [
+        {
+          "type": "param",
+          "key": "thread_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "session_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "thread_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
       "base": "beta.vaults.credentials",
       "name": "retrieve",
       "params": [
@@ -229,6 +377,43 @@
     {
       "base": "beta.vaults.credentials",
       "name": "archive",
+      "params": [
+        {
+          "type": "param",
+          "key": "credential_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "vault_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "credential_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.vaults.credentials",
+      "name": "mcpOAuthValidate",
       "params": [
         {
           "type": "param",

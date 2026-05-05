@@ -252,6 +252,11 @@ export interface ClientOptions {
   authToken?: string | null | undefined;
 
   /**
+   * Defaults to process.env['ANTHROPIC_WEBHOOK_SIGNING_KEY'].
+   */
+  webhookKey?: string | null | undefined;
+
+  /**
    * Override the default base URL for the API, e.g., "https://api.example.com/v2/"
    *
    * Defaults to process.env['ANTHROPIC_BASE_URL'].
@@ -335,6 +340,7 @@ export const AI_PROMPT = '\\n\\nAssistant:';
 export class BaseAnthropic {
   apiKey: string | null;
   authToken: string | null;
+  webhookKey: string | null;
 
   baseURL: string;
   maxRetries: number;
@@ -353,6 +359,7 @@ export class BaseAnthropic {
    *
    * @param {string | null | undefined} [opts.apiKey=process.env['ANTHROPIC_API_KEY'] ?? null]
    * @param {string | null | undefined} [opts.authToken=process.env['ANTHROPIC_AUTH_TOKEN'] ?? null]
+   * @param {string | null | undefined} [opts.webhookKey=process.env['ANTHROPIC_WEBHOOK_SIGNING_KEY'] ?? null]
    * @param {string} [opts.baseURL=process.env['ANTHROPIC_BASE_URL'] ?? https://api.anthropic.com] - Override the default base URL for the API.
    * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
    * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
@@ -366,11 +373,13 @@ export class BaseAnthropic {
     baseURL = readEnv('ANTHROPIC_BASE_URL'),
     apiKey = readEnv('ANTHROPIC_API_KEY') ?? null,
     authToken = readEnv('ANTHROPIC_AUTH_TOKEN') ?? null,
+    webhookKey = readEnv('ANTHROPIC_WEBHOOK_SIGNING_KEY') ?? null,
     ...opts
   }: ClientOptions = {}) {
     const options: ClientOptions = {
       apiKey,
       authToken,
+      webhookKey,
       ...opts,
       baseURL: baseURL || `https://api.anthropic.com`,
     };
@@ -412,6 +421,7 @@ export class BaseAnthropic {
 
     this.apiKey = apiKey;
     this.authToken = authToken;
+    this.webhookKey = webhookKey;
   }
 
   /**
@@ -429,6 +439,7 @@ export class BaseAnthropic {
       fetchOptions: this.fetchOptions,
       apiKey: this.apiKey,
       authToken: this.authToken,
+      webhookKey: this.webhookKey,
       ...options,
     });
     return client;
@@ -483,9 +494,6 @@ export class BaseAnthropic {
     return buildHeaders([{ Authorization: `Bearer ${this.authToken}` }]);
   }
 
-  /**
-   * Basic re-implementation of `qs.stringify` for primitive types.
-   */
   protected stringifyQuery(query: object | Record<string, unknown>): string {
     return stringifyQuery(query);
   }

@@ -85,7 +85,21 @@ export class Stream<Item> implements AsyncIterable<Item> {
             sse.event === 'session.error' ||
             sse.event === 'session.deleted' ||
             sse.event === 'span.model_request_start' ||
-            sse.event === 'span.model_request_end'
+            sse.event === 'span.model_request_end' ||
+            sse.event === 'span.outcome_evaluation_start' ||
+            sse.event === 'span.outcome_evaluation_ongoing' ||
+            sse.event === 'span.outcome_evaluation_end' ||
+            sse.event === 'user.define_outcome' ||
+            sse.event === 'agent.thread_message_received' ||
+            sse.event === 'agent.thread_message_sent' ||
+            sse.event === 'agent.session_thread_message_received' ||
+            sse.event === 'agent.session_thread_message_sent' ||
+            sse.event === 'session.thread_created' ||
+            sse.event === 'session.thread_status_created' ||
+            sse.event === 'session.thread_status_running' ||
+            sse.event === 'session.thread_status_idle' ||
+            sse.event === 'session.thread_status_rescheduled' ||
+            sse.event === 'session.thread_status_terminated'
           ) {
             try {
               yield JSON.parse(sse.data) as Item;

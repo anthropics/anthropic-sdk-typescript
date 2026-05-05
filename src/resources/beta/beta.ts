@@ -61,6 +61,35 @@ import {
   UserProfileUpdateParams,
   UserProfiles,
 } from './user-profiles';
+import * as WebhooksAPI from './webhooks';
+import {
+  BetaWebhookEvent,
+  BetaWebhookEventData,
+  BetaWebhookSessionArchivedEventData,
+  BetaWebhookSessionCreatedEventData,
+  BetaWebhookSessionDeletedEventData,
+  BetaWebhookSessionIdledEventData,
+  BetaWebhookSessionOutcomeEvaluationEndedEventData,
+  BetaWebhookSessionPendingEventData,
+  BetaWebhookSessionRequiresActionEventData,
+  BetaWebhookSessionRunningEventData,
+  BetaWebhookSessionStatusIdledEventData,
+  BetaWebhookSessionStatusRunStartedEventData,
+  BetaWebhookSessionStatusScheduledEventData,
+  BetaWebhookSessionStatusTerminatedEventData,
+  BetaWebhookSessionThreadCreatedEventData,
+  BetaWebhookSessionThreadIdledEventData,
+  BetaWebhookSessionThreadTerminatedEventData,
+  BetaWebhookVaultArchivedEventData,
+  BetaWebhookVaultCreatedEventData,
+  BetaWebhookVaultCredentialArchivedEventData,
+  BetaWebhookVaultCredentialCreatedEventData,
+  BetaWebhookVaultCredentialDeletedEventData,
+  BetaWebhookVaultCredentialRefreshFailedEventData,
+  BetaWebhookVaultDeletedEventData,
+  UnwrapWebhookEvent,
+  Webhooks,
+} from './webhooks';
 import * as AgentsAPI from './agents/agents';
 import {
   AgentArchiveParams,
@@ -70,6 +99,7 @@ import {
   AgentUpdateParams,
   Agents,
   BetaManagedAgentsAgent,
+  BetaManagedAgentsAgentReference,
   BetaManagedAgentsAgentToolConfig,
   BetaManagedAgentsAgentToolConfigParams,
   BetaManagedAgentsAgentToolset20260401,
@@ -96,6 +126,9 @@ import {
   BetaManagedAgentsModel,
   BetaManagedAgentsModelConfig,
   BetaManagedAgentsModelConfigParams,
+  BetaManagedAgentsMultiagentCoordinator,
+  BetaManagedAgentsMultiagentCoordinatorParams,
+  BetaManagedAgentsMultiagentSelfParams,
   BetaManagedAgentsSkillParams,
   BetaManagedAgentsURLMCPServerParams,
 } from './agents/agents';
@@ -340,8 +373,13 @@ import {
   BetaManagedAgentsFileResourceParams,
   BetaManagedAgentsGitHubRepositoryResourceParams,
   BetaManagedAgentsMemoryStoreResourceParam,
+  BetaManagedAgentsMultiagent,
+  BetaManagedAgentsMultiagentParams,
+  BetaManagedAgentsMultiagentRosterEntryParams,
+  BetaManagedAgentsOutcomeEvaluationResource,
   BetaManagedAgentsSession,
   BetaManagedAgentsSessionAgent,
+  BetaManagedAgentsSessionMultiagentCoordinator,
   BetaManagedAgentsSessionStats,
   BetaManagedAgentsSessionUsage,
   BetaManagedAgentsSessionsPageCursor,
@@ -390,6 +428,7 @@ export class Beta extends APIResource {
   memoryStores: MemoryStoresAPI.MemoryStores = new MemoryStoresAPI.MemoryStores(this._client);
   files: FilesAPI.Files = new FilesAPI.Files(this._client);
   skills: SkillsAPI.Skills = new SkillsAPI.Skills(this._client);
+  webhooks: WebhooksAPI.Webhooks = new WebhooksAPI.Webhooks(this._client);
   userProfiles: UserProfilesAPI.UserProfiles = new UserProfilesAPI.UserProfiles(this._client);
 }
 
@@ -417,7 +456,8 @@ export type AnthropicBeta =
   | 'fast-mode-2026-02-01'
   | 'output-300k-2026-03-24'
   | 'user-profiles-2026-03-24'
-  | 'advisor-tool-2026-03-01';
+  | 'advisor-tool-2026-03-01'
+  | 'managed-agents-2026-04-01';
 
 export interface BetaAPIError {
   message: string;
@@ -501,6 +541,7 @@ Beta.Vaults = Vaults;
 Beta.MemoryStores = MemoryStores;
 Beta.Files = Files;
 Beta.Skills = Skills;
+Beta.Webhooks = Webhooks;
 Beta.UserProfiles = UserProfiles;
 
 export declare namespace Beta {
@@ -754,6 +795,7 @@ export declare namespace Beta {
   export {
     Agents as Agents,
     type BetaManagedAgentsAgent as BetaManagedAgentsAgent,
+    type BetaManagedAgentsAgentReference as BetaManagedAgentsAgentReference,
     type BetaManagedAgentsAgentToolConfig as BetaManagedAgentsAgentToolConfig,
     type BetaManagedAgentsAgentToolConfigParams as BetaManagedAgentsAgentToolConfigParams,
     type BetaManagedAgentsAgentToolsetDefaultConfig as BetaManagedAgentsAgentToolsetDefaultConfig,
@@ -779,6 +821,9 @@ export declare namespace Beta {
     type BetaManagedAgentsModel as BetaManagedAgentsModel,
     type BetaManagedAgentsModelConfig as BetaManagedAgentsModelConfig,
     type BetaManagedAgentsModelConfigParams as BetaManagedAgentsModelConfigParams,
+    type BetaManagedAgentsMultiagentCoordinator as BetaManagedAgentsMultiagentCoordinator,
+    type BetaManagedAgentsMultiagentCoordinatorParams as BetaManagedAgentsMultiagentCoordinatorParams,
+    type BetaManagedAgentsMultiagentSelfParams as BetaManagedAgentsMultiagentSelfParams,
     type BetaManagedAgentsSkillParams as BetaManagedAgentsSkillParams,
     type BetaManagedAgentsURLMCPServerParams as BetaManagedAgentsURLMCPServerParams,
     type BetaManagedAgentsAgentsPageCursor as BetaManagedAgentsAgentsPageCursor,
@@ -819,8 +864,13 @@ export declare namespace Beta {
     type BetaManagedAgentsFileResourceParams as BetaManagedAgentsFileResourceParams,
     type BetaManagedAgentsGitHubRepositoryResourceParams as BetaManagedAgentsGitHubRepositoryResourceParams,
     type BetaManagedAgentsMemoryStoreResourceParam as BetaManagedAgentsMemoryStoreResourceParam,
+    type BetaManagedAgentsMultiagent as BetaManagedAgentsMultiagent,
+    type BetaManagedAgentsMultiagentParams as BetaManagedAgentsMultiagentParams,
+    type BetaManagedAgentsMultiagentRosterEntryParams as BetaManagedAgentsMultiagentRosterEntryParams,
+    type BetaManagedAgentsOutcomeEvaluationResource as BetaManagedAgentsOutcomeEvaluationResource,
     type BetaManagedAgentsSession as BetaManagedAgentsSession,
     type BetaManagedAgentsSessionAgent as BetaManagedAgentsSessionAgent,
+    type BetaManagedAgentsSessionMultiagentCoordinator as BetaManagedAgentsSessionMultiagentCoordinator,
     type BetaManagedAgentsSessionStats as BetaManagedAgentsSessionStats,
     type BetaManagedAgentsSessionUsage as BetaManagedAgentsSessionUsage,
     type BetaManagedAgentsSessionsPageCursor as BetaManagedAgentsSessionsPageCursor,
@@ -882,6 +932,35 @@ export declare namespace Beta {
     type SkillRetrieveParams as SkillRetrieveParams,
     type SkillListParams as SkillListParams,
     type SkillDeleteParams as SkillDeleteParams,
+  };
+
+  export {
+    Webhooks as Webhooks,
+    type BetaWebhookEvent as BetaWebhookEvent,
+    type BetaWebhookEventData as BetaWebhookEventData,
+    type BetaWebhookSessionArchivedEventData as BetaWebhookSessionArchivedEventData,
+    type BetaWebhookSessionCreatedEventData as BetaWebhookSessionCreatedEventData,
+    type BetaWebhookSessionDeletedEventData as BetaWebhookSessionDeletedEventData,
+    type BetaWebhookSessionIdledEventData as BetaWebhookSessionIdledEventData,
+    type BetaWebhookSessionOutcomeEvaluationEndedEventData as BetaWebhookSessionOutcomeEvaluationEndedEventData,
+    type BetaWebhookSessionPendingEventData as BetaWebhookSessionPendingEventData,
+    type BetaWebhookSessionRequiresActionEventData as BetaWebhookSessionRequiresActionEventData,
+    type BetaWebhookSessionRunningEventData as BetaWebhookSessionRunningEventData,
+    type BetaWebhookSessionStatusIdledEventData as BetaWebhookSessionStatusIdledEventData,
+    type BetaWebhookSessionStatusRunStartedEventData as BetaWebhookSessionStatusRunStartedEventData,
+    type BetaWebhookSessionStatusScheduledEventData as BetaWebhookSessionStatusScheduledEventData,
+    type BetaWebhookSessionStatusTerminatedEventData as BetaWebhookSessionStatusTerminatedEventData,
+    type BetaWebhookSessionThreadCreatedEventData as BetaWebhookSessionThreadCreatedEventData,
+    type BetaWebhookSessionThreadIdledEventData as BetaWebhookSessionThreadIdledEventData,
+    type BetaWebhookSessionThreadTerminatedEventData as BetaWebhookSessionThreadTerminatedEventData,
+    type BetaWebhookVaultArchivedEventData as BetaWebhookVaultArchivedEventData,
+    type BetaWebhookVaultCreatedEventData as BetaWebhookVaultCreatedEventData,
+    type BetaWebhookVaultCredentialArchivedEventData as BetaWebhookVaultCredentialArchivedEventData,
+    type BetaWebhookVaultCredentialCreatedEventData as BetaWebhookVaultCredentialCreatedEventData,
+    type BetaWebhookVaultCredentialDeletedEventData as BetaWebhookVaultCredentialDeletedEventData,
+    type BetaWebhookVaultCredentialRefreshFailedEventData as BetaWebhookVaultCredentialRefreshFailedEventData,
+    type BetaWebhookVaultDeletedEventData as BetaWebhookVaultDeletedEventData,
+    type UnwrapWebhookEvent as UnwrapWebhookEvent,
   };
 
   export {

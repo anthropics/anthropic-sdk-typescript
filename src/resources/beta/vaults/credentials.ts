@@ -185,6 +185,36 @@ export class Credentials extends APIResource {
       ]),
     });
   }
+
+  /**
+   * Validate Credential
+   *
+   * @example
+   * ```ts
+   * const betaManagedAgentsCredentialValidation =
+   *   await client.beta.vaults.credentials.mcpOAuthValidate(
+   *     'vcrd_011CZkZEMt8gZan2iYOQfSkw',
+   *     { vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv' },
+   *   );
+   * ```
+   */
+  mcpOAuthValidate(
+    credentialID: string,
+    params: CredentialMCPOAuthValidateParams,
+    options?: RequestOptions,
+  ): APIPromise<BetaManagedAgentsCredentialValidation> {
+    const { vault_id, betas } = params;
+    return this._client.post(
+      path`/v1/vaults/${vault_id}/credentials/${credentialID}/mcp_oauth_validate?beta=true`,
+      {
+        ...options,
+        headers: buildHeaders([
+          { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+          options?.headers,
+        ]),
+      },
+    );
+  }
 }
 
 export type BetaManagedAgentsCredentialsPageCursor = PageCursor<BetaManagedAgentsCredential>;
@@ -236,6 +266,53 @@ export interface BetaManagedAgentsCredential {
    */
   display_name?: string | null;
 }
+
+/**
+ * Result of live-probing a credential against its configured MCP server.
+ */
+export interface BetaManagedAgentsCredentialValidation {
+  /**
+   * Unique identifier of the credential that was validated.
+   */
+  credential_id: string;
+
+  /**
+   * Whether the credential has a refresh token configured.
+   */
+  has_refresh_token: boolean;
+
+  /**
+   * The failing step of an MCP validation probe.
+   */
+  mcp_probe: BetaManagedAgentsMCPProbe | null;
+
+  /**
+   * Outcome of a refresh-token exchange attempted during credential validation.
+   */
+  refresh: BetaManagedAgentsRefreshObject | null;
+
+  /**
+   * Overall verdict of a credential validation probe.
+   */
+  status: BetaManagedAgentsCredentialValidationStatus;
+
+  type: 'vault_credential_validation';
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  validated_at: string;
+
+  /**
+   * Identifier of the vault containing the credential.
+   */
+  vault_id: string;
+}
+
+/**
+ * Overall verdict of a credential validation probe.
+ */
+export type BetaManagedAgentsCredentialValidationStatus = 'valid' | 'invalid' | 'unknown';
 
 /**
  * Confirmation of a deleted credential.
@@ -412,6 +489,61 @@ export interface BetaManagedAgentsMCPOAuthUpdateParams {
    * Parameters for updating OAuth refresh token configuration.
    */
   refresh?: BetaManagedAgentsMCPOAuthRefreshUpdateParams | null;
+}
+
+/**
+ * The failing step of an MCP validation probe.
+ */
+export interface BetaManagedAgentsMCPProbe {
+  /**
+   * An HTTP response captured during a credential validation probe.
+   */
+  http_response: BetaManagedAgentsRefreshHTTPResponse | null;
+
+  /**
+   * The MCP method that failed (for example `initialize` or `tools/list`).
+   */
+  method: string;
+}
+
+/**
+ * An HTTP response captured during a credential validation probe.
+ */
+export interface BetaManagedAgentsRefreshHTTPResponse {
+  /**
+   * Response body. May be truncated and has sensitive values scrubbed.
+   */
+  body: string;
+
+  /**
+   * Whether `body` was truncated.
+   */
+  body_truncated: boolean;
+
+  /**
+   * Value of the `Content-Type` response header.
+   */
+  content_type: string;
+
+  /**
+   * HTTP status code.
+   */
+  status_code: number;
+}
+
+/**
+ * Outcome of a refresh-token exchange attempted during credential validation.
+ */
+export interface BetaManagedAgentsRefreshObject {
+  /**
+   * An HTTP response captured during a credential validation probe.
+   */
+  http_response: BetaManagedAgentsRefreshHTTPResponse | null;
+
+  /**
+   * Outcome of a refresh-token exchange attempted during credential validation.
+   */
+  status: 'succeeded' | 'failed' | 'connect_error' | 'no_refresh_token';
 }
 
 /**
@@ -631,9 +763,23 @@ export interface CredentialArchiveParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
+export interface CredentialMCPOAuthValidateParams {
+  /**
+   * Path param: Path parameter vault_id
+   */
+  vault_id: string;
+
+  /**
+   * Header param: Optional header to specify the beta version(s) you want to use.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
+}
+
 export declare namespace Credentials {
   export {
     type BetaManagedAgentsCredential as BetaManagedAgentsCredential,
+    type BetaManagedAgentsCredentialValidation as BetaManagedAgentsCredentialValidation,
+    type BetaManagedAgentsCredentialValidationStatus as BetaManagedAgentsCredentialValidationStatus,
     type BetaManagedAgentsDeletedCredential as BetaManagedAgentsDeletedCredential,
     type BetaManagedAgentsMCPOAuthAuthResponse as BetaManagedAgentsMCPOAuthAuthResponse,
     type BetaManagedAgentsMCPOAuthCreateParams as BetaManagedAgentsMCPOAuthCreateParams,
@@ -641,6 +787,9 @@ export declare namespace Credentials {
     type BetaManagedAgentsMCPOAuthRefreshResponse as BetaManagedAgentsMCPOAuthRefreshResponse,
     type BetaManagedAgentsMCPOAuthRefreshUpdateParams as BetaManagedAgentsMCPOAuthRefreshUpdateParams,
     type BetaManagedAgentsMCPOAuthUpdateParams as BetaManagedAgentsMCPOAuthUpdateParams,
+    type BetaManagedAgentsMCPProbe as BetaManagedAgentsMCPProbe,
+    type BetaManagedAgentsRefreshHTTPResponse as BetaManagedAgentsRefreshHTTPResponse,
+    type BetaManagedAgentsRefreshObject as BetaManagedAgentsRefreshObject,
     type BetaManagedAgentsStaticBearerAuthResponse as BetaManagedAgentsStaticBearerAuthResponse,
     type BetaManagedAgentsStaticBearerCreateParams as BetaManagedAgentsStaticBearerCreateParams,
     type BetaManagedAgentsStaticBearerUpdateParams as BetaManagedAgentsStaticBearerUpdateParams,
@@ -659,5 +808,6 @@ export declare namespace Credentials {
     type CredentialListParams as CredentialListParams,
     type CredentialDeleteParams as CredentialDeleteParams,
     type CredentialArchiveParams as CredentialArchiveParams,
+    type CredentialMCPOAuthValidateParams as CredentialMCPOAuthValidateParams,
   };
 }

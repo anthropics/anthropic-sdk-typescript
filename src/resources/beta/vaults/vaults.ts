@@ -5,6 +5,8 @@ import * as BetaAPI from '../beta';
 import * as CredentialsAPI from './credentials';
 import {
   BetaManagedAgentsCredential,
+  BetaManagedAgentsCredentialValidation,
+  BetaManagedAgentsCredentialValidationStatus,
   BetaManagedAgentsCredentialsPageCursor,
   BetaManagedAgentsDeletedCredential,
   BetaManagedAgentsMCPOAuthAuthResponse,
@@ -13,6 +15,9 @@ import {
   BetaManagedAgentsMCPOAuthRefreshResponse,
   BetaManagedAgentsMCPOAuthRefreshUpdateParams,
   BetaManagedAgentsMCPOAuthUpdateParams,
+  BetaManagedAgentsMCPProbe,
+  BetaManagedAgentsRefreshHTTPResponse,
+  BetaManagedAgentsRefreshObject,
   BetaManagedAgentsStaticBearerAuthResponse,
   BetaManagedAgentsStaticBearerCreateParams,
   BetaManagedAgentsStaticBearerUpdateParams,
@@ -28,6 +33,7 @@ import {
   CredentialCreateParams,
   CredentialDeleteParams,
   CredentialListParams,
+  CredentialMCPOAuthValidateParams,
   CredentialRetrieveParams,
   CredentialUpdateParams,
   Credentials,
@@ -334,6 +340,8 @@ export declare namespace Vaults {
   export {
     Credentials as Credentials,
     type BetaManagedAgentsCredential as BetaManagedAgentsCredential,
+    type BetaManagedAgentsCredentialValidation as BetaManagedAgentsCredentialValidation,
+    type BetaManagedAgentsCredentialValidationStatus as BetaManagedAgentsCredentialValidationStatus,
     type BetaManagedAgentsDeletedCredential as BetaManagedAgentsDeletedCredential,
     type BetaManagedAgentsMCPOAuthAuthResponse as BetaManagedAgentsMCPOAuthAuthResponse,
     type BetaManagedAgentsMCPOAuthCreateParams as BetaManagedAgentsMCPOAuthCreateParams,
@@ -341,6 +349,9 @@ export declare namespace Vaults {
     type BetaManagedAgentsMCPOAuthRefreshResponse as BetaManagedAgentsMCPOAuthRefreshResponse,
     type BetaManagedAgentsMCPOAuthRefreshUpdateParams as BetaManagedAgentsMCPOAuthRefreshUpdateParams,
     type BetaManagedAgentsMCPOAuthUpdateParams as BetaManagedAgentsMCPOAuthUpdateParams,
+    type BetaManagedAgentsMCPProbe as BetaManagedAgentsMCPProbe,
+    type BetaManagedAgentsRefreshHTTPResponse as BetaManagedAgentsRefreshHTTPResponse,
+    type BetaManagedAgentsRefreshObject as BetaManagedAgentsRefreshObject,
     type BetaManagedAgentsStaticBearerAuthResponse as BetaManagedAgentsStaticBearerAuthResponse,
     type BetaManagedAgentsStaticBearerCreateParams as BetaManagedAgentsStaticBearerCreateParams,
     type BetaManagedAgentsStaticBearerUpdateParams as BetaManagedAgentsStaticBearerUpdateParams,
@@ -359,5 +370,6 @@ export declare namespace Vaults {
     type CredentialListParams as CredentialListParams,
     type CredentialDeleteParams as CredentialDeleteParams,
     type CredentialArchiveParams as CredentialArchiveParams,
+    type CredentialMCPOAuthValidateParams as CredentialMCPOAuthValidateParams,
   };
 }
