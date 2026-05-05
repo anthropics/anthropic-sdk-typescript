@@ -54,6 +54,7 @@ describe('oidcFederationProvider', () => {
     expect(body.assertion).toBe('my-jwt');
     expect(body.federation_rule_id).toBe('fdrl_01abc');
     expect(body.organization_id).toBe('org-uuid-123');
+    expect(body).not.toHaveProperty('workspace_id');
   });
 
   it('includes service_account_id when provided and never sends scope', async () => {
@@ -71,6 +72,38 @@ describe('oidcFederationProvider', () => {
     const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
     expect(body.service_account_id).toBe('svac_01abc');
     expect(body).not.toHaveProperty('scope');
+  });
+
+  it('includes workspace_id when provided', async () => {
+    const mockFetch: Fetch = jest
+      .fn()
+      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+
+    const provider = oidcFederationProvider({
+      ...baseConfig,
+      fetch: mockFetch,
+      workspaceId: 'wrkspc_01abc',
+    });
+    await provider();
+
+    const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
+    expect(body.workspace_id).toBe('wrkspc_01abc');
+  });
+
+  it('passes through the literal "default" workspace_id sentinel', async () => {
+    const mockFetch: Fetch = jest
+      .fn()
+      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+
+    const provider = oidcFederationProvider({
+      ...baseConfig,
+      fetch: mockFetch,
+      workspaceId: 'default',
+    });
+    await provider();
+
+    const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
+    expect(body.workspace_id).toBe('default');
   });
 
   it('uses custom userAgent when provided', async () => {
@@ -106,6 +139,61 @@ describe('oidcFederationProvider', () => {
     } catch (err) {
       expect((err as WorkloadIdentityError).statusCode).toBe(401);
       expect((err as WorkloadIdentityError).requestId).toBe('req_123');
+    }
+  });
+
+  it('appends the full token-exchange hint on 401 when workspaceId is unset', async () => {
+    // Without a workspaceId the most common cause is a federation rule that
+    // spans multiple workspaces — surface the workspace-ID fix alongside the
+    // generic guidance and the Console auth-event pointer.
+    const mockFetch: Fetch = jest.fn().mockResolvedValue(jsonResponse({ error: 'unauthorized' }, 401));
+
+    const provider = oidcFederationProvider({ ...baseConfig, fetch: mockFetch });
+    try {
+      await provider();
+      fail('expected throw');
+    } catch (err) {
+      const message = (err as WorkloadIdentityError).message;
+      expect(message).toContain('Ensure your federation rule matches your identity token');
+      expect(message).toContain('ANTHROPIC_WORKSPACE_ID');
+      expect(message).toContain('View your authentication events');
+    }
+  });
+
+  it('omits the workspace-ID portion of the hint on 401 when workspaceId is set', async () => {
+    // When workspaceId is already configured the workspace-ID suggestion is
+    // noise, but the generic guidance and Console auth-event pointer still apply.
+    const mockFetch: Fetch = jest.fn().mockResolvedValue(jsonResponse({ error: 'unauthorized' }, 401));
+
+    const provider = oidcFederationProvider({
+      ...baseConfig,
+      fetch: mockFetch,
+      workspaceId: 'wrkspc_x',
+    });
+    try {
+      await provider();
+      fail('expected throw');
+    } catch (err) {
+      const message = (err as WorkloadIdentityError).message;
+      expect(message).toContain('Ensure your federation rule');
+      expect(message).toContain('View your authentication events');
+      expect(message).not.toContain('ANTHROPIC_WORKSPACE_ID');
+    }
+  });
+
+  it('omits hint on non-401 errors', async () => {
+    // The hint is 401-specific; a 5xx or 400 should not append any guidance.
+    const mockFetch: Fetch = jest.fn().mockResolvedValue(jsonResponse({ error: 'server_error' }, 500));
+
+    const provider = oidcFederationProvider({ ...baseConfig, fetch: mockFetch });
+    try {
+      await provider();
+      fail('expected throw');
+    } catch (err) {
+      const message = (err as WorkloadIdentityError).message;
+      expect(message).not.toContain('Ensure your federation rule');
+      expect(message).not.toContain('View your authentication events');
+      expect(message).not.toContain('ANTHROPIC_WORKSPACE_ID');
     }
   });
 

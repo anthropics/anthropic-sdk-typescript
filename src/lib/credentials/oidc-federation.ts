@@ -18,6 +18,18 @@ export type OIDCFederationConfig = {
   federationRuleId: string;
   organizationId: string;
   serviceAccountId?: string | undefined;
+  /**
+   * Optional `wrkspc_*` tagged ID, or the literal `"default"` to scope the
+   * token to the organization's default workspace. When omitted the server
+   * picks the rule's sole enabled workspace, else the org default if the rule
+   * covers it. Required when the rule enables more than one non-default
+   * workspace, or to target a specific workspace other than the one the
+   * server would pick. The minted token is workspace-scoped: per-request
+   * workspace selection (the `anthropic-workspace-id` header) is not supported
+   * for federation tokens — switching workspaces requires a new token exchange
+   * with a different `workspaceId`.
+   */
+  workspaceId?: string | undefined;
   baseURL: string;
   fetch: Fetch;
   /**
@@ -61,6 +73,9 @@ export function oidcFederationProvider(config: OIDCFederationConfig): AccessToke
     if (config.serviceAccountId) {
       body['service_account_id'] = config.serviceAccountId;
     }
+    if (config.workspaceId) {
+      body['workspace_id'] = config.workspaceId;
+    }
 
     const url = `${config.baseURL}${TOKEN_ENDPOINT}`;
     let resp: Response;
@@ -83,10 +98,23 @@ export function oidcFederationProvider(config: OIDCFederationConfig): AccessToke
     if (!resp.ok) {
       const text = await resp.text().catch(() => '');
       const redacted = redactSensitive(text);
+      // A 401 is hard to debug from the status code alone, so surface
+      // guidance: check the federation rule, optionally set a workspace ID
+      // (the most common fix when no workspaceId is configured), and point at
+      // the Workload identity page in Claude Console for the server-side
+      // authentication event log. Other statuses (5xx, 400, ...) get no hint.
+      let hint = '';
+      if (resp.status === 401) {
+        const hintMiddle =
+          config.workspaceId ? '' : (
+            "If your federation rule is scoped to multiple workspaces, set the ANTHROPIC_WORKSPACE_ID environment variable, the 'workspace_id' config key, or the `workspaceId` option. "
+          );
+        hint = ` Ensure your federation rule matches your identity token. ${hintMiddle}View your authentication events in the Workload identity page of Claude Console for more details.`;
+      }
       throw new WorkloadIdentityError(
         `Token exchange failed with status ${resp.status}${
           requestId ? ` (request-id ${requestId})` : ''
-        }: ${redacted}`,
+        }: ${redacted}${hint}`,
         resp.status,
         redacted,
         requestId,

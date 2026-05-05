@@ -336,6 +336,7 @@ describe('client credentials integration', () => {
       apiKey: null,
       config: {
         organization_id: 'org-explicit',
+        workspace_id: 'wrkspc_x',
         authentication: {
           type: 'oidc_federation',
           federation_rule_id: 'fdrl_explicit',
@@ -349,9 +350,12 @@ describe('client credentials integration', () => {
           const body = JSON.parse(init!.body as string);
           expect(body.federation_rule_id).toBe('fdrl_explicit');
           expect(body.assertion).toBe('explicit-jwt');
+          expect(body.workspace_id).toBe('wrkspc_x');
           return jsonResponse({ access_token: 'explicit-tok', expires_in: 3600 });
         }
         expect(getHeader(init, 'authorization')).toBe('Bearer explicit-tok');
+        // Federation profiles send workspace_id in the exchange body, not as a header.
+        expect(getHeader(init, 'anthropic-workspace-id')).toBeNull();
         return jsonResponse(VALID_MSG_RESPONSE);
       },
     });

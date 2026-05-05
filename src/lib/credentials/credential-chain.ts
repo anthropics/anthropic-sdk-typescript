@@ -2,7 +2,7 @@ import type { Fetch } from '../../internal/builtin-types';
 import { readEnv } from '../../internal/utils/env';
 import {
   CREDENTIALS_FILE_VERSION,
-  loadConfig,
+  loadConfigWithSource,
   getCredentialsPath,
   type AnthropicConfig,
 } from '../../core/credentials';
@@ -47,9 +47,9 @@ export function resolveCredentialsFromConfig(
   const provider = buildProvider(config, credentialsPath, effectiveBaseURL, options);
 
   const extraHeaders: Record<string, string> = {};
-  // Workspace scoping for oidc_federation is server-side (the federation rule
-  // encodes the workspace and the minted token is workspace-scoped), so the
-  // header is only meaningful for user_oauth.
+  // For federation profiles workspace_id is sent in the jwt-bearer exchange
+  // body, not as a request header (the minted token is already
+  // workspace-scoped, so the header would be ignored).
   if (config.workspace_id && config.authentication.type === 'user_oauth') {
     extraHeaders['anthropic-workspace-id'] = config.workspace_id;
   }
@@ -79,17 +79,24 @@ export async function defaultCredentials(
   options: ResolverOptions,
   profile?: string,
 ): Promise<CredentialResult | null> {
-  const config = await loadConfig(profile);
-  if (!config) {
+  const loaded = await loadConfigWithSource(profile);
+  if (!loaded) {
     return null;
   }
+  const { config, fromFile } = loaded;
 
-  // For env/file-loaded configs, default credentials_path to the
-  // per-profile location so user_oauth and federation caching work.
-  // Shallow-clone first so callers that retain a reference to the loaded
-  // config don't observe the patched-in default.
+  // For file-loaded configs, default credentials_path to the per-profile
+  // location so user_oauth and federation caching work. Shallow-clone first
+  // so callers that retain a reference to the loaded config don't observe the
+  // patched-in default.
+  //
+  // Env-only credentials (no profile file on disk) skip the disk cache —
+  // matching the other SDKs. A disk cache keyed by profile path would
+  // re-serve a stale token after a change to ANTHROPIC_WORKSPACE_ID (or
+  // ANTHROPIC_ORGANIZATION_ID / ANTHROPIC_FEDERATION_RULE_ID) until the
+  // cached token expired, so the env-only chain stays in-memory only.
   const withPath: AnthropicConfig =
-    config.authentication.credentials_path ?
+    config.authentication.credentials_path || !fromFile ?
       config
     : {
         ...config,
@@ -134,6 +141,7 @@ function buildProvider(
         federationRuleId: auth.federation_rule_id,
         organizationId: config.organization_id,
         serviceAccountId: auth.service_account_id,
+        workspaceId: config.workspace_id,
         baseURL,
         fetch: options.fetch,
         userAgent: options.userAgent,

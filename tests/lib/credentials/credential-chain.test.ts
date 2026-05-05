@@ -36,6 +36,7 @@ describe('defaultCredentials', () => {
     'ANTHROPIC_PROFILE',
     'ANTHROPIC_SCOPE',
     'ANTHROPIC_SERVICE_ACCOUNT_ID',
+    'ANTHROPIC_WORKSPACE_ID',
     'APPDATA',
     'HOME',
     'XDG_CONFIG_HOME',
@@ -120,12 +121,16 @@ describe('defaultCredentials', () => {
         identity_token: { source: 'file', path: tokenPath },
       },
     });
-    const fedResult = await defaultCredentials({
-      ...baseOptions,
-      fetch: jest.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 })),
-    });
-    // Federation tokens are workspace-scoped at issue time → header omitted
+    const fedFetch: Fetch = jest
+      .fn()
+      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+    const fedResult = await defaultCredentials({ ...baseOptions, fetch: fedFetch });
+    // Federation profiles send workspace_id in the exchange body, not as a header.
     expect(fedResult!.extraHeaders).toEqual({});
+    // forceRefresh bypasses the still-fresh user_oauth credential cache from above.
+    await fedResult!.provider({ forceRefresh: true });
+    const fedBody = JSON.parse((fedFetch as jest.Mock).mock.calls[0]![1].body);
+    expect(fedBody.workspace_id).toBe('ws-fed');
   });
 
   it('resolves oidc_federation from config with identity_token file', async () => {
@@ -336,6 +341,178 @@ describe('defaultCredentials', () => {
 
     const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
     expect(body.assertion).toBe('static-jwt');
+  });
+
+  it('does not write a disk cache for the env-only federation chain', async () => {
+    // No profile file on disk: <testDir>/configs/ does not exist. The chain
+    // is synthesized purely from env vars and must stay in-memory only.
+    // Before this fix the chain wrote <config_dir>/credentials/default.json
+    // anyway, so a CI run that changed ANTHROPIC_WORKSPACE_ID (or
+    // ANTHROPIC_ORGANIZATION_ID / ANTHROPIC_FEDERATION_RULE_ID) between runs
+    // would re-serve the stale cached token until it expired. The other
+    // disk-caching SDKs already skip the cache on the env-only path.
+    process.env['ANTHROPIC_FEDERATION_RULE_ID'] = 'fdrl_env';
+    process.env['ANTHROPIC_ORGANIZATION_ID'] = 'org-env';
+    process.env['ANTHROPIC_IDENTITY_TOKEN'] = 'env-jwt';
+    process.env['ANTHROPIC_WORKSPACE_ID'] = 'wrkspc_env';
+
+    const mockFetch: Fetch = jest
+      .fn()
+      .mockResolvedValue(jsonResponse({ access_token: 'env-tok', expires_in: 3600 }));
+
+    const result = await defaultCredentials({ ...baseOptions, fetch: mockFetch });
+    expect(result).not.toBeNull();
+    const token = await result!.provider();
+    expect(token.token).toBe('env-tok');
+
+    expect(fs.existsSync(path.join(testDir, 'credentials', 'default.json'))).toBe(false);
+    expect(fs.existsSync(path.join(testDir, 'credentials'))).toBe(false);
+  });
+
+  it('does not read a stale disk cache for the env-only federation chain', async () => {
+    // Even if a stray credentials/default.json exists (e.g. left over from a
+    // file-backed profile that was later removed), the env-only chain must
+    // ignore it and perform a fresh exchange.
+    writeCredentials('default', {
+      access_token: 'stale-disk-tok',
+      expires_at: NOW_IN_SECONDS + 3600, // still valid → would be served if cached
+    });
+
+    process.env['ANTHROPIC_FEDERATION_RULE_ID'] = 'fdrl_env';
+    process.env['ANTHROPIC_ORGANIZATION_ID'] = 'org-env';
+    process.env['ANTHROPIC_IDENTITY_TOKEN'] = 'env-jwt';
+
+    const mockFetch: Fetch = jest
+      .fn()
+      .mockResolvedValue(jsonResponse({ access_token: 'fresh-tok', expires_in: 3600 }));
+
+    const result = await defaultCredentials({ ...baseOptions, fetch: mockFetch });
+    const token = await result!.provider();
+
+    expect(token.token).toBe('fresh-tok');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    // The stray file is not overwritten either — env-only never touches disk.
+    const onDisk = JSON.parse(fs.readFileSync(path.join(testDir, 'credentials', 'default.json'), 'utf-8'));
+    expect(onDisk.access_token).toBe('stale-disk-tok');
+  });
+
+  it('passes ANTHROPIC_WORKSPACE_ID through the pure-env-var federation chain', async () => {
+    delete process.env['ANTHROPIC_CONFIG_DIR'];
+    process.env['ANTHROPIC_CONFIG_DIR'] = path.join(testDir, 'nonexistent');
+
+    process.env['ANTHROPIC_FEDERATION_RULE_ID'] = 'fdrl_01abc';
+    process.env['ANTHROPIC_ORGANIZATION_ID'] = 'org-uuid';
+    process.env['ANTHROPIC_IDENTITY_TOKEN'] = 'literal-jwt';
+    process.env['ANTHROPIC_WORKSPACE_ID'] = 'wrkspc_01abc';
+
+    const mockFetch: Fetch = jest
+      .fn()
+      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+
+    const result = await defaultCredentials({ ...baseOptions, fetch: mockFetch });
+    expect(result).not.toBeNull();
+    await result!.provider();
+
+    const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
+    expect(body.workspace_id).toBe('wrkspc_01abc');
+  });
+
+  it('treats ANTHROPIC_WORKSPACE_ID="" as unset on the pure-env-var federation chain', async () => {
+    // A defaulted-but-empty CI variable should never put `"workspace_id": ""`
+    // on the wire. readEnv coerces empty to undefined, and the body builder's
+    // truthy check skips it — this pins both layers.
+    delete process.env['ANTHROPIC_CONFIG_DIR'];
+    process.env['ANTHROPIC_CONFIG_DIR'] = path.join(testDir, 'nonexistent');
+
+    process.env['ANTHROPIC_FEDERATION_RULE_ID'] = 'fdrl_01abc';
+    process.env['ANTHROPIC_ORGANIZATION_ID'] = 'org-uuid';
+    process.env['ANTHROPIC_IDENTITY_TOKEN'] = 'literal-jwt';
+    process.env['ANTHROPIC_WORKSPACE_ID'] = '';
+
+    const mockFetch: Fetch = jest
+      .fn()
+      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+
+    const result = await defaultCredentials({ ...baseOptions, fetch: mockFetch });
+    expect(result).not.toBeNull();
+    await result!.provider();
+
+    const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
+    expect(body).not.toHaveProperty('workspace_id');
+  });
+
+  it('ANTHROPIC_WORKSPACE_ID fills a missing top-level workspace_id from a profile config', async () => {
+    const tokenPath = path.join(testDir, 'id-token');
+    fs.writeFileSync(tokenPath, 'my-jwt');
+    process.env['ANTHROPIC_ORGANIZATION_ID'] = 'org_x';
+    process.env['ANTHROPIC_WORKSPACE_ID'] = 'wrkspc_from_env';
+    process.env['ANTHROPIC_IDENTITY_TOKEN_FILE'] = tokenPath;
+
+    // Profile file has oidc_federation auth but no workspace_id.
+    writeConfig('default', {
+      authentication: {
+        type: 'oidc_federation',
+        federation_rule_id: 'fdrl_01abc',
+      },
+    });
+
+    const mockFetch: Fetch = jest
+      .fn()
+      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+
+    const result = await defaultCredentials({ ...baseOptions, fetch: mockFetch });
+    expect(result).not.toBeNull();
+    await result!.provider();
+
+    const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
+    expect(body.workspace_id).toBe('wrkspc_from_env');
+  });
+
+  it('ANTHROPIC_WORKSPACE_ID fills a missing workspace_id for a user_oauth profile (header)', async () => {
+    // The env var fills `workspace_id` uniformly across profile types — not
+    // just federation. For user_oauth the filled value surfaces as the
+    // anthropic-workspace-id request header (federation routes it into the
+    // exchange body instead).
+    process.env['ANTHROPIC_WORKSPACE_ID'] = 'wrkspc_env';
+    writeConfig('default', { authentication: { type: 'user_oauth' } });
+    writeCredentials('default', {
+      access_token: 'tok',
+      refresh_token: 'ref',
+      expires_at: NOW_IN_SECONDS + 3600,
+    });
+
+    const result = await defaultCredentials(baseOptions);
+    expect(result).not.toBeNull();
+    expect(result!.extraHeaders).toEqual({ 'anthropic-workspace-id': 'wrkspc_env' });
+  });
+
+  it('config-file workspace_id beats ANTHROPIC_WORKSPACE_ID env var (precedence)', async () => {
+    // File values are authoritative; env vars only fill fields the file left
+    // unset. This pins the precedence model: profile > env var.
+    const tokenPath = path.join(testDir, 'id-token');
+    fs.writeFileSync(tokenPath, 'my-jwt');
+    process.env['ANTHROPIC_ORGANIZATION_ID'] = 'org_x';
+    process.env['ANTHROPIC_WORKSPACE_ID'] = 'wrkspc_env';
+    process.env['ANTHROPIC_IDENTITY_TOKEN_FILE'] = tokenPath;
+
+    writeConfig('default', {
+      workspace_id: 'wrkspc_file',
+      authentication: {
+        type: 'oidc_federation',
+        federation_rule_id: 'fdrl_01abc',
+      },
+    });
+
+    const mockFetch: Fetch = jest
+      .fn()
+      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+
+    const result = await defaultCredentials({ ...baseOptions, fetch: mockFetch });
+    expect(result).not.toBeNull();
+    await result!.provider();
+
+    const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
+    expect(body.workspace_id).toBe('wrkspc_file');
   });
 
   it('throws clear error for oidc_federation env vars without identity token', async () => {
