@@ -156,6 +156,13 @@ export interface BetaUserProfile {
   metadata: { [key: string]: string };
 
   /**
+   * How the entity behind a user profile relates to the platform that owns the API
+   * key. `external`: an individual end-user of the platform. `resold`: a company the
+   * platform resells Claude access to. `internal`: the platform's own usage.
+   */
+  relationship: 'external' | 'resold' | 'internal';
+
+  /**
    * Trust grants for this profile, keyed by grant name. Key omitted when no grant is
    * active or in flight.
    */
@@ -175,6 +182,12 @@ export interface BetaUserProfile {
    * Platform's own identifier for this user. Not enforced unique.
    */
   external_id?: string | null;
+
+  /**
+   * Display name of the entity this profile represents. For `resold` this is the
+   * resold-to company's name.
+   */
+  name?: string | null;
 }
 
 export interface BetaUserProfileEnrollmentURL {
@@ -216,6 +229,21 @@ export interface UserProfileCreateParams {
   metadata?: { [key: string]: string };
 
   /**
+   * Body param: Display name of the entity this profile represents. Required when
+   * relationship is `resold` (the resold-to company's name); optional otherwise.
+   * Maximum 255 characters.
+   */
+  name?: string | null;
+
+  /**
+   * Body param: How the entity behind a user profile relates to the platform that
+   * owns the API key. `external`: an individual end-user of the platform. `resold`:
+   * a company the platform resells Claude access to. `internal`: the platform's own
+   * usage.
+   */
+  relationship?: 'external' | 'resold' | 'internal';
+
+  /**
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
@@ -242,6 +270,20 @@ export interface UserProfileUpdateParams {
    * characters and values up to 512 characters.
    */
   metadata?: { [key: string]: string };
+
+  /**
+   * Body param: If present, replaces the stored name. Omit to leave unchanged.
+   * Maximum 255 characters.
+   */
+  name?: string | null;
+
+  /**
+   * Body param: How the entity behind a user profile relates to the platform that
+   * owns the API key. `external`: an individual end-user of the platform. `resold`:
+   * a company the platform resells Claude access to. `internal`: the platform's own
+   * usage.
+   */
+  relationship?: 'external' | 'resold' | 'internal' | null;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.

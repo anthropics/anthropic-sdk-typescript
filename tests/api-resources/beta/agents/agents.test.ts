@@ -32,6 +32,7 @@ describe('resource agents', () => {
         },
       ],
       metadata: { foo: 'bar' },
+      multiagent: { agents: ['agent_011CZkYqphY8vELVzwCUpqiQ', { type: 'self' }], type: 'coordinator' },
       skills: [
         {
           skill_id: 'xlsx',
@@ -109,6 +110,7 @@ describe('resource agents', () => {
       ],
       metadata: { foo: 'string' },
       model: { id: 'claude-opus-4-6', speed: 'standard' },
+      multiagent: { agents: ['agent_011CZkYqphY8vELVzwCUpqiQ', { type: 'self' }], type: 'coordinator' },
       name: 'name',
       skills: [
         {

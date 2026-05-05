@@ -27,9 +27,14 @@ describe('resource events', () => {
       client.beta.sessions.events.list(
         'sesn_011CZkZAtmR3yMPDzynEDxu7',
         {
+          'created_at[gt]': '2019-12-27T18:11:19.117Z',
+          'created_at[gte]': '2019-12-27T18:11:19.117Z',
+          'created_at[lt]': '2019-12-27T18:11:19.117Z',
+          'created_at[lte]': '2019-12-27T18:11:19.117Z',
           limit: 0,
           order: 'asc',
           page: 'page',
+          types: ['string'],
           betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },

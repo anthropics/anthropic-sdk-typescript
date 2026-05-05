@@ -57,10 +57,15 @@ This affects the following methods:
 - `client.beta.sessions.resources.retrieve()`
 - `client.beta.sessions.resources.update()`
 - `client.beta.sessions.resources.delete()`
+- `client.beta.sessions.threads.retrieve()`
+- `client.beta.sessions.threads.archive()`
+- `client.beta.sessions.threads.events.list()`
+- `client.beta.sessions.threads.events.stream()`
 - `client.beta.vaults.credentials.retrieve()`
 - `client.beta.vaults.credentials.update()`
 - `client.beta.vaults.credentials.delete()`
 - `client.beta.vaults.credentials.archive()`
+- `client.beta.vaults.credentials.mcpOAuthValidate()`
 - `client.beta.memoryStores.memories.retrieve()`
 - `client.beta.memoryStores.memories.update()`
 - `client.beta.memoryStores.memories.delete()`
@@ -125,6 +130,7 @@ client.example.list(undefined, { headers: { ... } });
 - `client.beta.sessions.events.list()`
 - `client.beta.sessions.events.stream()`
 - `client.beta.sessions.resources.list()`
+- `client.beta.sessions.threads.list()`
 - `client.beta.vaults.retrieve()`
 - `client.beta.vaults.list()`
 - `client.beta.vaults.delete()`

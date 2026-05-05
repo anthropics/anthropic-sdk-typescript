@@ -102,6 +102,7 @@ describe('resource sessions', () => {
           memory_store_id: 'memory_store_id',
           order: 'asc',
           page: 'page',
+          statuses: ['rescheduling'],
           betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },

@@ -3,6 +3,7 @@
 export {
   Agents,
   type BetaManagedAgentsAgent,
+  type BetaManagedAgentsAgentReference,
   type BetaManagedAgentsAgentToolConfig,
   type BetaManagedAgentsAgentToolConfigParams,
   type BetaManagedAgentsAgentToolsetDefaultConfig,
@@ -28,6 +29,9 @@ export {
   type BetaManagedAgentsModel,
   type BetaManagedAgentsModelConfig,
   type BetaManagedAgentsModelConfigParams,
+  type BetaManagedAgentsMultiagentCoordinator,
+  type BetaManagedAgentsMultiagentCoordinatorParams,
+  type BetaManagedAgentsMultiagentSelfParams,
   type BetaManagedAgentsSkillParams,
   type BetaManagedAgentsURLMCPServerParams,
   type AgentCreateParams,
