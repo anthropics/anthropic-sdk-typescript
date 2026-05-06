@@ -139,6 +139,13 @@ export interface BetaManagedAgentsAgentCustomToolUseEvent {
   processed_at: string;
 
   type: 'agent.custom_tool_use';
+
+  /**
+   * When set, this event was cross-posted from a subagent's thread to surface its
+   * custom tool use on the primary thread's stream. Empty on the thread's own
+   * events. Echo this on a `user.custom_tool_result` event to route the result back.
+   */
+  session_thread_id?: string | null;
 }
 
 /**
@@ -208,6 +215,14 @@ export interface BetaManagedAgentsAgentMCPToolUseEvent {
    * AgentEvaluatedPermission enum
    */
   evaluated_permission?: 'allow' | 'ask' | 'deny';
+
+  /**
+   * When set, this event was cross-posted from a subagent's thread to surface its
+   * permission request on the primary thread's stream. Empty on the thread's own
+   * events. Echo this on a `user.tool_confirmation` event to route the approval
+   * back.
+   */
+  session_thread_id?: string | null;
 }
 
 /**
@@ -265,6 +280,74 @@ export interface BetaManagedAgentsAgentThreadContextCompactedEvent {
   processed_at: string;
 
   type: 'agent.thread_context_compacted';
+}
+
+/**
+ * Delivery event written to the target thread's input stream when an
+ * agent-to-agent message arrives.
+ */
+export interface BetaManagedAgentsAgentThreadMessageReceivedEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * Message content blocks.
+   */
+  content: Array<BetaManagedAgentsTextBlock | BetaManagedAgentsImageBlock | BetaManagedAgentsDocumentBlock>;
+
+  /**
+   * Public `sthr_` ID of the thread that sent the message.
+   */
+  from_session_thread_id: string;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at: string;
+
+  type: 'agent.thread_message_received';
+
+  /**
+   * Name of the callable agent this message came from. Absent when received from the
+   * primary agent.
+   */
+  from_agent_name?: string | null;
+}
+
+/**
+ * Observability event emitted to the sender's output stream when an agent-to-agent
+ * message is sent.
+ */
+export interface BetaManagedAgentsAgentThreadMessageSentEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * Message content blocks.
+   */
+  content: Array<BetaManagedAgentsTextBlock | BetaManagedAgentsImageBlock | BetaManagedAgentsDocumentBlock>;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at: string;
+
+  /**
+   * Public `sthr_` ID of the thread the message was sent to.
+   */
+  to_session_thread_id: string;
+
+  type: 'agent.thread_message_sent';
+
+  /**
+   * Name of the callable agent this message was sent to. Absent when sent to the
+   * primary agent.
+   */
+  to_agent_name?: string | null;
 }
 
 /**
@@ -329,6 +412,14 @@ export interface BetaManagedAgentsAgentToolUseEvent {
    * AgentEvaluatedPermission enum
    */
   evaluated_permission?: 'allow' | 'ask' | 'deny';
+
+  /**
+   * When set, this event was cross-posted from a subagent's thread to surface its
+   * permission request on the primary thread's stream. Empty on the thread's own
+   * events. Echo this on a `user.tool_confirmation` event to route the approval
+   * back.
+   */
+  session_thread_id?: string | null;
 }
 
 /**
@@ -422,7 +513,8 @@ export type BetaManagedAgentsEventParams =
   | BetaManagedAgentsUserMessageEventParams
   | BetaManagedAgentsUserInterruptEventParams
   | BetaManagedAgentsUserToolConfirmationEventParams
-  | BetaManagedAgentsUserCustomToolResultEventParams;
+  | BetaManagedAgentsUserCustomToolResultEventParams
+  | BetaManagedAgentsUserDefineOutcomeEventParams;
 
 /**
  * Document referenced by file ID.
@@ -442,6 +534,30 @@ export interface BetaManagedAgentsFileDocumentSource {
 export interface BetaManagedAgentsFileImageSource {
   /**
    * ID of a previously uploaded file.
+   */
+  file_id: string;
+
+  type: 'file';
+}
+
+/**
+ * Rubric referenced by a file uploaded via the Files API.
+ */
+export interface BetaManagedAgentsFileRubric {
+  /**
+   * ID of the rubric file.
+   */
+  file_id: string;
+
+  type: 'file';
+}
+
+/**
+ * Rubric referenced by a file uploaded via the Files API.
+ */
+export interface BetaManagedAgentsFileRubricParams {
+  /**
+   * ID of the rubric file.
    */
   file_id: string;
 
@@ -628,6 +744,7 @@ export interface BetaManagedAgentsSendSessionEvents {
     | BetaManagedAgentsUserInterruptEvent
     | BetaManagedAgentsUserToolConfirmationEvent
     | BetaManagedAgentsUserCustomToolResultEvent
+    | BetaManagedAgentsUserDefineOutcomeEvent
   >;
 }
 
@@ -702,15 +819,26 @@ export type BetaManagedAgentsSessionEvent =
   | BetaManagedAgentsAgentMCPToolResultEvent
   | BetaManagedAgentsAgentToolUseEvent
   | BetaManagedAgentsAgentToolResultEvent
+  | BetaManagedAgentsAgentThreadMessageReceivedEvent
+  | BetaManagedAgentsAgentThreadMessageSentEvent
   | BetaManagedAgentsAgentThreadContextCompactedEvent
   | BetaManagedAgentsSessionErrorEvent
   | BetaManagedAgentsSessionStatusRescheduledEvent
   | BetaManagedAgentsSessionStatusRunningEvent
   | BetaManagedAgentsSessionStatusIdleEvent
   | BetaManagedAgentsSessionStatusTerminatedEvent
+  | BetaManagedAgentsSessionThreadCreatedEvent
+  | BetaManagedAgentsSpanOutcomeEvaluationStartEvent
+  | BetaManagedAgentsSpanOutcomeEvaluationEndEvent
   | BetaManagedAgentsSpanModelRequestStartEvent
   | BetaManagedAgentsSpanModelRequestEndEvent
-  | BetaManagedAgentsSessionDeletedEvent;
+  | BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent
+  | BetaManagedAgentsUserDefineOutcomeEvent
+  | BetaManagedAgentsSessionDeletedEvent
+  | BetaManagedAgentsSessionThreadStatusRunningEvent
+  | BetaManagedAgentsSessionThreadStatusIdleEvent
+  | BetaManagedAgentsSessionThreadStatusTerminatedEvent
+  | BetaManagedAgentsSessionThreadStatusRescheduledEvent;
 
 /**
  * The agent is idle waiting on one or more blocking user-input events (tool
@@ -813,6 +941,155 @@ export interface BetaManagedAgentsSessionStatusTerminatedEvent {
 }
 
 /**
+ * Emitted when a subagent is spawned as a new thread. Written to the parent
+ * thread's output stream so clients observing the session see child creation.
+ */
+export interface BetaManagedAgentsSessionThreadCreatedEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * Name of the callable agent the thread runs.
+   */
+  agent_name: string;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at: string;
+
+  /**
+   * Public `sthr_` ID of the newly created thread.
+   */
+  session_thread_id: string;
+
+  type: 'session.thread_created';
+}
+
+/**
+ * A session thread has yielded and is awaiting input. Emitted on the thread's own
+ * stream and cross-posted to the primary stream for child threads.
+ */
+export interface BetaManagedAgentsSessionThreadStatusIdleEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * Name of the agent the thread runs.
+   */
+  agent_name: string;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at: string;
+
+  /**
+   * Public sthr\_ ID of the thread that went idle.
+   */
+  session_thread_id: string;
+
+  /**
+   * The agent completed its turn naturally and is ready for the next user message.
+   */
+  stop_reason:
+    | BetaManagedAgentsSessionEndTurn
+    | BetaManagedAgentsSessionRequiresAction
+    | BetaManagedAgentsSessionRetriesExhausted;
+
+  type: 'session.thread_status_idle';
+}
+
+/**
+ * A session thread hit a transient error and is retrying automatically. Emitted on
+ * the thread's own stream and cross-posted to the primary stream for child
+ * threads.
+ */
+export interface BetaManagedAgentsSessionThreadStatusRescheduledEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * Name of the agent the thread runs.
+   */
+  agent_name: string;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at: string;
+
+  /**
+   * Public sthr\_ ID of the thread that is retrying.
+   */
+  session_thread_id: string;
+
+  type: 'session.thread_status_rescheduled';
+}
+
+/**
+ * A session thread has begun executing. Emitted on the thread's own stream and
+ * cross-posted to the primary stream for child threads.
+ */
+export interface BetaManagedAgentsSessionThreadStatusRunningEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * Name of the agent the thread runs.
+   */
+  agent_name: string;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at: string;
+
+  /**
+   * Public sthr\_ ID of the thread that started running.
+   */
+  session_thread_id: string;
+
+  type: 'session.thread_status_running';
+}
+
+/**
+ * A session thread has terminated and will accept no further input. Emitted on the
+ * thread's own stream and cross-posted to the primary stream for child threads.
+ */
+export interface BetaManagedAgentsSessionThreadStatusTerminatedEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * Name of the agent the thread runs.
+   */
+  agent_name: string;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at: string;
+
+  /**
+   * Public sthr\_ ID of the thread that terminated.
+   */
+  session_thread_id: string;
+
+  type: 'session.thread_status_terminated';
+}
+
+/**
  * Emitted when a model request completes.
  */
 export interface BetaManagedAgentsSpanModelRequestEndEvent {
@@ -894,6 +1171,123 @@ export interface BetaManagedAgentsSpanModelUsage {
 }
 
 /**
+ * Emitted when an outcome evaluation cycle completes. Carries the verdict and
+ * aggregate token usage. A verdict of `needs_revision` means another evaluation
+ * cycle follows; `satisfied`, `max_iterations_reached`, `failed`, or `interrupted`
+ * are terminal — no further evaluation cycles follow.
+ */
+export interface BetaManagedAgentsSpanOutcomeEvaluationEndEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * Human-readable explanation of the verdict. For `needs_revision`, describes which
+   * criteria failed and why.
+   */
+  explanation: string;
+
+  /**
+   * 0-indexed revision cycle, matching the corresponding
+   * `span.outcome_evaluation_start`.
+   */
+  iteration: number;
+
+  /**
+   * The id of the corresponding `span.outcome_evaluation_start` event.
+   */
+  outcome_evaluation_start_id: string;
+
+  /**
+   * The `outc_` ID of the outcome being evaluated.
+   */
+  outcome_id: string;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at: string;
+
+  /**
+   * Evaluation verdict. 'satisfied': criteria met, session goes idle.
+   * 'needs_revision': criteria not met, another revision cycle follows.
+   * 'max_iterations_reached': evaluation budget exhausted with criteria still unmet
+   * — one final acknowledgment turn follows before the session goes idle, but no
+   * further evaluation runs. 'failed': grader determined the rubric does not apply
+   * to the deliverables. 'interrupted': user sent an interrupt while evaluation was
+   * in progress.
+   */
+  result: string;
+
+  type: 'span.outcome_evaluation_end';
+
+  /**
+   * Token usage for a single model request.
+   */
+  usage: BetaManagedAgentsSpanModelUsage;
+}
+
+/**
+ * Periodic heartbeat emitted while an outcome evaluation cycle is in progress.
+ * Distinguishes 'evaluation is actively running' from 'evaluation is stuck'
+ * between the corresponding `span.outcome_evaluation_start` and
+ * `span.outcome_evaluation_end` events.
+ */
+export interface BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * 0-indexed revision cycle, matching the corresponding
+   * `span.outcome_evaluation_start`.
+   */
+  iteration: number;
+
+  /**
+   * The `outc_` ID of the outcome being evaluated.
+   */
+  outcome_id: string;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at: string;
+
+  type: 'span.outcome_evaluation_ongoing';
+}
+
+/**
+ * Emitted when an outcome evaluation cycle begins.
+ */
+export interface BetaManagedAgentsSpanOutcomeEvaluationStartEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * 0-indexed revision cycle. 0 is the first evaluation; 1 is the re-evaluation
+   * after the first revision; etc.
+   */
+  iteration: number;
+
+  /**
+   * The `outc_` ID of the outcome being evaluated.
+   */
+  outcome_id: string;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at: string;
+
+  type: 'span.outcome_evaluation_start';
+}
+
+/**
  * Server-sent event in the session stream.
  */
 export type BetaManagedAgentsStreamSessionEvents =
@@ -908,15 +1302,26 @@ export type BetaManagedAgentsStreamSessionEvents =
   | BetaManagedAgentsAgentMCPToolResultEvent
   | BetaManagedAgentsAgentToolUseEvent
   | BetaManagedAgentsAgentToolResultEvent
+  | BetaManagedAgentsAgentThreadMessageReceivedEvent
+  | BetaManagedAgentsAgentThreadMessageSentEvent
   | BetaManagedAgentsAgentThreadContextCompactedEvent
   | BetaManagedAgentsSessionErrorEvent
   | BetaManagedAgentsSessionStatusRescheduledEvent
   | BetaManagedAgentsSessionStatusRunningEvent
   | BetaManagedAgentsSessionStatusIdleEvent
   | BetaManagedAgentsSessionStatusTerminatedEvent
+  | BetaManagedAgentsSessionThreadCreatedEvent
+  | BetaManagedAgentsSpanOutcomeEvaluationStartEvent
+  | BetaManagedAgentsSpanOutcomeEvaluationEndEvent
   | BetaManagedAgentsSpanModelRequestStartEvent
   | BetaManagedAgentsSpanModelRequestEndEvent
-  | BetaManagedAgentsSessionDeletedEvent;
+  | BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent
+  | BetaManagedAgentsUserDefineOutcomeEvent
+  | BetaManagedAgentsSessionDeletedEvent
+  | BetaManagedAgentsSessionThreadStatusRunningEvent
+  | BetaManagedAgentsSessionThreadStatusIdleEvent
+  | BetaManagedAgentsSessionThreadStatusTerminatedEvent
+  | BetaManagedAgentsSessionThreadStatusRescheduledEvent;
 
 /**
  * Regular text content.
@@ -926,6 +1331,31 @@ export interface BetaManagedAgentsTextBlock {
    * The text content.
    */
   text: string;
+
+  type: 'text';
+}
+
+/**
+ * Rubric content provided inline as text.
+ */
+export interface BetaManagedAgentsTextRubric {
+  /**
+   * Rubric content. Plain text or markdown — the grader treats it as freeform text.
+   */
+  content: string;
+
+  type: 'text';
+}
+
+/**
+ * Rubric content provided inline as text.
+ */
+export interface BetaManagedAgentsTextRubricParams {
+  /**
+   * Rubric content. Plain text or markdown — the grader treats it as freeform text.
+   * Maximum 262144 characters.
+   */
+  content: string;
 
   type: 'text';
 }
@@ -1009,6 +1439,12 @@ export interface BetaManagedAgentsUserCustomToolResultEvent {
    * A timestamp in RFC 3339 format
    */
   processed_at?: string | null;
+
+  /**
+   * Routes this result to a subagent thread. Copy from the `agent.custom_tool_use`
+   * event's `session_thread_id`.
+   */
+  session_thread_id?: string | null;
 }
 
 /**
@@ -1037,6 +1473,68 @@ export interface BetaManagedAgentsUserCustomToolResultEventParams {
 }
 
 /**
+ * Echo of a `user.define_outcome` input event. Carries the server-generated
+ * `outcome_id` that subsequent `span.outcome_evaluation_*` events reference.
+ */
+export interface BetaManagedAgentsUserDefineOutcomeEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * What the agent should produce. Copied from the input event.
+   */
+  description: string;
+
+  /**
+   * Evaluate-then-revise cycles before giving up. Default 3, max 20.
+   */
+  max_iterations: number | null;
+
+  /**
+   * Server-generated `outc_` ID for this outcome. Referenced by
+   * `span.outcome_evaluation_*` events and the session's `outcome_evaluations` list.
+   */
+  outcome_id: string;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at: string;
+
+  /**
+   * Rubric for grading the quality of an outcome.
+   */
+  rubric: BetaManagedAgentsFileRubric | BetaManagedAgentsTextRubric;
+
+  type: 'user.define_outcome';
+}
+
+/**
+ * Parameters for defining an outcome the agent should work toward. The agent
+ * begins work on receipt.
+ */
+export interface BetaManagedAgentsUserDefineOutcomeEventParams {
+  /**
+   * What the agent should produce. This is the task specification.
+   */
+  description: string;
+
+  /**
+   * Rubric for grading the quality of an outcome.
+   */
+  rubric: BetaManagedAgentsFileRubricParams | BetaManagedAgentsTextRubricParams;
+
+  type: 'user.define_outcome';
+
+  /**
+   * Eval→revision cycles before giving up. Default 3, max 20.
+   */
+  max_iterations?: number | null;
+}
+
+/**
  * An interrupt event that pauses agent execution and returns control to the user.
  */
 export interface BetaManagedAgentsUserInterruptEvent {
@@ -1051,6 +1549,13 @@ export interface BetaManagedAgentsUserInterruptEvent {
    * A timestamp in RFC 3339 format
    */
   processed_at?: string | null;
+
+  /**
+   * If absent, interrupts every non-archived thread in a multiagent session (or the
+   * primary alone in a single-agent session). If present, interrupts only the named
+   * thread.
+   */
+  session_thread_id?: string | null;
 }
 
 /**
@@ -1058,6 +1563,13 @@ export interface BetaManagedAgentsUserInterruptEvent {
  */
 export interface BetaManagedAgentsUserInterruptEventParams {
   type: 'user.interrupt';
+
+  /**
+   * If absent, interrupts every non-archived thread in a multiagent session (or the
+   * primary alone in a single-agent session). If present, interrupts only the named
+   * thread.
+   */
+  session_thread_id?: string | null;
 }
 
 /**
@@ -1128,6 +1640,13 @@ export interface BetaManagedAgentsUserToolConfirmationEvent {
    * A timestamp in RFC 3339 format
    */
   processed_at?: string | null;
+
+  /**
+   * When set, the confirmation routes to this subagent's thread rather than the
+   * primary. Echo this from the `session_thread_id` on the `agent.tool_use` or
+   * `agent.mcp_tool_use` event that prompted the approval.
+   */
+  session_thread_id?: string | null;
 }
 
 /**
@@ -1158,10 +1677,37 @@ export interface BetaManagedAgentsUserToolConfirmationEventParams {
 
 export interface EventListParams extends PageCursorParams {
   /**
+   * Query param: Return events created after this time (exclusive).
+   */
+  'created_at[gt]'?: string;
+
+  /**
+   * Query param: Return events created at or after this time (inclusive).
+   */
+  'created_at[gte]'?: string;
+
+  /**
+   * Query param: Return events created before this time (exclusive).
+   */
+  'created_at[lt]'?: string;
+
+  /**
+   * Query param: Return events created at or before this time (inclusive).
+   */
+  'created_at[lte]'?: string;
+
+  /**
    * Query param: Sort direction for results, ordered by created_at. Defaults to asc
    * (chronological).
    */
   order?: 'asc' | 'desc';
+
+  /**
+   * Query param: Filter by event type. Values match the `type` field on returned
+   * events (for example, `user.message` or `agent.tool_use`). Omit to return all
+   * event types.
+   */
+  types?: Array<string>;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
@@ -1196,6 +1742,8 @@ export declare namespace Events {
     type BetaManagedAgentsAgentMessageEvent as BetaManagedAgentsAgentMessageEvent,
     type BetaManagedAgentsAgentThinkingEvent as BetaManagedAgentsAgentThinkingEvent,
     type BetaManagedAgentsAgentThreadContextCompactedEvent as BetaManagedAgentsAgentThreadContextCompactedEvent,
+    type BetaManagedAgentsAgentThreadMessageReceivedEvent as BetaManagedAgentsAgentThreadMessageReceivedEvent,
+    type BetaManagedAgentsAgentThreadMessageSentEvent as BetaManagedAgentsAgentThreadMessageSentEvent,
     type BetaManagedAgentsAgentToolResultEvent as BetaManagedAgentsAgentToolResultEvent,
     type BetaManagedAgentsAgentToolUseEvent as BetaManagedAgentsAgentToolUseEvent,
     type BetaManagedAgentsBase64DocumentSource as BetaManagedAgentsBase64DocumentSource,
@@ -1205,6 +1753,8 @@ export declare namespace Events {
     type BetaManagedAgentsEventParams as BetaManagedAgentsEventParams,
     type BetaManagedAgentsFileDocumentSource as BetaManagedAgentsFileDocumentSource,
     type BetaManagedAgentsFileImageSource as BetaManagedAgentsFileImageSource,
+    type BetaManagedAgentsFileRubric as BetaManagedAgentsFileRubric,
+    type BetaManagedAgentsFileRubricParams as BetaManagedAgentsFileRubricParams,
     type BetaManagedAgentsImageBlock as BetaManagedAgentsImageBlock,
     type BetaManagedAgentsMCPAuthenticationFailedError as BetaManagedAgentsMCPAuthenticationFailedError,
     type BetaManagedAgentsMCPConnectionFailedError as BetaManagedAgentsMCPConnectionFailedError,
@@ -1226,16 +1776,28 @@ export declare namespace Events {
     type BetaManagedAgentsSessionStatusRescheduledEvent as BetaManagedAgentsSessionStatusRescheduledEvent,
     type BetaManagedAgentsSessionStatusRunningEvent as BetaManagedAgentsSessionStatusRunningEvent,
     type BetaManagedAgentsSessionStatusTerminatedEvent as BetaManagedAgentsSessionStatusTerminatedEvent,
+    type BetaManagedAgentsSessionThreadCreatedEvent as BetaManagedAgentsSessionThreadCreatedEvent,
+    type BetaManagedAgentsSessionThreadStatusIdleEvent as BetaManagedAgentsSessionThreadStatusIdleEvent,
+    type BetaManagedAgentsSessionThreadStatusRescheduledEvent as BetaManagedAgentsSessionThreadStatusRescheduledEvent,
+    type BetaManagedAgentsSessionThreadStatusRunningEvent as BetaManagedAgentsSessionThreadStatusRunningEvent,
+    type BetaManagedAgentsSessionThreadStatusTerminatedEvent as BetaManagedAgentsSessionThreadStatusTerminatedEvent,
     type BetaManagedAgentsSpanModelRequestEndEvent as BetaManagedAgentsSpanModelRequestEndEvent,
     type BetaManagedAgentsSpanModelRequestStartEvent as BetaManagedAgentsSpanModelRequestStartEvent,
     type BetaManagedAgentsSpanModelUsage as BetaManagedAgentsSpanModelUsage,
+    type BetaManagedAgentsSpanOutcomeEvaluationEndEvent as BetaManagedAgentsSpanOutcomeEvaluationEndEvent,
+    type BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent as BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent,
+    type BetaManagedAgentsSpanOutcomeEvaluationStartEvent as BetaManagedAgentsSpanOutcomeEvaluationStartEvent,
     type BetaManagedAgentsStreamSessionEvents as BetaManagedAgentsStreamSessionEvents,
     type BetaManagedAgentsTextBlock as BetaManagedAgentsTextBlock,
+    type BetaManagedAgentsTextRubric as BetaManagedAgentsTextRubric,
+    type BetaManagedAgentsTextRubricParams as BetaManagedAgentsTextRubricParams,
     type BetaManagedAgentsUnknownError as BetaManagedAgentsUnknownError,
     type BetaManagedAgentsURLDocumentSource as BetaManagedAgentsURLDocumentSource,
     type BetaManagedAgentsURLImageSource as BetaManagedAgentsURLImageSource,
     type BetaManagedAgentsUserCustomToolResultEvent as BetaManagedAgentsUserCustomToolResultEvent,
     type BetaManagedAgentsUserCustomToolResultEventParams as BetaManagedAgentsUserCustomToolResultEventParams,
+    type BetaManagedAgentsUserDefineOutcomeEvent as BetaManagedAgentsUserDefineOutcomeEvent,
+    type BetaManagedAgentsUserDefineOutcomeEventParams as BetaManagedAgentsUserDefineOutcomeEventParams,
     type BetaManagedAgentsUserInterruptEvent as BetaManagedAgentsUserInterruptEvent,
     type BetaManagedAgentsUserInterruptEventParams as BetaManagedAgentsUserInterruptEventParams,
     type BetaManagedAgentsUserMessageEvent as BetaManagedAgentsUserMessageEvent,

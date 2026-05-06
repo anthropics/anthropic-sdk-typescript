@@ -11,6 +11,8 @@ import {
   BetaManagedAgentsAgentMessageEvent,
   BetaManagedAgentsAgentThinkingEvent,
   BetaManagedAgentsAgentThreadContextCompactedEvent,
+  BetaManagedAgentsAgentThreadMessageReceivedEvent,
+  BetaManagedAgentsAgentThreadMessageSentEvent,
   BetaManagedAgentsAgentToolResultEvent,
   BetaManagedAgentsAgentToolUseEvent,
   BetaManagedAgentsBase64DocumentSource,
@@ -20,6 +22,8 @@ import {
   BetaManagedAgentsEventParams,
   BetaManagedAgentsFileDocumentSource,
   BetaManagedAgentsFileImageSource,
+  BetaManagedAgentsFileRubric,
+  BetaManagedAgentsFileRubricParams,
   BetaManagedAgentsImageBlock,
   BetaManagedAgentsMCPAuthenticationFailedError,
   BetaManagedAgentsMCPConnectionFailedError,
@@ -42,16 +46,28 @@ import {
   BetaManagedAgentsSessionStatusRescheduledEvent,
   BetaManagedAgentsSessionStatusRunningEvent,
   BetaManagedAgentsSessionStatusTerminatedEvent,
+  BetaManagedAgentsSessionThreadCreatedEvent,
+  BetaManagedAgentsSessionThreadStatusIdleEvent,
+  BetaManagedAgentsSessionThreadStatusRescheduledEvent,
+  BetaManagedAgentsSessionThreadStatusRunningEvent,
+  BetaManagedAgentsSessionThreadStatusTerminatedEvent,
   BetaManagedAgentsSpanModelRequestEndEvent,
   BetaManagedAgentsSpanModelRequestStartEvent,
   BetaManagedAgentsSpanModelUsage,
+  BetaManagedAgentsSpanOutcomeEvaluationEndEvent,
+  BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent,
+  BetaManagedAgentsSpanOutcomeEvaluationStartEvent,
   BetaManagedAgentsStreamSessionEvents,
   BetaManagedAgentsTextBlock,
+  BetaManagedAgentsTextRubric,
+  BetaManagedAgentsTextRubricParams,
   BetaManagedAgentsURLDocumentSource,
   BetaManagedAgentsURLImageSource,
   BetaManagedAgentsUnknownError,
   BetaManagedAgentsUserCustomToolResultEvent,
   BetaManagedAgentsUserCustomToolResultEventParams,
+  BetaManagedAgentsUserDefineOutcomeEvent,
+  BetaManagedAgentsUserDefineOutcomeEventParams,
   BetaManagedAgentsUserInterruptEvent,
   BetaManagedAgentsUserInterruptEventParams,
   BetaManagedAgentsUserMessageEvent,
@@ -80,6 +96,20 @@ import {
   ResourceUpdateResponse,
   Resources,
 } from './resources';
+import * as ThreadsAPI from './threads/threads';
+import {
+  BetaManagedAgentsSessionThread,
+  BetaManagedAgentsSessionThreadAgent,
+  BetaManagedAgentsSessionThreadStats,
+  BetaManagedAgentsSessionThreadStatus,
+  BetaManagedAgentsSessionThreadUsage,
+  BetaManagedAgentsSessionThreadsPageCursor,
+  BetaManagedAgentsStreamSessionThreadEvents,
+  ThreadArchiveParams,
+  ThreadListParams,
+  ThreadRetrieveParams,
+  Threads,
+} from './threads/threads';
 import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
@@ -89,6 +119,7 @@ import { path } from '../../../internal/utils/path';
 export class Sessions extends APIResource {
   events: EventsAPI.Events = new EventsAPI.Events(this._client);
   resources: ResourcesAPI.Resources = new ResourcesAPI.Resources(this._client);
+  threads: ThreadsAPI.Threads = new ThreadsAPI.Threads(this._client);
 
   /**
    * Create Session
@@ -378,6 +409,87 @@ export interface BetaManagedAgentsMemoryStoreResourceParam {
 }
 
 /**
+ * Resolved coordinator topology with a concrete agent roster.
+ */
+export interface BetaManagedAgentsMultiagent {
+  /**
+   * Agents the coordinator may spawn as session threads, each resolved to a specific
+   * version.
+   */
+  agents: Array<AgentsAPI.BetaManagedAgentsAgentReference>;
+
+  type: 'coordinator';
+}
+
+/**
+ * A coordinator topology: the session's primary thread orchestrates work by
+ * spawning session threads, each running an agent drawn from the `agents` roster.
+ */
+export interface BetaManagedAgentsMultiagentParams {
+  /**
+   * Agents the coordinator may spawn as session threads. 1–20 entries. Each entry is
+   * an agent ID string, a versioned `{"type":"agent","id","version"}` reference, or
+   * `{"type":"self"}` to allow recursive self-invocation. Entries must reference
+   * distinct agents (after resolving `self` and string forms); at most one `self`.
+   * Referenced agents must exist, must not be archived, and must not themselves have
+   * `multiagent` set (depth limit 1).
+   */
+  agents: Array<BetaManagedAgentsMultiagentRosterEntryParams>;
+
+  type: 'coordinator';
+}
+
+/**
+ * An entry in a multiagent roster: an agent ID string, a versioned agent
+ * reference, or `self`.
+ */
+export type BetaManagedAgentsMultiagentRosterEntryParams =
+  | string
+  | BetaManagedAgentsAgentParams
+  | AgentsAPI.BetaManagedAgentsMultiagentSelfParams;
+
+/**
+ * Evaluation state for a single outcome defined via a define_outcome event.
+ */
+export interface BetaManagedAgentsOutcomeEvaluationResource {
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  completed_at: string | null;
+
+  /**
+   * What the agent should produce.
+   */
+  description: string;
+
+  /**
+   * Grader's verdict text from the most recent evaluation. For satisfied, explains
+   * why criteria are met; for needs_revision (intermediate), what's missing; for
+   * failed, why unrecoverable.
+   */
+  explanation: string | null;
+
+  /**
+   * 0-indexed revision cycle the outcome is currently on.
+   */
+  iteration: number;
+
+  /**
+   * Server-generated outc\_ ID for this outcome.
+   */
+  outcome_id: string;
+
+  /**
+   * Current evaluation state. 'pending' before the agent begins work; 'running'
+   * while producing or revising; 'evaluating' while the grader scores;
+   * 'satisfied'/'max_iterations_reached'/'failed'/'interrupted' are terminal.
+   */
+  result: string;
+
+  type: 'outcome_evaluation';
+}
+
+/**
  * A Managed Agents `session`.
  */
 export interface BetaManagedAgentsSession {
@@ -402,6 +514,12 @@ export interface BetaManagedAgentsSession {
   environment_id: string;
 
   metadata: { [key: string]: string };
+
+  /**
+   * Per-outcome evaluation state. One entry per define_outcome event sent to the
+   * session.
+   */
+  outcome_evaluations: Array<BetaManagedAgentsOutcomeEvaluationResource>;
 
   resources: Array<ResourcesAPI.BetaManagedAgentsSessionResource>;
 
@@ -452,6 +570,12 @@ export interface BetaManagedAgentsSessionAgent {
    */
   model: AgentsAPI.BetaManagedAgentsModelConfig;
 
+  /**
+   * Resolved coordinator topology with full agent definitions for each roster
+   * member.
+   */
+  multiagent: BetaManagedAgentsSessionMultiagentCoordinator | null;
+
   name: string;
 
   skills: Array<AgentsAPI.BetaManagedAgentsAnthropicSkill | AgentsAPI.BetaManagedAgentsCustomSkill>;
@@ -467,6 +591,19 @@ export interface BetaManagedAgentsSessionAgent {
   type: 'agent';
 
   version: number;
+}
+
+/**
+ * Resolved coordinator topology with full agent definitions for each roster
+ * member.
+ */
+export interface BetaManagedAgentsSessionMultiagentCoordinator {
+  /**
+   * Full `agent` definitions the coordinator may spawn as session threads.
+   */
+  agents: Array<ThreadsAPI.BetaManagedAgentsSessionThreadAgent>;
+
+  type: 'coordinator';
 }
 
 /**
@@ -639,6 +776,12 @@ export interface SessionListParams extends PageCursorParams {
   order?: 'asc' | 'desc';
 
   /**
+   * Query param: Filter by session status. Repeat the parameter to match any of
+   * multiple statuses.
+   */
+  statuses?: Array<'rescheduling' | 'running' | 'idle' | 'terminated'>;
+
+  /**
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
@@ -660,6 +803,7 @@ export interface SessionArchiveParams {
 
 Sessions.Events = Events;
 Sessions.Resources = Resources;
+Sessions.Threads = Threads;
 
 export declare namespace Sessions {
   export {
@@ -671,8 +815,13 @@ export declare namespace Sessions {
     type BetaManagedAgentsFileResourceParams as BetaManagedAgentsFileResourceParams,
     type BetaManagedAgentsGitHubRepositoryResourceParams as BetaManagedAgentsGitHubRepositoryResourceParams,
     type BetaManagedAgentsMemoryStoreResourceParam as BetaManagedAgentsMemoryStoreResourceParam,
+    type BetaManagedAgentsMultiagent as BetaManagedAgentsMultiagent,
+    type BetaManagedAgentsMultiagentParams as BetaManagedAgentsMultiagentParams,
+    type BetaManagedAgentsMultiagentRosterEntryParams as BetaManagedAgentsMultiagentRosterEntryParams,
+    type BetaManagedAgentsOutcomeEvaluationResource as BetaManagedAgentsOutcomeEvaluationResource,
     type BetaManagedAgentsSession as BetaManagedAgentsSession,
     type BetaManagedAgentsSessionAgent as BetaManagedAgentsSessionAgent,
+    type BetaManagedAgentsSessionMultiagentCoordinator as BetaManagedAgentsSessionMultiagentCoordinator,
     type BetaManagedAgentsSessionStats as BetaManagedAgentsSessionStats,
     type BetaManagedAgentsSessionUsage as BetaManagedAgentsSessionUsage,
     type BetaManagedAgentsSessionsPageCursor as BetaManagedAgentsSessionsPageCursor,
@@ -692,6 +841,8 @@ export declare namespace Sessions {
     type BetaManagedAgentsAgentMessageEvent as BetaManagedAgentsAgentMessageEvent,
     type BetaManagedAgentsAgentThinkingEvent as BetaManagedAgentsAgentThinkingEvent,
     type BetaManagedAgentsAgentThreadContextCompactedEvent as BetaManagedAgentsAgentThreadContextCompactedEvent,
+    type BetaManagedAgentsAgentThreadMessageReceivedEvent as BetaManagedAgentsAgentThreadMessageReceivedEvent,
+    type BetaManagedAgentsAgentThreadMessageSentEvent as BetaManagedAgentsAgentThreadMessageSentEvent,
     type BetaManagedAgentsAgentToolResultEvent as BetaManagedAgentsAgentToolResultEvent,
     type BetaManagedAgentsAgentToolUseEvent as BetaManagedAgentsAgentToolUseEvent,
     type BetaManagedAgentsBase64DocumentSource as BetaManagedAgentsBase64DocumentSource,
@@ -701,6 +852,8 @@ export declare namespace Sessions {
     type BetaManagedAgentsEventParams as BetaManagedAgentsEventParams,
     type BetaManagedAgentsFileDocumentSource as BetaManagedAgentsFileDocumentSource,
     type BetaManagedAgentsFileImageSource as BetaManagedAgentsFileImageSource,
+    type BetaManagedAgentsFileRubric as BetaManagedAgentsFileRubric,
+    type BetaManagedAgentsFileRubricParams as BetaManagedAgentsFileRubricParams,
     type BetaManagedAgentsImageBlock as BetaManagedAgentsImageBlock,
     type BetaManagedAgentsMCPAuthenticationFailedError as BetaManagedAgentsMCPAuthenticationFailedError,
     type BetaManagedAgentsMCPConnectionFailedError as BetaManagedAgentsMCPConnectionFailedError,
@@ -722,16 +875,28 @@ export declare namespace Sessions {
     type BetaManagedAgentsSessionStatusRescheduledEvent as BetaManagedAgentsSessionStatusRescheduledEvent,
     type BetaManagedAgentsSessionStatusRunningEvent as BetaManagedAgentsSessionStatusRunningEvent,
     type BetaManagedAgentsSessionStatusTerminatedEvent as BetaManagedAgentsSessionStatusTerminatedEvent,
+    type BetaManagedAgentsSessionThreadCreatedEvent as BetaManagedAgentsSessionThreadCreatedEvent,
+    type BetaManagedAgentsSessionThreadStatusIdleEvent as BetaManagedAgentsSessionThreadStatusIdleEvent,
+    type BetaManagedAgentsSessionThreadStatusRescheduledEvent as BetaManagedAgentsSessionThreadStatusRescheduledEvent,
+    type BetaManagedAgentsSessionThreadStatusRunningEvent as BetaManagedAgentsSessionThreadStatusRunningEvent,
+    type BetaManagedAgentsSessionThreadStatusTerminatedEvent as BetaManagedAgentsSessionThreadStatusTerminatedEvent,
     type BetaManagedAgentsSpanModelRequestEndEvent as BetaManagedAgentsSpanModelRequestEndEvent,
     type BetaManagedAgentsSpanModelRequestStartEvent as BetaManagedAgentsSpanModelRequestStartEvent,
     type BetaManagedAgentsSpanModelUsage as BetaManagedAgentsSpanModelUsage,
+    type BetaManagedAgentsSpanOutcomeEvaluationEndEvent as BetaManagedAgentsSpanOutcomeEvaluationEndEvent,
+    type BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent as BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent,
+    type BetaManagedAgentsSpanOutcomeEvaluationStartEvent as BetaManagedAgentsSpanOutcomeEvaluationStartEvent,
     type BetaManagedAgentsStreamSessionEvents as BetaManagedAgentsStreamSessionEvents,
     type BetaManagedAgentsTextBlock as BetaManagedAgentsTextBlock,
+    type BetaManagedAgentsTextRubric as BetaManagedAgentsTextRubric,
+    type BetaManagedAgentsTextRubricParams as BetaManagedAgentsTextRubricParams,
     type BetaManagedAgentsUnknownError as BetaManagedAgentsUnknownError,
     type BetaManagedAgentsURLDocumentSource as BetaManagedAgentsURLDocumentSource,
     type BetaManagedAgentsURLImageSource as BetaManagedAgentsURLImageSource,
     type BetaManagedAgentsUserCustomToolResultEvent as BetaManagedAgentsUserCustomToolResultEvent,
     type BetaManagedAgentsUserCustomToolResultEventParams as BetaManagedAgentsUserCustomToolResultEventParams,
+    type BetaManagedAgentsUserDefineOutcomeEvent as BetaManagedAgentsUserDefineOutcomeEvent,
+    type BetaManagedAgentsUserDefineOutcomeEventParams as BetaManagedAgentsUserDefineOutcomeEventParams,
     type BetaManagedAgentsUserInterruptEvent as BetaManagedAgentsUserInterruptEvent,
     type BetaManagedAgentsUserInterruptEventParams as BetaManagedAgentsUserInterruptEventParams,
     type BetaManagedAgentsUserMessageEvent as BetaManagedAgentsUserMessageEvent,
@@ -759,5 +924,19 @@ export declare namespace Sessions {
     type ResourceListParams as ResourceListParams,
     type ResourceDeleteParams as ResourceDeleteParams,
     type ResourceAddParams as ResourceAddParams,
+  };
+
+  export {
+    Threads as Threads,
+    type BetaManagedAgentsSessionThread as BetaManagedAgentsSessionThread,
+    type BetaManagedAgentsSessionThreadAgent as BetaManagedAgentsSessionThreadAgent,
+    type BetaManagedAgentsSessionThreadStats as BetaManagedAgentsSessionThreadStats,
+    type BetaManagedAgentsSessionThreadStatus as BetaManagedAgentsSessionThreadStatus,
+    type BetaManagedAgentsSessionThreadUsage as BetaManagedAgentsSessionThreadUsage,
+    type BetaManagedAgentsStreamSessionThreadEvents as BetaManagedAgentsStreamSessionThreadEvents,
+    type BetaManagedAgentsSessionThreadsPageCursor as BetaManagedAgentsSessionThreadsPageCursor,
+    type ThreadRetrieveParams as ThreadRetrieveParams,
+    type ThreadListParams as ThreadListParams,
+    type ThreadArchiveParams as ThreadArchiveParams,
   };
 }

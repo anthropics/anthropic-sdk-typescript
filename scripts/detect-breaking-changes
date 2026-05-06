@@ -21,6 +21,8 @@ TEST_PATHS=(
 	tests/api-resources/beta/sessions/sessions.test.ts
 	tests/api-resources/beta/sessions/events.test.ts
 	tests/api-resources/beta/sessions/resources.test.ts
+	tests/api-resources/beta/sessions/threads/threads.test.ts
+	tests/api-resources/beta/sessions/threads/events.test.ts
 	tests/api-resources/beta/vaults/vaults.test.ts
 	tests/api-resources/beta/vaults/credentials.test.ts
 	tests/api-resources/beta/memory-stores/memory-stores.test.ts
@@ -29,6 +31,7 @@ TEST_PATHS=(
 	tests/api-resources/beta/files.test.ts
 	tests/api-resources/beta/skills/skills.test.ts
 	tests/api-resources/beta/skills/versions.test.ts
+	tests/api-resources/beta/webhooks.test.ts
 	tests/api-resources/beta/user-profiles.test.ts
 	tests/index.test.ts
 )

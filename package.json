@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/sdk",
-  "version": "0.94.0",
+  "version": "0.95.0",
   "description": "The official TypeScript library for the Anthropic API",
   "author": "Anthropic <support@anthropic.com>",
   "types": "dist/index.d.ts",
@@ -27,6 +27,7 @@
     "fix": "./scripts/format"
   },
   "dependencies": {
+    "standardwebhooks": "^1.0.0",
     "json-schema-to-ts": "^3.1.1"
   },
   "peerDependencies": {

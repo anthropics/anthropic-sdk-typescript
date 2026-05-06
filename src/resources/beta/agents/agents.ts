@@ -4,6 +4,7 @@ import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
 import * as VersionsAPI from './versions';
 import { VersionListParams, Versions } from './versions';
+import * as SessionsAPI from '../sessions/sessions';
 import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
@@ -174,6 +175,11 @@ export interface BetaManagedAgentsAgent {
    */
   model: BetaManagedAgentsModelConfig;
 
+  /**
+   * Resolved coordinator topology with a concrete agent roster.
+   */
+  multiagent: SessionsAPI.BetaManagedAgentsMultiagent | null;
+
   name: string;
 
   skills: Array<BetaManagedAgentsAnthropicSkill | BetaManagedAgentsCustomSkill>;
@@ -195,6 +201,17 @@ export interface BetaManagedAgentsAgent {
    * The agent's current version. Starts at 1 and increments when the agent is
    * modified.
    */
+  version: number;
+}
+
+/**
+ * A resolved agent reference with a concrete version.
+ */
+export interface BetaManagedAgentsAgentReference {
+  id: string;
+
+  type: 'agent';
+
   version: number;
 }
 
@@ -590,6 +607,45 @@ export interface BetaManagedAgentsModelConfigParams {
 }
 
 /**
+ * Resolved coordinator topology with a concrete agent roster.
+ */
+export interface BetaManagedAgentsMultiagentCoordinator {
+  /**
+   * Agents the coordinator may spawn as session threads, each resolved to a specific
+   * version.
+   */
+  agents: Array<BetaManagedAgentsAgentReference>;
+
+  type: 'coordinator';
+}
+
+/**
+ * A coordinator topology: the session's primary thread orchestrates work by
+ * spawning session threads, each running an agent drawn from the `agents` roster.
+ */
+export interface BetaManagedAgentsMultiagentCoordinatorParams {
+  /**
+   * Agents the coordinator may spawn as session threads. 1–20 entries. Each entry is
+   * an agent ID string, a versioned `{"type":"agent","id","version"}` reference, or
+   * `{"type":"self"}` to allow recursive self-invocation. Entries must reference
+   * distinct agents (after resolving `self` and string forms); at most one `self`.
+   * Referenced agents must exist, must not be archived, and must not themselves have
+   * `multiagent` set (depth limit 1).
+   */
+  agents: Array<SessionsAPI.BetaManagedAgentsMultiagentRosterEntryParams>;
+
+  type: 'coordinator';
+}
+
+/**
+ * Sentinel roster entry meaning "the agent that owns this configuration". Resolved
+ * server-side to a concrete agent reference.
+ */
+export interface BetaManagedAgentsMultiagentSelfParams {
+  type: 'self';
+}
+
+/**
  * Skill to load in the session container.
  */
 export type BetaManagedAgentsSkillParams =
@@ -644,6 +700,13 @@ export interface AgentCreateParams {
    * values up to 512 chars.
    */
   metadata?: { [key: string]: string };
+
+  /**
+   * Body param: A coordinator topology: the session's primary thread orchestrates
+   * work by spawning session threads, each running an agent drawn from the `agents`
+   * roster.
+   */
+  multiagent?: SessionsAPI.BetaManagedAgentsMultiagentParams | null;
 
   /**
    * Body param: Skills available to the agent. Maximum 20.
@@ -720,6 +783,13 @@ export interface AgentUpdateParams {
   model?: BetaManagedAgentsModel | BetaManagedAgentsModelConfigParams;
 
   /**
+   * Body param: A coordinator topology: the session's primary thread orchestrates
+   * work by spawning session threads, each running an agent drawn from the `agents`
+   * roster.
+   */
+  multiagent?: SessionsAPI.BetaManagedAgentsMultiagentParams | null;
+
+  /**
    * Body param: Human-readable name. 1-256 characters. Omit to preserve. Cannot be
    * cleared.
    */
@@ -788,6 +858,7 @@ Agents.Versions = Versions;
 export declare namespace Agents {
   export {
     type BetaManagedAgentsAgent as BetaManagedAgentsAgent,
+    type BetaManagedAgentsAgentReference as BetaManagedAgentsAgentReference,
     type BetaManagedAgentsAgentToolConfig as BetaManagedAgentsAgentToolConfig,
     type BetaManagedAgentsAgentToolConfigParams as BetaManagedAgentsAgentToolConfigParams,
     type BetaManagedAgentsAgentToolsetDefaultConfig as BetaManagedAgentsAgentToolsetDefaultConfig,
@@ -813,6 +884,9 @@ export declare namespace Agents {
     type BetaManagedAgentsModel as BetaManagedAgentsModel,
     type BetaManagedAgentsModelConfig as BetaManagedAgentsModelConfig,
     type BetaManagedAgentsModelConfigParams as BetaManagedAgentsModelConfigParams,
+    type BetaManagedAgentsMultiagentCoordinator as BetaManagedAgentsMultiagentCoordinator,
+    type BetaManagedAgentsMultiagentCoordinatorParams as BetaManagedAgentsMultiagentCoordinatorParams,
+    type BetaManagedAgentsMultiagentSelfParams as BetaManagedAgentsMultiagentSelfParams,
     type BetaManagedAgentsSkillParams as BetaManagedAgentsSkillParams,
     type BetaManagedAgentsURLMCPServerParams as BetaManagedAgentsURLMCPServerParams,
     type BetaManagedAgentsAgentsPageCursor as BetaManagedAgentsAgentsPageCursor,

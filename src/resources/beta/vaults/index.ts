@@ -3,6 +3,8 @@
 export {
   Credentials,
   type BetaManagedAgentsCredential,
+  type BetaManagedAgentsCredentialValidation,
+  type BetaManagedAgentsCredentialValidationStatus,
   type BetaManagedAgentsDeletedCredential,
   type BetaManagedAgentsMCPOAuthAuthResponse,
   type BetaManagedAgentsMCPOAuthCreateParams,
@@ -10,6 +12,9 @@ export {
   type BetaManagedAgentsMCPOAuthRefreshResponse,
   type BetaManagedAgentsMCPOAuthRefreshUpdateParams,
   type BetaManagedAgentsMCPOAuthUpdateParams,
+  type BetaManagedAgentsMCPProbe,
+  type BetaManagedAgentsRefreshHTTPResponse,
+  type BetaManagedAgentsRefreshObject,
   type BetaManagedAgentsStaticBearerAuthResponse,
   type BetaManagedAgentsStaticBearerCreateParams,
   type BetaManagedAgentsStaticBearerUpdateParams,
@@ -27,6 +32,7 @@ export {
   type CredentialListParams,
   type CredentialDeleteParams,
   type CredentialArchiveParams,
+  type CredentialMCPOAuthValidateParams,
   type BetaManagedAgentsCredentialsPageCursor,
 } from './credentials';
 export {

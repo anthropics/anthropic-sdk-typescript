@@ -342,6 +342,11 @@ export interface ClientOptions {
   profile?: string | null | undefined;
 
   /**
+   * Defaults to process.env['ANTHROPIC_WEBHOOK_SIGNING_KEY'].
+   */
+  webhookKey?: string | null | undefined;
+
+  /**
    * Override the default base URL for the API, e.g., "https://api.example.com/v2/"
    *
    * Defaults to process.env['ANTHROPIC_BASE_URL'].
@@ -425,6 +430,7 @@ export const AI_PROMPT = '\\n\\nAssistant:';
 export class BaseAnthropic {
   apiKey: string | null;
   authToken: string | null;
+  webhookKey: string | null;
 
   /**
    * The active credential provider. Default credential resolution runs once
@@ -460,6 +466,7 @@ export class BaseAnthropic {
    *
    * @param {string | null | undefined} [opts.apiKey=process.env['ANTHROPIC_API_KEY'] ?? null]
    * @param {string | null | undefined} [opts.authToken=process.env['ANTHROPIC_AUTH_TOKEN'] ?? null]
+   * @param {string | null | undefined} [opts.webhookKey=process.env['ANTHROPIC_WEBHOOK_SIGNING_KEY'] ?? null]
    * @param {string} [opts.baseURL=process.env['ANTHROPIC_BASE_URL'] ?? https://api.anthropic.com] - Override the default base URL for the API.
    * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
    * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
@@ -469,7 +476,13 @@ export class BaseAnthropic {
    * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
    * @param {boolean} [opts.dangerouslyAllowBrowser=false] - By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
    */
-  constructor({ baseURL = readEnv('ANTHROPIC_BASE_URL'), apiKey, authToken, ...opts }: ClientOptions = {}) {
+  constructor({
+    baseURL = readEnv('ANTHROPIC_BASE_URL'),
+    apiKey,
+    authToken,
+    webhookKey = readEnv('ANTHROPIC_WEBHOOK_SIGNING_KEY') ?? null,
+    ...opts
+  }: ClientOptions = {}) {
     // An explicit `profile` is a constructor-level credential choice; when set,
     // do not let env ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN shadow it.
     if (apiKey === undefined) {
@@ -484,6 +497,7 @@ export class BaseAnthropic {
     const options: ClientOptions = {
       apiKey,
       authToken,
+      webhookKey,
       ...opts,
       baseURL: baseURL || `https://api.anthropic.com`,
     };
@@ -538,6 +552,7 @@ export class BaseAnthropic {
 
     this.apiKey = typeof apiKey === 'string' ? apiKey : null;
     this.authToken = authToken;
+    this.webhookKey = webhookKey;
 
     if (inherited) {
       this._authState = inherited;
@@ -644,6 +659,7 @@ export class BaseAnthropic {
       fetchOptions: this.fetchOptions,
       apiKey: this.apiKey,
       authToken: this.authToken,
+      webhookKey: this.webhookKey,
       // credentials: this.credentials is a no-op when __auth is shared (the
       // ctor takes the inherited path and ignores options.credentials); when
       // overridesAuth is true via apiKey/authToken only, it lets the clone
@@ -780,9 +796,6 @@ export class BaseAnthropic {
     return buildHeaders([{ Authorization: `Bearer ${this.authToken}` }]);
   }
 
-  /**
-   * Basic re-implementation of `qs.stringify` for primitive types.
-   */
   protected stringifyQuery(query: object | Record<string, unknown>): string {
     return stringifyQuery(query);
   }
