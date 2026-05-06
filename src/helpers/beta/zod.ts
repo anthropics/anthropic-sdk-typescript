@@ -3,7 +3,8 @@ import type { infer as zodInfer, ZodType } from 'zod';
 import * as z from 'zod/v4';
 import { AnthropicError } from '../../core/error';
 import { AutoParseableBetaOutputFormat } from '../../lib/beta-parser';
-import { BetaRunnableTool, BetaToolRunContext, Promisable } from '../../lib/tools/BetaRunnableTool';
+import { BetaRunnableCustomTool, BetaToolRunContext, Promisable } from '../../lib/tools/BetaRunnableTool';
+export type { BetaRunnableCustomTool } from '../../lib/tools/BetaRunnableTool';
 import { BetaToolResultContentBlockParam } from '../../resources/beta';
 /**
  * Creates a JSON schema output format object from the given Zod schema.
@@ -54,7 +55,7 @@ export function betaZodTool<InputSchema extends ZodType>(options: {
     args: zodInfer<InputSchema>,
     context?: BetaToolRunContext,
   ) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
-}): BetaRunnableTool<zodInfer<InputSchema>> {
+}): BetaRunnableCustomTool<zodInfer<InputSchema>> {
   const jsonSchema = z.toJSONSchema(options.inputSchema, { reused: 'ref' });
 
   if (jsonSchema.type !== 'object') {
