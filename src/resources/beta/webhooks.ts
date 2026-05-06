@@ -45,7 +45,7 @@ export type BetaWebhookEventData =
   | BetaWebhookSessionRequiresActionEventData
   | BetaWebhookSessionArchivedEventData
   | BetaWebhookSessionDeletedEventData
-  | BetaWebhookSessionStatusScheduledEventData
+  | BetaWebhookSessionStatusRescheduledEventData
   | BetaWebhookSessionStatusRunStartedEventData
   | BetaWebhookSessionStatusIdledEventData
   | BetaWebhookSessionStatusTerminatedEventData
@@ -178,6 +178,19 @@ export interface BetaWebhookSessionStatusIdledEventData {
   workspace_id: string;
 }
 
+export interface BetaWebhookSessionStatusRescheduledEventData {
+  /**
+   * ID of the resource that triggered the event.
+   */
+  id: string;
+
+  organization_id: string;
+
+  type: 'session.status_rescheduled';
+
+  workspace_id: string;
+}
+
 export interface BetaWebhookSessionStatusRunStartedEventData {
   /**
    * ID of the resource that triggered the event.
@@ -187,19 +200,6 @@ export interface BetaWebhookSessionStatusRunStartedEventData {
   organization_id: string;
 
   type: 'session.status_run_started';
-
-  workspace_id: string;
-}
-
-export interface BetaWebhookSessionStatusScheduledEventData {
-  /**
-   * ID of the resource that triggered the event.
-   */
-  id: string;
-
-  organization_id: string;
-
-  type: 'session.status_scheduled';
 
   workspace_id: string;
 }
@@ -399,8 +399,8 @@ export declare namespace Webhooks {
     type BetaWebhookSessionRequiresActionEventData as BetaWebhookSessionRequiresActionEventData,
     type BetaWebhookSessionRunningEventData as BetaWebhookSessionRunningEventData,
     type BetaWebhookSessionStatusIdledEventData as BetaWebhookSessionStatusIdledEventData,
+    type BetaWebhookSessionStatusRescheduledEventData as BetaWebhookSessionStatusRescheduledEventData,
     type BetaWebhookSessionStatusRunStartedEventData as BetaWebhookSessionStatusRunStartedEventData,
-    type BetaWebhookSessionStatusScheduledEventData as BetaWebhookSessionStatusScheduledEventData,
     type BetaWebhookSessionStatusTerminatedEventData as BetaWebhookSessionStatusTerminatedEventData,
     type BetaWebhookSessionThreadCreatedEventData as BetaWebhookSessionThreadCreatedEventData,
     type BetaWebhookSessionThreadIdledEventData as BetaWebhookSessionThreadIdledEventData,

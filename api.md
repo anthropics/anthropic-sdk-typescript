@@ -916,8 +916,8 @@ Types:
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionRequiresActionEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionRunningEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionStatusIdledEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionStatusRescheduledEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionStatusRunStartedEventData</a></code>
-- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionStatusScheduledEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionStatusTerminatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionThreadCreatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionThreadIdledEventData</a></code>
