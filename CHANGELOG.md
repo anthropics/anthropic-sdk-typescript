@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.95.0 (2026-05-06)
+
+Full Changelog: [sdk-v0.94.0...sdk-v0.95.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.94.0...sdk-v0.95.0)
+
+### Features
+
+* **api:** add support for Managed Agents multiagents and outcomes, webhooks, vault validation ([e0c0e9b](https://github.com/anthropics/anthropic-sdk-typescript/commit/e0c0e9bef90b1919a5b806eb252e028981841e68))
+
+
+### Bug Fixes
+
+* **api:** Adjust webhook configuration ([deed3f6](https://github.com/anthropics/anthropic-sdk-typescript/commit/deed3f6290c0728dfc688e19117e1c01efb81a52))
+
 ## 0.94.0 (2026-05-05)
 
 Full Changelog: [sdk-v0.93.0...sdk-v0.94.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.93.0...sdk-v0.94.0)
