@@ -48,7 +48,7 @@ async function main() {
         },
       }),
     ],
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 1024,
     // This limits the conversation to at most 10 back and forth between the API.
     max_iterations: 10,
