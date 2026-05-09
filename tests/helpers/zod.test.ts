@@ -1,8 +1,53 @@
 import { z } from 'zod';
-import { betaZodOutputFormat } from '../../src/helpers/beta/zod';
+import type { ToolUnion } from '../../src/resources/messages/messages';
+import { betaZodOutputFormat, betaZodTool } from '../../src/helpers/beta/zod';
 import { zodOutputFormat } from '../../src/helpers/zod';
 
 describe('beta zod helpers', () => {
+  describe('betaZodTool', () => {
+    it('returns a tool that is assignable to ToolUnion (issue #1010)', () => {
+      const tool = betaZodTool({
+        name: 'create_event',
+        description: 'Create a calendar event',
+        inputSchema: z.object({ title: z.string() }),
+        run: async (input) => `Created: ${input.title}`,
+      });
+
+      // Compile-time check: betaZodTool result must be usable as ToolUnion
+      const toolUnion: ToolUnion = tool;
+      expect(toolUnion.name).toBe('create_event');
+    });
+
+    it('generates correct tool definition', () => {
+      const tool = betaZodTool({
+        name: 'my_tool',
+        description: 'A test tool',
+        inputSchema: z.object({ value: z.number() }),
+        run: async (input) => String(input.value),
+      });
+
+      expect(tool.type).toBe('custom');
+      expect(tool.name).toBe('my_tool');
+      expect(tool.description).toBe('A test tool');
+      expect(tool.input_schema.type).toBe('object');
+    });
+
+    it('run and parse methods work correctly', async () => {
+      const tool = betaZodTool({
+        name: 'echo',
+        description: 'Echo a value',
+        inputSchema: z.object({ msg: z.string() }),
+        run: async (input) => `echo: ${input.msg}`,
+      });
+
+      const result = await tool.run({ msg: 'hello' });
+      expect(result).toBe('echo: hello');
+
+      const parsed = tool.parse({ msg: 'world' });
+      expect(parsed).toEqual({ msg: 'world' });
+    });
+  });
+
   describe('betaZodOutputFormat', () => {
     it('creates valid JSON schema from simple Zod object', () => {
       const schema = z.object({
