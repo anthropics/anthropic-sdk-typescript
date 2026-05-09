@@ -167,7 +167,7 @@ Full Changelog: [vertex-sdk-v0.10.0...vertex-sdk-v0.11.0](https://github.com/ant
 
 ## 0.10.0 (2025-05-09)
 
-Full Changelog: [vertex-sdk-v0.7.0...vertex-sdk-v0.7.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.7.0...vertex-sdk-v0.7.1)
+Full Changelog: [vertex-sdk-v0.7.1...vertex-sdk-v0.11.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.7.1...vertex-sdk-v0.11.0)
 
 ### Bug Fixes
 
@@ -406,7 +406,7 @@ Full Changelog: [vertex-sdk-v0.1.0...vertex-sdk-v0.1.1](https://github.com/anthr
 
 ## 0.1.0 (2024-01-23)
 
-Full Changelog: [vertex-sdk-v0.0.1...vertex-sdk-v0.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.0.1...vertex-sdk-v0.1.0)
+Full Changelog: [vertex-sdk-v0.1.0](https://github.com/anthropics/anthropic-sdk-typescript/releases/tag/vertex-sdk-v0.1.0)
 
 ### Features
 
