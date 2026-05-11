@@ -1,6 +1,13 @@
 {
   "packages": {
-    ".": {},
+    ".": {
+      "exclude-paths": [
+        "packages/aws-sdk",
+        "packages/vertex-sdk",
+        "packages/bedrock-sdk",
+        "packages/foundry-sdk"
+      ]
+    },
     "packages/vertex-sdk": {},
     "packages/bedrock-sdk": {},
     "packages/foundry-sdk": {},
