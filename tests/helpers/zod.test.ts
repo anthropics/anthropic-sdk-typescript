@@ -1,6 +1,17 @@
 import { z } from 'zod';
-import { betaZodOutputFormat } from '../../src/helpers/beta/zod';
+import { betaZodOutputFormat, betaZodTool } from '../../src/helpers/beta/zod';
 import { zodOutputFormat } from '../../src/helpers/zod';
+
+// Mimic the shape of a zod v3 schema: `_def.typeName` is set, `_zod` is absent.
+// We only need enough surface for the type system; runtime never reaches `safeParse`
+// because the v4 assertion short-circuits first.
+function fakeZodV3Schema(): any {
+  return {
+    _def: { typeName: 'ZodObject' },
+    safeParse: () => ({ success: true, data: {} }),
+    parse: (v: unknown) => v,
+  };
+}
 
 describe('beta zod helpers', () => {
   describe('betaZodOutputFormat', () => {
@@ -502,6 +513,28 @@ describe('GA zod helpers', () => {
 
       expect(() => format.parse('invalid json')).toThrow();
       expect(() => format.parse('{"incomplete": ')).toThrow();
+    });
+  });
+
+  describe('zod v3 schema rejection', () => {
+    it('zodOutputFormat throws a clear error when given a v3-shaped schema', () => {
+      expect(() => zodOutputFormat(fakeZodV3Schema())).toThrow(/zod v4 schema/);
+      expect(() => zodOutputFormat(fakeZodV3Schema())).toThrow(/zod\/v4/);
+    });
+
+    it('betaZodOutputFormat throws a clear error when given a v3-shaped schema', () => {
+      expect(() => betaZodOutputFormat(fakeZodV3Schema())).toThrow(/zod v4 schema/);
+    });
+
+    it('betaZodTool throws a clear error when given a v3-shaped input schema', () => {
+      expect(() =>
+        betaZodTool({
+          name: 'noop',
+          description: 'noop',
+          inputSchema: fakeZodV3Schema(),
+          run: async () => 'ok',
+        }),
+      ).toThrow(/zod v4 schema/);
     });
   });
 });
