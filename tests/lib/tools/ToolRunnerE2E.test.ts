@@ -1,6 +1,6 @@
 import { Anthropic } from '../../../src';
 import { betaZodTool } from '../../../src/helpers/beta/zod';
-import * as z from 'zod';
+import * as z from 'zod/v4';
 import nock from 'nock';
 import { gunzipSync } from 'zlib';
 import { RequestInfo } from '@anthropic-ai/sdk/internal/builtin-types';

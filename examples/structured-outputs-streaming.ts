@@ -2,7 +2,7 @@
 
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import Anthropic from '@anthropic-ai/sdk';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 const WeatherResponse = z.object({
   city: z.string(),

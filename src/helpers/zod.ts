@@ -1,5 +1,4 @@
 import { transformJSONSchema } from '../lib/transform-json-schema';
-import type { infer as zodInfer, ZodType } from 'zod';
 import * as z from 'zod/v4';
 import { AnthropicError } from '../core/error';
 import { AutoParseableOutputFormat } from '../lib/parser';
@@ -13,9 +12,9 @@ import { AutoParseableOutputFormat } from '../lib/parser';
  * This can be passed directly to the `.create()` method but will not
  * result in any automatic parsing, you'll have to parse the response yourself.
  */
-export function zodOutputFormat<ZodInput extends ZodType>(
+export function zodOutputFormat<ZodInput extends z.ZodType>(
   zodObject: ZodInput,
-): AutoParseableOutputFormat<zodInfer<ZodInput>> {
+): AutoParseableOutputFormat<z.infer<ZodInput>> {
   let jsonSchema = z.toJSONSchema(zodObject, { reused: 'ref' });
 
   jsonSchema = transformJSONSchema(jsonSchema);

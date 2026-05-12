@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import * as z from 'zod/v4';
 import { betaZodTool } from '../../../src/helpers/beta/zod';
 
 describe('zod helpers', () => {

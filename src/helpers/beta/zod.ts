@@ -1,5 +1,4 @@
 import { transformJSONSchema } from '../..//lib/transform-json-schema';
-import type { infer as zodInfer, ZodType } from 'zod';
 import * as z from 'zod/v4';
 import { AnthropicError } from '../../core/error';
 import { AutoParseableBetaOutputFormat } from '../../lib/beta-parser';
@@ -14,9 +13,9 @@ import { BetaToolResultContentBlockParam } from '../../resources/beta';
  * This can be passed directly to the `.create()` method but will not
  * result in any automatic parsing, you'll have to parse the response yourself.
  */
-export function betaZodOutputFormat<ZodInput extends ZodType>(
+export function betaZodOutputFormat<ZodInput extends z.ZodType>(
   zodObject: ZodInput,
-): AutoParseableBetaOutputFormat<zodInfer<ZodInput>> {
+): AutoParseableBetaOutputFormat<z.infer<ZodInput>> {
   let jsonSchema = z.toJSONSchema(zodObject, { reused: 'ref' });
 
   jsonSchema = transformJSONSchema(jsonSchema);
@@ -46,15 +45,15 @@ export function betaZodOutputFormat<ZodInput extends ZodType>(
  * converted into JSON Schema when passed to the API. The provided function's
  * input arguments will also be validated against the provided schema.
  */
-export function betaZodTool<InputSchema extends ZodType>(options: {
+export function betaZodTool<InputSchema extends z.ZodType>(options: {
   name: string;
   inputSchema: InputSchema;
   description: string;
   run: (
-    args: zodInfer<InputSchema>,
+    args: z.infer<InputSchema>,
     context?: BetaToolRunContext,
   ) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
-}): BetaRunnableTool<zodInfer<InputSchema>> {
+}): BetaRunnableTool<z.infer<InputSchema>> {
   const jsonSchema = z.toJSONSchema(options.inputSchema, { reused: 'ref' });
 
   if (jsonSchema.type !== 'object') {
@@ -70,6 +69,6 @@ export function betaZodTool<InputSchema extends ZodType>(options: {
     input_schema: objectSchema,
     description: options.description,
     run: options.run,
-    parse: (args: unknown) => options.inputSchema.parse(args) as zodInfer<InputSchema>,
+    parse: (args: unknown) => options.inputSchema.parse(args) as z.infer<InputSchema>,
   };
 }

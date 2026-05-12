@@ -1,6 +1,6 @@
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { AnthropicError } from '../../src/core/error';
 import {
   BetaParseableMessageCreateParams,

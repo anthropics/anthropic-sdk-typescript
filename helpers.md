@@ -108,7 +108,7 @@ The SDK provides helpers for parsing structured JSON outputs from Claude using J
 ```ts
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import Anthropic from '@anthropic-ai/sdk';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 const client = new Anthropic();
 
@@ -183,7 +183,7 @@ The SDK provides helper functions to create runnable tools that can be automatic
 
 ```ts
 import { betaZodTool } from '@anthropic-ai/sdk/helpers/beta/zod';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 
 const weatherTool = betaZodTool({
   name: 'get_weather',

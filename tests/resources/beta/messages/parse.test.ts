@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { betaZodOutputFormat } from '../../../../src/helpers/beta/zod';
 import { Messages } from '../../../../src/resources/beta/messages/messages';
 import { AnthropicError } from '../../../../src/error';
