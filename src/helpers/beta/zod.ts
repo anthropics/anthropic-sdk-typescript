@@ -5,6 +5,7 @@ import { AnthropicError } from '../../core/error';
 import { AutoParseableBetaOutputFormat } from '../../lib/beta-parser';
 import { BetaRunnableTool, BetaToolRunContext, Promisable } from '../../lib/tools/BetaRunnableTool';
 import { BetaToolResultContentBlockParam } from '../../resources/beta';
+import type { Tool } from '../../resources/messages/messages';
 /**
  * Creates a JSON schema output format object from the given Zod schema.
  *
@@ -42,9 +43,20 @@ export function betaZodOutputFormat<ZodInput extends ZodType>(
 
 /**
  * Creates a tool using the provided Zod schema that can be passed
- * into the `.toolRunner()` method. The Zod schema will automatically be
- * converted into JSON Schema when passed to the API. The provided function's
- * input arguments will also be validated against the provided schema.
+ * into the `.toolRunner()` method or used directly with `messages.create` /
+ * `messages.stream`.
+ *
+ * When used with `.toolRunner()`, the tool's `run` function is invoked
+ * automatically each time the model calls the tool.
+ *
+ * When used with `messages.create` / `messages.stream`, the tool definition
+ * is sent to the API for the model to reference; you must inspect the response
+ * for `tool_use` content blocks and call the tool yourself — the SDK does not
+ * auto-execute tools in that flow.
+ *
+ * The Zod schema will automatically be converted into JSON Schema when passed
+ * to the API. The provided function's input arguments will also be validated
+ * against the provided schema.
  */
 export function betaZodTool<InputSchema extends ZodType>(options: {
   name: string;
@@ -54,15 +66,17 @@ export function betaZodTool<InputSchema extends ZodType>(options: {
     args: zodInfer<InputSchema>,
     context?: BetaToolRunContext,
   ) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
-}): BetaRunnableTool<zodInfer<InputSchema>> {
+}): BetaRunnableTool<zodInfer<InputSchema>> & Tool {
   const jsonSchema = z.toJSONSchema(options.inputSchema, { reused: 'ref' });
 
   if (jsonSchema.type !== 'object') {
     throw new Error(`Zod schema for tool "${options.name}" must be an object, but got ${jsonSchema.type}`);
   }
 
-  // TypeScript doesn't narrow the type after the runtime check, so we need to assert it
-  const objectSchema = jsonSchema as typeof jsonSchema & { type: 'object' };
+  // TypeScript doesn't narrow the type after the runtime check, so we need to assert it.
+  // Casting to Tool.InputSchema (a structural subtype of BetaTool.InputSchema) lets the
+  // return value satisfy both BetaRunnableTool<T> and Tool without a broad `unknown` cast.
+  const objectSchema = jsonSchema as Tool.InputSchema;
 
   return {
     type: 'custom',
