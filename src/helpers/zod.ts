@@ -2,6 +2,7 @@ import { transformJSONSchema } from '../lib/transform-json-schema';
 import type { infer as zodInfer, ZodType } from 'zod';
 import * as z from 'zod/v4';
 import { AnthropicError } from '../core/error';
+import { assertZodV4Schema } from '../lib/check-zod-version';
 import { AutoParseableOutputFormat } from '../lib/parser';
 
 /**
@@ -16,6 +17,7 @@ import { AutoParseableOutputFormat } from '../lib/parser';
 export function zodOutputFormat<ZodInput extends ZodType>(
   zodObject: ZodInput,
 ): AutoParseableOutputFormat<zodInfer<ZodInput>> {
+  assertZodV4Schema(zodObject, 'zodOutputFormat');
   let jsonSchema = z.toJSONSchema(zodObject, { reused: 'ref' });
 
   jsonSchema = transformJSONSchema(jsonSchema);
