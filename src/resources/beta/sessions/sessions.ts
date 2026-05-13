@@ -34,6 +34,9 @@ import {
   BetaManagedAgentsRetryStatusExhausted,
   BetaManagedAgentsRetryStatusRetrying,
   BetaManagedAgentsRetryStatusTerminal,
+  BetaManagedAgentsSearchResultBlock,
+  BetaManagedAgentsSearchResultCitations,
+  BetaManagedAgentsSearchResultContent,
   BetaManagedAgentsSendSessionEvents,
   BetaManagedAgentsSessionDeletedEvent,
   BetaManagedAgentsSessionEndTurn,
@@ -480,9 +483,9 @@ export interface BetaManagedAgentsOutcomeEvaluationResource {
   outcome_id: string;
 
   /**
-   * Current evaluation state. 'pending' before the agent begins work; 'running'
-   * while producing or revising; 'evaluating' while the grader scores;
-   * 'satisfied'/'max_iterations_reached'/'failed'/'interrupted' are terminal.
+   * Current evaluation state. `pending` before the agent begins work; `running`
+   * while producing or revising; `evaluating` while the grader scores;
+   * `satisfied`/`max_iterations_reached`/`failed`/`interrupted` are terminal.
    */
   result: string;
 
@@ -864,6 +867,9 @@ export declare namespace Sessions {
     type BetaManagedAgentsRetryStatusExhausted as BetaManagedAgentsRetryStatusExhausted,
     type BetaManagedAgentsRetryStatusRetrying as BetaManagedAgentsRetryStatusRetrying,
     type BetaManagedAgentsRetryStatusTerminal as BetaManagedAgentsRetryStatusTerminal,
+    type BetaManagedAgentsSearchResultBlock as BetaManagedAgentsSearchResultBlock,
+    type BetaManagedAgentsSearchResultCitations as BetaManagedAgentsSearchResultCitations,
+    type BetaManagedAgentsSearchResultContent as BetaManagedAgentsSearchResultContent,
     type BetaManagedAgentsSendSessionEvents as BetaManagedAgentsSendSessionEvents,
     type BetaManagedAgentsSessionDeletedEvent as BetaManagedAgentsSessionDeletedEvent,
     type BetaManagedAgentsSessionEndTurn as BetaManagedAgentsSessionEndTurn,
