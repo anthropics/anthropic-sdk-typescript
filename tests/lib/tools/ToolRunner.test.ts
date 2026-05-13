@@ -103,6 +103,7 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
       stop_sequence: null,
       container: null,
       context_management: null,
+      diagnostics: null,
       usage: {
         cache_creation: null,
         cache_creation_input_tokens: null,
@@ -234,6 +235,7 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
       stop_sequence: null,
       container: null,
       context_management: null,
+      diagnostics: null,
       usage: {
         input_tokens: 10,
         output_tokens: 20,
@@ -271,6 +273,7 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
       stop_sequence: null,
       container: null,
       context_management: null,
+      diagnostics: null,
       usage: {
         input_tokens: 10,
         output_tokens: 20,

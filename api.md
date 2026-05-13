@@ -296,6 +296,12 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultErrorParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheControlEphemeral</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheCreation</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissMessagesChanged</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissModelChanged</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissPreviousMessageNotFound</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissSystemChanged</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissToolsChanged</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissUnavailable</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationCharLocation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationCharLocationParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCitationConfig</a></code>
@@ -343,6 +349,8 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContextManagementConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContextManagementResponse</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCountTokensContextManagementResponse</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaDiagnostics</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaDiagnosticsParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaDirectCaller</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaDocumentBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaEncryptedCodeExecutionResultBlock</a></code>

@@ -564,6 +564,12 @@ export namespace BatchCreateParams {
       context_management?: BetaMessagesAPI.BetaContextManagementConfig | null;
 
       /**
+       * Request-level diagnostics. Currently carries the previous response id for
+       * prompt-cache divergence reporting.
+       */
+      diagnostics?: BetaMessagesAPI.BetaDiagnosticsParam | null;
+
+      /**
        * Specifies the geographic region for inference processing. If not specified, the
        * workspace's `default_inference_geo` is used.
        */

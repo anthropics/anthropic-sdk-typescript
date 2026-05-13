@@ -171,6 +171,12 @@ import {
   BetaBashCodeExecutionToolResultErrorParam,
   BetaCacheControlEphemeral,
   BetaCacheCreation,
+  BetaCacheMissMessagesChanged,
+  BetaCacheMissModelChanged,
+  BetaCacheMissPreviousMessageNotFound,
+  BetaCacheMissSystemChanged,
+  BetaCacheMissToolsChanged,
+  BetaCacheMissUnavailable,
   BetaCitationCharLocation,
   BetaCitationCharLocationParam,
   BetaCitationConfig,
@@ -218,6 +224,8 @@ import {
   BetaContextManagementConfig,
   BetaContextManagementResponse,
   BetaCountTokensContextManagementResponse,
+  BetaDiagnostics,
+  BetaDiagnosticsParam,
   BetaDirectCaller,
   BetaDocumentBlock,
   BetaEncryptedCodeExecutionResultBlock,
@@ -448,7 +456,8 @@ export type AnthropicBeta =
   | 'output-300k-2026-03-24'
   | 'user-profiles-2026-03-24'
   | 'advisor-tool-2026-03-01'
-  | 'managed-agents-2026-04-01';
+  | 'managed-agents-2026-04-01'
+  | 'cache-diagnosis-2026-04-07';
 
 export interface BetaAPIError {
   message: string;
@@ -590,6 +599,12 @@ export declare namespace Beta {
     type BetaBashCodeExecutionToolResultErrorParam as BetaBashCodeExecutionToolResultErrorParam,
     type BetaCacheControlEphemeral as BetaCacheControlEphemeral,
     type BetaCacheCreation as BetaCacheCreation,
+    type BetaCacheMissMessagesChanged as BetaCacheMissMessagesChanged,
+    type BetaCacheMissModelChanged as BetaCacheMissModelChanged,
+    type BetaCacheMissPreviousMessageNotFound as BetaCacheMissPreviousMessageNotFound,
+    type BetaCacheMissSystemChanged as BetaCacheMissSystemChanged,
+    type BetaCacheMissToolsChanged as BetaCacheMissToolsChanged,
+    type BetaCacheMissUnavailable as BetaCacheMissUnavailable,
     type BetaCitationCharLocation as BetaCitationCharLocation,
     type BetaCitationCharLocationParam as BetaCitationCharLocationParam,
     type BetaCitationConfig as BetaCitationConfig,
@@ -637,6 +652,8 @@ export declare namespace Beta {
     type BetaContextManagementConfig as BetaContextManagementConfig,
     type BetaContextManagementResponse as BetaContextManagementResponse,
     type BetaCountTokensContextManagementResponse as BetaCountTokensContextManagementResponse,
+    type BetaDiagnostics as BetaDiagnostics,
+    type BetaDiagnosticsParam as BetaDiagnosticsParam,
     type BetaDirectCaller as BetaDirectCaller,
     type BetaDocumentBlock as BetaDocumentBlock,
     type BetaEncryptedCodeExecutionResultBlock as BetaEncryptedCodeExecutionResultBlock,

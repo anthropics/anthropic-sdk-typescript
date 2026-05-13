@@ -562,6 +562,54 @@ export interface BetaCacheCreation {
   ephemeral_5m_input_tokens: number;
 }
 
+export interface BetaCacheMissMessagesChanged {
+  /**
+   * Approximate number of input tokens that would have been read from cache had the
+   * prefix matched the previous request.
+   */
+  cache_missed_input_tokens: number;
+
+  type: 'messages_changed';
+}
+
+export interface BetaCacheMissModelChanged {
+  /**
+   * Approximate number of input tokens that would have been read from cache had the
+   * prefix matched the previous request.
+   */
+  cache_missed_input_tokens: number;
+
+  type: 'model_changed';
+}
+
+export interface BetaCacheMissPreviousMessageNotFound {
+  type: 'previous_message_not_found';
+}
+
+export interface BetaCacheMissSystemChanged {
+  /**
+   * Approximate number of input tokens that would have been read from cache had the
+   * prefix matched the previous request.
+   */
+  cache_missed_input_tokens: number;
+
+  type: 'system_changed';
+}
+
+export interface BetaCacheMissToolsChanged {
+  /**
+   * Approximate number of input tokens that would have been read from cache had the
+   * prefix matched the previous request.
+   */
+  cache_missed_input_tokens: number;
+
+  type: 'tools_changed';
+}
+
+export interface BetaCacheMissUnavailable {
+  type: 'unavailable';
+}
+
 export interface BetaCitationCharLocation {
   cited_text: string;
 
@@ -1331,6 +1379,42 @@ export interface BetaCountTokensContextManagementResponse {
 }
 
 /**
+ * Response envelope for request-level diagnostics. Present (possibly null)
+ * whenever the caller supplied `diagnostics` on the request.
+ */
+export interface BetaDiagnostics {
+  /**
+   * Explains why the prompt cache could not fully reuse the prefix from the request
+   * identified by `diagnostics.previous_message_id`. `null` means diagnosis is still
+   * pending — the response was serialized before the background comparison
+   * completed.
+   */
+  cache_miss_reason:
+    | BetaCacheMissModelChanged
+    | BetaCacheMissSystemChanged
+    | BetaCacheMissToolsChanged
+    | BetaCacheMissMessagesChanged
+    | BetaCacheMissPreviousMessageNotFound
+    | BetaCacheMissUnavailable
+    | null;
+}
+
+/**
+ * Request-level diagnostics. Currently carries the previous response id for
+ * prompt-cache divergence reporting.
+ */
+export interface BetaDiagnosticsParam {
+  /**
+   * The `id` (`msg_...`) from this client's previous /v1/messages response. The
+   * server compares that request's prompt fingerprint against this one and returns
+   * `diagnostics.cache_miss_reason` when the prompt-cache prefix could not be
+   * reused. Pass `null` on the first turn to opt in without a prior message to
+   * compare.
+   */
+  previous_message_id?: string | null;
+}
+
+/**
  * Tool invocation directly from the model.
  */
 export interface BetaDirectCaller {
@@ -1745,6 +1829,12 @@ export interface BetaMessage {
    * Information about context management strategies applied during the request.
    */
   context_management: BetaContextManagementResponse | null;
+
+  /**
+   * Response envelope for request-level diagnostics. Present (possibly null)
+   * whenever the caller supplied `diagnostics` on the request.
+   */
+  diagnostics: BetaDiagnostics | null;
 
   /**
    * The model that will complete your prompt.\n\nSee
@@ -3948,6 +4038,12 @@ export interface MessageCreateParamsBase {
   context_management?: BetaContextManagementConfig | null;
 
   /**
+   * Body param: Request-level diagnostics. Currently carries the previous response
+   * id for prompt-cache divergence reporting.
+   */
+  diagnostics?: BetaDiagnosticsParam | null;
+
+  /**
    * Body param: Specifies the geographic region for inference processing. If not
    * specified, the workspace's `default_inference_geo` is used.
    */
@@ -4465,6 +4561,12 @@ export declare namespace Messages {
     type BetaBashCodeExecutionToolResultErrorParam as BetaBashCodeExecutionToolResultErrorParam,
     type BetaCacheControlEphemeral as BetaCacheControlEphemeral,
     type BetaCacheCreation as BetaCacheCreation,
+    type BetaCacheMissMessagesChanged as BetaCacheMissMessagesChanged,
+    type BetaCacheMissModelChanged as BetaCacheMissModelChanged,
+    type BetaCacheMissPreviousMessageNotFound as BetaCacheMissPreviousMessageNotFound,
+    type BetaCacheMissSystemChanged as BetaCacheMissSystemChanged,
+    type BetaCacheMissToolsChanged as BetaCacheMissToolsChanged,
+    type BetaCacheMissUnavailable as BetaCacheMissUnavailable,
     type BetaCitationCharLocation as BetaCitationCharLocation,
     type BetaCitationCharLocationParam as BetaCitationCharLocationParam,
     type BetaCitationConfig as BetaCitationConfig,
@@ -4512,6 +4614,8 @@ export declare namespace Messages {
     type BetaContextManagementConfig as BetaContextManagementConfig,
     type BetaContextManagementResponse as BetaContextManagementResponse,
     type BetaCountTokensContextManagementResponse as BetaCountTokensContextManagementResponse,
+    type BetaDiagnostics as BetaDiagnostics,
+    type BetaDiagnosticsParam as BetaDiagnosticsParam,
     type BetaDirectCaller as BetaDirectCaller,
     type BetaDocumentBlock as BetaDocumentBlock,
     type BetaEncryptedCodeExecutionResultBlock as BetaEncryptedCodeExecutionResultBlock,
