@@ -172,7 +172,12 @@ export interface BetaManagedAgentsAgentMCPToolResultEvent {
   /**
    * The result content returned by the tool.
    */
-  content?: Array<BetaManagedAgentsTextBlock | BetaManagedAgentsImageBlock | BetaManagedAgentsDocumentBlock>;
+  content?: Array<
+    | BetaManagedAgentsTextBlock
+    | BetaManagedAgentsImageBlock
+    | BetaManagedAgentsDocumentBlock
+    | BetaManagedAgentsSearchResultBlock
+  >;
 
   /**
    * Whether the tool execution resulted in an error.
@@ -374,7 +379,12 @@ export interface BetaManagedAgentsAgentToolResultEvent {
   /**
    * The result content returned by the tool.
    */
-  content?: Array<BetaManagedAgentsTextBlock | BetaManagedAgentsImageBlock | BetaManagedAgentsDocumentBlock>;
+  content?: Array<
+    | BetaManagedAgentsTextBlock
+    | BetaManagedAgentsImageBlock
+    | BetaManagedAgentsDocumentBlock
+    | BetaManagedAgentsSearchResultBlock
+  >;
 
   /**
    * Whether the tool execution resulted in an error.
@@ -730,6 +740,60 @@ export interface BetaManagedAgentsRetryStatusRetrying {
  */
 export interface BetaManagedAgentsRetryStatusTerminal {
   type: 'terminal';
+}
+
+/**
+ * A block containing a web search result.
+ */
+export interface BetaManagedAgentsSearchResultBlock {
+  /**
+   * Citation settings for a search result.
+   */
+  citations: BetaManagedAgentsSearchResultCitations;
+
+  /**
+   * Array of text content blocks from the search result.
+   */
+  content: Array<BetaManagedAgentsSearchResultContent>;
+
+  /**
+   * The URL source of the search result.
+   */
+  source: string;
+
+  /**
+   * The title of the search result.
+   */
+  title: string;
+
+  /**
+   * The ID of the tool use that produced this search result.
+   */
+  tool_use_id: string;
+
+  type: 'search_result';
+}
+
+/**
+ * Citation settings for a search result.
+ */
+export interface BetaManagedAgentsSearchResultCitations {
+  /**
+   * Whether citations are enabled for this search result.
+   */
+  enabled: boolean;
+}
+
+/**
+ * Text content within a search result.
+ */
+export interface BetaManagedAgentsSearchResultContent {
+  /**
+   * The text content.
+   */
+  text: string;
+
+  type: 'text';
 }
 
 /**
@@ -1428,7 +1492,12 @@ export interface BetaManagedAgentsUserCustomToolResultEvent {
   /**
    * The result content returned by the tool.
    */
-  content?: Array<BetaManagedAgentsTextBlock | BetaManagedAgentsImageBlock | BetaManagedAgentsDocumentBlock>;
+  content?: Array<
+    | BetaManagedAgentsTextBlock
+    | BetaManagedAgentsImageBlock
+    | BetaManagedAgentsDocumentBlock
+    | BetaManagedAgentsSearchResultBlock
+  >;
 
   /**
    * Whether the tool execution resulted in an error.
@@ -1464,7 +1533,12 @@ export interface BetaManagedAgentsUserCustomToolResultEventParams {
   /**
    * The result content returned by the tool.
    */
-  content?: Array<BetaManagedAgentsTextBlock | BetaManagedAgentsImageBlock | BetaManagedAgentsDocumentBlock>;
+  content?: Array<
+    | BetaManagedAgentsTextBlock
+    | BetaManagedAgentsImageBlock
+    | BetaManagedAgentsDocumentBlock
+    | BetaManagedAgentsSearchResultBlock
+  >;
 
   /**
    * Whether the tool execution resulted in an error.
@@ -1765,6 +1839,9 @@ export declare namespace Events {
     type BetaManagedAgentsRetryStatusExhausted as BetaManagedAgentsRetryStatusExhausted,
     type BetaManagedAgentsRetryStatusRetrying as BetaManagedAgentsRetryStatusRetrying,
     type BetaManagedAgentsRetryStatusTerminal as BetaManagedAgentsRetryStatusTerminal,
+    type BetaManagedAgentsSearchResultBlock as BetaManagedAgentsSearchResultBlock,
+    type BetaManagedAgentsSearchResultCitations as BetaManagedAgentsSearchResultCitations,
+    type BetaManagedAgentsSearchResultContent as BetaManagedAgentsSearchResultContent,
     type BetaManagedAgentsSendSessionEvents as BetaManagedAgentsSendSessionEvents,
     type BetaManagedAgentsSessionDeletedEvent as BetaManagedAgentsSessionDeletedEvent,
     type BetaManagedAgentsSessionEndTurn as BetaManagedAgentsSessionEndTurn,

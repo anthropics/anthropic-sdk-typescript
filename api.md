@@ -651,6 +651,9 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRetryStatusExhausted</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRetryStatusRetrying</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRetryStatusTerminal</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSearchResultBlock</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSearchResultCitations</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSearchResultContent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSendSessionEvents</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionDeletedEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionEndTurn</a></code>
