@@ -51,6 +51,7 @@ describe('resource messages', () => {
           },
         ],
       },
+      diagnostics: { previous_message_id: 'previous_message_id' },
       inference_geo: 'inference_geo',
       mcp_servers: [
         {
