@@ -766,11 +766,6 @@ export interface BetaManagedAgentsSearchResultBlock {
    */
   title: string;
 
-  /**
-   * The ID of the tool use that produced this search result.
-   */
-  tool_use_id: string;
-
   type: 'search_result';
 }
 
