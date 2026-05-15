@@ -81,6 +81,37 @@ function assertToolUseResponse(events: MessageStreamEvent[], message: Message) {
   expect(message).toMatchObject(EXPECTED_TOOL_USE_MESSAGE);
 }
 
+function buildTextStreamEvents(chunks: string[]): unknown[] {
+  return [
+    {
+      type: 'message_start',
+      message: {
+        id: 'msg_text_chunks',
+        type: 'message',
+        role: 'assistant',
+        content: [],
+        model: 'claude-opus-4-20250514',
+        stop_reason: null,
+        stop_sequence: null,
+        usage: { input_tokens: 1, output_tokens: 1 },
+      },
+    },
+    { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+    ...chunks.map((text) => ({
+      type: 'content_block_delta' as const,
+      index: 0,
+      delta: { type: 'text_delta' as const, text },
+    })),
+    { type: 'content_block_stop', index: 0 },
+    {
+      type: 'message_delta',
+      delta: { stop_reason: 'end_turn', stop_sequence: null },
+      usage: { output_tokens: chunks.length },
+    },
+    { type: 'message_stop' },
+  ];
+}
+
 describe('MessageStream class', () => {
   it('aborts on break', async () => {
     const { fetch, handleStreamEvents } = mockFetch();
@@ -196,6 +227,59 @@ describe('MessageStream class', () => {
 
     assertBasicResponse(events, finalMessage);
     expect(finalText).toBe('Hello there!');
+  });
+
+  it('accumulates long text streams into the final message', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    const chunks = Array.from({ length: 500 }, (_, index) => `${index},`);
+    handleStreamEvents(buildTextStreamEvents(chunks));
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-20250514',
+      messages: [{ role: 'user', content: 'Stream text chunks.' }],
+    });
+
+    for await (const _event of stream) {
+      // Consume the stream.
+    }
+
+    const finalMessage = await stream.finalMessage();
+    expect(finalMessage.content).toEqual([{ type: 'text', text: chunks.join('') }]);
+  });
+
+  it('keeps text snapshots current for text and streamEvent listeners', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    handleStreamEvents(buildTextStreamEvents(['Hel', 'lo']));
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-20250514',
+      messages: [{ role: 'user', content: 'Say hello.' }],
+    });
+
+    const textSnapshots: string[] = [];
+    const streamEventTextSnapshots: string[] = [];
+    stream.on('text', (_delta, snapshot) => {
+      textSnapshots.push(snapshot);
+    });
+    stream.on('streamEvent', (event, snapshot) => {
+      if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+        const content = snapshot.content[0];
+        if (content?.type === 'text') streamEventTextSnapshots.push(content.text);
+      }
+    });
+
+    for await (const _event of stream) {
+      // Consume the stream.
+    }
+
+    expect(textSnapshots).toEqual(['Hel', 'Hello']);
+    expect(streamEventTextSnapshots).toEqual(['Hel', 'Hello']);
   });
 
   it('handles tool use response fixture', async () => {
