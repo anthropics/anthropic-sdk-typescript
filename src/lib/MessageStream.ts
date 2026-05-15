@@ -41,11 +41,49 @@ type MessageStreamEventListeners<ParsedT, Event extends keyof MessageStreamEvent
 }[];
 
 const JSON_BUF_PROPERTY = '__json_buf';
+const TEXT_CHUNKS_PROPERTY = '__text_chunks';
 
 export type TracksToolInput = ToolUseBlock | ServerToolUseBlock;
 
 function tracksToolInput(content: ContentBlock): content is TracksToolInput {
   return content.type === 'tool_use' || content.type === 'server_tool_use';
+}
+
+type TextBlockWithChunks = TextBlock & { [TEXT_CHUNKS_PROPERTY]?: string[] };
+
+function getTextChunks(content: TextBlock): string[] {
+  const contentWithChunks = content as TextBlockWithChunks;
+  let chunks = contentWithChunks[TEXT_CHUNKS_PROPERTY];
+  if (!chunks) {
+    chunks = content.text ? [content.text] : [];
+    Object.defineProperty(contentWithChunks, TEXT_CHUNKS_PROPERTY, {
+      value: chunks,
+      enumerable: false,
+      writable: true,
+    });
+  }
+  return chunks;
+}
+
+function appendTextDelta(content: TextBlock, text: string): TextBlock {
+  getTextChunks(content).push(text);
+  return content;
+}
+
+function materializeTextBlock<T extends TextBlock>(content: T): T {
+  const chunks = (content as TextBlockWithChunks)[TEXT_CHUNKS_PROPERTY];
+  if (!chunks) return content;
+
+  const text = chunks.join('');
+  if (content.text === text) return content;
+
+  const nextContent = { ...content, text };
+  Object.defineProperty(nextContent, TEXT_CHUNKS_PROPERTY, {
+    value: chunks,
+    enumerable: false,
+    writable: true,
+  });
+  return nextContent;
 }
 
 export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStreamEvent> {
@@ -324,7 +362,9 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
   }
 
   get currentMessage(): Message | undefined {
-    return this.#currentMessageSnapshot;
+    return this.#currentMessageSnapshot ?
+        this.#materializeMessageText(this.#currentMessageSnapshot)
+      : undefined;
   }
 
   #getFinalMessage(): ParsedMessage<ParsedT> {
@@ -444,6 +484,28 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
     }
   }
 
+  #hasListeners<Event extends keyof MessageStreamEvents<ParsedT>>(event: Event): boolean {
+    return (this.#listeners[event]?.length ?? 0) > 0;
+  }
+
+  #materializeTextContent(message: Message, index: number): TextBlock | undefined {
+    const content = message.content.at(index);
+    if (content?.type !== 'text') return undefined;
+
+    const materializedContent = materializeTextBlock(content);
+    if (materializedContent !== content) {
+      message.content[index] = materializedContent;
+    }
+    return materializedContent;
+  }
+
+  #materializeMessageText(message: Message): Message {
+    for (let index = 0; index < message.content.length; index++) {
+      this.#materializeTextContent(message, index);
+    }
+    return message;
+  }
+
   #beginRequest() {
     if (this.ended) return;
     this.#currentMessageSnapshot = undefined;
@@ -451,15 +513,23 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
   #addStreamEvent(event: MessageStreamEvent) {
     if (this.ended) return;
     const messageSnapshot = this.#accumulateMessage(event);
+    if (
+      this.#hasListeners('streamEvent') &&
+      event.type === 'content_block_delta' &&
+      event.delta.type === 'text_delta'
+    ) {
+      this.#materializeTextContent(messageSnapshot, event.index);
+    }
     this._emit('streamEvent', event, messageSnapshot);
 
     switch (event.type) {
       case 'content_block_delta': {
-        const content = messageSnapshot.content.at(-1)!;
+        const content = messageSnapshot.content.at(event.index)!;
         switch (event.delta.type) {
           case 'text_delta': {
-            if (content.type === 'text') {
-              this._emit('text', event.delta.text, content.text || '');
+            if (content.type === 'text' && this.#hasListeners('text')) {
+              const textSnapshot = this.#materializeTextContent(messageSnapshot, event.index)?.text ?? '';
+              this._emit('text', event.delta.text, textSnapshot);
             }
             break;
           }
@@ -493,12 +563,14 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
         break;
       }
       case 'message_stop': {
+        this.#materializeMessageText(messageSnapshot);
         this._addMessageParam(messageSnapshot);
         this._addMessage(maybeParseMessage(messageSnapshot, this.#params, { logger: this.#logger }), true);
         break;
       }
       case 'content_block_stop': {
-        this._emit('contentBlock', messageSnapshot.content.at(-1)!);
+        this.#materializeTextContent(messageSnapshot, event.index);
+        this._emit('contentBlock', messageSnapshot.content.at(event.index)!);
         break;
       }
       case 'message_start': {
@@ -518,6 +590,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
     if (!snapshot) {
       throw new AnthropicError(`request ended without sending any chunks`);
     }
+    this.#materializeMessageText(snapshot);
     this.#currentMessageSnapshot = undefined;
     return maybeParseMessage(snapshot, this.#params, { logger: this.#logger });
   }
@@ -605,10 +678,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
         switch (event.delta.type) {
           case 'text_delta': {
             if (snapshotContent?.type === 'text') {
-              snapshot.content[event.index] = {
-                ...snapshotContent,
-                text: (snapshotContent.text || '') + event.delta.text,
-              };
+              snapshot.content[event.index] = appendTextDelta(snapshotContent, event.delta.text);
             }
             break;
           }
@@ -668,6 +738,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
         return snapshot;
       }
       case 'content_block_stop':
+        this.#materializeTextContent(snapshot, event.index);
         return snapshot;
     }
   }
