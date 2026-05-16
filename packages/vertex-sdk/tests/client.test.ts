@@ -88,4 +88,164 @@ describe('AnthropicVertex', () => {
       }
     });
   });
+
+  describe('document URL source validation', () => {
+    test('throws clear error when document block uses URL source', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-central1',
+        projectId: 'test-project',
+        accessToken: 'fake-token',
+      });
+
+      await expect(
+        client.messages.create({
+          model: 'claude-sonnet-4-20250514',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'document',
+                  source: {
+                    type: 'url',
+                    url: 'https://example.com/document.pdf',
+                  },
+                },
+              ],
+            },
+          ],
+          max_tokens: 1024,
+        }),
+      ).rejects.toThrow(
+        'Vertex AI does not support document blocks with URL sources',
+      );
+    });
+
+    test('throws clear error when document URL source is nested inside tool_result', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-central1',
+        projectId: 'test-project',
+        accessToken: 'fake-token',
+      });
+
+      await expect(
+        client.messages.create({
+          model: 'claude-sonnet-4-20250514',
+          messages: [
+            {
+              role: 'user',
+              content: [{ type: 'text', text: 'Hello' }],
+            },
+            {
+              role: 'assistant',
+              content: [
+                {
+                  type: 'tool_use',
+                  id: 'toolu_123',
+                  name: 'read_doc',
+                  input: { path: 'doc.pdf' },
+                },
+              ],
+            },
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'tool_result',
+                  tool_use_id: 'toolu_123',
+                  content: [
+                    {
+                      type: 'document',
+                      source: {
+                        type: 'url',
+                        url: 'https://example.com/response.pdf',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          max_tokens: 1024,
+        }),
+      ).rejects.toThrow(
+        'Vertex AI does not support document blocks with URL sources',
+      );
+    });
+
+    test('passes when document uses base64 source', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-central1',
+        projectId: 'test-project',
+        accessToken: 'fake-token',
+      });
+
+      // This should not throw during buildRequest (it will fail on network, which is fine)
+      // We just verify the URL source check doesn't reject it
+      const originalFetch = global.fetch;
+      global.fetch = jest.fn().mockRejectedValue(new Error('fetch not implemented'));
+
+      try {
+        await expect(
+          client.messages.create({
+            model: 'claude-sonnet-4-20250514',
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'document',
+                    source: {
+                      type: 'base64',
+                      media_type: 'application/pdf',
+                      data: 'JVBERi0xLjQKJcfsj6IKNSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCg==',
+                    },
+                  },
+                ],
+              },
+            ],
+            max_tokens: 1024,
+          }),
+        ).rejects.toThrow('fetch not implemented');
+      } finally {
+        global.fetch = originalFetch;
+      }
+    });
+
+    test('passes when document uses plain text source', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-central1',
+        projectId: 'test-project',
+        accessToken: 'fake-token',
+      });
+
+      const originalFetch = global.fetch;
+      global.fetch = jest.fn().mockRejectedValue(new Error('fetch not implemented'));
+
+      try {
+        await expect(
+          client.messages.create({
+            model: 'claude-sonnet-4-20250514',
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'document',
+                    source: {
+                      type: 'text',
+                      data: 'This is a plain text document.',
+                    },
+                  },
+                ],
+              },
+            ],
+            max_tokens: 1024,
+          }),
+        ).rejects.toThrow('fetch not implemented');
+      } finally {
+        global.fetch = originalFetch;
+      }
+    });
+  });
 });
