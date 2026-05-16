@@ -331,6 +331,88 @@ describe('BetaMessageStream class', () => {
     expect(finalText).toBe("I'll check the current weather in Paris for you.");
   });
 
+  it('preserves cache creation TTL usage from message deltas', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({
+      apiKey: 'test-key',
+      fetch,
+      defaultHeaders: {
+        'anthropic-beta': 'fine-grained-tool-streaming-2025-05-14',
+      },
+    });
+
+    const streamEvents: BetaRawMessageStreamEvent[] = [
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_cache_usage',
+          container: null,
+          content: [],
+          context_management: null,
+          diagnostics: null,
+          model: 'claude-sonnet-4-5',
+          role: 'assistant',
+          stop_details: null,
+          stop_reason: null,
+          stop_sequence: null,
+          type: 'message',
+          usage: {
+            cache_creation: null,
+            cache_creation_input_tokens: 0,
+            cache_read_input_tokens: 0,
+            inference_geo: null,
+            input_tokens: 10,
+            iterations: null,
+            output_tokens: 0,
+            server_tool_use: null,
+            service_tier: 'standard',
+            speed: 'standard',
+          },
+        },
+      },
+      {
+        type: 'message_delta',
+        context_management: null,
+        delta: {
+          container: null,
+          stop_details: null,
+          stop_reason: 'end_turn',
+          stop_sequence: null,
+        },
+        usage: {
+          cache_creation: {
+            ephemeral_1h_input_tokens: 100,
+            ephemeral_5m_input_tokens: 456,
+          },
+          cache_creation_input_tokens: 556,
+          cache_read_input_tokens: 0,
+          input_tokens: 566,
+          iterations: null,
+          output_tokens: 1,
+          server_tool_use: null,
+        },
+      },
+      { type: 'message_stop' },
+    ];
+    handleStreamEvents(streamEvents);
+
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-sonnet-4-5',
+      messages: [{ role: 'user', content: 'Say hello there!' }],
+    });
+
+    await stream.done();
+    const finalMessage = await stream.finalMessage();
+
+    expect(finalMessage.usage.cache_creation).toEqual({
+      ephemeral_1h_input_tokens: 100,
+      ephemeral_5m_input_tokens: 456,
+    });
+    expect(finalMessage.usage.cache_creation_input_tokens).toBe(556);
+  });
+
   it('aborts on break', async () => {
     const { fetch, handleStreamEvents } = mockFetch();
 

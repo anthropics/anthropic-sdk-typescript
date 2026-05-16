@@ -589,6 +589,10 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
           snapshot.usage.cache_creation_input_tokens = event.usage.cache_creation_input_tokens;
         }
 
+        if (event.usage.cache_creation != null) {
+          snapshot.usage.cache_creation = event.usage.cache_creation;
+        }
+
         if (event.usage.cache_read_input_tokens != null) {
           snapshot.usage.cache_read_input_tokens = event.usage.cache_read_input_tokens;
         }
