@@ -249,7 +249,9 @@ const tokenize = (input: string): Token[] => {
     tokens.map((token) => {
       switch (token.type) {
         case 'string':
-          output += '"' + token.value + '"';
+          // Repair invalid JSON escape sequences (e.g. \H from PHP namespaces)
+          // by doubling backslashes before characters that are not valid JSON escapes
+          output += '"' + token.value.replace(/\\([^"\\\/bfnrtu])/g, '\\\\$1') + '"';
           break;
         default:
           output += token.value;
