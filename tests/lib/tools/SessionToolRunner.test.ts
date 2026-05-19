@@ -157,7 +157,7 @@ describe('SessionToolRunner', () => {
     expect(call.event.input).toEqual({ tz: 'UTC' });
     expect(call.isError).toBe(false);
     expect(call.posted).toBe(true);
-    expect(call.result.content).toEqual([{ type: 'text', text: 'noon' }]);
+    expect(call.result!.content).toEqual([{ type: 'text', text: 'noon' }]);
 
     // The send carried a user.tool_result with matching tool_use_id.
     const sentResults = calls.send.flat().filter((e) => e.type === 'user.tool_result');
@@ -177,18 +177,103 @@ describe('SessionToolRunner', () => {
 
     expect(calls).toHaveLength(1);
     expect(calls[0]!.isError).toBe(true);
-    expect(JSON.stringify(calls[0]!.result.content)).toMatch(/kaboom/);
+    expect(JSON.stringify(calls[0]!.result!.content)).toMatch(/kaboom/);
   });
 
-  test('yields isError=true for an unknown tool name', async () => {
-    const { client } = makeFake({ streams: [[toolUse('tu_u', 'no_such_tool'), TERMINATED]] });
-    const runner = new SessionToolRunner('s', { client, tools: [], maxIdleMs: 0 });
+  // Default (skip-by-default): a self-hosted session is serviced by two
+  // clients — this runner (sandbox tools) and the customer's app backend
+  // (custom tools). A tool-use whose name this runner is not registered for
+  // belongs to the other client: the runner must post NO result, claim
+  // nothing, and leave the id pending — while still yielding the dispatched
+  // call so the consumer can observe it. A registered tool still runs.
+  test('skips a tool name it does not own (builtin and custom) and still runs a registered tool', async () => {
+    let echoRuns = 0;
+    const echo = makeOkTool('echo', async () => {
+      echoRuns++;
+      return 'ran';
+    });
+    const { client, calls } = makeFake({
+      streams: [
+        [
+          toolUse('tu_x', 'not_ours'),
+          customToolUse('ctu_y', 'app_backend_tool'),
+          toolUse('tu_ok', 'echo'),
+          TERMINATED,
+        ],
+      ],
+    });
+    const runner = new SessionToolRunner('s', { client, tools: [echo], maxIdleMs: 0 });
     const out: DispatchedToolCall[] = [];
+    // Must not throw on the registry miss.
     for await (const c of runner) out.push(c);
 
+    expect(out).toHaveLength(3);
+
+    const unownedBuiltin = out[0]!;
+    expect(unownedBuiltin.name).toBe('not_ours');
+    expect(unownedBuiltin.event.type).toBe('agent.tool_use');
+    expect(unownedBuiltin.isError).toBe(false);
+    expect(unownedBuiltin.posted).toBe(false);
+    expect(unownedBuiltin.result).toBeUndefined();
+
+    const unownedCustom = out[1]!;
+    expect(unownedCustom.name).toBe('app_backend_tool');
+    expect(unownedCustom.event.type).toBe('agent.custom_tool_use');
+    expect(unownedCustom.isError).toBe(false);
+    expect(unownedCustom.posted).toBe(false);
+    expect(unownedCustom.result).toBeUndefined();
+
+    const owned = out[2]!;
+    expect(owned.name).toBe('echo');
+    expect(owned.isError).toBe(false);
+    expect(owned.posted).toBe(true);
+    expect(owned.result!.content).toEqual([{ type: 'text', text: 'ran' }]);
+    expect(echoRuns).toBe(1);
+
+    // Nothing was posted for either unowned id — only the registered tool's
+    // result reached the session.
+    const sent = calls.send.flat();
+    expect(sent).toHaveLength(1);
+    expect(sent[0]!.type).toBe('user.tool_result');
+    expect(sent[0]!['tool_use_id']).toBe('tu_ok');
+    expect(JSON.stringify(sent)).not.toContain('tu_x');
+    expect(JSON.stringify(sent)).not.toContain('ctu_y');
+  });
+
+  // A skipped (unanswered) unowned tool_use must stay OUT of the end-turn
+  // accounting: reconcile sees history ending on an end_turn idle but with the
+  // unowned tool_use still unanswered, so it must NOT arm the idle countdown —
+  // the runner has not handled that call, its owner still has to.
+  test('a skipped unowned tool_use does not falsely trip the idle watchdog', async () => {
+    const { client, calls } = makeFake({
+      streams: [[]], // no live events; reconcile drives the test
+      list: [[toolUse('evt_pending', 'not_ours'), idleEndTurn()]],
+    });
+    const runner = new SessionToolRunner('s', { client, tools: [], maxIdleMs: 50 });
+    const out: DispatchedToolCall[] = [];
+    let finished = false;
+    const consumer = (async () => {
+      for await (const c of runner) out.push(c);
+      finished = true;
+    })();
+
+    // Wait well past maxIdleMs (50). A wrongly-armed idle countdown would have
+    // aborted the runner ~50ms in and resolved the consumer; a correct runner
+    // keeps running because the unowned id is still pending its owner.
+    await new Promise((r) => setTimeout(r, 300));
+    expect(finished).toBe(false);
+
     expect(out).toHaveLength(1);
-    expect(out[0]!.isError).toBe(true);
-    expect(JSON.stringify(out[0]!.result.content)).toMatch(/not found/);
+    const call = out[0]!;
+    expect(call.toolUseId).toBe('evt_pending');
+    expect(call.posted).toBe(false);
+    expect(call.isError).toBe(false);
+    expect(call.result).toBeUndefined();
+    expect(calls.send).toHaveLength(0);
+
+    runner.abort();
+    await consumer;
+    expect(finished).toBe(true);
   });
 
   test('does not re-execute a tool whose result is already in history', async () => {
@@ -356,9 +441,9 @@ describe('SessionToolRunner', () => {
     expect(call.event.input).toEqual({ order_id: 42 });
     expect(call.isError).toBe(false);
     expect(call.posted).toBe(true);
-    expect(call.result.type).toBe('user.custom_tool_result');
-    expect((call.result as { custom_tool_use_id?: string }).custom_tool_use_id).toBe('ctu_1');
-    expect(call.result.content).toEqual([{ type: 'text', text: 'shipped' }]);
+    expect(call.result!.type).toBe('user.custom_tool_result');
+    expect((call.result! as { custom_tool_use_id?: string }).custom_tool_use_id).toBe('ctu_1');
+    expect(call.result!.content).toEqual([{ type: 'text', text: 'shipped' }]);
 
     // A custom tool call must be answered with user.custom_tool_result, never
     // user.tool_result — the wrong type leaves the session hung.
@@ -437,7 +522,7 @@ describe('SessionToolRunner', () => {
     expect(out).toHaveLength(1);
     // Mapped to the Sessions search_result block shape, NOT a text block with
     // a JSON.stringify of the original block.
-    expect(out[0]!.result.content).toEqual([
+    expect(out[0]!.result!.content).toEqual([
       {
         type: 'search_result',
         source: 'https://example.com/doc',
@@ -468,7 +553,7 @@ describe('SessionToolRunner', () => {
     const out: DispatchedToolCall[] = [];
     for await (const c of runner) out.push(c);
 
-    expect(out[0]!.result.content).toEqual([
+    expect(out[0]!.result!.content).toEqual([
       {
         type: 'search_result',
         source: 'https://example.com',

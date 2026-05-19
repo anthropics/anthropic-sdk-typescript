@@ -230,8 +230,14 @@ async function heartbeatLease(
 function printCall(call: DispatchedToolCall): void {
   const input = truncate(JSON.stringify(call.event.input));
   const status = call.isError ? 'error' : 'ok';
-  const posted = call.posted ? '' : ' [result post failed]';
-  console.log(`tool ${call.name}(${input}) -> ${status}${posted}`);
+  // A skipped unowned tool call has no result event and was deliberately
+  // left pending for its owner (the other client servicing this split
+  // session) — that is not a failed post.
+  const note =
+    call.posted ? ''
+    : call.result === undefined ? ' [skipped — not owned by this runner]'
+    : ' [result post failed]';
+  console.log(`tool ${call.name}(${input}) -> ${status}${note}`);
 }
 
 function requireEnv(name: string): string {

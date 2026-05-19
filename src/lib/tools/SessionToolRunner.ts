@@ -107,8 +107,12 @@ export interface DispatchedToolCall {
    * `user.tool_result` for an `agent.tool_use`, a `user.custom_tool_result` for
    * an `agent.custom_tool_use`. Read `result.content` for the tool's output
    * blocks and `result.is_error` for the error flag.
+   *
+   * `undefined` when no result event was ever built — i.e. the tool name is
+   * not one this runner owns and, under the split-client behavior, it
+   * deliberately posted nothing and left the id pending for its owner.
    */
-  readonly result: DispatchedToolResultParams;
+  readonly result?: DispatchedToolResultParams;
   /**
    * Flat convenience for `event.id` — the id of the tool-use event this result
    * answers (echoed back as `tool_use_id` / `custom_tool_use_id` on the result).
@@ -117,14 +121,16 @@ export interface DispatchedToolCall {
   /** Flat convenience for `event.name` — the dispatched tool's name. */
   readonly name: string;
   /**
-   * Flat convenience for `result.is_error` — `true` when the tool threw or was
-   * not found, `false` on success.
+   * Flat convenience for `result.is_error` — `true` when the tool threw,
+   * `false` on success and for a skipped unowned call.
    */
   readonly isError: boolean;
   /**
-   * Whether the `user.tool_result` was successfully posted back to the session.
-   * `false` when the post itself failed — typically a permanent 4xx or
-   * send-retry exhaustion.
+   * Whether a result event for this call reached the session. `false` when the
+   * post itself failed (typically a permanent 4xx or send-retry exhaustion)
+   * and also `false` — with no `result` event ever built — for a tool name
+   * this runner does not own when it deliberately posts nothing and leaves the
+   * id pending for its owner (the split-client behavior).
    */
   readonly posted: boolean;
 }
@@ -451,35 +457,48 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
     this.#inFlightCount++;
     try {
       const tool = this.#toolByName.get(ev.name);
+      if (!tool) {
+        // Skip (split-client partial fulfilment): a name this runner
+        // is not registered for belongs to the other client servicing this
+        // session (typically the customer's app backend handling custom tools).
+        // Post NO result, do not mark it answered, and leave the tool_use_id
+        // pending for its owner — claiming it would corrupt the conversation.
+        // Still yield the call so the consumer can observe the unowned
+        // dispatch; nothing was sent, so `posted`/`isError` stay false and no
+        // `result` event is populated. The id stays unanswered, so reconcile
+        // keeps it out of the idle/end-turn accounting and re-surfaces it after
+        // a reconnect until its owner answers it.
+        this.#logger.info('tool not owned by this runner; leaving the tool_use_id pending for its owner', {
+          component: 'session-tool-runner',
+          session_id: this.sessionId,
+          tool: ev.name,
+          tool_use_id: ev.id,
+        });
+        this.#results.push({ event: ev, toolUseId: ev.id, name: ev.name, isError: false, posted: false });
+        return;
+      }
       let content: string | Array<BetaToolResultContentBlockParam>;
       let isError: boolean;
-      if (!tool) {
-        // Match `BetaToolRunner`'s wording — the string lands in the model's
-        // context, so the two `toolRunner()` surfaces should agree.
-        content = `Error: Tool '${ev.name}' not found`;
-        isError = true;
-      } else {
-        // Per-tool controller: aborts on the runner's own signal *or* the
-        // per-tool timeout, so an in-flight tool stops promptly when the runner
-        // is aborted instead of running until the timeout.
-        const toolCtrl = new AbortController();
-        const detachTool = linkAbort(this.#controller.signal, toolCtrl);
-        const timer = setTimeout(() => toolCtrl.abort(), TOOL_TIMEOUT_MS);
-        try {
-          // Pass the source `agent.tool_use` / `agent.custom_tool_use` event
-          // straight through as the run context's `toolUse` — it is a union
-          // member of `BetaToolUse`, no Messages-block adapter needed.
-          const outcome = await runRunnableTool(tool, ev.input, {
-            toolUse: ev,
-            toolUseBlock: ev,
-            signal: toolCtrl.signal,
-          });
-          content = outcome.content;
-          isError = outcome.isError;
-        } finally {
-          clearTimeout(timer);
-          detachTool();
-        }
+      // Per-tool controller: aborts on the runner's own signal *or* the
+      // per-tool timeout, so an in-flight tool stops promptly when the runner
+      // is aborted instead of running until the timeout.
+      const toolCtrl = new AbortController();
+      const detachTool = linkAbort(this.#controller.signal, toolCtrl);
+      const timer = setTimeout(() => toolCtrl.abort(), TOOL_TIMEOUT_MS);
+      try {
+        // Pass the source `agent.tool_use` / `agent.custom_tool_use` event
+        // straight through as the run context's `toolUse` — it is a union
+        // member of `BetaToolUse`, no Messages-block adapter needed.
+        const outcome = await runRunnableTool(tool, ev.input, {
+          toolUse: ev,
+          toolUseBlock: ev,
+          signal: toolCtrl.signal,
+        });
+        content = outcome.content;
+        isError = outcome.isError;
+      } finally {
+        clearTimeout(timer);
+        detachTool();
       }
       // Answer with the result event that matches the call kind: a
       // `user.tool_result` for an `agent.tool_use`, a `user.custom_tool_result`
