@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.97.1 (2026-05-19)
+
+Full Changelog: [sdk-v0.97.0...sdk-v0.97.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.97.0...sdk-v0.97.1)
+
+### Bug Fixes
+
+* **runner:** skip tool calls SessionToolRunner does not own ([9987379](https://github.com/anthropics/anthropic-sdk-typescript/commit/9987379abeaf28b17edb5518ac229d2a6caa4bf6))
+
 ## 0.97.0 (2026-05-19)
 
 Full Changelog: [sdk-v0.96.0...sdk-v0.97.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.96.0...sdk-v0.97.0)
