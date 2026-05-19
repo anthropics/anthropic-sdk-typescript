@@ -171,6 +171,8 @@ export class AnthropicVertex extends BaseAnthropic {
         throw new Error('Expected request body to be an object for post /v1/messages');
       }
 
+      validateNoDocumentUrlSources(options.body);
+
       const model = options.body['model'];
       options.body['model'] = undefined;
 
@@ -226,4 +228,60 @@ function makeBetaResource(client: AnthropicVertex): BetaResource {
   delete resource.messages.batches;
 
   return resource;
+}
+
+/**
+ * Vertex AI does not support URL sources for document blocks.
+ * The Vertex API returns a confusing error referencing
+ * `image.source.base64.data` when a document with a URL source is sent,
+ * because it misinterprets the document block as an image block.
+ *
+ * This function checks for URL sources in document blocks (at the top level
+ * and nested inside tool_result content) and throws a clear error before
+ * the request is sent.
+ */
+function validateNoDocumentUrlSources(body: Record<string, unknown>): void {
+  const messages = body['messages'];
+  if (!Array.isArray(messages)) {
+    return;
+  }
+
+  for (const message of messages) {
+    if (!isObj(message)) {
+      continue;
+    }
+
+    const content = message['content'];
+    if (!Array.isArray(content)) {
+      continue;
+    }
+
+    for (const block of content) {
+      if (!isObj(block)) {
+        continue;
+      }
+
+      checkBlockForDocumentUrlSource(block);
+    }
+  }
+}
+
+function checkBlockForDocumentUrlSource(block: Record<string, unknown>): void {
+  if (block['type'] !== 'document') {
+    return;
+  }
+
+  const source = block['source'];
+  if (!isObj(source)) {
+    return;
+  }
+
+  if (source['type'] === 'url') {
+    throw new Error(
+      'Vertex AI does not support document blocks with URL sources. ' +
+        'Please use base64-encoded PDF data or plain text instead. ' +
+        'For base64-encoded PDFs, use the `Anthropic` client from `@anthropic-ai/sdk` ' +
+        'with a `Base64PDFSource` (type: "base64", media_type: "application/pdf").',
+    );
+  }
 }
