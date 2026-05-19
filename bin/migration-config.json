@@ -5,6 +5,191 @@
   "baseClientClass": "BaseAnthropic",
   "methods": [
     {
+      "base": "beta.environments.work",
+      "name": "retrieve",
+      "params": [
+        {
+          "type": "param",
+          "key": "work_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "environment_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "work_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.environments.work",
+      "name": "update",
+      "params": [
+        {
+          "type": "param",
+          "key": "work_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "environment_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "work_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.environments.work",
+      "name": "ack",
+      "params": [
+        {
+          "type": "param",
+          "key": "work_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "environment_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "work_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.environments.work",
+      "name": "heartbeat",
+      "params": [
+        {
+          "type": "param",
+          "key": "work_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "environment_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "work_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.environments.work",
+      "name": "stop",
+      "params": [
+        {
+          "type": "param",
+          "key": "work_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "environment_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "work_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
       "base": "beta.sessions.resources",
       "name": "retrieve",
       "params": [
@@ -673,6 +858,43 @@
     {
       "base": "beta.skills.versions",
       "name": "delete",
+      "params": [
+        {
+          "type": "param",
+          "key": "version",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "skill_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "version",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.skills.versions",
+      "name": "download",
       "params": [
         {
           "type": "param",

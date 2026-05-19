@@ -52,8 +52,15 @@ client.parents.children.retrieve('p_123', 'c_456');
 client.parents.children.retrieve('c_456', { parent_id: 'p_123' });
 ```
 
-This affects the following methods:
+<details>
 
+<summary>This affects the following methods</summary>
+
+- `client.beta.environments.work.retrieve()`
+- `client.beta.environments.work.update()`
+- `client.beta.environments.work.ack()`
+- `client.beta.environments.work.heartbeat()`
+- `client.beta.environments.work.stop()`
 - `client.beta.sessions.resources.retrieve()`
 - `client.beta.sessions.resources.update()`
 - `client.beta.sessions.resources.delete()`
@@ -73,6 +80,9 @@ This affects the following methods:
 - `client.beta.memoryStores.memoryVersions.redact()`
 - `client.beta.skills.versions.retrieve()`
 - `client.beta.skills.versions.delete()`
+- `client.beta.skills.versions.download()`
+
+</details>
 
 ### URI encoded path parameters
 
@@ -123,6 +133,9 @@ client.example.list(undefined, { headers: { ... } });
 - `client.beta.environments.list()`
 - `client.beta.environments.delete()`
 - `client.beta.environments.archive()`
+- `client.beta.environments.work.list()`
+- `client.beta.environments.work.poll()`
+- `client.beta.environments.work.stats()`
 - `client.beta.sessions.retrieve()`
 - `client.beta.sessions.list()`
 - `client.beta.sessions.delete()`

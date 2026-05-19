@@ -102,12 +102,12 @@ async function main() {
   const stream = await client.beta.sessions.events.stream(session.id);
   for await (const event of stream) {
     console.log(JSON.stringify(event, null, 2));
-    if (event.type === 'agent.custom_tool_use' && event.name === 'get_weather') {
+    if (event.type === 'agent.tool_use' && event.name === 'get_weather') {
       await client.beta.sessions.events.send(session.id, {
         events: [
           {
-            type: 'user.custom_tool_result',
-            custom_tool_use_id: event.id,
+            type: 'user.tool_result',
+            tool_use_id: event.id,
             content: [{ type: 'text', text: '{"temperature_c": 14}' }],
           },
         ],

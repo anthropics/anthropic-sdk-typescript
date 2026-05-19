@@ -108,7 +108,7 @@ The SDK provides helpers for parsing structured JSON outputs from Claude using J
 ```ts
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import Anthropic from '@anthropic-ai/sdk';
-import { z } from 'zod/v4';
+import { z } from 'zod';
 
 const client = new Anthropic();
 
@@ -183,7 +183,7 @@ The SDK provides helper functions to create runnable tools that can be automatic
 
 ```ts
 import { betaZodTool } from '@anthropic-ai/sdk/helpers/beta/zod';
-import { z } from 'zod/v4';
+import { z } from 'zod';
 
 const weatherTool = betaZodTool({
   name: 'get_weather',
@@ -505,3 +505,99 @@ See the following example files for more usage patterns:
 - [`examples/tools-helpers-zod.ts`](examples/tools-helpers-zod.ts) - Zod-based tools
 - [`examples/tools-helpers-json-schema.ts`](examples/tools-helpers-json-schema.ts) - JSON Schema tools
 - [`examples/tools.ts`](examples/tools.ts) - Basic tool usage
+
+# Self-Hosted Environment Runner
+
+The SDK exposes a few building blocks for serving managed-agents sessions from a self-hosted environment:
+
+- `client.beta.environments.work.worker({ ... })` (returns an `EnvironmentWorker`, also exported from `@anthropic-ai/sdk/helpers/beta/environments`) — the full worker: polls for work, and for each claimed session sets up the workdir + downloads the agent's skills, runs the local tools against the session's `agent.tool_use` events while heartbeating the work-item lease, force-stops the work on exit, cleans up the downloaded skills, and loops. `worker.handleItem(...)` runs that same per-item flow for a single work item you've already claimed; with no arguments it reads the work id / environment id / session id from `ANTHROPIC_WORK_ID` / `ANTHROPIC_ENVIRONMENT_ID` / `ANTHROPIC_SESSION_ID` (the env vars `ant worker poll --on-work` sets) and the environment key from `ANTHROPIC_ENVIRONMENT_KEY`. `environmentId` / `environmentKey` are only needed by `run()`'s poll loop — `handleItem()` works without them. Composed from the two pieces below.
+- `client.beta.environments.work.poller(...)` — control-plane only (a `WorkPoller`): claims work items from an environment, ack's each one before yielding it, and posts `stop` automatically when the consumer's loop body returns or the iteration ends.
+- `client.beta.sessions.events.toolRunner(...)` — the sessions-side counterpart to `client.beta.messages.toolRunner` (a `SessionToolRunner`): for each `agent.tool_use` event the agent emits during a session, runs the matching tool from your registry, posts the result back, and yields a `DispatchedToolCall` so you can observe what happened. Internally drives event-stream reconnect and result posting; it does not touch the work-item lease.
+
+The tool implementations themselves live in a separate Node-only module — `@anthropic-ai/sdk/tools/agent-toolset/node` — alongside `@anthropic-ai/sdk/tools/memory/node`. `betaAgentToolset20260401(ctx)` returns the standard `agent_toolset_20260401` set (`bash`, `read`, `write`, `edit`, `glob`, `grep`) as `BetaRunnableTool` objects, the same shape `client.beta.messages.toolRunner` accepts. The individual factories — `betaBashTool`, `betaReadTool`, `betaWriteTool`, `betaEditTool`, `betaGlobTool`, `betaGrepTool` — are exported too.
+
+> **Node 22+ required.** The agent toolset uses the native `fs.glob` (added in Node 22) for its `glob` tool, so `@anthropic-ai/sdk/tools/agent-toolset/node` requires Node 22 or newer. The rest of the SDK still supports Node 18+.
+
+```ts
+import Anthropic from '@anthropic-ai/sdk';
+import { betaAgentToolset20260401 } from '@anthropic-ai/sdk/tools/agent-toolset/node';
+
+const client = new Anthropic();
+
+// One-stop worker: poll → run the toolset for each session → force-stop → loop.
+// `tools` is a factory so `betaAgentToolset20260401` is bound to each session's workdir/id.
+// `environmentKey` is the runner's single credential — it authenticates both the
+// work-poll calls and every per-session call (event stream, heartbeat, force-stop).
+await client.beta.environments.work
+  .worker({
+    environmentId: process.env.ANTHROPIC_ENVIRONMENT_ID!,
+    environmentKey: process.env.ANTHROPIC_ENVIRONMENT_KEY!,
+    workdir: '/workspace',
+    tools: (ctx) => [...betaAgentToolset20260401(ctx), myCustomTool],
+  })
+  .run(AbortSignal.timeout(60 * 60_000));
+```
+
+If you already hold a claimed work item — e.g. an `ant worker poll --on-work` script handed one to a fresh process — call `handleItem` to run just the per-item flow (build the workdir + skills, run the session's tools while heartbeating the lease, force-stop on exit). Inside that command the work id / environment id / session id / environment key are already in the environment, so the sandbox case is just:
+
+```ts
+await client.beta.environments.work.worker({ workdir: '/workspace', tools }).handleItem();
+```
+
+Pass the values explicitly when you have the objects in hand (e.g. you iterate the poller yourself):
+
+```ts
+await client.beta.environments.work.worker({ workdir: '/workspace', tools }).handleItem({
+  workId: work.id,
+  environmentId: work.environment_id,
+  sessionId: work.data.id,
+  environmentKey: process.env.ANTHROPIC_ENVIRONMENT_KEY!,
+});
+```
+
+`betaAgentToolset20260401(ctx)` returns a plain array — filter or extend it to customise:
+
+```ts
+const tools = betaAgentToolset20260401(ctx).filter((t) => t.name !== 'grep'); // remove
+const tools = [...betaAgentToolset20260401(ctx), myCustomTool]; // extend with any BetaRunnableTool
+```
+
+If you want the pieces separately — e.g. to observe each tool call, or to manage the work lifecycle yourself — drive the poller and the session tool runner directly:
+
+```ts
+import {
+  betaAgentToolset20260401,
+  setupSkills,
+  type AgentToolContext,
+} from '@anthropic-ai/sdk/tools/agent-toolset/node';
+
+const environmentKey = process.env.ANTHROPIC_ENVIRONMENT_KEY!;
+// The environment key authenticates the per-session calls too — scope a client to it.
+const sessionClient = client.withOptions({ authToken: environmentKey });
+
+for await (const work of client.beta.environments.work.poller({
+  environmentId: process.env.ANTHROPIC_ENVIRONMENT_ID!,
+  environmentKey,
+})) {
+  if (work.data.type !== 'session') continue;
+  // Setting `client` + `sessionId` makes `setupSkills` fetch the session's
+  // resolved agent and download each of its skills into `{workdir}/skills/<name>/`
+  // (via `client.beta.skills.versions.download`). Call it before the tool runner;
+  // it returns a cleanup function to call once the work item is done.
+  const ctx: AgentToolContext = { workdir: '/workspace', client, sessionId: work.data.id };
+  const cleanupSkills = await setupSkills(ctx);
+  try {
+    for await (const call of sessionClient.beta.sessions.events.toolRunner(work.data.id, {
+      tools: betaAgentToolset20260401(ctx),
+    })) {
+      console.log(`${call.name} -> ${call.isError ? 'error' : 'ok'}`);
+    }
+  } finally {
+    await cleanupSkills();
+  }
+}
+```
+
+The toolset executes shell and file operations directly on the host. Run it inside a container or other isolation boundary you control.
+
+See [`examples/managed-agents-private-sandbox-worker.ts`](examples/managed-agents-private-sandbox-worker.ts) for a complete example.

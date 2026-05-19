@@ -6,25 +6,9 @@ import { BetaMessage, BetaMessageParam, BetaToolUnion, MessageCreateParams } fro
 import { BetaMessageStream } from '../BetaMessageStream';
 import { RequestOptions } from '../../internal/request-options';
 import { buildHeaders } from '../../internal/headers';
+import { promiseWithResolvers } from '../../internal/utils/promise';
 import { CompactionControl, DEFAULT_SUMMARY_PROMPT, DEFAULT_TOKEN_THRESHOLD } from './CompactionControl';
 import { collectStainlessHelpers } from '../stainless-helper-header';
-
-/**
- * Just Promise.withResolvers(), which is not available in all environments.
- */
-function promiseWithResolvers<T>(): {
-  promise: Promise<T>;
-  resolve: (value: T) => void;
-  reject: (reason?: any) => void;
-} {
-  let resolve: (value: T) => void;
-  let reject: (reason?: any) => void;
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  return { promise, resolve: resolve!, reject: reject! };
-}
 
 /**
  * A ToolRunner handles the automatic conversation loop between the assistant and tools.
@@ -484,6 +468,7 @@ async function generateToolResponse(
         }
 
         const result = await tool.run(input, {
+          toolUse: toolUse,
           toolUseBlock: toolUse,
           signal: requestOptions?.signal,
         });

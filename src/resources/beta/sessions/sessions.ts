@@ -77,6 +77,7 @@ import {
   BetaManagedAgentsUserMessageEventParams,
   BetaManagedAgentsUserToolConfirmationEvent,
   BetaManagedAgentsUserToolConfirmationEventParams,
+  BetaManagedAgentsUserToolResultEventParams,
   EventListParams,
   EventSendParams,
   EventStreamParams,
@@ -102,7 +103,6 @@ import {
 import * as ThreadsAPI from './threads/threads';
 import {
   BetaManagedAgentsSessionThread,
-  BetaManagedAgentsSessionThreadAgent,
   BetaManagedAgentsSessionThreadStats,
   BetaManagedAgentsSessionThreadStatus,
   BetaManagedAgentsSessionThreadUsage,
@@ -597,6 +597,29 @@ export interface BetaManagedAgentsSessionAgent {
 }
 
 /**
+ * Mid-session agent configuration update. Only `tools` and `mcp_servers` are
+ * updatable. Full replacement: the provided array becomes the new value. To
+ * preserve existing entries, GET the session, modify the array, and POST it back.
+ */
+export interface BetaManagedAgentsSessionAgentUpdate {
+  /**
+   * Replacement MCP server list. Full replacement: the provided array becomes the
+   * new value. Send an empty array to clear; omit to preserve.
+   */
+  mcp_servers?: Array<AgentsAPI.BetaManagedAgentsURLMCPServerParams>;
+
+  /**
+   * Replacement tool list. Full replacement: the provided array becomes the new
+   * value. Send an empty array to clear; omit to preserve.
+   */
+  tools?: Array<
+    | AgentsAPI.BetaManagedAgentsAgentToolset20260401Params
+    | AgentsAPI.BetaManagedAgentsMCPToolsetParams
+    | AgentsAPI.BetaManagedAgentsCustomToolParams
+  >;
+}
+
+/**
  * Resolved coordinator topology with full agent definitions for each roster
  * member.
  */
@@ -604,7 +627,7 @@ export interface BetaManagedAgentsSessionMultiagentCoordinator {
   /**
    * Full `agent` definitions the coordinator may spawn as session threads.
    */
-  agents: Array<ThreadsAPI.BetaManagedAgentsSessionThreadAgent>;
+  agents: Array<AgentsAPI.BetaManagedAgentsSessionThreadAgent>;
 
   type: 'coordinator';
 }
@@ -624,6 +647,42 @@ export interface BetaManagedAgentsSessionStats {
    * at the final update.
    */
   duration_seconds?: number;
+}
+
+/**
+ * Emitted when an UpdateSession request changed at least one field. Carries only
+ * the fields that changed; absent fields were not part of the update. The new
+ * configuration applies from the next turn.
+ */
+export interface BetaManagedAgentsSessionUpdatedEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at: string;
+
+  type: 'session.updated';
+
+  /**
+   * Resolved `agent` definition for a `session`. Snapshot of the `agent` at
+   * `session` creation time.
+   */
+  agent?: BetaManagedAgentsSessionAgent | null;
+
+  /**
+   * The session's full metadata bag after the update. Present when the update set
+   * non-empty metadata; absent when metadata was unchanged or cleared to empty.
+   */
+  metadata?: { [key: string]: string };
+
+  /**
+   * The session's new title. Present only when the update changed it.
+   */
+  title?: string | null;
 }
 
 /**
@@ -649,6 +708,54 @@ export interface BetaManagedAgentsSessionUsage {
    * Total output tokens generated across all turns.
    */
   output_tokens?: number;
+}
+
+/**
+ * Event sent by the client providing the result of an agent-toolset tool
+ * execution. Only valid on `self_hosted` environments, where sandbox-routed tools
+ * are executed by the client rather than the server.
+ */
+export interface BetaManagedAgentsUserToolResultEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * The id of the `agent.tool_use` event this result corresponds to, which can be
+   * found in the last `session.status_idle`
+   * [event's](https://platform.claude.com/docs/en/api/beta/sessions/events/list#beta_managed_agents_session_requires_action.event_ids)
+   * `stop_reason.event_ids` field.
+   */
+  tool_use_id: string;
+
+  type: 'user.tool_result';
+
+  /**
+   * The result content returned by the tool.
+   */
+  content?: Array<
+    | EventsAPI.BetaManagedAgentsTextBlock
+    | EventsAPI.BetaManagedAgentsImageBlock
+    | EventsAPI.BetaManagedAgentsDocumentBlock
+    | EventsAPI.BetaManagedAgentsSearchResultBlock
+  >;
+
+  /**
+   * Whether the tool execution resulted in an error.
+   */
+  is_error?: boolean | null;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at?: string | null;
+
+  /**
+   * Routes this result to a subagent thread. Copy from the `agent.tool_use` event's
+   * `session_thread_id`.
+   */
+  session_thread_id?: string | null;
 }
 
 export interface SessionCreateParams {
@@ -706,6 +813,14 @@ export interface SessionRetrieveParams {
 }
 
 export interface SessionUpdateParams {
+  /**
+   * Body param: Mid-session agent configuration update. Only `tools` and
+   * `mcp_servers` are updatable. Full replacement: the provided array becomes the
+   * new value. To preserve existing entries, GET the session, modify the array, and
+   * POST it back.
+   */
+  agent?: BetaManagedAgentsSessionAgentUpdate;
+
   /**
    * Body param: Metadata patch. Set a key to a string to upsert it, or to null to
    * delete it. Omit the field to preserve.
@@ -824,9 +939,12 @@ export declare namespace Sessions {
     type BetaManagedAgentsOutcomeEvaluationResource as BetaManagedAgentsOutcomeEvaluationResource,
     type BetaManagedAgentsSession as BetaManagedAgentsSession,
     type BetaManagedAgentsSessionAgent as BetaManagedAgentsSessionAgent,
+    type BetaManagedAgentsSessionAgentUpdate as BetaManagedAgentsSessionAgentUpdate,
     type BetaManagedAgentsSessionMultiagentCoordinator as BetaManagedAgentsSessionMultiagentCoordinator,
     type BetaManagedAgentsSessionStats as BetaManagedAgentsSessionStats,
+    type BetaManagedAgentsSessionUpdatedEvent as BetaManagedAgentsSessionUpdatedEvent,
     type BetaManagedAgentsSessionUsage as BetaManagedAgentsSessionUsage,
+    type BetaManagedAgentsUserToolResultEvent as BetaManagedAgentsUserToolResultEvent,
     type BetaManagedAgentsSessionsPageCursor as BetaManagedAgentsSessionsPageCursor,
     type SessionCreateParams as SessionCreateParams,
     type SessionRetrieveParams as SessionRetrieveParams,
@@ -909,6 +1027,7 @@ export declare namespace Sessions {
     type BetaManagedAgentsUserMessageEventParams as BetaManagedAgentsUserMessageEventParams,
     type BetaManagedAgentsUserToolConfirmationEvent as BetaManagedAgentsUserToolConfirmationEvent,
     type BetaManagedAgentsUserToolConfirmationEventParams as BetaManagedAgentsUserToolConfirmationEventParams,
+    type BetaManagedAgentsUserToolResultEventParams as BetaManagedAgentsUserToolResultEventParams,
     type BetaManagedAgentsSessionEventsPageCursor as BetaManagedAgentsSessionEventsPageCursor,
     type EventListParams as EventListParams,
     type EventSendParams as EventSendParams,
@@ -935,7 +1054,6 @@ export declare namespace Sessions {
   export {
     Threads as Threads,
     type BetaManagedAgentsSessionThread as BetaManagedAgentsSessionThread,
-    type BetaManagedAgentsSessionThreadAgent as BetaManagedAgentsSessionThreadAgent,
     type BetaManagedAgentsSessionThreadStats as BetaManagedAgentsSessionThreadStats,
     type BetaManagedAgentsSessionThreadStatus as BetaManagedAgentsSessionThreadStatus,
     type BetaManagedAgentsSessionThreadUsage as BetaManagedAgentsSessionThreadUsage,
