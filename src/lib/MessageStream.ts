@@ -605,59 +605,51 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
         switch (event.delta.type) {
           case 'text_delta': {
             if (snapshotContent?.type === 'text') {
-              snapshot.content[event.index] = {
-                ...snapshotContent,
-                text: (snapshotContent.text || '') + event.delta.text,
-              };
+              snapshotContent.text = (snapshotContent.text || '') + event.delta.text;
             }
             break;
           }
           case 'citations_delta': {
             if (snapshotContent?.type === 'text') {
-              snapshot.content[event.index] = {
-                ...snapshotContent,
-                citations: [...(snapshotContent.citations ?? []), event.delta.citation],
-              };
+              if (!snapshotContent.citations) {
+                snapshotContent.citations = [];
+              }
+              snapshotContent.citations.push(event.delta.citation);
             }
             break;
           }
           case 'input_json_delta': {
             if (snapshotContent && tracksToolInput(snapshotContent)) {
-              // we need to keep track of the raw JSON string as well so that we can
-              // re-parse it for each delta, for now we just store it as an untyped
-              // non-enumerable property on the snapshot
+              // Track the raw JSON string as a non-enumerable property so it's
+              // hidden from JSON.stringify/serialization but available for re-parsing
               let jsonBuf = (snapshotContent as any)[JSON_BUF_PROPERTY] || '';
               jsonBuf += event.delta.partial_json;
 
-              const newContent = { ...snapshotContent };
-              Object.defineProperty(newContent, JSON_BUF_PROPERTY, {
-                value: jsonBuf,
-                enumerable: false,
-                writable: true,
-              });
+              if (!(JSON_BUF_PROPERTY in snapshotContent)) {
+                Object.defineProperty(snapshotContent, JSON_BUF_PROPERTY, {
+                  value: jsonBuf,
+                  enumerable: false,
+                  writable: true,
+                });
+              } else {
+                (snapshotContent as any)[JSON_BUF_PROPERTY] = jsonBuf;
+              }
 
               if (jsonBuf) {
-                newContent.input = partialParse(jsonBuf);
+                (snapshotContent as any).input = partialParse(jsonBuf);
               }
-              snapshot.content[event.index] = newContent;
             }
             break;
           }
           case 'thinking_delta': {
             if (snapshotContent?.type === 'thinking') {
-              snapshot.content[event.index] = {
-                ...snapshotContent,
-                thinking: snapshotContent.thinking + event.delta.thinking,
-              };
+              snapshotContent.thinking = snapshotContent.thinking + event.delta.thinking;
             }
             break;
           }
           case 'signature_delta': {
             if (snapshotContent?.type === 'thinking') {
-              snapshot.content[event.index] = {
-                ...snapshotContent,
-                signature: event.delta.signature,
-              };
+              snapshotContent.signature = event.delta.signature;
             }
             break;
           }
