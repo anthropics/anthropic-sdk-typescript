@@ -293,6 +293,92 @@ export interface BetaManagedAgentsAgentToolset20260401 {
 }
 
 /**
+ * Input payload for the `bash` tool of the `agent_toolset_20260401` toolset. All
+ * fields are optional; a normal invocation supplies `command`, while
+ * `restart=true` (with no `command`) reboots the runner-side bash session.
+ */
+export interface BetaManagedAgentsAgentToolset20260401BashInput {
+  /**
+   * Shell command to execute. Omit only when `restart` is true.
+   */
+  command?: string;
+
+  /**
+   * When true, restart the persistent bash session instead of running a command.
+   * Subsequent calls without `restart` will run against the fresh session.
+   */
+  restart?: boolean;
+
+  /**
+   * Per-call timeout in milliseconds. Defaults to the runner-wide tool timeout when
+   * omitted or zero.
+   */
+  timeout_ms?: number;
+}
+
+/**
+ * Input payload for the `edit` tool. Performs a string replacement in the named
+ * file; by default `old_string` must occur exactly once.
+ */
+export interface BetaManagedAgentsAgentToolset20260401EditInput {
+  /**
+   * Path of the file to edit.
+   */
+  file_path: string;
+
+  /**
+   * Replacement text.
+   */
+  new_string: string;
+
+  /**
+   * Substring to find and replace.
+   */
+  old_string: string;
+
+  /**
+   * When true, replace every occurrence of `old_string` instead of requiring a
+   * unique match.
+   */
+  replace_all?: boolean;
+}
+
+/**
+ * Input payload for the `glob` tool. Returns paths matching a doublestar glob
+ * pattern, newest first.
+ */
+export interface BetaManagedAgentsAgentToolset20260401GlobInput {
+  /**
+   * Doublestar glob pattern (e.g. `** /*.go`). Absolute patterns are only permitted
+   * when the runner is configured to allow them.
+   */
+  pattern: string;
+
+  /**
+   * Optional directory root to search under. Defaults to the runner's working
+   * directory.
+   */
+  path?: string;
+}
+
+/**
+ * Input payload for the `grep` tool. Searches file contents for a regular
+ * expression, returning matching lines.
+ */
+export interface BetaManagedAgentsAgentToolset20260401GrepInput {
+  /**
+   * Regular expression to search for.
+   */
+  pattern: string;
+
+  /**
+   * Optional directory root to search under. Defaults to the runner's working
+   * directory.
+   */
+  path?: string;
+}
+
+/**
  * Configuration for built-in agent tools. Use this to enable or disable groups of
  * tools available to the agent.
  */
@@ -308,6 +394,39 @@ export interface BetaManagedAgentsAgentToolset20260401Params {
    * Default configuration for all tools in a toolset.
    */
   default_config?: BetaManagedAgentsAgentToolsetDefaultConfigParams | null;
+}
+
+/**
+ * Input payload for the `read` tool. Reads file contents relative to the runner's
+ * working directory (or absolute when the runner permits).
+ */
+export interface BetaManagedAgentsAgentToolset20260401ReadInput {
+  /**
+   * Path of the file to read.
+   */
+  file_path: string;
+
+  /**
+   * Optional `[start_line, end_line]` 1-indexed inclusive range. When omitted the
+   * entire file is returned. `end_line` of 0 or negative means "to end of file".
+   */
+  view_range?: Array<number>;
+}
+
+/**
+ * Input payload for the `write` tool. Writes (overwriting) the entire file
+ * contents.
+ */
+export interface BetaManagedAgentsAgentToolset20260401WriteInput {
+  /**
+   * Full file contents to write.
+   */
+  content: string;
+
+  /**
+   * Path of the file to write.
+   */
+  file_path: string;
 }
 
 /**
@@ -646,6 +765,38 @@ export interface BetaManagedAgentsMultiagentSelfParams {
 }
 
 /**
+ * Resolved `agent` definition for a single `session_thread`. Snapshot of the agent
+ * at thread creation time. The multiagent roster is not repeated here; read it
+ * from `Session.agent`.
+ */
+export interface BetaManagedAgentsSessionThreadAgent {
+  id: string;
+
+  description: string | null;
+
+  mcp_servers: Array<BetaManagedAgentsMCPServerURLDefinition>;
+
+  /**
+   * Model identifier and configuration.
+   */
+  model: BetaManagedAgentsModelConfig;
+
+  name: string;
+
+  skills: Array<BetaManagedAgentsAnthropicSkill | BetaManagedAgentsCustomSkill>;
+
+  system: string | null;
+
+  tools: Array<
+    BetaManagedAgentsAgentToolset20260401 | BetaManagedAgentsMCPToolset | BetaManagedAgentsCustomTool
+  >;
+
+  type: 'agent';
+
+  version: number;
+}
+
+/**
  * Skill to load in the session container.
  */
 export type BetaManagedAgentsSkillParams =
@@ -864,7 +1015,13 @@ export declare namespace Agents {
     type BetaManagedAgentsAgentToolsetDefaultConfig as BetaManagedAgentsAgentToolsetDefaultConfig,
     type BetaManagedAgentsAgentToolsetDefaultConfigParams as BetaManagedAgentsAgentToolsetDefaultConfigParams,
     type BetaManagedAgentsAgentToolset20260401 as BetaManagedAgentsAgentToolset20260401,
+    type BetaManagedAgentsAgentToolset20260401BashInput as BetaManagedAgentsAgentToolset20260401BashInput,
+    type BetaManagedAgentsAgentToolset20260401EditInput as BetaManagedAgentsAgentToolset20260401EditInput,
+    type BetaManagedAgentsAgentToolset20260401GlobInput as BetaManagedAgentsAgentToolset20260401GlobInput,
+    type BetaManagedAgentsAgentToolset20260401GrepInput as BetaManagedAgentsAgentToolset20260401GrepInput,
     type BetaManagedAgentsAgentToolset20260401Params as BetaManagedAgentsAgentToolset20260401Params,
+    type BetaManagedAgentsAgentToolset20260401ReadInput as BetaManagedAgentsAgentToolset20260401ReadInput,
+    type BetaManagedAgentsAgentToolset20260401WriteInput as BetaManagedAgentsAgentToolset20260401WriteInput,
     type BetaManagedAgentsAlwaysAllowPolicy as BetaManagedAgentsAlwaysAllowPolicy,
     type BetaManagedAgentsAlwaysAskPolicy as BetaManagedAgentsAlwaysAskPolicy,
     type BetaManagedAgentsAnthropicSkill as BetaManagedAgentsAnthropicSkill,
@@ -887,6 +1044,7 @@ export declare namespace Agents {
     type BetaManagedAgentsMultiagentCoordinator as BetaManagedAgentsMultiagentCoordinator,
     type BetaManagedAgentsMultiagentCoordinatorParams as BetaManagedAgentsMultiagentCoordinatorParams,
     type BetaManagedAgentsMultiagentSelfParams as BetaManagedAgentsMultiagentSelfParams,
+    type BetaManagedAgentsSessionThreadAgent as BetaManagedAgentsSessionThreadAgent,
     type BetaManagedAgentsSkillParams as BetaManagedAgentsSkillParams,
     type BetaManagedAgentsURLMCPServerParams as BetaManagedAgentsURLMCPServerParams,
     type BetaManagedAgentsAgentsPageCursor as BetaManagedAgentsAgentsPageCursor,

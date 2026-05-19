@@ -94,4 +94,11 @@ describe('resource versions', () => {
       betas: ['message-batches-2024-09-24'],
     });
   });
+
+  test('download: required and optional params', async () => {
+    const response = await client.beta.skills.versions.download('version', {
+      skill_id: 'skill_id',
+      betas: ['message-batches-2024-09-24'],
+    });
+  });
 });

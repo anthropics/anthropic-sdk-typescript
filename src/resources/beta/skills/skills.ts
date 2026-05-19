@@ -8,6 +8,7 @@ import {
   VersionCreateResponse,
   VersionDeleteParams,
   VersionDeleteResponse,
+  VersionDownloadParams,
   VersionListParams,
   VersionListResponse,
   VersionListResponsesPageCursor,
@@ -379,5 +380,6 @@ export declare namespace Skills {
     type VersionRetrieveParams as VersionRetrieveParams,
     type VersionListParams as VersionListParams,
     type VersionDeleteParams as VersionDeleteParams,
+    type VersionDownloadParams as VersionDownloadParams,
   };
 }

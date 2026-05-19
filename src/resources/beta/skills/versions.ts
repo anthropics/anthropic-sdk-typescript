@@ -127,6 +127,35 @@ export class Versions extends APIResource {
       ]),
     });
   }
+
+  /**
+   * Download a skill version's content as a zip archive.
+   *
+   * @example
+   * ```ts
+   * const response = await client.beta.skills.versions.download(
+   *   'version',
+   *   { skill_id: 'skill_id' },
+   * );
+   *
+   * const content = await response.blob();
+   * console.log(content);
+   * ```
+   */
+  download(version: string, params: VersionDownloadParams, options?: RequestOptions): APIPromise<Response> {
+    const { skill_id, betas } = params;
+    return this._client.get(path`/v1/skills/${skill_id}/versions/${version}/content?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        {
+          'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString(),
+          Accept: 'application/binary',
+        },
+        options?.headers,
+      ]),
+      __binaryResponse: true,
+    });
+  }
 }
 
 export type VersionListResponsesPageCursor = PageCursor<VersionListResponse>;
@@ -359,6 +388,20 @@ export interface VersionDeleteParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
+export interface VersionDownloadParams {
+  /**
+   * Path param: Unique identifier for the skill.
+   *
+   * The format and length of IDs may change over time.
+   */
+  skill_id: string;
+
+  /**
+   * Header param: Optional header to specify the beta version(s) you want to use.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
+}
+
 export declare namespace Versions {
   export {
     type VersionCreateResponse as VersionCreateResponse,
@@ -370,5 +413,6 @@ export declare namespace Versions {
     type VersionRetrieveParams as VersionRetrieveParams,
     type VersionListParams as VersionListParams,
     type VersionDeleteParams as VersionDeleteParams,
+    type VersionDownloadParams as VersionDownloadParams,
   };
 }

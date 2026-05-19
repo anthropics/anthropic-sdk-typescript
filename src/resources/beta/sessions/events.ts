@@ -2,6 +2,7 @@
 
 import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
+import * as SessionsAPI from './sessions';
 import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { Stream } from '../../../core/streaming';
@@ -524,7 +525,8 @@ export type BetaManagedAgentsEventParams =
   | BetaManagedAgentsUserInterruptEventParams
   | BetaManagedAgentsUserToolConfirmationEventParams
   | BetaManagedAgentsUserCustomToolResultEventParams
-  | BetaManagedAgentsUserDefineOutcomeEventParams;
+  | BetaManagedAgentsUserDefineOutcomeEventParams
+  | BetaManagedAgentsUserToolResultEventParams;
 
 /**
  * Document referenced by file ID.
@@ -804,6 +806,7 @@ export interface BetaManagedAgentsSendSessionEvents {
     | BetaManagedAgentsUserToolConfirmationEvent
     | BetaManagedAgentsUserCustomToolResultEvent
     | BetaManagedAgentsUserDefineOutcomeEvent
+    | SessionsAPI.BetaManagedAgentsUserToolResultEvent
   >;
 }
 
@@ -897,7 +900,9 @@ export type BetaManagedAgentsSessionEvent =
   | BetaManagedAgentsSessionThreadStatusRunningEvent
   | BetaManagedAgentsSessionThreadStatusIdleEvent
   | BetaManagedAgentsSessionThreadStatusTerminatedEvent
-  | BetaManagedAgentsSessionThreadStatusRescheduledEvent;
+  | SessionsAPI.BetaManagedAgentsUserToolResultEvent
+  | BetaManagedAgentsSessionThreadStatusRescheduledEvent
+  | SessionsAPI.BetaManagedAgentsSessionUpdatedEvent;
 
 /**
  * The agent is idle waiting on one or more blocking user-input events (tool
@@ -1380,7 +1385,9 @@ export type BetaManagedAgentsStreamSessionEvents =
   | BetaManagedAgentsSessionThreadStatusRunningEvent
   | BetaManagedAgentsSessionThreadStatusIdleEvent
   | BetaManagedAgentsSessionThreadStatusTerminatedEvent
-  | BetaManagedAgentsSessionThreadStatusRescheduledEvent;
+  | SessionsAPI.BetaManagedAgentsUserToolResultEvent
+  | BetaManagedAgentsSessionThreadStatusRescheduledEvent
+  | SessionsAPI.BetaManagedAgentsSessionUpdatedEvent;
 
 /**
  * Regular text content.
@@ -1744,6 +1751,38 @@ export interface BetaManagedAgentsUserToolConfirmationEventParams {
   deny_message?: string | null;
 }
 
+/**
+ * Parameters for providing the result of an agent-toolset tool execution. Only
+ * valid on `self_hosted` environments, where sandbox-routed tools are executed by
+ * the client rather than the server.
+ */
+export interface BetaManagedAgentsUserToolResultEventParams {
+  /**
+   * The id of the `agent.tool_use` event this result corresponds to, which can be
+   * found in the last `session.status_idle`
+   * [event's](https://platform.claude.com/docs/en/api/beta/sessions/events/list#beta_managed_agents_session_requires_action.event_ids)
+   * `stop_reason.event_ids` field.
+   */
+  tool_use_id: string;
+
+  type: 'user.tool_result';
+
+  /**
+   * The result content returned by the tool.
+   */
+  content?: Array<
+    | BetaManagedAgentsTextBlock
+    | BetaManagedAgentsImageBlock
+    | BetaManagedAgentsDocumentBlock
+    | BetaManagedAgentsSearchResultBlock
+  >;
+
+  /**
+   * Whether the tool execution resulted in an error.
+   */
+  is_error?: boolean | null;
+}
+
 export interface EventListParams extends PageCursorParams {
   /**
    * Query param: Return events created after this time (exclusive).
@@ -1876,6 +1915,7 @@ export declare namespace Events {
     type BetaManagedAgentsUserMessageEventParams as BetaManagedAgentsUserMessageEventParams,
     type BetaManagedAgentsUserToolConfirmationEvent as BetaManagedAgentsUserToolConfirmationEvent,
     type BetaManagedAgentsUserToolConfirmationEventParams as BetaManagedAgentsUserToolConfirmationEventParams,
+    type BetaManagedAgentsUserToolResultEventParams as BetaManagedAgentsUserToolResultEventParams,
     type BetaManagedAgentsSessionEventsPageCursor as BetaManagedAgentsSessionEventsPageCursor,
     type EventListParams as EventListParams,
     type EventSendParams as EventSendParams,

@@ -4,7 +4,6 @@ export { Events, type EventListParams, type EventStreamParams } from './events';
 export {
   Threads,
   type BetaManagedAgentsSessionThread,
-  type BetaManagedAgentsSessionThreadAgent,
   type BetaManagedAgentsSessionThreadStats,
   type BetaManagedAgentsSessionThreadStatus,
   type BetaManagedAgentsSessionThreadUsage,
