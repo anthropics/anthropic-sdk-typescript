@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.16.1 (2026-05-19)
+
+Full Changelog: [vertex-sdk-v0.16.0...vertex-sdk-v0.16.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.16.0...vertex-sdk-v0.16.1)
+
+### Bug Fixes
+
+* align @types/node in sub-packages to fix CI build ([#1017](https://github.com/anthropics/anthropic-sdk-typescript/issues/1017)) ([9888c76](https://github.com/anthropics/anthropic-sdk-typescript/commit/9888c7691913de036fa85d25cd6707036c167a99))
+
 ## 0.16.0 (2026-04-10)
 
 Full Changelog: [vertex-sdk-v0.15.0...vertex-sdk-v0.16.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.15.0...vertex-sdk-v0.16.0)

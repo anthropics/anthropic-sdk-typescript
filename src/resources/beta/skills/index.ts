@@ -22,5 +22,6 @@ export {
   type VersionRetrieveParams,
   type VersionListParams,
   type VersionDeleteParams,
+  type VersionDownloadParams,
   type VersionListResponsesPageCursor,
 } from './versions';

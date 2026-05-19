@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.97.0 (2026-05-19)
+
+Full Changelog: [sdk-v0.96.0...sdk-v0.97.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.96.0...sdk-v0.97.0)
+
+### Features
+
+* **client:** Add support for self-hosted sandboxes in CMA with sandbox helpers ([659a343](https://github.com/anthropics/anthropic-sdk-typescript/commit/659a343c820e316229715466b64e420428ee762b))
+
+
+### Bug Fixes
+
+* **typescript:** upgrade tsc-multi so that it works with Node 26 ([623f71c](https://github.com/anthropics/anthropic-sdk-typescript/commit/623f71c848ce9b3b88eb08e009b6b3d08a6e5c1c))
+
+
+### Chores
+
+* **tests:** remove redundant File import ([cf821fc](https://github.com/anthropics/anthropic-sdk-typescript/commit/cf821fcc06f84cb2150cc0ed4ddb862b5d67f633))
+
 ## 0.96.0 (2026-05-13)
 
 Full Changelog: [sdk-v0.95.2...sdk-v0.96.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.95.2...sdk-v0.96.0)

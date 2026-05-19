@@ -121,7 +121,7 @@ export interface BetaManagedAgentsSessionThread {
    * at thread creation time. The multiagent roster is not repeated here; read it
    * from `Session.agent`.
    */
-  agent: BetaManagedAgentsSessionThreadAgent;
+  agent: AgentsAPI.BetaManagedAgentsSessionThreadAgent;
 
   /**
    * A timestamp in RFC 3339 format
@@ -164,40 +164,6 @@ export interface BetaManagedAgentsSessionThread {
    * Cumulative token usage for a session thread across all turns.
    */
   usage: BetaManagedAgentsSessionThreadUsage | null;
-}
-
-/**
- * Resolved `agent` definition for a single `session_thread`. Snapshot of the agent
- * at thread creation time. The multiagent roster is not repeated here; read it
- * from `Session.agent`.
- */
-export interface BetaManagedAgentsSessionThreadAgent {
-  id: string;
-
-  description: string | null;
-
-  mcp_servers: Array<AgentsAPI.BetaManagedAgentsMCPServerURLDefinition>;
-
-  /**
-   * Model identifier and configuration.
-   */
-  model: AgentsAPI.BetaManagedAgentsModelConfig;
-
-  name: string;
-
-  skills: Array<AgentsAPI.BetaManagedAgentsAnthropicSkill | AgentsAPI.BetaManagedAgentsCustomSkill>;
-
-  system: string | null;
-
-  tools: Array<
-    | AgentsAPI.BetaManagedAgentsAgentToolset20260401
-    | AgentsAPI.BetaManagedAgentsMCPToolset
-    | AgentsAPI.BetaManagedAgentsCustomTool
-  >;
-
-  type: 'agent';
-
-  version: number;
 }
 
 /**
@@ -287,7 +253,9 @@ export type BetaManagedAgentsStreamSessionThreadEvents =
   | EventsAPI.BetaManagedAgentsSessionThreadStatusRunningEvent
   | EventsAPI.BetaManagedAgentsSessionThreadStatusIdleEvent
   | EventsAPI.BetaManagedAgentsSessionThreadStatusTerminatedEvent
-  | EventsAPI.BetaManagedAgentsSessionThreadStatusRescheduledEvent;
+  | SessionsAPI.BetaManagedAgentsUserToolResultEvent
+  | EventsAPI.BetaManagedAgentsSessionThreadStatusRescheduledEvent
+  | SessionsAPI.BetaManagedAgentsSessionUpdatedEvent;
 
 export interface ThreadRetrieveParams {
   /**
@@ -325,7 +293,6 @@ Threads.Events = Events;
 export declare namespace Threads {
   export {
     type BetaManagedAgentsSessionThread as BetaManagedAgentsSessionThread,
-    type BetaManagedAgentsSessionThreadAgent as BetaManagedAgentsSessionThreadAgent,
     type BetaManagedAgentsSessionThreadStats as BetaManagedAgentsSessionThreadStats,
     type BetaManagedAgentsSessionThreadStatus as BetaManagedAgentsSessionThreadStatus,
     type BetaManagedAgentsSessionThreadUsage as BetaManagedAgentsSessionThreadUsage,

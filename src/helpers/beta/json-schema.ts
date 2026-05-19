@@ -20,6 +20,12 @@ export function betaTool<const Schema extends Exclude<JSONSchema, boolean> & { t
     args: NoInfer<FromSchema<Schema>>,
     context?: BetaToolRunContext,
   ) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
+  /**
+   * Optional cleanup hook for tools that hold process-level resources (e.g. a
+   * persistent shell). `client.beta.sessions.events.toolRunner` calls it once
+   * when iteration ends.
+   */
+  close?: () => void | Promise<void>;
 }): BetaRunnableTool<NoInfer<FromSchema<Schema>>> {
   if (options.inputSchema.type !== 'object') {
     throw new Error(
@@ -34,6 +40,7 @@ export function betaTool<const Schema extends Exclude<JSONSchema, boolean> & { t
     description: options.description,
     run: options.run,
     parse: (content: unknown) => content as FromSchema<Schema>,
+    ...(options.close ? { close: options.close } : {}),
   } as any;
 }
 

@@ -53,6 +53,12 @@ export function betaZodTool<InputSchema extends z.ZodType>(options: {
     args: z.infer<InputSchema>,
     context?: BetaToolRunContext,
   ) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
+  /**
+   * Optional cleanup hook for tools that hold process-level resources (e.g. a
+   * persistent shell). `client.beta.sessions.events.toolRunner` calls it once
+   * when iteration ends.
+   */
+  close?: () => void | Promise<void>;
 }): BetaRunnableTool<z.infer<InputSchema>> {
   const jsonSchema = z.toJSONSchema(options.inputSchema, { reused: 'ref' });
 
@@ -70,5 +76,6 @@ export function betaZodTool<InputSchema extends z.ZodType>(options: {
     description: options.description,
     run: options.run,
     parse: (args: unknown) => options.inputSchema.parse(args) as z.infer<InputSchema>,
+    ...(options.close ? { close: options.close } : {}),
   };
 }

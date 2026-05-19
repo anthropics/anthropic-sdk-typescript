@@ -71,6 +71,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
             sse.event === 'user.interrupt' ||
             sse.event === 'user.tool_confirmation' ||
             sse.event === 'user.custom_tool_result' ||
+            sse.event === 'user.tool_result' ||
             sse.event === 'agent.message' ||
             sse.event === 'agent.thinking' ||
             sse.event === 'agent.tool_use' ||
@@ -85,6 +86,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
             sse.event === 'session.status_terminated' ||
             sse.event === 'session.error' ||
             sse.event === 'session.deleted' ||
+            sse.event === 'session.updated' ||
             sse.event === 'span.model_request_start' ||
             sse.event === 'span.model_request_end' ||
             sse.event === 'span.outcome_evaluation_start' ||

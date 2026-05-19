@@ -1179,17 +1179,17 @@ export interface BetaCompactionBlock {
  * treats these as no-ops. Empty string content is not allowed.
  */
 export interface BetaCompactionBlockParam {
-  /**
-   * Summary of previously compacted content, or null if compaction failed
-   */
-  content: string | null;
-
   type: 'compaction';
 
   /**
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Summary of previously compacted content, or null if compaction failed
+   */
+  content?: string | null;
 
   /**
    * Opaque metadata from prior compaction, to be round-tripped verbatim

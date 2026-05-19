@@ -532,7 +532,13 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAgentToolsetDefaultConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAgentToolsetDefaultConfigParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAgentToolset20260401</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAgentToolset20260401BashInput</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAgentToolset20260401EditInput</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAgentToolset20260401GlobInput</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAgentToolset20260401GrepInput</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAgentToolset20260401Params</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAgentToolset20260401ReadInput</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAgentToolset20260401WriteInput</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAlwaysAllowPolicy</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAlwaysAskPolicy</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAnthropicSkill</a></code>
@@ -555,6 +561,7 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentCoordinator</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentCoordinatorParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentSelfParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsSessionThreadAgent</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsSkillParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsURLMCPServerParams</a></code>
 
@@ -576,24 +583,49 @@ Methods:
 
 Types:
 
-- <code><a href="./src/resources/beta/environments.ts">BetaCloudConfig</a></code>
-- <code><a href="./src/resources/beta/environments.ts">BetaCloudConfigParams</a></code>
-- <code><a href="./src/resources/beta/environments.ts">BetaEnvironment</a></code>
-- <code><a href="./src/resources/beta/environments.ts">BetaEnvironmentDeleteResponse</a></code>
-- <code><a href="./src/resources/beta/environments.ts">BetaLimitedNetwork</a></code>
-- <code><a href="./src/resources/beta/environments.ts">BetaLimitedNetworkParams</a></code>
-- <code><a href="./src/resources/beta/environments.ts">BetaPackages</a></code>
-- <code><a href="./src/resources/beta/environments.ts">BetaPackagesParams</a></code>
-- <code><a href="./src/resources/beta/environments.ts">BetaUnrestrictedNetwork</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaCloudConfig</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaCloudConfigParams</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaEnvironment</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaEnvironmentDeleteResponse</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaLimitedNetwork</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaLimitedNetworkParams</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaPackages</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaPackagesParams</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaSelfHostedConfig</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaSelfHostedConfigParams</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaUnrestrictedNetwork</a></code>
 
 Methods:
 
-- <code title="post /v1/environments?beta=true">client.beta.environments.<a href="./src/resources/beta/environments.ts">create</a>({ ...params }) -> BetaEnvironment</code>
-- <code title="get /v1/environments/{environment_id}?beta=true">client.beta.environments.<a href="./src/resources/beta/environments.ts">retrieve</a>(environmentID, { ...params }) -> BetaEnvironment</code>
-- <code title="post /v1/environments/{environment_id}?beta=true">client.beta.environments.<a href="./src/resources/beta/environments.ts">update</a>(environmentID, { ...params }) -> BetaEnvironment</code>
-- <code title="get /v1/environments?beta=true">client.beta.environments.<a href="./src/resources/beta/environments.ts">list</a>({ ...params }) -> BetaEnvironmentsPageCursor</code>
-- <code title="delete /v1/environments/{environment_id}?beta=true">client.beta.environments.<a href="./src/resources/beta/environments.ts">delete</a>(environmentID, { ...params }) -> BetaEnvironmentDeleteResponse</code>
-- <code title="post /v1/environments/{environment_id}/archive?beta=true">client.beta.environments.<a href="./src/resources/beta/environments.ts">archive</a>(environmentID, { ...params }) -> BetaEnvironment</code>
+- <code title="post /v1/environments?beta=true">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">create</a>({ ...params }) -> BetaEnvironment</code>
+- <code title="get /v1/environments/{environment_id}?beta=true">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">retrieve</a>(environmentID, { ...params }) -> BetaEnvironment</code>
+- <code title="post /v1/environments/{environment_id}?beta=true">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">update</a>(environmentID, { ...params }) -> BetaEnvironment</code>
+- <code title="get /v1/environments?beta=true">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">list</a>({ ...params }) -> BetaEnvironmentsPageCursor</code>
+- <code title="delete /v1/environments/{environment_id}?beta=true">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">delete</a>(environmentID, { ...params }) -> BetaEnvironmentDeleteResponse</code>
+- <code title="post /v1/environments/{environment_id}/archive?beta=true">client.beta.environments.<a href="./src/resources/beta/environments/environments.ts">archive</a>(environmentID, { ...params }) -> BetaEnvironment</code>
+
+### Work
+
+Types:
+
+- <code><a href="./src/resources/beta/environments/work.ts">BetaSelfHostedWork</a></code>
+- <code><a href="./src/resources/beta/environments/work.ts">BetaSelfHostedWorkHeartbeatResponse</a></code>
+- <code><a href="./src/resources/beta/environments/work.ts">BetaSelfHostedWorkListResponse</a></code>
+- <code><a href="./src/resources/beta/environments/work.ts">BetaSelfHostedWorkQueueStats</a></code>
+- <code><a href="./src/resources/beta/environments/work.ts">BetaSelfHostedWorkStopRequest</a></code>
+- <code><a href="./src/resources/beta/environments/work.ts">BetaSelfHostedWorkUpdateRequest</a></code>
+- <code><a href="./src/resources/beta/environments/work.ts">BetaSessionWorkData</a></code>
+
+Methods:
+
+- <code title="get /v1/environments/{environment_id}/work/{work_id}?beta=true">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">retrieve</a>(workID, { ...params }) -> BetaSelfHostedWork</code>
+- <code title="post /v1/environments/{environment_id}/work/{work_id}?beta=true">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">update</a>(workID, { ...params }) -> BetaSelfHostedWork</code>
+- <code title="get /v1/environments/{environment_id}/work?beta=true">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">list</a>(environmentID, { ...params }) -> BetaSelfHostedWorksPageCursor</code>
+- <code title="post /v1/environments/{environment_id}/work/{work_id}/ack?beta=true">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">ack</a>(workID, { ...params }) -> BetaSelfHostedWork</code>
+- <code title="post /v1/environments/{environment_id}/work/{work_id}/heartbeat?beta=true">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">heartbeat</a>(workID, { ...params }) -> BetaSelfHostedWorkHeartbeatResponse</code>
+- <code title="get /v1/environments/{environment_id}/work/poll?beta=true">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">poll</a>(environmentID, { ...params }) -> BetaSelfHostedWork | null</code>
+- <code title="get /v1/environments/{environment_id}/work/stats?beta=true">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">stats</a>(environmentID, { ...params }) -> BetaSelfHostedWorkQueueStats</code>
+- <code title="post /v1/environments/{environment_id}/work/{work_id}/stop?beta=true">client.beta.environments.work.<a href="./src/resources/beta/environments/work.ts">stop</a>(workID, { ...params }) -> BetaSelfHostedWork</code>
 
 ## Sessions
 
@@ -613,9 +645,12 @@ Types:
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsOutcomeEvaluationResource</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSession</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionAgent</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionAgentUpdate</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionMultiagentCoordinator</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionStats</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionUpdatedEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionUsage</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsUserToolResultEvent</a></code>
 
 Methods:
 
@@ -701,6 +736,7 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUserMessageEventParams</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUserToolConfirmationEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUserToolConfirmationEventParams</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUserToolResultEventParams</a></code>
 
 Methods:
 
@@ -733,7 +769,6 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/sessions/threads/threads.ts">BetaManagedAgentsSessionThread</a></code>
-- <code><a href="./src/resources/beta/sessions/threads/threads.ts">BetaManagedAgentsSessionThreadAgent</a></code>
 - <code><a href="./src/resources/beta/sessions/threads/threads.ts">BetaManagedAgentsSessionThreadStats</a></code>
 - <code><a href="./src/resources/beta/sessions/threads/threads.ts">BetaManagedAgentsSessionThreadStatus</a></code>
 - <code><a href="./src/resources/beta/sessions/threads/threads.ts">BetaManagedAgentsSessionThreadUsage</a></code>
@@ -911,6 +946,7 @@ Methods:
 - <code title="get /v1/skills/{skill_id}/versions/{version}?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">retrieve</a>(version, { ...params }) -> VersionRetrieveResponse</code>
 - <code title="get /v1/skills/{skill_id}/versions?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">list</a>(skillID, { ...params }) -> VersionListResponsesPageCursor</code>
 - <code title="delete /v1/skills/{skill_id}/versions/{version}?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">delete</a>(version, { ...params }) -> VersionDeleteResponse</code>
+- <code title="get /v1/skills/{skill_id}/versions/{version}/content?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">download</a>(version, { ...params }) -> Response</code>
 
 ## Webhooks
 
