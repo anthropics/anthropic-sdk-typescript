@@ -2,6 +2,8 @@ import { transformJSONSchema } from '../lib/transform-json-schema';
 import * as z from 'zod/v4';
 import { AnthropicError } from '../core/error';
 import { AutoParseableOutputFormat } from '../lib/parser';
+import { Promisable, RunnableTool, ToolRunContext } from '../lib/tools/RunnableTool';
+import { ToolResultBlockParam } from '../resources/messages';
 
 /**
  * Creates a JSON schema output format object from the given Zod schema.
@@ -54,4 +56,42 @@ export function zodOutputFormat<ZodInput extends z.ZodType>(
       return output.data;
     },
   };
+}
+
+/**
+ * Creates a tool using the provided Zod schema for use with the non-beta
+ * `messages.create` / `messages.stream` API. The Zod schema is automatically
+ * converted to JSON Schema and passed to the API. The `run` callback is invoked
+ * with Zod-validated input, and `parse` can be used to validate raw tool inputs
+ * before calling `run` manually.
+ *
+ * The returned `RunnableTool` is a `Tool` and is directly assignable to the
+ * `tools` array accepted by `messages.create` and `messages.stream`.
+ */
+export function zodTool<InputSchema extends z.ZodType>(options: {
+  name: string;
+  inputSchema: InputSchema;
+  description: string;
+  run: (
+    args: z.infer<InputSchema>,
+    context?: ToolRunContext,
+  ) => Promisable<string | Array<ToolResultBlockParam>>;
+}): RunnableTool<z.infer<InputSchema>> {
+  const jsonSchema = z.toJSONSchema(options.inputSchema, { reused: 'ref' });
+
+  if (jsonSchema.type !== 'object') {
+    throw new Error(`Zod schema for tool "${options.name}" must be an object, but got ${jsonSchema.type}`);
+  }
+
+  // TypeScript doesn't narrow the type after the runtime check, so we need to assert it
+  const objectSchema = jsonSchema as typeof jsonSchema & { type: 'object' };
+
+  return {
+    type: 'custom',
+    name: options.name,
+    input_schema: objectSchema,
+    description: options.description,
+    run: options.run,
+    parse: (args: unknown) => options.inputSchema.parse(args) as z.infer<InputSchema>,
+  } as RunnableTool<z.infer<InputSchema>>;
 }
