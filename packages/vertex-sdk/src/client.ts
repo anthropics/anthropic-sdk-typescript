@@ -192,6 +192,12 @@ export class AnthropicVertex extends BaseAnthropic {
       }
 
       options.path = `/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/count-tokens:rawPredict`;
+
+      // Vertex model backends roll out new beta values on different schedules.
+      // Token counting doesn't require any beta capabilities, so strip the
+      // anthropic-beta header to avoid 400 errors from lagging model tiers
+      // (most notably Haiku) that haven't received a newly-introduced beta yet.
+      options.headers = buildHeaders([options.headers, { 'anthropic-beta': null }]);
     }
 
     return super.buildRequest(options);
