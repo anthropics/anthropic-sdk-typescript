@@ -44,11 +44,55 @@ type MessageStreamEventListeners<Event extends keyof MessageStreamEvents> = {
 }[];
 
 const JSON_BUF_PROPERTY = '__json_buf';
+const TEXT_CHUNKS_PROPERTY = '__text_chunks';
 
 export type TracksToolInput = BetaToolUseBlock | BetaServerToolUseBlock | BetaMCPToolUseBlock;
 
 function tracksToolInput(content: BetaContentBlock): content is TracksToolInput {
   return content.type === 'tool_use' || content.type === 'server_tool_use' || content.type === 'mcp_tool_use';
+}
+
+function appendTextDelta(content: BetaTextBlock, text: string): void {
+  let chunks = (content as any)[TEXT_CHUNKS_PROPERTY] as string[] | undefined;
+  if (!chunks) {
+    const newChunks = content.text ? [content.text] : [];
+    chunks = newChunks;
+    Object.defineProperty(content, TEXT_CHUNKS_PROPERTY, {
+      value: newChunks,
+      enumerable: false,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(content, 'text', {
+      get: () => newChunks.join(''),
+      set: (value: string) => {
+        newChunks.length = 0;
+        if (value) {
+          newChunks.push(value);
+        }
+      },
+      enumerable: true,
+      configurable: true,
+    });
+  }
+  chunks.push(text);
+}
+
+function materializeText(content: BetaContentBlock | undefined): void {
+  if (content?.type !== 'text') {
+    return;
+  }
+  const chunks = (content as any)[TEXT_CHUNKS_PROPERTY] as string[] | undefined;
+  if (!chunks) {
+    return;
+  }
+  Object.defineProperty(content, 'text', {
+    value: chunks.join(''),
+    enumerable: true,
+    writable: true,
+    configurable: true,
+  });
+  delete (content as any)[TEXT_CHUNKS_PROPERTY];
 }
 
 export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMessageStreamEvent> {
@@ -450,7 +494,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
         const content = messageSnapshot.content.at(-1)!;
         switch (event.delta.type) {
           case 'text_delta': {
-            if (content.type === 'text') {
+            if (content.type === 'text' && this.#listeners.text?.length) {
               this._emit('text', event.delta.text, content.text || '');
             }
             break;
@@ -611,10 +655,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
         switch (event.delta.type) {
           case 'text_delta': {
             if (snapshotContent?.type === 'text') {
-              snapshot.content[event.index] = {
-                ...snapshotContent,
-                text: (snapshotContent.text || '') + event.delta.text,
-              };
+              appendTextDelta(snapshotContent, event.delta.text);
             }
             break;
           }
@@ -689,6 +730,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
         return snapshot;
       }
       case 'content_block_stop':
+        materializeText(snapshot.content.at(event.index));
         return snapshot;
     }
   }
