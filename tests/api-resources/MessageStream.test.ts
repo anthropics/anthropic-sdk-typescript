@@ -198,6 +198,66 @@ describe('MessageStream class', () => {
     expect(finalText).toBe('Hello there!');
   });
 
+  it('handles many text deltas', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+    const chunks = Array.from({ length: 2048 }, (_, index) => String(index % 10));
+    const expectedText = chunks.join('');
+    const streamEvents: any[] = [
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_many_text_deltas',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-20250514',
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { input_tokens: 1, output_tokens: 1 },
+        },
+      },
+      { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+      ...chunks.map((text) => ({
+        type: 'content_block_delta',
+        index: 0,
+        delta: { type: 'text_delta', text },
+      })),
+      { type: 'content_block_stop', index: 0 },
+      {
+        type: 'message_delta',
+        delta: { stop_reason: 'end_turn', stop_sequence: null },
+        usage: { output_tokens: chunks.length },
+      },
+      { type: 'message_stop' },
+    ];
+    handleStreamEvents(streamEvents);
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 4096,
+      model: 'claude-opus-4-20250514',
+      messages: [{ role: 'user', content: 'Repeat digits.' }],
+    });
+
+    let textSnapshot = '';
+    stream.on('text', (_textDelta, snapshot) => {
+      textSnapshot = snapshot;
+    });
+
+    for await (const _event of stream) {
+      // consume the stream
+    }
+
+    await stream.done();
+    const finalMessage = await stream.finalMessage();
+    const finalText = await stream.finalText();
+
+    expect(textSnapshot).toBe(expectedText);
+    expect(finalText).toBe(expectedText);
+    expect(finalMessage.content).toEqual([{ type: 'text', text: expectedText }]);
+  });
+
   it('handles tool use response fixture', async () => {
     const { fetch, handleStreamEvents } = mockFetch();
 

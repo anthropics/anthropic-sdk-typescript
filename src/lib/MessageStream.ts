@@ -41,11 +41,75 @@ type MessageStreamEventListeners<ParsedT, Event extends keyof MessageStreamEvent
 }[];
 
 const JSON_BUF_PROPERTY = '__json_buf';
+const TEXT_CHUNKS_PROPERTY = '__text_chunks';
+const TEXT_SNAPSHOT_PROPERTY = '__text_snapshot';
 
 export type TracksToolInput = ToolUseBlock | ServerToolUseBlock;
 
 function tracksToolInput(content: ContentBlock): content is TracksToolInput {
   return content.type === 'tool_use' || content.type === 'server_tool_use';
+}
+
+function appendTextDelta(content: TextBlock, text: string): void {
+  let chunks = (content as any)[TEXT_CHUNKS_PROPERTY] as string[] | undefined;
+  if (!chunks) {
+    const newChunks = content.text ? [content.text] : [];
+    chunks = newChunks;
+    Object.defineProperty(content, TEXT_CHUNKS_PROPERTY, {
+      value: newChunks,
+      enumerable: false,
+      writable: true,
+      configurable: true,
+    });
+    Object.defineProperty(content, 'text', {
+      get: () => newChunks.join(''),
+      set: (value: string) => {
+        newChunks.length = 0;
+        if (value) {
+          newChunks.push(value);
+        }
+      },
+      enumerable: true,
+      configurable: true,
+    });
+  }
+  chunks.push(text);
+}
+
+function appendTextSnapshot(content: TextBlock, text: string): string {
+  let snapshot = (content as any)[TEXT_SNAPSHOT_PROPERTY] as string | undefined;
+  if (snapshot === undefined) {
+    const chunks = (content as any)[TEXT_CHUNKS_PROPERTY] as string[] | undefined;
+    snapshot = chunks ? chunks.join('') : content.text || '';
+    Object.defineProperty(content, TEXT_SNAPSHOT_PROPERTY, {
+      value: snapshot,
+      enumerable: false,
+      writable: true,
+      configurable: true,
+    });
+  } else {
+    snapshot += text;
+    (content as any)[TEXT_SNAPSHOT_PROPERTY] = snapshot;
+  }
+  return snapshot;
+}
+
+function materializeText(content: ContentBlock | undefined): void {
+  if (content?.type !== 'text') {
+    return;
+  }
+  const chunks = (content as any)[TEXT_CHUNKS_PROPERTY] as string[] | undefined;
+  if (!chunks) {
+    return;
+  }
+  Object.defineProperty(content, 'text', {
+    value: chunks.join(''),
+    enumerable: true,
+    writable: true,
+    configurable: true,
+  });
+  delete (content as any)[TEXT_CHUNKS_PROPERTY];
+  delete (content as any)[TEXT_SNAPSHOT_PROPERTY];
 }
 
 export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStreamEvent> {
@@ -458,8 +522,8 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
         const content = messageSnapshot.content.at(-1)!;
         switch (event.delta.type) {
           case 'text_delta': {
-            if (content.type === 'text') {
-              this._emit('text', event.delta.text, content.text || '');
+            if (content.type === 'text' && this.#listeners.text?.length) {
+              this._emit('text', event.delta.text, appendTextSnapshot(content, event.delta.text));
             }
             break;
           }
@@ -605,10 +669,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
         switch (event.delta.type) {
           case 'text_delta': {
             if (snapshotContent?.type === 'text') {
-              snapshot.content[event.index] = {
-                ...snapshotContent,
-                text: (snapshotContent.text || '') + event.delta.text,
-              };
+              appendTextDelta(snapshotContent, event.delta.text);
             }
             break;
           }
@@ -668,6 +729,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
         return snapshot;
       }
       case 'content_block_stop':
+        materializeText(snapshot.content.at(event.index));
         return snapshot;
     }
   }
