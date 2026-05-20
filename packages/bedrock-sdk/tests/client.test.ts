@@ -260,3 +260,59 @@ describe('AnthropicBedrock constructor deprecation warnings', () => {
     );
   });
 });
+
+describe('Resource surface parity with the main Anthropic client (#704)', () => {
+  test('exposes a `models` resource', () => {
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      awsAccessKey: 'access-key',
+      awsSecretKey: 'secret-key',
+    });
+
+    expect(client.models).toBeDefined();
+    // sanity-check the methods callers rely on for parity with the main SDK
+    expect(typeof client.models.list).toBe('function');
+    expect(typeof client.models.retrieve).toBe('function');
+  });
+
+  test('does not put `/v1/models` into the AWS path-rewrite set', async () => {
+    // The AWS-style rewrite only fires for POSTs to MODEL_ENDPOINTS
+    // (/v1/complete, /v1/messages, /v1/messages?beta=true). A GET to
+    // /v1/models must pass through unchanged so it actually targets the
+    // Anthropic Models API path (whether AWS Bedrock honors it at runtime
+    // is up to AWS — see #704). This test pins that we did not accidentally
+    // route models through the InvokeModel rewrite.
+    const fetchMock = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({ data: [], has_more: false, first_id: null, last_id: null }),
+        text: () =>
+          Promise.resolve('{"data":[],"has_more":false,"first_id":null,"last_id":null}'),
+      }),
+    );
+    const previousFetch = global.fetch;
+    global.fetch = fetchMock as any;
+
+    try {
+      const client = new AnthropicBedrock({
+        awsRegion: 'us-east-1',
+        awsAccessKey: 'access-key',
+        awsSecretKey: 'secret-key',
+        baseURL: 'http://localhost:4010',
+      });
+
+      await client.models.list();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      const requestedUrl = (fetchMock.mock.calls[0]?.[0] ?? '').toString();
+      // Path passed through unchanged (no /model/<id>/invoke rewrite).
+      expect(requestedUrl).toMatch(/\/v1\/models($|\?)/);
+      expect(requestedUrl).not.toMatch(/\/model\//);
+    } finally {
+      global.fetch = previousFetch;
+    }
+  });
+});
