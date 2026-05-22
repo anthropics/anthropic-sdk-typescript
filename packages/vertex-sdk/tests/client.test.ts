@@ -1,6 +1,7 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { AnthropicVertex } from '../src/client';
+import { FinalRequestOptions } from '../src/internal/request-options';
 
 // Mock GoogleAuth to prevent credential loading during tests
 jest.mock('google-auth-library', () => ({
@@ -86,6 +87,44 @@ describe('AnthropicVertex', () => {
           process.env['CLOUD_ML_REGION'] = originalEnv;
         }
       }
+    });
+  });
+
+  describe('count_tokens beta header stripping', () => {
+    const client = new AnthropicVertex({
+      region: 'us-central1',
+      projectId: 'test-project',
+      accessToken: 'fake-token',
+    });
+
+    test('strips anthropic-beta header from /v1/messages/count_tokens requests', async () => {
+      const { req } = await client.buildRequest({
+        path: '/v1/messages/count_tokens',
+        method: 'post',
+        headers: { 'anthropic-beta': 'some-beta-feature-2025-01-01' },
+        body: { model: 'claude-haiku-4-5', messages: [] },
+      } as FinalRequestOptions);
+      expect(req.headers.has('anthropic-beta')).toBe(false);
+    });
+
+    test('strips anthropic-beta header from /v1/messages/count_tokens?beta=true requests', async () => {
+      const { req } = await client.buildRequest({
+        path: '/v1/messages/count_tokens?beta=true',
+        method: 'post',
+        headers: { 'anthropic-beta': 'effort-2025-11-24' },
+        body: { model: 'claude-haiku-4-5', messages: [] },
+      } as FinalRequestOptions);
+      expect(req.headers.has('anthropic-beta')).toBe(false);
+    });
+
+    test('does not strip anthropic-beta header from regular /v1/messages requests', async () => {
+      const { req } = await client.buildRequest({
+        path: '/v1/messages',
+        method: 'post',
+        headers: { 'anthropic-beta': 'some-beta-feature-2025-01-01' },
+        body: { model: 'claude-haiku-4-5', stream: false, messages: [] },
+      } as FinalRequestOptions);
+      expect(req.headers.get('anthropic-beta')).toBe('some-beta-feature-2025-01-01');
     });
   });
 });
