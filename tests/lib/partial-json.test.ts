@@ -51,6 +51,19 @@ describe('partialParse', () => {
     expect(partialParse(`{"foo": 123, "bar": 45.67}`)).toEqual({ foo: 123, bar: 45.67 });
   });
 
+  test('array with a complete trailing number after a comma', () => {
+    expect(partialParse(`{"foo": [1, 2`)).toEqual({ foo: [1, 2] });
+  });
+
+  test('array with multiple complete trailing numbers', () => {
+    expect(partialParse(`{"nums": [10, 20, 3`)).toEqual({ nums: [10, 20, 3] });
+  });
+
+  test('array with an incomplete trailing number', () => {
+    expect(partialParse(`{"foo": [1, 2.`)).toEqual({ foo: [1] });
+    expect(partialParse(`{"foo": [1, -`)).toEqual({ foo: [1] });
+  });
+
   test('JSON string with boolean values', () => {
     expect(partialParse(`{"foo": true, "bar": false}`)).toEqual({ foo: true, bar: false });
   });
