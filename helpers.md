@@ -600,4 +600,4 @@ for await (const work of client.beta.environments.work.poller({
 
 The toolset executes shell and file operations directly on the host. Run it inside a container or other isolation boundary you control.
 
-See [`examples/managed-agents-private-sandbox-worker.ts`](examples/managed-agents-private-sandbox-worker.ts) for a complete example.
+See [`examples/managed-agents-self-hosted-sandbox-worker.ts`](examples/managed-agents-self-hosted-sandbox-worker.ts) for a complete example.
