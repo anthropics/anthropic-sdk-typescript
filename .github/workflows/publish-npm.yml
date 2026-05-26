@@ -12,6 +12,9 @@ jobs:
   publish:
     name: publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     environment: production-release
 
     steps:
@@ -32,5 +35,3 @@ jobs:
       - name: Publish to NPM
         run: |
           yarn tsn scripts/publish-packages.ts '{ "paths_released": "[\"${{ github.event.inputs.path }}\"]" }'
-        env:
-          NPM_TOKEN: ${{ secrets.ANTHROPIC_NPM_TOKEN || secrets.NPM_TOKEN }}
