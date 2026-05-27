@@ -429,6 +429,7 @@ export const AI_PROMPT = '\\n\\nAssistant:';
  */
 export class BaseAnthropic {
   apiKey: string | null;
+  #apiKeySetter: ApiKeySetter | null;
   authToken: string | null;
   webhookKey: string | null;
 
@@ -551,6 +552,7 @@ export class BaseAnthropic {
     this._options = options;
 
     this.apiKey = typeof apiKey === 'string' ? apiKey : null;
+    this.#apiKeySetter = typeof apiKey === 'function' ? apiKey : null;
     this.authToken = authToken;
     this.webhookKey = webhookKey;
 
@@ -657,7 +659,7 @@ export class BaseAnthropic {
       logLevel: this.logLevel,
       fetch: this.fetch,
       fetchOptions: this.fetchOptions,
-      apiKey: this.apiKey,
+      apiKey: this.#apiKeySetter ?? this.apiKey,
       authToken: this.authToken,
       webhookKey: this.webhookKey,
       // credentials: this.credentials is a no-op when __auth is shared (the
@@ -735,14 +737,14 @@ export class BaseAnthropic {
       return; // auth will be injected per-request via authHeaders
     }
 
-    if (this.apiKey && values.get('x-api-key')) {
+    if ((this.apiKey || this.#apiKeySetter) && !nulls.has('x-api-key')) {
       return;
     }
     if (nulls.has('x-api-key')) {
       return;
     }
 
-    if (this.authToken && values.get('authorization')) {
+    if (this.authToken && !nulls.has('authorization')) {
       return;
     }
     if (nulls.has('authorization')) {
@@ -783,6 +785,22 @@ export class BaseAnthropic {
   }
 
   protected async apiKeyAuth(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
+    if (this.#apiKeySetter != null) {
+      let key: string;
+      try {
+        key = await this.#apiKeySetter();
+      } catch (err) {
+        throw new Errors.AnthropicError('Failed to obtain API key from apiKey function', {
+          cause: err,
+        });
+      }
+      if (!key || typeof key !== 'string') {
+        throw new Errors.AnthropicError(
+          'The apiKey function must return a non-empty string',
+        );
+      }
+      return buildHeaders([{ 'X-Api-Key': key }]);
+    }
     if (this.apiKey == null) {
       return undefined;
     }
