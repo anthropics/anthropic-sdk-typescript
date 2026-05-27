@@ -913,8 +913,9 @@ export interface Message {
   content: Array<ContentBlock>;
 
   /**
-   * The model that will complete your prompt.\n\nSee
-   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * The model that will complete your prompt.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
   model: Model;
@@ -1060,8 +1061,9 @@ export interface Metadata {
 }
 
 /**
- * The model that will complete your prompt.\n\nSee
- * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+ * The model that will complete your prompt.
+ *
+ * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
  * details and options.
  */
 export type Model =
@@ -2686,8 +2688,9 @@ export interface MessageCreateParamsBase {
   messages: Array<MessageParam>;
 
   /**
-   * The model that will complete your prompt.\n\nSee
-   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * The model that will complete your prompt.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
   model: Model;
@@ -2970,8 +2973,9 @@ export interface MessageCountTokensParams {
   messages: Array<MessageParam>;
 
   /**
-   * The model that will complete your prompt.\n\nSee
-   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * The model that will complete your prompt.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
   model: Model;

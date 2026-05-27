@@ -136,8 +136,9 @@ export interface BetaAdvisorMessageIterationUsage {
   input_tokens: number;
 
   /**
-   * The model that will complete your prompt.\n\nSee
-   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * The model that will complete your prompt.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
   model: MessagesAPI.Model;
@@ -186,8 +187,9 @@ export interface BetaAdvisorResultBlockParam {
 
 export interface BetaAdvisorTool20260301 {
   /**
-   * The model that will complete your prompt.\n\nSee
-   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * The model that will complete your prompt.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
   model: MessagesAPI.Model;
@@ -1682,8 +1684,9 @@ export interface BetaMessage {
   diagnostics: BetaDiagnostics | null;
 
   /**
-   * The model that will complete your prompt.\n\nSee
-   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * The model that will complete your prompt.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
   model: MessagesAPI.Model;
@@ -3867,8 +3870,9 @@ export interface MessageCreateParamsBase {
   messages: Array<BetaMessageParam>;
 
   /**
-   * Body param: The model that will complete your prompt.\n\nSee
-   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * Body param: The model that will complete your prompt.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
   model: MessagesAPI.Model;
@@ -4200,8 +4204,9 @@ export interface MessageCountTokensParams {
   messages: Array<BetaMessageParam>;
 
   /**
-   * Body param: The model that will complete your prompt.\n\nSee
-   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * Body param: The model that will complete your prompt.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
   model: MessagesAPI.Model;
