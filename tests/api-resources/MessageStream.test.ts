@@ -226,6 +226,54 @@ describe('MessageStream class', () => {
     expect(finalText).toBe("I'll check the current weather in Paris for you.");
   });
 
+  it('concatenates multiple text blocks without extra spaces in finalText', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_multi_text',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-20250514',
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { input_tokens: 10, output_tokens: 0 },
+        },
+      },
+      { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+      { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Hello' } },
+      { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: ' world' } },
+      { type: 'content_block_stop', index: 0 },
+      { type: 'content_block_start', index: 1, content_block: { type: 'text', text: '' } },
+      { type: 'content_block_delta', index: 1, delta: { type: 'text_delta', text: ', how' } },
+      { type: 'content_block_delta', index: 1, delta: { type: 'text_delta', text: ' are you?' } },
+      { type: 'content_block_stop', index: 1 },
+      {
+        type: 'message_delta',
+        delta: { stop_reason: 'end_turn', stop_sequence: null },
+        usage: { output_tokens: 8 },
+      },
+      { type: 'message_stop' },
+    ]);
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-20250514',
+      messages: [{ role: 'user', content: 'Say something' }],
+    });
+
+    for await (const _event of stream) {
+    }
+
+    const finalText = await stream.finalText();
+    expect(finalText).toBe('Hello world, how are you?');
+  });
+
   it('does not throw unhandled rejection with withResponse()', async () => {
     const { fetch, handleRequest } = mockFetch();
     const anthropic = new Anthropic({
