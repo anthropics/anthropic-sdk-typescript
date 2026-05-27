@@ -47,12 +47,10 @@ export { setupSkills, resolveSkillVersion, extractSkillArchive } from './skills'
 
 const BASH_OUTPUT_LIMIT = 100 * 1024;
 const BASH_DEFAULT_TIMEOUT_MS = 120_000;
-const READ_MAX_BYTES = 256 * 1024;
-// `edit` reads the whole file before rewriting it, so it carries the same
-// OOM/FIFO exposure as `read`. Kept as a symmetric alias for now; the cap value
-// (and reject-vs-truncate behaviour) is intentionally a separate knob pending
-// validation with the CMA team.
-const EDIT_MAX_BYTES = READ_MAX_BYTES;
+// Default size cap for the read/edit tools (both load the whole file into
+// memory) when AgentToolContext.maxFileBytes is unset. The reject-vs-truncate
+// behaviour remains a separate question pending CMA validation.
+const DEFAULT_MAX_FILE_BYTES = 256 * 1024;
 const GREP_OUTPUT_LIMIT = 100 * 1024;
 const GREP_MAX_LINE_LENGTH = 2000;
 const GLOB_RESULT_LIMIT = 200;
@@ -71,6 +69,10 @@ type GlobFn = (
   },
 ) => AsyncIterable<fssync.Dirent>;
 const fsGlob = (fs as unknown as { glob: GlobFn }).glob;
+
+function resolveMaxBytes(configured: number | null | undefined): number | null {
+  return configured === undefined ? DEFAULT_MAX_FILE_BYTES : configured;
+}
 
 /**
  * Workdir + path-policy for the agent toolset.
@@ -116,6 +118,15 @@ export interface AgentToolContext {
    * build the combined mapping yourself before passing it.
    */
   env?: NodeJS.ProcessEnv;
+  /**
+   * Size cap for the `read` and `edit` tools, which both load the whole file into
+   * memory. `undefined` (default) uses the built-in 256 KiB cap; a positive number
+   * sets a custom cap; `null` disables the cap entirely. Disabling it reintroduces
+   * the OOM risk on a model-controlled path, so pass `null` only when the sandbox
+   * can absorb arbitrarily large files. The non-regular-file (FIFO/device) guard
+   * always applies regardless of this value.
+   */
+  maxFileBytes?: number | null;
 }
 
 /**
@@ -435,9 +446,10 @@ export function betaReadTool(ctx: AgentToolContext): BetaRunnableTool {
         if (!st.isFile()) {
           throw new ToolError(`read: ${file_path} is not a regular file`);
         }
-        if (st.size > READ_MAX_BYTES) {
+        const limit = resolveMaxBytes(ctx.maxFileBytes);
+        if (limit !== null && st.size > limit) {
           throw new ToolError(
-            `read: ${file_path} is ${st.size} bytes, exceeds ${READ_MAX_BYTES}-byte limit. ` +
+            `read: ${file_path} is ${st.size} bytes, exceeds ${limit}-byte limit. ` +
               'Use bash (head/tail/sed) to read a slice.',
           );
         }
@@ -510,9 +522,10 @@ export function betaEditTool(ctx: AgentToolContext): BetaRunnableTool {
         if (!st.isFile()) {
           throw new ToolError(`edit: ${file_path} is not a regular file`);
         }
-        if (st.size > EDIT_MAX_BYTES) {
+        const limit = resolveMaxBytes(ctx.maxFileBytes);
+        if (limit !== null && st.size > limit) {
           throw new ToolError(
-            `edit: ${file_path} is ${st.size} bytes, exceeds ${EDIT_MAX_BYTES}-byte limit. ` +
+            `edit: ${file_path} is ${st.size} bytes, exceeds ${limit}-byte limit. ` +
               'Use bash (sed/awk) to edit a large file.',
           );
         }

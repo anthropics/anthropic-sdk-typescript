@@ -57,6 +57,8 @@ export interface EnvironmentWorkerOptions {
   workdir?: string;
   /** Forwarded to the per-session {@link AgentToolContext}. */
   unrestrictedPaths?: boolean;
+  /** Forwarded to the per-session {@link AgentToolContext} (`maxFileBytes`). */
+  maxFileBytes?: number | null;
   /** Forwarded to {@link SessionToolRunner} (`maxIdleMs`). */
   maxIdleMs?: number;
   /** Forwarded to the {@link WorkPoller}. */
@@ -138,6 +140,7 @@ export class EnvironmentWorker {
   readonly tools: EnvironmentWorkerTools | undefined;
   readonly workdir: string;
   readonly unrestrictedPaths: boolean | undefined;
+  readonly maxFileBytes: number | null | undefined;
   readonly maxIdleMs: number | undefined;
   readonly workerId: string | undefined;
   readonly requestOptions: BetaToolRunnerRequestOptions | undefined;
@@ -150,6 +153,7 @@ export class EnvironmentWorker {
     this.tools = opts.tools;
     this.workdir = opts.workdir ?? process.cwd();
     this.unrestrictedPaths = opts.unrestrictedPaths;
+    this.maxFileBytes = opts.maxFileBytes;
     this.maxIdleMs = opts.maxIdleMs;
     this.workerId = opts.workerId;
     this.requestOptions = opts.requestOptions;
@@ -268,6 +272,7 @@ export class EnvironmentWorker {
       client: this.client,
       sessionId,
       ...(this.unrestrictedPaths !== undefined ? { unrestrictedPaths: this.unrestrictedPaths } : {}),
+      ...(this.maxFileBytes !== undefined ? { maxFileBytes: this.maxFileBytes } : {}),
     };
     // Lazily load the Node-only toolset module — see the import note at the top.
     const agentToolset = await import('../../tools/agent-toolset/node');

@@ -171,6 +171,69 @@ describe('fs tools (read/write/edit)', () => {
     expect(fs.readFileSync(path.join(dir, 'ok.txt'), 'utf8')).toBe('foo baz');
   });
 
+  test('edit honours a custom maxFileBytes below the file size', async () => {
+    fs.writeFileSync(path.join(dir, 'f.txt'), 'OLD' + 'a'.repeat(2000));
+    await expect(
+      betaEditTool({ workdir: dir, maxFileBytes: 1024 }).run({
+        file_path: 'f.txt',
+        old_string: 'OLD',
+        new_string: 'NEW',
+      }),
+    ).rejects.toThrow(/exceeds .*limit/);
+  });
+
+  test('edit allows a file over the default cap when maxFileBytes is raised', async () => {
+    fs.writeFileSync(path.join(dir, 'f.txt'), 'OLD' + 'a'.repeat(257 * 1024));
+    await betaEditTool({ workdir: dir, maxFileBytes: 512 * 1024 }).run({
+      file_path: 'f.txt',
+      old_string: 'OLD',
+      new_string: 'NEW',
+    });
+    expect(fs.readFileSync(path.join(dir, 'f.txt'), 'utf8').startsWith('NEW')).toBe(true);
+  });
+
+  test('edit allows an oversized file when maxFileBytes is null (uncapped)', async () => {
+    fs.writeFileSync(path.join(dir, 'f.txt'), 'OLD' + 'a'.repeat(257 * 1024));
+    await betaEditTool({ workdir: dir, maxFileBytes: null }).run({
+      file_path: 'f.txt',
+      old_string: 'OLD',
+      new_string: 'NEW',
+    });
+    expect(fs.readFileSync(path.join(dir, 'f.txt'), 'utf8').startsWith('NEW')).toBe(true);
+  });
+
+  test('edit still refuses a directory even when maxFileBytes is null', async () => {
+    fs.mkdirSync(path.join(dir, 'sub'));
+    await expect(
+      betaEditTool({ workdir: dir, maxFileBytes: null }).run({
+        file_path: 'sub',
+        old_string: 'a',
+        new_string: 'b',
+      }),
+    ).rejects.toThrow(/not a regular file/);
+  });
+
+  test('read honours a custom maxFileBytes below the file size', async () => {
+    fs.writeFileSync(path.join(dir, 'f.txt'), Buffer.alloc(2000, 'a'));
+    await expect(
+      betaReadTool({ workdir: dir, maxFileBytes: 1024 }).run({ file_path: 'f.txt' }),
+    ).rejects.toThrow(/exceeds .*limit/);
+  });
+
+  test('read allows an oversized file when maxFileBytes is null (uncapped)', async () => {
+    fs.writeFileSync(path.join(dir, 'big.txt'), Buffer.alloc(257 * 1024, 'a'));
+    await expect(
+      betaReadTool({ workdir: dir, maxFileBytes: null }).run({ file_path: 'big.txt' }),
+    ).resolves.toContain('a');
+  });
+
+  test('read still refuses a directory even when maxFileBytes is null', async () => {
+    fs.mkdirSync(path.join(dir, 'sub'));
+    await expect(
+      betaReadTool({ workdir: dir, maxFileBytes: null }).run({ file_path: 'sub' }),
+    ).rejects.toThrow(/not a regular file/);
+  });
+
   test('write outside workdir via dot-dot is rejected by the path jail', async () => {
     await expect(betaWriteTool(env).run({ file_path: '../escape.txt', content: 'x' })).rejects.toThrow(
       /escapes workdir/,
