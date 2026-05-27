@@ -578,6 +578,9 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
         snapshot.container = event.delta.container;
         snapshot.stop_reason = event.delta.stop_reason;
         snapshot.stop_sequence = event.delta.stop_sequence;
+        if (event.delta.stop_details != null) {
+          snapshot.stop_details = event.delta.stop_details;
+        }
         snapshot.usage.output_tokens = event.usage.output_tokens;
         snapshot.context_management = event.context_management;
 
