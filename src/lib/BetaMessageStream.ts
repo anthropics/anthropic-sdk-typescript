@@ -44,11 +44,49 @@ type MessageStreamEventListeners<Event extends keyof MessageStreamEvents> = {
 }[];
 
 const JSON_BUF_PROPERTY = '__json_buf';
+const TEXT_CHUNKS_PROPERTY = '__text_chunks';
 
 export type TracksToolInput = BetaToolUseBlock | BetaServerToolUseBlock | BetaMCPToolUseBlock;
 
 function tracksToolInput(content: BetaContentBlock): content is TracksToolInput {
   return content.type === 'tool_use' || content.type === 'server_tool_use' || content.type === 'mcp_tool_use';
+}
+
+type BetaTextBlockWithChunks = BetaTextBlock & { [TEXT_CHUNKS_PROPERTY]?: string[] };
+
+function getTextChunks(content: BetaTextBlock): string[] {
+  const contentWithChunks = content as BetaTextBlockWithChunks;
+  let chunks = contentWithChunks[TEXT_CHUNKS_PROPERTY];
+  if (!chunks) {
+    chunks = content.text ? [content.text] : [];
+    Object.defineProperty(contentWithChunks, TEXT_CHUNKS_PROPERTY, {
+      value: chunks,
+      enumerable: false,
+      writable: true,
+    });
+  }
+  return chunks;
+}
+
+function appendTextDelta(content: BetaTextBlock, text: string): BetaTextBlock {
+  getTextChunks(content).push(text);
+  return content;
+}
+
+function materializeTextBlock<T extends BetaTextBlock>(content: T): T {
+  const chunks = (content as BetaTextBlockWithChunks)[TEXT_CHUNKS_PROPERTY];
+  if (!chunks) return content;
+
+  const text = chunks.join('');
+  if (content.text === text) return content;
+
+  const nextContent = { ...content, text };
+  Object.defineProperty(nextContent, TEXT_CHUNKS_PROPERTY, {
+    value: chunks,
+    enumerable: false,
+    writable: true,
+  });
+  return nextContent;
 }
 
 export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMessageStreamEvent> {
@@ -316,7 +354,9 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
   }
 
   get currentMessage(): BetaMessage | undefined {
-    return this.#currentMessageSnapshot;
+    return this.#currentMessageSnapshot ?
+        this.#materializeMessageText(this.#currentMessageSnapshot)
+      : undefined;
   }
 
   #getFinalMessage(): ParsedBetaMessage<ParsedT> {
@@ -436,6 +476,28 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
     }
   }
 
+  #hasListeners<Event extends keyof MessageStreamEvents>(event: Event): boolean {
+    return (this.#listeners[event]?.length ?? 0) > 0;
+  }
+
+  #materializeTextContent(message: BetaMessage, index: number): BetaTextBlock | undefined {
+    const content = message.content.at(index);
+    if (content?.type !== 'text') return undefined;
+
+    const materializedContent = materializeTextBlock(content);
+    if (materializedContent !== content) {
+      message.content[index] = materializedContent;
+    }
+    return materializedContent;
+  }
+
+  #materializeMessageText(message: BetaMessage): BetaMessage {
+    for (let index = 0; index < message.content.length; index++) {
+      this.#materializeTextContent(message, index);
+    }
+    return message;
+  }
+
   #beginRequest() {
     if (this.ended) return;
     this.#currentMessageSnapshot = undefined;
@@ -443,15 +505,23 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
   #addStreamEvent(event: BetaMessageStreamEvent) {
     if (this.ended) return;
     const messageSnapshot = this.#accumulateMessage(event);
+    if (
+      this.#hasListeners('streamEvent') &&
+      event.type === 'content_block_delta' &&
+      event.delta.type === 'text_delta'
+    ) {
+      this.#materializeTextContent(messageSnapshot, event.index);
+    }
     this._emit('streamEvent', event, messageSnapshot);
 
     switch (event.type) {
       case 'content_block_delta': {
-        const content = messageSnapshot.content.at(-1)!;
+        const content = messageSnapshot.content.at(event.index)!;
         switch (event.delta.type) {
           case 'text_delta': {
-            if (content.type === 'text') {
-              this._emit('text', event.delta.text, content.text || '');
+            if (content.type === 'text' && this.#hasListeners('text')) {
+              const textSnapshot = this.#materializeTextContent(messageSnapshot, event.index)?.text ?? '';
+              this._emit('text', event.delta.text, textSnapshot);
             }
             break;
           }
@@ -491,6 +561,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
         break;
       }
       case 'message_stop': {
+        this.#materializeMessageText(messageSnapshot);
         this._addMessageParam(messageSnapshot);
         this._addMessage(
           maybeParseBetaMessage(messageSnapshot, this.#params, { logger: this.#logger }),
@@ -499,7 +570,8 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
         break;
       }
       case 'content_block_stop': {
-        this._emit('contentBlock', messageSnapshot.content.at(-1)!);
+        this.#materializeTextContent(messageSnapshot, event.index);
+        this._emit('contentBlock', messageSnapshot.content.at(event.index)!);
         break;
       }
       case 'message_start': {
@@ -519,6 +591,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
     if (!snapshot) {
       throw new AnthropicError(`request ended without sending any chunks`);
     }
+    this.#materializeMessageText(snapshot);
     this.#currentMessageSnapshot = undefined;
     return maybeParseBetaMessage(snapshot, this.#params, { logger: this.#logger });
   }
@@ -611,10 +684,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
         switch (event.delta.type) {
           case 'text_delta': {
             if (snapshotContent?.type === 'text') {
-              snapshot.content[event.index] = {
-                ...snapshotContent,
-                text: (snapshotContent.text || '') + event.delta.text,
-              };
+              snapshot.content[event.index] = appendTextDelta(snapshotContent, event.delta.text);
             }
             break;
           }
@@ -689,6 +759,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
         return snapshot;
       }
       case 'content_block_stop':
+        this.#materializeTextContent(snapshot, event.index);
         return snapshot;
     }
   }
