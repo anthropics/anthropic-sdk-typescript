@@ -576,6 +576,9 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
       case 'message_delta':
         snapshot.stop_reason = event.delta.stop_reason;
         snapshot.stop_sequence = event.delta.stop_sequence;
+        if (event.delta.stop_details != null) {
+          snapshot.stop_details = event.delta.stop_details;
+        }
         snapshot.usage.output_tokens = event.usage.output_tokens;
 
         // Update other usage fields if they exist in the event
