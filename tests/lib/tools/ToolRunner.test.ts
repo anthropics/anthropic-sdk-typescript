@@ -1472,4 +1472,171 @@ describe('ToolRunner', () => {
       expect(capturedContext!.signal).toBe(controller.signal);
     });
   });
+
+  describe('container.id propagation', () => {
+    it('forwards container.id from response to next request', async () => {
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+
+      const capturedBodies: any[] = [];
+
+      const makeMessage = (
+        content: BetaContentBlock[],
+        container: BetaMessage['container'] = null,
+      ): BetaMessage => ({
+        id: `msg_${capturedBodies.length}`,
+        type: 'message',
+        role: 'assistant',
+        content,
+        model: 'claude-3-5-sonnet-latest',
+        stop_details: null,
+        stop_reason: content.some((b) => b.type === 'tool_use') ? 'tool_use' : 'end_turn',
+        stop_sequence: null,
+        container,
+        context_management: null,
+        diagnostics: null,
+        usage: {
+          input_tokens: 10,
+          output_tokens: 20,
+          cache_creation: null,
+          cache_creation_input_tokens: null,
+          cache_read_input_tokens: null,
+          server_tool_use: null,
+          service_tier: null,
+          inference_geo: null,
+          iterations: null,
+          speed: null,
+        },
+      });
+
+      // First request: assistant calls a tool, response includes container
+      handleRequest(async (_req, init) => {
+        capturedBodies.push(JSON.parse(init?.body as string));
+        return new Response(
+          JSON.stringify(
+            makeMessage([getWeatherToolUse('Berlin')], {
+              id: 'container_abc123',
+              expires_at: '2026-06-01T00:00:00Z',
+              skills: null,
+            }),
+          ),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      // Second request: tool result sent back - should include container
+      handleRequest(async (_req, init) => {
+        capturedBodies.push(JSON.parse(init?.body as string));
+        return new Response(JSON.stringify(makeMessage([getTextContent('Done')])), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      });
+
+      const runner = client.beta.messages.toolRunner({
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 1000,
+        tools: [weatherTool],
+        messages: [{ role: 'user', content: 'Weather in Berlin?' }],
+      });
+
+      await runner.runUntilDone();
+
+      expect(capturedBodies).toHaveLength(2);
+      expect(capturedBodies[0]!.container).toBeUndefined();
+      expect(capturedBodies[1]!.container).toBe('container_abc123');
+    });
+
+    it('forwards container.id in streaming mode', async () => {
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+
+      const capturedBodies: any[] = [];
+
+      const makeMessage = (
+        content: BetaContentBlock[],
+        container: BetaMessage['container'] = null,
+      ): BetaMessage => ({
+        id: `msg_${capturedBodies.length}`,
+        type: 'message',
+        role: 'assistant',
+        content,
+        model: 'claude-3-5-sonnet-latest',
+        stop_details: null,
+        stop_reason: content.some((b) => b.type === 'tool_use') ? 'tool_use' : 'end_turn',
+        stop_sequence: null,
+        container,
+        context_management: null,
+        diagnostics: null,
+        usage: {
+          input_tokens: 10,
+          output_tokens: 20,
+          cache_creation: null,
+          cache_creation_input_tokens: null,
+          cache_read_input_tokens: null,
+          server_tool_use: null,
+          service_tier: null,
+          inference_geo: null,
+          iterations: null,
+          speed: null,
+        },
+      });
+
+      // First request (streaming): tool call with container
+      handleRequest(async (_req, init) => {
+        capturedBodies.push(JSON.parse(init?.body as string));
+        const msg = makeMessage([getWeatherToolUse('Berlin')], {
+          id: 'container_stream_456',
+          expires_at: '2026-06-01T00:00:00Z',
+          skills: null,
+        });
+        const events = betaMessageToStreamEvents(msg);
+        const { PassThrough } = require('stream');
+        const stream = new PassThrough();
+        (async () => {
+          for (const event of events) {
+            stream.write(`event: ${event.type}\n`);
+            stream.write(`data: ${JSON.stringify(event)}\n\n`);
+          }
+          stream.end(`\n`);
+        })();
+        return new Response(stream, {
+          headers: { 'Content-Type': 'text/event-stream', 'Transfer-Encoding': 'chunked' },
+        });
+      });
+
+      // Second request (streaming): final response
+      handleRequest(async (_req, init) => {
+        capturedBodies.push(JSON.parse(init?.body as string));
+        const msg = makeMessage([getTextContent('Done')]);
+        const events = betaMessageToStreamEvents(msg);
+        const { PassThrough } = require('stream');
+        const stream = new PassThrough();
+        (async () => {
+          for (const event of events) {
+            stream.write(`event: ${event.type}\n`);
+            stream.write(`data: ${JSON.stringify(event)}\n\n`);
+          }
+          stream.end(`\n`);
+        })();
+        return new Response(stream, {
+          headers: { 'Content-Type': 'text/event-stream', 'Transfer-Encoding': 'chunked' },
+        });
+      });
+
+      const runner = client.beta.messages.toolRunner({
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 1000,
+        tools: [weatherTool],
+        messages: [{ role: 'user', content: 'Weather in Berlin?' }],
+        stream: true,
+      });
+
+      await runner.runUntilDone();
+
+      expect(capturedBodies).toHaveLength(2);
+      expect(capturedBodies[0]!.container).toBeUndefined();
+      expect(capturedBodies[1]!.container).toBe('container_stream_456');
+    });
+  });
 });
