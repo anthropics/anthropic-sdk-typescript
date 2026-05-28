@@ -725,7 +725,8 @@ export type ContentBlockParam =
   | BashCodeExecutionToolResultBlockParam
   | TextEditorCodeExecutionToolResultBlockParam
   | ToolSearchToolResultBlockParam
-  | ContainerUploadBlockParam;
+  | ContainerUploadBlockParam
+  | MidConversationSystemBlockParam;
 
 export interface ContentBlockSource {
   content: string | Array<ContentBlockSourceContent>;
@@ -1030,6 +1031,16 @@ export interface MessageDeltaUsage {
   output_tokens: number;
 
   /**
+   * Breakdown of output tokens by category.
+   *
+   * `output_tokens` remains the inclusive, authoritative total used for billing.
+   * This object provides a read-only decomposition for observability — for example,
+   * how many of the billed output tokens were spent on internal reasoning that may
+   * have been summarized before being returned to you.
+   */
+  output_tokens_details: OutputTokensDetails | null;
+
+  /**
    * The number of server tool requests.
    */
   server_tool_use: ServerToolUsage | null;
@@ -1038,7 +1049,7 @@ export interface MessageDeltaUsage {
 export interface MessageParam {
   content: string | Array<ContentBlockParam>;
 
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
 }
 
 export interface MessageTokensCount {
@@ -1061,12 +1072,34 @@ export interface Metadata {
 }
 
 /**
+ * System instructions that appear mid-conversation.
+ *
+ * Use this block to provide or update system-level instructions at a specific
+ * point in the conversation, rather than only via the top-level `system`
+ * parameter.
+ */
+export interface MidConversationSystemBlockParam {
+  /**
+   * System instruction text blocks.
+   */
+  content: Array<TextBlockParam>;
+
+  type: 'mid_conv_system';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+}
+
+/**
  * The model that will complete your prompt.
  *
  * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
  * details and options.
  */
 export type Model =
+  | 'claude-opus-4-8'
   | 'claude-opus-4-7'
   | 'claude-mythos-preview'
   | 'claude-opus-4-6'
@@ -1097,6 +1130,20 @@ export interface OutputConfig {
    * [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs)
    */
   format?: JSONOutputFormat | null;
+}
+
+export interface OutputTokensDetails {
+  /**
+   * Number of output tokens the model generated as internal reasoning, including the
+   * thinking-block delimiter tokens.
+   *
+   * Reflects the raw reasoning the model produced, not the (possibly shorter)
+   * summarized thinking text returned in the response body. Computed by
+   * re-tokenizing the raw reasoning text, so it may differ from the model's exact
+   * generation count by a small number of tokens. Always ≤ `output_tokens`;
+   * `output_tokens - thinking_tokens` approximates the non-reasoning output.
+   */
+  thinking_tokens: number;
 }
 
 export interface PlainTextSource {
@@ -2116,6 +2163,16 @@ export interface Usage {
   output_tokens: number;
 
   /**
+   * Breakdown of output tokens by category.
+   *
+   * `output_tokens` remains the inclusive, authoritative total used for billing.
+   * This object provides a read-only decomposition for observability — for example,
+   * how many of the billed output tokens were spent on internal reasoning that may
+   * have been summarized before being returned to you.
+   */
+  output_tokens_details: OutputTokensDetails | null;
+
+  /**
    * The number of server tool requests.
    */
   server_tool_use: ServerToolUsage | null;
@@ -2409,6 +2466,7 @@ export type WebFetchToolResultErrorCode =
   | 'invalid_tool_input'
   | 'url_too_long'
   | 'url_not_allowed'
+  | 'url_not_in_prior_context'
   | 'url_not_accessible'
   | 'unsupported_content_type'
   | 'too_many_requests'
@@ -3165,8 +3223,10 @@ export declare namespace Messages {
     type MessageParam as MessageParam,
     type MessageTokensCount as MessageTokensCount,
     type Metadata as Metadata,
+    type MidConversationSystemBlockParam as MidConversationSystemBlockParam,
     type Model as Model,
     type OutputConfig as OutputConfig,
+    type OutputTokensDetails as OutputTokensDetails,
     type PlainTextSource as PlainTextSource,
     type RawContentBlockDelta as RawContentBlockDelta,
     type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,
