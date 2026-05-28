@@ -110,6 +110,7 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
         cache_read_input_tokens: null,
         input_tokens: message.usage.input_tokens,
         output_tokens: 0,
+        output_tokens_details: null,
         server_tool_use: null,
         service_tier: null,
         inference_geo: null,
@@ -188,6 +189,7 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
     context_management: null,
     usage: {
       output_tokens: message.usage?.output_tokens || 0,
+      output_tokens_details: null,
       input_tokens: message.usage?.input_tokens || 0,
       cache_creation_input_tokens: null,
       cache_read_input_tokens: null,
@@ -239,6 +241,7 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
       usage: {
         input_tokens: 10,
         output_tokens: 20,
+        output_tokens_details: null,
         cache_creation: null,
         cache_creation_input_tokens: null,
         cache_read_input_tokens: null,
@@ -277,6 +280,7 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
       usage: {
         input_tokens: 10,
         output_tokens: 20,
+        output_tokens_details: null,
         cache_creation: null,
         cache_creation_input_tokens: null,
         cache_read_input_tokens: null,
