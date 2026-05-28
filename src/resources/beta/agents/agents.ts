@@ -671,8 +671,9 @@ export interface BetaManagedAgentsMCPToolsetParams {
 }
 
 /**
- * The model that will power your agent.\n\nSee
- * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+ * The model that will power your agent.
+ *
+ * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
  * details and options.
  */
 export type BetaManagedAgentsModel =
@@ -692,8 +693,9 @@ export type BetaManagedAgentsModel =
  */
 export interface BetaManagedAgentsModelConfig {
   /**
-   * The model that will power your agent.\n\nSee
-   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * The model that will power your agent.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
   id: BetaManagedAgentsModel;
@@ -711,8 +713,9 @@ export interface BetaManagedAgentsModelConfig {
  */
 export interface BetaManagedAgentsModelConfigParams {
   /**
-   * The model that will power your agent.\n\nSee
-   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * The model that will power your agent.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
   id: BetaManagedAgentsModel;
