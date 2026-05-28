@@ -86,8 +86,10 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">MessageParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageTokensCount</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Metadata</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MidConversationSystemBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Model</a></code>
 - <code><a href="./src/resources/messages/messages.ts">OutputConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">OutputTokensDetails</a></code>
 - <code><a href="./src/resources/messages/messages.ts">PlainTextSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">RawContentBlockDelta</a></code>
 - <code><a href="./src/resources/messages/messages.ts">RawContentBlockDeltaEvent</a></code>
@@ -384,7 +386,9 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageTokensCount</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMetadata</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaMidConversationSystemBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaOutputConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaOutputTokensDetails</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaPlainTextSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRawContentBlockDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRawContentBlockDeltaEvent</a></code>

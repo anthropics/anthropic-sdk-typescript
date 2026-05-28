@@ -314,6 +314,12 @@ export interface BetaAdvisorRedactedResultBlock {
    */
   encrypted_content: string;
 
+  /**
+   * The advisor sub-inference's stop reason (same values as the top-level message
+   * `stop_reason`).
+   */
+  stop_reason: string | null;
+
   type: 'advisor_redacted_result';
 }
 
@@ -324,9 +330,18 @@ export interface BetaAdvisorRedactedResultBlockParam {
   encrypted_content: string;
 
   type: 'advisor_redacted_result';
+
+  stop_reason?: string | null;
 }
 
 export interface BetaAdvisorResultBlock {
+  /**
+   * The advisor sub-inference's stop reason (same values as the top-level message
+   * `stop_reason`). `max_tokens` indicates the advisor's output was truncated at the
+   * tool's `max_tokens` value or the advisor model's policy cap.
+   */
+  stop_reason: string | null;
+
   text: string;
 
   type: 'advisor_result';
@@ -336,6 +351,8 @@ export interface BetaAdvisorResultBlockParam {
   text: string;
 
   type: 'advisor_result';
+
+  stop_reason?: string | null;
 }
 
 export interface BetaAdvisorTool20260301 {
@@ -1349,7 +1366,8 @@ export type BetaContentBlockParam =
   | BetaMCPToolUseBlockParam
   | BetaRequestMCPToolResultBlockParam
   | BetaContainerUploadBlockParam
-  | BetaCompactionBlockParam;
+  | BetaCompactionBlockParam
+  | BetaMidConversationSystemBlockParam;
 
 export interface BetaContentBlockSource {
   content: string | Array<BetaContentBlockSourceContent>;
@@ -1946,6 +1964,16 @@ export interface BetaMessageDeltaUsage {
   output_tokens: number;
 
   /**
+   * Breakdown of output tokens by category.
+   *
+   * `output_tokens` remains the inclusive, authoritative total used for billing.
+   * This object provides a read-only decomposition for observability — for example,
+   * how many of the billed output tokens were spent on internal reasoning that may
+   * have been summarized before being returned to you.
+   */
+  output_tokens_details: BetaOutputTokensDetails | null;
+
+  /**
    * The number of server tool requests.
    */
   server_tool_use: BetaServerToolUsage | null;
@@ -1989,7 +2017,7 @@ export interface BetaMessageIterationUsage {
 export interface BetaMessageParam {
   content: string | Array<BetaContentBlockParam>;
 
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
 }
 
 export interface BetaMessageTokensCount {
@@ -2016,6 +2044,27 @@ export interface BetaMetadata {
   user_id?: string | null;
 }
 
+/**
+ * System instructions that appear mid-conversation.
+ *
+ * Use this block to provide or update system-level instructions at a specific
+ * point in the conversation, rather than only via the top-level `system`
+ * parameter.
+ */
+export interface BetaMidConversationSystemBlockParam {
+  /**
+   * System instruction text blocks.
+   */
+  content: Array<BetaTextBlockParam>;
+
+  type: 'mid_conv_system';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
 export interface BetaOutputConfig {
   /**
    * All possible effort levels.
@@ -2032,6 +2081,20 @@ export interface BetaOutputConfig {
    * User-configurable total token budget across contexts.
    */
   task_budget?: BetaTokenTaskBudget | null;
+}
+
+export interface BetaOutputTokensDetails {
+  /**
+   * Number of output tokens the model generated as internal reasoning, including the
+   * thinking-block delimiter tokens.
+   *
+   * Reflects the raw reasoning the model produced, not the (possibly shorter)
+   * summarized thinking text returned in the response body. Computed by
+   * re-tokenizing the raw reasoning text, so it may differ from the model's exact
+   * generation count by a small number of tokens. Always ≤ `output_tokens`;
+   * `output_tokens - thinking_tokens` approximates the non-reasoning output.
+   */
+  thinking_tokens: number;
 }
 
 export interface BetaPlainTextSource {
@@ -3443,6 +3506,16 @@ export interface BetaUsage {
   output_tokens: number;
 
   /**
+   * Breakdown of output tokens by category.
+   *
+   * `output_tokens` remains the inclusive, authoritative total used for billing.
+   * This object provides a read-only decomposition for observability — for example,
+   * how many of the billed output tokens were spent on internal reasoning that may
+   * have been summarized before being returned to you.
+   */
+  output_tokens_details: BetaOutputTokensDetails | null;
+
+  /**
    * The number of server tool requests.
    */
   server_tool_use: BetaServerToolUsage | null;
@@ -3741,6 +3814,7 @@ export type BetaWebFetchToolResultErrorCode =
   | 'invalid_tool_input'
   | 'url_too_long'
   | 'url_not_allowed'
+  | 'url_not_in_prior_context'
   | 'url_not_accessible'
   | 'unsupported_content_type'
   | 'too_many_requests'
@@ -4665,7 +4739,9 @@ export declare namespace Messages {
     type BetaMessageParam as BetaMessageParam,
     type BetaMessageTokensCount as BetaMessageTokensCount,
     type BetaMetadata as BetaMetadata,
+    type BetaMidConversationSystemBlockParam as BetaMidConversationSystemBlockParam,
     type BetaOutputConfig as BetaOutputConfig,
+    type BetaOutputTokensDetails as BetaOutputTokensDetails,
     type BetaPlainTextSource as BetaPlainTextSource,
     type BetaRawContentBlockDelta as BetaRawContentBlockDelta,
     type BetaRawContentBlockDeltaEvent as BetaRawContentBlockDeltaEvent,
