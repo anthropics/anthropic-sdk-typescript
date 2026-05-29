@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.4 (2026-05-29)
+
+Full Changelog: [foundry-sdk-v0.2.3...foundry-sdk-v0.2.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.2.3...foundry-sdk-v0.2.4)
+
+### Chores
+
+* **client:** update lockfiles to have proper dependencies on standardwebhooks ([5e9b523](https://github.com/anthropics/anthropic-sdk-typescript/commit/5e9b5237e53aefda65637bd11eb0d07f50bbc952))
+
 ## 0.2.3 (2026-02-05)
 
 Full Changelog: [foundry-sdk-v0.2.2...foundry-sdk-v0.2.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.2.2...foundry-sdk-v0.2.3)

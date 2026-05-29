@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1 (2026-05-29)
+
+Full Changelog: [aws-sdk-v0.3.0...aws-sdk-v0.3.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.3.0...aws-sdk-v0.3.1)
+
+### Chores
+
+* **client:** update lockfiles to have proper dependencies on standardwebhooks ([5e9b523](https://github.com/anthropics/anthropic-sdk-typescript/commit/5e9b5237e53aefda65637bd11eb0d07f50bbc952))
+
 ## 0.3.0 (2026-05-11)
 
 Full Changelog: [aws-sdk-v0.2.5...aws-sdk-v0.3.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.2.5...aws-sdk-v0.3.0)
