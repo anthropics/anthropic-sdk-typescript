@@ -107,9 +107,13 @@ export class BetaToolRunner<Stream extends boolean> {
             yield this.#message as any;
           }
 
+          const message = await this.#message;
+          if (message.container?.id) {
+            this.#state.params.container = message.container.id;
+          }
+
           if (!this.#mutated) {
-            const { role, content } = await this.#message;
-            this.#state.params.messages.push({ role, content });
+            this.#state.params.messages.push({ role: message.role, content: message.content });
           }
 
           const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
