@@ -1109,6 +1109,11 @@ export type MessageCountTokensTool =
 
 export interface MessageDeltaUsage {
   /**
+   * Breakdown of cached tokens by TTL
+   */
+  cache_creation?: CacheCreation | null;
+
+  /**
    * The cumulative number of input tokens used to create the cache entry.
    */
   cache_creation_input_tokens: number | null;

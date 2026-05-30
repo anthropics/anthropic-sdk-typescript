@@ -1932,6 +1932,11 @@ export interface BetaMessage {
 
 export interface BetaMessageDeltaUsage {
   /**
+   * Breakdown of cached tokens by TTL
+   */
+  cache_creation?: BetaCacheCreation | null;
+
+  /**
    * The cumulative number of input tokens used to create the cache entry.
    */
   cache_creation_input_tokens: number | null;
