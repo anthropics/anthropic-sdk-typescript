@@ -187,6 +187,7 @@ const tokenize = (input: string): Token[] => {
           tokens = tokens.slice(0, tokens.length - 1);
           return strip(tokens);
         }
+        break;
       case 'string':
         let tokenBeforeTheLastToken = tokens[tokens.length - 2];
         if (tokenBeforeTheLastToken?.type === 'delimiter') {
