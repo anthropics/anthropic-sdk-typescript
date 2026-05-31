@@ -24,7 +24,7 @@ export class Models extends APIResource {
     return this._client.get(path`/v1/models/${modelID}`, {
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        { ...(betas?.length ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
     });
@@ -45,7 +45,7 @@ export class Models extends APIResource {
       query,
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        { ...(betas?.length ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
     });

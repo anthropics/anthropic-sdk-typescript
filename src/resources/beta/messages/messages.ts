@@ -136,7 +136,7 @@ export class Messages extends APIResource {
       timeout: timeout ?? 600000,
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        { ...(betas?.length ? { 'anthropic-beta': betas?.toString() } : undefined) },
         helperHeader,
         options?.headers,
       ]),
