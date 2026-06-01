@@ -1476,4 +1476,88 @@ describe('ToolRunner', () => {
       expect(capturedContext!.signal).toBe(controller.signal);
     });
   });
+
+  describe('request headers propagation', () => {
+    it('propagates client.defaultHeaders and options.headers across all iterations of the tool loop', async () => {
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({
+        apiKey: 'test-key',
+        fetch,
+        maxRetries: 0,
+        defaultHeaders: { 'x-default-header': 'from-defaultHeaders' },
+      });
+
+      const captured: Array<{ default: string | null; options: string | null }> = [];
+
+      // First response: tool_use forces a follow-up request.
+      handleRequest(async (_req, init) => {
+        const headers = init?.headers;
+        if (headers instanceof Headers) {
+          captured.push({
+            default: headers.get('x-default-header'),
+            options: headers.get('x-options-header'),
+          });
+        }
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'tool_use', id: 'tool_1', name: 'getWeather', input: { location: 'London' } }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'tool_use',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 20 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      // Second response: end_turn closes the loop.
+      handleRequest(async (_req, init) => {
+        const headers = init?.headers;
+        if (headers instanceof Headers) {
+          captured.push({
+            default: headers.get('x-default-header'),
+            options: headers.get('x-options-header'),
+          });
+        }
+        return new Response(
+          JSON.stringify({
+            id: 'msg_2',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Done!', citations: null }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      const runner = client.beta.messages.toolRunner(
+        {
+          model: 'claude-3-5-sonnet-latest',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: 'What is the weather in London?' }],
+          tools: [weatherTool],
+        },
+        { headers: { 'x-options-header': 'from-options' } },
+      );
+
+      await runner.runUntilDone();
+
+      expect(captured).toHaveLength(2);
+      for (const headers of captured) {
+        expect(headers.default).toBe('from-defaultHeaders');
+        expect(headers.options).toBe('from-options');
+      }
+    });
+  });
 });
