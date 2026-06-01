@@ -41,6 +41,8 @@ type MessageStreamEventListeners<ParsedT, Event extends keyof MessageStreamEvent
 }[];
 
 const JSON_BUF_PROPERTY = '__json_buf';
+const TEXT_CHUNKS_PROPERTY = '__text_chunks';
+const THINKING_CHUNKS_PROPERTY = '__thinking_chunks';
 
 export type TracksToolInput = ToolUseBlock | ServerToolUseBlock;
 
@@ -608,10 +610,16 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
         switch (event.delta.type) {
           case 'text_delta': {
             if (snapshotContent?.type === 'text') {
-              snapshot.content[event.index] = {
-                ...snapshotContent,
-                text: (snapshotContent.text || '') + event.delta.text,
-              };
+              const chunks: string[] = (snapshotContent as any)[TEXT_CHUNKS_PROPERTY] || [];
+              chunks.push(event.delta.text);
+
+              const newContent = { ...snapshotContent, text: chunks.join('') };
+              Object.defineProperty(newContent, TEXT_CHUNKS_PROPERTY, {
+                value: chunks,
+                enumerable: false,
+                writable: true,
+              });
+              snapshot.content[event.index] = newContent;
             }
             break;
           }
@@ -629,16 +637,17 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
               // we need to keep track of the raw JSON string as well so that we can
               // re-parse it for each delta, for now we just store it as an untyped
               // non-enumerable property on the snapshot
-              let jsonBuf = (snapshotContent as any)[JSON_BUF_PROPERTY] || '';
-              jsonBuf += event.delta.partial_json;
+              const jsonChunks: string[] = (snapshotContent as any)[JSON_BUF_PROPERTY] || [];
+              jsonChunks.push(event.delta.partial_json);
 
               const newContent = { ...snapshotContent };
               Object.defineProperty(newContent, JSON_BUF_PROPERTY, {
-                value: jsonBuf,
+                value: jsonChunks,
                 enumerable: false,
                 writable: true,
               });
 
+              const jsonBuf = jsonChunks.join('');
               if (jsonBuf) {
                 newContent.input = partialParse(jsonBuf);
               }
@@ -648,10 +657,16 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
           }
           case 'thinking_delta': {
             if (snapshotContent?.type === 'thinking') {
-              snapshot.content[event.index] = {
-                ...snapshotContent,
-                thinking: snapshotContent.thinking + event.delta.thinking,
-              };
+              const chunks: string[] = (snapshotContent as any)[THINKING_CHUNKS_PROPERTY] || [];
+              chunks.push(event.delta.thinking);
+
+              const newContent = { ...snapshotContent, thinking: chunks.join('') };
+              Object.defineProperty(newContent, THINKING_CHUNKS_PROPERTY, {
+                value: chunks,
+                enumerable: false,
+                writable: true,
+              });
+              snapshot.content[event.index] = newContent;
             }
             break;
           }
