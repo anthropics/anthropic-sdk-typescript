@@ -1,6 +1,7 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { castToError } from '../internal/errors';
+export { isAbortError } from '../internal/errors';
 import type { ErrorType } from '../resources/shared';
 
 export class AnthropicError extends Error {}

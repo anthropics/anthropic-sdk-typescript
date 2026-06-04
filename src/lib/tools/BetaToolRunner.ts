@@ -9,6 +9,7 @@ import { buildHeaders } from '../../internal/headers';
 import { promiseWithResolvers } from '../../internal/utils/promise';
 import { CompactionControl, DEFAULT_SUMMARY_PROMPT, DEFAULT_TOKEN_THRESHOLD } from './CompactionControl';
 import { collectStainlessHelpers } from '../stainless-helper-header';
+import { Simplify } from '../type-utils';
 
 /**
  * A ToolRunner handles the automatic conversation loop between the assistant and tools.
@@ -497,8 +498,6 @@ async function generateToolResponse(
   };
 }
 
-// vendored from typefest just to make things look a bit nicer on hover
-type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {};
 
 /**
  * Parameters for creating a ToolRunner, extending MessageCreateParams with runnable tools.

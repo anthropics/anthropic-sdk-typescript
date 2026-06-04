@@ -20,7 +20,7 @@ import type {
 } from '../../resources/beta/sessions/events';
 import { ToolError } from './ToolError';
 
-export type Promisable<T> = T | Promise<T>;
+export type { Promisable } from '../type-utils';
 
 /**
  * Tool types that can be implemented on the client.
