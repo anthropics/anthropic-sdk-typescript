@@ -4,6 +4,7 @@ import { NullableHeaders } from './headers';
 
 import type { BodyInit } from './builtin-types';
 import { Stream } from '../core/streaming';
+import type { Middleware } from '../core/middleware';
 import type { HTTPMethod, MergedRequestInit } from './types';
 import { type HeadersLike } from './headers';
 
@@ -65,6 +66,13 @@ export type RequestOptions = {
    * An AbortSignal that can be used to cancel the request.
    */
   signal?: AbortSignal | undefined | null;
+
+  /**
+   * Additional {@link Middleware} to wrap this request's HTTP attempts.
+   *
+   * These run after any client-level middleware and apply to every attempt of this request, including retries.
+   */
+  middleware?: ReadonlyArray<Middleware> | undefined;
 
   /**
    * A unique key for this request to enable idempotency.

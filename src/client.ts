@@ -19,6 +19,14 @@ import { OAUTH_API_BETA_HEADER } from './lib/credentials/types';
 import { TokenCache } from './lib/credentials/token-cache';
 import { defaultCredentials, resolveCredentialsFromConfig } from './lib/credentials/credential-chain';
 import type { AnthropicConfig } from './core/credentials';
+import {
+  type Middleware,
+  isFetchOriginError,
+  isRetryableError,
+  wrapFetchWithMiddleware,
+} from './core/middleware';
+export type { Middleware, MiddlewareContext, MiddlewareNext } from './core/middleware';
+export type { APIRequest } from './core/api';
 import * as Pagination from './core/pagination';
 import {
   type PageCursorParams,
@@ -379,6 +387,14 @@ export interface ClientOptions {
   fetch?: Fetch | undefined;
 
   /**
+   * {@link Middleware} functions that wrap every HTTP request made by the
+   * client.
+   *
+   * Middleware runs per HTTP attempt, including retries.
+   */
+  middleware?: ReadonlyArray<Middleware> | undefined;
+
+  /**
    * The maximum number of times that the client will retry a request in case of a
    * temporary failure, like a network error or a 5XX error from the server.
    *
@@ -457,6 +473,7 @@ export class BaseAnthropic {
   logger: Logger;
   logLevel: LogLevel | undefined;
   fetchOptions: MergedRequestInit | undefined;
+  middleware: ReadonlyArray<Middleware>;
 
   private fetch: Fetch;
   #encoder: Opts.RequestEncoder;
@@ -531,6 +548,8 @@ export class BaseAnthropic {
     this.maxRetries = options.maxRetries ?? 2;
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
     this.#encoder = Opts.FallbackEncoder;
+
+    this.middleware = [...(options.middleware ?? [])];
 
     const customHeadersEnv = readEnv('ANTHROPIC_CUSTOM_HEADERS');
     if (customHeadersEnv) {
@@ -615,7 +634,7 @@ export class BaseAnthropic {
   private _credentialResolverOptions() {
     return {
       baseURL: this.baseURL,
-      fetch: this.fetch,
+      fetch: this._credentialsFetch(),
       userAgent: this.getUserAgent(),
       onCacheWriteError: (err: unknown) => {
         loggerFor(this).debug('credential cache write failed (best-effort)', err);
@@ -624,6 +643,19 @@ export class BaseAnthropic {
         loggerFor(this).warn(msg);
       },
     };
+  }
+
+  /**
+   * A `Fetch` for first-party credential token-exchange requests (OIDC
+   * federation jwt-bearer grants, user-OAuth refresh grants) that routes
+   * through this client's middleware chain, so middleware observes token
+   * traffic like any other request. Only client-level middleware applies:
+   * a minted token is shared across requests, so attributing the exchange
+   * to any one request's per-request middleware would be arbitrary. For the
+   * same reason, `ctx.options` is undefined for these requests.
+   */
+  private _credentialsFetch(): Fetch {
+    return wrapFetchWithMiddleware(this.fetch, this.middleware);
   }
 
   private _makeTokenCache(provider: AccessTokenProvider): TokenCache {
@@ -659,6 +691,7 @@ export class BaseAnthropic {
       logLevel: this.logLevel,
       fetch: this.fetch,
       fetchOptions: this.fetchOptions,
+      middleware: this.middleware,
       apiKey: this.apiKey,
       authToken: this.authToken,
       webhookKey: this.webhookKey,
@@ -974,7 +1007,7 @@ export class BaseAnthropic {
     }
 
     const controller = new AbortController();
-    const response = await this.fetchWithTimeout(url, req, timeout, controller).catch(castToError);
+    const response = await this.fetchWithTimeout(url, req, timeout, controller, options).catch(castToError);
     const headersTime = Date.now();
 
     if (response instanceof globalThis.Error) {
@@ -989,6 +1022,25 @@ export class BaseAnthropic {
       const isTimeout =
         isAbortError(response) ||
         /timed? ?out/i.test(String(response) + ('cause' in response ? String(response.cause) : ''));
+
+      // Errors thrown by middleware propagate to the caller as-is — no retries, no
+      // APIConnectionError wrapping — except retryable errors (timeouts/aborts,
+      // APIConnectionErrors, and RetryableErrors, directly or in the `cause` chain),
+      // which stay on the retry path.
+      const hasMiddleware = this.middleware.length > 0 || !!options.middleware?.length;
+      if (hasMiddleware && !isTimeout && !isRetryableError(response)) {
+        loggerFor(this).info(`[${requestLogID}] middleware error (not retryable)`);
+        loggerFor(this).debug(
+          `[${requestLogID}] middleware error (not retryable)`,
+          formatRequestDetails({
+            retryOfRequestLogID,
+            url,
+            durationMs: headersTime - startTime,
+            message: response.message,
+          }),
+        );
+        throw response;
+      }
       if (retriesRemaining) {
         loggerFor(this).info(
           `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - ${retryMessage}`,
@@ -1018,6 +1070,11 @@ export class BaseAnthropic {
       );
       if (isTimeout) {
         throw new Errors.APIConnectionTimeoutError();
+      }
+      // a retryable middleware-origin error is still the caller's error: once retries are
+      // exhausted it propagates as-is rather than wrapped in APIConnectionError
+      if (hasMiddleware && !isFetchOriginError(response)) {
+        throw response;
       }
       throw new Errors.APIConnectionError({ cause: response });
     }
@@ -1124,6 +1181,7 @@ export class BaseAnthropic {
     init: RequestInit | undefined,
     ms: number,
     controller: AbortController,
+    requestOptions?: FinalRequestOptions | undefined,
   ): Promise<Response> {
     const { signal, method, ...options } = init || {};
     // Avoid creating a closure over `this`, `init`, or `options` to prevent memory leaks.
@@ -1154,8 +1212,9 @@ export class BaseAnthropic {
     }
 
     try {
-      // use undefined this binding; fetch errors if bound to something else in browser/cloudflare
-      return await this.fetch.call(undefined, url, fetchOptions);
+      const middleware = requestOptions?.middleware;
+      const allMiddleware = middleware?.length ? [...this.middleware, ...middleware] : this.middleware;
+      return await wrapFetchWithMiddleware(this.fetch, allMiddleware, requestOptions)(url, fetchOptions);
     } finally {
       clearTimeout(timeout);
     }
@@ -1438,6 +1497,7 @@ Anthropic.Beta = Beta;
 
 export declare namespace Anthropic {
   export type RequestOptions = Opts.RequestOptions;
+  export type FinalRequestOptions = Opts.FinalRequestOptions;
 
   export type { ApiKeySetter };
 
