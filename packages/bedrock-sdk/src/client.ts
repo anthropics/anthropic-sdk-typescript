@@ -1,5 +1,6 @@
 import { BaseAnthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
+import { APIPromise } from '@anthropic-ai/sdk/core/api-promise';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
 import { getAuthHeaders } from './core/auth';
 import { Stream } from './core/streaming';
@@ -10,11 +11,16 @@ import { buildHeaders } from './internal/headers';
 import { FinalizedRequestInit } from './internal/types';
 import { path } from './internal/utils/path';
 import { loggerFor } from './internal/utils/log';
+import { toBase64 } from './internal/utils/base64';
 
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 
 const DEFAULT_VERSION = 'bedrock-2023-05-31';
 const MODEL_ENDPOINTS = new Set<string>(['/v1/complete', '/v1/messages', '/v1/messages?beta=true']);
+const COUNT_TOKENS_ENDPOINTS = new Set<string>([
+  '/v1/messages/count_tokens',
+  '/v1/messages/count_tokens?beta=true',
+]);
 
 export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
   awsSecretKey?: string | null | undefined;
@@ -203,14 +209,47 @@ export class AnthropicBedrock extends BaseAnthropic {
       }
     }
 
+    if (COUNT_TOKENS_ENDPOINTS.has(options.path) && options.method === 'post') {
+      if (!isObj(options.body)) {
+        throw new Error('Expected request body to be an object for post /v1/messages/count_tokens');
+      }
+
+      const model = options.body['model'] as string;
+      options.body['model'] = undefined;
+
+      options.path = path`/model/${model}/count-tokens`;
+      options.body = {
+        input: {
+          invokeModel: {
+            body: toBase64(JSON.stringify(options.body)),
+          },
+        },
+      };
+    }
+
     return super.buildRequest(options);
   }
 }
 
 /**
- * The Bedrock API does not currently support token counting or the Batch API.
+ * The Bedrock CountTokens API returns `inputTokens` instead of `input_tokens`,
+ * so remap it to match the first-party API response shape.
  */
-type MessagesResource = Omit<Resources.Messages, 'batches' | 'countTokens'>;
+function patchCountTokensResponse(resource: { countTokens: (...args: any[]) => APIPromise<any> }): void {
+  const originalCountTokens = resource.countTokens.bind(resource);
+  resource.countTokens = (...args: any[]) =>
+    originalCountTokens(...args)._thenUnwrap((data: unknown) => {
+      if (isObj(data) && typeof data['inputTokens'] === 'number') {
+        return { input_tokens: data['inputTokens'] };
+      }
+      return data;
+    });
+}
+
+/**
+ * The Bedrock API does not currently support the Batch API.
+ */
+type MessagesResource = Omit<Resources.Messages, 'batches'>;
 
 function makeMessagesResource(client: AnthropicBedrock): MessagesResource {
   const resource = new Resources.Messages(client);
@@ -218,17 +257,16 @@ function makeMessagesResource(client: AnthropicBedrock): MessagesResource {
   // @ts-expect-error we're deleting non-optional properties
   delete resource.batches;
 
-  // @ts-expect-error we're deleting non-optional properties
-  delete resource.countTokens;
+  patchCountTokensResponse(resource);
 
   return resource;
 }
 
 /**
- * The Bedrock API does not currently support prompt caching, token counting or the Batch API.
+ * The Bedrock API does not currently support prompt caching or the Batch API.
  */
 type BetaResource = Omit<Resources.Beta, 'promptCaching' | 'messages'> & {
-  messages: Omit<Resources.Beta['messages'], 'batches' | 'countTokens'>;
+  messages: Omit<Resources.Beta['messages'], 'batches'>;
 };
 
 function makeBetaResource(client: AnthropicBedrock): BetaResource {
@@ -240,8 +278,7 @@ function makeBetaResource(client: AnthropicBedrock): BetaResource {
   // @ts-expect-error we're deleting non-optional properties
   delete resource.messages.batches;
 
-  // @ts-expect-error we're deleting non-optional properties
-  delete resource.messages.countTokens;
+  patchCountTokensResponse(resource.messages);
 
   return resource;
 }

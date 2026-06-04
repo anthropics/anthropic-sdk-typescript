@@ -114,6 +114,78 @@ describe('Bedrock model ARN URL encoding integration test', () => {
   });
 });
 
+describe('Bedrock token counting integration test', () => {
+  const countTokensFetch = jest.fn().mockImplementation(() => {
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Headers({ 'content-type': 'application/json' }),
+      json: () => Promise.resolve({ inputTokens: 42 }),
+      text: () => Promise.resolve('{"inputTokens": 42}'),
+    });
+  });
+
+  beforeEach(() => {
+    global.fetch = countTokensFetch;
+    countTokensFetch.mockClear();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  test('routes count_tokens to the Bedrock CountTokens endpoint and remaps the response', async () => {
+    const { AnthropicBedrock } = require('../src');
+
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+    });
+
+    const count = await client.messages.countTokens({
+      model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+      messages: [{ content: 'Test message', role: 'user' }],
+    });
+
+    expect(count.input_tokens).toBe(42);
+
+    expect(countTokensFetch).toHaveBeenCalled();
+    const fetchUrl = countTokensFetch.mock.calls[0][0];
+    expect(fetchUrl).toBe(
+      'http://localhost:4010/model/anthropic.claude-3-5-sonnet-20241022-v2:0/count-tokens',
+    );
+
+    const requestBody = JSON.parse(countTokensFetch.mock.calls[0][1].body);
+    const innerBody = JSON.parse(Buffer.from(requestBody.input.invokeModel.body, 'base64').toString());
+    expect(innerBody).toEqual({
+      messages: [{ content: 'Test message', role: 'user' }],
+      anthropic_version: 'bedrock-2023-05-31',
+    });
+  });
+
+  test('supports token counting on the beta messages resource', async () => {
+    const { AnthropicBedrock } = require('../src');
+
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+    });
+
+    const count = await client.beta.messages.countTokens({
+      model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+      messages: [{ content: 'Test message', role: 'user' }],
+    });
+
+    expect(count.input_tokens).toBe(42);
+
+    const fetchUrl = countTokensFetch.mock.calls[0][0];
+    expect(fetchUrl).toBe(
+      'http://localhost:4010/model/anthropic.claude-3-5-sonnet-20241022-v2:0/count-tokens',
+    );
+  });
+});
+
 describe('AnthropicBedrock constructor deprecation warnings', () => {
   let consoleWarnSpy: jest.SpyInstance;
 
