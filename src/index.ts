@@ -4,7 +4,15 @@ export { Anthropic as default } from './client';
 
 export { type Uploadable, toFile } from './core/uploads';
 export { APIPromise } from './core/api-promise';
-export { BaseAnthropic, Anthropic, type ClientOptions, HUMAN_PROMPT, AI_PROMPT } from './client';
+export { type Middleware, type MiddlewareContext, type MiddlewareNext } from './core/middleware';
+export {
+  BaseAnthropic,
+  Anthropic,
+  type APIRequest,
+  type ClientOptions,
+  HUMAN_PROMPT,
+  AI_PROMPT,
+} from './client';
 export { PagePromise } from './core/pagination';
 export {
   AnthropicError,
@@ -12,6 +20,7 @@ export {
   APIConnectionError,
   APIConnectionTimeoutError,
   APIUserAbortError,
+  RetryableError,
   NotFoundError,
   ConflictError,
   RateLimitError,

@@ -128,6 +128,21 @@ export class APIConnectionTimeoutError extends APIConnectionError {
   }
 }
 
+/**
+ * An error that opts into the SDK's retry policy: throw it (e.g. from
+ * middleware) to have the attempt retried.
+ *
+ * Note that the request will only be retried when `maxRetries` has not been exhausted.
+ */
+export class RetryableError extends AnthropicError {
+  constructor(message?: string, { cause }: { cause?: unknown } = {}) {
+    super(message ?? 'Retryable error.');
+    // in some environments the 'cause' property is already declared
+    // @ts-ignore
+    if (cause !== undefined) this.cause = cause;
+  }
+}
+
 export class BadRequestError extends APIError<400, Headers> {}
 
 export class AuthenticationError extends APIError<401, Headers> {}
