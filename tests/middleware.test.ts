@@ -537,28 +537,43 @@ describe('middleware', () => {
     expect(fetchCalls).toEqual(1);
   });
 
-  test('abort errors thrown through middleware still surface as timeouts', async () => {
-    const middleware: Middleware = async (request, next) => {
-      // simulate middleware doing its own awaited work (e.g. forwarding
-      // request.signal to its own fetch call) that observes the abort
+  test('timeout applies to the underlying fetch, not middleware', async () => {
+    // jest's sandbox realm breaks `DOMException instanceof Error`, so simulate
+    // fetch's abort rejection with a plain Error carrying the AbortError name
+    const abortError = () => {
+      const err = new Error('This operation was aborted');
+      err.name = 'AbortError';
+      return err;
+    };
+
+    // slow middleware, fast fetch: middleware work doesn't count against the timeout
+    const slowMiddleware: Middleware = async (request, next) => {
       await new Promise((resolve) => setTimeout(resolve, 30));
-      if (request.signal?.aborted) {
-        const err = new Error('This operation was aborted');
-        err.name = 'AbortError';
-        throw err;
-      }
       return next(request);
     };
 
-    const client = new Anthropic({
+    const fastClient = new Anthropic({
       apiKey: 'my-anthropic-api-key',
       timeout: 5,
       maxRetries: 0,
-      fetch: async () => jsonResponse(),
-      middleware: [middleware],
+      fetch: async (_url, { signal } = {}) => {
+        if (signal?.aborted) throw abortError();
+        return jsonResponse();
+      },
+      middleware: [slowMiddleware],
     });
+    expect(await fastClient.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
 
-    const err = await client.request({ path: '/foo', method: 'get' }).then(
+    // slow fetch through middleware: still aborts and surfaces as a timeout
+    const slowClient = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      timeout: 5,
+      maxRetries: 0,
+      fetch: (_url, { signal } = {}) =>
+        new Promise((_, reject) => signal?.addEventListener('abort', () => reject(abortError()))),
+      middleware: [slowMiddleware],
+    });
+    const err = await slowClient.request({ path: '/foo', method: 'get' }).then(
       () => null,
       (e) => e,
     );
