@@ -1291,6 +1291,145 @@ describe('middleware', () => {
       expect(fetchCalledForToken).toBe(false);
     });
   });
+
+  describe('request preparation', () => {
+    /**
+     * Emulates a provider that signs requests in `prepareRequest` (e.g. SigV4
+     * on Bedrock): the "signature" commits to the exact url and body, so a
+     * stale signature is detectable when the request is later modified.
+     */
+    class SigningClient extends Anthropic {
+      prepared: Array<{ url: string; body: unknown }> = [];
+      protected override async prepareRequest(
+        request: RequestInit,
+        { url, options }: { url: string; options: any },
+      ): Promise<void> {
+        this.prepared.push({ url, body: request.body });
+        (request.headers as Headers).set('x-test-signature', `sig:${url}:${request.body}`);
+        await super.prepareRequest(request, { url, options });
+      }
+    }
+
+    test('prepares the request middleware modified, signing the final url and body', async () => {
+      const sentSignatures: Array<string | null> = [];
+      const client = new SigningClient({
+        apiKey: 'my-anthropic-api-key',
+        fetch: async (url, init) => {
+          sentSignatures.push(new Headers(init?.headers).get('x-test-signature'));
+          return jsonResponse();
+        },
+        middleware: [
+          async (request, next) => {
+            // The request must not be signed yet when middleware sees it.
+            expect(request.headers.get('x-test-signature')).toBeNull();
+            return next({
+              ...request,
+              url: 'https://api.anthropic.com/rewritten',
+              body: JSON.stringify({ rewritten: true }),
+            });
+          },
+        ],
+      });
+
+      await client.request({ path: '/foo', method: 'post', body: { hello: 'world' } });
+      expect(client.prepared).toEqual([
+        { url: 'https://api.anthropic.com/rewritten', body: JSON.stringify({ rewritten: true }) },
+      ]);
+      expect(sentSignatures).toEqual([
+        `sig:https://api.anthropic.com/rewritten:${JSON.stringify({ rewritten: true })}`,
+      ]);
+    });
+
+    test('prepares per next() call, so replayed and rewritten requests are re-signed', async () => {
+      const sentSignatures: Array<string | null> = [];
+      const client = new SigningClient({
+        apiKey: 'my-anthropic-api-key',
+        fetch: async (url, init) => {
+          sentSignatures.push(new Headers(init?.headers).get('x-test-signature'));
+          return jsonResponse();
+        },
+        middleware: [
+          async (request, next) => {
+            await next(request);
+            // Retry against a different url — must be signed for the new url
+            // even though the request already carries the first signature.
+            return next({ ...request, url: 'https://api.anthropic.com/fallback' });
+          },
+        ],
+      });
+
+      await client.request({ path: '/foo', method: 'get' });
+      expect(client.prepared.map((p) => p.url)).toEqual([
+        'https://api.anthropic.com/foo',
+        'https://api.anthropic.com/fallback',
+      ]);
+      expect(sentSignatures).toEqual([
+        'sig:https://api.anthropic.com/foo:undefined',
+        'sig:https://api.anthropic.com/fallback:undefined',
+      ]);
+    });
+
+    test("debug-logs 'sending request' once per inner fetch, with the prepared headers", async () => {
+      const debugMock = jest.fn();
+      const client = new SigningClient({
+        apiKey: 'my-anthropic-api-key',
+        logLevel: 'debug',
+        logger: { debug: debugMock, info: jest.fn(), warn: jest.fn(), error: jest.fn() },
+        fetch: async () => jsonResponse(),
+        middleware: [
+          async (request, next) => {
+            await next(request);
+            return next({ ...request, url: 'https://api.anthropic.com/fallback' });
+          },
+        ],
+      });
+
+      await client.request({ path: '/foo', method: 'get' });
+
+      // The log must reflect the request actually sent: post-middleware url,
+      // signed headers, one entry per next() call.
+      const sends = debugMock.mock.calls.filter(([msg]) => String(msg).includes('sending request'));
+      expect(sends.map(([, details]) => [details.url, details.headers['x-test-signature']])).toEqual([
+        ['https://api.anthropic.com/foo', 'sig:https://api.anthropic.com/foo:undefined'],
+        ['https://api.anthropic.com/fallback', 'sig:https://api.anthropic.com/fallback:undefined'],
+      ]);
+    });
+
+    test('credential token-exchange requests are not prepared', async () => {
+      const dir = fs.mkdtempSync(path.join(tmpdir(), 'mw-prep-'));
+      try {
+        const credsPath = path.join(dir, 'credentials.json');
+        fs.writeFileSync(
+          credsPath,
+          JSON.stringify({
+            access_token: 'stale-token',
+            refresh_token: 'my-refresh-token',
+            expires_at: Math.floor(Date.now() / 1000) - 60,
+          }),
+          { mode: 0o600 },
+        );
+        const client = new SigningClient({
+          apiKey: null,
+          authToken: null,
+          config: {
+            authentication: { type: 'user_oauth', client_id: 'client-123', credentials_path: credsPath },
+          },
+          fetch: async (url) => {
+            if (String(url).includes('/v1/oauth/token')) {
+              return jsonResponse({ access_token: 'fresh-token', expires_in: 3600 });
+            }
+            return jsonResponse();
+          },
+        });
+
+        await client.request({ path: '/foo', method: 'get' });
+        // Only the API request itself is prepared — never the token exchange.
+        expect(client.prepared.map((p) => new URL(p.url).pathname)).toEqual(['/foo']);
+      } finally {
+        fs.rmSync(dir, { recursive: true });
+      }
+    });
+  });
 });
 
 describe('wrapFetchWithMiddleware', () => {
