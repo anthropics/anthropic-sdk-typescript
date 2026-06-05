@@ -1193,8 +1193,6 @@ export class BaseAnthropic {
     const abort = this._makeAbort(controller);
     if (signal) signal.addEventListener('abort', abort, { once: true });
 
-    const timeout = setTimeout(abort, ms);
-
     const isReadableBody =
       ((globalThis as any).ReadableStream && options.body instanceof (globalThis as any).ReadableStream) ||
       (typeof options.body === 'object' && options.body !== null && Symbol.asyncIterator in options.body);
@@ -1211,13 +1209,22 @@ export class BaseAnthropic {
       fetchOptions.method = method.toUpperCase();
     }
 
-    try {
-      const middleware = requestOptions?.middleware;
-      const allMiddleware = middleware?.length ? [...this.middleware, ...middleware] : this.middleware;
-      return await wrapFetchWithMiddleware(this.fetch, allMiddleware, requestOptions)(url, fetchOptions);
-    } finally {
-      clearTimeout(timeout);
-    }
+    // Arm the timeout around the underlying fetch only, not the middleware
+    // chain — middleware can take arbitrarily long (or call `next` more than
+    // once), and each inner-fetch invocation gets its own `ms` timer.
+    const baseFetch = this.fetch;
+    const timedFetch: Fetch = async (innerUrl, innerInit) => {
+      const timeout = setTimeout(abort, ms);
+      try {
+        return await baseFetch.call(undefined, innerUrl, innerInit);
+      } finally {
+        clearTimeout(timeout);
+      }
+    };
+
+    const middleware = requestOptions?.middleware;
+    const allMiddleware = middleware?.length ? [...this.middleware, ...middleware] : this.middleware;
+    return await wrapFetchWithMiddleware(timedFetch, allMiddleware, requestOptions)(url, fetchOptions);
   }
 
   private async shouldRetry(response: Response, options: FinalRequestOptions): Promise<boolean> {
