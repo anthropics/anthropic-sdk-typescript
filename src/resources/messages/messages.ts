@@ -1263,6 +1263,8 @@ const DEPRECATED_MODELS: {
   'claude-opus-4-20250514': 'June 15th, 2026',
   'claude-sonnet-4-0': 'June 15th, 2026',
   'claude-sonnet-4-20250514': 'June 15th, 2026',
+  'claude-opus-4-1': 'August 5th, 2026',
+  'claude-opus-4-1-20250805': 'August 5th, 2026',
 };
 
 const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-mythos-preview', 'claude-opus-4-6'];
