@@ -169,7 +169,10 @@ export class AnthropicBedrock extends BaseAnthropic {
       fetchOptions: this.fetchOptions,
       providerChainResolver: this.providerChainResolver,
     });
-    request.headers = buildHeaders([headers, request.headers]).values;
+    // Signed headers take precedence: when middleware replays or rewrites a
+    // request, it is re-signed and the fresh signature must override any
+    // stale Authorization/x-amz-* values from the previous attempt.
+    request.headers = buildHeaders([request.headers, headers]).values;
   }
 
   override async buildRequest(options: FinalRequestOptions): Promise<{

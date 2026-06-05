@@ -898,6 +898,13 @@ export class BaseAnthropic {
    *
    * This is useful for cases where you want to add certain headers based off of
    * the request properties, e.g. `method` or `url`.
+   *
+   * Runs after any middleware, immediately before each underlying fetch call,
+   * so request signing (e.g. SigV4 on Bedrock) sees exactly what goes over the
+   * wire. Middleware may replay a request by calling `next()` more than once,
+   * so this hook can run multiple times per attempt: overrides must be
+   * idempotent and overwrite auth headers from a previous invocation (e.g. a
+   * stale `Authorization`) rather than append to them.
    */
   protected async prepareRequest(
     request: RequestInit,
@@ -984,30 +991,20 @@ export class BaseAnthropic {
       retryCount: maxRetries - retriesRemaining,
     });
 
-    await this.prepareRequest(req, { url, options });
-
     /** Not an API request ID, just for correlating local log entries. */
     const requestLogID = 'log_' + ((Math.random() * (1 << 24)) | 0).toString(16).padStart(6, '0');
     const retryLogStr = retryOfRequestLogID === undefined ? '' : `, retryOf: ${retryOfRequestLogID}`;
     const startTime = Date.now();
-
-    loggerFor(this).debug(
-      `[${requestLogID}] sending request`,
-      formatRequestDetails({
-        retryOfRequestLogID,
-        method: options.method,
-        url,
-        options,
-        headers: req.headers,
-      }),
-    );
 
     if (options.signal?.aborted) {
       throw new Errors.APIUserAbortError();
     }
 
     const controller = new AbortController();
-    const response = await this.fetchWithTimeout(url, req, timeout, controller, options).catch(castToError);
+    const response = await this.fetchWithTimeout(url, req, timeout, controller, options, {
+      requestLogID,
+      retryOfRequestLogID,
+    }).catch(castToError);
     const headersTime = Date.now();
 
     if (response instanceof globalThis.Error) {
@@ -1182,6 +1179,7 @@ export class BaseAnthropic {
     ms: number,
     controller: AbortController,
     requestOptions?: FinalRequestOptions | undefined,
+    logCtx?: { requestLogID: string; retryOfRequestLogID?: string | undefined } | undefined,
   ): Promise<Response> {
     const { signal, method, ...options } = init || {};
     // Avoid creating a closure over `this`, `init`, or `options` to prevent memory leaks.
@@ -1222,9 +1220,45 @@ export class BaseAnthropic {
       }
     };
 
+    // Prepare the request (auth signing and other `prepareRequest` hooks) as
+    // the innermost step, after any middleware: providers that compute request
+    // signatures (e.g. SigV4 on Bedrock) must sign exactly what goes over the
+    // wire, including middleware modifications. Runs per inner-fetch
+    // invocation, so a request middleware rewrote — or replayed via a second
+    // `next()` call — is prepared (re-signed) fresh each time. Preparation is
+    // outside the timeout timer, matching its pre-middleware behavior.
+    const innerFetch: Fetch =
+      requestOptions === undefined ? timedFetch : (
+        async (innerUrl, innerInit = {}) => {
+          const innerUrlStr =
+            typeof innerUrl === 'string' ? innerUrl
+            : innerUrl instanceof URL ? innerUrl.href
+            : innerUrl.url;
+          innerInit.headers =
+            innerInit.headers instanceof Headers ? innerInit.headers : new Headers(innerInit.headers);
+
+          await this.prepareRequest(innerInit, { url: innerUrlStr, options: requestOptions });
+
+          if (logCtx) {
+            loggerFor(this).debug(
+              `[${logCtx.requestLogID}] sending request`,
+              formatRequestDetails({
+                retryOfRequestLogID: logCtx.retryOfRequestLogID,
+                method: innerInit.method,
+                url: innerUrlStr,
+                options: requestOptions,
+                headers: innerInit.headers,
+              }),
+            );
+          }
+
+          return timedFetch(innerUrl, innerInit);
+        }
+      );
+
     const middleware = requestOptions?.middleware;
     const allMiddleware = middleware?.length ? [...this.middleware, ...middleware] : this.middleware;
-    return await wrapFetchWithMiddleware(timedFetch, allMiddleware, requestOptions)(url, fetchOptions);
+    return await wrapFetchWithMiddleware(innerFetch, allMiddleware, requestOptions)(url, fetchOptions);
   }
 
   private async shouldRetry(response: Response, options: FinalRequestOptions): Promise<boolean> {
