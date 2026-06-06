@@ -519,20 +519,13 @@ export interface BetaManagedAgentsCustomTool {
  * JSON Schema for custom tool input parameters.
  */
 export interface BetaManagedAgentsCustomToolInputSchema {
-  /**
-   * JSON Schema properties defining the tool's input parameters.
-   */
+  type: 'object';
+
   properties?: { [key: string]: unknown } | null;
 
-  /**
-   * List of required property names.
-   */
-  required?: Array<string>;
+  required?: Array<string> | null;
 
-  /**
-   * Must be 'object' for tool input schemas.
-   */
-  type?: 'object';
+  [k: string]: unknown;
 }
 
 /**
@@ -835,12 +828,12 @@ export interface AgentCreateParams {
   model: BetaManagedAgentsModel | BetaManagedAgentsModelConfigParams;
 
   /**
-   * Body param: Human-readable name for the agent. 1-256 characters.
+   * Body param: Human-readable name for the agent.
    */
   name: string;
 
   /**
-   * Body param: Description of what the agent does. Up to 2048 characters.
+   * Body param: Description of what the agent does.
    */
   description?: string | null;
 
@@ -864,12 +857,12 @@ export interface AgentCreateParams {
   multiagent?: SessionsAPI.BetaManagedAgentsMultiagentParams | null;
 
   /**
-   * Body param: Skills available to the agent. Maximum 20.
+   * Body param: Skills available to the agent.
    */
   skills?: Array<BetaManagedAgentsSkillParams>;
 
   /**
-   * Body param: System prompt for the agent. Up to 100,000 characters.
+   * Body param: System prompt for the agent.
    */
   system?: string | null;
 
@@ -911,8 +904,7 @@ export interface AgentUpdateParams {
   version: number;
 
   /**
-   * Body param: Description. Up to 2048 characters. Omit to preserve; send empty
-   * string or null to clear.
+   * Body param: Description. Omit to preserve; send empty string or null to clear.
    */
   description?: string | null;
 
@@ -945,20 +937,19 @@ export interface AgentUpdateParams {
   multiagent?: SessionsAPI.BetaManagedAgentsMultiagentParams | null;
 
   /**
-   * Body param: Human-readable name. 1-256 characters. Omit to preserve. Cannot be
+   * Body param: Human-readable name. Must be non-empty. Omit to preserve. Cannot be
    * cleared.
    */
   name?: string;
 
   /**
    * Body param: Skills. Full replacement. Omit to preserve; send empty array or null
-   * to clear. Maximum 20.
+   * to clear.
    */
   skills?: Array<BetaManagedAgentsSkillParams> | null;
 
   /**
-   * Body param: System prompt. Up to 100,000 characters. Omit to preserve; send
-   * empty string or null to clear.
+   * Body param: System prompt. Omit to preserve; send empty string or null to clear.
    */
   system?: string | null;
 
