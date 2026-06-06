@@ -2072,6 +2072,8 @@ export interface ToolSearchToolResultErrorParam {
   error_code: ToolSearchToolResultErrorCode;
 
   type: 'tool_search_tool_result_error';
+
+  error_message?: string | null;
 }
 
 export interface ToolSearchToolSearchResultBlock {
