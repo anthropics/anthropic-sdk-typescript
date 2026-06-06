@@ -1,7 +1,9 @@
+import type { BaseAnthropic } from '../client';
 import type { Fetch } from '../internal/builtin-types';
 import { castToError, isAbortError } from '../internal/errors';
 import { addRequestID } from '../internal/parse';
 import type { FinalRequestOptions } from '../internal/request-options';
+import { defaultLogger, loggerFor, type Logger } from '../internal/utils/log';
 import type { APIRequest } from './api';
 import { AnthropicError, APIConnectionError, RetryableError } from './error';
 import { Stream } from './streaming';
@@ -26,6 +28,26 @@ export interface MiddlewareContext {
    * for credential token-exchange requests.
    */
   readonly options?: FinalRequestOptions | undefined;
+
+  /**
+   * The client's logger, pre-filtered to the client's configured log level
+   * (the `logLevel` client option or the `ANTHROPIC_LOG` environment
+   * variable). Calls below the active level are no-ops, so it's always safe
+   * to call; with no logger configured it writes to the global `console`.
+   *
+   * Values are logged as-is — when logging request or response headers,
+   * redact credentials (`authorization`, `x-api-key`, `cookie`) the way the
+   * SDK's own logs do.
+   *
+   * @example
+   * ```ts
+   * const mw: Middleware = async (request, next, ctx) => {
+   *   ctx.logger.debug('->', request.method, request.url);
+   *   return next(request);
+   * };
+   * ```
+   */
+  readonly logger: Logger;
 
   /**
    * Parse a response body the way the SDK would for the request in flight:
@@ -85,10 +107,10 @@ export interface MiddlewareContext {
  *
  * @example
  * ```ts
- * const logger: Middleware = async (request, next) => {
- *   console.log('->', request.method, request.url);
+ * const logger: Middleware = async (request, next, ctx) => {
+ *   ctx.logger.debug('->', request.method, request.url);
  *   const response = await next(request);
- *   console.log('<-', response.status, request.url);
+ *   ctx.logger.debug('<-', response.status, request.url);
  *   return response;
  * };
  *
@@ -149,11 +171,16 @@ export function isRetryableError(err: unknown): boolean {
  *
  * `options` — the SDK request options behind this call, when there are any —
  * is surfaced to middleware as `ctx.options` and drives `ctx.parse`.
+ *
+ * `client` supplies `ctx.logger` (the client's level-filtered logger);
+ * without it, `ctx.logger` falls back to the client defaults: `console`,
+ * filtered to `ANTHROPIC_LOG` or `'warn'`.
  */
 export function wrapFetchWithMiddleware(
   fetchFn: Fetch,
   middleware: readonly Middleware[],
   options?: FinalRequestOptions | undefined,
+  client?: BaseAnthropic | undefined,
 ): Fetch {
   return async (url, init = {}) => {
     if (middleware.length === 0) {
@@ -165,6 +192,7 @@ export function wrapFetchWithMiddleware(
       fetchFn,
       middleware,
       options,
+      client,
     )({
       ...init,
       headers,
@@ -188,13 +216,19 @@ export function wrapFetchWithMiddleware(
 /**
  * Creates the {@link MiddlewareContext} shared by every middleware in one chain.
  */
-function createMiddlewareContext(options: FinalRequestOptions | undefined): MiddlewareContext {
+function createMiddlewareContext(
+  options: FinalRequestOptions | undefined,
+  client: BaseAnthropic | undefined,
+): MiddlewareContext {
   // Keyed on the Response so each `next()` call's response (e.g. with custom
   // retries, or a middleware swapping in a replacement) parses independently,
   // while several middleware parsing the same response share a single read.
   const cache = new WeakMap<Response, Promise<unknown>>();
   return {
     options,
+    // Resolved per chain, so changes to the client's `logLevel`/`logger`
+    // apply to subsequent requests.
+    logger: client ? loggerFor(client) : defaultLogger(),
     parse<T>(response: Response): Promise<T> {
       // Streams are single-consumer, so caching one would hand later callers
       // an already-consumed stream; every call gets a fresh clone-backed one.
@@ -267,6 +301,7 @@ export function applyMiddleware(
   fetchFn: Fetch,
   middleware: readonly Middleware[],
   options?: FinalRequestOptions | undefined,
+  client?: BaseAnthropic | undefined,
 ): MiddlewareNext {
   // use undefined this binding; fetch errors if bound to something else in browser/cloudflare
   let next: MiddlewareNext = async ({ url, ...init }) => {
@@ -282,7 +317,7 @@ export function applyMiddleware(
     }
   };
 
-  const ctx = createMiddlewareContext(options);
+  const ctx = createMiddlewareContext(options, client);
   for (let i = middleware.length - 1; i >= 0; i--) {
     const mw = middleware[i]!;
     const nextInner = next;
