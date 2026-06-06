@@ -704,6 +704,81 @@ describe('middleware', () => {
     expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
   });
 
+  describe('ctx.logger', () => {
+    const makeCapturingLogger = () => {
+      const logged: unknown[][] = [];
+      const logger = {
+        error: (...args: unknown[]) => logged.push(['error', ...args]),
+        warn: (...args: unknown[]) => logged.push(['warn', ...args]),
+        info: (...args: unknown[]) => logged.push(['info', ...args]),
+        debug: (...args: unknown[]) => logged.push(['debug', ...args]),
+      };
+      return { logger, logged };
+    };
+
+    test('forwards to the client-configured logger', async () => {
+      const { logger, logged } = makeCapturingLogger();
+      const middleware: Middleware = async (request, next, ctx) => {
+        ctx.logger.warn('from middleware', request.method);
+        return next(request);
+      };
+
+      const client = new Anthropic({
+        apiKey: 'my-anthropic-api-key',
+        fetch: async () => jsonResponse(),
+        middleware: [middleware],
+        logger,
+        logLevel: 'warn',
+      });
+
+      await client.request({ path: '/foo', method: 'get' });
+      expect(logged).toContainEqual(['warn', 'from middleware', 'GET']);
+    });
+
+    test('respects the client log level, picking up later changes', async () => {
+      const { logger, logged } = makeCapturingLogger();
+      const middleware: Middleware = async (request, next, ctx) => {
+        ctx.logger.debug('debug from middleware');
+        return next(request);
+      };
+
+      const client = new Anthropic({
+        apiKey: 'my-anthropic-api-key',
+        fetch: async () => jsonResponse(),
+        middleware: [middleware],
+        logger,
+        logLevel: 'warn',
+      });
+
+      await client.request({ path: '/foo', method: 'get' });
+      expect(logged).toEqual([]);
+
+      // the logger is resolved per request, so a level change applies
+      client.logLevel = 'debug';
+      await client.request({ path: '/foo', method: 'get' });
+      expect(logged).toContainEqual(['debug', 'debug from middleware']);
+    });
+
+    test('is a safe no-op when logging is off', async () => {
+      const { logger, logged } = makeCapturingLogger();
+      const middleware: Middleware = async (request, next, ctx) => {
+        ctx.logger.error('never logged');
+        return next(request);
+      };
+
+      const client = new Anthropic({
+        apiKey: 'my-anthropic-api-key',
+        fetch: async () => jsonResponse(),
+        middleware: [middleware],
+        logger,
+        logLevel: 'off',
+      });
+
+      expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
+      expect(logged).toEqual([]);
+    });
+  });
+
   describe('ctx.parse', () => {
     test('parses a JSON body and leaves the response readable for the client', async () => {
       let parsed: unknown;
@@ -1136,6 +1211,34 @@ describe('middleware', () => {
       ]);
     });
 
+    test('ctx.logger forwards to the client logger on token-exchange requests', async () => {
+      const logged: unknown[][] = [];
+      const middleware: Middleware = async (request, next, ctx) => {
+        if (request.url.includes('/v1/oauth/token')) {
+          ctx.logger.warn('token exchange seen');
+        }
+        return next(request);
+      };
+
+      const client = new Anthropic({
+        apiKey: null,
+        authToken: null,
+        config: oidcConfig,
+        fetch: tokenExchangeFetch,
+        middleware: [middleware],
+        logger: {
+          error: () => {},
+          warn: (...args: unknown[]) => logged.push(args),
+          info: () => {},
+          debug: () => {},
+        },
+        logLevel: 'warn',
+      });
+
+      await client.request({ path: '/foo', method: 'get' });
+      expect(logged).toContainEqual(['token exchange seen']);
+    });
+
     test('middleware-set headers reach the token endpoint', async () => {
       let tokenHeader: string | null = null;
       const middleware: Middleware = async (request, next) => {
@@ -1446,6 +1549,38 @@ describe('wrapFetchWithMiddleware', () => {
     await wrapped(new URL('https://example.com/path'), { headers: { 'x-a': '1' } });
     await wrapped('https://example.com/str', { headers: [['x-a', '1']] });
     expect(urls).toEqual(['https://example.com/path', 'https://example.com/str']);
+  });
+
+  test('without a client, ctx.logger falls back to console at the default level', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const originalEnv = process.env['ANTHROPIC_LOG'];
+    try {
+      const middleware: Middleware = async (request, next, ctx) => {
+        ctx.logger.error('an error');
+        ctx.logger.warn('a warning');
+        ctx.logger.info('some info');
+        return next(request);
+      };
+      const wrapped = wrapFetchWithMiddleware(async () => jsonResponse(), [middleware]);
+
+      process.env['ANTHROPIC_LOG'] = 'error';
+      await wrapped('https://example.com/path');
+      expect(errorSpy).toHaveBeenCalledWith('an error');
+      expect(warnSpy).not.toHaveBeenCalled();
+
+      delete process.env['ANTHROPIC_LOG'];
+      await wrapped('https://example.com/path');
+      expect(warnSpy).toHaveBeenCalledWith('a warning');
+    } finally {
+      if (originalEnv !== undefined) {
+        process.env['ANTHROPIC_LOG'] = originalEnv;
+      } else {
+        delete process.env['ANTHROPIC_LOG'];
+      }
+      errorSpy.mockRestore();
+      warnSpy.mockRestore();
+    }
   });
 
   test('with no middleware passes arguments through to fetch untouched', async () => {

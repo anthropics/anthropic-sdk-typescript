@@ -256,6 +256,7 @@ import { readEnv } from './internal/utils/env';
 import {
   type LogLevel,
   type Logger,
+  defaultLogLevel,
   formatRequestDetails,
   loggerFor,
   parseLogLevel,
@@ -537,12 +538,11 @@ export class BaseAnthropic {
     this._baseURLIsExplicit = (opts as InternalClientOptions).__baseURLIsExplicit ?? !!baseURL;
     this.timeout = options.timeout ?? BaseAnthropic.DEFAULT_TIMEOUT /* 10 minutes */;
     this.logger = options.logger ?? console;
-    const defaultLogLevel = 'warn';
     // Set default logLevel early so that we can log a warning in parseLogLevel.
     this.logLevel = defaultLogLevel;
     this.logLevel =
-      parseLogLevel(options.logLevel, 'ClientOptions.logLevel', this) ??
-      parseLogLevel(readEnv('ANTHROPIC_LOG'), "process.env['ANTHROPIC_LOG']", this) ??
+      parseLogLevel(options.logLevel, 'ClientOptions.logLevel', loggerFor(this)) ??
+      parseLogLevel(readEnv('ANTHROPIC_LOG'), "process.env['ANTHROPIC_LOG']", loggerFor(this)) ??
       defaultLogLevel;
     this.fetchOptions = options.fetchOptions;
     this.maxRetries = options.maxRetries ?? 2;
@@ -655,7 +655,7 @@ export class BaseAnthropic {
    * same reason, `ctx.options` is undefined for these requests.
    */
   private _credentialsFetch(): Fetch {
-    return wrapFetchWithMiddleware(this.fetch, this.middleware);
+    return wrapFetchWithMiddleware(this.fetch, this.middleware, undefined, this);
   }
 
   private _makeTokenCache(provider: AccessTokenProvider): TokenCache {
@@ -1258,7 +1258,7 @@ export class BaseAnthropic {
 
     const middleware = requestOptions?.middleware;
     const allMiddleware = middleware?.length ? [...this.middleware, ...middleware] : this.middleware;
-    return await wrapFetchWithMiddleware(innerFetch, allMiddleware, requestOptions)(url, fetchOptions);
+    return await wrapFetchWithMiddleware(innerFetch, allMiddleware, requestOptions, this)(url, fetchOptions);
   }
 
   private async shouldRetry(response: Response, options: FinalRequestOptions): Promise<boolean> {
