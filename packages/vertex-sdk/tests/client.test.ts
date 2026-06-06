@@ -1,6 +1,7 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { AnthropicVertex } from '../src/client';
+import { AnthropicError } from '../src/core/error';
 
 // Mock GoogleAuth to prevent credential loading during tests
 jest.mock('google-auth-library', () => ({
@@ -66,6 +67,134 @@ describe('AnthropicVertex', () => {
         baseURL: customUrl,
       });
       expect(client.baseURL).toBe(customUrl);
+    });
+
+    test('throws AnthropicError when a document block uses a URL source', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-central1',
+        projectId: 'test-project',
+        accessToken: 'fake-token',
+      });
+      await expect(
+        (client as any).buildRequest({
+          method: 'post',
+          path: '/v1/messages',
+          body: {
+            model: 'claude-opus-4-5',
+            max_tokens: 1024,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'document',
+                    source: { type: 'url', url: 'https://example.com/doc.pdf' },
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      ).rejects.toThrow(AnthropicError);
+      await expect(
+        (client as any).buildRequest({
+          method: 'post',
+          path: '/v1/messages',
+          body: {
+            model: 'claude-opus-4-5',
+            max_tokens: 1024,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'document',
+                    source: { type: 'url', url: 'https://example.com/doc.pdf' },
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      ).rejects.toThrow(/does not support URL sources/);
+    });
+
+    test('throws AnthropicError when a document URL source is nested inside a tool_result', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-central1',
+        projectId: 'test-project',
+        accessToken: 'fake-token',
+      });
+      await expect(
+        (client as any).buildRequest({
+          method: 'post',
+          path: '/v1/messages',
+          body: {
+            model: 'claude-opus-4-5',
+            max_tokens: 1024,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'tool_result',
+                    tool_use_id: 'tool_abc',
+                    content: [
+                      {
+                        type: 'document',
+                        source: { type: 'url', url: 'https://example.com/doc.pdf' },
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      ).rejects.toThrow(AnthropicError);
+    });
+
+    test('does not throw for document blocks with base64 or text sources', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-central1',
+        projectId: 'test-project',
+        accessToken: 'fake-token',
+      });
+      const base64Request = (client as any).buildRequest({
+        method: 'post',
+        path: '/v1/messages',
+        body: {
+          model: 'claude-opus-4-5',
+          max_tokens: 1024,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'document',
+                  source: { type: 'base64', media_type: 'application/pdf', data: 'AAAA' },
+                },
+              ],
+            },
+          ],
+        },
+      });
+      const textRequest = (client as any).buildRequest({
+        method: 'post',
+        path: '/v1/messages',
+        body: {
+          model: 'claude-opus-4-5',
+          max_tokens: 1024,
+          messages: [
+            {
+              role: 'user',
+              content: [{ type: 'document', source: { type: 'text', data: 'hello world' } }],
+            },
+          ],
+        },
+      });
+      await expect(base64Request).resolves.toBeDefined();
+      await expect(textRequest).resolves.toBeDefined();
     });
 
     test('throws error when region is not provided', () => {
