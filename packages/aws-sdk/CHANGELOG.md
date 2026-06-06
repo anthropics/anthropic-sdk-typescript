@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.1 (2026-06-06)
+
+Full Changelog: [aws-sdk-v0.4.0...aws-sdk-v0.4.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.4.0...aws-sdk-v0.4.1)
+
+### Bug Fixes
+
+* **client:** run middleware before request signing ([#45](https://github.com/anthropics/anthropic-sdk-typescript/issues/45)) ([95f1a4a](https://github.com/anthropics/anthropic-sdk-typescript/commit/95f1a4a406c95aa31855fa1178fedfcb19978e16))
+
 ## 0.4.0 (2026-06-05)
 
 Full Changelog: [aws-sdk-v0.3.1...aws-sdk-v0.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.3.1...aws-sdk-v0.4.0)
