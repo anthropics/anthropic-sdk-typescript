@@ -436,4 +436,58 @@ describe('BetaMessageStream class', () => {
 
     await expect(runStream).rejects.toThrow(APIConnectionError);
   });
+
+  it('carries stop_details from message_delta into the final message', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_refusal_01',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-20250514',
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { input_tokens: 15, output_tokens: 1 },
+        },
+      },
+      { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+      { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'I cannot help' } },
+      { type: 'content_block_stop', index: 0 },
+      {
+        type: 'message_delta',
+        delta: {
+          stop_reason: 'refusal',
+          stop_sequence: null,
+          stop_details: {
+            type: 'refusal',
+            category: 'cyber',
+            explanation: 'Declined by a streaming policy classifier.',
+          },
+        },
+        usage: { output_tokens: 8 },
+      },
+      { type: 'message_stop' },
+    ]);
+
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-20250514',
+      messages: [{ role: 'user', content: 'Do something disallowed.' }],
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(finalMessage.stop_reason).toBe('refusal');
+    expect(finalMessage.stop_details).toEqual({
+      type: 'refusal',
+      category: 'cyber',
+      explanation: 'Declined by a streaming policy classifier.',
+    });
+  });
 });

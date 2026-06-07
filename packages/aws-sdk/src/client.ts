@@ -289,6 +289,9 @@ export class AnthropicAws extends Anthropic {
       awsProfile: this.awsProfile,
       providerChainResolver: this.providerChainResolver,
     });
-    request.headers = buildHeaders([headers, request.headers]).values;
+    // Signed headers take precedence: when middleware replays or rewrites a
+    // request, it is re-signed and the fresh signature must override any
+    // stale Authorization/x-amz-* values from the previous attempt.
+    request.headers = buildHeaders([request.headers, headers]).values;
   }
 }

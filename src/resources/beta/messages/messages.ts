@@ -60,6 +60,8 @@ const DEPRECATED_MODELS: {
   'claude-2.0': 'July 21st, 2025',
   'claude-3-7-sonnet-latest': 'February 19th, 2026',
   'claude-3-7-sonnet-20250219': 'February 19th, 2026',
+  'claude-opus-4-1': 'August 5th, 2026',
+  'claude-opus-4-1-20250805': 'August 5th, 2026',
 };
 
 const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-mythos-preview', 'claude-opus-4-6'];
@@ -394,6 +396,17 @@ export interface BetaAdvisorTool20260301 {
   defer_loading?: boolean;
 
   /**
+   * Bounds the advisor's total output (thinking + text) per call. When the advisor
+   * hits this cap, the returned advisor_result or advisor_redacted_result block
+   * carries stop_reason='max_tokens', and a truncation note is appended to the
+   * advice text the worker model sees (inside the encrypted blob in redacted mode).
+   * When set, the server also emits a remaining-tokens budget block in the advisor's
+   * prompt so the advisor self-shapes toward the cap. When omitted, the advisor
+   * model's default output cap applies and no budget block is emitted.
+   */
+  max_tokens?: number | null;
+
+  /**
    * Maximum number of times the tool can be used in the API request.
    */
   max_uses?: number | null;
@@ -435,7 +448,8 @@ export interface BetaAdvisorToolResultError {
     | 'too_many_requests'
     | 'overloaded'
     | 'unavailable'
-    | 'execution_time_exceeded';
+    | 'execution_time_exceeded'
+    | 'model_not_found';
 
   type: 'advisor_tool_result_error';
 }
@@ -447,7 +461,8 @@ export interface BetaAdvisorToolResultErrorParam {
     | 'too_many_requests'
     | 'overloaded'
     | 'unavailable'
-    | 'execution_time_exceeded';
+    | 'execution_time_exceeded'
+    | 'model_not_found';
 
   type: 'advisor_tool_result_error';
 }
@@ -3228,6 +3243,8 @@ export interface BetaToolSearchToolResultErrorParam {
   error_code: 'invalid_tool_input' | 'unavailable' | 'too_many_requests' | 'execution_time_exceeded';
 
   type: 'tool_search_tool_result_error';
+
+  error_message?: string | null;
 }
 
 export interface BetaToolSearchToolSearchResultBlock {
