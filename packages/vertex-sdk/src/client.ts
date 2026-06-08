@@ -1,10 +1,12 @@
-import { BaseAnthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
+import { APIRequest, BaseAnthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
 import { GoogleAuth, AuthClient } from 'google-auth-library';
+import { APIConnectionError } from './core/error';
+import type { Middleware } from './core/middleware';
+import { castToError } from './internal/errors';
 import { readEnv } from './internal/utils/env';
 import { FinalRequestOptions } from './internal/request-options';
-import { FinalizedRequestInit } from './internal/types';
-import { isObj } from './internal/utils/values';
+import { isObj, safeJSON } from './internal/utils/values';
 import { buildHeaders } from './internal/headers';
 
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
@@ -128,73 +130,111 @@ export class AnthropicVertex extends BaseAnthropic {
   beta: BetaResource = makeBetaResource(this);
 
   protected override validateHeaders() {
-    // auth validation is handled in prepareOptions since it needs to be async
+    // auth validation is handled in the backend middleware since it needs to be async
   }
 
-  protected override async prepareOptions(options: FinalRequestOptions): Promise<void> {
-    const authClient = await this._authClientPromise;
+  protected override backendMiddleware(): ReadonlyArray<Middleware> {
+    return [async (request, next, ctx) => next(await this.#adaptRequest(request, ctx.options))];
+  }
 
-    const authHeaders = await authClient.getRequestHeaders();
-    const projectId = authClient.projectId ?? authHeaders['x-goog-user-project'];
+  /**
+   * Rewrites the canonical Anthropic-shaped request into Vertex's wire shape
+   * and applies Google OAuth. Runs inside the user middleware chain: the
+   * OAuth token is a backend credential transformation, so middleware never
+   * observes it, and each `next()` invocation applies a fresh token.
+   */
+  async #adaptRequest(request: APIRequest, options: FinalRequestOptions | undefined): Promise<APIRequest> {
+    let authClient: AuthClient;
+    let googleAuthHeaders: Awaited<ReturnType<AuthClient['getRequestHeaders']>>;
+    try {
+      authClient = await this._authClientPromise;
+      googleAuthHeaders = await authClient.getRequestHeaders();
+    } catch (err) {
+      // OAuth token acquisition is network-bound (metadata server, token
+      // endpoint), so its failures stay on the SDK's connection-error retry
+      // policy instead of propagating as non-retryable middleware errors.
+      throw new APIConnectionError({
+        message: 'Failed to acquire Google OAuth credentials.',
+        cause: castToError(err),
+      });
+    }
+    const projectId = authClient.projectId ?? googleAuthHeaders['x-goog-user-project'];
     if (!this.projectId && projectId) {
       this.projectId = projectId;
     }
 
-    options.headers = buildHeaders([authHeaders, options.headers]);
-  }
+    const url = new URL(request.url);
 
-  override async buildRequest(options: FinalRequestOptions): Promise<{
-    req: FinalizedRequestInit;
-    url: string;
-    timeout: number;
-  }> {
-    if (isObj(options.body)) {
-      // create a shallow copy of the request body so that code that mutates it later
-      // doesn't mutate the original user-provided object
-      options.body = { ...options.body };
+    let parsedBody: Record<string, unknown> | undefined;
+    if (typeof request.body === 'string') {
+      const parsed = safeJSON(request.body);
+      if (isObj(parsed)) parsedBody = parsed;
     }
 
-    if (isObj(options.body)) {
-      if (!options.body['anthropic_version']) {
-        options.body['anthropic_version'] = DEFAULT_VERSION;
-      }
+    if (parsedBody && !parsedBody['anthropic_version']) {
+      parsedBody['anthropic_version'] = DEFAULT_VERSION;
     }
 
-    if (MODEL_ENDPOINTS.has(options.path) && options.method === 'post') {
-      if (!this.projectId) {
-        throw new Error(
-          'No projectId was given and it could not be resolved from credentials. The client should be instantiated with the `projectId` option or the `ANTHROPIC_VERTEX_PROJECT_ID` environment variable should be set.',
-        );
+    if (options && MODEL_ENDPOINTS.has(options.path) && options.method === 'post') {
+      // Rewrite by canonical-suffix replacement so base URLs with path
+      // prefixes keep working. If middleware rewrote the path away from the
+      // canonical shape, it took control of the wire shape: leave it alone.
+      const canonicalPath = options.path.split('?')[0]!;
+      if (url.pathname.endsWith(canonicalPath)) {
+        if (!this.projectId) {
+          throw new Error(
+            'No projectId was given and it could not be resolved from credentials. The client should be instantiated with the `projectId` option or the `ANTHROPIC_VERTEX_PROJECT_ID` environment variable should be set.',
+          );
+        }
+
+        if (!parsedBody) {
+          throw new Error('Expected request body to be an object for post /v1/messages');
+        }
+
+        const model = parsedBody['model'];
+        delete parsedBody['model'];
+
+        const stream = parsedBody['stream'] ?? false;
+
+        const specifier = stream ? 'streamRawPredict' : 'rawPredict';
+
+        const prefix = url.pathname.slice(0, url.pathname.length - canonicalPath.length);
+        url.pathname = `${prefix}/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/${model}:${specifier}`;
+        // The canonical `?beta=true` marker has no meaning on Vertex.
+        url.searchParams.delete('beta');
       }
-
-      if (!isObj(options.body)) {
-        throw new Error('Expected request body to be an object for post /v1/messages');
-      }
-
-      const model = options.body['model'];
-      options.body['model'] = undefined;
-
-      const stream = options.body['stream'] ?? false;
-
-      const specifier = stream ? 'streamRawPredict' : 'rawPredict';
-
-      options.path = `/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/${model}:${specifier}`;
     }
 
     if (
-      options.path === '/v1/messages/count_tokens' ||
-      (options.path == '/v1/messages/count_tokens?beta=true' && options.method === 'post')
+      options &&
+      (options.path === '/v1/messages/count_tokens' ||
+        (options.path == '/v1/messages/count_tokens?beta=true' && options.method === 'post'))
     ) {
-      if (!this.projectId) {
-        throw new Error(
-          'No projectId was given and it could not be resolved from credentials. The client should be instantiated with the `projectId` option or the `ANTHROPIC_VERTEX_PROJECT_ID` environment variable should be set.',
-        );
-      }
+      const canonicalPath = options.path.split('?')[0]!;
+      if (url.pathname.endsWith(canonicalPath)) {
+        if (!this.projectId) {
+          throw new Error(
+            'No projectId was given and it could not be resolved from credentials. The client should be instantiated with the `projectId` option or the `ANTHROPIC_VERTEX_PROJECT_ID` environment variable should be set.',
+          );
+        }
 
-      options.path = `/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/count-tokens:rawPredict`;
+        const prefix = url.pathname.slice(0, url.pathname.length - canonicalPath.length);
+        url.pathname = `${prefix}/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/count-tokens:rawPredict`;
+        url.searchParams.delete('beta');
+      }
     }
 
-    return super.buildRequest(options);
+    const adapted = {
+      ...request,
+      url: url.toString(),
+      // Request/middleware-set headers win over the OAuth headers, preserving
+      // the ability to override `Authorization` explicitly.
+      headers: buildHeaders([googleAuthHeaders, request.headers]).values,
+    } as APIRequest;
+    if (parsedBody) {
+      adapted.body = JSON.stringify(parsedBody);
+    }
+    return adapted;
   }
 }
 

@@ -164,5 +164,29 @@ describe('AnthropicFoundry', () => {
       expect(headers.get('anthropic-version')).toBeTruthy();
       expect(headers.get('content-type')).toBe('application/json');
     });
+
+    test('logical credentials are visible to user middleware', async () => {
+      let middlewareSawAuthorization: string | null = null;
+
+      const client = new AnthropicFoundry({
+        azureADTokenProvider: async () => 'my-azure-ad-token',
+        resource: 'my-resource',
+        maxRetries: 1,
+        middleware: [
+          async (request, next) => {
+            middlewareSawAuthorization = request.headers.get('authorization');
+            return next(request);
+          },
+        ],
+      });
+
+      await client.messages.create({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 1024,
+        messages: [{ content: 'Test message', role: 'user' }],
+      });
+
+      expect(middlewareSawAuthorization).toBe('Bearer my-azure-ad-token');
+    });
   });
 });

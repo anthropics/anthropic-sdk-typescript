@@ -4,6 +4,8 @@ import { HttpRequest } from '@smithy/protocol-http';
 import { SignatureV4 } from '@smithy/signature-v4';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
 import assert from 'assert';
+import { APIConnectionError } from './error';
+import { castToError } from '../internal/errors';
 import { MergedRequestInit } from '../internal/types';
 
 export type AuthProps = {
@@ -53,12 +55,21 @@ export const getAuthHeaders = async (req: RequestInit, props: AuthProps): Promis
       secretAccessKey: props.awsSecretAccessKey,
       ...(props.awsSessionToken != null && { sessionToken: props.awsSessionToken }),
     };
-  } else if (props.providerChainResolver) {
-    const provider = await props.providerChainResolver();
-    credentials = await provider();
   } else {
-    const provider = await defaultProviderChainResolver(props.awsProfile);
-    credentials = await provider();
+    const provider = await (props.providerChainResolver ?
+      props.providerChainResolver()
+    : defaultProviderChainResolver(props.awsProfile));
+    try {
+      credentials = await provider();
+    } catch (err) {
+      // Credential resolution is network-bound (IMDS, SSO, STS), so its
+      // failures stay on the SDK's connection-error retry policy instead of
+      // propagating as non-retryable middleware errors.
+      throw new APIConnectionError({
+        message: 'Failed to resolve AWS credentials from the credential provider chain.',
+        cause: castToError(err),
+      });
+    }
   }
 
   const signer = new SignatureV4({

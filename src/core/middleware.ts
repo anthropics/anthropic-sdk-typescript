@@ -89,6 +89,18 @@ export interface MiddlewareContext {
  * or replace the response, short-circuit by returning a `Response` without
  * calling `next`, or call `next` multiple times to implement custom retries.
  *
+ * Middleware always observes the canonical Anthropic-shaped request — e.g.
+ * `POST .../v1/messages` with `model` and `stream` in the JSON body and
+ * `anthropic-beta` as a header — with the client's logical credentials
+ * (`x-api-key` / `Authorization`) applied. On clients for third-party
+ * backends (Bedrock, Vertex, Foundry), the backend adaptation — URL and body
+ * rewriting, request signing (e.g. AWS SigV4), and response normalization
+ * (e.g. AWS EventStream to SSE) — runs *inside* `next`, so middleware behaves
+ * identically on every backend: mutating the request is safe (signing covers
+ * the final body), and streaming responses are observed as SSE. Each `next()`
+ * call re-runs the adaptation, so custom retries re-sign from scratch. To
+ * observe the literal wire traffic instead, provide a custom `fetch`.
+ *
  * Middleware must not consume the body of the `Response` it returns - the
  * client still needs to read it. To inspect the body, use
  * `await ctx.parse(response)` (cached, leaves the body readable) or read a
@@ -267,8 +279,7 @@ async function parseMiddlewareResponse(
     // A fresh controller rather than the request's own: aborting (or
     // `break`ing out of) the middleware's stream must not cancel the
     // in-flight request the client is still reading.
-    const streamClass = options.__streamClass ?? Stream;
-    return streamClass.fromSSEResponse(response.clone(), new AbortController());
+    return Stream.fromSSEResponse(response.clone(), new AbortController());
   }
 
   // fetch refuses to read the body when the status code is 204.

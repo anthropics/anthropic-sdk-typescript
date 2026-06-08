@@ -108,6 +108,30 @@ describe('AnthropicBedrockMantle', () => {
       const props = mockGetAuthHeaders.mock.calls[0]![1];
       expect(props.serviceName).toBe('bedrock-mantle');
     });
+
+    test('signs after user middleware, covering the mutated request and hiding the signature from middleware', async () => {
+      let middlewareSawSignature: string | null = null;
+      const client = new AnthropicBedrockMantle({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-east-1',
+        maxRetries: 0,
+        middleware: [
+          async (request, next) => {
+            middlewareSawSignature = request.headers.get('authorization');
+            const body = JSON.parse(request.body as string);
+            body.metadata = { user_id: 'user-123' };
+            return next({ ...request, body: JSON.stringify(body) });
+          },
+        ],
+      });
+
+      await makeRequest(client);
+
+      expect(middlewareSawSignature).toBeNull();
+      const signedRequest = mockGetAuthHeaders.mock.calls[0]![0] as { body?: unknown };
+      expect(JSON.parse(signedRequest.body as string).metadata).toEqual({ user_id: 'user-123' });
+    });
   });
 
   describe('environment variables', () => {

@@ -3,7 +3,6 @@
 import { NullableHeaders } from './headers';
 
 import type { BodyInit } from './builtin-types';
-import { Stream } from '../core/streaming';
 import type { Middleware } from '../core/middleware';
 import type { HTTPMethod, MergedRequestInit } from './types';
 import { type HeadersLike } from './headers';
@@ -70,7 +69,8 @@ export type RequestOptions = {
   /**
    * Additional {@link Middleware} to wrap this request's HTTP attempts.
    *
-   * These run after any client-level middleware and apply to every attempt of this request, including retries.
+   * These run after any client-level middleware (but still outside any backend
+   * adaptation) and apply to every attempt of this request, including retries.
    */
   middleware?: ReadonlyArray<Middleware> | undefined;
 
@@ -85,7 +85,6 @@ export type RequestOptions = {
   defaultBaseURL?: string | undefined;
 
   __binaryResponse?: boolean | undefined;
-  __streamClass?: typeof Stream;
 };
 
 export type EncodedContent = { bodyHeaders: HeadersLike; body: BodyInit };

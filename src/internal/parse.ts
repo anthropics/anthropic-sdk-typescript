@@ -27,10 +27,6 @@ export async function defaultParseResponse<T>(
       // Note: there is an invariant here that isn't represented in the type system
       // that if you set `stream: true` the response type must also be `Stream<T>`
 
-      if (props.options.__streamClass) {
-        return props.options.__streamClass.fromSSEResponse(response, props.controller) as any;
-      }
-
       return Stream.fromSSEResponse(response, props.controller) as any;
     }
 

@@ -391,7 +391,11 @@ export interface ClientOptions {
    * {@link Middleware} functions that wrap every HTTP request made by the
    * client.
    *
-   * Middleware runs per HTTP attempt, including retries.
+   * Middleware runs per HTTP attempt, including retries. It observes the
+   * canonical Anthropic-shaped request and response on every backend: on
+   * clients for third-party backends (Bedrock, Vertex, Foundry), the
+   * backend's URL/body rewriting, request signing, and response
+   * normalization happen inside `next`.
    */
   middleware?: ReadonlyArray<Middleware> | undefined;
 
@@ -899,12 +903,12 @@ export class BaseAnthropic {
    * This is useful for cases where you want to add certain headers based off of
    * the request properties, e.g. `method` or `url`.
    *
-   * Runs after any middleware, immediately before each underlying fetch call,
-   * so request signing (e.g. SigV4 on Bedrock) sees exactly what goes over the
-   * wire. Middleware may replay a request by calling `next()` more than once,
-   * so this hook can run multiple times per attempt: overrides must be
-   * idempotent and overwrite auth headers from a previous invocation (e.g. a
-   * stale `Authorization`) rather than append to them.
+   * Runs after all middleware (including {@link backendMiddleware}),
+   * immediately before each underlying fetch call, so it sees exactly what
+   * goes over the wire. Middleware may replay a request by calling `next()`
+   * more than once, so this hook can run multiple times per attempt:
+   * overrides must be idempotent and overwrite headers from a previous
+   * invocation rather than append to them.
    */
   protected async prepareRequest(
     request: RequestInit,
@@ -930,6 +934,28 @@ export class BaseAnthropic {
       }
       request.headers = headers;
     }
+  }
+
+  /**
+   * Internal {@link Middleware} composed innermost in the chain — inside both
+   * client-level and per-request middleware, immediately around the underlying
+   * `fetch`. Subclasses for third-party backends override this to adapt the
+   * canonical Anthropic-shaped request to the backend's wire shape (URL/body
+   * rewriting, request signing) and to normalize the wire response back to the
+   * canonical shape (e.g. AWS EventStream to SSE).
+   *
+   * Running inside the user's middleware means user middleware always observes
+   * canonical Anthropic-shaped traffic, and the adaptation re-runs (e.g.
+   * re-signs) on every `next()` invocation, covering whatever the middleware
+   * mutated.
+   *
+   * Errors thrown here follow the middleware error policy: they propagate to
+   * the caller as-is — no retries, no `APIConnectionError` wrapping — unless
+   * retryable (see {@link Middleware}); throw a `RetryableError` to opt into
+   * the retry path.
+   */
+  protected backendMiddleware(): ReadonlyArray<Middleware> {
+    return [];
   }
 
   get<Rsp>(path: string, opts?: PromiseOrValue<RequestOptions>): APIPromise<Rsp> {
@@ -1020,11 +1046,13 @@ export class BaseAnthropic {
         isAbortError(response) ||
         /timed? ?out/i.test(String(response) + ('cause' in response ? String(response.cause) : ''));
 
-      // Errors thrown by middleware propagate to the caller as-is — no retries, no
-      // APIConnectionError wrapping — except retryable errors (timeouts/aborts,
-      // APIConnectionErrors, and RetryableErrors, directly or in the `cause` chain),
-      // which stay on the retry path.
-      const hasMiddleware = this.middleware.length > 0 || !!options.middleware?.length;
+      // Errors thrown by middleware (user middleware and the backend adaptation
+      // alike) propagate to the caller as-is — no retries, no APIConnectionError
+      // wrapping — except retryable errors (timeouts/aborts, APIConnectionErrors,
+      // and RetryableErrors, directly or in the `cause` chain), which stay on the
+      // retry path.
+      const hasMiddleware =
+        this.middleware.length > 0 || !!options.middleware?.length || this.backendMiddleware().length > 0;
       if (hasMiddleware && !isTimeout && !isRetryableError(response)) {
         loggerFor(this).info(`[${requestLogID}] middleware error (not retryable)`);
         loggerFor(this).debug(
@@ -1221,11 +1249,10 @@ export class BaseAnthropic {
     };
 
     // Prepare the request (auth signing and other `prepareRequest` hooks) as
-    // the innermost step, after any middleware: providers that compute request
-    // signatures (e.g. SigV4 on Bedrock) must sign exactly what goes over the
-    // wire, including middleware modifications. Runs per inner-fetch
-    // invocation, so a request middleware rewrote — or replayed via a second
-    // `next()` call — is prepared (re-signed) fresh each time. Preparation is
+    // the innermost step, after any middleware — including the backend
+    // middleware, so it sees exactly what goes over the wire. Runs per
+    // inner-fetch invocation, so a request middleware rewrote — or replayed
+    // via a second `next()` call — is prepared fresh each time. Preparation is
     // outside the timeout timer, matching its pre-middleware behavior.
     const innerFetch: Fetch =
       requestOptions === undefined ? timedFetch : (
@@ -1256,8 +1283,12 @@ export class BaseAnthropic {
         }
       );
 
-    const middleware = requestOptions?.middleware;
-    const allMiddleware = middleware?.length ? [...this.middleware, ...middleware] : this.middleware;
+    const requestMiddleware = requestOptions?.middleware;
+    const backendMiddleware = this.backendMiddleware();
+    const allMiddleware =
+      requestMiddleware?.length || backendMiddleware.length ?
+        [...this.middleware, ...(requestMiddleware ?? []), ...backendMiddleware]
+      : this.middleware;
     return await wrapFetchWithMiddleware(innerFetch, allMiddleware, requestOptions, this)(url, fetchOptions);
   }
 

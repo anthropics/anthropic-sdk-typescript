@@ -219,6 +219,120 @@ describe('Bedrock bearer token authentication', () => {
   });
 });
 
+describe('middleware order (Bedrock adaptation runs inside user middleware)', () => {
+  const mockFetch = jest.fn().mockImplementation(() => {
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Headers({ 'content-type': 'application/json' }),
+      json: () => Promise.resolve({}),
+      text: () => Promise.resolve('{}'),
+    });
+  });
+
+  beforeEach(() => {
+    mockFetch.mockClear();
+    (getAuthHeaders as jest.Mock).mockClear();
+  });
+
+  const createParams = {
+    model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+    max_tokens: 1024,
+    messages: [{ content: 'Hello', role: 'user' as const }],
+  };
+
+  test('middleware observes the canonical Anthropic request; the wire receives the Bedrock shape', async () => {
+    const observed: { url?: string; body?: any } = {};
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+      skipAuth: true,
+      fetch: mockFetch as any,
+      middleware: [
+        async (request, next) => {
+          observed.url = request.url;
+          observed.body = JSON.parse(request.body as string);
+          return next(request);
+        },
+      ],
+    });
+
+    await client.messages.create(createParams);
+
+    expect(observed.url).toBe('http://localhost:4010/v1/messages');
+    expect(observed.body.model).toBe(createParams.model);
+    expect(observed.body.anthropic_version).toBeUndefined();
+
+    const [wireUrl, wireInit] = mockFetch.mock.calls[0];
+    expect(wireUrl).toBe(`http://localhost:4010/model/${createParams.model}/invoke`);
+    const wireBody = JSON.parse(wireInit.body);
+    expect(wireBody.model).toBeUndefined();
+    expect(wireBody.anthropic_version).toBe('bedrock-2023-05-31');
+  });
+
+  test('preserves base URL path prefixes when rewriting', async () => {
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010/prefix',
+      skipAuth: true,
+      fetch: mockFetch as any,
+    });
+
+    await client.messages.create(createParams);
+
+    const [wireUrl] = mockFetch.mock.calls[0];
+    expect(wireUrl).toBe(`http://localhost:4010/prefix/model/${createParams.model}/invoke`);
+  });
+
+  test('SigV4 signing covers the middleware-mutated request', async () => {
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+      awsAccessKey: 'access-key',
+      awsSecretKey: 'secret-key',
+      fetch: mockFetch as any,
+      middleware: [
+        async (request, next) => {
+          const body = JSON.parse(request.body as string);
+          body.metadata = { user_id: 'user-123' };
+          return next({ ...request, body: JSON.stringify(body) });
+        },
+      ],
+    });
+
+    await client.messages.create(createParams);
+
+    expect(getAuthHeaders).toHaveBeenCalledTimes(1);
+    const [signedRequest, signedProps] = (getAuthHeaders as jest.Mock).mock.calls[0];
+    const signedBody = JSON.parse(signedRequest.body);
+    expect(signedBody.metadata).toEqual({ user_id: 'user-123' });
+    expect(signedBody.model).toBeUndefined();
+    expect(signedProps.url).toBe(`http://localhost:4010/model/${createParams.model}/invoke`);
+  });
+
+  test('anthropic-beta headers set by middleware move into the body', async () => {
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+      skipAuth: true,
+      fetch: mockFetch as any,
+      middleware: [
+        async (request, next) => {
+          request.headers.set('anthropic-beta', 'beta-1,beta-2');
+          return next(request);
+        },
+      ],
+    });
+
+    await client.messages.create(createParams);
+
+    const [, wireInit] = mockFetch.mock.calls[0];
+    const wireBody = JSON.parse(wireInit.body);
+    expect(wireBody.anthropic_beta).toEqual(['beta-1', 'beta-2']);
+  });
+});
+
 describe('AnthropicBedrock constructor deprecation warnings', () => {
   let consoleWarnSpy: jest.SpyInstance;
 
