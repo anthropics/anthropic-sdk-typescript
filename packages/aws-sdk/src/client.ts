@@ -2,14 +2,14 @@ import type { NullableHeaders } from './internal/headers';
 import { buildHeaders } from './internal/headers';
 import * as Errors from './core/error';
 import { readEnv } from './internal/utils';
-import { Anthropic, ClientOptions } from '@anthropic-ai/sdk/client';
+import { Anthropic, APIRequest, ClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
 import { loadConfig } from '@smithy/node-config-provider';
 import { NODE_REGION_CONFIG_OPTIONS, NODE_REGION_CONFIG_FILE_OPTIONS } from '@smithy/config-resolver';
 import { getAuthHeaders } from './core/auth';
+import type { Middleware } from './core/middleware';
 import { FinalRequestOptions } from './internal/request-options';
-import { FinalizedRequestInit } from './internal/types';
 
 const DEFAULT_SERVICE_NAME = 'aws-external-anthropic';
 
@@ -263,15 +263,20 @@ export class AnthropicAws extends Anthropic {
   }
 
   protected override validateHeaders(): void {
-    // Auth validation is handled in the constructor and prepareRequest
+    // Auth validation is handled in the constructor and the backend middleware
   }
 
-  protected override async prepareRequest(
-    request: FinalizedRequestInit,
-    { url, options }: { url: string; options: FinalRequestOptions },
-  ): Promise<void> {
+  protected override backendMiddleware(): ReadonlyArray<Middleware> {
+    return [async (request, next) => next(await this.#signRequest(request))];
+  }
+
+  /**
+   * SigV4-signs the request. Runs inside the user middleware chain, so the
+   * signature always covers the final, middleware-mutated request.
+   */
+  async #signRequest(request: APIRequest): Promise<APIRequest> {
     if (this.skipAuth || !this._useSigV4) {
-      return;
+      return request;
     }
 
     if (!this.awsRegion) {
@@ -280,7 +285,7 @@ export class AnthropicAws extends Anthropic {
     }
 
     const headers = await getAuthHeaders(request, {
-      url,
+      url: request.url,
       regionName: this.awsRegion,
       serviceName: DEFAULT_SERVICE_NAME,
       awsAccessKey: this.awsAccessKey,
@@ -289,9 +294,8 @@ export class AnthropicAws extends Anthropic {
       awsProfile: this.awsProfile,
       providerChainResolver: this.providerChainResolver,
     });
-    // Signed headers take precedence: when middleware replays or rewrites a
-    // request, it is re-signed and the fresh signature must override any
-    // stale Authorization/x-amz-* values from the previous attempt.
-    request.headers = buildHeaders([request.headers, headers]).values;
+    // Signed headers take precedence: the signature must match what goes
+    // over the wire, so it can't be overridden by other header sources.
+    return { ...request, headers: buildHeaders([request.headers, headers]).values };
   }
 }

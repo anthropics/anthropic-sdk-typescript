@@ -2,12 +2,12 @@ import type { NullableHeaders } from './internal/headers';
 import { buildHeaders } from './internal/headers';
 import * as Errors from './core/error';
 import { readEnv } from './internal/utils/env';
-import { BaseAnthropic, ClientOptions } from '@anthropic-ai/sdk/client';
+import { APIRequest, BaseAnthropic, ClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
 import { getAuthHeaders } from './core/aws-auth';
+import type { Middleware } from './core/middleware';
 import { FinalRequestOptions } from './internal/request-options';
-import { FinalizedRequestInit } from './internal/types';
 
 const DEFAULT_SERVICE_NAME = 'bedrock-mantle';
 
@@ -197,15 +197,20 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
   }
 
   protected override validateHeaders(): void {
-    // Auth validation is handled in the constructor and prepareRequest
+    // Auth validation is handled in the constructor and the backend middleware
   }
 
-  protected override async prepareRequest(
-    request: FinalizedRequestInit,
-    { url, options }: { url: string; options: FinalRequestOptions },
-  ): Promise<void> {
+  protected override backendMiddleware(): ReadonlyArray<Middleware> {
+    return [async (request, next) => next(await this.#signRequest(request))];
+  }
+
+  /**
+   * SigV4-signs the request. Runs inside the user middleware chain, so the
+   * signature always covers the final, middleware-mutated request.
+   */
+  async #signRequest(request: APIRequest): Promise<APIRequest> {
     if (this.skipAuth || !this._useSigV4) {
-      return;
+      return request;
     }
 
     const regionName = this.awsRegion;
@@ -216,7 +221,7 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
     }
 
     const headers = await getAuthHeaders(request, {
-      url,
+      url: request.url,
       regionName,
       serviceName: DEFAULT_SERVICE_NAME,
       awsAccessKey: this.awsAccessKey,
@@ -225,10 +230,9 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
       awsProfile: this.awsProfile,
       providerChainResolver: this.providerChainResolver,
     });
-    // Signed headers take precedence: when middleware replays or rewrites a
-    // request, it is re-signed and the fresh signature must override any
-    // stale Authorization/x-amz-* values from the previous attempt.
-    request.headers = buildHeaders([request.headers, headers]).values;
+    // Signed headers take precedence: the signature must match what goes
+    // over the wire, so it can't be overridden by other header sources.
+    return { ...request, headers: buildHeaders([request.headers, headers]).values };
   }
 }
 

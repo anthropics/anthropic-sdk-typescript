@@ -1599,3 +1599,223 @@ describe('wrapFetchWithMiddleware', () => {
     expect(seenInit).toBe(init);
   });
 });
+
+describe('backend middleware', () => {
+  const clientWithBackend = (
+    backend: ReadonlyArray<Middleware>,
+    options: ConstructorParameters<typeof Anthropic>[0],
+  ) => {
+    class BackendTestClient extends Anthropic {
+      protected override backendMiddleware(): ReadonlyArray<Middleware> {
+        return backend;
+      }
+    }
+    return new BackendTestClient(options);
+  };
+
+  test('composes innermost: client middleware, then per-request middleware, then backend', async () => {
+    const order: string[] = [];
+    const make = (name: string): Middleware => {
+      return async (request, next) => {
+        order.push(`${name}:in`);
+        const response = await next(request);
+        order.push(`${name}:out`);
+        return response;
+      };
+    };
+
+    const client = clientWithBackend([make('backend')], {
+      apiKey: 'my-anthropic-api-key',
+      fetch: async () => jsonResponse(),
+      middleware: [make('client')],
+    });
+
+    await client.request({ path: '/foo', method: 'get', middleware: [make('request')] });
+    expect(order).toEqual([
+      'client:in',
+      'request:in',
+      'backend:in',
+      'backend:out',
+      'request:out',
+      'client:out',
+    ]);
+  });
+
+  test('user middleware observes the canonical request; the wire receives the adapted request', async () => {
+    let userSawUrl: string | undefined;
+    let userSawSignature: string | null = null;
+    let wireUrl: string | undefined;
+    let wireSignature: string | null = null;
+
+    const userMiddleware: Middleware = async (request, next) => {
+      userSawUrl = request.url;
+      userSawSignature = request.headers.get('x-signature');
+      return next(request);
+    };
+    const adapt: Middleware = async (request, next) => {
+      const headers = new Headers(request.headers);
+      headers.set('x-signature', 'signed');
+      return next({ ...request, url: request.url.replace('/foo', '/backend/foo'), headers });
+    };
+
+    const client = clientWithBackend([adapt], {
+      apiKey: 'my-anthropic-api-key',
+      fetch: async (url: string | URL | Request, init?: RequestInit) => {
+        wireUrl = url.toString();
+        wireSignature = (init!.headers as Headers).get('x-signature');
+        return jsonResponse();
+      },
+      middleware: [userMiddleware],
+    });
+
+    await client.request({ path: '/foo', method: 'get' });
+    expect(userSawUrl).toEqual('https://api.anthropic.com/foo');
+    expect(userSawSignature).toBeNull();
+    expect(wireUrl).toEqual('https://api.anthropic.com/backend/foo');
+    expect(wireSignature).toEqual('signed');
+  });
+
+  test('observes user middleware mutations and re-runs on every next() call', async () => {
+    const adaptedBodies: string[] = [];
+    const adapt: Middleware = async (request, next) => {
+      adaptedBodies.push(String(request.body));
+      return next(request);
+    };
+    const mutateAndRetryOnce: Middleware = async (request, next) => {
+      const mutated = { ...request, body: JSON.stringify({ mutated: true }) };
+      const response = await next(mutated);
+      return response.status === 503 ? next(mutated) : response;
+    };
+
+    let fetchCalls = 0;
+    const client = clientWithBackend([adapt], {
+      apiKey: 'my-anthropic-api-key',
+      maxRetries: 0,
+      fetch: async () => {
+        fetchCalls++;
+        return fetchCalls === 1 ? new Response(undefined, { status: 503 }) : jsonResponse();
+      },
+      middleware: [mutateAndRetryOnce],
+    });
+
+    await client.request({ path: '/foo', method: 'post', body: { original: true } });
+    expect(adaptedBodies).toEqual(['{"mutated":true}', '{"mutated":true}']);
+    expect(fetchCalls).toEqual(2);
+  });
+
+  test('the response it returns is what user middleware and the client observe', async () => {
+    let userSawNormalized: boolean | undefined;
+    const normalize: Middleware = async (request, next) => {
+      await next(request);
+      return jsonResponse({ normalized: true });
+    };
+    const userMiddleware: Middleware = async (request, next) => {
+      const response = await next(request);
+      userSawNormalized = ((await response.clone().json()) as { normalized: boolean }).normalized;
+      return response;
+    };
+
+    const client = clientWithBackend([normalize], {
+      apiKey: 'my-anthropic-api-key',
+      fetch: async () => jsonResponse({ normalized: false }),
+      middleware: [userMiddleware],
+    });
+
+    expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ normalized: true });
+    expect(userSawNormalized).toBe(true);
+  });
+
+  test('errors propagate as-is without retries or wrapping, even with no user middleware', async () => {
+    class SigningError extends Error {}
+    let attempts = 0;
+    let fetchCalls = 0;
+    const expectedError = new SigningError('credentials unavailable');
+    const failingBackend: Middleware = async () => {
+      attempts++;
+      throw expectedError;
+    };
+
+    const client = clientWithBackend([failingBackend], {
+      apiKey: 'my-anthropic-api-key',
+      maxRetries: 1,
+      fetch: async () => {
+        fetchCalls++;
+        return jsonResponse();
+      },
+    });
+
+    const err = await client.request({ path: '/foo', method: 'get' }).then(
+      () => null,
+      (e) => e,
+    );
+    expect(err).toBe(expectedError);
+    expect(attempts).toEqual(1);
+    expect(fetchCalls).toEqual(0);
+  });
+
+  test('a RetryableError is retried', async () => {
+    let attempts = 0;
+    const flakyBackend: Middleware = async (request, next) => {
+      attempts++;
+      if (attempts === 1) throw new RetryableError('credential cache miss');
+      return next(request);
+    };
+
+    const client = clientWithBackend([flakyBackend], {
+      apiKey: 'my-anthropic-api-key',
+      maxRetries: 1,
+      fetch: async () => jsonResponse(),
+    });
+
+    expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
+    expect(attempts).toEqual(2);
+  });
+
+  test('fetch connection errors keep the retry policy when only backend middleware is present', async () => {
+    let fetchCalls = 0;
+    const passthrough: Middleware = (request, next) => next(request);
+
+    const client = clientWithBackend([passthrough], {
+      apiKey: 'my-anthropic-api-key',
+      maxRetries: 1,
+      fetch: async () => {
+        fetchCalls++;
+        throw new TypeError('fetch failed');
+      },
+    });
+
+    const err = await client.request({ path: '/foo', method: 'get' }).then(
+      () => null,
+      (e) => e,
+    );
+    expect(err).toBeInstanceOf(APIConnectionError);
+    expect(err.cause).toHaveProperty('message', 'fetch failed');
+    expect(fetchCalls).toEqual(2);
+  });
+
+  test('the request timeout does not cover backend middleware work', async () => {
+    const abortError = () => {
+      const err = new Error('This operation was aborted');
+      err.name = 'AbortError';
+      return err;
+    };
+
+    // slow backend adaptation (e.g. credential resolution), fast fetch:
+    // adaptation work doesn't count against the timeout
+    const slowBackend: Middleware = async (request, next) => {
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      return next(request);
+    };
+
+    const client = clientWithBackend([slowBackend], {
+      apiKey: 'my-anthropic-api-key',
+      timeout: 5,
+      maxRetries: 0,
+      fetch: async (_url, { signal } = {}) => {
+        if (signal?.aborted) throw abortError();
+        return jsonResponse();
+      },
+    });
+    expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
+  });
+});

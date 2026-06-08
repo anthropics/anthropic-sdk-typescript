@@ -2,6 +2,12 @@
 
 import Anthropic, { type Middleware } from '@anthropic-ai/sdk';
 
+// Middleware is portable across backends: on the Bedrock, Vertex, and Foundry
+// clients it observes the same canonical Anthropic-shaped request (`model` and
+// `stream` in the body, `anthropic-beta` as a header) and normalized SSE
+// streaming responses, because backend URL/body rewriting, request signing,
+// and response normalization all happen inside `next`.
+
 /**
  * Logs every HTTP attempt the client makes, including the SDK's automatic
  * retries (each attempt passes through the middleware chain).

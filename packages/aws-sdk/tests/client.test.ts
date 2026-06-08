@@ -575,6 +575,32 @@ describe('AnthropicAws', () => {
       const props = mockGetAuthHeaders.mock.calls[0]![1];
       expect(props.awsSessionToken).toBe('my-session-token');
     });
+
+    test('signs after user middleware, covering the mutated request and hiding the signature from middleware', async () => {
+      let middlewareSawSignature: string | null = null;
+      const client = new AnthropicAws({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-west-2',
+        workspaceId: 'ws-test',
+        maxRetries: 0,
+        middleware: [
+          async (request, next) => {
+            middlewareSawSignature = request.headers.get('authorization');
+            const body = JSON.parse(request.body as string);
+            body.metadata = { user_id: 'user-123' };
+            return next({ ...request, body: JSON.stringify(body) });
+          },
+        ],
+      });
+
+      await makeRequest(client);
+
+      expect(middlewareSawSignature).toBeNull();
+      const signedRequest = mockGetAuthHeaders.mock.calls[0]![0] as { body?: unknown };
+      expect(JSON.parse(signedRequest.body as string).metadata).toEqual({ user_id: 'user-123' });
+      expect(getRequestHeaders().get('authorization')).toBe('AWS4-HMAC-SHA256 Credential=mock');
+    });
   });
 
   describe('API key auth headers', () => {
@@ -596,6 +622,26 @@ describe('AnthropicAws', () => {
       expect(headers.get('x-api-key')).toBe('test-api-key');
       expect(headers.get('anthropic-version')).toBeTruthy();
       expect(headers.get('content-type')).toBe('application/json');
+    });
+
+    test('the x-api-key logical credential is visible to user middleware', async () => {
+      let middlewareSawApiKey: string | null = null;
+      const client = new AnthropicAws({
+        apiKey: 'test-api-key',
+        awsRegion: 'us-east-1',
+        workspaceId: 'ws-test',
+        maxRetries: 0,
+        middleware: [
+          async (request, next) => {
+            middlewareSawApiKey = request.headers.get('x-api-key');
+            return next(request);
+          },
+        ],
+      });
+
+      await makeRequest(client);
+
+      expect(middlewareSawApiKey).toBe('test-api-key');
     });
   });
 

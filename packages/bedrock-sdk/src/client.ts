@@ -1,13 +1,14 @@
-import { BaseAnthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
+import { APIRequest, BaseAnthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
 import { getAuthHeaders } from './core/auth';
-import { Stream } from './core/streaming';
+import { eventStreamToSSEResponse } from './core/streaming';
+import type { Middleware } from './core/middleware';
 import { readEnv } from './internal/utils/env';
 import { FinalRequestOptions } from './internal/request-options';
-import { isObj } from './internal/utils/values';
+import { isObj, safeJSON } from './internal/utils/values';
+import type { NullableHeaders } from './internal/headers';
 import { buildHeaders } from './internal/headers';
-import { FinalizedRequestInit } from './internal/types';
 import { path } from './internal/utils/path';
 import { loggerFor } from './internal/utils/log';
 
@@ -136,90 +137,125 @@ export class AnthropicBedrock extends BaseAnthropic {
   beta: BetaResource = makeBetaResource(this);
 
   protected override validateHeaders() {
-    // auth validation is handled in prepareRequest since it needs to be async
+    // auth validation is handled in the backend middleware since it needs to be async
   }
 
-  protected override async prepareRequest(
-    request: FinalizedRequestInit,
-    { url, options }: { url: string; options: FinalRequestOptions },
-  ): Promise<void> {
-    if (this.skipAuth) {
-      // Authorization header is added in `buildRequest` so we need to remove it
-      request.headers.delete('Authorization');
-      return;
-    }
-
-    if (this.authToken) {
-      return;
-    }
-
-    const regionName = this.awsRegion;
-    if (!regionName) {
-      throw new Error(
-        'Expected `awsRegion` option to be passed to the client or the `AWS_REGION` environment variable to be present',
-      );
-    }
-
-    const headers = await getAuthHeaders(request, {
-      url,
-      regionName,
-      awsAccessKey: this.awsAccessKey,
-      awsSecretKey: this.awsSecretKey,
-      awsSessionToken: this.awsSessionToken,
-      fetchOptions: this.fetchOptions,
-      providerChainResolver: this.providerChainResolver,
-    });
-    // Signed headers take precedence: when middleware replays or rewrites a
-    // request, it is re-signed and the fresh signature must override any
-    // stale Authorization/x-amz-* values from the previous attempt.
-    request.headers = buildHeaders([request.headers, headers]).values;
+  protected override async authHeaders(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
+    // The bearer token (AWS_BEARER_TOKEN_BEDROCK) is the client's logical
+    // credential, applied outside user middleware so middleware can observe
+    // it; SigV4 is a backend credential transformation and happens inside,
+    // in the backend middleware.
+    return this.skipAuth ? undefined : super.authHeaders(opts);
   }
 
-  override async buildRequest(options: FinalRequestOptions): Promise<{
-    req: FinalizedRequestInit;
-    url: string;
-    timeout: number;
-  }> {
-    options.__streamClass = Stream;
+  protected override backendMiddleware(): ReadonlyArray<Middleware> {
+    return [
+      async (request, next, ctx) => {
+        const response = await next(await this.#adaptRequest(request, ctx.options));
+        return this.#adaptResponse(response);
+      },
+    ];
+  }
 
-    if (isObj(options.body)) {
-      // create a shallow copy of the request body so that code that mutates it later
-      // doesn't mutate the original user-provided object
-      options.body = { ...options.body };
+  /**
+   * Rewrites the canonical Anthropic-shaped request into Bedrock's wire shape
+   * and SigV4-signs it. Runs inside the user middleware chain, so the
+   * signature always covers the final, middleware-mutated request.
+   */
+  async #adaptRequest(request: APIRequest, options: FinalRequestOptions | undefined): Promise<APIRequest> {
+    const url = new URL(request.url);
+    const headers = new Headers(request.headers);
+
+    let parsedBody: Record<string, unknown> | undefined;
+    if (typeof request.body === 'string') {
+      const parsed = safeJSON(request.body);
+      if (isObj(parsed)) parsedBody = parsed;
     }
 
-    if (isObj(options.body)) {
-      if (!options.body['anthropic_version']) {
-        options.body['anthropic_version'] = DEFAULT_VERSION;
+    if (parsedBody) {
+      if (!parsedBody['anthropic_version']) {
+        parsedBody['anthropic_version'] = DEFAULT_VERSION;
       }
 
-      if (options.headers && !options.body['anthropic_beta']) {
-        const betas = buildHeaders([options.headers]).values.get('anthropic-beta');
-        if (betas != null) {
-          options.body['anthropic_beta'] = betas.split(',');
+      const betas = headers.get('anthropic-beta');
+      if (betas != null && !parsedBody['anthropic_beta']) {
+        // `Headers.get` joins multiple values with ', '
+        parsedBody['anthropic_beta'] = betas.split(',').map((beta) => beta.trim());
+      }
+    }
+
+    if (options && MODEL_ENDPOINTS.has(options.path) && options.method === 'post') {
+      // Rewrite by canonical-suffix replacement so base URLs with path
+      // prefixes keep working. If middleware rewrote the path away from the
+      // canonical shape, it took control of the wire shape: skip the rewrite
+      // but still sign below.
+      const canonicalPath = options.path.split('?')[0]!;
+      if (url.pathname.endsWith(canonicalPath)) {
+        if (!parsedBody) {
+          throw new Error(`Expected request body to be a JSON object for post ${canonicalPath}`);
         }
+
+        const model = parsedBody['model'] as string;
+        delete parsedBody['model'];
+
+        const stream = parsedBody['stream'];
+        delete parsedBody['stream'];
+
+        const prefix = url.pathname.slice(0, url.pathname.length - canonicalPath.length);
+        url.pathname =
+          prefix +
+          (stream ? path`/model/${model}/invoke-with-response-stream` : path`/model/${model}/invoke`);
+        // The canonical `?beta=true` marker has no meaning on Bedrock.
+        url.searchParams.delete('beta');
       }
     }
 
-    if (MODEL_ENDPOINTS.has(options.path) && options.method === 'post') {
-      if (!isObj(options.body)) {
-        throw new Error('Expected request body to be an object for post /v1/messages');
-      }
-
-      const model = options.body['model'] as string;
-      options.body['model'] = undefined;
-
-      const stream = options.body['stream'];
-      options.body['stream'] = undefined;
-
-      if (stream) {
-        options.path = path`/model/${model}/invoke-with-response-stream`;
-      } else {
-        options.path = path`/model/${model}/invoke`;
-      }
+    const adapted = { ...request, url: url.toString(), headers } as APIRequest;
+    if (parsedBody) {
+      adapted.body = JSON.stringify(parsedBody);
     }
 
-    return super.buildRequest(options);
+    if (!this.skipAuth && !this.authToken) {
+      const regionName = this.awsRegion;
+      if (!regionName) {
+        throw new Error(
+          'Expected `awsRegion` option to be passed to the client or the `AWS_REGION` environment variable to be present',
+        );
+      }
+
+      const authHeaders = await getAuthHeaders(adapted, {
+        url: adapted.url,
+        regionName,
+        awsAccessKey: this.awsAccessKey,
+        awsSecretKey: this.awsSecretKey,
+        awsSessionToken: this.awsSessionToken,
+        fetchOptions: this.fetchOptions,
+        providerChainResolver: this.providerChainResolver,
+      });
+      // Signed headers take precedence: the signature must match what goes
+      // over the wire, so it can't be overridden by other header sources.
+      adapted.headers = buildHeaders([adapted.headers, authHeaders]).values;
+    }
+
+    return adapted;
+  }
+
+  /**
+   * Normalizes Bedrock's binary AWS EventStream framing back to the SSE
+   * format the Anthropic API uses, so user middleware (and the client's own
+   * parsing) observe canonical streaming responses.
+   */
+  #adaptResponse(response: Response): Response {
+    // Match the wire content type positively so that anything else — plain
+    // JSON, error bodies, or already-SSE responses from a gateway — passes
+    // through untouched.
+    if (
+      response.body &&
+      response.headers.get('content-type')?.includes('application/vnd.amazon.eventstream')
+    ) {
+      return eventStreamToSSEResponse(response);
+    }
+    return response;
   }
 }
 
