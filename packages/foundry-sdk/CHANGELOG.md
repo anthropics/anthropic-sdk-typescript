@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1 (2026-06-09)
+
+Full Changelog: [foundry-sdk-v0.3.0...foundry-sdk-v0.3.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.3.0...foundry-sdk-v0.3.1)
+
+### Bug Fixes
+
+* **client:** 3p middleware ordering ([#53](https://github.com/anthropics/anthropic-sdk-typescript/issues/53)) ([2a4c339](https://github.com/anthropics/anthropic-sdk-typescript/commit/2a4c339e6887aa2e8e1278c7b22d3732cf64a76c))
+
 ## 0.3.0 (2026-06-05)
 
 Full Changelog: [foundry-sdk-v0.2.4...foundry-sdk-v0.3.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.2.4...foundry-sdk-v0.3.0)
