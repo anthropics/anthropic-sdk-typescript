@@ -2442,7 +2442,7 @@ export interface BetaRefusalStopDetails {
    *
    * `null` when the refusal doesn't map to a named category.
    */
-  category: 'cyber' | 'bio' | 'reasoning_extraction' | null;
+  category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | null;
 
   /**
    * Human-readable explanation of the refusal.
