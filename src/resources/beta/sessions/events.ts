@@ -519,6 +519,37 @@ export interface BetaManagedAgentsBillingError {
 }
 
 /**
+ * An `environment_variable` credential's `auth.networking.allowed_hosts` includes
+ * a host the environment's network policy does not permit.
+ */
+export interface BetaManagedAgentsCredentialHostUnreachableError {
+  /**
+   * ID of the affected credential.
+   */
+  credential_id: string;
+
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * What the client should do next in response to this error.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'credential_host_unreachable_error';
+
+  /**
+   * ID of the vault containing the affected credential.
+   */
+  vault_id: string;
+}
+
+/**
  * Document content, either specified directly as base64 data, as text, or as a
  * reference via a URL.
  */
@@ -554,7 +585,8 @@ export type BetaManagedAgentsEventParams =
   | BetaManagedAgentsUserToolConfirmationEventParams
   | BetaManagedAgentsUserCustomToolResultEventParams
   | BetaManagedAgentsUserDefineOutcomeEventParams
-  | BetaManagedAgentsUserToolResultEventParams;
+  | BetaManagedAgentsUserToolResultEventParams
+  | BetaManagedAgentsSystemMessageEventParams;
 
 /**
  * Document referenced by file ID.
@@ -835,6 +867,7 @@ export interface BetaManagedAgentsSendSessionEvents {
     | BetaManagedAgentsUserCustomToolResultEvent
     | BetaManagedAgentsUserDefineOutcomeEvent
     | SessionsAPI.BetaManagedAgentsUserToolResultEvent
+    | SessionsAPI.BetaManagedAgentsSystemMessageEvent
   >;
 }
 
@@ -884,7 +917,8 @@ export interface BetaManagedAgentsSessionErrorEvent {
     | BetaManagedAgentsModelRequestFailedError
     | BetaManagedAgentsMCPConnectionFailedError
     | BetaManagedAgentsMCPAuthenticationFailedError
-    | BetaManagedAgentsBillingError;
+    | BetaManagedAgentsBillingError
+    | BetaManagedAgentsCredentialHostUnreachableError;
 
   /**
    * A timestamp in RFC 3339 format
@@ -930,7 +964,8 @@ export type BetaManagedAgentsSessionEvent =
   | BetaManagedAgentsSessionThreadStatusTerminatedEvent
   | SessionsAPI.BetaManagedAgentsUserToolResultEvent
   | BetaManagedAgentsSessionThreadStatusRescheduledEvent
-  | SessionsAPI.BetaManagedAgentsSessionUpdatedEvent;
+  | SessionsAPI.BetaManagedAgentsSessionUpdatedEvent
+  | SessionsAPI.BetaManagedAgentsSystemMessageEvent;
 
 /**
  * The agent is idle waiting on one or more blocking user-input events (tool
@@ -1415,7 +1450,25 @@ export type BetaManagedAgentsStreamSessionEvents =
   | BetaManagedAgentsSessionThreadStatusTerminatedEvent
   | SessionsAPI.BetaManagedAgentsUserToolResultEvent
   | BetaManagedAgentsSessionThreadStatusRescheduledEvent
-  | SessionsAPI.BetaManagedAgentsSessionUpdatedEvent;
+  | SessionsAPI.BetaManagedAgentsSessionUpdatedEvent
+  | SessionsAPI.BetaManagedAgentsSystemMessageEvent;
+
+/**
+ * Privileged context for the accompanying turn and all subsequent turns, appended
+ * to the session's system context as a `role: "system"` turn rather than replacing
+ * the top-level system prompt. At most one per request: it must be the final event
+ * and immediately follow the `user.message`, `user.tool_result`, or
+ * `user.custom_tool_result` it accompanies. Only supported on models that accept
+ * mid-conversation system messages.
+ */
+export interface BetaManagedAgentsSystemMessageEventParams {
+  /**
+   * System content blocks to append. Text-only.
+   */
+  content: Array<SessionsAPI.BetaManagedAgentsSystemContentBlock>;
+
+  type: 'system.message';
+}
 
 /**
  * Regular text content.
@@ -1891,6 +1944,7 @@ export declare namespace Events {
     type BetaManagedAgentsBase64DocumentSource as BetaManagedAgentsBase64DocumentSource,
     type BetaManagedAgentsBase64ImageSource as BetaManagedAgentsBase64ImageSource,
     type BetaManagedAgentsBillingError as BetaManagedAgentsBillingError,
+    type BetaManagedAgentsCredentialHostUnreachableError as BetaManagedAgentsCredentialHostUnreachableError,
     type BetaManagedAgentsDocumentBlock as BetaManagedAgentsDocumentBlock,
     type BetaManagedAgentsEventParams as BetaManagedAgentsEventParams,
     type BetaManagedAgentsFileDocumentSource as BetaManagedAgentsFileDocumentSource,
@@ -1933,6 +1987,7 @@ export declare namespace Events {
     type BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent as BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent,
     type BetaManagedAgentsSpanOutcomeEvaluationStartEvent as BetaManagedAgentsSpanOutcomeEvaluationStartEvent,
     type BetaManagedAgentsStreamSessionEvents as BetaManagedAgentsStreamSessionEvents,
+    type BetaManagedAgentsSystemMessageEventParams as BetaManagedAgentsSystemMessageEventParams,
     type BetaManagedAgentsTextBlock as BetaManagedAgentsTextBlock,
     type BetaManagedAgentsTextRubric as BetaManagedAgentsTextRubric,
     type BetaManagedAgentsTextRubricParams as BetaManagedAgentsTextRubricParams,

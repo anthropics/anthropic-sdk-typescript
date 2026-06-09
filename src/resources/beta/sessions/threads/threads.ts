@@ -255,7 +255,8 @@ export type BetaManagedAgentsStreamSessionThreadEvents =
   | EventsAPI.BetaManagedAgentsSessionThreadStatusTerminatedEvent
   | SessionsAPI.BetaManagedAgentsUserToolResultEvent
   | EventsAPI.BetaManagedAgentsSessionThreadStatusRescheduledEvent
-  | SessionsAPI.BetaManagedAgentsSessionUpdatedEvent;
+  | SessionsAPI.BetaManagedAgentsSessionUpdatedEvent
+  | SessionsAPI.BetaManagedAgentsSystemMessageEvent;
 
 export interface ThreadRetrieveParams {
   /**

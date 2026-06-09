@@ -144,6 +144,14 @@ client.example.list(undefined, { headers: { ... } });
 - `client.beta.sessions.events.stream()`
 - `client.beta.sessions.resources.list()`
 - `client.beta.sessions.threads.list()`
+- `client.beta.deployments.retrieve()`
+- `client.beta.deployments.list()`
+- `client.beta.deployments.archive()`
+- `client.beta.deployments.pause()`
+- `client.beta.deployments.run()`
+- `client.beta.deployments.unpause()`
+- `client.beta.deploymentRuns.retrieve()`
+- `client.beta.deploymentRuns.list()`
 - `client.beta.vaults.retrieve()`
 - `client.beta.vaults.list()`
 - `client.beta.vaults.delete()`

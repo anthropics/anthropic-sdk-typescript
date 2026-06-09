@@ -225,6 +225,11 @@ export interface BetaWebhookSessionThreadCreatedEventData {
 
   organization_id: string;
 
+  /**
+   * ID of the session thread this event refers to.
+   */
+  session_thread_id: string;
+
   type: 'session.thread_created';
 
   workspace_id: string;
@@ -238,6 +243,11 @@ export interface BetaWebhookSessionThreadIdledEventData {
 
   organization_id: string;
 
+  /**
+   * ID of the session thread this event refers to.
+   */
+  session_thread_id: string;
+
   type: 'session.thread_idled';
 
   workspace_id: string;
@@ -250,6 +260,11 @@ export interface BetaWebhookSessionThreadTerminatedEventData {
   id: string;
 
   organization_id: string;
+
+  /**
+   * ID of the session thread this event refers to.
+   */
+  session_thread_id: string;
 
   type: 'session.thread_terminated';
 

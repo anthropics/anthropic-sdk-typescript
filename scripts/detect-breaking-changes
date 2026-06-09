@@ -24,6 +24,8 @@ TEST_PATHS=(
 	tests/api-resources/beta/sessions/resources.test.ts
 	tests/api-resources/beta/sessions/threads/threads.test.ts
 	tests/api-resources/beta/sessions/threads/events.test.ts
+	tests/api-resources/beta/deployments.test.ts
+	tests/api-resources/beta/deployment-runs.test.ts
 	tests/api-resources/beta/vaults/vaults.test.ts
 	tests/api-resources/beta/vaults/credentials.test.ts
 	tests/api-resources/beta/memory-stores/memory-stores.test.ts
