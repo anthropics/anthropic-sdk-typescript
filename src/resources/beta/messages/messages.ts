@@ -60,8 +60,15 @@ const DEPRECATED_MODELS: {
   'claude-2.0': 'July 21st, 2025',
   'claude-3-7-sonnet-latest': 'February 19th, 2026',
   'claude-3-7-sonnet-20250219': 'February 19th, 2026',
+  'claude-3-5-haiku-latest': 'February 19th, 2026',
+  'claude-3-5-haiku-20241022': 'February 19th, 2026',
+  'claude-opus-4-0': 'June 15th, 2026',
+  'claude-opus-4-20250514': 'June 15th, 2026',
+  'claude-sonnet-4-0': 'June 15th, 2026',
+  'claude-sonnet-4-20250514': 'June 15th, 2026',
   'claude-opus-4-1': 'August 5th, 2026',
   'claude-opus-4-1-20250805': 'August 5th, 2026',
+  'claude-mythos-preview': 'June 30th, 2026',
 };
 
 const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-mythos-preview', 'claude-opus-4-6'];
@@ -1356,7 +1363,8 @@ export type BetaContentBlock =
   | BetaMCPToolUseBlock
   | BetaMCPToolResultBlock
   | BetaContainerUploadBlock
-  | BetaCompactionBlock;
+  | BetaCompactionBlock
+  | BetaFallbackBlock;
 
 /**
  * Regular text content.
@@ -1382,7 +1390,8 @@ export type BetaContentBlockParam =
   | BetaRequestMCPToolResultBlockParam
   | BetaContainerUploadBlockParam
   | BetaCompactionBlockParam
-  | BetaMidConversationSystemBlockParam;
+  | BetaMidConversationSystemBlockParam
+  | BetaFallbackBlockParam;
 
 export interface BetaContentBlockSource {
   content: string | Array<BetaContentBlockSourceContent>;
@@ -1502,6 +1511,170 @@ export interface BetaEncryptedCodeExecutionResultBlockParam {
   type: 'encrypted_code_execution_result';
 }
 
+/**
+ * Marks the point in `content` where one model's output gives way to the next.
+ *
+ * One block appears per hop where a preceding model actually ran this turn and
+ * declined. A turn routed directly by the sticky decision has no such boundary and
+ * carries no block — the signal for whether a fallback model served the response
+ * is the presence of a `fallback_message` entry in `usage.iterations`, not this
+ * block.
+ *
+ * The block is treated like a server-tool content block for streaming: it arrives
+ * via the standard `content_block_start` / `content_block_stop` pair and carries
+ * no deltas.
+ */
+export interface BetaFallbackBlock {
+  /**
+   * The model whose output ends at this point — the model that declined at this hop.
+   * When the declining hop is the requested model, its `model` echoes the top-level
+   * `model` string the caller sent (alias or canonical); when the declining hop is a
+   * fallback model, its `model` is that model's canonical id.
+   */
+  from: BetaFallbackInfo;
+
+  /**
+   * The fallback model producing the content that follows this block. Its `model` is
+   * always the canonical id.
+   */
+  to: BetaFallbackInfo;
+
+  type: 'fallback';
+}
+
+/**
+ * A `fallback` block echoed back from a prior response.
+ *
+ * Accepted in `messages[].content` and never rendered into the prompt, not
+ * validated against the request's `fallbacks` chain or top-level `model`, and
+ * stripped before the sticky-routing cache key is computed.
+ *
+ * Callers should echo the assistant turn verbatim — block included. The block's
+ * position is load-bearing for thinking verification: the thinking runs on either
+ * side of a fallback hop carry independently-rooted verification hash chains, and
+ * this block is the only record of where one chain ends and the next begins. When
+ * thinking runs flank the boundary, omitting the block merges the runs into one
+ * contiguous span whose hashes cannot verify (the request is rejected), and moving
+ * it into the middle of a single run splits that run's chain and is likewise
+ * rejected; between non-thinking blocks the block's placement has no verification
+ * effect.
+ */
+export interface BetaFallbackBlockParam {
+  /**
+   * Identifies one hop of a fallback transition.
+   */
+  from: BetaFallbackInfoParam;
+
+  /**
+   * Identifies one hop of a fallback transition.
+   */
+  to: BetaFallbackInfoParam;
+
+  type: 'fallback';
+}
+
+/**
+ * Identifies one hop of a fallback transition.
+ */
+export interface BetaFallbackInfo {
+  /**
+   * The model that will complete your prompt.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * details and options.
+   */
+  model: MessagesAPI.Model;
+}
+
+/**
+ * Identifies one hop of a fallback transition.
+ */
+export interface BetaFallbackInfoParam {
+  /**
+   * The model that will complete your prompt.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * details and options.
+   */
+  model: MessagesAPI.Model;
+}
+
+/**
+ * Token usage for the fallback-model attempt of a server-side fallback request.
+ *
+ * Produced in place of a `message` entry for whichever hop served the response. A
+ * declined hop produces the existing `message` entry. Whether a fallback model
+ * served the response is signalled by the presence of this entry in
+ * `usage.iterations`.
+ */
+export interface BetaFallbackMessageIterationUsage {
+  /**
+   * Breakdown of cached tokens by TTL
+   */
+  cache_creation: BetaCacheCreation | null;
+
+  /**
+   * The number of input tokens used to create the cache entry.
+   */
+  cache_creation_input_tokens: number;
+
+  /**
+   * The number of input tokens read from the cache.
+   */
+  cache_read_input_tokens: number;
+
+  /**
+   * The number of input tokens which were used.
+   */
+  input_tokens: number;
+
+  /**
+   * The model that will complete your prompt.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * details and options.
+   */
+  model: MessagesAPI.Model;
+
+  /**
+   * The number of output tokens which were used.
+   */
+  output_tokens: number;
+
+  /**
+   * Usage for the fallback-model attempt that served the response
+   */
+  type: 'fallback_message';
+}
+
+/**
+ * One entry in the `fallbacks` chain on a `/v1/messages` request.
+ *
+ * `model` is required. The four override fields (`max_tokens`, `thinking`,
+ * `output_config`, and `speed`) replace the corresponding top-level field for this
+ * attempt only and are validated as if the request were made to `model`. Any other
+ * key is rejected at parse time.
+ */
+export interface BetaFallbackParam {
+  /**
+   * The model that will complete your prompt.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * details and options.
+   */
+  model: MessagesAPI.Model;
+
+  max_tokens?: number | null;
+
+  output_config?: BetaOutputConfig | null;
+
+  speed?: 'standard' | 'fast' | null;
+
+  thinking?: BetaThinkingConfigEnabled | BetaThinkingConfigDisabled | BetaThinkingConfigAdaptive | null;
+
+  [k: string]: unknown;
+}
+
 export interface BetaFileDocumentSource {
   file_id: string;
 
@@ -1554,7 +1727,10 @@ export interface BetaInputTokensTrigger {
  * - Understand token accumulation across server-side tool use loops
  */
 export type BetaIterationsUsage = Array<
-  BetaMessageIterationUsage | BetaCompactionIterationUsage | BetaAdvisorMessageIterationUsage
+  | BetaMessageIterationUsage
+  | BetaCompactionIterationUsage
+  | BetaAdvisorMessageIterationUsage
+  | BetaFallbackMessageIterationUsage
 >;
 
 export interface BetaJSONOutputFormat {
@@ -2019,6 +2195,14 @@ export interface BetaMessageIterationUsage {
   input_tokens: number;
 
   /**
+   * The model that will complete your prompt.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * details and options.
+   */
+  model: MessagesAPI.Model;
+
+  /**
    * The number of output tokens which were used.
    */
   output_tokens: number;
@@ -2156,7 +2340,8 @@ export interface BetaRawContentBlockStartEvent {
     | BetaMCPToolUseBlock
     | BetaMCPToolResultBlock
     | BetaContainerUploadBlock
-    | BetaCompactionBlock;
+    | BetaCompactionBlock
+    | BetaFallbackBlock;
 
   index: number;
 
@@ -2257,7 +2442,7 @@ export interface BetaRefusalStopDetails {
    *
    * `null` when the refusal doesn't map to a named category.
    */
-  category: 'cyber' | 'bio' | null;
+  category: 'cyber' | 'bio' | 'reasoning_extraction' | null;
 
   /**
    * Human-readable explanation of the refusal.
@@ -2266,6 +2451,59 @@ export interface BetaRefusalStopDetails {
    * available for the category.
    */
   explanation: string | null;
+
+  /**
+   * Opaque code that refunds the cache-miss cost when retrying this refused request
+   * on the fallback model. Pass it as `fallback_credit_token` on the retry request.
+   * Expires 5 minutes after the refusal.
+   *
+   * The retry is sent either with the same request body (`system`, `messages`,
+   * `tools`, and other render-shaping fields), or with the same body plus one
+   * appended `assistant` message whose content is the partial text (with any
+   * trailing whitespace stripped from the final text block) and paired server-tool
+   * blocks from this refusal — which also authorizes that appended turn as an
+   * assistant-prefill continuation on models that otherwise disallow prefill. A
+   * token minted mid-server-tool-loop whose partial content was continuable may only
+   * be redeemed the second way — if a same-body retry is rejected with a 400 saying
+   * the token must be redeemed by continuing the partial response, retry the second
+   * way instead. Either way: same workspace, same platform; a mismatch is a 400.
+   * Resending a token for an already-warm prefix is permitted but yields no
+   * additional credit.
+   *
+   * `null` when the refused model isn't eligible for a fallback credit.
+   */
+  fallback_credit_token: string | null;
+
+  /**
+   * Whether the accompanying `fallback_credit_token` may be redeemed with the
+   * appended-assistant retry form. Only set when `fallback_credit_token` is present.
+   *
+   * `true`: retry by resending the same request body plus one appended `assistant`
+   * message whose content is this response's `content` with any trailing whitespace
+   * stripped from the final text block and unpaired `tool_use` blocks omitted (the
+   * same appended-turn shape described on `fallback_credit_token`), with the token
+   * attached. `false`: retry by resending the original request body unchanged, with
+   * the token attached — the appended-assistant form is not available for this
+   * refusal (no continuable partial content, or the request uses `output_format` or
+   * a `tool_choice` that forces tool use). One exception: when the request used
+   * `output_format` or a forced `tool_choice` and the refusal arrived after server
+   * tools (including MCP connector tools) had already executed, the token may not be
+   * redeemable by either retry form; if the exact-body retry is then rejected with a
+   * 400 saying the token must be redeemed by continuing the partial response,
+   * discard the token and retry without it.
+   *
+   * Advisory: if an appended-assistant retry is rejected with a 400 despite `true`,
+   * fall back to resending the original request body with the token.
+   */
+  fallback_has_prefill_claim: boolean | null;
+
+  /**
+   * The server's suggested retry target for this refusal. Populated when a fallback
+   * attempt could not be made (the fallback model's rate limit was exhausted, or it
+   * was overloaded); names the fallback model the caller can retry directly. Null
+   * otherwise.
+   */
+  recommended_model: string | null;
 
   type: 'refusal';
 }
@@ -4151,6 +4389,36 @@ export interface MessageCreateParamsBase {
   diagnostics?: BetaDiagnosticsParam | null;
 
   /**
+   * Body param: The `fallback_credit_token` from a prior refusal's `stop_details`.
+   *
+   * When a preceding request was refused and returned a `fallback_credit_token`,
+   * pass that code here on the retry to have the retry's cache-creation tokens for
+   * the prefix that was warm on the refused model billed at the cache-read rate.
+   * Must be redeemed by the same organization and workspace, with the same request
+   * body (optionally extended by one appended `assistant` message whose content is
+   * the partial text — with any trailing whitespace stripped from the final text
+   * block — and paired server-tool blocks streamed before the refusal; the
+   * appended-assistant form is not available for requests with `output_format` set
+   * or forced `tool_choice`), on an eligible fallback model, on the same platform,
+   * and within 5 minutes of the refusal; a mismatch is a 400. A token minted
+   * mid-server-tool-loop whose partial content was continuable may only be redeemed
+   * with the appended-assistant form — if an exact-body retry is rejected with a 400
+   * saying the token must be redeemed by continuing the partial response, retry with
+   * the appended-assistant form instead.
+   *
+   * When the appended-assistant form is used on a model that otherwise disallows
+   * assistant-turn prefill, this token also authorizes that one prefill.
+   */
+  fallback_credit_token?: string | null;
+
+  /**
+   * Body param: Opt-in server-side retry on one or more substitute models when the
+   * requested model declines for policy reasons. Tried in order: if the first entry
+   * also declines, the second is tried, and so on.
+   */
+  fallbacks?: Array<BetaFallbackParam> | null;
+
+  /**
    * Body param: Specifies the geographic region for inference processing. If not
    * specified, the workspace's `default_inference_geo` is used.
    */
@@ -4728,6 +4996,12 @@ export declare namespace Messages {
     type BetaDocumentBlock as BetaDocumentBlock,
     type BetaEncryptedCodeExecutionResultBlock as BetaEncryptedCodeExecutionResultBlock,
     type BetaEncryptedCodeExecutionResultBlockParam as BetaEncryptedCodeExecutionResultBlockParam,
+    type BetaFallbackBlock as BetaFallbackBlock,
+    type BetaFallbackBlockParam as BetaFallbackBlockParam,
+    type BetaFallbackInfo as BetaFallbackInfo,
+    type BetaFallbackInfoParam as BetaFallbackInfoParam,
+    type BetaFallbackMessageIterationUsage as BetaFallbackMessageIterationUsage,
+    type BetaFallbackParam as BetaFallbackParam,
     type BetaFileDocumentSource as BetaFileDocumentSource,
     type BetaFileImageSource as BetaFileImageSource,
     type BetaImageBlockParam as BetaImageBlockParam,

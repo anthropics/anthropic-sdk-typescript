@@ -9,6 +9,7 @@ import {
   RetryableError,
 } from '@anthropic-ai/sdk';
 import type { Middleware } from '@anthropic-ai/sdk';
+import { BetaFallbackState, betaRefusalFallbackMiddleware } from '@anthropic-ai/sdk/lib/middleware';
 import { wrapFetchWithMiddleware } from '@anthropic-ai/sdk/core/middleware';
 import { Stream as SSEStream } from '@anthropic-ai/sdk/core/streaming';
 import { WorkloadIdentityError } from '@anthropic-ai/sdk/lib/credentials/types';
@@ -1817,5 +1818,303 @@ describe('backend middleware', () => {
       },
     });
     expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
+  });
+});
+
+describe('betaRefusalFallbackMiddleware', () => {
+  let warn: jest.SpyInstance;
+  beforeEach(() => {
+    warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+  afterEach(() => warn.mockRestore());
+
+  const message = (model: string, overrides: Record<string, unknown> = {}) =>
+    jsonResponse({
+      id: 'msg_1',
+      type: 'message',
+      role: 'assistant',
+      model,
+      content: [],
+      stop_reason: 'end_turn',
+      stop_sequence: null,
+      usage: { input_tokens: 1, output_tokens: 1 },
+      ...overrides,
+    });
+  const refusal = (model: string, fallback_credit_token: string | null = null) =>
+    message(model, {
+      stop_reason: 'refusal',
+      stop_details: { type: 'refusal', reason: 'other', explanation: null, fallback_credit_token },
+    });
+
+  const params = {
+    model: 'primary-model',
+    max_tokens: 1024,
+    messages: [{ role: 'user' as const, content: 'hi' }],
+  };
+
+  const makeClient = (responses: Response[], middleware: Middleware) => {
+    const bodies: Record<string, unknown>[] = [];
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      fetch: async (_url, init) => {
+        bodies.push(JSON.parse(init!.body as string));
+        return responses.shift()!;
+      },
+      middleware: [middleware],
+    });
+    return { client, bodies };
+  };
+
+  test('retries a refusal with the fallback params and credit token', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model', 'credit-token'), message('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    const result = await client.beta.messages.create(params);
+    expect(result.model).toEqual('fallback-model');
+    expect(result.stop_reason).toEqual('end_turn');
+    expect(bodies.map((b) => b['model'])).toEqual(['primary-model', 'fallback-model']);
+    expect(bodies[1]!['fallback_credit_token']).toEqual('credit-token');
+  });
+
+  test('pins the conversation to the accepted fallback via fallbackState', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model'), message('fallback-model'), message('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    const fallbackState = new BetaFallbackState();
+    await client.beta.messages.create(params, { fallbackState });
+    expect(fallbackState.index).toEqual(0);
+
+    // the follow-up goes straight to the pinned fallback in a single request
+    await client.beta.messages.create(params, { fallbackState });
+    expect(bodies.map((b) => b['model'])).toEqual(['primary-model', 'fallback-model', 'fallback-model']);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  test('throws if fallbackState.index is out of bounds for the chain', async () => {
+    const { client, bodies } = makeClient(
+      [message('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    const fallbackState = new BetaFallbackState();
+    fallbackState.index = 1;
+    await expect(client.beta.messages.create(params, { fallbackState })).rejects.toThrow(
+      'fallbackState.index 1 is out of bounds for a chain of 1 fallback(s)',
+    );
+    expect(bodies).toHaveLength(0);
+  });
+
+  test('warns once when falling back without a fallbackState', async () => {
+    // an injected logger rather than the console.warn spy: the SDK caches
+    // bound console methods across tests, so per-test console spies go stale
+    const logger = { error: jest.fn(), warn: jest.fn(), info: jest.fn(), debug: jest.fn() };
+    const responses = [
+      refusal('primary-model'),
+      message('fallback-model'),
+      refusal('primary-model'),
+      message('fallback-model'),
+    ];
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      fetch: async () => responses.shift()!,
+      logger,
+      middleware: [betaRefusalFallbackMiddleware([{ model: 'fallback-model' }])],
+    });
+
+    await client.beta.messages.create(params);
+    await client.beta.messages.create(params);
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('fallbackState'));
+  });
+
+  test('the missing-fallbackState warning respects the client logLevel', async () => {
+    const logger = { error: jest.fn(), warn: jest.fn(), info: jest.fn(), debug: jest.fn() };
+    const responses = [refusal('primary-model'), message('fallback-model')];
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      fetch: async () => responses.shift()!,
+      logger,
+      logLevel: 'off',
+      middleware: [betaRefusalFallbackMiddleware([{ model: 'fallback-model' }])],
+    });
+
+    await client.beta.messages.create(params);
+    expect(logger.warn).not.toHaveBeenCalled();
+  });
+
+  test('a separate conversation is unaffected by another state', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model'), message('fallback-model'), message('primary-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    await client.beta.messages.create(params, { fallbackState: new BetaFallbackState() });
+    await client.beta.messages.create(params, { fallbackState: new BetaFallbackState() });
+    expect(bodies.map((b) => b['model'])).toEqual(['primary-model', 'fallback-model', 'primary-model']);
+  });
+
+  test('leaves accepted requests and the response untouched', async () => {
+    const { client, bodies } = makeClient(
+      [message('primary-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    const fallbackState = new BetaFallbackState();
+    const result = await client.beta.messages.create(params, { fallbackState });
+    expect(result.model).toEqual('primary-model');
+    expect(bodies).toHaveLength(1);
+    expect(bodies[0]!['fallback_credit_token']).toBeUndefined();
+    expect(fallbackState.index).toBeUndefined();
+  });
+
+  test('throws when the request carries a server-side fallbacks param', async () => {
+    const { client, bodies } = makeClient(
+      [message('primary-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    await expect(
+      client.beta.messages.create({ ...params, fallbacks: [{ model: 'server-fallback-model' }] }),
+    ).rejects.toThrow(
+      'Sending the `fallbacks:` request param is not supported when using the `betaRefusalFallbackMiddleware`.',
+    );
+    expect(bodies).toHaveLength(0);
+  });
+
+  test('ignores the non-beta client.messages endpoint', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model', 'credit-token'), message('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    // client.messages posts to /v1/messages (no ?beta=true); the refusal must
+    // pass through untouched rather than walk the fallback chain.
+    const result = await client.messages.create(params);
+    expect(result.stop_reason).toEqual('refusal');
+    expect(bodies).toHaveLength(1);
+    expect(bodies[0]!['fallback_credit_token']).toBeUndefined();
+  });
+
+  test('walks each hop through the chain until a model accepts', async () => {
+    const { client, bodies } = makeClient(
+      [
+        refusal('primary-model'),
+        refusal('mid-model'),
+        message('last-model', { content: [{ type: 'text', text: 'ok' }] }),
+      ],
+      betaRefusalFallbackMiddleware([{ model: 'mid-model' }, { model: 'last-model' }]),
+    );
+
+    const fallbackState = new BetaFallbackState();
+    const result = await client.beta.messages.create(params, { fallbackState });
+    expect(result.model).toEqual('last-model');
+    expect(fallbackState.index).toEqual(1);
+    expect(bodies.map((b) => b['model'])).toEqual(['primary-model', 'mid-model', 'last-model']);
+    // Seam blocks accumulate in hop order and are prepended ahead of the
+    // serving hop's own content — pins ordering and hop-2 from/to threading.
+    expect(result.content).toEqual([
+      { type: 'fallback', from: { model: 'primary-model' }, to: { model: 'mid-model' } },
+      { type: 'fallback', from: { model: 'mid-model' }, to: { model: 'last-model' } },
+      { type: 'text', text: 'ok' },
+    ]);
+  });
+
+  test('a pinned start seams from the pinned entry, not the original body model', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('mid-model'), message('last-model', { content: [{ type: 'text', text: 'ok' }] })],
+      betaRefusalFallbackMiddleware([{ model: 'mid-model' }, { model: 'last-model' }]),
+    );
+
+    const fallbackState = new BetaFallbackState();
+    fallbackState.index = 0;
+    const result = await client.beta.messages.create(params, { fallbackState });
+    expect(bodies.map((b) => b['model'])).toEqual(['mid-model', 'last-model']);
+    expect(result.content).toEqual([
+      { type: 'fallback', from: { model: 'mid-model' }, to: { model: 'last-model' } },
+      { type: 'text', text: 'ok' },
+    ]);
+  });
+
+  test('returns the final refusal once the chain is exhausted', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model'), refusal('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    const result = await client.beta.messages.create(params);
+    expect(result.model).toEqual('fallback-model');
+    expect(result.stop_reason).toEqual('refusal');
+    expect(bodies).toHaveLength(2);
+  });
+
+  describe('beta header', () => {
+    const makeHeaderClient = (responses: Response[], middleware: Middleware) => {
+      const betaHeaders: (string | null)[] = [];
+      const client = new Anthropic({
+        apiKey: 'my-anthropic-api-key',
+        fetch: async (_url, init) => {
+          betaHeaders.push(new Headers(init!.headers).get('anthropic-beta'));
+          return responses.shift()!;
+        },
+        middleware: [middleware],
+      });
+      return { client, betaHeaders };
+    };
+
+    test('sends the fallback-credit beta on the original and fallback requests', async () => {
+      const { client, betaHeaders } = makeHeaderClient(
+        [refusal('primary-model', 'credit-token'), message('fallback-model')],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+      );
+
+      await client.beta.messages.create(params);
+      expect(betaHeaders).toEqual(['fallback-credit-2026-06-01', 'fallback-credit-2026-06-01']);
+    });
+
+    test('the betas option replaces the default', async () => {
+      const { client, betaHeaders } = makeHeaderClient(
+        [message('primary-model')],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }], {
+          betas: ['fallback-credit-2027-01-01', 'interleaved-thinking-2025-05-14'],
+        }),
+      );
+
+      await client.beta.messages.create(params);
+      expect(betaHeaders).toEqual(['fallback-credit-2027-01-01, interleaved-thinking-2025-05-14']);
+    });
+
+    test('betas: [] sends no beta header', async () => {
+      const { client, betaHeaders } = makeHeaderClient(
+        [message('primary-model')],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }], { betas: [] }),
+      );
+
+      await client.beta.messages.create(params);
+      expect(betaHeaders).toEqual([null]);
+    });
+
+    test('does not duplicate a beta already on the request', async () => {
+      const { client, betaHeaders } = makeHeaderClient(
+        [message('primary-model')],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+      );
+
+      await client.beta.messages.create({ ...params, betas: ['fallback-credit-2026-06-01'] });
+      expect(betaHeaders).toEqual(['fallback-credit-2026-06-01']);
+    });
+
+    test('appends to betas already on the request', async () => {
+      const { client, betaHeaders } = makeHeaderClient(
+        [message('primary-model')],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+      );
+
+      await client.beta.messages.create({ ...params, betas: ['interleaved-thinking-2025-05-14'] });
+      expect(betaHeaders).toEqual(['interleaved-thinking-2025-05-14, fallback-credit-2026-06-01']);
+    });
   });
 });

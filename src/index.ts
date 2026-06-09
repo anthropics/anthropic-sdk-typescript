@@ -6,6 +6,12 @@ export { type Uploadable, toFile } from './core/uploads';
 export { APIPromise } from './core/api-promise';
 export { type Middleware, type MiddlewareContext, type MiddlewareNext } from './core/middleware';
 export {
+  betaRefusalFallbackMiddleware,
+  BetaFallbackState,
+  type BetaRefusalFallbackError,
+  type BetaRefusalFallbackOptions,
+} from './lib/middleware';
+export {
   BaseAnthropic,
   Anthropic,
   type APIRequest,

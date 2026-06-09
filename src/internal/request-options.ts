@@ -3,13 +3,49 @@
 import { NullableHeaders } from './headers';
 
 import type { BodyInit } from './builtin-types';
+import { Stream } from '../core/streaming';
 import type { Middleware } from '../core/middleware';
 import type { HTTPMethod, MergedRequestInit } from './types';
 import { type HeadersLike } from './headers';
 
 export type FinalRequestOptions = RequestOptions & { method: HTTPMethod; path: string };
 
-export type RequestOptions = {
+/**
+ * Tracks which fallback a sequence of requests is pinned to.
+ *
+ * Create one (`new BetaFallbackState()`) and pass it via the `fallbackState`
+ * request option on every request that should share the pin — the turns of one
+ * conversation, or any wider scope the stickiness should apply to;
+ * `betaRefusalFallbackMiddleware` mutates it in place when a model refuses.
+ */
+export class BetaFallbackState {
+  /**
+   * Index into the fallback chain the requests are pinned to.
+   *
+   * `undefined` (or -1) targets the original request params; the middleware
+   * sets it to the index of the fallback that accepted the request.
+   */
+  index?: number;
+}
+
+/**
+ * Options for an individual API request.
+ *
+ * Declared as an interface so it can be extended via declaration merging, e.g.
+ * to thread custom per-request context through to {@link Middleware}:
+ *
+ * ```ts
+ * declare module '@anthropic-ai/sdk/internal/request-options' {
+ *   interface RequestOptions {
+ *     myContext?: string;
+ *   }
+ * }
+ * ```
+ *
+ * The SDK ignores properties it doesn't know about; they are visible to
+ * middleware on `ctx.options`.
+ */
+export interface RequestOptions {
   /**
    * The HTTP method for the request (e.g., 'get', 'post', 'put', 'delete').
    */
@@ -75,6 +111,15 @@ export type RequestOptions = {
   middleware?: ReadonlyArray<Middleware> | undefined;
 
   /**
+   * Sticky state for `betaRefusalFallbackMiddleware`.
+   *
+   * The middleware records which fallback it settled on, so requests sharing
+   * the state skip models that already refused. Pass the same object across
+   * whatever scope the pin should apply to — typically a conversation.
+   */
+  fallbackState?: BetaFallbackState;
+
+  /**
    * A unique key for this request to enable idempotency.
    */
   idempotencyKey?: string;
@@ -85,7 +130,8 @@ export type RequestOptions = {
   defaultBaseURL?: string | undefined;
 
   __binaryResponse?: boolean | undefined;
-};
+  __streamClass?: typeof Stream;
+}
 
 export type EncodedContent = { bodyHeaders: HeadersLike; body: BodyInit };
 export type RequestEncoder = (request: { headers: NullableHeaders; body: unknown }) => EncodedContent;

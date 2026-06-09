@@ -607,6 +607,11 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
         return snapshot;
       case 'content_block_start':
         snapshot.content.push(event.content_block);
+        if (event.content_block.type === 'fallback') {
+          // the final hop's fallback block names the model that served the response —
+          // keeps the snapshot consistent with the relabeled non-streaming message
+          snapshot.model = event.content_block.to.model;
+        }
         return snapshot;
       case 'content_block_delta': {
         const snapshotContent = snapshot.content.at(event.index);
