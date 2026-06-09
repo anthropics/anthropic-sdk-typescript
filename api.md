@@ -344,6 +344,12 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaDocumentBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaEncryptedCodeExecutionResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaEncryptedCodeExecutionResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackInfo</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackInfoParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackMessageIterationUsage</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFileDocumentSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFileImageSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaImageBlockParam</a></code>

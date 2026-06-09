@@ -1099,6 +1099,8 @@ export interface MidConversationSystemBlockParam {
  * details and options.
  */
 export type Model =
+  | 'claude-fable-5'
+  | 'claude-mythos-5'
   | 'claude-opus-4-8'
   | 'claude-opus-4-7'
   | 'claude-mythos-preview'
@@ -1281,7 +1283,7 @@ export interface RefusalStopDetails {
    *
    * `null` when the refusal doesn't map to a named category.
    */
-  category: 'cyber' | 'bio' | null;
+  category: 'cyber' | 'bio' | 'reasoning_extraction' | null;
 
   /**
    * Human-readable explanation of the refusal.
