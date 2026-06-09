@@ -1197,6 +1197,8 @@ export interface MidConversationSystemBlockParam {
  * details and options.
  */
 export type Model =
+  | 'claude-fable-5'
+  | 'claude-mythos-5'
   | 'claude-opus-4-8'
   | 'claude-opus-4-7'
   | 'claude-mythos-preview'
@@ -1265,6 +1267,7 @@ const DEPRECATED_MODELS: {
   'claude-sonnet-4-20250514': 'June 15th, 2026',
   'claude-opus-4-1': 'August 5th, 2026',
   'claude-opus-4-1-20250805': 'August 5th, 2026',
+  'claude-mythos-preview': 'June 30th, 2026',
 };
 
 const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-mythos-preview', 'claude-opus-4-6'];
@@ -1404,7 +1407,7 @@ export interface RefusalStopDetails {
    *
    * `null` when the refusal doesn't map to a named category.
    */
-  category: 'cyber' | 'bio' | null;
+  category: 'cyber' | 'bio' | 'reasoning_extraction' | null;
 
   /**
    * Human-readable explanation of the refusal.

@@ -490,4 +490,63 @@ describe('BetaMessageStream class', () => {
       explanation: 'Declined by a streaming policy classifier.',
     });
   });
+
+  it('relabels the snapshot model from fallback content blocks', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_fallback_01',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-20250514',
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { input_tokens: 10, output_tokens: 1 },
+        },
+      },
+      {
+        type: 'content_block_start',
+        index: 0,
+        content_block: {
+          type: 'fallback',
+          from: { model: 'claude-opus-4-20250514' },
+          to: { model: 'claude-sonnet-4-5' },
+        },
+      },
+      { type: 'content_block_stop', index: 0 },
+      { type: 'content_block_start', index: 1, content_block: { type: 'text', text: '' } },
+      { type: 'content_block_delta', index: 1, delta: { type: 'text_delta', text: 'Hello there!' } },
+      { type: 'content_block_stop', index: 1 },
+      {
+        type: 'message_delta',
+        delta: { stop_reason: 'end_turn', stop_sequence: null },
+        usage: { output_tokens: 6 },
+      },
+      { type: 'message_stop' },
+    ]);
+
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-20250514',
+      messages: [{ role: 'user', content: 'Say hello there!' }],
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(finalMessage.model).toBe('claude-sonnet-4-5');
+    expect(finalMessage.content).toMatchObject([
+      {
+        type: 'fallback',
+        from: { model: 'claude-opus-4-20250514' },
+        to: { model: 'claude-sonnet-4-5' },
+      },
+      { type: 'text', text: 'Hello there!' },
+    ]);
+  });
 });

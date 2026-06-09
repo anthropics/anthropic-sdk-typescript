@@ -199,8 +199,17 @@ export class BetaToolRunner<Stream extends boolean> {
           const isCompacted = await this.#checkAndCompact();
           if (!isCompacted) {
             if (!this.#mutated) {
-              const { role, content } = await this.#message;
-              this.#state.params.messages.push({ role, content });
+              const message = await this.#message;
+              this.#state.params.messages.push({ role: message.role, content: message.content });
+
+              // Refusal-terminated turns are terminal: the refusal may have cut a tool_use off
+              // with partial input, so executing this turn's tools would fire side effects the
+              // model never confirmed — and once middleware strips the refusal turn, their
+              // tool_results could never be replayed coherently. Surface the refusal as the
+              // final message instead.
+              if (message.stop_reason === 'refusal') {
+                break;
+              }
             }
 
             const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
@@ -521,4 +530,4 @@ export type BetaToolRunnerParams = Simplify<
   }
 >;
 
-export type BetaToolRunnerRequestOptions = Pick<RequestOptions, 'headers' | 'signal'>;
+export type BetaToolRunnerRequestOptions = Pick<RequestOptions, 'headers' | 'signal' | 'fallbackState'>;

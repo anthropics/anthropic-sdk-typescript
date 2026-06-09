@@ -239,6 +239,12 @@ import {
   BetaDocumentBlock,
   BetaEncryptedCodeExecutionResultBlock,
   BetaEncryptedCodeExecutionResultBlockParam,
+  BetaFallbackBlock,
+  BetaFallbackBlockParam,
+  BetaFallbackInfo,
+  BetaFallbackInfoParam,
+  BetaFallbackMessageIterationUsage,
+  BetaFallbackParam,
   BetaFileDocumentSource,
   BetaFileImageSource,
   BetaImageBlockParam,
@@ -472,7 +478,9 @@ export type AnthropicBeta =
   | 'advisor-tool-2026-03-01'
   | 'managed-agents-2026-04-01'
   | 'cache-diagnosis-2026-04-07'
-  | 'thinking-token-count-2026-05-13';
+  | 'thinking-token-count-2026-05-13'
+  | 'server-side-fallback-2026-06-01'
+  | 'fallback-credit-2026-06-01';
 
 export interface BetaAPIError {
   message: string;
@@ -673,6 +681,12 @@ export declare namespace Beta {
     type BetaDocumentBlock as BetaDocumentBlock,
     type BetaEncryptedCodeExecutionResultBlock as BetaEncryptedCodeExecutionResultBlock,
     type BetaEncryptedCodeExecutionResultBlockParam as BetaEncryptedCodeExecutionResultBlockParam,
+    type BetaFallbackBlock as BetaFallbackBlock,
+    type BetaFallbackBlockParam as BetaFallbackBlockParam,
+    type BetaFallbackInfo as BetaFallbackInfo,
+    type BetaFallbackInfoParam as BetaFallbackInfoParam,
+    type BetaFallbackMessageIterationUsage as BetaFallbackMessageIterationUsage,
+    type BetaFallbackParam as BetaFallbackParam,
     type BetaFileDocumentSource as BetaFileDocumentSource,
     type BetaFileImageSource as BetaFileImageSource,
     type BetaImageBlockParam as BetaImageBlockParam,
