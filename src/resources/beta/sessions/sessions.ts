@@ -18,6 +18,7 @@ import {
   BetaManagedAgentsBase64DocumentSource,
   BetaManagedAgentsBase64ImageSource,
   BetaManagedAgentsBillingError,
+  BetaManagedAgentsCredentialHostUnreachableError,
   BetaManagedAgentsDocumentBlock,
   BetaManagedAgentsEventParams,
   BetaManagedAgentsFileDocumentSource,
@@ -61,6 +62,7 @@ import {
   BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent,
   BetaManagedAgentsSpanOutcomeEvaluationStartEvent,
   BetaManagedAgentsStreamSessionEvents,
+  BetaManagedAgentsSystemMessageEventParams,
   BetaManagedAgentsTextBlock,
   BetaManagedAgentsTextRubric,
   BetaManagedAgentsTextRubricParams,
@@ -555,6 +557,12 @@ export interface BetaManagedAgentsSession {
    * supplied.
    */
   vault_ids: Array<string>;
+
+  /**
+   * Deployment ID when the session was created from a deployment reference. Null
+   * otherwise.
+   */
+  deployment_id?: string | null;
 }
 
 /**
@@ -708,6 +716,41 @@ export interface BetaManagedAgentsSessionUsage {
    * Total output tokens generated across all turns.
    */
   output_tokens?: number;
+}
+
+/**
+ * Regular text content.
+ */
+export interface BetaManagedAgentsSystemContentBlock {
+  /**
+   * The text content.
+   */
+  text: string;
+
+  type: 'text';
+}
+
+/**
+ * A mid-conversation system message event. Carries system-role content that is
+ * appended to the session as a `role: "system"` turn.
+ */
+export interface BetaManagedAgentsSystemMessageEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * System content blocks. Text-only.
+   */
+  content: Array<BetaManagedAgentsSystemContentBlock>;
+
+  type: 'system.message';
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at?: string | null;
 }
 
 /**
@@ -876,6 +919,11 @@ export interface SessionListParams extends PageCursorParams {
   'created_at[lte]'?: string;
 
   /**
+   * Query param: Filter sessions created by this deployment ID.
+   */
+  deployment_id?: string;
+
+  /**
    * Query param: When true, includes archived sessions. Default: false (exclude
    * archived).
    */
@@ -944,6 +992,8 @@ export declare namespace Sessions {
     type BetaManagedAgentsSessionStats as BetaManagedAgentsSessionStats,
     type BetaManagedAgentsSessionUpdatedEvent as BetaManagedAgentsSessionUpdatedEvent,
     type BetaManagedAgentsSessionUsage as BetaManagedAgentsSessionUsage,
+    type BetaManagedAgentsSystemContentBlock as BetaManagedAgentsSystemContentBlock,
+    type BetaManagedAgentsSystemMessageEvent as BetaManagedAgentsSystemMessageEvent,
     type BetaManagedAgentsUserToolResultEvent as BetaManagedAgentsUserToolResultEvent,
     type BetaManagedAgentsSessionsPageCursor as BetaManagedAgentsSessionsPageCursor,
     type SessionCreateParams as SessionCreateParams,
@@ -969,6 +1019,7 @@ export declare namespace Sessions {
     type BetaManagedAgentsBase64DocumentSource as BetaManagedAgentsBase64DocumentSource,
     type BetaManagedAgentsBase64ImageSource as BetaManagedAgentsBase64ImageSource,
     type BetaManagedAgentsBillingError as BetaManagedAgentsBillingError,
+    type BetaManagedAgentsCredentialHostUnreachableError as BetaManagedAgentsCredentialHostUnreachableError,
     type BetaManagedAgentsDocumentBlock as BetaManagedAgentsDocumentBlock,
     type BetaManagedAgentsEventParams as BetaManagedAgentsEventParams,
     type BetaManagedAgentsFileDocumentSource as BetaManagedAgentsFileDocumentSource,
@@ -1011,6 +1062,7 @@ export declare namespace Sessions {
     type BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent as BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent,
     type BetaManagedAgentsSpanOutcomeEvaluationStartEvent as BetaManagedAgentsSpanOutcomeEvaluationStartEvent,
     type BetaManagedAgentsStreamSessionEvents as BetaManagedAgentsStreamSessionEvents,
+    type BetaManagedAgentsSystemMessageEventParams as BetaManagedAgentsSystemMessageEventParams,
     type BetaManagedAgentsTextBlock as BetaManagedAgentsTextBlock,
     type BetaManagedAgentsTextRubric as BetaManagedAgentsTextRubric,
     type BetaManagedAgentsTextRubricParams as BetaManagedAgentsTextRubricParams,

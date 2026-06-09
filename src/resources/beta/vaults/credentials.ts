@@ -237,7 +237,10 @@ export interface BetaManagedAgentsCredential {
   /**
    * Authentication details for a credential.
    */
-  auth: BetaManagedAgentsMCPOAuthAuthResponse | BetaManagedAgentsStaticBearerAuthResponse;
+  auth:
+    | BetaManagedAgentsMCPOAuthAuthResponse
+    | BetaManagedAgentsStaticBearerAuthResponse
+    | BetaManagedAgentsEnvironmentVariableAuthResponse;
 
   /**
    * A timestamp in RFC 3339 format
@@ -266,6 +269,15 @@ export interface BetaManagedAgentsCredential {
    */
   display_name?: string | null;
 }
+
+/**
+ * Substitute the secret on any host the session's Environment network policy
+ * permits egress to. The Environment's network policy is the only boundary on
+ * where the secret can reach.
+ */
+export type BetaManagedAgentsCredentialNetworkingParams =
+  | BetaManagedAgentsUnrestrictedCredentialNetworkingParams
+  | BetaManagedAgentsLimitedCredentialNetworkingParams;
 
 /**
  * Result of live-probing a credential against its configured MCP server.
@@ -324,6 +336,94 @@ export interface BetaManagedAgentsDeletedCredential {
   id: string;
 
   type: 'vault_credential_deleted';
+}
+
+/**
+ * Environment variable credential details. The secret value is never returned.
+ */
+export interface BetaManagedAgentsEnvironmentVariableAuthResponse {
+  /**
+   * Outbound hosts the secret value is substituted on.
+   */
+  networking:
+    | BetaManagedAgentsUnrestrictedCredentialNetworkingResponse
+    | BetaManagedAgentsLimitedCredentialNetworkingResponse;
+
+  /**
+   * Name of the environment variable.
+   */
+  secret_name: string;
+
+  type: 'environment_variable';
+}
+
+/**
+ * Parameters for creating an environment variable credential.
+ */
+export interface BetaManagedAgentsEnvironmentVariableCreateParams {
+  /**
+   * Outbound hosts the secret value is substituted on.
+   */
+  networking: BetaManagedAgentsCredentialNetworkingParams;
+
+  /**
+   * Name of the environment variable. Immutable after create.
+   */
+  secret_name: string;
+
+  /**
+   * Secret value. Write-only; never returned in responses.
+   */
+  secret_value: string;
+
+  type: 'environment_variable';
+}
+
+/**
+ * Parameters for updating an environment variable credential. `secret_name` is
+ * immutable.
+ */
+export interface BetaManagedAgentsEnvironmentVariableUpdateParams {
+  type: 'environment_variable';
+
+  /**
+   * Updated networking scope. Full replacement.
+   */
+  networking?: BetaManagedAgentsCredentialNetworkingParams | null;
+
+  /**
+   * Updated secret value.
+   */
+  secret_value?: string | null;
+}
+
+/**
+ * Substitute the secret only on requests to the listed hosts.
+ */
+export interface BetaManagedAgentsLimitedCredentialNetworkingParams {
+  /**
+   * Hostnames on which the secret will be substituted. Each entry is a bare hostname
+   * (`api.example.com`), an IPv4 address (`192.0.2.1`), or a `*.`-prefixed wildcard
+   * (`*.example.com`). URLs, ports, paths, and IPv6 addresses are not accepted. At
+   * most 16 entries.
+   */
+  allowed_hosts: Array<string>;
+
+  type: 'limited';
+}
+
+/**
+ * The secret is substituted only on requests to the listed hosts.
+ */
+export interface BetaManagedAgentsLimitedCredentialNetworkingResponse {
+  /**
+   * Hostnames on which the secret will be substituted. An entry matches the request
+   * host exactly; a `*.`-prefixed entry matches any subdomain of the named domain
+   * but not the domain itself.
+   */
+  allowed_hosts: Array<string>;
+
+  type: 'limited';
 }
 
 /**
@@ -664,11 +764,31 @@ export interface BetaManagedAgentsTokenEndpointAuthPostUpdateParam {
   client_secret?: string | null;
 }
 
+/**
+ * Substitute the secret on any host the session's Environment network policy
+ * permits egress to. The Environment's network policy is the only boundary on
+ * where the secret can reach.
+ */
+export interface BetaManagedAgentsUnrestrictedCredentialNetworkingParams {
+  type: 'unrestricted';
+}
+
+/**
+ * The secret is substituted on any host the session's Environment network policy
+ * permits egress to.
+ */
+export interface BetaManagedAgentsUnrestrictedCredentialNetworkingResponse {
+  type: 'unrestricted';
+}
+
 export interface CredentialCreateParams {
   /**
    * Body param: Authentication details for creating a credential.
    */
-  auth: BetaManagedAgentsMCPOAuthCreateParams | BetaManagedAgentsStaticBearerCreateParams;
+  auth:
+    | BetaManagedAgentsMCPOAuthCreateParams
+    | BetaManagedAgentsStaticBearerCreateParams
+    | BetaManagedAgentsEnvironmentVariableCreateParams;
 
   /**
    * Body param: Human-readable name for the credential. Up to 255 characters.
@@ -708,7 +828,10 @@ export interface CredentialUpdateParams {
   /**
    * Body param: Updated authentication details for a credential.
    */
-  auth?: BetaManagedAgentsMCPOAuthUpdateParams | BetaManagedAgentsStaticBearerUpdateParams;
+  auth?:
+    | BetaManagedAgentsMCPOAuthUpdateParams
+    | BetaManagedAgentsStaticBearerUpdateParams
+    | BetaManagedAgentsEnvironmentVariableUpdateParams;
 
   /**
    * Body param: Updated human-readable name for the credential. 1-255 characters.
@@ -778,9 +901,15 @@ export interface CredentialMCPOAuthValidateParams {
 export declare namespace Credentials {
   export {
     type BetaManagedAgentsCredential as BetaManagedAgentsCredential,
+    type BetaManagedAgentsCredentialNetworkingParams as BetaManagedAgentsCredentialNetworkingParams,
     type BetaManagedAgentsCredentialValidation as BetaManagedAgentsCredentialValidation,
     type BetaManagedAgentsCredentialValidationStatus as BetaManagedAgentsCredentialValidationStatus,
     type BetaManagedAgentsDeletedCredential as BetaManagedAgentsDeletedCredential,
+    type BetaManagedAgentsEnvironmentVariableAuthResponse as BetaManagedAgentsEnvironmentVariableAuthResponse,
+    type BetaManagedAgentsEnvironmentVariableCreateParams as BetaManagedAgentsEnvironmentVariableCreateParams,
+    type BetaManagedAgentsEnvironmentVariableUpdateParams as BetaManagedAgentsEnvironmentVariableUpdateParams,
+    type BetaManagedAgentsLimitedCredentialNetworkingParams as BetaManagedAgentsLimitedCredentialNetworkingParams,
+    type BetaManagedAgentsLimitedCredentialNetworkingResponse as BetaManagedAgentsLimitedCredentialNetworkingResponse,
     type BetaManagedAgentsMCPOAuthAuthResponse as BetaManagedAgentsMCPOAuthAuthResponse,
     type BetaManagedAgentsMCPOAuthCreateParams as BetaManagedAgentsMCPOAuthCreateParams,
     type BetaManagedAgentsMCPOAuthRefreshParams as BetaManagedAgentsMCPOAuthRefreshParams,
@@ -801,6 +930,8 @@ export declare namespace Credentials {
     type BetaManagedAgentsTokenEndpointAuthPostParam as BetaManagedAgentsTokenEndpointAuthPostParam,
     type BetaManagedAgentsTokenEndpointAuthPostResponse as BetaManagedAgentsTokenEndpointAuthPostResponse,
     type BetaManagedAgentsTokenEndpointAuthPostUpdateParam as BetaManagedAgentsTokenEndpointAuthPostUpdateParam,
+    type BetaManagedAgentsUnrestrictedCredentialNetworkingParams as BetaManagedAgentsUnrestrictedCredentialNetworkingParams,
+    type BetaManagedAgentsUnrestrictedCredentialNetworkingResponse as BetaManagedAgentsUnrestrictedCredentialNetworkingResponse,
     type BetaManagedAgentsCredentialsPageCursor as BetaManagedAgentsCredentialsPageCursor,
     type CredentialCreateParams as CredentialCreateParams,
     type CredentialRetrieveParams as CredentialRetrieveParams,

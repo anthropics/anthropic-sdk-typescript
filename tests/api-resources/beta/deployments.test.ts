@@ -7,11 +7,15 @@ const client = new Anthropic({
   baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
 });
 
-describe('resource sessions', () => {
+describe('resource deployments', () => {
   test('create: only required params', async () => {
-    const responsePromise = client.beta.sessions.create({
-      agent: 'agent_011CZkYpogX7uDKUyvBTophP',
-      environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
+    const responsePromise = client.beta.deployments.create({
+      agent: 'string',
+      environment_id: 'x',
+      initial_events: [
+        { content: [{ text: 'Where is my order #1234?', type: 'text' }], type: 'user.message' },
+      ],
+      name: 'x',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -23,9 +27,14 @@ describe('resource sessions', () => {
   });
 
   test('create: required and optional params', async () => {
-    const response = await client.beta.sessions.create({
-      agent: 'agent_011CZkYpogX7uDKUyvBTophP',
-      environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
+    const response = await client.beta.deployments.create({
+      agent: 'string',
+      environment_id: 'x',
+      initial_events: [
+        { content: [{ text: 'Where is my order #1234?', type: 'text' }], type: 'user.message' },
+      ],
+      name: 'x',
+      description: 'description',
       metadata: { foo: 'string' },
       resources: [
         {
@@ -34,14 +43,19 @@ describe('resource sessions', () => {
           mount_path: '/uploads/receipt.pdf',
         },
       ],
-      title: 'Order #1234 inquiry',
+      schedule: {
+        expression: 'x',
+        timezone: 'x',
+        type: 'cron',
+      },
       vault_ids: ['string'],
       betas: ['message-batches-2024-09-24'],
     });
   });
 
-  test('retrieve', async () => {
-    const responsePromise = client.beta.sessions.retrieve('sesn_011CZkZAtmR3yMPDzynEDxu7');
+  // buildURL drops path-level query params (SDK-4349)
+  test.skip('retrieve', async () => {
+    const responsePromise = client.beta.deployments.retrieve('deployment_id');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -51,11 +65,12 @@ describe('resource sessions', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  test('retrieve: request options and params are passed correctly', async () => {
+  // buildURL drops path-level query params (SDK-4349)
+  test.skip('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
-      client.beta.sessions.retrieve(
-        'sesn_011CZkZAtmR3yMPDzynEDxu7',
+      client.beta.deployments.retrieve(
+        'deployment_id',
         { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
@@ -63,7 +78,7 @@ describe('resource sessions', () => {
   });
 
   test('update', async () => {
-    const responsePromise = client.beta.sessions.update('sesn_011CZkZAtmR3yMPDzynEDxu7', {});
+    const responsePromise = client.beta.deployments.update('deployment_id', {});
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -75,7 +90,7 @@ describe('resource sessions', () => {
 
   // buildURL drops path-level query params (SDK-4349)
   test.skip('list', async () => {
-    const responsePromise = client.beta.sessions.list();
+    const responsePromise = client.beta.deployments.list();
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -89,21 +104,15 @@ describe('resource sessions', () => {
   test.skip('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
-      client.beta.sessions.list(
+      client.beta.deployments.list(
         {
           agent_id: 'agent_id',
-          agent_version: 0,
-          'created_at[gt]': '2019-12-27T18:11:19.117Z',
           'created_at[gte]': '2019-12-27T18:11:19.117Z',
-          'created_at[lt]': '2019-12-27T18:11:19.117Z',
           'created_at[lte]': '2019-12-27T18:11:19.117Z',
-          deployment_id: 'deployment_id',
           include_archived: true,
           limit: 0,
-          memory_store_id: 'memory_store_id',
-          order: 'asc',
           page: 'page',
-          statuses: ['rescheduling'],
+          status: 'active',
           betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },
@@ -111,30 +120,8 @@ describe('resource sessions', () => {
     ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
-  test('delete', async () => {
-    const responsePromise = client.beta.sessions.delete('sesn_011CZkZAtmR3yMPDzynEDxu7');
-    const rawResponse = await responsePromise.asResponse();
-    expect(rawResponse).toBeInstanceOf(Response);
-    const response = await responsePromise;
-    expect(response).not.toBeInstanceOf(Response);
-    const dataAndResponse = await responsePromise.withResponse();
-    expect(dataAndResponse.data).toBe(response);
-    expect(dataAndResponse.response).toBe(rawResponse);
-  });
-
-  test('delete: request options and params are passed correctly', async () => {
-    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
-    await expect(
-      client.beta.sessions.delete(
-        'sesn_011CZkZAtmR3yMPDzynEDxu7',
-        { betas: ['message-batches-2024-09-24'] },
-        { path: '/_stainless_unknown_path' },
-      ),
-    ).rejects.toThrow(Anthropic.NotFoundError);
-  });
-
   test('archive', async () => {
-    const responsePromise = client.beta.sessions.archive('sesn_011CZkZAtmR3yMPDzynEDxu7');
+    const responsePromise = client.beta.deployments.archive('deployment_id');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -147,8 +134,74 @@ describe('resource sessions', () => {
   test('archive: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
-      client.beta.sessions.archive(
-        'sesn_011CZkZAtmR3yMPDzynEDxu7',
+      client.beta.deployments.archive(
+        'deployment_id',
+        { betas: ['message-batches-2024-09-24'] },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
+  });
+
+  test('pause', async () => {
+    const responsePromise = client.beta.deployments.pause('deployment_id');
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('pause: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.beta.deployments.pause(
+        'deployment_id',
+        { betas: ['message-batches-2024-09-24'] },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
+  });
+
+  test('run', async () => {
+    const responsePromise = client.beta.deployments.run('deployment_id');
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('run: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.beta.deployments.run(
+        'deployment_id',
+        { betas: ['message-batches-2024-09-24'] },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
+  });
+
+  test('unpause', async () => {
+    const responsePromise = client.beta.deployments.unpause('deployment_id');
+    const rawResponse = await responsePromise.asResponse();
+    expect(rawResponse).toBeInstanceOf(Response);
+    const response = await responsePromise;
+    expect(response).not.toBeInstanceOf(Response);
+    const dataAndResponse = await responsePromise.withResponse();
+    expect(dataAndResponse.data).toBe(response);
+    expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('unpause: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.beta.deployments.unpause(
+        'deployment_id',
         { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),

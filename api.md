@@ -646,6 +646,8 @@ Types:
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionStats</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionUpdatedEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionUsage</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSystemContentBlock</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSystemMessageEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsUserToolResultEvent</a></code>
 
 Methods:
@@ -674,6 +676,7 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsBase64DocumentSource</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsBase64ImageSource</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsBillingError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsCredentialHostUnreachableError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsDocumentBlock</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsEventParams</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsFileDocumentSource</a></code>
@@ -716,6 +719,7 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSpanOutcomeEvaluationStartEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsStreamSessionEvents</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSystemMessageEventParams</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTextBlock</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTextRubric</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTextRubricParams</a></code>
@@ -783,6 +787,86 @@ Methods:
 - <code title="get /v1/sessions/{session_id}/threads/{thread_id}/events?beta=true">client.beta.sessions.threads.events.<a href="./src/resources/beta/sessions/threads/events.ts">list</a>(threadID, { ...params }) -> BetaManagedAgentsSessionEventsPageCursor</code>
 - <code title="get /v1/sessions/{session_id}/threads/{thread_id}/stream?beta=true">client.beta.sessions.threads.events.<a href="./src/resources/beta/sessions/threads/events.ts">stream</a>(threadID, { ...params }) -> BetaManagedAgentsStreamSessionThreadEvents</code>
 
+## Deployments
+
+Types:
+
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsAgentArchivedDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsCronSchedule</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsCronScheduleParams</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeployment</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentInitialEvent</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentInitialEventParams</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentPausedReason</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentStatus</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentSystemMessageEvent</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentUserDefineOutcomeEvent</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsDeploymentUserMessageEvent</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsEnvironmentArchivedDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsErrorDeploymentPausedReason</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsFileNotFoundDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsFileResourceConfig</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsGitHubRepositoryResourceConfig</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsManualDeploymentPausedReason</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsMCPEgressBlockedDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsMemoryStoreResourceConfig</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsSchedule</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsScheduleParams</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsSelfHostedResourcesUnsupportedDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsSessionResourceConfig</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsSessionResourceNotFoundDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsSkillNotFoundDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsUnknownDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsVaultArchivedDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsVaultNotFoundDeploymentPausedReasonError</a></code>
+- <code><a href="./src/resources/beta/deployments.ts">BetaManagedAgentsWorkspaceArchivedDeploymentPausedReasonError</a></code>
+
+Methods:
+
+- <code title="post /v1/deployments?beta=true">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">create</a>({ ...params }) -> BetaManagedAgentsDeployment</code>
+- <code title="get /v1/deployments/{deployment_id}?beta=true">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">retrieve</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeployment</code>
+- <code title="post /v1/deployments/{deployment_id}?beta=true">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">update</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeployment</code>
+- <code title="get /v1/deployments?beta=true">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">list</a>({ ...params }) -> BetaManagedAgentsDeploymentsPageCursor</code>
+- <code title="post /v1/deployments/{deployment_id}/archive?beta=true">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">archive</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeployment</code>
+- <code title="post /v1/deployments/{deployment_id}/pause?beta=true">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">pause</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeployment</code>
+- <code title="post /v1/deployments/{deployment_id}/run?beta=true">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">run</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeploymentRun</code>
+- <code title="post /v1/deployments/{deployment_id}/unpause?beta=true">client.beta.deployments.<a href="./src/resources/beta/deployments.ts">unpause</a>(deploymentID, { ...params }) -> BetaManagedAgentsDeployment</code>
+
+## DeploymentRuns
+
+Types:
+
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsAgentArchivedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsDeploymentRun</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsEnvironmentArchivedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsEnvironmentNotFoundRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsFileNotFoundRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsManualTriggerContext</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsMCPEgressBlockedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsMemoryStoreArchivedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsOrganizationDisabledRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsScheduleTriggerContext</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSelfHostedResourcesUnsupportedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSessionCreationRejectedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSessionRateLimitedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSessionResourceNotFoundRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsSkillNotFoundRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsTriggerContext</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsTriggerType</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsUnknownRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsVaultArchivedRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsVaultNotFoundRunError</a></code>
+- <code><a href="./src/resources/beta/deployment-runs.ts">BetaManagedAgentsWorkspaceArchivedRunError</a></code>
+
+Methods:
+
+- <code title="get /v1/deployment_runs/{deployment_run_id}?beta=true">client.beta.deploymentRuns.<a href="./src/resources/beta/deployment-runs.ts">retrieve</a>(deploymentRunID, { ...params }) -> BetaManagedAgentsDeploymentRun</code>
+- <code title="get /v1/deployment_runs?beta=true">client.beta.deploymentRuns.<a href="./src/resources/beta/deployment-runs.ts">list</a>({ ...params }) -> BetaManagedAgentsDeploymentRunsPageCursor</code>
+
 ## Vaults
 
 Types:
@@ -804,9 +888,15 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsCredential</a></code>
+- <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsCredentialNetworkingParams</a></code>
 - <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsCredentialValidation</a></code>
 - <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsCredentialValidationStatus</a></code>
 - <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsDeletedCredential</a></code>
+- <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsEnvironmentVariableAuthResponse</a></code>
+- <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsEnvironmentVariableCreateParams</a></code>
+- <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsEnvironmentVariableUpdateParams</a></code>
+- <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsLimitedCredentialNetworkingParams</a></code>
+- <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsLimitedCredentialNetworkingResponse</a></code>
 - <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsMCPOAuthAuthResponse</a></code>
 - <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsMCPOAuthCreateParams</a></code>
 - <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsMCPOAuthRefreshParams</a></code>
@@ -827,6 +917,8 @@ Types:
 - <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsTokenEndpointAuthPostParam</a></code>
 - <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsTokenEndpointAuthPostResponse</a></code>
 - <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsTokenEndpointAuthPostUpdateParam</a></code>
+- <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsUnrestrictedCredentialNetworkingParams</a></code>
+- <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsUnrestrictedCredentialNetworkingResponse</a></code>
 
 Methods:
 
