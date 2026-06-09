@@ -78,6 +78,12 @@
   "resolutions": {
     "minimatch": "^9.0.5"
   },
+  "browser": {
+    "./tools/agent-toolset/node.js": "./tools/agent-toolset/node.browser.js",
+    "./tools/agent-toolset/node.mjs": "./tools/agent-toolset/node.browser.mjs",
+    "./tools/memory/node.js": "./tools/memory/node.browser.js",
+    "./tools/memory/node.mjs": "./tools/memory/node.browser.mjs"
+  },
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
