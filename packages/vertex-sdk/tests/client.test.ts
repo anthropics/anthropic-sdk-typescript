@@ -206,6 +206,46 @@ describe('AnthropicVertex', () => {
         'https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models/count-tokens:rawPredict',
       );
     });
+
+    // Regression test for #1016. Vertex's per-model Anthropic backends roll
+    // out new `anthropic-beta` values on independent schedules (Haiku
+    // consistently lags), so a beta value not yet present on the resolved
+    // count-tokens model is rejected with HTTP 400. Token counting needs
+    // no beta-gated capabilities, so the header is dropped on this path.
+    test('strips anthropic-beta header on count_tokens requests', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        fetch: mockFetch as any,
+        defaultHeaders: { 'anthropic-beta': 'effort-2025-11-24' },
+      });
+
+      await client.messages.countTokens({
+        model: createParams.model,
+        messages: createParams.messages,
+      });
+
+      const [, wireInit] = mockFetch.mock.calls[0];
+      const wireHeaders = new Headers(wireInit.headers);
+      expect(wireHeaders.has('anthropic-beta')).toBe(false);
+    });
+
+    // Guard against accidentally stripping the header from non-count-tokens
+    // requests where beta values legitimately gate capabilities.
+    test('does not strip anthropic-beta header on regular messages requests', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        fetch: mockFetch as any,
+        defaultHeaders: { 'anthropic-beta': 'effort-2025-11-24' },
+      });
+
+      await client.messages.create(createParams);
+
+      const [, wireInit] = mockFetch.mock.calls[0];
+      const wireHeaders = new Headers(wireInit.headers);
+      expect(wireHeaders.get('anthropic-beta')).toBe('effort-2025-11-24');
+    });
   });
 });
 
