@@ -17,6 +17,7 @@ import { Stream } from '../streaming';
 import { partialParse } from '../_vendor/partial-json-parser/parser';
 import { RequestOptions } from '../internal/request-options';
 import type { Logger } from '../client';
+import { getTracingChannel, hasTracingChannelSubscribers } from './diagnostics';
 import { maybeParseMessage, type ParsedMessage } from './parser';
 
 export interface MessageStreamEvents<ParsedT = null> {
@@ -41,8 +42,15 @@ type MessageStreamEventListeners<ParsedT, Event extends keyof MessageStreamEvent
 }[];
 
 const JSON_BUF_PROPERTY = '__json_buf';
+const MESSAGE_STREAM_TRACING_CHANNEL = '@anthropic-ai/sdk:messages.stream';
 
 export type TracksToolInput = ToolUseBlock | ServerToolUseBlock;
+
+type MessageStreamTraceContext<ParsedT> = {
+  model: MessageCreateParams['model'];
+  params: MessageCreateParams;
+  result?: ParsedMessage<ParsedT>;
+};
 
 function tracksToolInput(content: ContentBlock): content is TracksToolInput {
   return content.type === 'tool_use' || content.type === 'server_tool_use';
@@ -192,6 +200,30 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
     params: MessageCreateParams,
     options?: RequestOptions,
   ): Promise<void> {
+    const tracingChannel = await getTracingChannel<MessageStreamTraceContext<ParsedT>>(
+      MESSAGE_STREAM_TRACING_CHANNEL,
+    );
+    if (hasTracingChannelSubscribers(tracingChannel)) {
+      const context: MessageStreamTraceContext<ParsedT> = {
+        model: params.model,
+        params,
+      };
+      await tracingChannel.tracePromise(async () => {
+        const result = await this.#createMessageStream(messages, params, options);
+        context.result = result;
+        return result;
+      }, context);
+      return;
+    }
+
+    await this.#createMessageStream(messages, params, options);
+  }
+
+  async #createMessageStream(
+    messages: Messages,
+    params: MessageCreateParams,
+    options?: RequestOptions,
+  ): Promise<ParsedMessage<ParsedT>> {
     const signal = options?.signal;
     let abortHandler: (() => void) | undefined;
     if (signal) {
@@ -211,7 +243,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
       if (stream.controller.signal?.aborted) {
         throw new APIUserAbortError();
       }
-      this.#endRequest();
+      return this.#endRequest();
     } finally {
       if (signal && abortHandler) {
         signal.removeEventListener('abort', abortHandler);
