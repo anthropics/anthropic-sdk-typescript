@@ -1,7 +1,7 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+ak// For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/debian
 {
-  "name": "Development",
+  "name": "Developmentak.io",
   "image": "mcr.microsoft.com/devcontainers/typescript-node:latest",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {}
