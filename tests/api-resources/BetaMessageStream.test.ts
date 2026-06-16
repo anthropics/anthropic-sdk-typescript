@@ -6,7 +6,7 @@ import { loadFixture, parseSSEFixture } from '../lib/sse-helpers';
 
 const EXPECTED_BASIC_MESSAGE = {
   id: 'msg_4QpJur2dWWDjF6C758FbBw5vm12BaVipnK',
-  model: 'claude-opus-4-20250514',
+  model: 'claude-opus-4-8',
   role: 'assistant',
   stop_reason: 'end_turn',
   stop_sequence: null,
@@ -28,7 +28,7 @@ const EXPECTED_BASIC_EVENT_TYPES = [
 
 const EXPECTED_TOOL_USE_MESSAGE = {
   id: 'msg_019Q1hrJbZG26Fb9BQhrkHEr',
-  model: 'claude-sonnet-4-20250514',
+  model: 'claude-opus-4-8',
   role: 'assistant',
   stop_reason: 'tool_use',
   stop_sequence: null,
@@ -142,7 +142,7 @@ describe('BetaMessageStream class', () => {
           id: 'msg_test',
           role: 'assistant',
           content: [],
-          model: 'claude-opus-4-20250514',
+          model: 'claude-opus-4-8',
           stop_reason: null,
           stop_sequence: null,
           usage: { output_tokens: 0, input_tokens: 10 },
@@ -200,7 +200,7 @@ describe('BetaMessageStream class', () => {
 
     const stream = anthropic.beta.messages.stream({
       max_tokens: 1024,
-      model: 'claude-opus-4-20250514',
+      model: 'claude-opus-4-8',
       messages: [{ role: 'user', content: 'Use the test tool' }],
     });
 
@@ -280,7 +280,7 @@ describe('BetaMessageStream class', () => {
 
     const stream = anthropic.beta.messages.stream({
       max_tokens: 1024,
-      model: 'claude-opus-4-20250514',
+      model: 'claude-opus-4-8',
       messages: [{ role: 'user', content: 'Say hello there!' }],
     });
 
@@ -314,7 +314,7 @@ describe('BetaMessageStream class', () => {
 
     const stream = anthropic.beta.messages.stream({
       max_tokens: 1024,
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-8',
       messages: [{ role: 'user', content: 'What is the weather in Paris?' }],
     });
 
@@ -344,7 +344,7 @@ describe('BetaMessageStream class', () => {
 
     const stream = anthropic.beta.messages.stream({
       max_tokens: 1024,
-      model: 'claude-opus-4-20250514',
+      model: 'claude-opus-4-8',
       messages: [{ role: 'user', content: 'Say hello there!' }],
     });
 
@@ -450,7 +450,7 @@ describe('BetaMessageStream class', () => {
           type: 'message',
           role: 'assistant',
           content: [],
-          model: 'claude-opus-4-20250514',
+          model: 'claude-opus-4-8',
           stop_reason: null,
           stop_sequence: null,
           usage: { input_tokens: 15, output_tokens: 1 },
@@ -477,7 +477,7 @@ describe('BetaMessageStream class', () => {
 
     const stream = anthropic.beta.messages.stream({
       max_tokens: 1024,
-      model: 'claude-opus-4-20250514',
+      model: 'claude-opus-4-8',
       messages: [{ role: 'user', content: 'Do something disallowed.' }],
     });
 
@@ -504,7 +504,7 @@ describe('BetaMessageStream class', () => {
           type: 'message',
           role: 'assistant',
           content: [],
-          model: 'claude-opus-4-20250514',
+          model: 'claude-opus-4-8',
           stop_reason: null,
           stop_sequence: null,
           usage: { input_tokens: 10, output_tokens: 1 },
@@ -515,7 +515,7 @@ describe('BetaMessageStream class', () => {
         index: 0,
         content_block: {
           type: 'fallback',
-          from: { model: 'claude-opus-4-20250514' },
+          from: { model: 'claude-opus-4-8' },
           to: { model: 'claude-sonnet-4-5' },
         },
       },
@@ -533,7 +533,7 @@ describe('BetaMessageStream class', () => {
 
     const stream = anthropic.beta.messages.stream({
       max_tokens: 1024,
-      model: 'claude-opus-4-20250514',
+      model: 'claude-opus-4-8',
       messages: [{ role: 'user', content: 'Say hello there!' }],
     });
 
@@ -543,7 +543,7 @@ describe('BetaMessageStream class', () => {
     expect(finalMessage.content).toMatchObject([
       {
         type: 'fallback',
-        from: { model: 'claude-opus-4-20250514' },
+        from: { model: 'claude-opus-4-8' },
         to: { model: 'claude-sonnet-4-5' },
       },
       { type: 'text', text: 'Hello there!' },

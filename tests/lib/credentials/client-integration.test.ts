@@ -106,7 +106,7 @@ describe('client credentials integration', () => {
     });
 
     await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-8',
       max_tokens: 1,
       messages: [{ role: 'user', content: 'hi' }],
     });
@@ -129,7 +129,7 @@ describe('client credentials integration', () => {
 
     expect(client.credentials).toBeNull();
     await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-8',
       max_tokens: 1,
       messages: [{ role: 'user', content: 'hi' }],
     });
@@ -151,7 +151,7 @@ describe('client credentials integration', () => {
     });
 
     await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-8',
       max_tokens: 1,
       messages: [{ role: 'user', content: 'hi' }],
     });
@@ -170,7 +170,7 @@ describe('client credentials integration', () => {
     });
 
     await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-8',
       max_tokens: 1,
       messages: [{ role: 'user', content: 'hi' }],
     });
@@ -201,7 +201,7 @@ describe('client credentials integration', () => {
     });
 
     await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-8',
       max_tokens: 1,
       messages: [{ role: 'user', content: 'hi' }],
     });
@@ -226,7 +226,7 @@ describe('client credentials integration', () => {
     });
 
     await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-8',
       max_tokens: 1,
       messages: [{ role: 'user', content: 'hi' }],
     });
@@ -248,7 +248,7 @@ describe('client credentials integration', () => {
 
     await expect(
       client.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       }),
@@ -271,7 +271,7 @@ describe('client credentials integration', () => {
 
     await expect(
       client.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       }),
@@ -300,7 +300,7 @@ describe('client credentials integration', () => {
       // Error surfaces on first request with the root cause, not the generic message
       await expect(
         client.messages.create({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-opus-4-8',
           max_tokens: 1,
           messages: [{ role: 'user', content: 'hi' }],
         }),
@@ -320,7 +320,7 @@ describe('client credentials integration', () => {
 
     await expect(
       client.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       }),
@@ -361,7 +361,7 @@ describe('client credentials integration', () => {
     });
 
     await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-8',
       max_tokens: 1,
       messages: [{ role: 'user', content: 'hi' }],
     });
@@ -383,7 +383,7 @@ describe('client credentials integration', () => {
     });
 
     await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-8',
       max_tokens: 1,
       messages: [{ role: 'user', content: 'hi' }],
     });
@@ -431,7 +431,7 @@ describe('client credentials integration', () => {
 
     // Explicit header escape hatch wins; resolution error is not thrown
     await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-8',
       max_tokens: 1,
       messages: [{ role: 'user', content: 'hi' }],
     });
@@ -463,12 +463,12 @@ describe('client credentials integration', () => {
 
     await Promise.all([
       parent.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       }),
       clone.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       }),
@@ -504,7 +504,7 @@ describe('client credentials integration', () => {
 
     for (const c of [parent, clone]) {
       await c.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       });
@@ -534,7 +534,7 @@ describe('client credentials integration', () => {
     // cache.
     const reset1 = parent.withOptions({ apiKey: undefined });
     await reset1.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-8',
       max_tokens: 1,
       messages: [{ role: 'user', content: 'hi' }],
     });
@@ -546,7 +546,7 @@ describe('client credentials integration', () => {
     const reset2 = parent.withOptions({ credentials: null });
     await expect(
       reset2.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       }),
@@ -567,7 +567,7 @@ describe('client credentials integration', () => {
 
     await expect(
       clone.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       }),
@@ -605,7 +605,7 @@ describe('client credentials integration', () => {
 
     for (const client of [a, b, c, d]) {
       await client.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       });
@@ -637,7 +637,7 @@ describe('client credentials integration', () => {
     const sharedOpts = {
       method: 'post' as const,
       path: '/v1/messages',
-      body: { model: 'claude-sonnet-4-20250514', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] },
+      body: { model: 'claude-opus-4-8', max_tokens: 1, messages: [{ role: 'user', content: 'hi' }] },
     };
 
     // First request: 401 → refresh → 401 → fail (didRefreshFor401 set)
@@ -698,7 +698,7 @@ describe('client credentials integration', () => {
         },
       });
       await client.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       });
@@ -718,7 +718,7 @@ describe('client credentials integration', () => {
       });
       expect(client.apiKey).toBeNull();
       await client.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       });
@@ -736,7 +736,7 @@ describe('client credentials integration', () => {
         },
       });
       await client.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       });
@@ -769,7 +769,7 @@ describe('client credentials integration', () => {
       });
       await expect(
         client.messages.create({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-opus-4-8',
           max_tokens: 1,
           messages: [{ role: 'user', content: 'hi' }],
         }),
@@ -791,7 +791,7 @@ describe('client credentials integration', () => {
         },
       });
       await clone.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       });
@@ -842,7 +842,7 @@ describe('client credentials integration', () => {
       });
 
       await client.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       });
@@ -864,7 +864,7 @@ describe('client credentials integration', () => {
       });
 
       await client.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       });
@@ -881,7 +881,7 @@ describe('client credentials integration', () => {
         fetch: async () => jsonResponse(VALID_MSG_RESPONSE),
       });
       await client.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       });
@@ -894,7 +894,7 @@ describe('client credentials integration', () => {
 
       const client = new Anthropic({ fetch: async () => jsonResponse(VALID_MSG_RESPONSE) });
       await client.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       });
@@ -916,7 +916,7 @@ describe('client credentials integration', () => {
 
       for (const c of [parent, clone]) {
         await c.messages.create({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-opus-4-8',
           max_tokens: 1,
           messages: [{ role: 'user', content: 'hi' }],
         });
@@ -940,7 +940,7 @@ describe('client credentials integration', () => {
       // before cloning — exercises the "don't pin mutated baseURL into clone
       // options" path in withOptions().
       await a.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       });
@@ -949,7 +949,7 @@ describe('client credentials integration', () => {
 
       for (const client of [b, c]) {
         await client.messages.create({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-opus-4-8',
           max_tokens: 1,
           messages: [{ role: 'user', content: 'hi' }],
         });
@@ -964,7 +964,7 @@ describe('client credentials integration', () => {
 
       const parent = new Anthropic({ fetch: async () => jsonResponse(VALID_MSG_RESPONSE) });
       await parent.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       });
@@ -982,7 +982,7 @@ describe('client credentials integration', () => {
         },
       });
       await clone.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       });
@@ -998,7 +998,7 @@ describe('client credentials integration', () => {
       const clone = parent.withOptions({ baseURL: 'https://override.example.com' });
 
       await clone.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       });

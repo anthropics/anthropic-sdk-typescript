@@ -4,7 +4,7 @@
     "method": "POST",
     "path": "/v1/messages?beta=true",
     "body": {
-      "model": "claude-sonnet-4-0",
+      "model": "claude-opus-4-8",
       "max_tokens": 1000,
       "messages": [
         {
@@ -34,7 +34,7 @@
     },
     "status": 200,
     "response": {
-      "model": "claude-sonnet-4-20250514",
+      "model": "claude-opus-4-8",
       "id": "msg_012foMGXNQ1eqhaq3QvA5dY6",
       "type": "message",
       "role": "assistant",
@@ -87,7 +87,7 @@
     "method": "POST",
     "path": "/v1/messages?beta=true",
     "body": {
-      "model": "claude-sonnet-4-0",
+      "model": "claude-opus-4-8",
       "max_tokens": 1000,
       "messages": [
         {
@@ -144,7 +144,7 @@
     },
     "status": 200,
     "response": {
-      "model": "claude-sonnet-4-20250514",
+      "model": "claude-opus-4-8",
       "id": "msg_01J176zPPSGQBvQpzw2qy5x4",
       "type": "message",
       "role": "assistant",
@@ -189,7 +189,7 @@
     "method": "POST",
     "path": "/v1/messages?beta=true",
     "body": {
-      "model": "claude-sonnet-4-0",
+      "model": "claude-opus-4-8",
       "max_tokens": 1000,
       "messages": [
         {
@@ -219,7 +219,7 @@
     },
     "status": 200,
     "response": {
-      "model": "claude-sonnet-4-20250514",
+      "model": "claude-opus-4-8",
       "id": "msg_014tGTGP6AJwJvBHFgXxjp88",
       "type": "message",
       "role": "assistant",
@@ -280,7 +280,7 @@
     "method": "POST",
     "path": "/v1/messages?beta=true",
     "body": {
-      "model": "claude-sonnet-4-0",
+      "model": "claude-opus-4-8",
       "max_tokens": 1000,
       "messages": [
         {
@@ -350,7 +350,7 @@
     },
     "status": 200,
     "response": {
-      "model": "claude-sonnet-4-20250514",
+      "model": "claude-opus-4-8",
       "id": "msg_012FSxyfosSXbcSgY8XJVTTi",
       "type": "message",
       "role": "assistant",
@@ -395,7 +395,7 @@
     "method": "POST",
     "path": "/v1/messages?beta=true",
     "body": {
-      "model": "claude-sonnet-4-0",
+      "model": "claude-opus-4-8",
       "max_tokens": 1000,
       "messages": [
         {
@@ -425,7 +425,7 @@
     },
     "status": 200,
     "response": {
-      "model": "claude-sonnet-4-20250514",
+      "model": "claude-opus-4-8",
       "id": "msg_01NxJEcDDsnAHe22dkAgkUrB",
       "type": "message",
       "role": "assistant",
@@ -478,7 +478,7 @@
     "method": "POST",
     "path": "/v1/messages?beta=true",
     "body": {
-      "model": "claude-sonnet-4-0",
+      "model": "claude-opus-4-8",
       "max_tokens": 1000,
       "messages": [
         {
@@ -535,7 +535,7 @@
     },
     "status": 200,
     "response": {
-      "model": "claude-sonnet-4-20250514",
+      "model": "claude-opus-4-8",
       "id": "msg_01RVfMNB6BmkupnqNYej3ZXX",
       "type": "message",
       "role": "assistant",
