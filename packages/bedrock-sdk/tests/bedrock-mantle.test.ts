@@ -24,7 +24,7 @@ const originalFetch = global.fetch;
 
 const makeRequest = async (client: AnthropicBedrockMantle) => {
   await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-opus-4-8',
     max_tokens: 1024,
     messages: [{ content: 'Test message', role: 'user' }],
   });

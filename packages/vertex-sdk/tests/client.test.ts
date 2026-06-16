@@ -226,7 +226,7 @@ describe('credential resolution retries', () => {
   });
 
   const createParams = {
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-opus-4-8',
     max_tokens: 1024,
     messages: [{ content: 'Hello', role: 'user' as const }],
   };

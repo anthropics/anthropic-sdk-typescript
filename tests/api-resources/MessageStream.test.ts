@@ -9,7 +9,7 @@ function assertNever(x: never): never {
 
 const EXPECTED_BASIC_MESSAGE = {
   id: 'msg_4QpJur2dWWDjF6C758FbBw5vm12BaVipnK',
-  model: 'claude-opus-4-20250514',
+  model: 'claude-opus-4-8',
   role: 'assistant',
   stop_reason: 'end_turn',
   stop_sequence: null,
@@ -31,7 +31,7 @@ const EXPECTED_BASIC_EVENT_TYPES = [
 
 const EXPECTED_TOOL_USE_MESSAGE = {
   id: 'msg_019Q1hrJbZG26Fb9BQhrkHEr',
-  model: 'claude-sonnet-4-20250514',
+  model: 'claude-opus-4-8',
   role: 'assistant',
   stop_reason: 'tool_use',
   stop_sequence: null,
@@ -93,7 +93,7 @@ describe('MessageStream class', () => {
 
     const stream = anthropic.messages.stream({
       max_tokens: 1024,
-      model: 'claude-opus-4-20250514',
+      model: 'claude-opus-4-8',
       messages: [{ role: 'user', content: 'Say hello there!' }],
     });
 
@@ -181,7 +181,7 @@ describe('MessageStream class', () => {
 
     const stream = anthropic.messages.stream({
       max_tokens: 1024,
-      model: 'claude-opus-4-20250514',
+      model: 'claude-opus-4-8',
       messages: [{ role: 'user', content: 'Say hello there!' }],
     });
 
@@ -209,7 +209,7 @@ describe('MessageStream class', () => {
 
     const stream = anthropic.messages.stream({
       max_tokens: 1024,
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-8',
       messages: [{ role: 'user', content: 'What is the weather in Paris?' }],
     });
 
@@ -239,7 +239,7 @@ describe('MessageStream class', () => {
       .stream(
         {
           max_tokens: 1024,
-          model: 'claude-sonnet-4-0',
+          model: 'claude-opus-4-8',
           messages: [{ role: 'user', content: 'Say hello there!' }],
         },
         { maxRetries: 0 },

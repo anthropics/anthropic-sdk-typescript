@@ -136,7 +136,7 @@ describe('copyClientForHelper — auth state inheritance', () => {
     (parent as any)._authState.extraHeaders = { 'anthropic-workspace-id': 'ws-tenant-42' };
 
     await parent.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-8',
       max_tokens: 1,
       messages: [{ role: 'user', content: 'hi' }],
     });
@@ -147,7 +147,7 @@ describe('copyClientForHelper — auth state inheritance', () => {
     });
 
     await helper.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-8',
       max_tokens: 1,
       messages: [{ role: 'user', content: 'hi' }],
     });
@@ -178,7 +178,7 @@ describe('copyClientForHelper — auth state inheritance', () => {
     (parent as any).baseURL = 'https://custom.anthropic.example';
 
     await parent.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-8',
       max_tokens: 1,
       messages: [{ role: 'user', content: 'hi' }],
     });
@@ -189,7 +189,7 @@ describe('copyClientForHelper — auth state inheritance', () => {
     });
 
     await helper.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-opus-4-8',
       max_tokens: 1,
       messages: [{ role: 'user', content: 'hi' }],
     });
