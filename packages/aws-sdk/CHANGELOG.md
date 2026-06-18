@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.0 (2026-06-18)
+
+Full Changelog: [aws-sdk-v0.4.2...aws-sdk-v0.5.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.4.2...aws-sdk-v0.5.0)
+
+### Features
+
+* **stream:** lazily parse partial tool json input ([#99](https://github.com/anthropics/anthropic-sdk-typescript/issues/99)) ([e55ceee](https://github.com/anthropics/anthropic-sdk-typescript/commit/e55ceee5e3053ada96a7fe008b1fd6ebc0e42544))
+
+
+### Chores
+
+* **tests:** stop using deprecated models ([#98](https://github.com/anthropics/anthropic-sdk-typescript/issues/98)) ([65ae1af](https://github.com/anthropics/anthropic-sdk-typescript/commit/65ae1afee1bb76179c58e1758a48d668e3fcf7b3))
+
 ## 0.4.2 (2026-06-09)
 
 Full Changelog: [aws-sdk-v0.4.1...aws-sdk-v0.4.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.4.1...aws-sdk-v0.4.2)
