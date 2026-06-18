@@ -1,4 +1,3 @@
-import { partialParse } from '../_vendor/partial-json-parser/parser';
 import type { Logger } from '../client';
 import { AnthropicError, APIUserAbortError } from '../error';
 import { isAbortError } from '../internal/errors';
@@ -20,6 +19,7 @@ import {
 } from '../resources/beta/messages/messages';
 import { Stream } from '../streaming';
 import { maybeParseBetaMessage, type ParsedBetaMessage } from './beta-parser';
+import { JSON_BUF_PROPERTY, withLazyInput } from '../internal/message-stream-utils';
 
 export interface MessageStreamEvents {
   connect: () => void;
@@ -42,8 +42,6 @@ type MessageStreamEventListeners<Event extends keyof MessageStreamEvents> = {
   listener: MessageStreamEvents[Event];
   once?: boolean;
 }[];
-
-const JSON_BUF_PROPERTY = '__json_buf';
 
 export type TracksToolInput = BetaToolUseBlock | BetaServerToolUseBlock | BetaMCPToolUseBlock;
 
@@ -462,8 +460,15 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
             break;
           }
           case 'input_json_delta': {
-            if (tracksToolInput(content) && content.input) {
-              this._emit('inputJson', event.delta.partial_json, content.input);
+            if (tracksToolInput(content) && this.#listeners.inputJson?.length) {
+              let jsonSnapshot: unknown;
+              try {
+                jsonSnapshot = content.input;
+              } catch (err) {
+                this.#handleError(this.#toolInputParseError(content, err));
+                break;
+              }
+              this._emit('inputJson', event.delta.partial_json, jsonSnapshot);
             }
             break;
           }
@@ -637,30 +642,8 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
           }
           case 'input_json_delta': {
             if (snapshotContent && tracksToolInput(snapshotContent)) {
-              // we need to keep track of the raw JSON string as well so that we can
-              // re-parse it for each delta, for now we just store it as an untyped
-              // non-enumerable property on the snapshot
-              let jsonBuf = (snapshotContent as any)[JSON_BUF_PROPERTY] || '';
-              jsonBuf += event.delta.partial_json;
-
-              const newContent = { ...snapshotContent };
-              Object.defineProperty(newContent, JSON_BUF_PROPERTY, {
-                value: jsonBuf,
-                enumerable: false,
-                writable: true,
-              });
-
-              if (jsonBuf) {
-                try {
-                  newContent.input = partialParse(jsonBuf);
-                } catch (err) {
-                  const error = new AnthropicError(
-                    `Unable to parse tool parameter JSON from model. Please retry your request or adjust your prompt. Error: ${err}. JSON: ${jsonBuf}`,
-                  );
-                  this.#handleError(error);
-                }
-              }
-              snapshot.content[event.index] = newContent;
+              const jsonBuf = ((snapshotContent as any)[JSON_BUF_PROPERTY] || '') + event.delta.partial_json;
+              snapshot.content[event.index] = withLazyInput(snapshotContent, jsonBuf);
             }
             break;
           }
@@ -697,9 +680,33 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
         }
         return snapshot;
       }
-      case 'content_block_stop':
+      case 'content_block_stop': {
+        const snapshotContent = snapshot.content.at(event.index);
+        if (snapshotContent && tracksToolInput(snapshotContent) && JSON_BUF_PROPERTY in snapshotContent) {
+          let input: unknown;
+          try {
+            input = snapshotContent.input;
+          } catch (err) {
+            input = {};
+            this.#handleError(this.#toolInputParseError(snapshotContent, err));
+          }
+          Object.defineProperty(snapshotContent, 'input', {
+            value: input,
+            enumerable: true,
+            configurable: true,
+            writable: true,
+          });
+        }
         return snapshot;
+      }
     }
+  }
+
+  #toolInputParseError(block: TracksToolInput, err: unknown): AnthropicError {
+    const jsonBuf = (block as any)[JSON_BUF_PROPERTY];
+    return new AnthropicError(
+      `Unable to parse tool parameter JSON from model. Please retry your request or adjust your prompt. Error: ${err}. JSON: ${jsonBuf}`,
+    );
   }
 
   [Symbol.asyncIterator](): AsyncIterator<BetaMessageStreamEvent> {

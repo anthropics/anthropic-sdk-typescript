@@ -1,7 +1,15 @@
 import Anthropic, { APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
 import { Message, MessageStreamEvent } from '@anthropic-ai/sdk/resources/messages';
+import * as partialJsonParser from '@anthropic-ai/sdk/_vendor/partial-json-parser/parser';
 import { mockFetch } from '../lib/mock-fetch';
 import { loadFixture, parseSSEFixture } from '../lib/sse-helpers';
+
+// The swc-compiled module exports are non-configurable, so `jest.spyOn` can't patch
+// `partialParse`; wrap the real implementation in a `jest.fn` to count calls instead.
+jest.mock('@anthropic-ai/sdk/_vendor/partial-json-parser/parser', () => {
+  const actual = jest.requireActual('@anthropic-ai/sdk/_vendor/partial-json-parser/parser');
+  return { ...actual, partialParse: jest.fn(actual.partialParse) };
+});
 
 function assertNever(x: never): never {
   throw new Error(`unreachable: ${x}`);
@@ -224,6 +232,71 @@ describe('MessageStream class', () => {
 
     assertToolUseResponse(events, finalMessage);
     expect(finalText).toBe("I'll check the current weather in Paris for you.");
+  });
+
+  it('parses tool input lazily — once per block, not per delta', async () => {
+    const partialParse = jest.mocked(partialJsonParser.partialParse);
+    partialParse.mockClear();
+    const { fetch, handleStreamEvents } = mockFetch();
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    handleStreamEvents(await parseSSEFixture(loadFixture('tool_use_response.txt')));
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'What is the weather in Paris?' }],
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(finalMessage.content[1]).toEqual({
+      type: 'tool_use',
+      id: 'toolu_01NRLabsLyVHZPKxbKvkfSMn',
+      name: 'get_weather',
+      input: { location: 'Paris' },
+    });
+    // `.input` is a plain data property on the finished block, not a getter.
+    expect(Object.getOwnPropertyDescriptor(finalMessage.content[1], 'input')?.get).toBeUndefined();
+    // Fixture has five input_json_delta events; only the content_block_stop parse runs.
+    expect(partialParse).toHaveBeenCalledTimes(1);
+  });
+
+  it('still emits per-delta inputJson snapshots when subscribed', async () => {
+    const partialParse = jest.mocked(partialJsonParser.partialParse);
+    partialParse.mockClear();
+    const { fetch, handleStreamEvents } = mockFetch();
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    handleStreamEvents(await parseSSEFixture(loadFixture('tool_use_response.txt')));
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'What is the weather in Paris?' }],
+    });
+
+    const snapshots: unknown[] = [];
+    stream.on('inputJson', (_delta, snapshot) => snapshots.push(snapshot));
+
+    await stream.finalMessage();
+
+    expect(snapshots).toHaveLength(5);
+    expect(snapshots).toMatchInlineSnapshot(`
+[
+  {},
+  {},
+  {},
+  {},
+  {
+    "location": "Paris",
+  },
+]
+`);
+    expect(snapshots.at(-1)).toEqual({ location: 'Paris' });
+    // Four non-empty deltas parsed; the final block's cached getter is reused
+    // at content_block_stop, so no extra parse there.
+    expect(partialParse).toHaveBeenCalledTimes(4);
   });
 
   it('does not throw unhandled rejection with withResponse()', async () => {

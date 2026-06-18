@@ -14,10 +14,10 @@ import {
   type ServerToolUseBlock,
 } from '../resources/messages';
 import { Stream } from '../streaming';
-import { partialParse } from '../_vendor/partial-json-parser/parser';
 import { RequestOptions } from '../internal/request-options';
 import type { Logger } from '../client';
 import { maybeParseMessage, type ParsedMessage } from './parser';
+import { JSON_BUF_PROPERTY, withLazyInput } from '../internal/message-stream-utils';
 
 export interface MessageStreamEvents<ParsedT = null> {
   connect: () => void;
@@ -39,8 +39,6 @@ type MessageStreamEventListeners<ParsedT, Event extends keyof MessageStreamEvent
   listener: MessageStreamEvents<ParsedT>[Event];
   once?: boolean;
 }[];
-
-const JSON_BUF_PROPERTY = '__json_buf';
 
 export type TracksToolInput = ToolUseBlock | ServerToolUseBlock;
 
@@ -470,7 +468,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
             break;
           }
           case 'input_json_delta': {
-            if (tracksToolInput(content) && content.input) {
+            if (tracksToolInput(content) && this.#listeners.inputJson?.length) {
               this._emit('inputJson', event.delta.partial_json, content.input);
             }
             break;
@@ -626,23 +624,8 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
           }
           case 'input_json_delta': {
             if (snapshotContent && tracksToolInput(snapshotContent)) {
-              // we need to keep track of the raw JSON string as well so that we can
-              // re-parse it for each delta, for now we just store it as an untyped
-              // non-enumerable property on the snapshot
-              let jsonBuf = (snapshotContent as any)[JSON_BUF_PROPERTY] || '';
-              jsonBuf += event.delta.partial_json;
-
-              const newContent = { ...snapshotContent };
-              Object.defineProperty(newContent, JSON_BUF_PROPERTY, {
-                value: jsonBuf,
-                enumerable: false,
-                writable: true,
-              });
-
-              if (jsonBuf) {
-                newContent.input = partialParse(jsonBuf);
-              }
-              snapshot.content[event.index] = newContent;
+              const jsonBuf = ((snapshotContent as any)[JSON_BUF_PROPERTY] || '') + event.delta.partial_json;
+              snapshot.content[event.index] = withLazyInput(snapshotContent, jsonBuf);
             }
             break;
           }
@@ -670,8 +653,18 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
 
         return snapshot;
       }
-      case 'content_block_stop':
+      case 'content_block_stop': {
+        const snapshotContent = snapshot.content.at(event.index);
+        if (snapshotContent && tracksToolInput(snapshotContent) && JSON_BUF_PROPERTY in snapshotContent) {
+          Object.defineProperty(snapshotContent, 'input', {
+            value: snapshotContent.input,
+            enumerable: true,
+            configurable: true,
+            writable: true,
+          });
+        }
         return snapshot;
+      }
     }
   }
 
