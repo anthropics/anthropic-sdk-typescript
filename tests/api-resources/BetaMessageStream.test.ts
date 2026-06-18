@@ -1,8 +1,16 @@
 import Anthropic, { APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
 import { AnthropicError } from '@anthropic-ai/sdk/error';
 import { BetaMessage, BetaRawMessageStreamEvent } from '@anthropic-ai/sdk/resources/beta/messages';
+import * as partialJsonParser from '@anthropic-ai/sdk/_vendor/partial-json-parser/parser';
 import { mockFetch } from '../lib/mock-fetch';
 import { loadFixture, parseSSEFixture } from '../lib/sse-helpers';
+
+// The swc-compiled module exports are non-configurable, so `jest.spyOn` can't patch
+// `partialParse`; wrap the real implementation in a `jest.fn` to count calls instead.
+jest.mock('@anthropic-ai/sdk/_vendor/partial-json-parser/parser', () => {
+  const actual = jest.requireActual('@anthropic-ai/sdk/_vendor/partial-json-parser/parser');
+  return { ...actual, partialParse: jest.fn(actual.partialParse) };
+});
 
 const EXPECTED_BASIC_MESSAGE = {
   id: 'msg_4QpJur2dWWDjF6C758FbBw5vm12BaVipnK',
@@ -329,6 +337,33 @@ describe('BetaMessageStream class', () => {
 
     assertToolUseResponse(events, finalMessage);
     expect(finalText).toBe("I'll check the current weather in Paris for you.");
+  });
+
+  it('parses tool input lazily — once per block, not per delta', async () => {
+    const partialParse = jest.mocked(partialJsonParser.partialParse);
+    partialParse.mockClear();
+    const { fetch, handleStreamEvents } = mockFetch();
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    handleStreamEvents(await parseSSEFixture(loadFixture('tool_use_response.txt')));
+
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'What is the weather in Paris?' }],
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(finalMessage.content[1]).toEqual({
+      type: 'tool_use',
+      id: 'toolu_01NRLabsLyVHZPKxbKvkfSMn',
+      name: 'get_weather',
+      input: { location: 'Paris' },
+    });
+    expect(Object.getOwnPropertyDescriptor(finalMessage.content[1], 'input')?.get).toBeUndefined();
+    // Fixture has five input_json_delta events; only the content_block_stop parse runs.
+    expect(partialParse).toHaveBeenCalledTimes(1);
   });
 
   it('aborts on break', async () => {
