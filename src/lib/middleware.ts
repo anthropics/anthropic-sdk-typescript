@@ -265,6 +265,7 @@ export function betaRefusalFallbackMiddleware(
         // against an untyped body that carried no `model` field.
         from: { model: requestedModel ?? message.model },
         to: { model: entry.model },
+        trigger: { type: 'refusal', category: message.stop_details?.category ?? null },
       });
       requestedModel = entry.model;
       res = await next({
@@ -435,7 +436,12 @@ async function* splicedEvents(
     yield emit<BetaRawContentBlockStartEvent>('content_block_start', {
       type: 'content_block_start',
       index: fbIndex,
-      content_block: { type: 'fallback', from: { model: fromModel }, to: { model } },
+      content_block: {
+        type: 'fallback',
+        from: { model: fromModel },
+        to: { model },
+        trigger: { type: 'refusal', category: refusalDetails?.category ?? null },
+      },
     });
     yield emit<BetaRawContentBlockStopEvent>('content_block_stop', {
       type: 'content_block_stop',

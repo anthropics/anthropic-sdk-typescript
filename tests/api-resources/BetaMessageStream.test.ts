@@ -552,6 +552,7 @@ describe('BetaMessageStream class', () => {
           type: 'fallback',
           from: { model: 'claude-opus-4-8' },
           to: { model: 'claude-sonnet-4-5' },
+          trigger: { type: 'refusal', category: null },
         },
       },
       { type: 'content_block_stop', index: 0 },

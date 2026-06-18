@@ -204,6 +204,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — shape-B continuation', (
       type: 'fallback',
       from: { model: 'claude-fable-5' },
       to: { model: FALLBACK_MODEL },
+      trigger: { type: 'refusal', category: null },
     });
 
     // Exactly one message_start (A's) and one message_stop reach the client —
@@ -666,7 +667,12 @@ describe('betaRefusalFallbackMiddleware (streaming) — edge cases', () => {
     // non-empty content distinguishes prepend from replace.
     const served: any = await out.json();
     expect(served.content).toEqual([
-      { type: 'fallback', from: { model: ORIGINAL_BODY.model }, to: { model: FALLBACK_MODEL } },
+      {
+        type: 'fallback',
+        from: { model: ORIGINAL_BODY.model },
+        to: { model: FALLBACK_MODEL },
+        trigger: { type: 'refusal', category: null },
+      },
       { type: 'text', text: 'ok' },
     ]);
     expect(served.model).toBe(FALLBACK_MODEL);
@@ -815,11 +821,13 @@ describe('betaRefusalFallbackMiddleware (streaming) — fallback chain', () => {
       type: 'fallback',
       from: { model: 'claude-fable-5' },
       to: { model: FALLBACK_MODEL },
+      trigger: { type: 'refusal', category: null },
     });
     expect(starts[4]!.content_block).toEqual({
       type: 'fallback',
       from: { model: FALLBACK_MODEL },
       to: { model: SECOND_MODEL },
+      trigger: { type: 'refusal', category: null },
     });
 
     // Hop 1's refusal delta is suppressed; the terminal delta carries every hop.
@@ -894,8 +902,18 @@ describe('betaRefusalFallbackMiddleware (streaming) — fallback chain', () => {
       .filter((e) => e.data.type === 'content_block_start' && e.data.content_block.type === 'fallback')
       .map((e) => e.data.content_block);
     expect(boundaries).toEqual([
-      { type: 'fallback', from: { model: 'claude-fable-5' }, to: { model: FALLBACK_MODEL } },
-      { type: 'fallback', from: { model: 'claude-fable-5' }, to: { model: SECOND_MODEL } },
+      {
+        type: 'fallback',
+        from: { model: 'claude-fable-5' },
+        to: { model: FALLBACK_MODEL },
+        trigger: { type: 'refusal', category: null },
+      },
+      {
+        type: 'fallback',
+        from: { model: 'claude-fable-5' },
+        to: { model: SECOND_MODEL },
+        trigger: { type: 'refusal', category: null },
+      },
     ]);
 
     // The failed hop is absent from iterations (no usage came back).
