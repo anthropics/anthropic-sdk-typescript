@@ -58,6 +58,7 @@ export {
   type CodeExecutionTool20250522,
   type CodeExecutionTool20250825,
   type CodeExecutionTool20260120,
+  type CodeExecutionTool20260521,
   type CodeExecutionToolResultBlock,
   type CodeExecutionToolResultBlockContent,
   type CodeExecutionToolResultBlockParam,

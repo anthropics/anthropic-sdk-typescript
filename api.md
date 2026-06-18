@@ -52,6 +52,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionTool20250522</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionTool20250825</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionTool20260120</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CodeExecutionTool20260521</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultBlockContent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultBlockParam</a></code>
@@ -315,6 +316,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionTool20250522</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionTool20250825</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionTool20260120</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionTool20260521</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultBlockContent</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionToolResultBlockParam</a></code>
@@ -350,6 +352,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackInfoParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackMessageIterationUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackRefusalTrigger</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFileDocumentSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFileImageSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaImageBlockParam</a></code>
@@ -1057,6 +1060,7 @@ Types:
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionThreadCreatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionThreadIdledEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionThreadTerminatedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionUpdatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookVaultArchivedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookVaultCreatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookVaultCredentialArchivedEventData</a></code>

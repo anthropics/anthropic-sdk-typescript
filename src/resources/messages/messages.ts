@@ -507,7 +507,9 @@ export interface CodeExecutionTool20250522 {
 
   type: 'code_execution_20250522';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -536,7 +538,9 @@ export interface CodeExecutionTool20250825 {
 
   type: 'code_execution_20250825';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -569,7 +573,43 @@ export interface CodeExecutionTool20260120 {
 
   type: 'code_execution_20260120';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
+/**
+ * Code execution tool with REPL state persistence.
+ */
+export interface CodeExecutionTool20260521 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'code_execution';
+
+  type: 'code_execution_20260521';
+
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -842,7 +882,9 @@ export interface MemoryTool20250818 {
 
   type: 'memory_20250818';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -997,6 +1039,7 @@ export type MessageCountTokensTool =
   | CodeExecutionTool20250522
   | CodeExecutionTool20250825
   | CodeExecutionTool20260120
+  | CodeExecutionTool20260521
   | MemoryTool20250818
   | ToolTextEditor20250124
   | ToolTextEditor20250429
@@ -1274,9 +1317,7 @@ export interface RedactedThinkingBlockParam {
  */
 export interface RefusalStopDetails {
   /**
-   * The policy category that triggered the refusal.
-   *
-   * `null` when the refusal doesn't map to a named category.
+   * The policy category that triggered a refusal.
    */
   category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | null;
 
@@ -1652,7 +1693,9 @@ export interface Tool {
    */
   name: string;
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -1722,7 +1765,9 @@ export interface ToolBash20250124 {
 
   type: 'bash_20250124';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -1859,7 +1904,9 @@ export interface ToolSearchToolBm25_20251119 {
 
   type: 'tool_search_tool_bm25_20251119' | 'tool_search_tool_bm25';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -1888,7 +1935,9 @@ export interface ToolSearchToolRegex20251119 {
 
   type: 'tool_search_tool_regex_20251119' | 'tool_search_tool_regex';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -1972,7 +2021,9 @@ export interface ToolTextEditor20250124 {
 
   type: 'text_editor_20250124';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2003,7 +2054,9 @@ export interface ToolTextEditor20250429 {
 
   type: 'text_editor_20250429';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2034,7 +2087,9 @@ export interface ToolTextEditor20250728 {
 
   type: 'text_editor_20250728';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2071,6 +2126,7 @@ export type ToolUnion =
   | CodeExecutionTool20250522
   | CodeExecutionTool20250825
   | CodeExecutionTool20260120
+  | CodeExecutionTool20260521
   | MemoryTool20250818
   | ToolTextEditor20250124
   | ToolTextEditor20250429
@@ -2250,7 +2306,9 @@ export interface WebFetchTool20250910 {
 
   type: 'web_fetch_20250910';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * List of domains to allow fetching from
@@ -2306,7 +2364,9 @@ export interface WebFetchTool20260209 {
 
   type: 'web_fetch_20260209';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * List of domains to allow fetching from
@@ -2365,7 +2425,9 @@ export interface WebFetchTool20260309 {
 
   type: 'web_fetch_20260309';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * List of domains to allow fetching from
@@ -2506,7 +2568,9 @@ export interface WebSearchTool20250305 {
 
   type: 'web_search_20250305';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * If provided, only these domains will be included in results. Cannot be used
@@ -2558,7 +2622,9 @@ export interface WebSearchTool20260209 {
 
   type: 'web_search_20260209';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * If provided, only these domains will be included in results. Cannot be used
@@ -3193,6 +3259,7 @@ export declare namespace Messages {
     type CodeExecutionTool20250522 as CodeExecutionTool20250522,
     type CodeExecutionTool20250825 as CodeExecutionTool20250825,
     type CodeExecutionTool20260120 as CodeExecutionTool20260120,
+    type CodeExecutionTool20260521 as CodeExecutionTool20260521,
     type CodeExecutionToolResultBlock as CodeExecutionToolResultBlock,
     type CodeExecutionToolResultBlockContent as CodeExecutionToolResultBlockContent,
     type CodeExecutionToolResultBlockParam as CodeExecutionToolResultBlockParam,
