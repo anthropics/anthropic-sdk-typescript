@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0 (2026-06-18)
+
+Full Changelog: [foundry-sdk-v0.3.1...foundry-sdk-v0.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.3.1...foundry-sdk-v0.4.0)
+
+### Features
+
+* **stream:** lazily parse partial tool json input ([#99](https://github.com/anthropics/anthropic-sdk-typescript/issues/99)) ([e55ceee](https://github.com/anthropics/anthropic-sdk-typescript/commit/e55ceee5e3053ada96a7fe008b1fd6ebc0e42544))
+
 ## 0.3.1 (2026-06-09)
 
 Full Changelog: [foundry-sdk-v0.3.0...foundry-sdk-v0.3.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.3.0...foundry-sdk-v0.3.1)
