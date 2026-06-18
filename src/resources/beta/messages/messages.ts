@@ -382,7 +382,9 @@ export interface BetaAdvisorTool20260301 {
 
   type: 'advisor_20260301';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -1024,7 +1026,9 @@ export interface BetaCodeExecutionTool20250522 {
 
   type: 'code_execution_20250522';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -1053,7 +1057,9 @@ export interface BetaCodeExecutionTool20250825 {
 
   type: 'code_execution_20250825';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -1086,7 +1092,43 @@ export interface BetaCodeExecutionTool20260120 {
 
   type: 'code_execution_20260120';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+}
+
+/**
+ * Code execution tool with REPL state persistence.
+ */
+export interface BetaCodeExecutionTool20260521 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'code_execution';
+
+  type: 'code_execution_20260521';
+
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -1515,10 +1557,10 @@ export interface BetaEncryptedCodeExecutionResultBlockParam {
  * Marks the point in `content` where one model's output gives way to the next.
  *
  * One block appears per hop where a preceding model actually ran this turn and
- * declined. A turn routed directly by the sticky decision has no such boundary and
- * carries no block — the signal for whether a fallback model served the response
- * is the presence of a `fallback_message` entry in `usage.iterations`, not this
- * block.
+ * declined. A turn where no preceding model ran and declined has no such boundary
+ * and carries no block — the signal for whether a fallback model served the
+ * response is the presence of a `fallback_message` entry in `usage.iterations`,
+ * not this block.
  *
  * The block is treated like a server-tool content block for streaming: it arrives
  * via the standard `content_block_start` / `content_block_stop` pair and carries
@@ -1539,25 +1581,27 @@ export interface BetaFallbackBlock {
    */
   to: BetaFallbackInfo;
 
+  /**
+   * What caused the `from` model to hand over at this hop.
+   */
+  trigger: BetaFallbackRefusalTrigger;
+
   type: 'fallback';
 }
 
 /**
  * A `fallback` block echoed back from a prior response.
  *
- * Accepted in `messages[].content` and never rendered into the prompt, not
- * validated against the request's `fallbacks` chain or top-level `model`, and
- * stripped before the sticky-routing cache key is computed.
+ * Accepted in `messages[].content` and not rendered into the prompt; not validated
+ * against the request's `fallbacks` chain or top-level `model`.
  *
- * Callers should echo the assistant turn verbatim — block included. The block's
- * position is load-bearing for thinking verification: the thinking runs on either
- * side of a fallback hop carry independently-rooted verification hash chains, and
- * this block is the only record of where one chain ends and the next begins. When
- * thinking runs flank the boundary, omitting the block merges the runs into one
- * contiguous span whose hashes cannot verify (the request is rejected), and moving
- * it into the middle of a single run splits that run's chain and is likewise
- * rejected; between non-thinking blocks the block's placement has no verification
- * effect.
+ * Echo the assistant turn back verbatim, including this block in its original
+ * position. The block marks the boundary between content produced before and after
+ * a fallback hop, and the server relies on that boundary to validate the turn:
+ * when thinking runs flank the boundary, omitting the block merges them into one
+ * span the server cannot validate (the request is rejected), and moving it into
+ * the middle of a single run is likewise rejected; between non-thinking blocks the
+ * block's placement has no validation effect.
  */
 export interface BetaFallbackBlockParam {
   /**
@@ -1571,6 +1615,12 @@ export interface BetaFallbackBlockParam {
   to: BetaFallbackInfoParam;
 
   type: 'fallback';
+
+  /**
+   * The response block's `trigger`, echoed verbatim. Accepted and ignored by the
+   * server; any object or `null` is allowed.
+   */
+  trigger?: unknown;
 }
 
 /**
@@ -1673,6 +1723,18 @@ export interface BetaFallbackParam {
   thinking?: BetaThinkingConfigEnabled | BetaThinkingConfigDisabled | BetaThinkingConfigAdaptive | null;
 
   [k: string]: unknown;
+}
+
+/**
+ * The `from` model declined for policy reasons.
+ */
+export interface BetaFallbackRefusalTrigger {
+  /**
+   * The policy category that triggered a refusal.
+   */
+  category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | null;
+
+  type: 'refusal';
 }
 
 export interface BetaFileDocumentSource {
@@ -1848,7 +1910,9 @@ export interface BetaMemoryTool20250818 {
 
   type: 'memory_20250818';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -2438,9 +2502,7 @@ export interface BetaRedactedThinkingBlockParam {
  */
 export interface BetaRefusalStopDetails {
   /**
-   * The policy category that triggered the refusal.
-   *
-   * `null` when the refusal doesn't map to a named category.
+   * The policy category that triggered a refusal.
    */
   category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | null;
 
@@ -3019,7 +3081,9 @@ export interface BetaTool {
    */
   name: string;
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -3089,7 +3153,9 @@ export interface BetaToolBash20241022 {
 
   type: 'bash_20241022';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -3120,7 +3186,9 @@ export interface BetaToolBash20250124 {
 
   type: 'bash_20250124';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -3224,7 +3292,9 @@ export interface BetaToolComputerUse20241022 {
 
   type: 'computer_20241022';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -3270,7 +3340,9 @@ export interface BetaToolComputerUse20250124 {
 
   type: 'computer_20250124';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -3316,7 +3388,9 @@ export interface BetaToolComputerUse20251124 {
 
   type: 'computer_20251124';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -3400,7 +3474,9 @@ export interface BetaToolSearchToolBm25_20251119 {
 
   type: 'tool_search_tool_bm25_20251119' | 'tool_search_tool_bm25';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -3429,7 +3505,9 @@ export interface BetaToolSearchToolRegex20251119 {
 
   type: 'tool_search_tool_regex_20251119' | 'tool_search_tool_regex';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -3509,7 +3587,9 @@ export interface BetaToolTextEditor20241022 {
 
   type: 'text_editor_20241022';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -3540,7 +3620,9 @@ export interface BetaToolTextEditor20250124 {
 
   type: 'text_editor_20250124';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -3571,7 +3653,9 @@ export interface BetaToolTextEditor20250429 {
 
   type: 'text_editor_20250429';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -3602,7 +3686,9 @@ export interface BetaToolTextEditor20250728 {
 
   type: 'text_editor_20250728';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * Create a cache control breakpoint at this content block.
@@ -3640,6 +3726,7 @@ export type BetaToolUnion =
   | BetaCodeExecutionTool20250522
   | BetaCodeExecutionTool20250825
   | BetaCodeExecutionTool20260120
+  | BetaCodeExecutionTool20260521
   | BetaToolComputerUse20241022
   | BetaMemoryTool20250818
   | BetaToolComputerUse20250124
@@ -3854,7 +3941,9 @@ export interface BetaWebFetchTool20250910 {
 
   type: 'web_fetch_20250910';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * List of domains to allow fetching from
@@ -3910,7 +3999,9 @@ export interface BetaWebFetchTool20260209 {
 
   type: 'web_fetch_20260209';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * List of domains to allow fetching from
@@ -3969,7 +4060,9 @@ export interface BetaWebFetchTool20260309 {
 
   type: 'web_fetch_20260309';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * List of domains to allow fetching from
@@ -4110,7 +4203,9 @@ export interface BetaWebSearchTool20250305 {
 
   type: 'web_search_20250305';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * If provided, only these domains will be included in results. Cannot be used
@@ -4162,7 +4257,9 @@ export interface BetaWebSearchTool20260209 {
 
   type: 'web_search_20260209';
 
-  allowed_callers?: Array<'direct' | 'code_execution_20250825' | 'code_execution_20260120'>;
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
 
   /**
    * If provided, only these domains will be included in results. Cannot be used
@@ -4879,6 +4976,7 @@ export interface MessageCountTokensParams {
     | BetaCodeExecutionTool20250522
     | BetaCodeExecutionTool20250825
     | BetaCodeExecutionTool20260120
+    | BetaCodeExecutionTool20260521
     | BetaToolComputerUse20241022
     | BetaMemoryTool20250818
     | BetaToolComputerUse20250124
@@ -4967,6 +5065,7 @@ export declare namespace Messages {
     type BetaCodeExecutionTool20250522 as BetaCodeExecutionTool20250522,
     type BetaCodeExecutionTool20250825 as BetaCodeExecutionTool20250825,
     type BetaCodeExecutionTool20260120 as BetaCodeExecutionTool20260120,
+    type BetaCodeExecutionTool20260521 as BetaCodeExecutionTool20260521,
     type BetaCodeExecutionToolResultBlock as BetaCodeExecutionToolResultBlock,
     type BetaCodeExecutionToolResultBlockContent as BetaCodeExecutionToolResultBlockContent,
     type BetaCodeExecutionToolResultBlockParam as BetaCodeExecutionToolResultBlockParam,
@@ -5002,6 +5101,7 @@ export declare namespace Messages {
     type BetaFallbackInfoParam as BetaFallbackInfoParam,
     type BetaFallbackMessageIterationUsage as BetaFallbackMessageIterationUsage,
     type BetaFallbackParam as BetaFallbackParam,
+    type BetaFallbackRefusalTrigger as BetaFallbackRefusalTrigger,
     type BetaFileDocumentSource as BetaFileDocumentSource,
     type BetaFileImageSource as BetaFileImageSource,
     type BetaImageBlockParam as BetaImageBlockParam,

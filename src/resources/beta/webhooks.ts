@@ -59,7 +59,8 @@ export type BetaWebhookEventData =
   | BetaWebhookVaultCredentialCreatedEventData
   | BetaWebhookVaultCredentialArchivedEventData
   | BetaWebhookVaultCredentialDeletedEventData
-  | BetaWebhookVaultCredentialRefreshFailedEventData;
+  | BetaWebhookVaultCredentialRefreshFailedEventData
+  | BetaWebhookSessionUpdatedEventData;
 
 export interface BetaWebhookSessionArchivedEventData {
   /**
@@ -271,6 +272,19 @@ export interface BetaWebhookSessionThreadTerminatedEventData {
   workspace_id: string;
 }
 
+export interface BetaWebhookSessionUpdatedEventData {
+  /**
+   * ID of the session that triggered the event.
+   */
+  id: string;
+
+  organization_id: string;
+
+  type: 'session.updated';
+
+  workspace_id: string;
+}
+
 export interface BetaWebhookVaultArchivedEventData {
   /**
    * ID of the vault that triggered the event.
@@ -420,6 +434,7 @@ export declare namespace Webhooks {
     type BetaWebhookSessionThreadCreatedEventData as BetaWebhookSessionThreadCreatedEventData,
     type BetaWebhookSessionThreadIdledEventData as BetaWebhookSessionThreadIdledEventData,
     type BetaWebhookSessionThreadTerminatedEventData as BetaWebhookSessionThreadTerminatedEventData,
+    type BetaWebhookSessionUpdatedEventData as BetaWebhookSessionUpdatedEventData,
     type BetaWebhookVaultArchivedEventData as BetaWebhookVaultArchivedEventData,
     type BetaWebhookVaultCreatedEventData as BetaWebhookVaultCreatedEventData,
     type BetaWebhookVaultCredentialArchivedEventData as BetaWebhookVaultCredentialArchivedEventData,

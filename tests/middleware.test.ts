@@ -2017,8 +2017,18 @@ describe('betaRefusalFallbackMiddleware', () => {
     // Seam blocks accumulate in hop order and are prepended ahead of the
     // serving hop's own content — pins ordering and hop-2 from/to threading.
     expect(result.content).toEqual([
-      { type: 'fallback', from: { model: 'primary-model' }, to: { model: 'mid-model' } },
-      { type: 'fallback', from: { model: 'mid-model' }, to: { model: 'last-model' } },
+      {
+        type: 'fallback',
+        from: { model: 'primary-model' },
+        to: { model: 'mid-model' },
+        trigger: { type: 'refusal', category: null },
+      },
+      {
+        type: 'fallback',
+        from: { model: 'mid-model' },
+        to: { model: 'last-model' },
+        trigger: { type: 'refusal', category: null },
+      },
       { type: 'text', text: 'ok' },
     ]);
   });
@@ -2034,7 +2044,12 @@ describe('betaRefusalFallbackMiddleware', () => {
     const result = await client.beta.messages.create(params, { fallbackState });
     expect(bodies.map((b) => b['model'])).toEqual(['mid-model', 'last-model']);
     expect(result.content).toEqual([
-      { type: 'fallback', from: { model: 'mid-model' }, to: { model: 'last-model' } },
+      {
+        type: 'fallback',
+        from: { model: 'mid-model' },
+        to: { model: 'last-model' },
+        trigger: { type: 'refusal', category: null },
+      },
       { type: 'text', text: 'ok' },
     ]);
   });
