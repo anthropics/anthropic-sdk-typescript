@@ -323,11 +323,13 @@ async function* iterSSEChunks(iterator: AsyncIterableIterator<Bytes>): AsyncGene
     newData.set(binaryChunk, data.length);
     data = newData;
 
+    let offset = 0;
     let patternIndex;
-    while ((patternIndex = findDoubleNewlineIndex(data)) !== -1) {
-      yield data.slice(0, patternIndex);
-      data = data.slice(patternIndex);
+    while ((patternIndex = findDoubleNewlineIndex(data, offset)) !== -1) {
+      yield data.slice(offset, patternIndex);
+      offset = patternIndex;
     }
+    if (offset > 0) data = data.slice(offset);
   }
 
   if (data.length > 0) {

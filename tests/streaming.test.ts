@@ -217,6 +217,81 @@ describe('streaming decoding', () => {
     event = await stream.next();
     expect(event.done).toBeTruthy();
   });
+
+  test('decodes many events delivered in a single chunk, in order', async () => {
+    const N = 2000;
+    let payload = '';
+    for (let i = 0; i < N; i++) payload += `event: completion\ndata: {"i":${i}}\n\n`;
+    async function* body(): AsyncGenerator<Buffer> {
+      yield Buffer.from(payload); // entire response arrives as one transport chunk
+    }
+
+    const stream = _iterSSEMessages(new Response(ReadableStreamFrom(body())), new AbortController())[
+      Symbol.asyncIterator
+    ]();
+
+    let count = 0;
+    for (let result = await stream.next(); !result.done; result = await stream.next()) {
+      expect(JSON.parse(result.value.data)).toEqual({ i: count });
+      count++;
+    }
+    expect(count).toBe(N);
+  });
+
+  test('decodes events when boundaries are split across chunks', async () => {
+    const N = 60;
+    let payload = '';
+    for (let i = 0; i < N; i++) payload += `event: completion\ndata: {"i":${i}}\n\n`;
+    const bytes = Buffer.from(payload);
+    async function* body(): AsyncGenerator<Buffer> {
+      // 3-byte chunks force every "\n\n" boundary to straddle a chunk edge
+      for (let offset = 0; offset < bytes.length; offset += 3) {
+        yield bytes.subarray(offset, offset + 3);
+      }
+    }
+
+    const stream = _iterSSEMessages(new Response(ReadableStreamFrom(body())), new AbortController())[
+      Symbol.asyncIterator
+    ]();
+
+    let count = 0;
+    for (let result = await stream.next(); !result.done; result = await stream.next()) {
+      expect(JSON.parse(result.value.data)).toEqual({ i: count });
+      count++;
+    }
+    expect(count).toBe(N);
+  });
+
+  test('drains a multi-event chunk in linear time (no O(n^2) re-slicing)', async () => {
+    const N = 2000;
+    let payload = '';
+    for (let i = 0; i < N; i++) payload += `event: completion\ndata: {"i":${i}}\n\n`;
+    const totalBytes = Buffer.byteLength(payload);
+    async function* body(): AsyncGenerator<Buffer> {
+      yield Buffer.from(payload);
+    }
+
+    // Count bytes copied via Uint8Array.prototype.slice while draining. The previous
+    // implementation re-sliced the whole remaining buffer once per event (~N/2 * totalBytes
+    // total); the offset-cursor implementation copies each event once (~totalBytes total).
+    const realSlice = Uint8Array.prototype.slice;
+    let bytesCopied = 0;
+    (Uint8Array.prototype as any).slice = function (this: Uint8Array, start?: number, end?: number) {
+      bytesCopied += Math.max(0, (end ?? this.length) - (start ?? 0));
+      return realSlice.call(this, start as any, end as any);
+    };
+    try {
+      const stream = _iterSSEMessages(new Response(ReadableStreamFrom(body())), new AbortController())[
+        Symbol.asyncIterator
+      ]();
+      let count = 0;
+      for (let result = await stream.next(); !result.done; result = await stream.next()) count++;
+      expect(count).toBe(N);
+    } finally {
+      Uint8Array.prototype.slice = realSlice;
+    }
+    expect(bytesCopied).toBeLessThan(totalBytes * 8);
+  });
 });
 
 test('error handling', async () => {

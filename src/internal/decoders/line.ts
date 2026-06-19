@@ -103,14 +103,14 @@ function findNewlineIndex(
   return null;
 }
 
-export function findDoubleNewlineIndex(buffer: Uint8Array): number {
+export function findDoubleNewlineIndex(buffer: Uint8Array, start: number = 0): number {
   // This function searches the buffer for the end patterns (\r\r, \n\n, \r\n\r\n)
   // and returns the index right after the first occurrence of any pattern,
   // or -1 if none of the patterns are found.
   const newline = 0x0a; // \n
   const carriage = 0x0d; // \r
 
-  for (let i = 0; i < buffer.length - 1; i++) {
+  for (let i = start; i < buffer.length - 1; i++) {
     if (buffer[i] === newline && buffer[i + 1] === newline) {
       // \n\n
       return i + 2;
