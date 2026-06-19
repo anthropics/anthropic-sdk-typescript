@@ -45,7 +45,7 @@ export class Completions extends APIResource {
       timeout: (this._client as any)._options.timeout ?? 600000,
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        { ...(betas?.length ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
       stream: params.stream ?? false,
