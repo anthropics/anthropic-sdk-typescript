@@ -64,13 +64,16 @@ export class Messages extends APIResource {
     params: MessageCreateParams,
     options?: RequestOptions,
   ): APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>> {
-    const { betas, ...body } = params;
+    const { betas, user_profile_id, ...body } = params;
     return this._client.post('/v1/messages?beta=true', {
       body,
       timeout: (this._client as any)._options.timeout ?? 600000,
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        {
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+        },
         options?.headers,
       ]),
       stream: params.stream ?? false,
@@ -424,7 +427,9 @@ export interface BetaCacheControlEphemeral {
    * - `5m`: 5 minutes
    * - `1h`: 1 hour
    *
-   * Defaults to `5m`.
+   * Defaults to `5m`. See
+   * [prompt caching pricing](https://docs.claude.com/en/docs/build-with-claude/prompt-caching)
+   * for details.
    */
   ttl?: '5m' | '1h';
 }
@@ -4544,15 +4549,16 @@ export interface MessageCreateParamsBase {
   top_p?: number;
 
   /**
-   * Body param: The user profile ID to attribute this request to. Use when acting on
-   * behalf of a party other than your organization.
-   */
-  user_profile_id?: string | null;
-
-  /**
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: The user profile ID to attribute this request to. Use when acting
+   * on behalf of a party other than your organization. Requires the `user-profiles`
+   * beta header.
+   */
+  user_profile_id?: string;
 }
 
 export namespace MessageCreateParams {

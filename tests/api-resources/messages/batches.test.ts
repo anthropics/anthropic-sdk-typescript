@@ -52,7 +52,7 @@ describe('resource batches', () => {
             },
             service_tier: 'auto',
             stop_sequences: ['string'],
-            stream: true,
+            stream: false,
             system: [
               {
                 text: "Today's date is 2024-06-01.",
@@ -96,6 +96,7 @@ describe('resource batches', () => {
           },
         },
       ],
+      user_profile_id: 'anthropic-user-profile-id',
     });
   });
 

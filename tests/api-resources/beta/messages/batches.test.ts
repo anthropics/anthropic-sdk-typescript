@@ -118,7 +118,7 @@ describe('resource batches', () => {
             service_tier: 'auto',
             speed: 'standard',
             stop_sequences: ['string'],
-            stream: true,
+            stream: false,
             system: [
               {
                 text: "Today's date is 2024-06-01.",
@@ -159,11 +159,11 @@ describe('resource batches', () => {
             ],
             top_k: 5,
             top_p: 0.7,
-            user_profile_id: 'user_profile_id',
           },
         },
       ],
       betas: ['message-batches-2024-09-24'],
+      user_profile_id: 'anthropic-user-profile-id',
     });
   });
 

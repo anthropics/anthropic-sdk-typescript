@@ -82,6 +82,7 @@ describe('resource messages', () => {
       ],
       top_k: 5,
       top_p: 0.7,
+      user_profile_id: 'anthropic-user-profile-id',
     });
   });
 

@@ -840,7 +840,9 @@ export interface AgentCreateParams {
 
   /**
    * Body param: MCP servers this agent connects to. Maximum 20. Names must be unique
-   * within the array.
+   * within the array. Every server must be referenced by an `mcp_toolset` in
+   * `tools`; unreferenced servers are rejected. See the
+   * [MCP connector guide](https://platform.claude.com/docs/en/managed-agents/mcp-connector).
    */
   mcp_servers?: Array<BetaManagedAgentsURLMCPServerParams>;
 
@@ -911,7 +913,10 @@ export interface AgentUpdateParams {
 
   /**
    * Body param: MCP servers. Full replacement. Omit to preserve; send empty array or
-   * null to clear. Names must be unique. Maximum 20.
+   * `null` to clear. Names must be unique. Maximum 20. Every server must be
+   * referenced by an `mcp_toolset` in the agent's resulting `tools`; unreferenced
+   * servers are rejected. See the
+   * [MCP connector guide](https://platform.claude.com/docs/en/managed-agents/mcp-connector).
    */
   mcp_servers?: Array<BetaManagedAgentsURLMCPServerParams> | null;
 
