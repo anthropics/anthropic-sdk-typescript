@@ -7,7 +7,7 @@ import { Page, type PageParams, PagePromise } from '../../core/pagination';
 import { type Uploadable } from '../../core/uploads';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
-import { stainlessHelperHeaderFromFile } from '../../lib/stainless-helper-header';
+import { stainlessHelperHeaderFromFile } from '../../internal/stainless-helper-header';
 import { multipartFormRequestOptions } from '../../internal/uploads';
 import { path } from '../../internal/utils/path';
 

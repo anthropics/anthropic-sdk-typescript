@@ -22,7 +22,7 @@ import {
   SDK_HELPER_SYMBOL,
   collectStainlessHelpers,
   stainlessHelperHeader,
-} from '../../lib/stainless-helper-header';
+} from '../../internal/stainless-helper-header';
 import { fromBase64 } from '../../internal/utils/base64';
 
 export { SDK_HELPER_SYMBOL, collectStainlessHelpers, stainlessHelperHeader };

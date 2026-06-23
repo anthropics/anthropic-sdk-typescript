@@ -3,6 +3,8 @@ import { AnthropicError } from '../core/error';
 import type { Middleware, MiddlewareContext, MiddlewareNext } from '../core/middleware';
 import { Stream, type ServerSentEvent } from '../core/streaming';
 import { isAbortError } from '../internal/errors';
+import { appendHeaderValue } from '../internal/headers';
+import { STAINLESS_HELPER_HEADER } from '../internal/stainless-helper-header';
 import { safeJSON } from '../internal/utils/values';
 import type { AnthropicBeta } from '../resources/beta/beta';
 import type {
@@ -179,8 +181,9 @@ export function betaRefusalFallbackMiddleware(
       ((error: BetaRefusalFallbackError) =>
         ctx.logger.error(`anthropic-sdk: betaRefusalFallbackMiddleware: ${error.message}`));
 
-    // Send the configured betas on this and every hop request derived from it.
-    request = appendBetas(request, options.betas ?? DEFAULT_BETAS);
+    // Send the configured betas on this and every hop request derived from it,
+    // and tag this and every hop with the middleware's helper telemetry.
+    request = withMiddlewareHeaders(request, options.betas ?? DEFAULT_BETAS);
 
     const body = stripFallbackBlocks(ctx.options.body as MessageCreateParams);
     const state = ctx.options.fallbackState;
@@ -851,8 +854,7 @@ function toPrefillBlocks(responseBlocks: any[]): BetaContentBlockParam[] {
  * A copy of `request` with `betas` appended to its `anthropic-beta` header,
  * skipping values already present (set by the caller or another middleware).
  */
-function appendBetas(request: APIRequest, betas: readonly AnthropicBeta[]): APIRequest {
-  if (!betas.length) return request;
+function withMiddlewareHeaders(request: APIRequest, betas: readonly AnthropicBeta[]): APIRequest {
   const headers = new Headers(request.headers);
   const existing = new Set(
     headers
@@ -866,6 +868,10 @@ function appendBetas(request: APIRequest, betas: readonly AnthropicBeta[]): APIR
       existing.add(beta);
     }
   }
+  headers.set(
+    STAINLESS_HELPER_HEADER,
+    appendHeaderValue(headers.get(STAINLESS_HELPER_HEADER), 'fallback-refusal-middleware'),
+  );
   return { ...request, headers };
 }
 

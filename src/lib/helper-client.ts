@@ -1,6 +1,10 @@
 import { AnthropicError } from '../core/error';
 import type { Anthropic } from '../client';
 import { buildHeaders, type HeadersLike, type NullableHeaders } from '../internal/headers';
+import {
+  STAINLESS_HELPER_HEADER,
+  type StainlessHelperHeaderValue,
+} from '../internal/stainless-helper-header';
 
 /**
  * Shared util for building a runner-helper-bound sub-client.
@@ -15,13 +19,6 @@ import { buildHeaders, type HeadersLike, type NullableHeaders } from '../interna
  *
  * {@link copyClientForHelper} is the one shared construction.
  */
-
-/**
- * The closed set of `x-stainless-helper` telemetry tags the runner helpers
- * stamp on outgoing requests. Constrained as a string union so a typo at any
- * call site is a type error rather than silently mistagged telemetry.
- */
-export type HelperTag = 'environments-work-poller' | 'environments-worker' | 'session-tool-runner';
 
 interface ClientInternalAccess {
   _options: { defaultHeaders?: HeadersLike };
@@ -54,7 +51,7 @@ interface ClientInternalAccess {
  */
 export function copyClientForHelper<T extends Anthropic>(
   client: T,
-  { authToken, helper }: { authToken: string; helper: HelperTag },
+  { authToken, helper }: { authToken: string; helper: StainlessHelperHeaderValue },
 ): T {
   if (!authToken) {
     throw new AnthropicError(
@@ -77,7 +74,7 @@ export function copyClientForHelper<T extends Anthropic>(
   const defaultHeaders: NullableHeaders = buildHeaders([
     inheritedAuthExtraHeaders,
     parentDefaults,
-    { 'x-stainless-helper': helper },
+    { [STAINLESS_HELPER_HEADER]: helper },
   ]);
   return client.withOptions({
     apiKey: null,

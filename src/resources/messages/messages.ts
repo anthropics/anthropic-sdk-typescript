@@ -5,7 +5,7 @@ import { APIResource } from '../../core/resource';
 import { Stream } from '../../core/streaming';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
-import { stainlessHelperHeader } from '../../lib/stainless-helper-header';
+import { stainlessHelperHeader } from '../../internal/stainless-helper-header';
 import { MessageStream } from '../../lib/MessageStream';
 import {
   parseMessage,

@@ -1,3 +1,4 @@
+import { STAINLESS_HELPER_METHOD_HEADER } from '../internal/stainless-helper-header';
 import type { Logger } from '../client';
 import { AnthropicError, APIUserAbortError } from '../error';
 import { isAbortError } from '../internal/errors';
@@ -162,7 +163,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
       runner._createMessage(
         messages,
         { ...params, stream: true },
-        { ...options, headers: { ...options?.headers, 'X-Stainless-Helper-Method': 'stream' } },
+        { ...options, headers: { ...options?.headers, [STAINLESS_HELPER_METHOD_HEADER]: 'stream' } },
       ),
     );
     return runner;

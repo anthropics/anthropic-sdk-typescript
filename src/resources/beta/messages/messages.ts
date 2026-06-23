@@ -9,7 +9,7 @@ import { Stream } from '../../../core/streaming';
 import { MODEL_NONSTREAMING_TOKENS } from '../../../internal/constants';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
-import { stainlessHelperHeader } from '../../../lib/stainless-helper-header';
+import { stainlessHelperHeader } from '../../../internal/stainless-helper-header';
 import {
   parseBetaMessage,
   type ExtractParsedContentFromBetaParams,
