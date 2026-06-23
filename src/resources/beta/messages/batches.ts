@@ -43,12 +43,15 @@ export class Batches extends APIResource {
    * ```
    */
   create(params: BatchCreateParams, options?: RequestOptions): APIPromise<BetaMessageBatch> {
-    const { betas, ...body } = params;
+    const { betas, user_profile_id, ...body } = params;
     return this._client.post('/v1/messages/batches?beta=true', {
       body,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -424,6 +427,15 @@ export interface BatchCreateParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: The user profile ID to attribute the requests in this batch to.
+   * Use when acting on behalf of a party other than your organization. Requires the
+   * `user-profiles` beta header. Applies to every request in the batch; an
+   * individual request whose `user_profile_id` body field conflicts with this header
+   * is errored.
+   */
+  user_profile_id?: string;
 }
 
 export namespace BatchCreateParams {
@@ -791,12 +803,6 @@ export namespace BatchCreateParams {
        * other values will be rejected with a 400 error.
        */
       top_p?: number;
-
-      /**
-       * The user profile ID to attribute this request to. Use when acting on behalf of a
-       * party other than your organization.
-       */
-      user_profile_id?: string | null;
     }
   }
 }
