@@ -1226,6 +1226,12 @@ export class BaseAnthropic {
 
     const fetchOptions: RequestInit = {
       signal: controller.signal as any,
+      // Default redirect to 'manual' so a 3xx Location target gets re-validated
+      // by the caller. WHATWG fetch strips Authorization on cross-origin redirects
+      // per spec, but custom auth headers (X-Api-Key) are not standard-protected
+      // and would otherwise survive the hop. Callers can opt back in to the
+      // standard follow behavior via { redirect: 'follow' } in fetchOptions.
+      redirect: 'manual',
       ...(isReadableBody ? { duplex: 'half' } : {}),
       method: 'GET',
       ...options,
