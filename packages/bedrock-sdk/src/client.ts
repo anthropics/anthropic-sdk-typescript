@@ -134,6 +134,16 @@ export class AnthropicBedrock extends BaseAnthropic {
 
   messages: MessagesResource = makeMessagesResource(this);
   completions: Resources.Completions = new Resources.Completions(this);
+  /**
+   * Models listing and retrieval.
+   *
+   * Routes to `/v1/models` / `/v1/models/{model_id}` against the configured
+   * Bedrock base URL. Whether AWS Bedrock honors this path is up to AWS;
+   * adding the property keeps the `AnthropicBedrock` client's surface in
+   * parity with the main `Anthropic` client (#704), which is useful for
+   * code that types against a unified Anthropic-style interface.
+   */
+  models: Resources.Models = new Resources.Models(this);
   beta: BetaResource = makeBetaResource(this);
 
   protected override validateHeaders() {
