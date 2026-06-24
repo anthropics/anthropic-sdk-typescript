@@ -1854,15 +1854,17 @@ describe('betaRefusalFallbackMiddleware', () => {
 
   const makeClient = (responses: Response[], middleware: Middleware) => {
     const bodies: Record<string, unknown>[] = [];
+    const helpers: (string | null)[] = [];
     const client = new Anthropic({
       apiKey: 'my-anthropic-api-key',
       fetch: async (_url, init) => {
         bodies.push(JSON.parse(init!.body as string));
+        helpers.push((init!.headers as Headers).get('x-stainless-helper'));
         return responses.shift()!;
       },
       middleware: [middleware],
     });
-    return { client, bodies };
+    return { client, bodies, helpers };
   };
 
   test('retries a refusal with the fallback params and credit token', async () => {
@@ -1876,6 +1878,37 @@ describe('betaRefusalFallbackMiddleware', () => {
     expect(result.stop_reason).toEqual('end_turn');
     expect(bodies.map((b) => b['model'])).toEqual(['primary-model', 'fallback-model']);
     expect(bodies[1]!['fallback_credit_token']).toEqual('credit-token');
+  });
+
+  test('tags the original and fallback requests', async () => {
+    const { client, helpers } = makeClient(
+      [refusal('primary-model', 'credit-token'), message('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    await client.beta.messages.create(params);
+    expect(helpers).toEqual(['fallback-refusal-middleware', 'fallback-refusal-middleware']);
+  });
+
+  test('appends to a helper tag already on the request', async () => {
+    const { client, helpers } = makeClient(
+      [message('primary-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    await client.beta.messages.create(params, { headers: { 'X-Stainless-Helper': 'BetaToolRunner' } });
+    expect(helpers).toEqual(['BetaToolRunner, fallback-refusal-middleware']);
+  });
+
+  test('does not tag requests it passes through', async () => {
+    const { client, helpers } = makeClient(
+      [message('primary-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    // the GA surface is not applicable to this middleware
+    await client.messages.create(params);
+    expect(helpers).toEqual([null]);
   });
 
   test('pins the conversation to the accepted fallback via fallbackState', async () => {

@@ -86,3 +86,33 @@ describe('buildHeaders', () => {
     });
   }
 });
+
+describe('buildHeaders APPEND_HEADERS (x-stainless-helper)', () => {
+  const cases: [HeadersLike[], string][] = [
+    [
+      [{ 'x-stainless-helper': 'a' }, { 'x-stainless-helper': 'b' }],
+      `NullableHeaders { 'x-stainless-helper': 'a, b' }`,
+    ],
+    [
+      [{ 'X-Stainless-Helper': 'a' }, { 'x-stainless-helper': 'b' }],
+      `NullableHeaders { 'x-stainless-helper': 'a, b' }`,
+    ],
+    [
+      [{ 'x-stainless-helper': 'a' }, { 'x-stainless-helper': 'a' }],
+      `NullableHeaders { 'x-stainless-helper': 'a' }`,
+    ],
+    [
+      [{ 'x-stainless-helper': 'a, b' }, { 'x-stainless-helper': 'b, c' }],
+      `NullableHeaders { 'x-stainless-helper': 'a, b, c' }`,
+    ],
+    [
+      [{ 'x-stainless-helper': 'a' }, { 'x-stainless-helper': null }],
+      `NullableHeaders { 'x-stainless-helper': null }`,
+    ],
+  ];
+  for (const [input, expected] of cases) {
+    test(expected, () => {
+      expect(inspectNullableHeaders(buildHeaders(input))).toEqual(expected);
+    });
+  }
+});

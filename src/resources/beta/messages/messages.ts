@@ -9,7 +9,7 @@ import { Stream } from '../../../core/streaming';
 import { MODEL_NONSTREAMING_TOKENS } from '../../../internal/constants';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
-import { stainlessHelperHeader } from '../../../lib/stainless-helper-header';
+import { stainlessHelperHeader } from '../../../internal/stainless-helper-header';
 import {
   parseBetaMessage,
   type ExtractParsedContentFromBetaParams,
@@ -111,7 +111,7 @@ export class Messages extends APIResource {
     // Transform deprecated output_format to output_config.format
     const modifiedParams = transformOutputFormat(params);
 
-    const { betas, ...body } = modifiedParams;
+    const { betas, user_profile_id, ...body } = modifiedParams;
 
     if (body.model in DEPRECATED_MODELS) {
       console.warn(
@@ -145,7 +145,10 @@ export class Messages extends APIResource {
       timeout: timeout ?? 600000,
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        {
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+        },
         helperHeader,
         options?.headers,
       ]),
@@ -588,7 +591,9 @@ export interface BetaCacheControlEphemeral {
    * - `5m`: 5 minutes
    * - `1h`: 1 hour
    *
-   * Defaults to `5m`.
+   * Defaults to `5m`. See
+   * [prompt caching pricing](https://docs.claude.com/en/docs/build-with-claude/prompt-caching)
+   * for details.
    */
   ttl?: '5m' | '1h';
 }
@@ -1732,7 +1737,7 @@ export interface BetaFallbackRefusalTrigger {
   /**
    * The policy category that triggered a refusal.
    */
-  category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | null;
+  category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | 'military_weapons' | null;
 
   type: 'refusal';
 }
@@ -2504,7 +2509,7 @@ export interface BetaRefusalStopDetails {
   /**
    * The policy category that triggered a refusal.
    */
-  category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | null;
+  category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | 'military_weapons' | null;
 
   /**
    * Human-readable explanation of the refusal.
@@ -4710,15 +4715,16 @@ export interface MessageCreateParamsBase {
   top_p?: number;
 
   /**
-   * Body param: The user profile ID to attribute this request to. Use when acting on
-   * behalf of a party other than your organization.
-   */
-  user_profile_id?: string | null;
-
-  /**
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: The user profile ID to attribute this request to. Use when acting
+   * on behalf of a party other than your organization. Requires the `user-profiles`
+   * beta header.
+   */
+  user_profile_id?: string;
 }
 
 export namespace MessageCreateParams {

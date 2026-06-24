@@ -587,7 +587,7 @@ describe('SessionToolRunner', () => {
     for (const opt of calls.options) {
       const headers = (opt as { headers?: { values?: Headers } }).headers;
       expect(headers?.values?.get('x-proxy-token')).toBe('secret-123');
-      expect(headers?.values?.get('x-stainless-helper')).toBe('SessionToolRunner');
+      expect(headers?.values?.get('x-stainless-helper')).toBe('session-tool-runner');
     }
   });
 

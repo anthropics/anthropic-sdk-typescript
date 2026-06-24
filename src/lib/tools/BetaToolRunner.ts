@@ -8,7 +8,11 @@ import { RequestOptions } from '../../internal/request-options';
 import { buildHeaders } from '../../internal/headers';
 import { promiseWithResolvers } from '../../internal/utils/promise';
 import { CompactionControl, DEFAULT_SUMMARY_PROMPT, DEFAULT_TOKEN_THRESHOLD } from './CompactionControl';
-import { collectStainlessHelpers } from '../stainless-helper-header';
+import {
+  collectStainlessHelpers,
+  helperHeader,
+  STAINLESS_HELPER_HEADER,
+} from '../../internal/stainless-helper-header';
 
 /**
  * A ToolRunner handles the automatic conversation loop between the assistant and tools.
@@ -52,12 +56,17 @@ export class BetaToolRunner<Stream extends boolean> {
       },
     };
 
-    const helpers = collectStainlessHelpers(params.tools, params.messages);
-    const helperValue = ['BetaToolRunner', ...helpers].join(', ');
-
+    // structuredClone drops symbol-keyed properties, so collect helper marks
+    // from the original params here — the create()-side collector won't see
+    // them on the cloned messages.
+    const collected = collectStainlessHelpers(params.tools, params.messages);
     this.#options = {
       ...options,
-      headers: buildHeaders([{ 'x-stainless-helper': helperValue }, options?.headers]),
+      headers: buildHeaders([
+        helperHeader('BetaToolRunner'),
+        collected.length ? { [STAINLESS_HELPER_HEADER]: collected.join(', ') } : undefined,
+        options?.headers,
+      ]),
     };
     this.#completion = promiseWithResolvers();
 
@@ -137,7 +146,7 @@ export class BetaToolRunner<Stream extends boolean> {
       },
       {
         signal: this.#options.signal,
-        headers: buildHeaders([this.#options.headers, { 'x-stainless-helper': 'compaction' }]),
+        headers: buildHeaders([this.#options.headers, helperHeader('compaction')]),
       },
     );
 

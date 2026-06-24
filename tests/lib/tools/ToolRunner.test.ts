@@ -4,7 +4,7 @@ import { BetaMessage, BetaContentBlock, BetaToolResultBlockParam } from '@anthro
 import { BetaRunnableTool, BetaToolRunContext } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
 import { BetaRawMessageStreamEvent, ToolError } from '@anthropic-ai/sdk/resources/beta/messages';
 import { Fetch } from '@anthropic-ai/sdk/internal/builtin-types';
-import { SDK_HELPER_SYMBOL } from '../../../src/lib/stainless-helper-header';
+import { SDK_HELPER_SYMBOL } from '../../../src/internal/stainless-helper-header';
 
 const weatherTool: BetaRunnableTool<{ location: string }> = {
   type: 'custom',
@@ -1051,7 +1051,7 @@ describe('ToolRunner', () => {
 
       await runner.runUntilDone();
 
-      expect(capturedHelperHeader).toBe('BetaToolRunner, mcpTool');
+      expect(capturedHelperHeader).toBe('mcpTool, BetaToolRunner');
     });
 
     it('includes only BetaToolRunner,mcpTool once for multiple MCP tools', async () => {
@@ -1108,7 +1108,7 @@ describe('ToolRunner', () => {
       await runner.runUntilDone();
 
       // mcpTool should appear only once even with multiple MCP tools
-      expect(capturedHelperHeader).toBe('BetaToolRunner, mcpTool');
+      expect(capturedHelperHeader).toBe('mcpTool, BetaToolRunner');
     });
 
     it('includes BetaToolRunner,mcpTool for mixed tools (MCP and regular)', async () => {
@@ -1156,7 +1156,7 @@ describe('ToolRunner', () => {
       await runner.runUntilDone();
 
       // Should include both BetaToolRunner and mcpTool
-      expect(capturedHelperHeader).toBe('BetaToolRunner, mcpTool');
+      expect(capturedHelperHeader).toBe('mcpTool, BetaToolRunner');
     });
 
     it('preserves x-stainless-helper header when signal is passed via constructor options', async () => {

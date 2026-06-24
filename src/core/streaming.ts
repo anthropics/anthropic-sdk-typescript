@@ -117,7 +117,8 @@ export class Stream<Item> implements AsyncIterable<Item> {
             sse.event === 'session.thread_status_running' ||
             sse.event === 'session.thread_status_idle' ||
             sse.event === 'session.thread_status_rescheduled' ||
-            sse.event === 'session.thread_status_terminated'
+            sse.event === 'session.thread_status_terminated' ||
+            sse.event === 'system.message'
           ) {
             try {
               yield JSON.parse(sse.data) as Item;

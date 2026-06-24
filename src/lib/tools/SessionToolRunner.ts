@@ -15,15 +15,13 @@ import { isFatal4xx } from '../../internal/utils/backoff';
 import { linkAbort } from '../../internal/utils/abort';
 import { AsyncQueue } from '../../internal/utils/async-queue';
 import { buildHeaders } from '../../internal/headers';
+import { helperHeader } from '../../internal/stainless-helper-header';
 import type { RequestOptions } from '../../internal/request-options';
 import { runRunnableTool, toolName, type BetaRunnableTool } from './BetaRunnableTool';
 import type { BetaToolRunnerRequestOptions } from './BetaToolRunner';
 
 /** Beta header for the managed-agents API. */
 export const MANAGED_AGENTS_BETA = 'managed-agents-2026-04-01';
-
-/** `x-stainless-helper` value identifying this helper in SDK telemetry. */
-const HELPER_NAME = 'SessionToolRunner';
 
 const STREAM_BACKOFF_START_MS = 500;
 const STREAM_BACKOFF_CAP_MS = 10_000;
@@ -287,7 +285,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
   #requestOptions(): RequestOptions {
     return {
       ...this.#requestOpts,
-      headers: buildHeaders([{ 'x-stainless-helper': HELPER_NAME }, this.#requestOpts?.headers]),
+      headers: buildHeaders([helperHeader('session-tool-runner'), this.#requestOpts?.headers]),
       signal: this.#controller.signal,
     };
   }

@@ -5,7 +5,7 @@ import { APIResource } from '../../core/resource';
 import { Stream } from '../../core/streaming';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
-import { stainlessHelperHeader } from '../../lib/stainless-helper-header';
+import { stainlessHelperHeader } from '../../internal/stainless-helper-header';
 import { MessageStream } from '../../lib/MessageStream';
 import {
   parseMessage,
@@ -55,19 +55,20 @@ export class Messages extends APIResource {
    * });
    * ```
    */
-  create(body: MessageCreateParamsNonStreaming, options?: RequestOptions): APIPromise<Message>;
+  create(params: MessageCreateParamsNonStreaming, options?: RequestOptions): APIPromise<Message>;
   create(
-    body: MessageCreateParamsStreaming,
+    params: MessageCreateParamsStreaming,
     options?: RequestOptions,
   ): APIPromise<Stream<RawMessageStreamEvent>>;
   create(
-    body: MessageCreateParamsBase,
+    params: MessageCreateParamsBase,
     options?: RequestOptions,
   ): APIPromise<Stream<RawMessageStreamEvent> | Message>;
   create(
-    body: MessageCreateParams,
+    params: MessageCreateParams,
     options?: RequestOptions,
   ): APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>> {
+    const { user_profile_id, ...body } = params;
     if (body.model in DEPRECATED_MODELS) {
       console.warn(
         `The model '${body.model}' is deprecated and will reach end-of-life on ${
@@ -93,13 +94,16 @@ export class Messages extends APIResource {
 
     // Collect helper info from tools and messages
     const helperHeader = stainlessHelperHeader(body.tools, body.messages);
-
     return this._client.post('/v1/messages', {
       body,
       timeout: timeout ?? 600000,
       ...options,
-      headers: buildHeaders([helperHeader, options?.headers]),
-      stream: body.stream ?? false,
+      headers: buildHeaders([
+        { ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined) },
+        helperHeader,
+        options?.headers,
+      ]),
+      stream: params.stream ?? false,
     }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
   }
 
@@ -289,7 +293,9 @@ export interface CacheControlEphemeral {
    * - `5m`: 5 minutes
    * - `1h`: 1 hour
    *
-   * Defaults to `5m`.
+   * Defaults to `5m`. See
+   * [prompt caching pricing](https://docs.claude.com/en/docs/build-with-claude/prompt-caching)
+   * for details.
    */
   ttl?: '5m' | '1h';
 }
@@ -1443,7 +1449,7 @@ export interface RefusalStopDetails {
   /**
    * The policy category that triggered a refusal.
    */
-  category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | null;
+  category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | 'military_weapons' | null;
 
   /**
    * Human-readable explanation of the refusal.
@@ -2883,7 +2889,7 @@ export type MessageCreateParams = MessageCreateParamsNonStreaming | MessageCreat
 
 export interface MessageCreateParamsBase {
   /**
-   * The maximum number of tokens to generate before stopping.
+   * Body param: The maximum number of tokens to generate before stopping.
    *
    * Note that our models may stop _before_ reaching this maximum. This parameter
    * only specifies the absolute maximum number of tokens to generate.
@@ -2898,7 +2904,7 @@ export interface MessageCreateParamsBase {
   max_tokens: number;
 
   /**
-   * Input messages.
+   * Body param: Input messages.
    *
    * Our models are trained to operate on alternating `user` and `assistant`
    * conversational turns. When creating a new `Message`, you specify the prior
@@ -2967,7 +2973,7 @@ export interface MessageCreateParamsBase {
   messages: Array<MessageParam>;
 
   /**
-   * The model that will complete your prompt.
+   * Body param: The model that will complete your prompt.
    *
    * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
@@ -2975,35 +2981,36 @@ export interface MessageCreateParamsBase {
   model: Model;
 
   /**
-   * Top-level cache control automatically applies a cache_control marker to the last
-   * cacheable block in the request.
+   * Body param: Top-level cache control automatically applies a cache_control marker
+   * to the last cacheable block in the request.
    */
   cache_control?: CacheControlEphemeral | null;
 
   /**
-   * Container identifier for reuse across requests.
+   * Body param: Container identifier for reuse across requests.
    */
   container?: string | null;
 
   /**
-   * Specifies the geographic region for inference processing. If not specified, the
-   * workspace's `default_inference_geo` is used.
+   * Body param: Specifies the geographic region for inference processing. If not
+   * specified, the workspace's `default_inference_geo` is used.
    */
   inference_geo?: string | null;
 
   /**
-   * An object describing metadata about the request.
+   * Body param: An object describing metadata about the request.
    */
   metadata?: Metadata;
 
   /**
-   * Configuration options for the model's output, such as the output format.
+   * Body param: Configuration options for the model's output, such as the output
+   * format.
    */
   output_config?: OutputConfig;
 
   /**
-   * Determines whether to use priority capacity (if available) or standard capacity
-   * for this request.
+   * Body param: Determines whether to use priority capacity (if available) or
+   * standard capacity for this request.
    *
    * Anthropic offers different levels of service for your API requests. See
    * [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
@@ -3011,7 +3018,7 @@ export interface MessageCreateParamsBase {
   service_tier?: 'auto' | 'standard_only';
 
   /**
-   * Custom text sequences that will cause the model to stop generating.
+   * Body param: Custom text sequences that will cause the model to stop generating.
    *
    * Our models will normally stop when they have naturally completed their turn,
    * which will result in a response `stop_reason` of `"end_turn"`.
@@ -3024,14 +3031,15 @@ export interface MessageCreateParamsBase {
   stop_sequences?: Array<string>;
 
   /**
-   * Whether to incrementally stream the response using server-sent events.
+   * Body param: Whether to incrementally stream the response using server-sent
+   * events.
    *
    * See [streaming](https://docs.claude.com/en/api/messages-streaming) for details.
    */
   stream?: boolean;
 
   /**
-   * System prompt.
+   * Body param: System prompt.
    *
    * A system prompt is a way of providing context and instructions to Claude, such
    * as specifying a particular goal or role. See our
@@ -3047,7 +3055,7 @@ export interface MessageCreateParamsBase {
   temperature?: number;
 
   /**
-   * Configuration for enabling Claude's extended thinking.
+   * Body param: Configuration for enabling Claude's extended thinking.
    *
    * When enabled, responses include `thinking` content blocks showing Claude's
    * thinking process before the final answer. Requires a minimum budget of 1,024
@@ -3060,13 +3068,13 @@ export interface MessageCreateParamsBase {
   thinking?: ThinkingConfigParam;
 
   /**
-   * How the model should use the provided tools. The model can use a specific tool,
-   * any available tool, decide by itself, or not use tools at all.
+   * Body param: How the model should use the provided tools. The model can use a
+   * specific tool, any available tool, decide by itself, or not use tools at all.
    */
   tool_choice?: ToolChoice;
 
   /**
-   * Definitions of tools that the model may use.
+   * Body param: Definitions of tools that the model may use.
    *
    * If you include `tools` in your API request, the model may return `tool_use`
    * content blocks that represent the model's use of those tools. You can then run
@@ -3156,6 +3164,13 @@ export interface MessageCreateParamsBase {
    * other values will be rejected with a 400 error.
    */
   top_p?: number;
+
+  /**
+   * Header param: The user profile ID to attribute this request to. Use when acting
+   * on behalf of a party other than your organization. Requires the `user-profiles`
+   * beta header.
+   */
+  user_profile_id?: string;
 }
 
 export namespace MessageCreateParams {
@@ -3165,7 +3180,8 @@ export namespace MessageCreateParams {
 
 export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase {
   /**
-   * Whether to incrementally stream the response using server-sent events.
+   * Body param: Whether to incrementally stream the response using server-sent
+   * events.
    *
    * See [streaming](https://docs.claude.com/en/api/messages-streaming) for details.
    */
@@ -3174,7 +3190,8 @@ export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase
 
 export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
   /**
-   * Whether to incrementally stream the response using server-sent events.
+   * Body param: Whether to incrementally stream the response using server-sent
+   * events.
    *
    * See [streaming](https://docs.claude.com/en/api/messages-streaming) for details.
    */
