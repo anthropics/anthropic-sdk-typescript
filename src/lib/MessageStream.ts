@@ -454,7 +454,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
 
     switch (event.type) {
       case 'content_block_delta': {
-        const content = messageSnapshot.content.at(-1)!;
+        const content = messageSnapshot.content.at(event.index)!;
         switch (event.delta.type) {
           case 'text_delta': {
             if (content.type === 'text') {
@@ -497,7 +497,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
         break;
       }
       case 'content_block_stop': {
-        this._emit('contentBlock', messageSnapshot.content.at(-1)!);
+        this._emit('contentBlock', messageSnapshot.content.at(event.index)!);
         break;
       }
       case 'message_start': {
