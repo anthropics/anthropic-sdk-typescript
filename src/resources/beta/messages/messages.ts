@@ -131,7 +131,7 @@ export class Messages extends APIResource {
       );
     }
 
-    let timeout = (this._client as any)._options.timeout as number | null;
+    let timeout = options?.timeout ?? ((this._client as any)._options.timeout as number | null);
     if (!body.stream && timeout == null) {
       const maxNonstreamingTokens = MODEL_NONSTREAMING_TOKENS[body.model] ?? undefined;
       timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
