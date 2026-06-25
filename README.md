@@ -34,7 +34,22 @@ console.log(message.content);
 
 ## Requirements
 
-Node.js 18+
+TypeScript >= 4.9 is supported.
+
+The following runtimes are supported:
+
+- Node.js 20 LTS or later ([non-EOL](https://endoflife.date/nodejs)) versions.
+- Deno v1.28.0 or higher.
+- Bun 1.0 or later.
+- Cloudflare Workers.
+- Vercel Edge Runtime.
+- Jest 28 or greater with the `"node"` environment (`"jsdom"` is not supported at this time).
+- Nitro v2.6 or greater.
+- Web browsers: disabled by default to avoid exposing your secret API credentials (see [API key best practices](https://support.anthropic.com/en/articles/9767949-api-key-best-practices-keeping-your-keys-safe-and-secure)). Enable browser support by explicitly setting `dangerouslyAllowBrowser` to `true`.
+
+Note that React Native is not supported at this time.
+
+If you are interested in other runtime environments, open or upvote an issue.
 
 ## Contributing
 
