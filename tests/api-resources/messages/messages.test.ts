@@ -149,6 +149,7 @@ describe('resource messages', () => {
           type: 'custom',
         },
       ],
+      user_profile_id: 'anthropic-user-profile-id',
     });
   });
 });
