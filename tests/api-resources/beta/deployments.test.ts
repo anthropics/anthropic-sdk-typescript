@@ -44,8 +44,8 @@ describe('resource deployments', () => {
         },
       ],
       schedule: {
-        expression: 'x',
-        timezone: 'x',
+        expression: '0 9 * * 1-5',
+        timezone: 'America/Los_Angeles',
         type: 'cron',
       },
       vault_ids: ['string'],
@@ -55,7 +55,7 @@ describe('resource deployments', () => {
 
   // buildURL drops path-level query params (SDK-4349)
   test.skip('retrieve', async () => {
-    const responsePromise = client.beta.deployments.retrieve('deployment_id');
+    const responsePromise = client.beta.deployments.retrieve('depl_011CZkZcDH3vPqd7xnEfwTai');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -70,7 +70,7 @@ describe('resource deployments', () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.deployments.retrieve(
-        'deployment_id',
+        'depl_011CZkZcDH3vPqd7xnEfwTai',
         { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
@@ -78,7 +78,7 @@ describe('resource deployments', () => {
   });
 
   test('update', async () => {
-    const responsePromise = client.beta.deployments.update('deployment_id', {});
+    const responsePromise = client.beta.deployments.update('depl_011CZkZcDH3vPqd7xnEfwTai', {});
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -121,7 +121,7 @@ describe('resource deployments', () => {
   });
 
   test('archive', async () => {
-    const responsePromise = client.beta.deployments.archive('deployment_id');
+    const responsePromise = client.beta.deployments.archive('depl_011CZkZcDH3vPqd7xnEfwTai');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -135,7 +135,7 @@ describe('resource deployments', () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.deployments.archive(
-        'deployment_id',
+        'depl_011CZkZcDH3vPqd7xnEfwTai',
         { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
@@ -143,7 +143,7 @@ describe('resource deployments', () => {
   });
 
   test('pause', async () => {
-    const responsePromise = client.beta.deployments.pause('deployment_id');
+    const responsePromise = client.beta.deployments.pause('depl_011CZkZcDH3vPqd7xnEfwTai');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -157,7 +157,7 @@ describe('resource deployments', () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.deployments.pause(
-        'deployment_id',
+        'depl_011CZkZcDH3vPqd7xnEfwTai',
         { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
@@ -165,7 +165,7 @@ describe('resource deployments', () => {
   });
 
   test('run', async () => {
-    const responsePromise = client.beta.deployments.run('deployment_id');
+    const responsePromise = client.beta.deployments.run('depl_011CZkZcDH3vPqd7xnEfwTai');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -179,7 +179,7 @@ describe('resource deployments', () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.deployments.run(
-        'deployment_id',
+        'depl_011CZkZcDH3vPqd7xnEfwTai',
         { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
@@ -187,7 +187,7 @@ describe('resource deployments', () => {
   });
 
   test('unpause', async () => {
-    const responsePromise = client.beta.deployments.unpause('deployment_id');
+    const responsePromise = client.beta.deployments.unpause('depl_011CZkZcDH3vPqd7xnEfwTai');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -201,7 +201,7 @@ describe('resource deployments', () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.deployments.unpause(
-        'deployment_id',
+        'depl_011CZkZcDH3vPqd7xnEfwTai',
         { betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
