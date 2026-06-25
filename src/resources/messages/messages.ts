@@ -89,8 +89,16 @@ export class Messages extends APIResource {
    *   });
    * ```
    */
-  countTokens(body: MessageCountTokensParams, options?: RequestOptions): APIPromise<MessageTokensCount> {
-    return this._client.post('/v1/messages/count_tokens', { body, ...options });
+  countTokens(params: MessageCountTokensParams, options?: RequestOptions): APIPromise<MessageTokensCount> {
+    const { user_profile_id, ...body } = params;
+    return this._client.post('/v1/messages/count_tokens', {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 }
 
@@ -3046,7 +3054,7 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
 
 export interface MessageCountTokensParams {
   /**
-   * Input messages.
+   * Body param: Input messages.
    *
    * Our models are trained to operate on alternating `user` and `assistant`
    * conversational turns. When creating a new `Message`, you specify the prior
@@ -3115,7 +3123,7 @@ export interface MessageCountTokensParams {
   messages: Array<MessageParam>;
 
   /**
-   * The model that will complete your prompt.
+   * Body param: The model that will complete your prompt.
    *
    * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
@@ -3123,18 +3131,19 @@ export interface MessageCountTokensParams {
   model: Model;
 
   /**
-   * Top-level cache control automatically applies a cache_control marker to the last
-   * cacheable block in the request.
+   * Body param: Top-level cache control automatically applies a cache_control marker
+   * to the last cacheable block in the request.
    */
   cache_control?: CacheControlEphemeral | null;
 
   /**
-   * Configuration options for the model's output, such as the output format.
+   * Body param: Configuration options for the model's output, such as the output
+   * format.
    */
   output_config?: OutputConfig;
 
   /**
-   * System prompt.
+   * Body param: System prompt.
    *
    * A system prompt is a way of providing context and instructions to Claude, such
    * as specifying a particular goal or role. See our
@@ -3143,7 +3152,7 @@ export interface MessageCountTokensParams {
   system?: string | Array<TextBlockParam>;
 
   /**
-   * Configuration for enabling Claude's extended thinking.
+   * Body param: Configuration for enabling Claude's extended thinking.
    *
    * When enabled, responses include `thinking` content blocks showing Claude's
    * thinking process before the final answer. Requires a minimum budget of 1,024
@@ -3156,13 +3165,13 @@ export interface MessageCountTokensParams {
   thinking?: ThinkingConfigParam;
 
   /**
-   * How the model should use the provided tools. The model can use a specific tool,
-   * any available tool, decide by itself, or not use tools at all.
+   * Body param: How the model should use the provided tools. The model can use a
+   * specific tool, any available tool, decide by itself, or not use tools at all.
    */
   tool_choice?: ToolChoice;
 
   /**
-   * Definitions of tools that the model may use.
+   * Body param: Definitions of tools that the model may use.
    *
    * If you include `tools` in your API request, the model may return `tool_use`
    * content blocks that represent the model's use of those tools. You can then run
@@ -3239,6 +3248,13 @@ export interface MessageCountTokensParams {
    * See our [guide](https://docs.claude.com/en/docs/tool-use) for more details.
    */
   tools?: Array<MessageCountTokensTool>;
+
+  /**
+   * Header param: The user profile ID to attribute this request to. Use when acting
+   * on behalf of a party other than your organization. Requires the `user-profiles`
+   * beta header.
+   */
+  user_profile_id?: string;
 }
 
 Messages.Batches = Batches;

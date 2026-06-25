@@ -248,6 +248,7 @@ describe('resource messages', () => {
         },
       ],
       betas: ['message-batches-2024-09-24'],
+      user_profile_id: 'anthropic-user-profile-id',
     });
   });
 });
