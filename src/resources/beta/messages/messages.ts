@@ -224,12 +224,15 @@ export class Messages extends APIResource {
     // Transform deprecated output_format to output_config.format
     const modifiedParams = transformOutputFormat(params);
 
-    const { betas, ...body } = modifiedParams;
+    const { betas, user_profile_id, ...body } = modifiedParams;
     return this._client.post('/v1/messages/count_tokens?beta=true', {
       body,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'token-counting-2024-11-01'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'token-counting-2024-11-01'].toString(),
+          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -5006,6 +5009,13 @@ export interface MessageCountTokensParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: The user profile ID to attribute this request to. Use when acting
+   * on behalf of a party other than your organization. Requires the `user-profiles`
+   * beta header.
+   */
+  user_profile_id?: string;
 }
 
 export { BetaToolRunner, type BetaToolRunnerParams } from '../../../lib/tools/BetaToolRunner';
