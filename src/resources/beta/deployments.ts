@@ -55,7 +55,9 @@ export class Deployments extends APIResource {
    * @example
    * ```ts
    * const betaManagedAgentsDeployment =
-   *   await client.beta.deployments.retrieve('deployment_id');
+   *   await client.beta.deployments.retrieve(
+   *     'depl_011CZkZcDH3vPqd7xnEfwTai',
+   *   );
    * ```
    */
   retrieve(
@@ -79,7 +81,9 @@ export class Deployments extends APIResource {
    * @example
    * ```ts
    * const betaManagedAgentsDeployment =
-   *   await client.beta.deployments.update('deployment_id');
+   *   await client.beta.deployments.update(
+   *     'depl_011CZkZcDH3vPqd7xnEfwTai',
+   *   );
    * ```
    */
   update(
@@ -130,7 +134,9 @@ export class Deployments extends APIResource {
    * @example
    * ```ts
    * const betaManagedAgentsDeployment =
-   *   await client.beta.deployments.archive('deployment_id');
+   *   await client.beta.deployments.archive(
+   *     'depl_011CZkZcDH3vPqd7xnEfwTai',
+   *   );
    * ```
    */
   archive(
@@ -154,7 +160,9 @@ export class Deployments extends APIResource {
    * @example
    * ```ts
    * const betaManagedAgentsDeployment =
-   *   await client.beta.deployments.pause('deployment_id');
+   *   await client.beta.deployments.pause(
+   *     'depl_011CZkZcDH3vPqd7xnEfwTai',
+   *   );
    * ```
    */
   pause(
@@ -178,7 +186,9 @@ export class Deployments extends APIResource {
    * @example
    * ```ts
    * const betaManagedAgentsDeploymentRun =
-   *   await client.beta.deployments.run('deployment_id');
+   *   await client.beta.deployments.run(
+   *     'depl_011CZkZcDH3vPqd7xnEfwTai',
+   *   );
    * ```
    */
   run(
@@ -202,7 +212,9 @@ export class Deployments extends APIResource {
    * @example
    * ```ts
    * const betaManagedAgentsDeployment =
-   *   await client.beta.deployments.unpause('deployment_id');
+   *   await client.beta.deployments.unpause(
+   *     'depl_011CZkZcDH3vPqd7xnEfwTai',
+   *   );
    * ```
    */
   unpause(
