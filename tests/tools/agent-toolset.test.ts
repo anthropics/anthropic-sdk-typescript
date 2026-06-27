@@ -19,6 +19,32 @@ function tmpdir(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'runner-test-'));
 }
 
+const testPosix = process.platform === 'win32' ? test.skip : test;
+
+// F1 / PATH-13: a cycle of dangling symlinks (which `realpath` cannot resolve)
+// must terminate at the canonicalize hop cap, not spin forever.
+(process.platform === 'win32' ? describe.skip : describe)('canonicalize symlink-loop bound', () => {
+  let dir: string;
+  beforeEach(() => {
+    dir = tmpdir();
+    fs.symlinkSync(path.join(dir, 'loop_b'), path.join(dir, 'loop_a'));
+    fs.symlinkSync(path.join(dir, 'loop_a'), path.join(dir, 'loop_b'));
+  });
+  afterEach(() => fs.rmSync(dir, { recursive: true, force: true }));
+
+  test('resolvePath on a symlink loop throws instead of spinning', async () => {
+    await expect(resolvePath({ workdir: dir }, 'loop_a')).rejects.toThrow(
+      /too many levels of symbolic links/,
+    );
+  }, 2000);
+
+  test('resolvePath on a path under a symlink loop also throws', async () => {
+    await expect(resolvePath({ workdir: dir }, 'loop_a/child.txt')).rejects.toThrow(
+      /too many levels of symbolic links/,
+    );
+  }, 2000);
+});
+
 describe('betaAgentToolset20260401', () => {
   test('returns the agent_toolset_20260401 tool list as BetaRunnableTool objects so it can be filtered or extended', () => {
     const tools = betaAgentToolset20260401({ workdir: '.' });
@@ -276,6 +302,42 @@ describe('search tools (glob/grep)', () => {
     await expect(betaGlobTool(env).run({ pattern: '../../**/*.ts' })).rejects.toThrow(
       /not permitted in the pattern/,
     );
+  });
+
+  // F2 / GLOB-07: a pattern that *names* a symlinked directory makes fs.glob
+  // descend through it and report entries with the raw parent path
+  // (`workdir/link_out/secret.ts`), which a lexical isWithin check would pass.
+  // The post-filter must check the *resolved* path instead. Recursive `**`
+  // descent does not follow the link, so the explicit-name form is the bypass.
+  testPosix('glob drops matches that resolve outside the workdir via a symlinked directory', async () => {
+    const outside = tmpdir();
+    try {
+      fs.writeFileSync(path.join(outside, 'secret.ts'), 'leaked\n');
+      fs.symlinkSync(outside, path.join(dir, 'link_out'), 'dir');
+      expect(await betaGlobTool(env).run({ pattern: 'link_out/*.ts' })).toBe('no matches');
+      expect(await betaGlobTool(env).run({ pattern: 'link_out/**' })).toBe('no matches');
+      // The in-jail tree is unaffected.
+      expect(await betaGlobTool(env).run({ pattern: '**/*.ts' })).toContain(path.join(dir, 'sub', 'b.ts'));
+    } finally {
+      fs.rmSync(outside, { recursive: true, force: true });
+    }
+  });
+
+  testPosix('glob keeps matches reached via a symlink that stays inside the workdir', async () => {
+    fs.symlinkSync(path.join(dir, 'sub'), path.join(dir, 'link_in'), 'dir');
+    const out = await betaGlobTool(env).run({ pattern: 'link_in/*.ts' });
+    expect(out).toContain('b.ts');
+  });
+
+  testPosix('glob still returns matches when the workdir is itself a symlink', async () => {
+    const link = path.join(path.dirname(dir), path.basename(dir) + '-link');
+    fs.symlinkSync(dir, link, 'dir');
+    try {
+      const out = await betaGlobTool({ workdir: link }).run({ pattern: '**/*.ts' });
+      expect(out).toContain('b.ts');
+    } finally {
+      fs.rmSync(link, { force: true });
+    }
   });
 
   test('grep finds a line and reports file:lineno:content (works with or without rg on PATH)', async () => {

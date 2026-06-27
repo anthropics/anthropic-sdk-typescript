@@ -34,6 +34,7 @@ async function realpathOrSelf(p: string): Promise<string> {
 export async function canonicalize(abs: string): Promise<string> {
   const tail: string[] = [];
   let prefix = abs;
+  let hops = 0;
   for (;;) {
     let real: string;
     try {
@@ -47,7 +48,12 @@ export async function canonicalize(abs: string): Promise<string> {
       }
       if (isLink) {
         // Resolve the symlink ourselves and retry; `tail` (the part below it)
-        // still applies to the link's target.
+        // still applies to the link's target. The hop cap matches Linux
+        // MAXSYMLINKS — the same threshold at which `realpath` itself would
+        // have returned ELOOP — so a cycle of unresolvable links terminates.
+        if (++hops > 40) {
+          throw new ToolError(`path ${JSON.stringify(abs)} has too many levels of symbolic links`);
+        }
         prefix = path.resolve(path.dirname(prefix), await fs.readlink(prefix));
         continue;
       }

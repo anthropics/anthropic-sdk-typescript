@@ -589,6 +589,9 @@ export function betaGlobTool(ctx: AgentToolContext): BetaRunnableTool {
       if (!ctx.unrestrictedPaths && pat.split(/[\\/]/).includes('..')) {
         throw new ToolError('glob: ".." is not permitted in the pattern');
       }
+      // Compare canonical against canonical: a workdir that is itself a
+      // symlink would otherwise falsely reject every realpath'd match below.
+      const realRoot = ctx.unrestrictedPaths ? root : await fs.realpath(root).catch(() => root);
       const matches: { path: string; mtime: number }[] = [];
       try {
         // Native `fs.glob` (Node 22+). `exclude` prunes the noisy dirs the
@@ -600,9 +603,22 @@ export function betaGlobTool(ctx: AgentToolContext): BetaRunnableTool {
         })) {
           if (!entry.isFile()) continue;
           const full = path.join(entry.parentPath, entry.name);
-          // Defense in depth: drop any match that resolved outside the search
-          // root (e.g. via a symlinked directory in the tree) when confined.
-          if (!ctx.unrestrictedPaths && !isWithin(root, full)) continue;
+          // Drop any match that resolves outside the search root. A pattern
+          // that *names* a symlinked directory (the model controls the
+          // pattern, and the bash tool in the same session can plant the
+          // link) makes `fs.glob` descend through it and report entries with
+          // the raw parent path, so a lexical check on `full` alone would
+          // pass `root/link_out/secret` even though it lives outside the
+          // jail. Resolve-failure (ELOOP, EACCES, a racing unlink) is a deny.
+          if (!ctx.unrestrictedPaths) {
+            let real: string;
+            try {
+              real = await fs.realpath(full);
+            } catch {
+              continue;
+            }
+            if (!isWithin(realRoot, real)) continue;
+          }
           let mtime = 0;
           try {
             mtime = (await fs.stat(full)).mtimeMs;
