@@ -5,6 +5,7 @@ import { readEnv } from './internal/utils';
 import { Anthropic, APIRequest, ClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
+import { loggerFor } from './internal/utils/log';
 import { loadConfig } from '@smithy/node-config-provider';
 import { NODE_REGION_CONFIG_OPTIONS, NODE_REGION_CONFIG_FILE_OPTIONS } from '@smithy/config-resolver';
 import { getAuthHeaders } from './core/auth';
@@ -293,6 +294,7 @@ export class AnthropicAws extends Anthropic {
       awsSessionToken: this.awsSessionToken,
       awsProfile: this.awsProfile,
       providerChainResolver: this.providerChainResolver,
+      logger: loggerFor(this),
     });
     // Signed headers take precedence: the signature must match what goes
     // over the wire, so it can't be overridden by other header sources.

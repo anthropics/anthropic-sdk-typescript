@@ -334,42 +334,47 @@ describe('middleware order (Bedrock adaptation runs inside user middleware)', ()
 });
 
 describe('AnthropicBedrock constructor deprecation warnings', () => {
-  let consoleWarnSpy: jest.SpyInstance;
-
-  beforeEach(() => {
-    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-    jest.resetModules();
-  });
-
-  afterEach(() => {
-    consoleWarnSpy.mockRestore();
+  // Inject a fresh logger per test instead of spying on console.warn:
+  // loggerFor() caches bound log functions per logger object, so a
+  // console spy installed after the cache is populated is bypassed.
+  const makeLogger = () => ({
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
   });
 
   test('does not warn when both credentials are provided', () => {
+    const logger = makeLogger();
     new AnthropicBedrock({
       awsAccessKey: 'access-key',
       awsSecretKey: 'secret-key',
       awsRegion: 'us-east-1',
+      logger,
     });
 
-    expect(consoleWarnSpy).not.toHaveBeenCalled();
+    expect(logger.warn).not.toHaveBeenCalled();
   });
 
   test('does not warn when neither credential is provided', () => {
+    const logger = makeLogger();
     new AnthropicBedrock({
       awsRegion: 'us-east-1',
+      logger,
     });
 
-    expect(consoleWarnSpy).not.toHaveBeenCalled();
+    expect(logger.warn).not.toHaveBeenCalled();
   });
 
   test('warns when only one credential is provided', () => {
+    const logger = makeLogger();
     new AnthropicBedrock({
       awsAccessKey: 'access-key',
       awsRegion: 'us-east-1',
+      logger,
     });
 
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
+    expect(logger.warn).toHaveBeenCalledWith(
       expect.stringContaining('Passing only one of `awsAccessKey` or `awsSecretKey` is deprecated'),
     );
   });

@@ -231,6 +231,7 @@ export class AnthropicBedrock extends BaseAnthropic {
         awsSessionToken: this.awsSessionToken,
         fetchOptions: this.fetchOptions,
         providerChainResolver: this.providerChainResolver,
+        logger: loggerFor(this),
       });
       // Signed headers take precedence: the signature must match what goes
       // over the wire, so it can't be overridden by other header sources.
