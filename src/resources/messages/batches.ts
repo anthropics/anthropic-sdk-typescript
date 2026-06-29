@@ -390,7 +390,7 @@ export namespace BatchCreateParams {
      * [Messages API reference](https://platform.claude.com/docs/en/api/messages) for
      * full documentation on available parameters.
      */
-
+    params: MessagesAPI.MessageCreateParamsNonStreaming;
   }
 }
 
