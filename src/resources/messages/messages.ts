@@ -34,7 +34,7 @@ export class Messages extends APIResource {
    * conversations.
    *
    * Learn more about the Messages API in our
-   * [user guide](https://docs.claude.com/en/docs/initial-setup)
+   * [user guide](https://platform.claude.com/docs/en/get-started)
    *
    * @example
    * ```ts
@@ -78,7 +78,7 @@ export class Messages extends APIResource {
    * including tools, images, and documents, without creating it.
    *
    * Learn more about token counting in our
-   * [user guide](https://docs.claude.com/en/docs/build-with-claude/token-counting)
+   * [user guide](https://platform.claude.com/docs/en/build-with-claude/token-counting)
    *
    * @example
    * ```ts
@@ -206,7 +206,7 @@ export interface CacheControlEphemeral {
    * - `1h`: 1 hour
    *
    * Defaults to `5m`. See
-   * [prompt caching pricing](https://docs.claude.com/en/docs/build-with-claude/prompt-caching)
+   * [prompt caching pricing](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)
    * for details.
    */
   ttl?: '5m' | '1h';
@@ -1065,6 +1065,8 @@ export type MessageCountTokensTool =
   | WebSearchTool20260209
   | WebFetchTool20260209
   | WebFetchTool20260309
+  | WebSearchTool20260318
+  | WebFetchTool20260318
   | ToolSearchToolBm25_20251119
   | ToolSearchToolRegex20251119;
 
@@ -1658,7 +1660,7 @@ export interface ThinkingConfigEnabled {
    * Must be ≥1024 and less than `max_tokens`.
    *
    * See
-   * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
+   * [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
    * for details.
    */
   budget_tokens: number;
@@ -1682,7 +1684,7 @@ export interface ThinkingConfigEnabled {
  * tokens and counts towards your `max_tokens` limit.
  *
  * See
- * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
+ * [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
  * for details.
  */
 export type ThinkingConfigParam = ThinkingConfigEnabled | ThinkingConfigDisabled | ThinkingConfigAdaptive;
@@ -2152,6 +2154,8 @@ export type ToolUnion =
   | WebSearchTool20260209
   | WebFetchTool20260209
   | WebFetchTool20260309
+  | WebSearchTool20260318
+  | WebFetchTool20260318
   | ToolSearchToolBm25_20251119
   | ToolSearchToolRegex20251119;
 
@@ -2496,6 +2500,81 @@ export interface WebFetchTool20260309 {
   use_cache?: boolean;
 }
 
+export interface WebFetchTool20260318 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_fetch';
+
+  type: 'web_fetch_20260318';
+
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
+
+  /**
+   * List of domains to allow fetching from
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * List of domains to block fetching from
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * Citations configuration for fetched documents. Citations are disabled by
+   * default.
+   */
+  citations?: CitationsConfigParam | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of tokens used by including web page text content in the context.
+   * The limit is approximate and does not apply to binary content such as PDFs.
+   */
+  max_content_tokens?: number | null;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * How this tool's result blocks appear in the API response when the result was
+   * consumed by a completed code_execution call in the same turn. 'full' returns the
+   * complete content (default). 'excluded' drops the nested server_tool_use and
+   * result block pair entirely. Results from direct calls, or from code_execution
+   * calls that paused before completing, are always returned in full so they can be
+   * sent back on the next turn.
+   */
+  response_inclusion?: 'full' | 'excluded';
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+
+  /**
+   * Whether to use cached content. Set to false to bypass the cache and fetch fresh
+   * content. Only set to false when the user explicitly requests fresh content or
+   * when fetching rapidly-changing sources.
+   */
+  use_cache?: boolean;
+}
+
 export interface WebFetchToolResultBlock {
   /**
    * Tool invocation directly from the model.
@@ -2682,6 +2761,70 @@ export interface WebSearchTool20260209 {
   user_location?: UserLocation | null;
 }
 
+export interface WebSearchTool20260318 {
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: 'web_search';
+
+  type: 'web_search_20260318';
+
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
+
+  /**
+   * If provided, only these domains will be included in results. Cannot be used
+   * alongside `blocked_domains`.
+   */
+  allowed_domains?: Array<string> | null;
+
+  /**
+   * If provided, these domains will never appear in results. Cannot be used
+   * alongside `allowed_domains`.
+   */
+  blocked_domains?: Array<string> | null;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: CacheControlEphemeral | null;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Maximum number of times the tool can be used in the API request.
+   */
+  max_uses?: number | null;
+
+  /**
+   * How this tool's result blocks appear in the API response when the result was
+   * consumed by a completed code_execution call in the same turn. 'full' returns the
+   * complete content (default). 'excluded' drops the nested server_tool_use and
+   * result block pair entirely. Results from direct calls, or from code_execution
+   * calls that paused before completing, are always returned in full so they can be
+   * sent back on the next turn.
+   */
+  response_inclusion?: 'full' | 'excluded';
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+
+  /**
+   * Parameters for the user's location. Used to provide more relevant search
+   * results.
+   */
+  user_location?: UserLocation | null;
+}
+
 export interface WebSearchToolRequestError {
   error_code: WebSearchToolResultErrorCode;
 
@@ -2749,11 +2892,12 @@ export interface MessageCreateParamsBase {
    * only specifies the absolute maximum number of tokens to generate.
    *
    * Set to `0` to populate the
-   * [prompt cache](https://docs.claude.com/en/docs/build-with-claude/prompt-caching#pre-warming-the-cache)
+   * [prompt cache](https://platform.claude.com/docs/en/build-with-claude/prompt-caching#pre-warming-the-cache)
    * without generating a response.
    *
    * Different models have different maximum values for this parameter. See
-   * [models](https://docs.claude.com/en/docs/models-overview) for details.
+   * [models](https://platform.claude.com/docs/en/about-claude/models/overview) for
+   * details.
    */
   max_tokens: number;
 
@@ -2815,12 +2959,13 @@ export interface MessageCreateParamsBase {
    * { "role": "user", "content": [{ "type": "text", "text": "Hello, Claude" }] }
    * ```
    *
-   * See [input examples](https://docs.claude.com/en/api/messages-examples).
+   * See
+   * [input examples](https://platform.claude.com/docs/en/build-with-claude/working-with-messages).
    *
    * Note that if you want to include a
-   * [system prompt](https://docs.claude.com/en/docs/system-prompts), you can use the
-   * top-level `system` parameter — there is no `"system"` role for input messages in
-   * the Messages API.
+   * [system prompt](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role),
+   * you can use the top-level `system` parameter — there is no `"system"` role for
+   * input messages in the Messages API.
    *
    * There is a limit of 100,000 messages in a single request.
    */
@@ -2867,7 +3012,8 @@ export interface MessageCreateParamsBase {
    * standard capacity for this request.
    *
    * Anthropic offers different levels of service for your API requests. See
-   * [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
+   * [service-tiers](https://platform.claude.com/docs/en/api/service-tiers) for
+   * details.
    */
   service_tier?: 'auto' | 'standard_only';
 
@@ -2888,7 +3034,8 @@ export interface MessageCreateParamsBase {
    * Body param: Whether to incrementally stream the response using server-sent
    * events.
    *
-   * See [streaming](https://docs.claude.com/en/api/messages-streaming) for details.
+   * See [streaming](https://platform.claude.com/docs/en/build-with-claude/streaming)
+   * for details.
    */
   stream?: boolean;
 
@@ -2897,7 +3044,7 @@ export interface MessageCreateParamsBase {
    *
    * A system prompt is a way of providing context and instructions to Claude, such
    * as specifying a particular goal or role. See our
-   * [guide to system prompts](https://docs.claude.com/en/docs/system-prompts).
+   * [guide to system prompts](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role).
    */
   system?: string | Array<TextBlockParam>;
 
@@ -2916,7 +3063,7 @@ export interface MessageCreateParamsBase {
    * tokens and counts towards your `max_tokens` limit.
    *
    * See
-   * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
+   * [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
    * for details.
    */
   thinking?: ThinkingConfigParam;
@@ -2937,9 +3084,9 @@ export interface MessageCreateParamsBase {
    *
    * There are two types of tools: **client tools** and **server tools**. The
    * behavior described below applies to client tools. For
-   * [server tools](https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
+   * [server tools](https://platform.claude.com/docs/en/agents-and-tools/tool-use/server-tools),
    * see their individual documentation as each has its own behavior (e.g., the
-   * [web search tool](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
+   * [web search tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool)).
    *
    * Each tool definition includes:
    *
@@ -3002,7 +3149,9 @@ export interface MessageCreateParamsBase {
    * functions, or more generally whenever you want the model to produce a particular
    * JSON structure of output.
    *
-   * See our [guide](https://docs.claude.com/en/docs/tool-use) for more details.
+   * See our
+   * [guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)
+   * for more details.
    */
   tools?: Array<ToolUnion>;
 
@@ -3037,7 +3186,8 @@ export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase
    * Body param: Whether to incrementally stream the response using server-sent
    * events.
    *
-   * See [streaming](https://docs.claude.com/en/api/messages-streaming) for details.
+   * See [streaming](https://platform.claude.com/docs/en/build-with-claude/streaming)
+   * for details.
    */
   stream?: false;
 }
@@ -3047,7 +3197,8 @@ export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
    * Body param: Whether to incrementally stream the response using server-sent
    * events.
    *
-   * See [streaming](https://docs.claude.com/en/api/messages-streaming) for details.
+   * See [streaming](https://platform.claude.com/docs/en/build-with-claude/streaming)
+   * for details.
    */
   stream: true;
 }
@@ -3111,12 +3262,13 @@ export interface MessageCountTokensParams {
    * { "role": "user", "content": [{ "type": "text", "text": "Hello, Claude" }] }
    * ```
    *
-   * See [input examples](https://docs.claude.com/en/api/messages-examples).
+   * See
+   * [input examples](https://platform.claude.com/docs/en/build-with-claude/working-with-messages).
    *
    * Note that if you want to include a
-   * [system prompt](https://docs.claude.com/en/docs/system-prompts), you can use the
-   * top-level `system` parameter — there is no `"system"` role for input messages in
-   * the Messages API.
+   * [system prompt](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role),
+   * you can use the top-level `system` parameter — there is no `"system"` role for
+   * input messages in the Messages API.
    *
    * There is a limit of 100,000 messages in a single request.
    */
@@ -3147,7 +3299,7 @@ export interface MessageCountTokensParams {
    *
    * A system prompt is a way of providing context and instructions to Claude, such
    * as specifying a particular goal or role. See our
-   * [guide to system prompts](https://docs.claude.com/en/docs/system-prompts).
+   * [guide to system prompts](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role).
    */
   system?: string | Array<TextBlockParam>;
 
@@ -3159,7 +3311,7 @@ export interface MessageCountTokensParams {
    * tokens and counts towards your `max_tokens` limit.
    *
    * See
-   * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
+   * [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
    * for details.
    */
   thinking?: ThinkingConfigParam;
@@ -3180,9 +3332,9 @@ export interface MessageCountTokensParams {
    *
    * There are two types of tools: **client tools** and **server tools**. The
    * behavior described below applies to client tools. For
-   * [server tools](https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
+   * [server tools](https://platform.claude.com/docs/en/agents-and-tools/tool-use/server-tools),
    * see their individual documentation as each has its own behavior (e.g., the
-   * [web search tool](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
+   * [web search tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool)).
    *
    * Each tool definition includes:
    *
@@ -3245,7 +3397,9 @@ export interface MessageCountTokensParams {
    * functions, or more generally whenever you want the model to produce a particular
    * JSON structure of output.
    *
-   * See our [guide](https://docs.claude.com/en/docs/tool-use) for more details.
+   * See our
+   * [guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)
+   * for more details.
    */
   tools?: Array<MessageCountTokensTool>;
 
@@ -3405,6 +3559,7 @@ export declare namespace Messages {
     type WebFetchTool20250910 as WebFetchTool20250910,
     type WebFetchTool20260209 as WebFetchTool20260209,
     type WebFetchTool20260309 as WebFetchTool20260309,
+    type WebFetchTool20260318 as WebFetchTool20260318,
     type WebFetchToolResultBlock as WebFetchToolResultBlock,
     type WebFetchToolResultBlockParam as WebFetchToolResultBlockParam,
     type WebFetchToolResultErrorBlock as WebFetchToolResultErrorBlock,
@@ -3414,6 +3569,7 @@ export declare namespace Messages {
     type WebSearchResultBlockParam as WebSearchResultBlockParam,
     type WebSearchTool20250305 as WebSearchTool20250305,
     type WebSearchTool20260209 as WebSearchTool20260209,
+    type WebSearchTool20260318 as WebSearchTool20260318,
     type WebSearchToolRequestError as WebSearchToolRequestError,
     type WebSearchToolResultBlock as WebSearchToolResultBlock,
     type WebSearchToolResultBlockContent as WebSearchToolResultBlockContent,
