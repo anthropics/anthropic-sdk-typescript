@@ -95,9 +95,8 @@ export interface AgentToolContext {
   /** Base directory for resolving relative tool paths. */
   workdir: string;
   /**
-   * When `false` (default), the file tools reject absolute paths and paths
-   * that escape `workdir` (symlinks resolved). Does **not** constrain
-   * {@link betaBashTool}.
+   * When `false` (default), the file tools reject paths that resolve outside
+   * `workdir` (symlinks resolved). Does **not** constrain {@link betaBashTool}.
    */
   unrestrictedPaths?: boolean;
   /**
@@ -161,12 +160,14 @@ export function betaAgentToolset20260401(ctx: AgentToolContext): BetaRunnableToo
 }
 
 /**
- * Resolve `p` relative to `ctx.workdir`. Unless `unrestrictedPaths` is set,
- * absolute inputs are rejected and the **canonical** path is returned — every
- * symlink in `p` (including the leaf, even a dangling one) is resolved before
- * the workdir check, and the resolved path is what the tool then operates on, so
- * a symlink inside the workdir that points outside it can neither pass the check
- * nor be followed afterwards. See the trust model on {@link AgentToolContext}.
+ * Resolve `p` against `ctx.workdir`. Absolute and relative inputs go through
+ * the same canonicalise-then-contain check — an absolute path that lands inside
+ * the workdir is permitted, only paths that resolve *outside* are rejected.
+ * Every symlink in `p` (including the leaf, even a dangling one) is resolved
+ * before the workdir check, and the resolved path is what the tool then operates
+ * on, so a symlink inside the workdir that points outside it can neither pass
+ * the check nor be followed afterwards. See the trust model on
+ * {@link AgentToolContext}.
  *
  * Residual TOCTOU: a component could still be swapped for a symlink between this
  * call and the eventual `fs` operation. Closing that fully needs per-component
