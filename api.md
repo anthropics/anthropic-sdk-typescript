@@ -168,6 +168,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">WebFetchTool20250910</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchTool20260209</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchTool20260309</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebFetchTool20260318</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchToolResultBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchToolResultBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchToolResultErrorBlock</a></code>
@@ -177,6 +178,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">WebSearchResultBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchTool20250305</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchTool20260209</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebSearchTool20260318</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolRequestError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchToolResultBlockContent</a></code>
@@ -488,6 +490,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchTool20250910</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchTool20260209</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchTool20260309</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchTool20260318</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchToolResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchToolResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchToolResultErrorBlock</a></code>
@@ -497,6 +500,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchTool20250305</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchTool20260209</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchTool20260318</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolRequestError</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchToolResultBlockContent</a></code>

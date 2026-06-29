@@ -14,10 +14,10 @@ export class Completions extends APIResource {
    * [Legacy] Create a Text Completion.
    *
    * The Text Completions API is a legacy API. We recommend using the
-   * [Messages API](https://docs.claude.com/en/api/messages) going forward.
+   * [Messages API](https://platform.claude.com/docs/en/api/messages) going forward.
    *
    * Future models and features will not be compatible with Text Completions. See our
-   * [migration guide](https://docs.claude.com/en/api/migrating-from-text-completions-to-messages)
+   * [migration guide](https://platform.claude.com/docs/en/build-with-claude/working-with-messages)
    * for guidance in migrating from Text Completions to Messages.
    *
    * @example
@@ -122,8 +122,10 @@ export interface CompletionCreateParamsBase {
    * "\n\nHuman: {userQuestion}\n\nAssistant:"
    * ```
    *
-   * See [prompt validation](https://docs.claude.com/en/api/prompt-validation) and
-   * our guide to [prompt design](https://docs.claude.com/en/docs/intro-to-prompting)
+   * See
+   * [prompt validation](https://platform.claude.com/docs/en/build-with-claude/working-with-messages)
+   * and our guide to
+   * [prompt design](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview)
    * for more details.
    */
   prompt: string;
@@ -146,7 +148,8 @@ export interface CompletionCreateParamsBase {
    * Body param: Whether to incrementally stream the response using server-sent
    * events.
    *
-   * See [streaming](https://docs.claude.com/en/api/streaming) for details.
+   * See [streaming](https://platform.claude.com/docs/en/build-with-claude/streaming)
+   * for details.
    */
   stream?: boolean;
 
@@ -191,7 +194,8 @@ export interface CompletionCreateParamsNonStreaming extends CompletionCreatePara
    * Body param: Whether to incrementally stream the response using server-sent
    * events.
    *
-   * See [streaming](https://docs.claude.com/en/api/streaming) for details.
+   * See [streaming](https://platform.claude.com/docs/en/build-with-claude/streaming)
+   * for details.
    */
   stream?: false;
 }
@@ -201,7 +205,8 @@ export interface CompletionCreateParamsStreaming extends CompletionCreateParamsB
    * Body param: Whether to incrementally stream the response using server-sent
    * events.
    *
-   * See [streaming](https://docs.claude.com/en/api/streaming) for details.
+   * See [streaming](https://platform.claude.com/docs/en/build-with-claude/streaming)
+   * for details.
    */
   stream: true;
 }
