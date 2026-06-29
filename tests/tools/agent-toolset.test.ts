@@ -74,10 +74,23 @@ describe('resolvePath', () => {
         wantErr: /escapes workdir/,
       },
       {
-        description: 'absolute path is rejected by default so the jail is the explicit opt-out',
+        description:
+          'absolute path outside workdir is rejected by default so the jail is the explicit opt-out',
         env: { workdir: root },
         p: '/etc/passwd',
-        wantErr: /not permitted/,
+        wantErr: /escapes workdir/,
+      },
+      {
+        description: 'absolute path inside workdir is permitted by default',
+        env: { workdir: root },
+        p: path.resolve(root, 'a.txt'),
+        want: path.resolve(root, 'a.txt'),
+      },
+      {
+        description: 'absolute path naming the workdir itself is permitted',
+        env: { workdir: root },
+        p: root,
+        want: root,
       },
       {
         description: 'absolute path is allowed when unrestrictedPaths is set',

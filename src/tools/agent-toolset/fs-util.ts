@@ -70,9 +70,10 @@ export async function canonicalize(abs: string): Promise<string> {
 /**
  * Resolve `p` and confine it to `root`.
  *
- * Unless `allowOutside` is set, absolute inputs are rejected and the
- * **canonical** path is returned — every symlink in `p` (including the leaf,
- * even a dangling one) is resolved before the confinement check, and the
+ * Absolute and relative inputs go through the same canonicalise-then-contain
+ * check — an absolute path that lands inside `root` is permitted, only paths
+ * that resolve *outside* are rejected. Every symlink in `p` (including the
+ * leaf, even a dangling one) is resolved before the confinement check, and the
  * resolved path is what the caller then operates on, so a symlink inside `root`
  * that points outside it can neither pass the check nor be followed afterwards.
  *
@@ -87,18 +88,11 @@ export async function confineToRoot(
   opts?: { allowOutside?: boolean },
 ): Promise<string> {
   const allowOutside = opts?.allowOutside ?? false;
-  if (path.isAbsolute(p)) {
-    if (!allowOutside) {
-      throw new ToolError(`absolute path ${JSON.stringify(p)} not permitted`);
-    }
-    return path.resolve(p);
-  }
   const realRoot = await realpathOrSelf(path.resolve(root));
   const abs = path.resolve(realRoot, p);
   if (allowOutside) return abs;
   const real = await canonicalize(abs);
-  const rootSep = realRoot.endsWith(path.sep) ? realRoot : realRoot + path.sep;
-  if (real !== realRoot && !real.startsWith(rootSep)) {
+  if (real !== realRoot && !real.startsWith(realRoot + path.sep)) {
     throw new ToolError(`path ${JSON.stringify(p)} escapes workdir`);
   }
   return real;
