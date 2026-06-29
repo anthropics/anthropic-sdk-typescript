@@ -8,6 +8,7 @@ import { AwsCredentialIdentityProvider } from '@smithy/types';
 import { getAuthHeaders } from './core/aws-auth';
 import type { Middleware } from './core/middleware';
 import { FinalRequestOptions } from './internal/request-options';
+import { loggerFor } from './internal/utils/log';
 
 const DEFAULT_SERVICE_NAME = 'bedrock-mantle';
 
@@ -229,6 +230,7 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
       awsSessionToken: this.awsSessionToken,
       awsProfile: this.awsProfile,
       providerChainResolver: this.providerChainResolver,
+      logger: loggerFor(this),
     });
     // Signed headers take precedence: the signature must match what goes
     // over the wire, so it can't be overridden by other header sources.

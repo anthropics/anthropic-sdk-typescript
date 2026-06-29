@@ -7,6 +7,7 @@ import assert from 'assert';
 import { APIConnectionError } from './error';
 import { castToError } from '../internal/errors';
 import { MergedRequestInit } from '../internal/types';
+import { Logger } from '../internal/utils/log';
 
 export type AuthProps = {
   url: string;
@@ -18,14 +19,20 @@ export type AuthProps = {
   awsProfile?: string | null | undefined;
   fetchOptions?: MergedRequestInit | undefined;
   providerChainResolver?: (() => Promise<AwsCredentialIdentityProvider>) | null;
+  logger?: Logger | undefined;
 };
 
-const defaultProviderChainResolver = (profile?: string | null): Promise<AwsCredentialIdentityProvider> =>
+const defaultProviderChainResolver = (
+  profile?: string | null,
+  logger?: Logger | undefined,
+): Promise<AwsCredentialIdentityProvider> =>
   import('@aws-sdk/credential-providers')
     .then(({ fromNodeProviderChain }) =>
       fromNodeProviderChain({
         ...(profile != null ? { profile } : {}),
+        ...(logger != null ? { logger } : {}),
         clientConfig: {
+          ...(logger != null ? { logger } : {}),
           requestHandler: new FetchHttpHandler({
             requestInit: (httpRequest) => {
               return {
@@ -58,7 +65,7 @@ export const getAuthHeaders = async (req: RequestInit, props: AuthProps): Promis
   } else {
     const provider = await (props.providerChainResolver ?
       props.providerChainResolver()
-    : defaultProviderChainResolver(props.awsProfile));
+    : defaultProviderChainResolver(props.awsProfile, props.logger));
     try {
       credentials = await provider();
     } catch (err) {
