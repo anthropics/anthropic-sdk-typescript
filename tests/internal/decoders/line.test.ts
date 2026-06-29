@@ -114,6 +114,14 @@ describe('findDoubleNewlineIndex', () => {
     expect(findDoubleNewlineIndex(new TextEncoder().encode('\r\n\r\n'))).toBe(4);
   });
 
+  test('finds mixed adjacent line endings', () => {
+    expect(findDoubleNewlineIndex(new TextEncoder().encode('foo\n\r\nbar'))).toBe(6);
+    expect(findDoubleNewlineIndex(new TextEncoder().encode('foo\r\n\nbar'))).toBe(6);
+    expect(findDoubleNewlineIndex(new TextEncoder().encode('foo\n\rbar'))).toBe(5);
+    expect(findDoubleNewlineIndex(new TextEncoder().encode('foo\r\n\rbar'))).toBe(6);
+    expect(findDoubleNewlineIndex(new TextEncoder().encode('foo\r\r\nbar'))).toBe(6);
+  });
+
   test('returns -1 when no double newline found', () => {
     expect(findDoubleNewlineIndex(new TextEncoder().encode('foo\nbar'))).toBe(-1);
     expect(findDoubleNewlineIndex(new TextEncoder().encode('foo\rbar'))).toBe(-1);
@@ -122,7 +130,7 @@ describe('findDoubleNewlineIndex', () => {
   });
 
   test('handles incomplete patterns', () => {
-    expect(findDoubleNewlineIndex(new TextEncoder().encode('foo\r\n\r'))).toBe(-1);
     expect(findDoubleNewlineIndex(new TextEncoder().encode('foo\r\n'))).toBe(-1);
+    expect(findDoubleNewlineIndex(new TextEncoder().encode('foo\r'))).toBe(-1);
   });
 });
