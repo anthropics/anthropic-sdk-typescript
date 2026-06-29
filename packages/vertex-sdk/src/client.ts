@@ -158,7 +158,7 @@ export class AnthropicVertex extends BaseAnthropic {
         cause: castToError(err),
       });
     }
-    const projectId = authClient.projectId ?? googleAuthHeaders['x-goog-user-project'];
+    const projectId = authClient.projectId ?? googleAuthHeaders.get('x-goog-user-project');
     if (!this.projectId && projectId) {
       this.projectId = projectId;
     }
