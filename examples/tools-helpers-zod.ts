@@ -26,7 +26,7 @@ async function main() {
         },
       }),
     ],
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-sonnet-5',
     max_tokens: 1024,
     // the maximum number of iterations to run the tool
     max_iterations: 10,

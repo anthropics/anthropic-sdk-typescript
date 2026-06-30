@@ -117,7 +117,7 @@ const NumbersResponse = z.object({
 });
 
 const message = await client.messages.parse({
-  model: 'claude-sonnet-4-5',
+  model: 'claude-sonnet-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
   output_config: {
@@ -145,7 +145,7 @@ const NumbersResponse = {
 } as const;
 
 const message = await client.messages.parse({
-  model: 'claude-sonnet-4-5',
+  model: 'claude-sonnet-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
   output_config: {
@@ -197,7 +197,7 @@ const weatherTool = betaZodTool({
 });
 
 const finalMessage = await anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-4-5-20250929',
+  model: 'claude-sonnet-5',
   max_tokens: 1000,
   messages: [{ role: 'user', content: 'What is the weather in San Francisco?' }],
   tools: [weatherTool],
@@ -213,7 +213,7 @@ When you need to process intermediate messages or control the conversation flow,
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-4-5-20250929',
+  model: 'claude-sonnet-5',
   max_tokens: 1000,
   messages: [{ role: 'user', content: 'What is the weather in San Francisco?' }],
   tools: [weatherTool],
@@ -235,7 +235,7 @@ example.
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-4-5-20250929',
+  model: 'claude-sonnet-5',
   max_tokens: 1000,
   messages: [{ role: 'user', content: 'What is the weather in San Francisco?' }],
   tools: [calculatorTool],
@@ -265,7 +265,7 @@ const controller = new AbortController();
 
 const runner = anthropic.beta.messages.toolRunner(
   {
-    model: 'claude-sonnet-4-5-20250929',
+    model: 'claude-sonnet-5',
     max_tokens: 1000,
     messages: [{ role: 'user', content: 'Do a long task' }],
     tools: [

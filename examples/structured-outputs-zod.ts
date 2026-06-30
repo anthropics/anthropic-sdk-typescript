@@ -12,7 +12,7 @@ async function main() {
   const client = new Anthropic();
 
   const message = await client.messages.parse({
-    model: 'claude-sonnet-4-5',
+    model: 'claude-sonnet-5',
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
     output_config: {

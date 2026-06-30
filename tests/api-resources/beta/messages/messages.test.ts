@@ -55,7 +55,7 @@ describe('resource messages', () => {
       fallback_credit_token: 'x',
       fallbacks: [
         {
-          model: 'claude-fable-5',
+          model: 'claude-sonnet-5',
           max_tokens: 0,
           output_config: {
             effort: 'low',
