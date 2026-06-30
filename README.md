@@ -32,6 +32,7 @@ const message = await client.messages.create({
 console.log(message.content);
 ```
 
+
 ## Requirements
 
 TypeScript >= 4.9 is supported.
