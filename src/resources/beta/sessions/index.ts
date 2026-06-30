@@ -99,11 +99,17 @@ export {
 } from './resources';
 export {
   Sessions,
+  type BetaManagedAgentsAgentMessagePreview,
   type BetaManagedAgentsAgentParams,
+  type BetaManagedAgentsAgentThinkingPreview,
+  type BetaManagedAgentsAgentWithOverridesParams,
   type BetaManagedAgentsBranchCheckout,
   type BetaManagedAgentsCacheCreationUsage,
   type BetaManagedAgentsCommitCheckout,
   type BetaManagedAgentsDeletedSession,
+  type BetaManagedAgentsDeltaContent,
+  type BetaManagedAgentsDeltaEvent,
+  type BetaManagedAgentsDeltaType,
   type BetaManagedAgentsFileResourceParams,
   type BetaManagedAgentsGitHubRepositoryResourceParams,
   type BetaManagedAgentsMemoryStoreResourceParam,
@@ -118,6 +124,8 @@ export {
   type BetaManagedAgentsSessionStats,
   type BetaManagedAgentsSessionUpdatedEvent,
   type BetaManagedAgentsSessionUsage,
+  type BetaManagedAgentsStartEvent,
+  type BetaManagedAgentsStartEventPreview,
   type BetaManagedAgentsSystemContentBlock,
   type BetaManagedAgentsSystemMessageEvent,
   type BetaManagedAgentsUserToolResultEvent,
@@ -127,7 +135,7 @@ export {
   type SessionListParams,
   type SessionDeleteParams,
   type SessionArchiveParams,
-  type BetaManagedAgentsSessionsPageCursor,
+  type BetaManagedAgentsSessionsBidirectionalPageCursor,
 } from './sessions';
 export {
   Threads,
