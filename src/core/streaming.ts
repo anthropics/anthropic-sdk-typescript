@@ -118,6 +118,8 @@ export class Stream<Item> implements AsyncIterable<Item> {
             sse.event === 'session.thread_status_idle' ||
             sse.event === 'session.thread_status_rescheduled' ||
             sse.event === 'session.thread_status_terminated' ||
+            sse.event === 'event_start' ||
+            sse.event === 'event_delta' ||
             sse.event === 'system.message'
           ) {
             try {

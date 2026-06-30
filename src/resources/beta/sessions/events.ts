@@ -105,8 +105,9 @@ export class Events extends APIResource {
     params: EventStreamParams | undefined = {},
     options?: RequestOptions,
   ): APIPromise<Stream<BetaManagedAgentsStreamSessionEvents>> {
-    const { betas } = params ?? {};
+    const { betas, ...query } = params ?? {};
     return this._client.get(path`/v1/sessions/${sessionID}/events/stream?beta=true`, {
+      query,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
@@ -1451,6 +1452,8 @@ export type BetaManagedAgentsStreamSessionEvents =
   | SessionsAPI.BetaManagedAgentsUserToolResultEvent
   | BetaManagedAgentsSessionThreadStatusRescheduledEvent
   | SessionsAPI.BetaManagedAgentsSessionUpdatedEvent
+  | SessionsAPI.BetaManagedAgentsStartEvent
+  | SessionsAPI.BetaManagedAgentsDeltaEvent
   | SessionsAPI.BetaManagedAgentsSystemMessageEvent;
 
 /**
@@ -1918,7 +1921,21 @@ export interface EventSendParams {
 
 export interface EventStreamParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * Query param: When set, this connection also receives streaming deltas
+   * (`event_start`, `event_delta`) while an event is being produced, before the
+   * event itself arrives. Deltas are best-effort; when the final event is produced
+   * it carries the complete content. A model request that ends early (an error or
+   * interrupt) produces no final event — its terminal `span.model_request_end`
+   * closes the preview. Accepts one or more event types to preview and may be
+   * repeated: `agent.message` streams `content_delta` fragments; `agent.thinking` is
+   * start-only — a signal that the agent has begun extended thinking, concluded by
+   * the `agent.thinking` event itself. Only previews of the requested event types
+   * are sent.
+   */
+  event_deltas?: Array<SessionsAPI.BetaManagedAgentsDeltaType>;
+
+  /**
+   * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 }

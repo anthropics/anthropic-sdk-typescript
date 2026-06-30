@@ -29,6 +29,8 @@ export type { Middleware, MiddlewareContext, MiddlewareNext } from './core/middl
 export type { APIRequest } from './core/api';
 import * as Pagination from './core/pagination';
 import {
+  type BidirectionalPageCursorParams,
+  BidirectionalPageCursorResponse,
   type PageCursorParams,
   PageCursorResponse,
   type PageParams,
@@ -1584,6 +1586,12 @@ export declare namespace Anthropic {
 
   export import PageCursor = Pagination.PageCursor;
   export { type PageCursorParams as PageCursorParams, type PageCursorResponse as PageCursorResponse };
+
+  export import BidirectionalPageCursor = Pagination.BidirectionalPageCursor;
+  export {
+    type BidirectionalPageCursorParams as BidirectionalPageCursorParams,
+    type BidirectionalPageCursorResponse as BidirectionalPageCursorResponse,
+  };
 
   export {
     Completions as Completions,
