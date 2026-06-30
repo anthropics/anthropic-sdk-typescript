@@ -648,11 +648,17 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsAgentMessagePreview</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsAgentParams</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsAgentThinkingPreview</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsAgentWithOverridesParams</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsBranchCheckout</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsCacheCreationUsage</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsCommitCheckout</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsDeletedSession</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsDeltaContent</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsDeltaEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsDeltaType</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsFileResourceParams</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsGitHubRepositoryResourceParams</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsMemoryStoreResourceParam</a></code>
@@ -667,6 +673,8 @@ Types:
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionStats</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionUpdatedEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionUsage</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsStartEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsStartEventPreview</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSystemContentBlock</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSystemMessageEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsUserToolResultEvent</a></code>
@@ -676,7 +684,7 @@ Methods:
 - <code title="post /v1/sessions?beta=true">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">create</a>({ ...params }) -> BetaManagedAgentsSession</code>
 - <code title="get /v1/sessions/{session_id}?beta=true">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">retrieve</a>(sessionID, { ...params }) -> BetaManagedAgentsSession</code>
 - <code title="post /v1/sessions/{session_id}?beta=true">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">update</a>(sessionID, { ...params }) -> BetaManagedAgentsSession</code>
-- <code title="get /v1/sessions?beta=true">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">list</a>({ ...params }) -> BetaManagedAgentsSessionsPageCursor</code>
+- <code title="get /v1/sessions?beta=true">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">list</a>({ ...params }) -> BetaManagedAgentsSessionsBidirectionalPageCursor</code>
 - <code title="delete /v1/sessions/{session_id}?beta=true">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">delete</a>(sessionID, { ...params }) -> BetaManagedAgentsDeletedSession</code>
 - <code title="post /v1/sessions/{session_id}/archive?beta=true">client.beta.sessions.<a href="./src/resources/beta/sessions/sessions.ts">archive</a>(sessionID, { ...params }) -> BetaManagedAgentsSession</code>
 
@@ -916,6 +924,9 @@ Types:
 - <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsEnvironmentVariableAuthResponse</a></code>
 - <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsEnvironmentVariableCreateParams</a></code>
 - <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsEnvironmentVariableUpdateParams</a></code>
+- <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsInjectionLocationParams</a></code>
+- <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsInjectionLocationResponse</a></code>
+- <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsInjectionLocationUpdateParams</a></code>
 - <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsLimitedCredentialNetworkingParams</a></code>
 - <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsLimitedCredentialNetworkingResponse</a></code>
 - <code><a href="./src/resources/beta/vaults/credentials.ts">BetaManagedAgentsMCPOAuthAuthResponse</a></code>
@@ -1061,8 +1072,29 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookAgentArchivedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookAgentCreatedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookAgentDeletedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookAgentUpdatedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookDeploymentArchivedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookDeploymentCreatedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookDeploymentDeletedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookDeploymentPausedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookDeploymentRunFailedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookDeploymentRunStartedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookDeploymentRunSucceededEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookDeploymentUnpausedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookDeploymentUpdatedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEnvironmentArchivedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEnvironmentCreatedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEnvironmentDeletedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEnvironmentDeletedEventType</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEnvironmentUpdatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEvent</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookMemoryStoreArchivedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookMemoryStoreCreatedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookMemoryStoreDeletedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionArchivedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionCreatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionDeletedEventData</a></code>

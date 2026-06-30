@@ -372,7 +372,8 @@ export interface BetaSelfHostedWork {
   metadata: { [key: string]: string };
 
   /**
-   * Session instance JWT secret (only included in certain retrieval paths)
+   * Credential payload used by the environment worker to execute this work item. May
+   * be populated when polling for work; null on all other retrieval paths.
    */
   secret: string | null;
 

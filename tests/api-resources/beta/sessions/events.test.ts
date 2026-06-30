@@ -78,7 +78,7 @@ describe('resource events', () => {
     await expect(
       client.beta.sessions.events.stream(
         'sesn_011CZkZAtmR3yMPDzynEDxu7',
-        { betas: ['message-batches-2024-09-24'] },
+        { event_deltas: ['agent.message'], betas: ['message-batches-2024-09-24'] },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

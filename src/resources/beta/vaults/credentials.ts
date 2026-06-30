@@ -343,6 +343,11 @@ export interface BetaManagedAgentsDeletedCredential {
  */
 export interface BetaManagedAgentsEnvironmentVariableAuthResponse {
   /**
+   * Where in the outbound request the secret value is substituted.
+   */
+  injection_location: BetaManagedAgentsInjectionLocationResponse;
+
+  /**
    * Outbound hosts the secret value is substituted on.
    */
   networking:
@@ -377,6 +382,11 @@ export interface BetaManagedAgentsEnvironmentVariableCreateParams {
   secret_value: string;
 
   type: 'environment_variable';
+
+  /**
+   * Where in the outbound request the secret value may be substituted.
+   */
+  injection_location?: BetaManagedAgentsInjectionLocationParams;
 }
 
 /**
@@ -387,6 +397,11 @@ export interface BetaManagedAgentsEnvironmentVariableUpdateParams {
   type: 'environment_variable';
 
   /**
+   * Updated injection location.
+   */
+  injection_location?: BetaManagedAgentsInjectionLocationUpdateParams;
+
+  /**
    * Updated networking scope. Full replacement.
    */
   networking?: BetaManagedAgentsCredentialNetworkingParams | null;
@@ -395,6 +410,51 @@ export interface BetaManagedAgentsEnvironmentVariableUpdateParams {
    * Updated secret value.
    */
   secret_value?: string | null;
+}
+
+/**
+ * Where in the outbound request the secret value may be substituted.
+ */
+export interface BetaManagedAgentsInjectionLocationParams {
+  /**
+   * Substitute when the placeholder appears in the request body.
+   */
+  body?: boolean;
+
+  /**
+   * Substitute when the placeholder appears in a request header value.
+   */
+  header?: boolean;
+}
+
+/**
+ * Where in the outbound request the secret value is substituted.
+ */
+export interface BetaManagedAgentsInjectionLocationResponse {
+  /**
+   * Whether the placeholder is substituted in the request body.
+   */
+  body: boolean;
+
+  /**
+   * Whether the placeholder is substituted in request header values.
+   */
+  header: boolean;
+}
+
+/**
+ * Updated injection location.
+ */
+export interface BetaManagedAgentsInjectionLocationUpdateParams {
+  /**
+   * Substitute when the placeholder appears in the request body.
+   */
+  body?: boolean;
+
+  /**
+   * Substitute when the placeholder appears in a request header value.
+   */
+  header?: boolean;
 }
 
 /**
@@ -908,6 +968,9 @@ export declare namespace Credentials {
     type BetaManagedAgentsEnvironmentVariableAuthResponse as BetaManagedAgentsEnvironmentVariableAuthResponse,
     type BetaManagedAgentsEnvironmentVariableCreateParams as BetaManagedAgentsEnvironmentVariableCreateParams,
     type BetaManagedAgentsEnvironmentVariableUpdateParams as BetaManagedAgentsEnvironmentVariableUpdateParams,
+    type BetaManagedAgentsInjectionLocationParams as BetaManagedAgentsInjectionLocationParams,
+    type BetaManagedAgentsInjectionLocationResponse as BetaManagedAgentsInjectionLocationResponse,
+    type BetaManagedAgentsInjectionLocationUpdateParams as BetaManagedAgentsInjectionLocationUpdateParams,
     type BetaManagedAgentsLimitedCredentialNetworkingParams as BetaManagedAgentsLimitedCredentialNetworkingParams,
     type BetaManagedAgentsLimitedCredentialNetworkingResponse as BetaManagedAgentsLimitedCredentialNetworkingResponse,
     type BetaManagedAgentsMCPOAuthAuthResponse as BetaManagedAgentsMCPOAuthAuthResponse,
