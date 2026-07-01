@@ -1460,7 +1460,7 @@ export interface RefusalStopDetails {
   /**
    * The policy category that triggered a refusal.
    */
-  category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | 'military_weapons' | null;
+  category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | null;
 
   /**
    * Human-readable explanation of the refusal.
