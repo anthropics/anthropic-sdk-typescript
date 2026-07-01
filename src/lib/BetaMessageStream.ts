@@ -326,7 +326,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
   }
 
   /**
-   * @returns a promise that resolves with the the final assistant Message response,
+   * @returns a promise that resolves with the final assistant Message response,
    * or rejects if an error occurred or the stream ended prematurely without producing a Message.
    * If structured outputs were used, this will be a ParsedMessage with a `parsed` field.
    */
@@ -350,7 +350,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
   }
 
   /**
-   * @returns a promise that resolves with the the final assistant Message's text response, concatenated
+   * @returns a promise that resolves with the final assistant Message's text response, concatenated
    * together if there are more than one text blocks.
    * Rejects if an error occurred or the stream ended prematurely without producing a Message.
    */
