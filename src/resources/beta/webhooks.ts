@@ -187,60 +187,6 @@ export interface BetaWebhookDeploymentUpdatedEventData {
   workspace_id: string;
 }
 
-export interface BetaWebhookEnvironmentArchivedEventData {
-  /**
-   * ID of the environment that triggered the event.
-   */
-  id: string;
-
-  organization_id: string;
-
-  type: 'environment.archived';
-
-  workspace_id: string;
-}
-
-export interface BetaWebhookEnvironmentCreatedEventData {
-  /**
-   * ID of the environment that triggered the event.
-   */
-  id: string;
-
-  organization_id: string;
-
-  type: 'environment.created';
-
-  workspace_id: string;
-}
-
-export interface BetaWebhookEnvironmentDeletedEventData {
-  /**
-   * ID of the environment that triggered the event.
-   */
-  id: string;
-
-  organization_id: string;
-
-  type: BetaWebhookEnvironmentDeletedEventType;
-
-  workspace_id: string;
-}
-
-export type BetaWebhookEnvironmentDeletedEventType = 'environment.deleted';
-
-export interface BetaWebhookEnvironmentUpdatedEventData {
-  /**
-   * ID of the environment that triggered the event.
-   */
-  id: string;
-
-  organization_id: string;
-
-  type: 'environment.updated';
-
-  workspace_id: string;
-}
-
 export interface BetaWebhookEvent {
   /**
    * Unique event identifier for idempotency.
@@ -296,53 +242,7 @@ export type BetaWebhookEventData =
   | BetaWebhookDeploymentArchivedEventData
   | BetaWebhookDeploymentRunStartedEventData
   | BetaWebhookDeploymentDeletedEventData
-  | BetaWebhookDeploymentRunSucceededEventData
-  | BetaWebhookEnvironmentCreatedEventData
-  | BetaWebhookEnvironmentUpdatedEventData
-  | BetaWebhookEnvironmentArchivedEventData
-  | BetaWebhookEnvironmentDeletedEventData
-  | BetaWebhookMemoryStoreCreatedEventData
-  | BetaWebhookMemoryStoreArchivedEventData
-  | BetaWebhookMemoryStoreDeletedEventData;
-
-export interface BetaWebhookMemoryStoreArchivedEventData {
-  /**
-   * ID of the memory store that triggered the event.
-   */
-  id: string;
-
-  organization_id: string;
-
-  type: 'memory_store.archived';
-
-  workspace_id: string;
-}
-
-export interface BetaWebhookMemoryStoreCreatedEventData {
-  /**
-   * ID of the memory store that triggered the event.
-   */
-  id: string;
-
-  organization_id: string;
-
-  type: 'memory_store.created';
-
-  workspace_id: string;
-}
-
-export interface BetaWebhookMemoryStoreDeletedEventData {
-  /**
-   * ID of the memory store that triggered the event.
-   */
-  id: string;
-
-  organization_id: string;
-
-  type: 'memory_store.deleted';
-
-  workspace_id: string;
-}
+  | BetaWebhookDeploymentRunSucceededEventData;
 
 export interface BetaWebhookSessionArchivedEventData {
   /**
@@ -712,16 +612,8 @@ export declare namespace Webhooks {
     type BetaWebhookDeploymentRunSucceededEventData as BetaWebhookDeploymentRunSucceededEventData,
     type BetaWebhookDeploymentUnpausedEventData as BetaWebhookDeploymentUnpausedEventData,
     type BetaWebhookDeploymentUpdatedEventData as BetaWebhookDeploymentUpdatedEventData,
-    type BetaWebhookEnvironmentArchivedEventData as BetaWebhookEnvironmentArchivedEventData,
-    type BetaWebhookEnvironmentCreatedEventData as BetaWebhookEnvironmentCreatedEventData,
-    type BetaWebhookEnvironmentDeletedEventData as BetaWebhookEnvironmentDeletedEventData,
-    type BetaWebhookEnvironmentDeletedEventType as BetaWebhookEnvironmentDeletedEventType,
-    type BetaWebhookEnvironmentUpdatedEventData as BetaWebhookEnvironmentUpdatedEventData,
     type BetaWebhookEvent as BetaWebhookEvent,
     type BetaWebhookEventData as BetaWebhookEventData,
-    type BetaWebhookMemoryStoreArchivedEventData as BetaWebhookMemoryStoreArchivedEventData,
-    type BetaWebhookMemoryStoreCreatedEventData as BetaWebhookMemoryStoreCreatedEventData,
-    type BetaWebhookMemoryStoreDeletedEventData as BetaWebhookMemoryStoreDeletedEventData,
     type BetaWebhookSessionArchivedEventData as BetaWebhookSessionArchivedEventData,
     type BetaWebhookSessionCreatedEventData as BetaWebhookSessionCreatedEventData,
     type BetaWebhookSessionDeletedEventData as BetaWebhookSessionDeletedEventData,
