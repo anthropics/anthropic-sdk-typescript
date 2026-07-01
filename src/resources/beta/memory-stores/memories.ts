@@ -442,7 +442,10 @@ export interface MemoryUpdateParams {
 
 export interface MemoryListParams extends PageCursorParams {
   /**
-   * Query param: Query parameter for depth
+   * Query param: `0` (or omitted) returns all descendants below `path_prefix`
+   * (recursive). `1` returns immediate children only; deeper entries roll up as
+   * `memory_prefix` items. `depth=1` behaves like `ls`; omitting `depth` behaves
+   * like `find`.
    */
   depth?: number;
 
@@ -457,14 +460,16 @@ export interface MemoryListParams extends PageCursorParams {
   order_by?: string;
 
   /**
-   * Query param: Optional path prefix filter (raw string-prefix match; include a
-   * trailing slash for directory-scoped lists). This value appears in request URLs.
-   * Do not include secrets or personally identifiable information.
+   * Query param: Optional path prefix filter. Must end with `/` (segment-aligned),
+   * e.g., `/notes/`. This value appears in request URLs. Do not include secrets or
+   * personally identifiable information.
    */
   path_prefix?: string;
 
   /**
-   * Query param: Query parameter for view
+   * Query param: Which projection of each `memory` to return. Defaults to `basic`
+   * (content omitted). `full` populates `content` on each item and caps `limit` at
+   * 20; use this as the bulk-read path for export and sync.
    */
   view?: BetaManagedAgentsMemoryView;
 
