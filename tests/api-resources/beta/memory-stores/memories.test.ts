@@ -97,8 +97,6 @@ describe('resource memories', () => {
         {
           depth: 0,
           limit: 0,
-          order: 'asc',
-          order_by: 'order_by',
           page: 'page',
           path_prefix: 'path_prefix',
           view: 'basic',

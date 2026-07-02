@@ -32,7 +32,7 @@ export class Memories extends APIResource {
       body,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
         options?.headers,
       ]),
     });
@@ -60,7 +60,7 @@ export class Memories extends APIResource {
       query,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
         options?.headers,
       ]),
     });
@@ -89,7 +89,7 @@ export class Memories extends APIResource {
       body,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
         options?.headers,
       ]),
     });
@@ -121,7 +121,7 @@ export class Memories extends APIResource {
         query,
         ...options,
         headers: buildHeaders([
-          { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+          { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
           options?.headers,
         ]),
       },
@@ -150,7 +150,7 @@ export class Memories extends APIResource {
       query: { expected_content_sha256 },
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+        { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
         options?.headers,
       ]),
     });
@@ -448,16 +448,6 @@ export interface MemoryListParams extends PageCursorParams {
    * like `find`.
    */
   depth?: number;
-
-  /**
-   * Query param: Query parameter for order
-   */
-  order?: 'asc' | 'desc';
-
-  /**
-   * Query param: Query parameter for order_by
-   */
-  order_by?: string;
 
   /**
    * Query param: Optional path prefix filter. Must end with `/` (segment-aligned),
