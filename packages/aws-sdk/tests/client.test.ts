@@ -809,4 +809,64 @@ describe('AnthropicAws', () => {
       expect(client.models).toBeDefined();
     });
   });
+
+  describe('withOptions', () => {
+    test('clone preserves AWS SigV4 configuration', () => {
+      const client = new AnthropicAws({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsSessionToken: 'my-session-token',
+        awsRegion: 'us-west-2',
+        workspaceId: 'ws-test',
+      });
+
+      const clone = client.withOptions({ defaultHeaders: { 'x-custom': '1' } });
+
+      expect(clone).toBeInstanceOf(AnthropicAws);
+      expect(clone.workspaceId).toBe('ws-test');
+      expect(clone.awsRegion).toBe('us-west-2');
+      expect(clone.awsAccessKey).toBe('my-access-key');
+      expect(clone.awsSecretAccessKey).toBe('my-secret-key');
+      expect(clone.awsSessionToken).toBe('my-session-token');
+    });
+
+    test('clone preserves API-key configuration', () => {
+      const client = new AnthropicAws({
+        apiKey: 'my-api-key',
+        awsRegion: 'us-east-1',
+        workspaceId: 'ws-test',
+      });
+
+      const clone = client.withOptions({ maxRetries: 5 });
+
+      expect(clone).toBeInstanceOf(AnthropicAws);
+      expect(clone.workspaceId).toBe('ws-test');
+      expect(clone.awsRegion).toBe('us-east-1');
+      expect(clone.maxRetries).toBe(5);
+    });
+
+    test('auth-override clone (as used by the environment work helpers) preserves workspace + region', () => {
+      // Mirrors copyClientForHelper: it calls withOptions({ apiKey: null,
+      // authToken, credentials: undefined, ... }) to scope a sub-client. On the
+      // AWS client the sub-client must still carry the workspace id + region so
+      // the poller / worker / session-tool-runner can authenticate via SigV4.
+      const client = new AnthropicAws({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-west-2',
+        workspaceId: 'ws-test',
+      });
+
+      const scoped = client.withOptions({
+        apiKey: null,
+        authToken: 'unused-under-sigv4',
+        credentials: undefined,
+        baseURL: client.baseURL,
+      });
+
+      expect(scoped).toBeInstanceOf(AnthropicAws);
+      expect(scoped.workspaceId).toBe('ws-test');
+      expect(scoped.awsRegion).toBe('us-west-2');
+    });
+  });
 });

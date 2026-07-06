@@ -217,6 +217,27 @@ export class AnthropicAws extends Anthropic {
     this.skipAuth = skipAuth;
     this._useSigV4 = resolvedApiKey == null;
 
+    // The base constructor only records the options it received (`apiKey`,
+    // `baseURL`, `...opts`) on `this._options`, which is what `withOptions()`
+    // spreads when it rebuilds a clone. The AWS-specific options above were
+    // destructured out before `super()`, so without this a clone (used by the
+    // environment poller / worker / session-tool-runner, and by any direct
+    // `withOptions()` call) would be reconstructed without them — throwing
+    // "No workspace ID found" and dropping the AWS credentials. Re-record them
+    // so clones round-trip the full AWS configuration.
+    const awsOptions: AwsClientOptions = {
+      ...this._options,
+      awsRegion,
+      awsAccessKey,
+      awsSecretAccessKey,
+      awsSessionToken,
+      awsProfile,
+      providerChainResolver,
+      workspaceId: resolvedWorkspaceId,
+      skipAuth,
+    };
+    this._options = awsOptions;
+
     if (syncRegion || explicitBaseURL || skipAuth) {
       this.ready = Promise.resolve();
     } else {
