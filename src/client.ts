@@ -2,7 +2,6 @@
 
 import type { RequestInit, RequestInfo, BodyInit } from './internal/builtin-types';
 import type { HTTPMethod, PromiseOrValue, MergedRequestInit, FinalizedRequestInit } from './internal/types';
-import { uuid4 } from './internal/utils/uuid';
 import { validatePositiveInteger, isAbsoluteURL, safeJSON } from './internal/utils/values';
 import { sleep } from './internal/utils/sleep';
 export type { Logger, LogLevel } from './internal/utils/log';
@@ -487,7 +486,6 @@ export class BaseAnthropic {
 
   private fetch: Fetch;
   #encoder: Opts.RequestEncoder;
-  protected idempotencyHeader?: string;
   protected _options: ClientOptions;
 
   /**
@@ -846,10 +844,6 @@ export class BaseAnthropic {
 
   private getUserAgent(): string {
     return `${this.constructor.name}/JS ${VERSION}`;
-  }
-
-  protected defaultIdempotencyKey(): string {
-    return `stainless-node-retry-${uuid4()}`;
   }
 
   protected makeStatusError(
@@ -1427,7 +1421,7 @@ export class BaseAnthropic {
     if ('timeout' in options) validatePositiveInteger('timeout', options.timeout);
     options.timeout = options.timeout ?? this.timeout;
     const { bodyHeaders, body } = this.buildBody({ options });
-    const reqHeaders = await this.buildHeaders({ options: inputOptions, method, bodyHeaders, retryCount });
+    const reqHeaders = await this.buildHeaders({ options: inputOptions, bodyHeaders, retryCount });
 
     const req: FinalizedRequestInit = {
       method,
@@ -1445,23 +1439,14 @@ export class BaseAnthropic {
 
   private async buildHeaders({
     options,
-    method,
     bodyHeaders,
     retryCount,
   }: {
     options: FinalRequestOptions;
-    method: HTTPMethod;
     bodyHeaders: HeadersLike;
     retryCount: number;
   }): Promise<Headers> {
-    let idempotencyHeaders: HeadersLike = {};
-    if (this.idempotencyHeader && method !== 'get') {
-      if (!options.idempotencyKey) options.idempotencyKey = this.defaultIdempotencyKey();
-      idempotencyHeaders[this.idempotencyHeader] = options.idempotencyKey;
-    }
-
     const headers = buildHeaders([
-      idempotencyHeaders,
       {
         Accept: 'application/json',
         'User-Agent': this.getUserAgent(),

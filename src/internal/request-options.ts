@@ -120,11 +120,6 @@ export interface RequestOptions {
   fallbackState?: BetaFallbackState;
 
   /**
-   * A unique key for this request to enable idempotency.
-   */
-  idempotencyKey?: string;
-
-  /**
    * Override the default base URL for this specific request.
    */
   defaultBaseURL?: string | undefined;
