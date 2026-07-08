@@ -71,6 +71,16 @@ function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
     strictSchema['title'] = title;
   }
 
+  const constValue = pop(jsonSchema, 'const');
+  if (constValue !== undefined) {
+    strictSchema['const'] = constValue;
+  }
+
+  const enumValues = pop(jsonSchema, 'enum');
+  if (enumValues !== undefined) {
+    strictSchema['enum'] = enumValues;
+  }
+
   if (type === 'object') {
     const properties = pop(jsonSchema, 'properties') || {};
 
