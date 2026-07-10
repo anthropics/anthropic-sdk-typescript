@@ -75,6 +75,27 @@ import {
   DeploymentUpdateParams,
   Deployments,
 } from './deployments';
+import * as DreamsAPI from './dreams';
+import {
+  BetaDream,
+  BetaDreamError,
+  BetaDreamInput,
+  BetaDreamMemoryStoreInput,
+  BetaDreamMemoryStoreOutput,
+  BetaDreamModelConfig,
+  BetaDreamModelConfigParam,
+  BetaDreamOutput,
+  BetaDreamSessionsInput,
+  BetaDreamStatus,
+  BetaDreamUsage,
+  BetaDreamsPageCursor,
+  DreamArchiveParams,
+  DreamCancelParams,
+  DreamCreateParams,
+  DreamListParams,
+  DreamRetrieveParams,
+  Dreams,
+} from './dreams';
 import * as FilesAPI from './files';
 import {
   BetaFileScope,
@@ -553,6 +574,7 @@ export class Beta extends APIResource {
   skills: SkillsAPI.Skills = new SkillsAPI.Skills(this._client);
   webhooks: WebhooksAPI.Webhooks = new WebhooksAPI.Webhooks(this._client);
   userProfiles: UserProfilesAPI.UserProfiles = new UserProfilesAPI.UserProfiles(this._client);
+  dreams: DreamsAPI.Dreams = new DreamsAPI.Dreams(this._client);
 }
 
 export type AnthropicBeta =
@@ -582,6 +604,7 @@ export type AnthropicBeta =
   | 'advisor-tool-2026-03-01'
   | 'managed-agents-2026-04-01'
   | 'cache-diagnosis-2026-04-07'
+  | 'dreaming-2026-04-21'
   | 'thinking-token-count-2026-05-13'
   | 'server-side-fallback-2026-06-01'
   | 'fallback-credit-2026-06-01'
@@ -673,6 +696,7 @@ Beta.Files = Files;
 Beta.Skills = Skills;
 Beta.Webhooks = Webhooks;
 Beta.UserProfiles = UserProfiles;
+Beta.Dreams = Dreams;
 
 export declare namespace Beta {
   export {
@@ -1225,5 +1249,26 @@ export declare namespace Beta {
     type UserProfileUpdateParams as UserProfileUpdateParams,
     type UserProfileListParams as UserProfileListParams,
     type UserProfileCreateEnrollmentURLParams as UserProfileCreateEnrollmentURLParams,
+  };
+
+  export {
+    Dreams as Dreams,
+    type BetaDream as BetaDream,
+    type BetaDreamError as BetaDreamError,
+    type BetaDreamInput as BetaDreamInput,
+    type BetaDreamMemoryStoreInput as BetaDreamMemoryStoreInput,
+    type BetaDreamMemoryStoreOutput as BetaDreamMemoryStoreOutput,
+    type BetaDreamModelConfig as BetaDreamModelConfig,
+    type BetaDreamModelConfigParam as BetaDreamModelConfigParam,
+    type BetaDreamOutput as BetaDreamOutput,
+    type BetaDreamSessionsInput as BetaDreamSessionsInput,
+    type BetaDreamStatus as BetaDreamStatus,
+    type BetaDreamUsage as BetaDreamUsage,
+    type BetaDreamsPageCursor as BetaDreamsPageCursor,
+    type DreamCreateParams as DreamCreateParams,
+    type DreamRetrieveParams as DreamRetrieveParams,
+    type DreamListParams as DreamListParams,
+    type DreamArchiveParams as DreamArchiveParams,
+    type DreamCancelParams as DreamCancelParams,
   };
 }

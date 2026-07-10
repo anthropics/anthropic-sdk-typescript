@@ -657,8 +657,9 @@ export namespace BatchCreateParams {
       service_tier?: 'auto' | 'standard_only';
 
       /**
-       * The inference speed mode for this request. `"fast"` enables high
-       * output-tokens-per-second inference.
+       * Inference speed mode. `fast` provides significantly faster output token
+       * generation at premium pricing. Not all models support `fast`; invalid
+       * combinations are rejected at create time.
        */
       speed?: 'standard' | 'fast' | null;
 
