@@ -174,6 +174,10 @@ client.example.list(undefined, { headers: { ... } });
 - `client.beta.userProfiles.retrieve()`
 - `client.beta.userProfiles.list()`
 - `client.beta.userProfiles.createEnrollmentURL()`
+- `client.beta.dreams.retrieve()`
+- `client.beta.dreams.list()`
+- `client.beta.dreams.archive()`
+- `client.beta.dreams.cancel()`
 
 </details>
 

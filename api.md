@@ -1131,3 +1131,27 @@ Methods:
 - <code title="post /v1/user_profiles/{user_profile_id}?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">update</a>(userProfileID, { ...params }) -> BetaUserProfile</code>
 - <code title="get /v1/user_profiles?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">list</a>({ ...params }) -> BetaUserProfilesPageCursor</code>
 - <code title="post /v1/user_profiles/{user_profile_id}/enrollment_url?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">createEnrollmentURL</a>(userProfileID, { ...params }) -> BetaUserProfileEnrollmentURL</code>
+
+## Dreams
+
+Types:
+
+- <code><a href="./src/resources/beta/dreams.ts">BetaDream</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaDreamError</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaDreamInput</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaDreamMemoryStoreInput</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaDreamMemoryStoreOutput</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaDreamModelConfig</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaDreamModelConfigParam</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaDreamOutput</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaDreamSessionsInput</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaDreamStatus</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaDreamUsage</a></code>
+
+Methods:
+
+- <code title="post /v1/dreams?beta=true">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">create</a>({ ...params }) -> BetaDream</code>
+- <code title="get /v1/dreams/{dream_id}?beta=true">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">retrieve</a>(dreamID, { ...params }) -> BetaDream</code>
+- <code title="get /v1/dreams?beta=true">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">list</a>({ ...params }) -> BetaDreamsPageCursor</code>
+- <code title="post /v1/dreams/{dream_id}/archive?beta=true">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">archive</a>(dreamID, { ...params }) -> BetaDream</code>
+- <code title="post /v1/dreams/{dream_id}/cancel?beta=true">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">cancel</a>(dreamID, { ...params }) -> BetaDream</code>
