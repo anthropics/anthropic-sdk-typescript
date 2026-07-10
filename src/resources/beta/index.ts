@@ -136,6 +136,26 @@ export {
   type BetaManagedAgentsDeploymentsPageCursor,
 } from './deployments';
 export {
+  Dreams,
+  type BetaDream,
+  type BetaDreamError,
+  type BetaDreamInput,
+  type BetaDreamMemoryStoreInput,
+  type BetaDreamMemoryStoreOutput,
+  type BetaDreamModelConfig,
+  type BetaDreamModelConfigParam,
+  type BetaDreamOutput,
+  type BetaDreamSessionsInput,
+  type BetaDreamStatus,
+  type BetaDreamUsage,
+  type DreamCreateParams,
+  type DreamRetrieveParams,
+  type DreamListParams,
+  type DreamArchiveParams,
+  type DreamCancelParams,
+  type BetaDreamsPageCursor,
+} from './dreams';
+export {
   Environments,
   type BetaCloudConfig,
   type BetaCloudConfigParams,

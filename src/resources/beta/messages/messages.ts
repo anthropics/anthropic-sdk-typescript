@@ -1562,6 +1562,11 @@ export interface BetaFallbackParam {
 
   output_config?: BetaOutputConfig | null;
 
+  /**
+   * Inference speed mode. `fast` provides significantly faster output token
+   * generation at premium pricing. Not all models support `fast`; invalid
+   * combinations are rejected at create time.
+   */
   speed?: 'standard' | 'fast' | null;
 
   thinking?: BetaThinkingConfigEnabled | BetaThinkingConfigDisabled | BetaThinkingConfigAdaptive | null;
@@ -3712,7 +3717,9 @@ export interface BetaUsage {
   service_tier: 'standard' | 'priority' | 'batch' | null;
 
   /**
-   * The inference speed mode used for this request.
+   * Inference speed mode. `fast` provides significantly faster output token
+   * generation at premium pricing. Not all models support `fast`; invalid
+   * combinations are rejected at create time.
    */
   speed: 'standard' | 'fast' | null;
 }
@@ -4542,8 +4549,9 @@ export interface MessageCreateParamsBase {
   service_tier?: 'auto' | 'standard_only';
 
   /**
-   * Body param: The inference speed mode for this request. `"fast"` enables high
-   * output-tokens-per-second inference.
+   * Body param: Inference speed mode. `fast` provides significantly faster output
+   * token generation at premium pricing. Not all models support `fast`; invalid
+   * combinations are rejected at create time.
    */
   speed?: 'standard' | 'fast' | null;
 
@@ -4852,8 +4860,9 @@ export interface MessageCountTokensParams {
   output_format?: BetaJSONOutputFormat | null;
 
   /**
-   * Body param: The inference speed mode for this request. `"fast"` enables high
-   * output-tokens-per-second inference.
+   * Body param: Inference speed mode. `fast` provides significantly faster output
+   * token generation at premium pricing. Not all models support `fast`; invalid
+   * combinations are rejected at create time.
    */
   speed?: 'standard' | 'fast' | null;
 
