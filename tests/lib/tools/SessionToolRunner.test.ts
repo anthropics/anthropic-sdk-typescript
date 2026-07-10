@@ -123,8 +123,24 @@ function makeOkTool(name: string, output: string | BetaRunnableTool['run']): Bet
   };
 }
 
-function toolUse(id: string, name: string, input: Record<string, unknown> = {}): AnyEvent {
-  return { type: 'agent.tool_use', id, name, input };
+// `evaluatedPermission` is typed `string` (not the known union) so tests can
+// exercise how the runner treats a permission value it does not recognize.
+function toolUse(
+  id: string,
+  name: string,
+  input: Record<string, unknown> = {},
+  evaluatedPermission?: string,
+): AnyEvent {
+  const ev: AnyEvent = { type: 'agent.tool_use', id, name, input };
+  if (evaluatedPermission !== undefined) ev['evaluated_permission'] = evaluatedPermission;
+  return ev;
+}
+
+// The user's answer to a tool call that is waiting for approval: only `allow`
+// lets it run; any other verdict drops it. `result` is typed `string` (not the
+// known union) so tests can exercise verdict values this SDK doesn't recognize.
+function toolConfirmation(id: string, toolUseId: string, result: string): AnyEvent {
+  return { type: 'user.tool_confirmation', id, tool_use_id: toolUseId, result };
 }
 
 function customToolUse(id: string, name: string, input: Record<string, unknown> = {}): AnyEvent {
@@ -133,6 +149,16 @@ function customToolUse(id: string, name: string, input: Record<string, unknown> 
 
 function idleEndTurn(): AnyEvent {
   return { type: 'session.status_idle', id: 'ev_idle', stop_reason: { type: 'end_turn' } };
+}
+
+/** A `session.status_idle` with `stop_reason: requires_action` — the server
+ *  parks here waiting on the listed events (tool confirmations, tool results). */
+function idleRequiresAction(eventIds: string[]): AnyEvent {
+  return {
+    type: 'session.status_idle',
+    id: 'ev_idle_ra',
+    stop_reason: { type: 'requires_action', event_ids: eventIds },
+  };
 }
 
 const TERMINATED: AnyEvent = { type: 'session.status_terminated', id: 'ev_term' };
@@ -240,9 +266,9 @@ describe('SessionToolRunner', () => {
     expect(JSON.stringify(sent)).not.toContain('ctu_y');
   });
 
-  // A skipped (unanswered) unowned tool_use must stay OUT of the end-turn
-  // accounting: reconcile sees history ending on an end_turn idle but with the
-  // unowned tool_use still unanswered, so it must NOT arm the idle countdown —
+  // A skipped (unanswered) unowned tool_use stays OUT of the end-turn
+  // accounting: reconcile sees history ending on an `end_turn` idle but with
+  // the unowned tool_use still unanswered, so it must NOT arm the countdown —
   // the runner has not handled that call, its owner still has to.
   test('a skipped unowned tool_use does not falsely trip the idle watchdog', async () => {
     const { client, calls } = makeFake({
@@ -262,7 +288,6 @@ describe('SessionToolRunner', () => {
     // keeps running because the unowned id is still pending its owner.
     await new Promise((r) => setTimeout(r, 300));
     expect(finished).toBe(false);
-
     expect(out).toHaveLength(1);
     const call = out[0]!;
     expect(call.toolUseId).toBe('evt_pending');
@@ -616,5 +641,344 @@ describe('SessionToolRunner', () => {
     expect(runs).toBe(2);
     expect(calls.send.flat().filter((e) => e.type === 'user.tool_result')).toHaveLength(2);
     expect(out.map((c) => c.posted)).toEqual([false, true]);
+  });
+
+  // ===== tool calls that need user approval =====
+  //
+  // The server marks each `agent.tool_use` with `evaluated_permission`. Only
+  // "allow" (or no mark) runs on arrival; "ask" waits for the user's
+  // `user.tool_confirmation`; "deny" and unrecognized values never run.
+
+  // A denied call is still an outcome the consumer needs to observe: the
+  // agent tried to invoke a tool and was blocked. Dropping it silently
+  // makes "the agent called nothing" indistinguishable from "the agent
+  // called five tools and the user denied every one", which breaks audit
+  // trails and any UI that surfaces per-call outcomes. So a denied call —
+  // whether the server evaluated permission to `deny` or the user's
+  // confirmation verdict was a deny — must be yielded with
+  // `DispatchedToolCall.confirmation === 'deny'` (`posted=false`,
+  // `isError=false`, no result), and an ask-then-allow call must carry
+  // `confirmation === 'allow'` so the consumer can tell it was gated.
+  test('denied calls are yielded with confirmation="deny"', async () => {
+    const ran: string[] = [];
+    const echo = makeOkTool('echo', async (input) => (ran.push((input as { id: string }).id), 'ok'));
+    const { client, calls } = makeFake({
+      list: [
+        [
+          toolUse('srv_deny', 'echo', { id: 'srv_deny' }, 'deny'),
+          toolUse('usr_deny', 'echo', { id: 'usr_deny' }, 'ask'),
+          toolUse('usr_allow', 'echo', { id: 'usr_allow' }, 'ask'),
+          idleRequiresAction(['usr_deny', 'usr_allow']),
+        ],
+      ],
+      streams: [
+        [
+          toolConfirmation('c1', 'usr_deny', 'deny'),
+          toolConfirmation('c2', 'usr_allow', 'allow'),
+          idleEndTurn(),
+        ],
+      ],
+    });
+    const runner = new SessionToolRunner('s', { client, tools: [echo], maxIdleMs: 200 });
+    const got = new Map<string, DispatchedToolCall>();
+    for await (const c of runner) got.set(c.toolUseId, c);
+
+    expect(got.has('srv_deny')).toBe(true); // server-denied call was not yielded
+    expect(got.has('usr_deny')).toBe(true); // user-denied call was not yielded
+    expect(got.has('usr_allow')).toBe(true);
+
+    for (const id of ['srv_deny', 'usr_deny']) {
+      const c = got.get(id)!;
+      expect(c.confirmation).toBe('deny');
+      expect(c.posted).toBe(false);
+      expect(c.isError).toBe(false);
+      expect(c.result).toBeUndefined();
+    }
+    expect(got.get('usr_allow')!.confirmation).toBe('allow');
+    expect(got.get('usr_allow')!.posted).toBe(true);
+
+    expect(ran).toEqual(['usr_allow']);
+    expect(calls.send).toHaveLength(1);
+  });
+
+  test('only tools the server or user allowed ever run', async () => {
+    const ran: string[] = [];
+    const echo = makeOkTool('echo', async (input) => (ran.push((input as { id: string }).id), 'ok'));
+    const use = (id: string, permission?: string) => toolUse(id, 'echo', { id }, permission);
+
+    const { client, calls } = makeFake({
+      // From the history endpoint (read once when the runner connects):
+      list: [
+        [use('ask_answered_in_history', 'ask'), toolConfirmation('h1', 'ask_answered_in_history', 'allow')],
+      ],
+      // From the live event stream:
+      streams: [
+        [
+          use('marked_allow', 'allow'),
+          use('marked_deny', 'deny'),
+          use('ask_then_allowed', 'ask'),
+          use('ask_then_denied', 'ask'),
+          use('ask_never_answered', 'ask'),
+          use('ask_verdict_unrecognized', 'ask'),
+          use('unrecognized_mark', 'something_new'),
+          toolConfirmation('c1', 'ask_then_allowed', 'allow'),
+          toolConfirmation('c2', 'ask_then_denied', 'deny'),
+          toolConfirmation('c3', 'ask_verdict_unrecognized', 'escalate'),
+          TERMINATED,
+        ],
+      ],
+    });
+
+    const got = new Map<string, DispatchedToolCall>();
+    for await (const c of new SessionToolRunner('s', { client, tools: [echo], maxIdleMs: 0 }))
+      got.set(c.toolUseId, c);
+
+    const allowed = ['ask_answered_in_history', 'ask_then_allowed', 'marked_allow'];
+    expect(ran.sort()).toEqual(allowed);
+    expect(calls.send.flat().filter((e) => e.type === 'user.tool_result')).toHaveLength(3);
+
+    // Every routed call is yielded — allowed with its confirmation, denied
+    // with confirmation="deny". Only calls still held when the session
+    // terminates (never answered / unrecognized permission) are not.
+    expect([...got.keys()].sort()).toEqual([
+      'ask_answered_in_history',
+      'ask_then_allowed',
+      'ask_then_denied',
+      'ask_verdict_unrecognized',
+      'marked_allow',
+      'marked_deny',
+    ]);
+    expect(got.get('marked_allow')!.confirmation).toBeUndefined();
+    expect(got.get('ask_answered_in_history')!.confirmation).toBe('allow');
+    expect(got.get('ask_then_allowed')!.confirmation).toBe('allow');
+    for (const id of ['marked_deny', 'ask_then_denied', 'ask_verdict_unrecognized']) {
+      const c = got.get(id)!;
+      expect(c.confirmation).toBe('deny');
+      expect(c.posted).toBe(false);
+      expect(c.result).toBeUndefined();
+    }
+  });
+
+  test('an open approval keeps the runner alive; once answered the runner stops on its own', async () => {
+    const drive = (list: AnyEvent[], stream: AnyEvent[]) => {
+      const { client } = makeFake({ list: [list], streams: [stream] });
+      const runner = new SessionToolRunner('s', { client, tools: [], maxIdleMs: 50 });
+      let done = false;
+      const loop = (async () => {
+        for await (const _ of runner) {
+        }
+        done = true;
+      })();
+      return { runner, loop, done: () => done };
+    };
+
+    // History shows a held call and the turn ending; the answer has not
+    // arrived. The runner must not stop.
+    const waiting = drive([toolUse('tu', 'echo', {}, 'ask'), idleEndTurn()], []);
+    await new Promise((r) => setTimeout(r, 300));
+    expect(waiting.done()).toBe(false);
+    waiting.runner.abort();
+    await waiting.loop;
+
+    // Same history, then the user's answer closes the approval on the live
+    // stream — a deny, or an unrecognized verdict resolved as one (fail closed
+    // without wedging the runner open). Nothing is pending and the turn is
+    // over: the runner stops.
+    for (const verdict of ['deny', 'not_a_verdict']) {
+      const answered = drive(
+        [toolUse('tu', 'echo', {}, 'ask'), idleEndTurn()],
+        [toolConfirmation('c', 'tu', verdict)],
+      );
+      await new Promise((r) => setTimeout(r, 300));
+      expect(answered.done()).toBe(true);
+      await answered.loop;
+    }
+  });
+
+  test('an end_turn idle on the live stream while a call is held does not stop the runner', async () => {
+    // The live-stream counterpart of the reconcile case above. The server
+    // up-converts a legacy idle event to `end_turn` unconditionally, so an
+    // `end_turn` can land while a call sits on a human's approval — arming the
+    // countdown then would drop the call once its verdict finally arrives.
+    let runs = 0;
+    const echo = makeOkTool('echo', async () => (runs++, 'ok'));
+    const { client, calls } = makeFake({
+      streams: [[toolUse('tu', 'echo', {}, 'ask'), idleEndTurn()]],
+    });
+    const runner = new SessionToolRunner('s', { client, tools: [echo], maxIdleMs: 100 });
+
+    let done = false;
+    const loop = (async () => {
+      for await (const _ of runner) {
+      }
+      done = true;
+    })();
+    // Well past maxIdleMs: the runner must still be waiting with the approver.
+    await new Promise((r) => setTimeout(r, 500));
+    expect(done).toBe(false);
+    expect(runs).toBe(0);
+    expect(calls.send).toHaveLength(0);
+
+    runner.abort();
+    await loop;
+  });
+
+  test('a deny after a live end_turn resumes the idle stop', async () => {
+    // The session went idle while the call was held, so the deferred arm is all
+    // the runner has left — the denial itself produces no further events. It
+    // must apply that arm and stop on its own instead of waiting forever.
+    let runs = 0;
+    const echo = makeOkTool('echo', async () => (runs++, 'ok'));
+    const { client, calls } = makeFake({
+      streams: [[toolUse('tu', 'echo', {}, 'ask'), idleEndTurn(), toolConfirmation('c', 'tu', 'deny')]],
+    });
+    const runner = new SessionToolRunner('s', { client, tools: [echo], maxIdleMs: 50 });
+
+    const out: DispatchedToolCall[] = [];
+    let done = false;
+    const loop = (async () => {
+      for await (const c of runner) out.push(c);
+      done = true;
+    })();
+    await new Promise((r) => setTimeout(r, 600));
+    expect(done).toBe(true);
+    await loop;
+
+    expect(runs).toBe(0);
+    expect(calls.send).toHaveLength(0);
+    expect(out.map((c) => c.confirmation)).toEqual(['deny']);
+  });
+
+  test('a released call is not cut short by the idle countdown it deferred', async () => {
+    // A held call released by the reconcile pass (its allow verdict only shows
+    // up in history after a reconnect) is in-flight work: the `end_turn` idle
+    // ending that same history must not run the countdown while the released
+    // tool is still executing. Only once the call is fully dispatched does the
+    // deferred countdown start — a fresh grace window for the events the posted
+    // result will produce.
+    const maxIdleMs = 400;
+    let runs = 0;
+    const slow = makeOkTool('gated', async () => {
+      runs++;
+      await new Promise((r) => setTimeout(r, 600));
+      return 'ran';
+    });
+    const { client, calls } = makeFake({
+      // The gated call arrives live (and is held), then the stream drops.
+      streams: [[toolUse('tu', 'gated', {}, 'ask')], []],
+      streamErrors: [0],
+      // The reconcile after the reconnect sees only the verdict and the idle —
+      // the tool_use itself has scrolled out of the listed window.
+      list: [[], [toolConfirmation('c', 'tu', 'allow'), idleEndTurn()]],
+    });
+    const runner = new SessionToolRunner('s', { client, tools: [slow], maxIdleMs });
+
+    const out: DispatchedToolCall[] = [];
+    const loop = (async () => {
+      for await (const c of runner) out.push(c);
+    })();
+    while (calls.send.length === 0) await new Promise((r) => setTimeout(r, 10));
+    const postedAt = Date.now();
+    await loop;
+    const stoppedAt = Date.now();
+
+    expect(runs).toBe(1);
+    expect(out.map((c) => c.confirmation)).toEqual(['allow']);
+    expect(out[0]!.posted).toBe(true);
+    // A countdown armed during the reconcile has already expired by the time
+    // the slow tool finishes (600ms > maxIdleMs), stopping the runner the
+    // moment it posts. The deferred countdown instead starts once the call is
+    // dispatched, so the runner stays up for roughly a full grace window.
+    expect(stoppedAt - postedAt).toBeGreaterThan(maxIdleMs * 0.6);
+  });
+
+  test('a deferred arm cancels the stale pre-disconnect countdown', async () => {
+    // An end_turn armed the countdown, then the stream dropped. The reconciled
+    // history ends with a held ask-gated call and its end_turn, so the arm
+    // defers — but the pre-disconnect countdown is now stale evidence and must
+    // be cancelled, or the runner stops maxIdleMs after the *old* stamp while
+    // the confirmation is still pending on a human.
+    const { client } = makeFake({
+      // The agent finishes a turn (end_turn arms the countdown)… then the
+      // now-quiet SSE connection is dropped — exactly what load balancers do
+      // to idle streams. The second connection stays silent: the approver
+      // has stepped away.
+      streams: [[idleEndTurn()], []],
+      streamErrors: [0],
+      // While the runner was reconnecting, the user sent a follow-up from
+      // another client (the product UI); the agent hit a tool the policy
+      // gates on approval, and its turn ended parked on that ask. The
+      // reconnect's reconcile is how the runner learns all of this.
+      list: [[], [toolUse('tu', 'echo', {}, 'ask'), idleEndTurn()]],
+    });
+    // maxIdleMs must outlast the 500ms reconnect backoff so the held call is
+    // known before the stale stamp expires.
+    const runner = new SessionToolRunner('s', { client, tools: [], maxIdleMs: 800 });
+
+    let done = false;
+    const loop = (async () => {
+      for await (const _ of runner) {
+      }
+      done = true;
+    })();
+    // Well past the stale stamp's expiry (backoff 500ms + maxIdleMs 800ms):
+    // the runner must still be waiting with the approver, deferring on the
+    // held call.
+    await new Promise((r) => setTimeout(r, 2500));
+    expect(done).toBe(false);
+    runner.abort();
+    await loop;
+  });
+
+  test('a reconciled verdict releases a held call whose tool_use fell out of the history window', async () => {
+    // The call is held from the live stream, the stream drops, and the allow
+    // verdict is posted during the disconnect. By the time reconcile lists
+    // history, the tool_use itself has scrolled out of the listed window — the
+    // verdict must still release the held copy, exactly once.
+    const ran: string[] = [];
+    const echo = makeOkTool('echo', async (input) => (ran.push((input as { id: string }).id), 'ok'));
+    const { client, calls } = makeFake({
+      // Stream 1 yields the gated call (held) then disconnects; stream 2 terminates.
+      streams: [[toolUse('tu', 'echo', { id: 'tu' }, 'ask')], [TERMINATED]],
+      streamErrors: [0],
+      // The reconcile after the reconnect sees only the verdict.
+      list: [[], [toolConfirmation('c', 'tu', 'allow')]],
+    });
+
+    const out: DispatchedToolCall[] = [];
+    for await (const c of new SessionToolRunner('s', { client, tools: [echo], maxIdleMs: 0 })) out.push(c);
+
+    expect(ran).toEqual(['tu']);
+    expect(out.map((c) => c.toolUseId)).toEqual(['tu']);
+    expect(calls.send.flat().filter((e) => e.type === 'user.tool_result')).toHaveLength(1);
+  });
+
+  test('a reconciled deny for a held call missing from the history window still lets the runner stop', async () => {
+    // Deny flavor of the window-eviction case: the verdict must resolve the
+    // held copy (nothing runs, nothing posts) and clear the hold so the
+    // end_turn idle in the same history can stop the runner — instead of the
+    // occupied hold deferring idle-out forever.
+    let runs = 0;
+    const echo = makeOkTool('echo', async () => (runs++, 'ok'));
+    const { client, calls } = makeFake({
+      streams: [[toolUse('tu', 'echo', {}, 'ask')], []],
+      streamErrors: [0],
+      list: [[], [toolConfirmation('c', 'tu', 'deny'), idleEndTurn()]],
+    });
+    const runner = new SessionToolRunner('s', { client, tools: [echo], maxIdleMs: 50 });
+
+    let done = false;
+    const loop = (async () => {
+      for await (const _ of runner) {
+      }
+      done = true;
+    })();
+    // Reconnect backoff (500ms) + idle grace (50ms), with headroom.
+    await new Promise((r) => setTimeout(r, 1200));
+    expect(done).toBe(true);
+    await loop;
+
+    expect(runs).toBe(0);
+    expect(calls.send.flat()).toHaveLength(0);
   });
 });
