@@ -63,7 +63,9 @@ export interface SessionToolRunnerOptions {
   /**
    * Once the session goes idle with `stop_reason.type === "end_turn"`, the
    * runner keeps running for this many milliseconds before stopping; any new
-   * event resets the countdown and it re-arms on the next `end_turn` idle.
+   * event resets the countdown and it re-arms on the next `end_turn` idle. The
+   * countdown is deferred while a confirmation-gated call is held or still
+   * dispatching, and starts fresh once the last one resolves.
    * Defaults to {@link DEFAULT_MAX_IDLE_MS} (60s). `0` (or negative) disables
    * it — the runner then only stops on session termination or the consumer
    * breaking out / aborting.
@@ -128,14 +130,116 @@ export interface DispatchedToolCall {
    * post itself failed (typically a permanent 4xx or send-retry exhaustion)
    * and also `false` — with no `result` event ever built — for a tool name
    * this runner does not own when it deliberately posts nothing and leaves the
-   * id pending for its owner (the split-client behavior).
+   * id pending for its owner (the split-client behavior), or when the call
+   * was denied and never executed (see `confirmation`).
    */
   readonly posted: boolean;
+  /**
+   * The confirmation verdict that gated this call, if any.
+   *
+   * `'allow'` — the call required user confirmation (the server evaluated
+   * its permission to `ask`, e.g. under an `always_ask` policy) and the
+   * matching `user.tool_confirmation` approved it before the tool ran.
+   * `'deny'` — the user denied it, or the server itself evaluated the
+   * permission to `deny`; the tool was never executed and nothing was posted
+   * (`result=undefined`, `posted=false`, `isError=false`).
+   * `undefined` — the call needed no confirmation.
+   */
+  readonly confirmation: 'allow' | 'deny' | undefined;
 }
 
 /** Returns true if `ev` is a `session.status_idle` with `stop_reason` `end_turn`. */
 function isEndTurnIdle(ev: { type?: string; stop_reason?: { type?: string } }): boolean {
   return ev.type === 'session.status_idle' && ev.stop_reason?.type === 'end_turn';
+}
+
+/**
+ * The `maxIdleMs` stop-countdown, including its deferral. {@link noteEvent}
+ * arms on `session.status_idle` with `stop_reason: end_turn` and disarms on
+ * anything else. Gated tool work registered via {@link block} — a call held for
+ * user confirmation, or a user-approved call still dispatching — keeps
+ * {@link arm} pending until {@link unblock} retires the last blocker, at which
+ * point the countdown starts. Event-driven — there is no polling watchdog.
+ */
+class IdleClock {
+  readonly #maxIdleMs: number;
+  readonly #onExpire: () => void;
+  readonly #blockers = new Set<string>();
+  // Set when arm() found blockers outstanding; the unblock that retires the
+  // last blocker applies it. Cleared by any disarm.
+  #armPending = false;
+  #timer: ReturnType<typeof setTimeout> | undefined;
+
+  constructor(maxIdleMs: number, onExpire: () => void) {
+    this.#maxIdleMs = maxIdleMs;
+    this.#onExpire = onExpire;
+  }
+
+  /**
+   * Arm on `status_idle{end_turn}`; disarm otherwise. `user.tool_confirmation`
+   * is neutral: it signals neither agent activity nor an idle, and its effect
+   * on the clock flows through {@link block} / {@link unblock} instead —
+   * disarming here would discard the pending arm the verdict is about to
+   * settle.
+   */
+  noteEvent(ev: { type: string; stop_reason?: { type?: string } }): void {
+    if (ev.type === 'user.tool_confirmation') return;
+    if (isEndTurnIdle(ev)) this.arm();
+    else this.disarm();
+  }
+
+  /** Register gated work that must resolve before an idle countdown starts. */
+  block(toolUseId: string): void {
+    this.#blockers.add(toolUseId);
+    if (this.#timer !== undefined) {
+      // Defensive: every caller disarms first (any event that routes a tool
+      // call is itself a disarming event), but a countdown running when gated
+      // work appears is stale evidence — the session is not idly waiting to
+      // stop. Convert it into a pending arm rather than let it fire over the
+      // gated call.
+      this.#armPending = true;
+      clearTimeout(this.#timer);
+      this.#timer = undefined;
+    }
+  }
+
+  /**
+   * Retire gated work (a no-op for ids never blocked); applies a pending arm —
+   * with a fresh full `maxIdleMs` window — once the last blocker retires.
+   */
+  unblock(toolUseId: string): void {
+    this.#blockers.delete(toolUseId);
+    if (this.#blockers.size === 0 && this.#armPending) this.arm();
+  }
+
+  /**
+   * (Re)start the idle countdown — or, while blockers are outstanding, hold
+   * the arm pending instead. Stopping then would drop a held call when its
+   * verdict later arrives, or cut the runner off before a released call's
+   * result can drive the next turn.
+   */
+  arm(): void {
+    if (this.#maxIdleMs <= 0) return;
+    if (this.#blockers.size > 0) {
+      this.#armPending = true;
+      return;
+    }
+    this.#armPending = false;
+    if (this.#timer !== undefined) clearTimeout(this.#timer);
+    this.#timer = setTimeout(this.#onExpire, this.#maxIdleMs);
+  }
+
+  /**
+   * Cancel the idle countdown and any pending arm. Blockers persist — they
+   * track real outstanding work, retired only by {@link unblock}.
+   */
+  disarm(): void {
+    this.#armPending = false;
+    if (this.#timer !== undefined) {
+      clearTimeout(this.#timer);
+      this.#timer = undefined;
+    }
+  }
 }
 
 /**
@@ -147,6 +251,18 @@ function isEndTurnIdle(ev: { type?: string; stop_reason?: { type?: string } }): 
  * {@link DispatchedToolCall} per completed call. Server-side `agent.mcp_tool_use`
  * calls are not dispatched. Internally drives event-stream reconnect and result
  * posting.
+ *
+ * A call the server gated with `evaluated_permission: "ask"` (the `always_ask`
+ * policy — or any value this SDK doesn't recognize, which fails closed) is held
+ * until its `user.tool_confirmation` arrives: only an explicit `allow` runs it;
+ * `deny` — or any verdict this SDK doesn't recognize, failing closed — is never
+ * executed and posts nothing (the denial resolves the call server-side), but is
+ * still yielded (`confirmation="deny"`, `posted=false`, `result=undefined`) so
+ * the consumer can observe it. A held call — and a user-approved one still
+ * dispatching — defers the `maxIdleMs` countdown, so an `end_turn` idle
+ * observed in the meantime cannot stop the runner: it waits until the verdict
+ * arrives, the session terminates, or the abort signal fires — pass
+ * `AbortSignal.timeout(...)` for a wall-clock bound.
  *
  * Iteration ends when the session terminates (`session.status_terminated` /
  * `session.deleted`), when the consumer `break`s out of the loop or aborts the
@@ -183,12 +299,19 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
   readonly #logger: Logger;
   readonly #seen = new Set<string>();
   readonly #answered = new Set<string>();
+  // Confirmation gating (`always_ask` tools): `#confirmationVerdicts` records
+  // every `user.tool_confirmation` verdict by `tool_use_id`;
+  // `#awaitingConfirmation` holds the tool-call events whose
+  // `evaluated_permission` is `ask` and whose verdict has not arrived —
+  // released (or resolved as denied) by `#noteConfirmation` / the next
+  // reconcile pass. Like `#seen` and `#answered`, `#confirmationVerdicts` is
+  // per-session O(tool calls): recorded verdicts persist for the life of the run.
+  readonly #confirmationVerdicts = new Map<string, 'allow' | 'deny'>();
+  readonly #awaitingConfirmation = new Map<string, DispatchedToolUseEvent>();
   readonly #results = new AsyncQueue<DispatchedToolCall>();
   #inFlightCount = 0;
   #onIdle: (() => void) | null = null;
-  // When the session is idle past an `end_turn`, the pending stop timer; cleared
-  // by any new event. Event-driven — there is no polling watchdog.
-  #idleTimer: ReturnType<typeof setTimeout> | undefined;
+  readonly #idleClock: IdleClock;
 
   constructor(sessionId: string, opts: SessionToolRunnerOptions) {
     this.client = opts.client;
@@ -200,6 +323,14 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
     this.#controller = new AbortController();
     this.#detachExternal = linkAbort(opts.signal, this.#controller);
     this.#requestOpts = opts.requestOptions;
+    this.#idleClock = new IdleClock(this.maxIdleMs, () => {
+      this.#logger.info('session idle after end_turn; stopping', {
+        component: 'session-tool-runner',
+        session_id: this.sessionId,
+        max_idle_ms: this.maxIdleMs,
+      });
+      this.#controller.abort();
+    });
   }
 
   /** Read-only view of this runner's abort signal. */
@@ -250,7 +381,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
       }
     } finally {
       this.#controller.abort();
-      this.#disarmIdleTimer();
+      this.#idleClock.disarm();
       // Re-await defensively in case the consumer broke out of phase 1 before
       // phase 2 ran — a no-op if it already settled.
       await streamPromise;
@@ -362,12 +493,29 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
       return;
     }
     const unanswered = pending.filter((ev) => !this.#answered.has(ev.id));
-    // If the most recent event in history is an `end_turn` idle and there's no
-    // outstanding tool work, the session is done — arm the idle timer so the
-    // runner stops even if that `end_turn` arrived during a disconnect.
-    if (lastWasEndTurn && unanswered.length === 0) this.#armIdleTimer();
-    else this.#disarmIdleTimer();
-    for (const ev of unanswered) await this.#execute(ev);
+    // Disarm before routing: `#execute` runs inline here, so a timer left armed
+    // from before the reconnect could fire over an in-flight tool.
+    this.#idleClock.disarm();
+    for (const ev of unanswered) await this.#routeToolEvent(ev);
+    // A held call's verdict is normally applied by the routing pass above; if
+    // its tool_use fell outside the listed window the pass never saw it, so
+    // apply the verdict to the held copy here.
+    for (const held of [...this.#awaitingConfirmation.values()]) {
+      const verdict = this.#confirmationVerdicts.get(held.id);
+      if (verdict !== undefined) await this.#applyVerdict(held, verdict);
+    }
+    // Routing resolves denied calls in place (marking them answered) and holds
+    // ask-gated calls for their `user.tool_confirmation`. If the most recent
+    // event in history is an `end_turn` idle and no tool work is outstanding,
+    // the session is done — arm the idle clock so the runner stops even if that
+    // `end_turn` arrived during a disconnect. A held call is not outstanding
+    // here: it blocks the clock, so this arm stays pending until the verdict
+    // (and, for an allow, the dispatch it releases) resolves it.
+    const outstanding = unanswered.filter(
+      (ev) => !this.#answered.has(ev.id) && !this.#awaitingConfirmation.has(ev.id),
+    );
+    if (lastWasEndTurn && outstanding.length === 0) this.#idleClock.arm();
+    else this.#idleClock.disarm();
   }
 
   #ingestHistory(ev: BetaManagedAgentsSessionEvent, pending: DispatchedToolUseEvent[]): void {
@@ -382,22 +530,28 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
       this.#answered.add(ev.tool_use_id);
     } else if (ev.type === 'user.custom_tool_result') {
       this.#answered.add(ev.custom_tool_use_id);
+    } else if (ev.type === 'user.tool_confirmation') {
+      // Record the verdict only, before the pending pass, so a call whose
+      // confirmation appears later in the same history routes with its verdict
+      // already known. Releasing a held call here as well would dispatch it a
+      // second time when the routing pass reaches its tool_use event.
+      if (!this.#answered.has(ev.tool_use_id)) this.#confirmationVerdicts.set(ev.tool_use_id, ev.result);
     }
   }
 
   /** Returns true when the runner should exit. */
   async #handleStreamEvent(ev: BetaManagedAgentsStreamSessionEvents): Promise<boolean> {
-    // Arm/disarm the idle timer: an `end_turn` idle starts the grace countdown;
-    // any other event cancels it.
-    if (isEndTurnIdle(ev)) this.#armIdleTimer();
-    else this.#disarmIdleTimer();
+    this.#idleClock.noteEvent(ev);
     switch (ev.type) {
       case 'agent.tool_use':
       case 'agent.custom_tool_use':
         if (!this.#seen.has(ev.id)) {
           this.#seen.add(ev.id);
-          await this.#execute(ev);
+          await this.#routeToolEvent(ev);
         }
+        return false;
+      case 'user.tool_confirmation':
+        await this.#noteConfirmation(ev);
         return false;
       case 'user.tool_result':
         this.#answered.add(ev.tool_use_id);
@@ -418,33 +572,115 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
     }
   }
 
-  // ===== idle timer =====
+  // ===== confirmation gating (always_ask tools) =====
 
-  /** (Re)start the grace countdown that stops the runner after `maxIdleMs` of idle. */
-  #armIdleTimer(): void {
-    this.#disarmIdleTimer();
-    if (this.maxIdleMs <= 0) return;
-    this.#idleTimer = setTimeout(() => {
-      this.#logger.info('session idle after end_turn; stopping', {
-        component: 'session-tool-runner',
-        session_id: this.sessionId,
-        max_idle_ms: this.maxIdleMs,
-      });
-      this.#controller.abort();
-    }, this.maxIdleMs);
+  /**
+   * Dispatch `ev`, honoring its evaluated permission. A call the server gated
+   * (`evaluated_permission == "ask"`) is held until its `user.tool_confirmation`
+   * arrives. Fails closed: only an explicit `allow` verdict releases a gated
+   * call; a server-side `deny` overrides any recorded verdict; an unrecognized
+   * permission is held like `ask` and an unrecognized verdict is denied.
+   */
+  async #routeToolEvent(ev: DispatchedToolUseEvent): Promise<void> {
+    // `getattr`-style read: today only `agent.tool_use` carries
+    // `evaluated_permission`, but if it ever lands on `agent.custom_tool_use`
+    // the gate must keep failing closed rather than dispatch by event type.
+    const permission = (ev as { evaluated_permission?: 'allow' | 'ask' | 'deny' }).evaluated_permission;
+    // A server-side `deny` overrides any (stray) recorded verdict.
+    const verdict = permission === 'deny' ? 'deny' : this.#confirmationVerdicts.get(ev.id);
+    if (verdict === undefined) {
+      if (permission === undefined || permission === 'allow') {
+        await this.#execute(ev, undefined);
+      } else if (!this.#awaitingConfirmation.has(ev.id)) {
+        // "ask" — or a permission this SDK does not recognize, which must not
+        // dispatch unconfirmed — waits for the user's verdict. (Already-held: a
+        // reconcile after reconnect re-routes the call; keep the existing hold.)
+        this.#logger.info('tool call awaiting confirmation; holding', {
+          component: 'session-tool-runner',
+          session_id: this.sessionId,
+          tool: ev.name,
+          tool_use_id: ev.id,
+        });
+        this.#awaitingConfirmation.set(ev.id, ev);
+        this.#idleClock.block(ev.id);
+      }
+      return;
+    }
+    await this.#applyVerdict(ev, verdict);
   }
 
-  /** Cancel a pending idle countdown, if any. */
-  #disarmIdleTimer(): void {
-    if (this.#idleTimer !== undefined) {
-      clearTimeout(this.#idleTimer);
-      this.#idleTimer = undefined;
+  /** Record an allow/deny verdict and release the held call it gates, if any. */
+  async #noteConfirmation(ev: { tool_use_id: string; result: 'allow' | 'deny' }): Promise<void> {
+    this.#confirmationVerdicts.set(ev.tool_use_id, ev.result);
+    const held = this.#awaitingConfirmation.get(ev.tool_use_id);
+    // Nothing held: the verdict gates a call this runner has not seen yet (or
+    // one it never gates, e.g. an `agent.mcp_tool_use`). Keeping it in
+    // `#confirmationVerdicts` lets a later route of that call resolve instantly.
+    if (held === undefined) return;
+    await this.#applyVerdict(held, ev.result);
+  }
+
+  /**
+   * Dispatch or resolve a gated call according to its verdict.
+   *
+   * The idle-clock blocker accounting lives here: a denial retires the held
+   * call's blocker, while an allow keeps one on the call — taking it now if the
+   * verdict was already known when the call was routed, so it was never held —
+   * until `#execute` has finished with it. The countdown must not run over
+   * gated work that is still in flight.
+   */
+  async #applyVerdict(ev: DispatchedToolUseEvent, verdict: 'allow' | 'deny'): Promise<void> {
+    const wasHeld = this.#awaitingConfirmation.delete(ev.id);
+    if (verdict === 'allow') {
+      this.#logger.info('tool call confirmed', {
+        component: 'session-tool-runner',
+        session_id: this.sessionId,
+        tool: ev.name,
+        tool_use_id: ev.id,
+      });
+      if (!wasHeld) this.#idleClock.block(ev.id);
+      try {
+        await this.#execute(ev, 'allow');
+      } finally {
+        // The approved call is fully disposed of (executed, or moot because it
+        // was answered elsewhere) — the sole place an allow's blocker retires.
+        this.#idleClock.unblock(ev.id);
+      }
+      return;
     }
+    // "deny" — or any value other than an explicit "allow" (fail closed). The
+    // denial resolves the call server-side, so mark it answered and yield it
+    // (nothing ran, nothing posted).
+    if (wasHeld) this.#idleClock.unblock(ev.id);
+    this.#answered.add(ev.id);
+    this.#logger.info('tool call denied; not executing', {
+      component: 'session-tool-runner',
+      session_id: this.sessionId,
+      tool: ev.name,
+      tool_use_id: ev.id,
+    });
+    this.#surfaceCall({
+      event: ev,
+      toolUseId: ev.id,
+      name: ev.name,
+      isError: false,
+      posted: false,
+      confirmation: 'deny',
+    });
+  }
+
+  /**
+   * Yield `call` to the consumer. A closed queue — the consumer broke out of
+   * the iterator — makes `push` a no-op returning false; the underlying work
+   * already happened, so only the observability event is lost.
+   */
+  #surfaceCall(call: DispatchedToolCall): void {
+    this.#results.push(call);
   }
 
   // ===== tool execution =====
 
-  async #execute(ev: DispatchedToolUseEvent): Promise<void> {
+  async #execute(ev: DispatchedToolUseEvent, confirmation: 'allow' | undefined): Promise<void> {
     if (this.#answered.has(ev.id)) return;
     this.#logger.info('executing tool', {
       component: 'session-tool-runner',
@@ -472,7 +708,14 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
           tool: ev.name,
           tool_use_id: ev.id,
         });
-        this.#results.push({ event: ev, toolUseId: ev.id, name: ev.name, isError: false, posted: false });
+        this.#surfaceCall({
+          event: ev,
+          toolUseId: ev.id,
+          name: ev.name,
+          isError: false,
+          posted: false,
+          confirmation,
+        });
         return;
       }
       let content: string | Array<BetaToolResultContentBlockParam>;
@@ -504,13 +747,14 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
       // unanswered and the session stuck.
       const result = buildResultEvent(ev, isError, toSessionContent(content));
       const posted = await this.#sendResult(result, ev.id);
-      this.#results.push({
+      this.#surfaceCall({
         event: ev,
         result,
         toolUseId: ev.id,
         name: ev.name,
         isError,
         posted,
+        confirmation,
       });
     } finally {
       this.#inFlightCount--;
