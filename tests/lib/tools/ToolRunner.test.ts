@@ -1,6 +1,11 @@
 import Anthropic, { BetaFallbackState, type Middleware } from '@anthropic-ai/sdk';
 import { mockFetch } from '../../lib/mock-fetch';
-import { BetaMessage, BetaContentBlock, BetaToolResultBlockParam } from '@anthropic-ai/sdk/resources/beta';
+import {
+  BetaContainer,
+  BetaMessage,
+  BetaContentBlock,
+  BetaToolResultBlockParam,
+} from '@anthropic-ai/sdk/resources/beta';
 import { BetaRunnableTool, BetaToolRunContext } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
 import { BetaRawMessageStreamEvent, ToolError } from '@anthropic-ai/sdk/resources/beta/messages';
 import { Fetch } from '@anthropic-ai/sdk/internal/builtin-types';
@@ -315,6 +320,97 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
     handleAssistantMessage,
     handleAssistantMessageStream,
   };
+}
+
+const CONTAINER_ID = 'container_01Q9CzvCUGo5cSz4Harm6ngG';
+const OTHER_CONTAINER_ID = 'container_01ZzKkWwXxYyAaBbCcDdEeFf';
+
+function container(id: string): BetaContainer {
+  return { id, expires_at: '2026-07-11T00:00:00Z', skills: null };
+}
+
+function assistantMessage(
+  id: string,
+  content: BetaContentBlock[],
+  container: BetaContainer | null = null,
+): BetaMessage {
+  const hasToolUse = content.some((block) => block.type === 'tool_use');
+  return {
+    id,
+    type: 'message',
+    role: 'assistant',
+    content,
+    model: 'claude-3-5-sonnet-latest',
+    stop_details: null,
+    stop_reason: hasToolUse ? 'tool_use' : 'end_turn',
+    stop_sequence: null,
+    container,
+    context_management: null,
+    diagnostics: null,
+    usage: {
+      input_tokens: 10,
+      output_tokens: 20,
+      output_tokens_details: null,
+      cache_creation: null,
+      cache_creation_input_tokens: null,
+      cache_read_input_tokens: null,
+      server_tool_use: null,
+      service_tier: null,
+      inference_geo: null,
+      iterations: null,
+      speed: null,
+    },
+  };
+}
+
+/**
+ * Records the parsed body of every outgoing request, so a test can assert on what the runner actually
+ * put on the wire for each turn, and counts tool invocations so a duplicated turn is visible.
+ */
+function setupRecordingTest(params: Partial<ToolRunnerParams> = {}) {
+  const { fetch: mockedFetch, handleRequest, handleStreamEvents } = mockFetch();
+  const bodies: Record<string, any>[] = [];
+  let toolRuns = 0;
+
+  const fetch: Fetch = async (req, init) => {
+    if (typeof init?.body === 'string') {
+      bodies.push(JSON.parse(init.body));
+    }
+    return mockedFetch(req, init);
+  };
+
+  const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+
+  const countingWeatherTool: BetaRunnableTool<{ location: string }> = {
+    ...weatherTool,
+    run: async ({ location }) => {
+      toolRuns++;
+      return `Sunny in ${location}`;
+    },
+  };
+
+  const respond = (message: BetaMessage) => {
+    handleRequest(
+      async () =>
+        new Response(JSON.stringify(message), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+    );
+  };
+  const respondStream = (message: BetaMessage) => {
+    handleStreamEvents(betaMessageToStreamEvents(message));
+  };
+
+  const runner = client.beta.messages.toolRunner({
+    messages: [{ role: 'user', content: 'What is the weather?' }],
+    model: 'claude-3-5-sonnet-latest',
+    max_tokens: 1000,
+    tools: [countingWeatherTool],
+    ...params,
+  } as ToolRunnerParams);
+
+  return { runner, bodies, respond, respondStream, toolRuns: () => toolRuns };
 }
 
 async function expectEvent<T>(iterator: AsyncIterator<T>, assertions?: (event: T) => void | Promise<void>) {
@@ -1598,6 +1694,344 @@ describe('ToolRunner', () => {
       expect(seenStates).toHaveLength(2);
       expect(seenStates[0]).toBe(fallbackState);
       expect(seenStates[1]).toBe(fallbackState);
+    });
+  });
+
+  describe('container', () => {
+    it('forwards a server-reported container id on the next request', async () => {
+      const { runner, bodies, respond } = setupRecordingTest();
+
+      respond(assistantMessage('msg_1', [getWeatherToolUse('SF')]));
+      respond(assistantMessage('msg_2', [getWeatherToolUse('NYC')], container(CONTAINER_ID)));
+      respond(assistantMessage('msg_3', [getTextContent('Done')]));
+
+      await runner.runUntilDone();
+
+      expect(bodies).toHaveLength(3);
+      expect(bodies[0]).not.toHaveProperty('container');
+      expect(bodies[1]).not.toHaveProperty('container');
+      expect(bodies[2]!['container']).toBe(CONTAINER_ID);
+    });
+
+    it('forwards a server-reported container id on the next request when streaming', async () => {
+      const { runner, bodies, respondStream } = setupRecordingTest({ stream: true });
+
+      respondStream(assistantMessage('msg_1', [getWeatherToolUse('SF')]));
+      respondStream(assistantMessage('msg_2', [getWeatherToolUse('NYC')], container(CONTAINER_ID)));
+      respondStream(assistantMessage('msg_3', [getTextContent('Done')]));
+
+      await runner.runUntilDone();
+
+      expect(bodies).toHaveLength(3);
+      expect(bodies[2]!['container']).toBe(CONTAINER_ID);
+    });
+
+    it("preserves the caller's container config, replacing only the id", async () => {
+      const skills = [{ type: 'custom' as const, skill_id: 'skill_1', version: 'latest' }];
+      const { runner, bodies, respond } = setupRecordingTest({ container: { skills } });
+
+      respond(assistantMessage('msg_1', [getWeatherToolUse('SF')]));
+      respond(assistantMessage('msg_2', [getWeatherToolUse('NYC')], container(CONTAINER_ID)));
+      respond(assistantMessage('msg_3', [getTextContent('Done')]));
+
+      await runner.runUntilDone();
+
+      expect(bodies[0]!['container']).toEqual({ skills });
+      expect(bodies[2]!['container']).toEqual({ skills, id: CONTAINER_ID });
+    });
+
+    it('forwards the latest container id when the server reports a new one', async () => {
+      const { runner, bodies, respond } = setupRecordingTest();
+
+      respond(assistantMessage('msg_1', [getWeatherToolUse('SF')], container(CONTAINER_ID)));
+      respond(assistantMessage('msg_2', [getWeatherToolUse('NYC')], container(OTHER_CONTAINER_ID)));
+      respond(assistantMessage('msg_3', [getTextContent('Done')]));
+
+      await runner.runUntilDone();
+
+      expect(bodies[1]!['container']).toBe(CONTAINER_ID);
+      expect(bodies[2]!['container']).toBe(OTHER_CONTAINER_ID);
+    });
+
+    it('keeps the captured container id when a later response reports no container', async () => {
+      const { runner, bodies, respond } = setupRecordingTest();
+
+      respond(assistantMessage('msg_1', [getWeatherToolUse('SF')], container(CONTAINER_ID)));
+      respond(assistantMessage('msg_2', [getWeatherToolUse('NYC')], null));
+      respond(assistantMessage('msg_3', [getTextContent('Done')]));
+
+      await runner.runUntilDone();
+
+      expect(bodies[1]!['container']).toBe(CONTAINER_ID);
+      expect(bodies[2]!['container']).toBe(CONTAINER_ID);
+    });
+
+    it('captures the container id when only non-message params change', async () => {
+      const { runner, bodies, respond } = setupRecordingTest();
+
+      respond(assistantMessage('msg_1', [getWeatherToolUse('SF')], container(CONTAINER_ID)));
+      respond(assistantMessage('msg_2', [getTextContent('Done')]));
+
+      const iterator = runner[Symbol.asyncIterator]();
+      await iterator.next();
+      runner.setMessagesParams((params) => ({ ...params, max_tokens: 512 }));
+      await iterator.next();
+      await iterator.next();
+      await runner.done();
+
+      expect(bodies[1]!['container']).toBe(CONTAINER_ID);
+    });
+
+    it('captures the container id when the consumer pushes a message during the turn', async () => {
+      const { runner, bodies, respond } = setupRecordingTest();
+
+      respond(assistantMessage('msg_1', [getWeatherToolUse('SF')], container(CONTAINER_ID)));
+      respond(assistantMessage('msg_2', [getTextContent('Done')]));
+
+      const iterator = runner[Symbol.asyncIterator]();
+      await iterator.next();
+      runner.pushMessages({ role: 'user', content: 'Also NYC?' });
+      await iterator.next();
+      await iterator.next();
+      await runner.done();
+
+      expect(bodies[1]!['container']).toBe(CONTAINER_ID);
+    });
+
+    it('keeps the container id when the consumer replaces params wholesale', async () => {
+      const { runner, bodies, respond } = setupRecordingTest();
+
+      respond(assistantMessage('msg_1', [getWeatherToolUse('SF')], container(CONTAINER_ID)));
+      respond(assistantMessage('msg_2', [getTextContent('Done')]));
+
+      const iterator = runner[Symbol.asyncIterator]();
+      await iterator.next();
+      // A wholesale replacement, as the setMessagesParams docs advertise. A container id stored in the
+      // params would be dropped here.
+      runner.setMessagesParams({
+        messages: [{ role: 'user', content: 'What is the weather?' }],
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 512,
+        tools: [weatherTool],
+      });
+      await iterator.next();
+      await iterator.next();
+      await runner.done();
+
+      expect(bodies[1]!['container']).toBe(CONTAINER_ID);
+    });
+
+    it('does not override a container id the caller set', async () => {
+      const { runner, bodies, respond } = setupRecordingTest();
+
+      respond(assistantMessage('msg_1', [getWeatherToolUse('SF')], container(CONTAINER_ID)));
+      respond(assistantMessage('msg_2', [getTextContent('Done')]));
+
+      const iterator = runner[Symbol.asyncIterator]();
+      await iterator.next();
+      runner.setMessagesParams((params) => ({ ...params, container: 'container_from_caller' }));
+      await iterator.next();
+      await iterator.next();
+      await runner.done();
+
+      expect(bodies[1]!['container']).toBe('container_from_caller');
+    });
+
+    it('does not override an explicit null from the caller', async () => {
+      const { runner, bodies, respond } = setupRecordingTest();
+
+      respond(assistantMessage('msg_1', [getWeatherToolUse('SF')], container(CONTAINER_ID)));
+      respond(assistantMessage('msg_2', [getTextContent('Done')]));
+
+      const iterator = runner[Symbol.asyncIterator]();
+      await iterator.next();
+      runner.setMessagesParams((params) => ({ ...params, container: null }));
+      await iterator.next();
+      await iterator.next();
+      await runner.done();
+
+      expect(bodies[1]!['container']).toBeNull();
+    });
+
+    it('does not override an id the caller set inside a container object', async () => {
+      const skills = [{ type: 'custom' as const, skill_id: 'skill_1', version: 'latest' }];
+      const { runner, bodies, respond } = setupRecordingTest({
+        container: { id: 'container_from_caller', skills },
+      });
+
+      respond(assistantMessage('msg_1', [getWeatherToolUse('SF')], container(CONTAINER_ID)));
+      respond(assistantMessage('msg_2', [getTextContent('Done')]));
+
+      await runner.runUntilDone();
+
+      expect(bodies[1]!['container']).toEqual({ id: 'container_from_caller', skills });
+    });
+  });
+
+  describe('conversation history across setMessagesParams', () => {
+    it('does not append the assistant turn after a message pushed during the same turn', async () => {
+      const { runner, bodies, respond, toolRuns } = setupRecordingTest();
+
+      respond(assistantMessage('msg_1', [getWeatherToolUse('SF')]));
+      respond(assistantMessage('msg_2', [getTextContent('Done')]));
+
+      const iterator = runner[Symbol.asyncIterator]();
+      await iterator.next();
+      runner.pushMessages({ role: 'user', content: 'Also NYC?' });
+      // A later param-only change must not undo the fact that the caller took over the history.
+      runner.setMessagesParams((params) => ({ ...params, max_tokens: 512 }));
+      await iterator.next();
+      await iterator.next();
+      await runner.done();
+
+      expect(bodies[1]!['messages']).toMatchObject([{ role: 'user' }, { role: 'user' }]);
+      expect(toolRuns()).toBe(0);
+    });
+
+    it('does not duplicate an assistant turn recorded by an in-place mutator', async () => {
+      const { runner, bodies, respond, toolRuns } = setupRecordingTest();
+
+      const first = assistantMessage('msg_1', [getWeatherToolUse('SF')]);
+      respond(first);
+      respond(assistantMessage('msg_2', [getTextContent('Done')]));
+
+      const iterator = runner[Symbol.asyncIterator]();
+      await iterator.next();
+      runner.setMessagesParams((params) => {
+        // Mutates the existing array rather than replacing it — the caller has still taken over.
+        params.messages.push({ role: 'assistant', content: first.content });
+        params.messages.push({ role: 'user', content: [getWeatherToolResult('SF')] });
+        return params;
+      });
+      await iterator.next();
+      await iterator.next();
+      await runner.done();
+
+      expect(bodies[1]!['messages']).toMatchObject([
+        { role: 'user' },
+        { role: 'assistant' },
+        { role: 'user' },
+      ]);
+      expect(toolRuns()).toBe(0);
+    });
+
+    it('does not record the assistant turn when a mutator rewrites a message in place', async () => {
+      const { runner, bodies, respond, toolRuns } = setupRecordingTest();
+
+      respond(assistantMessage('msg_1', [getWeatherToolUse('SF')]));
+      respond(assistantMessage('msg_2', [getTextContent('Done')]));
+
+      const iterator = runner[Symbol.asyncIterator]();
+      await iterator.next();
+      runner.setMessagesParams((params) => {
+        // Same array, same length — a redaction pass, say. The caller still owns the history.
+        params.messages[0] = { role: 'user', content: 'Rewritten' };
+        return params;
+      });
+      await iterator.next();
+      await iterator.next();
+      await runner.done();
+
+      expect(bodies[1]!['messages']).toMatchObject([{ role: 'user', content: 'Rewritten' }]);
+      expect(toolRuns()).toBe(0);
+    });
+
+    it('does not duplicate the assistant turn when a mutator slides the window in place', async () => {
+      const { runner, bodies, respond, toolRuns } = setupRecordingTest({
+        messages: [
+          { role: 'user', content: 'First' },
+          { role: 'user', content: 'What is the weather?' },
+        ],
+      });
+
+      const first = assistantMessage('msg_1', [getWeatherToolUse('SF')]);
+      respond(first);
+      respond(assistantMessage('msg_2', [getTextContent('Done')]));
+
+      const iterator = runner[Symbol.asyncIterator]();
+      await iterator.next();
+      runner.setMessagesParams((params) => {
+        // Drops the oldest turn and records the assistant one: same array, same length.
+        params.messages.shift();
+        params.messages.push({ role: 'assistant', content: first.content });
+        return params;
+      });
+      await iterator.next();
+      await iterator.next();
+      await runner.done();
+
+      expect(bodies[1]!['messages']).toMatchObject([
+        { role: 'user' },
+        { role: 'assistant' },
+        { role: 'user' },
+      ]);
+      expect(toolRuns()).toBe(1);
+    });
+
+    it('ends the run when only params change on a turn with no tool calls', async () => {
+      const { runner, bodies, respond } = setupRecordingTest();
+
+      respond(assistantMessage('msg_1', [getTextContent('Done')]));
+      // Queued so that an unwanted second request fails an assertion rather than hanging the test.
+      respond(assistantMessage('msg_2', [getTextContent('Again')]));
+
+      const iterator = runner[Symbol.asyncIterator]();
+      await iterator.next();
+      runner.setMessagesParams((params) => ({ ...params, max_tokens: 512 }));
+      const result = await iterator.next();
+
+      // The model ended its turn and there is no tool work left, so a param-only change has nothing to
+      // apply to and the run is over.
+      expect(result.done).toBe(true);
+      expect(bodies).toHaveLength(1);
+    });
+
+    it('omits container entirely when the server never reports one', async () => {
+      const { runner, bodies, respond } = setupRecordingTest();
+
+      respond(assistantMessage('msg_1', [getWeatherToolUse('SF')]));
+      respond(assistantMessage('msg_2', [getTextContent('Done')]));
+
+      await runner.runUntilDone();
+
+      expect(bodies).toHaveLength(2);
+      for (const body of bodies) {
+        expect(body).not.toHaveProperty('container');
+      }
+    });
+
+    it("leaves the caller's container id untouched when the server reports none", async () => {
+      const { runner, bodies, respond } = setupRecordingTest({ container: 'container_from_caller' });
+
+      respond(assistantMessage('msg_1', [getWeatherToolUse('SF')]));
+      respond(assistantMessage('msg_2', [getTextContent('Done')]));
+
+      await runner.runUntilDone();
+
+      expect(bodies[0]!['container']).toBe('container_from_caller');
+      expect(bodies[1]!['container']).toBe('container_from_caller');
+    });
+
+    it('records the assistant turn when setMessagesParams leaves messages untouched', async () => {
+      const { runner, bodies, respond } = setupRecordingTest();
+
+      respond(assistantMessage('msg_1', [getWeatherToolUse('SF')]));
+      respond(assistantMessage('msg_2', [getTextContent('Done')]));
+
+      const iterator = runner[Symbol.asyncIterator]();
+      await iterator.next();
+      runner.setMessagesParams((params) => ({ ...params, max_tokens: 512 }));
+      await iterator.next();
+      await iterator.next();
+      await runner.done();
+
+      expect(bodies).toHaveLength(2);
+      expect(bodies[1]!['max_tokens']).toBe(512);
+      expect(bodies[1]!['messages']).toMatchObject([
+        { role: 'user' },
+        { role: 'assistant', content: [getWeatherToolUse('SF')] },
+        { role: 'user', content: [getWeatherToolResult('SF')] },
+      ]);
     });
   });
 });
