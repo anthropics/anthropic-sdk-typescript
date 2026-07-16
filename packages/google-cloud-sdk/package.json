@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/google-cloud-sdk",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "The official TypeScript library for Claude Platform on Google Cloud",
   "author": "Anthropic <support@anthropic.com>",
   "types": "dist/index.d.ts",
