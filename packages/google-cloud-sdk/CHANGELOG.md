@@ -1,0 +1,9 @@
+# Changelog
+
+## 0.0.2 (2026-07-16)
+
+Full Changelog: [google-cloud-sdk-v0.0.1...google-cloud-sdk-v0.0.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.1...google-cloud-sdk-v0.0.2)
+
+### Chores
+
+* **internal:** version bump ([eb97e85](https://github.com/anthropics/anthropic-sdk-typescript/commit/eb97e8577279fb150582297d2a0924a297185c3c))
