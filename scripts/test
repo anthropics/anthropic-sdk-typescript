@@ -70,3 +70,7 @@ echo "==> Running foundry-sdk tests"
 echo
 echo "==> Running aws-sdk tests"
 (cd packages/aws-sdk && ./node_modules/.bin/jest)
+
+echo
+echo "==> Running google-cloud-sdk tests"
+(cd packages/google-cloud-sdk && ./node_modules/.bin/jest)
