@@ -37,6 +37,8 @@ TEST_PATHS=(
 	tests/api-resources/beta/webhooks.test.ts
 	tests/api-resources/beta/user-profiles.test.ts
 	tests/api-resources/beta/dreams.test.ts
+	tests/api-resources/beta/tunnels/tunnels.test.ts
+	tests/api-resources/beta/tunnels/certificates.test.ts
 	tests/index.test.ts
 )
 
