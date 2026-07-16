@@ -928,6 +928,80 @@
           "type": "options"
         }
       ]
+    },
+    {
+      "base": "beta.tunnels.certificates",
+      "name": "retrieve",
+      "params": [
+        {
+          "type": "param",
+          "key": "certificate_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "tunnel_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "certificate_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
+    },
+    {
+      "base": "beta.tunnels.certificates",
+      "name": "archive",
+      "params": [
+        {
+          "type": "param",
+          "key": "certificate_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": false
+        },
+        {
+          "type": "options"
+        }
+      ],
+      "oldParams": [
+        {
+          "type": "param",
+          "key": "tunnel_id",
+          "location": "path"
+        },
+        {
+          "type": "param",
+          "key": "certificate_id",
+          "location": "path"
+        },
+        {
+          "type": "params",
+          "maybeOverload": true
+        },
+        {
+          "type": "options"
+        }
+      ]
     }
   ]
 }

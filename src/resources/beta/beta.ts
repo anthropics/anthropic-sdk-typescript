@@ -555,6 +555,19 @@ import {
   SkillRetrieveResponse,
   Skills,
 } from './skills/skills';
+import * as TunnelsAPI from './tunnels/tunnels';
+import {
+  BetaTunnel,
+  BetaTunnelToken,
+  BetaTunnelsPageCursor,
+  TunnelArchiveParams,
+  TunnelCreateParams,
+  TunnelListParams,
+  TunnelRetrieveParams,
+  TunnelRevealTokenParams,
+  TunnelRotateTokenParams,
+  Tunnels,
+} from './tunnels/tunnels';
 import * as VaultsAPI from './vaults/vaults';
 import {
   BetaManagedAgentsDeletedVault,
@@ -584,6 +597,7 @@ export class Beta extends APIResource {
   webhooks: WebhooksAPI.Webhooks = new WebhooksAPI.Webhooks(this._client);
   userProfiles: UserProfilesAPI.UserProfiles = new UserProfilesAPI.UserProfiles(this._client);
   dreams: DreamsAPI.Dreams = new DreamsAPI.Dreams(this._client);
+  tunnels: TunnelsAPI.Tunnels = new TunnelsAPI.Tunnels(this._client);
 }
 
 export type AnthropicBeta =
@@ -706,6 +720,7 @@ Beta.Skills = Skills;
 Beta.Webhooks = Webhooks;
 Beta.UserProfiles = UserProfiles;
 Beta.Dreams = Dreams;
+Beta.Tunnels = Tunnels;
 
 export declare namespace Beta {
   export {
@@ -1288,5 +1303,18 @@ export declare namespace Beta {
     type DreamListParams as DreamListParams,
     type DreamArchiveParams as DreamArchiveParams,
     type DreamCancelParams as DreamCancelParams,
+  };
+
+  export {
+    Tunnels as Tunnels,
+    type BetaTunnel as BetaTunnel,
+    type BetaTunnelToken as BetaTunnelToken,
+    type BetaTunnelsPageCursor as BetaTunnelsPageCursor,
+    type TunnelCreateParams as TunnelCreateParams,
+    type TunnelRetrieveParams as TunnelRetrieveParams,
+    type TunnelListParams as TunnelListParams,
+    type TunnelArchiveParams as TunnelArchiveParams,
+    type TunnelRevealTokenParams as TunnelRevealTokenParams,
+    type TunnelRotateTokenParams as TunnelRotateTokenParams,
   };
 }
