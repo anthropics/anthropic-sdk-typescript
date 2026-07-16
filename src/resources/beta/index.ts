@@ -504,6 +504,18 @@ export {
   type SkillListResponsesPageCursor,
 } from './skills/index';
 export {
+  Tunnels,
+  type BetaTunnel,
+  type BetaTunnelToken,
+  type TunnelCreateParams,
+  type TunnelRetrieveParams,
+  type TunnelListParams,
+  type TunnelArchiveParams,
+  type TunnelRevealTokenParams,
+  type TunnelRotateTokenParams,
+  type BetaTunnelsPageCursor,
+} from './tunnels/index';
+export {
   UserProfiles,
   type BetaUserProfile,
   type BetaUserProfileEnrollmentURL,

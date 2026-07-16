@@ -1155,3 +1155,32 @@ Methods:
 - <code title="get /v1/dreams?beta=true">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">list</a>({ ...params }) -> BetaDreamsPageCursor</code>
 - <code title="post /v1/dreams/{dream_id}/archive?beta=true">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">archive</a>(dreamID, { ...params }) -> BetaDream</code>
 - <code title="post /v1/dreams/{dream_id}/cancel?beta=true">client.beta.dreams.<a href="./src/resources/beta/dreams.ts">cancel</a>(dreamID, { ...params }) -> BetaDream</code>
+
+## Tunnels
+
+Types:
+
+- <code><a href="./src/resources/beta/tunnels/tunnels.ts">BetaTunnel</a></code>
+- <code><a href="./src/resources/beta/tunnels/tunnels.ts">BetaTunnelToken</a></code>
+
+Methods:
+
+- <code title="post /v1/tunnels?beta=true">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">create</a>({ ...params }) -> BetaTunnel</code>
+- <code title="get /v1/tunnels/{tunnel_id}?beta=true">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">retrieve</a>(tunnelID, { ...params }) -> BetaTunnel</code>
+- <code title="get /v1/tunnels?beta=true">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">list</a>({ ...params }) -> BetaTunnelsPageCursor</code>
+- <code title="post /v1/tunnels/{tunnel_id}/archive?beta=true">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">archive</a>(tunnelID, { ...params }) -> BetaTunnel</code>
+- <code title="post /v1/tunnels/{tunnel_id}/reveal_token?beta=true">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">revealToken</a>(tunnelID, { ...params }) -> BetaTunnelToken</code>
+- <code title="post /v1/tunnels/{tunnel_id}/rotate_token?beta=true">client.beta.tunnels.<a href="./src/resources/beta/tunnels/tunnels.ts">rotateToken</a>(tunnelID, { ...params }) -> BetaTunnelToken</code>
+
+### Certificates
+
+Types:
+
+- <code><a href="./src/resources/beta/tunnels/certificates.ts">BetaTunnelCertificate</a></code>
+
+Methods:
+
+- <code title="post /v1/tunnels/{tunnel_id}/certificates?beta=true">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">create</a>(tunnelID, { ...params }) -> BetaTunnelCertificate</code>
+- <code title="get /v1/tunnels/{tunnel_id}/certificates/{certificate_id}?beta=true">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">retrieve</a>(certificateID, { ...params }) -> BetaTunnelCertificate</code>
+- <code title="get /v1/tunnels/{tunnel_id}/certificates?beta=true">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">list</a>(tunnelID, { ...params }) -> BetaTunnelCertificatesPageCursor</code>
+- <code title="post /v1/tunnels/{tunnel_id}/certificates/{certificate_id}/archive?beta=true">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">archive</a>(certificateID, { ...params }) -> BetaTunnelCertificate</code>

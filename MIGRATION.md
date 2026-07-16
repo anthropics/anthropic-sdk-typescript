@@ -81,6 +81,8 @@ client.parents.children.retrieve('c_456', { parent_id: 'p_123' });
 - `client.beta.skills.versions.retrieve()`
 - `client.beta.skills.versions.delete()`
 - `client.beta.skills.versions.download()`
+- `client.beta.tunnels.certificates.retrieve()`
+- `client.beta.tunnels.certificates.archive()`
 
 </details>
 
@@ -178,6 +180,11 @@ client.example.list(undefined, { headers: { ... } });
 - `client.beta.dreams.list()`
 - `client.beta.dreams.archive()`
 - `client.beta.dreams.cancel()`
+- `client.beta.tunnels.retrieve()`
+- `client.beta.tunnels.list()`
+- `client.beta.tunnels.archive()`
+- `client.beta.tunnels.revealToken()`
+- `client.beta.tunnels.certificates.list()`
 
 </details>
 
