@@ -2,7 +2,7 @@
 
 [![NPM version](https://img.shields.io/npm/v/@anthropic-ai/google-cloud-sdk.svg?color=blue)](https://npmjs.org/package/@anthropic-ai/google-cloud-sdk)
 
-This library provides convenient access to Claude Platform on Google Cloud, the first-party Claude API served through Google Cloud. It exposes the full Anthropic API surface and authenticates with a Google bearer token.
+This library provides convenient access to Claude Platform on Google Cloud — the first-party Claude API served through Google Cloud. It exposes the full Anthropic API surface and authenticates with a Google bearer token.
 
 For the direct Claude API at api.anthropic.com, see [`@anthropic-ai/sdk`](https://github.com/anthropics/anthropic-sdk-typescript). For the `:rawPredict` publisher-model API, see [`@anthropic-ai/vertex-sdk`](https://github.com/anthropics/anthropic-sdk-typescript).
 
@@ -53,7 +53,7 @@ This client never uses the base SDK's Anthropic credential sources: `ANTHROPIC_A
 
 ### Application Default Credentials
 
-Set up ADC (e.g. `gcloud auth application-default login`) and the client fetches and refreshes a bearer token for you — no auth options needed.
+Set up ADC (e.g. `gcloud auth application-default login`) and the client fetches and refreshes a bearer token for you, no auth options needed.
 
 ### Custom Google credentials
 
