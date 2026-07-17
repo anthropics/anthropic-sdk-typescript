@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "file:../../dist/",
-    "google-auth-library": "^9.4.2"
+    "google-auth-library": "^10.2.0"
   },
   "devDependencies": {
     "@types/jest": "^29.4.0",
