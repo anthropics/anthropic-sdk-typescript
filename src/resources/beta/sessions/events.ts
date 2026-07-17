@@ -984,8 +984,8 @@ export interface BetaManagedAgentsSessionRequiresAction {
 }
 
 /**
- * The turn ended because the retry budget was exhausted (`max_iterations` hit or
- * an error escalated to `retry_status: 'exhausted'`).
+ * The turn ended because repeated errors exhausted the automatic retry budget or
+ * the agent reached an internal execution limit.
  */
 export interface BetaManagedAgentsSessionRetriesExhausted {
   type: 'retries_exhausted';
