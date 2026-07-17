@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.112.3 (2026-07-17)
+
+Full Changelog: [sdk-v0.112.2...sdk-v0.112.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.112.2...sdk-v0.112.3)
+
+### Chores
+
+* **docs:** small updates ([79fd6c7](https://github.com/anthropics/anthropic-sdk-typescript/commit/79fd6c7dd046e066965aa7ab9897695c174f88bb))
+
 ## 0.112.2 (2026-07-17)
 
 Full Changelog: [sdk-v0.112.1...sdk-v0.112.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.112.1...sdk-v0.112.2)
