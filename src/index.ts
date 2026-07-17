@@ -44,3 +44,18 @@ export type {
   ParseableMessageCreateParams,
   ExtractParsedContentFromParams,
 } from './lib/parser';
+
+export {
+  isTextBlock,
+  isThinkingBlock,
+  isRedactedThinkingBlock,
+  isToolUseBlock,
+  isServerToolUseBlock,
+  isWebSearchToolResultBlock,
+  isWebFetchToolResultBlock,
+  isCodeExecutionToolResultBlock,
+  isBashCodeExecutionToolResultBlock,
+  isTextEditorCodeExecutionToolResultBlock,
+  isToolSearchToolResultBlock,
+  isContainerUploadBlock,
+} from './lib/content-block-type-guards';
