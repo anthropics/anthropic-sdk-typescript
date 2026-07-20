@@ -474,7 +474,14 @@ export class BaseAnthropic {
     return this._authState.provider;
   }
   private _authState: AuthState;
-  private _baseURLIsExplicit: boolean;
+  /**
+   * Whether `baseURL` was chosen by the caller (constructor arg or env var)
+   * rather than derived. Non-explicit base URLs may be replaced — by a
+   * profile-supplied host, or by re-derivation in `withOptions()` clones.
+   * Subclasses that derive their own base URL should correct this after
+   * `super()`, since the base constructor can't tell a derived value apart.
+   */
+  protected _baseURLIsExplicit: boolean;
   private _requestAuthFlags = new WeakMap<FinalRequestOptions, RequestAuthFlags>();
 
   baseURL: string;
@@ -607,7 +614,7 @@ export class BaseAnthropic {
           this._applyCredentialBaseURL(result.baseURL);
         } else if (options.profile != null) {
           this._authState.resolution = this._resolveDefaultCredentials(options.profile);
-        } else {
+        } else if (this._shouldResolveDefaultCredentials()) {
           // No explicit auth provided — lazily resolve from the credential
           // chain on first request. Errors are captured into _auth.error and
           // surfaced on first use rather than as an unhandled rejection.
@@ -615,6 +622,17 @@ export class BaseAnthropic {
         }
       }
     }
+  }
+
+  /**
+   * Whether to lazily resolve auth from the default credential chain when no
+   * explicit auth is configured. Called once from the constructor, so
+   * overrides must not depend on subclass instance state. Subclasses that
+   * bring their own auth scheme return false so unrelated local credentials
+   * are never resolved or allowed to supply a base URL.
+   */
+  protected _shouldResolveDefaultCredentials(): boolean {
+    return true;
   }
 
   /**

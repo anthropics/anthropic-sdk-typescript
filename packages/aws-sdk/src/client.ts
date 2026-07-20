@@ -1,7 +1,7 @@
 import type { NullableHeaders } from './internal/headers';
 import { buildHeaders } from './internal/headers';
 import * as Errors from './core/error';
-import { readEnv } from './internal/utils';
+import { readEnv, loggerFor } from './internal/utils';
 import { Anthropic, APIRequest, ClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
@@ -33,9 +33,10 @@ export interface AwsClientOptions extends ClientOptions {
    *
    * Takes precedence over AWS credential options. If neither `apiKey` nor
    * AWS credentials are provided, falls back to the `ANTHROPIC_AWS_API_KEY`
-   * environment variable, then to the default AWS credential chain.
+   * environment variable, then to the default AWS credential chain. `null`
+   * is treated like `undefined` (both fallbacks still apply).
    */
-  apiKey?: string | undefined;
+  apiKey?: string | null | undefined;
 
   /**
    * AWS access key ID for SigV4 authentication.
@@ -151,6 +152,13 @@ export class AnthropicAws extends Anthropic {
     providerChainResolver = null,
     workspaceId,
     skipAuth = false,
+    // Never forwarded to `super()`: they are not valid auth for the AWS
+    // gateway, and resolving them would pollute requests with OAuth headers
+    // and let a config-supplied `base_url` redirect signed traffic. A warning
+    // is emitted below instead (after `super()`, once the logger exists).
+    credentials,
+    config,
+    profile,
     ...opts
   }: AwsClientOptions = {}) {
     // Region resolution: arg > AWS_REGION env > AWS_DEFAULT_REGION env > ~/.aws/config (async).
@@ -201,11 +209,38 @@ export class AnthropicAws extends Anthropic {
     }
 
     super({
-      apiKey: resolvedApiKey,
+      // `null`, not `undefined`: `undefined` makes the base client fall back
+      // to the ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN env vars, which are
+      // not auth sources for the AWS gateway — the key would flip
+      // `withOptions()` clones out of SigV4 mode, and the token would be sent
+      // as a stray bearer header in API-key mode. An `authToken` passed in
+      // `opts` (as the environment helpers' clones do) still wins here.
+      apiKey: resolvedApiKey ?? null,
+      authToken: null,
       baseURL: resolvedBaseURL,
       ...opts,
-      defaultHeaders: buildHeaders([{ 'anthropic-workspace-id': resolvedWorkspaceId }, opts.defaultHeaders]),
+      // The workspace header is merged last (buildHeaders is last-wins): the
+      // resolved `workspaceId` is authoritative, and on clones the inherited
+      // `defaultHeaders` already contain the parent's merged-in workspace
+      // header, which a `workspaceId` override must beat.
+      defaultHeaders: buildHeaders([opts.defaultHeaders, { 'anthropic-workspace-id': resolvedWorkspaceId }]),
     });
+
+    // Warn rather than throw so existing constructions keep working — these
+    // options never authenticated anything against the AWS gateway anyway.
+    // `credentials: null` stays silent: the base `withOptions()` forwards it
+    // on every clone.
+    if (credentials != null || config != null || profile != null) {
+      loggerFor(this).warn(
+        '`credentials`, `config`, and `profile` are not supported by the AWS client and were ignored. ' +
+          'Authenticate with `apiKey` or AWS credentials (SigV4) instead.',
+      );
+    }
+
+    // Only a caller-supplied base URL (arg or env) is an explicit choice; the
+    // region-derived one must stay re-derivable so clones honour an
+    // `awsRegion` override or an async-resolved region.
+    this._baseURLIsExplicit = !!explicitBaseURL;
 
     this.awsRegion = syncRegion;
     this.awsAccessKey = awsAccessKey;
@@ -217,6 +252,26 @@ export class AnthropicAws extends Anthropic {
     this.skipAuth = skipAuth;
     this._useSigV4 = resolvedApiKey == null;
 
+    // `withOptions()` rebuilds clones from `this._options`, but the base
+    // constructor only recorded what `super()` received — the AWS-specific
+    // options were destructured out. Re-record them so clones round-trip the
+    // full AWS configuration. `baseURL` is recorded as the explicit value only
+    // (`undefined` when region-derived), so clones re-derive their endpoint.
+    const awsOptions: AwsClientOptions = {
+      ...this._options,
+      apiKey: resolvedApiKey ?? null,
+      baseURL: explicitBaseURL,
+      awsRegion,
+      awsAccessKey,
+      awsSecretAccessKey,
+      awsSessionToken,
+      awsProfile,
+      providerChainResolver,
+      workspaceId: resolvedWorkspaceId,
+      skipAuth,
+    };
+    this._options = awsOptions;
+
     if (syncRegion || explicitBaseURL || skipAuth) {
       this.ready = Promise.resolve();
     } else {
@@ -227,6 +282,27 @@ export class AnthropicAws extends Anthropic {
       // Suppress unhandledRejection; the error surfaces via `await ready` or the first request.
       this.ready.catch(() => {});
     }
+  }
+
+  // Auth is SigV4 or x-api-key only; never resolve unrelated local Anthropic
+  // credentials (which could also supply a base URL).
+  protected override _shouldResolveDefaultCredentials(): boolean {
+    return false;
+  }
+
+  /**
+   * Create a new client instance re-using the same options given to the
+   * current client with optional overriding, including the AWS-specific
+   * options — e.g. `withOptions({ awsRegion: 'eu-west-1' })` re-derives the
+   * endpoint for the new region.
+   */
+  override withOptions(options: Partial<AwsClientOptions>): this {
+    return super.withOptions({
+      // Pin the resolved region so clones don't re-resolve it (async config
+      // lookup or env read); an `awsRegion` override still wins.
+      awsRegion: this.awsRegion,
+      ...options,
+    });
   }
 
   private _resolveRegionFromConfig(profile: string | undefined): Promise<string> {
@@ -259,7 +335,11 @@ export class AnthropicAws extends Anthropic {
       return super.authHeaders(opts);
     }
 
-    // SigV4 mode — auth is handled in prepareRequest since it needs the full request
+    // SigV4 mode — auth is handled in prepareRequest since it needs the full
+    // request. This intentionally supersedes any inherited or clone-supplied
+    // `authToken` (e.g. the per-helper bearer that `copyClientForHelper`
+    // sets): the gateway authenticates the SigV4 identity, so a bearer header
+    // would only ride alongside the signature unused.
     return undefined;
   }
 
