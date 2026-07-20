@@ -304,6 +304,69 @@ describe('AnthropicAws', () => {
     });
   });
 
+  describe('structured-credential options are ignored with a warning', () => {
+    // These base-client options are never valid auth for the AWS gateway; a
+    // config-supplied base_url must not be able to redirect signed traffic.
+    const makeLogger = () => ({
+      error: jest.fn(),
+      warn: jest.fn(),
+      info: jest.fn(),
+      debug: jest.fn(),
+    });
+
+    test.each([
+      ['credentials', { credentials: { getAccessToken: async () => ({ token: 'x' }) } }],
+      ['config', { config: { authentication: { type: 'user_oauth' } } }],
+      ['profile', { profile: 'my-profile' }],
+    ] as const)('warns when `%s` is provided', (_name, extra) => {
+      const logger = makeLogger();
+      new AnthropicAws({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-east-1',
+        workspaceId: 'ws-test',
+        logger,
+        ...(extra as object),
+      });
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.warn.mock.calls[0]![0]).toContain('not supported by the AWS client');
+    });
+
+    test('a config-supplied base_url does not redirect requests', async () => {
+      const logger = makeLogger();
+      const client = new AnthropicAws({
+        config: { authentication: { type: 'user_oauth' }, base_url: 'https://config-host.example.com' },
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-west-2',
+        workspaceId: 'ws-test',
+        logger,
+        maxRetries: 0,
+      });
+
+      await makeRequest(client);
+
+      const [url] = mockFetch.mock.calls[0]!;
+      expect(url).toBe('https://aws-external-anthropic.us-west-2.api.aws/v1/messages');
+      const headers = getRequestHeaders();
+      // the ignored config must not leak OAuth artifacts onto signed requests
+      expect(headers.get('anthropic-beta')).toBeNull();
+    });
+
+    test('clones do not warn (base withOptions forwards credentials: null)', () => {
+      const logger = makeLogger();
+      const client = new AnthropicAws({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-east-1',
+        workspaceId: 'ws-test',
+        logger,
+      });
+      client.withOptions({ maxRetries: 3 });
+      expect(logger.warn).not.toHaveBeenCalled();
+    });
+  });
+
   describe('initialization from environment variables', () => {
     test('uses AWS_REGION env var', () => {
       process.env['AWS_REGION'] = 'ap-southeast-1';
@@ -807,6 +870,187 @@ describe('AnthropicAws', () => {
     test('has models resource', () => {
       const client = new AnthropicAws({ apiKey: 'test-key', awsRegion: 'us-east-1', workspaceId: 'ws-test' });
       expect(client.models).toBeDefined();
+    });
+  });
+
+  describe('withOptions', () => {
+    test('clone preserves AWS SigV4 configuration', () => {
+      const providerChainResolver = async () => {
+        throw new Error('unused in this test');
+      };
+      const client = new AnthropicAws({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsSessionToken: 'my-session-token',
+        awsRegion: 'us-west-2',
+        workspaceId: 'ws-test',
+        providerChainResolver,
+      });
+
+      const clone = client.withOptions({ defaultHeaders: { 'x-custom': '1' } });
+
+      expect(clone).toBeInstanceOf(AnthropicAws);
+      expect(clone.workspaceId).toBe('ws-test');
+      expect(clone.awsRegion).toBe('us-west-2');
+      expect(clone.awsAccessKey).toBe('my-access-key');
+      expect(clone.awsSecretAccessKey).toBe('my-secret-key');
+      expect(clone.awsSessionToken).toBe('my-session-token');
+      expect(clone.providerChainResolver).toBe(providerChainResolver);
+    });
+
+    test('clone preserves API-key configuration', () => {
+      const client = new AnthropicAws({
+        apiKey: 'my-api-key',
+        awsRegion: 'us-east-1',
+        workspaceId: 'ws-test',
+      });
+
+      const clone = client.withOptions({ maxRetries: 5 });
+
+      expect(clone).toBeInstanceOf(AnthropicAws);
+      expect(clone.workspaceId).toBe('ws-test');
+      expect(clone.awsRegion).toBe('us-east-1');
+      expect(clone.maxRetries).toBe(5);
+    });
+
+    test('auth-override clone (as used by the environment work helpers) preserves workspace + region', () => {
+      // Mirrors copyClientForHelper's withOptions({ apiKey: null, authToken,
+      // credentials: undefined, ... }): the sub-client must keep the workspace
+      // id + region so the environment helpers can authenticate via SigV4.
+      const client = new AnthropicAws({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-west-2',
+        workspaceId: 'ws-test',
+      });
+
+      const scoped = client.withOptions({
+        apiKey: null,
+        authToken: 'unused-under-sigv4',
+        credentials: undefined,
+        baseURL: client.baseURL,
+      });
+
+      expect(scoped).toBeInstanceOf(AnthropicAws);
+      expect(scoped.workspaceId).toBe('ws-test');
+      expect(scoped.awsRegion).toBe('us-west-2');
+    });
+
+    test('SigV4 clone is not flipped to API-key mode by env ANTHROPIC_API_KEY', async () => {
+      process.env['ANTHROPIC_API_KEY'] = 'env-anthropic-key';
+
+      const client = new AnthropicAws({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-west-2',
+        workspaceId: 'ws-test',
+        maxRetries: 0,
+      });
+      // ANTHROPIC_API_KEY is not an auth source for the AWS gateway and must
+      // not leak onto the client or its clones.
+      expect(client.apiKey).toBeNull();
+
+      const clone = client.withOptions({ defaultHeaders: { 'x-custom': '1' } });
+      expect(clone.apiKey).toBeNull();
+
+      await makeRequest(clone);
+
+      expect(mockGetAuthHeaders).toHaveBeenCalledTimes(1);
+      const headers = getRequestHeaders();
+      expect(headers.get('x-api-key')).toBeNull();
+      expect(headers.get('authorization')).toBe('AWS4-HMAC-SHA256 Credential=mock');
+    });
+
+    test('env ANTHROPIC_AUTH_TOKEN is not sent as a bearer header in API-key mode', async () => {
+      process.env['ANTHROPIC_AUTH_TOKEN'] = 'env-oauth-token';
+
+      const client = new AnthropicAws({
+        apiKey: 'my-api-key',
+        awsRegion: 'us-east-1',
+        workspaceId: 'ws-test',
+        maxRetries: 0,
+      });
+      expect(client.authToken).toBeNull();
+
+      const clone = client.withOptions({ maxRetries: 1 });
+      expect(clone.authToken).toBeNull();
+
+      await makeRequest(clone);
+
+      const headers = getRequestHeaders();
+      expect(headers.get('x-api-key')).toBe('my-api-key');
+      expect(headers.get('authorization')).toBeNull();
+    });
+
+    test('clone re-derives the endpoint when awsRegion is overridden', () => {
+      const client = new AnthropicAws({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-west-2',
+        workspaceId: 'ws-test',
+      });
+
+      const clone = client.withOptions({ awsRegion: 'eu-central-1' });
+
+      expect(clone.awsRegion).toBe('eu-central-1');
+      expect(clone.baseURL).toBe('https://aws-external-anthropic.eu-central-1.api.aws');
+      // the original client is untouched
+      expect(client.baseURL).toBe('https://aws-external-anthropic.us-west-2.api.aws');
+    });
+
+    test('clone keeps an explicitly configured baseURL, even across an awsRegion override', () => {
+      const client = new AnthropicAws({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-west-2',
+        baseURL: 'https://my-gateway.example.com',
+        workspaceId: 'ws-test',
+      });
+
+      const plain = client.withOptions({ maxRetries: 5 });
+      expect(plain.baseURL).toBe('https://my-gateway.example.com');
+
+      const rescoped = client.withOptions({ awsRegion: 'eu-central-1' });
+      expect(rescoped.baseURL).toBe('https://my-gateway.example.com');
+      expect(rescoped.awsRegion).toBe('eu-central-1');
+    });
+
+    test('clone with a workspaceId override sends the new workspace header', async () => {
+      const client = new AnthropicAws({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-west-2',
+        workspaceId: 'ws-old',
+        defaultHeaders: { 'x-team': 'my-team' },
+        maxRetries: 0,
+      });
+
+      const clone = client.withOptions({ workspaceId: 'ws-new' });
+      expect(clone.workspaceId).toBe('ws-new');
+
+      await makeRequest(clone);
+
+      const headers = getRequestHeaders();
+      expect(headers.get('anthropic-workspace-id')).toBe('ws-new');
+      // caller-supplied default headers survive the clone
+      expect(headers.get('x-team')).toBe('my-team');
+    });
+
+    test('clone of a config-file-region client keeps the resolved region instead of pinning a placeholder URL', async () => {
+      mockLoadConfig.mockReturnValue(() => Promise.resolve('ap-southeast-2'));
+
+      const client = new AnthropicAws({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        workspaceId: 'ws-test',
+      });
+      await client.ready;
+      expect(client.baseURL).toBe('https://aws-external-anthropic.ap-southeast-2.api.aws');
+
+      const clone = client.withOptions({ defaultHeaders: { 'x-custom': '1' } });
+      await clone.ready;
+      expect(clone.awsRegion).toBe('ap-southeast-2');
+      expect(clone.baseURL).toBe('https://aws-external-anthropic.ap-southeast-2.api.aws');
     });
   });
 });
