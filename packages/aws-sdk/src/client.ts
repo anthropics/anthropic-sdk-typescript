@@ -5,7 +5,6 @@ import { readEnv, loggerFor } from './internal/utils';
 import { Anthropic, APIRequest, ClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
-import { loggerFor } from './internal/utils/log';
 import { loadConfig } from '@smithy/node-config-provider';
 import { NODE_REGION_CONFIG_OPTIONS, NODE_REGION_CONFIG_FILE_OPTIONS } from '@smithy/config-resolver';
 import { getAuthHeaders } from './core/auth';
