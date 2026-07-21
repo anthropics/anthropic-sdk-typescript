@@ -1593,8 +1593,10 @@ export interface BetaFallbackRefusalTrigger {
    *   reasoning in the response text. To get reasoning in a structured form instead,
    *   use
    *   [adaptive thinking](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking).
+   * - `general_harms` - The request could be related to an area that was determined
+   *   as harmful. Benign work might sometimes trigger this category.
    */
-  category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | null;
+  category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | 'general_harms' | null;
 
   type: 'refusal';
 }
@@ -2378,8 +2380,10 @@ export interface BetaRefusalStopDetails {
    *   reasoning in the response text. To get reasoning in a structured form instead,
    *   use
    *   [adaptive thinking](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking).
+   * - `general_harms` - The request could be related to an area that was determined
+   *   as harmful. Benign work might sometimes trigger this category.
    */
-  category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | null;
+  category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | 'general_harms' | null;
 
   /**
    * Human-readable explanation of the refusal.
