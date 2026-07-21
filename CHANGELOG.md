@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.112.5 (2026-07-21)
+
+Full Changelog: [sdk-v0.112.4...sdk-v0.112.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.112.4...sdk-v0.112.5)
+
+### Chores
+
+* **api:** add support for new refusal category ([479efe8](https://github.com/anthropics/anthropic-sdk-typescript/commit/479efe8ade0078966e28d754fa3085c75b6d2a58))
+* **internal:** codegen related update ([830fb74](https://github.com/anthropics/anthropic-sdk-typescript/commit/830fb7467c3cc947e31b5d83a2a31d34fc8ebac2))
+
 ## 0.112.4 (2026-07-20)
 
 Full Changelog: [sdk-v0.112.3...sdk-v0.112.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.112.3...sdk-v0.112.4)
