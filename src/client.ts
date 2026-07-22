@@ -9,6 +9,7 @@ export type { Logger, LogLevel } from './internal/utils/log';
 import { castToError, isAbortError } from './internal/errors';
 import type { APIResponseProps } from './internal/parse';
 import { getPlatformHeaders } from './internal/detect-platform';
+import { registerRequestSignalCleanup, releaseRequestSignal } from './internal/request-signal';
 import * as Shims from './internal/shims';
 import * as Opts from './internal/request-options';
 import { stringifyQuery } from './internal/utils/query';
@@ -1057,6 +1058,7 @@ export class BaseAnthropic {
     const headersTime = Date.now();
 
     if (response instanceof globalThis.Error) {
+      releaseRequestSignal(controller);
       const retryMessage = `retrying, ${retriesRemaining} attempts remaining`;
       if (options.signal?.aborted) {
         throw new Errors.APIUserAbortError();
@@ -1142,6 +1144,7 @@ export class BaseAnthropic {
 
         // We don't need the body of this response.
         await Shims.CancelReadableStream(response.body);
+        releaseRequestSignal(controller);
         loggerFor(this).info(`${responseInfo} - ${retryMessage}`);
         loggerFor(this).debug(
           `[${requestLogID}] response error (${retryMessage})`,
@@ -1181,6 +1184,7 @@ export class BaseAnthropic {
         }),
       );
 
+      releaseRequestSignal(controller);
       const err = this.makeStatusError(response.status, errJSON, errMessage, response.headers);
       throw err;
     }
@@ -1240,7 +1244,10 @@ export class BaseAnthropic {
     // the lifetime of the signal. Using `.bind()` only retains a reference to the
     // controller itself.
     const abort = this._makeAbort(controller);
-    if (signal) signal.addEventListener('abort', abort, { once: true });
+    if (signal) {
+      signal.addEventListener('abort', abort, { once: true });
+      registerRequestSignalCleanup(controller, () => signal.removeEventListener('abort', abort));
+    }
 
     const isReadableBody =
       ((globalThis as any).ReadableStream && options.body instanceof (globalThis as any).ReadableStream) ||

@@ -11,6 +11,7 @@ import type { BaseAnthropic } from '../client';
 
 import { APIError } from './error';
 import type { ErrorType } from '../resources/shared';
+import { releaseRequestSignal } from '../internal/request-signal';
 
 type Bytes = string | ArrayBuffer | Uint8Array | null | undefined;
 
@@ -149,6 +150,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
       } finally {
         // If the user `break`s, abort the ongoing request.
         if (!done) controller.abort();
+        releaseRequestSignal(controller);
       }
     }
 
@@ -200,6 +202,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
       } finally {
         // If the user `break`s, abort the ongoing request.
         if (!done) controller.abort();
+        releaseRequestSignal(controller);
       }
     }
 
