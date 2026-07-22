@@ -551,6 +551,11 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsCustomTool</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsCustomToolInputSchema</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsCustomToolParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortHigh</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortLow</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortMax</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortMedium</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortXhigh</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMCPServerURLDefinition</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMCPToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMCPToolConfigParams</a></code>
@@ -1071,8 +1076,15 @@ Types:
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookDeploymentRunSucceededEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookDeploymentUnpausedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookDeploymentUpdatedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEnvironmentArchivedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEnvironmentCreatedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEnvironmentDeletedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEnvironmentUpdatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEvent</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookMemoryStoreArchivedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookMemoryStoreCreatedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookMemoryStoreDeletedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionArchivedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionCreatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionDeletedEventData</a></code>
