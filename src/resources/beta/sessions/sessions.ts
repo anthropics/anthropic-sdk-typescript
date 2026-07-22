@@ -968,6 +968,16 @@ export interface SessionCreateParams {
   environment_id: string;
 
   /**
+   * Body param: Initial events to send to the `session` at creation, processed in
+   * order. Supports `user.message` and `user.define_outcome` events. Maximum 50
+   * events.
+   */
+  initial_events?: Array<
+    | EventsAPI.BetaManagedAgentsUserMessageEventParams
+    | EventsAPI.BetaManagedAgentsUserDefineOutcomeEventParams
+  >;
+
+  /**
    * Body param: Arbitrary key-value metadata attached to the session. Maximum 16
    * pairs, keys up to 64 chars, values up to 512 chars.
    */

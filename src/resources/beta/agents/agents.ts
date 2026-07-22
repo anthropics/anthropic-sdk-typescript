@@ -73,7 +73,7 @@ export class Agents extends APIResource {
    * const betaManagedAgentsAgent =
    *   await client.beta.agents.update(
    *     'agent_011CZkYpogX7uDKUyvBTophP',
-   *     { version: 1 },
+   *     { description: 'updated' },
    *   );
    * ```
    */
@@ -556,6 +556,41 @@ export interface BetaManagedAgentsCustomToolParams {
 }
 
 /**
+ * High effort. Favors reasoning depth.
+ */
+export interface BetaManagedAgentsEffortHigh {
+  type: 'high';
+}
+
+/**
+ * Low effort. Favors latency over reasoning depth.
+ */
+export interface BetaManagedAgentsEffortLow {
+  type: 'low';
+}
+
+/**
+ * Maximum effort. Favors reasoning depth over latency.
+ */
+export interface BetaManagedAgentsEffortMax {
+  type: 'max';
+}
+
+/**
+ * Medium effort. Balances latency and reasoning depth.
+ */
+export interface BetaManagedAgentsEffortMedium {
+  type: 'medium';
+}
+
+/**
+ * Extra-high effort. Not all models accept this level.
+ */
+export interface BetaManagedAgentsEffortXhigh {
+  type: 'xhigh';
+}
+
+/**
  * URL-based MCP server connection as returned in API responses.
  */
 export interface BetaManagedAgentsMCPServerURLDefinition {
@@ -697,6 +732,17 @@ export interface BetaManagedAgentsModelConfig {
   id: BetaManagedAgentsModel;
 
   /**
+   * How hard Claude works on each turn. Sets `output_config.effort` on every
+   * Messages call the session makes.
+   */
+  effort?:
+    | BetaManagedAgentsEffortLow
+    | BetaManagedAgentsEffortMedium
+    | BetaManagedAgentsEffortHigh
+    | BetaManagedAgentsEffortXhigh
+    | BetaManagedAgentsEffortMax;
+
+  /**
    * Inference speed mode. `fast` provides significantly faster output token
    * generation at premium pricing. Not all models support `fast`; invalid
    * combinations are rejected at create time.
@@ -715,6 +761,24 @@ export interface BetaManagedAgentsModelConfigParams {
    * details and options.
    */
   id: BetaManagedAgentsModel;
+
+  /**
+   * How hard Claude works on each inference call. Accepts a bare level string
+   * (`"high"`) or `{"type": "high"}`. On create, omitting it resolves the per-model
+   * default; on update, omitting it leaves the stored value unchanged.
+   */
+  effort?:
+    | 'low'
+    | 'medium'
+    | 'high'
+    | 'xhigh'
+    | 'max'
+    | BetaManagedAgentsEffortLow
+    | BetaManagedAgentsEffortMedium
+    | BetaManagedAgentsEffortHigh
+    | BetaManagedAgentsEffortXhigh
+    | BetaManagedAgentsEffortMax
+    | null;
 
   /**
    * Inference speed mode. `fast` provides significantly faster output token
@@ -901,13 +965,6 @@ export interface AgentRetrieveParams {
 
 export interface AgentUpdateParams {
   /**
-   * Body param: The agent's current version, used to prevent concurrent overwrites.
-   * Obtain this value from a create or retrieve response. The request fails if this
-   * does not match the server's current version.
-   */
-  version: number;
-
-  /**
    * Body param: Description. Omit to preserve; send empty string or null to clear.
    */
   description?: string | null;
@@ -972,6 +1029,14 @@ export interface AgentUpdateParams {
   > | null;
 
   /**
+   * Body param: The agent's current version, used to prevent concurrent overwrites.
+   * Obtain this value from a create or retrieve response. Must be at least 1 if
+   * specified. When supplied, the request fails if it does not match the server's
+   * current version; omit to apply the update unconditionally.
+   */
+  version?: number;
+
+  /**
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
@@ -1033,6 +1098,11 @@ export declare namespace Agents {
     type BetaManagedAgentsCustomTool as BetaManagedAgentsCustomTool,
     type BetaManagedAgentsCustomToolInputSchema as BetaManagedAgentsCustomToolInputSchema,
     type BetaManagedAgentsCustomToolParams as BetaManagedAgentsCustomToolParams,
+    type BetaManagedAgentsEffortHigh as BetaManagedAgentsEffortHigh,
+    type BetaManagedAgentsEffortLow as BetaManagedAgentsEffortLow,
+    type BetaManagedAgentsEffortMax as BetaManagedAgentsEffortMax,
+    type BetaManagedAgentsEffortMedium as BetaManagedAgentsEffortMedium,
+    type BetaManagedAgentsEffortXhigh as BetaManagedAgentsEffortXhigh,
     type BetaManagedAgentsMCPServerURLDefinition as BetaManagedAgentsMCPServerURLDefinition,
     type BetaManagedAgentsMCPToolConfig as BetaManagedAgentsMCPToolConfig,
     type BetaManagedAgentsMCPToolConfigParams as BetaManagedAgentsMCPToolConfigParams,
