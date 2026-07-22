@@ -9,7 +9,11 @@ export type { Logger, LogLevel } from './internal/utils/log';
 import { castToError, isAbortError } from './internal/errors';
 import type { APIResponseProps } from './internal/parse';
 import { getPlatformHeaders } from './internal/detect-platform';
-import { registerRequestSignalCleanup, releaseRequestSignal } from './internal/request-signal';
+import {
+  armAbandonmentBackstop,
+  registerRequestSignalCleanup,
+  releaseRequestSignal,
+} from './internal/request-signal';
 import * as Shims from './internal/shims';
 import * as Opts from './internal/request-options';
 import { stringifyQuery } from './internal/utils/query';
@@ -1201,6 +1205,7 @@ export class BaseAnthropic {
       }),
     );
 
+    armAbandonmentBackstop(response, controller);
     return { response, options, controller, requestLogID, retryOfRequestLogID, startTime };
   }
 

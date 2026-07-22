@@ -1,4 +1,6 @@
 import { getEventListeners } from 'node:events';
+import { runInNewContext } from 'node:vm';
+import { setFlagsFromString } from 'node:v8';
 import Anthropic from '@anthropic-ai/sdk';
 import { APIUserAbortError } from '@anthropic-ai/sdk';
 
@@ -167,6 +169,30 @@ describe('abort listener cleanup on a long-lived signal', () => {
     await new Promise((r) => setTimeout(r, 0));
     session.abort();
     await expect(pending).rejects.toThrow(APIUserAbortError);
+    expect(listenerCount(session.signal)).toBe(0);
+  });
+
+  test('an abandoned partially-iterated stream is released by the GC backstop', async () => {
+    const session = new AbortController();
+    const client = new Anthropic({ apiKey: 'sk-test', fetch: () => Promise.resolve(sseResponse()) });
+    await (async () => {
+      const stream = await client.messages.create(
+        { model: 'claude-test', max_tokens: 16, messages: [{ role: 'user', content: 'hi' }], stream: true },
+        { signal: session.signal },
+      );
+      const iterator = stream[Symbol.asyncIterator]();
+      await iterator.next();
+    })();
+    expect(listenerCount(session.signal)).toBe(1);
+
+    setFlagsFromString('--expose-gc');
+    const gc = runInNewContext('gc') as () => void;
+    setFlagsFromString('--no-expose-gc');
+    const deadline = Date.now() + 5000;
+    while (listenerCount(session.signal) > 0 && Date.now() < deadline) {
+      gc();
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
     expect(listenerCount(session.signal)).toBe(0);
   });
 });
