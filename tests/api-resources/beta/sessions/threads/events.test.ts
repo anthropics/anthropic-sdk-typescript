@@ -48,6 +48,7 @@ describe('resource events', () => {
   test('stream: required and optional params', async () => {
     const response = await client.beta.sessions.threads.events.stream('sthr_011CZkZVWa6oIjw0rgXZpnBt', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
+      event_deltas: ['agent.message'],
       betas: ['message-batches-2024-09-24'],
     });
   });
