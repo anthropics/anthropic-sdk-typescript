@@ -70,6 +70,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
 
   #ended = false;
   #errored = false;
+  #listenerAwaitQueue: Promise<unknown>[] = [];
   #aborted = false;
   #catchingPromiseCreated = false;
   #response: Response | null | undefined;
@@ -389,13 +390,27 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
 
     if (event === 'end') {
       this.#ended = true;
-      this.#resolveEndPromise();
     }
 
     const listeners: MessageStreamEventListeners<Event> | undefined = this.#listeners[event];
     if (listeners) {
       this.#listeners[event] = listeners.filter((l) => !l.once) as any;
-      listeners.forEach(({ listener }: any) => listener(...args));
+      for (const { listener } of listeners as any[]) {
+        const result = (listener as any)(...args);
+        if (result instanceof Promise) {
+          this.#listenerAwaitQueue.push(result);
+        }
+      }
+    }
+
+    if (event === 'end') {
+      const queue = this.#listenerAwaitQueue.splice(0);
+      const settle = () => this.#resolveEndPromise();
+      if (queue.length) {
+        Promise.all(queue).then(settle, settle);
+      } else {
+        settle();
+      }
     }
 
     if (event === 'abort') {
