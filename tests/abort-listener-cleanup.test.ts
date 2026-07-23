@@ -172,6 +172,38 @@ describe('abort listener cleanup on a long-lived signal', () => {
     expect(listenerCount(session.signal)).toBe(0);
   });
 
+  test('holding only the body reader keeps the listener armed; dropping it releases', async () => {
+    const session = new AbortController();
+    const client = new Anthropic({ apiKey: 'sk-test', fetch: () => Promise.resolve(sseResponse()) });
+    let reader: ReadableStreamDefaultReader | null = await (async () => {
+      const response = await client.messages
+        .create(
+          { model: 'claude-test', max_tokens: 16, messages: [{ role: 'user', content: 'hi' }], stream: true },
+          { signal: session.signal },
+        )
+        .asResponse();
+      return response.body!.getReader();
+    })();
+    await reader.read();
+
+    setFlagsFromString('--expose-gc');
+    const gc = runInNewContext('gc') as () => void;
+    setFlagsFromString('--no-expose-gc');
+    for (let i = 0; i < 10; i++) {
+      gc();
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+    expect(listenerCount(session.signal)).toBe(1);
+
+    reader = null;
+    const deadline = Date.now() + 5000;
+    while (listenerCount(session.signal) > 0 && Date.now() < deadline) {
+      gc();
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    expect(listenerCount(session.signal)).toBe(0);
+  });
+
   test('an abandoned partially-iterated stream is released by the GC backstop', async () => {
     const session = new AbortController();
     const client = new Anthropic({ apiKey: 'sk-test', fetch: () => Promise.resolve(sseResponse()) });

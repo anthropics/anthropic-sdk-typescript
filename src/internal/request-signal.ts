@@ -34,12 +34,28 @@ const registry: AbandonmentRegistry | null =
     )
   : null;
 
-export function registerRequestSignalCleanup(controller: AbortController, cleanup: () => void): void {
-  cleanups.set(controller, cleanup);
+// Module-scope factory so the cleanup closure captures exactly the signal and
+// the listener - built at the `fetchWithTimeout` call site it would share that
+// scope's context and retain the request body for as long as the cleanup is
+// held (same reason `_makeAbort` exists in client.ts).
+function makeCleanup(signal: AbortSignal, listener: () => void): () => void {
+  return () => signal.removeEventListener('abort', listener);
 }
 
-export function armAbandonmentBackstop(response: object, controller: AbortController): void {
-  if (cleanups.has(controller)) registry?.register(response, controller, controller);
+export function registerRequestSignalCleanup(
+  controller: AbortController,
+  signal: AbortSignal,
+  listener: () => void,
+): void {
+  cleanups.set(controller, makeCleanup(signal, listener));
+}
+
+// The registered target is the response BODY, not the Response: a caller can
+// keep a reader on the body and drop the Response wrapper (`.asResponse()`),
+// and the listener must survive for as long as anything can still read - the
+// body is what a live read keeps alive.
+export function armAbandonmentBackstop(body: object, controller: AbortController): void {
+  if (cleanups.has(controller)) registry?.register(body, controller, controller);
 }
 
 export function releaseRequestSignal(controller: AbortController): void {

@@ -1205,7 +1205,7 @@ export class BaseAnthropic {
       }),
     );
 
-    armAbandonmentBackstop(response, controller);
+    armAbandonmentBackstop(response.body ?? response, controller);
     return { response, options, controller, requestLogID, retryOfRequestLogID, startTime };
   }
 
@@ -1251,7 +1251,7 @@ export class BaseAnthropic {
     const abort = this._makeAbort(controller);
     if (signal) {
       signal.addEventListener('abort', abort, { once: true });
-      registerRequestSignalCleanup(controller, () => signal.removeEventListener('abort', abort));
+      registerRequestSignalCleanup(controller, signal, abort);
     }
 
     const isReadableBody =
