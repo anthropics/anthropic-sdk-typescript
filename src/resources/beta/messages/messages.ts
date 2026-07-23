@@ -2172,6 +2172,7 @@ export interface BetaMessage {
    *   back as-is in a subsequent request to let the model continue.
    * - `"refusal"`: when streaming classifiers intervene to handle potential policy
    *   violations
+   * - `"model_context_window_exceeded"`: we exceeded the model's context window
    *
    * In non-streaming mode this value is always non-null. In streaming mode, it is
    * null in the `message_start` event and non-null otherwise.

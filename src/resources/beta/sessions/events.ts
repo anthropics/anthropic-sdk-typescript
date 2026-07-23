@@ -1869,28 +1869,32 @@ export interface BetaManagedAgentsUserToolResultEventParams {
 
 export interface EventListParams extends PageCursorParams {
   /**
-   * Query param: Return events created after this time (exclusive).
+   * Query param: Return events created after this time (exclusive). Compared against
+   * the event's `processed_at` value.
    */
   'created_at[gt]'?: string;
 
   /**
-   * Query param: Return events created at or after this time (inclusive).
+   * Query param: Return events created at or after this time (inclusive). Compared
+   * against the event's `processed_at` value.
    */
   'created_at[gte]'?: string;
 
   /**
-   * Query param: Return events created before this time (exclusive).
+   * Query param: Return events created before this time (exclusive). Compared
+   * against the event's `processed_at` value.
    */
   'created_at[lt]'?: string;
 
   /**
-   * Query param: Return events created at or before this time (inclusive).
+   * Query param: Return events created at or before this time (inclusive). Compared
+   * against the event's `processed_at` value.
    */
   'created_at[lte]'?: string;
 
   /**
-   * Query param: Sort direction for results, ordered by created_at. Defaults to asc
-   * (chronological).
+   * Query param: Sort direction for results, ordered by the event's `processed_at`.
+   * Defaults to asc (chronological).
    */
   order?: 'asc' | 'desc';
 
