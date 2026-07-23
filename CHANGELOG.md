@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.114.1 (2026-07-23)
+
+Full Changelog: [sdk-v0.114.0...sdk-v0.114.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.114.0...sdk-v0.114.1)
+
+### Bug Fixes
+
+* **client:** release abort listeners when requests settle ([#1129](https://github.com/anthropics/anthropic-sdk-typescript/issues/1129)) ([b85e902](https://github.com/anthropics/anthropic-sdk-typescript/commit/b85e902669c78a8293b5390e93e57dd2e3f6c545))
+
 ## 0.114.0 (2026-07-23)
 
 Full Changelog: [sdk-v0.113.0...sdk-v0.114.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.113.0...sdk-v0.114.0)

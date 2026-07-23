@@ -4,6 +4,7 @@ import type { FinalRequestOptions } from './request-options';
 import { Stream } from '../core/streaming';
 import { type BaseAnthropic } from '../client';
 import { formatRequestDetails, loggerFor } from './utils/log';
+import { releaseRequestSignal } from './request-signal';
 import type { AbstractPage } from '../core/pagination';
 
 export type APIResponseProps = {
@@ -55,7 +56,15 @@ export async function defaultParseResponse<T>(
 
     const text = await response.text();
     return text as unknown as T;
-  })();
+  })().finally(() => {
+    // The body is settled (or parsing threw), so the caller-signal abort
+    // listener has nothing left to cancel. Streams release in their own
+    // teardown; a raw Response (`__binaryResponse`) keeps the listener so
+    // aborting an in-flight download still works.
+    if (!props.options.stream && !props.options.__binaryResponse) {
+      releaseRequestSignal(props.controller);
+    }
+  });
   loggerFor(client).debug(
     `[${requestLogID}] response parsed`,
     formatRequestDetails({
