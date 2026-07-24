@@ -32,6 +32,30 @@ describe('beta zod helpers', () => {
       expect(format.schema).toBeDefined();
     });
 
+    it('preserves discriminated union constraints in JSON schema', () => {
+      const schema = z.object({
+        change: z.discriminatedUnion('action', [
+          z.object({ action: z.literal('set_title'), title: z.string() }),
+          z.object({
+            action: z.enum(['add_members', 'remove_members']),
+            emails: z.array(z.string()),
+          }),
+        ]),
+      });
+
+      const format = betaZodOutputFormat(schema);
+      const changeSchema = (format.schema as any).properties.change;
+
+      expect(changeSchema.anyOf[0].properties.action).toEqual({
+        type: 'string',
+        const: 'set_title',
+      });
+      expect(changeSchema.anyOf[1].properties.action).toEqual({
+        type: 'string',
+        enum: ['add_members', 'remove_members'],
+      });
+    });
+
     it('parses valid JSON correctly', () => {
       const schema = z.object({
         city: z.string(),
