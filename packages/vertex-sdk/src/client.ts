@@ -205,6 +205,7 @@ export class AnthropicVertex extends BaseAnthropic {
       }
     }
 
+    let isCountTokens = false;
     if (
       options &&
       (options.path === '/v1/messages/count_tokens' ||
@@ -221,15 +222,29 @@ export class AnthropicVertex extends BaseAnthropic {
         const prefix = url.pathname.slice(0, url.pathname.length - canonicalPath.length);
         url.pathname = `${prefix}/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/count-tokens:rawPredict`;
         url.searchParams.delete('beta');
+        isCountTokens = true;
       }
+    }
+
+    // Request/middleware-set headers win over the OAuth headers, preserving
+    // the ability to override `Authorization` explicitly.
+    const mergedHeaders = buildHeaders([googleAuthHeaders, request.headers]);
+
+    if (isCountTokens) {
+      // Vertex's per-model Anthropic backends roll out new `anthropic-beta`
+      // values on independent schedules (Haiku consistently lags), so any
+      // beta value not yet present on the resolved count-tokens model is
+      // rejected with HTTP 400 — recurring breakage in downstream consumers
+      // (see #1016 and anthropics/claude-code#11154). Count-tokens does
+      // not require any beta-gated capabilities, so strip the header here
+      // rather than chasing per-beta Vertex rollouts.
+      mergedHeaders.values.delete('anthropic-beta');
     }
 
     const adapted = {
       ...request,
       url: url.toString(),
-      // Request/middleware-set headers win over the OAuth headers, preserving
-      // the ability to override `Authorization` explicitly.
-      headers: buildHeaders([googleAuthHeaders, request.headers]).values,
+      headers: mergedHeaders.values,
     } as APIRequest;
     if (parsedBody) {
       adapted.body = JSON.stringify(parsedBody);
