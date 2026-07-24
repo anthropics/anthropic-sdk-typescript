@@ -1441,6 +1441,8 @@ export type BetaContentBlockParam =
   | BetaContainerUploadBlockParam
   | BetaCompactionBlockParam
   | BetaMidConversationSystemBlockParam
+  | BetaRequestToolAdditionBlock
+  | BetaRequestToolRemovalBlock
   | BetaFallbackBlockParam;
 
 export interface BetaContentBlockSource {
@@ -1632,6 +1634,94 @@ export interface BetaFallbackBlockParam {
 }
 
 /**
+ * No reprice was applied; `reason` says why.
+ */
+export interface BetaFallbackCreditNotApplied {
+  /**
+   * Why the reprice was not applied.
+   *
+   * A closed enum; additions to the redemption-check vocabulary arrive as deliberate
+   * schema updates.
+   */
+  reason:
+    | 'body_mismatch'
+    | 'continuation_excluded'
+    | 'continuation_only'
+    | 'expired'
+    | 'invalid_target_model'
+    | 'not_enabled'
+    | 'reprice_unavailable'
+    | 'temporarily_unavailable'
+    | 'variant_fields_present'
+    | 'wrong_organization'
+    | 'wrong_platform'
+    | 'wrong_workspace';
+
+  type: 'not_applied';
+
+  /**
+   * Request fields to remove before retrying, so the retry can redeem this token.
+   *
+   * Present exactly when `reason` is `variant_fields_present` — never null, never an
+   * empty array; absent otherwise. Fields are named only from your own request, and
+   * only after the sealed variant hash matched. A served best-effort retry has
+   * already been billed at normal price; nothing redeems retroactively, but a
+   * corrected re-send inside the token's five-minute window can still redeem.
+   */
+  remove_to_redeem?: Array<string> | null;
+}
+
+/**
+ * The reprice was applied: the retry is billed as if the conversation had been on
+ * the retry model all along.
+ */
+export interface BetaFallbackCreditRedeemed {
+  type: 'redeemed';
+}
+
+/**
+ * Object form of `fallback_credit_token`: the token plus a redemption mode.
+ *
+ * Requires `anthropic-beta: fallback-credit-2026-07-01`; without that header the
+ * field accepts the bare string only. The bare string and the mode-less object are
+ * equivalent (both select `strict`), so wrapping an existing token changes nothing
+ * by itself.
+ */
+export interface BetaFallbackCreditTokenParam {
+  /**
+   * The opaque `fallback_credit_token` from a prior refusal's `stop_details` — the
+   * same string the bare-string form carries.
+   */
+  token: string;
+
+  /**
+   * How a failing token affects the retry. `strict` (the default, and the
+   * bare-string behavior): a failing redemption is a 400 and the retry is not
+   * served. `best_effort`: the retry is served either way — a token-layer failure no
+   * longer rejects the request; the retry proceeds at normal price and the outcome
+   * is reported on the response's `usage.fallback_credit`. Two failures stay hard in
+   * both modes: a malformed token, and combining `fallback_credit_token` with
+   * `fallbacks`.
+   */
+  mode?: 'strict' | 'best_effort';
+}
+
+/**
+ * Outcome of the `fallback_credit_token` presented on this request.
+ */
+export interface BetaFallbackCreditUsage {
+  /**
+   * Whether the fallback-credit reprice was applied to this response's billing.
+   *
+   * A union discriminated on `type`. `redeemed`: the retry is billed as if the
+   * conversation had been on the retry model all along — including when the
+   * resulting shift is zero because there was nothing to move. `not_applied`: no
+   * reprice was applied; the arm's `reason` says why.
+   */
+  status: BetaFallbackCreditRedeemed | BetaFallbackCreditNotApplied;
+}
+
+/**
  * Identifies one hop of a fallback transition.
  */
 export interface BetaFallbackInfo {
@@ -1764,6 +1854,14 @@ export interface BetaFallbackRefusalTrigger {
 
   type: 'refusal';
 }
+
+/**
+ * Opt-in server-side retry on one or more substitute models when the requested
+ * model declines for policy reasons. Tried in order: if the first entry also
+ * declines, the second is tried, and so on. The string "default" requests the
+ * requested model's server-defined default fallback configuration.
+ */
+export type BetaFallbacksParam = Array<BetaFallbackParam> | 'default';
 
 export interface BetaFileDocumentSource {
   file_id: string;
@@ -2226,6 +2324,11 @@ export interface BetaMessageDeltaUsage {
   cache_read_input_tokens: number | null;
 
   /**
+   * Outcome of the `fallback_credit_token` presented on this request.
+   */
+  fallback_credit: BetaFallbackCreditUsage | null;
+
+  /**
    * The cumulative number of input tokens which were used.
    */
   input_tokens: number | null;
@@ -2347,7 +2450,7 @@ export interface BetaMidConversationSystemBlockParam {
   /**
    * System instruction text blocks.
    */
-  content: Array<BetaTextBlockParam>;
+  content: Array<BetaTextBlockParam | BetaRequestToolAdditionBlock | BetaRequestToolRemovalBlock>;
 
   type: 'mid_conv_system';
 
@@ -2667,6 +2770,50 @@ export interface BetaRequestMCPToolResultBlockParam {
   content?: string | Array<BetaTextBlockParam>;
 
   is_error?: boolean;
+}
+
+/**
+ * Mid-conversation directive to surface a declared tool.
+ *
+ * `tool` references a tool (or MCP toolset) by name from the request's `tools`; it
+ * is offered to the model from this point in the conversation onward.
+ */
+export interface BetaRequestToolAdditionBlock {
+  /**
+   * Reference to a single tool the caller declared directly in `tools[]`. Does not
+   * accept the composed `{server}_{name}` form the server assigns to MCP-resolved
+   * tools — use `mcp_tool_reference` or `mcp_toolset_reference` for those.
+   */
+  tool: BetaToolChangeToolReference | BetaToolChangeMCPToolReference | BetaToolChangeMCPToolsetReference;
+
+  type: 'tool_addition';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+}
+
+/**
+ * Mid-conversation directive to withdraw a tool.
+ *
+ * `tool` references a tool (or MCP toolset) by name from the request's `tools`; it
+ * is no longer offered to the model from this point in the conversation onward.
+ */
+export interface BetaRequestToolRemovalBlock {
+  /**
+   * Reference to a single tool the caller declared directly in `tools[]`. Does not
+   * accept the composed `{server}_{name}` form the server assigns to MCP-resolved
+   * tools — use `mcp_tool_reference` or `mcp_toolset_reference` for those.
+   */
+  tool: BetaToolChangeToolReference | BetaToolChangeMCPToolReference | BetaToolChangeMCPToolsetReference;
+
+  type: 'tool_removal';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
 }
 
 export interface BetaSearchResultBlockParam {
@@ -3251,6 +3398,38 @@ export interface BetaToolBash20250124 {
    * When true, guarantees schema validation on tool names and inputs
    */
   strict?: boolean;
+}
+
+/**
+ * Reference to a single MCP tool by its server and remote name — the same
+ * `server_name`/`name` pair `mcp_tool_use` carries.
+ */
+export interface BetaToolChangeMCPToolReference {
+  name: string;
+
+  server_name: string;
+
+  type: 'mcp_tool_reference';
+}
+
+/**
+ * Reference to every tool in the named MCP server's toolset.
+ */
+export interface BetaToolChangeMCPToolsetReference {
+  server_name: string;
+
+  type: 'mcp_toolset_reference';
+}
+
+/**
+ * Reference to a single tool the caller declared directly in `tools[]`. Does not
+ * accept the composed `{server}_{name}` form the server assigns to MCP-resolved
+ * tools — use `mcp_tool_reference` or `mcp_toolset_reference` for those.
+ */
+export interface BetaToolChangeToolReference {
+  name: string;
+
+  type: 'tool_reference';
 }
 
 /**
@@ -3865,6 +4044,11 @@ export interface BetaUsage {
    * The number of input tokens read from the cache.
    */
   cache_read_input_tokens: number | null;
+
+  /**
+   * Outcome of the `fallback_credit_token` presented on this request.
+   */
+  fallback_credit: BetaFallbackCreditUsage | null;
 
   /**
    * The geographic region where inference was performed for this request.
@@ -4695,14 +4879,15 @@ export interface MessageCreateParamsBase {
    * When the appended-assistant form is used on a model that otherwise disallows
    * assistant-turn prefill, this token also authorizes that one prefill.
    */
-  fallback_credit_token?: string | null;
+  fallback_credit_token?: string | BetaFallbackCreditTokenParam | null;
 
   /**
    * Body param: Opt-in server-side retry on one or more substitute models when the
    * requested model declines for policy reasons. Tried in order: if the first entry
-   * also declines, the second is tried, and so on.
+   * also declines, the second is tried, and so on. The string "default" requests the
+   * requested model's server-defined default fallback configuration.
    */
-  fallbacks?: Array<BetaFallbackParam> | null;
+  fallbacks?: BetaFallbacksParam | null;
 
   /**
    * Body param: Specifies the geographic region for inference processing. If not
@@ -5307,11 +5492,16 @@ export declare namespace Messages {
     type BetaEncryptedCodeExecutionResultBlockParam as BetaEncryptedCodeExecutionResultBlockParam,
     type BetaFallbackBlock as BetaFallbackBlock,
     type BetaFallbackBlockParam as BetaFallbackBlockParam,
+    type BetaFallbackCreditNotApplied as BetaFallbackCreditNotApplied,
+    type BetaFallbackCreditRedeemed as BetaFallbackCreditRedeemed,
+    type BetaFallbackCreditTokenParam as BetaFallbackCreditTokenParam,
+    type BetaFallbackCreditUsage as BetaFallbackCreditUsage,
     type BetaFallbackInfo as BetaFallbackInfo,
     type BetaFallbackInfoParam as BetaFallbackInfoParam,
     type BetaFallbackMessageIterationUsage as BetaFallbackMessageIterationUsage,
     type BetaFallbackParam as BetaFallbackParam,
     type BetaFallbackRefusalTrigger as BetaFallbackRefusalTrigger,
+    type BetaFallbacksParam as BetaFallbacksParam,
     type BetaFileDocumentSource as BetaFileDocumentSource,
     type BetaFileImageSource as BetaFileImageSource,
     type BetaImageBlockParam as BetaImageBlockParam,
@@ -5359,6 +5549,8 @@ export declare namespace Messages {
     type BetaRequestMCPServerToolConfiguration as BetaRequestMCPServerToolConfiguration,
     type BetaRequestMCPServerURLDefinition as BetaRequestMCPServerURLDefinition,
     type BetaRequestMCPToolResultBlockParam as BetaRequestMCPToolResultBlockParam,
+    type BetaRequestToolAdditionBlock as BetaRequestToolAdditionBlock,
+    type BetaRequestToolRemovalBlock as BetaRequestToolRemovalBlock,
     type BetaSearchResultBlockParam as BetaSearchResultBlockParam,
     type BetaServerToolCaller as BetaServerToolCaller,
     type BetaServerToolCaller20260120 as BetaServerToolCaller20260120,
@@ -5396,6 +5588,9 @@ export declare namespace Messages {
     type BetaTool as BetaTool,
     type BetaToolBash20241022 as BetaToolBash20241022,
     type BetaToolBash20250124 as BetaToolBash20250124,
+    type BetaToolChangeMCPToolReference as BetaToolChangeMCPToolReference,
+    type BetaToolChangeMCPToolsetReference as BetaToolChangeMCPToolsetReference,
+    type BetaToolChangeToolReference as BetaToolChangeToolReference,
     type BetaToolChoice as BetaToolChoice,
     type BetaToolChoiceAny as BetaToolChoiceAny,
     type BetaToolChoiceAuto as BetaToolChoiceAuto,

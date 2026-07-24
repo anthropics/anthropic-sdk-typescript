@@ -1877,7 +1877,7 @@ describe('betaRefusalFallbackMiddleware', () => {
     expect(result.model).toEqual('fallback-model');
     expect(result.stop_reason).toEqual('end_turn');
     expect(bodies.map((b) => b['model'])).toEqual(['primary-model', 'fallback-model']);
-    expect(bodies[1]!['fallback_credit_token']).toEqual('credit-token');
+    expect(bodies[1]!['fallback_credit_token']).toEqual({ token: 'credit-token', mode: 'best_effort' });
   });
 
   test('tags the original and fallback requests', async () => {
@@ -2066,6 +2066,123 @@ describe('betaRefusalFallbackMiddleware', () => {
     ]);
   });
 
+  test('a hop entry patches the original params: set overrides, null unsets, absent keeps', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model', 'credit-token'), message('fallback-model')],
+      betaRefusalFallbackMiddleware([
+        { model: 'fallback-model', max_tokens: 512, speed: null, top_p: undefined },
+      ]),
+    );
+
+    const richParams = { ...params, speed: 'fast' as const, temperature: 0.5, top_p: 0.9 };
+    const snapshot = structuredClone(richParams);
+    await client.beta.messages.create(richParams, { fallbackState: new BetaFallbackState() });
+
+    expect(bodies[1]!['model']).toEqual('fallback-model'); // set: overrides
+    expect(bodies[1]!['max_tokens']).toEqual(512); // set: overrides
+    expect('speed' in bodies[1]!).toBe(false); // explicit null: unset, not sent as null
+    expect(bodies[1]!['top_p']).toEqual(0.9); // explicit undefined: treated as absent
+    expect(bodies[1]!['temperature']).toEqual(0.5); // absent: original kept
+    expect(richParams).toEqual(snapshot); // caller's params not mutated
+  });
+
+  test("hop 2 patches the original params, not hop 1's patched request", async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model'), refusal('mid-model'), message('last-model')],
+      betaRefusalFallbackMiddleware([
+        { model: 'mid-model', max_tokens: 512, speed: null },
+        { model: 'last-model' },
+      ]),
+    );
+
+    await client.beta.messages.create(
+      { ...params, speed: 'fast' },
+      { fallbackState: new BetaFallbackState() },
+    );
+
+    expect(bodies.map((b) => b['model'])).toEqual(['primary-model', 'mid-model', 'last-model']);
+    // hop 1's max_tokens override and speed unset must not leak into hop 2
+    expect(bodies.map((b) => b['max_tokens'])).toEqual([1024, 512, 1024]);
+    expect(bodies.map((b) => 'speed' in b)).toEqual([true, false, true]);
+  });
+
+  describe('output_config patches one level deep', () => {
+    const withConfig = {
+      ...params,
+      output_config: { effort: 'low' as const, task_budget: { type: 'tokens' as const, total: 100 } },
+    };
+    const secondBody = async (
+      entry: Record<string, unknown>,
+      first: Record<string, unknown> = withConfig,
+    ) => {
+      const { client, bodies } = makeClient(
+        [refusal('primary-model', 'credit-token'), message('fallback-model')],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model', ...entry }]),
+      );
+      await client.beta.messages.create(first as any, { fallbackState: new BetaFallbackState() });
+      return bodies[1]!;
+    };
+
+    test('a set subfield merges over the existing subfields', async () => {
+      expect((await secondBody({ output_config: { effort: 'high' } }))['output_config']).toEqual({
+        effort: 'high',
+        task_budget: { type: 'tokens', total: 100 },
+      });
+    });
+
+    test('a null subfield unsets only that subfield', async () => {
+      expect((await secondBody({ output_config: { effort: null } }))['output_config']).toEqual({
+        task_budget: { type: 'tokens', total: 100 },
+      });
+    });
+
+    test('output_config: null unsets the whole field', async () => {
+      expect('output_config' in (await secondBody({ output_config: null }))).toBe(false);
+    });
+
+    test('an absent output_config leaves the original', async () => {
+      expect((await secondBody({}))['output_config']).toEqual(withConfig.output_config);
+    });
+
+    test('subfields on a request with no output_config create it, dropping nulls', async () => {
+      expect(
+        (await secondBody({ output_config: { effort: 'high', format: null } }, params))['output_config'],
+      ).toEqual({ effort: 'high' });
+    });
+
+    // An emptied `output_config` is dropped from the request, never sent as `{}`.
+    test('unsetting every remaining subfield drops output_config entirely', async () => {
+      const body = await secondBody({ output_config: { effort: null, task_budget: null } });
+      expect('output_config' in body).toBe(false); // absent, not `{}`
+    });
+
+    test('all-null subfields on a request with no output_config do not add one', async () => {
+      const body = await secondBody({ output_config: { effort: null, format: null } }, params);
+      expect('output_config' in body).toBe(false); // absent, not `{}`
+    });
+
+    test('an absent output_config leaves an original {} untouched', async () => {
+      expect((await secondBody({}, { ...params, output_config: {} }))['output_config']).toEqual({});
+    });
+
+    test("hop 2 patches the original output_config, not hop 1's", async () => {
+      const { client, bodies } = makeClient(
+        [refusal('primary-model'), refusal('mid-model'), message('last-model')],
+        betaRefusalFallbackMiddleware([
+          { model: 'mid-model', output_config: { effort: 'high', task_budget: null } },
+          { model: 'last-model', output_config: { effort: null } },
+        ]),
+      );
+
+      await client.beta.messages.create(withConfig, { fallbackState: new BetaFallbackState() });
+      expect(bodies.map((b) => b['output_config'])).toEqual([
+        { effort: 'low', task_budget: { type: 'tokens', total: 100 } },
+        { effort: 'high' }, // hop 1: effort set, task_budget unset
+        { task_budget: { type: 'tokens', total: 100 } }, // hop 2 from the original: effort unset, budget kept
+      ]);
+    });
+  });
+
   test('a pinned start seams from the pinned entry, not the original body model', async () => {
     const { client, bodies } = makeClient(
       [refusal('mid-model'), message('last-model', { content: [{ type: 'text', text: 'ok' }] })],
@@ -2120,7 +2237,7 @@ describe('betaRefusalFallbackMiddleware', () => {
       );
 
       await client.beta.messages.create(params);
-      expect(betaHeaders).toEqual(['fallback-credit-2026-06-01', 'fallback-credit-2026-06-01']);
+      expect(betaHeaders).toEqual(['fallback-credit-2026-07-01', 'fallback-credit-2026-07-01']);
     });
 
     test('the betas option replaces the default', async () => {
@@ -2151,8 +2268,8 @@ describe('betaRefusalFallbackMiddleware', () => {
         betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
       );
 
-      await client.beta.messages.create({ ...params, betas: ['fallback-credit-2026-06-01'] });
-      expect(betaHeaders).toEqual(['fallback-credit-2026-06-01']);
+      await client.beta.messages.create({ ...params, betas: ['fallback-credit-2026-07-01'] });
+      expect(betaHeaders).toEqual(['fallback-credit-2026-07-01']);
     });
 
     test('appends to betas already on the request', async () => {
@@ -2162,7 +2279,7 @@ describe('betaRefusalFallbackMiddleware', () => {
       );
 
       await client.beta.messages.create({ ...params, betas: ['interleaved-thinking-2025-05-14'] });
-      expect(betaHeaders).toEqual(['interleaved-thinking-2025-05-14, fallback-credit-2026-06-01']);
+      expect(betaHeaders).toEqual(['interleaved-thinking-2025-05-14, fallback-credit-2026-07-01']);
     });
   });
 });

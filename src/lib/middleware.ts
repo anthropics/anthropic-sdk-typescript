@@ -10,6 +10,7 @@ import type { AnthropicBeta } from '../resources/beta/beta';
 import type {
   BetaContentBlockParam,
   BetaFallbackBlock,
+  BetaFallbackCreditTokenParam,
   BetaFallbackMessageIterationUsage,
   BetaFallbackParam,
   BetaMessage,
@@ -31,7 +32,7 @@ export { BetaFallbackState } from '../internal/request-options';
 const encoder = new TextEncoder();
 
 /** Betas sent by default; override with {@link BetaRefusalFallbackOptions.betas}. */
-const DEFAULT_BETAS: readonly AnthropicBeta[] = ['fallback-credit-2026-06-01'];
+const DEFAULT_BETAS: readonly AnthropicBeta[] = ['fallback-credit-2026-07-01'];
 
 /**
  * Remove `fallback` blocks replayed in history. They only parse under the
@@ -48,6 +49,42 @@ function stripFallbackBlocks(body: MessageCreateParams): MessageCreateParams {
     )
     .filter((message) => !Array.isArray(message.content) || message.content.length > 0);
   return { ...body, messages };
+}
+
+/**
+ * Apply one chain entry to the original request params as a patch: a field
+ * set to a value overrides the original, a field explicitly `null` removes
+ * the field from the retried request, and an absent (or `undefined`) field
+ * keeps the original value. `output_config` patches one level deep — its
+ * subfields follow the same set/`null`/absent rules against the original
+ * `output_config` (created if the entry sets any subfield). Every hop patches
+ * the original params — never a previous hop's patched body — and `body` is
+ * never mutated.
+ */
+function applyFallbackPatch(body: MessageCreateParams, entry: BetaFallbackParam): MessageCreateParams {
+  const patched = { ...body } as Record<string, unknown>;
+  for (const [key, value] of Object.entries(entry)) {
+    if (key === 'output_config' && value != null) {
+      const merged = { ...((patched[key] as Record<string, unknown> | undefined) ?? {}) };
+      for (const [subKey, subValue] of Object.entries(value)) {
+        patchField(merged, subKey, subValue);
+      }
+      patchField(patched, key, Object.keys(merged).length ? merged : null);
+    } else {
+      patchField(patched, key, value);
+    }
+  }
+  return patched as unknown as MessageCreateParams;
+}
+
+/** Set/`null`-unset/absent-keep one field on `target` (mutated). */
+function patchField(target: Record<string, unknown>, key: string, value: unknown): void {
+  if (value === undefined) return;
+  if (value === null) {
+    delete target[key];
+  } else {
+    target[key] = value;
+  }
 }
 
 /** Why {@link BetaRefusalFallbackOptions.onError} fired. */
@@ -83,7 +120,7 @@ export interface BetaRefusalFallbackOptions {
    * Betas added to the `anthropic-beta` header of every `/v1/messages`
    * request this middleware handles — the original request included, since
    * refusals only carry a `fallback_credit_token` when the beta is enabled.
-   * Defaults to `['fallback-credit-2026-06-01']`; pass `[]` to send none.
+   * Defaults to `['fallback-credit-2026-07-01']`; pass `[]` to send none.
    */
   betas?: readonly AnthropicBeta[] | undefined;
 
@@ -100,8 +137,10 @@ export interface BetaRefusalFallbackOptions {
  * Middleware that retries refused `/v1/messages` requests down a fallback chain.
  *
  * Non-streaming: when a response comes back with `stop_reason: 'refusal'`, the
- * request is retried with each entry of `fallbacks` merged over the original
- * params — passing along the refusal's `fallback_credit_token` — until a model
+ * request is retried with each entry of `fallbacks` applied as a patch to the
+ * original params (a set field overrides, an explicit `null` unsets, an absent
+ * field keeps the original value; entries never patch each other's requests)
+ * — passing along the refusal's `fallback_credit_token` — until a model
  * accepts or the chain is exhausted. A message served by a fallback carries a
  * `fallback` content block prepended at each model boundary — the same seam
  * block shape the server-side `fallbacks` param places in `content`, though
@@ -171,7 +210,7 @@ export function betaRefusalFallbackMiddleware(
     if ((ctx.options.body as MessageCreateParams).fallbacks != null) {
       throw new AnthropicError(
         'Sending the `fallbacks:` request param is not supported when using the `betaRefusalFallbackMiddleware`. ' +
-          'You should either remove the middleware and send `fallbacks:` with the `server-side-fallback-2026-06-01` beta header to let the API handle refusal fallbacks, ' +
+          'You should either remove the middleware and send `fallbacks:` with the `server-side-fallback-2026-07-01` beta header to let the API handle refusal fallbacks, ' +
           "or omit the `fallbacks:` param if you'd like `betaRefusalFallbackMiddleware` to handle fallbacks on the client side.",
       );
     }
@@ -208,15 +247,12 @@ export function betaRefusalFallbackMiddleware(
       }
     };
 
+    const initialBody = startIndex === -1 ? body : applyFallbackPatch(body, fallbacks[startIndex]!);
+
     // a non-string body can't be respliced or redeemed against — leave the
     // request untouched (the streaming path stands down on it below too)
     const initialRequest =
-      typeof request.body !== 'string' ?
-        request
-      : {
-          ...request,
-          body: JSON.stringify(startIndex === -1 ? body : { ...body, ...fallbacks[startIndex] }),
-        };
+      typeof request.body !== 'string' ? request : { ...request, body: JSON.stringify(initialBody) };
 
     const response = await next(initialRequest);
     if (!response.ok) {
@@ -248,7 +284,7 @@ export function betaRefusalFallbackMiddleware(
     let res = response;
     // The model the current hop was requested as — the caller's spelling, not
     // the server's `message.model` echo; the seam block's `from` carries it.
-    let requestedModel = (startIndex === -1 ? body : { ...body, ...fallbacks[startIndex] }).model;
+    let requestedModel = initialBody.model;
     const fallbackBlocks: BetaFallbackBlock[] = [];
     while (index < fallbacks.length - 1) {
       const message = await ctx.parse<BetaMessage | null>(res);
@@ -274,10 +310,9 @@ export function betaRefusalFallbackMiddleware(
       res = await next({
         ...request,
         body: JSON.stringify({
-          ...body,
-          ...entry,
+          ...applyFallbackPatch(body, entry),
           ...(message.stop_details?.fallback_credit_token ?
-            { fallback_credit_token: message.stop_details.fallback_credit_token }
+            { fallback_credit_token: creditTokenParam(message.stop_details.fallback_credit_token) }
           : undefined),
         }),
       });
@@ -759,6 +794,16 @@ class BlockTracker {
 
 // --- fallback request construction (appended-assistant continuation) -------
 
+/**
+ * Object form of the redeemed credit token. `best_effort` keeps the retry
+ * served if the token layer rejects it — the retry then proceeds at normal
+ * price and the outcome lands on `usage.fallback_credit` — where the
+ * bare-string (`strict`) form would 400 the whole request.
+ */
+function creditTokenParam(token: string): BetaFallbackCreditTokenParam {
+  return { token, mode: 'best_effort' };
+}
+
 function buildFallbackRequest(
   orig: APIRequest,
   {
@@ -775,7 +820,7 @@ function buildFallbackRequest(
   const body = JSON.parse(orig.body as string);
 
   body.model = model;
-  body.fallback_credit_token = creditToken;
+  body.fallback_credit_token = creditTokenParam(creditToken);
 
   // Append the continuation (decided by the chain loop) as a trailing
   // assistant turn; everything else must stay identical to the refused

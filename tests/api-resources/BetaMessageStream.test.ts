@@ -526,6 +526,48 @@ describe('BetaMessageStream class', () => {
     });
   });
 
+  it('carries usage.fallback_credit from message_delta into the final message', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_credit_01',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-sonnet-4-5',
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { input_tokens: 12, output_tokens: 1 },
+        },
+      },
+      { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+      { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Hello again!' } },
+      { type: 'content_block_stop', index: 0 },
+      {
+        type: 'message_delta',
+        delta: { stop_reason: 'end_turn', stop_sequence: null },
+        usage: { output_tokens: 7, fallback_credit: { status: { type: 'redeemed' } } },
+      },
+      { type: 'message_stop' },
+    ]);
+
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-sonnet-4-5',
+      messages: [{ role: 'user', content: 'Say hello again!' }],
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(finalMessage.usage.output_tokens).toBe(7);
+    expect(finalMessage.usage.fallback_credit).toEqual({ status: { type: 'redeemed' } });
+  });
+
   it('relabels the snapshot model from fallback content blocks', async () => {
     const { fetch, handleStreamEvents } = mockFetch();
 

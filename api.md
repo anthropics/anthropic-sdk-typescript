@@ -363,11 +363,16 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaEncryptedCodeExecutionResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackCreditNotApplied</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackCreditRedeemed</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackCreditTokenParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackCreditUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackInfo</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackInfoParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackMessageIterationUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbackRefusalTrigger</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaFallbacksParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFileDocumentSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFileImageSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaImageBlockParam</a></code>
@@ -416,6 +421,8 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestMCPServerToolConfiguration</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestMCPServerURLDefinition</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestMCPToolResultBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestToolAdditionBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestToolRemovalBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSearchResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolCaller</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolCaller20260120</a></code>
@@ -453,6 +460,9 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTool</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolBash20241022</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolBash20250124</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChangeMCPToolReference</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChangeMCPToolsetReference</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChangeToolReference</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChoice</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChoiceAny</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChoiceAuto</a></code>

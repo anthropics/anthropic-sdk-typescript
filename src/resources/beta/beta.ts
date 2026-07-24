@@ -363,11 +363,16 @@ import {
   BetaEncryptedCodeExecutionResultBlockParam,
   BetaFallbackBlock,
   BetaFallbackBlockParam,
+  BetaFallbackCreditNotApplied,
+  BetaFallbackCreditRedeemed,
+  BetaFallbackCreditTokenParam,
+  BetaFallbackCreditUsage,
   BetaFallbackInfo,
   BetaFallbackInfoParam,
   BetaFallbackMessageIterationUsage,
   BetaFallbackParam,
   BetaFallbackRefusalTrigger,
+  BetaFallbacksParam,
   BetaFileDocumentSource,
   BetaFileImageSource,
   BetaImageBlockParam,
@@ -412,6 +417,8 @@ import {
   BetaRequestMCPServerToolConfiguration,
   BetaRequestMCPServerURLDefinition,
   BetaRequestMCPToolResultBlockParam,
+  BetaRequestToolAdditionBlock,
+  BetaRequestToolRemovalBlock,
   BetaSearchResultBlockParam,
   BetaServerToolCaller,
   BetaServerToolCaller20260120,
@@ -449,6 +456,9 @@ import {
   BetaTool,
   BetaToolBash20241022,
   BetaToolBash20250124,
+  BetaToolChangeMCPToolReference,
+  BetaToolChangeMCPToolsetReference,
+  BetaToolChangeToolReference,
   BetaToolChoice,
   BetaToolChoiceAny,
   BetaToolChoiceAuto,
@@ -633,7 +643,9 @@ export type AnthropicBeta =
   | 'dreaming-2026-04-21'
   | 'thinking-token-count-2026-05-13'
   | 'server-side-fallback-2026-06-01'
+  | 'server-side-fallback-2026-07-01'
   | 'fallback-credit-2026-06-01'
+  | 'fallback-credit-2026-07-01'
   | 'agent-memory-2026-07-22';
 
 export interface BetaAPIError {
@@ -842,11 +854,16 @@ export declare namespace Beta {
     type BetaEncryptedCodeExecutionResultBlockParam as BetaEncryptedCodeExecutionResultBlockParam,
     type BetaFallbackBlock as BetaFallbackBlock,
     type BetaFallbackBlockParam as BetaFallbackBlockParam,
+    type BetaFallbackCreditNotApplied as BetaFallbackCreditNotApplied,
+    type BetaFallbackCreditRedeemed as BetaFallbackCreditRedeemed,
+    type BetaFallbackCreditTokenParam as BetaFallbackCreditTokenParam,
+    type BetaFallbackCreditUsage as BetaFallbackCreditUsage,
     type BetaFallbackInfo as BetaFallbackInfo,
     type BetaFallbackInfoParam as BetaFallbackInfoParam,
     type BetaFallbackMessageIterationUsage as BetaFallbackMessageIterationUsage,
     type BetaFallbackParam as BetaFallbackParam,
     type BetaFallbackRefusalTrigger as BetaFallbackRefusalTrigger,
+    type BetaFallbacksParam as BetaFallbacksParam,
     type BetaFileDocumentSource as BetaFileDocumentSource,
     type BetaFileImageSource as BetaFileImageSource,
     type BetaImageBlockParam as BetaImageBlockParam,
@@ -893,6 +910,8 @@ export declare namespace Beta {
     type BetaRequestMCPServerToolConfiguration as BetaRequestMCPServerToolConfiguration,
     type BetaRequestMCPServerURLDefinition as BetaRequestMCPServerURLDefinition,
     type BetaRequestMCPToolResultBlockParam as BetaRequestMCPToolResultBlockParam,
+    type BetaRequestToolAdditionBlock as BetaRequestToolAdditionBlock,
+    type BetaRequestToolRemovalBlock as BetaRequestToolRemovalBlock,
     type BetaSearchResultBlockParam as BetaSearchResultBlockParam,
     type BetaServerToolCaller as BetaServerToolCaller,
     type BetaServerToolCaller20260120 as BetaServerToolCaller20260120,
@@ -930,6 +949,9 @@ export declare namespace Beta {
     type BetaTool as BetaTool,
     type BetaToolBash20241022 as BetaToolBash20241022,
     type BetaToolBash20250124 as BetaToolBash20250124,
+    type BetaToolChangeMCPToolReference as BetaToolChangeMCPToolReference,
+    type BetaToolChangeMCPToolsetReference as BetaToolChangeMCPToolsetReference,
+    type BetaToolChangeToolReference as BetaToolChangeToolReference,
     type BetaToolChoice as BetaToolChoice,
     type BetaToolChoiceAny as BetaToolChoiceAny,
     type BetaToolChoiceAuto as BetaToolChoiceAuto,

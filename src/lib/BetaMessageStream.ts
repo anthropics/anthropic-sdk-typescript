@@ -610,6 +610,10 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
           snapshot.usage.iterations = event.usage.iterations;
         }
 
+        if (event.usage.fallback_credit != null) {
+          snapshot.usage.fallback_credit = event.usage.fallback_credit;
+        }
+
         return snapshot;
       case 'content_block_start':
         snapshot.content.push(event.content_block);

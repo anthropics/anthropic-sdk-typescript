@@ -239,8 +239,9 @@ describe('betaRefusalFallbackMiddleware (streaming) — shape-B continuation', (
 
     // Model swapped to the fallback, credit token from A's stop_details set.
     expect(bodyB.model).toBe(FALLBACK_MODEL);
-    expect(typeof bodyB.fallback_credit_token).toBe('string');
-    expect(bodyB.fallback_credit_token.length).toBeGreaterThan(0);
+    expect(bodyB.fallback_credit_token.mode).toBe('best_effort');
+    expect(typeof bodyB.fallback_credit_token.token).toBe('string');
+    expect(bodyB.fallback_credit_token.token.length).toBeGreaterThan(0);
 
     // Mutually exclusive with server-side fallback — both spellings stripped.
     expect(bodyB).not.toHaveProperty('fallback');
@@ -268,8 +269,8 @@ describe('betaRefusalFallbackMiddleware (streaming) — shape-B continuation', (
     ]);
 
     expect(requests.map((r) => r.headers.get('anthropic-beta'))).toEqual([
-      'interleaved-thinking-2025-05-14, fallback-credit-2026-06-01',
-      'interleaved-thinking-2025-05-14, fallback-credit-2026-06-01',
+      'interleaved-thinking-2025-05-14, fallback-credit-2026-07-01',
+      'interleaved-thinking-2025-05-14, fallback-credit-2026-07-01',
     ]);
   });
 
@@ -334,7 +335,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — edge cases', () => {
     ]);
 
     const bodyB = JSON.parse(requests[1]!.body as string);
-    expect(bodyB.fallback_credit_token).toBe('tok_abc');
+    expect(bodyB.fallback_credit_token).toEqual({ token: 'tok_abc', mode: 'best_effort' });
     // No appended assistant turn — identical body (shape-A).
     expect(bodyB.messages).toEqual(ORIGINAL_BODY.messages);
   });
@@ -379,7 +380,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — edge cases', () => {
     const body2 = JSON.parse(requests[2]!.body as string);
     expect(body1.messages).toHaveLength(2);
     expect(body2.model).toBe(FALLBACK_MODEL);
-    expect(body2.fallback_credit_token).toBe(body1.fallback_credit_token);
+    expect(body2.fallback_credit_token).toEqual(body1.fallback_credit_token);
     expect(body2.messages).toEqual(ORIGINAL_BODY.messages);
 
     // The recovered hop is not a failure: one boundary, a normal completion.
@@ -526,7 +527,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — edge cases', () => {
     expect(requests).toHaveLength(2);
     const bodyB = JSON.parse(requests[1]!.body as string);
     expect(bodyB.model).toBe(FALLBACK_MODEL);
-    expect(bodyB.fallback_credit_token).toBe('tok_json');
+    expect(bodyB.fallback_credit_token).toEqual({ token: 'tok_json', mode: 'best_effort' });
   });
 
   test('pass-through preserves SSE fields the decoder does not model (id, retry, comments)', async () => {
@@ -662,7 +663,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — edge cases', () => {
     expect(requests).toHaveLength(2);
     const bodyB = JSON.parse(requests[1]!.body as string);
     expect(bodyB.model).toBe(FALLBACK_MODEL);
-    expect(bodyB.fallback_credit_token).toBe('tok_json');
+    expect(bodyB.fallback_credit_token).toEqual({ token: 'tok_json', mode: 'best_effort' });
     // The seam block is prepended ahead of the serving hop's own content —
     // non-empty content distinguishes prepend from replace.
     const served: any = await out.json();
@@ -799,8 +800,8 @@ describe('betaRefusalFallbackMiddleware (streaming) — fallback chain', () => {
     const body2 = JSON.parse(requests[2]!.body as string);
     expect(body1.model).toBe(FALLBACK_MODEL);
     expect(body2.model).toBe(SECOND_MODEL);
-    expect(body2.fallback_credit_token).toBe('tok_b');
-    expect(body2.fallback_credit_token).not.toBe(body1.fallback_credit_token);
+    expect(body2.fallback_credit_token).toEqual({ token: 'tok_b', mode: 'best_effort' });
+    expect(body2.fallback_credit_token).not.toEqual(body1.fallback_credit_token);
     expect(body2.messages[1].content).toEqual([
       ...body1.messages[1].content,
       { type: 'text', text: 'Partial from B. ' },
@@ -861,7 +862,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — fallback chain', () => {
     expect(requests).toHaveLength(3);
     const body1 = JSON.parse(requests[1]!.body as string);
     const body2 = JSON.parse(requests[2]!.body as string);
-    expect(body2.fallback_credit_token).toBe('tok_b');
+    expect(body2.fallback_credit_token).toEqual({ token: 'tok_b', mode: 'best_effort' });
     // Hop 2 redeems the fresh token against the body it was minted for —
     // hop 1's request, including its appended turn — without hop 1's own
     // (unclaimed) partial output.
@@ -894,7 +895,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — fallback chain', () => {
     const body1 = JSON.parse(requests[1]!.body as string);
     const body2 = JSON.parse(requests[2]!.body as string);
     expect(body2.model).toBe(SECOND_MODEL);
-    expect(body2.fallback_credit_token).toBe(body1.fallback_credit_token);
+    expect(body2.fallback_credit_token).toEqual(body1.fallback_credit_token);
     expect(body2.messages).toEqual(body1.messages);
 
     // Both boundaries are from A — the failed hop contributed no output.
@@ -995,7 +996,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — fallback chain', () => {
     const body1 = JSON.parse(requests[1]!.body as string);
     const body2 = JSON.parse(requests[2]!.body as string);
     expect(body2.model).toBe(SECOND_MODEL);
-    expect(body2.fallback_credit_token).toBe(body1.fallback_credit_token);
+    expect(body2.fallback_credit_token).toEqual(body1.fallback_credit_token);
 
     // The stream completes normally from the next entry.
     const delta = events.find((e) => e.data.type === 'message_delta')!.data;
@@ -1242,7 +1243,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — tool-use refusals', () =
     ]);
 
     const bodyB = JSON.parse(requests[1]!.body as string);
-    expect(bodyB.fallback_credit_token).toBe('tok_abc');
+    expect(bodyB.fallback_credit_token).toEqual({ token: 'tok_abc', mode: 'best_effort' });
     const appended = bodyB.messages[1];
     expect(appended.role).toBe('assistant');
     expect(appended.content.map((b: any) => b.type)).toEqual([
