@@ -140,8 +140,8 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   private async validatePath(memoryPath: string): Promise<string> {
-    if (!memoryPath.startsWith('/memories')) {
-      throw new Error(`Path must start with /memories, got: ${memoryPath}`);
+    if (memoryPath !== '/memories' && !memoryPath.startsWith('/memories/')) {
+      throw new Error(`Path must be /memories or start with /memories/, got: ${memoryPath}`);
     }
 
     const relativePath = memoryPath.slice('/memories'.length).replace(/^\//, '');
