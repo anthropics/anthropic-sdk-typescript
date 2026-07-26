@@ -49,6 +49,19 @@ describe('instantiate client', () => {
       });
       expect(req.headers.has('x-my-default-header')).toBe(false);
     });
+
+    test('uses a stable user agent for subclasses', async () => {
+      class MinifiedClient extends Anthropic {}
+
+      const subclassedClient = new MinifiedClient({
+        baseURL: 'http://localhost:5000/',
+        apiKey: 'my-anthropic-api-key',
+      });
+      const { req } = await subclassedClient.buildRequest({ path: '/foo', method: 'post' });
+
+      expect(req.headers.get('user-agent')).toMatch(/^Anthropic\/JS /);
+      expect(req.headers.get('user-agent')).not.toContain('MinifiedClient');
+    });
   });
   describe('logging', () => {
     const env = process.env;
