@@ -863,7 +863,7 @@ export class BaseAnthropic {
   }
 
   private getUserAgent(): string {
-    return `${this.constructor.name}/JS ${VERSION}`;
+    return `Anthropic/JS ${VERSION}`;
   }
 
   protected defaultIdempotencyKey(): string {
