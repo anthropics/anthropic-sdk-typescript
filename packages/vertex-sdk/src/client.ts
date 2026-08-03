@@ -1,5 +1,6 @@
 import { APIRequest, BaseAnthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
+import { VERSION } from '@anthropic-ai/sdk/version';
 import { GoogleAuth, AuthClient } from 'google-auth-library';
 import { APIConnectionError } from './core/error';
 import type { Middleware } from './core/middleware';
@@ -131,6 +132,10 @@ export class AnthropicVertex extends BaseAnthropic {
 
   protected override validateHeaders() {
     // auth validation is handled in the backend middleware since it needs to be async
+  }
+
+  protected override getUserAgent(): string {
+    return `AnthropicVertex/JS ${VERSION}`;
   }
 
   protected override backendMiddleware(): ReadonlyArray<Middleware> {

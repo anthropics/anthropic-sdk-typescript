@@ -4,6 +4,7 @@ import * as Errors from './core/error';
 import { readEnv } from './internal/utils/env';
 import { APIRequest, BaseAnthropic, ClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
+import { VERSION } from '@anthropic-ai/sdk/version';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
 import { getAuthHeaders } from './core/aws-auth';
 import type { Middleware } from './core/middleware';
@@ -199,6 +200,10 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
 
   protected override validateHeaders(): void {
     // Auth validation is handled in the constructor and the backend middleware
+  }
+
+  protected override getUserAgent(): string {
+    return `AnthropicBedrockMantle/JS ${VERSION}`;
   }
 
   protected override backendMiddleware(): ReadonlyArray<Middleware> {

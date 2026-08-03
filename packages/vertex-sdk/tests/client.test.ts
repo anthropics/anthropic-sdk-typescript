@@ -1,5 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+import { VERSION } from '@anthropic-ai/sdk/version';
 import { AnthropicVertex } from '../src/client';
 import { APIConnectionError } from '../src/core/error';
 
@@ -206,6 +207,24 @@ describe('AnthropicVertex', () => {
         'https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models/count-tokens:rawPredict',
       );
     });
+  });
+
+  test('user agent is a hardcoded string', async () => {
+    const originalName = AnthropicVertex.name;
+    // Rename the class, as a minifier would, to prove the header isn't derived from it.
+    Object.defineProperty(AnthropicVertex, 'name', { value: 'MinifiedClient' });
+    try {
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        accessToken: 'fake-token',
+      });
+      expect(client.constructor.name).toBe('MinifiedClient');
+      const { req } = await client.buildRequest({ path: '/foo', method: 'post' });
+      expect(req.headers.get('user-agent')).toBe(`AnthropicVertex/JS ${VERSION}`);
+    } finally {
+      Object.defineProperty(AnthropicVertex, 'name', { value: originalName });
+    }
   });
 });
 

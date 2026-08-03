@@ -1,4 +1,5 @@
 import { getAuthHeaders } from '@anthropic-ai/bedrock-sdk/core/auth';
+import { VERSION } from '@anthropic-ai/sdk/version';
 import AnthropicBedrock from '../src';
 
 // Mock the client to allow for a more integration-style test
@@ -377,5 +378,25 @@ describe('AnthropicBedrock constructor deprecation warnings', () => {
     expect(logger.warn).toHaveBeenCalledWith(
       expect.stringContaining('Passing only one of `awsAccessKey` or `awsSecretKey` is deprecated'),
     );
+  });
+});
+
+describe('AnthropicBedrock user agent', () => {
+  test('is a hardcoded string', async () => {
+    const originalName = AnthropicBedrock.name;
+    // Rename the class, as a minifier would, to prove the header isn't derived from it.
+    Object.defineProperty(AnthropicBedrock, 'name', { value: 'MinifiedClient' });
+    try {
+      const client = new AnthropicBedrock({
+        awsAccessKey: 'access-key',
+        awsSecretKey: 'secret-key',
+        awsRegion: 'us-east-1',
+      });
+      expect(client.constructor.name).toBe('MinifiedClient');
+      const { req } = await client.buildRequest({ path: '/foo', method: 'post' });
+      expect(req.headers.get('user-agent')).toBe(`AnthropicBedrock/JS ${VERSION}`);
+    } finally {
+      Object.defineProperty(AnthropicBedrock, 'name', { value: originalName });
+    }
   });
 });
