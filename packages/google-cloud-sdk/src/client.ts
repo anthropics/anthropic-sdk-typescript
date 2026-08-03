@@ -5,6 +5,7 @@ import { readEnv } from './internal/utils';
 import { FinalRequestOptions } from './internal/request-options';
 import { Anthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
+import { VERSION } from '@anthropic-ai/sdk/version';
 import { GoogleAuth, AuthClient } from 'google-auth-library';
 
 const DEFAULT_SCOPE = 'https://www.googleapis.com/auth/cloud-platform';
@@ -384,6 +385,10 @@ export class AnthropicGoogleCloud extends Anthropic {
     // Auth is handled fully in authHeaders(); the base x-api-key validation
     // must not run since this client never carries an API key.
     return;
+  }
+
+  protected override getUserAgent(): string {
+    return `AnthropicGoogleCloud/JS ${VERSION}`;
   }
 
   async #getToken(): Promise<string> {

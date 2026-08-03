@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { VERSION } from '@anthropic-ai/sdk/version';
 import { AnthropicGoogleCloud } from '../src';
 import { GoogleAuth } from 'google-auth-library';
 
@@ -982,5 +983,23 @@ describe('AnthropicGoogleCloud', () => {
       expect(client.beta).toBeDefined();
       expect(client.messages.batches).toBeDefined();
     });
+  });
+
+  test('user agent is a hardcoded string', async () => {
+    const originalName = AnthropicGoogleCloud.name;
+    // Rename the class, as a minifier would, to prove the header isn't derived from it.
+    Object.defineProperty(AnthropicGoogleCloud, 'name', { value: 'MinifiedClient' });
+    try {
+      const client = new AnthropicGoogleCloud({
+        baseURL: 'https://gw.example.com',
+        workspaceId: 'wrkspc_test',
+        bearerTokenProvider: async () => 'my-google-token',
+      });
+      expect(client.constructor.name).toBe('MinifiedClient');
+      const { req } = await client.buildRequest({ path: '/foo', method: 'post' });
+      expect(req.headers.get('user-agent')).toBe(`AnthropicGoogleCloud/JS ${VERSION}`);
+    } finally {
+      Object.defineProperty(AnthropicGoogleCloud, 'name', { value: originalName });
+    }
   });
 });

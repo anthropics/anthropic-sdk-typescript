@@ -6,9 +6,10 @@ for (const dep in pkgJson.dependencies) {
   if (dep === '@anthropic-ai/sdk') {
     // Floor at the base-SDK version this client's internals require: the
     // `_shouldResolveDefaultCredentials()` hook this client overrides so a
-    // config/profile `base_url` can't take over the region-derived gateway URL.
-    // Older in-range versions never call the hook.
-    pkgJson.dependencies[dep] = '>=0.112.4 <1';
+    // config/profile `base_url` can't take over the region-derived gateway URL,
+    // and the `protected` `getUserAgent()` this client overrides. Older
+    // in-range versions have neither.
+    pkgJson.dependencies[dep] = '>=0.115.1 <1';
   }
 }
 

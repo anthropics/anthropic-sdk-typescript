@@ -1,3 +1,4 @@
+import { VERSION } from '@anthropic-ai/sdk/version';
 import { AnthropicBedrockMantle } from '../src';
 import { getAuthHeaders } from '../src/core/aws-auth';
 
@@ -253,5 +254,22 @@ describe('AnthropicBedrockMantle', () => {
 
       expect((client.beta as any).skills).toBeUndefined();
     });
+  });
+
+  test('user agent is a hardcoded string', async () => {
+    const originalName = AnthropicBedrockMantle.name;
+    // Rename the class, as a minifier would, to prove the header isn't derived from it.
+    Object.defineProperty(AnthropicBedrockMantle, 'name', { value: 'MinifiedClient' });
+    try {
+      const client = new AnthropicBedrockMantle({
+        apiKey: 'test-key',
+        awsRegion: 'us-east-1',
+      });
+      expect(client.constructor.name).toBe('MinifiedClient');
+      const { req } = await client.buildRequest({ path: '/foo', method: 'post' });
+      expect(req.headers.get('user-agent')).toBe(`AnthropicBedrockMantle/JS ${VERSION}`);
+    } finally {
+      Object.defineProperty(AnthropicBedrockMantle, 'name', { value: originalName });
+    }
   });
 });

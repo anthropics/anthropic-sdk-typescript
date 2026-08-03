@@ -4,6 +4,7 @@ import * as Errors from './core/error';
 import { readEnv, loggerFor } from './internal/utils';
 import { Anthropic, APIRequest, ClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
+import { VERSION } from '@anthropic-ai/sdk/version';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
 import { loadConfig } from '@smithy/node-config-provider';
 import { NODE_REGION_CONFIG_OPTIONS, NODE_REGION_CONFIG_FILE_OPTIONS } from '@smithy/config-resolver';
@@ -344,6 +345,10 @@ export class AnthropicAws extends Anthropic {
 
   protected override validateHeaders(): void {
     // Auth validation is handled in the constructor and the backend middleware
+  }
+
+  protected override getUserAgent(): string {
+    return `AnthropicAws/JS ${VERSION}`;
   }
 
   protected override backendMiddleware(): ReadonlyArray<Middleware> {
