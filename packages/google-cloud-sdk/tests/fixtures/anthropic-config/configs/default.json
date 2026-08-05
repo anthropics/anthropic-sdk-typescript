@@ -1,0 +1,8 @@
+{
+  "version": "1.0",
+  "organization_id": "org_profile_should_not_leak",
+  "base_url": "https://profile-gateway.example.com",
+  "authentication": {
+    "type": "user_oauth"
+  }
+}

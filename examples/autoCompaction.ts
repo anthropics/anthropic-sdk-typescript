@@ -45,7 +45,7 @@ async function main() {
   };
 
   const runner = client.beta.messages.toolRunner({
-    model: 'claude-sonnet-4-5',
+    model: 'claude-sonnet-5',
     max_tokens: 4096,
     tools: [search, done],
     messages: [

@@ -2,29 +2,28 @@ import { BetaRunnableTool } from './BetaRunnableTool';
 import { ToolError } from './ToolError';
 import { Anthropic } from '../..';
 import { AnthropicError } from '../../core/error';
-import { BetaMessage, BetaMessageParam, BetaToolUnion, MessageCreateParams } from '../../resources/beta';
+import {
+  BetaContentBlockParam,
+  BetaMessage,
+  BetaMessageParam,
+  BetaRequestToolAdditionBlock,
+  BetaRequestToolRemovalBlock,
+  BetaToolChangeMCPToolReference,
+  BetaToolChangeMCPToolsetReference,
+  BetaToolChangeToolReference,
+  BetaToolUnion,
+  MessageCreateParams,
+} from '../../resources/beta';
 import { BetaMessageStream } from '../BetaMessageStream';
 import { RequestOptions } from '../../internal/request-options';
 import { buildHeaders } from '../../internal/headers';
+import { promiseWithResolvers } from '../../internal/utils/promise';
 import { CompactionControl, DEFAULT_SUMMARY_PROMPT, DEFAULT_TOKEN_THRESHOLD } from './CompactionControl';
-import { collectStainlessHelpers } from '../stainless-helper-header';
-
-/**
- * Just Promise.withResolvers(), which is not available in all environments.
- */
-function promiseWithResolvers<T>(): {
-  promise: Promise<T>;
-  resolve: (value: T) => void;
-  reject: (reason?: any) => void;
-} {
-  let resolve: (value: T) => void;
-  let reject: (reason?: any) => void;
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  return { promise, resolve: resolve!, reject: reject! };
-}
+import {
+  collectStainlessHelpers,
+  helperHeader,
+  STAINLESS_HELPER_HEADER,
+} from '../../internal/stainless-helper-header';
 
 /**
  * A ToolRunner handles the automatic conversation loop between the assistant and tools.
@@ -68,12 +67,17 @@ export class BetaToolRunner<Stream extends boolean> {
       },
     };
 
-    const helpers = collectStainlessHelpers(params.tools, params.messages);
-    const helperValue = ['BetaToolRunner', ...helpers].join(', ');
-
+    // structuredClone drops symbol-keyed properties, so collect helper marks
+    // from the original params here — the create()-side collector won't see
+    // them on the cloned messages.
+    const collected = collectStainlessHelpers(params.tools, params.messages);
     this.#options = {
       ...options,
-      headers: buildHeaders([{ 'x-stainless-helper': helperValue }, options?.headers]),
+      headers: buildHeaders([
+        helperHeader('BetaToolRunner'),
+        collected.length ? { [STAINLESS_HELPER_HEADER]: collected.join(', ') } : undefined,
+        options?.headers,
+      ]),
     };
     this.#completion = promiseWithResolvers();
 
@@ -153,7 +157,7 @@ export class BetaToolRunner<Stream extends boolean> {
       },
       {
         signal: this.#options.signal,
-        headers: buildHeaders([this.#options.headers, { 'x-stainless-helper': 'compaction' }]),
+        headers: buildHeaders([this.#options.headers, helperHeader('compaction')]),
       },
     );
 
@@ -215,8 +219,17 @@ export class BetaToolRunner<Stream extends boolean> {
           const isCompacted = await this.#checkAndCompact();
           if (!isCompacted) {
             if (!this.#mutated) {
-              const { role, content } = await this.#message;
-              this.#state.params.messages.push({ role, content });
+              const message = await this.#message;
+              this.#state.params.messages.push({ role: message.role, content: message.content });
+
+              // Refusal-terminated turns are terminal: the refusal may have cut a tool_use off
+              // with partial input, so executing this turn's tools would fire side effects the
+              // model never confirmed — and once middleware strips the refusal turn, their
+              // tool_results could never be replayed coherently. Surface the refusal as the
+              // final message instead.
+              if (message.stop_reason === 'refusal') {
+                break;
+              }
             }
 
             const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
@@ -465,16 +478,14 @@ async function generateToolResponse(
     return null;
   }
 
+  const available = availableToolNames(params);
   const toolResults = await Promise.all(
     toolUseBlocks.map(async (toolUse) => {
       const tool = params.tools.find((t) => ('name' in t ? t.name : t.mcp_server_name) === toolUse.name);
-      if (!tool || !('run' in tool)) {
-        return {
-          type: 'tool_result' as const,
-          tool_use_id: toolUse.id,
-          content: `Error: Tool '${toolUse.name}' not found`,
-          is_error: true,
-        };
+      // A `tool_removal` is only a hint to the model, which may still emit a tool_use for a
+      // withdrawn tool — treat those exactly like a tool that was never defined.
+      if (!tool || !('run' in tool) || !available.has(toolUse.name)) {
+        return toolNotFoundResult(toolUse);
       }
 
       try {
@@ -484,6 +495,7 @@ async function generateToolResponse(
         }
 
         const result = await tool.run(input, {
+          toolUse: toolUse,
           toolUseBlock: toolUse,
           signal: requestOptions?.signal,
         });
@@ -512,6 +524,90 @@ async function generateToolResponse(
   };
 }
 
+function toolNotFoundResult(toolUse: { id: string; name: string }) {
+  return {
+    type: 'tool_result' as const,
+    tool_use_id: toolUse.id,
+    content: `Error: Tool '${toolUse.name}' not found`,
+    is_error: true,
+  };
+}
+
+/**
+ * Computes the names of locally runnable tools that are still available for the assistant
+ * turn being answered, by folding `tool_removal` / `tool_addition` blocks from the
+ * `role: "system"` messages over the runnable tools. The assistant turn being answered is
+ * terminal-or-absent and only `system` messages are inspected, so folding the whole current
+ * history is exactly folding the messages preceding that turn — call this before appending
+ * anything after it. MCP references are ignored — those tools are executed server-side and
+ * never dispatched by this runner.
+ */
+function availableToolNames(params: BetaToolRunnerParams): Set<string> {
+  const available = new Set<string>();
+  for (const tool of params.tools) {
+    if ('run' in tool) {
+      available.add(tool.name);
+    }
+  }
+
+  for (const message of params.messages) {
+    if (message.role !== 'system' || typeof message.content === 'string') {
+      continue;
+    }
+    for (const block of message.content) {
+      applyToolChange(block, available);
+    }
+  }
+  return available;
+}
+
+function applyToolChange(block: BetaContentBlockParam, available: Set<string>): void {
+  switch (block.type) {
+    case 'tool_removal':
+    case 'tool_addition':
+      applyToolReference(block, available);
+      break;
+    case 'mid_conv_system':
+      // A `mid_conv_system` block's content is limited by the API schema to
+      // text / tool_addition / tool_removal, so we walk exactly one level — no recursion.
+      for (const inner of block.content) {
+        if (inner.type === 'tool_removal' || inner.type === 'tool_addition') {
+          applyToolReference(inner, available);
+        }
+      }
+      break;
+    default:
+      // Other and unknown/newer block types leave the set untouched (forward compatibility).
+      break;
+  }
+}
+
+function applyToolReference(
+  block: BetaRequestToolAdditionBlock | BetaRequestToolRemovalBlock,
+  available: Set<string>,
+): void {
+  const name = referencedToolName(block.tool);
+  if (name === undefined) return;
+  if (block.type === 'tool_removal') {
+    available.delete(name);
+  } else {
+    available.add(name);
+  }
+}
+
+function referencedToolName(
+  ref: BetaToolChangeToolReference | BetaToolChangeMCPToolReference | BetaToolChangeMCPToolsetReference,
+): string | undefined {
+  switch (ref.type) {
+    case 'tool_reference':
+      return ref.name;
+    default:
+      // mcp_tool_reference / mcp_toolset_reference run server-side; unknown reference
+      // types are ignored rather than rejected.
+      return undefined;
+  }
+}
+
 // vendored from typefest just to make things look a bit nicer on hover
 type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {};
 
@@ -536,4 +632,4 @@ export type BetaToolRunnerParams = Simplify<
   }
 >;
 
-export type BetaToolRunnerRequestOptions = Pick<RequestOptions, 'headers' | 'signal'>;
+export type BetaToolRunnerRequestOptions = Pick<RequestOptions, 'headers' | 'signal' | 'fallbackState'>;

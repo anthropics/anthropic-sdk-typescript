@@ -78,7 +78,7 @@ describe('getAuthHeaders', () => {
   });
 
   test('includes body in signed request', async () => {
-    const body = JSON.stringify({ model: 'claude-sonnet-4-20250514', messages: [] });
+    const body = JSON.stringify({ model: 'claude-opus-4-8', messages: [] });
     await getAuthHeaders({ ...baseReq, body }, baseProps);
 
     const signed: HttpRequest = mockSign.mock.calls[0]![0];

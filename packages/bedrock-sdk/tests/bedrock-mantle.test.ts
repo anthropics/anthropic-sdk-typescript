@@ -24,7 +24,7 @@ const originalFetch = global.fetch;
 
 const makeRequest = async (client: AnthropicBedrockMantle) => {
   await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-opus-4-8',
     max_tokens: 1024,
     messages: [{ content: 'Test message', role: 'user' }],
   });
@@ -107,6 +107,30 @@ describe('AnthropicBedrockMantle', () => {
       expect(mockGetAuthHeaders).toHaveBeenCalledTimes(1);
       const props = mockGetAuthHeaders.mock.calls[0]![1];
       expect(props.serviceName).toBe('bedrock-mantle');
+    });
+
+    test('signs after user middleware, covering the mutated request and hiding the signature from middleware', async () => {
+      let middlewareSawSignature: string | null = null;
+      const client = new AnthropicBedrockMantle({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-east-1',
+        maxRetries: 0,
+        middleware: [
+          async (request, next) => {
+            middlewareSawSignature = request.headers.get('authorization');
+            const body = JSON.parse(request.body as string);
+            body.metadata = { user_id: 'user-123' };
+            return next({ ...request, body: JSON.stringify(body) });
+          },
+        ],
+      });
+
+      await makeRequest(client);
+
+      expect(middlewareSawSignature).toBeNull();
+      const signedRequest = mockGetAuthHeaders.mock.calls[0]![0] as { body?: unknown };
+      expect(JSON.parse(signedRequest.body as string).metadata).toEqual({ user_id: 'user-123' });
     });
   });
 

@@ -34,7 +34,7 @@ export class MemoryVersions extends APIResource {
         query,
         ...options,
         headers: buildHeaders([
-          { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+          { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
           options?.headers,
         ]),
       },
@@ -67,7 +67,7 @@ export class MemoryVersions extends APIResource {
         query,
         ...options,
         headers: buildHeaders([
-          { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+          { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
           options?.headers,
         ]),
       },
@@ -97,7 +97,7 @@ export class MemoryVersions extends APIResource {
       {
         ...options,
         headers: buildHeaders([
-          { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+          { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
           options?.headers,
         ]),
       },

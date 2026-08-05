@@ -9,6 +9,11 @@ export type { Logger, LogLevel } from './internal/utils/log';
 import { castToError, isAbortError } from './internal/errors';
 import type { APIResponseProps } from './internal/parse';
 import { getPlatformHeaders } from './internal/detect-platform';
+import {
+  armAbandonmentBackstop,
+  registerRequestSignalCleanup,
+  releaseRequestSignal,
+} from './internal/request-signal';
 import * as Shims from './internal/shims';
 import * as Opts from './internal/request-options';
 import { stringifyQuery } from './internal/utils/query';
@@ -19,8 +24,18 @@ import { OAUTH_API_BETA_HEADER } from './lib/credentials/types';
 import { TokenCache } from './lib/credentials/token-cache';
 import { defaultCredentials, resolveCredentialsFromConfig } from './lib/credentials/credential-chain';
 import type { AnthropicConfig } from './core/credentials';
+import {
+  type Middleware,
+  isFetchOriginError,
+  isRetryableError,
+  wrapFetchWithMiddleware,
+} from './core/middleware';
+export type { Middleware, MiddlewareContext, MiddlewareNext } from './core/middleware';
+export type { APIRequest } from './core/api';
 import * as Pagination from './core/pagination';
 import {
+  type BidirectionalPageCursorParams,
+  BidirectionalPageCursorResponse,
   type PageCursorParams,
   PageCursorResponse,
   type PageParams,
@@ -100,6 +115,7 @@ import {
   CodeExecutionTool20250522,
   CodeExecutionTool20250825,
   CodeExecutionTool20260120,
+  CodeExecutionTool20260521,
   CodeExecutionToolResultBlock,
   CodeExecutionToolResultBlockContent,
   CodeExecutionToolResultBlockParam,
@@ -142,8 +158,10 @@ import {
   MessageTokensCount,
   Messages,
   Metadata,
+  MidConversationSystemBlockParam,
   Model,
   OutputConfig,
+  OutputTokensDetails,
   PlainTextSource,
   RawContentBlockDelta,
   RawContentBlockDeltaEvent,
@@ -221,6 +239,7 @@ import {
   WebFetchTool20250910,
   WebFetchTool20260209,
   WebFetchTool20260309,
+  WebFetchTool20260318,
   WebFetchToolResultBlock,
   WebFetchToolResultBlockParam,
   WebFetchToolResultErrorBlock,
@@ -230,6 +249,7 @@ import {
   WebSearchResultBlockParam,
   WebSearchTool20250305,
   WebSearchTool20260209,
+  WebSearchTool20260318,
   WebSearchToolRequestError,
   WebSearchToolResultBlock,
   WebSearchToolResultBlockContent,
@@ -246,6 +266,7 @@ import { readEnv } from './internal/utils/env';
 import {
   type LogLevel,
   type Logger,
+  defaultLogLevel,
   formatRequestDetails,
   loggerFor,
   parseLogLevel,
@@ -377,6 +398,18 @@ export interface ClientOptions {
   fetch?: Fetch | undefined;
 
   /**
+   * {@link Middleware} functions that wrap every HTTP request made by the
+   * client.
+   *
+   * Middleware runs per HTTP attempt, including retries. It observes the
+   * canonical Anthropic-shaped request and response on every backend: on
+   * clients for third-party backends (Bedrock, Vertex, Foundry), the
+   * backend's URL/body rewriting, request signing, and response
+   * normalization happen inside `next`.
+   */
+  middleware?: ReadonlyArray<Middleware> | undefined;
+
+  /**
    * The maximum number of times that the client will retry a request in case of a
    * temporary failure, like a network error or a 5XX error from the server.
    *
@@ -446,7 +479,14 @@ export class BaseAnthropic {
     return this._authState.provider;
   }
   private _authState: AuthState;
-  private _baseURLIsExplicit: boolean;
+  /**
+   * Whether `baseURL` was chosen by the caller (constructor arg or env var)
+   * rather than derived. Non-explicit base URLs may be replaced — by a
+   * profile-supplied host, or by re-derivation in `withOptions()` clones.
+   * Subclasses that derive their own base URL should correct this after
+   * `super()`, since the base constructor can't tell a derived value apart.
+   */
+  protected _baseURLIsExplicit: boolean;
   private _requestAuthFlags = new WeakMap<FinalRequestOptions, RequestAuthFlags>();
 
   baseURL: string;
@@ -455,6 +495,7 @@ export class BaseAnthropic {
   logger: Logger;
   logLevel: LogLevel | undefined;
   fetchOptions: MergedRequestInit | undefined;
+  middleware: ReadonlyArray<Middleware>;
 
   private fetch: Fetch;
   #encoder: Opts.RequestEncoder;
@@ -518,17 +559,18 @@ export class BaseAnthropic {
     this._baseURLIsExplicit = (opts as InternalClientOptions).__baseURLIsExplicit ?? !!baseURL;
     this.timeout = options.timeout ?? BaseAnthropic.DEFAULT_TIMEOUT /* 10 minutes */;
     this.logger = options.logger ?? console;
-    const defaultLogLevel = 'warn';
     // Set default logLevel early so that we can log a warning in parseLogLevel.
     this.logLevel = defaultLogLevel;
     this.logLevel =
-      parseLogLevel(options.logLevel, 'ClientOptions.logLevel', this) ??
-      parseLogLevel(readEnv('ANTHROPIC_LOG'), "process.env['ANTHROPIC_LOG']", this) ??
+      parseLogLevel(options.logLevel, 'ClientOptions.logLevel', loggerFor(this)) ??
+      parseLogLevel(readEnv('ANTHROPIC_LOG'), "process.env['ANTHROPIC_LOG']", loggerFor(this)) ??
       defaultLogLevel;
     this.fetchOptions = options.fetchOptions;
     this.maxRetries = options.maxRetries ?? 2;
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
     this.#encoder = Opts.FallbackEncoder;
+
+    this.middleware = [...(options.middleware ?? [])];
 
     const customHeadersEnv = readEnv('ANTHROPIC_CUSTOM_HEADERS');
     if (customHeadersEnv) {
@@ -577,7 +619,7 @@ export class BaseAnthropic {
           this._applyCredentialBaseURL(result.baseURL);
         } else if (options.profile != null) {
           this._authState.resolution = this._resolveDefaultCredentials(options.profile);
-        } else {
+        } else if (this._shouldResolveDefaultCredentials()) {
           // No explicit auth provided — lazily resolve from the credential
           // chain on first request. Errors are captured into _auth.error and
           // surfaced on first use rather than as an unhandled rejection.
@@ -585,6 +627,17 @@ export class BaseAnthropic {
         }
       }
     }
+  }
+
+  /**
+   * Whether to lazily resolve auth from the default credential chain when no
+   * explicit auth is configured. Called once from the constructor, so
+   * overrides must not depend on subclass instance state. Subclasses that
+   * bring their own auth scheme return false so unrelated local credentials
+   * are never resolved or allowed to supply a base URL.
+   */
+  protected _shouldResolveDefaultCredentials(): boolean {
+    return true;
   }
 
   /**
@@ -613,7 +666,7 @@ export class BaseAnthropic {
   private _credentialResolverOptions() {
     return {
       baseURL: this.baseURL,
-      fetch: this.fetch,
+      fetch: this._credentialsFetch(),
       userAgent: this.getUserAgent(),
       onCacheWriteError: (err: unknown) => {
         loggerFor(this).debug('credential cache write failed (best-effort)', err);
@@ -622,6 +675,19 @@ export class BaseAnthropic {
         loggerFor(this).warn(msg);
       },
     };
+  }
+
+  /**
+   * A `Fetch` for first-party credential token-exchange requests (OIDC
+   * federation jwt-bearer grants, user-OAuth refresh grants) that routes
+   * through this client's middleware chain, so middleware observes token
+   * traffic like any other request. Only client-level middleware applies:
+   * a minted token is shared across requests, so attributing the exchange
+   * to any one request's per-request middleware would be arbitrary. For the
+   * same reason, `ctx.options` is undefined for these requests.
+   */
+  private _credentialsFetch(): Fetch {
+    return wrapFetchWithMiddleware(this.fetch, this.middleware, undefined, this);
   }
 
   private _makeTokenCache(provider: AccessTokenProvider): TokenCache {
@@ -657,6 +723,7 @@ export class BaseAnthropic {
       logLevel: this.logLevel,
       fetch: this.fetch,
       fetchOptions: this.fetchOptions,
+      middleware: this.middleware,
       apiKey: this.apiKey,
       authToken: this.authToken,
       webhookKey: this.webhookKey,
@@ -863,6 +930,13 @@ export class BaseAnthropic {
    *
    * This is useful for cases where you want to add certain headers based off of
    * the request properties, e.g. `method` or `url`.
+   *
+   * Runs after all middleware (including {@link backendMiddleware}),
+   * immediately before each underlying fetch call, so it sees exactly what
+   * goes over the wire. Middleware may replay a request by calling `next()`
+   * more than once, so this hook can run multiple times per attempt:
+   * overrides must be idempotent and overwrite headers from a previous
+   * invocation rather than append to them.
    */
   protected async prepareRequest(
     request: RequestInit,
@@ -888,6 +962,28 @@ export class BaseAnthropic {
       }
       request.headers = headers;
     }
+  }
+
+  /**
+   * Internal {@link Middleware} composed innermost in the chain — inside both
+   * client-level and per-request middleware, immediately around the underlying
+   * `fetch`. Subclasses for third-party backends override this to adapt the
+   * canonical Anthropic-shaped request to the backend's wire shape (URL/body
+   * rewriting, request signing) and to normalize the wire response back to the
+   * canonical shape (e.g. AWS EventStream to SSE).
+   *
+   * Running inside the user's middleware means user middleware always observes
+   * canonical Anthropic-shaped traffic, and the adaptation re-runs (e.g.
+   * re-signs) on every `next()` invocation, covering whatever the middleware
+   * mutated.
+   *
+   * Errors thrown here follow the middleware error policy: they propagate to
+   * the caller as-is — no retries, no `APIConnectionError` wrapping — unless
+   * retryable (see {@link Middleware}); throw a `RetryableError` to opt into
+   * the retry path.
+   */
+  protected backendMiddleware(): ReadonlyArray<Middleware> {
+    return [];
   }
 
   get<Rsp>(path: string, opts?: PromiseOrValue<RequestOptions>): APIPromise<Rsp> {
@@ -949,33 +1045,24 @@ export class BaseAnthropic {
       retryCount: maxRetries - retriesRemaining,
     });
 
-    await this.prepareRequest(req, { url, options });
-
     /** Not an API request ID, just for correlating local log entries. */
     const requestLogID = 'log_' + ((Math.random() * (1 << 24)) | 0).toString(16).padStart(6, '0');
     const retryLogStr = retryOfRequestLogID === undefined ? '' : `, retryOf: ${retryOfRequestLogID}`;
     const startTime = Date.now();
-
-    loggerFor(this).debug(
-      `[${requestLogID}] sending request`,
-      formatRequestDetails({
-        retryOfRequestLogID,
-        method: options.method,
-        url,
-        options,
-        headers: req.headers,
-      }),
-    );
 
     if (options.signal?.aborted) {
       throw new Errors.APIUserAbortError();
     }
 
     const controller = new AbortController();
-    const response = await this.fetchWithTimeout(url, req, timeout, controller).catch(castToError);
+    const response = await this.fetchWithTimeout(url, req, timeout, controller, options, {
+      requestLogID,
+      retryOfRequestLogID,
+    }).catch(castToError);
     const headersTime = Date.now();
 
     if (response instanceof globalThis.Error) {
+      releaseRequestSignal(controller);
       const retryMessage = `retrying, ${retriesRemaining} attempts remaining`;
       if (options.signal?.aborted) {
         throw new Errors.APIUserAbortError();
@@ -987,6 +1074,27 @@ export class BaseAnthropic {
       const isTimeout =
         isAbortError(response) ||
         /timed? ?out/i.test(String(response) + ('cause' in response ? String(response.cause) : ''));
+
+      // Errors thrown by middleware (user middleware and the backend adaptation
+      // alike) propagate to the caller as-is — no retries, no APIConnectionError
+      // wrapping — except retryable errors (timeouts/aborts, APIConnectionErrors,
+      // and RetryableErrors, directly or in the `cause` chain), which stay on the
+      // retry path.
+      const hasMiddleware =
+        this.middleware.length > 0 || !!options.middleware?.length || this.backendMiddleware().length > 0;
+      if (hasMiddleware && !isTimeout && !isRetryableError(response)) {
+        loggerFor(this).info(`[${requestLogID}] middleware error (not retryable)`);
+        loggerFor(this).debug(
+          `[${requestLogID}] middleware error (not retryable)`,
+          formatRequestDetails({
+            retryOfRequestLogID,
+            url,
+            durationMs: headersTime - startTime,
+            message: response.message,
+          }),
+        );
+        throw response;
+      }
       if (retriesRemaining) {
         loggerFor(this).info(
           `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - ${retryMessage}`,
@@ -1017,6 +1125,11 @@ export class BaseAnthropic {
       if (isTimeout) {
         throw new Errors.APIConnectionTimeoutError();
       }
+      // a retryable middleware-origin error is still the caller's error: once retries are
+      // exhausted it propagates as-is rather than wrapped in APIConnectionError
+      if (hasMiddleware && !isFetchOriginError(response)) {
+        throw response;
+      }
       throw new Errors.APIConnectionError({ cause: response });
     }
 
@@ -1035,6 +1148,7 @@ export class BaseAnthropic {
 
         // We don't need the body of this response.
         await Shims.CancelReadableStream(response.body);
+        releaseRequestSignal(controller);
         loggerFor(this).info(`${responseInfo} - ${retryMessage}`);
         loggerFor(this).debug(
           `[${requestLogID}] response error (${retryMessage})`,
@@ -1074,6 +1188,7 @@ export class BaseAnthropic {
         }),
       );
 
+      releaseRequestSignal(controller);
       const err = this.makeStatusError(response.status, errJSON, errMessage, response.headers);
       throw err;
     }
@@ -1090,6 +1205,7 @@ export class BaseAnthropic {
       }),
     );
 
+    armAbandonmentBackstop(response.body ?? response, controller);
     return { response, options, controller, requestLogID, retryOfRequestLogID, startTime };
   }
 
@@ -1122,6 +1238,8 @@ export class BaseAnthropic {
     init: RequestInit | undefined,
     ms: number,
     controller: AbortController,
+    requestOptions?: FinalRequestOptions | undefined,
+    logCtx?: { requestLogID: string; retryOfRequestLogID?: string | undefined } | undefined,
   ): Promise<Response> {
     const { signal, method, ...options } = init || {};
     // Avoid creating a closure over `this`, `init`, or `options` to prevent memory leaks.
@@ -1131,9 +1249,10 @@ export class BaseAnthropic {
     // the lifetime of the signal. Using `.bind()` only retains a reference to the
     // controller itself.
     const abort = this._makeAbort(controller);
-    if (signal) signal.addEventListener('abort', abort, { once: true });
-
-    const timeout = setTimeout(abort, ms);
+    if (signal) {
+      signal.addEventListener('abort', abort, { once: true });
+      registerRequestSignalCleanup(controller, signal, abort);
+    }
 
     const isReadableBody =
       ((globalThis as any).ReadableStream && options.body instanceof (globalThis as any).ReadableStream) ||
@@ -1151,12 +1270,61 @@ export class BaseAnthropic {
       fetchOptions.method = method.toUpperCase();
     }
 
-    try {
-      // use undefined this binding; fetch errors if bound to something else in browser/cloudflare
-      return await this.fetch.call(undefined, url, fetchOptions);
-    } finally {
-      clearTimeout(timeout);
-    }
+    // Arm the timeout around the underlying fetch only, not the middleware
+    // chain — middleware can take arbitrarily long (or call `next` more than
+    // once), and each inner-fetch invocation gets its own `ms` timer.
+    const baseFetch = this.fetch;
+    const timedFetch: Fetch = async (innerUrl, innerInit) => {
+      const timeout = setTimeout(abort, ms);
+      try {
+        return await baseFetch.call(undefined, innerUrl, innerInit);
+      } finally {
+        clearTimeout(timeout);
+      }
+    };
+
+    // Prepare the request (auth signing and other `prepareRequest` hooks) as
+    // the innermost step, after any middleware — including the backend
+    // middleware, so it sees exactly what goes over the wire. Runs per
+    // inner-fetch invocation, so a request middleware rewrote — or replayed
+    // via a second `next()` call — is prepared fresh each time. Preparation is
+    // outside the timeout timer, matching its pre-middleware behavior.
+    const innerFetch: Fetch =
+      requestOptions === undefined ? timedFetch : (
+        async (innerUrl, innerInit = {}) => {
+          const innerUrlStr =
+            typeof innerUrl === 'string' ? innerUrl
+            : innerUrl instanceof URL ? innerUrl.href
+            : innerUrl.url;
+          innerInit.headers =
+            innerInit.headers instanceof Headers ? innerInit.headers : new Headers(innerInit.headers);
+
+          await this.prepareRequest(innerInit, { url: innerUrlStr, options: requestOptions });
+
+          if (logCtx) {
+            loggerFor(this).debug(
+              `[${logCtx.requestLogID}] sending request`,
+              formatRequestDetails({
+                retryOfRequestLogID: logCtx.retryOfRequestLogID,
+                method: innerInit.method,
+                url: innerUrlStr,
+                options: requestOptions,
+                headers: innerInit.headers,
+              }),
+            );
+          }
+
+          return timedFetch(innerUrl, innerInit);
+        }
+      );
+
+    const requestMiddleware = requestOptions?.middleware;
+    const backendMiddleware = this.backendMiddleware();
+    const allMiddleware =
+      requestMiddleware?.length || backendMiddleware.length ?
+        [...this.middleware, ...(requestMiddleware ?? []), ...backendMiddleware]
+      : this.middleware;
+    return await wrapFetchWithMiddleware(innerFetch, allMiddleware, requestOptions, this)(url, fetchOptions);
   }
 
   private async shouldRetry(response: Response, options: FinalRequestOptions): Promise<boolean> {
@@ -1436,6 +1604,7 @@ Anthropic.Beta = Beta;
 
 export declare namespace Anthropic {
   export type RequestOptions = Opts.RequestOptions;
+  export type FinalRequestOptions = Opts.FinalRequestOptions;
 
   export type { ApiKeySetter };
 
@@ -1447,6 +1616,12 @@ export declare namespace Anthropic {
 
   export import PageCursor = Pagination.PageCursor;
   export { type PageCursorParams as PageCursorParams, type PageCursorResponse as PageCursorResponse };
+
+  export import BidirectionalPageCursor = Pagination.BidirectionalPageCursor;
+  export {
+    type BidirectionalPageCursorParams as BidirectionalPageCursorParams,
+    type BidirectionalPageCursorResponse as BidirectionalPageCursorResponse,
+  };
 
   export {
     Completions as Completions,
@@ -1491,6 +1666,7 @@ export declare namespace Anthropic {
     type CodeExecutionTool20250522 as CodeExecutionTool20250522,
     type CodeExecutionTool20250825 as CodeExecutionTool20250825,
     type CodeExecutionTool20260120 as CodeExecutionTool20260120,
+    type CodeExecutionTool20260521 as CodeExecutionTool20260521,
     type CodeExecutionToolResultBlock as CodeExecutionToolResultBlock,
     type CodeExecutionToolResultBlockContent as CodeExecutionToolResultBlockContent,
     type CodeExecutionToolResultBlockParam as CodeExecutionToolResultBlockParam,
@@ -1527,8 +1703,10 @@ export declare namespace Anthropic {
     type MessageStreamEvent as MessageStreamEvent,
     type MessageTokensCount as MessageTokensCount,
     type Metadata as Metadata,
+    type MidConversationSystemBlockParam as MidConversationSystemBlockParam,
     type Model as Model,
     type OutputConfig as OutputConfig,
+    type OutputTokensDetails as OutputTokensDetails,
     type PlainTextSource as PlainTextSource,
     type RawContentBlockDelta as RawContentBlockDelta,
     type RawContentBlockDeltaEvent as RawContentBlockDeltaEvent,
@@ -1606,6 +1784,7 @@ export declare namespace Anthropic {
     type WebFetchTool20250910 as WebFetchTool20250910,
     type WebFetchTool20260209 as WebFetchTool20260209,
     type WebFetchTool20260309 as WebFetchTool20260309,
+    type WebFetchTool20260318 as WebFetchTool20260318,
     type WebFetchToolResultBlock as WebFetchToolResultBlock,
     type WebFetchToolResultBlockParam as WebFetchToolResultBlockParam,
     type WebFetchToolResultErrorBlock as WebFetchToolResultErrorBlock,
@@ -1615,6 +1794,7 @@ export declare namespace Anthropic {
     type WebSearchResultBlockParam as WebSearchResultBlockParam,
     type WebSearchTool20250305 as WebSearchTool20250305,
     type WebSearchTool20260209 as WebSearchTool20260209,
+    type WebSearchTool20260318 as WebSearchTool20260318,
     type WebSearchToolRequestError as WebSearchToolRequestError,
     type WebSearchToolResultBlock as WebSearchToolResultBlock,
     type WebSearchToolResultBlockContent as WebSearchToolResultBlockContent,

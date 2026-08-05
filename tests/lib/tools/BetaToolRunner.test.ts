@@ -1,10 +1,10 @@
-import Anthropic from '@anthropic-ai/sdk';
+import Anthropic, { BetaFallbackState, type Middleware } from '@anthropic-ai/sdk';
 import { mockFetch } from '../../lib/mock-fetch';
 import { BetaMessage, BetaContentBlock, BetaToolResultBlockParam } from '@anthropic-ai/sdk/resources/beta';
 import { BetaRunnableTool, BetaToolRunContext } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
 import { BetaRawMessageStreamEvent, ToolError } from '@anthropic-ai/sdk/resources/beta/messages';
 import { Fetch } from '@anthropic-ai/sdk/internal/builtin-types';
-import { SDK_HELPER_SYMBOL } from '../../../src/lib/stainless-helper-header';
+import { SDK_HELPER_SYMBOL } from '../../../src/internal/stainless-helper-header';
 
 const weatherTool: BetaRunnableTool<{ location: string }> = {
   type: 'custom',
@@ -108,8 +108,10 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
         cache_creation: null,
         cache_creation_input_tokens: null,
         cache_read_input_tokens: null,
+        fallback_credit: null,
         input_tokens: message.usage.input_tokens,
         output_tokens: 0,
+        output_tokens_details: null,
         server_tool_use: null,
         service_tier: null,
         inference_geo: null,
@@ -188,9 +190,11 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
     context_management: null,
     usage: {
       output_tokens: message.usage?.output_tokens || 0,
+      output_tokens_details: null,
       input_tokens: message.usage?.input_tokens || 0,
       cache_creation_input_tokens: null,
       cache_read_input_tokens: null,
+      fallback_credit: null,
       server_tool_use: null,
       iterations: null,
     },
@@ -239,9 +243,11 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
       usage: {
         input_tokens: 10,
         output_tokens: 20,
+        output_tokens_details: null,
         cache_creation: null,
         cache_creation_input_tokens: null,
         cache_read_input_tokens: null,
+        fallback_credit: null,
         server_tool_use: null,
         service_tier: null,
         inference_geo: null,
@@ -277,9 +283,11 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
       usage: {
         input_tokens: 10,
         output_tokens: 20,
+        output_tokens_details: null,
         cache_creation: null,
         cache_creation_input_tokens: null,
         cache_read_input_tokens: null,
+        fallback_credit: null,
         server_tool_use: null,
         service_tier: null,
         inference_geo: null,
@@ -461,6 +469,149 @@ describe('ToolRunner', () => {
       handleAssistantMessage(getTextContent());
       await expectEvent(iterator, (message) => {
         expect(message.content).toMatchObject([getTextContent()]);
+      });
+
+      await expectDone(iterator);
+    });
+
+    it('treats a tool_use for a mid-conversation removed tool like an undefined tool', async () => {
+      const run = jest.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
+      const trackedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run };
+
+      // Baseline: the model calls a tool that was never defined in `tools`.
+      const undefinedRun = setupTest({
+        messages: [{ role: 'user', content: 'What is the weather?' }],
+        tools: [calculatorTool],
+      });
+      const undefinedIterator = undefinedRun.runner[Symbol.asyncIterator]();
+      undefinedRun.handleAssistantMessage(getWeatherToolUse('SF'));
+      await expectEvent(undefinedIterator);
+      undefinedRun.handleAssistantMessage(getTextContent());
+      await expectEvent(undefinedIterator);
+      await expectDone(undefinedIterator);
+      const undefinedResult = undefinedRun.runner.params.messages[2];
+
+      // The tool is defined, but a preceding system message withdrew it.
+      const { runner, handleAssistantMessage } = setupTest({
+        messages: [
+          { role: 'user', content: 'What is the weather?' },
+          {
+            role: 'system',
+            content: [{ type: 'tool_removal', tool: { type: 'tool_reference', name: 'getWeather' } }],
+          },
+        ],
+        tools: [trackedWeatherTool],
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      handleAssistantMessage(getWeatherToolUse('SF'));
+      await expectEvent(iterator);
+
+      handleAssistantMessage(getTextContent());
+      await expectEvent(iterator, (message) => {
+        expect(message.content).toMatchObject([getTextContent()]);
+      });
+
+      expect(run).not.toHaveBeenCalled();
+      expect(runner.params.messages).toHaveLength(4); // user, system removal, assistant tool_use, user tool_result
+      expect(runner.params.messages[3]).toEqual({
+        role: 'user',
+        content: [
+          {
+            type: 'tool_result',
+            tool_use_id: 'tool_1',
+            content: `Error: Tool 'getWeather' not found`,
+            is_error: true,
+          },
+        ],
+      });
+      // Removed tools produce exactly the same result as tools that were never defined.
+      expect(runner.params.messages[3]).toEqual(undefinedResult);
+
+      await expectDone(iterator);
+    });
+
+    it('re-enables a removed tool after a later tool_addition', async () => {
+      const run = jest.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
+      const trackedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run };
+
+      const { runner, handleAssistantMessage } = setupTest({
+        messages: [
+          { role: 'user', content: 'What is the weather?' },
+          {
+            role: 'system',
+            content: [{ type: 'tool_removal', tool: { type: 'tool_reference', name: 'getWeather' } }],
+          },
+          {
+            role: 'system',
+            content: [{ type: 'tool_addition', tool: { type: 'tool_reference', name: 'getWeather' } }],
+          },
+        ],
+        tools: [trackedWeatherTool],
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      handleAssistantMessage(getWeatherToolUse('SF'));
+      await expectEvent(iterator);
+
+      handleAssistantMessage(getTextContent());
+      await expectEvent(iterator);
+
+      expect(run).toHaveBeenCalledWith({ location: 'SF' }, expect.anything());
+      expect(runner.params.messages.at(-1)).toMatchObject({
+        role: 'user',
+        content: [getWeatherToolResult('SF')],
+      });
+
+      await expectDone(iterator);
+    });
+
+    it('honors a tool_removal nested one level inside a mid_conv_system block', async () => {
+      const run = jest.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
+      const trackedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run };
+
+      const { runner, handleAssistantMessage } = setupTest({
+        messages: [
+          { role: 'user', content: 'What is the weather?' },
+          {
+            role: 'system',
+            content: [
+              {
+                type: 'mid_conv_system',
+                content: [
+                  { type: 'text', text: 'The weather tool is no longer available.' },
+                  { type: 'tool_removal', tool: { type: 'tool_reference', name: 'getWeather' } },
+                ],
+              },
+            ],
+          },
+        ],
+        tools: [trackedWeatherTool],
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      handleAssistantMessage(getWeatherToolUse('SF'));
+      await expectEvent(iterator);
+
+      handleAssistantMessage(getTextContent());
+      await expectEvent(iterator, (message) => {
+        expect(message.content).toMatchObject([getTextContent()]);
+      });
+
+      expect(run).not.toHaveBeenCalled();
+      expect(runner.params.messages[3]).toEqual({
+        role: 'user',
+        content: [
+          {
+            type: 'tool_result',
+            tool_use_id: 'tool_1',
+            content: `Error: Tool 'getWeather' not found`,
+            is_error: true,
+          },
+        ],
       });
 
       await expectDone(iterator);
@@ -672,6 +823,201 @@ describe('ToolRunner', () => {
         role: 'assistant',
         content: [getWeatherToolUse('Berlin', 'tool_2')],
       });
+    });
+
+    it('does not execute tools and ends the loop when the turn is refusal-terminated', async () => {
+      const runSpy = jest.fn(async () => 'should never run');
+      const spiedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run: runSpy };
+      const { runner, handleRequest } = setupTest({ tools: [spiedWeatherTool] });
+
+      // A refusal can cut the turn off after a tool_use block has started, so the message can
+      // carry a tool_use with partial input — the runner must treat the turn as terminal.
+      const refusalMessage: BetaMessage = {
+        id: 'msg_refusal',
+        type: 'message',
+        role: 'assistant',
+        content: [getWeatherToolUse('SF')],
+        model: 'claude-3-5-sonnet-latest',
+        stop_details: null,
+        stop_reason: 'refusal',
+        stop_sequence: null,
+        container: null,
+        context_management: null,
+        diagnostics: null,
+        usage: {
+          input_tokens: 10,
+          output_tokens: 20,
+          output_tokens_details: null,
+          cache_creation: null,
+          cache_creation_input_tokens: null,
+          cache_read_input_tokens: null,
+          fallback_credit: null,
+          server_tool_use: null,
+          service_tier: null,
+          inference_geo: null,
+          iterations: null,
+          speed: null,
+        },
+      };
+      handleRequest(async () => {
+        return new Response(JSON.stringify(refusalMessage), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      handleRequest(async () => {
+        throw new Error('Runner made a request after a refusal-terminated turn');
+      });
+      await expectEvent(iterator, (message) => {
+        expect(message.stop_reason).toBe('refusal');
+      });
+
+      // The refusal turn is final: no tool execution, no follow-up request.
+      await expectDone(iterator);
+      expect(runSpy).not.toHaveBeenCalled();
+      expect(runner.params.messages).toHaveLength(2);
+      await expect(runner.runUntilDone()).resolves.toMatchObject({ stop_reason: 'refusal' });
+    });
+  });
+
+  describe('tool_removal / tool_addition via param-mutation APIs', () => {
+    const removeWeatherTool: Anthropic.Beta.Messages.BetaMessageParam = {
+      role: 'system',
+      content: [{ type: 'tool_removal', tool: { type: 'tool_reference', name: 'getWeather' } }],
+    };
+    const addWeatherTool: Anthropic.Beta.Messages.BetaMessageParam = {
+      role: 'system',
+      content: [{ type: 'tool_addition', tool: { type: 'tool_reference', name: 'getWeather' } }],
+    };
+    const notFoundResult = {
+      type: 'tool_result',
+      tool_use_id: 'tool_1',
+      content: `Error: Tool 'getWeather' not found`,
+      is_error: true,
+    };
+
+    it('honors a tool_removal added via pushMessages() between turns on the next assistant tool_use', async () => {
+      const run = jest.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
+      const trackedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run };
+
+      const { runner, handleAssistantMessage } = setupTest({
+        messages: [{ role: 'user', content: 'What is the weather?' }],
+        tools: [trackedWeatherTool],
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      // Turn 1 is text-only. Mutating while suspended at the yield keeps the loop going and
+      // hands the history to the caller (the assistant turn is not auto-pushed).
+      const firstTurn = handleAssistantMessage(getTextContent('Which tool should I use?'));
+      await expectEvent(iterator);
+      runner.pushMessages({ role: 'assistant', content: firstTurn.content }, removeWeatherTool, {
+        role: 'user',
+        content: 'Try the weather tool anyway.',
+      });
+
+      // Turn 2: the model still emits a tool_use for the withdrawn tool.
+      handleAssistantMessage(getWeatherToolUse('SF'));
+      await expectEvent(iterator);
+
+      handleAssistantMessage(getTextContent());
+      await expectEvent(iterator, (message) => {
+        expect(message.content).toMatchObject([getTextContent()]);
+      });
+
+      expect(run).not.toHaveBeenCalled();
+      // user, assistant text, system removal, user, assistant tool_use, user tool_result
+      expect(runner.params.messages).toHaveLength(6);
+      expect(runner.params.messages[5]).toEqual({ role: 'user', content: [notFoundResult] });
+
+      await expectDone(iterator);
+    });
+
+    // Mutating during the yield turns off automatic tool dispatch for that turn; the API
+    // guarantees the removal is honored when the caller then requests the tool response
+    // itself via generateToolResponse().
+    it('honors a tool_removal supplied via setMessagesParams() during the tool_use turn when the caller calls generateToolResponse()', async () => {
+      const run = jest.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
+      const trackedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run };
+
+      const { runner, handleAssistantMessage } = setupTest({
+        messages: [{ role: 'user', content: 'What is the weather?' }],
+        tools: [trackedWeatherTool],
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      let toolUseTurn!: BetaMessage;
+      handleAssistantMessage(getWeatherToolUse('SF'));
+      await expectEvent(iterator, (message) => {
+        toolUseTurn = message;
+      });
+
+      // Withdraw the tool while suspended at the yield, keeping the assistant turn in history
+      // so the runner appends the tool_result once it resumes.
+      runner.setMessagesParams((params) => ({
+        ...params,
+        messages: [
+          ...params.messages,
+          removeWeatherTool,
+          { role: 'assistant', content: toolUseTurn.content },
+        ],
+      }));
+
+      const toolResponse = await runner.generateToolResponse();
+      expect(toolResponse).toEqual({ role: 'user', content: [notFoundResult] });
+      expect(run).not.toHaveBeenCalled();
+
+      handleAssistantMessage(getTextContent());
+      await expectEvent(iterator, (message) => {
+        expect(message.content).toMatchObject([getTextContent()]);
+      });
+
+      expect(run).not.toHaveBeenCalled();
+      // user, system removal, assistant tool_use, user tool_result
+      expect(runner.params.messages).toHaveLength(4);
+      expect(runner.params.messages[3]).toEqual({ role: 'user', content: [notFoundResult] });
+
+      await expectDone(iterator);
+    });
+
+    it('re-enables execution after a tool_addition added via pushMessages() between turns', async () => {
+      const run = jest.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
+      const trackedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run };
+
+      const { runner, handleAssistantMessage } = setupTest({
+        messages: [{ role: 'user', content: 'What is the weather?' }, removeWeatherTool],
+        tools: [trackedWeatherTool],
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      // Turn 1 is text-only; re-add the tool while suspended at the yield.
+      const firstTurn = handleAssistantMessage(getTextContent('That tool is unavailable.'));
+      await expectEvent(iterator);
+      runner.pushMessages({ role: 'assistant', content: firstTurn.content }, addWeatherTool, {
+        role: 'user',
+        content: 'It is available again — check SF.',
+      });
+
+      handleAssistantMessage(getWeatherToolUse('SF'));
+      await expectEvent(iterator);
+
+      handleAssistantMessage(getTextContent());
+      await expectEvent(iterator);
+
+      expect(run).toHaveBeenCalledWith({ location: 'SF' }, expect.anything());
+      // user, system removal, assistant text, system addition, user, assistant tool_use, user tool_result
+      expect(runner.params.messages).toHaveLength(7);
+      expect(runner.params.messages[6]).toMatchObject({
+        role: 'user',
+        content: [getWeatherToolResult('SF')],
+      });
+
+      await expectDone(iterator);
     });
   });
 
@@ -991,7 +1337,7 @@ describe('ToolRunner', () => {
 
       await runner.runUntilDone();
 
-      expect(capturedHelperHeader).toBe('BetaToolRunner, mcpTool');
+      expect(capturedHelperHeader).toBe('mcpTool, BetaToolRunner');
     });
 
     it('includes only BetaToolRunner,mcpTool once for multiple MCP tools', async () => {
@@ -1048,7 +1394,7 @@ describe('ToolRunner', () => {
       await runner.runUntilDone();
 
       // mcpTool should appear only once even with multiple MCP tools
-      expect(capturedHelperHeader).toBe('BetaToolRunner, mcpTool');
+      expect(capturedHelperHeader).toBe('mcpTool, BetaToolRunner');
     });
 
     it('includes BetaToolRunner,mcpTool for mixed tools (MCP and regular)', async () => {
@@ -1096,7 +1442,7 @@ describe('ToolRunner', () => {
       await runner.runUntilDone();
 
       // Should include both BetaToolRunner and mcpTool
-      expect(capturedHelperHeader).toBe('BetaToolRunner, mcpTool');
+      expect(capturedHelperHeader).toBe('mcpTool, BetaToolRunner');
     });
 
     it('preserves x-stainless-helper header when signal is passed via constructor options', async () => {
@@ -1470,6 +1816,74 @@ describe('ToolRunner', () => {
 
       expect(capturedContext).toBeDefined();
       expect(capturedContext!.signal).toBe(controller.signal);
+    });
+  });
+
+  describe('fallbackState request option', () => {
+    it('forwards the same fallbackState to every turn', async () => {
+      const seenStates: (BetaFallbackState | undefined)[] = [];
+      const middleware: Middleware = (request, next, ctx) => {
+        seenStates.push(ctx.options?.fallbackState);
+        return next(request);
+      };
+
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0, middleware: [middleware] });
+
+      // First response: tool use
+      handleRequest(async () => {
+        return new Response(
+          JSON.stringify({
+            id: 'msg_1',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'tool_use', id: 'tool_1', name: 'getWeather', input: { location: 'SF' } }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'tool_use',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 20 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      // Second response: final text
+      handleRequest(async () => {
+        return new Response(
+          JSON.stringify({
+            id: 'msg_2',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'Done!', citations: null }],
+            model: 'claude-3-5-sonnet-latest',
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+          { headers: { 'content-type': 'application/json' } },
+        );
+      });
+
+      const fallbackState = new BetaFallbackState();
+      const runner = client.beta.messages.toolRunner(
+        {
+          model: 'claude-3-5-sonnet-latest',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: 'Test' }],
+          tools: [weatherTool],
+        },
+        { fallbackState },
+      );
+
+      await runner.runUntilDone();
+
+      expect(seenStates).toHaveLength(2);
+      expect(seenStates[0]).toBe(fallbackState);
+      expect(seenStates[1]).toBe(fallbackState);
     });
   });
 });

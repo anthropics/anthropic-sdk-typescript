@@ -3,7 +3,10 @@ import {
   collectStainlessHelpers,
   stainlessHelperHeader,
   stainlessHelperHeaderFromFile,
-} from '../../src/lib/stainless-helper-header';
+  helperHeader,
+  STAINLESS_HELPER_HEADER,
+} from '../../src/internal/stainless-helper-header';
+import { APPEND_HEADERS } from '../../src/internal/headers';
 import type { BetaMessageParam, BetaToolUnion } from '@anthropic-ai/sdk/resources/beta';
 
 type WithHelper<T> = T & { [SDK_HELPER_SYMBOL]: string };
@@ -157,5 +160,15 @@ describe('stainless-helpers', () => {
       const obj = { [SDK_HELPER_SYMBOL]: 'testHelper' };
       expect(stainlessHelperHeaderFromFile(obj)).toEqual({ 'x-stainless-helper': 'testHelper' });
     });
+  });
+});
+
+describe('helperHeader', () => {
+  it('returns the typed header dict', () => {
+    expect(helperHeader('BetaToolRunner')).toEqual({ [STAINLESS_HELPER_HEADER]: 'BetaToolRunner' });
+  });
+
+  it('header key is in APPEND_HEADERS so buildHeaders comma-appends it', () => {
+    expect(APPEND_HEADERS.has(STAINLESS_HELPER_HEADER)).toBe(true);
   });
 });

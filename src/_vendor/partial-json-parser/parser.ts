@@ -127,7 +127,17 @@ const tokenize = (input: string): Token[] => {
           char = input[++current];
         }
 
-        while ((char && NUMBERS.test(char)) || char === '.') {
+        while (
+          char &&
+          (NUMBERS.test(char) ||
+            char === '.' ||
+            // exponent marker, e.g. `1e10` or `1.5E-9`
+            char === 'e' ||
+            char === 'E' ||
+            // exponent sign, only valid immediately after the exponent marker
+            ((char === '-' || char === '+') &&
+              (value[value.length - 1] === 'e' || value[value.length - 1] === 'E')))
+        ) {
           value += char;
           char = input[++current];
         }
@@ -183,7 +193,13 @@ const tokenize = (input: string): Token[] => {
         break;
       case 'number':
         let lastCharacterOfLastToken = lastToken.value[lastToken.value.length - 1];
-        if (lastCharacterOfLastToken === '.' || lastCharacterOfLastToken === '-') {
+        if (
+          lastCharacterOfLastToken === '.' ||
+          lastCharacterOfLastToken === '-' ||
+          lastCharacterOfLastToken === '+' ||
+          lastCharacterOfLastToken === 'e' ||
+          lastCharacterOfLastToken === 'E'
+        ) {
           tokens = tokens.slice(0, tokens.length - 1);
           return strip(tokens);
         }

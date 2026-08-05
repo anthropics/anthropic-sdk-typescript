@@ -26,6 +26,9 @@ describe('resource sessions', () => {
     const response = await client.beta.sessions.create({
       agent: 'agent_011CZkYpogX7uDKUyvBTophP',
       environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
+      initial_events: [
+        { content: [{ text: 'Where is my order #1234?', type: 'text' }], type: 'user.message' },
+      ],
       metadata: { foo: 'string' },
       resources: [
         {
@@ -97,6 +100,7 @@ describe('resource sessions', () => {
           'created_at[gte]': '2019-12-27T18:11:19.117Z',
           'created_at[lt]': '2019-12-27T18:11:19.117Z',
           'created_at[lte]': '2019-12-27T18:11:19.117Z',
+          deployment_id: 'deployment_id',
           include_archived: true,
           limit: 0,
           memory_store_id: 'memory_store_id',

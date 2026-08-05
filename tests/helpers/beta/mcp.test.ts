@@ -92,7 +92,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'The weather is nice.' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -100,7 +100,7 @@ describe('MCP helpers', () => {
       });
 
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'What is the weather?' }],
         tools: [mcpTool(tool, mockClient)],
@@ -142,7 +142,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'Done.' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -150,7 +150,7 @@ describe('MCP helpers', () => {
       });
 
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'Do something' }],
         tools: [mcpTool(tool, mockClient, { cache_control: { type: 'ephemeral' as const } })],
@@ -203,7 +203,7 @@ describe('MCP helpers', () => {
                 input: { location: 'San Francisco' },
               },
             ],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'tool_use',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -220,7 +220,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'The weather is nice!' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 20, output_tokens: 10 },
           }),
@@ -229,7 +229,7 @@ describe('MCP helpers', () => {
       });
 
       const runner = anthropic.beta.messages.toolRunner({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'What is the weather?' }],
         tools: [mcpTool(tool, mockClient)],
@@ -384,7 +384,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'tool_use', id: 'tool_456', name: 'get_screenshot', input: {} }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'tool_use',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -401,7 +401,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'I see the screenshot.' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 20, output_tokens: 10 },
           }),
@@ -410,7 +410,7 @@ describe('MCP helpers', () => {
       });
 
       const runner = anthropic.beta.messages.toolRunner({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'Take a screenshot' }],
         tools: [mcpTool(tool, mockClient)],
@@ -467,7 +467,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'Hello!' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -475,7 +475,7 @@ describe('MCP helpers', () => {
       });
 
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [mcpMessage(promptMessage)],
       });
@@ -511,7 +511,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'I see an image.' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -519,7 +519,7 @@ describe('MCP helpers', () => {
       });
 
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [mcpMessage(promptMessage)],
       });
@@ -562,7 +562,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'Cached.' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -570,7 +570,7 @@ describe('MCP helpers', () => {
       });
 
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [mcpMessage(promptMessage, { cache_control: { type: 'ephemeral' } })],
       });
@@ -624,7 +624,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'I read the document.' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -634,7 +634,7 @@ describe('MCP helpers', () => {
       const content = mcpResourceToContent({ contents: [resource] });
 
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [{ role: 'user', content: [content] }],
       });
@@ -669,7 +669,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'I read the PDF.' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -679,7 +679,7 @@ describe('MCP helpers', () => {
       const content = mcpResourceToContent({ contents: [resource] });
 
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [{ role: 'user', content: [content] }],
       });
@@ -714,7 +714,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'I see an image.' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -724,7 +724,7 @@ describe('MCP helpers', () => {
       const content = mcpResourceToContent({ contents: [resource] });
 
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [{ role: 'user', content: [content] }],
       });
@@ -757,7 +757,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'Done.' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -770,7 +770,7 @@ describe('MCP helpers', () => {
       );
 
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [{ role: 'user', content: [content] }],
       });
@@ -821,7 +821,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'Read it.' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -831,7 +831,7 @@ describe('MCP helpers', () => {
       const content = mcpResourceToContent({ contents: [resource] });
 
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [{ role: 'user', content: [content] }],
       });
@@ -1155,7 +1155,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'I see an image.' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -1165,7 +1165,7 @@ describe('MCP helpers', () => {
 
       // Use mcpMessage() to convert MCP prompt message
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: mcpMessages.map((m) => mcpMessage(m)),
       });
@@ -1203,7 +1203,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'I read the document.' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -1215,7 +1215,7 @@ describe('MCP helpers', () => {
       const content = mcpResourceToContent(result);
 
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [{ role: 'user', content: [content] }],
       });
@@ -1248,7 +1248,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'Nice photo.' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -1260,7 +1260,7 @@ describe('MCP helpers', () => {
       const content = mcpResourceToContent(result);
 
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [{ role: 'user', content: [content] }],
       });
@@ -1319,7 +1319,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'Hello!' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -1329,7 +1329,7 @@ describe('MCP helpers', () => {
 
       // Pass standard Anthropic message format
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [
           {
@@ -1581,7 +1581,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'Hello!' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -1589,7 +1589,7 @@ describe('MCP helpers', () => {
       });
 
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'Hello' }],
         tools: [mcpTool(tool, mockClient)],
@@ -1616,7 +1616,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'Hello!' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -1624,7 +1624,7 @@ describe('MCP helpers', () => {
       });
 
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: mcpMessages(promptMessages),
       });
@@ -1661,7 +1661,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'Hello!' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -1669,7 +1669,7 @@ describe('MCP helpers', () => {
       });
 
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: mcpMessages(promptMessages),
         tools: [mcpTool(tool, mockClient)],
@@ -1696,7 +1696,7 @@ describe('MCP helpers', () => {
             type: 'message',
             role: 'assistant',
             content: [{ type: 'text', text: 'Hello!' }],
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-8',
             stop_reason: 'end_turn',
             usage: { input_tokens: 10, output_tokens: 5 },
           }),
@@ -1704,7 +1704,7 @@ describe('MCP helpers', () => {
       });
 
       await anthropic.beta.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-8',
         max_tokens: 1024,
         messages: [{ role: 'user', content: 'Hello' }],
       });

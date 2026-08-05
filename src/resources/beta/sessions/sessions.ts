@@ -18,6 +18,7 @@ import {
   BetaManagedAgentsBase64DocumentSource,
   BetaManagedAgentsBase64ImageSource,
   BetaManagedAgentsBillingError,
+  BetaManagedAgentsCredentialHostUnreachableError,
   BetaManagedAgentsDocumentBlock,
   BetaManagedAgentsEventParams,
   BetaManagedAgentsFileDocumentSource,
@@ -61,6 +62,7 @@ import {
   BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent,
   BetaManagedAgentsSpanOutcomeEvaluationStartEvent,
   BetaManagedAgentsStreamSessionEvents,
+  BetaManagedAgentsSystemMessageEventParams,
   BetaManagedAgentsTextBlock,
   BetaManagedAgentsTextRubric,
   BetaManagedAgentsTextRubricParams,
@@ -77,6 +79,7 @@ import {
   BetaManagedAgentsUserMessageEventParams,
   BetaManagedAgentsUserToolConfirmationEvent,
   BetaManagedAgentsUserToolConfirmationEventParams,
+  BetaManagedAgentsUserToolResultEventParams,
   EventListParams,
   EventSendParams,
   EventStreamParams,
@@ -102,7 +105,6 @@ import {
 import * as ThreadsAPI from './threads/threads';
 import {
   BetaManagedAgentsSessionThread,
-  BetaManagedAgentsSessionThreadAgent,
   BetaManagedAgentsSessionThreadStats,
   BetaManagedAgentsSessionThreadStatus,
   BetaManagedAgentsSessionThreadUsage,
@@ -114,7 +116,11 @@ import {
   Threads,
 } from './threads/threads';
 import { APIPromise } from '../../../core/api-promise';
-import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
+import {
+  BidirectionalPageCursor,
+  type BidirectionalPageCursorParams,
+  PagePromise,
+} from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
 import { path } from '../../../internal/utils/path';
@@ -215,16 +221,20 @@ export class Sessions extends APIResource {
   list(
     params: SessionListParams | null | undefined = {},
     options?: RequestOptions,
-  ): PagePromise<BetaManagedAgentsSessionsPageCursor, BetaManagedAgentsSession> {
+  ): PagePromise<BetaManagedAgentsSessionsBidirectionalPageCursor, BetaManagedAgentsSession> {
     const { betas, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/sessions?beta=true', PageCursor<BetaManagedAgentsSession>, {
-      query,
-      ...options,
-      headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
-        options?.headers,
-      ]),
-    });
+    return this._client.getAPIList(
+      '/v1/sessions?beta=true',
+      BidirectionalPageCursor<BetaManagedAgentsSession>,
+      {
+        query,
+        ...options,
+        headers: buildHeaders([
+          { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
+          options?.headers,
+        ]),
+      },
+    );
   }
 
   /**
@@ -280,7 +290,18 @@ export class Sessions extends APIResource {
   }
 }
 
-export type BetaManagedAgentsSessionsPageCursor = PageCursor<BetaManagedAgentsSession>;
+export type BetaManagedAgentsSessionsBidirectionalPageCursor =
+  BidirectionalPageCursor<BetaManagedAgentsSession>;
+
+export interface BetaManagedAgentsAgentMessagePreview {
+  /**
+   * The id the buffered agent.message will carry if it is emitted. Matches the
+   * event_id on this preview's event_delta events.
+   */
+  id: string;
+
+  type: 'agent.message';
+}
 
 /**
  * Specification for an Agent. Provide a specific `version` or use the short-form
@@ -297,6 +318,69 @@ export interface BetaManagedAgentsAgentParams {
   /**
    * The specific `agent` version to use. Omit to use the latest version. Must be at
    * least 1 if specified.
+   */
+  version?: number;
+}
+
+export interface BetaManagedAgentsAgentThinkingPreview {
+  /**
+   * The id the buffered agent.thinking will carry if it is emitted. Start-only — no
+   * event_delta events follow.
+   */
+  id: string;
+
+  type: 'agent.thinking';
+}
+
+/**
+ * Reference to an `agent` plus optional configuration overrides. Each provided
+ * field replaces the agent's value for the caller's use; the agent resource is
+ * unchanged.
+ */
+export interface BetaManagedAgentsAgentWithOverridesParams {
+  /**
+   * The `agent` ID.
+   */
+  id: string;
+
+  type: 'agent_with_overrides';
+
+  /**
+   * Replacement MCP server list. Full replacement: the provided array becomes the
+   * MCP servers. Send an empty array to clear; omit to preserve the agent's servers.
+   */
+  mcp_servers?: Array<AgentsAPI.BetaManagedAgentsURLMCPServerParams>;
+
+  /**
+   * Replacement model. Accepts the model string, e.g. `claude-opus-4-6`, or a
+   * `model_config` object. Omit to use the agent's model.
+   */
+  model?: AgentsAPI.BetaManagedAgentsModel | AgentsAPI.BetaManagedAgentsModelConfigParams;
+
+  /**
+   * Replacement skill list. Full replacement: the provided array becomes the skills.
+   * Send an empty array to clear; omit to preserve the agent's skills.
+   */
+  skills?: Array<AgentsAPI.BetaManagedAgentsSkillParams>;
+
+  /**
+   * Replacement system prompt. Up to 100,000 characters. Set to null to clear the
+   * agent's system prompt; omit to preserve it.
+   */
+  system?: string | null;
+
+  /**
+   * Replacement tool list. Full replacement: the provided array becomes the tool
+   * configuration. Send an empty array to clear; omit to preserve the agent's tools.
+   */
+  tools?: Array<
+    | AgentsAPI.BetaManagedAgentsAgentToolset20260401Params
+    | AgentsAPI.BetaManagedAgentsMCPToolsetParams
+    | AgentsAPI.BetaManagedAgentsCustomToolParams
+  >;
+
+  /**
+   * The specific `agent` version to use. Omit to use the latest version.
    */
   version?: number;
 }
@@ -342,6 +426,52 @@ export interface BetaManagedAgentsDeletedSession {
 
   type: 'session_deleted';
 }
+
+export interface BetaManagedAgentsDeltaContent {
+  /**
+   * Regular text content.
+   */
+  content: EventsAPI.BetaManagedAgentsTextBlock;
+
+  type: 'content_delta';
+
+  /**
+   * Which entry in the previewed event's content array this fragment lands in.
+   * Insert content as that entry when the index is new; append to the existing entry
+   * otherwise.
+   */
+  index?: number;
+}
+
+/**
+ * An incremental update to an event that is still being streamed. Deltas are
+ * best-effort and may stop early; when the buffered event with id == event_id is
+ * produced it carries the complete content. A model request that ends early (an
+ * error or interrupt) produces no buffered event — its terminal
+ * span.model_request_end closes the preview. Only sent on stream connections that
+ * opt in via event_deltas; never appears in event history.
+ */
+export interface BetaManagedAgentsDeltaEvent {
+  /**
+   * One fragment of the previewed event. The delta type is named for the previewed
+   * event's field it streams into: agent.message events stream content_delta
+   * fragments, each a partial element of the content array.
+   */
+  delta: BetaManagedAgentsDeltaContent;
+
+  /**
+   * The id of the event being previewed. Matches event.id on the corresponding
+   * event_start and the buffered event that reconciles the preview.
+   */
+  event_id: string;
+
+  type: 'event_delta';
+}
+
+/**
+ * EventDeltaType enum
+ */
+export type BetaManagedAgentsDeltaType = 'agent.message' | 'agent.thinking';
 
 /**
  * Mount a file uploaded via the Files API into the session.
@@ -555,6 +685,12 @@ export interface BetaManagedAgentsSession {
    * supplied.
    */
   vault_ids: Array<string>;
+
+  /**
+   * Deployment ID when the session was created from a deployment reference. Null
+   * otherwise.
+   */
+  deployment_id?: string | null;
 }
 
 /**
@@ -597,6 +733,29 @@ export interface BetaManagedAgentsSessionAgent {
 }
 
 /**
+ * Mid-session agent configuration update. Only `tools` and `mcp_servers` are
+ * updatable. Full replacement: the provided array becomes the new value. To
+ * preserve existing entries, GET the session, modify the array, and POST it back.
+ */
+export interface BetaManagedAgentsSessionAgentUpdate {
+  /**
+   * Replacement MCP server list. Full replacement: the provided array becomes the
+   * new value. Send an empty array to clear; omit to preserve.
+   */
+  mcp_servers?: Array<AgentsAPI.BetaManagedAgentsURLMCPServerParams>;
+
+  /**
+   * Replacement tool list. Full replacement: the provided array becomes the new
+   * value. Send an empty array to clear; omit to preserve.
+   */
+  tools?: Array<
+    | AgentsAPI.BetaManagedAgentsAgentToolset20260401Params
+    | AgentsAPI.BetaManagedAgentsMCPToolsetParams
+    | AgentsAPI.BetaManagedAgentsCustomToolParams
+  >;
+}
+
+/**
  * Resolved coordinator topology with full agent definitions for each roster
  * member.
  */
@@ -604,7 +763,7 @@ export interface BetaManagedAgentsSessionMultiagentCoordinator {
   /**
    * Full `agent` definitions the coordinator may spawn as session threads.
    */
-  agents: Array<ThreadsAPI.BetaManagedAgentsSessionThreadAgent>;
+  agents: Array<AgentsAPI.BetaManagedAgentsSessionThreadAgent>;
 
   type: 'coordinator';
 }
@@ -624,6 +783,42 @@ export interface BetaManagedAgentsSessionStats {
    * at the final update.
    */
   duration_seconds?: number;
+}
+
+/**
+ * Emitted when an UpdateSession request changed at least one field. Carries only
+ * the fields that changed; absent fields were not part of the update. The new
+ * configuration applies from the next turn.
+ */
+export interface BetaManagedAgentsSessionUpdatedEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at: string;
+
+  type: 'session.updated';
+
+  /**
+   * Resolved `agent` definition for a `session`. Snapshot of the `agent` at
+   * `session` creation time.
+   */
+  agent?: BetaManagedAgentsSessionAgent | null;
+
+  /**
+   * The session's full metadata bag after the update. Present when the update set
+   * non-empty metadata; absent when metadata was unchanged or cleared to empty.
+   */
+  metadata?: { [key: string]: string };
+
+  /**
+   * The session's new title. Present only when the update changed it.
+   */
+  title?: string | null;
 }
 
 /**
@@ -651,19 +846,136 @@ export interface BetaManagedAgentsSessionUsage {
   output_tokens?: number;
 }
 
+/**
+ * Opens a preview of a buffered event. Carries the previewed event's type and id
+ * only. Followed by zero or more event_delta events with the same event id,
+ * normally concluded by the buffered event carrying that id. If the producing
+ * model request ends without that event (an error or interrupt mid-stream), its
+ * terminal span.model_request_end closes the preview. Only sent on stream
+ * connections that opt in via event_deltas; never appears in event history.
+ */
+export interface BetaManagedAgentsStartEvent {
+  /**
+   * The previewed event's type and id. The event type determines which delta types
+   * the preview's event_delta events carry: agent.message events stream
+   * content_delta fragments; agent.thinking previews are start-only — no deltas
+   * follow, and the buffered agent.thinking with the same id concludes them.
+   */
+  event: BetaManagedAgentsStartEventPreview;
+
+  type: 'event_start';
+}
+
+export type BetaManagedAgentsStartEventPreview =
+  | BetaManagedAgentsAgentMessagePreview
+  | BetaManagedAgentsAgentThinkingPreview;
+
+/**
+ * Regular text content.
+ */
+export interface BetaManagedAgentsSystemContentBlock {
+  /**
+   * The text content.
+   */
+  text: string;
+
+  type: 'text';
+}
+
+/**
+ * A mid-conversation system message event. Carries system-role content that is
+ * appended to the session as a `role: "system"` turn.
+ */
+export interface BetaManagedAgentsSystemMessageEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * System content blocks. Text-only.
+   */
+  content: Array<BetaManagedAgentsSystemContentBlock>;
+
+  type: 'system.message';
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at?: string | null;
+}
+
+/**
+ * Event sent by the client providing the result of an agent-toolset tool
+ * execution. Only valid on `self_hosted` environments, where sandbox-routed tools
+ * are executed by the client rather than the server.
+ */
+export interface BetaManagedAgentsUserToolResultEvent {
+  /**
+   * Unique identifier for this event.
+   */
+  id: string;
+
+  /**
+   * The id of the `agent.tool_use` event this result corresponds to, which can be
+   * found in the last `session.status_idle`
+   * [event's](https://platform.claude.com/docs/en/api/beta/sessions/events/list#beta_managed_agents_session_requires_action.event_ids)
+   * `stop_reason.event_ids` field.
+   */
+  tool_use_id: string;
+
+  type: 'user.tool_result';
+
+  /**
+   * The result content returned by the tool.
+   */
+  content?: Array<
+    | EventsAPI.BetaManagedAgentsTextBlock
+    | EventsAPI.BetaManagedAgentsImageBlock
+    | EventsAPI.BetaManagedAgentsDocumentBlock
+    | EventsAPI.BetaManagedAgentsSearchResultBlock
+  >;
+
+  /**
+   * Whether the tool execution resulted in an error.
+   */
+  is_error?: boolean | null;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  processed_at?: string | null;
+
+  /**
+   * Routes this result to a subagent thread. Copy from the `agent.tool_use` event's
+   * `session_thread_id`.
+   */
+  session_thread_id?: string | null;
+}
+
 export interface SessionCreateParams {
   /**
    * Body param: Agent identifier. Accepts the `agent` ID string, which pins the
    * latest version for the session, or an `agent` object with both id and version
    * specified.
    */
-  agent: string | BetaManagedAgentsAgentParams;
+  agent: string | BetaManagedAgentsAgentParams | BetaManagedAgentsAgentWithOverridesParams;
 
   /**
    * Body param: ID of the `environment` defining the container configuration for
    * this session.
    */
   environment_id: string;
+
+  /**
+   * Body param: Initial events to send to the `session` at creation, processed in
+   * order. Supports `user.message` and `user.define_outcome` events. Maximum 50
+   * events.
+   */
+  initial_events?: Array<
+    | EventsAPI.BetaManagedAgentsUserMessageEventParams
+    | EventsAPI.BetaManagedAgentsUserDefineOutcomeEventParams
+  >;
 
   /**
    * Body param: Arbitrary key-value metadata attached to the session. Maximum 16
@@ -707,6 +1019,14 @@ export interface SessionRetrieveParams {
 
 export interface SessionUpdateParams {
   /**
+   * Body param: Mid-session agent configuration update. Only `tools` and
+   * `mcp_servers` are updatable. Full replacement: the provided array becomes the
+   * new value. To preserve existing entries, GET the session, modify the array, and
+   * POST it back.
+   */
+  agent?: BetaManagedAgentsSessionAgentUpdate;
+
+  /**
    * Body param: Metadata patch. Set a key to a string to upsert it, or to null to
    * delete it. Omit the field to preserve.
    */
@@ -729,7 +1049,7 @@ export interface SessionUpdateParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
-export interface SessionListParams extends PageCursorParams {
+export interface SessionListParams extends BidirectionalPageCursorParams {
   /**
    * Query param: Filter sessions created with this agent ID.
    */
@@ -759,6 +1079,11 @@ export interface SessionListParams extends PageCursorParams {
    * Query param: Return sessions created at or before this time (inclusive).
    */
   'created_at[lte]'?: string;
+
+  /**
+   * Query param: Filter sessions created by this deployment ID.
+   */
+  deployment_id?: string;
 
   /**
    * Query param: When true, includes archived sessions. Default: false (exclude
@@ -810,11 +1135,17 @@ Sessions.Threads = Threads;
 
 export declare namespace Sessions {
   export {
+    type BetaManagedAgentsAgentMessagePreview as BetaManagedAgentsAgentMessagePreview,
     type BetaManagedAgentsAgentParams as BetaManagedAgentsAgentParams,
+    type BetaManagedAgentsAgentThinkingPreview as BetaManagedAgentsAgentThinkingPreview,
+    type BetaManagedAgentsAgentWithOverridesParams as BetaManagedAgentsAgentWithOverridesParams,
     type BetaManagedAgentsBranchCheckout as BetaManagedAgentsBranchCheckout,
     type BetaManagedAgentsCacheCreationUsage as BetaManagedAgentsCacheCreationUsage,
     type BetaManagedAgentsCommitCheckout as BetaManagedAgentsCommitCheckout,
     type BetaManagedAgentsDeletedSession as BetaManagedAgentsDeletedSession,
+    type BetaManagedAgentsDeltaContent as BetaManagedAgentsDeltaContent,
+    type BetaManagedAgentsDeltaEvent as BetaManagedAgentsDeltaEvent,
+    type BetaManagedAgentsDeltaType as BetaManagedAgentsDeltaType,
     type BetaManagedAgentsFileResourceParams as BetaManagedAgentsFileResourceParams,
     type BetaManagedAgentsGitHubRepositoryResourceParams as BetaManagedAgentsGitHubRepositoryResourceParams,
     type BetaManagedAgentsMemoryStoreResourceParam as BetaManagedAgentsMemoryStoreResourceParam,
@@ -824,10 +1155,17 @@ export declare namespace Sessions {
     type BetaManagedAgentsOutcomeEvaluationResource as BetaManagedAgentsOutcomeEvaluationResource,
     type BetaManagedAgentsSession as BetaManagedAgentsSession,
     type BetaManagedAgentsSessionAgent as BetaManagedAgentsSessionAgent,
+    type BetaManagedAgentsSessionAgentUpdate as BetaManagedAgentsSessionAgentUpdate,
     type BetaManagedAgentsSessionMultiagentCoordinator as BetaManagedAgentsSessionMultiagentCoordinator,
     type BetaManagedAgentsSessionStats as BetaManagedAgentsSessionStats,
+    type BetaManagedAgentsSessionUpdatedEvent as BetaManagedAgentsSessionUpdatedEvent,
     type BetaManagedAgentsSessionUsage as BetaManagedAgentsSessionUsage,
-    type BetaManagedAgentsSessionsPageCursor as BetaManagedAgentsSessionsPageCursor,
+    type BetaManagedAgentsStartEvent as BetaManagedAgentsStartEvent,
+    type BetaManagedAgentsStartEventPreview as BetaManagedAgentsStartEventPreview,
+    type BetaManagedAgentsSystemContentBlock as BetaManagedAgentsSystemContentBlock,
+    type BetaManagedAgentsSystemMessageEvent as BetaManagedAgentsSystemMessageEvent,
+    type BetaManagedAgentsUserToolResultEvent as BetaManagedAgentsUserToolResultEvent,
+    type BetaManagedAgentsSessionsBidirectionalPageCursor as BetaManagedAgentsSessionsBidirectionalPageCursor,
     type SessionCreateParams as SessionCreateParams,
     type SessionRetrieveParams as SessionRetrieveParams,
     type SessionUpdateParams as SessionUpdateParams,
@@ -851,6 +1189,7 @@ export declare namespace Sessions {
     type BetaManagedAgentsBase64DocumentSource as BetaManagedAgentsBase64DocumentSource,
     type BetaManagedAgentsBase64ImageSource as BetaManagedAgentsBase64ImageSource,
     type BetaManagedAgentsBillingError as BetaManagedAgentsBillingError,
+    type BetaManagedAgentsCredentialHostUnreachableError as BetaManagedAgentsCredentialHostUnreachableError,
     type BetaManagedAgentsDocumentBlock as BetaManagedAgentsDocumentBlock,
     type BetaManagedAgentsEventParams as BetaManagedAgentsEventParams,
     type BetaManagedAgentsFileDocumentSource as BetaManagedAgentsFileDocumentSource,
@@ -893,6 +1232,7 @@ export declare namespace Sessions {
     type BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent as BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent,
     type BetaManagedAgentsSpanOutcomeEvaluationStartEvent as BetaManagedAgentsSpanOutcomeEvaluationStartEvent,
     type BetaManagedAgentsStreamSessionEvents as BetaManagedAgentsStreamSessionEvents,
+    type BetaManagedAgentsSystemMessageEventParams as BetaManagedAgentsSystemMessageEventParams,
     type BetaManagedAgentsTextBlock as BetaManagedAgentsTextBlock,
     type BetaManagedAgentsTextRubric as BetaManagedAgentsTextRubric,
     type BetaManagedAgentsTextRubricParams as BetaManagedAgentsTextRubricParams,
@@ -909,6 +1249,7 @@ export declare namespace Sessions {
     type BetaManagedAgentsUserMessageEventParams as BetaManagedAgentsUserMessageEventParams,
     type BetaManagedAgentsUserToolConfirmationEvent as BetaManagedAgentsUserToolConfirmationEvent,
     type BetaManagedAgentsUserToolConfirmationEventParams as BetaManagedAgentsUserToolConfirmationEventParams,
+    type BetaManagedAgentsUserToolResultEventParams as BetaManagedAgentsUserToolResultEventParams,
     type BetaManagedAgentsSessionEventsPageCursor as BetaManagedAgentsSessionEventsPageCursor,
     type EventListParams as EventListParams,
     type EventSendParams as EventSendParams,
@@ -935,7 +1276,6 @@ export declare namespace Sessions {
   export {
     Threads as Threads,
     type BetaManagedAgentsSessionThread as BetaManagedAgentsSessionThread,
-    type BetaManagedAgentsSessionThreadAgent as BetaManagedAgentsSessionThreadAgent,
     type BetaManagedAgentsSessionThreadStats as BetaManagedAgentsSessionThreadStats,
     type BetaManagedAgentsSessionThreadStatus as BetaManagedAgentsSessionThreadStatus,
     type BetaManagedAgentsSessionThreadUsage as BetaManagedAgentsSessionThreadUsage,

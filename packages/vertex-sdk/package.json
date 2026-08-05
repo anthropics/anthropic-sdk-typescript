@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/vertex-sdk",
-  "version": "0.16.0",
+  "version": "0.19.0",
   "description": "The official TypeScript library for the Anthropic Vertex API",
   "author": "Anthropic <support@anthropic.com>",
   "types": "dist/index.d.ts",
@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "file:../../dist/",
-    "google-auth-library": "^9.4.2"
+    "google-auth-library": "^10.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.17.6",

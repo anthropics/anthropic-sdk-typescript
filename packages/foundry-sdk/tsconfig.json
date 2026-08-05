@@ -1,6 +1,6 @@
 {
   "include": ["src", "tests", "examples"],
-  "exclude": ["dist/src/internal/detect-platform.ts"],
+  "exclude": ["dist/src/internal/detect-platform.ts", "dist/src/internal/message-stream-utils.ts"],
   "compilerOptions": {
     "target": "es2020",
     "lib": ["es2020"],

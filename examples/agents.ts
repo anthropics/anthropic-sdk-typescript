@@ -14,7 +14,7 @@ async function main() {
   // Create an agent
   const agent = await client.beta.agents.create({
     name: 'simple-example-agent',
-    model: 'claude-sonnet-4-6',
+    model: 'claude-sonnet-5',
   });
   console.log('Created agent:', agent.id);
 

@@ -53,6 +53,7 @@ describe('resource batches', () => {
             },
             service_tier: 'auto',
             stop_sequences: ['string'],
+            stream: false,
             system: [
               {
                 text: "Today's date is 2024-06-01.",
@@ -60,7 +61,7 @@ describe('resource batches', () => {
                 cache_control: { type: 'ephemeral', ttl: '5m' },
                 citations: [
                   {
-                    cited_text: 'cited_text',
+                    cited_text: 'The grass is green. The sky is blue.',
                     document_index: 0,
                     document_title: 'x',
                     end_char_index: 0,
@@ -96,6 +97,7 @@ describe('resource batches', () => {
           },
         },
       ],
+      user_profile_id: 'anthropic-user-profile-id',
     });
   });
 

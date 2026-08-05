@@ -52,8 +52,15 @@ client.parents.children.retrieve('p_123', 'c_456');
 client.parents.children.retrieve('c_456', { parent_id: 'p_123' });
 ```
 
-This affects the following methods:
+<details>
 
+<summary>This affects the following methods</summary>
+
+- `client.beta.environments.work.retrieve()`
+- `client.beta.environments.work.update()`
+- `client.beta.environments.work.ack()`
+- `client.beta.environments.work.heartbeat()`
+- `client.beta.environments.work.stop()`
 - `client.beta.sessions.resources.retrieve()`
 - `client.beta.sessions.resources.update()`
 - `client.beta.sessions.resources.delete()`
@@ -73,6 +80,11 @@ This affects the following methods:
 - `client.beta.memoryStores.memoryVersions.redact()`
 - `client.beta.skills.versions.retrieve()`
 - `client.beta.skills.versions.delete()`
+- `client.beta.skills.versions.download()`
+- `client.beta.tunnels.certificates.retrieve()`
+- `client.beta.tunnels.certificates.archive()`
+
+</details>
 
 ### URI encoded path parameters
 
@@ -123,6 +135,9 @@ client.example.list(undefined, { headers: { ... } });
 - `client.beta.environments.list()`
 - `client.beta.environments.delete()`
 - `client.beta.environments.archive()`
+- `client.beta.environments.work.list()`
+- `client.beta.environments.work.poll()`
+- `client.beta.environments.work.stats()`
 - `client.beta.sessions.retrieve()`
 - `client.beta.sessions.list()`
 - `client.beta.sessions.delete()`
@@ -131,6 +146,14 @@ client.example.list(undefined, { headers: { ... } });
 - `client.beta.sessions.events.stream()`
 - `client.beta.sessions.resources.list()`
 - `client.beta.sessions.threads.list()`
+- `client.beta.deployments.retrieve()`
+- `client.beta.deployments.list()`
+- `client.beta.deployments.archive()`
+- `client.beta.deployments.pause()`
+- `client.beta.deployments.run()`
+- `client.beta.deployments.unpause()`
+- `client.beta.deploymentRuns.retrieve()`
+- `client.beta.deploymentRuns.list()`
 - `client.beta.vaults.retrieve()`
 - `client.beta.vaults.list()`
 - `client.beta.vaults.delete()`
@@ -146,15 +169,22 @@ client.example.list(undefined, { headers: { ... } });
 - `client.beta.files.delete()`
 - `client.beta.files.download()`
 - `client.beta.files.retrieveMetadata()`
-- `client.beta.skills.create()`
 - `client.beta.skills.retrieve()`
 - `client.beta.skills.list()`
 - `client.beta.skills.delete()`
-- `client.beta.skills.versions.create()`
 - `client.beta.skills.versions.list()`
 - `client.beta.userProfiles.retrieve()`
 - `client.beta.userProfiles.list()`
 - `client.beta.userProfiles.createEnrollmentURL()`
+- `client.beta.dreams.retrieve()`
+- `client.beta.dreams.list()`
+- `client.beta.dreams.archive()`
+- `client.beta.dreams.cancel()`
+- `client.beta.tunnels.retrieve()`
+- `client.beta.tunnels.list()`
+- `client.beta.tunnels.archive()`
+- `client.beta.tunnels.revealToken()`
+- `client.beta.tunnels.certificates.list()`
 
 </details>
 

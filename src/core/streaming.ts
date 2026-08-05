@@ -11,6 +11,7 @@ import type { BaseAnthropic } from '../client';
 
 import { APIError } from './error';
 import type { ErrorType } from '../resources/shared';
+import { releaseRequestSignal } from '../internal/request-signal';
 
 type Bytes = string | ArrayBuffer | Uint8Array | null | undefined;
 
@@ -31,6 +32,21 @@ export class Stream<Item> implements AsyncIterable<Item> {
   ) {
     this.controller = controller;
     this.#client = client;
+  }
+
+  /**
+   * Iterate the raw Server-Sent Events from `response` — `{event, data, raw}`
+   * objects, before any JSON parsing or event-name filtering.
+   *
+   * This reads `response.body` directly (not a clone), so the response is
+   * consumed. Use this in middleware that fully replaces the stream body; for
+   * read-only observation of parsed events, use `ctx.parse()` instead.
+   */
+  static rawEvents(
+    response: Response,
+    controller: AbortController = new AbortController(),
+  ): AsyncGenerator<ServerSentEvent, void, unknown> {
+    return _iterSSEMessages(response, controller);
   }
 
   static fromSSEResponse<Item>(
@@ -71,6 +87,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
             sse.event === 'user.interrupt' ||
             sse.event === 'user.tool_confirmation' ||
             sse.event === 'user.custom_tool_result' ||
+            sse.event === 'user.tool_result' ||
             sse.event === 'agent.message' ||
             sse.event === 'agent.thinking' ||
             sse.event === 'agent.tool_use' ||
@@ -85,6 +102,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
             sse.event === 'session.status_terminated' ||
             sse.event === 'session.error' ||
             sse.event === 'session.deleted' ||
+            sse.event === 'session.updated' ||
             sse.event === 'span.model_request_start' ||
             sse.event === 'span.model_request_end' ||
             sse.event === 'span.outcome_evaluation_start' ||
@@ -100,7 +118,10 @@ export class Stream<Item> implements AsyncIterable<Item> {
             sse.event === 'session.thread_status_running' ||
             sse.event === 'session.thread_status_idle' ||
             sse.event === 'session.thread_status_rescheduled' ||
-            sse.event === 'session.thread_status_terminated'
+            sse.event === 'session.thread_status_terminated' ||
+            sse.event === 'event_start' ||
+            sse.event === 'event_delta' ||
+            sse.event === 'system.message'
           ) {
             try {
               yield JSON.parse(sse.data) as Item;
@@ -129,6 +150,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
       } finally {
         // If the user `break`s, abort the ongoing request.
         if (!done) controller.abort();
+        releaseRequestSignal(controller);
       }
     }
 
@@ -180,6 +202,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
       } finally {
         // If the user `break`s, abort the ongoing request.
         if (!done) controller.abort();
+        releaseRequestSignal(controller);
       }
     }
 

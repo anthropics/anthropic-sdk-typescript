@@ -64,6 +64,8 @@ describe('resource batches', () => {
               ],
             },
             diagnostics: { previous_message_id: 'previous_message_id' },
+            fallback_credit_token: 'x',
+            fallbacks: 'default',
             inference_geo: 'inference_geo',
             mcp_servers: [
               {
@@ -102,7 +104,7 @@ describe('resource batches', () => {
                 cache_control: { type: 'ephemeral', ttl: '5m' },
                 citations: [
                   {
-                    cited_text: 'cited_text',
+                    cited_text: 'The grass is green. The sky is blue.',
                     document_index: 0,
                     document_title: 'x',
                     end_char_index: 0,
@@ -135,11 +137,11 @@ describe('resource batches', () => {
             ],
             top_k: 5,
             top_p: 0.7,
-            user_profile_id: 'user_profile_id',
           },
         },
       ],
       betas: ['message-batches-2024-09-24'],
+      user_profile_id: 'anthropic-user-profile-id',
     });
   });
 

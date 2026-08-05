@@ -52,7 +52,7 @@ async function main() {
   // Create v1 of the agent with the built-in toolset, an MCP server, and a custom tool
   const agentV1 = await client.beta.agents.create({
     name: 'comprehensive-example-agent',
-    model: 'claude-sonnet-4-6',
+    model: 'claude-sonnet-5',
     system: 'You are a helpful assistant.',
     mcp_servers: [{ type: 'url', name: MCP_SERVER_NAME, url: MCP_SERVER_URL }],
     tools: [
@@ -102,12 +102,12 @@ async function main() {
   const stream = await client.beta.sessions.events.stream(session.id);
   for await (const event of stream) {
     console.log(JSON.stringify(event, null, 2));
-    if (event.type === 'agent.custom_tool_use' && event.name === 'get_weather') {
+    if (event.type === 'agent.tool_use' && event.name === 'get_weather') {
       await client.beta.sessions.events.send(session.id, {
         events: [
           {
-            type: 'user.custom_tool_result',
-            custom_tool_use_id: event.id,
+            type: 'user.tool_result',
+            tool_use_id: event.id,
             content: [{ type: 'text', text: '{"temperature_c": 14}' }],
           },
         ],

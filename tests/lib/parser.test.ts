@@ -82,9 +82,11 @@ describe('Beta Parser', () => {
       usage: {
         input_tokens: 10,
         output_tokens: 20,
+        output_tokens_details: null,
         cache_creation: null,
         cache_creation_input_tokens: 0,
         cache_read_input_tokens: 0,
+        fallback_credit: null,
         server_tool_use: null,
         service_tier: null,
         inference_geo: null,
@@ -261,9 +263,11 @@ describe('Beta Parser', () => {
       usage: {
         input_tokens: 10,
         output_tokens: 20,
+        output_tokens_details: null,
         cache_creation: null,
         cache_creation_input_tokens: 0,
         cache_read_input_tokens: 0,
+        fallback_credit: null,
         server_tool_use: null,
         service_tier: null,
         inference_geo: null,
@@ -483,6 +487,7 @@ describe('GA Parser', () => {
       usage: {
         input_tokens: 10,
         output_tokens: 20,
+        output_tokens_details: null,
         cache_creation: null,
         cache_creation_input_tokens: 0,
         cache_read_input_tokens: 0,
@@ -658,6 +663,7 @@ describe('GA Parser', () => {
       usage: {
         input_tokens: 10,
         output_tokens: 20,
+        output_tokens_details: null,
         cache_creation: null,
         cache_creation_input_tokens: 0,
         cache_read_input_tokens: 0,

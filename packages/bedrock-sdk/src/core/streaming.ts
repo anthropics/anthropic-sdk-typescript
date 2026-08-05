@@ -1,14 +1,14 @@
+export * from '@anthropic-ai/sdk/streaming';
+
 import { EventStreamMarshaller } from '@smithy/eventstream-serde-node';
 import { fromBase64, toBase64 } from '@smithy/util-base64';
 import { streamCollector } from '@smithy/fetch-http-handler';
 import { EventStreamSerdeContext, SerdeContext } from '@smithy/types';
-import { Stream as CoreStream, ServerSentEvent } from '@anthropic-ai/sdk/streaming';
 import { AnthropicError } from '@anthropic-ai/sdk/error';
-import { APIError, BaseAnthropic } from '@anthropic-ai/sdk';
 import { de_ResponseStream } from '../AWS_restJson1';
-import { ReadableStreamToAsyncIterable } from '../internal/shims';
-import { safeJSON } from '../internal/utils/values';
-import { loggerFor } from '../internal/utils/log';
+import type { BodyInit } from '../internal/builtin-types';
+import { ReadableStreamFrom, ReadableStreamToAsyncIterable } from '../internal/shims';
+import { isObj, safeJSON } from '../internal/utils/values';
 
 type Bytes = string | ArrayBuffer | Uint8Array | Buffer | null | undefined;
 
@@ -30,94 +30,67 @@ export const getMinimalSerdeContext = (): SerdeContext & EventStreamSerdeContext
   } as unknown as SerdeContext & EventStreamSerdeContext;
 };
 
-export class Stream<Item> extends CoreStream<Item> {
-  static override fromSSEResponse<Item>(
-    response: Response,
-    controller: AbortController,
-    client?: BaseAnthropic,
-  ) {
-    let consumed = false;
-    const logger = client ? loggerFor(client) : console;
-
-    async function* iterMessages(): AsyncGenerator<ServerSentEvent, void, unknown> {
-      if (!response.body) {
-        controller.abort();
-        throw new AnthropicError(`Attempted to iterate over a response with no body`);
-      }
-
-      const responseBodyIter = ReadableStreamToAsyncIterable<Bytes>(response.body);
-      const eventStream = de_ResponseStream(responseBodyIter, getMinimalSerdeContext());
-      for await (const event of eventStream) {
-        if (event.chunk && event.chunk.bytes) {
-          const s = toUtf8(event.chunk.bytes);
-          yield { event: 'chunk', data: s, raw: [] };
-        } else if (event.internalServerException) {
-          yield { event: 'error', data: 'InternalServerException', raw: [] };
-        } else if (event.modelStreamErrorException) {
-          yield { event: 'error', data: 'ModelStreamErrorException', raw: [] };
-        } else if (event.validationException) {
-          yield { event: 'error', data: 'ValidationException', raw: [] };
-        } else if (event.throttlingException) {
-          yield { event: 'error', data: 'ThrottlingException', raw: [] };
-        }
-      }
-    }
-
-    // Note: this function is adapted from the core SDK
-    async function* iterator(): AsyncIterator<Item, any, undefined> {
-      if (consumed) {
-        throw new Error('Cannot iterate over a consumed stream, use `.tee()` to split the stream.');
-      }
-      consumed = true;
-      let done = false;
-      try {
-        for await (const sse of iterMessages()) {
-          if (sse.event === 'chunk') {
-            let parsed;
-            try {
-              parsed = JSON.parse(sse.data);
-            } catch (e) {
-              logger.error(`Could not parse message into JSON:`, sse.data);
-              logger.error(`From chunk:`, sse.raw);
-              throw e;
-            }
-            if (parsed && typeof parsed === 'object' && parsed.type === 'error') {
-              // Anthropic-format error delivered inside a Bedrock chunk frame
-              throw new APIError(undefined, parsed, undefined, response.headers, parsed.error?.type);
-            }
-            yield parsed;
-          }
-
-          if (sse.event === 'error') {
-            const errText = sse.data;
-            const errJSON = safeJSON(errText);
-            const errMessage = errJSON ? undefined : errText;
-
-            throw APIError.generate(undefined, errJSON, errMessage, response.headers);
-          }
-        }
-        done = true;
-      } catch (e) {
-        // If the user calls `stream.controller.abort()`, we should exit without throwing.
-        if (isAbortError(e)) return;
-        throw e;
-      } finally {
-        // If the user `break`s, abort the ongoing request.
-        if (!done) controller.abort();
-      }
-    }
-
-    return new Stream(iterator, controller);
+/**
+ * Transcodes a Bedrock streaming response from AWS's binary EventStream
+ * framing to the SSE format the Anthropic API uses, preserving status,
+ * headers (apart from content type/length), and URL.
+ *
+ * Chunk frames carry Anthropic-shaped JSON payloads; each becomes an SSE
+ * frame named by the payload's `type`, so Anthropic error payloads become
+ * standard SSE `error` events. AWS exception frames become SSE `error`
+ * events with an Anthropic-shaped error body.
+ */
+export function eventStreamToSSEResponse(response: Response): Response {
+  const body = response.body;
+  if (!body) {
+    return response;
   }
-}
 
-function isAbortError(err: unknown) {
-  return (
-    typeof err === 'object' &&
-    err !== null &&
-    // Spec-compliant fetch implementations
-    (('name' in err && (err as any).name === 'AbortError') ||
-      // Expo fetch
-      ('message' in err && String((err as any).message).includes('FetchRequestCanceledException')))
-  );
+  async function* sseFrames(): AsyncGenerator<Uint8Array, void, unknown> {
+    const eventStream = de_ResponseStream(
+      ReadableStreamToAsyncIterable<Bytes>(body),
+      getMinimalSerdeContext(),
+    );
+    for await (const event of eventStream) {
+      if (event.chunk && event.chunk.bytes) {
+        const data = toUtf8(event.chunk.bytes);
+        const parsed = safeJSON(data);
+        if (parsed === undefined) {
+          throw new AnthropicError(`Could not parse a Bedrock chunk into JSON: ${data}`);
+        }
+        // Frames without a `type` (e.g. gateway keep-alives) have no SSE
+        // event name to carry them; drop them rather than failing the stream.
+        const eventName = isObj(parsed) && typeof parsed['type'] === 'string' ? parsed['type'] : null;
+        if (eventName != null) {
+          // Re-serialize so the payload is guaranteed single-line, as SSE
+          // `data:` framing requires.
+          yield fromUtf8(`event: ${eventName}\ndata: ${JSON.stringify(parsed)}\n\n`);
+        }
+        continue;
+      }
+
+      const exception =
+        event.internalServerException ??
+        event.modelStreamErrorException ??
+        event.validationException ??
+        event.throttlingException;
+      if (exception) {
+        const data = JSON.stringify({ type: 'error', error: { type: 'api_error', message: exception.name } });
+        yield fromUtf8(`event: error\ndata: ${data}\n\n`);
+      }
+    }
+  }
+
+  const headers = new Headers(response.headers);
+  headers.set('content-type', 'text/event-stream; charset=utf-8');
+  headers.delete('content-length');
+  const normalized = new Response(ReadableStreamFrom(sseFrames()) as unknown as BodyInit, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+  // Synthesized Responses have `url === ''`; preserve the wire URL for
+  // middleware and the SDK's own logging.
+  Object.defineProperty(normalized, 'url', { value: response.url });
+  return normalized;
 }

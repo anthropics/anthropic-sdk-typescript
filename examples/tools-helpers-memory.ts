@@ -37,7 +37,7 @@ async function main() {
       },
     ],
     tools: [memory],
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-5',
     context_management: CONTEXT_MANAGEMENT,
     betas: ['context-management-2025-06-27'],
     max_tokens: 1024,

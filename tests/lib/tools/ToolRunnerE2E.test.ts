@@ -124,7 +124,7 @@ describe('toolRunner integration tests', () => {
     const tool = createTestTool();
 
     const runner = client.beta.messages.toolRunner({
-      model: 'claude-sonnet-4-0',
+      model: 'claude-opus-4-8',
       max_tokens: 1000,
       max_iterations: 5, // High limit, should stop before reaching it
       messages: [
@@ -165,7 +165,7 @@ describe('toolRunner integration tests', () => {
       const tool = createCounterTool();
 
       const runner = client.beta.messages.toolRunner({
-        model: 'claude-sonnet-4-0',
+        model: 'claude-opus-4-8',
         max_tokens: 1000,
         max_iterations: 2,
         messages: [
@@ -208,7 +208,7 @@ describe('toolRunner integration tests', () => {
       const tool = createTestTool({ inputSchema: z.object({ input: z.string() }) });
 
       const runner = client.beta.messages.toolRunner({
-        model: 'claude-sonnet-4-0',
+        model: 'claude-opus-4-8',
         max_tokens: 1000,
         messages: [
           { role: 'user', content: 'Use the test_tool with input "test", then provide a final response' },
@@ -231,7 +231,7 @@ describe('toolRunner integration tests', () => {
       const tool = createTestTool();
 
       const runner = client.beta.messages.toolRunner({
-        model: 'claude-sonnet-4-0',
+        model: 'claude-opus-4-8',
         max_tokens: 1000,
         messages: [{ role: 'user', content: 'Hello' }],
         tools: [tool],

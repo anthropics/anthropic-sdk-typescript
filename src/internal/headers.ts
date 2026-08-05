@@ -29,7 +29,9 @@ export type NullableHeaders = {
   nulls: Set<string>;
 };
 
-function* iterateHeaders(headers: HeadersLike): IterableIterator<readonly [string, string | null]> {
+function* iterateHeaders(
+  headers: HeadersLike,
+): IterableIterator<readonly [string, string | null | ClearSentinel]> {
   if (!headers) return;
 
   if (brand_privateNullableHeaders in headers) {
@@ -60,15 +62,42 @@ function* iterateHeaders(headers: HeadersLike): IterableIterator<readonly [strin
       if (value === undefined) continue;
 
       // Objects keys always overwrite older headers, they never append.
-      // Yield a null to clear the header before adding the new values.
+      // Yield the clear sentinel before adding the new values, so the
+      // consumer can tell this synthetic "clear-before-set" apart from a
+      // user's explicit `null` (= remove).
       if (shouldClear && !didClear) {
         didClear = true;
-        yield [name, null];
+        yield [name, clearSentinel];
       }
       yield [name, value];
     }
   }
 }
+
+/** Distinguishes iterateHeaders' synthetic clear-before-set from a user `null`. */
+const clearSentinel = Symbol('clear');
+type ClearSentinel = typeof clearSentinel;
+
+/**
+ * Headers whose values accumulate across {@link buildHeaders} sources instead
+ * of the later source's value replacing the earlier one. Values are
+ * comma-appended (deduplicated, order-preserving) into a single header line.
+ */
+export const APPEND_HEADERS: ReadonlySet<string> = new Set(['x-stainless-helper']);
+
+export const appendHeaderValue = (existing: string | null, addition: string): string => {
+  const tokens =
+    existing ?
+      existing
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
+    : [];
+  for (const tok of addition.split(',').map((t) => t.trim())) {
+    if (tok && !tokens.includes(tok)) tokens.push(tok);
+  }
+  return tokens.join(', ');
+};
 
 export const buildHeaders = (newHeaders: HeadersLike[]): NullableHeaders => {
   const targetHeaders = new Headers();
@@ -77,9 +106,23 @@ export const buildHeaders = (newHeaders: HeadersLike[]): NullableHeaders => {
     const seenHeaders = new Set<string>();
     for (const [name, value] of iterateHeaders(headers)) {
       const lowerName = name.toLowerCase();
-      if (!seenHeaders.has(lowerName)) {
+      if (APPEND_HEADERS.has(lowerName)) {
+        // Accumulating headers ignore the synthetic clear-before-set; an
+        // explicit `null` (any source shape) is honored as removal.
+        if (value === clearSentinel) continue;
+        if (value === null) {
+          targetHeaders.delete(name);
+          nullHeaders.add(lowerName);
+        } else {
+          targetHeaders.set(name, appendHeaderValue(targetHeaders.get(name), value));
+          nullHeaders.delete(lowerName);
+        }
+        continue;
+      }
+      if (value === clearSentinel || !seenHeaders.has(lowerName)) {
         targetHeaders.delete(name);
         seenHeaders.add(lowerName);
+        if (value === clearSentinel) continue;
       }
       if (value === null) {
         targetHeaders.delete(name);

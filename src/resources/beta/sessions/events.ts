@@ -1,13 +1,19 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+import type { Anthropic } from '../../../client';
 import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
+import * as SessionsAPI from './sessions';
 import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { Stream } from '../../../core/streaming';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
 import { path } from '../../../internal/utils/path';
+import {
+  SessionToolRunner,
+  type SessionToolRunnerOptions as RunnerSessionToolRunnerOptions,
+} from '../../../lib/tools/SessionToolRunner';
 
 export class Events extends APIResource {
   /**
@@ -99,8 +105,9 @@ export class Events extends APIResource {
     params: EventStreamParams | undefined = {},
     options?: RequestOptions,
   ): APIPromise<Stream<BetaManagedAgentsStreamSessionEvents>> {
-    const { betas } = params ?? {};
+    const { betas, ...query } = params ?? {};
     return this._client.get(path`/v1/sessions/${sessionID}/events/stream?beta=true`, {
+      query,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
@@ -108,6 +115,29 @@ export class Events extends APIResource {
       ]),
       stream: true,
     }) as APIPromise<Stream<BetaManagedAgentsStreamSessionEvents>>;
+  }
+
+  /**
+   * Attach to a session and dispatch every incoming `agent.tool_use` and
+   * `agent.custom_tool_use` event to a local tool registry, sending the matching
+   * result back (`user.tool_result` / `user.custom_tool_result`). The
+   * sessions-side counterpart to `client.beta.messages.toolRunner`: yields one
+   * entry per completed tool call so callers can observe each dispatch (and
+   * `break` to abort cleanly).
+   *
+   * @example
+   * ```ts
+   * import { betaAgentToolset20260401 } from '@anthropic-ai/sdk/tools/agent-toolset/node';
+   *
+   * for await (const call of client.beta.sessions.events.toolRunner(work.data.id, {
+   *   tools: [...betaAgentToolset20260401({ workdir }), myTool],
+   * })) {
+   *   console.log(`${call.name} -> ${call.isError ? 'error' : 'ok'}`);
+   * }
+   * ```
+   */
+  toolRunner(sessionID: string, opts: Omit<RunnerSessionToolRunnerOptions, 'client'>): SessionToolRunner {
+    return new SessionToolRunner(sessionID, { ...opts, client: this._client as Anthropic });
   }
 }
 
@@ -490,6 +520,37 @@ export interface BetaManagedAgentsBillingError {
 }
 
 /**
+ * An `environment_variable` credential's `auth.networking.allowed_hosts` includes
+ * a host the environment's network policy does not permit.
+ */
+export interface BetaManagedAgentsCredentialHostUnreachableError {
+  /**
+   * ID of the affected credential.
+   */
+  credential_id: string;
+
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * What the client should do next in response to this error.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'credential_host_unreachable_error';
+
+  /**
+   * ID of the vault containing the affected credential.
+   */
+  vault_id: string;
+}
+
+/**
  * Document content, either specified directly as base64 data, as text, or as a
  * reference via a URL.
  */
@@ -524,7 +585,9 @@ export type BetaManagedAgentsEventParams =
   | BetaManagedAgentsUserInterruptEventParams
   | BetaManagedAgentsUserToolConfirmationEventParams
   | BetaManagedAgentsUserCustomToolResultEventParams
-  | BetaManagedAgentsUserDefineOutcomeEventParams;
+  | BetaManagedAgentsUserDefineOutcomeEventParams
+  | BetaManagedAgentsUserToolResultEventParams
+  | BetaManagedAgentsSystemMessageEventParams;
 
 /**
  * Document referenced by file ID.
@@ -804,6 +867,8 @@ export interface BetaManagedAgentsSendSessionEvents {
     | BetaManagedAgentsUserToolConfirmationEvent
     | BetaManagedAgentsUserCustomToolResultEvent
     | BetaManagedAgentsUserDefineOutcomeEvent
+    | SessionsAPI.BetaManagedAgentsUserToolResultEvent
+    | SessionsAPI.BetaManagedAgentsSystemMessageEvent
   >;
 }
 
@@ -853,7 +918,8 @@ export interface BetaManagedAgentsSessionErrorEvent {
     | BetaManagedAgentsModelRequestFailedError
     | BetaManagedAgentsMCPConnectionFailedError
     | BetaManagedAgentsMCPAuthenticationFailedError
-    | BetaManagedAgentsBillingError;
+    | BetaManagedAgentsBillingError
+    | BetaManagedAgentsCredentialHostUnreachableError;
 
   /**
    * A timestamp in RFC 3339 format
@@ -897,7 +963,10 @@ export type BetaManagedAgentsSessionEvent =
   | BetaManagedAgentsSessionThreadStatusRunningEvent
   | BetaManagedAgentsSessionThreadStatusIdleEvent
   | BetaManagedAgentsSessionThreadStatusTerminatedEvent
-  | BetaManagedAgentsSessionThreadStatusRescheduledEvent;
+  | SessionsAPI.BetaManagedAgentsUserToolResultEvent
+  | BetaManagedAgentsSessionThreadStatusRescheduledEvent
+  | SessionsAPI.BetaManagedAgentsSessionUpdatedEvent
+  | SessionsAPI.BetaManagedAgentsSystemMessageEvent;
 
 /**
  * The agent is idle waiting on one or more blocking user-input events (tool
@@ -915,8 +984,8 @@ export interface BetaManagedAgentsSessionRequiresAction {
 }
 
 /**
- * The turn ended because the retry budget was exhausted (`max_iterations` hit or
- * an error escalated to `retry_status: 'exhausted'`).
+ * The turn ended because repeated errors exhausted the retry budget or an error
+ * escalated to `retry_status: 'exhausted'`.
  */
 export interface BetaManagedAgentsSessionRetriesExhausted {
   type: 'retries_exhausted';
@@ -1380,7 +1449,29 @@ export type BetaManagedAgentsStreamSessionEvents =
   | BetaManagedAgentsSessionThreadStatusRunningEvent
   | BetaManagedAgentsSessionThreadStatusIdleEvent
   | BetaManagedAgentsSessionThreadStatusTerminatedEvent
-  | BetaManagedAgentsSessionThreadStatusRescheduledEvent;
+  | SessionsAPI.BetaManagedAgentsUserToolResultEvent
+  | BetaManagedAgentsSessionThreadStatusRescheduledEvent
+  | SessionsAPI.BetaManagedAgentsSessionUpdatedEvent
+  | SessionsAPI.BetaManagedAgentsStartEvent
+  | SessionsAPI.BetaManagedAgentsDeltaEvent
+  | SessionsAPI.BetaManagedAgentsSystemMessageEvent;
+
+/**
+ * Privileged context for the accompanying turn and all subsequent turns, appended
+ * to the session's system context as a `role: "system"` turn rather than replacing
+ * the top-level system prompt. At most one per request: it must be the final event
+ * and immediately follow the `user.message`, `user.tool_result`, or
+ * `user.custom_tool_result` it accompanies. Only supported on models that accept
+ * mid-conversation system messages.
+ */
+export interface BetaManagedAgentsSystemMessageEventParams {
+  /**
+   * System content blocks to append. Text-only.
+   */
+  content: Array<SessionsAPI.BetaManagedAgentsSystemContentBlock>;
+
+  type: 'system.message';
+}
 
 /**
  * Regular text content.
@@ -1744,30 +1835,66 @@ export interface BetaManagedAgentsUserToolConfirmationEventParams {
   deny_message?: string | null;
 }
 
+/**
+ * Parameters for providing the result of an agent-toolset tool execution. Only
+ * valid on `self_hosted` environments, where sandbox-routed tools are executed by
+ * the client rather than the server.
+ */
+export interface BetaManagedAgentsUserToolResultEventParams {
+  /**
+   * The id of the `agent.tool_use` event this result corresponds to, which can be
+   * found in the last `session.status_idle`
+   * [event's](https://platform.claude.com/docs/en/api/beta/sessions/events/list#beta_managed_agents_session_requires_action.event_ids)
+   * `stop_reason.event_ids` field.
+   */
+  tool_use_id: string;
+
+  type: 'user.tool_result';
+
+  /**
+   * The result content returned by the tool.
+   */
+  content?: Array<
+    | BetaManagedAgentsTextBlock
+    | BetaManagedAgentsImageBlock
+    | BetaManagedAgentsDocumentBlock
+    | BetaManagedAgentsSearchResultBlock
+  >;
+
+  /**
+   * Whether the tool execution resulted in an error.
+   */
+  is_error?: boolean | null;
+}
+
 export interface EventListParams extends PageCursorParams {
   /**
-   * Query param: Return events created after this time (exclusive).
+   * Query param: Return events created after this time (exclusive). Compared against
+   * the event's `processed_at` value.
    */
   'created_at[gt]'?: string;
 
   /**
-   * Query param: Return events created at or after this time (inclusive).
+   * Query param: Return events created at or after this time (inclusive). Compared
+   * against the event's `processed_at` value.
    */
   'created_at[gte]'?: string;
 
   /**
-   * Query param: Return events created before this time (exclusive).
+   * Query param: Return events created before this time (exclusive). Compared
+   * against the event's `processed_at` value.
    */
   'created_at[lt]'?: string;
 
   /**
-   * Query param: Return events created at or before this time (inclusive).
+   * Query param: Return events created at or before this time (inclusive). Compared
+   * against the event's `processed_at` value.
    */
   'created_at[lte]'?: string;
 
   /**
-   * Query param: Sort direction for results, ordered by created_at. Defaults to asc
-   * (chronological).
+   * Query param: Sort direction for results, ordered by the event's `processed_at`.
+   * Defaults to asc (chronological).
    */
   order?: 'asc' | 'desc';
 
@@ -1798,12 +1925,32 @@ export interface EventSendParams {
 
 export interface EventStreamParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * Query param: When set, this connection also receives streaming deltas
+   * (`event_start`, `event_delta`) while an event is being produced, before the
+   * event itself arrives. Deltas are best-effort; when the final event is produced
+   * it carries the complete content. A model request that ends early (an error or
+   * interrupt) produces no final event — its terminal `span.model_request_end`
+   * closes the preview. Accepts one or more event types to preview and may be
+   * repeated: `agent.message` streams `content_delta` fragments; `agent.thinking` is
+   * start-only — a signal that the agent has begun extended thinking, concluded by
+   * the `agent.thinking` event itself. Only previews of the requested event types
+   * are sent.
+   */
+  event_deltas?: Array<SessionsAPI.BetaManagedAgentsDeltaType>;
+
+  /**
+   * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
+export { SessionToolRunner, type SessionToolRunnerOptions } from '../../../lib/tools/SessionToolRunner';
+
+Events.SessionToolRunner = SessionToolRunner;
+
 export declare namespace Events {
+  export { SessionToolRunner };
+
   export {
     type BetaManagedAgentsAgentCustomToolUseEvent as BetaManagedAgentsAgentCustomToolUseEvent,
     type BetaManagedAgentsAgentMCPToolResultEvent as BetaManagedAgentsAgentMCPToolResultEvent,
@@ -1818,6 +1965,7 @@ export declare namespace Events {
     type BetaManagedAgentsBase64DocumentSource as BetaManagedAgentsBase64DocumentSource,
     type BetaManagedAgentsBase64ImageSource as BetaManagedAgentsBase64ImageSource,
     type BetaManagedAgentsBillingError as BetaManagedAgentsBillingError,
+    type BetaManagedAgentsCredentialHostUnreachableError as BetaManagedAgentsCredentialHostUnreachableError,
     type BetaManagedAgentsDocumentBlock as BetaManagedAgentsDocumentBlock,
     type BetaManagedAgentsEventParams as BetaManagedAgentsEventParams,
     type BetaManagedAgentsFileDocumentSource as BetaManagedAgentsFileDocumentSource,
@@ -1860,6 +2008,7 @@ export declare namespace Events {
     type BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent as BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent,
     type BetaManagedAgentsSpanOutcomeEvaluationStartEvent as BetaManagedAgentsSpanOutcomeEvaluationStartEvent,
     type BetaManagedAgentsStreamSessionEvents as BetaManagedAgentsStreamSessionEvents,
+    type BetaManagedAgentsSystemMessageEventParams as BetaManagedAgentsSystemMessageEventParams,
     type BetaManagedAgentsTextBlock as BetaManagedAgentsTextBlock,
     type BetaManagedAgentsTextRubric as BetaManagedAgentsTextRubric,
     type BetaManagedAgentsTextRubricParams as BetaManagedAgentsTextRubricParams,
@@ -1876,6 +2025,7 @@ export declare namespace Events {
     type BetaManagedAgentsUserMessageEventParams as BetaManagedAgentsUserMessageEventParams,
     type BetaManagedAgentsUserToolConfirmationEvent as BetaManagedAgentsUserToolConfirmationEvent,
     type BetaManagedAgentsUserToolConfirmationEventParams as BetaManagedAgentsUserToolConfirmationEventParams,
+    type BetaManagedAgentsUserToolResultEventParams as BetaManagedAgentsUserToolResultEventParams,
     type BetaManagedAgentsSessionEventsPageCursor as BetaManagedAgentsSessionEventsPageCursor,
     type EventListParams as EventListParams,
     type EventSendParams as EventSendParams,

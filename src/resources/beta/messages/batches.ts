@@ -21,7 +21,7 @@ export class Batches extends APIResource {
    * can take up to 24 hours to complete.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -43,12 +43,15 @@ export class Batches extends APIResource {
    * ```
    */
   create(params: BatchCreateParams, options?: RequestOptions): APIPromise<BetaMessageBatch> {
-    const { betas, ...body } = params;
+    const { betas, user_profile_id, ...body } = params;
     return this._client.post('/v1/messages/batches?beta=true', {
       body,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -60,7 +63,7 @@ export class Batches extends APIResource {
    * `results_url` field in the response.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -90,7 +93,7 @@ export class Batches extends APIResource {
    * returned first.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -122,7 +125,7 @@ export class Batches extends APIResource {
    * like to delete an in-progress batch, you must first cancel it.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -159,7 +162,7 @@ export class Batches extends APIResource {
    * non-interruptible.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -192,7 +195,7 @@ export class Batches extends APIResource {
    * requests. Use the `custom_id` field to match results to requests.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -424,6 +427,15 @@ export interface BatchCreateParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: The user profile ID to attribute the requests in this batch to.
+   * Use when acting on behalf of a party other than your organization. Requires the
+   * `user-profiles` beta header. Applies to every request in the batch; an
+   * individual request whose `user_profile_id` body field conflicts with this header
+   * is errored.
+   */
+  user_profile_id?: string;
 }
 
 export namespace BatchCreateParams {
@@ -439,7 +451,8 @@ export namespace BatchCreateParams {
     /**
      * Messages API creation parameters for the individual request.
      *
-     * See the [Messages API reference](https://docs.claude.com/en/api/messages) for
+     * See the
+     * [Messages API reference](https://platform.claude.com/docs/en/api/messages) for
      * full documentation on available parameters.
      */
     params: Request.Params;
@@ -449,7 +462,8 @@ export namespace BatchCreateParams {
     /**
      * Messages API creation parameters for the individual request.
      *
-     * See the [Messages API reference](https://docs.claude.com/en/api/messages) for
+     * See the
+     * [Messages API reference](https://platform.claude.com/docs/en/api/messages) for
      * full documentation on available parameters.
      */
     export interface Params {
@@ -460,11 +474,12 @@ export namespace BatchCreateParams {
        * only specifies the absolute maximum number of tokens to generate.
        *
        * Set to `0` to populate the
-       * [prompt cache](https://docs.claude.com/en/docs/build-with-claude/prompt-caching#pre-warming-the-cache)
+       * [prompt cache](https://platform.claude.com/docs/en/build-with-claude/prompt-caching#pre-warming-the-cache)
        * without generating a response.
        *
        * Different models have different maximum values for this parameter. See
-       * [models](https://docs.claude.com/en/docs/models-overview) for details.
+       * [models](https://platform.claude.com/docs/en/about-claude/models/overview) for
+       * details.
        */
       max_tokens: number;
 
@@ -526,20 +541,22 @@ export namespace BatchCreateParams {
        * { "role": "user", "content": [{ "type": "text", "text": "Hello, Claude" }] }
        * ```
        *
-       * See [input examples](https://docs.claude.com/en/api/messages-examples).
+       * See
+       * [input examples](https://platform.claude.com/docs/en/build-with-claude/working-with-messages).
        *
        * Note that if you want to include a
-       * [system prompt](https://docs.claude.com/en/docs/system-prompts), you can use the
-       * top-level `system` parameter — there is no `"system"` role for input messages in
-       * the Messages API.
+       * [system prompt](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role),
+       * you can use the top-level `system` parameter — there is no `"system"` role for
+       * input messages in the Messages API.
        *
        * There is a limit of 100,000 messages in a single request.
        */
       messages: Array<BetaMessagesAPI.BetaMessageParam>;
 
       /**
-       * The model that will complete your prompt.\n\nSee
-       * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+       * The model that will complete your prompt.
+       *
+       * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
        * details and options.
        */
       model: MessagesApi.Model;
@@ -568,6 +585,37 @@ export namespace BatchCreateParams {
        * prompt-cache divergence reporting.
        */
       diagnostics?: BetaMessagesAPI.BetaDiagnosticsParam | null;
+
+      /**
+       * The `fallback_credit_token` from a prior refusal's `stop_details`.
+       *
+       * When a preceding request was refused and returned a `fallback_credit_token`,
+       * pass that code here on the retry to have the retry's cache-creation tokens for
+       * the prefix that was warm on the refused model billed at the cache-read rate.
+       * Must be redeemed by the same organization and workspace, with the same request
+       * body (optionally extended by one appended `assistant` message whose content is
+       * the partial text — with any trailing whitespace stripped from the final text
+       * block — and paired server-tool blocks streamed before the refusal; the
+       * appended-assistant form is not available for requests with `output_format` set
+       * or forced `tool_choice`), on an eligible fallback model, on the same platform,
+       * and within 5 minutes of the refusal; a mismatch is a 400. A token minted
+       * mid-server-tool-loop whose partial content was continuable may only be redeemed
+       * with the appended-assistant form — if an exact-body retry is rejected with a 400
+       * saying the token must be redeemed by continuing the partial response, retry with
+       * the appended-assistant form instead.
+       *
+       * When the appended-assistant form is used on a model that otherwise disallows
+       * assistant-turn prefill, this token also authorizes that one prefill.
+       */
+      fallback_credit_token?: string | BetaMessagesAPI.BetaFallbackCreditTokenParam | null;
+
+      /**
+       * Opt-in server-side retry on one or more substitute models when the requested
+       * model declines for policy reasons. Tried in order: if the first entry also
+       * declines, the second is tried, and so on. The string "default" requests the
+       * requested model's server-defined default fallback configuration.
+       */
+      fallbacks?: BetaMessagesAPI.BetaFallbacksParam | null;
 
       /**
        * Specifies the geographic region for inference processing. If not specified, the
@@ -604,13 +652,15 @@ export namespace BatchCreateParams {
        * for this request.
        *
        * Anthropic offers different levels of service for your API requests. See
-       * [service-tiers](https://docs.claude.com/en/api/service-tiers) for details.
+       * [service-tiers](https://platform.claude.com/docs/en/api/service-tiers) for
+       * details.
        */
       service_tier?: 'auto' | 'standard_only';
 
       /**
-       * The inference speed mode for this request. `"fast"` enables high
-       * output-tokens-per-second inference.
+       * Inference speed mode. `fast` provides significantly faster output token
+       * generation at premium pricing. Not all models support `fast`; invalid
+       * combinations are rejected at create time.
        */
       speed?: 'standard' | 'fast' | null;
 
@@ -630,7 +680,8 @@ export namespace BatchCreateParams {
       /**
        * Whether to incrementally stream the response using server-sent events.
        *
-       * See [streaming](https://docs.claude.com/en/api/messages-streaming) for details.
+       * See [streaming](https://platform.claude.com/docs/en/build-with-claude/streaming)
+       * for details.
        */
       stream?: boolean;
 
@@ -639,7 +690,7 @@ export namespace BatchCreateParams {
        *
        * A system prompt is a way of providing context and instructions to Claude, such
        * as specifying a particular goal or role. See our
-       * [guide to system prompts](https://docs.claude.com/en/docs/system-prompts).
+       * [guide to system prompts](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role).
        */
       system?: string | Array<BetaMessagesAPI.BetaTextBlockParam>;
 
@@ -658,7 +709,7 @@ export namespace BatchCreateParams {
        * tokens and counts towards your `max_tokens` limit.
        *
        * See
-       * [extended thinking](https://docs.claude.com/en/docs/build-with-claude/extended-thinking)
+       * [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
        * for details.
        */
       thinking?: BetaMessagesAPI.BetaThinkingConfigParam;
@@ -679,9 +730,9 @@ export namespace BatchCreateParams {
        *
        * There are two types of tools: **client tools** and **server tools**. The
        * behavior described below applies to client tools. For
-       * [server tools](https://docs.claude.com/en/docs/agents-and-tools/tool-use/overview#server-tools),
+       * [server tools](https://platform.claude.com/docs/en/agents-and-tools/tool-use/server-tools),
        * see their individual documentation as each has its own behavior (e.g., the
-       * [web search tool](https://docs.claude.com/en/docs/agents-and-tools/tool-use/web-search-tool)).
+       * [web search tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool)).
        *
        * Each tool definition includes:
        *
@@ -744,7 +795,9 @@ export namespace BatchCreateParams {
        * functions, or more generally whenever you want the model to produce a particular
        * JSON structure of output.
        *
-       * See our [guide](https://docs.claude.com/en/docs/tool-use) for more details.
+       * See our
+       * [guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)
+       * for more details.
        */
       tools?: Array<BetaMessagesAPI.BetaToolUnion>;
 
@@ -760,12 +813,6 @@ export namespace BatchCreateParams {
        * other values will be rejected with a 400 error.
        */
       top_p?: number;
-
-      /**
-       * The user profile ID to attribute this request to. Use when acting on behalf of a
-       * party other than your organization.
-       */
-      user_profile_id?: string | null;
     }
   }
 }

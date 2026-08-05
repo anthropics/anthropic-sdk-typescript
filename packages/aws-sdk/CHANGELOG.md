@@ -1,5 +1,68 @@
 # Changelog
 
+## 0.6.1 (2026-07-20)
+
+Full Changelog: [aws-sdk-v0.6.0...aws-sdk-v0.6.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.6.0...aws-sdk-v0.6.1)
+
+### Bug Fixes
+
+* **aws:** preserve AWS options and auth mode across withOptions() ([#214](https://github.com/anthropics/anthropic-sdk-typescript/issues/214)) ([3f7665c](https://github.com/anthropics/anthropic-sdk-typescript/commit/3f7665c5419eb80c489546a70da799648e7d5ff2))
+* **aws:** remove duplicate loggerFor import breaking the build ([#235](https://github.com/anthropics/anthropic-sdk-typescript/issues/235)) ([764004e](https://github.com/anthropics/anthropic-sdk-typescript/commit/764004ed5cabbe254470fc420e374fc4d54a8dba))
+
+## 0.6.0 (2026-06-30)
+
+Full Changelog: [aws-sdk-v0.5.0...aws-sdk-v0.6.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.5.0...aws-sdk-v0.6.0)
+
+### Features
+
+* **bedrock:** pass client logger to AWS credential provider chain (SDK-90) ([#29](https://github.com/anthropics/anthropic-sdk-typescript/issues/29)) ([9563b4b](https://github.com/anthropics/anthropic-sdk-typescript/commit/9563b4bc8ad522f9f2e73781b55f136f24550a86))
+
+## 0.5.0 (2026-06-18)
+
+Full Changelog: [aws-sdk-v0.4.2...aws-sdk-v0.5.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.4.2...aws-sdk-v0.5.0)
+
+### Features
+
+* **stream:** lazily parse partial tool json input ([#99](https://github.com/anthropics/anthropic-sdk-typescript/issues/99)) ([e55ceee](https://github.com/anthropics/anthropic-sdk-typescript/commit/e55ceee5e3053ada96a7fe008b1fd6ebc0e42544))
+
+
+### Chores
+
+* **tests:** stop using deprecated models ([#98](https://github.com/anthropics/anthropic-sdk-typescript/issues/98)) ([65ae1af](https://github.com/anthropics/anthropic-sdk-typescript/commit/65ae1afee1bb76179c58e1758a48d668e3fcf7b3))
+
+## 0.4.2 (2026-06-09)
+
+Full Changelog: [aws-sdk-v0.4.1...aws-sdk-v0.4.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.4.1...aws-sdk-v0.4.2)
+
+### Bug Fixes
+
+* **client:** 3p middleware ordering ([#53](https://github.com/anthropics/anthropic-sdk-typescript/issues/53)) ([2a4c339](https://github.com/anthropics/anthropic-sdk-typescript/commit/2a4c339e6887aa2e8e1278c7b22d3732cf64a76c))
+
+## 0.4.1 (2026-06-06)
+
+Full Changelog: [aws-sdk-v0.4.0...aws-sdk-v0.4.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.4.0...aws-sdk-v0.4.1)
+
+### Bug Fixes
+
+* **client:** run middleware before request signing ([#45](https://github.com/anthropics/anthropic-sdk-typescript/issues/45)) ([95f1a4a](https://github.com/anthropics/anthropic-sdk-typescript/commit/95f1a4a406c95aa31855fa1178fedfcb19978e16))
+
+## 0.4.0 (2026-06-05)
+
+Full Changelog: [aws-sdk-v0.3.1...aws-sdk-v0.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.3.1...aws-sdk-v0.4.0)
+
+### Features
+
+* **api:** mark Claude Opus 4.1 as deprecated ([4ee46f2](https://github.com/anthropics/anthropic-sdk-typescript/commit/4ee46f24cb2a5388027d7efb0b44fcb210ae8b50))
+* **client:** add support for middleware ([9b01120](https://github.com/anthropics/anthropic-sdk-typescript/commit/9b011207965540211cefb19d44d758b7942aedab))
+
+## 0.3.1 (2026-05-29)
+
+Full Changelog: [aws-sdk-v0.3.0...aws-sdk-v0.3.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.3.0...aws-sdk-v0.3.1)
+
+### Chores
+
+* **client:** update lockfiles to have proper dependencies on standardwebhooks ([5e9b523](https://github.com/anthropics/anthropic-sdk-typescript/commit/5e9b5237e53aefda65637bd11eb0d07f50bbc952))
+
 ## 0.3.0 (2026-05-11)
 
 Full Changelog: [aws-sdk-v0.2.5...aws-sdk-v0.3.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.2.5...aws-sdk-v0.3.0)

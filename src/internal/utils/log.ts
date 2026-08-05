@@ -1,6 +1,7 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { hasOwn } from './values';
+import { readEnv } from './env';
 import { type BaseAnthropic } from '../../client';
 import { RequestOptions } from '../request-options';
 
@@ -13,6 +14,8 @@ export type Logger = {
 };
 export type LogLevel = 'off' | 'error' | 'warn' | 'info' | 'debug';
 
+export const defaultLogLevel: LogLevel = 'warn';
+
 const levelNumbers = {
   off: 0,
   error: 200,
@@ -24,7 +27,7 @@ const levelNumbers = {
 export const parseLogLevel = (
   maybeLevel: string | undefined,
   sourceName: string,
-  client: BaseAnthropic,
+  logger: Logger,
 ): LogLevel | undefined => {
   if (!maybeLevel) {
     return undefined;
@@ -32,7 +35,7 @@ export const parseLogLevel = (
   if (hasOwn(levelNumbers, maybeLevel)) {
     return maybeLevel;
   }
-  loggerFor(client).warn(
+  logger.warn(
     `${sourceName} was set to ${JSON.stringify(maybeLevel)}, expected one of ${JSON.stringify(
       Object.keys(levelNumbers),
     )}`,
@@ -60,13 +63,7 @@ const noopLogger = {
 
 let cachedLoggers = /* @__PURE__ */ new WeakMap<Logger, [LogLevel, Logger]>();
 
-export function loggerFor(client: BaseAnthropic): Logger {
-  const logger = client.logger;
-  const logLevel = client.logLevel ?? 'off';
-  if (!logger) {
-    return noopLogger;
-  }
-
+function filterLogger(logger: Logger, logLevel: LogLevel): Logger {
   const cachedLogger = cachedLoggers.get(logger);
   if (cachedLogger && cachedLogger[0] === logLevel) {
     return cachedLogger[1];
@@ -82,6 +79,39 @@ export function loggerFor(client: BaseAnthropic): Logger {
   cachedLoggers.set(logger, [logLevel, levelLogger]);
 
   return levelLogger;
+}
+
+export function loggerFor(client: BaseAnthropic): Logger {
+  const logger = client.logger;
+  const logLevel = client.logLevel ?? 'off';
+  if (!logger) {
+    return noopLogger;
+  }
+  return filterLogger(logger, logLevel);
+}
+
+let lastEnvLevel: string | undefined;
+let cachedDefaultLogger: Logger | undefined;
+
+/**
+ * A logger matching the client defaults — `console`, filtered to
+ * `ANTHROPIC_LOG` or {@link defaultLogLevel} — for contexts with no client to
+ * read the configured `logger`/`logLevel` from.
+ *
+ * Cached per `ANTHROPIC_LOG` value so an invalid value warns once, like a
+ * client construction does, rather than on every request.
+ */
+export function defaultLogger(): Logger {
+  const envLevel = readEnv('ANTHROPIC_LOG');
+  if (!cachedDefaultLogger || envLevel !== lastEnvLevel) {
+    lastEnvLevel = envLevel;
+    cachedDefaultLogger = filterLogger(
+      console,
+      parseLogLevel(envLevel, "process.env['ANTHROPIC_LOG']", filterLogger(console, defaultLogLevel)) ??
+        defaultLogLevel,
+    );
+  }
+  return cachedDefaultLogger;
 }
 
 export const formatRequestDetails = (details: {

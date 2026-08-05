@@ -51,6 +51,31 @@ describe('partialParse', () => {
     expect(partialParse(`{"foo": 123, "bar": 45.67}`)).toEqual({ foo: 123, bar: 45.67 });
   });
 
+  test('JSON string with negative number values', () => {
+    expect(partialParse(`{"foo": -123, "bar": -45.67}`)).toEqual({ foo: -123, bar: -45.67 });
+  });
+
+  test('JSON string with scientific notation values', () => {
+    expect(partialParse(`{"foo": 8.2156e-15}`)).toEqual({ foo: 8.2156e-15 });
+    expect(partialParse(`{"foo": 1.5e+10}`)).toEqual({ foo: 1.5e10 });
+    expect(partialParse(`{"foo": 2E8}`)).toEqual({ foo: 2e8 });
+    expect(partialParse(`{"foo": 1e5}`)).toEqual({ foo: 1e5 });
+    expect(partialParse(`{"foo": -1.5e-3}`)).toEqual({ foo: -1.5e-3 });
+    expect(partialParse(`{"foo": 8.2156e-15, "bar": "baz"}`)).toEqual({ foo: 8.2156e-15, bar: 'baz' });
+    expect(partialParse(`{"foo": [1e2, 2.5E-3]}`)).toEqual({ foo: [1e2, 2.5e-3] });
+  });
+
+  test('JSON string with partial number values', () => {
+    expect(partialParse(`{"foo": 123.`)).toEqual({});
+    expect(partialParse(`{"foo": -`)).toEqual({});
+    expect(partialParse(`{"foo": 8.2156e`)).toEqual({});
+    expect(partialParse(`{"foo": 8.2156E`)).toEqual({});
+    expect(partialParse(`{"foo": 8.2156e-`)).toEqual({});
+    expect(partialParse(`{"foo": 8.2156e+`)).toEqual({});
+    expect(partialParse(`{"foo": 8.2156e-1`)).toEqual({ foo: 8.2156e-1 });
+    expect(partialParse(`{"foo": 1, "bar": 8.2156e`)).toEqual({ foo: 1 });
+  });
+
   test('JSON string with boolean values', () => {
     expect(partialParse(`{"foo": true, "bar": false}`)).toEqual({ foo: true, bar: false });
   });

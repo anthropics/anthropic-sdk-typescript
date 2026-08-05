@@ -316,3 +316,63 @@ export class PageCursor<Item> extends AbstractPage<Item> implements PageCursorRe
     };
   }
 }
+
+export interface BidirectionalPageCursorResponse<Item> {
+  data: Array<Item>;
+
+  next_page: string | null;
+
+  prev_page: string | null;
+}
+
+export interface BidirectionalPageCursorParams {
+  /**
+   * Number of items per page.
+   */
+  limit?: number;
+
+  page?: string | null;
+}
+
+export class BidirectionalPageCursor<Item>
+  extends AbstractPage<Item>
+  implements BidirectionalPageCursorResponse<Item>
+{
+  data: Array<Item>;
+
+  next_page: string | null;
+
+  prev_page: string | null;
+
+  constructor(
+    client: BaseAnthropic,
+    response: Response,
+    body: BidirectionalPageCursorResponse<Item>,
+    options: FinalRequestOptions,
+  ) {
+    super(client, response, body, options);
+
+    this.data = body.data || [];
+    this.next_page = body.next_page || null;
+    this.prev_page = body.prev_page || null;
+  }
+
+  getPaginatedItems(): Item[] {
+    return this.data ?? [];
+  }
+
+  nextPageRequestOptions(): PageRequestOptions | null {
+    const cursor = this.next_page;
+    if (!cursor) {
+      return null;
+    }
+
+    return {
+      ...this.options,
+      query: {
+        ...maybeObj(this.options.query),
+        page: cursor,
+      },
+    };
+  }
+}

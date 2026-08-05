@@ -18,15 +18,16 @@ export class Versions extends APIResource {
    * ```ts
    * const version = await client.beta.skills.versions.create(
    *   'skill_id',
+   *   { files: [fs.createReadStream('path/to/file')] },
    * );
    * ```
    */
   create(
     skillID: string,
-    params: VersionCreateParams | null | undefined = {},
+    params: VersionCreateParams,
     options?: RequestOptions,
   ): APIPromise<VersionCreateResponse> {
-    const { betas, ...body } = params ?? {};
+    const { betas, ...body } = params;
     return this._client.post(
       path`/v1/skills/${skillID}/versions?beta=true`,
       multipartFormRequestOptions(
@@ -39,6 +40,7 @@ export class Versions extends APIResource {
           ]),
         },
         this._client,
+        false,
       ),
     );
   }
@@ -125,6 +127,35 @@ export class Versions extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
         options?.headers,
       ]),
+    });
+  }
+
+  /**
+   * Download a skill version's content as a zip archive.
+   *
+   * @example
+   * ```ts
+   * const response = await client.beta.skills.versions.download(
+   *   'version',
+   *   { skill_id: 'skill_id' },
+   * );
+   *
+   * const content = await response.blob();
+   * console.log(content);
+   * ```
+   */
+  download(version: string, params: VersionDownloadParams, options?: RequestOptions): APIPromise<Response> {
+    const { skill_id, betas } = params;
+    return this._client.get(path`/v1/skills/${skill_id}/versions/${version}/content?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        {
+          'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString(),
+          Accept: 'application/binary',
+        },
+        options?.headers,
+      ]),
+      __binaryResponse: true,
     });
   }
 }
@@ -316,7 +347,7 @@ export interface VersionCreateParams {
    * All files must be in the same top-level directory and must include a SKILL.md
    * file at the root of that directory.
    */
-  files?: Array<Uploadable> | null;
+  files: Array<Uploadable>;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
@@ -359,6 +390,20 @@ export interface VersionDeleteParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
+export interface VersionDownloadParams {
+  /**
+   * Path param: Unique identifier for the skill.
+   *
+   * The format and length of IDs may change over time.
+   */
+  skill_id: string;
+
+  /**
+   * Header param: Optional header to specify the beta version(s) you want to use.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
+}
+
 export declare namespace Versions {
   export {
     type VersionCreateResponse as VersionCreateResponse,
@@ -370,5 +415,6 @@ export declare namespace Versions {
     type VersionRetrieveParams as VersionRetrieveParams,
     type VersionListParams as VersionListParams,
     type VersionDeleteParams as VersionDeleteParams,
+    type VersionDownloadParams as VersionDownloadParams,
   };
 }

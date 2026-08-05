@@ -20,7 +20,7 @@ export class Batches extends APIResource {
    * can take up to 24 hours to complete.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -40,8 +40,16 @@ export class Batches extends APIResource {
    * });
    * ```
    */
-  create(body: BatchCreateParams, options?: RequestOptions): APIPromise<MessageBatch> {
-    return this._client.post('/v1/messages/batches', { body, ...options });
+  create(params: BatchCreateParams, options?: RequestOptions): APIPromise<MessageBatch> {
+    const { user_profile_id, ...body } = params;
+    return this._client.post('/v1/messages/batches', {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -50,7 +58,7 @@ export class Batches extends APIResource {
    * `results_url` field in the response.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -68,7 +76,7 @@ export class Batches extends APIResource {
    * returned first.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -92,7 +100,7 @@ export class Batches extends APIResource {
    * like to delete an in-progress batch, you must first cancel it.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -116,7 +124,7 @@ export class Batches extends APIResource {
    * non-interruptible.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -137,7 +145,7 @@ export class Batches extends APIResource {
    * requests. Use the `custom_id` field to match results to requests.
    *
    * Learn more about the Message Batches API in our
-   * [user guide](https://docs.claude.com/en/docs/build-with-claude/batch-processing)
+   * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
    * @example
    * ```ts
@@ -350,10 +358,19 @@ export interface MessageBatchSucceededResult {
 
 export interface BatchCreateParams {
   /**
-   * List of requests for prompt completion. Each is an individual request to create
-   * a Message.
+   * Body param: List of requests for prompt completion. Each is an individual
+   * request to create a Message.
    */
   requests: Array<BatchCreateParams.Request>;
+
+  /**
+   * Header param: The user profile ID to attribute the requests in this batch to.
+   * Use when acting on behalf of a party other than your organization. Requires the
+   * `user-profiles` beta header. Applies to every request in the batch; an
+   * individual request whose `user_profile_id` body field conflicts with this header
+   * is errored.
+   */
+  user_profile_id?: string;
 }
 
 export namespace BatchCreateParams {
@@ -369,7 +386,8 @@ export namespace BatchCreateParams {
     /**
      * Messages API creation parameters for the individual request.
      *
-     * See the [Messages API reference](https://docs.claude.com/en/api/messages) for
+     * See the
+     * [Messages API reference](https://platform.claude.com/docs/en/api/messages) for
      * full documentation on available parameters.
      */
     params: MessagesAPI.MessageCreateParamsNonStreaming;

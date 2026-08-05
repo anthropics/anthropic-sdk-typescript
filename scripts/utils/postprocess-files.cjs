@@ -82,6 +82,23 @@ async function postprocess() {
       };
     }
   }
+  // Node-only subpaths get an explicit entry with a `browser` condition that
+  // resolves to a stub, mirroring the top-level `browser` field mapping (which
+  // covers in-package relative imports; this covers package-name importers
+  // whose bundlers resolve via the exports map). Node runtimes and node-target
+  // bundles never match the `browser` condition, so they keep loading the real
+  // implementations.
+  for (const subpath of ['./tools/agent-toolset/node', './tools/memory/node']) {
+    newExports[subpath] = {
+      browser: {
+        import: subpath + '.browser.mjs',
+        require: subpath + '.browser.js',
+      },
+      import: subpath + '.mjs',
+      require: subpath + '.js',
+    };
+  }
+
   await fs.promises.writeFile(
     'dist/package.json',
     JSON.stringify(

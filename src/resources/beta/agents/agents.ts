@@ -73,7 +73,7 @@ export class Agents extends APIResource {
    * const betaManagedAgentsAgent =
    *   await client.beta.agents.update(
    *     'agent_011CZkYpogX7uDKUyvBTophP',
-   *     { version: 1 },
+   *     { description: 'updated' },
    *   );
    * ```
    */
@@ -293,6 +293,92 @@ export interface BetaManagedAgentsAgentToolset20260401 {
 }
 
 /**
+ * Input payload for the `bash` tool of the `agent_toolset_20260401` toolset. All
+ * fields are optional; a normal invocation supplies `command`, while
+ * `restart=true` (with no `command`) reboots the runner-side bash session.
+ */
+export interface BetaManagedAgentsAgentToolset20260401BashInput {
+  /**
+   * Shell command to execute. Omit only when `restart` is true.
+   */
+  command?: string;
+
+  /**
+   * When true, restart the persistent bash session instead of running a command.
+   * Subsequent calls without `restart` will run against the fresh session.
+   */
+  restart?: boolean;
+
+  /**
+   * Per-call timeout in milliseconds. Defaults to the runner-wide tool timeout when
+   * omitted or zero.
+   */
+  timeout_ms?: number;
+}
+
+/**
+ * Input payload for the `edit` tool. Performs a string replacement in the named
+ * file; by default `old_string` must occur exactly once.
+ */
+export interface BetaManagedAgentsAgentToolset20260401EditInput {
+  /**
+   * Path of the file to edit.
+   */
+  file_path: string;
+
+  /**
+   * Replacement text.
+   */
+  new_string: string;
+
+  /**
+   * Substring to find and replace.
+   */
+  old_string: string;
+
+  /**
+   * When true, replace every occurrence of `old_string` instead of requiring a
+   * unique match.
+   */
+  replace_all?: boolean;
+}
+
+/**
+ * Input payload for the `glob` tool. Returns paths matching a doublestar glob
+ * pattern, newest first.
+ */
+export interface BetaManagedAgentsAgentToolset20260401GlobInput {
+  /**
+   * Doublestar glob pattern (e.g. `** /*.go`). Absolute patterns are only permitted
+   * when the runner is configured to allow them.
+   */
+  pattern: string;
+
+  /**
+   * Optional directory root to search under. Defaults to the runner's working
+   * directory.
+   */
+  path?: string;
+}
+
+/**
+ * Input payload for the `grep` tool. Searches file contents for a regular
+ * expression, returning matching lines.
+ */
+export interface BetaManagedAgentsAgentToolset20260401GrepInput {
+  /**
+   * Regular expression to search for.
+   */
+  pattern: string;
+
+  /**
+   * Optional directory root to search under. Defaults to the runner's working
+   * directory.
+   */
+  path?: string;
+}
+
+/**
  * Configuration for built-in agent tools. Use this to enable or disable groups of
  * tools available to the agent.
  */
@@ -308,6 +394,39 @@ export interface BetaManagedAgentsAgentToolset20260401Params {
    * Default configuration for all tools in a toolset.
    */
   default_config?: BetaManagedAgentsAgentToolsetDefaultConfigParams | null;
+}
+
+/**
+ * Input payload for the `read` tool. Reads file contents relative to the runner's
+ * working directory (or absolute when the runner permits).
+ */
+export interface BetaManagedAgentsAgentToolset20260401ReadInput {
+  /**
+   * Path of the file to read.
+   */
+  file_path: string;
+
+  /**
+   * Optional `[start_line, end_line]` 1-indexed inclusive range. When omitted the
+   * entire file is returned. `end_line` of 0 or negative means "to end of file".
+   */
+  view_range?: Array<number>;
+}
+
+/**
+ * Input payload for the `write` tool. Writes (overwriting) the entire file
+ * contents.
+ */
+export interface BetaManagedAgentsAgentToolset20260401WriteInput {
+  /**
+   * Full file contents to write.
+   */
+  content: string;
+
+  /**
+   * Path of the file to write.
+   */
+  file_path: string;
 }
 
 /**
@@ -400,20 +519,13 @@ export interface BetaManagedAgentsCustomTool {
  * JSON Schema for custom tool input parameters.
  */
 export interface BetaManagedAgentsCustomToolInputSchema {
-  /**
-   * JSON Schema properties defining the tool's input parameters.
-   */
+  type: 'object';
+
   properties?: { [key: string]: unknown } | null;
 
-  /**
-   * List of required property names.
-   */
-  required?: Array<string>;
+  required?: Array<string> | null;
 
-  /**
-   * Must be 'object' for tool input schemas.
-   */
-  type?: 'object';
+  [k: string]: unknown;
 }
 
 /**
@@ -425,7 +537,7 @@ export interface BetaManagedAgentsCustomToolInputSchema {
 export interface BetaManagedAgentsCustomToolParams {
   /**
    * Description of what the tool does, shown to the agent to help it decide when to
-   * use the tool. 1-1024 characters.
+   * use the tool. 1-4096 characters.
    */
   description: string;
 
@@ -441,6 +553,41 @@ export interface BetaManagedAgentsCustomToolParams {
   name: string;
 
   type: 'custom';
+}
+
+/**
+ * High effort. Favors reasoning depth.
+ */
+export interface BetaManagedAgentsEffortHigh {
+  type: 'high';
+}
+
+/**
+ * Low effort. Favors latency over reasoning depth.
+ */
+export interface BetaManagedAgentsEffortLow {
+  type: 'low';
+}
+
+/**
+ * Maximum effort. Favors reasoning depth over latency.
+ */
+export interface BetaManagedAgentsEffortMax {
+  type: 'max';
+}
+
+/**
+ * Medium effort. Balances latency and reasoning depth.
+ */
+export interface BetaManagedAgentsEffortMedium {
+  type: 'medium';
+}
+
+/**
+ * Extra-high effort. Not all models accept this level.
+ */
+export interface BetaManagedAgentsEffortXhigh {
+  type: 'xhigh';
 }
 
 /**
@@ -552,11 +699,16 @@ export interface BetaManagedAgentsMCPToolsetParams {
 }
 
 /**
- * The model that will power your agent.\n\nSee
- * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+ * The model that will power your agent.
+ *
+ * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
  * details and options.
  */
 export type BetaManagedAgentsModel =
+  | 'claude-sonnet-5'
+  | 'claude-fable-5'
+  | 'claude-opus-5'
+  | 'claude-opus-4-8'
   | 'claude-opus-4-7'
   | 'claude-opus-4-6'
   | 'claude-sonnet-4-6'
@@ -573,11 +725,23 @@ export type BetaManagedAgentsModel =
  */
 export interface BetaManagedAgentsModelConfig {
   /**
-   * The model that will power your agent.\n\nSee
-   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * The model that will power your agent.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
   id: BetaManagedAgentsModel;
+
+  /**
+   * How hard Claude works on each turn. Sets `output_config.effort` on every
+   * Messages call the session makes.
+   */
+  effort?:
+    | BetaManagedAgentsEffortLow
+    | BetaManagedAgentsEffortMedium
+    | BetaManagedAgentsEffortHigh
+    | BetaManagedAgentsEffortXhigh
+    | BetaManagedAgentsEffortMax;
 
   /**
    * Inference speed mode. `fast` provides significantly faster output token
@@ -592,11 +756,30 @@ export interface BetaManagedAgentsModelConfig {
  */
 export interface BetaManagedAgentsModelConfigParams {
   /**
-   * The model that will power your agent.\n\nSee
-   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * The model that will power your agent.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
   id: BetaManagedAgentsModel;
+
+  /**
+   * How hard Claude works on each inference call. Accepts a bare level string
+   * (`"high"`) or `{"type": "high"}`. On create, omitting it resolves the per-model
+   * default; on update, omitting it leaves the stored value unchanged.
+   */
+  effort?:
+    | 'low'
+    | 'medium'
+    | 'high'
+    | 'xhigh'
+    | 'max'
+    | BetaManagedAgentsEffortLow
+    | BetaManagedAgentsEffortMedium
+    | BetaManagedAgentsEffortHigh
+    | BetaManagedAgentsEffortXhigh
+    | BetaManagedAgentsEffortMax
+    | null;
 
   /**
    * Inference speed mode. `fast` provides significantly faster output token
@@ -646,6 +829,38 @@ export interface BetaManagedAgentsMultiagentSelfParams {
 }
 
 /**
+ * Resolved `agent` definition for a single `session_thread`. Snapshot of the agent
+ * at thread creation time. The multiagent roster is not repeated here; read it
+ * from `Session.agent`.
+ */
+export interface BetaManagedAgentsSessionThreadAgent {
+  id: string;
+
+  description: string | null;
+
+  mcp_servers: Array<BetaManagedAgentsMCPServerURLDefinition>;
+
+  /**
+   * Model identifier and configuration.
+   */
+  model: BetaManagedAgentsModelConfig;
+
+  name: string;
+
+  skills: Array<BetaManagedAgentsAnthropicSkill | BetaManagedAgentsCustomSkill>;
+
+  system: string | null;
+
+  tools: Array<
+    BetaManagedAgentsAgentToolset20260401 | BetaManagedAgentsMCPToolset | BetaManagedAgentsCustomTool
+  >;
+
+  type: 'agent';
+
+  version: number;
+}
+
+/**
  * Skill to load in the session container.
  */
 export type BetaManagedAgentsSkillParams =
@@ -680,18 +895,20 @@ export interface AgentCreateParams {
   model: BetaManagedAgentsModel | BetaManagedAgentsModelConfigParams;
 
   /**
-   * Body param: Human-readable name for the agent. 1-256 characters.
+   * Body param: Human-readable name for the agent.
    */
   name: string;
 
   /**
-   * Body param: Description of what the agent does. Up to 2048 characters.
+   * Body param: Description of what the agent does.
    */
   description?: string | null;
 
   /**
    * Body param: MCP servers this agent connects to. Maximum 20. Names must be unique
-   * within the array.
+   * within the array. Every server must be referenced by an `mcp_toolset` in
+   * `tools`; unreferenced servers are rejected. See the
+   * [MCP connector guide](https://platform.claude.com/docs/en/managed-agents/mcp-connector).
    */
   mcp_servers?: Array<BetaManagedAgentsURLMCPServerParams>;
 
@@ -709,12 +926,12 @@ export interface AgentCreateParams {
   multiagent?: SessionsAPI.BetaManagedAgentsMultiagentParams | null;
 
   /**
-   * Body param: Skills available to the agent. Maximum 20.
+   * Body param: Skills available to the agent.
    */
   skills?: Array<BetaManagedAgentsSkillParams>;
 
   /**
-   * Body param: System prompt for the agent. Up to 100,000 characters.
+   * Body param: System prompt for the agent.
    */
   system?: string | null;
 
@@ -749,21 +966,16 @@ export interface AgentRetrieveParams {
 
 export interface AgentUpdateParams {
   /**
-   * Body param: The agent's current version, used to prevent concurrent overwrites.
-   * Obtain this value from a create or retrieve response. The request fails if this
-   * does not match the server's current version.
-   */
-  version: number;
-
-  /**
-   * Body param: Description. Up to 2048 characters. Omit to preserve; send empty
-   * string or null to clear.
+   * Body param: Description. Omit to preserve; send empty string or null to clear.
    */
   description?: string | null;
 
   /**
    * Body param: MCP servers. Full replacement. Omit to preserve; send empty array or
-   * null to clear. Names must be unique. Maximum 20.
+   * `null` to clear. Names must be unique. Maximum 20. Every server must be
+   * referenced by an `mcp_toolset` in the agent's resulting `tools`; unreferenced
+   * servers are rejected. See the
+   * [MCP connector guide](https://platform.claude.com/docs/en/managed-agents/mcp-connector).
    */
   mcp_servers?: Array<BetaManagedAgentsURLMCPServerParams> | null;
 
@@ -790,20 +1002,19 @@ export interface AgentUpdateParams {
   multiagent?: SessionsAPI.BetaManagedAgentsMultiagentParams | null;
 
   /**
-   * Body param: Human-readable name. 1-256 characters. Omit to preserve. Cannot be
+   * Body param: Human-readable name. Must be non-empty. Omit to preserve. Cannot be
    * cleared.
    */
   name?: string;
 
   /**
    * Body param: Skills. Full replacement. Omit to preserve; send empty array or null
-   * to clear. Maximum 20.
+   * to clear.
    */
   skills?: Array<BetaManagedAgentsSkillParams> | null;
 
   /**
-   * Body param: System prompt. Up to 100,000 characters. Omit to preserve; send
-   * empty string or null to clear.
+   * Body param: System prompt. Omit to preserve; send empty string or null to clear.
    */
   system?: string | null;
 
@@ -817,6 +1028,14 @@ export interface AgentUpdateParams {
     | BetaManagedAgentsMCPToolsetParams
     | BetaManagedAgentsCustomToolParams
   > | null;
+
+  /**
+   * Body param: The agent's current version, used to prevent concurrent overwrites.
+   * Obtain this value from a create or retrieve response. Must be at least 1 if
+   * specified. When supplied, the request fails if it does not match the server's
+   * current version; omit to apply the update unconditionally.
+   */
+  version?: number;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
@@ -864,7 +1083,13 @@ export declare namespace Agents {
     type BetaManagedAgentsAgentToolsetDefaultConfig as BetaManagedAgentsAgentToolsetDefaultConfig,
     type BetaManagedAgentsAgentToolsetDefaultConfigParams as BetaManagedAgentsAgentToolsetDefaultConfigParams,
     type BetaManagedAgentsAgentToolset20260401 as BetaManagedAgentsAgentToolset20260401,
+    type BetaManagedAgentsAgentToolset20260401BashInput as BetaManagedAgentsAgentToolset20260401BashInput,
+    type BetaManagedAgentsAgentToolset20260401EditInput as BetaManagedAgentsAgentToolset20260401EditInput,
+    type BetaManagedAgentsAgentToolset20260401GlobInput as BetaManagedAgentsAgentToolset20260401GlobInput,
+    type BetaManagedAgentsAgentToolset20260401GrepInput as BetaManagedAgentsAgentToolset20260401GrepInput,
     type BetaManagedAgentsAgentToolset20260401Params as BetaManagedAgentsAgentToolset20260401Params,
+    type BetaManagedAgentsAgentToolset20260401ReadInput as BetaManagedAgentsAgentToolset20260401ReadInput,
+    type BetaManagedAgentsAgentToolset20260401WriteInput as BetaManagedAgentsAgentToolset20260401WriteInput,
     type BetaManagedAgentsAlwaysAllowPolicy as BetaManagedAgentsAlwaysAllowPolicy,
     type BetaManagedAgentsAlwaysAskPolicy as BetaManagedAgentsAlwaysAskPolicy,
     type BetaManagedAgentsAnthropicSkill as BetaManagedAgentsAnthropicSkill,
@@ -874,6 +1099,11 @@ export declare namespace Agents {
     type BetaManagedAgentsCustomTool as BetaManagedAgentsCustomTool,
     type BetaManagedAgentsCustomToolInputSchema as BetaManagedAgentsCustomToolInputSchema,
     type BetaManagedAgentsCustomToolParams as BetaManagedAgentsCustomToolParams,
+    type BetaManagedAgentsEffortHigh as BetaManagedAgentsEffortHigh,
+    type BetaManagedAgentsEffortLow as BetaManagedAgentsEffortLow,
+    type BetaManagedAgentsEffortMax as BetaManagedAgentsEffortMax,
+    type BetaManagedAgentsEffortMedium as BetaManagedAgentsEffortMedium,
+    type BetaManagedAgentsEffortXhigh as BetaManagedAgentsEffortXhigh,
     type BetaManagedAgentsMCPServerURLDefinition as BetaManagedAgentsMCPServerURLDefinition,
     type BetaManagedAgentsMCPToolConfig as BetaManagedAgentsMCPToolConfig,
     type BetaManagedAgentsMCPToolConfigParams as BetaManagedAgentsMCPToolConfigParams,
@@ -887,6 +1117,7 @@ export declare namespace Agents {
     type BetaManagedAgentsMultiagentCoordinator as BetaManagedAgentsMultiagentCoordinator,
     type BetaManagedAgentsMultiagentCoordinatorParams as BetaManagedAgentsMultiagentCoordinatorParams,
     type BetaManagedAgentsMultiagentSelfParams as BetaManagedAgentsMultiagentSelfParams,
+    type BetaManagedAgentsSessionThreadAgent as BetaManagedAgentsSessionThreadAgent,
     type BetaManagedAgentsSkillParams as BetaManagedAgentsSkillParams,
     type BetaManagedAgentsURLMCPServerParams as BetaManagedAgentsURLMCPServerParams,
     type BetaManagedAgentsAgentsPageCursor as BetaManagedAgentsAgentsPageCursor,
