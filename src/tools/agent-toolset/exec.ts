@@ -34,9 +34,9 @@
  *   is tried as-is only.
  * - **G4 — explicit paths are the caller's decision.** A `name` containing a
  *   path separator (`/`, and on Windows also `\`) is not searched for at all: it
- *   is resolved to an absolute path (against the working directory if relative
- *   — `./tool` means exactly that) and accepted iff it names an existing,
- *   executable regular file.
+ *   is resolved to an absolute path (if relative, against the working directory
+ *   — or the `cwd` the caller passes — since `./tool` means exactly that) and
+ *   accepted iff it names an existing, executable regular file.
  * - **G5 — one implementation, enforced.** This is the only module under
  *   `src/` allowed to import `node:child_process`; eslint's
  *   `no-restricted-imports` rejects it everywhere else (see CONTRIBUTING.md,
