@@ -69,134 +69,6 @@ describe('AnthropicVertex', () => {
       expect(client.baseURL).toBe(customUrl);
     });
 
-    test('throws AnthropicError when a document block uses a URL source', async () => {
-      const client = new AnthropicVertex({
-        region: 'us-central1',
-        projectId: 'test-project',
-        accessToken: 'fake-token',
-      });
-      await expect(
-        (client as any).buildRequest({
-          method: 'post',
-          path: '/v1/messages',
-          body: {
-            model: 'claude-opus-4-5',
-            max_tokens: 1024,
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  {
-                    type: 'document',
-                    source: { type: 'url', url: 'https://example.com/doc.pdf' },
-                  },
-                ],
-              },
-            ],
-          },
-        }),
-      ).rejects.toThrow(AnthropicError);
-      await expect(
-        (client as any).buildRequest({
-          method: 'post',
-          path: '/v1/messages',
-          body: {
-            model: 'claude-opus-4-5',
-            max_tokens: 1024,
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  {
-                    type: 'document',
-                    source: { type: 'url', url: 'https://example.com/doc.pdf' },
-                  },
-                ],
-              },
-            ],
-          },
-        }),
-      ).rejects.toThrow(/does not support URL sources/);
-    });
-
-    test('throws AnthropicError when a document URL source is nested inside a tool_result', async () => {
-      const client = new AnthropicVertex({
-        region: 'us-central1',
-        projectId: 'test-project',
-        accessToken: 'fake-token',
-      });
-      await expect(
-        (client as any).buildRequest({
-          method: 'post',
-          path: '/v1/messages',
-          body: {
-            model: 'claude-opus-4-5',
-            max_tokens: 1024,
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  {
-                    type: 'tool_result',
-                    tool_use_id: 'tool_abc',
-                    content: [
-                      {
-                        type: 'document',
-                        source: { type: 'url', url: 'https://example.com/doc.pdf' },
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        }),
-      ).rejects.toThrow(AnthropicError);
-    });
-
-    test('does not throw for document blocks with base64 or text sources', async () => {
-      const client = new AnthropicVertex({
-        region: 'us-central1',
-        projectId: 'test-project',
-        accessToken: 'fake-token',
-      });
-      const base64Request = (client as any).buildRequest({
-        method: 'post',
-        path: '/v1/messages',
-        body: {
-          model: 'claude-opus-4-5',
-          max_tokens: 1024,
-          messages: [
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'document',
-                  source: { type: 'base64', media_type: 'application/pdf', data: 'AAAA' },
-                },
-              ],
-            },
-          ],
-        },
-      });
-      const textRequest = (client as any).buildRequest({
-        method: 'post',
-        path: '/v1/messages',
-        body: {
-          model: 'claude-opus-4-5',
-          max_tokens: 1024,
-          messages: [
-            {
-              role: 'user',
-              content: [{ type: 'document', source: { type: 'text', data: 'hello world' } }],
-            },
-          ],
-        },
-      });
-      await expect(base64Request).resolves.toBeDefined();
-      await expect(textRequest).resolves.toBeDefined();
-    });
-
     test('throws error when region is not provided', () => {
       const originalEnv = process.env['CLOUD_ML_REGION'];
       delete process.env['CLOUD_ML_REGION'];
@@ -333,6 +205,66 @@ describe('AnthropicVertex', () => {
       expect(wireUrl).toBe(
         'https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models/count-tokens:rawPredict',
       );
+    });
+  });
+
+  describe('document URL source validation', () => {
+    const mockFetch = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({}),
+        text: () => Promise.resolve('{}'),
+      }),
+    );
+
+    beforeEach(() => {
+      mockFetch.mockClear();
+    });
+
+    const makeClient = () =>
+      new AnthropicVertex({
+        region: 'us-central1',
+        projectId: 'test-project',
+        fetch: mockFetch as any,
+      });
+
+    const withContent = (content: unknown) => ({
+      model: 'claude-sonnet-4-5',
+      max_tokens: 1024,
+      messages: [{ role: 'user' as const, content }],
+    });
+
+    const urlDocument = { type: 'document', source: { type: 'url', url: 'https://example.com/doc.pdf' } };
+
+    test('rejects a document block that uses a URL source, before reaching the wire', async () => {
+      await expect(makeClient().messages.create(withContent([urlDocument]) as any)).rejects.toThrow(
+        AnthropicError,
+      );
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    test('rejects a document URL source nested inside a tool_result', async () => {
+      await expect(
+        makeClient().messages.create(
+          withContent([{ type: 'tool_result', tool_use_id: 'tool_abc', content: [urlDocument] }]) as any,
+        ),
+      ).rejects.toThrow(AnthropicError);
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    test('allows document blocks with base64 or text sources', async () => {
+      await makeClient().messages.create(
+        withContent([
+          { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: 'AAAA' } },
+        ]) as any,
+      );
+      await makeClient().messages.create(
+        withContent([{ type: 'document', source: { type: 'text', data: 'hello world' } }]) as any,
+      );
+      expect(mockFetch).toHaveBeenCalledTimes(2);
     });
   });
 });
