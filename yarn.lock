@@ -762,21 +762,6 @@
   resolved "https://registry.yarnpkg.com/@stablelib/base64/-/base64-1.0.1.tgz#bdfc1c6d3a62d7a3b7bbc65b6cce1bb4561641be"
   integrity sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==
 
-"tsc-multi@https://github.com/stainless-api/tsc-multi/releases/download/v1.1.11/tsc-multi.tgz":
-  version "1.1.11"
-  resolved "https://github.com/stainless-api/tsc-multi/releases/download/v1.1.11/tsc-multi.tgz#010247051be13b55abdc98f787c017285149f4f2"
-  dependencies:
-    debug "^4.3.7"
-    fast-glob "^3.3.2"
-    get-stdin "^8.0.0"
-    p-all "^3.0.0"
-    picocolors "^1.1.1"
-    signal-exit "^3.0.7"
-    string-to-stream "^3.0.1"
-    superstruct "^1.0.4"
-    tslib "^2.8.1"
-    yargs "^17.7.2"
-
 "@swc/core-darwin-arm64@1.15.40":
   version "1.15.40"
   resolved "https://registry.yarnpkg.com/@swc/core-darwin-arm64/-/core-darwin-arm64-1.15.40.tgz#b05d715b04c4fd47baf59288233da85a683cc0bc"
@@ -3663,6 +3648,22 @@ ts-node@^10.5.0:
     make-error "^1.1.1"
     v8-compile-cache-lib "^3.0.0"
     yn "3.1.1"
+
+"tsc-multi@npm:@stainless-api/tsc-multi@1.1.12":
+  version "1.1.12"
+  resolved "https://registry.yarnpkg.com/@stainless-api/tsc-multi/-/tsc-multi-1.1.12.tgz#da186cf88afeb688bc221a8a7dd288ba8589cc5a"
+  integrity sha512-w5Q/9W9mVxKMEiC9rECktw/Aax8W/1/wMgmO6241lPmrWrmLx0N5wmnJTZoE3CoRNFgPai+rl4n4yUf/Z7wItw==
+  dependencies:
+    debug "^4.3.7"
+    fast-glob "^3.3.2"
+    get-stdin "^8.0.0"
+    p-all "^3.0.0"
+    picocolors "^1.1.1"
+    signal-exit "^3.0.7"
+    string-to-stream "^3.0.1"
+    superstruct "^1.0.4"
+    tslib "^2.8.1"
+    yargs "^17.7.2"
 
 tsconfig-paths@^4.0.0:
   version "4.2.0"
