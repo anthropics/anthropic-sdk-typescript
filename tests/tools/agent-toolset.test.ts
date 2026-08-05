@@ -14,6 +14,7 @@ import {
   BashTimeoutError,
   type AgentToolContext,
 } from '@anthropic-ai/sdk/tools/agent-toolset/node';
+import { findExecutable } from '@anthropic-ai/sdk/tools/agent-toolset/exec';
 import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
 
 function tmpdir(): string {
@@ -358,6 +359,36 @@ describe('search tools (glob/grep)', () => {
     const out = await betaGrepTool(env).run({ pattern: 'beta' });
     expect(out).toMatch(/a\.txt:2:beta/);
   });
+
+  // HackerOne #3901184 regression: ripgrep is resolved from the absolute
+  // entries of PATH only. An executable `rg` planted in the working directory
+  // (say, inside a cloned repo) — with ".", empty and relative entries making
+  // up PATH — must never run; grep falls back to the built-in walker instead.
+  testPosix(
+    'grep never runs an rg planted in the working directory; it uses the walker instead',
+    async () => {
+      const marker = path.join(dir, 'planted-rg-ran');
+      for (const rel of ['rg', 'sub/rg']) {
+        fs.writeFileSync(path.join(dir, rel), `#!/bin/sh\ntouch '${marker}'\necho 'a.txt:1:pwned'\n`);
+        fs.chmodSync(path.join(dir, rel), 0o755);
+      }
+      const savedCwd = process.cwd();
+      const savedPath = process.env['PATH'];
+      process.env['PATH'] = ['.', '', 'sub', './sub'].join(path.delimiter);
+      process.chdir(dir);
+      try {
+        expect(await findExecutable('rg')).toBeNull();
+        const out = await betaGrepTool(env).run({ pattern: 'beta' });
+        expect(out).toMatch(/a\.txt:2:beta/);
+        expect(out).not.toMatch(/pwned/);
+        expect(fs.existsSync(marker)).toBe(false);
+      } finally {
+        process.chdir(savedCwd);
+        if (savedPath === undefined) delete process.env['PATH'];
+        else process.env['PATH'] = savedPath;
+      }
+    },
+  );
 });
 
 const describeBash = process.platform === 'win32' ? describe.skip : describe;

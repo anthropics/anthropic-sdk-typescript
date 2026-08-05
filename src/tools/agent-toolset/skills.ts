@@ -8,17 +8,14 @@
 import * as fs from 'node:fs/promises';
 import * as fssync from 'node:fs';
 import * as path from 'node:path';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import type { Anthropic } from '../../client';
 import { AnthropicError } from '../../core/error';
 import { loggerFor } from '../../internal/utils/log';
+import { execFileSafe, findExecutable } from './exec';
 import { DIR_CREATE_MODE } from './fs-util';
 import type { AgentToolContext } from './node';
-
-const execFileAsync = promisify(execFile);
 
 /**
  * Download the session agent's skills into `{ctx.workdir}/skills/<name>/`.
@@ -142,23 +139,30 @@ function assertNoSpecialMembers(verboseListing: string): void {
 }
 
 /**
- * Run an archive CLI (`unzip` for zip archives, `tar` for everything else),
- * returning its stdout. Both binaries must be on `PATH`; a missing one would
- * otherwise surface as an opaque `ENOENT` spawn failure, so it is turned into a
- * clear, specific error naming the missing command.
+ * Resolve an archive CLI (`unzip` for zip archives, `tar` for everything else)
+ * to the absolute path it will be run by, once per extraction. The lookup is
+ * the toolset's safe one (see `./exec`): only absolute `PATH` entries are
+ * searched — never the working directory, so a `tar`/`unzip` planted in the
+ * directory the worker happens to be launched from cannot stand in for the
+ * real tool. A missing binary would otherwise surface as an opaque spawn
+ * failure, so it is turned into a clear, specific error naming the missing
+ * command; there is deliberately no fallback to spawning the bare name.
  */
-async function runArchiveTool(cmd: 'unzip' | 'tar', args: string[]): Promise<string> {
-  try {
-    const { stdout } = await execFileAsync(cmd, args);
-    return stdout;
-  } catch (e) {
-    if (e != null && typeof e === 'object' && (e as { code?: unknown }).code === 'ENOENT') {
-      throw new AnthropicError(
-        `skill extraction requires the \`${cmd}\` command, but it was not found on PATH`,
-      );
-    }
-    throw e;
+async function resolveArchiveTool(cmd: 'unzip' | 'tar'): Promise<string> {
+  const resolved = await findExecutable(cmd);
+  if (resolved === null) {
+    throw new AnthropicError(
+      `skill extraction requires the \`${cmd}\` command, but it was not found on PATH ` +
+        '(only absolute PATH entries are searched, never the working directory)',
+    );
   }
+  return resolved;
+}
+
+/** Run an already-resolved archive CLI (an absolute path) and return its stdout. */
+async function runArchiveTool(tool: string, args: string[]): Promise<string> {
+  const { stdout } = await execFileSafe(tool, args);
+  return stdout;
 }
 
 /**
@@ -193,9 +197,11 @@ function archiveTopDir(listing: string): string {
  * response body straight to a temp file beside `dest` (so the whole archive is
  * never buffered in memory — skills can contain large binaries), then shells out
  * to `unzip`/`tar` — consistent with the rest of the toolset, which already
- * invokes `bash` and `rg`. Both `unzip` and `tar` must be available on `PATH`; a
- * missing binary surfaces as a clear error (see {@link runArchiveTool}). Refuses
- * any member that would escape `dest` (zip-slip / tar-slip), including
+ * invokes `bash` and `rg`. Both `unzip` and `tar` must be installed in a
+ * directory named by an absolute `PATH` entry (the working directory is never
+ * searched); the tool is resolved once and run by absolute path, and a missing
+ * binary surfaces as a clear error (see {@link resolveArchiveTool}). Refuses any
+ * member that would escape `dest` (zip-slip / tar-slip), including
  * symlink/hardlink members: skill archives come from the API, but skills can be
  * third-party.
  *
@@ -221,15 +227,15 @@ export async function extractSkillArchive(resp: Response, dest: string): Promise
     const head = await readHead(tmp, 4);
     const isZip =
       head.length >= 4 && head[0] === 0x50 && head[1] === 0x4b && head[2] === 0x03 && head[3] === 0x04;
-    const archiveCmd = isZip ? 'unzip' : 'tar';
+    const archiveTool = await resolveArchiveTool(isZip ? 'unzip' : 'tar');
     // List first, validate, then extract — `tar`/`unzip` will happily write a
     // `../` member (or follow a symlink member) outside `-C`/`-d` otherwise.
-    const listing = await runArchiveTool(archiveCmd, isZip ? ['-Z1', tmp] : ['-tf', tmp]);
+    const listing = await runArchiveTool(archiveTool, isZip ? ['-Z1', tmp] : ['-tf', tmp]);
     assertSafeMemberNames(listing);
-    assertNoSpecialMembers(await runArchiveTool(archiveCmd, isZip ? ['-Z', tmp] : ['-tvf', tmp]));
+    assertNoSpecialMembers(await runArchiveTool(archiveTool, isZip ? ['-Z', tmp] : ['-tvf', tmp]));
     const top = archiveTopDir(listing);
     await fs.mkdir(stage, { recursive: true, mode: DIR_CREATE_MODE });
-    await runArchiveTool(archiveCmd, isZip ? ['-oq', tmp, '-d', stage] : ['-xf', tmp, '-C', stage]);
+    await runArchiveTool(archiveTool, isZip ? ['-oq', tmp, '-d', stage] : ['-xf', tmp, '-C', stage]);
     // Promote the wrapper's contents (or the staged tree itself, if the
     // archive wasn't wrapped) into the already-created empty `dest`. `stage`
     // is a sibling of `dest`, so each rename stays on one filesystem.
