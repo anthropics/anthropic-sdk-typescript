@@ -63,6 +63,7 @@ import * as cp from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as fssync from 'node:fs';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { AnthropicError } from '../../core/error';
 
@@ -274,20 +275,48 @@ function childProcessOptions<T extends FindExecutableOptions & { env?: NodeJS.Pr
   return { ...rest, env: childEnv(env, platform ?? process.platform), shell: false as const };
 }
 
+type ChildLookupOptions = FindExecutableOptions & Pick<cp.ProcessEnvOptions, 'cwd' | 'env'>;
+
+/**
+ * Resolve `file` for a child described by `options`, from the same inputs a
+ * plain `spawn`/`execFile` would have used — minus the unsafe parts. The search
+ * path is `options.path`, else the child's own `env.PATH` when an `env` is
+ * given (any case on Windows; an `env` without one searches nothing), else this
+ * process's `PATH`. A relative explicit path (G4) is taken against the child's
+ * `cwd` when one is given, as the OS would at exec time.
+ */
+function requireExecutableFor(file: string, options: ChildLookupOptions): Promise<string> {
+  const platform = options.platform ?? process.platform;
+  let searchPath = options.path;
+  if (searchPath === undefined && options.env !== undefined) {
+    const { env } = options;
+    const key =
+      platform === 'win32' ? Object.keys(env).find((name) => name.toUpperCase() === 'PATH') : 'PATH';
+    searchPath = (key === undefined ? undefined : env[key]) ?? '';
+  }
+  let name = file;
+  if (options.cwd !== undefined && hasPathSeparator(file, platform) && !path.isAbsolute(file)) {
+    name = path.resolve(typeof options.cwd === 'string' ? options.cwd : fileURLToPath(options.cwd), file);
+  }
+  return requireExecutable(name, { ...options, path: searchPath });
+}
+
 /**
  * `execFile` with safe resolution: `file` (a bare name or an explicit path) is
- * resolved by {@link requireExecutable} and the resulting absolute path is what
- * runs (G1). Resolves with the child's decoded stdout/stderr; rejects with
- * {@link ExecutableNotFoundError} when nothing acceptable is found — there is no
- * fallback to a bare-name spawn — or with `execFile`'s own error (carrying
- * `stdout`/`stderr`/`code`) when the child fails.
+ * resolved by {@link requireExecutable} — against the child's `env.PATH`/`cwd`
+ * if given, as `execFile` itself would, else this process's — and the resulting
+ * absolute path is what runs (G1). Resolves with the child's decoded
+ * stdout/stderr; rejects with {@link ExecutableNotFoundError} when nothing
+ * acceptable is found — there is no fallback to a bare-name spawn — or with
+ * `execFile`'s own error (carrying `stdout`/`stderr`/`code`) when the child
+ * fails.
  */
 export async function execFileSafe(
   file: string,
   args: readonly string[],
   options: ExecFileSafeOptions = {},
 ): Promise<{ stdout: string; stderr: string }> {
-  const executable = await requireExecutable(file, options);
+  const executable = await requireExecutableFor(file, options);
   const { stdout, stderr } = await execFileAsync(executable, args, {
     ...childProcessOptions(options),
     encoding: options.encoding ?? 'utf8',
@@ -297,9 +326,10 @@ export async function execFileSafe(
 
 /**
  * `spawn` with safe resolution: `file` is resolved by {@link requireExecutable}
- * first and the absolute result is what is spawned (G1). Rejects with
- * {@link ExecutableNotFoundError} before any process is created when nothing
- * acceptable is found.
+ * first — against the child's `env.PATH`/`cwd` if given, as `spawn` itself
+ * would, else this process's — and the absolute result is what is spawned (G1).
+ * Rejects with {@link ExecutableNotFoundError} before any process is created
+ * when nothing acceptable is found.
  */
 export function spawnSafe(
   file: string,
@@ -316,7 +346,7 @@ export async function spawnSafe(
   args: readonly string[],
   options: SpawnSafeOptions = {},
 ): Promise<cp.ChildProcess> {
-  const executable = await requireExecutable(file, options);
+  const executable = await requireExecutableFor(file, options);
   return cp.spawn(executable, args, childProcessOptions(options));
 }
 

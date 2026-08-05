@@ -370,6 +370,41 @@ describePosix('requireExecutable / execFileSafe / spawnSafe / spawnAbsolute', ()
       expect(fs.existsSync(marker)).toBe(false);
     });
   });
+
+  test('like execFile/spawn, a child env’s own PATH is what gets searched (same rules) unless `path` is given', async () => {
+    await inDir(plant, async () => {
+      // Found through the child's PATH even though this process's PATH lacks it…
+      expect((await execFileSafe('tool', [], { env: { PATH: bin } })).stdout).toBe('real\n');
+      expect((await collect(await spawnSafe('tool', [], { env: { PATH: `.${sep}${bin}` } }))).stdout).toBe(
+        'real\n',
+      );
+      // …under the same rules: "." in the child's PATH is not the working directory either.
+      await expect(execFileSafe('tool', [], { env: { PATH: `.${sep}` } })).rejects.toBeInstanceOf(
+        ExecutableNotFoundError,
+      );
+      // An env without a PATH searches nothing (no fallback list).
+      await expect(execFileSafe('tool', [], { env: { HOME: root } })).rejects.toBeInstanceOf(
+        ExecutableNotFoundError,
+      );
+      // An explicit `path` wins over the env's.
+      expect((await execFileSafe('tool', [], { env: { PATH: '.' }, path: bin })).stdout).toBe('real\n');
+      expect(fs.existsSync(marker)).toBe(false);
+    });
+  });
+
+  test('like execFile/spawn, a relative explicit path is taken against the child’s cwd when one is given', async () => {
+    await inDir(plant, async () => {
+      // `./tool` under cwd=bin is the real one — not the plant in this process's cwd.
+      expect((await execFileSafe('./tool', [], { cwd: bin })).stdout).toBe('real\n');
+      const proc = await spawnSafe('./tool', [], { cwd: bin });
+      expect(proc.spawnfile).toBe(path.join(bin, 'tool'));
+      expect((await collect(proc)).stdout).toBe('real\n');
+      expect(fs.existsSync(marker)).toBe(false);
+      await expect(execFileSafe('./tool', [], { cwd: path.join(root, 'empty') })).rejects.toBeInstanceOf(
+        ExecutableNotFoundError,
+      );
+    });
+  });
 });
 
 describePosix('D1: NoDefaultCurrentDirectoryInExePath in the child environment (win32 rules only)', () => {
