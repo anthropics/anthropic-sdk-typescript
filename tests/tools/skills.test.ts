@@ -160,8 +160,10 @@ describePosix('extractSkillArchive helper resolution', () => {
     try {
       fs.mkdirSync(path.join(src, 'pdf'));
       fs.writeFileSync(path.join(src, 'pdf', 'SKILL.md'), '# PDF');
-      const archive = path.join(work, 'a.tgz');
-      execFileSync(realTar!, ['-czf', archive, '-C', src, '.']);
+      // Uncompressed, so the outcome depends on `tar` alone (a .tgz would have
+      // tar look up `gzip` through the PATH it inherits).
+      const archive = path.join(work, 'a.tar');
+      execFileSync(realTar!, ['-cf', archive, '-C', src, '.']);
 
       process.env['PATH'] = ['.', '', 'bin', path.dirname(realTar!)].join(path.delimiter);
       const dest = path.join(work, 'skills', 'pdf');
