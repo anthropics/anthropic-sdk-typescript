@@ -13,7 +13,7 @@ import { pipeline } from 'node:stream/promises';
 import type { Anthropic } from '../../client';
 import { AnthropicError } from '../../core/error';
 import { loggerFor } from '../../internal/utils/log';
-import { execFileSafe, findExecutable } from './exec';
+import { ExecutableNotFoundError, execFileSafe, requireExecutable } from './exec';
 import { DIR_CREATE_MODE } from './fs-util';
 import type { AgentToolContext } from './node';
 
@@ -145,18 +145,22 @@ function assertNoSpecialMembers(verboseListing: string): void {
  * searched — never the working directory, so a `tar`/`unzip` planted in the
  * directory the worker happens to be launched from cannot stand in for the
  * real tool. A missing binary would otherwise surface as an opaque spawn
- * failure, so it is turned into a clear, specific error naming the missing
- * command; there is deliberately no fallback to spawning the bare name.
+ * failure, so it is turned into a clear, specific {@link ExecutableNotFoundError}
+ * naming the missing command; there is deliberately no fallback to spawning
+ * the bare name.
  */
 async function resolveArchiveTool(cmd: 'unzip' | 'tar'): Promise<string> {
-  const resolved = await findExecutable(cmd);
-  if (resolved === null) {
-    throw new AnthropicError(
-      `skill extraction requires the \`${cmd}\` command, but it was not found on PATH ` +
-        '(only absolute PATH entries are searched, never the working directory)',
-    );
+  try {
+    return await requireExecutable(cmd);
+  } catch (e) {
+    if (e instanceof ExecutableNotFoundError) {
+      throw new ExecutableNotFoundError(
+        cmd,
+        `skill extraction requires the \`${cmd}\` command: ${e.message}`,
+      );
+    }
+    throw e;
   }
-  return resolved;
 }
 
 /** Run an already-resolved archive CLI (an absolute path) and return its stdout. */

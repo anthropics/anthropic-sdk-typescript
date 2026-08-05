@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { extractSkillArchive } from '@anthropic-ai/sdk/tools/agent-toolset/node';
-import { findExecutable } from '@anthropic-ai/sdk/tools/agent-toolset/exec';
+import { ExecutableNotFoundError, findExecutable } from '@anthropic-ai/sdk/tools/agent-toolset/exec';
 
 const describePosix = process.platform === 'win32' ? describe.skip : describe;
 
@@ -144,9 +144,12 @@ describePosix('extractSkillArchive helper resolution', () => {
       const dest = path.join(work, 'skills', 'x');
       await fsp.mkdir(dest, { recursive: true });
 
-      await expect(extractSkillArchive(new Response(body), dest)).rejects.toThrow(
+      const err = await extractSkillArchive(new Response(body), dest).catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(ExecutableNotFoundError);
+      expect((err as ExecutableNotFoundError).executable).toBe(tool);
+      expect((err as Error).message).toMatch(
         new RegExp(
-          `requires the \`${tool}\` command, but it was not found on PATH \\(only absolute PATH entries`,
+          `skill extraction requires the \`${tool}\` command: \`${tool}\` was not found on PATH \\(only absolute PATH entries are searched, never the working directory\\)`,
         ),
       );
       expect(fs.existsSync(marker)).toBe(false);

@@ -390,19 +390,42 @@ describePosix('requireExecutable / execFileSafe / spawnSafe / spawnAbsolute', ()
       expect((await execFileSafe('tool', [], { env: { PATH: '.' }, path: bin })).stdout).toBe('real\n');
       expect(fs.existsSync(marker)).toBe(false);
     });
+    // Windows env names are case-insensitive; like Node, the lexicographically
+    // first spelling is the one that counts (`PATH` before `Path`).
+    const uncBin = '/' + bin;
+    const winTool = path.join(bin, 'tool.exe');
+    writeScript(winTool, 'real-exe');
+    expect(await collect(await spawnSafe('tool', [], { platform: 'win32', env: { Path: uncBin } }))).toEqual({
+      stdout: 'real-exe\n',
+      code: 0,
+    });
+    expect(
+      (await execFileSafe('tool', [], { platform: 'win32', env: { Path: '.', PATH: uncBin } })).stdout,
+    ).toBe('real-exe\n');
+    await expect(
+      execFileSafe('tool', [], { platform: 'win32', env: { Path: uncBin, PATH: '.' } }),
+    ).rejects.toBeInstanceOf(ExecutableNotFoundError);
   });
 
   test('like execFile/spawn, a relative explicit path is taken against the child’s cwd when one is given', async () => {
     await inDir(plant, async () => {
       // `./tool` under cwd=bin is the real one — not the plant in this process's cwd.
       expect((await execFileSafe('./tool', [], { cwd: bin })).stdout).toBe('real\n');
-      const proc = await spawnSafe('./tool', [], { cwd: bin });
+      const proc = await spawnSafe('./tool', [], { cwd: new URL(`file://${bin}/`) });
       expect(proc.spawnfile).toBe(path.join(bin, 'tool'));
       expect((await collect(proc)).stdout).toBe('real\n');
       expect(fs.existsSync(marker)).toBe(false);
-      await expect(execFileSafe('./tool', [], { cwd: path.join(root, 'empty') })).rejects.toBeInstanceOf(
+      // `cwd` only affects explicit paths (G4); a bare name is still never looked up there.
+      await expect(execFileSafe('tool', [], { cwd: bin, path: '' })).rejects.toBeInstanceOf(
         ExecutableNotFoundError,
       );
+      // A miss reports the name as given, wherever it was taken against.
+      const err = await execFileSafe('./tool', [], { cwd: path.join(root, 'empty') }).catch(
+        (e: unknown) => e,
+      );
+      expect(err).toBeInstanceOf(ExecutableNotFoundError);
+      expect((err as ExecutableNotFoundError).executable).toBe('./tool');
+      expect(await findExecutable('./tool', { cwd: bin })).toBe(path.join(bin, 'tool'));
     });
   });
 });

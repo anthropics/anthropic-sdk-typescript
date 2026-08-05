@@ -80,6 +80,13 @@ export interface FindExecutableOptions {
    */
   path?: string | undefined;
   /**
+   * The directory a *relative explicit path* (G4, e.g. `./tool`) is taken
+   * against. Defaults to this process's working directory; the spawn helpers
+   * pass the child's `cwd`. Plays no part in bare-name lookups — the working
+   * directory is never searched.
+   */
+  cwd?: string | URL | undefined;
+  /**
    * Windows only (G3): the extensions a bare `name` may resolve to, in
    * preference order. Defaults to {@link WINDOWS_NATIVE_EXTENSIONS}. Widen it
    * only to *detect* a `.cmd`/`.bat` shim (e.g. to explain why it is refused),
@@ -190,7 +197,12 @@ export async function findExecutable(name: string, opts?: FindExecutableOptions)
   if (name === '' || name === '.' || name === '..') return null;
 
   if (hasPathSeparator(name, platform)) {
-    const explicit = path.resolve(name);
+    const cwd = opts?.cwd;
+    const base =
+      cwd === undefined ? process.cwd()
+      : typeof cwd === 'string' ? cwd
+      : fileURLToPath(cwd);
+    const explicit = path.resolve(base, name);
     return (await isExecutableFile(explicit, platform)) ? explicit : null;
   }
   // `:` cannot appear in a Windows file name; as a bare name it would only ever
@@ -264,41 +276,43 @@ function childEnv(
   return alreadySet ? env : { ...base, [NO_DEFAULT_CURRENT_DIRECTORY_IN_EXE_PATH]: '1' };
 }
 
+/** The keys of {@link FindExecutableOptions} that mean nothing to `node:child_process` (`cwd` is shared). */
+type ResolverOnlyKeys = 'path' | 'platform' | 'windowsExtensions';
+
 /**
  * Turn the helpers' options into `node:child_process` ones: drop the
  * resolver-only keys, apply D1 to the child environment, and pin `shell: false`.
  */
 function childProcessOptions<T extends FindExecutableOptions & { env?: NodeJS.ProcessEnv | undefined }>(
   options: T,
-): Omit<T, keyof FindExecutableOptions | 'env'> & { env: NodeJS.ProcessEnv | undefined; shell: false } {
+): Omit<T, ResolverOnlyKeys | 'env'> & { env: NodeJS.ProcessEnv | undefined; shell: false } {
   const { path: _path, platform, windowsExtensions: _windowsExtensions, env, ...rest } = options;
   return { ...rest, env: childEnv(env, platform ?? process.platform), shell: false as const };
 }
 
-type ChildLookupOptions = FindExecutableOptions & Pick<cp.ProcessEnvOptions, 'cwd' | 'env'>;
-
 /**
  * Resolve `file` for a child described by `options`, from the same inputs a
  * plain `spawn`/`execFile` would have used — minus the unsafe parts. The search
- * path is `options.path`, else the child's own `env.PATH` when an `env` is
- * given (any case on Windows; an `env` without one searches nothing), else this
- * process's `PATH`. A relative explicit path (G4) is taken against the child's
- * `cwd` when one is given, as the OS would at exec time.
+ * path is `options.path`; else, when an `env` is given, that env's own `PATH`
+ * (on Windows the name is case-insensitive and, as in Node, the
+ * lexicographically first spelling wins; an `env` without one searches
+ * nothing); else this process's `PATH`. A relative explicit path (G4) is taken
+ * against the child's `cwd`, as the OS would at exec time.
  */
-function requireExecutableFor(file: string, options: ChildLookupOptions): Promise<string> {
+function requireExecutableFor(
+  file: string,
+  options: FindExecutableOptions & { env?: NodeJS.ProcessEnv | undefined },
+): Promise<string> {
+  if (options.path !== undefined || options.env === undefined) return requireExecutable(file, options);
+  const { env } = options;
   const platform = options.platform ?? process.platform;
-  let searchPath = options.path;
-  if (searchPath === undefined && options.env !== undefined) {
-    const { env } = options;
-    const key =
-      platform === 'win32' ? Object.keys(env).find((name) => name.toUpperCase() === 'PATH') : 'PATH';
-    searchPath = (key === undefined ? undefined : env[key]) ?? '';
-  }
-  let name = file;
-  if (options.cwd !== undefined && hasPathSeparator(file, platform) && !path.isAbsolute(file)) {
-    name = path.resolve(typeof options.cwd === 'string' ? options.cwd : fileURLToPath(options.cwd), file);
-  }
-  return requireExecutable(name, { ...options, path: searchPath });
+  const key =
+    platform === 'win32' ?
+      Object.keys(env)
+        .filter((name) => name.toUpperCase() === 'PATH')
+        .sort()[0]
+    : 'PATH';
+  return requireExecutable(file, { ...options, path: (key === undefined ? undefined : env[key]) ?? '' });
 }
 
 /**

@@ -17,13 +17,12 @@ const spawnViaSafeExec = {
   message: 'Spawn helpers via src/tools/agent-toolset/exec.ts (safe executable resolution).',
   allowTypeImports: true,
 };
-// `no-restricted-imports` only sees static `import` declarations; these cover
-// `import('node:child_process')`, `require(...)` and `import cp = require(...)`.
+// `no-restricted-imports` covers import declarations (incl. `import x = require()`)
+// but not a lazy `import('node:child_process')` or a plain `require(...)` call.
 const CHILD_PROCESS_SPECIFIER = '/^(node:)?child_process$/';
 const noDynamicChildProcess = [
   `ImportExpression[source.value=${CHILD_PROCESS_SPECIFIER}]`,
   `CallExpression[callee.name='require'][arguments.0.value=${CHILD_PROCESS_SPECIFIER}]`,
-  `TSExternalModuleReference[expression.value=${CHILD_PROCESS_SPECIFIER}]`,
 ].map((selector) => ({ selector, message: spawnViaSafeExec.message }));
 
 export default tseslint.config(
