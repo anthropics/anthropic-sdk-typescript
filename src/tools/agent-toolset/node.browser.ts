@@ -44,6 +44,20 @@ export function resolvePath(_ctx: AgentToolContext, _p: string): Promise<string>
   return nodeOnly('resolvePath');
 }
 
+/**
+ * A bash command exceeded its `timeoutMs`. Carries the timeout so a caller can
+ * tell it apart from an abort without matching on the message text.
+ */
+export class BashTimeoutError extends AnthropicError {
+  readonly timeoutMs: number;
+
+  constructor(timeoutMs: number) {
+    super(`bash command timed out after ${timeoutMs}ms`);
+    this.name = 'BashTimeoutError';
+    this.timeoutMs = timeoutMs;
+  }
+}
+
 export class BashSession {
   constructor(_dir: string, _env?: NodeJS.ProcessEnv) {
     nodeOnly('BashSession');

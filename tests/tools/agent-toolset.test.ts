@@ -11,6 +11,7 @@ import {
   betaGlobTool,
   betaGrepTool,
   BashSession,
+  BashTimeoutError,
   type AgentToolContext,
 } from '@anthropic-ai/sdk/tools/agent-toolset/node';
 import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
@@ -460,8 +461,41 @@ describeBash('BashSession (direct)', () => {
     expect(r.exitCode).toBe(7);
   });
 
-  test('exec rejects when the command exceeds the timeout budget', async () => {
-    await expect(session.exec('sleep 2', { timeoutMs: 200 })).rejects.toThrow(/timed out/);
+  test('exec rejects with a BashTimeoutError carrying the budget when the command exceeds it', async () => {
+    const err = await session.exec('sleep 2', { timeoutMs: 200 }).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(BashTimeoutError);
+    expect((err as BashTimeoutError).timeoutMs).toBe(200);
+    expect((err as BashTimeoutError).message).toBe('bash command timed out after 200ms');
+  });
+
+  test("an aborted exec rejects with the signal's own reason", async () => {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 100);
+    const err = await session
+      .exec('sleep 2', { signal: ctrl.signal, timeoutMs: 5000 })
+      .catch((e: unknown) => e);
+    expect(err).toBe(ctrl.signal.reason);
+    expect((err as Error).name).toBe('AbortError');
+  });
+
+  test('exec against an already-aborted signal rejects with its reason before running', async () => {
+    const ctrl = new AbortController();
+    ctrl.abort();
+    const err = await session.exec('echo unreachable', { signal: ctrl.signal }).catch((e: unknown) => e);
+    expect(err).toBe(ctrl.signal.reason);
+  });
+
+  test("a caller's own abort reason survives, so a timeout signal is not mistaken for a cancel", async () => {
+    // `AbortSignal.timeout()` aborts with a 'TimeoutError' reason; matching by
+    // reason keeps the distinction that a fixed 'AbortError' name would erase.
+    const reason = Object.assign(new Error('deadline'), { name: 'TimeoutError' });
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(reason), 100);
+    const err = await session
+      .exec('sleep 2', { signal: ctrl.signal, timeoutMs: 5000 })
+      .catch((e: unknown) => e);
+    expect(err).toBe(reason);
+    expect((err as Error).name).toBe('TimeoutError');
   });
 
   test('a command that prints a hardcoded sentinel-like marker cannot truncate its own output or spoof the exit code', async () => {
