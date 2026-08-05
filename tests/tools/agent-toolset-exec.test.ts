@@ -371,3 +371,64 @@ describePosix('requireExecutable / execFileSafe / spawnSafe / spawnAbsolute', ()
     });
   });
 });
+
+describePosix('D1: NoDefaultCurrentDirectoryInExePath in the child environment (win32 rules only)', () => {
+  const VAR = 'NoDefaultCurrentDirectoryInExePath';
+  const isVar = (name: string) => name.toLowerCase() === VAR.toLowerCase();
+  let root: string;
+  // Prints "<NoDefaultCurrentDirectoryInExePath>|<NODEFAULTCURRENTDIRECTORYINEXEPATH>|<EXTRA>".
+  let printenv: string;
+  // The host that runs this suite may itself export the variable (Claude Code
+  // does, process-wide), so the inherited-env cases are set up against a
+  // scrubbed copy of this process's env and restored afterwards.
+  const saved: NodeJS.ProcessEnv = {};
+
+  beforeAll(() => {
+    root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'exec-d1-test-')));
+    printenv = path.join(root, 'printenv');
+    fs.writeFileSync(
+      printenv,
+      `#!/bin/sh\nprintf '%s|%s|%s' "\${${VAR}-unset}" "\${${VAR.toUpperCase()}-unset}" "\${EXTRA-unset}"\n`,
+    );
+    fs.chmodSync(printenv, 0o755);
+    for (const name of Object.keys(process.env).filter(isVar)) {
+      saved[name] = process.env[name];
+      delete process.env[name];
+    }
+  });
+  afterAll(() => {
+    Object.assign(process.env, saved);
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  test('every spawn helper adds it to the child env under win32 rules — and never to this process', async () => {
+    // Inherited env (no `env` option): built from this process's env plus the variable.
+    expect((await execFileSafe(printenv, [], { platform: 'win32' })).stdout).toBe('1|unset|unset');
+    expect((await collect(await spawnSafe(printenv, [], { platform: 'win32' }))).stdout).toBe(
+      '1|unset|unset',
+    );
+    expect((await collect(spawnAbsolute(printenv, [], { platform: 'win32' }))).stdout).toBe('1|unset|unset');
+    // Explicit env: added on top, without dropping what the caller passed.
+    const env = { EXTRA: 'x' };
+    expect((await execFileSafe(printenv, [], { platform: 'win32', env })).stdout).toBe('1|unset|x');
+    expect((await collect(spawnAbsolute(printenv, [], { platform: 'win32', env }))).stdout).toBe('1|unset|x');
+    expect(env).toEqual({ EXTRA: 'x' });
+    expect(Object.keys(process.env).some(isVar)).toBe(false);
+  });
+
+  test('a value the caller already set wins, whatever its case', async () => {
+    const env = { NODEFAULTCURRENTDIRECTORYINEXEPATH: '0', EXTRA: 'x' };
+    expect((await execFileSafe(printenv, [], { platform: 'win32', env })).stdout).toBe('unset|0|x');
+    expect((await collect(spawnAbsolute(printenv, [], { platform: 'win32', env }))).stdout).toBe('unset|0|x');
+  });
+
+  test('nothing is added on other platforms', async () => {
+    const env = { EXTRA: 'x' };
+    expect((await execFileSafe(printenv, [], { env })).stdout).toBe('unset|unset|x');
+    expect((await execFileSafe(printenv, [], { platform: 'linux', env })).stdout).toBe('unset|unset|x');
+    expect((await collect(await spawnSafe(printenv, [], { platform: 'darwin', env }))).stdout).toBe(
+      'unset|unset|x',
+    );
+    expect((await collect(spawnAbsolute(printenv, [], { env }))).stdout).toBe('unset|unset|x');
+  });
+});

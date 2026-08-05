@@ -41,6 +41,13 @@
  *   `src/` allowed to import `node:child_process`; eslint's
  *   `no-restricted-imports` rejects it everywhere else (see CONTRIBUTING.md,
  *   "Spawning external programs").
+ * - **D1 — defense in depth (Windows only).** The spawn helpers make sure the
+ *   *child's* environment carries `NoDefaultCurrentDirectoryInExePath=1`
+ *   (unless the caller set it), so anything the helper itself launches by bare
+ *   name also skips the working directory. This process's own environment is
+ *   never touched — that is the host application's decision. Not the fix
+ *   (G1–G4 are); it only narrows what a helper's own children can be tricked
+ *   into running.
  *
  * Mirrors Claude Code's `safeExecutableResolver`; keep in sync with the other
  * Anthropic SDKs (claude-agent-sdk-python, anthropic-sdk-python,
@@ -229,15 +236,42 @@ type WithoutShell<T> = Omit<T, 'shell'>;
 export type ExecFileSafeOptions = WithoutShell<cp.ExecFileOptionsWithStringEncoding> & FindExecutableOptions;
 /** Options for {@link spawnSafe}: `spawn`'s (minus `shell`), plus how to resolve `file`. */
 export type SpawnSafeOptions = WithoutShell<cp.SpawnOptions> & FindExecutableOptions;
-/** Options for {@link spawnAbsolute}: `spawn`'s, minus `shell`. */
-export type SpawnAbsoluteOptions = WithoutShell<cp.SpawnOptions>;
+/** Options for {@link spawnAbsolute}: `spawn`'s (minus `shell`), plus which platform's D1 rule applies. */
+export type SpawnAbsoluteOptions = WithoutShell<cp.SpawnOptions> & Pick<FindExecutableOptions, 'platform'>;
 
-/** Drop the resolver-only keys and pin `shell: false` before handing options to `node:child_process`. */
-function childProcessOptions<T extends FindExecutableOptions>(
+const NO_DEFAULT_CURRENT_DIRECTORY_IN_EXE_PATH = 'NoDefaultCurrentDirectoryInExePath';
+
+/**
+ * D1 — defense in depth, Windows only, and deliberately not the fix (G1–G4
+ * are): the environment the *child* will get, with
+ * `NoDefaultCurrentDirectoryInExePath=1` added unless it is already present
+ * (Windows variable names are case-insensitive, so any spelling counts). With
+ * it set, whatever the helper goes on to launch by bare name — via
+ * `CreateProcess`, `cmd.exe`, libuv ≥ 1.45, Python ≥ 3.12 — skips the working
+ * directory too. This process's own environment is left alone; on other
+ * platforms `env` is returned untouched (`undefined` still means "inherit").
+ */
+function childEnv(
+  env: NodeJS.ProcessEnv | undefined,
+  platform: NodeJS.Platform,
+): NodeJS.ProcessEnv | undefined {
+  if (platform !== 'win32') return env;
+  const base = env ?? process.env;
+  const alreadySet = Object.keys(base).some(
+    (name) => name.toLowerCase() === NO_DEFAULT_CURRENT_DIRECTORY_IN_EXE_PATH.toLowerCase(),
+  );
+  return alreadySet ? env : { ...base, [NO_DEFAULT_CURRENT_DIRECTORY_IN_EXE_PATH]: '1' };
+}
+
+/**
+ * Turn the helpers' options into `node:child_process` ones: drop the
+ * resolver-only keys, apply D1 to the child environment, and pin `shell: false`.
+ */
+function childProcessOptions<T extends FindExecutableOptions & { env?: NodeJS.ProcessEnv | undefined }>(
   options: T,
-): Omit<T, keyof FindExecutableOptions> & { shell: false } {
-  const { path: _path, platform: _platform, windowsExtensions: _windowsExtensions, ...rest } = options;
-  return { ...rest, shell: false as const };
+): Omit<T, keyof FindExecutableOptions | 'env'> & { env: NodeJS.ProcessEnv | undefined; shell: false } {
+  const { path: _path, platform, windowsExtensions: _windowsExtensions, env, ...rest } = options;
+  return { ...rest, env: childEnv(env, platform ?? process.platform), shell: false as const };
 }
 
 /**
@@ -290,12 +324,13 @@ export async function spawnSafe(
  * Synchronous `spawn` for a path the caller already holds as absolute — a fixed
  * system path such as `/bin/bash`, or a {@link findExecutable} result. Throws
  * without spawning unless `file` is absolute, so G1 holds by construction; use
- * {@link spawnSafe} for anything that still needs resolving.
+ * {@link spawnSafe} for anything that still needs resolving. D1 is applied to
+ * the child environment exactly as the other helpers do.
  */
 export function spawnAbsolute(
   file: string,
   args: readonly string[],
-  options?: WithoutShell<cp.SpawnOptionsWithoutStdio>,
+  options?: WithoutShell<cp.SpawnOptionsWithoutStdio> & Pick<FindExecutableOptions, 'platform'>,
 ): cp.ChildProcessWithoutNullStreams;
 export function spawnAbsolute(
   file: string,
@@ -310,5 +345,5 @@ export function spawnAbsolute(
   if (!path.isAbsolute(file)) {
     throw new AnthropicError(`refusing to spawn ${JSON.stringify(file)}: an absolute path is required`);
   }
-  return cp.spawn(file, args, { ...options, shell: false });
+  return cp.spawn(file, args, childProcessOptions(options));
 }
