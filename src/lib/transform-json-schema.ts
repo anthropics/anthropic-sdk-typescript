@@ -71,6 +71,19 @@ function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
     strictSchema['title'] = title;
   }
 
+  // Preserve machine-readable discriminants. Dumping these into `description`
+  // breaks Zod discriminated unions / literal branches in tool input schemas
+  // (https://github.com/anthropics/anthropic-sdk-typescript/issues/1116).
+  const constValue = pop(jsonSchema, 'const');
+  if (constValue !== undefined) {
+    strictSchema['const'] = constValue;
+  }
+
+  const enumValue = pop(jsonSchema, 'enum');
+  if (enumValue !== undefined) {
+    strictSchema['enum'] = enumValue;
+  }
+
   if (type === 'object') {
     const properties = pop(jsonSchema, 'properties') || {};
 
