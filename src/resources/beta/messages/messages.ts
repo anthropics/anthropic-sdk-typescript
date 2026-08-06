@@ -48,28 +48,7 @@ import {
 
 const DEPRECATED_MODELS: {
   [K in Model]?: string;
-} = {
-  'claude-1.3': 'November 6th, 2024',
-  'claude-1.3-100k': 'November 6th, 2024',
-  'claude-instant-1.1': 'November 6th, 2024',
-  'claude-instant-1.1-100k': 'November 6th, 2024',
-  'claude-instant-1.2': 'November 6th, 2024',
-  'claude-3-sonnet-20240229': 'July 21st, 2025',
-  'claude-3-opus-20240229': 'January 5th, 2026',
-  'claude-2.1': 'July 21st, 2025',
-  'claude-2.0': 'July 21st, 2025',
-  'claude-3-7-sonnet-latest': 'February 19th, 2026',
-  'claude-3-7-sonnet-20250219': 'February 19th, 2026',
-  'claude-3-5-haiku-latest': 'February 19th, 2026',
-  'claude-3-5-haiku-20241022': 'February 19th, 2026',
-  'claude-opus-4-0': 'June 15th, 2026',
-  'claude-opus-4-20250514': 'June 15th, 2026',
-  'claude-sonnet-4-0': 'June 15th, 2026',
-  'claude-sonnet-4-20250514': 'June 15th, 2026',
-  'claude-opus-4-1': 'August 5th, 2026',
-  'claude-opus-4-1-20250805': 'August 5th, 2026',
-  'claude-mythos-preview': 'June 30th, 2026',
-};
+} = {};
 
 const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-mythos-preview', 'claude-opus-4-6'];
 
