@@ -244,7 +244,7 @@ export interface BetaManagedAgentsAgentMessageEvent {
   /**
    * Array of text blocks comprising the agent response.
    */
-  content: Array<BetaManagedAgentsTextBlock>;
+  content: Array<BetaManagedAgentsTextBlock | BetaManagedAgentsRedactedBlock>;
 
   /**
    * A timestamp in RFC 3339 format
@@ -302,7 +302,12 @@ export interface BetaManagedAgentsAgentThreadMessageReceivedEvent {
   /**
    * Message content blocks.
    */
-  content: Array<BetaManagedAgentsTextBlock | BetaManagedAgentsImageBlock | BetaManagedAgentsDocumentBlock>;
+  content: Array<
+    | BetaManagedAgentsTextBlock
+    | BetaManagedAgentsImageBlock
+    | BetaManagedAgentsDocumentBlock
+    | BetaManagedAgentsRedactedBlock
+  >;
 
   /**
    * Public `sthr_` ID of the thread that sent the message.
@@ -336,7 +341,12 @@ export interface BetaManagedAgentsAgentThreadMessageSentEvent {
   /**
    * Message content blocks.
    */
-  content: Array<BetaManagedAgentsTextBlock | BetaManagedAgentsImageBlock | BetaManagedAgentsDocumentBlock>;
+  content: Array<
+    | BetaManagedAgentsTextBlock
+    | BetaManagedAgentsImageBlock
+    | BetaManagedAgentsDocumentBlock
+    | BetaManagedAgentsRedactedBlock
+  >;
 
   /**
    * A timestamp in RFC 3339 format
@@ -753,6 +763,13 @@ export interface BetaManagedAgentsPlainTextDocumentSource {
 }
 
 /**
+ * Placeholder for content withheld by Anthropic model policy.
+ */
+export interface BetaManagedAgentsRedactedBlock {
+  type: 'redacted';
+}
+
+/**
  * This turn is dead; queued inputs are flushed and the session returns to idle.
  * Client may send a new prompt.
  */
@@ -842,6 +859,16 @@ export interface BetaManagedAgentsSendSessionEvents {
     | SessionsAPI.BetaManagedAgentsUserToolResultEvent
     | SessionsAPI.BetaManagedAgentsSystemMessageEvent
   >;
+}
+
+/**
+ * The agent stopped because the session's tracked list cost reached its budget, or
+ * because its usage includes a model with no list price (which the budget cannot
+ * measure). Raise the budget to continue — or, if raising is rejected because a
+ * model has no list price, remove the budget.
+ */
+export interface BetaManagedAgentsSessionBudgetReached {
+  type: 'budget_reached';
 }
 
 /**
@@ -938,7 +965,8 @@ export type BetaManagedAgentsSessionEvent =
   | SessionsAPI.BetaManagedAgentsUserToolResultEvent
   | BetaManagedAgentsSessionThreadStatusRescheduledEvent
   | SessionsAPI.BetaManagedAgentsSessionUpdatedEvent
-  | SessionsAPI.BetaManagedAgentsSystemMessageEvent;
+  | SessionsAPI.BetaManagedAgentsSystemMessageEvent
+  | SessionsAPI.BetaManagedAgentsSessionUsageEvent;
 
 /**
  * The agent is idle waiting on one or more blocking user-input events (tool
@@ -983,7 +1011,8 @@ export interface BetaManagedAgentsSessionStatusIdleEvent {
   stop_reason:
     | BetaManagedAgentsSessionEndTurn
     | BetaManagedAgentsSessionRequiresAction
-    | BetaManagedAgentsSessionRetriesExhausted;
+    | BetaManagedAgentsSessionRetriesExhausted
+    | BetaManagedAgentsSessionBudgetReached;
 
   type: 'session.status_idle';
 }
@@ -1099,7 +1128,8 @@ export interface BetaManagedAgentsSessionThreadStatusIdleEvent {
   stop_reason:
     | BetaManagedAgentsSessionEndTurn
     | BetaManagedAgentsSessionRequiresAction
-    | BetaManagedAgentsSessionRetriesExhausted;
+    | BetaManagedAgentsSessionRetriesExhausted
+    | BetaManagedAgentsSessionBudgetReached;
 
   type: 'session.thread_status_idle';
 }
@@ -1187,6 +1217,48 @@ export interface BetaManagedAgentsSessionThreadStatusTerminatedEvent {
   session_thread_id: string;
 
   type: 'session.thread_status_terminated';
+}
+
+/**
+ * Point-in-time snapshot of a session's cumulative usage.
+ */
+export interface BetaManagedAgentsSessionUsageSnapshot {
+  /**
+   * Cumulative time in seconds during which the session had at least one thread in
+   * running status. Overlapping activity from concurrent threads is counted once.
+   * This is the duration the session's runtime cost is priced on.
+   */
+  active_seconds?: number;
+
+  /**
+   * Prompt-cache creation token usage broken down by cache lifetime.
+   */
+  cache_creation?: SessionsAPI.BetaManagedAgentsCacheCreationUsage;
+
+  /**
+   * Total tokens read from prompt cache.
+   */
+  cache_read_input_tokens?: number;
+
+  /**
+   * Total input tokens consumed across all turns.
+   */
+  input_tokens?: number;
+
+  /**
+   * A monetary amount in a specific currency.
+   */
+  list_cost?: BetaAPI.BetaMonetaryAmount;
+
+  /**
+   * Total output tokens generated across all turns.
+   */
+  output_tokens?: number;
+
+  /**
+   * Cumulative count of server-executed tool invocations, broken down by tool.
+   */
+  server_tool_use?: SessionsAPI.BetaManagedAgentsServerToolUsage;
 }
 
 /**
@@ -1426,7 +1498,8 @@ export type BetaManagedAgentsStreamSessionEvents =
   | SessionsAPI.BetaManagedAgentsSessionUpdatedEvent
   | SessionsAPI.BetaManagedAgentsStartEvent
   | SessionsAPI.BetaManagedAgentsDeltaEvent
-  | SessionsAPI.BetaManagedAgentsSystemMessageEvent;
+  | SessionsAPI.BetaManagedAgentsSystemMessageEvent
+  | SessionsAPI.BetaManagedAgentsSessionUsageEvent;
 
 /**
  * Privileged context for the accompanying turn and all subsequent turns, appended
@@ -1716,7 +1789,12 @@ export interface BetaManagedAgentsUserMessageEvent {
   /**
    * Array of content blocks comprising the user message.
    */
-  content: Array<BetaManagedAgentsTextBlock | BetaManagedAgentsImageBlock | BetaManagedAgentsDocumentBlock>;
+  content: Array<
+    | BetaManagedAgentsTextBlock
+    | BetaManagedAgentsImageBlock
+    | BetaManagedAgentsDocumentBlock
+    | BetaManagedAgentsRedactedBlock
+  >;
 
   type: 'user.message';
 
@@ -1733,7 +1811,12 @@ export interface BetaManagedAgentsUserMessageEventParams {
   /**
    * Array of content blocks for the user message.
    */
-  content: Array<BetaManagedAgentsTextBlock | BetaManagedAgentsImageBlock | BetaManagedAgentsDocumentBlock>;
+  content: Array<
+    | BetaManagedAgentsTextBlock
+    | BetaManagedAgentsImageBlock
+    | BetaManagedAgentsDocumentBlock
+    | BetaManagedAgentsRedactedBlock
+  >;
 
   type: 'user.message';
 }
@@ -1945,6 +2028,7 @@ export declare namespace Events {
     type BetaManagedAgentsModelRateLimitedError as BetaManagedAgentsModelRateLimitedError,
     type BetaManagedAgentsModelRequestFailedError as BetaManagedAgentsModelRequestFailedError,
     type BetaManagedAgentsPlainTextDocumentSource as BetaManagedAgentsPlainTextDocumentSource,
+    type BetaManagedAgentsRedactedBlock as BetaManagedAgentsRedactedBlock,
     type BetaManagedAgentsRetryStatusExhausted as BetaManagedAgentsRetryStatusExhausted,
     type BetaManagedAgentsRetryStatusRetrying as BetaManagedAgentsRetryStatusRetrying,
     type BetaManagedAgentsRetryStatusTerminal as BetaManagedAgentsRetryStatusTerminal,
@@ -1952,6 +2036,7 @@ export declare namespace Events {
     type BetaManagedAgentsSearchResultCitations as BetaManagedAgentsSearchResultCitations,
     type BetaManagedAgentsSearchResultContent as BetaManagedAgentsSearchResultContent,
     type BetaManagedAgentsSendSessionEvents as BetaManagedAgentsSendSessionEvents,
+    type BetaManagedAgentsSessionBudgetReached as BetaManagedAgentsSessionBudgetReached,
     type BetaManagedAgentsSessionDeletedEvent as BetaManagedAgentsSessionDeletedEvent,
     type BetaManagedAgentsSessionEndTurn as BetaManagedAgentsSessionEndTurn,
     type BetaManagedAgentsSessionErrorEvent as BetaManagedAgentsSessionErrorEvent,
@@ -1967,6 +2052,7 @@ export declare namespace Events {
     type BetaManagedAgentsSessionThreadStatusRescheduledEvent as BetaManagedAgentsSessionThreadStatusRescheduledEvent,
     type BetaManagedAgentsSessionThreadStatusRunningEvent as BetaManagedAgentsSessionThreadStatusRunningEvent,
     type BetaManagedAgentsSessionThreadStatusTerminatedEvent as BetaManagedAgentsSessionThreadStatusTerminatedEvent,
+    type BetaManagedAgentsSessionUsageSnapshot as BetaManagedAgentsSessionUsageSnapshot,
     type BetaManagedAgentsSpanModelRequestEndEvent as BetaManagedAgentsSpanModelRequestEndEvent,
     type BetaManagedAgentsSpanModelRequestStartEvent as BetaManagedAgentsSpanModelRequestStartEvent,
     type BetaManagedAgentsSpanModelUsage as BetaManagedAgentsSpanModelUsage,

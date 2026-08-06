@@ -161,6 +161,7 @@ import {
   BetaWebhookMemoryStoreCreatedEventData,
   BetaWebhookMemoryStoreDeletedEventData,
   BetaWebhookSessionArchivedEventData,
+  BetaWebhookSessionBudgetReachedEventData,
   BetaWebhookSessionCreatedEventData,
   BetaWebhookSessionDeletedEventData,
   BetaWebhookSessionIdledEventData,
@@ -194,6 +195,7 @@ import {
   AgentRetrieveParams,
   AgentUpdateParams,
   Agents,
+  BetaManagedAgentsAdvisor,
   BetaManagedAgentsAgent,
   BetaManagedAgentsAgentReference,
   BetaManagedAgentsAgentToolConfig,
@@ -525,11 +527,13 @@ import {
 } from './messages/messages';
 import * as SessionsAPI from './sessions/sessions';
 import {
+  BetaManagedAgentsAdvisorParams,
   BetaManagedAgentsAgentMessagePreview,
   BetaManagedAgentsAgentParams,
   BetaManagedAgentsAgentThinkingPreview,
   BetaManagedAgentsAgentWithOverridesParams,
   BetaManagedAgentsBranchCheckout,
+  BetaManagedAgentsBudgetLimit,
   BetaManagedAgentsCacheCreationUsage,
   BetaManagedAgentsCommitCheckout,
   BetaManagedAgentsDeletedSession,
@@ -543,6 +547,7 @@ import {
   BetaManagedAgentsMultiagentParams,
   BetaManagedAgentsMultiagentRosterEntryParams,
   BetaManagedAgentsOutcomeEvaluationResource,
+  BetaManagedAgentsServerToolUsage,
   BetaManagedAgentsSession,
   BetaManagedAgentsSessionAgent,
   BetaManagedAgentsSessionAgentUpdate,
@@ -550,6 +555,7 @@ import {
   BetaManagedAgentsSessionStats,
   BetaManagedAgentsSessionUpdatedEvent,
   BetaManagedAgentsSessionUsage,
+  BetaManagedAgentsSessionUsageEvent,
   BetaManagedAgentsSessionsBidirectionalPageCursor,
   BetaManagedAgentsStartEvent,
   BetaManagedAgentsStartEventPreview,
@@ -676,6 +682,8 @@ export interface BetaBillingError {
   type: 'billing_error';
 }
 
+export type BetaCurrency = 'USD';
+
 export type BetaError =
   | BetaInvalidRequestError
   | BetaAuthenticationError
@@ -705,6 +713,25 @@ export interface BetaInvalidRequestError {
   message: string;
 
   type: 'invalid_request_error';
+}
+
+/**
+ * A monetary amount in a specific currency.
+ */
+export interface BetaMonetaryAmount {
+  /**
+   * Amount in minor units of the currency, as an integer decimal string with no
+   * leading zeros: "2500" is $25.00 and "50" is fifty cents. A string rather than a
+   * number so no float rounding is ever applied.
+   */
+  amount: string;
+
+  /**
+   * Uppercase ISO-4217 currency code. `USD` is the only currency currently
+   * supported; the accepted set is closed and grows only when a new currency is
+   * priced.
+   */
+  currency: BetaCurrency;
 }
 
 export interface BetaNotFoundError {
@@ -753,10 +780,12 @@ export declare namespace Beta {
     type BetaAPIError as BetaAPIError,
     type BetaAuthenticationError as BetaAuthenticationError,
     type BetaBillingError as BetaBillingError,
+    type BetaCurrency as BetaCurrency,
     type BetaError as BetaError,
     type BetaErrorResponse as BetaErrorResponse,
     type BetaGatewayTimeoutError as BetaGatewayTimeoutError,
     type BetaInvalidRequestError as BetaInvalidRequestError,
+    type BetaMonetaryAmount as BetaMonetaryAmount,
     type BetaNotFoundError as BetaNotFoundError,
     type BetaOverloadedError as BetaOverloadedError,
     type BetaPermissionError as BetaPermissionError,
@@ -1027,6 +1056,7 @@ export declare namespace Beta {
 
   export {
     Agents as Agents,
+    type BetaManagedAgentsAdvisor as BetaManagedAgentsAdvisor,
     type BetaManagedAgentsAgent as BetaManagedAgentsAgent,
     type BetaManagedAgentsAgentReference as BetaManagedAgentsAgentReference,
     type BetaManagedAgentsAgentToolConfig as BetaManagedAgentsAgentToolConfig,
@@ -1103,11 +1133,13 @@ export declare namespace Beta {
 
   export {
     Sessions as Sessions,
+    type BetaManagedAgentsAdvisorParams as BetaManagedAgentsAdvisorParams,
     type BetaManagedAgentsAgentMessagePreview as BetaManagedAgentsAgentMessagePreview,
     type BetaManagedAgentsAgentParams as BetaManagedAgentsAgentParams,
     type BetaManagedAgentsAgentThinkingPreview as BetaManagedAgentsAgentThinkingPreview,
     type BetaManagedAgentsAgentWithOverridesParams as BetaManagedAgentsAgentWithOverridesParams,
     type BetaManagedAgentsBranchCheckout as BetaManagedAgentsBranchCheckout,
+    type BetaManagedAgentsBudgetLimit as BetaManagedAgentsBudgetLimit,
     type BetaManagedAgentsCacheCreationUsage as BetaManagedAgentsCacheCreationUsage,
     type BetaManagedAgentsCommitCheckout as BetaManagedAgentsCommitCheckout,
     type BetaManagedAgentsDeletedSession as BetaManagedAgentsDeletedSession,
@@ -1121,6 +1153,7 @@ export declare namespace Beta {
     type BetaManagedAgentsMultiagentParams as BetaManagedAgentsMultiagentParams,
     type BetaManagedAgentsMultiagentRosterEntryParams as BetaManagedAgentsMultiagentRosterEntryParams,
     type BetaManagedAgentsOutcomeEvaluationResource as BetaManagedAgentsOutcomeEvaluationResource,
+    type BetaManagedAgentsServerToolUsage as BetaManagedAgentsServerToolUsage,
     type BetaManagedAgentsSession as BetaManagedAgentsSession,
     type BetaManagedAgentsSessionAgent as BetaManagedAgentsSessionAgent,
     type BetaManagedAgentsSessionAgentUpdate as BetaManagedAgentsSessionAgentUpdate,
@@ -1128,6 +1161,7 @@ export declare namespace Beta {
     type BetaManagedAgentsSessionStats as BetaManagedAgentsSessionStats,
     type BetaManagedAgentsSessionUpdatedEvent as BetaManagedAgentsSessionUpdatedEvent,
     type BetaManagedAgentsSessionUsage as BetaManagedAgentsSessionUsage,
+    type BetaManagedAgentsSessionUsageEvent as BetaManagedAgentsSessionUsageEvent,
     type BetaManagedAgentsStartEvent as BetaManagedAgentsStartEvent,
     type BetaManagedAgentsStartEventPreview as BetaManagedAgentsStartEventPreview,
     type BetaManagedAgentsSystemContentBlock as BetaManagedAgentsSystemContentBlock,
@@ -1293,6 +1327,7 @@ export declare namespace Beta {
     type BetaWebhookMemoryStoreCreatedEventData as BetaWebhookMemoryStoreCreatedEventData,
     type BetaWebhookMemoryStoreDeletedEventData as BetaWebhookMemoryStoreDeletedEventData,
     type BetaWebhookSessionArchivedEventData as BetaWebhookSessionArchivedEventData,
+    type BetaWebhookSessionBudgetReachedEventData as BetaWebhookSessionBudgetReachedEventData,
     type BetaWebhookSessionCreatedEventData as BetaWebhookSessionCreatedEventData,
     type BetaWebhookSessionDeletedEventData as BetaWebhookSessionDeletedEventData,
     type BetaWebhookSessionIdledEventData as BetaWebhookSessionIdledEventData,
