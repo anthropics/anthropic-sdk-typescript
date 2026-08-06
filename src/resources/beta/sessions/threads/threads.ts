@@ -117,11 +117,9 @@ export interface BetaManagedAgentsSessionThread {
   id: string;
 
   /**
-   * Resolved `agent` definition for a single `session_thread`. Snapshot of the agent
-   * at thread creation time. The multiagent roster is not repeated here; read it
-   * from `Session.agent`.
+   * A session-resolved multiagent roster entry.
    */
-  agent: AgentsAPI.BetaManagedAgentsSessionThreadAgent;
+  agent: AgentsAPI.BetaManagedAgentsSessionThreadAgent | AgentsAPI.BetaManagedAgentsAdvisor;
 
   /**
    * A timestamp in RFC 3339 format
@@ -199,6 +197,13 @@ export type BetaManagedAgentsSessionThreadStatus = 'running' | 'idle' | 'resched
  */
 export interface BetaManagedAgentsSessionThreadUsage {
   /**
+   * Cumulative time in seconds this thread spent in running status. Equal to
+   * `stats.active_seconds`; surfaced here so a thread's usage carries every quantity
+   * its cost is priced on.
+   */
+  active_seconds?: number;
+
+  /**
    * Prompt-cache creation token usage broken down by cache lifetime.
    */
   cache_creation?: SessionsAPI.BetaManagedAgentsCacheCreationUsage;
@@ -214,9 +219,19 @@ export interface BetaManagedAgentsSessionThreadUsage {
   input_tokens?: number;
 
   /**
+   * A monetary amount in a specific currency.
+   */
+  list_cost?: BetaAPI.BetaMonetaryAmount | null;
+
+  /**
    * Total output tokens generated across all turns.
    */
   output_tokens?: number;
+
+  /**
+   * Cumulative count of server-executed tool invocations, broken down by tool.
+   */
+  server_tool_use?: SessionsAPI.BetaManagedAgentsServerToolUsage | null;
 }
 
 /**
@@ -258,7 +273,8 @@ export type BetaManagedAgentsStreamSessionThreadEvents =
   | SessionsAPI.BetaManagedAgentsSessionUpdatedEvent
   | SessionsAPI.BetaManagedAgentsStartEvent
   | SessionsAPI.BetaManagedAgentsDeltaEvent
-  | SessionsAPI.BetaManagedAgentsSystemMessageEvent;
+  | SessionsAPI.BetaManagedAgentsSystemMessageEvent
+  | SessionsAPI.BetaManagedAgentsSessionUsageEvent;
 
 export interface ThreadRetrieveParams {
   /**
