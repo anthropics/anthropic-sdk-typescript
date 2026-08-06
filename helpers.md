@@ -518,6 +518,8 @@ The tool implementations themselves live in a separate Node-only module — `@an
 
 > **Node 22+ required.** The agent toolset uses the native `fs.glob` (added in Node 22) for its `glob` tool, so `@anthropic-ai/sdk/tools/agent-toolset/node` requires Node 22 or newer. The rest of the SDK still supports Node 18+.
 
+> **External programs.** The toolset launches a few helper programs — `/bin/bash` for `bash`, `rg` (optional; a built-in walker is used without it) for `grep`, and `tar`/`unzip` when `setupSkills` extracts skill archives. It always runs them by absolute path: bare names are looked up in the absolute entries of `PATH` only — never in the working directory, and never via `.`/empty/relative `PATH` entries — so the toolset itself never picks a look-alike binary out of the workspace. Anything those programs launch in turn (e.g. `tar` running `gzip`) follows the `PATH` they inherit, so keep `.` and relative entries out of the worker's `PATH` as usual.
+
 ```ts
 import Anthropic from '@anthropic-ai/sdk';
 import { betaAgentToolset20260401 } from '@anthropic-ai/sdk/tools/agent-toolset/node';

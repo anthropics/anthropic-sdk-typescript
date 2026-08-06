@@ -2,6 +2,29 @@
 import tseslint from 'typescript-eslint';
 import unusedImports from 'eslint-plugin-unused-imports';
 
+const noPackageSelfImport = {
+  regex: '^@anthropic-ai/sdk(/.*)?',
+  message: 'Use a relative import, not a package import.',
+};
+
+// Safe executable resolution (G5): `src/tools/agent-toolset/exec.ts` resolves
+// every helper program to an absolute path before it reaches
+// `node:child_process`, and is the only module under `src/` allowed to import
+// it. Type-only imports are erased at build time and stay allowed. See
+// CONTRIBUTING.md, "Spawning external programs".
+const SAFE_EXEC_MODULE = 'src/tools/agent-toolset/exec.ts';
+const spawnViaSafeExec = {
+  message: 'Spawn helpers via src/tools/agent-toolset/exec.ts (safe executable resolution).',
+  allowTypeImports: true,
+};
+// `no-restricted-imports` covers import declarations (incl. `import x = require()`)
+// but not a lazy `import('node:child_process')` or a plain `require(...)` call.
+const CHILD_PROCESS_SPECIFIER = '/^(node:)?child_process$/';
+const noDynamicChildProcess = [
+  `ImportExpression[source.value=${CHILD_PROCESS_SPECIFIER}]`,
+  `CallExpression[callee.name='require'][arguments.0.value=${CHILD_PROCESS_SPECIFIER}]`,
+].map((selector) => ({ selector, message: spawnViaSafeExec.message }));
+
 export default tseslint.config(
   {
     languageOptions: {
@@ -17,17 +40,24 @@ export default tseslint.config(
     rules: {
       'no-unused-vars': 'off',
       'unused-imports/no-unused-imports': 'error',
+      'no-restricted-imports': ['error', { patterns: [noPackageSelfImport] }],
+    },
+  },
+  {
+    files: ['src/**'],
+    ignores: [SAFE_EXEC_MODULE],
+    rules: {
       'no-restricted-imports': [
         'error',
         {
-          patterns: [
-            {
-              regex: '^@anthropic-ai/sdk(/.*)?',
-              message: 'Use a relative import, not a package import.',
-            },
+          paths: [
+            { name: 'child_process', ...spawnViaSafeExec },
+            { name: 'node:child_process', ...spawnViaSafeExec },
           ],
+          patterns: [noPackageSelfImport],
         },
       ],
+      'no-restricted-syntax': ['error', ...noDynamicChildProcess],
     },
   },
   {

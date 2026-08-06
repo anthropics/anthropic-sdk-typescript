@@ -4,6 +4,9 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { extractSkillArchive } from '@anthropic-ai/sdk/tools/agent-toolset/node';
+import { ExecutableNotFoundError, findExecutable } from '@anthropic-ai/sdk/tools/agent-toolset/exec';
+
+const describePosix = process.platform === 'win32' ? describe.skip : describe;
 
 /**
  * Skill version archives are packaged wrapped in a single directory named
@@ -88,6 +91,90 @@ describe('extractSkillArchive', () => {
       );
       expect(fs.existsSync(path.join(work, 'skills', 'escape.txt'))).toBe(false);
       expect(fs.existsSync(path.join(work, 'escape.txt'))).toBe(false);
+    } finally {
+      fs.rmSync(src, { recursive: true, force: true });
+    }
+  });
+});
+
+/**
+ * HackerOne #3901184 regression. `tar`/`unzip` are resolved from the absolute
+ * entries of PATH only and run by absolute path: an executable `tar`/`unzip`
+ * planted in the working directory — with `.`, empty and relative entries at
+ * the front of PATH — must never run. With no real tool reachable the
+ * extraction fails with a clear "not found" error instead of falling back to a
+ * bare-name spawn; with the real tool on an absolute entry, that one runs.
+ */
+describePosix('extractSkillArchive helper resolution', () => {
+  let work: string;
+  let plant: string;
+  let marker: string;
+  let savedCwd: string;
+  let savedPath: string | undefined;
+
+  beforeEach(() => {
+    work = fs.mkdtempSync(path.join(os.tmpdir(), 'skilltest-'));
+    plant = fs.mkdtempSync(path.join(os.tmpdir(), 'skillplant-'));
+    marker = path.join(plant, 'planted-tool-ran');
+    // The plants record that they ran, so the tests can prove they never did.
+    fs.mkdirSync(path.join(plant, 'bin'));
+    for (const rel of ['tar', 'unzip', 'bin/tar', 'bin/unzip']) {
+      fs.writeFileSync(path.join(plant, rel), `#!/bin/sh\ntouch '${marker}'\n`);
+      fs.chmodSync(path.join(plant, rel), 0o755);
+    }
+    savedCwd = process.cwd();
+    savedPath = process.env['PATH'];
+    process.chdir(plant);
+  });
+  afterEach(() => {
+    process.chdir(savedCwd);
+    if (savedPath === undefined) delete process.env['PATH'];
+    else process.env['PATH'] = savedPath;
+    fs.rmSync(work, { recursive: true, force: true });
+    fs.rmSync(plant, { recursive: true, force: true });
+  });
+
+  test.each([
+    ['tar', 'definitely not a zip, so handled as tar'],
+    ['unzip', 'PK\x03\x04 sniffed as a zip'],
+  ])(
+    'a %s planted in the working directory never runs; a missing tool is a clear error',
+    async (tool, body) => {
+      process.env['PATH'] = ['.', '', 'bin', './bin'].join(path.delimiter);
+      const dest = path.join(work, 'skills', 'x');
+      await fsp.mkdir(dest, { recursive: true });
+
+      const err = await extractSkillArchive(new Response(body), dest).catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(ExecutableNotFoundError);
+      expect((err as ExecutableNotFoundError).executable).toBe(tool);
+      expect((err as Error).message).toMatch(
+        new RegExp(
+          `skill extraction requires the \`${tool}\` command: \`${tool}\` was not found on PATH \\(only absolute PATH entries are searched, never the working directory\\)`,
+        ),
+      );
+      expect(fs.existsSync(marker)).toBe(false);
+    },
+  );
+
+  test('with "." ahead of it on PATH, the real tar from an absolute entry is still the one that runs', async () => {
+    const realTar = await findExecutable('tar');
+    expect(realTar).not.toBeNull();
+    const src = fs.mkdtempSync(path.join(os.tmpdir(), 'skillsrc-'));
+    try {
+      fs.mkdirSync(path.join(src, 'pdf'));
+      fs.writeFileSync(path.join(src, 'pdf', 'SKILL.md'), '# PDF');
+      // Uncompressed, so the outcome depends on `tar` alone (a .tgz would have
+      // tar look up `gzip` through the PATH it inherits).
+      const archive = path.join(work, 'a.tar');
+      execFileSync(realTar!, ['-cf', archive, '-C', src, '.']);
+
+      process.env['PATH'] = ['.', '', 'bin', path.dirname(realTar!)].join(path.delimiter);
+      const dest = path.join(work, 'skills', 'pdf');
+      await fsp.mkdir(dest, { recursive: true });
+      await extractSkillArchive(new Response(fs.readFileSync(archive)), dest);
+
+      expect(fs.readFileSync(path.join(dest, 'SKILL.md'), 'utf8')).toBe('# PDF');
+      expect(fs.existsSync(marker)).toBe(false);
     } finally {
       fs.rmSync(src, { recursive: true, force: true });
     }

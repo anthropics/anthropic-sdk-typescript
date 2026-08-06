@@ -26,13 +26,16 @@
  *
  * Trust model: the file tools confine to `workdir` (symlink-aware) and are safe
  * without a sandbox; `bash` is unrestricted and should run inside one. See
- * {@link AgentToolContext}.
+ * {@link AgentToolContext}. The helper programs this module launches
+ * (`/bin/bash`, `rg`, and the `tar`/`unzip` used by `setupSkills`) always run
+ * by absolute path: bare names are resolved against the absolute entries of
+ * `PATH` only — never the working directory — via `./exec`.
  */
 
 import * as fs from 'node:fs/promises';
 import * as fssync from 'node:fs';
 import * as path from 'node:path';
-import * as cp from 'node:child_process';
+import type { ChildProcessWithoutNullStreams } from 'node:child_process';
 import * as crypto from 'node:crypto';
 import * as readline from 'node:readline';
 import type { Anthropic } from '../../client';
@@ -41,6 +44,7 @@ import type { BetaRunnableTool } from '../../lib/tools/BetaRunnableTool';
 import { ToolError } from '../../lib/tools/ToolError';
 import { betaTool } from '../../helpers/beta/json-schema';
 import { promiseWithResolvers } from '../../internal/utils/promise';
+import { findExecutable, spawnAbsolute } from './exec';
 import { atomicWriteFile, confineToRoot, DIR_CREATE_MODE, fsErrorMessage } from './fs-util';
 
 export { setupSkills, resolveSkillVersion, extractSkillArchive } from './skills';
@@ -222,7 +226,7 @@ function scrubbedShellEnv(): NodeJS.ProcessEnv {
  * across exec() calls. Uses pipes rather than a PTY so input is never echoed.
  */
 export class BashSession {
-  #proc: cp.ChildProcessWithoutNullStreams;
+  #proc: ChildProcessWithoutNullStreams;
   #buf = '';
   #truncated = false;
   #closed = false;
@@ -231,7 +235,8 @@ export class BashSession {
   #waiting: { sentinel: string; resolve: () => void } | null = null;
 
   constructor(dir: string, env: NodeJS.ProcessEnv = scrubbedShellEnv()) {
-    this.#proc = cp.spawn('/bin/bash', ['--noprofile', '--norc'], {
+    // A fixed absolute path, so no lookup is involved (see `./exec`).
+    this.#proc = spawnAbsolute('/bin/bash', ['--noprofile', '--norc'], {
       cwd: dir,
       // `env` is the full base environment (the scrubbed process env by
       // default, or the verbatim replacement from `AgentToolContext.env`).
@@ -665,7 +670,10 @@ export function betaGrepTool(ctx: AgentToolContext): BetaRunnableTool {
       if (!pattern) throw new ToolError('grep: pattern is required');
       let searchPath = path.resolve(ctx.workdir);
       if (p) searchPath = await resolvePath(ctx, p);
-      const rg = await findRg();
+      // ripgrep is looked up in the absolute entries of PATH only — an `rg`
+      // sitting in the working directory (e.g. inside a cloned repo) is never
+      // picked (see `./exec`). No ripgrep → the built-in walker.
+      const rg = await findExecutable('rg');
       return rg ?
           runRipgrep(rg, pattern, searchPath, context?.signal)
         : runWalkGrep(pattern, searchPath, context?.signal);
@@ -673,6 +681,7 @@ export function betaGrepTool(ctx: AgentToolContext): BetaRunnableTool {
   });
 }
 
+/** Run ripgrep — `rg` is the absolute path {@link findExecutable} resolved it to. */
 function runRipgrep(
   rg: string,
   pattern: string,
@@ -680,7 +689,7 @@ function runRipgrep(
   signal?: AbortSignal | null | undefined,
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    const proc = cp.spawn(rg, ['-n', '--no-heading', '-e', pattern, '--', searchPath], {
+    const proc = spawnAbsolute(rg, ['-n', '--no-heading', '-e', pattern, '--', searchPath], {
       ...(signal ? { signal } : {}),
     });
     let out = '';
@@ -811,18 +820,4 @@ async function walk(
     return true;
   }
   await inner(rel, 0);
-}
-
-async function findRg(): Promise<string | null> {
-  const dirs = (process.env['PATH'] ?? '').split(path.delimiter);
-  for (const d of dirs) {
-    const candidate = path.join(d, 'rg');
-    try {
-      await fs.access(candidate, fssync.constants.X_OK);
-      return candidate;
-    } catch {
-      // not here
-    }
-  }
-  return null;
 }
