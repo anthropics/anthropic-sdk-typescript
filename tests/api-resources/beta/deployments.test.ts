@@ -34,6 +34,10 @@ describe('resource deployments', () => {
         { content: [{ text: 'Where is my order #1234?', type: 'text' }], type: 'user.message' },
       ],
       name: 'x',
+      budget: {
+        max_list_cost: { amount: '2500', currency: 'USD' },
+        type: 'limit',
+      },
       description: 'description',
       metadata: { foo: 'string' },
       resources: [

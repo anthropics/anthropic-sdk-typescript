@@ -384,6 +384,12 @@ export interface BetaManagedAgentsDeployment {
    * deployment.
    */
   vault_ids: Array<string>;
+
+  /**
+   * A hard spend ceiling. The session stops issuing new model requests once the
+   * tracked list cost reaches `max_list_cost`.
+   */
+  budget?: SessionsAPI.BetaManagedAgentsBudgetLimit | null;
 }
 
 /**
@@ -482,6 +488,7 @@ export interface BetaManagedAgentsDeploymentUserMessageEvent {
     | EventsAPI.BetaManagedAgentsTextBlock
     | EventsAPI.BetaManagedAgentsImageBlock
     | EventsAPI.BetaManagedAgentsDocumentBlock
+    | EventsAPI.BetaManagedAgentsRedactedBlock
   >;
 
   type: 'user.message';
@@ -756,6 +763,12 @@ export interface DeploymentCreateParams {
   name: string;
 
   /**
+   * Body param: A hard spend ceiling. The session stops issuing new model requests
+   * once the tracked list cost reaches `max_list_cost`.
+   */
+  budget?: SessionsAPI.BetaManagedAgentsBudgetLimit | null;
+
+  /**
    * Body param: Description of what the deployment does.
    */
   description?: string | null;
@@ -808,6 +821,12 @@ export interface DeploymentUpdateParams {
    * preserve. Cannot be cleared.
    */
   agent?: string | SessionsAPI.BetaManagedAgentsAgentParams;
+
+  /**
+   * Body param: A hard spend ceiling. The session stops issuing new model requests
+   * once the tracked list cost reaches `max_list_cost`.
+   */
+  budget?: SessionsAPI.BetaManagedAgentsBudgetLimit | null;
 
   /**
    * Body param: Description. Omit to preserve; send empty string or null to clear.

@@ -103,6 +103,7 @@ export function accumulateManagedAgentsEvent(
     case 'session.error':
     case 'session.updated':
     case 'session.deleted':
+    case 'session.usage':
     case 'session.status_running':
     case 'session.status_idle':
     case 'session.status_rescheduled':

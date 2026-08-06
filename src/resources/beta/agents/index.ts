@@ -2,6 +2,7 @@
 
 export {
   Agents,
+  type BetaManagedAgentsAdvisor,
   type BetaManagedAgentsAgent,
   type BetaManagedAgentsAgentReference,
   type BetaManagedAgentsAgentToolConfig,
