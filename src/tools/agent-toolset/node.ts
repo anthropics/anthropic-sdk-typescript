@@ -470,7 +470,7 @@ export function betaReadTool(ctx: AgentToolContext): BetaRunnableTool {
         if (e instanceof ToolError) throw e;
         throw new ToolError(`read: ${fsErrorMessage(e, file_path)}`);
       }
-      if (!view_range) return data;
+      if (!view_range?.length) return data;
       if (view_range.length !== 2) throw new ToolError('read: view_range must be [start_line, end_line]');
       const [startLine, endLine] = view_range as [number, number];
       const lines = data.split('\n');

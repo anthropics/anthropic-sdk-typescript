@@ -21,6 +21,7 @@ import { copyClientForHelper } from '../helper-client';
 import type { AgentToolContext } from '../../tools/agent-toolset/node';
 
 const HEARTBEAT_DEFAULT_MS = 30_000;
+const HEARTBEAT_TTL_DEFAULT_MS = 90_000;
 const NO_HEARTBEAT_SENTINEL = 'NO_HEARTBEAT';
 
 /**
@@ -348,7 +349,10 @@ async function forceStop(
 /**
  * Keep the work-item lease alive while a session is being served. Aborts `ctrl`
  * when the control plane reports the work is `stopping`/`stopped`, when the
- * lease is no longer extended, or on a permanent heartbeat failure.
+ * lease is no longer extended, on a permanent heartbeat failure, or when no
+ * heartbeat has succeeded for longer than the lease ttl (the lease is assumed
+ * lost). Each heartbeat call is cut off after the current beat interval so a
+ * hung request cannot outlive the lease it is meant to renew.
  */
 async function heartbeatLoop(
   client: Anthropic,
@@ -358,17 +362,26 @@ async function heartbeatLoop(
   requestOptions?: BetaToolRunnerRequestOptions,
 ): Promise<void> {
   let intervalMs = HEARTBEAT_DEFAULT_MS;
+  let ttlMs = HEARTBEAT_TTL_DEFAULT_MS;
+  let lastSuccessMs = Date.now();
   let last = NO_HEARTBEAT_SENTINEL;
   const beat = async (): Promise<void> => {
+    // Not the request `timeout` option: the core client retries timeouts, so
+    // it would not bound the call as a whole.
+    const beatCtrl = new AbortController();
+    const detach = linkAbort(ctrl.signal, beatCtrl);
+    const cutoff = setTimeout(() => beatCtrl.abort(), intervalMs);
     try {
       const resp = await client.beta.environments.work.heartbeat(
         work.id,
         { environment_id: work.environment_id, expected_last_heartbeat: last },
-        { ...requestOptions, headers: buildHeaders([requestOptions?.headers]), signal: ctrl.signal },
+        { ...requestOptions, headers: buildHeaders([requestOptions?.headers]), signal: beatCtrl.signal },
       );
+      lastSuccessMs = Date.now();
       last = resp.last_heartbeat;
       if (resp.ttl_seconds > 0) {
-        intervalMs = Math.max(1_000, Math.min((resp.ttl_seconds * 1000) / 2, HEARTBEAT_DEFAULT_MS));
+        ttlMs = resp.ttl_seconds * 1000;
+        intervalMs = Math.max(1_000, Math.min(ttlMs / 2, HEARTBEAT_DEFAULT_MS));
       }
       if (resp.state === 'stopping' || resp.state === 'stopped') {
         logger.info('heartbeat signals shutdown', { work_id: work.id, state: resp.state });
@@ -387,7 +400,19 @@ async function heartbeatLoop(
         ctrl.abort();
         throw e;
       }
+      if (Date.now() - lastSuccessMs > ttlMs) {
+        logger.error('lease assumed lost: no successful heartbeat in ttl', {
+          work_id: work.id,
+          ttl_ms: ttlMs,
+          error: String(e),
+        });
+        ctrl.abort();
+        return;
+      }
       logger.warn('transient heartbeat failure', { work_id: work.id, error: String(e) });
+    } finally {
+      clearTimeout(cutoff);
+      detach();
     }
   };
 

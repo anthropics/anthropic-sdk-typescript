@@ -24,12 +24,27 @@ async function realpathOrSelf(p: string): Promise<string> {
   }
 }
 
+/** Matches Linux MAXSYMLINKS, the threshold at which `realpath` itself reports ELOOP. */
+const MAX_SYMLINK_HOPS = 40;
+
+/** The `code` of a Node system error, or `undefined` for anything else. */
+export function errnoCode(err: unknown): string | undefined {
+  const code = (err as { code?: unknown } | null)?.code;
+  return typeof code === 'string' ? code : undefined;
+}
+
 /**
  * Fully resolve `abs`: `realpath` the longest existing ancestor and re-append
  * the rest, but never re-append a component that is itself a symlink — read the
  * link and continue from its target instead. This handles paths being created
  * (write/edit) without letting a symlink leaf (e.g. a dangling one pointing
  * outside a confinement root) slip through unresolved.
+ *
+ * Returns a symlink-free path or throws an errno-carrying error (`ELOOP` for a
+ * cycle or more than {@link MAX_SYMLINK_HOPS} links, the `lstat`/`realpath`
+ * error for an unreadable component); it never returns `abs` unresolved. Only
+ * symlink hops count against the cap, so any depth of not-yet-existing
+ * directories still resolves.
  */
 export async function canonicalize(abs: string): Promise<string> {
   const tail: string[] = [];
@@ -39,28 +54,24 @@ export async function canonicalize(abs: string): Promise<string> {
     let real: string;
     try {
       real = await fs.realpath(prefix);
-    } catch {
-      let isLink = false;
+    } catch (realpathErr) {
+      let isLink: boolean;
       try {
         isLink = (await fs.lstat(prefix)).isSymbolicLink();
-      } catch {
-        /* prefix truly doesn't exist (ENOENT) — fall through and walk up */
-      }
-      if (isLink) {
-        // Resolve the symlink ourselves and retry; `tail` (the part below it)
-        // still applies to the link's target. The hop cap matches Linux
-        // MAXSYMLINKS — the same threshold at which `realpath` itself would
-        // have returned ELOOP — so a cycle of unresolvable links terminates.
-        if (++hops > 40) {
-          throw new ToolError(`path ${JSON.stringify(abs)} has too many levels of symbolic links`);
-        }
-        prefix = path.resolve(path.dirname(prefix), await fs.readlink(prefix));
+      } catch (lstatErr) {
+        const code = errnoCode(lstatErr);
+        if (code !== 'ENOENT' && code !== 'ENOTDIR') throw lstatErr;
+        const parent = path.dirname(prefix);
+        if (parent === prefix) throw lstatErr;
+        tail.push(path.basename(prefix));
+        prefix = parent;
         continue;
       }
-      const parent = path.dirname(prefix);
-      if (parent === prefix) return abs; // walked past the FS root without a hit
-      tail.push(path.basename(prefix));
-      prefix = parent;
+      if (!isLink) throw realpathErr;
+      if (++hops > MAX_SYMLINK_HOPS) {
+        throw Object.assign(new Error('too many levels of symbolic links'), { code: 'ELOOP' });
+      }
+      prefix = path.resolve(path.dirname(prefix), await fs.readlink(prefix));
       continue;
     }
     return tail.length ? path.join(real, ...tail.reverse()) : real;
@@ -76,6 +87,9 @@ export async function canonicalize(abs: string): Promise<string> {
  * leaf, even a dangling one) is resolved before the confinement check, and the
  * resolved path is what the caller then operates on, so a symlink inside `root`
  * that points outside it can neither pass the check nor be followed afterwards.
+ * `..` is collapsed lexically before any symlink is followed. A path that cannot
+ * be resolved (symlink loop, unreadable component) is rejected with a
+ * `ToolError` naming `p`, never the host's absolute path.
  *
  * Residual TOCTOU: a component could still be swapped for a symlink between this
  * call and the eventual `fs` operation. Closing that fully needs per-component
@@ -91,7 +105,12 @@ export async function confineToRoot(
   const realRoot = await realpathOrSelf(path.resolve(root));
   const abs = path.resolve(realRoot, p);
   if (allowOutside) return abs;
-  const real = await canonicalize(abs);
+  let real: string;
+  try {
+    real = await canonicalize(abs);
+  } catch (err) {
+    throw new ToolError(fsErrorMessage(err, `path ${JSON.stringify(p)}`));
+  }
   if (real !== realRoot && !real.startsWith(realRoot + path.sep)) {
     throw new ToolError(`path ${JSON.stringify(p)} escapes workdir`);
   }
@@ -124,11 +143,12 @@ export async function atomicWriteFile(targetPath: string, content: string): Prom
 /**
  * Map a thrown filesystem error to a consistent, language-independent message,
  * so the model sees the same wording regardless of the runtime (Node's raw
- * `ENOENT: no such file...` text would otherwise leak through). Falls back to
- * the raw error message for codes we don't special-case.
+ * `ENOENT: no such file...` text would otherwise leak through). Codes we don't
+ * special-case render as the bare code, never Node's message, which embeds the
+ * host's absolute path.
  */
 export function fsErrorMessage(err: unknown, file: string): string {
-  const code = (err as { code?: string } | null)?.code;
+  const code = errnoCode(err);
   switch (code) {
     case 'ENOENT':
       return `${file}: no such file or directory`;
@@ -149,6 +169,6 @@ export function fsErrorMessage(err: unknown, file: string): string {
     case 'ENFILE':
       return `${file}: too many open files`;
     default:
-      return `${file}: ${err instanceof Error ? err.message : String(err)}`;
+      return `${file}: ${code !== undefined ? `i/o error (${code})` : 'i/o error'}`;
   }
 }
