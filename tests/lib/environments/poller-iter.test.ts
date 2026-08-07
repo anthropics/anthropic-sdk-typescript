@@ -27,6 +27,7 @@ function makeFakeClient(opts: {
 }) {
   const calls: RecordedCall[] = [];
   const withOptionsCalls: Array<Record<string, unknown>> = [];
+  const warnings: string[] = [];
   let pollIdx = 0;
   let ackIdx = 0;
   let stopIdx = 0;
@@ -35,6 +36,8 @@ function makeFakeClient(opts: {
     // them onto the sub-client; provide a minimal shape so the util doesn't
     // throw on the fake.
     _options: { defaultHeaders: undefined },
+    logLevel: 'warn',
+    logger: { error: () => {}, warn: (msg: string) => warnings.push(msg), info: () => {}, debug: () => {} },
     withOptions: (options: Record<string, unknown>) => {
       withOptionsCalls.push(options);
       return fake;
@@ -65,7 +68,11 @@ function makeFakeClient(opts: {
       },
     },
   };
-  return { client: fake as never, calls, withOptionsCalls };
+  return { client: fake as never, calls, withOptionsCalls, warnings };
+}
+
+function apiError(status: number): APIError {
+  return Object.assign(Object.create(APIError.prototype) as APIError, { status });
 }
 
 function makeWork(id = 'work_1', dataType = 'session'): Record<string, unknown> {
@@ -165,34 +172,79 @@ describe('WorkPoller', () => {
     expect(calls.some((c) => c.method === 'stop')).toBe(true);
   });
 
-  test('backs off on poll errors using setTimeout-based delay', async () => {
-    const err = Object.assign(Object.create(APIError.prototype) as APIError, { status: 503 });
-    const work = makeWork();
+  for (const status of [503, 409]) {
+    test(`backs off on a ${status} poll error using setTimeout-based delay, then yields the next item`, async () => {
+      const work = makeWork();
+      const { client, calls } = makeFakeClient({
+        poll: [
+          { type: 'throw', err: apiError(status) },
+          { type: 'work', value: work },
+        ],
+      });
+
+      const iter = new WorkPoller({
+        client,
+        environmentId: 'env_1',
+        environmentKey: 'env_key',
+      });
+
+      const items: string[] = [];
+      const consumer = (async () => {
+        for await (const w of iter) {
+          items.push(w.id);
+          iter.abort();
+          break;
+        }
+      })();
+      // Drive past the initial 1s backoff window.
+      await jest.advanceTimersByTimeAsync(2_000);
+      await consumer;
+
+      expect(calls.filter((c) => c.method === 'poll').length).toBe(2);
+      expect(items).toEqual(['work_1']);
+    });
+  }
+
+  test('a 401 poll error is permanent and ends iteration with the error', async () => {
+    const err = apiError(401);
     const { client, calls } = makeFakeClient({
       poll: [
         { type: 'throw', err },
-        { type: 'work', value: work },
+        { type: 'work', value: makeWork() },
       ],
     });
 
-    const iter = new WorkPoller({
-      client,
-      environmentId: 'env_1',
-      environmentKey: 'env_key',
+    const iter = new WorkPoller({ client, environmentId: 'env_1', environmentKey: 'env_key' });
+    const consumer = (async () => {
+      for await (const _ of iter) {
+        // unreachable
+      }
+    })();
+    const outcome = expect(consumer).rejects.toBe(err);
+    await jest.advanceTimersByTimeAsync(5_000);
+    await outcome;
+
+    expect(calls.filter((c) => c.method === 'poll').length).toBe(1);
+  });
+
+  test('a 409 from the post-handler stop means already stopped and is not logged', async () => {
+    const { client, calls, warnings } = makeFakeClient({
+      poll: [{ type: 'work', value: makeWork() }],
+      stop: [{ type: 'throw', err: apiError(409) }],
     });
 
+    const iter = new WorkPoller({ client, environmentId: 'env_1', environmentKey: 'env_key' });
     const consumer = (async () => {
       for await (const _ of iter) {
         iter.abort();
         break;
       }
     })();
-    // Drive past the initial 1s backoff window.
-    await jest.advanceTimersByTimeAsync(2_000);
+    await jest.advanceTimersByTimeAsync(5_000);
     await consumer;
 
-    const polls = calls.filter((c) => c.method === 'poll').length;
-    expect(polls).toBe(2);
+    expect(calls.some((c) => c.method === 'stop')).toBe(true);
+    expect(warnings).not.toContain('stop failed');
   });
 
   test('honors externally provided AbortSignal', async () => {

@@ -1,4 +1,4 @@
-import { backoff, jitter, isStatus, is4xx } from '@anthropic-ai/sdk/lib/environments';
+import { backoff, jitter, isStatus, is4xx, isFatal4xx } from '@anthropic-ai/sdk/lib/environments';
 import { APIError } from '@anthropic-ai/sdk/core/error';
 
 describe('backoff', () => {
@@ -61,6 +61,31 @@ describe('isStatus / is4xx', () => {
     test(tc.description, () => {
       expect(isStatus(tc.err, tc.status)).toBe(tc.wantIs);
       expect(is4xx(tc.err)).toBe(tc.want4xx);
+    });
+  }
+});
+
+describe('isFatal4xx', () => {
+  function makeErr(status: number): APIError {
+    return Object.assign(Object.create(APIError.prototype) as APIError, { status });
+  }
+
+  const cases: { description: string; err: unknown; want: boolean }[] = [
+    { description: '409 is retried like the core client does, not fatal', err: makeErr(409), want: false },
+    { description: '408 request timeout is not fatal', err: makeErr(408), want: false },
+    { description: '429 rate limit is not fatal', err: makeErr(429), want: false },
+    { description: '400 stays fatal', err: makeErr(400), want: true },
+    { description: '401 bad credential stays fatal', err: makeErr(401), want: true },
+    { description: '403 stays fatal', err: makeErr(403), want: true },
+    { description: '404 missing environment stays fatal', err: makeErr(404), want: true },
+    { description: '412 lease reclaimed stays fatal', err: makeErr(412), want: true },
+    { description: '422 stays fatal', err: makeErr(422), want: true },
+    { description: 'a 5xx is not a 4xx at all', err: makeErr(500), want: false },
+    { description: 'a non-API error is never classified as fatal 4xx', err: new Error('boom'), want: false },
+  ];
+  for (const tc of cases) {
+    test(tc.description, () => {
+      expect(isFatal4xx(tc.err)).toBe(tc.want);
     });
   }
 });

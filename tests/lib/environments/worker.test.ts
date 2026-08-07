@@ -1,5 +1,6 @@
 import { EnvironmentWorker } from '@anthropic-ai/sdk/lib/environments';
 import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
+import { APIError } from '@anthropic-ai/sdk/core/error';
 
 // =====
 // Test fakes
@@ -21,9 +22,22 @@ interface WorkerCalls {
   withOptions: Array<Record<string, unknown>>;
   // The `options` (last) argument captured per control-plane / session method.
   opts: Record<string, unknown[]>;
+  // `[level, message]` for every warn/error the worker logged.
+  logs: Array<[string, string]>;
 }
 
-function makeFake(opts: { sessionStream: AnyEvent[] }) {
+type HeartbeatResponse = {
+  last_heartbeat: string;
+  ttl_seconds: number;
+  state: string;
+  lease_extended: boolean;
+};
+
+function makeFake(opts: {
+  sessionStream: AnyEvent[];
+  /** Script the lease heartbeat per call (1-based); defaults to a healthy 60 s lease. */
+  heartbeat?: (call: number, options?: { signal?: AbortSignal }) => Promise<HeartbeatResponse>;
+}) {
   const calls: WorkerCalls = {
     poll: 0,
     ack: 0,
@@ -33,6 +47,7 @@ function makeFake(opts: { sessionStream: AnyEvent[] }) {
     retrieve: 0,
     withOptions: [],
     opts: { poll: [], ack: [], heartbeat: [], stop: [], send: [], stream: [], list: [] },
+    logs: [],
   };
   const externalAbort = new AbortController();
 
@@ -49,6 +64,13 @@ function makeFake(opts: { sessionStream: AnyEvent[] }) {
     // helper-telemetry default header. The fake records each `withOptions`
     // override and reuses itself so the rest of the surface stays wired up.
     _options: { defaultHeaders: undefined },
+    logLevel: 'warn',
+    logger: {
+      error: (msg: string) => calls.logs.push(['error', msg]),
+      warn: (msg: string) => calls.logs.push(['warn', msg]),
+      info: () => {},
+      debug: () => {},
+    },
     withOptions: (options: Record<string, unknown>) => {
       calls.withOptions.push(options);
       return fake;
@@ -69,9 +91,10 @@ function makeFake(opts: { sessionStream: AnyEvent[] }) {
             calls.opts['ack']!.push(options);
             return Promise.resolve(work);
           },
-          heartbeat: (_workId: string, _params: unknown, options?: unknown) => {
+          heartbeat: (_workId: string, _params: unknown, options?: { signal?: AbortSignal }) => {
             calls.heartbeat++;
             calls.opts['heartbeat']!.push(options);
+            if (opts.heartbeat) return opts.heartbeat(calls.heartbeat, options);
             return Promise.resolve({
               last_heartbeat: `hb_${calls.heartbeat}`,
               ttl_seconds: 60,
@@ -266,5 +289,74 @@ describe('EnvironmentWorker', () => {
     } finally {
       if (saved !== undefined) process.env['ANTHROPIC_ENVIRONMENT_KEY'] = saved;
     }
+  });
+
+  describe('lease heartbeat bounds', () => {
+    const apiError = (status: number): APIError =>
+      Object.assign(Object.create(APIError.prototype) as APIError, { status });
+    const healthy = (call: number, ttlSeconds: number): Promise<HeartbeatResponse> =>
+      Promise.resolve({
+        last_heartbeat: `hb_${call}`,
+        ttl_seconds: ttlSeconds,
+        state: 'running',
+        lease_extended: true,
+      });
+    /** A heartbeat call that never answers; it settles only when the worker gives up on it. */
+    const hang = (options?: { signal?: AbortSignal }): Promise<HeartbeatResponse> =>
+      new Promise((_, reject) => {
+        const signal = options?.signal;
+        if (!signal) return;
+        if (signal.aborted) return reject(signal.reason);
+        signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+      });
+
+    // The session stream never terminates on its own in these tests, so the
+    // run only ends when the heartbeat loop aborts the session.
+    async function runOneSession(
+      heartbeat: (call: number, options?: { signal?: AbortSignal }) => Promise<HeartbeatResponse>,
+    ): Promise<{ calls: WorkerCalls; elapsedMs: number }> {
+      const { client, calls, signal } = makeFake({ sessionStream: [], heartbeat });
+      const started = Date.now();
+      await new EnvironmentWorker({
+        client,
+        environmentId: 'env_1',
+        environmentKey: 'env_key',
+        tools: [],
+        workdir: '/tmp',
+        maxIdleMs: 0,
+        signal,
+      }).run();
+      return { calls, elapsedMs: Date.now() - started };
+    }
+
+    test('a 409 is retried, and the session is given up once the lease ttl passes without a successful beat', async () => {
+      const { calls, elapsedMs } = await runOneSession((call) =>
+        call === 1 ? healthy(call, 2) : Promise.reject(apiError(409)),
+      );
+      expect(calls.heartbeat).toBeGreaterThanOrEqual(3);
+      expect(calls.logs).not.toContainEqual(['error', 'permanent heartbeat failure']);
+      expect(calls.logs).toContainEqual(['warn', 'transient heartbeat failure']);
+      expect(calls.logs).toContainEqual(['error', 'lease assumed lost: no successful heartbeat in ttl']);
+      expect(calls.stop.some((s) => s.force === true)).toBe(true);
+      expect(elapsedMs).toBeLessThan(8_000);
+    }, 10_000);
+
+    test('a heartbeat call that never answers is cut off each interval and the stale lease ends the session', async () => {
+      const { calls, elapsedMs } = await runOneSession((call, options) =>
+        call === 1 ? healthy(call, 1) : hang(options),
+      );
+      expect(calls.heartbeat).toBeGreaterThanOrEqual(2);
+      expect(calls.logs).toContainEqual(['error', 'lease assumed lost: no successful heartbeat in ttl']);
+      expect(calls.stop.some((s) => s.force === true)).toBe(true);
+      expect(elapsedMs).toBeLessThan(8_000);
+    }, 10_000);
+
+    test('a 401 is permanent: the session is cancelled on the first failure', async () => {
+      const { calls, elapsedMs } = await runOneSession(() => Promise.reject(apiError(401)));
+      expect(calls.heartbeat).toBe(1);
+      expect(calls.logs).toContainEqual(['error', 'permanent heartbeat failure']);
+      expect(calls.stop.some((s) => s.force === true)).toBe(true);
+      expect(elapsedMs).toBeLessThan(2_000);
+    }, 10_000);
   });
 });

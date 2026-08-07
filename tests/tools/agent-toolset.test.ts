@@ -15,35 +15,130 @@ import {
   type AgentToolContext,
 } from '@anthropic-ai/sdk/tools/agent-toolset/node';
 import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
+import { ToolError } from '@anthropic-ai/sdk/lib/tools/ToolError';
 
 function tmpdir(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'runner-test-'));
 }
 
 const testPosix = process.platform === 'win32' ? test.skip : test;
+const describePosix = process.platform === 'win32' ? describe.skip : describe;
 
-// F1 / PATH-13: a cycle of dangling symlinks (which `realpath` cannot resolve)
-// must terminate at the canonicalize hop cap, not spin forever.
-(process.platform === 'win32' ? describe.skip : describe)('canonicalize symlink-loop bound', () => {
+// F1 / PATH-13: a cycle of symlinks (which `realpath` cannot resolve) must be
+// rejected at resolve time — never spin, never fall back to the unresolved
+// path, and never let a lexical `..` after the loop reach an outside file.
+describePosix('canonicalize symlink-loop bound', () => {
   let dir: string;
+  let outside: string;
+  const FIXTURE = ['L', 'evil_link', 'loop_a', 'loop_b', 'self'];
   beforeEach(() => {
     dir = tmpdir();
+    outside = tmpdir();
+    fs.writeFileSync(path.join(outside, 'secret.txt'), 'SECRET');
     fs.symlinkSync(path.join(dir, 'loop_b'), path.join(dir, 'loop_a'));
     fs.symlinkSync(path.join(dir, 'loop_a'), path.join(dir, 'loop_b'));
+    fs.symlinkSync('self', path.join(dir, 'self'));
+    fs.symlinkSync(path.join(outside, 'secret.txt'), path.join(dir, 'evil_link'));
+    fs.symlinkSync('loop_a/../evil_link', path.join(dir, 'L'));
   });
-  afterEach(() => fs.rmSync(dir, { recursive: true, force: true }));
+  afterEach(() => {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(outside, { recursive: true, force: true });
+  });
 
-  test('resolvePath on a symlink loop throws instead of spinning', async () => {
-    await expect(resolvePath({ workdir: dir }, 'loop_a')).rejects.toThrow(
-      /too many levels of symbolic links/,
-    );
-  }, 2000);
+  for (const p of ['loop_a', 'loop_a/child.txt', 'self', 'self/x']) {
+    test(`resolvePath(${JSON.stringify(p)}) rejects with the loop error and no host path`, async () => {
+      const err = await resolvePath({ workdir: dir }, p).catch((e: unknown) => e);
+      expect(err).toBeInstanceOf(ToolError);
+      expect((err as Error).message).toBe(`path ${JSON.stringify(p)}: too many levels of symbolic links`);
+      expect((err as Error).message).not.toContain(dir);
+    }, 2000);
+  }
 
-  test('resolvePath on a path under a symlink loop also throws', async () => {
-    await expect(resolvePath({ workdir: dir }, 'loop_a/child.txt')).rejects.toThrow(
-      /too many levels of symbolic links/,
+  test('a lexical .. after a looping component is collapsed first, so the escape is still caught', async () => {
+    await expect(resolvePath({ workdir: dir }, 'loop_a/../evil_link')).rejects.toThrow(/escapes workdir/);
+    await expect(resolvePath({ workdir: dir }, 'self/../evil_link')).rejects.toThrow(/escapes workdir/);
+    await expect(resolvePath({ workdir: dir }, 'L')).rejects.toThrow(
+      /too many levels of symbolic links|escapes workdir/,
     );
-  }, 2000);
+  });
+
+  test('read of a looping path reports the loop and never returns outside content', async () => {
+    const read = betaReadTool({ workdir: dir });
+    await expect(read.run({ file_path: 'loop_a' })).rejects.toThrow(
+      new ToolError('path "loop_a": too many levels of symbolic links'),
+    );
+    for (const p of ['loop_a/../evil_link', 'L']) {
+      const err = await Promise.resolve(read.run({ file_path: p })).then(
+        (out) => new Error(`unexpectedly read ${String(out).length} bytes`),
+        (e: unknown) => e,
+      );
+      expect(err).toBeInstanceOf(ToolError);
+      expect((err as Error).message).not.toContain('SECRET');
+    }
+  });
+
+  test('write under a looping path is rejected before anything is created', async () => {
+    await expect(
+      betaWriteTool({ workdir: dir }).run({ file_path: 'loop_a/child.txt', content: 'x' }),
+    ).rejects.toThrow(/too many levels of symbolic links/);
+    expect(fs.readdirSync(dir).sort()).toEqual(FIXTURE);
+  });
+
+  test('glob silently drops looping entries and still lists regular files', async () => {
+    fs.writeFileSync(path.join(dir, 'ok.txt'), 'ok');
+    const out = await betaGlobTool({ workdir: dir }).run({ pattern: '*' });
+    expect(String(out).split('\n')).toEqual([path.join(dir, 'ok.txt')]);
+  });
+});
+
+describePosix('resolvePath symlink regressions', () => {
+  let dir: string;
+  let outside: string;
+  beforeEach(() => {
+    dir = tmpdir();
+    outside = tmpdir();
+    fs.writeFileSync(path.join(outside, 'secret.txt'), 'SECRET');
+  });
+  afterEach(() => {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(outside, { recursive: true, force: true });
+  });
+
+  test('write through a dangling in-workdir symlink creates the target and its missing parents', async () => {
+    fs.symlinkSync(path.join(dir, 'newdir', 'f.txt'), path.join(dir, 'd'));
+    await betaWriteTool({ workdir: dir }).run({ file_path: 'd', content: 'via-link' });
+    expect(fs.readFileSync(path.join(dir, 'newdir', 'f.txt'), 'utf8')).toBe('via-link');
+  });
+
+  test('read follows a short in-workdir symlink chain to its final target', async () => {
+    fs.writeFileSync(path.join(dir, 'real.txt'), 'chained');
+    fs.symlinkSync('real.txt', path.join(dir, 'c2'));
+    fs.symlinkSync('c2', path.join(dir, 'c1'));
+    fs.symlinkSync('c1', path.join(dir, 'c0'));
+    expect(await betaReadTool({ workdir: dir }).run({ file_path: 'c0' })).toBe('chained');
+  });
+
+  test('live and dangling symlinks pointing outside the workdir are both rejected', async () => {
+    fs.symlinkSync(path.join(outside, 'secret.txt'), path.join(dir, 'out'));
+    fs.symlinkSync(path.join(outside, 'nope'), path.join(dir, 'dangle_out'));
+    await expect(resolvePath({ workdir: dir }, 'out')).rejects.toThrow(/escapes workdir/);
+    await expect(resolvePath({ workdir: dir }, 'dangle_out')).rejects.toThrow(/escapes workdir/);
+  });
+
+  test('an unreadable directory is reported as permission denied without the host path', async () => {
+    if (process.getuid?.() === 0) return;
+    fs.mkdirSync(path.join(dir, 'noperm'), { mode: 0o000 });
+    try {
+      const err = await Promise.resolve(betaReadTool({ workdir: dir }).run({ file_path: 'noperm/x' })).catch(
+        (e: unknown) => e,
+      );
+      expect(err).toBeInstanceOf(ToolError);
+      expect((err as Error).message).toBe('path "noperm/x": permission denied');
+    } finally {
+      fs.chmodSync(path.join(dir, 'noperm'), 0o755);
+    }
+  });
 });
 
 describe('betaAgentToolset20260401', () => {
@@ -140,10 +235,37 @@ describe('fs tools (read/write/edit)', () => {
     expect(out).toBe('hello');
   });
 
+  test('write under many not-yet-existing directories succeeds because only symlink hops are capped', async () => {
+    const rel = path.join(...Array.from({ length: 50 }, (_, i) => `d${i}`), 'f.txt');
+    await betaWriteTool(env).run({ file_path: rel, content: 'deep' });
+    expect(fs.readFileSync(path.join(dir, rel), 'utf8')).toBe('deep');
+  });
+
   test('read with view_range returns the 1-indexed inclusive line slice', async () => {
     fs.writeFileSync(path.join(dir, 'f.txt'), 'a\nb\nc\nd\n');
     const out = await betaReadTool(env).run({ file_path: 'f.txt', view_range: [2, 3] });
     expect(out).toBe('b\nc');
+  });
+
+  const viewRangeCases: { description: string; view_range: number[]; want: string }[] = [
+    { description: 'an inverted range yields an empty result, not an error', view_range: [3, 1], want: '' },
+    { description: 'an empty range reads the whole file', view_range: [], want: 'line1\nline2\nline3' },
+    { description: 'a single-line range', view_range: [2, 2], want: 'line2' },
+    { description: 'a non-positive end line reads to EOF', view_range: [2, 0], want: 'line2\nline3' },
+    { description: 'a start line past EOF yields an empty result', view_range: [10, 12], want: '' },
+  ];
+  for (const tc of viewRangeCases) {
+    test(`read view_range ${JSON.stringify(tc.view_range)}: ${tc.description}`, async () => {
+      fs.writeFileSync(path.join(dir, 'a.txt'), 'line1\nline2\nline3');
+      expect(await betaReadTool(env).run({ file_path: 'a.txt', view_range: tc.view_range })).toBe(tc.want);
+    });
+  }
+
+  test('read view_range with the wrong arity is rejected', async () => {
+    fs.writeFileSync(path.join(dir, 'a.txt'), 'line1\nline2\nline3');
+    await expect(betaReadTool(env).run({ file_path: 'a.txt', view_range: [2] })).rejects.toThrow(
+      'read: view_range must be [start_line, end_line]',
+    );
   });
 
   test('read of a missing file throws ToolError so the dispatcher reports is_error', async () => {

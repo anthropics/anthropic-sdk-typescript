@@ -15,7 +15,7 @@ import { pipeline } from 'node:stream/promises';
 import type { Anthropic } from '../../client';
 import { AnthropicError } from '../../core/error';
 import { loggerFor } from '../../internal/utils/log';
-import { DIR_CREATE_MODE } from './fs-util';
+import { DIR_CREATE_MODE, errnoCode } from './fs-util';
 import type { AgentToolContext } from './node';
 
 const execFileAsync = promisify(execFile);
@@ -115,8 +115,8 @@ export async function resolveSkillVersion(
 }
 
 /** Reject archive members that are absolute or contain a `..` component. */
-function assertSafeMemberNames(names: string): void {
-  for (const raw of names.split('\n')) {
+function assertSafeMemberNames(names: string[]): void {
+  for (const raw of names) {
     const entry = raw.trim();
     if (!entry) continue;
     if (path.isAbsolute(entry) || entry.split(/[\\/]/).includes('..')) {
@@ -125,19 +125,77 @@ function assertSafeMemberNames(names: string): void {
   }
 }
 
+const INCONSISTENT_LISTING = 'skill archive listing is inconsistent; refusing to extract';
+
 /**
- * Reject archives that contain anything other than regular files and
- * directories. The type char is the first byte of each `ls`-style line emitted
- * by `tar -tvf` / `unzip -Z`: `-` file, `d` dir, `l` symlink, `h` hardlink,
- * `b`/`c` device, `p` fifo, `s` socket. A symlink/hardlink member is how an
- * archive escapes its extraction dir even when no name contains `..`.
+ * Type chars (first byte of each `ls`-style line from `unzip -Z` / `tar -tvf`)
+ * that denote a regular file or directory. `zipinfo` prints `?` for entries
+ * with no Unix type bits, which `unzip` extracts as regular files; GNU tar
+ * prints `C` for contiguous files. Everything else — `l` symlink, `h`
+ * hardlink, `b`/`c` device, `p` fifo, `s` socket, unknown tar types — is a
+ * special member.
  */
-function assertNoSpecialMembers(verboseListing: string): void {
-  for (const line of verboseListing.split('\n')) {
-    const type = line.trimStart()[0];
-    if (type === 'l' || type === 'h' || type === 'b' || type === 'c' || type === 'p' || type === 's') {
-      throw new AnthropicError('refusing to extract archive with symlink/hardlink/device member');
+const PLAIN_TYPE_CHARS = { unzip: new Set(['-', 'd', '?']), tar: new Set(['-', 'd', 'C']) };
+
+function listingLines(listing: string): string[] {
+  const lines = listing.split('\n');
+  if (lines[lines.length - 1] === '') lines.pop();
+  return lines;
+}
+
+/**
+ * A special member is excluded by handing its listed name back to the CLI as
+ * a pattern, so the name must be byte-identical to what is stored. `tar`,
+ * `bsdtar` and `unzip` print bytes they cannot show literally as `\ooo`, `^X`
+ * or `#U` escapes, or as raw non-ASCII; any such name cannot be excluded
+ * reliably. A leading `-` would let `unzip` parse the pattern as an option.
+ */
+function canExcludeVerbatim(cmd: 'unzip' | 'tar', name: string): boolean {
+  return /^[\x20-\x7E]+$/.test(name) && !/[\\^#]/.test(name) && !(cmd === 'unzip' && name.startsWith('-'));
+}
+
+/**
+ * Pair an archive's name listing (`unzip -Z1` / `tar -tf`) with its typed
+ * listing (`unzip -Z --h --t` / `tar -tvf`) and split the members into plain
+ * (regular file or directory) and special (everything else). Special members
+ * are excluded from extraction rather than rejected; the archive is refused
+ * only when the two listings disagree in length or a special member's name
+ * cannot be passed back to the CLI verbatim (see {@link canExcludeVerbatim}).
+ */
+export function classifyArchiveListing(
+  cmd: 'unzip' | 'tar',
+  names: string,
+  typed: string,
+): { plain: string[]; special: string[] } {
+  const nameLines = listingLines(names);
+  const typedLines = listingLines(typed);
+  if (nameLines.length !== typedLines.length) throw new AnthropicError(INCONSISTENT_LISTING);
+  const plain: string[] = [];
+  const special: string[] = [];
+  nameLines.forEach((name, i) => {
+    if (PLAIN_TYPE_CHARS[cmd].has(typedLines[i]!.charAt(0))) {
+      plain.push(name);
+      return;
     }
+    if (!canExcludeVerbatim(cmd, name)) {
+      throw new AnthropicError(
+        `refusing to extract archive: cannot safely exclude member ${JSON.stringify(name)}`,
+      );
+    }
+    special.push(name);
+  });
+  return { plain, special };
+}
+
+/**
+ * Walk `dir` with `lstat` semantics and reject anything that is not a regular
+ * file or directory. Never follows a link and never descends into anything
+ * but a real directory.
+ */
+export async function assertOnlyPlainEntries(dir: string): Promise<void> {
+  for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) await assertOnlyPlainEntries(path.join(dir, entry.name));
+    else if (!entry.isFile()) throw new AnthropicError(INCONSISTENT_LISTING);
   }
 }
 
@@ -152,7 +210,7 @@ async function runArchiveTool(cmd: 'unzip' | 'tar', args: string[]): Promise<str
     const { stdout } = await execFileAsync(cmd, args);
     return stdout;
   } catch (e) {
-    if (e != null && typeof e === 'object' && (e as { code?: unknown }).code === 'ENOENT') {
+    if (errnoCode(e) === 'ENOENT') {
       throw new AnthropicError(
         `skill extraction requires the \`${cmd}\` command, but it was not found on PATH`,
       );
@@ -162,17 +220,17 @@ async function runArchiveTool(cmd: 'unzip' | 'tar', args: string[]): Promise<str
 }
 
 /**
- * The single top-level directory shared by every entry in a newline-separated
- * archive listing, or `''` if entries don't all live under one common
- * directory. Skill bundles are packaged wrapped in one directory named after
- * the skill (e.g. `pdf/SKILL.md`, `pdf/scripts/...`); the extractor strips it
- * so contents land directly in the skill's dir instead of a redundant nested
- * `<skill>/<skill>/` level. A flat or multi-root archive yields `''`.
+ * The single top-level directory shared by every entry in an archive listing,
+ * or `''` if entries don't all live under one common directory. Skill bundles
+ * are packaged wrapped in one directory named after the skill (e.g.
+ * `pdf/SKILL.md`, `pdf/scripts/...`); the extractor strips it so contents land
+ * directly in the skill's dir instead of a redundant nested `<skill>/<skill>/`
+ * level. A flat or multi-root archive yields `''`.
  */
-function archiveTopDir(listing: string): string {
+function archiveTopDir(names: string[]): string {
   let top: string | undefined;
   let nested = false;
-  for (const raw of listing.split('\n')) {
+  for (const raw of names) {
     // Drop `.` / empty segments so a `./pdf/...`-style listing (e.g. from
     // `tar -C dir .`) is treated the same as `pdf/...`.
     const parts = raw
@@ -195,9 +253,14 @@ function archiveTopDir(listing: string): string {
  * to `unzip`/`tar` — consistent with the rest of the toolset, which already
  * invokes `bash` and `rg`. Both `unzip` and `tar` must be available on `PATH`; a
  * missing binary surfaces as a clear error (see {@link runArchiveTool}). Refuses
- * any member that would escape `dest` (zip-slip / tar-slip), including
- * symlink/hardlink members: skill archives come from the API, but skills can be
- * third-party.
+ * any member that would escape `dest` (zip-slip / tar-slip): skill archives
+ * come from the API, but skills can be third-party. Members that are not a
+ * regular file or directory (symlink, hardlink, device, fifo) are excluded
+ * from extraction rather than rejected; an archive whose special members
+ * cannot be excluded reliably is refused (see {@link classifyArchiveListing}).
+ * `tar` matches exclusions unanchored, so a plain member sharing a special
+ * member's name may be dropped too. The staging tree is verified to hold only
+ * regular files and directories before anything is promoted into `dest`.
  *
  * The skill bundle's single wrapper directory is stripped: the archive is
  * extracted into a staging dir and the wrapper's contents are promoted into
@@ -215,6 +278,7 @@ export async function extractSkillArchive(resp: Response, dest: string): Promise
     fssync.createWriteStream(tmp),
   );
   const stage = path.join(path.dirname(dest), `.skill-stage-${process.pid}-${Date.now()}`);
+  const excludeFile = path.join(path.dirname(dest), `.skill-exclude-${process.pid}-${Date.now()}`);
   try {
     // Sniff the first bytes: zip archives start with "PK\x03\x04"; treat
     // anything else as a tar.* archive (`tar -xf` autodetects gzip/bzip2/xz).
@@ -224,23 +288,55 @@ export async function extractSkillArchive(resp: Response, dest: string): Promise
     const archiveCmd = isZip ? 'unzip' : 'tar';
     // List first, validate, then extract — `tar`/`unzip` will happily write a
     // `../` member (or follow a symlink member) outside `-C`/`-d` otherwise.
-    const listing = await runArchiveTool(archiveCmd, isZip ? ['-Z1', tmp] : ['-tf', tmp]);
-    assertSafeMemberNames(listing);
-    assertNoSpecialMembers(await runArchiveTool(archiveCmd, isZip ? ['-Z', tmp] : ['-tvf', tmp]));
-    const top = archiveTopDir(listing);
+    const names = await runArchiveTool(archiveCmd, isZip ? ['-Z1', tmp] : ['-tf', tmp]);
+    const typed = await runArchiveTool(archiveCmd, isZip ? ['-Z', '--h', '--t', tmp] : ['-tvf', tmp]);
+    const { plain, special } = classifyArchiveListing(archiveCmd, names, typed);
+    assertSafeMemberNames([...plain, ...special]);
+    const top = archiveTopDir(plain);
     await fs.mkdir(stage, { recursive: true, mode: DIR_CREATE_MODE });
-    await runArchiveTool(archiveCmd, isZip ? ['-oq', tmp, '-d', stage] : ['-xf', tmp, '-C', stage]);
+    // `unzip` exits non-zero when every member is excluded, so only run the
+    // extractor when there is something to extract.
+    if (plain.length > 0) {
+      await runArchiveTool(archiveCmd, await extractArgs(archiveCmd, tmp, stage, special, excludeFile));
+    }
+    await assertOnlyPlainEntries(stage);
     // Promote the wrapper's contents (or the staged tree itself, if the
     // archive wasn't wrapped) into the already-created empty `dest`. `stage`
     // is a sibling of `dest`, so each rename stays on one filesystem.
     const srcRoot = top ? path.join(stage, top) : stage;
-    for (const entry of await fs.readdir(srcRoot)) {
+    const entries = await fs.readdir(srcRoot).catch((e: unknown) => {
+      throw errnoCode(e) === 'ENOENT' ? new AnthropicError(INCONSISTENT_LISTING) : e;
+    });
+    for (const entry of entries) {
       await fs.rename(path.join(srcRoot, entry), path.join(dest, entry));
     }
   } finally {
     await fs.rm(tmp, { force: true });
+    await fs.rm(excludeFile, { force: true });
     await fs.rm(stage, { recursive: true, force: true });
   }
+}
+
+/**
+ * Arguments that extract `archive` into `stage` while excluding every member
+ * in `special`. Names are glob-escaped because both CLIs treat exclusions as
+ * patterns; `tar` reads them from `excludeFile`, `unzip` takes them after
+ * `-x`, which must follow `-d` so no pattern is parsed as an option.
+ */
+async function extractArgs(
+  cmd: 'unzip' | 'tar',
+  archive: string,
+  stage: string,
+  special: string[],
+  excludeFile: string,
+): Promise<string[]> {
+  const patterns = special.map((name) => name.replace(/[*?[]/g, '\\$&'));
+  if (cmd === 'unzip') {
+    return ['-oq', archive, '-d', stage, ...(patterns.length > 0 ? ['-x', ...patterns] : [])];
+  }
+  if (patterns.length === 0) return ['-xf', archive, '-C', stage];
+  await fs.writeFile(excludeFile, patterns.join('\n') + '\n', { flag: 'wx', mode: 0o600 });
+  return ['-xf', archive, '-C', stage, '-X', excludeFile];
 }
 
 /** Read the first `n` bytes of `file`. */
