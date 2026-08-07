@@ -2,7 +2,7 @@
 
 import { VERSION } from '@anthropic-ai/sdk/version';
 import { AnthropicVertex } from '../src/client';
-import { APIConnectionError } from '../src/core/error';
+import { AnthropicError, APIConnectionError } from '../src/core/error';
 
 // Mock GoogleAuth to prevent credential loading during tests
 jest.mock('google-auth-library', () => ({
@@ -206,6 +206,66 @@ describe('AnthropicVertex', () => {
       expect(wireUrl).toBe(
         'https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models/count-tokens:rawPredict',
       );
+    });
+  });
+
+  describe('document URL source validation', () => {
+    const mockFetch = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({}),
+        text: () => Promise.resolve('{}'),
+      }),
+    );
+
+    beforeEach(() => {
+      mockFetch.mockClear();
+    });
+
+    const makeClient = () =>
+      new AnthropicVertex({
+        region: 'us-central1',
+        projectId: 'test-project',
+        fetch: mockFetch as any,
+      });
+
+    const withContent = (content: unknown) => ({
+      model: 'claude-sonnet-4-5',
+      max_tokens: 1024,
+      messages: [{ role: 'user' as const, content }],
+    });
+
+    const urlDocument = { type: 'document', source: { type: 'url', url: 'https://example.com/doc.pdf' } };
+
+    test('rejects a document block that uses a URL source, before reaching the wire', async () => {
+      await expect(makeClient().messages.create(withContent([urlDocument]) as any)).rejects.toThrow(
+        AnthropicError,
+      );
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    test('rejects a document URL source nested inside a tool_result', async () => {
+      await expect(
+        makeClient().messages.create(
+          withContent([{ type: 'tool_result', tool_use_id: 'tool_abc', content: [urlDocument] }]) as any,
+        ),
+      ).rejects.toThrow(AnthropicError);
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    test('allows document blocks with base64 or text sources', async () => {
+      await makeClient().messages.create(
+        withContent([
+          { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: 'AAAA' } },
+        ]) as any,
+      );
+      await makeClient().messages.create(
+        withContent([{ type: 'document', source: { type: 'text', data: 'hello world' } }]) as any,
+      );
+      expect(mockFetch).toHaveBeenCalledTimes(2);
     });
   });
 

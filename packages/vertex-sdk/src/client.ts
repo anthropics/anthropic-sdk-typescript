@@ -9,6 +9,7 @@ import { readEnv } from './internal/utils/env';
 import { FinalRequestOptions } from './internal/request-options';
 import { isObj, safeJSON } from './internal/utils/values';
 import { buildHeaders } from './internal/headers';
+import { AnthropicError } from './core/error';
 
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 
@@ -196,6 +197,8 @@ export class AnthropicVertex extends BaseAnthropic {
           throw new Error('Expected request body to be an object for post /v1/messages');
         }
 
+        validateNoDocumentUrlSources(parsedBody);
+
         const model = parsedBody['model'];
         delete parsedBody['model'];
 
@@ -240,6 +243,36 @@ export class AnthropicVertex extends BaseAnthropic {
       adapted.body = JSON.stringify(parsedBody);
     }
     return adapted;
+  }
+}
+
+function validateNoDocumentUrlSources(body: Record<string, unknown>): void {
+  const messages = body['messages'];
+  if (!Array.isArray(messages)) return;
+  for (const message of messages) {
+    if (!message || !Array.isArray(message.content)) continue;
+    for (const block of message.content) {
+      checkBlock(block);
+      if (block?.type === 'tool_result' && Array.isArray(block.content)) {
+        for (const nested of block.content) {
+          checkBlock(nested);
+        }
+      }
+    }
+  }
+}
+
+function checkBlock(block: unknown): void {
+  if (
+    block != null &&
+    typeof block === 'object' &&
+    (block as any).type === 'document' &&
+    (block as any).source?.type === 'url'
+  ) {
+    throw new AnthropicError(
+      'Vertex AI does not support URL sources for document content blocks. ' +
+        'Use base64-encoded content (source.type: "base64") or plain text (source.type: "text") instead.',
+    );
   }
 }
 
