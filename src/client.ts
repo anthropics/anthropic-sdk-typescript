@@ -72,10 +72,12 @@ import {
   BetaAPIError,
   BetaAuthenticationError,
   BetaBillingError,
+  BetaCurrency,
   BetaError,
   BetaErrorResponse,
   BetaGatewayTimeoutError,
   BetaInvalidRequestError,
+  BetaMonetaryAmount,
   BetaNotFoundError,
   BetaOverloadedError,
   BetaPermissionError,
@@ -867,8 +869,8 @@ export class BaseAnthropic {
     return stringifyQuery(query);
   }
 
-  private getUserAgent(): string {
-    return `${this.constructor.name}/JS ${VERSION}`;
+  protected getUserAgent(): string {
+    return `Anthropic/JS ${VERSION}`;
   }
 
   protected defaultIdempotencyKey(): string {
@@ -1829,10 +1831,12 @@ export declare namespace Anthropic {
     type BetaAPIError as BetaAPIError,
     type BetaAuthenticationError as BetaAuthenticationError,
     type BetaBillingError as BetaBillingError,
+    type BetaCurrency as BetaCurrency,
     type BetaError as BetaError,
     type BetaErrorResponse as BetaErrorResponse,
     type BetaGatewayTimeoutError as BetaGatewayTimeoutError,
     type BetaInvalidRequestError as BetaInvalidRequestError,
+    type BetaMonetaryAmount as BetaMonetaryAmount,
     type BetaNotFoundError as BetaNotFoundError,
     type BetaOverloadedError as BetaOverloadedError,
     type BetaPermissionError as BetaPermissionError,

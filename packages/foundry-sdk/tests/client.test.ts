@@ -1,3 +1,4 @@
+import { VERSION } from '@anthropic-ai/sdk/version';
 import { AnthropicFoundry } from '../src';
 
 const mockFetch = jest.fn().mockImplementation(() => {
@@ -188,5 +189,19 @@ describe('AnthropicFoundry', () => {
 
       expect(middlewareSawAuthorization).toBe('Bearer my-azure-ad-token');
     });
+  });
+
+  test('user agent is a hardcoded string', async () => {
+    const originalName = AnthropicFoundry.name;
+    // Rename the class, as a minifier would, to prove the header isn't derived from it.
+    Object.defineProperty(AnthropicFoundry, 'name', { value: 'MinifiedClient' });
+    try {
+      const client = new AnthropicFoundry({ apiKey: 'test-key', resource: 'example-resource' });
+      expect(client.constructor.name).toBe('MinifiedClient');
+      const { req } = await client.buildRequest({ path: '/foo', method: 'post' });
+      expect(req.headers.get('user-agent')).toBe(`AnthropicFoundry/JS ${VERSION}`);
+    } finally {
+      Object.defineProperty(AnthropicFoundry, 'name', { value: originalName });
+    }
   });
 });

@@ -1,4 +1,4 @@
 configured_endpoints: 131
-openapi_spec_url: https://storage.googleapis.com/stainless-sdk-openapi-specs/anthropic/anthropic-f89e311096c42998ada5ab5580a2a3b0519265f1c005af625be7a0d11ad49d3c.yml
-openapi_spec_hash: d2deb0fef6a15bf53cc6c53f07973a54
-config_hash: 44bd45774e5a06742c1fb8f0e20e7864
+openapi_spec_url: https://storage.googleapis.com/stainless-sdk-openapi-specs/anthropic/anthropic-891ba7f96c3771e1e3ba6cb37fe8cb6d8615b8a06b6c435d9df66f4aad144bb4.yml
+openapi_spec_hash: ee61c0ee103fce12d7b9a73ec21762c0
+config_hash: c07d90e7ac3e3b26d1d4b41323cd0428

@@ -1299,17 +1299,10 @@ eslint-plugin-prettier@^5.0.1:
     prettier-linter-helpers "^1.0.0"
     synckit "^0.11.7"
 
-eslint-plugin-unused-imports@^3.0.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-unused-imports/-/eslint-plugin-unused-imports-3.2.0.tgz#63a98c9ad5f622cd9f830f70bc77739f25ccfe0d"
-  integrity sha512-6uXyn6xdINEpxE1MtDjxQsyXB37lfyO2yKGVVgtD7WEWQGORSOZjgrD6hBhvGv4/SO+TOlS+UnC6JppRqbuwGQ==
-  dependencies:
-    eslint-rule-composer "^0.3.0"
-
-eslint-rule-composer@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/eslint-rule-composer/-/eslint-rule-composer-0.3.0.tgz#79320c927b0c5c0d3d3d2b76c8b4a488f25bbaf9"
-  integrity sha512-bt+Sh8CtDmn2OajxvNO+BX7Wn4CIWMpTRm3MaiKPCQcnnlm0CS2mhui6QaoeQugs+3Kj2ESKEEGJUdVafwhiCg==
+eslint-plugin-unused-imports@^4.1.4:
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-unused-imports/-/eslint-plugin-unused-imports-4.4.1.tgz#a831f0a2937d7631eba30cb87091ab7d3a5da0e1"
+  integrity sha512-oZGYUz1X3sRMGUB+0cZyK2VcvRX5lm/vB56PgNNcU+7ficUCKm66oZWKUubXWnOuPjQ8PvmXtCViXBMONPe7tQ==
 
 eslint-scope@^7.2.2:
   version "7.2.2"
@@ -2900,9 +2893,10 @@ ts-node@^10.5.0:
     v8-compile-cache-lib "^3.0.1"
     yn "3.1.1"
 
-"tsc-multi@https://github.com/stainless-api/tsc-multi/releases/download/v1.1.3/tsc-multi.tgz":
-  version "1.1.3"
-  resolved "https://github.com/stainless-api/tsc-multi/releases/download/v1.1.3/tsc-multi.tgz#8fc21fc95b247b86721b95fabfb10c6a436134c3"
+"tsc-multi@npm:@stainless-api/tsc-multi@1.1.12":
+  version "1.1.12"
+  resolved "https://registry.yarnpkg.com/@stainless-api/tsc-multi/-/tsc-multi-1.1.12.tgz#da186cf88afeb688bc221a8a7dd288ba8589cc5a"
+  integrity sha512-w5Q/9W9mVxKMEiC9rECktw/Aax8W/1/wMgmO6241lPmrWrmLx0N5wmnJTZoE3CoRNFgPai+rl4n4yUf/Z7wItw==
   dependencies:
     debug "^4.3.7"
     fast-glob "^3.3.2"

@@ -149,6 +149,19 @@ export class Agents extends APIResource {
 export type BetaManagedAgentsAgentsPageCursor = PageCursor<BetaManagedAgentsAgent>;
 
 /**
+ * Platform advisor roster entry: a model the session's primary thread may consult
+ * mid-turn.
+ */
+export interface BetaManagedAgentsAdvisor {
+  /**
+   * The advisor model id.
+   */
+  model: string;
+
+  type: 'advisor';
+}
+
+/**
  * A Managed Agents `agent`.
  */
 export interface BetaManagedAgentsAgent {
@@ -537,7 +550,7 @@ export interface BetaManagedAgentsCustomToolInputSchema {
 export interface BetaManagedAgentsCustomToolParams {
   /**
    * Description of what the tool does, shown to the agent to help it decide when to
-   * use the tool. 1-4096 characters.
+   * use the tool.
    */
   description: string;
 
@@ -744,6 +757,12 @@ export interface BetaManagedAgentsModelConfig {
     | BetaManagedAgentsEffortMax;
 
   /**
+   * Geographic region for model inference. When unset, requests fall through to the
+   * workspace's default_inference_geo.
+   */
+  inference_geo?: string;
+
+  /**
    * Inference speed mode. `fast` provides significantly faster output token
    * generation at premium pricing. Not all models support `fast`; invalid
    * combinations are rejected at create time.
@@ -782,6 +801,13 @@ export interface BetaManagedAgentsModelConfigParams {
     | null;
 
   /**
+   * Geographic region for model inference. When unset, requests fall through to the
+   * workspace's default_inference_geo. On update, `model` is whole-object
+   * replacement — omitting inference_geo clears it.
+   */
+  inference_geo?: string | null;
+
+  /**
    * Inference speed mode. `fast` provides significantly faster output token
    * generation at premium pricing. Not all models support `fast`; invalid
    * combinations are rejected at create time.
@@ -797,7 +823,7 @@ export interface BetaManagedAgentsMultiagentCoordinator {
    * Agents the coordinator may spawn as session threads, each resolved to a specific
    * version.
    */
-  agents: Array<BetaManagedAgentsAgentReference>;
+  agents: Array<BetaManagedAgentsAgentReference | BetaManagedAgentsAdvisor>;
 
   type: 'coordinator';
 }
@@ -1076,6 +1102,7 @@ Agents.Versions = Versions;
 
 export declare namespace Agents {
   export {
+    type BetaManagedAgentsAdvisor as BetaManagedAgentsAdvisor,
     type BetaManagedAgentsAgent as BetaManagedAgentsAgent,
     type BetaManagedAgentsAgentReference as BetaManagedAgentsAgentReference,
     type BetaManagedAgentsAgentToolConfig as BetaManagedAgentsAgentToolConfig,

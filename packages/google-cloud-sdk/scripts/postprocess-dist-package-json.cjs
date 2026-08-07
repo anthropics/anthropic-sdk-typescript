@@ -6,10 +6,11 @@ for (const dep in pkgJson.dependencies) {
   if (dep === '@anthropic-ai/sdk') {
     // Floor at the base-SDK version this client's internals require: the
     // `client`/`core/*` subpath exports and the `__auth` constructor channel
-    // that implements the credential-isolation guarantee. Older in-range
-    // versions would either fail to import or silently re-enable the base
-    // credential chain.
-    pkgJson.dependencies[dep] = '>=0.101.0 <1';
+    // that implements the credential-isolation guarantee, and the `protected`
+    // `getUserAgent()` this client overrides. Older in-range versions would
+    // fail to import, silently re-enable the base credential chain, or reject
+    // the override.
+    pkgJson.dependencies[dep] = '>=0.115.1 <1';
   }
 }
 

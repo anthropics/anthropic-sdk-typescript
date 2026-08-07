@@ -1,5 +1,6 @@
 import { APIRequest, BaseAnthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
+import { VERSION } from '@anthropic-ai/sdk/version';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
 import { getAuthHeaders } from './core/auth';
 import { eventStreamToSSEResponse } from './core/streaming';
@@ -138,6 +139,10 @@ export class AnthropicBedrock extends BaseAnthropic {
 
   protected override validateHeaders() {
     // auth validation is handled in the backend middleware since it needs to be async
+  }
+
+  protected override getUserAgent(): string {
+    return `AnthropicBedrock/JS ${VERSION}`;
   }
 
   protected override async authHeaders(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {

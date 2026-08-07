@@ -66,7 +66,7 @@ async function main() {
     switch (ev.type) {
       case 'event_delta': {
         if (preview && preview.type === 'agent.message') {
-          const text = preview.content.map((b) => b.text).join('');
+          const text = preview.content.map((b) => (b.type === 'text' ? b.text : '')).join('');
           process.stdout.write(`\r${text}`);
         }
         break;
@@ -75,7 +75,7 @@ async function main() {
       case 'agent.message': {
         previews.delete(eventId!);
         process.stdout.write('\n');
-        console.log('[final]', ev.content.map((b) => b.text).join(''));
+        console.log('[final]', ev.content.map((b) => (b.type === 'text' ? b.text : '')).join(''));
         break;
       }
 

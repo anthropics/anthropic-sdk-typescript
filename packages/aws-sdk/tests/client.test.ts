@@ -1,3 +1,4 @@
+import { VERSION } from '@anthropic-ai/sdk/version';
 import { AnthropicAws } from '../src';
 import { getAuthHeaders } from '../src/core/auth';
 
@@ -1052,5 +1053,19 @@ describe('AnthropicAws', () => {
       expect(clone.awsRegion).toBe('ap-southeast-2');
       expect(clone.baseURL).toBe('https://aws-external-anthropic.ap-southeast-2.api.aws');
     });
+  });
+
+  test('user agent is a hardcoded string', async () => {
+    const originalName = AnthropicAws.name;
+    // Rename the class, as a minifier would, to prove the header isn't derived from it.
+    Object.defineProperty(AnthropicAws, 'name', { value: 'MinifiedClient' });
+    try {
+      const client = new AnthropicAws({ apiKey: 'test-key', awsRegion: 'us-east-1', workspaceId: 'ws-test' });
+      expect(client.constructor.name).toBe('MinifiedClient');
+      const { req } = await client.buildRequest({ path: '/foo', method: 'post' });
+      expect(req.headers.get('user-agent')).toBe(`AnthropicAws/JS ${VERSION}`);
+    } finally {
+      Object.defineProperty(AnthropicAws, 'name', { value: originalName });
+    }
   });
 });

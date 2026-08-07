@@ -55,6 +55,20 @@ const GREP_OUTPUT_LIMIT = 100 * 1024;
 const GREP_MAX_LINE_LENGTH = 2000;
 const GLOB_RESULT_LIMIT = 200;
 
+/**
+ * A bash command exceeded its `timeoutMs`. Carries the timeout so a caller can
+ * tell it apart from an abort without matching on the message text.
+ */
+export class BashTimeoutError extends AnthropicError {
+  readonly timeoutMs: number;
+
+  constructor(timeoutMs: number) {
+    super(`bash command timed out after ${timeoutMs}ms`);
+    this.name = 'BashTimeoutError';
+    this.timeoutMs = timeoutMs;
+  }
+}
+
 const ANSI_RE = /\x1b\[[0-9;?]*[ -/]*[@-~]/g;
 
 // `fs.glob` is Node 22+. `@types/node` may still target an older line, so the
@@ -271,9 +285,9 @@ export class BashSession {
     }
     const timeoutMs = opts.timeoutMs ?? BASH_DEFAULT_TIMEOUT_MS;
     const signal = opts.signal;
-    if (signal?.aborted) {
-      throw new AnthropicError('bash command aborted');
-    }
+    // Reject with the signal's own reason, so a caller telling a user cancel
+    // apart from an `AbortSignal.timeout()` sees the platform's name intact.
+    signal?.throwIfAborted();
     this.#buf = '';
     this.#truncated = false;
     // Per-call nonce so a command that prints a fixed marker can't spoof the
@@ -298,14 +312,11 @@ export class BashSession {
         await Promise.race([
           sentinelSeen,
           new Promise<never>((_, reject) => {
-            timer = setTimeout(
-              () => reject(new AnthropicError(`bash command timed out after ${timeoutMs}ms`)),
-              timeoutMs,
-            );
+            timer = setTimeout(() => reject(new BashTimeoutError(timeoutMs)), timeoutMs);
           }),
           new Promise<never>((_, reject) => {
             if (!signal) return;
-            onAbort = () => reject(new AnthropicError('bash command aborted'));
+            onAbort = () => reject(signal.reason);
             signal.addEventListener('abort', onAbort, { once: true });
           }),
         ]);

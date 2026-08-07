@@ -248,10 +248,12 @@ Types:
 - <code><a href="./src/resources/beta/beta.ts">BetaAPIError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaAuthenticationError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaBillingError</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaCurrency</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaErrorResponse</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaGatewayTimeoutError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaInvalidRequestError</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaMonetaryAmount</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaNotFoundError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaOverloadedError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaPermissionError</a></code>
@@ -552,6 +554,7 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAdvisor</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAgent</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAgentReference</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAgentToolConfig</a></code>
@@ -663,11 +666,13 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsAdvisorParams</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsAgentMessagePreview</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsAgentParams</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsAgentThinkingPreview</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsAgentWithOverridesParams</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsBranchCheckout</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsBudgetLimit</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsCacheCreationUsage</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsCommitCheckout</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsDeletedSession</a></code>
@@ -681,6 +686,7 @@ Types:
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsMultiagentParams</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsMultiagentRosterEntryParams</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsOutcomeEvaluationResource</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsServerToolUsage</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSession</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionAgent</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionAgentUpdate</a></code>
@@ -688,6 +694,7 @@ Types:
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionStats</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionUpdatedEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionUsage</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionUsageEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsStartEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsStartEventPreview</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSystemContentBlock</a></code>
@@ -734,6 +741,7 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelRateLimitedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelRequestFailedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsPlainTextDocumentSource</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRedactedBlock</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRetryStatusExhausted</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRetryStatusRetrying</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRetryStatusTerminal</a></code>
@@ -741,6 +749,7 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSearchResultCitations</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSearchResultContent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSendSessionEvents</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionBudgetReached</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionDeletedEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionEndTurn</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionErrorEvent</a></code>
@@ -756,6 +765,7 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionThreadStatusRescheduledEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionThreadStatusRunningEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionThreadStatusTerminatedEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionUsageSnapshot</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSpanModelRequestEndEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSpanModelRequestStartEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSpanModelUsage</a></code>
@@ -1110,6 +1120,7 @@ Types:
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookMemoryStoreCreatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookMemoryStoreDeletedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionArchivedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionBudgetReachedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionCreatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionDeletedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionIdledEventData</a></code>

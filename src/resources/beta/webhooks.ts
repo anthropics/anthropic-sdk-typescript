@@ -301,7 +301,8 @@ export type BetaWebhookEventData =
   | BetaWebhookEnvironmentDeletedEventData
   | BetaWebhookMemoryStoreCreatedEventData
   | BetaWebhookMemoryStoreArchivedEventData
-  | BetaWebhookMemoryStoreDeletedEventData;
+  | BetaWebhookMemoryStoreDeletedEventData
+  | BetaWebhookSessionBudgetReachedEventData;
 
 export interface BetaWebhookMemoryStoreArchivedEventData {
   /**
@@ -351,6 +352,19 @@ export interface BetaWebhookSessionArchivedEventData {
   organization_id: string;
 
   type: 'session.archived';
+
+  workspace_id: string;
+}
+
+export interface BetaWebhookSessionBudgetReachedEventData {
+  /**
+   * ID of the session that triggered the event.
+   */
+  id: string;
+
+  organization_id: string;
+
+  type: 'session.budget_reached';
 
   workspace_id: string;
 }
@@ -720,6 +734,7 @@ export declare namespace Webhooks {
     type BetaWebhookMemoryStoreCreatedEventData as BetaWebhookMemoryStoreCreatedEventData,
     type BetaWebhookMemoryStoreDeletedEventData as BetaWebhookMemoryStoreDeletedEventData,
     type BetaWebhookSessionArchivedEventData as BetaWebhookSessionArchivedEventData,
+    type BetaWebhookSessionBudgetReachedEventData as BetaWebhookSessionBudgetReachedEventData,
     type BetaWebhookSessionCreatedEventData as BetaWebhookSessionCreatedEventData,
     type BetaWebhookSessionDeletedEventData as BetaWebhookSessionDeletedEventData,
     type BetaWebhookSessionIdledEventData as BetaWebhookSessionIdledEventData,

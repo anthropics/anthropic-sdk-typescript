@@ -5,6 +5,7 @@ import { readEnv } from './internal/utils';
 import { Anthropic, ClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
+import { VERSION } from '@anthropic-ai/sdk/version';
 
 /** API Client for interfacing with the Anthropic Foundry API. */
 export interface FoundryClientOptions extends ClientOptions {
@@ -132,6 +133,10 @@ export class AnthropicFoundry extends Anthropic {
 
   protected override validateHeaders(): void {
     return;
+  }
+
+  protected override getUserAgent(): string {
+    return `AnthropicFoundry/JS ${VERSION}`;
   }
 }
 
