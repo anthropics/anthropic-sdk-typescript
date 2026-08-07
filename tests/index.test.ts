@@ -50,6 +50,39 @@ describe('instantiate client', () => {
       expect(req.headers.has('x-my-default-header')).toBe(false);
     });
   });
+
+  describe('idempotencyKey', () => {
+    const client = new Anthropic({
+      baseURL: 'http://localhost:5000/',
+      apiKey: 'my-anthropic-api-key',
+    });
+
+    test('sends Idempotency-Key when idempotencyKey is provided', async () => {
+      const { req } = await client.buildRequest({
+        path: '/v1/messages',
+        method: 'post',
+        idempotencyKey: 'my-idempotency-key',
+      });
+      expect(req.headers.get('idempotency-key')).toEqual('my-idempotency-key');
+    });
+
+    test('auto-generates Idempotency-Key for non-GET when none is provided', async () => {
+      const { req } = await client.buildRequest({
+        path: '/v1/messages',
+        method: 'post',
+      });
+      expect(req.headers.get('idempotency-key')).toMatch(/^stainless-/);
+    });
+
+    test('does not send Idempotency-Key on GET', async () => {
+      const { req } = await client.buildRequest({
+        path: '/v1/models',
+        method: 'get',
+        idempotencyKey: 'should-not-appear',
+      });
+      expect(req.headers.get('idempotency-key')).toBeNull();
+    });
+  });
   describe('logging', () => {
     const env = process.env;
 

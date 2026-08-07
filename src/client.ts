@@ -569,6 +569,9 @@ export class BaseAnthropic {
     this.maxRetries = options.maxRetries ?? 2;
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
     this.#encoder = Opts.FallbackEncoder;
+    // Wire RequestOptions.idempotencyKey → Idempotency-Key (otherwise the
+    // option is a silent no-op because this field stays undefined).
+    this.idempotencyHeader = 'Idempotency-Key';
 
     this.middleware = [...(options.middleware ?? [])];
 
