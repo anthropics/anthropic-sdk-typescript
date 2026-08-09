@@ -207,6 +207,56 @@ describe('AnthropicVertex', () => {
         'https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models/count-tokens:rawPredict',
       );
     });
+
+    test('does not forward anthropic-beta on count_tokens requests', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        fetch: mockFetch as any,
+        defaultHeaders: { 'anthropic-beta': 'effort-2025-11-24' },
+      });
+
+      await client.messages.countTokens({
+        model: createParams.model,
+        messages: createParams.messages,
+      });
+
+      const [, wireInit] = mockFetch.mock.calls[0];
+      expect(new Headers(wireInit.headers).has('anthropic-beta')).toBe(false);
+    });
+
+    test('does not forward anthropic-beta on beta count_tokens requests', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        fetch: mockFetch as any,
+      });
+
+      await client.beta.messages.countTokens(
+        {
+          model: createParams.model,
+          messages: createParams.messages,
+        },
+        { headers: { 'anthropic-beta': 'effort-2025-11-24' } },
+      );
+
+      const [, wireInit] = mockFetch.mock.calls[0];
+      expect(new Headers(wireInit.headers).has('anthropic-beta')).toBe(false);
+    });
+
+    test('forwards anthropic-beta on regular messages requests', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        fetch: mockFetch as any,
+        defaultHeaders: { 'anthropic-beta': 'effort-2025-11-24' },
+      });
+
+      await client.messages.create(createParams);
+
+      const [, wireInit] = mockFetch.mock.calls[0];
+      expect(new Headers(wireInit.headers).get('anthropic-beta')).toBe('effort-2025-11-24');
+    });
   });
 
   test('user agent is a hardcoded string', async () => {
