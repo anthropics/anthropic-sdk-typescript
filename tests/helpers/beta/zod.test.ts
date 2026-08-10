@@ -1,5 +1,5 @@
 import * as z from 'zod/v4';
-import { betaZodTool } from '../../../src/helpers/beta/zod';
+import { betaZodOutputFormat, betaZodTool } from '../../../src/helpers/beta/zod';
 
 describe('zod helpers', () => {
   describe('zodTool', () => {
@@ -97,6 +97,32 @@ describe('zod helpers', () => {
 
       const result = await tool.run({ delay: 1, message: 'done' });
       expect(result).toBe('done');
+    });
+  });
+
+  describe('betaZodOutputFormat', () => {
+    it('preserves const discriminants after transformJSONSchema', () => {
+      const format = betaZodOutputFormat(
+        z.discriminatedUnion('kind', [
+          z.object({ kind: z.literal('set_title'), title: z.string() }),
+          z.object({ kind: z.literal('add_members'), emails: z.array(z.string()) }),
+        ]),
+      );
+
+      const schema = format.schema as {
+        anyOf?: Array<{ properties?: { kind?: Record<string, unknown> } }>;
+      };
+      const kinds = (schema.anyOf ?? []).map((variant) => variant.properties?.kind);
+
+      expect(kinds).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ type: 'string', const: 'set_title' }),
+          expect.objectContaining({ type: 'string', const: 'add_members' }),
+        ]),
+      );
+      for (const kind of kinds) {
+        expect(kind?.description).toBeUndefined();
+      }
     });
   });
 });

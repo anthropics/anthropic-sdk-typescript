@@ -481,7 +481,9 @@ describe('transformJsonSchema', () => {
 `);
   });
 
-  it('preserves const and enum for discriminated-union branches (#1116)', () => {
+  it('preserves const and enum for discriminated-union branches (output-format path)', () => {
+    // betaZodOutputFormat / jsonSchemaOutputFormat run schemas through
+    // transformJSONSchema; betaZodTool does not today (#1116 discussion).
     const input = {
       type: 'object',
       properties: {
