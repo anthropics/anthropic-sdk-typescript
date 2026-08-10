@@ -182,7 +182,7 @@ export interface BetaDream {
    * the memory_store input and writes the consolidated memories into it. The input
    * store is never mutated.
    */
-  output_behavior: BetaDream.BetaOutputBehaviorCreateNew | BetaDream.BetaOutputBehaviorUpdateExisting;
+  output_behavior: BetaOutputBehavior;
 
   outputs: Array<BetaDreamOutput>;
 
@@ -199,28 +199,6 @@ export interface BetaDream {
    * Cumulative token usage for the dream across every pipeline stage.
    */
   usage: BetaDreamUsage;
-}
-
-export namespace BetaDream {
-  /**
-   * The default destination: the job creates a new output memory store as a clone of
-   * the memory_store input and writes the consolidated memories into it. The input
-   * store is never mutated.
-   */
-  export interface BetaOutputBehaviorCreateNew {
-    type: 'create_new';
-  }
-
-  /**
-   * The job writes the consolidated memories into this existing memory store instead
-   * of creating one. In EAP the store must be the job's own memory_store input, so
-   * the job consolidates the store in place.
-   */
-  export interface BetaOutputBehaviorUpdateExisting {
-    memory_store_id: string;
-
-    type: 'update_existing';
-  }
 }
 
 /**
@@ -342,6 +320,33 @@ export interface BetaDreamUsage {
   output_tokens: number;
 }
 
+/**
+ * The default destination: the job creates a new output memory store as a clone of
+ * the memory_store input and writes the consolidated memories into it. The input
+ * store is never mutated.
+ */
+export type BetaOutputBehavior = BetaOutputBehaviorCreateNew | BetaOutputBehaviorUpdateExisting;
+
+/**
+ * The default destination: the job creates a new output memory store as a clone of
+ * the memory_store input and writes the consolidated memories into it. The input
+ * store is never mutated.
+ */
+export interface BetaOutputBehaviorCreateNew {
+  type: 'create_new';
+}
+
+/**
+ * The job writes the consolidated memories into this existing memory store instead
+ * of creating one. In EAP the store must be the job's own memory_store input, so
+ * the job consolidates the store in place.
+ */
+export interface BetaOutputBehaviorUpdateExisting {
+  memory_store_id: string;
+
+  type: 'update_existing';
+}
+
 export interface DreamCreateParams {
   /**
    * Body param
@@ -363,36 +368,12 @@ export interface DreamCreateParams {
    * as a clone of the memory_store input and writes the consolidated memories into
    * it. The input store is never mutated.
    */
-  output_behavior?:
-    | DreamCreateParams.BetaOutputBehaviorCreateNew
-    | DreamCreateParams.BetaOutputBehaviorUpdateExisting;
+  output_behavior?: BetaOutputBehavior;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
-}
-
-export namespace DreamCreateParams {
-  /**
-   * The default destination: the job creates a new output memory store as a clone of
-   * the memory_store input and writes the consolidated memories into it. The input
-   * store is never mutated.
-   */
-  export interface BetaOutputBehaviorCreateNew {
-    type: 'create_new';
-  }
-
-  /**
-   * The job writes the consolidated memories into this existing memory store instead
-   * of creating one. In EAP the store must be the job's own memory_store input, so
-   * the job consolidates the store in place.
-   */
-  export interface BetaOutputBehaviorUpdateExisting {
-    memory_store_id: string;
-
-    type: 'update_existing';
-  }
 }
 
 export interface DreamRetrieveParams {
@@ -459,6 +440,9 @@ export declare namespace Dreams {
     type BetaDreamSessionsInput as BetaDreamSessionsInput,
     type BetaDreamStatus as BetaDreamStatus,
     type BetaDreamUsage as BetaDreamUsage,
+    type BetaOutputBehavior as BetaOutputBehavior,
+    type BetaOutputBehaviorCreateNew as BetaOutputBehaviorCreateNew,
+    type BetaOutputBehaviorUpdateExisting as BetaOutputBehaviorUpdateExisting,
     type BetaDreamsPageCursor as BetaDreamsPageCursor,
     type DreamCreateParams as DreamCreateParams,
     type DreamRetrieveParams as DreamRetrieveParams,

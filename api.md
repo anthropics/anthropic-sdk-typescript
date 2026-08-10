@@ -1180,6 +1180,9 @@ Types:
 - <code><a href="./src/resources/beta/dreams.ts">BetaDreamSessionsInput</a></code>
 - <code><a href="./src/resources/beta/dreams.ts">BetaDreamStatus</a></code>
 - <code><a href="./src/resources/beta/dreams.ts">BetaDreamUsage</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaOutputBehavior</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaOutputBehaviorCreateNew</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaOutputBehaviorUpdateExisting</a></code>
 
 Methods:
 
