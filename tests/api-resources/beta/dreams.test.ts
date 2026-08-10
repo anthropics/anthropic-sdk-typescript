@@ -27,6 +27,7 @@ describe('resource dreams', () => {
       inputs: [{ memory_store_id: 'x', type: 'memory_store' }],
       model: 'string',
       instructions: 'x',
+      output_behavior: { type: 'create_new' },
       betas: ['message-batches-2024-09-24'],
     });
   });
