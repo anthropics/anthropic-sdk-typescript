@@ -138,9 +138,10 @@ export type BetaDreamsPageCursor = PageCursor<BetaDream>;
 
 /**
  * An asynchronous memory-consolidation job that reads a memory store plus a set of
- * session transcripts and writes consolidated memories into a new output memory
- * store. The Dreams API is in research preview: the request and response shapes
- * are volatile and may change without the deprecation period that applies to
+ * session transcripts and writes consolidated memories into an output memory store
+ * — a new store by default, or an existing store chosen via output_behavior. The
+ * Dreams API is in research preview: the request and response shapes are volatile
+ * and may change without the deprecation period that applies to
  * generally-available endpoints.
  */
 export interface BetaDream {
@@ -176,6 +177,13 @@ export interface BetaDream {
    */
   model: BetaDreamModelConfig;
 
+  /**
+   * The default destination: the job creates a new output memory store as a clone of
+   * the memory_store input and writes the consolidated memories into it. The input
+   * store is never mutated.
+   */
+  output_behavior: BetaDream.BetaOutputBehaviorCreateNew | BetaDream.BetaOutputBehaviorUpdateExisting;
+
   outputs: Array<BetaDreamOutput>;
 
   session_id: string | null;
@@ -193,6 +201,28 @@ export interface BetaDream {
   usage: BetaDreamUsage;
 }
 
+export namespace BetaDream {
+  /**
+   * The default destination: the job creates a new output memory store as a clone of
+   * the memory_store input and writes the consolidated memories into it. The input
+   * store is never mutated.
+   */
+  export interface BetaOutputBehaviorCreateNew {
+    type: 'create_new';
+  }
+
+  /**
+   * The job writes the consolidated memories into this existing memory store instead
+   * of creating one. In EAP the store must be the job's own memory_store input, so
+   * the job consolidates the store in place.
+   */
+  export interface BetaOutputBehaviorUpdateExisting {
+    memory_store_id: string;
+
+    type: 'update_existing';
+  }
+}
+
 /**
  * Failure detail for a Dream whose `status` is `failed`.
  */
@@ -203,12 +233,16 @@ export interface BetaDreamError {
 }
 
 /**
- * An input memory store the dream reads from. The dream never mutates this store.
+ * An input memory store the dream reads from. The dream never mutates this store
+ * unless it is also the destination: with output_behavior {type:
+ * "update_existing"} the job consolidates this store in place.
  */
 export type BetaDreamInput = BetaDreamMemoryStoreInput | BetaDreamSessionsInput;
 
 /**
- * An input memory store the dream reads from. The dream never mutates this store.
+ * An input memory store the dream reads from. The dream never mutates this store
+ * unless it is also the destination: with output_behavior {type:
+ * "update_existing"} the job consolidates this store in place.
  */
 export interface BetaDreamMemoryStoreInput {
   memory_store_id: string;
@@ -325,9 +359,40 @@ export interface DreamCreateParams {
   instructions?: string | null;
 
   /**
+   * Body param: The default destination: the job creates a new output memory store
+   * as a clone of the memory_store input and writes the consolidated memories into
+   * it. The input store is never mutated.
+   */
+  output_behavior?:
+    | DreamCreateParams.BetaOutputBehaviorCreateNew
+    | DreamCreateParams.BetaOutputBehaviorUpdateExisting;
+
+  /**
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+}
+
+export namespace DreamCreateParams {
+  /**
+   * The default destination: the job creates a new output memory store as a clone of
+   * the memory_store input and writes the consolidated memories into it. The input
+   * store is never mutated.
+   */
+  export interface BetaOutputBehaviorCreateNew {
+    type: 'create_new';
+  }
+
+  /**
+   * The job writes the consolidated memories into this existing memory store instead
+   * of creating one. In EAP the store must be the job's own memory_store input, so
+   * the job consolidates the store in place.
+   */
+  export interface BetaOutputBehaviorUpdateExisting {
+    memory_store_id: string;
+
+    type: 'update_existing';
+  }
 }
 
 export interface DreamRetrieveParams {
