@@ -3,6 +3,10 @@
 import { VERSION } from '@anthropic-ai/sdk/version';
 import { AnthropicVertex } from '../src/client';
 import { APIConnectionError } from '../src/core/error';
+import * as fs from 'fs';
+import { mkdtempSync } from 'fs';
+import * as path from 'path';
+import { tmpdir } from 'os';
 
 // Mock GoogleAuth to prevent credential loading during tests
 jest.mock('google-auth-library', () => ({
@@ -206,6 +210,105 @@ describe('AnthropicVertex', () => {
       expect(wireUrl).toBe(
         'https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models/count-tokens:rawPredict',
       );
+    });
+  });
+
+  describe('ambient first-party credentials never reach Vertex', () => {
+    const mockFetch = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({}),
+        text: () => Promise.resolve('{}'),
+      }),
+    );
+
+    const envVars = ['ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_CONFIG_DIR'];
+    const originalEnv: Record<string, string | undefined> = {};
+    let testDir: string;
+
+    beforeEach(() => {
+      mockFetch.mockClear();
+      for (const name of envVars) {
+        originalEnv[name] = process.env[name];
+        delete process.env[name];
+      }
+      testDir = mkdtempSync(path.join(tmpdir(), 'vertex-creds-test-'));
+    });
+
+    afterEach(() => {
+      for (const [key, value] of Object.entries(originalEnv)) {
+        if (value !== undefined) {
+          process.env[key] = value;
+        } else {
+          delete process.env[key];
+        }
+      }
+      fs.rmSync(testDir, { recursive: true });
+    });
+
+    const createParams = {
+      model: 'claude-sonnet-4-5',
+      max_tokens: 1024,
+      messages: [{ content: 'Hello', role: 'user' as const }],
+    };
+
+    test('env ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN are not sent to the Google endpoint', async () => {
+      process.env['ANTHROPIC_API_KEY'] = 'env-anthropic-key';
+      process.env['ANTHROPIC_AUTH_TOKEN'] = 'env-oauth-token';
+
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        fetch: mockFetch as any,
+      });
+      expect(client.apiKey).toBeNull();
+      expect(client.authToken).toBeNull();
+
+      await client.messages.create(createParams);
+
+      const [, wireInit] = mockFetch.mock.calls[0];
+      const wireHeaders = new Headers(wireInit.headers);
+      expect(wireHeaders.get('x-api-key')).toBeNull();
+      expect(wireHeaders.get('authorization')).toBe('Bearer fake-token');
+    });
+
+    test('a resolvable shared-config-store profile is never consulted', async () => {
+      process.env['ANTHROPIC_CONFIG_DIR'] = testDir;
+      const tokenPath = path.join(testDir, 'id-token');
+      fs.mkdirSync(path.join(testDir, 'configs'), { recursive: true });
+      fs.writeFileSync(tokenPath, 'my-jwt');
+      fs.writeFileSync(
+        path.join(testDir, 'configs', 'default.json'),
+        JSON.stringify({
+          organization_id: 'org-123',
+          authentication: {
+            type: 'oidc_federation',
+            federation_rule_id: 'fdrl_01abc',
+            identity_token: { source: 'file', path: tokenPath },
+          },
+        }),
+      );
+
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        fetch: mockFetch as any,
+      });
+
+      await client.messages.create(createParams);
+
+      // Exactly the one Vertex request — no token-exchange call — and only
+      // the Google credential on the wire.
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [wireUrl, wireInit] = mockFetch.mock.calls[0];
+      expect(wireUrl).not.toContain('/v1/oauth/token');
+      const wireHeaders = new Headers(wireInit.headers);
+      expect(wireHeaders.get('x-api-key')).toBeNull();
+      expect(wireHeaders.get('authorization')).toBe('Bearer fake-token');
+      expect(wireHeaders.get('anthropic-organization-id')).toBeNull();
     });
   });
 
