@@ -167,3 +167,62 @@ test('create: does not warn for non-deprecated models', async () => {
 
   consoleSpy.mockRestore();
 });
+
+describe('create: non-streaming timeout', () => {
+  const message = {
+    id: 'msg_1',
+    type: 'message',
+    role: 'assistant',
+    model: 'claude-sonnet-4-5',
+    content: [{ type: 'text', text: 'hi' }],
+    stop_reason: 'end_turn',
+    stop_sequence: null,
+    usage: { input_tokens: 1, output_tokens: 1 },
+  };
+
+  function makeClient(opts: { timeout?: number } = {}) {
+    const requests: RequestInit[] = [];
+    const fetch = async (_url: string | URL | Request, init?: RequestInit): Promise<Response> => {
+      requests.push(init ?? {});
+      return new Response(JSON.stringify(message), { headers: { 'Content-Type': 'application/json' } });
+    };
+    const client = new Anthropic({ apiKey: 'test-key', fetch, ...opts });
+    return { client, requests };
+  }
+
+  const sentTimeoutSeconds = (init: RequestInit | undefined) =>
+    new Headers(init?.headers).get('x-stainless-timeout');
+
+  // max_tokens large enough that the estimated non-streaming duration exceeds the 10 minute default
+  const longParams = {
+    model: 'claude-sonnet-4-5',
+    max_tokens: 128_000,
+    messages: [{ role: 'user' as const, content: 'hi' }],
+  };
+
+  test('throws for long requests when no timeout is configured', async () => {
+    const { client, requests } = makeClient();
+    await expect(async () => client.messages.create(longParams)).rejects.toThrow(/Streaming is required/);
+    expect(requests).toHaveLength(0);
+  });
+
+  test('a per-request timeout bypasses the long-request check', async () => {
+    const { client, requests } = makeClient();
+    await client.messages.create(longParams, { timeout: 20 * 60 * 1000 });
+    expect(requests).toHaveLength(1);
+    expect(sentTimeoutSeconds(requests[0])).toBe('1200');
+  });
+
+  test('a client-level timeout bypasses the long-request check', async () => {
+    const { client, requests } = makeClient({ timeout: 20 * 60 * 1000 });
+    await client.messages.create(longParams);
+    expect(requests).toHaveLength(1);
+    expect(sentTimeoutSeconds(requests[0])).toBe('1200');
+  });
+
+  test('short requests still get the computed default timeout', async () => {
+    const { client, requests } = makeClient();
+    await client.messages.create({ ...longParams, max_tokens: 1024 });
+    expect(sentTimeoutSeconds(requests[0])).toBe('600');
+  });
+});
