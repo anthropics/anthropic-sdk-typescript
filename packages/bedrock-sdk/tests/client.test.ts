@@ -1,6 +1,10 @@
 import { getAuthHeaders } from '@anthropic-ai/bedrock-sdk/core/auth';
 import { VERSION } from '@anthropic-ai/sdk/version';
 import AnthropicBedrock from '../src';
+import * as fs from 'fs';
+import { mkdtempSync } from 'fs';
+import * as path from 'path';
+import { tmpdir } from 'os';
 
 // Mock the client to allow for a more integration-style test
 // We're mocking specific parts of the AnthropicBedrock client to avoid
@@ -217,6 +221,120 @@ describe('Bedrock bearer token authentication', () => {
 
     expect(getAuthHeadersSpy).not.toHaveBeenCalled();
     getAuthHeadersSpy.mockRestore();
+  });
+});
+
+describe('ambient first-party credentials never reach Bedrock', () => {
+  const mockFetch = jest.fn().mockImplementation(() => {
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Headers({ 'content-type': 'application/json' }),
+      json: () => Promise.resolve({}),
+      text: () => Promise.resolve('{}'),
+    });
+  });
+
+  const originalFetch = global.fetch;
+  const envVars = ['ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_CONFIG_DIR'];
+  const originalEnv: Record<string, string | undefined> = {};
+  let testDir: string;
+
+  beforeEach(() => {
+    global.fetch = mockFetch;
+    mockFetch.mockClear();
+    (getAuthHeaders as jest.Mock).mockClear();
+    for (const name of envVars) {
+      originalEnv[name] = process.env[name];
+      delete process.env[name];
+    }
+    testDir = mkdtempSync(path.join(tmpdir(), 'bedrock-creds-test-'));
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    for (const [key, value] of Object.entries(originalEnv)) {
+      if (value !== undefined) {
+        process.env[key] = value;
+      } else {
+        delete process.env[key];
+      }
+    }
+    fs.rmSync(testDir, { recursive: true });
+  });
+
+  const createParams = {
+    model: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+    max_tokens: 1024,
+    messages: [{ content: 'Hello', role: 'user' as const }],
+  };
+
+  test('env ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN are not sent and do not suppress SigV4', async () => {
+    process.env['ANTHROPIC_API_KEY'] = 'env-anthropic-key';
+    process.env['ANTHROPIC_AUTH_TOKEN'] = 'env-oauth-token';
+
+    const { AnthropicBedrock } = require('../src');
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+    });
+    expect(client.apiKey).toBeNull();
+    expect(client.authToken).toBeNull();
+
+    try {
+      await client.messages.create(createParams);
+    } catch (e) {
+      // may error due to mocking, we only care about the request
+    }
+
+    // SigV4 still signs the request — the ambient bearer token must not
+    // flip the client out of SigV4 mode.
+    expect(getAuthHeaders).toHaveBeenCalledTimes(1);
+    const [, init] = mockFetch.mock.calls[0];
+    const headers = new Headers(init.headers);
+    expect(headers.get('x-api-key')).toBeNull();
+    expect(headers.get('authorization')).toBeNull();
+  });
+
+  test('a resolvable shared-config-store profile is never consulted', async () => {
+    process.env['ANTHROPIC_CONFIG_DIR'] = testDir;
+    const tokenPath = path.join(testDir, 'id-token');
+    fs.mkdirSync(path.join(testDir, 'configs'), { recursive: true });
+    fs.writeFileSync(tokenPath, 'my-jwt');
+    fs.writeFileSync(
+      path.join(testDir, 'configs', 'default.json'),
+      JSON.stringify({
+        organization_id: 'org-123',
+        authentication: {
+          type: 'oidc_federation',
+          federation_rule_id: 'fdrl_01abc',
+          identity_token: { source: 'file', path: tokenPath },
+        },
+      }),
+    );
+
+    const { AnthropicBedrock } = require('../src');
+    const client = new AnthropicBedrock({
+      awsRegion: 'us-east-1',
+      baseURL: 'http://localhost:4010',
+    });
+
+    try {
+      await client.messages.create(createParams);
+    } catch (e) {
+      // may error due to mocking
+    }
+
+    // Exactly the one Bedrock request — no token-exchange call — and no
+    // store-derived auth or org header on the wire.
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).not.toContain('/v1/oauth/token');
+    const headers = new Headers(init.headers);
+    expect(headers.get('x-api-key')).toBeNull();
+    expect(headers.get('authorization')).toBeNull();
+    expect(headers.get('anthropic-organization-id')).toBeNull();
   });
 });
 

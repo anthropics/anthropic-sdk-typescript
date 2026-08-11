@@ -8,6 +8,7 @@ import { castToError } from './internal/errors';
 import { readEnv } from './internal/utils/env';
 import { FinalRequestOptions } from './internal/request-options';
 import { isObj, safeJSON } from './internal/utils/values';
+import type { NullableHeaders } from './internal/headers';
 import { buildHeaders } from './internal/headers';
 
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
@@ -107,6 +108,12 @@ export class AnthropicVertex extends BaseAnthropic {
 
     super({
       baseURL,
+      // `null`, not `undefined`: `undefined` makes the base client fall back
+      // to the ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN env vars, which are
+      // not auth sources for Vertex — they must never be sent to the Google
+      // endpoint alongside the Google OAuth credentials.
+      apiKey: null,
+      authToken: null,
       ...opts,
     });
 
@@ -132,6 +139,18 @@ export class AnthropicVertex extends BaseAnthropic {
 
   protected override validateHeaders() {
     // auth validation is handled in the backend middleware since it needs to be async
+  }
+
+  // Auth is Google OAuth only; never resolve unrelated local Anthropic
+  // credentials (which could also supply a base URL).
+  protected override _shouldResolveDefaultCredentials(): boolean {
+    return false;
+  }
+
+  // Google OAuth is applied in the backend middleware; no first-party
+  // X-Api-Key / Authorization header may reach the Vertex endpoint.
+  protected override async authHeaders(): Promise<NullableHeaders | undefined> {
+    return undefined;
   }
 
   protected override getUserAgent(): string {

@@ -114,7 +114,11 @@ export class AnthropicBedrock extends BaseAnthropic {
     providerChainResolver = null,
     ...opts
   }: ClientOptions = {}) {
-    super({ baseURL, authToken: apiKey, ...opts });
+    // `?? null` / `null`, not `undefined`: `undefined` makes the base client
+    // fall back to the ANTHROPIC_AUTH_TOKEN / ANTHROPIC_API_KEY env vars,
+    // which are not auth sources for Bedrock — the token would suppress SigV4
+    // signing, and the key would be folded into the SigV4-signed request.
+    super({ baseURL, authToken: apiKey ?? null, apiKey: null, ...opts });
 
     const hasAccess = awsAccessKey != null;
     const hasSecret = awsSecretKey != null;
@@ -139,6 +143,12 @@ export class AnthropicBedrock extends BaseAnthropic {
 
   protected override validateHeaders() {
     // auth validation is handled in the backend middleware since it needs to be async
+  }
+
+  // Auth is the Bedrock bearer token or SigV4 only; never resolve unrelated
+  // local Anthropic credentials (which could also supply a base URL).
+  protected override _shouldResolveDefaultCredentials(): boolean {
+    return false;
   }
 
   protected override getUserAgent(): string {
