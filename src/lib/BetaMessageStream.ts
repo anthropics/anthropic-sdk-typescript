@@ -581,15 +581,21 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
       case 'message_stop':
         return snapshot;
       case 'message_delta':
-        snapshot.container = event.delta.container;
         snapshot.stop_reason = event.delta.stop_reason;
         snapshot.stop_sequence = event.delta.stop_sequence;
-        if (event.delta.stop_details != null) {
-          snapshot.stop_details = event.delta.stop_details;
-        }
+        snapshot.stop_details = event.delta.stop_details;
         snapshot.usage.output_tokens = event.usage.output_tokens;
-        snapshot.context_management = event.context_management;
 
+        if (event.delta.container != null) {
+          snapshot.container = event.delta.container;
+        }
+
+        if (event.context_management != null) {
+          snapshot.context_management = event.context_management;
+        }
+
+        // The remaining usage counters are cumulative whole-message totals that are
+        // omitted when they don't apply, so overwrite when present and never add.
         if (event.usage.input_tokens != null) {
           snapshot.usage.input_tokens = event.usage.input_tokens;
         }
@@ -612,6 +618,10 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
 
         if (event.usage.fallback_credit != null) {
           snapshot.usage.fallback_credit = event.usage.fallback_credit;
+        }
+
+        if (event.usage.output_tokens_details != null) {
+          snapshot.usage.output_tokens_details = event.usage.output_tokens_details;
         }
 
         return snapshot;

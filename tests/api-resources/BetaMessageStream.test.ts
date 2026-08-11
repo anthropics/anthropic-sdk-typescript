@@ -568,6 +568,156 @@ describe('BetaMessageStream class', () => {
     expect(finalMessage.usage.fallback_credit).toEqual({ status: { type: 'redeemed' } });
   });
 
+  it('applies container, context_management and every usage field from message_delta', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_beta_delta_01',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-8',
+          stop_reason: null,
+          stop_sequence: null,
+          container: null,
+          context_management: null,
+          usage: {
+            input_tokens: 10,
+            output_tokens: 1,
+            cache_creation_input_tokens: 2,
+            cache_read_input_tokens: 3,
+            cache_creation: { ephemeral_5m_input_tokens: 2, ephemeral_1h_input_tokens: 0 },
+            service_tier: 'standard',
+          },
+        },
+      },
+      { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+      { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Done.' } },
+      { type: 'content_block_stop', index: 0 },
+      {
+        type: 'message_delta',
+        context_management: {
+          applied_edits: [
+            { type: 'clear_tool_uses_20250919', cleared_input_tokens: 100, cleared_tool_uses: 2 },
+          ],
+        },
+        delta: {
+          stop_reason: 'end_turn',
+          stop_sequence: null,
+          stop_details: null,
+          container: { id: 'container_01', expires_at: '2026-01-01T00:00:00Z', skills: null },
+        },
+        usage: {
+          input_tokens: 42,
+          output_tokens: 99,
+          cache_creation_input_tokens: 7,
+          cache_read_input_tokens: 8,
+          server_tool_use: { web_search_requests: 1, web_fetch_requests: 2 },
+          output_tokens_details: { thinking_tokens: 30 },
+        },
+      },
+      { type: 'message_stop' },
+    ]);
+
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'Run some code.' }],
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(finalMessage.container).toEqual({
+      id: 'container_01',
+      expires_at: '2026-01-01T00:00:00Z',
+      skills: null,
+    });
+    expect(finalMessage.context_management).toEqual({
+      applied_edits: [{ type: 'clear_tool_uses_20250919', cleared_input_tokens: 100, cleared_tool_uses: 2 }],
+    });
+    expect(finalMessage.usage).toMatchObject({
+      input_tokens: 42,
+      output_tokens: 99,
+      cache_creation_input_tokens: 7,
+      cache_read_input_tokens: 8,
+      server_tool_use: { web_search_requests: 1, web_fetch_requests: 2 },
+      output_tokens_details: { thinking_tokens: 30 },
+      // never re-sent on message_delta
+      cache_creation: { ephemeral_5m_input_tokens: 2, ephemeral_1h_input_tokens: 0 },
+      service_tier: 'standard',
+    });
+  });
+
+  it('keeps accumulated container and context_management when a later message_delta omits them', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_beta_delta_02',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-8',
+          stop_reason: null,
+          stop_sequence: null,
+          container: null,
+          context_management: null,
+          usage: { input_tokens: 10, output_tokens: 1, service_tier: 'standard' },
+        },
+      },
+      { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+      { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Done.' } },
+      { type: 'content_block_stop', index: 0 },
+      {
+        type: 'message_delta',
+        context_management: { applied_edits: [] },
+        delta: {
+          stop_reason: null,
+          stop_sequence: null,
+          stop_details: null,
+          container: { id: 'container_01', expires_at: '2026-01-01T00:00:00Z', skills: null },
+        },
+        usage: { output_tokens: 50 },
+      },
+      {
+        type: 'message_delta',
+        context_management: null,
+        delta: { stop_reason: 'end_turn', stop_sequence: null, stop_details: null, container: null },
+        usage: { output_tokens: 99 },
+      },
+      { type: 'message_stop' },
+    ]);
+
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'Run some code.' }],
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(finalMessage.container).toEqual({
+      id: 'container_01',
+      expires_at: '2026-01-01T00:00:00Z',
+      skills: null,
+    });
+    expect(finalMessage.context_management).toEqual({ applied_edits: [] });
+    expect(finalMessage.usage).toMatchObject({
+      input_tokens: 10,
+      output_tokens: 99,
+      service_tier: 'standard',
+    });
+  });
+
   it('relabels the snapshot model from fallback content blocks', async () => {
     const { fetch, handleStreamEvents } = mockFetch();
 
