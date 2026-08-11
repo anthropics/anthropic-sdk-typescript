@@ -1123,6 +1123,99 @@ describe('ToolRunner', () => {
     });
   });
 
+  describe('container propagation', () => {
+    const container = { id: 'container_123', expires_at: '2030-01-01T00:00:00Z', skills: [] };
+
+    function containerMessage(...content: BetaContentBlock[]): BetaMessage {
+      return {
+        id: 'msg_container',
+        type: 'message',
+        role: 'assistant',
+        content,
+        model: 'claude-3-5-sonnet-latest',
+        stop_details: null,
+        stop_reason: content.some((block) => block.type === 'tool_use') ? 'tool_use' : 'end_turn',
+        stop_sequence: null,
+        container,
+        context_management: null,
+        diagnostics: null,
+        usage: {
+          input_tokens: 10,
+          output_tokens: 20,
+          output_tokens_details: null,
+          cache_creation: null,
+          cache_creation_input_tokens: null,
+          cache_read_input_tokens: null,
+          fallback_credit: null,
+          server_tool_use: null,
+          service_tier: null,
+          inference_geo: null,
+          iterations: null,
+          speed: null,
+        },
+      };
+    }
+
+    // Queues `message` as the next response (JSON or SSE) and records the request body it answered.
+    function reply(
+      handleRequest: (handler: Fetch) => void,
+      bodies: Array<Record<string, unknown>>,
+      message: BetaMessage,
+      stream: boolean,
+    ) {
+      handleRequest(async (_req, init) => {
+        bodies.push(JSON.parse(init!.body as string));
+        if (!stream) {
+          return new Response(JSON.stringify(message), { headers: { 'content-type': 'application/json' } });
+        }
+        const sse = betaMessageToStreamEvents(message)
+          .map((event) => `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`)
+          .join('');
+        return new Response(sse, { headers: { 'content-type': 'text/event-stream' } });
+      });
+    }
+
+    it.each([false, true])(
+      'forwards the response container id to the next request (stream=%s)',
+      async (stream) => {
+        const { runner, handleRequest } = stream ? setupTest({ stream: true }) : setupTest();
+        const bodies: Array<Record<string, unknown>> = [];
+
+        reply(handleRequest, bodies, containerMessage(getWeatherToolUse('SF')), stream);
+        reply(handleRequest, bodies, containerMessage(getTextContent()), stream);
+        await runner.runUntilDone();
+
+        expect(bodies).toHaveLength(2);
+        expect(bodies[0]).not.toHaveProperty('container');
+        expect(bodies[1]!['container']).toBe('container_123');
+      },
+    );
+
+    it('fills in the id on an object-form container param without dropping its other fields', async () => {
+      const skills = [{ type: 'anthropic' as const, skill_id: 'pptx', version: 'latest' }];
+      const { runner, handleRequest } = setupTest({ container: { skills } });
+      const bodies: Array<Record<string, unknown>> = [];
+
+      reply(handleRequest, bodies, containerMessage(getWeatherToolUse('SF')), false);
+      reply(handleRequest, bodies, containerMessage(getTextContent()), false);
+      await runner.runUntilDone();
+
+      expect(bodies[0]!['container']).toEqual({ skills });
+      expect(bodies[1]!['container']).toEqual({ skills, id: 'container_123' });
+    });
+
+    it('leaves a caller-provided container id untouched', async () => {
+      const { runner, handleRequest } = setupTest({ container: 'container_mine' });
+      const bodies: Array<Record<string, unknown>> = [];
+
+      reply(handleRequest, bodies, containerMessage(getWeatherToolUse('SF')), false);
+      reply(handleRequest, bodies, containerMessage(getTextContent()), false);
+      await runner.runUntilDone();
+
+      expect(bodies.map((body) => body['container'])).toEqual(['container_mine', 'container_mine']);
+    });
+  });
+
   describe('.runUntilDone()', () => {
     it('consumes iterator if not started', async () => {
       const { runner, handleAssistantMessage } = setupTest({
