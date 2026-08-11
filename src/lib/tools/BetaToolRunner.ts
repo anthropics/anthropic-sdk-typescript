@@ -222,6 +222,17 @@ export class BetaToolRunner<Stream extends boolean> {
               const message = await this.#message;
               this.#state.params.messages.push({ role: message.role, content: message.content });
 
+              // Container-bound server tools reject a follow-up request that omits the container the
+              // previous turn ran in, so carry its id forward unless the caller pinned one themselves.
+              const { container } = this.#state.params;
+              if (message.container) {
+                if (container == null) {
+                  this.#state.params.container = message.container.id;
+                } else if (typeof container === 'object' && container.id == null) {
+                  this.#state.params.container = { ...container, id: message.container.id };
+                }
+              }
+
               // Refusal-terminated turns are terminal: the refusal may have cut a tool_use off
               // with partial input, so executing this turn's tools would fire side effects the
               // model never confirmed — and once middleware strips the refusal turn, their
