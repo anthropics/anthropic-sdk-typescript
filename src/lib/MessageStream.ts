@@ -575,12 +575,15 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
       case 'message_delta':
         snapshot.stop_reason = event.delta.stop_reason;
         snapshot.stop_sequence = event.delta.stop_sequence;
-        if (event.delta.stop_details != null) {
-          snapshot.stop_details = event.delta.stop_details;
-        }
+        snapshot.stop_details = event.delta.stop_details;
         snapshot.usage.output_tokens = event.usage.output_tokens;
 
-        // Update other usage fields if they exist in the event
+        if (event.delta.container != null) {
+          snapshot.container = event.delta.container;
+        }
+
+        // The remaining usage counters are cumulative whole-message totals that are
+        // omitted when they don't apply, so overwrite when present and never add.
         if (event.usage.input_tokens != null) {
           snapshot.usage.input_tokens = event.usage.input_tokens;
         }
@@ -595,6 +598,10 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
 
         if (event.usage.server_tool_use != null) {
           snapshot.usage.server_tool_use = event.usage.server_tool_use;
+        }
+
+        if (event.usage.output_tokens_details != null) {
+          snapshot.usage.output_tokens_details = event.usage.output_tokens_details;
         }
 
         return snapshot;

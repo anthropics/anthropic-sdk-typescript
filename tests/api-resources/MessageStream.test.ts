@@ -299,6 +299,133 @@ describe('MessageStream class', () => {
     expect(partialParse).toHaveBeenCalledTimes(4);
   });
 
+  it('applies every message_delta field onto the accumulated message', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_delta_01',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-8',
+          stop_reason: null,
+          stop_sequence: null,
+          container: null,
+          usage: {
+            input_tokens: 10,
+            output_tokens: 1,
+            cache_creation_input_tokens: 2,
+            cache_read_input_tokens: 3,
+            cache_creation: { ephemeral_5m_input_tokens: 2, ephemeral_1h_input_tokens: 0 },
+            service_tier: 'standard',
+          },
+        },
+      },
+      { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+      { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Done.' } },
+      { type: 'content_block_stop', index: 0 },
+      {
+        type: 'message_delta',
+        delta: {
+          stop_reason: 'end_turn',
+          stop_sequence: null,
+          stop_details: null,
+          container: { id: 'container_01', expires_at: '2026-01-01T00:00:00Z' },
+        },
+        usage: {
+          input_tokens: 42,
+          output_tokens: 99,
+          cache_creation_input_tokens: 7,
+          cache_read_input_tokens: 8,
+          server_tool_use: { web_search_requests: 1, web_fetch_requests: 2 },
+          output_tokens_details: { thinking_tokens: 30 },
+        },
+      },
+      { type: 'message_stop' },
+    ]);
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'Run some code.' }],
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(finalMessage.container).toEqual({ id: 'container_01', expires_at: '2026-01-01T00:00:00Z' });
+    expect(finalMessage.usage).toMatchObject({
+      input_tokens: 42,
+      output_tokens: 99,
+      cache_creation_input_tokens: 7,
+      cache_read_input_tokens: 8,
+      server_tool_use: { web_search_requests: 1, web_fetch_requests: 2 },
+      output_tokens_details: { thinking_tokens: 30 },
+      // never re-sent on message_delta
+      cache_creation: { ephemeral_5m_input_tokens: 2, ephemeral_1h_input_tokens: 0 },
+      service_tier: 'standard',
+    });
+  });
+
+  it('keeps message_start usage when message_delta omits the optional keys', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_delta_02',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-8',
+          stop_reason: null,
+          stop_sequence: null,
+          container: null,
+          usage: {
+            input_tokens: 10,
+            output_tokens: 1,
+            cache_creation_input_tokens: 2,
+            cache_read_input_tokens: 3,
+            cache_creation: { ephemeral_5m_input_tokens: 2, ephemeral_1h_input_tokens: 0 },
+            service_tier: 'standard',
+          },
+        },
+      },
+      { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+      { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Hi.' } },
+      { type: 'content_block_stop', index: 0 },
+      {
+        type: 'message_delta',
+        delta: { stop_reason: 'end_turn', stop_sequence: null },
+        usage: { output_tokens: 12 },
+      },
+      { type: 'message_stop' },
+    ]);
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'Say hi.' }],
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(finalMessage.usage).toMatchObject({
+      input_tokens: 10,
+      output_tokens: 12,
+      cache_creation_input_tokens: 2,
+      cache_read_input_tokens: 3,
+      cache_creation: { ephemeral_5m_input_tokens: 2, ephemeral_1h_input_tokens: 0 },
+      service_tier: 'standard',
+    });
+    expect(finalMessage.container).toBeNull();
+  });
+
   it('does not throw unhandled rejection with withResponse()', async () => {
     const { fetch, handleRequest } = mockFetch();
     const anthropic = new Anthropic({
