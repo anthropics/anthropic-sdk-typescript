@@ -37,4 +37,4 @@ jobs:
 
       - name: Publish to NPM
         run: |
-          yarn tsn scripts/publish-packages.ts '{ "paths_released": "[\"${{ github.event.inputs.path }}\"]" }'
+          pnpm tsn scripts/publish-packages.ts '{ "paths_released": "[\"${{ github.event.inputs.path }}\"]" }'

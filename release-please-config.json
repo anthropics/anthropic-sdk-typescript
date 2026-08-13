@@ -73,13 +73,5 @@
     }
   ],
   "release-type": "node",
-  "extra-files": [
-    "src/version.ts",
-    "README.md",
-    "packages/vertex-sdk/yarn.lock",
-    "packages/bedrock-sdk/yarn.lock",
-    "packages/foundry-sdk/yarn.lock",
-    "packages/aws-sdk/yarn.lock",
-    "packages/google-cloud-sdk/yarn.lock"
-  ]
+  "extra-files": ["src/version.ts", "README.md"]
 }
