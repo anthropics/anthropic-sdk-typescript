@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.32.3 (2026-08-13)
+
+Full Changelog: [bedrock-sdk-v0.32.2...bedrock-sdk-v0.32.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.32.2...bedrock-sdk-v0.32.3)
+
+### Chores
+
+* **internal:** empty commit to trigger builds ([#1148](https://github.com/anthropics/anthropic-sdk-typescript/issues/1148)) ([940dab8](https://github.com/anthropics/anthropic-sdk-typescript/commit/940dab810542b38bf73aeae84d6e9ceaf2a44730))
+
 ## 0.32.2 (2026-08-13)
 
 Full Changelog: [bedrock-sdk-v0.32.1...bedrock-sdk-v0.32.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.32.1...bedrock-sdk-v0.32.2)

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.8 (2026-08-13)
+
+Full Changelog: [google-cloud-sdk-v0.0.7...google-cloud-sdk-v0.0.8](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.7...google-cloud-sdk-v0.0.8)
+
+### Chores
+
+* **internal:** empty commit to trigger builds ([#1148](https://github.com/anthropics/anthropic-sdk-typescript/issues/1148)) ([940dab8](https://github.com/anthropics/anthropic-sdk-typescript/commit/940dab810542b38bf73aeae84d6e9ceaf2a44730))
+
 ## 0.0.7 (2026-08-07)
 
 Full Changelog: [google-cloud-sdk-v0.0.6...google-cloud-sdk-v0.0.7](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.6...google-cloud-sdk-v0.0.7)
