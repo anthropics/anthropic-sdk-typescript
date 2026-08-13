@@ -330,7 +330,7 @@ async function extractArgs(
   special: string[],
   excludeFile: string,
 ): Promise<string[]> {
-  const patterns = special.map((name) => name.replace(/[*?[]/g, '\\$&'));
+  const patterns = special.map((name) => name.replace(/[*?[\\]/g, '\\$&'));
   if (cmd === 'unzip') {
     return ['-oq', archive, '-d', stage, ...(patterns.length > 0 ? ['-x', ...patterns] : [])];
   }
