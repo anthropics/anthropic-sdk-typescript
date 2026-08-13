@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.2 (2026-08-13)
+
+Full Changelog: [foundry-sdk-v0.4.1...foundry-sdk-v0.4.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.4.1...foundry-sdk-v0.4.2)
+
+### Chores
+
+* **internal:** empty commit to trigger builds ([#1148](https://github.com/anthropics/anthropic-sdk-typescript/issues/1148)) ([940dab8](https://github.com/anthropics/anthropic-sdk-typescript/commit/940dab810542b38bf73aeae84d6e9ceaf2a44730))
+
 ## 0.4.1 (2026-08-07)
 
 Full Changelog: [foundry-sdk-v0.4.0...foundry-sdk-v0.4.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.4.0...foundry-sdk-v0.4.1)
