@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.19.2 (2026-08-13)
+
+Full Changelog: [vertex-sdk-v0.19.1...vertex-sdk-v0.19.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.19.1...vertex-sdk-v0.19.2)
+
+### Bug Fixes
+
+* **vertex,bedrock:** never send ambient first-party credentials to provider endpoints ([#287](https://github.com/anthropics/anthropic-sdk-typescript/issues/287)) ([75e5eed](https://github.com/anthropics/anthropic-sdk-typescript/commit/75e5eedc265f1ff339ae7de1e97a0f26b284a2eb))
+
 ## 0.19.1 (2026-08-07)
 
 Full Changelog: [vertex-sdk-v0.19.0...vertex-sdk-v0.19.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.19.0...vertex-sdk-v0.19.1)
