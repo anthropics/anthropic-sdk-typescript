@@ -103,7 +103,7 @@ the changes aren't made through the automated pipeline, you may want to make rel
 
 ### Publish with a GitHub workflow
 
-You can release to package managers by using [the `Publish NPM` GitHub action](https://www.github.com/anthropics/anthropic-sdk-typescript/actions/workflows/publish-npm.yml). This requires a setup organization or repository secret to be set up.
+You can release to package managers by manually running [the `Create releases` GitHub action](https://www.github.com/anthropics/anthropic-sdk-typescript/actions/workflows/create-releases.yml) with the path of the package to publish, e.g. `.` or `packages/vertex-sdk`. This requires a setup organization or repository secret to be set up.
 
 ### Publish manually
 

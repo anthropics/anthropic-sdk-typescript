@@ -5,6 +5,11 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      path:
+        description: The path of the package to publish, e.g. '.' or 'packages/vertex-sdk'
+        required: true
 
 jobs:
   release:
@@ -20,13 +25,14 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - uses: stainless-api/trigger-release-please@bb6677c5a04578eec1ccfd9e1913b5b78ed64c61 # v1.4.0
+        if: github.event_name != 'workflow_dispatch'
         id: release
         with:
           repo: ${{ github.event.repository.full_name }}
           stainless-api-key: ${{ secrets.STAINLESS_API_KEY }}
 
       - name: Set up Node
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.releases_created || github.event_name == 'workflow_dispatch' }}
         uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # v3.9.1
         with:
           node-version: '20'
@@ -35,7 +41,7 @@ jobs:
         uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
 
       - name: Install dependencies
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.releases_created || github.event_name == 'workflow_dispatch' }}
         run: |
           pnpm install
 
@@ -43,9 +49,14 @@ jobs:
         run: ./bin/replace-internal-symlinks
 
       - name: Publish to NPM
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.releases_created || github.event_name == 'workflow_dispatch' }}
         run: |
+          if [[ -n "$PUBLISH_PATH" ]]; then
+            DATA="$(jq -cn --arg path "$PUBLISH_PATH" '{ paths_released: ([$path] | tojson) }')"
+            export DATA
+          fi
           pnpm tsn scripts/publish-packages.ts
         env:
           DATA: ${{ toJSON(steps.release.outputs) }}
+          PUBLISH_PATH: ${{ inputs.path }}
           NPM_TOKEN: ${{ secrets.ANTHROPIC_NPM_TOKEN || secrets.NPM_TOKEN }}
