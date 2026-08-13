@@ -1,0 +1,4 @@
+# This package is its own pnpm root with its own lockfile, so pnpm doesn't treat it as part of the repo-root workspace.
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - '@anthropic-ai/*'

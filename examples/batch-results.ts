@@ -5,7 +5,7 @@ const anthropic = new Anthropic();
 async function main() {
   const batch_id = process.argv[2];
   if (!batch_id) {
-    throw new Error('must specify a message batch ID, `yarn tsn examples/batch-results.ts msgbatch_123`');
+    throw new Error('must specify a message batch ID, `pnpm tsn examples/batch-results.ts msgbatch_123`');
   }
 
   console.log(`fetching results for ${batch_id}`);

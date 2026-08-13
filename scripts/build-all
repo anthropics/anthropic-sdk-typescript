@@ -7,6 +7,6 @@ bash ./scripts/build
 
 for dir in packages/*; do
     if [ -d "$dir" ]; then
-        (cd "$dir" && yarn install && yarn build)
+        (cd "$dir" && pnpm install && pnpm build)
     fi
 done
