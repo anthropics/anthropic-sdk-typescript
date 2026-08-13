@@ -4,14 +4,14 @@ The documentation for this SDK lives at [platform.claude.com/docs/en/api/sdks/ty
 
 ## Setting up the environment
 
-This repository uses [`yarn@v1`](https://classic.yarnpkg.com/lang/en/docs/install).
+This repository uses [`pnpm`](https://pnpm.io/).
 Other package managers may work but are not officially supported for development.
 
 To set up the repository, run:
 
 ```sh
-$ yarn
-$ yarn build
+$ pnpm install
+$ pnpm build
 ```
 
 This will install all the required dependencies and build output files to `dist/`.
@@ -36,7 +36,7 @@ All files in the `examples/` directory are not modified by the generator and can
 ```sh
 $ chmod +x examples/<your-example>.ts
 # run the example against your api
-$ yarn tsn -T examples/<your-example>.ts
+$ pnpm tsn -T examples/<your-example>.ts
 ```
 
 ## Using the repository from source
@@ -76,7 +76,7 @@ $ ./scripts/mock
 ```
 
 ```sh
-$ yarn run test
+$ pnpm run test
 ```
 
 ## Linting and formatting
@@ -87,13 +87,13 @@ This repository uses [prettier](https://www.npmjs.com/package/prettier) and
 To lint:
 
 ```sh
-$ yarn lint
+$ pnpm lint
 ```
 
 To format and fix all lint issues automatically:
 
 ```sh
-$ yarn fix
+$ pnpm fix
 ```
 
 ## Publishing and releases
