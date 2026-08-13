@@ -1,6 +1,28 @@
 #!/usr/bin/env bash
 set -exuo pipefail
 
+# Tag the version with the branch (as a prerelease identifier) so a preview
+# build never shares a version with a published release, and make subpackage
+# previews depend on the core preview from the same commit — it is uploaded
+# first below — since a prerelease core no longer satisfies their version range.
+stamp_preview_version() {
+  local pkg_json="$1/package.json"
+  local branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME:-}}"
+  local slug version
+  slug=$(printf '%s' "$branch" | LC_ALL=C sed -E 's/[^0-9A-Za-z-]+/-/g; s/^-+//; s/-+$//')
+  version=$(jq -r '.version' "$pkg_json")
+  if [[ -n "$slug" && "$version" == *-* ]]; then
+    version="$version.$slug"
+  elif [[ -n "$slug" ]]; then
+    version="$version-$slug"
+  fi
+  jq --arg version "$version" --arg core "https://pkg.stainless.com/s/anthropic-typescript/$SHA" '
+    .version = $version
+    | if .dependencies["@anthropic-ai/sdk"] then .dependencies["@anthropic-ai/sdk"] = $core else . end
+  ' "$pkg_json" > "$pkg_json.tmp"
+  mv "$pkg_json.tmp" "$pkg_json"
+}
+
 RESPONSE=$(curl -X POST "$URL" \
   -H "Authorization: Bearer $AUTH" \
   -H "Content-Type: application/json")
@@ -12,6 +34,7 @@ if [[ "$SIGNED_URL" == "null" ]]; then
   exit 1
 fi
 
+stamp_preview_version dist
 TARBALL=$(cd dist && npm pack --silent)
 
 UPLOAD_RESPONSE=$(curl -v -X PUT \
@@ -39,6 +62,7 @@ if [[ "$AWS_SIGNED_URL" == "null" ]]; then
   exit 1
 fi
 
+stamp_preview_version packages/aws-sdk/dist
 AWS_TARBALL=$(cd packages/aws-sdk/dist && npm pack --silent)
 
 AWS_UPLOAD_RESPONSE=$(curl -v -X PUT \
@@ -66,6 +90,7 @@ if [[ "$AWS_SIGNED_URL" == "null" ]]; then
   exit 1
 fi
 
+stamp_preview_version packages/bedrock-sdk/dist
 AWS_TARBALL=$(cd packages/bedrock-sdk/dist && npm pack --silent)
 
 AWS_UPLOAD_RESPONSE=$(curl -v -X PUT \
