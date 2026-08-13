@@ -113,18 +113,21 @@ jobs:
   detect_breaking_changes_vs_main:
     timeout-minutes: 10
     name: detect-breaking-changes-vs-main
-    runs-on: ${{ github.repository == 'stainless-sdks/anthropic-typescript' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
-    if: |
+    runs-on: 'ubuntu-latest'
+    if: |-
       (github.event_name == 'push' &&
        !startsWith(github.ref, 'refs/heads/release-please--')) ||
-      github.event_name == 'pull_request'
+      github.event.pull_request.head.repo.fork
     steps:
+      # fetch-depth: 0 fetches full commit history (all branches, so
+      # origin/main is available) so `git merge-base HEAD origin/main`
+      # below can resolve the fork point. filter: blob:none keeps the
+      # fetch cheap: commit metadata is downloaded eagerly, file blobs
+      # only when a later `git checkout` asks for them.
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Fetch history for current branch and main
-        run: |
-          git fetch origin --filter=blob:none --no-tags --depth=2147483647 ${{ github.sha }}
-          git fetch origin --filter=blob:none --no-tags main 2>/dev/null || true
+        with:
+          fetch-depth: 0
+          filter: blob:none
 
       - name: Set up Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
