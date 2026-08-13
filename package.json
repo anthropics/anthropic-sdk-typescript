@@ -64,6 +64,9 @@
     "typescript-eslint": "8.31.1",
     "zod": "^3.25.0 || ^4.0.0"
   },
+  "bin": {
+    "anthropic-ai-sdk": "bin/cli"
+  },
   "overrides": {
     "minimatch": "^9.0.5"
   },
