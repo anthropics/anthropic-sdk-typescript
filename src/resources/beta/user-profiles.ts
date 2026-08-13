@@ -184,8 +184,8 @@ export interface BetaUserProfile {
   external_id?: string | null;
 
   /**
-   * Display name of the entity this profile represents. For `resold` this is the
-   * resold-to company's name.
+   * Real-world name of the entity this profile represents (company or individual).
+   * For `resold` this is the resold-to company's name.
    */
   name?: string | null;
 }
@@ -229,9 +229,9 @@ export interface UserProfileCreateParams {
   metadata?: { [key: string]: string };
 
   /**
-   * Body param: Display name of the entity this profile represents. Required when
-   * relationship is `resold` (the resold-to company's name); optional otherwise.
-   * Maximum 255 characters.
+   * Body param: Optional for all profiles. Real-world name of the entity this
+   * profile represents (company or individual); for `resold` profiles, the resold-to
+   * company's name where known. Maximum 255 characters.
    */
   name?: string | null;
 
