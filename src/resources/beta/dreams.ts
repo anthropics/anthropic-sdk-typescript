@@ -243,7 +243,7 @@ export interface BetaDreamMemoryStoreOutput {
  */
 export interface BetaDreamModelConfig {
   /**
-   * Model identifier, e.g. "claude-opus-4-7". 1-256 characters.
+   * Model identifier, e.g. "claude-opus-5". 1-256 characters.
    */
   id: string;
 
@@ -260,7 +260,7 @@ export interface BetaDreamModelConfig {
  */
 export interface BetaDreamModelConfigParam {
   /**
-   * Model identifier, e.g. "claude-opus-4-7". 1-256 characters.
+   * Model identifier, e.g. "claude-opus-5". 1-256 characters.
    */
   id: string;
 

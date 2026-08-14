@@ -142,7 +142,6 @@ export {
   type BetaMessageParam,
   type BetaMessageTokensCount,
   type BetaMetadata,
-  type BetaMidConversationSystemBlockParam,
   type BetaOutputConfig,
   type BetaOutputTokensDetails,
   type BetaPlainTextSource,
