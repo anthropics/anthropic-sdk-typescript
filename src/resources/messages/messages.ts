@@ -41,7 +41,7 @@ export class Messages extends APIResource {
    * const message = await client.messages.create({
    *   max_tokens: 1024,
    *   messages: [{ content: 'Hello, world', role: 'user' }],
-   *   model: 'claude-opus-4-6',
+   *   model: 'claude-opus-5',
    * });
    * ```
    */
@@ -85,7 +85,7 @@ export class Messages extends APIResource {
    * const messageTokensCount =
    *   await client.messages.countTokens({
    *     messages: [{ content: 'Hello, world', role: 'user' }],
-   *     model: 'claude-opus-4-6',
+   *     model: 'claude-opus-5',
    *   });
    * ```
    */
@@ -781,8 +781,7 @@ export type ContentBlockParam =
   | BashCodeExecutionToolResultBlockParam
   | TextEditorCodeExecutionToolResultBlockParam
   | ToolSearchToolResultBlockParam
-  | ContainerUploadBlockParam
-  | MidConversationSystemBlockParam;
+  | ContainerUploadBlockParam;
 
 export interface ContentBlockSource {
   content: string | Array<ContentBlockSourceContent>;
@@ -1131,27 +1130,6 @@ export interface Metadata {
    * name, email address, or phone number.
    */
   user_id?: string | null;
-}
-
-/**
- * System instructions that appear mid-conversation.
- *
- * Use this block to provide or update system-level instructions at a specific
- * point in the conversation, rather than only via the top-level `system`
- * parameter.
- */
-export interface MidConversationSystemBlockParam {
-  /**
-   * System instruction text blocks.
-   */
-  content: Array<TextBlockParam>;
-
-  type: 'mid_conv_system';
-
-  /**
-   * Create a cache control breakpoint at this content block.
-   */
-  cache_control?: CacheControlEphemeral | null;
 }
 
 /**
@@ -3552,7 +3530,6 @@ export declare namespace Messages {
     type MessageParam as MessageParam,
     type MessageTokensCount as MessageTokensCount,
     type Metadata as Metadata,
-    type MidConversationSystemBlockParam as MidConversationSystemBlockParam,
     type Model as Model,
     type OutputConfig as OutputConfig,
     type OutputTokensDetails as OutputTokensDetails,

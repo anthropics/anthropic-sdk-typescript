@@ -16,7 +16,7 @@ describe('resource batches', () => {
           params: {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-opus-4-6',
+            model: 'claude-opus-5',
           },
         },
       ],
@@ -38,7 +38,7 @@ describe('resource batches', () => {
           params: {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-opus-4-6',
+            model: 'claude-opus-5',
             cache_control: { type: 'ephemeral', ttl: '5m' },
             container: 'container',
             inference_geo: 'inference_geo',

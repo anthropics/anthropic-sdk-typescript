@@ -90,7 +90,6 @@ export {
   type MessageParam,
   type MessageTokensCount,
   type Metadata,
-  type MidConversationSystemBlockParam,
   type Model,
   type OutputConfig,
   type OutputTokensDetails,

@@ -47,7 +47,7 @@ export class Messages extends APIResource {
    * const betaMessage = await client.beta.messages.create({
    *   max_tokens: 1024,
    *   messages: [{ content: 'Hello, world', role: 'user' }],
-   *   model: 'claude-opus-4-6',
+   *   model: 'claude-opus-5',
    * });
    * ```
    */
@@ -94,7 +94,7 @@ export class Messages extends APIResource {
    * const betaMessageTokensCount =
    *   await client.beta.messages.countTokens({
    *     messages: [{ content: 'Hello, world', role: 'user' }],
-   *     model: 'claude-opus-4-6',
+   *     model: 'claude-opus-5',
    *   });
    * ```
    */
@@ -1276,7 +1276,6 @@ export type BetaContentBlockParam =
   | BetaRequestMCPToolResultBlockParam
   | BetaContainerUploadBlockParam
   | BetaCompactionBlockParam
-  | BetaMidConversationSystemBlockParam
   | BetaRequestToolAdditionBlock
   | BetaRequestToolRemovalBlock
   | BetaFallbackBlockParam;
@@ -2273,27 +2272,6 @@ export interface BetaMetadata {
    * name, email address, or phone number.
    */
   user_id?: string | null;
-}
-
-/**
- * System instructions that appear mid-conversation.
- *
- * Use this block to provide or update system-level instructions at a specific
- * point in the conversation, rather than only via the top-level `system`
- * parameter.
- */
-export interface BetaMidConversationSystemBlockParam {
-  /**
-   * System instruction text blocks.
-   */
-  content: Array<BetaTextBlockParam | BetaRequestToolAdditionBlock | BetaRequestToolRemovalBlock>;
-
-  type: 'mid_conv_system';
-
-  /**
-   * Create a cache control breakpoint at this content block.
-   */
-  cache_control?: BetaCacheControlEphemeral | null;
 }
 
 export interface BetaOutputConfig {
@@ -5409,7 +5387,6 @@ export declare namespace Messages {
     type BetaMessageParam as BetaMessageParam,
     type BetaMessageTokensCount as BetaMessageTokensCount,
     type BetaMetadata as BetaMetadata,
-    type BetaMidConversationSystemBlockParam as BetaMidConversationSystemBlockParam,
     type BetaOutputConfig as BetaOutputConfig,
     type BetaOutputTokensDetails as BetaOutputTokensDetails,
     type BetaPlainTextSource as BetaPlainTextSource,

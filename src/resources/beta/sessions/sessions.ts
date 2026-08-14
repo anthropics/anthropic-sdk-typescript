@@ -370,7 +370,7 @@ export interface BetaManagedAgentsAgentWithOverridesParams {
   mcp_servers?: Array<AgentsAPI.BetaManagedAgentsURLMCPServerParams>;
 
   /**
-   * Replacement model. Accepts the model string, e.g. `claude-opus-4-6`, or a
+   * Replacement model. Accepts the model string, e.g. `claude-opus-5`, or a
    * `model_config` object. Omit to use the agent's model.
    */
   model?: AgentsAPI.BetaManagedAgentsModel | AgentsAPI.BetaManagedAgentsModelConfigParams;

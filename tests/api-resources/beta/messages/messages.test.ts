@@ -12,7 +12,7 @@ describe('resource messages', () => {
     const responsePromise = client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-4-6',
+      model: 'claude-opus-5',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -27,7 +27,7 @@ describe('resource messages', () => {
     const response = await client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-4-6',
+      model: 'claude-opus-5',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       container: {
         id: 'id',
@@ -133,7 +133,7 @@ describe('resource messages', () => {
   test('countTokens: only required params', async () => {
     const responsePromise = client.beta.messages.countTokens({
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-4-6',
+      model: 'claude-opus-5',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -147,7 +147,7 @@ describe('resource messages', () => {
   test('countTokens: required and optional params', async () => {
     const response = await client.beta.messages.countTokens({
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-4-6',
+      model: 'claude-opus-5',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       context_management: {
         edits: [
