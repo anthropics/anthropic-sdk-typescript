@@ -260,9 +260,9 @@ export interface BetaEnvironment {
   created_at: string;
 
   /**
-   * User-provided description for the environment
+   * User-provided description for the environment; null when unset
    */
-  description: string;
+  description: string | null;
 
   /**
    * User-provided metadata key-value pairs

@@ -578,18 +578,6 @@ function applyToolChange(block: BetaContentBlockParam, available: Set<string>): 
     case 'tool_addition':
       applyToolReference(block, available);
       break;
-    case 'mid_conv_system':
-      // A `mid_conv_system` block's content is limited by the API schema to
-      // text / tool_addition / tool_removal, so we walk exactly one level — no recursion.
-      for (const inner of block.content) {
-        if (inner.type === 'tool_removal' || inner.type === 'tool_addition') {
-          applyToolReference(inner, available);
-        }
-      }
-      break;
-    default:
-      // Other and unknown/newer block types leave the set untouched (forward compatibility).
-      break;
   }
 }
 

@@ -21,7 +21,7 @@ export class Agents extends APIResource {
    * ```ts
    * const betaManagedAgentsAgent =
    *   await client.beta.agents.create({
-   *     model: 'claude-sonnet-4-6',
+   *     model: 'claude-opus-5',
    *     name: 'My First Agent',
    *   });
    * ```
@@ -915,7 +915,7 @@ export interface AgentCreateParams {
   /**
    * Body param: Model identifier. Accepts the
    * [model string](https://platform.claude.com/docs/en/about-claude/models/overview#latest-models-comparison),
-   * e.g. `claude-opus-4-6`, or a `model_config` object for additional configuration
+   * e.g. `claude-opus-5`, or a `model_config` object for additional configuration
    * control
    */
   model: BetaManagedAgentsModel | BetaManagedAgentsModelConfigParams;
@@ -1015,7 +1015,7 @@ export interface AgentUpdateParams {
   /**
    * Body param: Model identifier. Accepts the
    * [model string](https://platform.claude.com/docs/en/about-claude/models/overview#latest-models-comparison),
-   * e.g. `claude-opus-4-6`, or a `model_config` object for additional configuration
+   * e.g. `claude-opus-5`, or a `model_config` object for additional configuration
    * control. Omit to preserve. Cannot be cleared.
    */
   model?: BetaManagedAgentsModel | BetaManagedAgentsModelConfigParams;

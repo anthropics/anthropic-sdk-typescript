@@ -568,55 +568,6 @@ describe('ToolRunner', () => {
       await expectDone(iterator);
     });
 
-    it('honors a tool_removal nested one level inside a mid_conv_system block', async () => {
-      const run = jest.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
-      const trackedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run };
-
-      const { runner, handleAssistantMessage } = setupTest({
-        messages: [
-          { role: 'user', content: 'What is the weather?' },
-          {
-            role: 'system',
-            content: [
-              {
-                type: 'mid_conv_system',
-                content: [
-                  { type: 'text', text: 'The weather tool is no longer available.' },
-                  { type: 'tool_removal', tool: { type: 'tool_reference', name: 'getWeather' } },
-                ],
-              },
-            ],
-          },
-        ],
-        tools: [trackedWeatherTool],
-      });
-
-      const iterator = runner[Symbol.asyncIterator]();
-
-      handleAssistantMessage(getWeatherToolUse('SF'));
-      await expectEvent(iterator);
-
-      handleAssistantMessage(getTextContent());
-      await expectEvent(iterator, (message) => {
-        expect(message.content).toMatchObject([getTextContent()]);
-      });
-
-      expect(run).not.toHaveBeenCalled();
-      expect(runner.params.messages[3]).toEqual({
-        role: 'user',
-        content: [
-          {
-            type: 'tool_result',
-            tool_use_id: 'tool_1',
-            content: `Error: Tool 'getWeather' not found`,
-            is_error: true,
-          },
-        ],
-      });
-
-      await expectDone(iterator);
-    });
-
     it('handles tool execution errors', async () => {
       const errorTool: BetaRunnableTool<{ shouldFail: boolean }> = {
         type: 'custom',
