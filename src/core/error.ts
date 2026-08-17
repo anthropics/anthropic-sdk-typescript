@@ -17,12 +17,14 @@ export class APIError<
   readonly error: TError;
 
   readonly requestID: string | null | undefined;
+  readonly workspaceID: string | null | undefined;
 
   constructor(status: TStatus, error: TError, message: string | undefined, headers: THeaders) {
     super(`${APIError.makeMessage(status, error, message)}`);
     this.status = status;
     this.headers = headers;
     this.requestID = headers?.get('request-id');
+    this.workspaceID = headers?.get('anthropic-workspace-id');
     this.error = error;
   }
 
