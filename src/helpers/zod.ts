@@ -15,9 +15,7 @@ import { AutoParseableOutputFormat } from '../lib/parser';
 export function zodOutputFormat<ZodInput extends z.ZodType>(
   zodObject: ZodInput,
 ): AutoParseableOutputFormat<z.infer<ZodInput>> {
-  let jsonSchema = z.toJSONSchema(zodObject, { reused: 'ref' });
-
-  jsonSchema = transformJSONSchema(jsonSchema);
+  const jsonSchema = transformJSONSchema(z.toJSONSchema(zodObject, { reused: 'ref' }));
 
   return {
     type: 'json_schema',

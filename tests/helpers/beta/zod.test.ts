@@ -24,10 +24,11 @@ describe('zod helpers', () => {
         description: 'A test tool',
         input_schema: {
           $schema: 'https://json-schema.org/draft/2020-12/schema',
+          $defs: { __schema0: { type: 'number' } },
           additionalProperties: false,
           properties: {
             age: {
-              type: 'number',
+              $ref: '#/$defs/__schema0',
               description: 'The age of the user',
             },
             name: {
