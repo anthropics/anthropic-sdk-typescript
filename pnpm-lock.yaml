@@ -22,7 +22,7 @@ importers:
         version: 0.18.3
       '@modelcontextprotocol/sdk':
         specifier: ^1.24.2
-        version: 1.24.2(zod@4.1.13)
+        version: 1.24.2(zod@4.4.3)
       '@swc/core':
         specifier: ^1.15.40
         version: 1.15.40
@@ -88,7 +88,7 @@ importers:
         version: 8.31.1(eslint@9.39.1)(typescript@5.8.3)
       zod:
         specifier: ^3.25.0 || ^4.0.0
-        version: 4.1.13
+        version: 4.4.3
 
 packages:
   '@aashutoshrathi/word-wrap@1.2.6':
@@ -3710,10 +3710,10 @@ packages:
     peerDependencies:
       zod: ^3.25 || ^4
 
-  zod@4.1.13:
+  zod@4.4.3:
     resolution:
       {
-        integrity: sha512-AvvthqfqrAhNH9dnfmrfKzX5upOdjUVJYFqNSlkmGf64gRaTzlPwz99IHYnVs28qYAybvAlBV+H7pn0saFY4Ig==,
+        integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==,
       }
 
 snapshots:
@@ -4174,7 +4174,7 @@ snapshots:
     dependencies:
       '@braidai/lang': 1.1.2
 
-  '@modelcontextprotocol/sdk@1.24.2(zod@4.1.13)':
+  '@modelcontextprotocol/sdk@1.24.2(zod@4.4.3)':
     dependencies:
       ajv: 8.17.1
       ajv-formats: 3.0.1(ajv@8.17.1)
@@ -4188,8 +4188,8 @@ snapshots:
       jose: 6.1.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
-      zod: 4.1.13
-      zod-to-json-schema: 3.25.0(zod@4.1.13)
+      zod: 4.4.3
+      zod-to-json-schema: 3.25.0(zod@4.4.3)
     transitivePeerDependencies:
       - supports-color
 
@@ -6108,8 +6108,8 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zod-to-json-schema@3.25.0(zod@4.1.13):
+  zod-to-json-schema@3.25.0(zod@4.4.3):
     dependencies:
-      zod: 4.1.13
+      zod: 4.4.3
 
-  zod@4.1.13: {}
+  zod@4.4.3: {}
