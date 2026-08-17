@@ -7,7 +7,7 @@ import {
   type APIResponseProps,
   type WithRequestID,
   defaultParseResponse,
-  addRequestID,
+  addResponseIDs,
 } from '../internal/parse';
 
 /**
@@ -37,7 +37,7 @@ export class APIPromise<T> extends Promise<WithRequestID<T>> {
 
   _thenUnwrap<U>(transform: (data: T, props: APIResponseProps) => U): APIPromise<U> {
     return new APIPromise(this.#client, this.responsePromise, async (client, props) =>
-      addRequestID(transform(await this.parseResponse(client, props), props), props.response),
+      addResponseIDs(transform(await this.parseResponse(client, props), props), props.response),
     );
   }
 
@@ -68,9 +68,19 @@ export class APIPromise<T> extends Promise<WithRequestID<T>> {
    * Try setting `"moduleResolution": "NodeNext"` or add `"lib": ["DOM"]`
    * to your `tsconfig.json`.
    */
-  async withResponse(): Promise<{ data: T; response: Response; request_id: string | null | undefined }> {
+  async withResponse(): Promise<{
+    data: T;
+    response: Response;
+    request_id: string | null | undefined;
+    workspace_id: string | null | undefined;
+  }> {
     const [data, response] = await Promise.all([this.parse(), this.asResponse()]);
-    return { data, response, request_id: response.headers.get('request-id') };
+    return {
+      data,
+      response,
+      request_id: response.headers.get('request-id'),
+      workspace_id: response.headers.get('anthropic-workspace-id'),
+    };
   }
 
   private parse(): Promise<WithRequestID<T>> {

@@ -12,9 +12,10 @@ describe('request id', () => {
     compareType<Awaited<APIPromise<void>>, void>(true);
     compareType<Awaited<APIPromise<Response>>, Response>(true);
     compareType<Awaited<APIPromise<Response>>, Response>(true);
-    compareType<Awaited<APIPromise<{ foo: string }>>, { foo: string } & { _request_id?: string | null }>(
-      true,
-    );
+    compareType<
+      Awaited<APIPromise<{ foo: string }>>,
+      { foo: string } & { _request_id?: string | null; _workspace_id?: string | null }
+    >(true);
     compareType<Awaited<APIPromise<Array<{ foo: string }>>>, Array<{ foo: string }>>(true);
   });
 
@@ -23,7 +24,11 @@ describe('request id', () => {
       apiKey: 'dummy',
       fetch: async () =>
         new Response(JSON.stringify({ id: 'bar' }), {
-          headers: { 'request-id': 'req_xxx', 'content-type': 'application/json' },
+          headers: {
+            'request-id': 'req_xxx',
+            'anthropic-workspace-id': 'wrkspc_xxx',
+            'content-type': 'application/json',
+          },
         }),
     });
 
@@ -31,11 +36,13 @@ describe('request id', () => {
       data: message,
       response,
       request_id,
+      workspace_id,
     } = await client.messages
       .create({ messages: [], model: 'claude-opus-4-8', max_tokens: 1024 })
       .withResponse();
 
     expect(request_id).toBe('req_xxx');
+    expect(workspace_id).toBe('wrkspc_xxx');
     expect(response.headers.get('request-id')).toBe('req_xxx');
     expect(message.id).toBe('bar');
     expect(JSON.stringify(message)).toBe('{"id":"bar"}');
@@ -46,7 +53,11 @@ describe('request id', () => {
       apiKey: 'dummy',
       fetch: async () =>
         new Response(JSON.stringify({ id: 'bar' }), {
-          headers: { 'request-id': 'req_xxx', 'content-type': 'application/json' },
+          headers: {
+            'request-id': 'req_xxx',
+            'anthropic-workspace-id': 'wrkspc_xxx',
+            'content-type': 'application/json',
+          },
         }),
     });
 
@@ -57,6 +68,7 @@ describe('request id', () => {
     });
     expect(rsp.id).toBe('bar');
     expect(rsp._request_id).toBe('req_xxx');
+    expect(rsp._workspace_id).toBe('wrkspc_xxx');
     expect(JSON.stringify(rsp)).toBe('{"id":"bar"}');
   });
 

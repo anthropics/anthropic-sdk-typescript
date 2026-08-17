@@ -426,6 +426,35 @@ describe('MessageStream class', () => {
     expect(finalMessage.container).toBeNull();
   });
 
+  it('exposes request_id and workspace_id from response headers', async () => {
+    const { fetch, handleRequest } = mockFetch();
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    handleRequest(
+      async () =>
+        new Response(loadFixture('basic_response.txt'), {
+          headers: {
+            'content-type': 'text/event-stream',
+            'request-id': 'req_xxx',
+            'anthropic-workspace-id': 'wrkspc_xxx',
+          },
+        }),
+    );
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'Say hello there!' }],
+    });
+
+    const { request_id, workspace_id } = await stream.withResponse();
+    expect(request_id).toBe('req_xxx');
+    expect(workspace_id).toBe('wrkspc_xxx');
+    expect(stream.request_id).toBe('req_xxx');
+    expect(stream.workspace_id).toBe('wrkspc_xxx');
+    await stream.done();
+  });
+
   it('does not throw unhandled rejection with withResponse()', async () => {
     const { fetch, handleRequest } = mockFetch();
     const anthropic = new Anthropic({
