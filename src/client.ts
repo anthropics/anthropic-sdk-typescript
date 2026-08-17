@@ -1135,7 +1135,7 @@ export class BaseAnthropic {
     }
 
     const specialHeaders = [...response.headers.entries()]
-      .filter(([name]) => name === 'request-id')
+      .filter(([name]) => name === 'request-id' || name === 'anthropic-workspace-id')
       .map(([name, value]) => ', ' + name + ': ' + JSON.stringify(value))
       .join('');
     const responseInfo = `[${requestLogID}${retryLogStr}${specialHeaders}] ${req.method} ${url} ${

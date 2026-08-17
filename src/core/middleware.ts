@@ -1,7 +1,7 @@
 import type { BaseAnthropic } from '../client';
 import type { Fetch } from '../internal/builtin-types';
 import { castToError, isAbortError } from '../internal/errors';
-import { addRequestID } from '../internal/parse';
+import { addResponseIDs } from '../internal/parse';
 import type { FinalRequestOptions } from '../internal/request-options';
 import { defaultLogger, loggerFor, type Logger } from '../internal/utils/log';
 import type { APIRequest } from './api';
@@ -299,7 +299,7 @@ async function parseMiddlewareResponse(
       // if there is no content we can't do anything
       return undefined;
     }
-    return addRequestID(await response.clone().json(), response);
+    return addResponseIDs(await response.clone().json(), response);
   }
 
   return await response.clone().text();

@@ -74,6 +74,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
   #catchingPromiseCreated = false;
   #response: Response | null | undefined;
   #request_id: string | null | undefined;
+  #workspace_id: string | null | undefined;
   #logger: Logger;
 
   constructor(params: MessageCreateParamsBase | null, opts?: { logger?: Logger | undefined }) {
@@ -106,6 +107,10 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
     return this.#request_id;
   }
 
+  get workspace_id(): string | null | undefined {
+    return this.#workspace_id;
+  }
+
   /**
    * Returns the `MessageStream` data, the raw `Response` instance and the ID of the request,
    * returned vie the `request-id` header which is useful for debugging requests and resporting
@@ -120,6 +125,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
     data: BetaMessageStream<ParsedT>;
     response: Response;
     request_id: string | null | undefined;
+    workspace_id: string | null | undefined;
   }> {
     this.#catchingPromiseCreated = true;
 
@@ -132,6 +138,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
       data: this,
       response,
       request_id: response.headers.get('request-id'),
+      workspace_id: response.headers.get('anthropic-workspace-id'),
     };
   }
 
@@ -223,6 +230,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
     if (this.ended) return;
     this.#response = response;
     this.#request_id = response?.headers.get('request-id');
+    this.#workspace_id = response?.headers.get('anthropic-workspace-id');
     this.#resolveConnectedPromise(response);
     this._emit('connect');
   }

@@ -51,7 +51,7 @@ export async function defaultParseResponse<T>(
       }
 
       const json = await response.json();
-      return addRequestID(json as T, response);
+      return addResponseIDs(json as T, response);
     }
 
     const text = await response.text();
@@ -80,16 +80,16 @@ export async function defaultParseResponse<T>(
 
 export type WithRequestID<T> =
   T extends Array<any> | Response | AbstractPage<any> ? T
-  : T extends Record<string, any> ? T & { _request_id?: string | null }
+  : T extends Record<string, any> ? T & { _request_id?: string | null; _workspace_id?: string | null }
   : T;
 
-export function addRequestID<T>(value: T, response: Response): WithRequestID<T> {
+export function addResponseIDs<T>(value: T, response: Response): WithRequestID<T> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return value as WithRequestID<T>;
   }
 
-  return Object.defineProperty(value, '_request_id', {
-    value: response.headers.get('request-id'),
-    enumerable: false,
+  return Object.defineProperties(value, {
+    _request_id: { value: response.headers.get('request-id'), enumerable: false },
+    _workspace_id: { value: response.headers.get('anthropic-workspace-id'), enumerable: false },
   }) as WithRequestID<T>;
 }
