@@ -525,7 +525,8 @@ export interface EnvironmentUpdateParams {
   config?: BetaCloudConfigParams | BetaSelfHostedConfigParams | null;
 
   /**
-   * Body param: Updated description of the environment
+   * Body param: Updated description of the environment. Omit to preserve; null
+   * clears to null; an empty string is stored as an empty string.
    */
   description?: string | null;
 

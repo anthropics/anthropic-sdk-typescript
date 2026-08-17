@@ -106,6 +106,7 @@ describe('resource files', () => {
   test('upload: required and optional params', async () => {
     const response = await client.beta.files.upload({
       file: await toFile(Buffer.from('Example data'), 'README.md'),
+      expires_in_seconds: 3600,
       betas: ['message-batches-2024-09-24'],
     });
   });

@@ -117,7 +117,8 @@ export type BetaManagedAgentsMemoryVersionsPageCursor = PageCursor<BetaManagedAg
 export type BetaManagedAgentsActor =
   | BetaManagedAgentsSessionActor
   | BetaManagedAgentsAPIActor
-  | BetaManagedAgentsUserActor;
+  | BetaManagedAgentsUserActor
+  | BetaManagedAgentsServiceAccountActor;
 
 /**
  * Attribution for a write made directly via the public API (outside of any
@@ -229,6 +230,19 @@ export interface BetaManagedAgentsMemoryVersion {
 export type BetaManagedAgentsMemoryVersionOperation = 'created' | 'modified' | 'deleted';
 
 /**
+ * Attribution for a write made by a workload authenticated as a service account,
+ * for example via Workload Identity Federation.
+ */
+export interface BetaManagedAgentsServiceAccountActor {
+  /**
+   * ID of the service account that performed the write (a `svac_...` value).
+   */
+  service_account_id: string;
+
+  type: 'service_account_actor';
+}
+
+/**
  * Attribution for a write made by an agent during a session, through the mounted
  * filesystem at `/mnt/memory/`.
  */
@@ -299,6 +313,11 @@ export interface MemoryVersionListParams extends PageCursorParams {
   operation?: BetaManagedAgentsMemoryVersionOperation;
 
   /**
+   * Query param: Query parameter for service_account_id
+   */
+  service_account_id?: string;
+
+  /**
    * Query param: Query parameter for session_id
    */
   session_id?: string;
@@ -332,6 +351,7 @@ export declare namespace MemoryVersions {
     type BetaManagedAgentsAPIActor as BetaManagedAgentsAPIActor,
     type BetaManagedAgentsMemoryVersion as BetaManagedAgentsMemoryVersion,
     type BetaManagedAgentsMemoryVersionOperation as BetaManagedAgentsMemoryVersionOperation,
+    type BetaManagedAgentsServiceAccountActor as BetaManagedAgentsServiceAccountActor,
     type BetaManagedAgentsSessionActor as BetaManagedAgentsSessionActor,
     type BetaManagedAgentsUserActor as BetaManagedAgentsUserActor,
     type BetaManagedAgentsMemoryVersionsPageCursor as BetaManagedAgentsMemoryVersionsPageCursor,

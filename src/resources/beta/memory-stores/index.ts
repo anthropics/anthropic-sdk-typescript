@@ -38,6 +38,7 @@ export {
   type BetaManagedAgentsAPIActor,
   type BetaManagedAgentsMemoryVersion,
   type BetaManagedAgentsMemoryVersionOperation,
+  type BetaManagedAgentsServiceAccountActor,
   type BetaManagedAgentsSessionActor,
   type BetaManagedAgentsUserActor,
   type MemoryVersionRetrieveParams,

@@ -55,6 +55,7 @@ describe('resource memoryVersions', () => {
           memory_id: 'memory_id',
           operation: 'created',
           page: 'page',
+          service_account_id: 'service_account_id',
           session_id: 'session_id',
           view: 'basic',
           betas: ['message-batches-2024-09-24'],
