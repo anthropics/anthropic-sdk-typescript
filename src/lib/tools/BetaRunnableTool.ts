@@ -22,10 +22,7 @@ import { ToolError } from './ToolError';
 
 export type Promisable<T> = T | Promise<T>;
 
-/**
- * Tool types that can be implemented on the client.
- * Excludes server-side tools like code execution, web search, and MCP toolsets.
- */
+/** Tools that run on the client. Server-side tools (code execution, web search, MCP toolsets) are not included. */
 export type BetaClientRunnableToolType =
   | BetaTool
   | BetaMemoryTool20250818
@@ -40,15 +37,9 @@ export type BetaClientRunnableToolType =
   | BetaToolTextEditor20250728;
 
 /**
- * The tool-use that triggered a {@link BetaRunnableTool.run}:
- *
- * - from `client.beta.messages.toolRunner`, a Messages `tool_use` content block;
- * - from `client.beta.sessions.events.toolRunner`, the `agent.tool_use` /
- *   `agent.custom_tool_use` session event.
- *
- * The shapes overlap on the common fields (`id`, `name`, `input`), so code that
- * only reads those works without narrowing; narrow on the shape (e.g. `'type' in
- * x`) when you need surface-specific properties.
+ * The tool call being served: a Messages `tool_use` block, or a session
+ * `agent.tool_use` / `agent.custom_tool_use` event. All three carry `id`,
+ * `name` and `input`.
  */
 export type BetaToolUse =
   | BetaToolUseBlock
@@ -56,65 +47,50 @@ export type BetaToolUse =
   | BetaManagedAgentsAgentCustomToolUseEvent;
 
 export type BetaToolRunContext = {
-  /** The tool-use that triggered this run. See {@link BetaToolUse}. */
   toolUse: BetaToolUse;
-  /**
-   * @deprecated Renamed to `toolUse`. Also note that for
-   * `client.beta.sessions.events.toolRunner` this is the `agent.tool_use` /
-   * `agent.custom_tool_use` *event*, not a Messages content block, despite the
-   * name — which is why it was renamed.
-   */
+  /** @deprecated Use `toolUse`. */
   toolUseBlock: BetaToolUse;
+  /**
+   * Aborted when the runner is aborted or, in the session runner, when the
+   * per-tool timeout fires. The runner still waits for `run` to return, so
+   * check it in long-running work.
+   */
   signal?: AbortSignal | null | undefined;
 };
 
-// this type is just an extension of BetaTool with a run and parse method
-// that will be called by `toolRunner()` helpers
+/** A tool definition plus the `run` and `parse` the tool runners call. */
 export type BetaRunnableTool<Input = any> = BetaClientRunnableToolType & {
+  /**
+   * Runs on the event loop: a body that blocks synchronously stalls the runner
+   * and, in an `EnvironmentWorker`, the lease heartbeat. Await async work or
+   * move it to a worker thread.
+   */
   run: (
     args: Input,
     context?: BetaToolRunContext,
   ) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
   parse: (content: unknown) => Input;
-  /**
-   * Optional cleanup hook for tools that hold process-level resources (e.g. a
-   * persistent shell). `SessionToolRunner` (`client.beta.sessions.events.toolRunner`)
-   * calls it once when iteration ends.
-   */
+  /** Called once by the session runner when it stops. Release held resources here (e.g. a shell). */
   close?: () => Promisable<void>;
 };
 
-/**
- * Resolve the registry key for a tool — the name the model addresses it by.
- * MCP toolsets are keyed on `mcp_server_name`; every other tool on `name`.
- * Shared so the tool-name lookup is identical across `toolRunner()` surfaces.
- */
+/** The name the model calls a tool by: `mcp_server_name` for MCP toolsets, `name` for everything else. */
 export function toolName(tool: BetaToolUnion | BetaRunnableTool): string {
   return 'name' in tool ? tool.name : tool.mcp_server_name;
 }
 
-/**
- * Format a thrown value into tool-result content: a {@link ToolError} carries
- * its own structured content, anything else becomes an `Error: <message>`
- * string. Shared so every `toolRunner()` surface reports tool failures the
- * same way to the model.
- */
+/** Tool-result content for a thrown value: a {@link ToolError}'s own content, otherwise `Error: <message>`. */
 export function toolErrorContent(e: unknown): string | Array<BetaToolResultContentBlockParam> {
   return e instanceof ToolError ? e.content : `Error: ${e instanceof Error ? e.message : String(e)}`;
 }
 
-/** Outcome of {@link runRunnableTool}: the content to post back and whether it is an error. */
+/** What a tool run produced, and whether it failed. */
 export interface RunnableToolOutcome {
   content: string | Array<BetaToolResultContentBlockParam>;
   isError: boolean;
 }
 
-/**
- * Run a {@link BetaRunnableTool} end-to-end: parse the raw input, invoke `run`,
- * and format any thrown value via {@link toolErrorContent}. Shared so the
- * parse → run → catch → format pipeline is identical across `toolRunner()`
- * surfaces.
- */
+/** Parse the input, run the tool, and turn anything thrown into an error result. */
 export async function runRunnableTool(
   tool: BetaRunnableTool,
   rawInput: unknown,

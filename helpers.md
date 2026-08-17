@@ -562,6 +562,8 @@ const tools = betaAgentToolset20260401(ctx).filter((t) => t.name !== 'grep'); //
 const tools = [...betaAgentToolset20260401(ctx), myCustomTool]; // extend with any BetaRunnableTool
 ```
 
+> **Keep custom tools non-blocking.** The worker renews the work-item lease on the same event loop that runs your tools, so a `run` that blocks synchronously (a CPU-bound loop, `fs.readFileSync`, `execSync`) stops the heartbeat and can cost the worker its lease. Await async APIs instead, or move CPU-heavy work to a `worker_threads` worker or child process. The built-in `agent_toolset_20260401` tools are already async.
+
 If you want the pieces separately — e.g. to observe each tool call, or to manage the work lifecycle yourself — drive the poller and the session tool runner directly:
 
 ```ts
