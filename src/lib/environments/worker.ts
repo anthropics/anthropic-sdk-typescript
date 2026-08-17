@@ -52,6 +52,10 @@ export interface EnvironmentWorkerOptions {
    * Tools to expose to each claimed session. Defaults to
    * `betaAgentToolset20260401(ctx)` (the standard `agent_toolset_20260401` set
    * bound to the per-session {@link AgentToolContext}).
+   *
+   * A `run` that blocks the event loop synchronously also stalls the lease
+   * heartbeat, and the worker can lose the lease; keep tools non-blocking (see
+   * {@link BetaRunnableTool.run}).
    */
   tools?: EnvironmentWorkerTools;
   /** Base directory for the per-session {@link AgentToolContext}. Defaults to `process.cwd()`. */
@@ -110,10 +114,10 @@ type ClaimedWork = Pick<BetaSelfHostedWork, 'id' | 'environment_id' | 'data'>;
  * For each claimed `session` work item it: builds the per-session
  * {@link AgentToolContext}, downloads the session agent's skills
  * (`setupSkills`), then runs a {@link SessionToolRunner} for the session
- * *while* heartbeating the work-item lease in parallel; on exit it force-stops
- * the work item, cleans up the downloaded skills, and loops to the next one. The
- * lease heartbeat reports `state === "stopping"` / a lost lease back into the run
- * by aborting the session runner.
+ * while heartbeating the work-item lease on the same event loop; on exit it
+ * force-stops the work item, cleans up the downloaded skills, and loops to the
+ * next one. The lease heartbeat reports `state === "stopping"` / a lost lease
+ * back into the run by aborting the session runner.
  *
  * Use {@link EnvironmentWorker.handleItem} if you already hold a claimed work
  * item (e.g. a `worker poll --on-work` script handed one to a fresh process) and
@@ -196,8 +200,8 @@ export class EnvironmentWorker {
    * per-session {@link AgentToolContext} (workdir from this worker's options),
    * download the session agent's skills (`setupSkills`), run a
    * {@link SessionToolRunner} for the session while heartbeating the work-item
-   * lease in parallel, and force-stop the work item on exit (whether the runner
-   * finishes normally, throws, or the heartbeat loop signals shutdown).
+   * lease, and force-stop the work item on exit (whether the runner finishes
+   * normally, throws, or the heartbeat loop signals shutdown).
    *
    * Use this when something else does the claiming — e.g. a `worker poll
    * --on-work` script that hands an already-claimed item to a fresh process. The
