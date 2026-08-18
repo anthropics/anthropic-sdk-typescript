@@ -366,6 +366,72 @@ describe('SessionToolRunner', () => {
     expect(out[0]!.isError).toBe(false);
   });
 
+  describe('send retries (fake timers)', () => {
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => jest.useRealTimers());
+
+    /** Start a runner whose first `failures` sends fail transiently; the consumer runs in the background. */
+    function startFailingSend(failures: number) {
+      const transient = Object.assign(Object.create(APIError.prototype) as APIError, { status: 503 });
+      const { client, calls } = makeFake({
+        streams: [[toolUse('tu_1', 't'), TERMINATED]],
+        sendErrors: Array.from({ length: failures }, (_, at) => ({ at, err: transient })),
+      });
+      const runner = new SessionToolRunner('s', { client, tools: [makeOkTool('t', 'ok')], maxIdleMs: 0 });
+      const out: DispatchedToolCall[] = [];
+      const consumer = (async () => {
+        for await (const c of runner) out.push(c);
+      })();
+      return { runner, calls, out, consumer };
+    }
+
+    test('keeps retrying a transiently failing send past three attempts until it lands', async () => {
+      const { calls, out, consumer } = startFailingSend(5);
+
+      await jest.advanceTimersByTimeAsync(60_000);
+      await consumer;
+
+      expect(calls.send).toHaveLength(6);
+      expect(out).toHaveLength(1);
+      expect(out[0]!.posted).toBe(true);
+    });
+
+    test('posted=false once the send retry window is exhausted', async () => {
+      const { calls, out, consumer } = startFailingSend(1_000);
+
+      // Still retrying well past the old three-attempt / ~3s budget.
+      await jest.advanceTimersByTimeAsync(4 * 60_000);
+      expect(out).toHaveLength(0);
+      expect(calls.send.length).toBeGreaterThan(3);
+
+      // The window (>= the 300s work-item lease TTL) elapses; the call surfaces unposted.
+      await jest.advanceTimersByTimeAsync(2 * 60_000);
+      await consumer;
+
+      expect(out).toHaveLength(1);
+      expect(out[0]!.posted).toBe(false);
+      expect(out[0]!.isError).toBe(false);
+    });
+
+    test('a send retry window update bounds a send that is already retrying', async () => {
+      const { runner, calls, out, consumer } = startFailingSend(1_000);
+
+      await jest.advanceTimersByTimeAsync(20_000);
+      expect(out).toHaveLength(0);
+      const attemptsBefore = calls.send.length;
+
+      // e.g. the enclosing worker's heartbeat reported a 10s lease TTL.
+      runner._setSendRetryWindow(10_000);
+      await jest.advanceTimersByTimeAsync(40_000);
+      await consumer;
+
+      expect(out).toHaveLength(1);
+      expect(out[0]!.posted).toBe(false);
+      // At most the attempt that was already scheduled when the window shrank.
+      expect(calls.send.length).toBeLessThanOrEqual(attemptsBefore + 1);
+    });
+  });
+
   test('throws when iterated twice', async () => {
     const { client } = makeFake({ streams: [[TERMINATED]] });
     const runner = new SessionToolRunner('s', { client, tools: [], maxIdleMs: 0 });

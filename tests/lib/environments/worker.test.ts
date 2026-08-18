@@ -37,6 +37,8 @@ function makeFake(opts: {
   sessionStream: AnyEvent[];
   /** Script the lease heartbeat per call (1-based); defaults to a healthy 60 s lease. */
   heartbeat?: (call: number, options?: { signal?: AbortSignal }) => Promise<HeartbeatResponse>;
+  /** Script `events.send` per call (1-based); defaults to success. */
+  send?: (call: number) => Promise<unknown>;
 }) {
   const calls: WorkerCalls = {
     poll: 0,
@@ -122,6 +124,7 @@ function makeFake(opts: {
           send: (_sessionId: string, body: { events: AnyEvent[] }, options?: unknown) => {
             calls.send.push(body.events);
             calls.opts['send']!.push(options);
+            if (opts.send) return opts.send(calls.send.length);
             return Promise.resolve({});
           },
           stream: (_sessionId: string, _params: unknown, options?: { signal?: AbortSignal }) => {
@@ -349,6 +352,31 @@ describe('EnvironmentWorker', () => {
       expect(calls.logs).toContainEqual(['error', 'lease assumed lost: no successful heartbeat in ttl']);
       expect(calls.stop.some((s) => s.force === true)).toBe(true);
       expect(elapsedMs).toBeLessThan(8_000);
+    }, 10_000);
+
+    test('the lease ttl bounds how long a failing tool-result send is retried', async () => {
+      // The send never succeeds. The stream only reaches TERMINATED once the
+      // send gives up, so under the runner's standalone 5-minute window this
+      // would hang; the 1s ttl the heartbeat reports must cut it short.
+      const { client, calls, signal } = makeFake({
+        sessionStream: [{ type: 'agent.tool_use', id: 'tu_1', name: 'echo', input: {} }, TERMINATED],
+        heartbeat: (call) => healthy(call, 1),
+        send: () => Promise.reject(apiError(503)),
+      });
+      const started = Date.now();
+      await new EnvironmentWorker({
+        client,
+        environmentId: 'env_1',
+        environmentKey: 'env_key',
+        tools: [okTool('echo')],
+        workdir: '/tmp',
+        maxIdleMs: 0,
+        signal,
+      }).run();
+      expect(calls.send.length).toBeGreaterThanOrEqual(2);
+      expect(calls.logs).toContainEqual(['error', 'failed to send tool result']);
+      expect(calls.stop.some((s) => s.force === true)).toBe(true);
+      expect(Date.now() - started).toBeLessThan(5_000);
     }, 10_000);
 
     test('a 401 is permanent: the session is cancelled on the first failure', async () => {
