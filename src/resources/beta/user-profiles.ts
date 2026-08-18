@@ -24,7 +24,7 @@ export class UserProfiles extends APIResource {
       body,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-03-24'].toString() },
+        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-08-18'].toString() },
         options?.headers,
       ]),
     });
@@ -50,7 +50,7 @@ export class UserProfiles extends APIResource {
     return this._client.get(path`/v1/user_profiles/${userProfileID}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-03-24'].toString() },
+        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-08-18'].toString() },
         options?.headers,
       ]),
     });
@@ -77,7 +77,7 @@ export class UserProfiles extends APIResource {
       body,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-03-24'].toString() },
+        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-08-18'].toString() },
         options?.headers,
       ]),
     });
@@ -103,7 +103,7 @@ export class UserProfiles extends APIResource {
       query,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-03-24'].toString() },
+        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-08-18'].toString() },
         options?.headers,
       ]),
     });
@@ -129,7 +129,7 @@ export class UserProfiles extends APIResource {
     return this._client.post(path`/v1/user_profiles/${userProfileID}/enrollment_url?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-03-24'].toString() },
+        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-08-18'].toString() },
         options?.headers,
       ]),
     });
@@ -156,13 +156,6 @@ export interface BetaUserProfile {
   metadata: { [key: string]: string };
 
   /**
-   * How the entity behind a user profile relates to the platform that owns the API
-   * key. `external`: an individual end-user of the platform. `resold`: a company the
-   * platform resells Claude access to. `internal`: the platform's own usage.
-   */
-  relationship: 'external' | 'resold' | 'internal';
-
-  /**
    * Trust grants for this profile, keyed by grant name. Key omitted when no grant is
    * active or in flight.
    */
@@ -179,15 +172,32 @@ export interface BetaUserProfile {
   updated_at: string;
 
   /**
+   * How the platform uses the API on behalf of the entity this profile represents.
+   * `application`: the platform sells a product that uses the API behind the scenes,
+   * and the profile represents an individual end-user of that product.
+   * `passthrough`: the platform resells raw inference, and the profile identifies
+   * the resold-to company.
+   */
+  access_type?: 'application' | 'passthrough';
+
+  /**
    * Platform's own identifier for this user. Not enforced unique.
    */
   external_id?: string | null;
 
   /**
    * Real-world name of the entity this profile represents (company or individual).
-   * For `resold` this is the resold-to company's name.
+   * For a resold-to company (`access_type` `passthrough`, or `relationship` `resold`
+   * under the `user-profiles-2026-03-24` header) this is that company's name.
    */
   name?: string | null;
+
+  /**
+   * How the entity behind a user profile relates to the platform that owns the API
+   * key. `external`: an individual end-user of the platform. `resold`: a company the
+   * platform resells Claude access to. `internal`: the platform's own usage.
+   */
+  relationship?: 'external' | 'resold' | 'internal';
 }
 
 export interface BetaUserProfileEnrollmentURL {
@@ -216,6 +226,15 @@ export interface BetaUserProfileTrustGrant {
 
 export interface UserProfileCreateParams {
   /**
+   * Body param: How the platform uses the API on behalf of the entity this profile
+   * represents. `application`: the platform sells a product that uses the API behind
+   * the scenes, and the profile represents an individual end-user of that product.
+   * `passthrough`: the platform resells raw inference, and the profile identifies
+   * the resold-to company.
+   */
+  access_type?: 'application' | 'passthrough';
+
+  /**
    * Body param: Platform's own identifier for this user. Not enforced unique.
    * Maximum 255 characters.
    */
@@ -230,8 +249,9 @@ export interface UserProfileCreateParams {
 
   /**
    * Body param: Optional for all profiles. Real-world name of the entity this
-   * profile represents (company or individual); for `resold` profiles, the resold-to
-   * company's name where known. Maximum 255 characters.
+   * profile represents (company or individual); for a resold-to company
+   * (`relationship` `resold` / `access_type` `passthrough`), that company's name
+   * where known. Maximum 255 characters.
    */
   name?: string | null;
 
@@ -257,6 +277,15 @@ export interface UserProfileRetrieveParams {
 }
 
 export interface UserProfileUpdateParams {
+  /**
+   * Body param: How the platform uses the API on behalf of the entity this profile
+   * represents. `application`: the platform sells a product that uses the API behind
+   * the scenes, and the profile represents an individual end-user of that product.
+   * `passthrough`: the platform resells raw inference, and the profile identifies
+   * the resold-to company.
+   */
+  access_type?: 'application' | 'passthrough' | null;
+
   /**
    * Body param: If present, replaces the stored external_id. Omit to leave
    * unchanged. Maximum 255 characters.
