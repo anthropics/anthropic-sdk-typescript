@@ -1,6 +1,7 @@
 import { transformJSONSchema } from '../..//lib/transform-json-schema';
 import * as z from 'zod/v4';
 import { AnthropicError } from '../../core/error';
+import { assertZodV4Schema } from '../../lib/check-zod-version';
 import { AutoParseableBetaOutputFormat } from '../../lib/beta-parser';
 import { BetaRunnableTool, BetaToolRunContext, Promisable } from '../../lib/tools/BetaRunnableTool';
 import { BetaToolResultContentBlockParam } from '../../resources/beta';
@@ -16,6 +17,7 @@ import { BetaToolResultContentBlockParam } from '../../resources/beta';
 export function betaZodOutputFormat<ZodInput extends z.ZodType>(
   zodObject: ZodInput,
 ): AutoParseableBetaOutputFormat<z.infer<ZodInput>> {
+  assertZodV4Schema(zodObject, 'betaZodOutputFormat');
   let jsonSchema = z.toJSONSchema(zodObject, { reused: 'ref' });
 
   jsonSchema = transformJSONSchema(jsonSchema);
@@ -60,6 +62,7 @@ export function betaZodTool<InputSchema extends z.ZodType>(options: {
    */
   close?: () => void | Promise<void>;
 }): BetaRunnableTool<z.infer<InputSchema>> {
+  assertZodV4Schema(options.inputSchema, 'betaZodTool');
   const jsonSchema = z.toJSONSchema(options.inputSchema, { reused: 'ref' });
 
   if (jsonSchema.type !== 'object') {
