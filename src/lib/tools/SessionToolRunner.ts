@@ -11,7 +11,7 @@ import type {
 import type { BetaToolResultContentBlockParam } from '../../resources/beta';
 import { loggerFor, type Logger } from '../../internal/utils/log';
 import { sleep } from '../../internal/utils/sleep';
-import { isFatal4xx } from '../../internal/utils/backoff';
+import { applyJitter, backoff, isFatal4xx } from '../../internal/utils/backoff';
 import { linkAbort } from '../../internal/utils/abort';
 import { AsyncQueue } from '../../internal/utils/async-queue';
 import { buildHeaders } from '../../internal/headers';
@@ -27,7 +27,16 @@ const STREAM_BACKOFF_START_MS = 500;
 const STREAM_BACKOFF_CAP_MS = 10_000;
 const TOOL_TIMEOUT_MS = 120_000;
 const DRAIN_TIMEOUT_MS = 30_000;
-const SEND_RETRIES = 3;
+const SEND_BACKOFF_START_MS = 1_000;
+const SEND_BACKOFF_CAP_MS = 30_000;
+/**
+ * How long a transiently failing tool-result send keeps retrying when the
+ * runner is used on its own: the server's default work-item lease TTL.
+ * `EnvironmentWorker` overrides it with the live TTL from each lease heartbeat
+ * (`_setSendRetryWindow`), so a send is only abandoned once the lease can no
+ * longer be ours.
+ */
+const SEND_RETRY_WINDOW_MS = 5 * 60_000;
 
 /** Block type accepted in a `user.tool_result` event's content — codegen'd, stays in sync with the API. */
 type SessionContentBlock = NonNullable<BetaManagedAgentsUserToolResultEventParams['content']>[number];
@@ -310,6 +319,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
   readonly #awaitingConfirmation = new Map<string, DispatchedToolUseEvent>();
   readonly #results = new AsyncQueue<DispatchedToolCall>();
   #inFlightCount = 0;
+  #sendRetryWindowMs = SEND_RETRY_WINDOW_MS;
   #onIdle: (() => void) | null = null;
   readonly #idleClock: IdleClock;
 
@@ -341,6 +351,15 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
   /** Abort the runner. Background tasks will wind down and `for await` will exit cleanly. */
   abort(): void {
     this.#controller.abort();
+  }
+
+  /**
+   * @internal
+   * `EnvironmentWorker` keeps this equal to the lease TTL each heartbeat
+   * reports; applies to a send already retrying.
+   */
+  _setSendRetryWindow(ms: number): void {
+    this.#sendRetryWindowMs = ms;
   }
 
   async *[Symbol.asyncIterator](): AsyncIterator<DispatchedToolCall> {
@@ -764,8 +783,11 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
 
   async #sendResult(result: DispatchedToolResultParams, toolUseId: string): Promise<boolean> {
     const ctrl = this.#controller;
+    const start = Date.now();
     let lastErr: unknown;
-    for (let i = 0; i < SEND_RETRIES; i++) {
+    let attempt = 0;
+    while (true) {
+      attempt++;
       // An abort throws to unwind the caller rather than returning a
       // `posted: false` result the iterator would carry on past.
       ctrl.signal.throwIfAborted();
@@ -782,13 +804,24 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
         // Only short-circuit on a permanent 4xx; 408/409/429 deserve the
         // remaining retries (aligned with the core client's retry policy).
         if (isFatal4xx(e)) break;
-        // Back off only *between* attempts — never after the final one, since
-        // there is no further try left to wait for.
-        if (i < SEND_RETRIES - 1) await sleep((i + 1) * 1000, ctrl.signal);
+        const remainingMs = this.#sendRetryWindowMs - (Date.now() - start);
+        if (remainingMs <= 0) break;
+        const waitMs = Math.min(
+          applyJitter(backoff(attempt - 1, SEND_BACKOFF_START_MS, SEND_BACKOFF_CAP_MS)),
+          remainingMs,
+        );
+        this.#logger.warn('tool result send failed; retrying', {
+          tool_use_id: toolUseId,
+          attempt,
+          backoff_ms: waitMs,
+          error: String(e),
+        });
+        await sleep(waitMs, ctrl.signal);
       }
     }
     this.#logger.error('failed to send tool result', {
       tool_use_id: toolUseId,
+      attempts: attempt,
       error: String(lastErr),
     });
     return false;

@@ -297,19 +297,26 @@ export class EnvironmentWorker {
     const ctrl = new AbortController();
     const detachExternal = linkAbort(externalSignal, ctrl);
 
-    const heartbeatPromise = heartbeatLoop(sessionClient, work, ctrl, log, this.requestOptions).catch((e) => {
+    // Inert until iterated below.
+    const runner = new SessionToolRunner(sessionId, {
+      client: sessionClient,
+      tools,
+      ...(this.maxIdleMs !== undefined ? { maxIdleMs: this.maxIdleMs } : {}),
+      ...(this.requestOptions !== undefined ? { requestOptions: this.requestOptions } : {}),
+      signal: ctrl.signal,
+    });
+
+    // Each heartbeat reports the lease TTL the server is enforcing; it becomes
+    // the runner's tool-result send retry window so a send keeps retrying
+    // exactly as long as the lease could still be live.
+    const heartbeatPromise = heartbeatLoop(sessionClient, work, ctrl, log, this.requestOptions, (ttlMs) =>
+      runner._setSendRetryWindow(ttlMs),
+    ).catch((e) => {
       if (!ctrl.signal.aborted) log.error('heartbeat loop failed', { work_id: work.id, error: String(e) });
       ctrl.abort();
     });
 
     try {
-      const runner = new SessionToolRunner(sessionId, {
-        client: sessionClient,
-        tools,
-        ...(this.maxIdleMs !== undefined ? { maxIdleMs: this.maxIdleMs } : {}),
-        ...(this.requestOptions !== undefined ? { requestOptions: this.requestOptions } : {}),
-        signal: ctrl.signal,
-      });
       for await (const _ of runner) {
         // Drive the runner to completion; per-call observability is not part
         // of this composition's surface — use `SessionToolRunner` directly
@@ -364,6 +371,8 @@ async function heartbeatLoop(
   ctrl: AbortController,
   logger: Logger,
   requestOptions?: BetaToolRunnerRequestOptions,
+  /** Called with the server-reported lease TTL after every successful beat. */
+  onLeaseTtl?: (ttlMs: number) => void,
 ): Promise<void> {
   let intervalMs = HEARTBEAT_DEFAULT_MS;
   let ttlMs = HEARTBEAT_TTL_DEFAULT_MS;
@@ -386,6 +395,7 @@ async function heartbeatLoop(
       if (resp.ttl_seconds > 0) {
         ttlMs = resp.ttl_seconds * 1000;
         intervalMs = Math.max(1_000, Math.min(ttlMs / 2, HEARTBEAT_DEFAULT_MS));
+        onLeaseTtl?.(ttlMs);
       }
       if (resp.state === 'stopping' || resp.state === 'stopped') {
         logger.info('heartbeat signals shutdown', { work_id: work.id, state: resp.state });
