@@ -219,13 +219,6 @@ export interface FileMetadata {
   downloadable?: boolean;
 
   /**
-   * RFC 3339 datetime string representing when the file will expire and become
-   * unavailable for download. Null if the file does not expire. For files uploaded
-   * with `expires_in_seconds`, this is the upload time plus that value.
-   */
-  expires_at?: string | null;
-
-  /**
    * The scope of this file, indicating the context in which it was created (e.g., a
    * session).
    */
@@ -271,13 +264,6 @@ export interface FileUploadParams {
    * Body param: The file to upload
    */
   file: Uploadable;
-
-  /**
-   * Body param: Seconds from upload until the file expires and its bytes become
-   * permanently unavailable. Must be between 3600 (one hour) and 7776000 (ninety
-   * days).
-   */
-  expires_in_seconds?: number;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
