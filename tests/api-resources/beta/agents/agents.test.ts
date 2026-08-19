@@ -50,6 +50,7 @@ describe('resource agents', () => {
               name: 'bash',
               enabled: true,
               permission_policy: { type: 'always_allow' },
+              type: 'bash',
             },
           ],
           default_config: {

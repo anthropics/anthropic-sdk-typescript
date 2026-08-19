@@ -46,6 +46,18 @@ describe('tools/agent-toolset/node.browser', () => {
     expect(() => stubToolset.setupSkills(ctx)).toThrow('setupSkills requires Node.js');
     expect(() => stubToolset.betaBashTool(ctx)).toThrow('betaBashTool requires Node.js');
     expect(() => new stubToolset.BashSession('/tmp')).toThrow('BashSession requires Node.js');
+    expect(() => new stubToolset.SessionMemoryStores(null as never, { workdir: '/tmp' })).toThrow(
+      'SessionMemoryStores requires Node.js or a Node-compatible runtime',
+    );
+  });
+
+  it('duplicates the memory sync interval literal exactly', () => {
+    // The stub cannot re-export the value (that would pull Node built-ins into
+    // browser bundles), so it duplicates the literal — pin them together.
+    expect(stubToolset.DEFAULT_MEMORY_SYNC_INTERVAL_MS).toBe(realToolset.DEFAULT_MEMORY_SYNC_INTERVAL_MS);
+    expect(stubToolset.MIN_MEMORY_SYNC_INTERVAL_MS).toBe(realToolset.MIN_MEMORY_SYNC_INTERVAL_MS);
+    expect(stubToolset.MARKER_PATH).toBe(realToolset.MARKER_PATH);
+    expect(stubToolset.MEMORY_FLUSH_TIMEOUT_MS).toBe(realToolset.MEMORY_FLUSH_TIMEOUT_MS);
   });
 });
 

@@ -4,8 +4,10 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import * as zlib from 'node:zlib';
 import { execFileSync } from 'node:child_process';
-import { extractSkillArchive } from '@anthropic-ai/sdk/tools/agent-toolset/node';
+import { extractSkillArchive, setupSkills } from '@anthropic-ai/sdk/tools/agent-toolset/node';
 import { assertOnlyPlainEntries, classifyArchiveListing } from '@anthropic-ai/sdk/tools/agent-toolset/skills';
+import type { Anthropic } from '@anthropic-ai/sdk/client';
+import type { BetaManagedAgentsSession } from '@anthropic-ai/sdk/resources/beta/sessions/sessions';
 
 const testPosix = process.platform === 'win32' ? test.skip : test;
 
@@ -493,5 +495,64 @@ describe('assertOnlyPlainEntries', () => {
   testPosix('rejects a fifo', async () => {
     execFileSync('mkfifo', [path.join(root, 'd', 'pipe')]);
     await expect(assertOnlyPlainEntries(root)).rejects.toThrow(/listing is inconsistent/);
+  });
+});
+
+/**
+ * `setupSkills` prefers the already-fetched session. `sessionId` is the
+ * deprecated back-compat path: it still works, it warns, and it costs the
+ * extra `sessions.retrieve` the warning names.
+ */
+describe('setupSkills session resolution', () => {
+  function fakeClient(): { client: Anthropic; retrieves: string[]; logs: string[] } {
+    const retrieves: string[] = [];
+    const logs: string[] = [];
+    const logAll = (...args: unknown[]) => logs.push(args.map((a) => JSON.stringify(a)).join(' '));
+    const client = {
+      logger: { error: logAll, warn: logAll, info: logAll, debug: logAll },
+      logLevel: 'debug',
+      beta: {
+        sessions: {
+          retrieve: async (sessionId: string) => {
+            retrieves.push(sessionId);
+            return { agent: { skills: [] } };
+          },
+        },
+      },
+    };
+    return { client: client as never, retrieves, logs };
+  }
+
+  const session = { agent: { skills: [] } } as unknown as BetaManagedAgentsSession;
+
+  it('is a no-op without a client, or with neither session nor sessionId', async () => {
+    const { retrieves } = fakeClient();
+    await setupSkills({ workdir: '/tmp', session });
+    const { client, retrieves: r2 } = fakeClient();
+    await setupSkills({ workdir: '/tmp', client });
+    expect(retrieves).toEqual([]);
+    expect(r2).toEqual([]);
+  });
+
+  it('uses ctx.session without fetching, and says nothing', async () => {
+    const { client, retrieves, logs } = fakeClient();
+    await setupSkills({ workdir: '/tmp', client, session });
+    expect(retrieves).toEqual([]);
+    expect(logs.join('\n')).not.toContain('deprecated');
+  });
+
+  it('fetches for the deprecated sessionId, warning about the extra round trip', async () => {
+    const { client, retrieves, logs } = fakeClient();
+    await setupSkills({ workdir: '/tmp', client, sessionId: 's1' });
+    expect(retrieves).toEqual(['s1']);
+    expect(logs.join('\n')).toContain('sessionId is deprecated');
+    expect(logs.join('\n')).toContain('extra session fetch');
+  });
+
+  it('prefers session over sessionId, and never fetches', async () => {
+    const { client, retrieves, logs } = fakeClient();
+    await setupSkills({ workdir: '/tmp', client, session, sessionId: 's1' });
+    expect(retrieves).toEqual([]);
+    expect(logs.join('\n')).not.toContain('deprecated');
   });
 });

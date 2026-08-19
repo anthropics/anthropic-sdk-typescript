@@ -231,40 +231,28 @@ export interface BetaManagedAgentsAgentReference {
 /**
  * Configuration for a specific agent tool.
  */
-export interface BetaManagedAgentsAgentToolConfig {
-  enabled: boolean;
-
-  /**
-   * Built-in agent tool identifier.
-   */
-  name: 'bash' | 'edit' | 'read' | 'write' | 'glob' | 'grep' | 'web_fetch' | 'web_search';
-
-  /**
-   * Permission policy for tool execution.
-   */
-  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
-}
+export type BetaManagedAgentsAgentToolConfig =
+  | BetaManagedAgentsBashToolConfig
+  | BetaManagedAgentsEditToolConfig
+  | BetaManagedAgentsReadToolConfig
+  | BetaManagedAgentsWriteToolConfig
+  | BetaManagedAgentsGlobToolConfig
+  | BetaManagedAgentsGrepToolConfig
+  | BetaManagedAgentsWebFetchToolConfig
+  | BetaManagedAgentsWebSearchToolConfig;
 
 /**
  * Configuration override for a specific tool within a toolset.
  */
-export interface BetaManagedAgentsAgentToolConfigParams {
-  /**
-   * Built-in agent tool identifier.
-   */
-  name: 'bash' | 'edit' | 'read' | 'write' | 'glob' | 'grep' | 'web_fetch' | 'web_search';
-
-  /**
-   * Whether this tool is enabled and available to Claude. Overrides the
-   * default_config setting.
-   */
-  enabled?: boolean | null;
-
-  /**
-   * Permission policy for tool execution.
-   */
-  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
-}
+export type BetaManagedAgentsAgentToolConfigParams =
+  | BetaManagedAgentsBashToolConfigParams
+  | BetaManagedAgentsEditToolConfigParams
+  | BetaManagedAgentsReadToolConfigParams
+  | BetaManagedAgentsWriteToolConfigParams
+  | BetaManagedAgentsGlobToolConfigParams
+  | BetaManagedAgentsGrepToolConfigParams
+  | BetaManagedAgentsWebFetchToolConfigParams
+  | BetaManagedAgentsWebSearchToolConfigParams;
 
 /**
  * Resolved default configuration for agent tools.
@@ -485,6 +473,45 @@ export interface BetaManagedAgentsAnthropicSkillParams {
 }
 
 /**
+ * Configuration for the bash tool.
+ */
+export interface BetaManagedAgentsBashToolConfig {
+  enabled: boolean;
+
+  name: 'bash';
+
+  /**
+   * Permission policy for tool execution.
+   */
+  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+
+  type: 'bash';
+}
+
+/**
+ * Configuration override for the bash tool.
+ */
+export interface BetaManagedAgentsBashToolConfigParams {
+  /**
+   * Must be "bash".
+   */
+  name: 'bash';
+
+  /**
+   * Whether this tool is enabled and available to Claude. Overrides the
+   * default_config setting.
+   */
+  enabled?: boolean | null;
+
+  /**
+   * Permission policy for tool execution.
+   */
+  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+
+  type?: 'bash';
+}
+
+/**
  * A resolved user-created custom skill.
  */
 export interface BetaManagedAgentsCustomSkill {
@@ -569,6 +596,45 @@ export interface BetaManagedAgentsCustomToolParams {
 }
 
 /**
+ * Configuration for the edit tool.
+ */
+export interface BetaManagedAgentsEditToolConfig {
+  enabled: boolean;
+
+  name: 'edit';
+
+  /**
+   * Permission policy for tool execution.
+   */
+  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+
+  type: 'edit';
+}
+
+/**
+ * Configuration override for the edit tool.
+ */
+export interface BetaManagedAgentsEditToolConfigParams {
+  /**
+   * Must be "edit".
+   */
+  name: 'edit';
+
+  /**
+   * Whether this tool is enabled and available to Claude. Overrides the
+   * default_config setting.
+   */
+  enabled?: boolean | null;
+
+  /**
+   * Permission policy for tool execution.
+   */
+  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+
+  type?: 'edit';
+}
+
+/**
  * High effort. Favors reasoning depth.
  */
 export interface BetaManagedAgentsEffortHigh {
@@ -601,6 +667,84 @@ export interface BetaManagedAgentsEffortMedium {
  */
 export interface BetaManagedAgentsEffortXhigh {
   type: 'xhigh';
+}
+
+/**
+ * Configuration for the glob tool.
+ */
+export interface BetaManagedAgentsGlobToolConfig {
+  enabled: boolean;
+
+  name: 'glob';
+
+  /**
+   * Permission policy for tool execution.
+   */
+  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+
+  type: 'glob';
+}
+
+/**
+ * Configuration override for the glob tool.
+ */
+export interface BetaManagedAgentsGlobToolConfigParams {
+  /**
+   * Must be "glob".
+   */
+  name: 'glob';
+
+  /**
+   * Whether this tool is enabled and available to Claude. Overrides the
+   * default_config setting.
+   */
+  enabled?: boolean | null;
+
+  /**
+   * Permission policy for tool execution.
+   */
+  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+
+  type?: 'glob';
+}
+
+/**
+ * Configuration for the grep tool.
+ */
+export interface BetaManagedAgentsGrepToolConfig {
+  enabled: boolean;
+
+  name: 'grep';
+
+  /**
+   * Permission policy for tool execution.
+   */
+  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+
+  type: 'grep';
+}
+
+/**
+ * Configuration override for the grep tool.
+ */
+export interface BetaManagedAgentsGrepToolConfigParams {
+  /**
+   * Must be "grep".
+   */
+  name: 'grep';
+
+  /**
+   * Whether this tool is enabled and available to Claude. Overrides the
+   * default_config setting.
+   */
+  enabled?: boolean | null;
+
+  /**
+   * Permission policy for tool execution.
+   */
+  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+
+  type?: 'grep';
 }
 
 /**
@@ -855,6 +999,45 @@ export interface BetaManagedAgentsMultiagentSelfParams {
 }
 
 /**
+ * Configuration for the read tool.
+ */
+export interface BetaManagedAgentsReadToolConfig {
+  enabled: boolean;
+
+  name: 'read';
+
+  /**
+   * Permission policy for tool execution.
+   */
+  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+
+  type: 'read';
+}
+
+/**
+ * Configuration override for the read tool.
+ */
+export interface BetaManagedAgentsReadToolConfigParams {
+  /**
+   * Must be "read".
+   */
+  name: 'read';
+
+  /**
+   * Whether this tool is enabled and available to Claude. Overrides the
+   * default_config setting.
+   */
+  enabled?: boolean | null;
+
+  /**
+   * Permission policy for tool execution.
+   */
+  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+
+  type?: 'read';
+}
+
+/**
  * Resolved `agent` definition for a single `session_thread`. Snapshot of the agent
  * at thread creation time. The multiagent roster is not repeated here; read it
  * from `Session.agent`.
@@ -909,6 +1092,211 @@ export interface BetaManagedAgentsURLMCPServerParams {
    * Endpoint URL for the MCP server.
    */
   url: string;
+}
+
+/**
+ * Approximate user location for search result localization.
+ */
+export interface BetaManagedAgentsUserLocation {
+  /**
+   * Location precision. Only "approximate" is supported.
+   */
+  type: 'approximate';
+
+  /**
+   * City name.
+   */
+  city?: string | null;
+
+  /**
+   * Two-letter ISO 3166-1 country code, uppercase.
+   */
+  country?: string | null;
+
+  /**
+   * Region or state name.
+   */
+  region?: string | null;
+
+  /**
+   * IANA timezone identifier, e.g. "America/Los_Angeles".
+   */
+  timezone?: string | null;
+}
+
+/**
+ * Configuration for the web_fetch tool.
+ */
+export interface BetaManagedAgentsWebFetchToolConfig {
+  enabled: boolean;
+
+  name: 'web_fetch';
+
+  /**
+   * Permission policy for tool execution.
+   */
+  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+
+  type: 'web_fetch';
+
+  allowed_domains?: Array<string>;
+
+  blocked_domains?: Array<string>;
+
+  max_content_tokens?: number | null;
+}
+
+/**
+ * Configuration override for the web_fetch tool.
+ */
+export interface BetaManagedAgentsWebFetchToolConfigParams {
+  /**
+   * Must be "web_fetch".
+   */
+  name: 'web_fetch';
+
+  /**
+   * Only fetch URLs whose host is one of these domains or a subdomain of one. Each
+   * entry is a plain hostname like "docs.example.com" (no scheme, port, or path). At
+   * most 64 entries; an empty list is rejected (omit the field instead). Cannot be
+   * combined with blocked_domains.
+   */
+  allowed_domains?: Array<string>;
+
+  /**
+   * Never fetch URLs whose host is one of these domains or a subdomain of one. Each
+   * entry is a plain hostname like "ads.example.com" (no scheme, port, or path). At
+   * most 64 entries; an empty list is rejected (omit the field instead). Cannot be
+   * combined with allowed_domains.
+   */
+  blocked_domains?: Array<string>;
+
+  /**
+   * Whether this tool is enabled and available to Claude. Overrides the
+   * default_config setting.
+   */
+  enabled?: boolean | null;
+
+  /**
+   * Maximum number of tokens of fetched text content to include in context per call.
+   * Does not apply to binary content such as PDFs.
+   */
+  max_content_tokens?: number | null;
+
+  /**
+   * Permission policy for tool execution.
+   */
+  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+
+  type?: 'web_fetch';
+}
+
+/**
+ * Configuration for the web_search tool.
+ */
+export interface BetaManagedAgentsWebSearchToolConfig {
+  enabled: boolean;
+
+  name: 'web_search';
+
+  /**
+   * Permission policy for tool execution.
+   */
+  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+
+  type: 'web_search';
+
+  allowed_domains?: Array<string>;
+
+  blocked_domains?: Array<string>;
+
+  /**
+   * Approximate user location for search result localization.
+   */
+  user_location?: BetaManagedAgentsUserLocation | null;
+}
+
+/**
+ * Configuration override for the web_search tool.
+ */
+export interface BetaManagedAgentsWebSearchToolConfigParams {
+  /**
+   * Must be "web_search".
+   */
+  name: 'web_search';
+
+  /**
+   * Only return search results whose host is one of these domains or a subdomain of
+   * one. Each entry is a plain hostname like "docs.example.com" (no scheme or port;
+   * an optional path suffix is accepted). At most 64 entries; an empty list is
+   * rejected (omit the field instead). Cannot be combined with blocked_domains.
+   */
+  allowed_domains?: Array<string>;
+
+  /**
+   * Never return search results whose host is one of these domains or a subdomain of
+   * one. Each entry is a plain hostname like "ads.example.com" (no scheme or port;
+   * an optional path suffix is accepted). At most 64 entries; an empty list is
+   * rejected (omit the field instead). Cannot be combined with allowed_domains.
+   */
+  blocked_domains?: Array<string>;
+
+  /**
+   * Whether this tool is enabled and available to Claude. Overrides the
+   * default_config setting.
+   */
+  enabled?: boolean | null;
+
+  /**
+   * Permission policy for tool execution.
+   */
+  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+
+  type?: 'web_search';
+
+  /**
+   * Approximate user location for search result localization.
+   */
+  user_location?: BetaManagedAgentsUserLocation | null;
+}
+
+/**
+ * Configuration for the write tool.
+ */
+export interface BetaManagedAgentsWriteToolConfig {
+  enabled: boolean;
+
+  name: 'write';
+
+  /**
+   * Permission policy for tool execution.
+   */
+  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+
+  type: 'write';
+}
+
+/**
+ * Configuration override for the write tool.
+ */
+export interface BetaManagedAgentsWriteToolConfigParams {
+  /**
+   * Must be "write".
+   */
+  name: 'write';
+
+  /**
+   * Whether this tool is enabled and available to Claude. Overrides the
+   * default_config setting.
+   */
+  enabled?: boolean | null;
+
+  /**
+   * Permission policy for tool execution.
+   */
+  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+
+  type?: 'write';
 }
 
 export interface AgentCreateParams {
@@ -1121,16 +1509,24 @@ export declare namespace Agents {
     type BetaManagedAgentsAlwaysAskPolicy as BetaManagedAgentsAlwaysAskPolicy,
     type BetaManagedAgentsAnthropicSkill as BetaManagedAgentsAnthropicSkill,
     type BetaManagedAgentsAnthropicSkillParams as BetaManagedAgentsAnthropicSkillParams,
+    type BetaManagedAgentsBashToolConfig as BetaManagedAgentsBashToolConfig,
+    type BetaManagedAgentsBashToolConfigParams as BetaManagedAgentsBashToolConfigParams,
     type BetaManagedAgentsCustomSkill as BetaManagedAgentsCustomSkill,
     type BetaManagedAgentsCustomSkillParams as BetaManagedAgentsCustomSkillParams,
     type BetaManagedAgentsCustomTool as BetaManagedAgentsCustomTool,
     type BetaManagedAgentsCustomToolInputSchema as BetaManagedAgentsCustomToolInputSchema,
     type BetaManagedAgentsCustomToolParams as BetaManagedAgentsCustomToolParams,
+    type BetaManagedAgentsEditToolConfig as BetaManagedAgentsEditToolConfig,
+    type BetaManagedAgentsEditToolConfigParams as BetaManagedAgentsEditToolConfigParams,
     type BetaManagedAgentsEffortHigh as BetaManagedAgentsEffortHigh,
     type BetaManagedAgentsEffortLow as BetaManagedAgentsEffortLow,
     type BetaManagedAgentsEffortMax as BetaManagedAgentsEffortMax,
     type BetaManagedAgentsEffortMedium as BetaManagedAgentsEffortMedium,
     type BetaManagedAgentsEffortXhigh as BetaManagedAgentsEffortXhigh,
+    type BetaManagedAgentsGlobToolConfig as BetaManagedAgentsGlobToolConfig,
+    type BetaManagedAgentsGlobToolConfigParams as BetaManagedAgentsGlobToolConfigParams,
+    type BetaManagedAgentsGrepToolConfig as BetaManagedAgentsGrepToolConfig,
+    type BetaManagedAgentsGrepToolConfigParams as BetaManagedAgentsGrepToolConfigParams,
     type BetaManagedAgentsMCPServerURLDefinition as BetaManagedAgentsMCPServerURLDefinition,
     type BetaManagedAgentsMCPToolConfig as BetaManagedAgentsMCPToolConfig,
     type BetaManagedAgentsMCPToolConfigParams as BetaManagedAgentsMCPToolConfigParams,
@@ -1144,9 +1540,18 @@ export declare namespace Agents {
     type BetaManagedAgentsMultiagentCoordinator as BetaManagedAgentsMultiagentCoordinator,
     type BetaManagedAgentsMultiagentCoordinatorParams as BetaManagedAgentsMultiagentCoordinatorParams,
     type BetaManagedAgentsMultiagentSelfParams as BetaManagedAgentsMultiagentSelfParams,
+    type BetaManagedAgentsReadToolConfig as BetaManagedAgentsReadToolConfig,
+    type BetaManagedAgentsReadToolConfigParams as BetaManagedAgentsReadToolConfigParams,
     type BetaManagedAgentsSessionThreadAgent as BetaManagedAgentsSessionThreadAgent,
     type BetaManagedAgentsSkillParams as BetaManagedAgentsSkillParams,
     type BetaManagedAgentsURLMCPServerParams as BetaManagedAgentsURLMCPServerParams,
+    type BetaManagedAgentsUserLocation as BetaManagedAgentsUserLocation,
+    type BetaManagedAgentsWebFetchToolConfig as BetaManagedAgentsWebFetchToolConfig,
+    type BetaManagedAgentsWebFetchToolConfigParams as BetaManagedAgentsWebFetchToolConfigParams,
+    type BetaManagedAgentsWebSearchToolConfig as BetaManagedAgentsWebSearchToolConfig,
+    type BetaManagedAgentsWebSearchToolConfigParams as BetaManagedAgentsWebSearchToolConfigParams,
+    type BetaManagedAgentsWriteToolConfig as BetaManagedAgentsWriteToolConfig,
+    type BetaManagedAgentsWriteToolConfigParams as BetaManagedAgentsWriteToolConfigParams,
     type BetaManagedAgentsAgentsPageCursor as BetaManagedAgentsAgentsPageCursor,
     type AgentCreateParams as AgentCreateParams,
     type AgentRetrieveParams as AgentRetrieveParams,

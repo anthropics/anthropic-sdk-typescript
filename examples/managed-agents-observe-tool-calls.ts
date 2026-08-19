@@ -94,9 +94,10 @@ async function main() {
   console.log('created session', session.id);
 
   // 2. Build the per-session agent tool context: the workdir the file tools
-  //    confine to, plus the session id `setupSkills` uses to download the
-  //    agent's skills into `{workdir}/skills/`. `cleanupSkills` removes them.
-  const ctx: AgentToolContext = { workdir, client, sessionId: session.id };
+  //    confine to, plus the session `setupSkills` reads the agent off to
+  //    download its skills into `{workdir}/skills/`. `cleanupSkills` removes
+  //    them.
+  const ctx: AgentToolContext = { workdir, client, session };
   const cleanupSkills = await setupSkills(ctx);
 
   try {
@@ -173,8 +174,11 @@ async function observeAsSelfHostedWorker(): Promise<void> {
     const sessionId = work.data.id;
     console.log('claimed work', work.id, 'for session', sessionId);
 
-    // Per-session agent tool context + skills, same as the primary scenario.
-    const ctx: AgentToolContext = { workdir, client, sessionId };
+    // Per-session agent tool context + skills, same as the primary scenario —
+    // except the session has to be fetched here, since the poller hands over
+    // only its id.
+    const session = await client.beta.sessions.retrieve(sessionId);
+    const ctx: AgentToolContext = { workdir, client, session };
     const cleanupSkills = await setupSkills(ctx);
 
     // A controller shared by the heartbeat task and the `toolRunner` loop:

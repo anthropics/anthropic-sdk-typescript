@@ -15,13 +15,25 @@ export const DIR_CREATE_MODE = 0o755;
 /** Mode for files the file tools create. */
 export const FILE_CREATE_MODE = 0o644;
 
-/** `realpath` `p`, or return `p` unchanged when it cannot be resolved. */
-async function realpathOrSelf(p: string): Promise<string> {
-  try {
-    return await fs.realpath(p);
-  } catch {
-    return p;
+/** True when `p` is `root` itself or lexically contained within it. */
+export function isWithin(root: string, p: string): boolean {
+  const rel = path.relative(root, p);
+  return rel === '' || (!rel.startsWith('..' + path.sep) && rel !== '..' && !path.isAbsolute(rel));
+}
+
+/**
+ * The first entry of `roots` whose canonical form contains the
+ * already-canonical `target`, returned as configured; `undefined` when none
+ * does. Each root goes through {@link canonicalize} at check time, exactly like
+ * the workdir in {@link confineToRoot}, so granting access (`allowedRoots`)
+ * and refusing writes (`readOnlyRoots`) can never resolve the same entry two
+ * different ways.
+ */
+export async function containingRoot(roots: readonly string[], target: string): Promise<string | undefined> {
+  for (const root of roots) {
+    if (isWithin(await canonicalize(path.resolve(root)), target)) return root;
   }
+  return undefined;
 }
 
 /** Matches Linux MAXSYMLINKS, the threshold at which `realpath` itself reports ELOOP. */
@@ -79,17 +91,19 @@ export async function canonicalize(abs: string): Promise<string> {
 }
 
 /**
- * Resolve `p` and confine it to `root`.
+ * Resolve `p` against `root` and confine it to `root` or one of `allowedRoots`
+ * (absolute paths, resolved at check time exactly like `root`).
  *
  * Absolute and relative inputs go through the same canonicalise-then-contain
- * check — an absolute path that lands inside `root` is permitted, only paths
- * that resolve *outside* are rejected. Every symlink in `p` (including the
- * leaf, even a dangling one) is resolved before the confinement check, and the
- * resolved path is what the caller then operates on, so a symlink inside `root`
- * that points outside it can neither pass the check nor be followed afterwards.
- * `..` is collapsed lexically before any symlink is followed. A path that cannot
- * be resolved (symlink loop, unreadable component) is rejected with a
- * `ToolError` naming `p`, never the host's absolute path.
+ * check — an absolute path that lands inside a permitted root is accepted,
+ * only paths that resolve *outside* all of them are rejected. Every symlink in
+ * `p` (including the leaf, even a dangling one) is resolved before the
+ * confinement check, and the resolved path is what the caller then operates
+ * on, so a symlink inside `root` that points outside it can neither pass the
+ * check nor be followed afterwards. `..` is collapsed lexically before any
+ * symlink is followed. A path that cannot be resolved (symlink loop, unreadable
+ * component) is rejected with a `ToolError` naming `p`, never the host's
+ * absolute path.
  *
  * Residual TOCTOU: a component could still be swapped for a symlink between this
  * call and the eventual `fs` operation. Closing that fully needs per-component
@@ -99,22 +113,24 @@ export async function canonicalize(abs: string): Promise<string> {
 export async function confineToRoot(
   root: string,
   p: string,
-  opts?: { allowOutside?: boolean },
+  opts?: { allowedRoots?: readonly string[] },
 ): Promise<string> {
-  const allowOutside = opts?.allowOutside ?? false;
-  const realRoot = await realpathOrSelf(path.resolve(root));
-  const abs = path.resolve(realRoot, p);
-  if (allowOutside) return abs;
+  const allowedRoots = opts?.allowedRoots ?? [];
+  const realRoot = await canonicalize(path.resolve(root));
   let real: string;
   try {
-    real = await canonicalize(abs);
+    real = await canonicalize(path.resolve(realRoot, p));
   } catch (err) {
     throw new ToolError(fsErrorMessage(err, `path ${JSON.stringify(p)}`));
   }
-  if (real !== realRoot && !real.startsWith(realRoot + path.sep)) {
-    throw new ToolError(`path ${JSON.stringify(p)} escapes workdir`);
+  if (isWithin(realRoot, real) || (await containingRoot(allowedRoots, real)) !== undefined) {
+    return real;
   }
-  return real;
+  const permitted =
+    allowedRoots.length ?
+      "the session's working directory and its other permitted directories"
+    : "the session's working directory";
+  throw new ToolError(`path ${JSON.stringify(p)} is outside ${permitted}`);
 }
 
 /**
