@@ -14,6 +14,7 @@ import {
   BashTimeoutError,
   type AgentToolContext,
 } from '@anthropic-ai/sdk/tools/agent-toolset/node';
+import { AnthropicError } from '@anthropic-ai/sdk';
 import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
 import { ToolError } from '@anthropic-ai/sdk/lib/tools/ToolError';
 
@@ -56,10 +57,14 @@ describePosix('canonicalize symlink-loop bound', () => {
   }
 
   test('a lexical .. after a looping component is collapsed first, so the escape is still caught', async () => {
-    await expect(resolvePath({ workdir: dir }, 'loop_a/../evil_link')).rejects.toThrow(/escapes workdir/);
-    await expect(resolvePath({ workdir: dir }, 'self/../evil_link')).rejects.toThrow(/escapes workdir/);
+    await expect(resolvePath({ workdir: dir }, 'loop_a/../evil_link')).rejects.toThrow(
+      /is outside the session's working directory/,
+    );
+    await expect(resolvePath({ workdir: dir }, 'self/../evil_link')).rejects.toThrow(
+      /is outside the session's working directory/,
+    );
     await expect(resolvePath({ workdir: dir }, 'L')).rejects.toThrow(
-      /too many levels of symbolic links|escapes workdir/,
+      /too many levels of symbolic links|is outside the session's working directory/,
     );
   });
 
@@ -122,8 +127,12 @@ describePosix('resolvePath symlink regressions', () => {
   test('live and dangling symlinks pointing outside the workdir are both rejected', async () => {
     fs.symlinkSync(path.join(outside, 'secret.txt'), path.join(dir, 'out'));
     fs.symlinkSync(path.join(outside, 'nope'), path.join(dir, 'dangle_out'));
-    await expect(resolvePath({ workdir: dir }, 'out')).rejects.toThrow(/escapes workdir/);
-    await expect(resolvePath({ workdir: dir }, 'dangle_out')).rejects.toThrow(/escapes workdir/);
+    await expect(resolvePath({ workdir: dir }, 'out')).rejects.toThrow(
+      /is outside the session's working directory/,
+    );
+    await expect(resolvePath({ workdir: dir }, 'dangle_out')).rejects.toThrow(
+      /is outside the session's working directory/,
+    );
   });
 
   test('an unreadable directory is reported as permission denied without the host path', async () => {
@@ -164,17 +173,16 @@ describe('resolvePath', () => {
         want: path.resolve(root, 'a/b.txt'),
       },
       {
-        description: 'dot-dot that escapes the workdir is rejected when unrestrictedPaths is false',
+        description: 'dot-dot that escapes the workdir is rejected',
         env: { workdir: root },
         p: '../etc/passwd',
-        wantErr: /escapes workdir/,
+        wantErr: /is outside the session's working directory/,
       },
       {
-        description:
-          'absolute path outside workdir is rejected by default so the jail is the explicit opt-out',
+        description: 'absolute path outside workdir is rejected',
         env: { workdir: root },
         p: '/etc/passwd',
-        wantErr: /escapes workdir/,
+        wantErr: /is outside the session's working directory/,
       },
       {
         description: 'absolute path inside workdir is permitted by default',
@@ -189,16 +197,10 @@ describe('resolvePath', () => {
         want: root,
       },
       {
-        description: 'absolute path is allowed when unrestrictedPaths is set',
-        env: { workdir: root, unrestrictedPaths: true },
-        p: '/etc/passwd',
-        want: '/etc/passwd',
-      },
-      {
         description: 'sibling directory with a shared prefix (work vs workdir2) is correctly rejected',
         env: { workdir: '/tmp/work' },
         p: '../work2/file',
-        wantErr: /escapes workdir/,
+        wantErr: /is outside the session's working directory/,
       },
       {
         description: 'dot-dot that stays inside the workdir after normalisation is permitted',
@@ -217,6 +219,113 @@ describe('resolvePath', () => {
       }
     });
   }
+});
+
+describe('resolvePath with allowedRoots', () => {
+  let tmp: string;
+  let work: string;
+  let mount: string;
+  const OUTSIDE_ALL = /outside the session's working directory and its other permitted directories/;
+
+  beforeEach(() => {
+    tmp = fs.realpathSync(tmpdir());
+    work = path.join(tmp, 'work');
+    mount = path.join(tmp, 'mount');
+    fs.mkdirSync(work);
+    fs.mkdirSync(mount);
+  });
+  afterEach(() => fs.rmSync(tmp, { recursive: true, force: true }));
+
+  test('a path under an allowed root is accepted, by absolute path', async () => {
+    const ctx: AgentToolContext = { workdir: work, allowedRoots: [mount] };
+    await expect(resolvePath(ctx, path.join(mount, 'note.md'))).resolves.toBe(path.join(mount, 'note.md'));
+    await expect(resolvePath(ctx, 'inside.txt')).resolves.toBe(path.join(work, 'inside.txt'));
+  });
+
+  test('a path outside the workdir and every allowed root is rejected with the long message', async () => {
+    const ctx: AgentToolContext = { workdir: work, allowedRoots: [mount] };
+    await expect(resolvePath(ctx, path.join(tmp, 'elsewhere', 'x'))).rejects.toThrow(OUTSIDE_ALL);
+    await expect(resolvePath(ctx, '../elsewhere/x')).rejects.toThrow(OUTSIDE_ALL);
+  });
+
+  test('without allowedRoots the message names only the working directory', async () => {
+    const err = await resolvePath({ workdir: work }, path.join(mount, 'note.md')).catch((e: Error) => e);
+    expect(String(err)).toMatch(/is outside the session's working directory/);
+    expect(String(err)).not.toMatch(/other permitted directories/);
+  });
+
+  testPosix('a symlink out of an allowed root is rejected', async () => {
+    fs.symlinkSync('/etc/passwd', path.join(mount, 'leak'));
+    const ctx: AgentToolContext = { workdir: work, allowedRoots: [mount] };
+    await expect(resolvePath(ctx, path.join(mount, 'leak'))).rejects.toThrow(OUTSIDE_ALL);
+  });
+
+  testPosix('an allowed root under a symlinked ancestor is reachable, existing or not', async () => {
+    const real = path.join(tmp, 'real');
+    const via = path.join(tmp, 'via');
+    fs.mkdirSync(path.join(real, 'store'), { recursive: true });
+    fs.symlinkSync(real, via, 'dir');
+    const ctx: AgentToolContext = {
+      workdir: work,
+      allowedRoots: [path.join(via, 'store'), path.join(via, 'newstore')],
+    };
+    await expect(resolvePath(ctx, path.join(via, 'store', 'a.md'))).resolves.toBe(
+      path.join(real, 'store', 'a.md'),
+    );
+    await expect(resolvePath(ctx, path.join(via, 'newstore', 'b.md'))).resolves.toBe(
+      path.join(real, 'newstore', 'b.md'),
+    );
+  });
+});
+
+describe('unrestrictedPaths deprecation', () => {
+  const factories = {
+    betaAgentToolset20260401,
+    betaBashTool,
+    betaReadTool,
+    betaWriteTool,
+    betaEditTool,
+    betaGlobTool,
+    betaGrepTool,
+  };
+  const GUIDANCE = /unrestrictedPaths[\s\S]*is no longer supported[\s\S]*allowedRoots/;
+  const cases = Object.entries(factories).flatMap(([name, factory]) =>
+    [true, false].map((value) => [name, value, factory] as const),
+  );
+
+  test.each(cases)('%s rejects unrestrictedPaths=%s with guidance', (_name, value, factory) => {
+    const construct = () => factory({ workdir: '/tmp/work', unrestrictedPaths: value });
+    expect(construct).toThrow(AnthropicError);
+    expect(construct).toThrow(GUIDANCE);
+  });
+
+  test('resolvePath rejects a context still carrying unrestrictedPaths, including one mutated after construction', async () => {
+    await expect(resolvePath({ workdir: '/tmp/work', unrestrictedPaths: true }, 'a')).rejects.toThrow(
+      GUIDANCE,
+    );
+    const ctx: AgentToolContext = { workdir: '/tmp/work' };
+    const read = betaReadTool(ctx);
+    ctx.unrestrictedPaths = false;
+    await expect(read.run({ file_path: 'a.txt' })).rejects.toThrow(GUIDANCE);
+  });
+
+  test('nothing reads unrestrictedPaths except the deprecation guard', () => {
+    const repo = path.resolve(__dirname, '..', '..');
+    for (const rel of [
+      'src/tools/agent-toolset/node.ts',
+      'src/tools/agent-toolset/fs-util.ts',
+      'src/lib/environments/worker.ts',
+      'src/resources/beta/environments/work.ts',
+    ]) {
+      const source = fs.readFileSync(path.join(repo, rel), 'utf8');
+      const reads = source.match(/\b[a-z_$][\w$]*\.unrestrictedPaths\b/g) ?? [];
+      const guarded =
+        source.match(
+          /rejectUnrestrictedPaths\(\s*[a-z_$][\w$]*\.unrestrictedPaths\s*\)|[a-z_$][\w$]*\.unrestrictedPaths !== undefined\b/g,
+        ) ?? [];
+      expect({ rel, reads: reads.length }).toEqual({ rel, reads: guarded.length });
+    }
+  });
 });
 
 describe('fs tools (read/write/edit)', () => {
@@ -398,8 +507,87 @@ describe('fs tools (read/write/edit)', () => {
 
   test('write outside workdir via dot-dot is rejected by the path jail', async () => {
     await expect(betaWriteTool(env).run({ file_path: '../escape.txt', content: 'x' })).rejects.toThrow(
-      /escapes workdir/,
+      /is outside the session's working directory/,
     );
+  });
+
+  test('file tools confinement matrix: workdir + allowedRoots reachable, readOnlyRoots refuse writes, everything else rejected', async () => {
+    const work = path.join(dir, 'work');
+    const notes = path.join(dir, 'mnt', 'notes');
+    const facts = path.join(dir, 'mnt', 'facts');
+    const outside = path.join(dir, 'outside');
+    for (const d of [work, notes, facts, outside]) fs.mkdirSync(d, { recursive: true });
+    fs.writeFileSync(path.join(facts, 'facts.md'), 'immutable');
+    fs.writeFileSync(path.join(outside, 'secret.txt'), 'secret');
+    const ctx: AgentToolContext = { workdir: work, allowedRoots: [notes, facts], readOnlyRoots: [facts] };
+    const OUTSIDE_ALL = /outside the session's working directory and its other permitted directories/;
+
+    await betaWriteTool(ctx).run({ file_path: 'w.txt', content: 'in workdir' });
+    expect(fs.readFileSync(path.join(work, 'w.txt'), 'utf8')).toBe('in workdir');
+
+    const note = path.join(notes, 'note.md');
+    await betaWriteTool(ctx).run({ file_path: note, content: 'remembered fact' });
+    expect(await betaReadTool(ctx).run({ file_path: note })).toBe('remembered fact');
+    await betaEditTool(ctx).run({ file_path: note, old_string: 'fact', new_string: 'thing' });
+    expect(fs.readFileSync(note, 'utf8')).toBe('remembered thing');
+
+    const fact = path.join(facts, 'facts.md');
+    expect(await betaReadTool(ctx).run({ file_path: fact })).toBe('immutable');
+    await expect(betaWriteTool(ctx).run({ file_path: fact, content: 'x' })).rejects.toThrow(/read-only/);
+    await expect(
+      betaEditTool(ctx).run({ file_path: fact, old_string: 'immutable', new_string: 'x' }),
+    ).rejects.toThrow(/read-only/);
+    expect(fs.readFileSync(fact, 'utf8')).toBe('immutable');
+
+    await expect(betaReadTool(ctx).run({ file_path: path.join(outside, 'secret.txt') })).rejects.toThrow(
+      OUTSIDE_ALL,
+    );
+    await expect(
+      betaWriteTool(ctx).run({ file_path: path.join(outside, 'new.txt'), content: 'x' }),
+    ).rejects.toThrow(OUTSIDE_ALL);
+    expect(fs.existsSync(path.join(outside, 'new.txt'))).toBe(false);
+  });
+
+  testPosix('a symlinked read-only root that is also an allowed root still refuses writes', async () => {
+    const work = path.join(dir, 'work');
+    const realStore = path.join(dir, 'real-store');
+    const linkStore = path.join(dir, 'link-store');
+    fs.mkdirSync(work);
+    fs.mkdirSync(realStore);
+    fs.symlinkSync(realStore, linkStore, 'dir');
+    const leaf: AgentToolContext = { workdir: work, allowedRoots: [linkStore], readOnlyRoots: [linkStore] };
+    await expect(resolvePath(leaf, path.join(linkStore, 'note.md'))).resolves.toBe(
+      path.join(fs.realpathSync(realStore), 'note.md'),
+    );
+    await expect(
+      betaWriteTool(leaf).run({ file_path: path.join(linkStore, 'note.md'), content: 'x' }),
+    ).rejects.toThrow(/read-only/);
+
+    // Same through a symlinked ancestor, for a store that exists and one not yet created.
+    const real = path.join(dir, 'real');
+    const via = path.join(dir, 'via');
+    fs.mkdirSync(path.join(real, 'store'), { recursive: true });
+    fs.symlinkSync(real, via, 'dir');
+    for (const store of [path.join(via, 'store'), path.join(via, 'newstore')]) {
+      const ancestor: AgentToolContext = { workdir: work, allowedRoots: [store], readOnlyRoots: [store] };
+      await expect(
+        betaWriteTool(ancestor).run({ file_path: path.join(store, 'note.md'), content: 'x' }),
+      ).rejects.toThrow(/read-only/);
+    }
+    expect(fs.existsSync(path.join(real, 'store', 'note.md'))).toBe(false);
+    expect(fs.existsSync(path.join(real, 'newstore'))).toBe(false);
+  });
+
+  testPosix('a symlink inside the workdir into a read-only root is refused for writes', async () => {
+    const work = path.join(dir, 'work');
+    const ro = path.join(dir, 'ro');
+    fs.mkdirSync(work);
+    fs.mkdirSync(ro);
+    fs.writeFileSync(path.join(ro, 'f'), 'immutable');
+    fs.symlinkSync(path.join(ro, 'f'), path.join(work, 'ln'));
+    const ctx: AgentToolContext = { workdir: work, allowedRoots: [ro], readOnlyRoots: [ro] };
+    await expect(betaWriteTool(ctx).run({ file_path: 'ln', content: 'x' })).rejects.toThrow(/read-only/);
+    expect(fs.readFileSync(path.join(ro, 'f'), 'utf8')).toBe('immutable');
   });
 });
 
@@ -433,11 +621,46 @@ describe('search tools (glob/grep)', () => {
     expect(out).not.toContain('a.txt');
   });
 
-  test('glob rejects a ".." pattern that would walk fs.glob out of the workdir', async () => {
-    await expect(betaGlobTool(env).run({ pattern: '../*' })).rejects.toThrow(/not permitted in the pattern/);
-    await expect(betaGlobTool(env).run({ pattern: '../../**/*.ts' })).rejects.toThrow(
-      /not permitted in the pattern/,
+  test('glob rejects an absolute pattern', async () => {
+    await expect(betaGlobTool(env).run({ pattern: path.join(dir, '*.txt') })).rejects.toThrow(
+      /absolute pattern not permitted/,
     );
+  });
+
+  test('glob rejects a ".." pattern that would walk fs.glob out of the workdir, literal or brace-expanded', async () => {
+    for (const pattern of ['../*', '../../**/*.ts', '{..,x}/*', '{a,../outside}/*']) {
+      await expect(betaGlobTool(env).run({ pattern })).rejects.toThrow(/not permitted in the pattern/);
+    }
+  });
+
+  testPosix(
+    'glob never returns entries outside the search root for patterns that spell ".." indirectly',
+    async () => {
+      const outside = tmpdir();
+      try {
+        fs.writeFileSync(path.join(outside, 'secret.txt'), 'leaked\n');
+        expect(await betaGlobTool(env).run({ pattern: '[.][.]/*/secret.txt' })).toBe('no matches');
+        expect(await betaGlobTool(env).run({ pattern: `[.][.]/${path.basename(outside)}/*` })).toBe(
+          'no matches',
+        );
+      } finally {
+        fs.rmSync(outside, { recursive: true, force: true });
+      }
+    },
+  );
+
+  test('glob and grep reach an allowed root', async () => {
+    const mnt = tmpdir();
+    try {
+      const notes = path.join(mnt, 'notes');
+      fs.mkdirSync(notes);
+      fs.writeFileSync(path.join(notes, 'note.md'), 'remembered fact\n');
+      const ctx: AgentToolContext = { workdir: dir, allowedRoots: [notes] };
+      expect(await betaGlobTool(ctx).run({ pattern: '*.md', path: notes })).toContain('note.md');
+      expect(await betaGrepTool(ctx).run({ pattern: 'remembered', path: notes })).toContain('note.md');
+    } finally {
+      fs.rmSync(mnt, { recursive: true, force: true });
+    }
   });
 
   // F2 / GLOB-07: a pattern that *names* a symlinked directory makes fs.glob

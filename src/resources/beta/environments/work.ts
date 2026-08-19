@@ -302,6 +302,13 @@ export class Work extends APIResource {
    * await client.beta.environments.work.worker({ workdir: '/workspace' }).handleItem();
    * ```
    */
+  worker(opts: Omit<RunnerEnvironmentWorkerOptions, 'client' | 'unrestrictedPaths'>): EnvironmentWorker;
+  /** @deprecated `unrestrictedPaths` is no longer accepted — see {@link RunnerEnvironmentWorkerOptions.unrestrictedPaths}. */
+  worker(
+    opts: Omit<RunnerEnvironmentWorkerOptions, 'client' | 'unrestrictedPaths'> & {
+      unrestrictedPaths: boolean;
+    },
+  ): EnvironmentWorker; // help language servers see deprecation
   worker(opts: Omit<RunnerEnvironmentWorkerOptions, 'client'>): EnvironmentWorker {
     return new EnvironmentWorker({ ...opts, client: this._client as Anthropic });
   }

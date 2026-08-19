@@ -18,6 +18,14 @@ interface PollResponse {
   type: 'work' | 'null' | 'throw';
   value?: unknown;
   err?: unknown;
+  /** Runs when this poll arrives, before it is answered, so a step can move the clock or end the run. */
+  before?: () => void;
+}
+
+interface LogRecord {
+  level: 'error' | 'warn' | 'info' | 'debug';
+  message: string;
+  fields: unknown;
 }
 
 function makeFakeClient(opts: {
@@ -27,7 +35,10 @@ function makeFakeClient(opts: {
 }) {
   const calls: RecordedCall[] = [];
   const withOptionsCalls: Array<Record<string, unknown>> = [];
-  const warnings: string[] = [];
+  const logs: LogRecord[] = [];
+  const record = (level: LogRecord['level']) => (message: string, fields?: unknown) => {
+    logs.push({ level, message, fields });
+  };
   let pollIdx = 0;
   let ackIdx = 0;
   let stopIdx = 0;
@@ -36,8 +47,9 @@ function makeFakeClient(opts: {
     // them onto the sub-client; provide a minimal shape so the util doesn't
     // throw on the fake.
     _options: { defaultHeaders: undefined },
-    logLevel: 'warn',
-    logger: { error: () => {}, warn: (msg: string) => warnings.push(msg), info: () => {}, debug: () => {} },
+    // Recorded by level so a test can tell INFO lines from per-poll DEBUG lines.
+    logger: { error: record('error'), warn: record('warn'), info: record('info'), debug: record('debug') },
+    logLevel: 'debug',
     withOptions: (options: Record<string, unknown>) => {
       withOptionsCalls.push(options);
       return fake;
@@ -48,6 +60,7 @@ function makeFakeClient(opts: {
           poll: (...args: unknown[]) => {
             calls.push({ method: 'poll', args });
             const r = opts.poll[pollIdx++] ?? { type: 'null' };
+            r.before?.();
             if (r.type === 'throw') return Promise.reject(r.err);
             if (r.type === 'null') return Promise.resolve(null);
             return Promise.resolve(r.value);
@@ -68,7 +81,7 @@ function makeFakeClient(opts: {
       },
     },
   };
-  return { client: fake as never, calls, withOptionsCalls, warnings };
+  return { client: fake as never, calls, withOptionsCalls, logs };
 }
 
 function apiError(status: number): APIError {
@@ -228,7 +241,7 @@ describe('WorkPoller', () => {
   });
 
   test('a 409 from the post-handler stop means already stopped and is not logged', async () => {
-    const { client, calls, warnings } = makeFakeClient({
+    const { client, calls, logs } = makeFakeClient({
       poll: [{ type: 'work', value: makeWork() }],
       stop: [{ type: 'throw', err: apiError(409) }],
     });
@@ -244,7 +257,7 @@ describe('WorkPoller', () => {
     await consumer;
 
     expect(calls.some((c) => c.method === 'stop')).toBe(true);
-    expect(warnings).not.toContain('stop failed');
+    expect(logs).not.toContainEqual(expect.objectContaining({ level: 'warn', message: 'stop failed' }));
   });
 
   test('honors externally provided AbortSignal', async () => {
@@ -427,5 +440,55 @@ describe('WorkPoller', () => {
     // poll + ack happened, but the poller left the stop to the consumer.
     expect(calls.some((c) => c.method === 'ack')).toBe(true);
     expect(calls.some((c) => c.method === 'stop')).toBe(false);
+  });
+
+  test('an idle poller logs once when it goes idle, then a reminder every five minutes', async () => {
+    // An idle poller must show up in the logs without an INFO line per poll:
+    // one INFO line when it goes idle (after start-up or after releasing an
+    // item), DEBUG per empty poll after that, and an INFO reminder every 5 minutes.
+    const abortCtl = new AbortController();
+    // Absolute times: the jittered waits move the fake clock too, so a relative jump would not print 301s.
+    jest.setSystemTime(0);
+    const { client, logs } = makeFakeClient({
+      poll: [
+        { type: 'null' },
+        { type: 'null' },
+        { type: 'null' },
+        { type: 'null', before: () => jest.setSystemTime(301_000) },
+        { type: 'null' },
+        { type: 'work', value: makeWork('work_a') },
+        { type: 'null' },
+        { type: 'throw', err: new Error('aborted'), before: () => abortCtl.abort() },
+      ],
+    });
+
+    const iter = new WorkPoller({
+      client,
+      environmentId: 'env_1',
+      environmentKey: 'env_key',
+      autoStop: false,
+      signal: abortCtl.signal,
+    });
+    const consumer = (async () => {
+      for await (const _ of iter) {
+        // hand the item straight back
+      }
+    })();
+    // Six empty-poll waits of at most 3s each separate the eight polls.
+    await jest.advanceTimersByTimeAsync(30_000);
+    await consumer;
+
+    const pollerLines = (level: LogRecord['level']) =>
+      logs
+        .filter((l) => l.level === level && l.message !== 'poller starting')
+        .map((l) => [l.message, l.fields]);
+    const pollerFields = { component: 'work-poller', environment_id: 'env_1' };
+    expect(pollerLines('info')).toEqual([
+      ['idle; polling for work', pollerFields],
+      ['still polling; idle for 301s', pollerFields],
+      ['claimed work', { ...pollerFields, work_id: 'work_a', work_type: 'session' }],
+      ['idle; polling for work', pollerFields],
+    ]);
+    expect(pollerLines('debug')).toEqual(new Array(3).fill(['poll returned no work', pollerFields]));
   });
 });

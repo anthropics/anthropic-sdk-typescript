@@ -4280,7 +4280,7 @@ export interface BetaSkill {
   type: 'anthropic' | 'custom';
 
   /**
-   * Skill version or 'latest' for most recent version
+   * The resolved version: a skill version ID for custom skills.
    */
   version: string;
 }

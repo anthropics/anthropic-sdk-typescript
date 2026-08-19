@@ -1,7 +1,7 @@
 import { AnthropicError } from '../../core/error';
 import type { Anthropic } from '../../client';
 import type { BetaSelfHostedWork } from '../../resources/beta/environments/work';
-import { loggerFor } from '../../internal/utils/log';
+import { loggerFor, type Logger } from '../../internal/utils/log';
 import { sleep } from '../../internal/utils/sleep';
 import { uuid4 } from '../../internal/utils/uuid';
 import { linkAbort } from '../../internal/utils/abort';
@@ -22,6 +22,7 @@ export { is4xx, isFatal4xx, isStatus, jitter } from '../../internal/utils/backof
 export const POLL_BLOCK_MS = 999;
 const POLL_BACKOFF_BASE_MS = 1000;
 const POLL_BACKOFF_CAP_MS = 60_000;
+const IDLE_REPORT_INTERVAL_MS = 300_000;
 
 export interface WorkPollerOptions {
   client: Anthropic;
@@ -81,6 +82,12 @@ export interface WorkPollerOptions {
  * Async-iterable that long-polls a self-hosted environment for work, ack's
  * each item, yields the {@link BetaSelfHostedWork} item, and posts `stop` after
  * the consumer's loop body returns (or when the consumer `break`s).
+ *
+ * A yielded item may carry a per-item `secret` payload (populated only by the
+ * poll response); the poller passes it through untouched — consumers such as
+ * {@link EnvironmentWorker} extract the sessions token it carries and prefer
+ * that over the environment key for the item's downstream calls. Treat it as
+ * opaque and never log it.
  *
  * @example
  * ```ts
@@ -152,6 +159,7 @@ export class WorkPoller implements AsyncIterable<BetaSelfHostedWork> {
       component: 'work-poller',
       environment_id: this.environmentId,
     });
+    const idle = new IdleLog(log, this.environmentId);
 
     try {
       let attempt = 0;
@@ -189,9 +197,11 @@ export class WorkPoller implements AsyncIterable<BetaSelfHostedWork> {
         if (work == null) {
           // Queue empty: either return now (drain) or wait and poll again.
           if (this.#drain) return;
+          idle.onEmptyPoll();
           await sleep(jitter(1000, 3000), this.#controller.signal);
           continue;
         }
+        idle.onClaim();
         log.info('claimed work', {
           component: 'work-poller',
           environment_id: this.environmentId,
@@ -240,6 +250,42 @@ export class WorkPoller implements AsyncIterable<BetaSelfHostedWork> {
 /** Exponential poll backoff: 1s, 2s, 4s … clamped to a 60s cap. */
 export function backoff(attempt: number): number {
   return expBackoff(attempt, POLL_BACKOFF_BASE_MS, POLL_BACKOFF_CAP_MS);
+}
+
+/**
+ * Keeps an idle poll loop visible in the logs without an INFO line per poll:
+ * the first empty poll after start-up or after a claim logs at INFO and later
+ * ones at DEBUG, with an INFO reminder every `IDLE_REPORT_INTERVAL_MS` while
+ * the loop stays idle.
+ */
+class IdleLog {
+  readonly #log: Logger;
+  readonly #environmentId: string;
+  #idleSince: number | undefined;
+  #lastReport = 0;
+
+  constructor(log: Logger, environmentId: string) {
+    this.#log = log;
+    this.#environmentId = environmentId;
+  }
+
+  onEmptyPoll(): void {
+    const now = Date.now();
+    const fields = { component: 'work-poller', environment_id: this.#environmentId };
+    if (this.#idleSince === undefined) {
+      this.#idleSince = this.#lastReport = now;
+      this.#log.info('idle; polling for work', fields);
+    } else if (now - this.#lastReport >= IDLE_REPORT_INTERVAL_MS) {
+      this.#lastReport = now;
+      this.#log.info(`still polling; idle for ${Math.round((now - this.#idleSince) / 1000)}s`, fields);
+    } else {
+      this.#log.debug('poll returned no work', fields);
+    }
+  }
+
+  onClaim(): void {
+    this.#idleSince = undefined;
+  }
 }
 
 function defaultWorkerId(): string {

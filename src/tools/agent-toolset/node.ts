@@ -24,9 +24,9 @@
  * const tools2 = betaAgentToolset20260401({ workdir: '/work' }).filter((t) => t.name !== 'bash');
  * ```
  *
- * Trust model: the file tools confine to `workdir` (symlink-aware) and are safe
- * without a sandbox; `bash` is unrestricted and should run inside one. See
- * {@link AgentToolContext}.
+ * Trust model: the file tools confine to `workdir` plus any `allowedRoots`
+ * (symlink-aware) and are safe without a sandbox; `bash` is unrestricted and
+ * should run inside one. See {@link AgentToolContext}.
  */
 
 import * as fs from 'node:fs/promises';
@@ -36,14 +36,33 @@ import * as cp from 'node:child_process';
 import * as crypto from 'node:crypto';
 import * as readline from 'node:readline';
 import type { Anthropic } from '../../client';
+import type { BetaManagedAgentsSession } from '../../resources/beta/sessions/sessions';
 import { AnthropicError } from '../../core/error';
 import type { BetaRunnableTool } from '../../lib/tools/BetaRunnableTool';
 import { ToolError } from '../../lib/tools/ToolError';
 import { betaTool } from '../../helpers/beta/json-schema';
 import { promiseWithResolvers } from '../../internal/utils/promise';
-import { atomicWriteFile, confineToRoot, DIR_CREATE_MODE, fsErrorMessage } from './fs-util';
+import {
+  atomicWriteFile,
+  canonicalize,
+  confineToRoot,
+  containingRoot,
+  DIR_CREATE_MODE,
+  fsErrorMessage,
+  isWithin,
+} from './fs-util';
 
 export { setupSkills, resolveSkillVersion, extractSkillArchive } from './skills';
+export {
+  SessionMemoryStores,
+  SessionMemoryError,
+  DEFAULT_MEMORY_SYNC_INTERVAL_MS,
+  MIN_MEMORY_SYNC_INTERVAL_MS,
+  MEMORY_FLUSH_TIMEOUT_MS,
+  MARKER_PATH,
+  type MemoryDeleteMode,
+  type SessionMemoryStoresOptions,
+} from './memories';
 
 const BASH_OUTPUT_LIMIT = 100 * 1024;
 const BASH_DEFAULT_TIMEOUT_MS = 120_000;
@@ -89,18 +108,32 @@ function resolveMaxBytes(configured: number | null | undefined): number | null {
 }
 
 /**
+ * Throw when the deprecated {@link AgentToolContext.unrestrictedPaths} was
+ * passed at all. Nothing else reads that property.
+ */
+function rejectUnrestrictedPaths(value: boolean | undefined): void {
+  if (value === undefined) return;
+  throw new AnthropicError(
+    'The `unrestrictedPaths` option you passed to the agent toolset (AgentToolContext) is no longer ' +
+      "supported. The toolset's file tools (read, write, edit, glob, grep) are now always confined to " +
+      'the working directory plus the directories listed in `allowedRoots`. Remove `unrestrictedPaths` ' +
+      'from your context; to let the file tools reach any other directory, add it to `allowedRoots`.',
+  );
+}
+
+/**
  * Workdir + path-policy for the agent toolset.
  *
  * Trust model — two tiers:
  *
  * - The file tools ({@link betaReadTool}, {@link betaWriteTool},
  *   {@link betaEditTool}, {@link betaGlobTool}, {@link betaGrepTool}) confine to
- *   `workdir` unless `unrestrictedPaths` is set. {@link resolvePath}
- *   canonicalizes the target (resolving every symlink, including the leaf)
- *   before the check *and* returns that canonical path for the operation, so a
- *   symlink inside the workdir that points outside it neither passes the check
- *   nor gets followed afterwards — this is a real boundary, not a lexical hint
- *   (modulo the residual TOCTOU noted on {@link resolvePath}).
+ *   `workdir` plus any `allowedRoots`. {@link resolvePath} canonicalizes the
+ *   target (resolving every symlink, including the leaf) before the check
+ *   *and* returns that canonical path for the operation, so a symlink inside
+ *   the workdir that points outside it neither passes the check nor gets
+ *   followed afterwards — this is a real boundary, not a lexical hint (modulo
+ *   the residual TOCTOU noted on {@link resolvePath}).
  * - {@link betaBashTool} runs an unrestricted `/bin/bash` and cannot be
  *   confined. Run it — and, for defense in depth, the whole toolset — inside a
  *   sandbox the host controls (e.g. a self-hosted environment runner).
@@ -109,19 +142,48 @@ export interface AgentToolContext {
   /** Base directory for resolving relative tool paths. */
   workdir: string;
   /**
-   * When `false` (default), the file tools reject paths that resolve outside
-   * `workdir` (symlinks resolved). Does **not** constrain {@link betaBashTool}.
+   * @deprecated No longer accepted: the file tools are always confined to
+   * `workdir` plus `allowedRoots`, which is neither behavior this flag used to
+   * select, so passing either value throws. Remove it; list extra directories
+   * in {@link AgentToolContext.allowedRoots}. The property is removed in a
+   * future release.
    */
   unrestrictedPaths?: boolean;
   /**
+   * Absolute directories outside `workdir` the file tools may also reach,
+   * resolved at check time. The environment worker sets this to the session's
+   * memory-store folders. Does **not** constrain {@link betaBashTool}.
+   */
+  allowedRoots?: string[];
+  /**
    * Anthropic client. Optional — the bare toolset needs no client; it is only
-   * used by `setupSkills`, which (together with {@link AgentToolContext.sessionId})
-   * fetches the session's resolved agent and downloads each of its skills into
-   * `{workdir}/skills/<name>/`.
+   * used by `setupSkills`, which (together with {@link AgentToolContext.session},
+   * or the deprecated {@link AgentToolContext.sessionId}) downloads each of the
+   * session agent's skills into `{workdir}/skills/<name>/`.
    */
   client?: Anthropic;
-  /** Session whose agent's skills `setupSkills` should download. */
+  /**
+   * The already-fetched session whose agent's skills `setupSkills` downloads.
+   * A session's resources cannot change while it runs, so the caller fetches it
+   * once and shares that snapshot with the memory-store download; the two can
+   * then never disagree about them.
+   */
+  session?: BetaManagedAgentsSession;
+  /**
+   * @deprecated `setupSkills` fetches the session itself when given only an id,
+   * one extra round trip per context. Prefer {@link AgentToolContext.session}.
+   * Kept for callers written before `session` existed; ignored when `session`
+   * is set.
+   */
   sessionId?: string;
+  /**
+   * Directories the write and edit tools refuse to modify, resolved at check
+   * time exactly like `allowedRoots`. The worker sets this to the roots of
+   * read-only memory stores so the agent sees the error at write time instead
+   * of the change silently never syncing; the mechanism is generic to any
+   * directory.
+   */
+  readOnlyRoots?: string[];
   /**
    * Optional environment for the bash subprocess. When unset, the bash tool
    * inherits the process environment with the runner's `ANTHROPIC_*`
@@ -174,13 +236,14 @@ export function betaAgentToolset20260401(ctx: AgentToolContext): BetaRunnableToo
 }
 
 /**
- * Resolve `p` against `ctx.workdir`. Absolute and relative inputs go through
- * the same canonicalise-then-contain check — an absolute path that lands inside
- * the workdir is permitted, only paths that resolve *outside* are rejected.
- * Every symlink in `p` (including the leaf, even a dangling one) is resolved
- * before the workdir check, and the resolved path is what the tool then operates
- * on, so a symlink inside the workdir that points outside it can neither pass
- * the check nor be followed afterwards. See the trust model on
+ * Resolve `p` against `ctx.workdir`; reject results outside `ctx.workdir` and
+ * `ctx.allowedRoots`. Absolute and relative inputs go through the same
+ * canonicalise-then-contain check — an absolute path that lands inside a
+ * permitted root is accepted, only paths that resolve *outside* all of them
+ * are rejected. Every symlink in `p` (including the leaf, even a dangling one)
+ * is resolved before the check, and the resolved path is what the tool then
+ * operates on, so a symlink inside the workdir that points outside it can
+ * neither pass the check nor be followed afterwards. See the trust model on
  * {@link AgentToolContext}.
  *
  * Residual TOCTOU: a component could still be swapped for a symlink between this
@@ -189,8 +252,19 @@ export function betaAgentToolset20260401(ctx: AgentToolContext): BetaRunnableToo
  * residual exposure exists in `tools/memory/node` and is why a sandbox is still
  * recommended for the toolset as a whole.
  */
-export function resolvePath(ctx: AgentToolContext, p: string): Promise<string> {
-  return confineToRoot(ctx.workdir, p, { allowOutside: ctx.unrestrictedPaths ?? false });
+export async function resolvePath(ctx: AgentToolContext, p: string): Promise<string> {
+  rejectUnrestrictedPaths(ctx.unrestrictedPaths);
+  return confineToRoot(ctx.workdir, p, { allowedRoots: ctx.allowedRoots ?? [] });
+}
+
+/**
+ * The read-only root `target` falls under, or `undefined`. `target` arrives
+ * fully canonicalized (from {@link resolvePath}), so each root is
+ * canonicalized too — a root recorded through a symlinked workdir must still
+ * match the resolved write target.
+ */
+function readOnlyRootFor(ctx: AgentToolContext, target: string): Promise<string | undefined> {
+  return containingRoot(ctx.readOnlyRoots ?? [], target);
 }
 
 // ---- bash ----------------------------------------------------------------
@@ -363,6 +437,7 @@ export class BashSession {
 }
 
 export function betaBashTool(ctx: AgentToolContext): BetaRunnableTool {
+  rejectUnrestrictedPaths(ctx.unrestrictedPaths);
   let session: BashSession | undefined;
   // Concurrent run() callers chain onto this promise so writes to the shared
   // shell's stdin can't interleave (which would corrupt the sentinel-match
@@ -431,6 +506,7 @@ export function betaBashTool(ctx: AgentToolContext): BetaRunnableTool {
 // ---- fs ------------------------------------------------------------------
 
 export function betaReadTool(ctx: AgentToolContext): BetaRunnableTool {
+  rejectUnrestrictedPaths(ctx.unrestrictedPaths);
   return betaTool({
     name: 'read',
     description: 'Read a UTF-8 text file relative to the workdir.',
@@ -482,6 +558,7 @@ export function betaReadTool(ctx: AgentToolContext): BetaRunnableTool {
 }
 
 export function betaWriteTool(ctx: AgentToolContext): BetaRunnableTool {
+  rejectUnrestrictedPaths(ctx.unrestrictedPaths);
   return betaTool({
     name: 'write',
     description: 'Write a UTF-8 text file relative to the workdir, creating parent directories as needed.',
@@ -493,6 +570,10 @@ export function betaWriteTool(ctx: AgentToolContext): BetaRunnableTool {
     run: async ({ file_path, content }) => {
       if (!file_path) throw new ToolError('write: file_path is required');
       const abs = await resolvePath(ctx, file_path);
+      const ro = await readOnlyRootFor(ctx, abs);
+      if (ro !== undefined) {
+        throw new ToolError(`write: ${file_path} is inside read-only directory ${ro}`);
+      }
       try {
         await fs.mkdir(path.dirname(abs), { recursive: true, mode: DIR_CREATE_MODE });
         await atomicWriteFile(abs, content ?? '');
@@ -505,6 +586,7 @@ export function betaWriteTool(ctx: AgentToolContext): BetaRunnableTool {
 }
 
 export function betaEditTool(ctx: AgentToolContext): BetaRunnableTool {
+  rejectUnrestrictedPaths(ctx.unrestrictedPaths);
   return betaTool({
     name: 'edit',
     description:
@@ -523,6 +605,10 @@ export function betaEditTool(ctx: AgentToolContext): BetaRunnableTool {
       if (!file_path) throw new ToolError('edit: file_path is required');
       if (!old_string) throw new ToolError('edit: old_string is required');
       const abs = await resolvePath(ctx, file_path);
+      const ro = await readOnlyRootFor(ctx, abs);
+      if (ro !== undefined) {
+        throw new ToolError(`edit: ${file_path} is inside read-only directory ${ro}`);
+      }
       let data: string;
       try {
         // stat() before any open() — same guard as `read`: the size cap stops a
@@ -570,7 +656,17 @@ export function betaEditTool(ctx: AgentToolContext): BetaRunnableTool {
 
 // ---- search --------------------------------------------------------------
 
+/**
+ * Best-effort: stops `fs.glob` from walking out of the root via a literal or
+ * brace-expanded `..`. The realpath post-filter in {@link betaGlobTool} is the
+ * boundary; this only avoids the walk.
+ */
+function patternCanAscend(pattern: string): boolean {
+  return pattern.split(/[\\/{},]/).includes('..');
+}
+
 export function betaGlobTool(ctx: AgentToolContext): BetaRunnableTool {
+  rejectUnrestrictedPaths(ctx.unrestrictedPaths);
   return betaTool({
     name: 'glob',
     description:
@@ -585,34 +681,31 @@ export function betaGlobTool(ctx: AgentToolContext): BetaRunnableTool {
     },
     run: async ({ pattern, path: searchPath }) => {
       if (!pattern) throw new ToolError('glob: pattern is required');
-      let root = path.resolve(ctx.workdir);
-      let pat = pattern;
       if (path.isAbsolute(pattern)) {
-        if (!ctx.unrestrictedPaths) throw new ToolError('glob: absolute pattern not permitted');
-        root = path.parse(pattern).root;
-        pat = path.relative(root, pattern);
-      } else if (searchPath) {
-        root = await resolvePath(ctx, searchPath);
+        throw new ToolError(
+          'glob: absolute pattern not permitted; pass a relative pattern (and optionally path)',
+        );
       }
-      // A `..` in the *pattern itself* (e.g. `../../*`) walks `fs.glob` out of
-      // the search root — this is separate from the `searchPath` confinement
-      // above, which only covers the path argument. Reject it outright when the
-      // toolset is confined.
-      if (!ctx.unrestrictedPaths && pat.split(/[\\/]/).includes('..')) {
+      if (patternCanAscend(pattern)) {
         throw new ToolError('glob: ".." is not permitted in the pattern');
       }
+      const root = searchPath ? await resolvePath(ctx, searchPath) : path.resolve(ctx.workdir);
       // Compare canonical against canonical: a workdir that is itself a
       // symlink would otherwise falsely reject every realpath'd match below.
-      const realRoot = ctx.unrestrictedPaths ? root : await fs.realpath(root).catch(() => root);
+      const realRoot = searchPath ? root : await canonicalize(root);
       const matches: { path: string; mtime: number }[] = [];
+      // Bounds the walk for patterns that match, or brace-expand into,
+      // enormous trees.
+      let remaining = WALK_MAX_ENTRIES;
       try {
         // Native `fs.glob` (Node 22+). `exclude` prunes the noisy dirs the
         // legacy walker skipped; only regular files are collected.
-        for await (const entry of fsGlob(pat, {
+        for await (const entry of fsGlob(pattern, {
           cwd: root,
           withFileTypes: true,
           exclude: (d) => d.name === '.git' || d.name === 'node_modules',
         })) {
+          if (remaining-- <= 0) break;
           if (!entry.isFile()) continue;
           const full = path.join(entry.parentPath, entry.name);
           // Drop any match that resolves outside the search root. A pattern
@@ -622,15 +715,13 @@ export function betaGlobTool(ctx: AgentToolContext): BetaRunnableTool {
           // the raw parent path, so a lexical check on `full` alone would
           // pass `root/link_out/secret` even though it lives outside the
           // jail. Resolve-failure (ELOOP, EACCES, a racing unlink) is a deny.
-          if (!ctx.unrestrictedPaths) {
-            let real: string;
-            try {
-              real = await fs.realpath(full);
-            } catch {
-              continue;
-            }
-            if (!isWithin(realRoot, real)) continue;
+          let real: string;
+          try {
+            real = await fs.realpath(full);
+          } catch {
+            continue;
           }
+          if (!isWithin(realRoot, real)) continue;
           let mtime = 0;
           try {
             mtime = (await fs.stat(full)).mtimeMs;
@@ -653,6 +744,7 @@ export function betaGlobTool(ctx: AgentToolContext): BetaRunnableTool {
 }
 
 export function betaGrepTool(ctx: AgentToolContext): BetaRunnableTool {
+  rejectUnrestrictedPaths(ctx.unrestrictedPaths);
   return betaTool({
     name: 'grep',
     description: 'Search file contents for a regex. Uses ripgrep if available, otherwise a built-in walker.',
@@ -764,12 +856,6 @@ async function grepFile(file: string, re: RegExp, push: (line: string) => boolea
 }
 
 // ---- utils ---------------------------------------------------------------
-
-/** True when `p` is `root` itself or lexically contained within it. */
-function isWithin(root: string, p: string): boolean {
-  const rel = path.relative(root, p);
-  return rel === '' || (!rel.startsWith('..' + path.sep) && rel !== '..' && !path.isAbsolute(rel));
-}
 
 const WALK_MAX_DEPTH = 40;
 const WALK_MAX_ENTRIES = 50_000;
