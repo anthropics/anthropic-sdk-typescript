@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.4 (2026-08-19)
+
+Full Changelog: [foundry-sdk-v0.4.3...foundry-sdk-v0.4.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.4.3...foundry-sdk-v0.4.4)
+
+### Chores
+
+* **internal:** use a single pnpm workspace lockfile ([#359](https://github.com/anthropics/anthropic-sdk-typescript/issues/359)) ([3c32145](https://github.com/anthropics/anthropic-sdk-typescript/commit/3c32145d2bc4d53888c6c6857c9af216eec95fb9))
+
 ## 0.4.3 (2026-08-13)
 
 Full Changelog: [foundry-sdk-v0.4.2...foundry-sdk-v0.4.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.4.2...foundry-sdk-v0.4.3)
