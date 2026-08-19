@@ -30,6 +30,46 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionToolResultError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionToolResultErrorCode</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionToolResultErrorParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserCloseTabConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserDoubleClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserFileUploadConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserFindConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserFormInputConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserGetPageTextConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserHoldKeyConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserHoverConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserJavascriptExecConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserKeyConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserLeftClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserLeftClickDragConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserLeftMouseDownConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserLeftMouseUpConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserListTabsConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserMiddleClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserMouseMoveConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserNavigateConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserNewTabConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserReadConsoleConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserReadNetworkConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserReadPageConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserRightClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserScreenshotConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserScrollConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserScrollToConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserStateBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserStateChange</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserStateChangeDownloadCompleted</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserStateChangeDownloadFailed</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserStateChangeDownloadStarted</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserStateChangeTabOpened</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserStateTabEntry</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserSwitchTabConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserToolset20260801</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserToolsetConfigs</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserTripleClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserTypeConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserWaitConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">BrowserZoomConfig</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CacheControlEphemeral</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CacheCreation</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationCharLocation</a></code>
@@ -60,7 +100,28 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultErrorCode</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultErrorParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerCursorPositionConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerDoubleClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerHoldKeyConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerKeyConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerLeftClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerLeftClickDragConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerLeftMouseDownConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerLeftMouseUpConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerMiddleClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerMouseMoveConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerRightClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerScreenshotConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerScrollConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerToolset20260801</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerToolsetConfigs</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerTripleClickConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerTypeConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerWaitConfig</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ComputerZoomConfig</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Container</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContainerParams</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ContainerSkill</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContainerUploadBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContainerUploadBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlock</a></code>
@@ -72,12 +133,16 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">DocumentBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">EncryptedCodeExecutionResultBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">EncryptedCodeExecutionResultBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">FileDocumentSource</a></code>
+- <code><a href="./src/resources/messages/messages.ts">FileImageSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ImageBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ImageTransformationsParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">InputJSONDelta</a></code>
 - <code><a href="./src/resources/messages/messages.ts">JSONOutputFormat</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MemoryTool20250818</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Message</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageCountTokensTool</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageCreateParamsContainer</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageDeltaUsage</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageTokensCount</a></code>
@@ -104,6 +169,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">ServerToolUseBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ServerToolUseBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">SignatureDelta</a></code>
+- <code><a href="./src/resources/messages/messages.ts">SkillParams</a></code>
 - <code><a href="./src/resources/messages/messages.ts">StopReason</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextBlockParam</a></code>
@@ -226,6 +292,50 @@ Methods:
 - <code title="get /v1/models/{model_id}">client.models.<a href="./src/resources/models.ts">retrieve</a>(modelID, { ...params }) -> ModelInfo</code>
 - <code title="get /v1/models">client.models.<a href="./src/resources/models.ts">list</a>({ ...params }) -> ModelInfosPage</code>
 
+# Files
+
+Types:
+
+- <code><a href="./src/resources/files.ts">DeletedFile</a></code>
+- <code><a href="./src/resources/files.ts">FileMetadata</a></code>
+
+Methods:
+
+- <code title="get /v1/files">client.files.<a href="./src/resources/files.ts">list</a>({ ...params }) -> FileMetadataPageCursor</code>
+- <code title="delete /v1/files/{file_id}">client.files.<a href="./src/resources/files.ts">delete</a>(fileID) -> DeletedFile</code>
+- <code title="get /v1/files/{file_id}/content">client.files.<a href="./src/resources/files.ts">download</a>(fileID) -> Response</code>
+- <code title="get /v1/files/{file_id}">client.files.<a href="./src/resources/files.ts">retrieveMetadata</a>(fileID) -> FileMetadata</code>
+- <code title="post /v1/files">client.files.<a href="./src/resources/files.ts">upload</a>({ ...params }) -> FileMetadata</code>
+
+# Skills
+
+Types:
+
+- <code><a href="./src/resources/skills/skills.ts">DeletedSkill</a></code>
+- <code><a href="./src/resources/skills/skills.ts">Skill</a></code>
+- <code><a href="./src/resources/skills/skills.ts">SkillSource</a></code>
+
+Methods:
+
+- <code title="post /v1/skills">client.skills.<a href="./src/resources/skills/skills.ts">create</a>({ ...params }) -> Skill</code>
+- <code title="get /v1/skills/{skill_id}">client.skills.<a href="./src/resources/skills/skills.ts">retrieve</a>(skillID) -> Skill</code>
+- <code title="get /v1/skills">client.skills.<a href="./src/resources/skills/skills.ts">list</a>({ ...params }) -> SkillsPageCursor</code>
+- <code title="delete /v1/skills/{skill_id}">client.skills.<a href="./src/resources/skills/skills.ts">delete</a>(skillID) -> DeletedSkill</code>
+
+## Versions
+
+Types:
+
+- <code><a href="./src/resources/skills/versions.ts">DeletedSkillVersion</a></code>
+- <code><a href="./src/resources/skills/versions.ts">SkillVersion</a></code>
+
+Methods:
+
+- <code title="post /v1/skills/{skill_id}/versions">client.skills.versions.<a href="./src/resources/skills/versions.ts">create</a>(skillID, { ...params }) -> SkillVersion</code>
+- <code title="get /v1/skills/{skill_id}/versions/{version}">client.skills.versions.<a href="./src/resources/skills/versions.ts">retrieve</a>(version, { ...params }) -> SkillVersion</code>
+- <code title="get /v1/skills/{skill_id}/versions">client.skills.versions.<a href="./src/resources/skills/versions.ts">list</a>(skillID, { ...params }) -> SkillVersionsPageCursor</code>
+- <code title="delete /v1/skills/{skill_id}/versions/{version}">client.skills.versions.<a href="./src/resources/skills/versions.ts">delete</a>(version, { ...params }) -> DeletedSkillVersion</code>
+
 # Beta
 
 Types:
@@ -287,6 +397,46 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultError</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionToolResultErrorParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserCloseTabConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserDoubleClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserFileUploadConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserFindConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserFormInputConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserGetPageTextConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserHoldKeyConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserHoverConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserJavascriptExecConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserKeyConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserLeftClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserLeftClickDragConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserLeftMouseDownConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserLeftMouseUpConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserListTabsConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserMiddleClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserMouseMoveConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserNavigateConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserNewTabConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserReadConsoleConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserReadNetworkConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserReadPageConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserRightClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserScreenshotConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserScrollConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserScrollToConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserStateBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserStateChange</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserStateChangeDownloadCompleted</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserStateChangeDownloadFailed</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserStateChangeDownloadStarted</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserStateChangeTabOpened</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserStateTabEntry</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserSwitchTabConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserToolset20260801</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserToolsetConfigs</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserTripleClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserTypeConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserWaitConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaBrowserZoomConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheControlEphemeral</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheCreation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissMessagesChanged</a></code>
@@ -332,6 +482,25 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionContentBlockDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionIterationUsage</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerCursorPositionConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerDoubleClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerHoldKeyConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerKeyConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerLeftClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerLeftClickDragConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerLeftMouseDownConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerLeftMouseUpConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerMiddleClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerMouseMoveConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerRightClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerScreenshotConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerScrollConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerToolset20260801</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerToolsetConfigs</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerTripleClickConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerTypeConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerWaitConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerZoomConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContainer</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContainerParams</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContainerUploadBlock</a></code>
@@ -364,6 +533,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFileDocumentSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaFileImageSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaImageBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaImageTransformationsParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaInputJSONDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaInputTokensClearAtLeast</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaInputTokensTrigger</a></code>
@@ -1033,17 +1203,17 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/beta/files.ts">BetaDeletedFile</a></code>
+- <code><a href="./src/resources/beta/files.ts">BetaFileMetadata</a></code>
 - <code><a href="./src/resources/beta/files.ts">BetaFileScope</a></code>
-- <code><a href="./src/resources/beta/files.ts">DeletedFile</a></code>
-- <code><a href="./src/resources/beta/files.ts">FileMetadata</a></code>
 
 Methods:
 
-- <code title="get /v1/files?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">list</a>({ ...params }) -> FileMetadataPage</code>
-- <code title="delete /v1/files/{file_id}?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">delete</a>(fileID, { ...params }) -> DeletedFile</code>
+- <code title="get /v1/files?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">list</a>({ ...params }) -> BetaFileMetadataPage</code>
+- <code title="delete /v1/files/{file_id}?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">delete</a>(fileID, { ...params }) -> BetaDeletedFile</code>
 - <code title="get /v1/files/{file_id}/content?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">download</a>(fileID, { ...params }) -> Response</code>
-- <code title="get /v1/files/{file_id}?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">retrieveMetadata</a>(fileID, { ...params }) -> FileMetadata</code>
-- <code title="post /v1/files?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">upload</a>({ ...params }) -> FileMetadata</code>
+- <code title="get /v1/files/{file_id}?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">retrieveMetadata</a>(fileID, { ...params }) -> BetaFileMetadata</code>
+- <code title="post /v1/files?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">upload</a>({ ...params }) -> BetaFileMetadata</code>
 
 ## Skills
 

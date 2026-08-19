@@ -94,17 +94,17 @@ import Anthropic, { toFile } from '@anthropic-ai/sdk';
 const client = new Anthropic();
 
 // If you have access to Node `fs` we recommend using `fs.createReadStream()`:
-await client.beta.files.upload({ file: fs.createReadStream('/path/to/file') });
+await client.files.upload({ file: fs.createReadStream('/path/to/file') });
 
 // Or if you have the web `File` API you can pass a `File` instance:
-await client.beta.files.upload({ file: new File(['my bytes'], 'file') });
+await client.files.upload({ file: new File(['my bytes'], 'file') });
 
 // You can also pass a `fetch` `Response`:
-await client.beta.files.upload({ file: await fetch('https://somesite/file') });
+await client.files.upload({ file: await fetch('https://somesite/file') });
 
 // Finally, if none of the above are convenient, you can use our `toFile` helper:
-await client.beta.files.upload({ file: await toFile(Buffer.from('my bytes'), 'file') });
-await client.beta.files.upload({ file: await toFile(new Uint8Array([0, 1, 2]), 'file') });
+await client.files.upload({ file: await toFile(Buffer.from('my bytes'), 'file') });
+await client.files.upload({ file: await toFile(new Uint8Array([0, 1, 2]), 'file') });
 ```
 
 ## Handling errors

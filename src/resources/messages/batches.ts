@@ -497,7 +497,7 @@ export namespace BatchCreateParams {
       /**
        * Container identifier for reuse across requests.
        */
-      container?: string | null;
+      container?: MessagesAPI.MessageCreateParamsContainer | null;
 
       /**
        * Specifies the geographic region for inference processing. If not specified, the

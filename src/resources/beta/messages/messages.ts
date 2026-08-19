@@ -419,6 +419,920 @@ export interface BetaBashCodeExecutionToolResultErrorParam {
   type: 'bash_code_execution_tool_result_error';
 }
 
+/**
+ * `close_tab`'s config overrides.
+ */
+export interface BetaBrowserCloseTabConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `double_click`'s config overrides.
+ */
+export interface BetaBrowserDoubleClickConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `file_upload`'s config overrides.
+ */
+export interface BetaBrowserFileUploadConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `find`'s config overrides.
+ */
+export interface BetaBrowserFindConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `form_input`'s config overrides.
+ */
+export interface BetaBrowserFormInputConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `get_page_text`'s config overrides.
+ */
+export interface BetaBrowserGetPageTextConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `hold_key`'s config overrides.
+ */
+export interface BetaBrowserHoldKeyConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `hover`'s config overrides.
+ */
+export interface BetaBrowserHoverConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `javascript_exec`'s config overrides.
+ */
+export interface BetaBrowserJavascriptExecConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `key`'s config overrides.
+ */
+export interface BetaBrowserKeyConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `left_click`'s config overrides.
+ */
+export interface BetaBrowserLeftClickConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `left_click_drag`'s config overrides.
+ */
+export interface BetaBrowserLeftClickDragConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `left_mouse_down`'s config overrides.
+ */
+export interface BetaBrowserLeftMouseDownConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `left_mouse_up`'s config overrides.
+ */
+export interface BetaBrowserLeftMouseUpConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `list_tabs`'s config overrides.
+ */
+export interface BetaBrowserListTabsConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `middle_click`'s config overrides.
+ */
+export interface BetaBrowserMiddleClickConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `mouse_move`'s config overrides.
+ */
+export interface BetaBrowserMouseMoveConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `navigate`'s config overrides.
+ */
+export interface BetaBrowserNavigateConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `new_tab`'s config overrides.
+ */
+export interface BetaBrowserNewTabConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `read_console`'s config overrides.
+ */
+export interface BetaBrowserReadConsoleConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `read_network`'s config overrides.
+ */
+export interface BetaBrowserReadNetworkConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `read_page`'s config overrides.
+ */
+export interface BetaBrowserReadPageConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `right_click`'s config overrides.
+ */
+export interface BetaBrowserRightClickConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `screenshot`'s config overrides.
+ */
+export interface BetaBrowserScreenshotConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `scroll`'s config overrides.
+ */
+export interface BetaBrowserScrollConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `scroll_to`'s config overrides.
+ */
+export interface BetaBrowserScrollToConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * The caller's browser state after a browser toolset member call — the full
+ * inventory of open tabs, which tab is active, and any side effects (tabs opened,
+ * download state changes) the call produced.
+ *
+ * At most one per `tool_result`, only on a non-error result answering a browser
+ * toolset member `tool_use`. The server renders the model-visible text from it;
+ * the model never sees the raw fields.
+ */
+export interface BetaBrowserStateBlockParam {
+  /**
+   * All tabs open in the browser after this call — the full inventory, not a delta.
+   * May be empty. Whenever non-empty, exactly one entry carries `active: true`.
+   */
+  tabs: Array<BetaBrowserStateTabEntry>;
+
+  type: 'browser_state';
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Tabs opened and download state changes during this call. "Nothing to report" is
+   * expressed by omitting the field, never by an empty list.
+   */
+  state_changes?: Array<BetaBrowserStateChange> | null;
+}
+
+/**
+ * A tab this call's execution opened that remains open at its end — the creation
+ * delta of the `tabs` inventory, not an event log.
+ *
+ * Carries only the `tab_id`; the tab's `title` and `url` live on its `tabs` entry,
+ * which must include the same `tab_id`. A tab opened during a failed call gets no
+ * deferred `tab_opened`; it simply appears in the next result's `tabs` inventory.
+ */
+export type BetaBrowserStateChange =
+  | BetaBrowserStateChangeTabOpened
+  | BetaBrowserStateChangeDownloadStarted
+  | BetaBrowserStateChangeDownloadCompleted
+  | BetaBrowserStateChangeDownloadFailed;
+
+/**
+ * A file download that finished during this call, reported with the same
+ * `download_id` as its `download_started` — or without a prior `download_started`,
+ * when the download finished during the call that started it (at most one state
+ * change per `download_id` per result).
+ */
+export interface BetaBrowserStateChangeDownloadCompleted {
+  /**
+   * The caller-assigned identifier for this download, stable across the state
+   * changes reporting it.
+   */
+  download_id: string;
+
+  type: 'download_completed';
+
+  /**
+   * The final post-redirect URL the download was served from.
+   */
+  url: string;
+
+  /**
+   * Where the executor saved the file, on the executor's filesystem. Only included
+   * when another tool in the same environment can read the file at that path.
+   */
+  path?: string | null;
+
+  /**
+   * The completed download's size.
+   */
+  size_bytes?: number | null;
+}
+
+/**
+ * A file download that failed — or was cancelled — during this call.
+ */
+export interface BetaBrowserStateChangeDownloadFailed {
+  /**
+   * The caller-assigned identifier for this download, stable across the state
+   * changes reporting it.
+   */
+  download_id: string;
+
+  type: 'download_failed';
+
+  /**
+   * The final post-redirect URL the download was served from.
+   */
+  url: string;
+
+  /**
+   * The failure or cancellation detail, when known.
+   */
+  error?: string | null;
+}
+
+/**
+ * A file download that started during this call.
+ */
+export interface BetaBrowserStateChangeDownloadStarted {
+  /**
+   * The caller-assigned identifier for this download, stable across the state
+   * changes reporting it.
+   */
+  download_id: string;
+
+  type: 'download_started';
+
+  /**
+   * The final post-redirect URL the download was served from.
+   */
+  url: string;
+}
+
+/**
+ * A tab this call's execution opened that remains open at its end — the creation
+ * delta of the `tabs` inventory, not an event log.
+ *
+ * Carries only the `tab_id`; the tab's `title` and `url` live on its `tabs` entry,
+ * which must include the same `tab_id`. A tab opened during a failed call gets no
+ * deferred `tab_opened`; it simply appears in the next result's `tabs` inventory.
+ */
+export interface BetaBrowserStateChangeTabOpened {
+  /**
+   * The `tab_id` of the opened tab, present in `tabs`.
+   */
+  tab_id: string;
+
+  type: 'tab_opened';
+}
+
+/**
+ * One open browser tab reported in a `browser_state` block's `tabs` inventory.
+ *
+ * `tab_id` is the caller-assigned identifier for the tab; `title` and `url`
+ * describe the page the tab is currently showing and may be empty strings (a blank
+ * tab legitimately has both empty). `active` marks the tab that is active after
+ * this call; whenever `tabs` is non-empty, exactly one entry is marked.
+ */
+export interface BetaBrowserStateTabEntry {
+  /**
+   * The caller-assigned identifier for this tab, unique within the inventory.
+   */
+  tab_id: string;
+
+  /**
+   * The title of the page the tab is showing. May be empty.
+   */
+  title: string;
+
+  /**
+   * The URL of the page the tab is showing. May be empty.
+   */
+  url: string;
+
+  /**
+   * Whether this tab is the active tab after this call. Whenever `tabs` is
+   * non-empty, exactly one entry is marked `active: true`.
+   */
+  active?: boolean;
+}
+
+/**
+ * `switch_tab`'s config overrides.
+ */
+export interface BetaBrowserSwitchTabConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * The browser toolset: a single `tools[]` entry (carrying no `name`) that declares
+ * the browser tool family. The model is served the family's tool with any members
+ * disabled via `configs` removed from its schema.
+ */
+export interface BetaBrowserToolset20260801 {
+  type: 'browser_toolset_20260801';
+
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Per-member configuration for `browser_toolset_20260801`: one optional field per
+   * member tool, keyed by the member name — the same name the member's `tool_use`
+   * blocks carry. Every member is an accepted key, and a member's defaults apply
+   * wherever its key is absent. Unknown keys are rejected: the field set is this
+   * toolset version's complete member set.
+   */
+  configs?: BetaBrowserToolsetConfigs | null;
+}
+
+/**
+ * Per-member configuration for `browser_toolset_20260801`: one optional field per
+ * member tool, keyed by the member name — the same name the member's `tool_use`
+ * blocks carry. Every member is an accepted key, and a member's defaults apply
+ * wherever its key is absent. Unknown keys are rejected: the field set is this
+ * toolset version's complete member set.
+ */
+export interface BetaBrowserToolsetConfigs {
+  /**
+   * `close_tab`'s config overrides.
+   */
+  close_tab?: BetaBrowserCloseTabConfig | null;
+
+  /**
+   * `double_click`'s config overrides.
+   */
+  double_click?: BetaBrowserDoubleClickConfig | null;
+
+  /**
+   * `file_upload`'s config overrides.
+   */
+  file_upload?: BetaBrowserFileUploadConfig | null;
+
+  /**
+   * `find`'s config overrides.
+   */
+  find?: BetaBrowserFindConfig | null;
+
+  /**
+   * `form_input`'s config overrides.
+   */
+  form_input?: BetaBrowserFormInputConfig | null;
+
+  /**
+   * `get_page_text`'s config overrides.
+   */
+  get_page_text?: BetaBrowserGetPageTextConfig | null;
+
+  /**
+   * `hold_key`'s config overrides.
+   */
+  hold_key?: BetaBrowserHoldKeyConfig | null;
+
+  /**
+   * `hover`'s config overrides.
+   */
+  hover?: BetaBrowserHoverConfig | null;
+
+  /**
+   * `javascript_exec`'s config overrides.
+   */
+  javascript_exec?: BetaBrowserJavascriptExecConfig | null;
+
+  /**
+   * `key`'s config overrides.
+   */
+  key?: BetaBrowserKeyConfig | null;
+
+  /**
+   * `left_click`'s config overrides.
+   */
+  left_click?: BetaBrowserLeftClickConfig | null;
+
+  /**
+   * `left_click_drag`'s config overrides.
+   */
+  left_click_drag?: BetaBrowserLeftClickDragConfig | null;
+
+  /**
+   * `left_mouse_down`'s config overrides.
+   */
+  left_mouse_down?: BetaBrowserLeftMouseDownConfig | null;
+
+  /**
+   * `left_mouse_up`'s config overrides.
+   */
+  left_mouse_up?: BetaBrowserLeftMouseUpConfig | null;
+
+  /**
+   * `list_tabs`'s config overrides.
+   */
+  list_tabs?: BetaBrowserListTabsConfig | null;
+
+  /**
+   * `middle_click`'s config overrides.
+   */
+  middle_click?: BetaBrowserMiddleClickConfig | null;
+
+  /**
+   * `mouse_move`'s config overrides.
+   */
+  mouse_move?: BetaBrowserMouseMoveConfig | null;
+
+  /**
+   * `navigate`'s config overrides.
+   */
+  navigate?: BetaBrowserNavigateConfig | null;
+
+  /**
+   * `new_tab`'s config overrides.
+   */
+  new_tab?: BetaBrowserNewTabConfig | null;
+
+  /**
+   * `read_console`'s config overrides.
+   */
+  read_console?: BetaBrowserReadConsoleConfig | null;
+
+  /**
+   * `read_network`'s config overrides.
+   */
+  read_network?: BetaBrowserReadNetworkConfig | null;
+
+  /**
+   * `read_page`'s config overrides.
+   */
+  read_page?: BetaBrowserReadPageConfig | null;
+
+  /**
+   * `right_click`'s config overrides.
+   */
+  right_click?: BetaBrowserRightClickConfig | null;
+
+  /**
+   * `screenshot`'s config overrides.
+   */
+  screenshot?: BetaBrowserScreenshotConfig | null;
+
+  /**
+   * `scroll`'s config overrides.
+   */
+  scroll?: BetaBrowserScrollConfig | null;
+
+  /**
+   * `scroll_to`'s config overrides.
+   */
+  scroll_to?: BetaBrowserScrollToConfig | null;
+
+  /**
+   * `switch_tab`'s config overrides.
+   */
+  switch_tab?: BetaBrowserSwitchTabConfig | null;
+
+  /**
+   * `triple_click`'s config overrides.
+   */
+  triple_click?: BetaBrowserTripleClickConfig | null;
+
+  /**
+   * `type`'s config overrides.
+   */
+  type?: BetaBrowserTypeConfig | null;
+
+  /**
+   * `wait`'s config overrides.
+   */
+  wait?: BetaBrowserWaitConfig | null;
+
+  /**
+   * `zoom`'s config overrides.
+   */
+  zoom?: BetaBrowserZoomConfig | null;
+}
+
+/**
+ * `triple_click`'s config overrides.
+ */
+export interface BetaBrowserTripleClickConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `type`'s config overrides.
+ */
+export interface BetaBrowserTypeConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `wait`'s config overrides.
+ */
+export interface BetaBrowserWaitConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `zoom`'s config overrides.
+ */
+export interface BetaBrowserZoomConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
 export interface BetaCacheControlEphemeral {
   type: 'ephemeral';
 
@@ -1171,6 +2085,436 @@ export interface BetaCompactionIterationUsage {
 }
 
 /**
+ * `cursor_position`'s config overrides.
+ */
+export interface BetaComputerCursorPositionConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `double_click`'s config overrides.
+ */
+export interface BetaComputerDoubleClickConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `hold_key`'s config overrides.
+ */
+export interface BetaComputerHoldKeyConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `key`'s config overrides.
+ */
+export interface BetaComputerKeyConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `left_click`'s config overrides.
+ */
+export interface BetaComputerLeftClickConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `left_click_drag`'s config overrides.
+ */
+export interface BetaComputerLeftClickDragConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `left_mouse_down`'s config overrides.
+ */
+export interface BetaComputerLeftMouseDownConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `left_mouse_up`'s config overrides.
+ */
+export interface BetaComputerLeftMouseUpConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `middle_click`'s config overrides.
+ */
+export interface BetaComputerMiddleClickConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `mouse_move`'s config overrides.
+ */
+export interface BetaComputerMouseMoveConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `right_click`'s config overrides.
+ */
+export interface BetaComputerRightClickConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `screenshot`'s config overrides.
+ */
+export interface BetaComputerScreenshotConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `scroll`'s config overrides.
+ */
+export interface BetaComputerScrollConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * The computer toolset: a single `tools[]` entry (carrying no `name`) that
+ * declares the computer tool family. The model is served the family's tool with
+ * any members disabled via `configs` removed from its schema. Every member is
+ * enabled by default, zoom included. The single-tool options `display_number` and
+ * `enable_zoom` are not fields of a toolset entry — it carries only `type`,
+ * `configs`, and `cache_control`; zoom is controlled via `configs.zoom.enabled`.
+ */
+export interface BetaComputerToolset20260801 {
+  type: 'computer_toolset_20260801';
+
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
+
+  /**
+   * Create a cache control breakpoint at this content block.
+   */
+  cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Per-member configuration for `computer_toolset_20260801`: one optional field per
+   * member tool, keyed by the member name — the same name the member's `tool_use`
+   * blocks carry. Every member is an accepted key, and a member's defaults apply
+   * wherever its key is absent. Unknown keys are rejected: the field set is this
+   * toolset version's complete member set.
+   */
+  configs?: BetaComputerToolsetConfigs | null;
+}
+
+/**
+ * Per-member configuration for `computer_toolset_20260801`: one optional field per
+ * member tool, keyed by the member name — the same name the member's `tool_use`
+ * blocks carry. Every member is an accepted key, and a member's defaults apply
+ * wherever its key is absent. Unknown keys are rejected: the field set is this
+ * toolset version's complete member set.
+ */
+export interface BetaComputerToolsetConfigs {
+  /**
+   * `cursor_position`'s config overrides.
+   */
+  cursor_position?: BetaComputerCursorPositionConfig | null;
+
+  /**
+   * `double_click`'s config overrides.
+   */
+  double_click?: BetaComputerDoubleClickConfig | null;
+
+  /**
+   * `hold_key`'s config overrides.
+   */
+  hold_key?: BetaComputerHoldKeyConfig | null;
+
+  /**
+   * `key`'s config overrides.
+   */
+  key?: BetaComputerKeyConfig | null;
+
+  /**
+   * `left_click`'s config overrides.
+   */
+  left_click?: BetaComputerLeftClickConfig | null;
+
+  /**
+   * `left_click_drag`'s config overrides.
+   */
+  left_click_drag?: BetaComputerLeftClickDragConfig | null;
+
+  /**
+   * `left_mouse_down`'s config overrides.
+   */
+  left_mouse_down?: BetaComputerLeftMouseDownConfig | null;
+
+  /**
+   * `left_mouse_up`'s config overrides.
+   */
+  left_mouse_up?: BetaComputerLeftMouseUpConfig | null;
+
+  /**
+   * `middle_click`'s config overrides.
+   */
+  middle_click?: BetaComputerMiddleClickConfig | null;
+
+  /**
+   * `mouse_move`'s config overrides.
+   */
+  mouse_move?: BetaComputerMouseMoveConfig | null;
+
+  /**
+   * `right_click`'s config overrides.
+   */
+  right_click?: BetaComputerRightClickConfig | null;
+
+  /**
+   * `screenshot`'s config overrides.
+   */
+  screenshot?: BetaComputerScreenshotConfig | null;
+
+  /**
+   * `scroll`'s config overrides.
+   */
+  scroll?: BetaComputerScrollConfig | null;
+
+  /**
+   * `triple_click`'s config overrides.
+   */
+  triple_click?: BetaComputerTripleClickConfig | null;
+
+  /**
+   * `type`'s config overrides.
+   */
+  type?: BetaComputerTypeConfig | null;
+
+  /**
+   * `wait`'s config overrides.
+   */
+  wait?: BetaComputerWaitConfig | null;
+
+  /**
+   * `zoom`'s config overrides.
+   */
+  zoom?: BetaComputerZoomConfig | null;
+}
+
+/**
+ * `triple_click`'s config overrides.
+ */
+export interface BetaComputerTripleClickConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `type`'s config overrides.
+ */
+export interface BetaComputerTypeConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `wait`'s config overrides.
+ */
+export interface BetaComputerWaitConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
+ * `zoom`'s config overrides.
+ */
+export interface BetaComputerZoomConfig {
+  /**
+   * Defer loading for this member. Must resolve to the same value on every enabled
+   * member of the toolset.
+   */
+  defer_loading?: boolean | null;
+
+  /**
+   * Whether this member is offered to the model. Default is per member, per the
+   * toolset's documentation. A member whose enabled resolves false is withheld from
+   * the served schema.
+   */
+  enabled?: boolean | null;
+}
+
+/**
  * Information about the container used in the request (for the code execution
  * tool)
  */
@@ -1719,6 +3063,32 @@ export interface BetaImageBlockParam {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Configures the transformations the server applies to this image before the model
+   * observes it. Each key names a condition the server transforms images for; its
+   * value selects the transformation applied. Omitted keys keep their default
+   * behavior, and an empty object is equivalent to omitting the field.
+   */
+  transformations?: BetaImageTransformationsParam | null;
+}
+
+/**
+ * Configures the transformations the server applies to this image before the model
+ * observes it. Each key names a condition the server transforms images for; its
+ * value selects the transformation applied. Omitted keys keep their default
+ * behavior, and an empty object is equivalent to omitting the field.
+ */
+export interface BetaImageTransformationsParam {
+  /**
+   * What the server does when this image exceeds the model's maximum image size.
+   * `"downsize"` (the default) scales the image down to fit, which changes the
+   * dimensions the model observes without telling you. `"error"` instead rejects the
+   * request with a 400 error naming the image's dimensions and the largest
+   * dimensions that fit, so you can scale the image deliberately — your image is
+   * never silently scaled down.
+   */
+  oversized_image?: 'downsize' | 'error';
 }
 
 export interface BetaInputJSONDelta {
@@ -3547,9 +4917,15 @@ export interface BetaToolResultBlockParam {
         | BetaSearchResultBlockParam
         | BetaRequestDocumentBlock
         | BetaToolReferenceBlockParam
+        | BetaBrowserStateBlockParam
       >;
 
   is_error?: boolean;
+
+  /**
+   * For a toolset member tool_result, the toolset family of the paired tool_use.
+   */
+  toolset_name?: string | null;
 }
 
 export interface BetaToolSearchToolBm25_20251119 {
@@ -3813,11 +5189,13 @@ export type BetaToolUnion =
   | BetaCodeExecutionTool20250825
   | BetaCodeExecutionTool20260120
   | BetaCodeExecutionTool20260521
+  | BetaBrowserToolset20260801
   | BetaToolComputerUse20241022
   | BetaMemoryTool20250818
   | BetaToolComputerUse20250124
   | BetaToolTextEditor20241022
   | BetaToolComputerUse20251124
+  | BetaComputerToolset20260801
   | BetaToolTextEditor20250124
   | BetaToolTextEditor20250429
   | BetaToolTextEditor20250728
@@ -3846,6 +5224,11 @@ export interface BetaToolUseBlock {
    * Tool invocation directly from the model.
    */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
+
+  /**
+   * For a toolset member tool_use, the toolset family.
+   */
+  toolset_name?: string | null;
 }
 
 export interface BetaToolUseBlockParam {
@@ -3866,6 +5249,11 @@ export interface BetaToolUseBlockParam {
    * Tool invocation directly from the model.
    */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
+
+  /**
+   * For a toolset member tool_use, the toolset family this member belongs to.
+   */
+  toolset_name?: string | null;
 }
 
 export interface BetaToolUsesKeep {
@@ -5226,11 +6614,13 @@ export interface MessageCountTokensParams {
     | BetaCodeExecutionTool20250825
     | BetaCodeExecutionTool20260120
     | BetaCodeExecutionTool20260521
+    | BetaBrowserToolset20260801
     | BetaToolComputerUse20241022
     | BetaMemoryTool20250818
     | BetaToolComputerUse20250124
     | BetaToolTextEditor20241022
     | BetaToolComputerUse20251124
+    | BetaComputerToolset20260801
     | BetaToolTextEditor20250124
     | BetaToolTextEditor20250429
     | BetaToolTextEditor20250728
@@ -5285,6 +6675,46 @@ export declare namespace Messages {
     type BetaBashCodeExecutionToolResultBlockParam as BetaBashCodeExecutionToolResultBlockParam,
     type BetaBashCodeExecutionToolResultError as BetaBashCodeExecutionToolResultError,
     type BetaBashCodeExecutionToolResultErrorParam as BetaBashCodeExecutionToolResultErrorParam,
+    type BetaBrowserCloseTabConfig as BetaBrowserCloseTabConfig,
+    type BetaBrowserDoubleClickConfig as BetaBrowserDoubleClickConfig,
+    type BetaBrowserFileUploadConfig as BetaBrowserFileUploadConfig,
+    type BetaBrowserFindConfig as BetaBrowserFindConfig,
+    type BetaBrowserFormInputConfig as BetaBrowserFormInputConfig,
+    type BetaBrowserGetPageTextConfig as BetaBrowserGetPageTextConfig,
+    type BetaBrowserHoldKeyConfig as BetaBrowserHoldKeyConfig,
+    type BetaBrowserHoverConfig as BetaBrowserHoverConfig,
+    type BetaBrowserJavascriptExecConfig as BetaBrowserJavascriptExecConfig,
+    type BetaBrowserKeyConfig as BetaBrowserKeyConfig,
+    type BetaBrowserLeftClickConfig as BetaBrowserLeftClickConfig,
+    type BetaBrowserLeftClickDragConfig as BetaBrowserLeftClickDragConfig,
+    type BetaBrowserLeftMouseDownConfig as BetaBrowserLeftMouseDownConfig,
+    type BetaBrowserLeftMouseUpConfig as BetaBrowserLeftMouseUpConfig,
+    type BetaBrowserListTabsConfig as BetaBrowserListTabsConfig,
+    type BetaBrowserMiddleClickConfig as BetaBrowserMiddleClickConfig,
+    type BetaBrowserMouseMoveConfig as BetaBrowserMouseMoveConfig,
+    type BetaBrowserNavigateConfig as BetaBrowserNavigateConfig,
+    type BetaBrowserNewTabConfig as BetaBrowserNewTabConfig,
+    type BetaBrowserReadConsoleConfig as BetaBrowserReadConsoleConfig,
+    type BetaBrowserReadNetworkConfig as BetaBrowserReadNetworkConfig,
+    type BetaBrowserReadPageConfig as BetaBrowserReadPageConfig,
+    type BetaBrowserRightClickConfig as BetaBrowserRightClickConfig,
+    type BetaBrowserScreenshotConfig as BetaBrowserScreenshotConfig,
+    type BetaBrowserScrollConfig as BetaBrowserScrollConfig,
+    type BetaBrowserScrollToConfig as BetaBrowserScrollToConfig,
+    type BetaBrowserStateBlockParam as BetaBrowserStateBlockParam,
+    type BetaBrowserStateChange as BetaBrowserStateChange,
+    type BetaBrowserStateChangeDownloadCompleted as BetaBrowserStateChangeDownloadCompleted,
+    type BetaBrowserStateChangeDownloadFailed as BetaBrowserStateChangeDownloadFailed,
+    type BetaBrowserStateChangeDownloadStarted as BetaBrowserStateChangeDownloadStarted,
+    type BetaBrowserStateChangeTabOpened as BetaBrowserStateChangeTabOpened,
+    type BetaBrowserStateTabEntry as BetaBrowserStateTabEntry,
+    type BetaBrowserSwitchTabConfig as BetaBrowserSwitchTabConfig,
+    type BetaBrowserToolset20260801 as BetaBrowserToolset20260801,
+    type BetaBrowserToolsetConfigs as BetaBrowserToolsetConfigs,
+    type BetaBrowserTripleClickConfig as BetaBrowserTripleClickConfig,
+    type BetaBrowserTypeConfig as BetaBrowserTypeConfig,
+    type BetaBrowserWaitConfig as BetaBrowserWaitConfig,
+    type BetaBrowserZoomConfig as BetaBrowserZoomConfig,
     type BetaCacheControlEphemeral as BetaCacheControlEphemeral,
     type BetaCacheCreation as BetaCacheCreation,
     type BetaCacheMissMessagesChanged as BetaCacheMissMessagesChanged,
@@ -5330,6 +6760,25 @@ export declare namespace Messages {
     type BetaCompactionBlockParam as BetaCompactionBlockParam,
     type BetaCompactionContentBlockDelta as BetaCompactionContentBlockDelta,
     type BetaCompactionIterationUsage as BetaCompactionIterationUsage,
+    type BetaComputerCursorPositionConfig as BetaComputerCursorPositionConfig,
+    type BetaComputerDoubleClickConfig as BetaComputerDoubleClickConfig,
+    type BetaComputerHoldKeyConfig as BetaComputerHoldKeyConfig,
+    type BetaComputerKeyConfig as BetaComputerKeyConfig,
+    type BetaComputerLeftClickConfig as BetaComputerLeftClickConfig,
+    type BetaComputerLeftClickDragConfig as BetaComputerLeftClickDragConfig,
+    type BetaComputerLeftMouseDownConfig as BetaComputerLeftMouseDownConfig,
+    type BetaComputerLeftMouseUpConfig as BetaComputerLeftMouseUpConfig,
+    type BetaComputerMiddleClickConfig as BetaComputerMiddleClickConfig,
+    type BetaComputerMouseMoveConfig as BetaComputerMouseMoveConfig,
+    type BetaComputerRightClickConfig as BetaComputerRightClickConfig,
+    type BetaComputerScreenshotConfig as BetaComputerScreenshotConfig,
+    type BetaComputerScrollConfig as BetaComputerScrollConfig,
+    type BetaComputerToolset20260801 as BetaComputerToolset20260801,
+    type BetaComputerToolsetConfigs as BetaComputerToolsetConfigs,
+    type BetaComputerTripleClickConfig as BetaComputerTripleClickConfig,
+    type BetaComputerTypeConfig as BetaComputerTypeConfig,
+    type BetaComputerWaitConfig as BetaComputerWaitConfig,
+    type BetaComputerZoomConfig as BetaComputerZoomConfig,
     type BetaContainer as BetaContainer,
     type BetaContainerParams as BetaContainerParams,
     type BetaContainerUploadBlock as BetaContainerUploadBlock,
@@ -5362,6 +6811,7 @@ export declare namespace Messages {
     type BetaFileDocumentSource as BetaFileDocumentSource,
     type BetaFileImageSource as BetaFileImageSource,
     type BetaImageBlockParam as BetaImageBlockParam,
+    type BetaImageTransformationsParam as BetaImageTransformationsParam,
     type BetaInputJSONDelta as BetaInputJSONDelta,
     type BetaInputTokensClearAtLeast as BetaInputTokensClearAtLeast,
     type BetaInputTokensTrigger as BetaInputTokensTrigger,
