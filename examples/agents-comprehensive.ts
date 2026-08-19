@@ -43,8 +43,8 @@ async function main() {
 
   // Upload a custom skill
   const skillContent = fs.readFileSync(path.join(__dirname, 'greeting-SKILL.md'));
-  const skill = await client.beta.skills.create({
-    display_title: `comprehensive-greeting-${Date.now()}`,
+  const skill = await client.skills.create({
+    display_name: `comprehensive-greeting-${Date.now()}`,
     files: [new File([skillContent], 'greeting/SKILL.md', { type: 'text/markdown' })],
   });
   console.log('Created skill:', skill.id);

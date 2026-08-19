@@ -74,9 +74,16 @@ export type BetaRunnableTool<Input = any> = BetaClientRunnableToolType & {
   close?: () => Promisable<void>;
 };
 
-/** The name the model calls a tool by: `mcp_server_name` for MCP toolsets, `name` for everything else. */
+/**
+ * The name the model calls a tool by: `mcp_server_name` for MCP toolsets, `type` for nameless server
+ * toolsets (browser/computer), `name` for everything else.
+ */
 export function toolName(tool: BetaToolUnion | BetaRunnableTool): string {
-  return 'name' in tool ? tool.name : tool.mcp_server_name;
+  return (
+    'name' in tool ? tool.name
+    : 'mcp_server_name' in tool ? tool.mcp_server_name
+    : tool.type
+  );
 }
 
 /** Tool-result content for a thrown value: a {@link ToolError}'s own content, otherwise `Error: <message>`. */

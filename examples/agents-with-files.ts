@@ -30,7 +30,7 @@ async function main() {
   console.log('Created agent:', agent.id);
 
   // Upload a file
-  const file = await client.beta.files.upload({
+  const file = await client.files.upload({
     file: fs.createReadStream(path.join(__dirname, 'data.csv')),
   });
   console.log('Uploaded file:', file.id);

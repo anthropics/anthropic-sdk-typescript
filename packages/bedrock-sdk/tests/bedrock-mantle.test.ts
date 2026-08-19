@@ -210,6 +210,15 @@ describe('AnthropicBedrockMantle', () => {
       expect((client as any).models).toBeUndefined();
     });
 
+    test('files resource is not available', () => {
+      const client = new AnthropicBedrockMantle({
+        apiKey: 'test-key',
+        baseURL: 'https://example.com',
+      });
+
+      expect((client as any).files).toBeUndefined();
+    });
+
     test('messages resource is available', () => {
       const client = new AnthropicBedrockMantle({
         apiKey: 'test-key',
