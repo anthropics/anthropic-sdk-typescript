@@ -52,4 +52,22 @@ describe('skills uploads preserve directory-qualified filenames', () => {
     );
     expect(names).toEqual(['my-skill/SKILL.md']);
   });
+
+  test('GA skills.versions.create sends `my-skill/SKILL.md`, not `SKILL.md`', async () => {
+    const names = await uploadedFilenames(async (client) =>
+      client.skills.versions.create('skill_id', {
+        files: [await toFile(Buffer.from('# Skill\n'), 'my-skill/SKILL.md')],
+      }),
+    );
+    expect(names).toEqual(['my-skill/SKILL.md']);
+  });
+
+  test('GA skills.create sends `my-skill/SKILL.md`, not `SKILL.md`', async () => {
+    const names = await uploadedFilenames(async (client) =>
+      client.skills.create({
+        files: [await toFile(Buffer.from('# Skill\n'), 'my-skill/SKILL.md')],
+      }),
+    );
+    expect(names).toEqual(['my-skill/SKILL.md']);
+  });
 });

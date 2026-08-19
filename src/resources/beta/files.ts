@@ -18,7 +18,7 @@ export class Files extends APIResource {
    * @example
    * ```ts
    * // Automatically fetches more pages as needed.
-   * for await (const fileMetadata of client.beta.files.list()) {
+   * for await (const betaFileMetadata of client.beta.files.list()) {
    *   // ...
    * }
    * ```
@@ -26,9 +26,9 @@ export class Files extends APIResource {
   list(
     params: FileListParams | null | undefined = {},
     options?: RequestOptions,
-  ): PagePromise<FileMetadataPage, FileMetadata> {
+  ): PagePromise<BetaFileMetadataPage, BetaFileMetadata> {
     const { betas, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/files?beta=true', Page<FileMetadata>, {
+    return this._client.getAPIList('/v1/files?beta=true', Page<BetaFileMetadata>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -43,7 +43,7 @@ export class Files extends APIResource {
    *
    * @example
    * ```ts
-   * const deletedFile = await client.beta.files.delete(
+   * const betaDeletedFile = await client.beta.files.delete(
    *   'file_id',
    * );
    * ```
@@ -52,7 +52,7 @@ export class Files extends APIResource {
     fileID: string,
     params: FileDeleteParams | null | undefined = {},
     options?: RequestOptions,
-  ): APIPromise<DeletedFile> {
+  ): APIPromise<BetaDeletedFile> {
     const { betas } = params ?? {};
     return this._client.delete(path`/v1/files/${fileID}?beta=true`, {
       ...options,
@@ -100,7 +100,7 @@ export class Files extends APIResource {
    *
    * @example
    * ```ts
-   * const fileMetadata =
+   * const betaFileMetadata =
    *   await client.beta.files.retrieveMetadata('file_id');
    * ```
    */
@@ -108,7 +108,7 @@ export class Files extends APIResource {
     fileID: string,
     params: FileRetrieveMetadataParams | null | undefined = {},
     options?: RequestOptions,
-  ): APIPromise<FileMetadata> {
+  ): APIPromise<BetaFileMetadata> {
     const { betas } = params ?? {};
     return this._client.get(path`/v1/files/${fileID}?beta=true`, {
       ...options,
@@ -124,12 +124,12 @@ export class Files extends APIResource {
    *
    * @example
    * ```ts
-   * const fileMetadata = await client.beta.files.upload({
+   * const betaFileMetadata = await client.beta.files.upload({
    *   file: fs.createReadStream('path/to/file'),
    * });
    * ```
    */
-  upload(params: FileUploadParams, options?: RequestOptions): APIPromise<FileMetadata> {
+  upload(params: FileUploadParams, options?: RequestOptions): APIPromise<BetaFileMetadata> {
     const { betas, ...body } = params;
 
     return this._client.post(
@@ -150,21 +150,9 @@ export class Files extends APIResource {
   }
 }
 
-export type FileMetadataPage = Page<FileMetadata>;
+export type BetaFileMetadataPage = Page<BetaFileMetadata>;
 
-export interface BetaFileScope {
-  /**
-   * The ID of the scoping resource (e.g., the session ID).
-   */
-  id: string;
-
-  /**
-   * The type of scope (e.g., `"session"`).
-   */
-  type: 'session';
-}
-
-export interface DeletedFile {
+export interface BetaDeletedFile {
   /**
    * ID of the deleted file.
    */
@@ -178,7 +166,7 @@ export interface DeletedFile {
   type?: 'file_deleted';
 }
 
-export interface FileMetadata {
+export interface BetaFileMetadata {
   /**
    * Unique object identifier.
    *
@@ -223,6 +211,18 @@ export interface FileMetadata {
    * session).
    */
   scope?: BetaFileScope | null;
+}
+
+export interface BetaFileScope {
+  /**
+   * The ID of the scoping resource (e.g., the session ID).
+   */
+  id: string;
+
+  /**
+   * The type of scope (e.g., `"session"`).
+   */
+  type: 'session';
 }
 
 export interface FileListParams extends PageParams {
@@ -273,10 +273,10 @@ export interface FileUploadParams {
 
 export declare namespace Files {
   export {
+    type BetaDeletedFile as BetaDeletedFile,
+    type BetaFileMetadata as BetaFileMetadata,
     type BetaFileScope as BetaFileScope,
-    type DeletedFile as DeletedFile,
-    type FileMetadata as FileMetadata,
-    type FileMetadataPage as FileMetadataPage,
+    type BetaFileMetadataPage as BetaFileMetadataPage,
     type FileListParams as FileListParams,
     type FileDeleteParams as FileDeleteParams,
     type FileDownloadParams as FileDownloadParams,
