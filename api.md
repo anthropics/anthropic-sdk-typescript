@@ -727,16 +727,24 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAlwaysAskPolicy</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAnthropicSkill</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAnthropicSkillParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsBashToolConfig</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsBashToolConfigParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsCustomSkill</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsCustomSkillParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsCustomTool</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsCustomToolInputSchema</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsCustomToolParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEditToolConfig</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEditToolConfigParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortHigh</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortLow</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortMax</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortMedium</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortXhigh</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsGlobToolConfig</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsGlobToolConfigParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsGrepToolConfig</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsGrepToolConfigParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMCPServerURLDefinition</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMCPToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMCPToolConfigParams</a></code>
@@ -750,9 +758,18 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentCoordinator</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentCoordinatorParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentSelfParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsReadToolConfig</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsReadToolConfigParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsSessionThreadAgent</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsSkillParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsURLMCPServerParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsUserLocation</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchToolConfig</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchToolConfigParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebSearchToolConfig</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebSearchToolConfigParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWriteToolConfig</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWriteToolConfigParams</a></code>
 
 Methods:
 
