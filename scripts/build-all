@@ -7,6 +7,6 @@ bash ./scripts/build
 
 for dir in packages/*; do
     if [ -d "$dir" ]; then
-        (cd "$dir" && pnpm install && pnpm build)
+        (cd "$dir" && pnpm build)
     fi
 done

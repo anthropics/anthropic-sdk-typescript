@@ -26,23 +26,3 @@ PACKAGE_MANAGER=$(command -v pnpm >/dev/null 2>&1 && echo "pnpm" || echo "npm")
 $PACKAGE_MANAGER install "$@"
 
 ./scripts/build
-
-echo
-echo "==> Installing vertex-sdk dependencies"
-(cd packages/vertex-sdk && $PACKAGE_MANAGER install)
-
-echo
-echo "==> Installing bedrock-sdk dependencies"
-(cd packages/bedrock-sdk && $PACKAGE_MANAGER install)
-
-echo
-echo "==> Installing foundry-sdk dependencies"
-(cd packages/foundry-sdk && $PACKAGE_MANAGER install)
-
-echo
-echo "==> Installing aws-sdk dependencies"
-(cd packages/aws-sdk && $PACKAGE_MANAGER install)
-
-echo
-echo "==> Installing google-cloud-sdk dependencies"
-(cd packages/google-cloud-sdk && $PACKAGE_MANAGER install)

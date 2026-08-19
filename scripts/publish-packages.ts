@@ -89,9 +89,6 @@ function main() {
     const packagePath = path.join(rootDir, relPackagePath);
     console.log(`Publishing in directory: ${packagePath}`);
 
-    console.log(`$ pnpm install`);
-    execSync(`pnpm install`, { cwd: packagePath, encoding: 'utf8', stdio: 'inherit' });
-
     console.log(`$ bash ${publishScriptPath}`);
     execSync(`bash ${publishScriptPath}`, { cwd: packagePath, encoding: 'utf8', stdio: 'inherit' });
   }

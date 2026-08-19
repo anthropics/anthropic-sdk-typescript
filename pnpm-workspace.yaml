@@ -1,5 +1,9 @@
+packages:
+  - 'packages/*'
 onlyBuiltDependencies:
   - '@swc/core'
 minimumReleaseAge: 1440
 minimumReleaseAgeExclude:
   - '@anthropic-ai/sdk'
+patchedDependencies:
+  '@stainless-api/tsc-multi@1.1.12': patches/@stainless-api__tsc-multi@1.1.12.patch

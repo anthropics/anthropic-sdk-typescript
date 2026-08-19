@@ -13,6 +13,10 @@ for (const key of ['types', 'main', 'module']) {
   if (typeof pkgJson[key] === 'string') pkgJson[key] = pkgJson[key].replace(/^(\.\/)?dist\//, './');
 }
 
+// `publishConfig.directory` is only there for local development: it makes pnpm link the workspace
+// packages in packages/* against ./dist. Strip it because `bin/publish-npm` runs `pnpm publish`
+// from inside dist/, where pnpm would otherwise look for dist/dist.
+if (pkgJson.publishConfig) delete pkgJson.publishConfig.directory;
 delete pkgJson.devDependencies;
 delete pkgJson.scripts.prepack;
 delete pkgJson.scripts.prepublishOnly;
