@@ -1,0 +1,53 @@
+diff --git a/dist/worker/worker.js b/dist/worker/worker.js
+index e61cfacd3ea87591d1889a869175b95cea2574ae..d2f05e615c0f6f40685258c209660368e8dd002d 100644
+--- a/dist/worker/worker.js
++++ b/dist/worker/worker.js
+@@ -25,6 +25,8 @@ function loadCompiler(cwd, name = "typescript") {
+ }
+ class Worker {
+     constructor(data, system) {
++        /** Output directories of the projects in this build; see getReadPaths(). */
++        this.outputDirs = new Set();
+         this.data = data;
+         this.ts = loadCompiler(data.cwd, data.compiler);
+         this.system = this.createSystem(system || this.ts.sys);
+@@ -102,12 +104,21 @@ class Worker {
+     }
+     createSystem(sys) {
+         const getReadPaths = (path) => {
+-            const inNodeModules = path.includes("/node_modules/");
+-            const paths = [inNodeModules ? path : this.rewritePath(path)];
++            // Redirect reads to this target's renamed outputs (.js -> .mjs, .d.ts ->
++            // .d.mts, ...) only for files inside one of this build's own output
++            // directories, i.e. files tsc-multi itself wrote under those names.
++            // Everything else is an input and is read as-is. That has always been
++            // the case for node_modules; it must equally hold for a dependency that
++            // is linked from outside node_modules (e.g. a pnpm `workspace:` package),
++            // otherwise its declarations get loaded under both the .d.ts and the
++            // .d.mts name and classes with #private members become two
++            // incompatible nominal types.
++            const isOwnOutput = !path.includes("/node_modules/") && [...this.outputDirs].some((dir) => path.startsWith(dir));
++            const paths = [isOwnOutput ? this.rewritePath(path) : path];
+             // Source files may be .js files when `allowJs` is enabled. When a .js
+             // file with rewritten path doesn't exist, retry again without rewriting
+             // the path.
+-            if (!inNodeModules && (path.endsWith(JS_EXT) || path.endsWith(DTS_EXT))) {
++            if (isOwnOutput && (path.endsWith(JS_EXT) || path.endsWith(DTS_EXT))) {
+                 paths.push(path);
+             }
+             return paths;
+@@ -201,6 +212,14 @@ class Worker {
+             const config = this.ts.getParsedCommandLineOfConfigFile(path, options, parseConfigFileHost);
+             if (!config)
+                 return;
++            // Record where this project's outputs go, for getReadPaths(). These are
++            // already absolute, "/"-separated paths; without an outDir, outputs sit
++            // next to the sources, so fall back to the project directory.
++            const { outDir, declarationDir } = config.options;
++            for (const dir of outDir || declarationDir ? [outDir, declarationDir] : [(0, path_1.dirname)(path)]) {
++                if (dir)
++                    this.outputDirs.add(dir.endsWith("/") ? dir : dir + "/");
++            }
+             if (this.data.shareHelpers) {
+                 const root = this.ts.getCommonSourceDirectoryOfConfig(config);
+                 config.options.importHelpers = true;
