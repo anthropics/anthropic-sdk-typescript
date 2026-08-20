@@ -169,7 +169,8 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
     }
 
     super({
-      apiKey: resolvedApiKey,
+      apiKey: resolvedApiKey ?? null,
+      authToken: null,
       baseURL: resolvedBaseURL,
       ...opts,
     });
@@ -200,6 +201,12 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
 
   protected override validateHeaders(): void {
     // Auth validation is handled in the constructor and the backend middleware
+  }
+
+  // Auth is the Mantle API key or SigV4 only; never resolve unrelated local
+  // Anthropic credentials (which could also supply a base URL).
+  protected override _shouldResolveDefaultCredentials(): boolean {
+    return false;
   }
 
   protected override getUserAgent(): string {
