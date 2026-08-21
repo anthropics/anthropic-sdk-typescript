@@ -1,6 +1,9 @@
 import { VERSION } from '@anthropic-ai/sdk/version';
 import { AnthropicBedrockMantle } from '../src';
 import { getAuthHeaders } from '../src/core/aws-auth';
+import * as fs from 'fs';
+import * as path from 'path';
+import { tmpdir } from 'os';
 
 jest.mock('../src/core/aws-auth', () => ({
   getAuthHeaders: jest.fn().mockResolvedValue({
@@ -33,6 +36,11 @@ const makeRequest = async (client: AnthropicBedrockMantle) => {
 
 const getRequestUrl = (): string => {
   return mockFetch.mock.calls[0]![0];
+};
+
+const getRequestHeaders = (call = 0): Headers => {
+  const requestInit = mockFetch.mock.calls[call]![1] as RequestInit;
+  return new Headers(requestInit.headers as HeadersInit);
 };
 
 describe('AnthropicBedrockMantle', () => {
@@ -262,6 +270,89 @@ describe('AnthropicBedrockMantle', () => {
       });
 
       expect((client.beta as any).skills).toBeUndefined();
+    });
+  });
+
+  describe('ambient first-party credentials never reach Bedrock Mantle', () => {
+    let configDir: string;
+
+    beforeEach(() => {
+      delete process.env['ANTHROPIC_API_KEY'];
+      delete process.env['ANTHROPIC_AUTH_TOKEN'];
+      configDir = fs.mkdtempSync(path.join(tmpdir(), 'bedrock-mantle-creds-test-'));
+      fs.mkdirSync(path.join(configDir, 'configs'));
+      fs.mkdirSync(path.join(configDir, 'credentials'));
+      fs.writeFileSync(
+        path.join(configDir, 'configs', 'default.json'),
+        JSON.stringify({
+          organization_id: 'org-123',
+          workspace_id: 'wrkspc-123',
+          authentication: { type: 'user_oauth' },
+        }),
+      );
+      fs.writeFileSync(
+        path.join(configDir, 'credentials', 'default.json'),
+        JSON.stringify({ access_token: 'store-token', expires_at: Math.floor(Date.now() / 1000) + 3600 }),
+        { mode: 0o600 },
+      );
+      process.env['ANTHROPIC_CONFIG_DIR'] = configDir;
+    });
+
+    afterEach(() => {
+      fs.rmSync(configDir, { recursive: true });
+    });
+
+    test('a resolvable shared-config-store profile is never consulted in SigV4 mode', async () => {
+      const client = new AnthropicBedrockMantle({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-east-1',
+        maxRetries: 0,
+      });
+
+      await makeRequest(client);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(getRequestUrl()).not.toContain('/v1/oauth/token');
+      const headers = getRequestHeaders();
+      expect(headers.get('authorization')).toBe('AWS4-HMAC-SHA256 Credential=mock');
+      expect(headers.get('x-api-key')).toBeNull();
+      expect(headers.get('anthropic-workspace-id')).toBeNull();
+      expect(headers.get('anthropic-organization-id')).toBeNull();
+    });
+
+    test('a resolvable shared-config-store profile is never consulted with skipAuth', async () => {
+      const client = new AnthropicBedrockMantle({ awsRegion: 'us-east-1', skipAuth: true, maxRetries: 0 });
+
+      await makeRequest(client);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const headers = getRequestHeaders();
+      expect(headers.get('authorization')).toBeNull();
+      expect(headers.get('x-api-key')).toBeNull();
+      expect(headers.get('anthropic-workspace-id')).toBeNull();
+      expect(headers.get('anthropic-organization-id')).toBeNull();
+    });
+
+    test('env ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN are not sent, including by withOptions clones', async () => {
+      process.env['ANTHROPIC_API_KEY'] = 'sk-ant-should-not-leak';
+      process.env['ANTHROPIC_AUTH_TOKEN'] = 'oauth-should-not-leak';
+      process.env['AWS_REGION'] = 'us-east-1';
+
+      const client = new AnthropicBedrockMantle({ maxRetries: 0 });
+      expect(client.apiKey).toBeNull();
+      expect(client.authToken).toBeNull();
+
+      for (const c of [client, client.withOptions({ timeout: 1234 })]) {
+        await makeRequest(c);
+      }
+
+      for (const call of [0, 1]) {
+        const headers = getRequestHeaders(call);
+        expect(headers.get('authorization')).toBe('AWS4-HMAC-SHA256 Credential=mock');
+        expect(headers.get('x-api-key')).toBeNull();
+      }
+      expect(mockGetAuthHeaders).toHaveBeenCalledTimes(2);
     });
   });
 

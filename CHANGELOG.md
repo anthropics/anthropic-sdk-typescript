@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.121.0 (2026-08-21)
+
+Full Changelog: [sdk-v0.120.0...sdk-v0.121.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.120.0...sdk-v0.121.0)
+
+### Features
+
+* **helpers:** support Standard Schema for structured outputs and tools ([7880078](https://github.com/anthropics/anthropic-sdk-typescript/commit/788007889c048e18f6bdf19d4903f1ac96f66cb0))
+
+
+### Bug Fixes
+
+* **types:** don't reference NodeJS.ProcessEnv from published types ([#367](https://github.com/anthropics/anthropic-sdk-typescript/issues/367)) ([fd38dfd](https://github.com/anthropics/anthropic-sdk-typescript/commit/fd38dfdc48beec5d0d3640b65ac3e467bc73ea4e))
+
+
+### Chores
+
+* **internal:** codegen related update ([228ff1e](https://github.com/anthropics/anthropic-sdk-typescript/commit/228ff1e5fa09fe6d6e1cca2cb876d2fa29d431b6))
+
+
+### Documentation
+
+* **examples:** use adaptive thinking in thinking examples ([3dd7699](https://github.com/anthropics/anthropic-sdk-typescript/commit/3dd7699110fd34b82b795841e76ac40122a63c7d))
+
 ## 0.120.0 (2026-08-19)
 
 Full Changelog: [sdk-v0.119.0...sdk-v0.120.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.119.0...sdk-v0.120.0)

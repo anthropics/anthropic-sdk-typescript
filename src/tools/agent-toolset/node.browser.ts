@@ -127,7 +127,7 @@ export class BashTimeoutError extends AnthropicError {
 }
 
 export class BashSession {
-  constructor(_dir: string, _env?: NodeJS.ProcessEnv) {
+  constructor(_dir: string, _env?: Record<string, string | undefined>) {
     nodeOnly('BashSession');
   }
 

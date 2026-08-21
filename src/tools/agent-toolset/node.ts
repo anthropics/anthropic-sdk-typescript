@@ -192,7 +192,7 @@ export interface AgentToolContext {
    * to the scrubbed process environment. To keep the defaults plus extra vars,
    * build the combined mapping yourself before passing it.
    */
-  env?: NodeJS.ProcessEnv;
+  env?: Record<string, string | undefined>;
   /**
    * Size cap for the `read` and `edit` tools, which both load the whole file into
    * memory. `undefined` (default) uses the built-in 256 KiB cap; a positive number
@@ -282,8 +282,8 @@ function readOnlyRootFor(ctx: AgentToolContext, target: string): Promise<string 
  * environment verbatim; nothing here is merged in, so callers who want the
  * scrubbed process environment plus extras must build that mapping themselves.
  */
-function scrubbedShellEnv(): NodeJS.ProcessEnv {
-  const env: NodeJS.ProcessEnv = {};
+function scrubbedShellEnv(): Record<string, string | undefined> {
+  const env: Record<string, string | undefined> = {};
   for (const [key, value] of Object.entries(process.env)) {
     if (key.startsWith('ANTHROPIC_')) continue;
     env[key] = value;
@@ -304,7 +304,7 @@ export class BashSession {
   // in `#buf` (or once the shell dies). Event-driven: no polling loop.
   #waiting: { sentinel: string; resolve: () => void } | null = null;
 
-  constructor(dir: string, env: NodeJS.ProcessEnv = scrubbedShellEnv()) {
+  constructor(dir: string, env: Record<string, string | undefined> = scrubbedShellEnv()) {
     this.#proc = cp.spawn('/bin/bash', ['--noprofile', '--norc'], {
       cwd: dir,
       // `env` is the full base environment (the scrubbed process env by
