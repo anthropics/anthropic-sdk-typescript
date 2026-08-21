@@ -49,6 +49,28 @@ describe('toFile', () => {
     expect(file.name).toEqual('input.jsonl');
   });
 
+  it('infers the MIME type from a Blob', async () => {
+    const input = new Blob(['foo'], { type: 'text/plain' });
+    const file = await toFile(input, 'input.txt');
+    expect(file.name).toEqual('input.txt');
+    expect(file.type).toEqual('text/plain');
+  });
+
+  it('infers the MIME type from a Blob-like object', async () => {
+    const input = {
+      size: 3,
+      type: 'text/plain',
+      text: async () => 'foo',
+      slice: () => input,
+      arrayBuffer: async () => new TextEncoder().encode('foo').buffer,
+    };
+
+    const file = await toFile(input, 'input.txt');
+    expect(file.name).toEqual('input.txt');
+    expect(file.type).toEqual('text/plain');
+    await expect(file.text()).resolves.toEqual('foo');
+  });
+
   it('extracts a file name from a ReadStream', async () => {
     const input = fs.createReadStream('tests/uploads.test.ts');
     const file = await toFile(input);
