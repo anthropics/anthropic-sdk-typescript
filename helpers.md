@@ -101,7 +101,7 @@ The underlying `AbortController` for the runner.
 
 ## Structured Outputs
 
-The SDK provides helpers for parsing structured JSON outputs from Claude using JSON Schema or Zod validation.
+The SDK provides helpers for parsing structured JSON outputs from Claude using JSON Schema, Zod, or any library implementing [Standard Schema](https://standardschema.dev).
 
 ### Usage with Zod
 
@@ -127,6 +127,38 @@ const message = await client.messages.parse({
 
 console.log(message.parsed_output?.primes); // [2, 3, 5]
 ```
+
+### Usage with Standard Schema (Valibot, ArkType, ...)
+
+Standard Schema support is currently available under the beta namespace (`@anthropic-ai/sdk/helpers/beta/standard-schema` with `client.beta.messages.parse()`).
+
+```ts
+import { betaStandardSchemaOutputFormat } from '@anthropic-ai/sdk/helpers/beta/standard-schema';
+import Anthropic from '@anthropic-ai/sdk';
+import * as v from 'valibot';
+import { toStandardJsonSchema } from '@valibot/to-json-schema';
+
+const client = new Anthropic();
+
+const NumbersResponse = toStandardJsonSchema(
+  v.object({
+    primes: v.array(v.number()),
+  }),
+);
+
+const message = await client.beta.messages.parse({
+  model: 'claude-sonnet-5',
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
+  output_config: {
+    format: betaStandardSchemaOutputFormat(NumbersResponse),
+  },
+});
+
+console.log(message.parsed_output?.primes); // [2, 3, 5]
+```
+
+The JSON schema sent to the API is derived from the schema's `~standard.jsonSchema` (Standard JSON Schema) interface. For libraries or versions that don't implement it, pass the `jsonSchema` option explicitly.
 
 ### Usage with JSON Schema
 
@@ -160,6 +192,12 @@ console.log(message.parsed_output?.primes); // [2, 3, 5]
 
 Creates a JSON schema output format from a Zod schema. The response will be validated and parsed using Zod.
 
+### `betaStandardSchemaOutputFormat(schema, options?)`
+
+Creates a JSON schema output format from a [Standard Schema](https://standardschema.dev). The response will be validated and parsed using the schema's (synchronous) `~standard.validate`. Options:
+
+- `jsonSchema?: Record<string, unknown>` - The JSON schema to send to the API, instead of deriving it from `~standard.jsonSchema`
+
 ### `jsonSchemaOutputFormat(schema, options?)`
 
 Creates a JSON schema output format from a raw JSON schema. Options:
@@ -171,13 +209,14 @@ Creates a JSON schema output format from a raw JSON schema. Options:
 See the following example files:
 
 - [`examples/structured-outputs-zod.ts`](examples/structured-outputs-zod.ts)
+- [`examples/structured-outputs-standard-schema.ts`](examples/structured-outputs-standard-schema.ts)
 - [`examples/structured-outputs-json-schema.ts`](examples/structured-outputs-json-schema.ts)
 - [`examples/structured-outputs-streaming.ts`](examples/structured-outputs-streaming.ts)
 - [`examples/structured-outputs-raw.ts`](examples/structured-outputs-raw.ts)
 
 ## Tool Helpers
 
-The SDK provides helper functions to create runnable tools that can be automatically invoked by the `.toolRunner()` method. These helpers simplify tool creation with JSON Schema or Zod validation.
+The SDK provides helper functions to create runnable tools that can be automatically invoked by the `.toolRunner()` method. These helpers simplify tool creation with JSON Schema, Zod, or [Standard Schema](https://standardschema.dev) validation.
 
 ### Usage
 
@@ -317,6 +356,32 @@ const weatherTool = betaZodTool({
   },
 });
 ```
+
+### `betaStandardSchemaTool`
+
+Any schema library implementing [Standard Schema](https://standardschema.dev) (Valibot, ArkType, Zod, Effect Schema, ...) can be used to define the input schema for your tools:
+
+```ts
+import { betaStandardSchemaTool } from '@anthropic-ai/sdk/helpers/beta/standard-schema';
+import * as v from 'valibot';
+import { toStandardJsonSchema } from '@valibot/to-json-schema';
+
+const weatherTool = betaStandardSchemaTool({
+  name: 'get_weather',
+  inputSchema: toStandardJsonSchema(
+    v.object({
+      location: v.pipe(v.string(), v.description('The city and state, e.g. San Francisco, CA')),
+      unit: v.optional(v.picklist(['celsius', 'fahrenheit']), 'fahrenheit'),
+    }),
+  ),
+  description: 'Get the current weather in a given location',
+  run: async (input) => {
+    return `The weather in ${input.location} is ${input.unit === 'celsius' ? '22°C' : '72°F'}`;
+  },
+});
+```
+
+As with `betaStandardSchemaOutputFormat`, pass the `jsonSchema` option if the schema doesn't implement `~standard.jsonSchema`.
 
 ### `betaTool`
 
@@ -503,6 +568,7 @@ throw new ToolError('Invalid input: URL must start with https://');
 See the following example files for more usage patterns:
 
 - [`examples/tools-helpers-zod.ts`](examples/tools-helpers-zod.ts) - Zod-based tools
+- [`examples/tools-helpers-standard-schema.ts`](examples/tools-helpers-standard-schema.ts) - Standard Schema (Valibot) tools
 - [`examples/tools-helpers-json-schema.ts`](examples/tools-helpers-json-schema.ts) - JSON Schema tools
 - [`examples/tools.ts`](examples/tools.ts) - Basic tool usage
 
