@@ -18,6 +18,27 @@ const messages = new Messages(mockClient);
 describe('Messages.parse()', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockClient._options.timeout = null;
+    mockClient.calculateNonstreamingTimeout.mockReturnValue(600000);
+  });
+
+  it('honors request-level timeout when checking long non-streaming requests', () => {
+    messages.create(
+      {
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 100000,
+        messages: [{ role: 'user', content: 'Hello' }],
+      },
+      { timeout: 1200000 },
+    );
+
+    expect(mockClient.calculateNonstreamingTimeout).not.toHaveBeenCalled();
+    expect(mockPost).toHaveBeenCalledWith(
+      '/v1/messages',
+      expect.objectContaining({
+        timeout: 1200000,
+      }),
+    );
   });
 
   it('parses structured output correctly', async () => {
