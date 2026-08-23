@@ -176,6 +176,45 @@ describe('instantiate client', () => {
       expect(debugMock).not.toHaveBeenCalled();
     });
 
+    test('stream parse errors use the client logger', async () => {
+      const logger = {
+        debug: jest.fn(),
+        info: jest.fn(),
+        warn: jest.fn(),
+        error: jest.fn(),
+      };
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const client = new Anthropic({
+        logger,
+        logLevel: 'error',
+        apiKey: 'my-anthropic-api-key',
+        fetch: async () =>
+          new Response('event: completion\ndata: not-json\n\n', {
+            headers: { 'content-type': 'text/event-stream' },
+          }),
+      });
+
+      try {
+        const stream = await client.messages.create({
+          messages: [],
+          model: 'claude-opus-4-8',
+          max_tokens: 1,
+          stream: true,
+        });
+
+        await expect(
+          (async () => {
+            for await (const _event of stream) {
+            }
+          })(),
+        ).rejects.toBeInstanceOf(SyntaxError);
+        expect(logger.error).toHaveBeenCalledTimes(2);
+        expect(consoleError).not.toHaveBeenCalled();
+      } finally {
+        consoleError.mockRestore();
+      }
+    });
+
     test('no warning logged for invalid env var level + valid client level', async () => {
       const warnMock = jest.fn();
       const logger = {

@@ -28,7 +28,7 @@ export async function defaultParseResponse<T>(
       // Note: there is an invariant here that isn't represented in the type system
       // that if you set `stream: true` the response type must also be `Stream<T>`
 
-      return Stream.fromSSEResponse(response, props.controller) as any;
+      return Stream.fromSSEResponse(response, props.controller, client) as any;
     }
 
     // fetch refuses to read the body when the status code is 204.
