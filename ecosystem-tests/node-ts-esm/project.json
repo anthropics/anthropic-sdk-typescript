@@ -1,0 +1,10 @@
+{
+  "description": "TypeScript, \"type\": \"module\", moduleResolution nodenext, no DOM lib, vitest",
+  "requires": ["node"],
+  "packageManager": "npm",
+  "perNodeVersion": true,
+  "steps": [
+    ["npx", "tsc", "--noEmit"],
+    ["npx", "vitest", "run"]
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@anthropic-ai/ecosystem-tests-node-ts-esm",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.19",
+    "typescript": "5.8.3",
+    "vitest": "3.2.4"
+  }
+}
