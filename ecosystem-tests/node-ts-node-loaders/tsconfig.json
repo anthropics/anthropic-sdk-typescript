@@ -1,0 +1,17 @@
+{
+  "include": ["tests", "shared"],
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2022"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": ["node"],
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "skipLibCheck": false
+  },
+  // typechecking is tsc's job (step 1); the loaders only need to transpile
+  "ts-node": { "transpileOnly": true }
+}

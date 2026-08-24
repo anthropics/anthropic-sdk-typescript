@@ -1,0 +1,12 @@
+{
+  "description": "the same ESM TypeScript test files run through tsx and through ts-node's ESM loader (native type stripping is node-ts-latest)",
+  "requires": ["node"],
+  "packageManager": "npm",
+  "perNodeVersion": true,
+  "minNodeVersion": 20,
+  "steps": [
+    ["npx", "tsc"],
+    ["node", "--import", "tsx", "--test", "tests/sdk.test.ts", "tests/project.test.ts"],
+    ["node", "--loader", "ts-node/esm", "--test", "tests/sdk.test.ts", "tests/project.test.ts"]
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "description": "TypeScript with lib dom and no @types/node (types: []), moduleResolution bundler; runtime still node via tsx",
+  "requires": ["node"],
+  "packageManager": "npm",
+  "perNodeVersion": true,
+  "minNodeVersion": 20,
+  "steps": [
+    ["node", "--import", "tsx", "tests/run.ts"],
+    ["npx", "tsc"]
+  ]
+}

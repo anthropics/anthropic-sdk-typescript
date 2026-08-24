@@ -1,0 +1,13 @@
+{
+  "name": "@anthropic-ai/ecosystem-tests-node-ts-strictest",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "tsc && node --import tsx --test tests/sdk.test.ts tests/project.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.19",
+    "tsx": "4.23.5",
+    "typescript": "5.8.3"
+  }
+}

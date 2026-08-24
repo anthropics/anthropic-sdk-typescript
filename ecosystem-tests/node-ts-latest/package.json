@@ -1,0 +1,12 @@
+{
+  "name": "@anthropic-ai/ecosystem-tests-node-ts-latest",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "tsc && node --experimental-strip-types --test tests/sdk.test.ts tests/project.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "typescript": "7.0.2"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@anthropic-ai/ecosystem-tests-node-ts-web-types",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --import tsx tests/run.ts && tsc"
+  },
+  "devDependencies": {
+    "tsx": "4.23.5",
+    "typescript": "5.8.3"
+  }
+}

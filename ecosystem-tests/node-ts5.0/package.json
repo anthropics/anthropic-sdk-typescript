@@ -1,0 +1,11 @@
+{
+  "name": "@anthropic-ai/ecosystem-tests-node-ts5.0",
+  "private": true,
+  "scripts": {
+    "test": "tsc -p tsconfig.json && tsc -p tsconfig.nodenext.json && node --test dist/tests/sdk.test.js dist/tests/project.test.js && tsc -p tsconfig.helpers.json"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.19",
+    "typescript": "5.0.4"
+  }
+}

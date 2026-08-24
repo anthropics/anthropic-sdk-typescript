@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["helpers-type-tests.ts"],
+  "compilerOptions": { "noEmit": true }
+}

@@ -1,0 +1,13 @@
+{
+  "description": "TypeScript 5.0.4 (oldest that parses helpers/json-schema's const type parameters): commonjs/node10 and nodenext, tsc emit then node --test, then helper subpaths",
+  "requires": ["node"],
+  "packageManager": "npm",
+  "perNodeVersion": true,
+  "minNodeVersion": 20,
+  "steps": [
+    ["npx", "tsc", "-p", "tsconfig.json"],
+    ["npx", "tsc", "-p", "tsconfig.nodenext.json"],
+    ["node", "--test", "dist/tests/sdk.test.js", "dist/tests/project.test.js"],
+    ["npx", "tsc", "-p", "tsconfig.helpers.json"]
+  ]
+}

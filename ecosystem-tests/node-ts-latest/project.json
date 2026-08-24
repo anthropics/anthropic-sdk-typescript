@@ -1,0 +1,11 @@
+{
+  "description": "newest TypeScript (7.x native compiler) + @types/node 24, nodenext, esnext, erasableSyntaxOnly; runs .ts via Node's built-in type stripping",
+  "requires": ["node"],
+  "packageManager": "npm",
+  "perNodeVersion": true,
+  "minNodeVersion": 22,
+  "steps": [
+    ["npx", "tsc"],
+    ["node", "--experimental-strip-types", "--test", "tests/sdk.test.ts", "tests/project.test.ts"]
+  ]
+}
