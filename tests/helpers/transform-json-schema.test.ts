@@ -204,6 +204,36 @@ describe('transformJsonSchema', () => {
 `);
   });
 
+  it('should keep $defs when the schema root is a $ref', () => {
+    // What pydantic's RootModel and zod-to-json-schema emit for a top-level
+    // model: the root is a $ref and the definitions sit beside it. Returning
+    // early on $ref used to drop $defs, leaving the reference dangling.
+    const input = {
+      $ref: '#/$defs/Person',
+      $defs: {
+        Person: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+          },
+        },
+      },
+    };
+
+    const result = transformJSONSchema(input);
+
+    expect(result).toEqual({
+      $defs: {
+        Person: {
+          type: 'object',
+          properties: { name: { type: 'string' } },
+          additionalProperties: false,
+        },
+      },
+      $ref: '#/$defs/Person',
+    });
+  });
+
   it('should handle $defs and definitions recursively', () => {
     const input = {
       type: 'object',
