@@ -1,0 +1,11 @@
+{
+  "name": "@anthropic-ai/ecosystem-tests-node-ts-cjs-node16",
+  "private": true,
+  "scripts": {
+    "test": "tsc && node --test dist/tests/sdk.test.js dist/tests/project.test.js"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.19",
+    "typescript": "5.8.3"
+  }
+}

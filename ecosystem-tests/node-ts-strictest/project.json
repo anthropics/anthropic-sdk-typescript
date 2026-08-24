@@ -1,0 +1,11 @@
+{
+  "description": "TypeScript nodenext ESM with every strictness flag on (exactOptionalPropertyTypes, noUncheckedIndexedAccess, ...), tsx",
+  "requires": ["node"],
+  "packageManager": "npm",
+  "perNodeVersion": true,
+  "minNodeVersion": 20,
+  "steps": [
+    ["npx", "tsc"],
+    ["node", "--import", "tsx", "--test", "tests/sdk.test.ts", "tests/project.test.ts"]
+  ]
+}

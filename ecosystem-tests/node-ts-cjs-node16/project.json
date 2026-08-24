@@ -1,0 +1,11 @@
+{
+  "description": "TypeScript, CommonJS (no \"type\"), module node16, tsc emit to dist then node --test; \"require\" exports condition",
+  "requires": ["node"],
+  "packageManager": "npm",
+  "perNodeVersion": true,
+  "minNodeVersion": 20,
+  "steps": [
+    ["npx", "tsc"],
+    ["node", "--test", "dist/tests/sdk.test.js", "dist/tests/project.test.js"]
+  ]
+}

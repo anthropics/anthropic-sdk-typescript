@@ -1,0 +1,16 @@
+{
+  "include": ["tests", "shared", "type-tests.ts"],
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2022"],
+    "module": "node16",
+    "moduleResolution": "node16",
+    "types": ["node"],
+    "strict": true,
+    "isolatedModules": true,
+    "rootDir": ".",
+    "outDir": "dist",
+    "sourceMap": true,
+    "skipLibCheck": false
+  }
+}
