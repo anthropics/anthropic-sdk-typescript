@@ -19,6 +19,7 @@
   },
   "scripts": {
     "test": "./scripts/test",
+    "test:ecosystem": "ts-node -T ecosystem-tests/cli.ts",
     "build": "./scripts/build-all",
     "prepublishOnly": "echo 'to publish, run pnpm build && (cd dist; pnpm publish)' && exit 1",
     "format": "./scripts/format",
