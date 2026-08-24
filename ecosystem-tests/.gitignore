@@ -1,6 +1,8 @@
 .pack/
 node_modules/
 */dist/
+# a local copy of shared/ inside a project, where the runner puts it
+/*/shared/
 */.wrangler/
 */.yarn/
 */.pnp.*

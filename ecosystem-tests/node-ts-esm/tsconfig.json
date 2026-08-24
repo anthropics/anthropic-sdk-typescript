@@ -1,5 +1,5 @@
 {
-  "include": ["tests", "type-tests.ts"],
+  "include": ["tests", "shared"],
   "compilerOptions": {
     "target": "es2022",
     "lib": ["es2022"],

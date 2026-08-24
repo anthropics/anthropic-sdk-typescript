@@ -1,5 +1,5 @@
 {
-  "include": ["tests", "type-tests.ts"],
+  "include": ["tests", "shared"],
   "compilerOptions": {
     "target": "es2020",
     "lib": ["es2020", "dom"],

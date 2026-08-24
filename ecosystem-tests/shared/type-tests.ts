@@ -1,5 +1,6 @@
-// Compiled with `tsc --noEmit` only. An unused `@ts-expect-error` is itself a compile
-// error, so each one asserts that the SDK's published types reject the misuse below it.
+// Copied into every project as ./shared/ and only ever type-checked, under that project's compiler
+// and tsconfig. An unused `@ts-expect-error` is itself a compile error, so each one asserts that
+// the SDK's published types reject the misuse below it.
 import Anthropic from '@anthropic-ai/sdk';
 import type { Message } from '@anthropic-ai/sdk/resources/messages';
 

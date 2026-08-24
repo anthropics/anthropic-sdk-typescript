@@ -1,7 +1,7 @@
 /**
  * Ecosystem test runner: builds + packs the SDK, then for each project under ecosystem-tests/
- * (any directory with a project.json) copies it to a temp dir, installs its lockfile plus the
- * tarball there and runs its steps against mock-server.mjs. See README.md.
+ * (any directory with a project.json) copies it and shared/ to a temp dir, installs its lockfile
+ * plus the tarball there and runs its steps against mock-server.mjs. See README.md.
  */
 import { spawn, spawnSync } from 'child_process';
 import * as fs from 'fs';
@@ -29,8 +29,8 @@ const ROOT = path.resolve(__dirname, '..');
 const ECO = __dirname;
 const TARBALL = path.join(ECO, '.pack', 'anthropic-ai-sdk.tgz');
 const API_KEY = 'ecosystem-test-key';
-// left behind by running a project in place
-const NOT_COPIED = /^(node_modules|dist|\.wrangler|\.yarn|\.pnp\..*)$/;
+// left behind by running a project in place (shared: a local copy of ../shared, see README.md)
+const NOT_COPIED = /^(node_modules|dist|shared|\.wrangler|\.yarn|\.pnp\..*)$/;
 
 const useColor = !process.env['NO_COLOR'] && (process.stdout.isTTY || !!process.env['CI']);
 const paint = (code: number) => (s: string) => (useColor ? `\x1b[${code}m${s}\x1b[0m` : s);
@@ -333,6 +333,8 @@ async function runProject(
     recursive: true,
     filter: (src) => !NOT_COPIED.test(path.basename(src)),
   });
+  // every project compiles and runs the same cases from ./shared (see README.md)
+  fs.cpSync(path.join(ECO, 'shared'), path.join(dir, 'shared'), { recursive: true });
   log(`in ${dir}${nodeBin ? ` with ${nodeBin}` : ''}\n`);
 
   const outcome = await execute(config, dir, nodeBin, log, opts.capture);
