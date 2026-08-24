@@ -15,6 +15,11 @@ pnpm test:ecosystem --node-versions 20,22,24 # run the Node projects once per in
 `--node-versions` finds each major where actions/setup-node, nvm, fnm or volta install it, or in `$ECOSYSTEM_NODE_<major>` (a bin directory).
 CI runs these tests from `.github/workflows/ecosystem-tests.yml`.
 
+## Shared test cases
+
+`shared/cases.ts` holds the SDK calls every project runs (they throw on failure and use only web-standard globals) and `shared/type-tests.ts` the `@ts-expect-error` checks every project compiles; a project's own files just register the cases with its test runner or harness and add what is specific to that project (module resolution, runtime-specific uploads, extra compiler flags).
+The runner copies `shared/` into each project's temp copy as `./shared/`; it is git-ignored inside project directories, so copy or symlink it there to work on a project in place.
+
 ## Adding a project
 
 Create `ecosystem-tests/<name>/project.json` with these fields (the runner picks up any directory that has one):
@@ -31,5 +36,6 @@ Pin every dependency to an exact version and commit the lockfile.
 Do not list `@anthropic-ai/sdk` in `package.json`: the runner does a frozen install from the lockfile and then adds `../.pack/anthropic-ai-sdk.tgz` on top, so the lockfile never pins a previous build of the SDK.
 Type-check with `skipLibCheck: false` so the published types are checked too.
 Steps get `ANTHROPIC_BASE_URL` (the mock server) and `ANTHROPIC_API_KEY` in their environment, so `new Anthropic()` needs no options.
+Import the cases from `./shared/cases` (see above) and add the project's `shared` directory to its tsconfig `include` so `shared/type-tests.ts` is checked too.
 The mock server answers a request the SDK built incorrectly with a 4xx whose message starts with `mock:`, so the test fails at the call that sent it.
 Each project runs from a temp copy next to a copy of `.pack/`, so nothing resolves from the repo's `node_modules`.
