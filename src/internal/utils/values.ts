@@ -110,3 +110,10 @@ export const pop = <T extends Record<string, any>, K extends string>(obj: T, key
   delete obj[key];
   return value;
 };
+
+/**
+ * Compile-time exhaustiveness check: passing a value here only type-checks once every
+ * member of its union has been handled. Does nothing at runtime, so unknown values from a
+ * newer API version fall through instead of throwing.
+ */
+export function checkNever(_value: never): void {}

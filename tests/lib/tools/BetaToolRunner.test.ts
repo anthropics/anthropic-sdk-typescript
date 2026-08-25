@@ -1,6 +1,11 @@
 import Anthropic, { BetaFallbackState, type Middleware } from '@anthropic-ai/sdk';
 import { mockFetch } from '../../lib/mock-fetch';
-import { BetaMessage, BetaContentBlock, BetaToolResultBlockParam } from '@anthropic-ai/sdk/resources/beta';
+import {
+  BetaMessage,
+  BetaContentBlock,
+  BetaStopReason,
+  BetaToolResultBlockParam,
+} from '@anthropic-ai/sdk/resources/beta';
 import { BetaRunnableTool, BetaToolRunContext } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
 import { BetaRawMessageStreamEvent, ToolError } from '@anthropic-ai/sdk/resources/beta/messages';
 import { Fetch } from '@anthropic-ai/sdk/internal/builtin-types';
@@ -87,6 +92,39 @@ function getTextContent(text?: string): BetaContentBlock {
   };
 }
 
+function assistantMessage(
+  stop_reason: BetaMessage['stop_reason'],
+  ...content: BetaContentBlock[]
+): BetaMessage {
+  return {
+    id: `msg_${stop_reason}`,
+    type: 'message',
+    role: 'assistant',
+    content,
+    model: 'claude-3-5-sonnet-latest',
+    stop_details: null,
+    stop_reason,
+    stop_sequence: null,
+    container: null,
+    context_management: null,
+    diagnostics: null,
+    usage: {
+      input_tokens: 10,
+      output_tokens: 20,
+      output_tokens_details: null,
+      cache_creation: null,
+      cache_creation_input_tokens: null,
+      cache_read_input_tokens: null,
+      fallback_credit: null,
+      server_tool_use: null,
+      service_tier: null,
+      inference_geo: null,
+      iterations: null,
+      speed: null,
+    },
+  };
+}
+
 function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEvent[] {
   const events: BetaRawMessageStreamEvent[] = [];
 
@@ -145,16 +183,22 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
           });
         }
       });
-    } else if (block.type === 'tool_use') {
+    } else if (block.type === 'compaction') {
+      events.push({ type: 'content_block_start', index, content_block: { ...block, content: null } });
+      events.push({
+        type: 'content_block_delta',
+        index,
+        delta: {
+          type: 'compaction_delta',
+          content: block.content,
+          encrypted_content: block.encrypted_content,
+        },
+      });
+    } else if (block.type === 'tool_use' || block.type === 'server_tool_use') {
       events.push({
         type: 'content_block_start',
         index,
-        content_block: {
-          type: 'tool_use',
-          id: block.id,
-          name: block.name,
-          input: '',
-        },
+        content_block: { ...block, input: {} },
       });
 
       // Input JSON deltas - always chunked
@@ -205,6 +249,25 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
   });
 
   return events;
+}
+
+// Queues `message` as the next response (JSON or SSE) and records the request body it answered.
+function reply(
+  handleRequest: (handler: Fetch) => void,
+  bodies: Array<Record<string, unknown>>,
+  message: BetaMessage,
+  stream: boolean,
+) {
+  handleRequest(async (_req, init) => {
+    bodies.push(JSON.parse(init!.body as string));
+    if (!stream) {
+      return new Response(JSON.stringify(message), { headers: { 'content-type': 'application/json' } });
+    }
+    const sse = betaMessageToStreamEvents(message)
+      .map((event) => `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`)
+      .join('');
+    return new Response(sse, { headers: { 'content-type': 'text/event-stream' } });
+  });
 }
 
 // Overloaded setupTest function for both streaming and non-streaming
@@ -1107,25 +1170,6 @@ describe('ToolRunner', () => {
       };
     }
 
-    // Queues `message` as the next response (JSON or SSE) and records the request body it answered.
-    function reply(
-      handleRequest: (handler: Fetch) => void,
-      bodies: Array<Record<string, unknown>>,
-      message: BetaMessage,
-      stream: boolean,
-    ) {
-      handleRequest(async (_req, init) => {
-        bodies.push(JSON.parse(init!.body as string));
-        if (!stream) {
-          return new Response(JSON.stringify(message), { headers: { 'content-type': 'application/json' } });
-        }
-        const sse = betaMessageToStreamEvents(message)
-          .map((event) => `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`)
-          .join('');
-        return new Response(sse, { headers: { 'content-type': 'text/event-stream' } });
-      });
-    }
-
     it.each([false, true])(
       'forwards the response container id to the next request (stream=%s)',
       async (stream) => {
@@ -1164,6 +1208,165 @@ describe('ToolRunner', () => {
       await runner.runUntilDone();
 
       expect(bodies.map((body) => body['container'])).toEqual(['container_mine', 'container_mine']);
+    });
+  });
+
+  describe('pause_turn', () => {
+    const pausedTurn = () =>
+      assistantMessage('pause_turn', getTextContent('Let me look that up.'), {
+        type: 'server_tool_use',
+        id: 'srvtoolu_1',
+        name: 'web_search',
+        input: { query: 'weather in SF' },
+      });
+
+    it.each([false, true])(
+      'sends the paused turn back so the server resumes it (stream=%s)',
+      async (stream) => {
+        const { runner, handleRequest } = stream ? setupTest({ stream: true }) : setupTest();
+        const bodies: Array<Record<string, unknown>> = [];
+        const paused = pausedTurn();
+
+        reply(handleRequest, bodies, paused, stream);
+        reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), stream);
+        handleRequest(async () => {
+          throw new Error('Runner made a request after the resumed turn ended');
+        });
+
+        await expect(runner.runUntilDone()).resolves.toMatchObject({
+          id: 'msg_end_turn',
+          stop_reason: 'end_turn',
+        });
+        expect(bodies).toHaveLength(2);
+        expect(bodies[1]!['messages']).toEqual([
+          { role: 'user', content: 'What is the weather?' },
+          { role: 'assistant', content: paused.content },
+        ]);
+        expect(runner.params.messages).toHaveLength(3);
+      },
+    );
+
+    it('stops at max_iterations when the server keeps pausing', async () => {
+      const { runner, handleRequest } = setupTest({ max_iterations: 3 });
+      const bodies: Array<Record<string, unknown>> = [];
+
+      for (let i = 0; i < 3; i++) {
+        reply(handleRequest, bodies, pausedTurn(), false);
+      }
+      handleRequest(async () => {
+        throw new Error('Runner made a request past max_iterations');
+      });
+
+      await expect(runner.runUntilDone()).resolves.toMatchObject({ stop_reason: 'pause_turn' });
+      expect(bodies).toHaveLength(3);
+    });
+  });
+
+  describe('compaction', () => {
+    const compactedTurn = () =>
+      assistantMessage('compaction', {
+        type: 'compaction',
+        content: 'Summary of the conversation so far.',
+        encrypted_content: null,
+      });
+
+    it.each([false, true])(
+      'sends the compaction turn back so the server continues it (stream=%s)',
+      async (stream) => {
+        const { runner, handleRequest } = stream ? setupTest({ stream: true }) : setupTest();
+        const bodies: Array<Record<string, unknown>> = [];
+        const compacted = compactedTurn();
+
+        reply(handleRequest, bodies, compacted, stream);
+        reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), stream);
+        handleRequest(async () => {
+          throw new Error('Runner made a request after the continued turn ended');
+        });
+
+        await expect(runner.runUntilDone()).resolves.toMatchObject({
+          id: 'msg_end_turn',
+          stop_reason: 'end_turn',
+        });
+        expect(bodies).toHaveLength(2);
+        expect(bodies[1]!['messages']).toEqual([
+          { role: 'user', content: 'What is the weather?' },
+          { role: 'assistant', content: compacted.content },
+        ]);
+        expect(runner.params.messages).toHaveLength(3);
+      },
+    );
+  });
+
+  describe('next step from stop_reason', () => {
+    type NextStep = 'run_tools' | 'resume' | 'stop';
+    // A Record over the union makes tsc reject a stop reason missing from this table.
+    const expected: Record<BetaStopReason, NextStep> = {
+      tool_use: 'run_tools',
+      pause_turn: 'resume',
+      compaction: 'resume',
+      end_turn: 'stop',
+      stop_sequence: 'stop',
+      max_tokens: 'stop',
+      model_context_window_exceeded: 'stop',
+      refusal: 'stop',
+    };
+    const cases: Array<[BetaMessage['stop_reason'], NextStep]> = [
+      ...(Object.entries(expected) as Array<[BetaStopReason, NextStep]>),
+      [null, 'stop'],
+      ['some_future_reason' as BetaStopReason, 'stop'],
+    ];
+
+    // Every first turn carries a client tool_use block; only `run_tools` may execute it.
+    it.each(cases)('%s → %s', async (stop_reason, nextStep) => {
+      const runSpy = jest.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
+      const { runner, handleRequest } = setupTest({ tools: [{ ...weatherTool, run: runSpy }] });
+      const bodies: Array<Record<string, unknown>> = [];
+      const first = assistantMessage(stop_reason, getWeatherToolUse('SF'));
+
+      reply(handleRequest, bodies, first, false);
+      if (nextStep !== 'stop') {
+        reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+      }
+      handleRequest(async () => {
+        throw new Error('Runner made an unexpected request');
+      });
+
+      const final = await runner.runUntilDone();
+
+      const followUp = {
+        run_tools: [
+          { role: 'user', content: 'What is the weather?' },
+          { role: 'assistant', content: first.content },
+          { role: 'user', content: [getWeatherToolResult('SF')] },
+        ],
+        resume: [
+          { role: 'user', content: 'What is the weather?' },
+          { role: 'assistant', content: first.content },
+        ],
+        stop: undefined,
+      }[nextStep];
+      expect(bodies.map((body) => body['messages'])[1]).toEqual(followUp);
+      expect(bodies).toHaveLength(nextStep === 'stop' ? 1 : 2);
+      expect(runSpy).toHaveBeenCalledTimes(nextStep === 'run_tools' ? 1 : 0);
+      expect(final.id).toBe(nextStep === 'stop' ? first.id : 'msg_end_turn');
+    });
+
+    it('does not execute the tool call of a max_tokens-truncated turn', async () => {
+      const runSpy = jest.fn(async () => {
+        throw new Error('truncated tool call must not run');
+      });
+      const { runner, handleRequest } = setupTest({ tools: [{ ...weatherTool, run: runSpy }] });
+      const bodies: Array<Record<string, unknown>> = [];
+
+      reply(handleRequest, bodies, assistantMessage('max_tokens', getWeatherToolUse('SF')), false);
+      handleRequest(async () => {
+        throw new Error('Runner made a request after a max_tokens turn');
+      });
+
+      await expect(runner.runUntilDone()).resolves.toMatchObject({ stop_reason: 'max_tokens' });
+      expect(bodies).toHaveLength(1);
+      expect(runSpy).not.toHaveBeenCalled();
+      expect(runner.params.messages).toHaveLength(2);
     });
   });
 

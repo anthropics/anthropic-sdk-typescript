@@ -8,6 +8,7 @@ import {
   BetaMessageParam,
   BetaRequestToolAdditionBlock,
   BetaRequestToolRemovalBlock,
+  BetaStopReason,
   BetaToolChangeMCPToolReference,
   BetaToolChangeMCPToolsetReference,
   BetaToolChangeToolReference,
@@ -18,6 +19,7 @@ import { BetaMessageStream } from '../BetaMessageStream';
 import { RequestOptions } from '../../internal/request-options';
 import { buildHeaders } from '../../internal/headers';
 import { promiseWithResolvers } from '../../internal/utils/promise';
+import { checkNever } from '../../internal/utils/values';
 import { CompactionControl, DEFAULT_SUMMARY_PROMPT, DEFAULT_TOKEN_THRESHOLD } from './CompactionControl';
 import {
   collectStainlessHelpers,
@@ -220,6 +222,7 @@ export class BetaToolRunner<Stream extends boolean> {
           if (!isCompacted) {
             if (!this.#mutated) {
               const message = await this.#message;
+              const nextStep = determineNextStepFromStopReason(message.stop_reason);
               this.#state.params.messages.push({ role: message.role, content: message.content });
 
               // Container-bound server tools reject a follow-up request that omits the container the
@@ -233,13 +236,11 @@ export class BetaToolRunner<Stream extends boolean> {
                 }
               }
 
-              // Refusal-terminated turns are terminal: the refusal may have cut a tool_use off
-              // with partial input, so executing this turn's tools would fire side effects the
-              // model never confirmed — and once middleware strips the refusal turn, their
-              // tool_results could never be replayed coherently. Surface the refusal as the
-              // final message instead.
-              if (message.stop_reason === 'refusal') {
+              if (nextStep === 'stop') {
                 break;
+              }
+              if (nextStep === 'resume') {
+                continue;
               }
             }
 
@@ -609,6 +610,37 @@ function referencedToolName(
       // mcp_tool_reference / mcp_toolset_reference run server-side; unknown reference
       // types are ignored rather than rejected.
       return undefined;
+  }
+}
+
+type NextStep = 'run_tools' | 'resume' | 'stop';
+
+/**
+ * Sorts every stop reason into one of three buckets: `run_tools` turns run their client tool
+ * calls and continue the loop; `resume` turns are sent back unchanged so the server continues
+ * them; `stop` turns end the loop without running any tool calls.
+ */
+function determineNextStepFromStopReason(stopReason: BetaStopReason | null): NextStep {
+  if (stopReason === null) return 'stop';
+  switch (stopReason) {
+    case 'tool_use':
+      return 'run_tools';
+    case 'pause_turn':
+    // pause_after_compaction hands the turn back before the model answers; sending it back
+    // unchanged continues it.
+    case 'compaction':
+      return 'resume';
+    case 'end_turn':
+    case 'stop_sequence':
+    case 'max_tokens':
+    case 'model_context_window_exceeded':
+    case 'refusal':
+      return 'stop';
+    default:
+      // The union is forward-compatible, so a stop reason this SDK doesn't know yet ends the
+      // loop rather than throwing; the `never` check makes tsc reject an unclassified member.
+      checkNever(stopReason);
+      return 'stop';
   }
 }
 

@@ -1,5 +1,6 @@
 import { STAINLESS_HELPER_METHOD_HEADER } from '../internal/stainless-helper-header';
 import { isAbortError } from '../internal/errors';
+import { checkNever } from '../internal/utils/values';
 import { AnthropicError, APIUserAbortError } from '../error';
 import {
   type ContentBlock,
@@ -750,6 +751,3 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
     return stream.toReadableStream();
   }
 }
-
-// used to ensure exhaustive case matching without throwing a runtime error
-function checkNever(x: never) {}
