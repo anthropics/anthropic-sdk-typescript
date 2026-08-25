@@ -1,0 +1,11 @@
+{
+  "description": "Yarn Berry Plug'n'Play (strict, no fallback): install, tsc emit through PnP, node --test through the PnP loader",
+  "requires": ["node"],
+  "packageManager": "yarn",
+  "perNodeVersion": true,
+  "minNodeVersion": 20,
+  "steps": [
+    ["yarn", "tsc"],
+    ["yarn", "node", "--test", "dist/tests/sdk.test.js", "dist/tests/project.test.js"]
+  ]
+}
