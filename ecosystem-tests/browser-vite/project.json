@@ -1,0 +1,11 @@
+{
+  "description": "vite build (rolldown) of index.html + src/main.ts, run in headless Chromium via playwright-core",
+  "requires": ["node"],
+  "packageManager": "npm",
+  "minNodeVersion": 20,
+  "steps": [
+    ["npx", "tsc"],
+    ["npx", "vite", "build"],
+    ["node", "--test", "tests/browser.test.mjs"]
+  ]
+}

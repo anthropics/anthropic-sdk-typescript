@@ -1,0 +1,12 @@
+{
+  "description": "webpack 5 + ts-loader production bundle targeting web, run in headless Chromium via playwright-core",
+  "knownFailure": "core/credentials + lib/credentials import node:fs|node:path outside the browser map; webpack target web rejects them (UnhandledSchemeError)",
+  "requires": ["node"],
+  "packageManager": "npm",
+  "minNodeVersion": 20,
+  "steps": [
+    ["npx", "tsc"],
+    ["npx", "webpack"],
+    ["node", "--test", "tests/browser.test.mjs"]
+  ]
+}
