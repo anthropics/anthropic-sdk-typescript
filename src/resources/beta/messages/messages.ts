@@ -4393,7 +4393,7 @@ export interface BetaThinkingConfigAdaptive {
    * redacted but a signature is returned for multi-turn continuity. Defaults to
    * `summarized`.
    */
-  display?: 'summarized' | 'omitted' | null;
+  display?: 'summarized' | 'omitted' | 'updates' | null;
 }
 
 export interface BetaThinkingConfigDisabled {
@@ -4422,7 +4422,7 @@ export interface BetaThinkingConfigEnabled {
    * redacted but a signature is returned for multi-turn continuity. Defaults to
    * `summarized`.
    */
-  display?: 'summarized' | 'omitted' | null;
+  display?: 'summarized' | 'omitted' | 'updates' | null;
 }
 
 /**

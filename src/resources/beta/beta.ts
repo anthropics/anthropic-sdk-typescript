@@ -747,7 +747,8 @@ export type AnthropicBeta =
   | 'computer-use-2025-11-24'
   | 'mcp-tunnels-2026-06-22'
   | 'structured-outputs-2025-11-13'
-  | 'task-budgets-2026-03-13';
+  | 'task-budgets-2026-03-13'
+  | 'thinking-display-updates-2026-08-18';
 
 export interface BetaAPIError {
   message: string;
