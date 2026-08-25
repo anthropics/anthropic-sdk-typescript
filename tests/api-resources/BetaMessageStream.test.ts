@@ -820,6 +820,15 @@ describe('BetaMessageStream class', () => {
           encrypted_content: null,
         },
       },
+      {
+        type: "content_block_delta",
+        index: 0,
+        delta: {
+          type: "compaction_delta",
+          content: null,
+          encrypted_content: "ck_point_2",
+        },
+      },
       { type: "content_block_stop", index: 0 },
       {
         type: "message_delta",
@@ -838,6 +847,6 @@ describe('BetaMessageStream class', () => {
     const finalMessage = await stream.finalMessage();
     const compactionBlock = finalMessage.content[0] as any;
     expect(compactionBlock.content).toBe("Summary part 1 part 2");
-    expect(compactionBlock.encrypted_content).toBe("ck_point_1");
+    expect(compactionBlock.encrypted_content).toBe("ck_point_2");
   });
 });
