@@ -2,6 +2,7 @@ import { STAINLESS_HELPER_METHOD_HEADER } from '../internal/stainless-helper-hea
 import type { Logger } from '../client';
 import { AnthropicError, APIUserAbortError } from '../error';
 import { isAbortError } from '../internal/errors';
+import { checkNever } from '../internal/utils/values';
 import { type RequestOptions } from '../internal/request-options';
 import {
   type BetaContentBlock,
@@ -798,6 +799,3 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
     return stream.toReadableStream();
   }
 }
-
-// used to ensure exhaustive case matching without throwing a runtime error
-function checkNever(x: never) {}

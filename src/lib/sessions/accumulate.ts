@@ -1,4 +1,5 @@
 import { AnthropicError } from '../../core/error';
+import { checkNever } from '../../internal/utils/values';
 import type {
   BetaManagedAgentsAgentMessageEvent,
   BetaManagedAgentsStreamSessionEvents,
@@ -125,6 +126,3 @@ export function accumulateManagedAgentsEvent(
       return accumulated;
   }
 }
-
-// Compile-time exhaustiveness guard.
-function checkNever(_x: never): void {}
