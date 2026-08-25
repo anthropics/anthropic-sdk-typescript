@@ -1,0 +1,11 @@
+{
+  "description": "Yarn 1 (classic) install of the tarball, tsc emit to dist, node --test",
+  "requires": ["node"],
+  "packageManager": "yarn",
+  "perNodeVersion": true,
+  "minNodeVersion": 20,
+  "steps": [
+    ["yarn", "tsc"],
+    ["node", "--test", "dist/tests/sdk.test.js", "dist/tests/project.test.js"]
+  ]
+}

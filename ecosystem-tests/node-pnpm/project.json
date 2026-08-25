@@ -1,0 +1,11 @@
+{
+  "description": "pnpm isolated node_modules (hoist=false, strict peers, no auto-installed optional zod peer), ESM TypeScript nodenext via tsx",
+  "requires": ["node"],
+  "packageManager": "pnpm",
+  "perNodeVersion": true,
+  "minNodeVersion": 20,
+  "steps": [
+    ["pnpm", "exec", "tsc", "--noEmit"],
+    ["node", "--import", "tsx", "--test", "tests/sdk.test.ts", "tests/project.test.ts"]
+  ]
+}
