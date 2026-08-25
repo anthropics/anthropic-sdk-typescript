@@ -1,0 +1,14 @@
+{
+  "description": "Cloudflare Worker without nodejs_compat: wrangler deploy --dry-run bundle, vitest 4 inside workerd via @cloudflare/vitest-pool-workers, then tsc over the SDK with workers-types only (no DOM/Node libs) last",
+  "knownFailure": "last tsc: internal/types.d.ts' optional import('undici') resolves to wrangler's hoisted copy, whose own types need @types/node",
+  "requires": ["node"],
+  "packageManager": "npm",
+  "minNodeVersion": 20,
+  "steps": [
+    ["npx", "wrangler", "types", "--include-runtime=false", "--strict-vars=false"],
+    ["npx", "wrangler", "deploy", "--dry-run", "--outdir", "dist"],
+    ["npx", "vitest", "run"],
+    ["npx", "tsc", "--noEmit", "-p", "test"],
+    ["npx", "tsc", "--noEmit"]
+  ]
+}

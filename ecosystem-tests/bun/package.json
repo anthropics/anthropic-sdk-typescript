@@ -1,0 +1,12 @@
+{
+  "name": "@anthropic-ai/ecosystem-tests-bun",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.13",
+    "typescript": "5.9.3"
+  }
+}

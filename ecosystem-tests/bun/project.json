@@ -1,0 +1,9 @@
+{
+  "description": "Bun runtime: bun install of the tarball, bun x tsc (moduleResolution bundler, types bun), bun test",
+  "requires": ["bun"],
+  "packageManager": "bun",
+  "steps": [
+    ["bun", "x", "tsc", "--noEmit"],
+    ["bun", "test"]
+  ]
+}

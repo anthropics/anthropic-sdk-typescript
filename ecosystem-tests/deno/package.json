@@ -1,0 +1,5 @@
+{
+  "name": "@anthropic-ai/ecosystem-tests-deno",
+  "private": true,
+  "type": "module"
+}

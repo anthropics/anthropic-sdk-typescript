@@ -1,0 +1,15 @@
+{
+  "name": "@anthropic-ai/ecosystem-tests-vercel-edge",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/handler.ts --bundle --platform=browser --conditions=edge-light --format=iife --global-name=edgeFunction --target=es2022 --outfile=dist/handler.js",
+    "test": "node --test tests/edge.test.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.19",
+    "edge-runtime": "2.5.9",
+    "esbuild": "0.28.1",
+    "typescript": "5.9.3"
+  }
+}

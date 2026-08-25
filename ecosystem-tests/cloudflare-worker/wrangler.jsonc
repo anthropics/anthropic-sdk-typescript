@@ -1,0 +1,8 @@
+// No nodejs_compat: the SDK is meant to run on the bare Workers runtime.
+{
+  "name": "anthropic-sdk-ecosystem-test",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-07-22",
+  // placeholders so `wrangler types` declares them; vitest.config.ts supplies the real per-run values as bindings
+  "vars": { "ANTHROPIC_BASE_URL": "", "ANTHROPIC_API_KEY": "" }
+}
