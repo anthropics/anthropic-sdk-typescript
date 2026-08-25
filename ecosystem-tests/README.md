@@ -34,6 +34,7 @@ Create `ecosystem-tests/<name>/project.json` with these fields (the runner picks
 
 Pin every dependency to an exact version and commit the lockfile.
 Do not list `@anthropic-ai/sdk` in `package.json`: the runner does a frozen install from the lockfile and then adds `../.pack/anthropic-ai-sdk.tgz` on top, so the lockfile never pins a previous build of the SDK.
+Neither install step runs dependency lifecycle scripts (`--ignore-scripts` and its equivalents), so a project cannot rely on a `postinstall`; prebuilt binaries that ship as `optionalDependencies` (esbuild, workerd, rolldown) still work.
 Type-check with `skipLibCheck: false` so the published types are checked too.
 Steps get `ANTHROPIC_BASE_URL` (the mock server) and `ANTHROPIC_API_KEY` in their environment, so `new Anthropic()` needs no options.
 Import the cases from `./shared/cases` (see above) and add the project's `shared` directory to its tsconfig `include` so `shared/type-tests.ts` is checked too.
