@@ -1,0 +1,12 @@
+{
+  "description": "Vercel Edge Function: tsc (Next.js-style lib dom + bundler resolution), esbuild as `vercel dev` bundles edge functions (platform=browser, conditions edge-light), run in edge-runtime's VM via node --test",
+  "knownFailure": "core/credentials + lib/credentials import node:fs|node:path outside the browser map; esbuild --platform=browser cannot resolve them",
+  "requires": ["node"],
+  "packageManager": "npm",
+  "minNodeVersion": 20,
+  "steps": [
+    ["npx", "tsc", "--noEmit"],
+    ["npx", "esbuild", "src/handler.ts", "--bundle", "--platform=browser", "--conditions=edge-light", "--format=iife", "--global-name=edgeFunction", "--target=es2022", "--outfile=dist/handler.js"],
+    ["node", "--test", "tests/edge.test.mjs"]
+  ]
+}

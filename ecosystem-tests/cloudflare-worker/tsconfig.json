@@ -1,0 +1,17 @@
+{
+  // test/ has its own tsconfig: the vitest + pool type packages don't lib-check cleanly against
+  // workers-types, which says nothing about the SDK, so only this config runs with skipLibCheck off
+  "include": ["src", "shared", "worker-configuration.d.ts", "type-tests.ts"],
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2022"],
+    "module": "es2022",
+    "moduleResolution": "bundler",
+    "types": ["@cloudflare/workers-types"],
+    "strict": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "skipLibCheck": false
+  }
+}

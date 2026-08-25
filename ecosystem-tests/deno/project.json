@@ -1,0 +1,9 @@
+{
+  "description": "Deno 2: npm-installed tarball resolved as a bare specifier through package.json (nodeModulesDir manual), deno test, then deno check --all (skipLibCheck off for the SDK's .d.mts)",
+  "requires": ["deno"],
+  "packageManager": "npm",
+  "steps": [
+    ["deno", "test", "--no-check", "--allow-env", "--allow-net=127.0.0.1", "main_test.ts", "project_test.ts"],
+    ["deno", "check", "--all", "main_test.ts", "project_test.ts", "shared/type-tests.ts"]
+  ]
+}

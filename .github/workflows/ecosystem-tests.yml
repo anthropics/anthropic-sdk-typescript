@@ -32,6 +32,10 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork
     env:
       COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
+      BUN_VERSION: 1.3.13
+      BUN_SHA256: 79c0771fa8b92c33aae41e15a0e0d307ea99d0e2f00317c71c6c53237a78e25a
+      DENO_VERSION: v2.9.5
+      DENO_SHA256: 8b010a3b1a4a0188a67cdb8a7a27348b2a501af78aec7fc74f2ace167368d530
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
@@ -59,6 +63,23 @@ jobs:
       # node-yarn-classic and node-yarn-pnp pick their yarn version through corepack
       - name: Enable corepack yarn
         run: corepack enable yarn
+
+      - name: Set up Bun
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/bun.zip" "https://github.com/oven-sh/bun/releases/download/bun-v${BUN_VERSION}/bun-linux-x64.zip"
+          echo "$BUN_SHA256  $RUNNER_TEMP/bun.zip" | sha256sum -c -
+          unzip -q "$RUNNER_TEMP/bun.zip" -d "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/bun-linux-x64" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/bun-linux-x64/bun" --version
+
+      - name: Set up Deno
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/deno.zip" "https://dl.deno.land/release/${DENO_VERSION}/deno-x86_64-unknown-linux-gnu.zip"
+          echo "$DENO_SHA256  $RUNNER_TEMP/deno.zip" | sha256sum -c -
+          mkdir -p "$HOME/.deno/bin"
+          unzip -q "$RUNNER_TEMP/deno.zip" -d "$HOME/.deno/bin"
+          echo "$HOME/.deno/bin" >> "$GITHUB_PATH"
+          "$HOME/.deno/bin/deno" --version
 
       - name: Bootstrap
         run: ./scripts/bootstrap
