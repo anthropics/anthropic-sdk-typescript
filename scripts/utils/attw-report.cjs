@@ -9,9 +9,11 @@ const problems = Object.values(JSON.parse(fs.readFileSync('.attw.json', 'utf-8')
           (problem.kind === 'CJSResolvesToESM' && problem.entrypoint.endsWith('.mjs')) ||
           // This is intentional for backwards compat reasons.
           (problem.kind === 'MissingExportEquals' && problem.implementationFileName.endsWith('/index.js')) ||
-          // this is intentional, we deliberately attempt to import types that may not exist from parent node_modules
-          // folders to better support various runtimes without triggering automatic type acquisition.
-          (problem.kind === 'InternalResolutionError' && problem.moduleSpecifier.includes('node_modules'))
+          // this is intentional, internal/types.d.ts deliberately attempts to import types that may not exist from parent
+          // node_modules folders to better support various runtimes without triggering automatic type acquisition.
+          (problem.kind === 'InternalResolutionError' &&
+            /\/internal\/types\.d\.m?ts$/.test(problem.fileName) &&
+            problem.moduleSpecifier.includes('node_modules'))
         )
       ),
   );
