@@ -226,24 +226,26 @@ function startMockServer(): Promise<MockServer> {
 const TGZ = '../.pack/anthropic-ai-sdk.tgz';
 // a frozen install from the committed lockfile, then the packed SDK on top; only the temp copy's
 // package.json/lockfile see the SDK, so a lockfile never pins a previous build's integrity hash.
-// The SDK's own dependencies resolve unpinned in that second step, so it runs no install scripts.
+// The SDK's own dependencies resolve unpinned in that second step. Neither step runs dependency
+// lifecycle scripts: everything these projects need ships as plain JS or as prebuilt binaries in
+// optionalDependencies.
 const INSTALL: Record<ProjectConfig['packageManager'], string[][]> = {
   npm: [
-    ['npm', 'ci', '--no-audit', '--no-fund'],
+    ['npm', 'ci', '--no-audit', '--no-fund', '--ignore-scripts'],
     ['npm', 'install', '--no-save', '--no-audit', '--no-fund', '--ignore-scripts', TGZ],
   ],
   pnpm: [
-    ['pnpm', 'install', '--frozen-lockfile'],
+    ['pnpm', 'install', '--frozen-lockfile', '--ignore-scripts'],
     ['pnpm', 'add', '--ignore-scripts', TGZ],
   ],
   // works for yarn 1 and berry: berry reads --frozen-lockfile as --immutable; yarn 1 honours
   // YARN_IGNORE_SCRIPTS and berry --mode=skip-build, and each ignores the other's
   yarn: [
-    ['yarn', 'install', '--frozen-lockfile'],
+    ['env', 'YARN_IGNORE_SCRIPTS=true', 'yarn', 'install', '--frozen-lockfile', '--mode=skip-build'],
     ['env', 'YARN_IGNORE_SCRIPTS=true', 'yarn', 'add', '--mode=skip-build', `@anthropic-ai/sdk@file:${TGZ}`],
   ],
   bun: [
-    ['bun', 'install', '--frozen-lockfile'],
+    ['bun', 'install', '--frozen-lockfile', '--ignore-scripts'],
     ['bun', 'add', '--ignore-scripts', TGZ],
   ],
 };

@@ -1,0 +1,18 @@
+{
+  "description": "bundle the SDK for node with esbuild (esm+cjs), rollup, webpack and vite (SSR), then run each bundle",
+  "requires": ["node"],
+  "packageManager": "npm",
+  "perNodeVersion": true,
+  "minNodeVersion": 20,
+  "steps": [
+    ["npx", "tsc"],
+    ["node", "build-esbuild.mjs"],
+    ["npx", "rollup", "-c"],
+    ["npx", "webpack"],
+    ["npx", "vite", "build"],
+    ["node", "run-bundle.mjs", "dist/esbuild"],
+    ["node", "run-bundle.mjs", "dist/rollup"],
+    ["node", "run-bundle.mjs", "dist/webpack"],
+    ["node", "run-bundle.mjs", "dist/vite"]
+  ]
+}
