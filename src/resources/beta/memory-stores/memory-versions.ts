@@ -137,10 +137,12 @@ export interface BetaManagedAgentsAPIActor {
 /**
  * A `memory_version` object: one immutable, attributed row in a memory's
  * append-only history. Every non-no-op mutation to a memory produces a new
- * version. Versions belong to the store (not the individual memory) and persist
- * after the memory is deleted. Retrieving a redacted version returns 200 with
- * `content`, `path`, `content_size_bytes`, and `content_sha256` set to `null`;
- * branch on `redacted_at`, not HTTP status.
+ * version. Versions belong to the store (not the individual memory) and are not
+ * deleted with the memory; each version is retained for at least the version
+ * retention period after it was written, unless the store itself is deleted.
+ * Retrieving a redacted version returns 200 with `content`, `path`,
+ * `content_size_bytes`, and `content_sha256` set to `null`; branch on
+ * `redacted_at`, not HTTP status.
  */
 export interface BetaManagedAgentsMemoryVersion {
   /**
@@ -157,7 +159,8 @@ export interface BetaManagedAgentsMemoryVersion {
    * ID of the memory this version snapshots (a `mem_...` value). Remains valid after
    * the memory is deleted; pass it as `memory_id` to
    * [List memory versions](/en/api/beta/memory_stores/memory_versions/list) to
-   * retrieve the full lineage including the `deleted` row.
+   * retrieve the memory's retained versions, including the `deleted` row while the
+   * lineage is retained.
    */
   memory_id: string;
 
