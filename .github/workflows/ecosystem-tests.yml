@@ -81,6 +81,10 @@ jobs:
           echo "$HOME/.deno/bin" >> "$GITHUB_PATH"
           "$HOME/.deno/bin/deno" --version
 
+      - name: Install Chromium
+        working-directory: ecosystem-tests/browser-vite
+        run: npm ci --ignore-scripts --no-audit --no-fund && npx playwright-core install --with-deps chromium
+
       - name: Bootstrap
         run: ./scripts/bootstrap
 

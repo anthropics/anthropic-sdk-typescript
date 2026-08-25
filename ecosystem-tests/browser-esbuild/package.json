@@ -1,0 +1,13 @@
+{
+  "name": "@anthropic-ai/ecosystem-tests-browser-esbuild",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "tsc && node build.mjs && node check-bundle.mjs && node --test tests/browser.test.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1",
+    "playwright-core": "1.57.0",
+    "typescript": "5.8.3"
+  }
+}
