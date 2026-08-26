@@ -1,5 +1,4 @@
 import { AnthropicError } from '../../core/error';
-import { checkNever } from '../../internal/utils/values';
 import type {
   BetaManagedAgentsAgentMessageEvent,
   BetaManagedAgentsStreamSessionEvents,
@@ -19,10 +18,11 @@ export type AccumulatedEvent = BetaManagedAgentsAgentMessageEvent;
  *   fragment as a fresh content entry; an existing index returns a copy with
  *   that entry appended to. An unrecognised fragment type on an existing
  *   index passes the entry through unchanged — deltas are best-effort and the
- *   buffered final event is canonical — but is a compile-time error via the
- *   exhaustiveness guard, matching `MessageStream#accumulateMessage`.
+ *   buffered final event is canonical.
  * - `agent.message` is the buffered final event: a copy of it is returned,
  *   replacing whatever the preview had accumulated.
+ * - Every other event type returns `accumulated` unchanged, so new event types
+ *   added to the stream union need no change here.
  */
 export function accumulateManagedAgentsEvent<T extends AccumulatedEvent>(
   accumulated: AccumulatedEvent | undefined,
@@ -72,57 +72,17 @@ export function accumulateManagedAgentsEvent(
       }
 
       let updated = existing;
-      switch (fragment.type) {
-        case 'text':
-          if (existing.type === 'text') {
-            updated = { ...existing, text: existing.text + fragment.text };
-          }
-          break;
-        default:
-          checkNever(fragment.type);
+      if (fragment.type === 'text' && existing.type === 'text') {
+        updated = { ...existing, text: existing.text + fragment.text };
       }
 
       const content = accumulated.content.slice();
       content[idx] = updated;
       return { ...accumulated, content };
     }
-    case 'user.message':
-    case 'user.interrupt':
-    case 'user.tool_confirmation':
-    case 'user.tool_result':
-    case 'user.custom_tool_result':
-    case 'user.define_outcome':
-    case 'agent.thinking':
-    case 'agent.tool_use':
-    case 'agent.tool_result':
-    case 'agent.custom_tool_use':
-    case 'agent.mcp_tool_use':
-    case 'agent.mcp_tool_result':
-    case 'agent.thread_message_received':
-    case 'agent.thread_message_sent':
-    case 'agent.thread_context_compacted':
-    case 'session.error':
-    case 'session.updated':
-    case 'session.deleted':
-    case 'session.usage':
-    case 'session.status_running':
-    case 'session.status_idle':
-    case 'session.status_rescheduled':
-    case 'session.status_terminated':
-    case 'session.thread_created':
-    case 'session.thread_status_running':
-    case 'session.thread_status_idle':
-    case 'session.thread_status_rescheduled':
-    case 'session.thread_status_terminated':
-    case 'span.model_request_start':
-    case 'span.model_request_end':
-    case 'span.outcome_evaluation_start':
-    case 'span.outcome_evaluation_ongoing':
-    case 'span.outcome_evaluation_end':
-    case 'system.message':
-      return accumulated;
+
     default:
-      checkNever(event);
+      // Any other event, including types newer than this SDK, leaves the snapshot unchanged.
       return accumulated;
   }
 }
