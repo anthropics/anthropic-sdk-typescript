@@ -60,5 +60,21 @@ describe('resource webhooks', () => {
         .withOptions({ webhookKey: key })
         .beta.webhooks.unwrap(payload, { headers: { ...headers, 'webhook-id': 'wrong' } });
     }).toThrow('No matching signature found');
+    expect(() => {
+      // @ts-expect-error headers is required by the type; omitting it at runtime must still throw, never skip verification
+      client.beta.webhooks.unwrap(payload, { key });
+    }).toThrow('Webhook headers are required in order to verify the signature');
+    expect(() => {
+      // @ts-expect-error same for a caller that passes no options at all, or the headers in their place
+      client.beta.webhooks.unwrap(payload);
+    }).toThrow('Webhook headers are required in order to verify the signature');
+    expect(() => {
+      // @ts-expect-error
+      client.beta.webhooks.unwrap(payload, headers);
+    }).toThrow('Webhook headers are required in order to verify the signature');
+    expect(() => {
+      // An empty key is an HMAC key anyone can sign with, so it must be rejected rather than used
+      client.beta.webhooks.unwrap(payload, { headers, key: '' });
+    }).toThrow('Webhook key must not be null or empty in order to unwrap');
   });
 });

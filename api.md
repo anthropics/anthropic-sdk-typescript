@@ -1319,6 +1319,7 @@ Types:
 
 Methods:
 
+- <code>client.beta.webhooks.<a href="./src/resources/beta/webhooks.ts">parseUnverified</a>(body) -> void</code>
 - <code>client.beta.webhooks.<a href="./src/resources/beta/webhooks.ts">unwrap</a>(body) -> void</code>
 
 ## UserProfiles
