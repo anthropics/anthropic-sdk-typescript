@@ -5,6 +5,6 @@ import { test } from 'vitest';
 import Anthropic from '@anthropic-ai/sdk';
 import { cases } from '../shared/cases';
 
-const client = new Anthropic({ baseURL: env.ANTHROPIC_BASE_URL, apiKey: env.ANTHROPIC_API_KEY });
+const client = new Anthropic({ baseURL: env.ANTHROPIC_BASE_URL, apiKey: env.FAKE_API_KEY });
 
 for (const [name, run] of Object.entries(cases)) test(name, () => run(client));

@@ -15,7 +15,7 @@ export default {
   plugins: [
     new webpack.DefinePlugin({
       __BASE_URL__: JSON.stringify(process.env.ANTHROPIC_BASE_URL ?? ''),
-      __API_KEY__: JSON.stringify(process.env.ANTHROPIC_API_KEY ?? ''),
+      __FAKE_API_KEY__: JSON.stringify(process.env.ECOSYSTEM_TESTS_FAKE_KEY ?? ''),
     }),
   ],
   performance: false,
