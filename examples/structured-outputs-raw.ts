@@ -31,4 +31,4 @@ async function main() {
   console.log(JSON.stringify(message.parsed_output, null, 2));
 }
 
-main().catch(console.error);
+main();

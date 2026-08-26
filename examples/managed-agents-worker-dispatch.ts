@@ -63,7 +63,4 @@ async function main() {
   console.log('work item handled');
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+main();

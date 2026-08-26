@@ -61,4 +61,4 @@ async function main() {
   console.dir(message, { depth: 4 });
 }
 
-main().catch(console.error);
+main();
