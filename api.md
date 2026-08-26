@@ -1406,3 +1406,229 @@ Methods:
 - <code title="get /v1/tunnels/{tunnel_id}/certificates/{certificate_id}?beta=true">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">retrieve</a>(certificateID, { ...params }) -> BetaTunnelCertificate</code>
 - <code title="get /v1/tunnels/{tunnel_id}/certificates?beta=true">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">list</a>(tunnelID, { ...params }) -> BetaTunnelCertificatesPageCursor</code>
 - <code title="post /v1/tunnels/{tunnel_id}/certificates/{certificate_id}/archive?beta=true">client.beta.tunnels.certificates.<a href="./src/resources/beta/tunnels/certificates.ts">archive</a>(certificateID, { ...params }) -> BetaTunnelCertificate</code>
+
+## Organization
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/organization.ts">BetaOrganization</a></code>
+- <code><a href="./src/resources/beta/organization/organization.ts">BetaOrganizationRole</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/me?beta=true">client.beta.organization.<a href="./src/resources/beta/organization/organization.ts">retrieve</a>() -> BetaOrganization</code>
+
+### APIKeys
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/api-keys.ts">BetaAPIKey</a></code>
+- <code><a href="./src/resources/beta/organization/api-keys.ts">BetaAPIKeyCreatedBy</a></code>
+- <code><a href="./src/resources/beta/organization/api-keys.ts">BetaAPIKeyOrganizationScope</a></code>
+- <code><a href="./src/resources/beta/organization/api-keys.ts">BetaAPIKeyServiceAccountActor</a></code>
+- <code><a href="./src/resources/beta/organization/api-keys.ts">BetaAPIKeyUserActor</a></code>
+- <code><a href="./src/resources/beta/organization/api-keys.ts">BetaAPIKeyWorkspaceScope</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/api_keys/{api_key_id}?beta=true">client.beta.organization.apiKeys.<a href="./src/resources/beta/organization/api-keys.ts">retrieve</a>(apiKeyID) -> BetaAPIKey</code>
+- <code title="post /v1/organizations/api_keys/{api_key_id}?beta=true">client.beta.organization.apiKeys.<a href="./src/resources/beta/organization/api-keys.ts">update</a>(apiKeyID, { ...params }) -> BetaAPIKey</code>
+- <code title="get /v1/organizations/api_keys?beta=true">client.beta.organization.apiKeys.<a href="./src/resources/beta/organization/api-keys.ts">list</a>({ ...params }) -> BetaAPIKeysPage</code>
+
+### ExternalKeys
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/external-keys.ts">BetaAWSExternalKeyConfig</a></code>
+- <code><a href="./src/resources/beta/organization/external-keys.ts">BetaAzureExternalKeyConfig</a></code>
+- <code><a href="./src/resources/beta/organization/external-keys.ts">BetaAzureExternalKeyConfigParam</a></code>
+- <code><a href="./src/resources/beta/organization/external-keys.ts">BetaExternalKey</a></code>
+- <code><a href="./src/resources/beta/organization/external-keys.ts">BetaExternalKeyAttachedAttachment</a></code>
+- <code><a href="./src/resources/beta/organization/external-keys.ts">BetaExternalKeyUnattachedAttachment</a></code>
+- <code><a href="./src/resources/beta/organization/external-keys.ts">BetaGCPExternalKeyConfig</a></code>
+- <code><a href="./src/resources/beta/organization/external-keys.ts">ExternalKeyDeleteResponse</a></code>
+- <code><a href="./src/resources/beta/organization/external-keys.ts">ExternalKeyValidateResponse</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/external_keys?beta=true">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">create</a>({ ...params }) -> BetaExternalKey</code>
+- <code title="get /v1/organizations/external_keys/{external_key_id}?beta=true">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">retrieve</a>(externalKeyID) -> BetaExternalKey</code>
+- <code title="post /v1/organizations/external_keys/{external_key_id}?beta=true">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">update</a>(externalKeyID, { ...params }) -> BetaExternalKey</code>
+- <code title="get /v1/organizations/external_keys?beta=true">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">list</a>({ ...params }) -> BetaExternalKeysPageCursor</code>
+- <code title="delete /v1/organizations/external_keys/{external_key_id}?beta=true">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">delete</a>(externalKeyID) -> ExternalKeyDeleteResponse</code>
+- <code title="post /v1/organizations/external_keys/{external_key_id}/validate?beta=true">client.beta.organization.externalKeys.<a href="./src/resources/beta/organization/external-keys.ts">validate</a>(externalKeyID) -> ExternalKeyValidateResponse</code>
+
+### Federation
+
+#### Issuers
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/federation/issuers.ts">BetaFederationIssuer</a></code>
+- <code><a href="./src/resources/beta/organization/federation/issuers.ts">BetaFederationIssuerPollStatus</a></code>
+- <code><a href="./src/resources/beta/organization/federation/issuers.ts">BetaJWKSDiscovery</a></code>
+- <code><a href="./src/resources/beta/organization/federation/issuers.ts">BetaJWKSExplicitURL</a></code>
+- <code><a href="./src/resources/beta/organization/federation/issuers.ts">BetaJWKSInline</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/federation_issuers?beta=true">client.beta.organization.federation.issuers.<a href="./src/resources/beta/organization/federation/issuers.ts">create</a>({ ...params }) -> BetaFederationIssuer</code>
+- <code title="get /v1/organizations/federation_issuers/{federation_issuer_id}?beta=true">client.beta.organization.federation.issuers.<a href="./src/resources/beta/organization/federation/issuers.ts">retrieve</a>(federationIssuerID, { ...params }) -> BetaFederationIssuer</code>
+- <code title="post /v1/organizations/federation_issuers/{federation_issuer_id}?beta=true">client.beta.organization.federation.issuers.<a href="./src/resources/beta/organization/federation/issuers.ts">update</a>(federationIssuerID, { ...params }) -> BetaFederationIssuer</code>
+- <code title="get /v1/organizations/federation_issuers?beta=true">client.beta.organization.federation.issuers.<a href="./src/resources/beta/organization/federation/issuers.ts">list</a>({ ...params }) -> BetaFederationIssuersPageCursor</code>
+- <code title="post /v1/organizations/federation_issuers/{federation_issuer_id}/archive?beta=true">client.beta.organization.federation.issuers.<a href="./src/resources/beta/organization/federation/issuers.ts">archive</a>(federationIssuerID, { ...params }) -> BetaFederationIssuer</code>
+
+#### Rules
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/federation/rules/rules.ts">BetaFederationRule</a></code>
+- <code><a href="./src/resources/beta/organization/federation/rules/rules.ts">BetaFederationRuleMatch</a></code>
+- <code><a href="./src/resources/beta/organization/federation/rules/rules.ts">BetaFederationRuleWorkspace</a></code>
+- <code><a href="./src/resources/beta/organization/federation/rules/rules.ts">BetaServiceAccountTarget</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/federation_rules?beta=true">client.beta.organization.federation.rules.<a href="./src/resources/beta/organization/federation/rules/rules.ts">create</a>({ ...params }) -> BetaFederationRule</code>
+- <code title="get /v1/organizations/federation_rules/{federation_rule_id}?beta=true">client.beta.organization.federation.rules.<a href="./src/resources/beta/organization/federation/rules/rules.ts">retrieve</a>(federationRuleID, { ...params }) -> BetaFederationRule</code>
+- <code title="post /v1/organizations/federation_rules/{federation_rule_id}?beta=true">client.beta.organization.federation.rules.<a href="./src/resources/beta/organization/federation/rules/rules.ts">update</a>(federationRuleID, { ...params }) -> BetaFederationRule</code>
+- <code title="get /v1/organizations/federation_rules?beta=true">client.beta.organization.federation.rules.<a href="./src/resources/beta/organization/federation/rules/rules.ts">list</a>({ ...params }) -> BetaFederationRulesPageCursor</code>
+- <code title="post /v1/organizations/federation_rules/{federation_rule_id}/archive?beta=true">client.beta.organization.federation.rules.<a href="./src/resources/beta/organization/federation/rules/rules.ts">archive</a>(federationRuleID, { ...params }) -> BetaFederationRule</code>
+
+##### Workspaces
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/federation/rules/workspaces.ts">WorkspaceRemoveResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/federation_rules/{federation_rule_id}/workspaces?beta=true">client.beta.organization.federation.rules.workspaces.<a href="./src/resources/beta/organization/federation/rules/workspaces.ts">list</a>(federationRuleID, { ...params }) -> BetaFederationRuleWorkspacesPageCursor</code>
+- <code title="post /v1/organizations/federation_rules/{federation_rule_id}/workspaces?beta=true">client.beta.organization.federation.rules.workspaces.<a href="./src/resources/beta/organization/federation/rules/workspaces.ts">add</a>(federationRuleID, { ...params }) -> BetaFederationRuleWorkspace</code>
+- <code title="delete /v1/organizations/federation_rules/{federation_rule_id}/workspaces/{workspace_id}?beta=true">client.beta.organization.federation.rules.workspaces.<a href="./src/resources/beta/organization/federation/rules/workspaces.ts">remove</a>(workspaceID, { ...params }) -> WorkspaceRemoveResponse</code>
+
+### Invites
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/invites.ts">BetaOrganizationInvite</a></code>
+- <code><a href="./src/resources/beta/organization/invites.ts">InviteDeleteResponse</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/invites?beta=true">client.beta.organization.invites.<a href="./src/resources/beta/organization/invites.ts">create</a>({ ...params }) -> BetaOrganizationInvite</code>
+- <code title="get /v1/organizations/invites/{invite_id}?beta=true">client.beta.organization.invites.<a href="./src/resources/beta/organization/invites.ts">retrieve</a>(inviteID) -> BetaOrganizationInvite</code>
+- <code title="get /v1/organizations/invites?beta=true">client.beta.organization.invites.<a href="./src/resources/beta/organization/invites.ts">list</a>({ ...params }) -> BetaOrganizationInvitesPage</code>
+- <code title="delete /v1/organizations/invites/{invite_id}?beta=true">client.beta.organization.invites.<a href="./src/resources/beta/organization/invites.ts">delete</a>(inviteID) -> InviteDeleteResponse</code>
+
+### ServiceAccounts
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">BetaServiceAccount</a></code>
+- <code><a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">BetaServiceAccountWorkspaceMember</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/service_accounts?beta=true">client.beta.organization.serviceAccounts.<a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">create</a>({ ...params }) -> BetaServiceAccount</code>
+- <code title="get /v1/organizations/service_accounts/{service_account_id}?beta=true">client.beta.organization.serviceAccounts.<a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">retrieve</a>(serviceAccountID, { ...params }) -> BetaServiceAccount</code>
+- <code title="post /v1/organizations/service_accounts/{service_account_id}?beta=true">client.beta.organization.serviceAccounts.<a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">update</a>(serviceAccountID, { ...params }) -> BetaServiceAccount</code>
+- <code title="get /v1/organizations/service_accounts?beta=true">client.beta.organization.serviceAccounts.<a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">list</a>({ ...params }) -> BetaServiceAccountsPageCursor</code>
+- <code title="post /v1/organizations/service_accounts/{service_account_id}/archive?beta=true">client.beta.organization.serviceAccounts.<a href="./src/resources/beta/organization/service-accounts/service-accounts.ts">archive</a>(serviceAccountID, { ...params }) -> BetaServiceAccount</code>
+
+#### Workspaces
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/service-accounts/workspaces.ts">WorkspaceRemoveResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/service_accounts/{service_account_id}/workspaces?beta=true">client.beta.organization.serviceAccounts.workspaces.<a href="./src/resources/beta/organization/service-accounts/workspaces.ts">list</a>(serviceAccountID, { ...params }) -> BetaServiceAccountWorkspaceMembersPageCursor</code>
+- <code title="post /v1/organizations/service_accounts/{service_account_id}/workspaces?beta=true">client.beta.organization.serviceAccounts.workspaces.<a href="./src/resources/beta/organization/service-accounts/workspaces.ts">add</a>(serviceAccountID, { ...params }) -> BetaServiceAccountWorkspaceMember</code>
+- <code title="delete /v1/organizations/service_accounts/{service_account_id}/workspaces/{workspace_id}?beta=true">client.beta.organization.serviceAccounts.workspaces.<a href="./src/resources/beta/organization/service-accounts/workspaces.ts">remove</a>(workspaceID, { ...params }) -> WorkspaceRemoveResponse</code>
+
+### Users
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/users.ts">BetaOrganizationUser</a></code>
+- <code><a href="./src/resources/beta/organization/users.ts">UserRemoveResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/users/{user_id}?beta=true">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">retrieve</a>(userID) -> BetaOrganizationUser</code>
+- <code title="post /v1/organizations/users/{user_id}?beta=true">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">update</a>(userID, { ...params }) -> BetaOrganizationUser</code>
+- <code title="get /v1/organizations/users?beta=true">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">list</a>({ ...params }) -> BetaOrganizationUsersPage</code>
+- <code title="delete /v1/organizations/users/{user_id}?beta=true">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">remove</a>(userID) -> UserRemoveResponse</code>
+
+### Workspaces
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/workspaces/workspaces.ts">BetaAllowedInferenceGeo</a></code>
+- <code><a href="./src/resources/beta/organization/workspaces/workspaces.ts">BetaDataResidency</a></code>
+- <code><a href="./src/resources/beta/organization/workspaces/workspaces.ts">BetaDataResidencyCreateConfig</a></code>
+- <code><a href="./src/resources/beta/organization/workspaces/workspaces.ts">BetaDataResidencyUpdateConfig</a></code>
+- <code><a href="./src/resources/beta/organization/workspaces/workspaces.ts">BetaNoBillingWorkspaceRole</a></code>
+- <code><a href="./src/resources/beta/organization/workspaces/workspaces.ts">BetaWorkspace</a></code>
+- <code><a href="./src/resources/beta/organization/workspaces/workspaces.ts">BetaWorkspaceMember</a></code>
+- <code><a href="./src/resources/beta/organization/workspaces/workspaces.ts">BetaWorkspaceRole</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/workspaces?beta=true">client.beta.organization.workspaces.<a href="./src/resources/beta/organization/workspaces/workspaces.ts">create</a>({ ...params }) -> BetaWorkspace</code>
+- <code title="get /v1/organizations/workspaces/{workspace_id}?beta=true">client.beta.organization.workspaces.<a href="./src/resources/beta/organization/workspaces/workspaces.ts">retrieve</a>(workspaceID) -> BetaWorkspace</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}?beta=true">client.beta.organization.workspaces.<a href="./src/resources/beta/organization/workspaces/workspaces.ts">update</a>(workspaceID, { ...params }) -> BetaWorkspace</code>
+- <code title="get /v1/organizations/workspaces?beta=true">client.beta.organization.workspaces.<a href="./src/resources/beta/organization/workspaces/workspaces.ts">list</a>({ ...params }) -> BetaWorkspacesPage</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}/archive?beta=true">client.beta.organization.workspaces.<a href="./src/resources/beta/organization/workspaces/workspaces.ts">archive</a>(workspaceID) -> BetaWorkspace</code>
+
+#### RateLimits
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimit</a></code>
+- <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitValue</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/workspaces/{workspace_id}/rate_limits?beta=true">client.beta.organization.workspaces.rateLimits.<a href="./src/resources/beta/organization/workspaces/rate-limits.ts">list</a>(workspaceID, { ...params }) -> BetaWorkspaceRateLimitsPageCursor</code>
+
+#### Members
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/workspaces/members.ts">MemberRemoveResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/workspaces/{workspace_id}/members/{user_id}?beta=true">client.beta.organization.workspaces.members.<a href="./src/resources/beta/organization/workspaces/members.ts">retrieve</a>(userID, { ...params }) -> BetaWorkspaceMember</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}/members/{user_id}?beta=true">client.beta.organization.workspaces.members.<a href="./src/resources/beta/organization/workspaces/members.ts">update</a>(userID, { ...params }) -> BetaWorkspaceMember</code>
+- <code title="get /v1/organizations/workspaces/{workspace_id}/members?beta=true">client.beta.organization.workspaces.members.<a href="./src/resources/beta/organization/workspaces/members.ts">list</a>(workspaceID, { ...params }) -> BetaWorkspaceMembersPage</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}/members?beta=true">client.beta.organization.workspaces.members.<a href="./src/resources/beta/organization/workspaces/members.ts">add</a>(workspaceID, { ...params }) -> BetaWorkspaceMember</code>
+- <code title="delete /v1/organizations/workspaces/{workspace_id}/members/{user_id}?beta=true">client.beta.organization.workspaces.members.<a href="./src/resources/beta/organization/workspaces/members.ts">remove</a>(userID, { ...params }) -> MemberRemoveResponse</code>
+
+#### ServiceAccounts
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/workspaces/service-accounts.ts">ServiceAccountRemoveResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}?beta=true">client.beta.organization.workspaces.serviceAccounts.<a href="./src/resources/beta/organization/workspaces/service-accounts.ts">retrieve</a>(serviceAccountID, { ...params }) -> BetaServiceAccountWorkspaceMember</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}?beta=true">client.beta.organization.workspaces.serviceAccounts.<a href="./src/resources/beta/organization/workspaces/service-accounts.ts">update</a>(serviceAccountID, { ...params }) -> BetaServiceAccountWorkspaceMember</code>
+- <code title="get /v1/organizations/workspaces/{workspace_id}/service_accounts?beta=true">client.beta.organization.workspaces.serviceAccounts.<a href="./src/resources/beta/organization/workspaces/service-accounts.ts">list</a>(workspaceID, { ...params }) -> BetaServiceAccountWorkspaceMembersPageCursor</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}/service_accounts?beta=true">client.beta.organization.workspaces.serviceAccounts.<a href="./src/resources/beta/organization/workspaces/service-accounts.ts">add</a>(workspaceID, { ...params }) -> BetaServiceAccountWorkspaceMember</code>
+- <code title="delete /v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}?beta=true">client.beta.organization.workspaces.serviceAccounts.<a href="./src/resources/beta/organization/workspaces/service-accounts.ts">remove</a>(serviceAccountID, { ...params }) -> ServiceAccountRemoveResponse</code>
+
+### RateLimits
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/rate-limits.ts">BetaOrganizationRateLimit</a></code>
+- <code><a href="./src/resources/beta/organization/rate-limits.ts">BetaOrganizationRateLimitValue</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/rate_limits?beta=true">client.beta.organization.rateLimits.<a href="./src/resources/beta/organization/rate-limits.ts">list</a>({ ...params }) -> BetaOrganizationRateLimitsPageCursor</code>

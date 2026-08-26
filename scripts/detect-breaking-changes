@@ -42,6 +42,22 @@ TEST_PATHS=(
 	tests/api-resources/beta/dreams.test.ts
 	tests/api-resources/beta/tunnels/tunnels.test.ts
 	tests/api-resources/beta/tunnels/certificates.test.ts
+	tests/api-resources/beta/organization/organization.test.ts
+	tests/api-resources/beta/organization/api-keys.test.ts
+	tests/api-resources/beta/organization/external-keys.test.ts
+	tests/api-resources/beta/organization/federation/federation.test.ts
+	tests/api-resources/beta/organization/federation/issuers.test.ts
+	tests/api-resources/beta/organization/federation/rules/rules.test.ts
+	tests/api-resources/beta/organization/federation/rules/workspaces.test.ts
+	tests/api-resources/beta/organization/invites.test.ts
+	tests/api-resources/beta/organization/service-accounts/service-accounts.test.ts
+	tests/api-resources/beta/organization/service-accounts/workspaces.test.ts
+	tests/api-resources/beta/organization/users.test.ts
+	tests/api-resources/beta/organization/workspaces/workspaces.test.ts
+	tests/api-resources/beta/organization/workspaces/rate-limits.test.ts
+	tests/api-resources/beta/organization/workspaces/members.test.ts
+	tests/api-resources/beta/organization/workspaces/service-accounts.test.ts
+	tests/api-resources/beta/organization/rate-limits.test.ts
 	tests/index.test.ts
 )
 
