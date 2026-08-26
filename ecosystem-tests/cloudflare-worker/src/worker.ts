@@ -4,7 +4,7 @@ import Anthropic from '@anthropic-ai/sdk';
 // and separately exercises the SDK surface directly inside workerd.
 export default {
   async fetch(request, env, ctx): Promise<Response> {
-    const client = new Anthropic({ baseURL: env.ANTHROPIC_BASE_URL, apiKey: env.ANTHROPIC_API_KEY });
+    const client = new Anthropic({ baseURL: env.ANTHROPIC_BASE_URL, apiKey: env.FAKE_API_KEY });
     const prompt = new URL(request.url).searchParams.get('prompt') ?? 'Hi';
     const stream = client.messages.stream({
       model: 'mock-model',

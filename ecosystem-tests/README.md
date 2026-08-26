@@ -37,6 +37,8 @@ Do not list `@anthropic-ai/sdk` in `package.json`: the runner does a frozen inst
 Neither install step runs dependency lifecycle scripts (`--ignore-scripts` and its equivalents), so a project cannot rely on a `postinstall`; prebuilt binaries that ship as `optionalDependencies` (esbuild, workerd, rolldown) still work.
 Type-check with `skipLibCheck: false` so the published types are checked too.
 Steps get `ANTHROPIC_BASE_URL` (the mock server) and `ANTHROPIC_API_KEY` in their environment, so `new Anthropic()` needs no options.
+The key is not a credential: it is a fixed fake value that only the mock server accepts.
+Code that has to name a key explicitly (a bundler `define`, a Worker binding) reads the same value from `ECOSYSTEM_TESTS_FAKE_KEY`; never reference `ANTHROPIC_API_KEY` explicitly in a project.
 Import the cases from `./shared/cases` (see above) and add the project's `shared` directory to its tsconfig `include` so `shared/type-tests.ts` is checked too.
 The mock server answers a request the SDK built incorrectly with a 4xx whose message starts with `mock:`, so the test fails at the call that sent it.
 Each project runs from a temp copy next to a copy of `.pack/`, so nothing resolves from the repo's `node_modules`.

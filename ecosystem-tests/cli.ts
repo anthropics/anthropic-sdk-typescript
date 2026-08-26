@@ -28,7 +28,8 @@ type Status = 'PASS' | 'FAIL' | 'SKIP' | 'XFAIL' | 'XPASS';
 const ROOT = path.resolve(__dirname, '..');
 const ECO = __dirname;
 const TARBALL = path.join(ECO, '.pack', 'anthropic-ai-sdk.tgz');
-const API_KEY = 'ecosystem-test-key';
+// not a credential: a fixed value that only the local mock server accepts
+const FAKE_API_KEY = 'ecosystem-test-key';
 // left behind by running a project in place (shared: a local copy of ../shared, see README.md)
 const NOT_COPIED = /^(node_modules|dist|shared|\.wrangler|\.yarn|\.pnp\..*)$/;
 
@@ -211,7 +212,7 @@ function startMockServer(): Promise<MockServer> {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [path.join(ECO, 'mock-server.mjs')], {
       stdio: ['ignore', 'pipe', 'inherit'],
-      env: { ...process.env, MOCK_API_KEY: API_KEY },
+      env: { ...process.env, MOCK_API_KEY: FAKE_API_KEY },
     });
     child.on('error', reject);
     child.on('exit', (code) => reject(new Error(`mock server exited early with ${code}`)));
@@ -268,7 +269,12 @@ async function execute(
   try {
     const env: NodeJS.ProcessEnv = { ...process.env };
     for (const key of Object.keys(env)) if (key.startsWith('ANTHROPIC_')) delete env[key];
-    Object.assign(env, { ANTHROPIC_BASE_URL: mock.url, ANTHROPIC_API_KEY: API_KEY });
+    // ANTHROPIC_* for a zero-config `new Anthropic()`; ECOSYSTEM_TESTS_FAKE_KEY for code that must name a key
+    Object.assign(env, {
+      ANTHROPIC_BASE_URL: mock.url,
+      ANTHROPIC_API_KEY: FAKE_API_KEY,
+      ECOSYSTEM_TESTS_FAKE_KEY: FAKE_API_KEY,
+    });
     if (yarnCache) env['YARN_CACHE_FOLDER'] = yarnCache;
     // npm, npx and corepack's pnpm/yarn shims come from that Node too, or run under whichever `node` is first
     if (nodeBin) env['PATH'] = `${nodeBin}${path.delimiter}${env['PATH'] ?? ''}`;

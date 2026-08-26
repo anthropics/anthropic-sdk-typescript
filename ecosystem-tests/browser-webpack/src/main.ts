@@ -10,14 +10,14 @@ declare global {
   }
 }
 
-const client = new Anthropic({ baseURL: __BASE_URL__, apiKey: __API_KEY__, dangerouslyAllowBrowser: true });
+const client = new Anthropic({ baseURL: __BASE_URL__, apiKey: __FAKE_API_KEY__, dangerouslyAllowBrowser: true });
 
 async function main() {
   const results = await runCases(client, {
     'constructing without dangerouslyAllowBrowser throws': async () => {
       let threw: unknown;
       try {
-        new Anthropic({ baseURL: __BASE_URL__, apiKey: __API_KEY__ });
+        new Anthropic({ baseURL: __BASE_URL__, apiKey: __FAKE_API_KEY__ });
       } catch (e) {
         threw = e;
       }

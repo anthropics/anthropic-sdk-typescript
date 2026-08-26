@@ -9,7 +9,7 @@ export default defineConfig({
         // workerd has no process.env; pass the runner's mock server and key through as plain-text bindings
         bindings: {
           ANTHROPIC_BASE_URL: process.env['ANTHROPIC_BASE_URL'] ?? '',
-          ANTHROPIC_API_KEY: process.env['ANTHROPIC_API_KEY'] ?? '',
+          FAKE_API_KEY: process.env['ECOSYSTEM_TESTS_FAKE_KEY'] ?? '',
         },
       },
     }),
