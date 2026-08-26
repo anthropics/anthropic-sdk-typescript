@@ -1022,6 +1022,85 @@ describe('ToolRunner', () => {
       await expectDone(iterator);
     });
 
+    it.each([false, true])(
+      'preserves the current tool-use turn after updating non-message params (stream=%s)',
+      async (stream) => {
+        let runCount = 0;
+        const trackedWeatherTool: BetaRunnableTool<{ location: string }> = {
+          ...weatherTool,
+          run: async ({ location }) => {
+            runCount++;
+            return `Sunny in ${location}`;
+          },
+        };
+        const setup =
+          stream ?
+            setupTest({ max_tokens: 100, tools: [trackedWeatherTool], stream: true })
+          : setupTest({ max_tokens: 100, tools: [trackedWeatherTool] });
+        const iterator: AsyncIterator<any> = setup.runner[Symbol.asyncIterator]();
+
+        stream ?
+          setup.handleAssistantMessageStream(getWeatherToolUse('SF'))
+        : setup.handleAssistantMessage(getWeatherToolUse('SF'));
+        await expectEvent(iterator);
+
+        setup.runner.setMessagesParams((params) => ({ ...params, max_tokens: 200 }));
+
+        let followupBody: Record<string, unknown> | undefined;
+        setup.handleRequest(async (_req, init) => {
+          followupBody = JSON.parse(init!.body as string);
+          const finalMessage: BetaMessage = {
+            id: 'msg_done',
+            type: 'message',
+            role: 'assistant',
+            content: [getTextContent()],
+            model: 'claude-3-5-sonnet-latest',
+            stop_details: null,
+            stop_reason: 'end_turn',
+            stop_sequence: null,
+            container: null,
+            context_management: null,
+            diagnostics: null,
+            usage: {
+              input_tokens: 10,
+              output_tokens: 5,
+              output_tokens_details: null,
+              cache_creation: null,
+              cache_creation_input_tokens: null,
+              cache_read_input_tokens: null,
+              fallback_credit: null,
+              server_tool_use: null,
+              service_tier: null,
+              inference_geo: null,
+              iterations: null,
+              speed: null,
+            },
+          };
+          if (stream) {
+            const sse = betaMessageToStreamEvents(finalMessage)
+              .map((event) => `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`)
+              .join('');
+            return new Response(sse, { headers: { 'content-type': 'text/event-stream' } });
+          }
+          return new Response(JSON.stringify(finalMessage), {
+            headers: { 'content-type': 'application/json' },
+          });
+        });
+
+        await expectEvent(iterator);
+        await expectDone(iterator);
+
+        expect(runCount).toBe(1);
+        expect(followupBody?.['max_tokens']).toBe(200);
+        expect(followupBody?.['messages']).toHaveLength(3);
+        expect(followupBody?.['messages']).toMatchObject([
+          { role: 'user', content: 'What is the weather?' },
+          { role: 'assistant', content: [getWeatherToolUse('SF')] },
+          { role: 'user', content: [getWeatherToolResult('SF')] },
+        ]);
+      },
+    );
+
     it('allows you to update append custom tool_use blocks', async () => {
       const { runner, handleAssistantMessage } = setupTest({
         messages: [{ role: 'user', content: 'Get weather' }],

@@ -34,8 +34,8 @@ import {
 export class BetaToolRunner<Stream extends boolean> {
   /** Whether the async iterator has been consumed */
   #consumed = false;
-  /** Whether parameters have been mutated since the last API call */
-  #mutated = false;
+  /** Whether messages have been mutated since the last API call */
+  #messagesMutated = false;
   /** Current state containing the request parameters */
   #state: { params: BetaToolRunnerParams };
   #options: BetaToolRunnerRequestOptions;
@@ -183,7 +183,7 @@ export class BetaToolRunner<Stream extends boolean> {
     }
 
     this.#consumed = true;
-    this.#mutated = true;
+    this.#messagesMutated = true;
     this.#toolResponse = undefined;
 
     try {
@@ -197,7 +197,7 @@ export class BetaToolRunner<Stream extends boolean> {
             break;
           }
 
-          this.#mutated = false;
+          this.#messagesMutated = false;
           this.#toolResponse = undefined;
           this.#iterationCount++;
           this.#message = undefined;
@@ -218,7 +218,7 @@ export class BetaToolRunner<Stream extends boolean> {
 
           const isCompacted = await this.#checkAndCompact();
           if (!isCompacted) {
-            if (!this.#mutated) {
+            if (!this.#messagesMutated) {
               const message = await this.#message;
               this.#state.params.messages.push({ role: message.role, content: message.content });
 
@@ -246,7 +246,7 @@ export class BetaToolRunner<Stream extends boolean> {
             const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
             if (toolMessage) {
               this.#state.params.messages.push(toolMessage);
-            } else if (!this.#mutated) {
+            } else if (!this.#messagesMutated) {
               break;
             }
           }
@@ -296,12 +296,13 @@ export class BetaToolRunner<Stream extends boolean> {
   setMessagesParams(
     paramsOrMutator: BetaToolRunnerParams | ((prevParams: BetaToolRunnerParams) => BetaToolRunnerParams),
   ) {
+    const previousMessages = this.#state.params.messages;
     if (typeof paramsOrMutator === 'function') {
       this.#state.params = paramsOrMutator(this.#state.params);
     } else {
       this.#state.params = paramsOrMutator;
     }
-    this.#mutated = true;
+    this.#messagesMutated ||= this.#state.params.messages !== previousMessages;
     // Invalidate cached tool response since parameters changed
     this.#toolResponse = undefined;
   }
