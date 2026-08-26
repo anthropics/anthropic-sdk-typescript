@@ -547,6 +547,7 @@ export {
   type ModelListParams,
   type BetaModelInfosPage,
 } from './models';
+export { Organization, type BetaOrganization, type BetaOrganizationRole } from './organization/index';
 export {
   Sessions,
   type BetaManagedAgentsAdvisorParams,

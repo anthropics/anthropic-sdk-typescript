@@ -604,6 +604,8 @@ import {
   MessageCreateParamsStreaming,
   Messages,
 } from './messages/messages';
+import * as OrganizationAPI from './organization/organization';
+import { BetaOrganization, BetaOrganizationRole, Organization } from './organization/organization';
 import * as SessionsAPI from './sessions/sessions';
 import {
   BetaManagedAgentsAdvisorParams,
@@ -705,6 +707,7 @@ export class Beta extends APIResource {
   userProfiles: UserProfilesAPI.UserProfiles = new UserProfilesAPI.UserProfiles(this._client);
   dreams: DreamsAPI.Dreams = new DreamsAPI.Dreams(this._client);
   tunnels: TunnelsAPI.Tunnels = new TunnelsAPI.Tunnels(this._client);
+  organization: OrganizationAPI.Organization = new OrganizationAPI.Organization(this._client);
 }
 
 export type AnthropicBeta =
@@ -748,7 +751,8 @@ export type AnthropicBeta =
   | 'mcp-tunnels-2026-06-22'
   | 'structured-outputs-2025-11-13'
   | 'task-budgets-2026-03-13'
-  | 'thinking-display-updates-2026-08-18';
+  | 'thinking-display-updates-2026-08-18'
+  | 'ce-user-management-2026-07-13';
 
 export interface BetaAPIError {
   message: string;
@@ -859,6 +863,7 @@ Beta.Webhooks = Webhooks;
 Beta.UserProfiles = UserProfiles;
 Beta.Dreams = Dreams;
 Beta.Tunnels = Tunnels;
+Beta.Organization = Organization;
 
 export declare namespace Beta {
   export {
@@ -1563,5 +1568,11 @@ export declare namespace Beta {
     type TunnelArchiveParams as TunnelArchiveParams,
     type TunnelRevealTokenParams as TunnelRevealTokenParams,
     type TunnelRotateTokenParams as TunnelRotateTokenParams,
+  };
+
+  export {
+    Organization as Organization,
+    type BetaOrganization as BetaOrganization,
+    type BetaOrganizationRole as BetaOrganizationRole,
   };
 }
