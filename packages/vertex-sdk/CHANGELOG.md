@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.19.6 (2026-08-26)
+
+Full Changelog: [vertex-sdk-v0.19.5...vertex-sdk-v0.19.6](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.19.5...vertex-sdk-v0.19.6)
+
+### Chores
+
+* **examples:** remove redundant main().catch boilerplate ([154ace7](https://github.com/anthropics/anthropic-sdk-typescript/commit/154ace7ea8ccd66d59b3a7d2ca61dcff82b39417))
+
 ## 0.19.5 (2026-08-19)
 
 Full Changelog: [vertex-sdk-v0.19.4...vertex-sdk-v0.19.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.19.4...vertex-sdk-v0.19.5)
