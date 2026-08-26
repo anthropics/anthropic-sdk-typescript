@@ -31,9 +31,15 @@ describe('form data validation', () => {
   });
 
   test('bare Blob is sent as a file', async () => {
-    const form = await createForm({ file: new Blob(['abc'], { type: 'text/plain' }) }, fetch);
-    const file = form.get('file') as File;
-    expect([file.name, file.type, await file.text()]).toEqual(['unknown_file', 'text/plain', 'abc']);
+    for (const stripFilenames of [true, false]) {
+      const form = await createForm(
+        { file: new Blob(['abc'], { type: 'text/plain' }) },
+        fetch,
+        stripFilenames,
+      );
+      const file = form.get('file') as File;
+      expect([file.name, file.type, await file.text()]).toEqual(['unknown_file', 'text/plain', 'abc']);
+    }
   });
 
   test('un-awaited toFile is rejected', async () => {
