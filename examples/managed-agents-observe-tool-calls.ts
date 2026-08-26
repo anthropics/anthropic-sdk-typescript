@@ -273,7 +273,4 @@ function truncate(s: string, n = 120): string {
   return s.length <= n ? s : s.slice(0, n) + '…';
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+main();

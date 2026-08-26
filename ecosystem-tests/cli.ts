@@ -427,7 +427,4 @@ async function main() {
   console.log(green(`\nall ${runs.length} run(s) passed, failed as expected or were skipped`));
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+main();

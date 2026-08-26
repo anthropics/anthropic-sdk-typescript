@@ -29,7 +29,4 @@ async function main() {
   console.log('\n', message);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+main();

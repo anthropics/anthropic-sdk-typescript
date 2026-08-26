@@ -30,4 +30,4 @@ async function main() {
   console.log('\nPrime numbers:', message.parsed_output!.primes);
 }
 
-main().catch(console.error);
+main();

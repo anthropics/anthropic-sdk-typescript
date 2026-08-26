@@ -46,4 +46,4 @@ async function main() {
   console.log('Forecast:', finalMessage.parsed_output?.forecast);
 }
 
-main().catch(console.error);
+main();
