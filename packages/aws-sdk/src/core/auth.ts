@@ -98,12 +98,11 @@ export const getAuthHeaders = async (req: RequestInit, props: AuthProps): Promis
   // of this message may not see this header, so we remove it from the set of headers
   // that are signed.
   delete headers['connection'];
-  headers['host'] = url.hostname;
+  headers['host'] = url.host;
 
-  const query: Record<string, string> = {};
-  url.searchParams.forEach((value, key) => {
-    query[key] = value;
-  });
+  const query: Record<string, string[]> = Object.fromEntries(
+    [...new Set(url.searchParams.keys())].map((key) => [key, url.searchParams.getAll(key)]),
+  );
 
   const request = new HttpRequest({
     method: req.method.toUpperCase(),

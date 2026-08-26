@@ -53,7 +53,7 @@ describe('getAuthHeaders', () => {
     const signed: HttpRequest = mockSign.mock.calls[0]![0];
     expect(signed.method).toBe('POST');
     expect(signed.path).toBe('/v1/messages');
-    expect(signed.query).toEqual({ beta: 'true' });
+    expect(signed.query).toEqual({ beta: ['true'] });
   });
 
   test('signs request with multiple query parameters', async () => {
@@ -64,7 +64,17 @@ describe('getAuthHeaders', () => {
 
     expect(mockSign).toHaveBeenCalledTimes(1);
     const signed: HttpRequest = mockSign.mock.calls[0]![0];
-    expect(signed.query).toEqual({ beta: 'true', version: '2' });
+    expect(signed.query).toEqual({ beta: ['true'], version: ['2'] });
+  });
+
+  test('signs repeated query parameters as multi-value parameters', async () => {
+    await getAuthHeaders(baseReq, {
+      ...baseProps,
+      url: 'https://aws-external-anthropic.us-east-1.api.aws/v1/files?ids[]=file_a&ids[]=file_b&limit=2',
+    });
+
+    const signed: HttpRequest = mockSign.mock.calls[0]![0];
+    expect(signed.query).toEqual({ 'ids[]': ['file_a', 'file_b'], limit: ['2'] });
   });
 
   test('excludes connection header from signed request', async () => {
