@@ -30,6 +30,24 @@ describe('form data validation', () => {
     ).rejects.toThrow(TypeError);
   });
 
+  test('bare Blob is sent as a file', async () => {
+    const form = await createForm({ file: new Blob(['abc'], { type: 'text/plain' }) }, fetch);
+    const file = form.get('file') as File;
+    expect([file.name, file.type, await file.text()]).toEqual(['unknown_file', 'text/plain', 'abc']);
+  });
+
+  test('un-awaited toFile is rejected', async () => {
+    await expect(() =>
+      multipartFormRequestOptions({ body: { file: toFile(Buffer.from('abc')) } }, fetch),
+    ).rejects.toThrow(/Promise.*await/);
+  });
+
+  test('raw bytes are rejected', async () => {
+    for (const file of [Buffer.from('abc'), new Uint8Array([1, 2, 3]), new ArrayBuffer(3)]) {
+      await expect(() => multipartFormRequestOptions({ body: { file } }, fetch)).rejects.toThrow(/toFile/);
+    }
+  });
+
   test('undefined is stripped', async () => {
     const form = await createForm(
       {
