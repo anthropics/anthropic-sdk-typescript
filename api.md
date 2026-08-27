@@ -516,6 +516,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerZoomConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContainer</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContainerParams</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaContainerSkill</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContainerUploadBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContainerUploadBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaContentBlock</a></code>
@@ -600,7 +601,6 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolUseBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSignatureDelta</a></code>
-- <code><a href="./src/resources/beta/messages/messages.ts">BetaSkill</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSkillParams</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaStopReason</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlock</a></code>
@@ -1240,7 +1240,7 @@ Types:
 
 Methods:
 
-- <code title="get /v1/files?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">list</a>({ ...params }) -> BetaFileMetadataPage</code>
+- <code title="get /v1/files?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">list</a>({ ...params }) -> BetaFileMetadataPageCursor</code>
 - <code title="delete /v1/files/{file_id}?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">delete</a>(fileID, { ...params }) -> BetaDeletedFile</code>
 - <code title="get /v1/files/{file_id}/content?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">download</a>(fileID, { ...params }) -> Response</code>
 - <code title="get /v1/files/{file_id}?beta=true">client.beta.files.<a href="./src/resources/beta/files.ts">retrieveMetadata</a>(fileID, { ...params }) -> BetaFileMetadata</code>
@@ -1250,33 +1250,30 @@ Methods:
 
 Types:
 
-- <code><a href="./src/resources/beta/skills/skills.ts">SkillCreateResponse</a></code>
-- <code><a href="./src/resources/beta/skills/skills.ts">SkillRetrieveResponse</a></code>
-- <code><a href="./src/resources/beta/skills/skills.ts">SkillListResponse</a></code>
-- <code><a href="./src/resources/beta/skills/skills.ts">SkillDeleteResponse</a></code>
+- <code><a href="./src/resources/beta/skills/skills.ts">BetaDeletedSkill</a></code>
+- <code><a href="./src/resources/beta/skills/skills.ts">BetaSkill</a></code>
+- <code><a href="./src/resources/beta/skills/skills.ts">BetaSkillSource</a></code>
 
 Methods:
 
-- <code title="post /v1/skills?beta=true">client.beta.skills.<a href="./src/resources/beta/skills/skills.ts">create</a>({ ...params }) -> SkillCreateResponse</code>
-- <code title="get /v1/skills/{skill_id}?beta=true">client.beta.skills.<a href="./src/resources/beta/skills/skills.ts">retrieve</a>(skillID, { ...params }) -> SkillRetrieveResponse</code>
-- <code title="get /v1/skills?beta=true">client.beta.skills.<a href="./src/resources/beta/skills/skills.ts">list</a>({ ...params }) -> SkillListResponsesPageCursor</code>
-- <code title="delete /v1/skills/{skill_id}?beta=true">client.beta.skills.<a href="./src/resources/beta/skills/skills.ts">delete</a>(skillID, { ...params }) -> SkillDeleteResponse</code>
+- <code title="post /v1/skills?beta=true">client.beta.skills.<a href="./src/resources/beta/skills/skills.ts">create</a>({ ...params }) -> BetaSkill</code>
+- <code title="get /v1/skills/{skill_id}?beta=true">client.beta.skills.<a href="./src/resources/beta/skills/skills.ts">retrieve</a>(skillID, { ...params }) -> BetaSkill</code>
+- <code title="get /v1/skills?beta=true">client.beta.skills.<a href="./src/resources/beta/skills/skills.ts">list</a>({ ...params }) -> BetaSkillsPageCursor</code>
+- <code title="delete /v1/skills/{skill_id}?beta=true">client.beta.skills.<a href="./src/resources/beta/skills/skills.ts">delete</a>(skillID, { ...params }) -> BetaDeletedSkill</code>
 
 ### Versions
 
 Types:
 
-- <code><a href="./src/resources/beta/skills/versions.ts">VersionCreateResponse</a></code>
-- <code><a href="./src/resources/beta/skills/versions.ts">VersionRetrieveResponse</a></code>
-- <code><a href="./src/resources/beta/skills/versions.ts">VersionListResponse</a></code>
-- <code><a href="./src/resources/beta/skills/versions.ts">VersionDeleteResponse</a></code>
+- <code><a href="./src/resources/beta/skills/versions.ts">BetaDeletedSkillVersion</a></code>
+- <code><a href="./src/resources/beta/skills/versions.ts">BetaSkillVersion</a></code>
 
 Methods:
 
-- <code title="post /v1/skills/{skill_id}/versions?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">create</a>(skillID, { ...params }) -> VersionCreateResponse</code>
-- <code title="get /v1/skills/{skill_id}/versions/{version}?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">retrieve</a>(version, { ...params }) -> VersionRetrieveResponse</code>
-- <code title="get /v1/skills/{skill_id}/versions?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">list</a>(skillID, { ...params }) -> VersionListResponsesPageCursor</code>
-- <code title="delete /v1/skills/{skill_id}/versions/{version}?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">delete</a>(version, { ...params }) -> VersionDeleteResponse</code>
+- <code title="post /v1/skills/{skill_id}/versions?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">create</a>(skillID, { ...params }) -> BetaSkillVersion</code>
+- <code title="get /v1/skills/{skill_id}/versions/{version}?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">retrieve</a>(version, { ...params }) -> BetaSkillVersion</code>
+- <code title="get /v1/skills/{skill_id}/versions?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">list</a>(skillID, { ...params }) -> BetaSkillVersionsPageCursor</code>
+- <code title="delete /v1/skills/{skill_id}/versions/{version}?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">delete</a>(version, { ...params }) -> BetaDeletedSkillVersion</code>
 - <code title="get /v1/skills/{skill_id}/versions/{version}/content?beta=true">client.beta.skills.versions.<a href="./src/resources/beta/skills/versions.ts">download</a>(version, { ...params }) -> Response</code>
 
 ## Webhooks

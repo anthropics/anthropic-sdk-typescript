@@ -2675,7 +2675,7 @@ export interface BetaContainer {
   /**
    * Skills loaded in the container
    */
-  skills: Array<BetaSkill> | null;
+  skills: Array<BetaContainerSkill> | null;
 }
 
 /**
@@ -2691,6 +2691,26 @@ export interface BetaContainerParams {
    * List of skills to load in the container
    */
   skills?: Array<BetaSkillParams> | null;
+}
+
+/**
+ * A skill that was loaded in a container (response model).
+ */
+export interface BetaContainerSkill {
+  /**
+   * Skill ID
+   */
+  skill_id: string;
+
+  /**
+   * Type of skill - either 'anthropic' (built-in) or 'custom' (user-defined)
+   */
+  type: 'anthropic' | 'custom';
+
+  /**
+   * The resolved version: a skill version ID for custom skills.
+   */
+  version: string;
 }
 
 /**
@@ -4291,26 +4311,6 @@ export interface BetaSignatureDelta {
   signature: string;
 
   type: 'signature_delta';
-}
-
-/**
- * A skill that was loaded in a container (response model).
- */
-export interface BetaSkill {
-  /**
-   * Skill ID
-   */
-  skill_id: string;
-
-  /**
-   * Type of skill - either 'anthropic' (built-in) or 'custom' (user-defined)
-   */
-  type: 'anthropic' | 'custom';
-
-  /**
-   * The resolved version: a skill version ID for custom skills.
-   */
-  version: string;
 }
 
 /**
@@ -6974,6 +6974,7 @@ export declare namespace Messages {
     type BetaComputerZoomConfig as BetaComputerZoomConfig,
     type BetaContainer as BetaContainer,
     type BetaContainerParams as BetaContainerParams,
+    type BetaContainerSkill as BetaContainerSkill,
     type BetaContainerUploadBlock as BetaContainerUploadBlock,
     type BetaContainerUploadBlockParam as BetaContainerUploadBlockParam,
     type BetaContentBlock as BetaContentBlock,
@@ -7057,7 +7058,6 @@ export declare namespace Messages {
     type BetaServerToolUseBlock as BetaServerToolUseBlock,
     type BetaServerToolUseBlockParam as BetaServerToolUseBlockParam,
     type BetaSignatureDelta as BetaSignatureDelta,
-    type BetaSkill as BetaSkill,
     type BetaSkillParams as BetaSkillParams,
     type BetaStopReason as BetaStopReason,
     type BetaTextBlock as BetaTextBlock,

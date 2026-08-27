@@ -52,7 +52,7 @@ import {
   isWithin,
 } from './fs-util';
 
-export { setupSkills, resolveSkillVersion, extractSkillArchive } from './skills';
+export { setupSkills, extractSkillArchive } from './skills';
 export {
   SessionMemoryStores,
   SessionMemoryError,

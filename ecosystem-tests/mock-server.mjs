@@ -84,9 +84,6 @@ function headerProblem(req, url) {
   if (h['x-stainless-lang'] !== 'js') {
     return [400, `expected x-stainless-lang: js, got ${JSON.stringify(h['x-stainless-lang'])}`];
   }
-  if (url.pathname === '/v1/files' && url.searchParams.get('beta') === 'true' && !h['anthropic-beta']) {
-    return [400, 'missing anthropic-beta header on beta endpoint'];
-  }
   if (req.method === 'POST') {
     const ct = h['content-type'] ?? '';
     const want = url.pathname === '/v1/files' ? 'multipart/form-data' : 'application/json';
