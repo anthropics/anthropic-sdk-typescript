@@ -15,7 +15,9 @@ export const castToError = (err: any): Error => {
   if (err instanceof Error) return err;
   if (typeof err === 'object' && err !== null) {
     try {
-      if (Object.prototype.toString.call(err) === '[object Error]') {
+      const tag = Object.prototype.toString.call(err);
+      // cross-realm errors (e.g. undici's abort `DOMException` under jest) fail `instanceof Error`
+      if (tag === '[object Error]' || tag === '[object DOMException]') {
         // @ts-ignore - not all envs have native support for cause yet
         const error = new Error(err.message, err.cause ? { cause: err.cause } : {});
         if (err.stack) error.stack = err.stack;
