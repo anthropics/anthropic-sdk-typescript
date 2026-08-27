@@ -194,6 +194,32 @@ describe('instantiate client', () => {
       expect(client.logLevel).toBe('debug');
       expect(warnMock).not.toHaveBeenCalled();
     });
+
+    test('stream parse errors are logged through the custom logger', async () => {
+      const errorMock = jest.fn();
+      const client = new Anthropic({
+        logger: { debug: jest.fn(), info: jest.fn(), warn: jest.fn(), error: errorMock },
+        apiKey: 'my-anthropic-api-key',
+        fetch: async () =>
+          new Response('event: message_start\ndata: {malformed\n\n', {
+            headers: { 'Content-Type': 'text/event-stream' },
+          }),
+      });
+
+      const stream = await client.messages.create({
+        model: 'claude-opus-4-8',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: 'hi' }],
+        stream: true,
+      });
+      await expect(
+        (async () => {
+          for await (const _event of stream) {
+          }
+        })(),
+      ).rejects.toThrow();
+      expect(errorMock).toHaveBeenCalledWith('Could not parse message into JSON:', '{malformed');
+    });
   });
 
   describe('defaultQuery', () => {
