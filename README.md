@@ -34,7 +34,7 @@ console.log(message.content);
 
 ## Requirements
 
-TypeScript >= 4.9 is supported.
+TypeScript >= 5.0 is supported.
 
 The following runtimes are supported:
 
