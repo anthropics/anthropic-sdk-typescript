@@ -1,4 +1,8 @@
 import { HttpRequest } from '@smithy/protocol-http';
+import { SignatureV4 } from '@smithy/signature-v4';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 const mockSign = jest.fn().mockImplementation((request: HttpRequest) => {
   return Promise.resolve({ headers: request.headers });
@@ -10,6 +14,12 @@ jest.mock('@smithy/signature-v4', () => ({
   })),
 }));
 
+jest.mock('@aws-sdk/credential-providers', () => {
+  const actual = jest.requireActual('@aws-sdk/credential-providers');
+  return { ...actual, fromNodeProviderChain: jest.fn(actual.fromNodeProviderChain) };
+});
+
+import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { getAuthHeaders, AuthProps } from '../src/core/auth';
 
 const baseProps: AuthProps = {
@@ -93,5 +103,68 @@ describe('getAuthHeaders', () => {
 
     const signed: HttpRequest = mockSign.mock.calls[0]![0];
     expect(signed.body).toBe(body);
+  });
+});
+
+describe('default credential chain precedence', () => {
+  const originalEnv = process.env;
+  let awsDir: string;
+
+  beforeEach(() => {
+    jest.mocked(SignatureV4).mockClear();
+    jest.mocked(fromNodeProviderChain).mockClear();
+    awsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aws-sdk-auth-'));
+    fs.writeFileSync(
+      path.join(awsDir, 'credentials'),
+      '[someprofile]\naws_access_key_id = AKIDPROFILE\naws_secret_access_key = profile-secret\n',
+    );
+    fs.writeFileSync(path.join(awsDir, 'config'), '[profile someprofile]\nregion = us-east-1\n');
+    process.env = {
+      ...originalEnv,
+      AWS_SHARED_CREDENTIALS_FILE: path.join(awsDir, 'credentials'),
+      AWS_CONFIG_FILE: path.join(awsDir, 'config'),
+      AWS_PROFILE: 'someprofile',
+      AWS_ACCESS_KEY_ID: 'AKIDENV',
+      AWS_SECRET_ACCESS_KEY: 'env-secret',
+      AWS_SESSION_TOKEN: 'env-token',
+      AWS_EC2_METADATA_DISABLED: 'true',
+    };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+    fs.rmSync(awsDir, { recursive: true, force: true });
+  });
+
+  const signingCredentials = () => jest.mocked(SignatureV4).mock.calls[0]![0].credentials;
+
+  test('env credentials take precedence over AWS_PROFILE', async () => {
+    await getAuthHeaders(baseReq, { ...baseProps, awsAccessKey: null, awsSecretAccessKey: null });
+
+    expect(signingCredentials()).toMatchObject({
+      accessKeyId: 'AKIDENV',
+      secretAccessKey: 'env-secret',
+      sessionToken: 'env-token',
+    });
+  });
+
+  test('explicit awsProfile takes precedence over env credentials', async () => {
+    // The real profile providers are loaded with `import()`, which jest cannot run here.
+    jest
+      .mocked(fromNodeProviderChain)
+      .mockReturnValueOnce(async () => ({ accessKeyId: 'AKIDPROFILE', secretAccessKey: 'profile-secret' }));
+
+    await getAuthHeaders(baseReq, {
+      ...baseProps,
+      awsAccessKey: null,
+      awsSecretAccessKey: null,
+      awsProfile: 'someprofile',
+    });
+
+    expect(fromNodeProviderChain).toHaveBeenCalledWith(expect.objectContaining({ profile: 'someprofile' }));
+    expect(signingCredentials()).toMatchObject({
+      accessKeyId: 'AKIDPROFILE',
+      secretAccessKey: 'profile-secret',
+    });
   });
 });

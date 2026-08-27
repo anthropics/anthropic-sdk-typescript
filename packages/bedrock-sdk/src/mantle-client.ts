@@ -26,7 +26,8 @@ export interface BedrockMantleClientOptions extends ClientOptions {
    *
    * Takes precedence over AWS credential options. If neither `apiKey` nor
    * AWS credentials are provided, falls back to the `AWS_BEARER_TOKEN_BEDROCK`
-   * environment variable, then to the default AWS credential chain.
+   * environment variable, then to `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`
+   * from the environment, then to the default AWS credential chain.
    */
   apiKey?: string | undefined;
 
@@ -52,8 +53,9 @@ export interface BedrockMantleClientOptions extends ClientOptions {
   /**
    * AWS named profile for credential resolution.
    *
-   * When set, credentials are loaded from the AWS credential chain
-   * using this profile.
+   * When set, credentials are loaded from the AWS credential chain using this
+   * profile (even if `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` are set in the
+   * environment).
    */
   awsProfile?: string | undefined;
 
@@ -99,8 +101,9 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
    * API Client for interfacing with the Anthropic Bedrock Mantle API.
    *
    * Auth is resolved by precedence: `apiKey` constructor arg > explicit AWS
-   * credentials > `awsProfile` > `AWS_BEARER_TOKEN_BEDROCK` env var > default
-   * AWS credential chain.
+   * credentials > `awsProfile` > `AWS_BEARER_TOKEN_BEDROCK` env var >
+   * `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` env vars > default AWS
+   * credential chain.
    *
    * @param {string | undefined} [opts.apiKey] - API key for Bearer token authentication.
    * @param {string | null | undefined} [opts.awsAccessKey] - AWS access key ID for SigV4 authentication.

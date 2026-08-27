@@ -27,8 +27,8 @@ const defaultProviderChainResolver = (
   logger?: Logger | undefined,
 ): Promise<AwsCredentialIdentityProvider> =>
   import('@aws-sdk/credential-providers')
-    .then(({ fromNodeProviderChain }) =>
-      fromNodeProviderChain({
+    .then(({ createCredentialChain, fromEnv, fromNodeProviderChain }) => {
+      const nodeProviderChain = fromNodeProviderChain({
         ...(profile != null ? { profile } : {}),
         ...(logger != null ? { logger } : {}),
         clientConfig: {
@@ -41,8 +41,14 @@ const defaultProviderChainResolver = (
             },
           }),
         },
-      }),
-    )
+      });
+      if (profile != null) {
+        return nodeProviderChain;
+      }
+      // The Node default chain skips env credentials whenever `AWS_PROFILE` is set;
+      // the AWS CLI and the other Anthropic SDKs let env credentials win.
+      return createCredentialChain(fromEnv(logger != null ? { logger } : {}), nodeProviderChain);
+    })
     .catch((error) => {
       throw new Error(
         `Failed to import '@aws-sdk/credential-providers'. ` +
