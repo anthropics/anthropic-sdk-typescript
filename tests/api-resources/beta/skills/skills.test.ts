@@ -24,7 +24,7 @@ describe('resource skills', () => {
   test('create: required and optional params', async () => {
     const response = await client.beta.skills.create({
       files: [await toFile(Buffer.from('Example data'), 'README.md')],
-      display_title: 'display_title',
+      display_name: 'display_name',
       betas: ['message-batches-2024-09-24'],
     });
   });
@@ -67,7 +67,7 @@ describe('resource skills', () => {
     await expect(
       client.beta.skills.list(
         {
-          limit: 0,
+          limit: 1,
           page: 'page',
           source: 'source',
           betas: ['message-batches-2024-09-24'],

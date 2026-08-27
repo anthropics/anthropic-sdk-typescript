@@ -63,7 +63,7 @@ describe('resource versions', () => {
       client.beta.skills.versions.list(
         'skill_id',
         {
-          limit: 0,
+          limit: 1,
           page: 'page',
           betas: ['message-batches-2024-09-24'],
         },

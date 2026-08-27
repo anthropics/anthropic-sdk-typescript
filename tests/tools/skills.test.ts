@@ -556,3 +556,40 @@ describe('setupSkills session resolution', () => {
     expect(logs.join('\n')).not.toContain('deprecated');
   });
 });
+
+describe('setupSkills version resolution', () => {
+  it('retrieves by the configured version and downloads by the returned id', async () => {
+    const work = fs.mkdtempSync(path.join(os.tmpdir(), 'skilltest-'));
+    try {
+      const retrieves: string[] = [];
+      const downloads: string[] = [];
+      const client = {
+        logger: { error: () => {}, warn: () => {}, info: () => {}, debug: () => {} },
+        beta: {
+          skills: {
+            versions: {
+              retrieve: async (version: string, params: { skill_id: string }) => {
+                retrieves.push(`${params.skill_id}@${version}`);
+                return { id: 'skillver_123', name: 'pdf' };
+              },
+              download: async (version: string, params: { skill_id: string }) => {
+                downloads.push(`${params.skill_id}@${version}`);
+                return new Response(makeTar([{ name: 'pdf/SKILL.md', type: '0', body: '# PDF' }]));
+              },
+            },
+          },
+        },
+      };
+      const session = {
+        agent: { skills: [{ skill_id: 'skill_01', version: 'latest' }] },
+      } as unknown as BetaManagedAgentsSession;
+      const cleanup = await setupSkills({ workdir: work, client: client as never, session });
+      expect(retrieves).toEqual(['skill_01@latest']);
+      expect(downloads).toEqual(['skill_01@skillver_123']);
+      expect(fs.readFileSync(path.join(work, 'skills', 'pdf', 'SKILL.md'), 'utf8')).toBe('# PDF');
+      await cleanup();
+    } finally {
+      fs.rmSync(work, { recursive: true, force: true });
+    }
+  });
+});

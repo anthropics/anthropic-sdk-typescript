@@ -96,10 +96,6 @@ export function setupSkills(_ctx: AgentToolContext): Promise<() => Promise<void>
   return nodeOnly('setupSkills');
 }
 
-export function resolveSkillVersion(_client: Anthropic, _skillId: string, _version: string): Promise<string> {
-  return nodeOnly('resolveSkillVersion');
-}
-
 export function extractSkillArchive(_resp: Response, _dest: string): Promise<void> {
   return nodeOnly('extractSkillArchive');
 }

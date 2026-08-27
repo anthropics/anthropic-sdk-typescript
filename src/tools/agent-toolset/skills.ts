@@ -12,7 +12,6 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import type { Anthropic } from '../../client';
 import { AnthropicError } from '../../core/error';
 import { loggerFor } from '../../internal/utils/log';
 import { DIR_CREATE_MODE, errnoCode } from './fs-util';
@@ -64,8 +63,7 @@ export async function setupSkills(ctx: AgentToolContext): Promise<() => Promise<
   const created: string[] = [];
   for (const skill of session.agent.skills) {
     try {
-      const versionId = await resolveSkillVersion(client, skill.skill_id, skill.version);
-      const version = await client.beta.skills.versions.retrieve(versionId, { skill_id: skill.skill_id });
+      const version = await client.beta.skills.versions.retrieve(skill.version, { skill_id: skill.skill_id });
       // The directory is the skill's name, reduced to a single safe path
       // component so a hostile name can't escape `skillsRoot`.
       let dirname = path.basename(version.name.trim());
@@ -78,7 +76,9 @@ export async function setupSkills(ctx: AgentToolContext): Promise<() => Promise<
         });
         continue;
       }
-      const resp = await client.beta.skills.versions.download(versionId, { skill_id: skill.skill_id });
+      // `skill.version` may be the alias `"latest"`, which only the retrieve
+      // endpoint resolves; download by the concrete id it returned.
+      const resp = await client.beta.skills.versions.download(version.id, { skill_id: skill.skill_id });
       await fs.rm(dest, { recursive: true, force: true });
       await fs.mkdir(dest, { recursive: true, mode: DIR_CREATE_MODE });
       created.push(dest);
@@ -86,7 +86,7 @@ export async function setupSkills(ctx: AgentToolContext): Promise<() => Promise<
       log.info('downloaded skill', {
         component: 'agent-tool-context',
         skill_id: skill.skill_id,
-        version: versionId,
+        version: version.id,
         dest,
       });
     } catch (e) {
@@ -104,34 +104,6 @@ export async function setupSkills(ctx: AgentToolContext): Promise<() => Promise<
       });
     }
   };
-}
-
-/**
- * Resolve `version` to the concrete numeric timestamp the
- * `/v1/skills/{id}/versions/{version}` endpoints require — `session.agent.skills[].version`
- * can be an alias such as `"latest"`, which those endpoints reject. Numeric
- * versions pass through unchanged.
- */
-export async function resolveSkillVersion(
-  client: Anthropic,
-  skillId: string,
-  version: string,
-): Promise<string> {
-  if (/^\d+$/.test(version)) return version;
-  let newest: string | undefined;
-  for await (const v of client.beta.skills.versions.list(skillId)) {
-    if (/^\d+$/.test(v.version) && (newest === undefined || BigInt(v.version) > BigInt(newest))) {
-      newest = v.version;
-    }
-  }
-  if (newest === undefined) {
-    throw new AnthropicError(
-      `skill ${JSON.stringify(skillId)} has no concrete version to resolve ${JSON.stringify(
-        version,
-      )} against`,
-    );
-  }
-  return newest;
 }
 
 /** Reject archive members that are absolute or contain a `..` component. */

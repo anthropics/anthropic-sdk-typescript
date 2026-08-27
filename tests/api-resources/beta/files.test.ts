@@ -24,9 +24,9 @@ describe('resource files', () => {
     await expect(
       client.beta.files.list(
         {
-          after_id: 'after_id',
-          before_id: 'before_id',
+          ids: ['string'],
           limit: 1,
+          page: 'page',
           scope_id: 'scope_id',
           betas: ['message-batches-2024-09-24'],
         },
@@ -106,6 +106,7 @@ describe('resource files', () => {
   test('upload: required and optional params', async () => {
     const response = await client.beta.files.upload({
       file: await toFile(Buffer.from('Example data'), 'README.md'),
+      expires_in_seconds: 3600,
       betas: ['message-batches-2024-09-24'],
     });
   });

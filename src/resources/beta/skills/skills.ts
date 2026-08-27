@@ -4,16 +4,14 @@ import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
 import * as VersionsAPI from './versions';
 import {
+  BetaDeletedSkillVersion,
+  BetaSkillVersion,
+  BetaSkillVersionsPageCursor,
   VersionCreateParams,
-  VersionCreateResponse,
   VersionDeleteParams,
-  VersionDeleteResponse,
   VersionDownloadParams,
   VersionListParams,
-  VersionListResponse,
-  VersionListResponsesPageCursor,
   VersionRetrieveParams,
-  VersionRetrieveResponse,
   Versions,
 } from './versions';
 import { APIPromise } from '../../../core/api-promise';
@@ -32,12 +30,12 @@ export class Skills extends APIResource {
    *
    * @example
    * ```ts
-   * const skill = await client.beta.skills.create({
+   * const betaSkill = await client.beta.skills.create({
    *   files: [fs.createReadStream('path/to/file')],
    * });
    * ```
    */
-  create(params: SkillCreateParams, options?: RequestOptions): APIPromise<SkillCreateResponse> {
+  create(params: SkillCreateParams, options?: RequestOptions): APIPromise<BetaSkill> {
     const { betas, ...body } = params;
     return this._client.post(
       '/v1/skills?beta=true',
@@ -46,7 +44,7 @@ export class Skills extends APIResource {
           body,
           ...options,
           headers: buildHeaders([
-            { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
+            { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
             options?.headers,
           ]),
         },
@@ -61,19 +59,21 @@ export class Skills extends APIResource {
    *
    * @example
    * ```ts
-   * const skill = await client.beta.skills.retrieve('skill_id');
+   * const betaSkill = await client.beta.skills.retrieve(
+   *   'skill_id',
+   * );
    * ```
    */
   retrieve(
     skillID: string,
     params: SkillRetrieveParams | null | undefined = {},
     options?: RequestOptions,
-  ): APIPromise<SkillRetrieveResponse> {
+  ): APIPromise<BetaSkill> {
     const { betas } = params ?? {};
     return this._client.get(path`/v1/skills/${skillID}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
     });
@@ -85,7 +85,7 @@ export class Skills extends APIResource {
    * @example
    * ```ts
    * // Automatically fetches more pages as needed.
-   * for await (const skillListResponse of client.beta.skills.list()) {
+   * for await (const betaSkill of client.beta.skills.list()) {
    *   // ...
    * }
    * ```
@@ -93,13 +93,13 @@ export class Skills extends APIResource {
   list(
     params: SkillListParams | null | undefined = {},
     options?: RequestOptions,
-  ): PagePromise<SkillListResponsesPageCursor, SkillListResponse> {
+  ): PagePromise<BetaSkillsPageCursor, BetaSkill> {
     const { betas, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/skills?beta=true', PageCursor<SkillListResponse>, {
+    return this._client.getAPIList('/v1/skills?beta=true', PageCursor<BetaSkill>, {
       query,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
     });
@@ -110,181 +110,30 @@ export class Skills extends APIResource {
    *
    * @example
    * ```ts
-   * const skill = await client.beta.skills.delete('skill_id');
+   * const betaDeletedSkill = await client.beta.skills.delete(
+   *   'skill_id',
+   * );
    * ```
    */
   delete(
     skillID: string,
     params: SkillDeleteParams | null | undefined = {},
     options?: RequestOptions,
-  ): APIPromise<SkillDeleteResponse> {
+  ): APIPromise<BetaDeletedSkill> {
     const { betas } = params ?? {};
     return this._client.delete(path`/v1/skills/${skillID}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
     });
   }
 }
 
-export type SkillListResponsesPageCursor = PageCursor<SkillListResponse>;
+export type BetaSkillsPageCursor = PageCursor<BetaSkill>;
 
-export interface SkillCreateResponse {
-  /**
-   * Unique identifier for the skill.
-   *
-   * The format and length of IDs may change over time.
-   */
-  id: string;
-
-  /**
-   * ISO 8601 timestamp of when the skill was created.
-   */
-  created_at: string;
-
-  /**
-   * Display title for the skill.
-   *
-   * This is a human-readable label that is not included in the prompt sent to the
-   * model.
-   */
-  display_title: string | null;
-
-  /**
-   * The latest version identifier for the skill.
-   *
-   * This represents the most recent version of the skill that has been created.
-   */
-  latest_version: string | null;
-
-  /**
-   * Source of the skill.
-   *
-   * This may be one of the following values:
-   *
-   * - `"custom"`: the skill was created by a user
-   * - `"anthropic"`: the skill was created by Anthropic
-   */
-  source: string;
-
-  /**
-   * Object type.
-   *
-   * For Skills, this is always `"skill"`.
-   */
-  type: string;
-
-  /**
-   * ISO 8601 timestamp of when the skill was last updated.
-   */
-  updated_at: string;
-}
-
-export interface SkillRetrieveResponse {
-  /**
-   * Unique identifier for the skill.
-   *
-   * The format and length of IDs may change over time.
-   */
-  id: string;
-
-  /**
-   * ISO 8601 timestamp of when the skill was created.
-   */
-  created_at: string;
-
-  /**
-   * Display title for the skill.
-   *
-   * This is a human-readable label that is not included in the prompt sent to the
-   * model.
-   */
-  display_title: string | null;
-
-  /**
-   * The latest version identifier for the skill.
-   *
-   * This represents the most recent version of the skill that has been created.
-   */
-  latest_version: string | null;
-
-  /**
-   * Source of the skill.
-   *
-   * This may be one of the following values:
-   *
-   * - `"custom"`: the skill was created by a user
-   * - `"anthropic"`: the skill was created by Anthropic
-   */
-  source: string;
-
-  /**
-   * Object type.
-   *
-   * For Skills, this is always `"skill"`.
-   */
-  type: string;
-
-  /**
-   * ISO 8601 timestamp of when the skill was last updated.
-   */
-  updated_at: string;
-}
-
-export interface SkillListResponse {
-  /**
-   * Unique identifier for the skill.
-   *
-   * The format and length of IDs may change over time.
-   */
-  id: string;
-
-  /**
-   * ISO 8601 timestamp of when the skill was created.
-   */
-  created_at: string;
-
-  /**
-   * Display title for the skill.
-   *
-   * This is a human-readable label that is not included in the prompt sent to the
-   * model.
-   */
-  display_title: string | null;
-
-  /**
-   * The latest version identifier for the skill.
-   *
-   * This represents the most recent version of the skill that has been created.
-   */
-  latest_version: string | null;
-
-  /**
-   * Source of the skill.
-   *
-   * This may be one of the following values:
-   *
-   * - `"custom"`: the skill was created by a user
-   * - `"anthropic"`: the skill was created by Anthropic
-   */
-  source: string;
-
-  /**
-   * Object type.
-   *
-   * For Skills, this is always `"skill"`.
-   */
-  type: string;
-
-  /**
-   * ISO 8601 timestamp of when the skill was last updated.
-   */
-  updated_at: string;
-}
-
-export interface SkillDeleteResponse {
+export interface BetaDeletedSkill {
   /**
    * Unique identifier for the skill.
    *
@@ -297,7 +146,72 @@ export interface SkillDeleteResponse {
    *
    * For Skills, this is always `"skill_deleted"`.
    */
-  type: string;
+  type: 'skill_deleted';
+}
+
+export interface BetaSkill {
+  /**
+   * Unique identifier for the skill.
+   *
+   * The format and length of IDs may change over time.
+   */
+  id: string;
+
+  /**
+   * ISO 8601 timestamp of when the skill was created.
+   */
+  created_at: string;
+
+  /**
+   * Human-readable, single-line label for the Skill. Maximum 255 characters. Always
+   * set: derived from the SKILL.md frontmatter `name` when omitted at creation. Not
+   * unique.
+   */
+  display_name: string;
+
+  /**
+   * ID of the newest Skill Version — what `latest` references resolve to. Always
+   * set: a Skill holds at least one version.
+   */
+  latest_version_id: string;
+
+  /**
+   * Where the Skill comes from.
+   *
+   * Possible values:
+   *
+   * - `"custom"`: authored by the platform user; private to their workspace
+   * - `"anthropic"`: published by Anthropic; shared and read-only
+   * - `"anthropic_example"`: Anthropic-published sample Skill
+   * - `"plugin"`: resolved from an installed plugin
+   */
+  source: BetaSkillSource;
+
+  /**
+   * Object type.
+   *
+   * For Skills, this is always `"skill"`.
+   */
+  type: 'skill';
+
+  /**
+   * ISO 8601 timestamp of when the skill was last updated.
+   */
+  updated_at: string;
+}
+
+export interface BetaSkillSource {
+  /**
+   * Where the Skill comes from.
+   *
+   * Possible values:
+   *
+   * - `"custom"`: authored by the platform user; private to their workspace
+   * - `"anthropic"`: published by Anthropic; shared and read-only
+   * - `"anthropic_example"`: Anthropic-published sample Skill
+   * - `"plugin"`: resolved from an installed plugin
+   */
+  type: 'custom' | 'anthropic' | 'anthropic_example' | 'plugin';
 }
 
 export interface SkillCreateParams {
@@ -310,12 +224,11 @@ export interface SkillCreateParams {
   files: Array<Uploadable>;
 
   /**
-   * Body param: Display title for the skill.
-   *
-   * This is a human-readable label that is not included in the prompt sent to the
-   * model.
+   * Body param: Human-readable, single-line label for the Skill. Maximum 255
+   * characters. Always set: derived from the SKILL.md frontmatter `name` when
+   * omitted at creation. Not unique.
    */
-  display_title?: string | null;
+  display_name?: string | null;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
@@ -358,11 +271,10 @@ Skills.Versions = Versions;
 
 export declare namespace Skills {
   export {
-    type SkillCreateResponse as SkillCreateResponse,
-    type SkillRetrieveResponse as SkillRetrieveResponse,
-    type SkillListResponse as SkillListResponse,
-    type SkillDeleteResponse as SkillDeleteResponse,
-    type SkillListResponsesPageCursor as SkillListResponsesPageCursor,
+    type BetaDeletedSkill as BetaDeletedSkill,
+    type BetaSkill as BetaSkill,
+    type BetaSkillSource as BetaSkillSource,
+    type BetaSkillsPageCursor as BetaSkillsPageCursor,
     type SkillCreateParams as SkillCreateParams,
     type SkillRetrieveParams as SkillRetrieveParams,
     type SkillListParams as SkillListParams,
@@ -371,11 +283,9 @@ export declare namespace Skills {
 
   export {
     Versions as Versions,
-    type VersionCreateResponse as VersionCreateResponse,
-    type VersionRetrieveResponse as VersionRetrieveResponse,
-    type VersionListResponse as VersionListResponse,
-    type VersionDeleteResponse as VersionDeleteResponse,
-    type VersionListResponsesPageCursor as VersionListResponsesPageCursor,
+    type BetaDeletedSkillVersion as BetaDeletedSkillVersion,
+    type BetaSkillVersion as BetaSkillVersion,
+    type BetaSkillVersionsPageCursor as BetaSkillVersionsPageCursor,
     type VersionCreateParams as VersionCreateParams,
     type VersionRetrieveParams as VersionRetrieveParams,
     type VersionListParams as VersionListParams,
