@@ -377,6 +377,69 @@ describe('fs tools (read/write/edit)', () => {
     );
   });
 
+  // 18 bytes against a 16-byte cap: the whole file is over the cap, so a
+  // view_range read streams it and caps only the selected lines.
+  const viewRangeOverCapCases: { description: string; view_range: number[]; want: string }[] = [
+    { description: 'a single-line range', view_range: [2, 2], want: 'line2' },
+    {
+      description: 'a non-positive end line reads to EOF and keeps the trailing newline',
+      view_range: [2, 0],
+      want: 'line2\nline3\n',
+    },
+    { description: 'an inverted range yields an empty result, not an error', view_range: [3, 1], want: '' },
+    { description: 'a start line past EOF yields an empty result', view_range: [10, 12], want: '' },
+  ];
+  for (const tc of viewRangeOverCapCases) {
+    test(`read view_range ${JSON.stringify(tc.view_range)} of a file over the size cap: ${
+      tc.description
+    }`, async () => {
+      fs.writeFileSync(path.join(dir, 'a.txt'), 'line1\nline2\nline3\n');
+      expect(
+        await betaReadTool({ workdir: dir, maxFileBytes: 16 }).run({
+          file_path: 'a.txt',
+          view_range: tc.view_range,
+        }),
+      ).toBe(tc.want);
+    });
+  }
+
+  test('read view_range of a file over the size cap refuses a slice that itself exceeds the cap', async () => {
+    fs.writeFileSync(path.join(dir, 'a.txt'), 'line1\nline2\nline3\n');
+    const err = await Promise.resolve(
+      betaReadTool({ workdir: dir, maxFileBytes: 16 }).run({ file_path: 'a.txt', view_range: [1, 3] }),
+    ).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ToolError);
+    expect((err as Error).message).toMatch(/exceeds .*limit/);
+    expect((err as Error).message).toContain('Narrow the view_range');
+    expect((err as Error).message).not.toContain('bash');
+  });
+
+  test('read view_range of a file over the size cap explains when a single line alone exceeds the cap', async () => {
+    fs.writeFileSync(path.join(dir, 'a.txt'), 'x'.repeat(100) + '\nok\n');
+    const read = betaReadTool({ workdir: dir, maxFileBytes: 16 });
+    const err = await Promise.resolve(read.run({ file_path: 'a.txt', view_range: [1, 1] })).catch(
+      (e: unknown) => e,
+    );
+    expect(err).toBeInstanceOf(ToolError);
+    expect((err as Error).message).toContain('cannot return part of a line');
+    expect((err as Error).message).not.toContain('bash');
+    expect(await read.run({ file_path: 'a.txt', view_range: [2, 2] })).toBe('ok');
+  });
+
+  test('read view_range of a file over the size cap returns exact lines across stream chunk boundaries', async () => {
+    const rows = Array.from({ length: 5000 }, (_, i) => `row${String(i).padStart(4, '0')}` + '-'.repeat(90));
+    fs.writeFileSync(path.join(dir, 'big.txt'), rows.join('\n') + '\n');
+    const out = await betaReadTool(env).run({ file_path: 'big.txt', view_range: [1000, 1002] });
+    expect(out).toBe(rows.slice(999, 1002).join('\n'));
+  });
+
+  test('read view_range with the wrong arity is rejected before the size cap is considered', async () => {
+    fs.writeFileSync(path.join(dir, 'a.txt'), 'line1\nline2\nline3\n');
+    await expect(
+      betaReadTool({ workdir: dir, maxFileBytes: 16 }).run({ file_path: 'a.txt', view_range: [2] }),
+    ).rejects.toThrow('read: view_range must be [start_line, end_line]');
+  });
+
   test('read of a missing file throws ToolError so the dispatcher reports is_error', async () => {
     await expect(betaReadTool(env).run({ file_path: 'nope.txt' })).rejects.toThrow(/ENOENT|no such file/);
   });
@@ -435,7 +498,13 @@ describe('fs tools (read/write/edit)', () => {
 
   test('read refuses a file over the size cap so a huge file cannot OOM the runner', async () => {
     fs.writeFileSync(path.join(dir, 'big.txt'), Buffer.alloc(257 * 1024, 'a'));
-    await expect(betaReadTool(env).run({ file_path: 'big.txt' })).rejects.toThrow(/exceeds .*limit/);
+    const err = await Promise.resolve(betaReadTool(env).run({ file_path: 'big.txt' })).catch(
+      (e: unknown) => e,
+    );
+    expect(err).toBeInstanceOf(ToolError);
+    expect((err as Error).message).toMatch(/exceeds .*limit/);
+    expect((err as Error).message).toContain('view_range');
+    expect((err as Error).message).not.toContain('bash');
   });
 
   test('read refuses a directory so it cannot dump a Dirent listing as bytes', async () => {
@@ -445,9 +514,12 @@ describe('fs tools (read/write/edit)', () => {
 
   test('edit refuses a file over the size cap so a huge file cannot OOM the runner', async () => {
     fs.writeFileSync(path.join(dir, 'big.txt'), Buffer.alloc(257 * 1024, 'a'));
-    await expect(
+    const err = await Promise.resolve(
       betaEditTool(env).run({ file_path: 'big.txt', old_string: 'a', new_string: 'b' }),
-    ).rejects.toThrow(/exceeds .*limit/);
+    ).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ToolError);
+    expect((err as Error).message).toMatch(/exceeds .*limit/);
+    expect((err as Error).message).not.toContain('bash');
   });
 
   test('edit refuses a directory so a non-regular path cannot hang or be misread', async () => {
@@ -465,13 +537,16 @@ describe('fs tools (read/write/edit)', () => {
 
   test('edit honours a custom maxFileBytes below the file size', async () => {
     fs.writeFileSync(path.join(dir, 'f.txt'), 'OLD' + 'a'.repeat(2000));
-    await expect(
+    const err = await Promise.resolve(
       betaEditTool({ workdir: dir, maxFileBytes: 1024 }).run({
         file_path: 'f.txt',
         old_string: 'OLD',
         new_string: 'NEW',
       }),
-    ).rejects.toThrow(/exceeds .*limit/);
+    ).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ToolError);
+    expect((err as Error).message).toMatch(/exceeds .*limit/);
+    expect((err as Error).message).not.toContain('bash');
   });
 
   test('edit allows a file over the default cap when maxFileBytes is raised', async () => {
@@ -507,9 +582,13 @@ describe('fs tools (read/write/edit)', () => {
 
   test('read honours a custom maxFileBytes below the file size', async () => {
     fs.writeFileSync(path.join(dir, 'f.txt'), Buffer.alloc(2000, 'a'));
-    await expect(
+    const err = await Promise.resolve(
       betaReadTool({ workdir: dir, maxFileBytes: 1024 }).run({ file_path: 'f.txt' }),
-    ).rejects.toThrow(/exceeds .*limit/);
+    ).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ToolError);
+    expect((err as Error).message).toMatch(/exceeds .*limit/);
+    expect((err as Error).message).toContain('view_range');
+    expect((err as Error).message).not.toContain('bash');
   });
 
   test('read allows an oversized file when maxFileBytes is null (uncapped)', async () => {
