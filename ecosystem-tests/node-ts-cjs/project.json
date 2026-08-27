@@ -6,6 +6,5 @@
   "steps": [
     ["npx", "tsc", "--noEmit"],
     ["npx", "jest"]
-  ],
-  "knownFailure": "under jest, fetch's AbortError is a DOMException from another realm; castToError() drops its name, so a timeout throws APIConnectionError instead of APIConnectionTimeoutError"
+  ]
 }

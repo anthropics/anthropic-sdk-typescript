@@ -7,6 +7,5 @@
   "steps": [
     ["npx", "tsc", "--noEmit"],
     ["node", "--experimental-vm-modules", "node_modules/jest/bin/jest.js"]
-  ],
-  "knownFailure": "under jest, fetch's AbortError is a DOMException from another realm; castToError() drops its name, so a timeout throws APIConnectionError instead of APIConnectionTimeoutError"
+  ]
 }
