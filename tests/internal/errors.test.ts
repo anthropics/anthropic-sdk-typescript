@@ -1,3 +1,4 @@
+import Anthropic, { APIConnectionTimeoutError } from '@anthropic-ai/sdk';
 import { castToError, isAbortError } from '@anthropic-ai/sdk/internal/errors';
 
 // undici rejects an aborted fetch with a `DOMException` from Node's own realm; under jest's
@@ -27,5 +28,24 @@ describe('castToError', () => {
     expect(err.name).toBe('AbortError');
     expect(err.message).toBe('This operation was aborted');
     expect(isAbortError(err)).toBe(true);
+  });
+});
+
+describe('request timeout rejected with a cross-realm abort error', () => {
+  test('surfaces as APIConnectionTimeoutError', async () => {
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      baseURL: 'http://localhost:5000/',
+      timeout: 5,
+      maxRetries: 0,
+      fetch: (_url, { signal } = {}) =>
+        new Promise((_, reject) => signal?.addEventListener('abort', () => reject(crossRealmAbortError()))),
+    });
+
+    const err = await client.request({ path: '/foo', method: 'get' }).then(
+      () => null,
+      (e) => e,
+    );
+    expect(err).toBeInstanceOf(APIConnectionTimeoutError);
   });
 });
