@@ -15,7 +15,7 @@ To preview the changes without writing them to disk, run the tool with `--dry`.
 The minimum supported runtime and tooling versions are now:
 
 - Node.js 20 LTS (Most recent non-EOL Node version)
-- TypeScript 4.9
+- TypeScript 5.0
 - Jest 28
 
 ## Breaking changes
