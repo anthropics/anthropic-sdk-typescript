@@ -70,6 +70,8 @@ const BASH_DEFAULT_TIMEOUT_MS = 120_000;
 // memory) when AgentToolContext.maxFileBytes is unset. The reject-vs-truncate
 // behaviour remains a separate question pending CMA validation.
 const DEFAULT_MAX_FILE_BYTES = 256 * 1024;
+const READ_STREAM_CHUNK_BYTES = 64 * 1024;
+const NEWLINE = Buffer.from('\n');
 const GREP_OUTPUT_LIMIT = 100 * 1024;
 const GREP_MAX_LINE_LENGTH = 2000;
 const GLOB_RESULT_LIMIT = 200;
@@ -194,12 +196,14 @@ export interface AgentToolContext {
    */
   env?: Record<string, string | undefined>;
   /**
-   * Size cap for the `read` and `edit` tools, which both load the whole file into
-   * memory. `undefined` (default) uses the built-in 256 KiB cap; a positive number
-   * sets a custom cap; `null` disables the cap entirely. Disabling it reintroduces
-   * the OOM risk on a model-controlled path, so pass `null` only when the sandbox
-   * can absorb arbitrarily large files. The non-regular-file (FIFO/device) guard
-   * always applies regardless of this value.
+   * Size cap for a whole-file `read` and for `edit`, which both load the whole
+   * file into memory. A `read` with `view_range` on a larger file streams it and
+   * applies the cap to the selected lines instead. `undefined` (default) uses the
+   * built-in 256 KiB cap; a positive number sets a custom cap; `null` disables the
+   * cap entirely. Disabling it reintroduces the OOM risk on a model-controlled
+   * path, so pass `null` only when the sandbox can absorb arbitrarily large files.
+   * The non-regular-file (FIFO/device) guard always applies regardless of this
+   * value.
    */
   maxFileBytes?: number | null;
 }
@@ -525,6 +529,9 @@ export function betaReadTool(ctx: AgentToolContext): BetaRunnableTool {
     run: async ({ file_path, view_range }) => {
       if (!file_path) throw new ToolError('read: file_path is required');
       const abs = await resolvePath(ctx, file_path);
+      if (view_range?.length && view_range.length !== 2) {
+        throw new ToolError('read: view_range must be [start_line, end_line]');
+      }
       let data: string;
       try {
         // stat() before any open(): the size cap stops a multi-GB file from
@@ -536,10 +543,14 @@ export function betaReadTool(ctx: AgentToolContext): BetaRunnableTool {
         }
         const limit = resolveMaxBytes(ctx.maxFileBytes);
         if (limit !== null && st.size > limit) {
-          throw new ToolError(
-            `read: ${file_path} is ${st.size} bytes, exceeds ${limit}-byte limit. ` +
-              'Use bash (head/tail/sed) to read a slice.',
-          );
+          if (!view_range?.length) {
+            throw new ToolError(
+              `read: ${file_path} is ${st.size} bytes, exceeds ${limit}-byte limit. ` +
+                'Use the view_range parameter to read specific line ranges, e.g. view_range: [1, 500].',
+            );
+          }
+          const [startLine, endLine] = view_range as [number, number];
+          return await readRangeStreaming(abs, file_path, startLine, endLine, limit);
         }
         data = await fs.readFile(abs, 'utf8');
       } catch (e) {
@@ -547,7 +558,6 @@ export function betaReadTool(ctx: AgentToolContext): BetaRunnableTool {
         throw new ToolError(`read: ${fsErrorMessage(e, file_path)}`);
       }
       if (!view_range?.length) return data;
-      if (view_range.length !== 2) throw new ToolError('read: view_range must be [start_line, end_line]');
       const [startLine, endLine] = view_range as [number, number];
       const lines = data.split('\n');
       const start = Math.max(0, startLine - 1);
@@ -555,6 +565,101 @@ export function betaReadTool(ctx: AgentToolContext): BetaRunnableTool {
       return lines.slice(start, end).join('\n');
     },
   });
+}
+
+/** Returns lines `[startLine, endLine]` of the file at `abs`, capping the selected bytes at `limit`. */
+async function readRangeStreaming(
+  abs: string,
+  filePath: string,
+  startLine: number,
+  endLine: number,
+  limit: number,
+): Promise<string> {
+  const lines = new LineRangeCollector(filePath, startLine, endLine, limit);
+  if (lines.rangeIsEmpty()) return '';
+  // Byte chunks rather than readline: a single huge line must never be buffered
+  // whole, so memory stays bounded by `limit` plus one chunk.
+  const stream = fssync.createReadStream(abs, { highWaterMark: READ_STREAM_CHUNK_BYTES });
+  try {
+    for await (const chunk of stream as AsyncIterable<Buffer>) {
+      lines.collectFrom(chunk);
+      if (lines.rangeIsCollected()) break;
+    }
+  } finally {
+    stream.destroy();
+  }
+  return lines.text();
+}
+
+/** Collects the bytes of lines `[startLine, endLine]` from consecutive file chunks, capped at `limit`. */
+class LineRangeCollector {
+  readonly #filePath: string;
+  readonly #startLine: number;
+  readonly #endLine: number;
+  readonly #start: number;
+  readonly #end: number;
+  readonly #limit: number;
+  #line = 0;
+  #collected: Buffer[] = [];
+  #collectedBytes = 0;
+
+  constructor(filePath: string, startLine: number, endLine: number, limit: number) {
+    this.#filePath = filePath;
+    this.#startLine = startLine;
+    this.#endLine = endLine;
+    this.#start = Math.max(0, startLine - 1);
+    this.#end = endLine > 0 ? endLine : Infinity;
+    this.#limit = limit;
+  }
+
+  rangeIsEmpty(): boolean {
+    return this.#end <= this.#start;
+  }
+
+  rangeIsCollected(): boolean {
+    return this.#line >= this.#end;
+  }
+
+  collectFrom(chunk: Buffer): void {
+    let lineStart = 0;
+    while (lineStart < chunk.length && !this.rangeIsCollected()) {
+      const newline = chunk.indexOf(0x0a, lineStart);
+      const lineEnd = newline < 0 ? chunk.length : newline;
+      if (this.#line >= this.#start) {
+        this.#collect(chunk.subarray(lineStart, lineEnd), newline >= 0);
+      }
+      if (newline < 0) break;
+      this.#line++;
+      lineStart = newline + 1;
+    }
+  }
+
+  #collect(lineBytes: Buffer, newlineTerminated: boolean): void {
+    this.#collected.push(lineBytes);
+    this.#collectedBytes += lineBytes.length;
+    if (newlineTerminated && this.#line + 1 < this.#end) {
+      this.#collected.push(NEWLINE);
+      this.#collectedBytes += NEWLINE.length;
+    }
+    if (this.#collectedBytes > this.#limit) throw this.#overLimitError();
+  }
+
+  #overLimitError(): ToolError {
+    if (this.#end - this.#start === 1) {
+      return new ToolError(
+        `read: line ${this.#start + 1} of ${this.#filePath} alone exceeds ${this.#limit}-byte limit. ` +
+          'The read tool cannot return part of a line, so view_range cannot narrow this further.',
+      );
+    }
+    return new ToolError(
+      `read: view_range [${this.#startLine}, ${this.#endLine}] of ${this.#filePath} exceeds ${this.#limit}-byte limit. ` +
+        'Narrow the view_range to read a smaller portion.',
+    );
+  }
+
+  text(): string {
+    return Buffer.concat(this.#collected, this.#collectedBytes).toString('utf8');
+  }
 }
 
 export function betaWriteTool(ctx: AgentToolContext): BetaRunnableTool {
@@ -624,7 +729,7 @@ export function betaEditTool(ctx: AgentToolContext): BetaRunnableTool {
         if (limit !== null && st.size > limit) {
           throw new ToolError(
             `edit: ${file_path} is ${st.size} bytes, exceeds ${limit}-byte limit. ` +
-              'Use bash (sed/awk) to edit a large file.',
+              'The edit tool loads the whole file and cannot modify a file this large.',
           );
         }
         data = await fs.readFile(abs, 'utf8');
