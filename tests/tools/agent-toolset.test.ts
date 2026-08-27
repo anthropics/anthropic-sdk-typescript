@@ -381,6 +381,21 @@ describe('fs tools (read/write/edit)', () => {
     await expect(betaReadTool(env).run({ file_path: 'nope.txt' })).rejects.toThrow(/ENOENT|no such file/);
   });
 
+  test('read preserves CRLF line endings', async () => {
+    fs.writeFileSync(path.join(dir, 'crlf.txt'), Buffer.from('line1\r\nline2\r\nline3\r\n'));
+    expect(await betaReadTool(env).run({ file_path: 'crlf.txt' })).toBe('line1\r\nline2\r\nline3\r\n');
+    expect(await betaReadTool(env).run({ file_path: 'crlf.txt', view_range: [1, 2] })).toBe(
+      'line1\r\nline2\r',
+    );
+  });
+
+  test('read preserves lone CR', async () => {
+    fs.writeFileSync(path.join(dir, 'cr.txt'), Buffer.from('a\rb\rc\r'));
+    expect(await betaReadTool(env).run({ file_path: 'cr.txt' })).toBe('a\rb\rc\r');
+    // A lone CR is not a line separator, so the file is a single line and line 2 is empty.
+    expect(await betaReadTool(env).run({ file_path: 'cr.txt', view_range: [2, 2] })).toBe('');
+  });
+
   test('edit with a unique old_string performs exactly one replacement', async () => {
     fs.writeFileSync(path.join(dir, 'f.txt'), 'foo bar foo');
     await betaEditTool(env).run({ file_path: 'f.txt', old_string: 'bar', new_string: 'BAZ' });
@@ -410,6 +425,12 @@ describe('fs tools (read/write/edit)', () => {
     fs.writeFileSync(path.join(dir, 'f.txt'), 'X X');
     await betaEditTool(env).run({ file_path: 'f.txt', old_string: 'X', new_string: '$`', replace_all: true });
     expect(fs.readFileSync(path.join(dir, 'f.txt'), 'utf8')).toBe('$` $`');
+  });
+
+  test('edit preserves CRLF line endings', async () => {
+    fs.writeFileSync(path.join(dir, 'crlf.txt'), Buffer.from('line1\r\nline2\r\nline3\r\n'));
+    await betaEditTool(env).run({ file_path: 'crlf.txt', old_string: 'line2', new_string: 'LINE2' });
+    expect(fs.readFileSync(path.join(dir, 'crlf.txt'))).toEqual(Buffer.from('line1\r\nLINE2\r\nline3\r\n'));
   });
 
   test('read refuses a file over the size cap so a huge file cannot OOM the runner', async () => {
