@@ -62,6 +62,10 @@
   "resolutions": {
     "minimatch": "^9.0.5"
   },
+  "browser": {
+    "./internal/node.js": "./internal/node.browser.js",
+    "./internal/node.mjs": "./internal/node.browser.mjs"
+  },
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
