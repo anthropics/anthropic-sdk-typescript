@@ -2,26 +2,23 @@
 
 export {
   Skills,
-  type SkillCreateResponse,
-  type SkillRetrieveResponse,
-  type SkillListResponse,
-  type SkillDeleteResponse,
+  type BetaDeletedSkill,
+  type BetaSkill,
+  type BetaSkillSource,
   type SkillCreateParams,
   type SkillRetrieveParams,
   type SkillListParams,
   type SkillDeleteParams,
-  type SkillListResponsesPageCursor,
+  type BetaSkillsPageCursor,
 } from './skills';
 export {
   Versions,
-  type VersionCreateResponse,
-  type VersionRetrieveResponse,
-  type VersionListResponse,
-  type VersionDeleteResponse,
+  type BetaDeletedSkillVersion,
+  type BetaSkillVersion,
   type VersionCreateParams,
   type VersionRetrieveParams,
   type VersionListParams,
   type VersionDeleteParams,
   type VersionDownloadParams,
-  type VersionListResponsesPageCursor,
+  type BetaSkillVersionsPageCursor,
 } from './versions';

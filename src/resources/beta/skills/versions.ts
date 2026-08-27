@@ -16,17 +16,17 @@ export class Versions extends APIResource {
    *
    * @example
    * ```ts
-   * const version = await client.beta.skills.versions.create(
-   *   'skill_id',
-   *   { files: [fs.createReadStream('path/to/file')] },
-   * );
+   * const betaSkillVersion =
+   *   await client.beta.skills.versions.create('skill_id', {
+   *     files: [fs.createReadStream('path/to/file')],
+   *   });
    * ```
    */
   create(
     skillID: string,
     params: VersionCreateParams,
     options?: RequestOptions,
-  ): APIPromise<VersionCreateResponse> {
+  ): APIPromise<BetaSkillVersion> {
     const { betas, ...body } = params;
     return this._client.post(
       path`/v1/skills/${skillID}/versions?beta=true`,
@@ -35,7 +35,7 @@ export class Versions extends APIResource {
           body,
           ...options,
           headers: buildHeaders([
-            { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
+            { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
             options?.headers,
           ]),
         },
@@ -49,22 +49,22 @@ export class Versions extends APIResource {
    *
    * @example
    * ```ts
-   * const version = await client.beta.skills.versions.retrieve(
-   *   'version',
-   *   { skill_id: 'skill_id' },
-   * );
+   * const betaSkillVersion =
+   *   await client.beta.skills.versions.retrieve('version', {
+   *     skill_id: 'skill_id',
+   *   });
    * ```
    */
   retrieve(
     version: string,
     params: VersionRetrieveParams,
     options?: RequestOptions,
-  ): APIPromise<VersionRetrieveResponse> {
+  ): APIPromise<BetaSkillVersion> {
     const { skill_id, betas } = params;
     return this._client.get(path`/v1/skills/${skill_id}/versions/${version}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
     });
@@ -76,7 +76,7 @@ export class Versions extends APIResource {
    * @example
    * ```ts
    * // Automatically fetches more pages as needed.
-   * for await (const versionListResponse of client.beta.skills.versions.list(
+   * for await (const betaSkillVersion of client.beta.skills.versions.list(
    *   'skill_id',
    * )) {
    *   // ...
@@ -87,16 +87,16 @@ export class Versions extends APIResource {
     skillID: string,
     params: VersionListParams | null | undefined = {},
     options?: RequestOptions,
-  ): PagePromise<VersionListResponsesPageCursor, VersionListResponse> {
+  ): PagePromise<BetaSkillVersionsPageCursor, BetaSkillVersion> {
     const { betas, ...query } = params ?? {};
     return this._client.getAPIList(
       path`/v1/skills/${skillID}/versions?beta=true`,
-      PageCursor<VersionListResponse>,
+      PageCursor<BetaSkillVersion>,
       {
         query,
         ...options,
         headers: buildHeaders([
-          { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
+          { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
       },
@@ -108,22 +108,22 @@ export class Versions extends APIResource {
    *
    * @example
    * ```ts
-   * const version = await client.beta.skills.versions.delete(
-   *   'version',
-   *   { skill_id: 'skill_id' },
-   * );
+   * const betaDeletedSkillVersion =
+   *   await client.beta.skills.versions.delete('version', {
+   *     skill_id: 'skill_id',
+   *   });
    * ```
    */
   delete(
     version: string,
     params: VersionDeleteParams,
     options?: RequestOptions,
-  ): APIPromise<VersionDeleteResponse> {
+  ): APIPromise<BetaDeletedSkillVersion> {
     const { skill_id, betas } = params;
     return this._client.delete(path`/v1/skills/${skill_id}/versions/${version}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString() },
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
     });
@@ -149,8 +149,8 @@ export class Versions extends APIResource {
       ...options,
       headers: buildHeaders([
         {
-          'anthropic-beta': [...(betas ?? []), 'skills-2025-10-02'].toString(),
           Accept: 'application/binary',
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
         },
         options?.headers,
       ]),
@@ -159,175 +159,12 @@ export class Versions extends APIResource {
   }
 }
 
-export type VersionListResponsesPageCursor = PageCursor<VersionListResponse>;
+export type BetaSkillVersionsPageCursor = PageCursor<BetaSkillVersion>;
 
-export interface VersionCreateResponse {
+export interface BetaDeletedSkillVersion {
   /**
-   * Unique identifier for the skill version.
-   *
-   * The format and length of IDs may change over time.
-   */
-  id: string;
-
-  /**
-   * ISO 8601 timestamp of when the skill version was created.
-   */
-  created_at: string;
-
-  /**
-   * Description of the skill version.
-   *
-   * This is extracted from the SKILL.md file in the skill upload.
-   */
-  description: string;
-
-  /**
-   * Directory name of the skill version.
-   *
-   * This is the top-level directory name that was extracted from the uploaded files.
-   */
-  directory: string;
-
-  /**
-   * Human-readable name of the skill version.
-   *
-   * This is extracted from the SKILL.md file in the skill upload.
-   */
-  name: string;
-
-  /**
-   * Identifier for the skill that this version belongs to.
-   */
-  skill_id: string;
-
-  /**
-   * Object type.
-   *
-   * For Skill Versions, this is always `"skill_version"`.
-   */
-  type: string;
-
-  /**
-   * Version identifier for the skill.
-   *
-   * Each version is identified by a Unix epoch timestamp (e.g., "1759178010641129").
-   */
-  version: string;
-}
-
-export interface VersionRetrieveResponse {
-  /**
-   * Unique identifier for the skill version.
-   *
-   * The format and length of IDs may change over time.
-   */
-  id: string;
-
-  /**
-   * ISO 8601 timestamp of when the skill version was created.
-   */
-  created_at: string;
-
-  /**
-   * Description of the skill version.
-   *
-   * This is extracted from the SKILL.md file in the skill upload.
-   */
-  description: string;
-
-  /**
-   * Directory name of the skill version.
-   *
-   * This is the top-level directory name that was extracted from the uploaded files.
-   */
-  directory: string;
-
-  /**
-   * Human-readable name of the skill version.
-   *
-   * This is extracted from the SKILL.md file in the skill upload.
-   */
-  name: string;
-
-  /**
-   * Identifier for the skill that this version belongs to.
-   */
-  skill_id: string;
-
-  /**
-   * Object type.
-   *
-   * For Skill Versions, this is always `"skill_version"`.
-   */
-  type: string;
-
-  /**
-   * Version identifier for the skill.
-   *
-   * Each version is identified by a Unix epoch timestamp (e.g., "1759178010641129").
-   */
-  version: string;
-}
-
-export interface VersionListResponse {
-  /**
-   * Unique identifier for the skill version.
-   *
-   * The format and length of IDs may change over time.
-   */
-  id: string;
-
-  /**
-   * ISO 8601 timestamp of when the skill version was created.
-   */
-  created_at: string;
-
-  /**
-   * Description of the skill version.
-   *
-   * This is extracted from the SKILL.md file in the skill upload.
-   */
-  description: string;
-
-  /**
-   * Directory name of the skill version.
-   *
-   * This is the top-level directory name that was extracted from the uploaded files.
-   */
-  directory: string;
-
-  /**
-   * Human-readable name of the skill version.
-   *
-   * This is extracted from the SKILL.md file in the skill upload.
-   */
-  name: string;
-
-  /**
-   * Identifier for the skill that this version belongs to.
-   */
-  skill_id: string;
-
-  /**
-   * Object type.
-   *
-   * For Skill Versions, this is always `"skill_version"`.
-   */
-  type: string;
-
-  /**
-   * Version identifier for the skill.
-   *
-   * Each version is identified by a Unix epoch timestamp (e.g., "1759178010641129").
-   */
-  version: string;
-}
-
-export interface VersionDeleteResponse {
-  /**
-   * Version identifier for the skill.
-   *
-   * Each version is identified by a Unix epoch timestamp (e.g., "1759178010641129").
+   * Unique identifier for this Skill Version. The id addresses the version in paths
+   * and pins it in references.
    */
   id: string;
 
@@ -336,7 +173,49 @@ export interface VersionDeleteResponse {
    *
    * For Skill Versions, this is always `"skill_version_deleted"`.
    */
-  type: string;
+  type: 'skill_version_deleted';
+}
+
+export interface BetaSkillVersion {
+  /**
+   * Unique identifier for this Skill Version. The id addresses the version in paths
+   * and pins it in references.
+   */
+  id: string;
+
+  /**
+   * ISO 8601 timestamp of when the skill was created.
+   */
+  created_at: string;
+
+  /**
+   * Description of the skill version.
+   *
+   * This is extracted from the SKILL.md file in the skill upload.
+   */
+  description: string;
+
+  /**
+   * The Skill's immutable kebab-case slug, set at creation from the first upload's
+   * SKILL.md frontmatter `name` (or its enclosing directory). Every later upload
+   * must resolve to the same value. Also the top-level directory of the Skill's
+   * mounted files and the base name of a downloaded archive.
+   */
+  name: string;
+
+  /**
+   * Unique identifier for the skill.
+   *
+   * The format and length of IDs may change over time.
+   */
+  skill_id: string;
+
+  /**
+   * Object type.
+   *
+   * For Skill Versions, this is always `"skill_version"`.
+   */
+  type: 'skill_version';
 }
 
 export interface VersionCreateParams {
@@ -405,11 +284,9 @@ export interface VersionDownloadParams {
 
 export declare namespace Versions {
   export {
-    type VersionCreateResponse as VersionCreateResponse,
-    type VersionRetrieveResponse as VersionRetrieveResponse,
-    type VersionListResponse as VersionListResponse,
-    type VersionDeleteResponse as VersionDeleteResponse,
-    type VersionListResponsesPageCursor as VersionListResponsesPageCursor,
+    type BetaDeletedSkillVersion as BetaDeletedSkillVersion,
+    type BetaSkillVersion as BetaSkillVersion,
+    type BetaSkillVersionsPageCursor as BetaSkillVersionsPageCursor,
     type VersionCreateParams as VersionCreateParams,
     type VersionRetrieveParams as VersionRetrieveParams,
     type VersionListParams as VersionListParams,

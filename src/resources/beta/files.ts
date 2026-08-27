@@ -3,7 +3,7 @@
 import { APIResource } from '../../core/resource';
 import * as BetaAPI from './beta';
 import { APIPromise } from '../../core/api-promise';
-import { Page, type PageParams, PagePromise } from '../../core/pagination';
+import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagination';
 import { type Uploadable } from '../../core/uploads';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
@@ -25,13 +25,13 @@ export class Files extends APIResource {
   list(
     params: FileListParams | null | undefined = {},
     options?: RequestOptions,
-  ): PagePromise<BetaFileMetadataPage, BetaFileMetadata> {
+  ): PagePromise<BetaFileMetadataPageCursor, BetaFileMetadata> {
     const { betas, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/files?beta=true', Page<BetaFileMetadata>, {
+    return this._client.getAPIList('/v1/files?beta=true', PageCursor<BetaFileMetadata>, {
       query,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString() },
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
     });
@@ -56,7 +56,7 @@ export class Files extends APIResource {
     return this._client.delete(path`/v1/files/${fileID}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString() },
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
     });
@@ -85,8 +85,8 @@ export class Files extends APIResource {
       ...options,
       headers: buildHeaders([
         {
-          'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString(),
           Accept: 'application/binary',
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
         },
         options?.headers,
       ]),
@@ -112,7 +112,7 @@ export class Files extends APIResource {
     return this._client.get(path`/v1/files/${fileID}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString() },
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
     });
@@ -137,7 +137,7 @@ export class Files extends APIResource {
           body,
           ...options,
           headers: buildHeaders([
-            { 'anthropic-beta': [...(betas ?? []), 'files-api-2025-04-14'].toString() },
+            { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
             options?.headers,
           ]),
         },
@@ -147,7 +147,7 @@ export class Files extends APIResource {
   }
 }
 
-export type BetaFileMetadataPage = Page<BetaFileMetadata>;
+export type BetaFileMetadataPageCursor = PageCursor<BetaFileMetadata>;
 
 export interface BetaDeletedFile {
   /**
@@ -204,6 +204,13 @@ export interface BetaFileMetadata {
   downloadable?: boolean;
 
   /**
+   * RFC 3339 datetime string representing when the file will expire and become
+   * unavailable for download. Null if the file does not expire. For files uploaded
+   * with `expires_in_seconds`, this is the upload time plus that value.
+   */
+  expires_at?: string | null;
+
+  /**
    * The scope of this file, indicating the context in which it was created (e.g., a
    * session).
    */
@@ -222,7 +229,16 @@ export interface BetaFileScope {
   type: 'session';
 }
 
-export interface FileListParams extends PageParams {
+export interface FileListParams extends PageCursorParams {
+  /**
+   * Query param: Restrict the result set to Files whose `id` is in this list. At
+   * most 100 entries (after de-duplication). Mutually exclusive with `page` and
+   * `limit`. When supplied, the response is always a single page (`next_page` is
+   * null). IDs that do not resolve to a visible File — including deleted Files — are
+   * silently omitted.
+   */
+  ids?: Array<string> | null;
+
   /**
    * Query param: Filter by scope ID. Only returns files associated with the
    * specified scope (e.g., a session ID).
@@ -263,6 +279,13 @@ export interface FileUploadParams {
   file: Uploadable;
 
   /**
+   * Body param: Seconds from upload until the file expires and its bytes become
+   * permanently unavailable. Must be between 3600 (one hour) and 7776000 (ninety
+   * days).
+   */
+  expires_in_seconds?: number;
+
+  /**
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
@@ -273,7 +296,7 @@ export declare namespace Files {
     type BetaDeletedFile as BetaDeletedFile,
     type BetaFileMetadata as BetaFileMetadata,
     type BetaFileScope as BetaFileScope,
-    type BetaFileMetadataPage as BetaFileMetadataPage,
+    type BetaFileMetadataPageCursor as BetaFileMetadataPageCursor,
     type FileListParams as FileListParams,
     type FileDeleteParams as FileDeleteParams,
     type FileDownloadParams as FileDownloadParams,
