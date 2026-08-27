@@ -581,6 +581,42 @@ describe('default encoder', () => {
 });
 
 describe('retries', () => {
+  test.each([
+    [
+      'an async iterable',
+      (encoder: { encode(input?: string): Uint8Array }) =>
+        (async function* () {
+          yield encoder.encode('request body');
+        })(),
+    ],
+    [
+      'a ReadableStream',
+      (encoder: { encode(input?: string): Uint8Array }) =>
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode('request body'));
+            controller.close();
+          },
+        }),
+    ],
+  ])('does not retry a request with %s', async (_description, createBody) => {
+    let attempts = 0;
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      maxRetries: 1,
+      fetch: async (_url, init: RequestInit = {}) => {
+        attempts++;
+        expect(await new Response(init.body).text()).toEqual('request body');
+        return new Response(undefined, { status: 500, headers: { 'Retry-After-Ms': '0' } });
+      },
+    });
+
+    await expect(
+      client.request({ path: '/foo', method: 'post', body: createBody(new TextEncoder()) }),
+    ).rejects.toThrow('Cannot retry a request with a streaming body');
+    expect(attempts).toEqual(1);
+  });
+
   test('retry on timeout', async () => {
     let count = 0;
     const testFetch = async (

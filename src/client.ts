@@ -1457,6 +1457,12 @@ export class BaseAnthropic {
     requestLogID: string,
     responseHeaders?: Headers | undefined,
   ): Promise<APIResponseProps> {
+    if (this.hasSingleUseBody(options.body)) {
+      throw new Errors.AnthropicError(
+        'Cannot retry a request with a streaming body. Pass a replayable body or disable retries for this request.',
+      );
+    }
+
     let timeoutMillis: number | undefined;
 
     // Note the `retry-after-ms` header may not be standard, but is a good idea and we'd like proactive support for it.
@@ -1488,6 +1494,16 @@ export class BaseAnthropic {
     await sleep(timeoutMillis);
 
     return this.makeRequest(options, retriesRemaining - 1, requestLogID);
+  }
+
+  private hasSingleUseBody(body: unknown): boolean {
+    return !!(
+      body &&
+      typeof body === 'object' &&
+      (((globalThis as any).ReadableStream && body instanceof (globalThis as any).ReadableStream) ||
+        Symbol.asyncIterator in body ||
+        (Symbol.iterator in body && 'next' in body && typeof body.next === 'function'))
+    );
   }
 
   private calculateDefaultRetryTimeoutMillis(retriesRemaining: number, maxRetries: number): number {
