@@ -603,6 +603,62 @@ describe('BetaLocalFilesystemMemoryTool', () => {
     });
   });
 
+  describe('line endings', () => {
+    const CRLF_CONTENT = 'line1\r\nline2\r\nline3\r\n';
+
+    async function writeRaw(name: string, content: string): Promise<string> {
+      const filePath = path.join(tempDir, 'memories', name);
+      await fs.writeFile(filePath, Buffer.from(content, 'utf-8'));
+      return filePath;
+    }
+
+    it('view returns CRLF line endings intact', async () => {
+      await writeRaw('crlf.txt', CRLF_CONTENT);
+
+      const result = await tool.view({ command: 'view', path: '/memories/crlf.txt' });
+
+      // view splits on '\n' only, so each numbered line keeps its trailing '\r'.
+      expect(result).toBe(
+        "Here's the content of /memories/crlf.txt with line numbers:\n" +
+          '     1\tline1\r\n' +
+          '     2\tline2\r\n' +
+          '     3\tline3\r\n' +
+          '     4\t',
+      );
+      expect(result).toContain('line1\r\n');
+      expect(result).not.toMatch(/line\d(?!\r)\n/);
+    });
+
+    it('str_replace leaves CRLF bytes on disk untouched', async () => {
+      const filePath = await writeRaw('crlf.txt', CRLF_CONTENT);
+
+      await tool.str_replace({
+        command: 'str_replace',
+        path: '/memories/crlf.txt',
+        old_str: 'line2',
+        new_str: 'LINE2',
+      });
+
+      const onDisk = await fs.readFile(filePath);
+      expect(onDisk.equals(Buffer.from('line1\r\nLINE2\r\nline3\r\n', 'utf-8'))).toBe(true);
+    });
+
+    it("insert does not rewrite the other lines' CRLF endings", async () => {
+      const filePath = await writeRaw('crlf.txt', CRLF_CONTENT);
+
+      await tool.insert({
+        command: 'insert',
+        path: '/memories/crlf.txt',
+        insert_line: 1,
+        insert_text: 'inserted',
+      });
+
+      // The inserted line is joined with '\n'; the pre-existing lines keep their '\r\n'.
+      const onDisk = await fs.readFile(filePath);
+      expect(onDisk.equals(Buffer.from('line1\r\ninserted\nline2\r\nline3\r\n', 'utf-8'))).toBe(true);
+    });
+  });
+
   describe('file permissions', () => {
     const itPosix = process.platform === 'win32' ? it.skip : it;
     let prevUmask: number;
