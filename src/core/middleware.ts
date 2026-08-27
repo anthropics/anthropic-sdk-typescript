@@ -245,11 +245,11 @@ function createMiddlewareContext(
       // Streams are single-consumer, so caching one would hand later callers
       // an already-consumed stream; every call gets a fresh clone-backed one.
       if (options?.stream && response.ok) {
-        return parseMiddlewareResponse(response, options) as Promise<T>;
+        return parseMiddlewareResponse(response, options, client) as Promise<T>;
       }
       let parsed = cache.get(response);
       if (!parsed) {
-        parsed = parseMiddlewareResponse(response, options);
+        parsed = parseMiddlewareResponse(response, options, client);
         cache.set(response, parsed);
       }
       return parsed as Promise<T>;
@@ -265,6 +265,7 @@ function createMiddlewareContext(
 async function parseMiddlewareResponse(
   response: Response,
   options: FinalRequestOptions | undefined,
+  client: BaseAnthropic | undefined,
 ): Promise<unknown> {
   if (response.bodyUsed || response.body?.locked) {
     throw new AnthropicError(
@@ -279,7 +280,7 @@ async function parseMiddlewareResponse(
     // A fresh controller rather than the request's own: aborting (or
     // `break`ing out of) the middleware's stream must not cancel the
     // in-flight request the client is still reading.
-    return Stream.fromSSEResponse(response.clone(), new AbortController());
+    return Stream.fromSSEResponse(response.clone(), new AbortController(), client);
   }
 
   // fetch refuses to read the body when the status code is 204.
