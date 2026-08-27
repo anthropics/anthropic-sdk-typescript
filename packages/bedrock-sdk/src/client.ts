@@ -89,6 +89,11 @@ export class AnthropicBedrock extends BaseAnthropic {
   /**
    * API Client for interfacing with the Anthropic Bedrock API.
    *
+   * Auth is resolved by precedence: `apiKey` constructor arg >
+   * `AWS_BEARER_TOKEN_BEDROCK` env var > explicit AWS credentials >
+   * `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` env vars > default AWS
+   * credential chain.
+   *
    * @param {string | null | undefined} [opts.awsSecretKey]
    * @param {string | null | undefined} [opts.awsAccessKey]
    * @param {string | undefined} [opts.awsRegion=process.env['AWS_REGION'] ?? us-east-1]

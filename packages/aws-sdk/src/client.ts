@@ -33,8 +33,9 @@ export interface AwsClientOptions extends ClientOptions {
    *
    * Takes precedence over AWS credential options. If neither `apiKey` nor
    * AWS credentials are provided, falls back to the `ANTHROPIC_AWS_API_KEY`
-   * environment variable, then to the default AWS credential chain. `null`
-   * is treated like `undefined` (both fallbacks still apply).
+   * environment variable, then to `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`
+   * from the environment, then to the default AWS credential chain. `null`
+   * is treated like `undefined` (all fallbacks still apply).
    */
   apiKey?: string | null | undefined;
 
@@ -61,7 +62,8 @@ export interface AwsClientOptions extends ClientOptions {
    * AWS named profile for credential and region resolution.
    *
    * When set, credentials are loaded from the AWS credential chain using this
-   * profile, and the profile's `region` from `~/.aws/config` is used as a
+   * profile (even if `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` are set in the
+   * environment), and the profile's `region` from `~/.aws/config` is used as a
    * fallback when no region is provided via arg or environment variable.
    */
   awsProfile?: string | undefined;
@@ -120,8 +122,9 @@ export class AnthropicAws extends Anthropic {
    * API Client for interfacing with the Anthropic AWS API.
    *
    * Auth is resolved by precedence: `apiKey` constructor arg > explicit AWS
-   * credentials > `awsProfile` > `ANTHROPIC_AWS_API_KEY` env var > default
-   * AWS credential chain.
+   * credentials > `awsProfile` > `ANTHROPIC_AWS_API_KEY` env var >
+   * `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` env vars > default AWS
+   * credential chain.
    *
    * @param {string | undefined} [opts.apiKey] - API key for x-api-key authentication.
    * @param {string | null | undefined} [opts.awsAccessKey] - AWS access key ID for SigV4 authentication.
