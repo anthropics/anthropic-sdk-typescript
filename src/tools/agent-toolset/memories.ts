@@ -10,8 +10,7 @@
  * it is reachable through the shimmed `node.ts` entry point.
  */
 
-import * as path from 'node:path';
-import { createHash } from 'node:crypto';
+import { crypto, path } from '../../internal/node';
 import type { Anthropic } from '../../client';
 import { AnthropicError } from '../../core/error';
 import { loggerFor, type Logger } from '../../internal/utils/log';
@@ -51,7 +50,10 @@ export const MARKER_PATH = '.anthropic-memory-store';
 const MARKER_VERSION = 1;
 
 function markerSha(memoryStoreId: string): string {
-  return createHash('sha256').update(`version ${MARKER_VERSION}\n${memoryStoreId}`, 'utf-8').digest('hex');
+  return crypto
+    .createHash('sha256')
+    .update(`version ${MARKER_VERSION}\n${memoryStoreId}`, 'utf-8')
+    .digest('hex');
 }
 
 /** How long a file must stay missing locally before its server delete goes out. */

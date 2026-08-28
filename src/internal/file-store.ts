@@ -7,13 +7,14 @@
  * scope.
  */
 
-import * as fsp from 'node:fs/promises';
-import * as path from 'node:path';
-import { constants as C } from 'node:fs';
 import type { BigIntStats, Dirent } from 'node:fs';
+import type { FileHandle } from 'node:fs/promises';
 import type * as util from 'node:util';
-import { createHash, randomBytes } from 'node:crypto';
+import { crypto, fs, path } from './node';
 import { encodeUTF8 } from './utils/bytes';
+
+const fsp = fs.promises;
+const C = fs.constants;
 
 // Owner-only regardless of umask: the store holds downloaded user/model content.
 const OWNER_ONLY_DIR_MODE = 0o700;
@@ -182,7 +183,7 @@ export class FileStore {
   /** The file's bytes; `null` when absent. */
   async get(relPath: string): Promise<Uint8Array | null> {
     const dest = this.resolveUnderRoot(relPath);
-    let handle: fsp.FileHandle;
+    let handle: FileHandle;
     try {
       handle = await openRegularFile(relPath, dest);
     } catch (e) {
@@ -388,8 +389,8 @@ async function makeDirsBelowRoot(root: string, dir: string): Promise<void> {
 
 async function replaceViaTemp(dest: string, data: Uint8Array, isExecutable: boolean): Promise<void> {
   const mode = isExecutable ? OWNER_ONLY_EXEC_MODE : OWNER_ONLY_FILE_MODE;
-  const tmp = path.join(path.dirname(dest), `.fs-${randomBytes(8).toString('hex')}.tmp`);
-  let handle: fsp.FileHandle | undefined;
+  const tmp = path.join(path.dirname(dest), `.fs-${crypto.randomBytes(8).toString('hex')}.tmp`);
+  let handle: FileHandle | undefined;
   try {
     handle = await fsp.open(tmp, C.O_WRONLY | C.O_CREAT | C.O_EXCL | O_NOFOLLOW, mode);
     await handle.writeFile(data);
@@ -404,9 +405,9 @@ async function replaceViaTemp(dest: string, data: Uint8Array, isExecutable: bool
   }
 }
 
-async function openRegularFile(relPath: string, dest: string): Promise<fsp.FileHandle> {
+async function openRegularFile(relPath: string, dest: string): Promise<FileHandle> {
   // O_NONBLOCK: a FIFO fails the fstat check below instead of blocking the open.
-  let handle: fsp.FileHandle;
+  let handle: FileHandle;
   try {
     handle = await fsp.open(dest, C.O_RDONLY | O_NOFOLLOW | O_NONBLOCK);
   } catch (e) {
@@ -429,7 +430,7 @@ async function openRegularFile(relPath: string, dest: string): Promise<fsp.FileH
 
 /** sha256 of a file's contents, streamed — constant memory on any file size. */
 async function hashFile(full: string): Promise<string> {
-  const digest = createHash('sha256');
+  const digest = crypto.createHash('sha256');
   const handle = await openRegularFile(path.basename(full), full);
   const buf = new Uint8Array(1024 * 1024);
   try {

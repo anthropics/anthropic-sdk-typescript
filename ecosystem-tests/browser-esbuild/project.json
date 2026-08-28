@@ -1,6 +1,5 @@
 {
   "description": "esbuild --platform=browser bundle (esm + iife) of the SDK, run in headless Chromium via playwright-core",
-  "knownFailure": "core/credentials + lib/credentials import node:fs|node:path outside the browser map; esbuild --platform=browser cannot resolve them",
   "requires": ["node"],
   "packageManager": "npm",
   "minNodeVersion": 20,

@@ -11,7 +11,7 @@ export function identityTokenFromFile(path: string): IdentityTokenProvider {
   }
 
   return async () => {
-    const fs = await import('node:fs');
+    const { fs } = await import('../../internal/node');
     let content: string;
     try {
       content = await fs.promises.readFile(path, 'utf-8');
