@@ -186,18 +186,16 @@ export interface BetaUserProfile {
   external_id?: string | null;
 
   /**
-   * Real-world name of the entity this profile represents (company or individual).
-   * For a resold-to company (`access_type` `passthrough`, or `relationship` `resold`
-   * under the `user-profiles-2026-03-24` header) this is that company's name.
+   * A timestamp in RFC 3339 format
    */
-  name?: string | null;
+  external_user_onboarded_at?: string | null;
 
   /**
-   * How the entity behind a user profile relates to the platform that owns the API
-   * key. `external`: an individual end-user of the platform. `resold`: a company the
-   * platform resells Claude access to. `internal`: the platform's own usage.
+   * Real-world name of the entity this profile represents (company or individual).
+   * For a company the platform resells Claude access to (`access_type`
+   * `passthrough`) this is that company's name.
    */
-  relationship?: 'external' | 'resold' | 'internal';
+  name?: string | null;
 }
 
 export interface BetaUserProfileEnrollmentURL {
@@ -241,6 +239,11 @@ export interface UserProfileCreateParams {
   external_id?: string | null;
 
   /**
+   * Body param: A timestamp in RFC 3339 format
+   */
+  external_user_onboarded_at?: string;
+
+  /**
    * Body param: Free-form key-value data to attach to this user profile. Maximum 16
    * keys, with keys up to 64 characters and values up to 512 characters. Values must
    * be non-empty strings.
@@ -249,19 +252,11 @@ export interface UserProfileCreateParams {
 
   /**
    * Body param: Optional for all profiles. Real-world name of the entity this
-   * profile represents (company or individual); for a resold-to company
-   * (`relationship` `resold` / `access_type` `passthrough`), that company's name
-   * where known. Maximum 255 characters.
+   * profile represents (company or individual); for a company the platform resells
+   * Claude access to (`access_type` `passthrough`), that company's name where known.
+   * Maximum 255 characters.
    */
   name?: string | null;
-
-  /**
-   * Body param: How the entity behind a user profile relates to the platform that
-   * owns the API key. `external`: an individual end-user of the platform. `resold`:
-   * a company the platform resells Claude access to. `internal`: the platform's own
-   * usage.
-   */
-  relationship?: 'external' | 'resold' | 'internal';
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
@@ -293,6 +288,11 @@ export interface UserProfileUpdateParams {
   external_id?: string | null;
 
   /**
+   * Body param: A timestamp in RFC 3339 format
+   */
+  external_user_onboarded_at?: string;
+
+  /**
    * Body param: Key-value pairs to merge into the stored metadata. Keys provided
    * overwrite existing values. To remove a key, set its value to an empty string.
    * Keys not provided are left unchanged. Maximum 16 keys, with keys up to 64
@@ -305,14 +305,6 @@ export interface UserProfileUpdateParams {
    * Maximum 255 characters.
    */
   name?: string | null;
-
-  /**
-   * Body param: How the entity behind a user profile relates to the platform that
-   * owns the API key. `external`: an individual end-user of the platform. `resold`:
-   * a company the platform resells Claude access to. `internal`: the platform's own
-   * usage.
-   */
-  relationship?: 'external' | 'resold' | 'internal' | null;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
