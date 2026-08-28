@@ -778,153 +778,200 @@ describe('BetaMessageStream class', () => {
     ]);
   });
 
-  it("accumulates compaction_delta events without coercing null or dropping checkpoint", async () => {
+  it('accumulates compaction_delta events without coercing null or dropping checkpoint', async () => {
     const { fetch, handleStreamEvents } = mockFetch();
 
-    const anthropic = new Anthropic({ apiKey: "test-key", fetch });
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
 
     handleStreamEvents([
       {
-        type: "message_start",
+        type: 'message_start',
         message: {
-          id: "msg_compact_01",
-          type: "message",
-          role: "assistant",
+          id: 'msg_compact_01',
+          type: 'message',
+          role: 'assistant',
           content: [],
-          model: "claude-sonnet-4-5",
+          model: 'claude-sonnet-4-5',
           stop_reason: null,
           stop_sequence: null,
           usage: { input_tokens: 10, output_tokens: 1 },
         },
       },
       {
-        type: "content_block_start",
+        type: 'content_block_start',
         index: 0,
-        content_block: { type: "compaction", content: "", encrypted_content: "" },
+        content_block: { type: 'compaction', content: '', encrypted_content: '' },
       },
       {
-        type: "content_block_delta",
+        type: 'content_block_delta',
         index: 0,
         delta: {
-          type: "compaction_delta",
-          content: "Summary part 1",
-          encrypted_content: "ck_point_1",
+          type: 'compaction_delta',
+          content: 'Summary part 1',
+          encrypted_content: 'ck_point_1',
         },
       },
       {
-        type: "content_block_delta",
+        type: 'content_block_delta',
         index: 0,
         delta: {
-          type: "compaction_delta",
-          content: " part 2",
+          type: 'compaction_delta',
+          content: ' part 2',
           encrypted_content: null,
         },
       },
       {
-        type: "content_block_delta",
+        type: 'content_block_delta',
         index: 0,
         delta: {
-          type: "compaction_delta",
+          type: 'compaction_delta',
           content: null,
-          encrypted_content: "ck_point_2",
+          encrypted_content: 'ck_point_2',
         },
       },
       {
-        type: "content_block_delta",
+        type: 'content_block_delta',
         index: 0,
         delta: {
-          type: "compaction_delta",
-          content: " part 3",
+          type: 'compaction_delta',
+          content: ' part 3',
           encrypted_content: null,
         },
       },
-      { type: "content_block_stop", index: 0 },
+      { type: 'content_block_stop', index: 0 },
       {
-        type: "message_delta",
-        delta: { stop_reason: "end_turn", stop_sequence: null },
+        type: 'message_delta',
+        delta: { stop_reason: 'end_turn', stop_sequence: null },
         usage: { output_tokens: 10 },
       },
-      { type: "message_stop" },
+      { type: 'message_stop' },
     ]);
 
     const stream = anthropic.beta.messages.stream({
       max_tokens: 1024,
-      model: "claude-sonnet-4-5",
-      messages: [{ role: "user", content: "test" }],
+      model: 'claude-sonnet-4-5',
+      messages: [{ role: 'user', content: 'test' }],
     });
 
     const finalMessage = await stream.finalMessage();
     const compactionBlock = finalMessage.content[0] as any;
-    expect(compactionBlock.content).toBe("Summary part 1 part 2 part 3");
-    expect(compactionBlock.encrypted_content).toBe("ck_point_2");
+    expect(compactionBlock.content).toBe('Summary part 1 part 2 part 3');
+    expect(compactionBlock.encrypted_content).toBe('ck_point_2');
   });
 
-  it("does not re-emit compaction for a checkpoint-only delta", async () => {
+  it('does not re-emit compaction for a checkpoint-only delta', async () => {
     const { fetch, handleStreamEvents } = mockFetch();
-    const anthropic = new Anthropic({ apiKey: "test-key", fetch });
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
 
     handleStreamEvents([
       {
-        type: "message_start",
+        type: 'message_start',
         message: {
-          id: "msg_compact_02",
-          type: "message",
-          role: "assistant",
+          id: 'msg_compact_02',
+          type: 'message',
+          role: 'assistant',
           content: [],
-          model: "claude-sonnet-4-5",
+          model: 'claude-sonnet-4-5',
           stop_reason: null,
           stop_sequence: null,
           usage: { input_tokens: 10, output_tokens: 1 },
         },
       },
       {
-        type: "content_block_start",
+        type: 'content_block_start',
         index: 0,
-        content_block: { type: "compaction", content: "", encrypted_content: "" },
+        content_block: { type: 'compaction', content: '', encrypted_content: '' },
       },
       {
-        type: "content_block_delta",
+        type: 'content_block_delta',
         index: 0,
-        delta: { type: "compaction_delta", content: "Summary part 1", encrypted_content: "ck_point_1" },
+        delta: { type: 'compaction_delta', content: 'Summary part 1', encrypted_content: 'ck_point_1' },
       },
       {
-        type: "content_block_delta",
+        type: 'content_block_delta',
         index: 0,
-        delta: { type: "compaction_delta", content: " part 2", encrypted_content: null },
+        delta: { type: 'compaction_delta', content: ' part 2', encrypted_content: null },
       },
       {
-        type: "content_block_delta",
+        type: 'content_block_delta',
         index: 0,
-        delta: { type: "compaction_delta", content: null, encrypted_content: "ck_point_2" },
+        delta: { type: 'compaction_delta', content: null, encrypted_content: 'ck_point_2' },
       },
       {
-        type: "content_block_delta",
+        type: 'content_block_delta',
         index: 0,
-        delta: { type: "compaction_delta", content: " part 3", encrypted_content: null },
+        delta: { type: 'compaction_delta', content: ' part 3', encrypted_content: null },
       },
-      { type: "content_block_stop", index: 0 },
+      { type: 'content_block_stop', index: 0 },
       {
-        type: "message_delta",
-        delta: { stop_reason: "end_turn", stop_sequence: null },
+        type: 'message_delta',
+        delta: { stop_reason: 'end_turn', stop_sequence: null },
         usage: { output_tokens: 10 },
       },
-      { type: "message_stop" },
+      { type: 'message_stop' },
     ]);
 
     const stream = anthropic.beta.messages.stream({
       max_tokens: 1024,
-      model: "claude-sonnet-4-5",
-      messages: [{ role: "user", content: "test" }],
+      model: 'claude-sonnet-4-5',
+      messages: [{ role: 'user', content: 'test' }],
     });
 
     const emitted: string[] = [];
-    stream.on("compaction", (compacted) => emitted.push(compacted));
+    stream.on('compaction', (compacted) => emitted.push(compacted));
     await stream.finalMessage();
 
-    expect(emitted).toEqual([
-      "Summary part 1",
-      "Summary part 1 part 2",
-      "Summary part 1 part 2 part 3",
+    expect(emitted).toEqual(['Summary part 1', 'Summary part 1 part 2', 'Summary part 1 part 2 part 3']);
+  });
+
+  it('compaction that starts null and only ever gets checkpoints stays null', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_probe',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-sonnet-4-5',
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { input_tokens: 10, output_tokens: 1 },
+        },
+      },
+      {
+        type: 'content_block_start',
+        index: 0,
+        content_block: { type: 'compaction', content: null, encrypted_content: 'ck_0' },
+      },
+      {
+        type: 'content_block_delta',
+        index: 0,
+        delta: { type: 'compaction_delta', content: null, encrypted_content: 'ck_1' },
+      },
+      { type: 'content_block_stop', index: 0 },
+      {
+        type: 'message_delta',
+        delta: { stop_reason: 'end_turn', stop_sequence: null },
+        usage: { output_tokens: 10 },
+      },
+      { type: 'message_stop' },
     ]);
+
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-sonnet-4-5',
+      messages: [{ role: 'user', content: 'test' }],
+    });
+    const emitted: string[] = [];
+    stream.on('compaction', (c) => emitted.push(c));
+    const block = (await stream.finalMessage()).content[0] as any;
+
+    expect(block.content).toBeNull();
+    expect(block.encrypted_content).toBe('ck_1');
+    expect(emitted).toEqual([]);
   });
 });
