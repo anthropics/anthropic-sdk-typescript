@@ -693,8 +693,11 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
             if (snapshotContent?.type === 'compaction') {
               snapshot.content[event.index] = {
                 ...snapshotContent,
-                content: (snapshotContent.content || '') + event.delta.content,
-                encrypted_content: event.delta.encrypted_content,
+                content:
+                  event.delta.content != null ?
+                    (snapshotContent.content ?? '') + event.delta.content
+                  : snapshotContent.content ?? null,
+                encrypted_content: event.delta.encrypted_content ?? snapshotContent.encrypted_content,
               };
             }
             break;
