@@ -897,6 +897,15 @@ describe('BetaMessageStream class', () => {
         },
       },
       {
+        type: 'content_block_delta',
+        index: 0,
+        delta: {
+          type: 'compaction_delta',
+          content: null,
+          encrypted_content: 'checkpoint_token_v2',
+        },
+      },
+      {
         type: 'content_block_stop',
         index: 0,
       },
@@ -928,7 +937,7 @@ describe('BetaMessageStream class', () => {
       {
         type: 'compaction',
         content: 'Part 1. Part 2.',
-        encrypted_content: 'checkpoint_token',
+        encrypted_content: 'checkpoint_token_v2',
       },
     ]);
   });

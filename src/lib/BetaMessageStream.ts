@@ -495,7 +495,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
             break;
           }
           case 'compaction_delta': {
-            if (content.type === 'compaction' && content.content) {
+            if (content.type === 'compaction' && content.content && event.delta.content !== null) {
               this._emit('compaction', content.content);
             }
             break;
