@@ -321,6 +321,27 @@ export interface BetaDreamUsage {
 }
 
 /**
+ * The `output_behavior.memory_store_id` target is still held by a prior
+ * `{type: "update_existing"}` dream — one that is `pending` or `running`, or was
+ * canceled with its final writes still landing. Rarely the named dream has just
+ * finished (`completed`/`failed`) and its execution is still closing; an immediate
+ * retry then almost always succeeds. The message names the holding dream when the
+ * server can identify it (rarely omitted); poll it to a terminal state or cancel
+ * it, then retry. Carried with `x-should-retry: false`.
+ */
+export type BetaDreamingError =
+  | BetaAPI.BetaInvalidRequestError
+  | BetaAPI.BetaAuthenticationError
+  | BetaAPI.BetaBillingError
+  | BetaAPI.BetaPermissionError
+  | BetaAPI.BetaNotFoundError
+  | BetaAPI.BetaRateLimitError
+  | BetaAPI.BetaGatewayTimeoutError
+  | BetaAPI.BetaAPIError
+  | BetaAPI.BetaOverloadedError
+  | BetaTargetStoreHeldError;
+
+/**
  * The default destination: the job creates a new output memory store as a clone of
  * the memory_store input and writes the consolidated memories into it. The input
  * store is never mutated.
@@ -345,6 +366,25 @@ export interface BetaOutputBehaviorUpdateExisting {
   memory_store_id: string;
 
   type: 'update_existing';
+}
+
+/**
+ * The `output_behavior.memory_store_id` target is still held by a prior
+ * `{type: "update_existing"}` dream — one that is `pending` or `running`, or was
+ * canceled with its final writes still landing. Rarely the named dream has just
+ * finished (`completed`/`failed`) and its execution is still closing; an immediate
+ * retry then almost always succeeds. The message names the holding dream when the
+ * server can identify it (rarely omitted); poll it to a terminal state or cancel
+ * it, then retry. Carried with `x-should-retry: false`.
+ */
+export interface BetaTargetStoreHeldError {
+  type: 'conflict_error';
+
+  /**
+   * Human-readable description of the conflict, naming the dream that holds the
+   * target store when the server can identify it.
+   */
+  message?: string;
 }
 
 export interface DreamCreateParams {
@@ -440,9 +480,11 @@ export declare namespace Dreams {
     type BetaDreamSessionsInput as BetaDreamSessionsInput,
     type BetaDreamStatus as BetaDreamStatus,
     type BetaDreamUsage as BetaDreamUsage,
+    type BetaDreamingError as BetaDreamingError,
     type BetaOutputBehavior as BetaOutputBehavior,
     type BetaOutputBehaviorCreateNew as BetaOutputBehaviorCreateNew,
     type BetaOutputBehaviorUpdateExisting as BetaOutputBehaviorUpdateExisting,
+    type BetaTargetStoreHeldError as BetaTargetStoreHeldError,
     type BetaDreamsPageCursor as BetaDreamsPageCursor,
     type DreamCreateParams as DreamCreateParams,
     type DreamRetrieveParams as DreamRetrieveParams,

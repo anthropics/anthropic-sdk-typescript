@@ -1977,7 +1977,7 @@ export interface EventListParams extends PageCursorParams {
 
   /**
    * Query param: Sort direction for results, ordered by the event's `processed_at`.
-   * Defaults to asc (chronological).
+   * Defaults to `asc` (chronological).
    */
   order?: 'asc' | 'desc';
 
