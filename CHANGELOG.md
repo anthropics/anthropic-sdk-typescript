@@ -8,6 +8,15 @@ Full Changelog: [sdk-v0.121.0...sdk-v0.122.0](https://github.com/anthropics/anth
 
 * **api:** beta files/skills namespaces use GA shapes; drop dated beta header pins ([45d693a](https://github.com/anthropics/anthropic-sdk-typescript/commit/45d693a66bc7fb1af66d9c4e3625f6d6f64bae59))
 
+  The beta Files and Skills namespaces no longer send the `files-api-2025-04-14` / `skills-2025-10-02` headers and return the same shapes as `client.files` / `client.skills` (with `Beta`-prefixed type names). Requests that still send those headers on raw HTTP keep receiving the beta shapes.
+
+  Changes in the beta namespaces:
+  - `client.beta.skills.delete()` now deletes a Skill together with all of its versions (previously refused while any version existed).
+  - Beta Messages type `BetaSkill` (container skill reference, `{type, skill_id, version}`) is renamed `BetaContainerSkill`; `BetaSkill` now names the Skills resource.
+  - `client.beta.files.list()` returns `{data, next_page}` and paginates with `page` / `ids` (was `{data, has_more, first_id, last_id}` with `before_id` / `after_id`); Skills types use `display_name`, `latest_version_id`, and `skver_…` version ids.
+
+  Migration guides: [Migrate from `files-api-2025-04-14`](https://platform.claude.com/docs/en/build-with-claude/files#migrate-from-files-api-2025-04-14) · [Migrate from `skills-2025-10-02`](https://platform.claude.com/docs/en/build-with-claude/skills-guide#migrate-from-skills-2025-10-02)
+
 
 ### Bug Fixes
 
