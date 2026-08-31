@@ -1078,10 +1078,6 @@ export interface BetaBrowserSwitchTabConfig {
 export interface BetaBrowserToolset20260801 {
   type: 'browser_toolset_20260801';
 
-  allowed_callers?: Array<
-    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
-  >;
-
   /**
    * Create a cache control breakpoint at this content block.
    */
@@ -2328,10 +2324,6 @@ export interface BetaComputerScrollConfig {
  */
 export interface BetaComputerToolset20260801 {
   type: 'computer_toolset_20260801';
-
-  allowed_callers?: Array<
-    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
-  >;
 
   /**
    * Create a cache control breakpoint at this content block.

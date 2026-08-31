@@ -614,7 +614,7 @@ export type BetaManagedAgentsMultiagentRosterEntryParams =
   | BetaManagedAgentsAdvisorParams;
 
 /**
- * Evaluation state for a single outcome defined via a define_outcome event.
+ * Evaluation state for a single outcome defined via a `define_outcome` event.
  */
 export interface BetaManagedAgentsOutcomeEvaluationResource {
   /**
@@ -628,9 +628,9 @@ export interface BetaManagedAgentsOutcomeEvaluationResource {
   description: string;
 
   /**
-   * Grader's verdict text from the most recent evaluation. For satisfied, explains
-   * why criteria are met; for needs_revision (intermediate), what's missing; for
-   * failed, why unrecoverable.
+   * Grader's verdict text from the most recent evaluation. For `satisfied`, explains
+   * why criteria are met; for `needs_revision` (intermediate), what's missing; for
+   * `failed`, why unrecoverable.
    */
   explanation: string | null;
 
@@ -702,7 +702,7 @@ export interface BetaManagedAgentsSession {
   metadata: { [key: string]: string };
 
   /**
-   * Per-outcome evaluation state. One entry per define_outcome event sent to the
+   * Per-outcome evaluation state. One entry per `define_outcome` event sent to the
    * session.
    */
   outcome_evaluations: Array<BetaManagedAgentsOutcomeEvaluationResource>;
@@ -826,7 +826,7 @@ export interface BetaManagedAgentsSessionMultiagentCoordinator {
  */
 export interface BetaManagedAgentsSessionStats {
   /**
-   * Cumulative time in seconds the session spent in running status. Excludes idle
+   * Cumulative time in seconds the session spent in `running` status. Excludes idle
    * time.
    */
   active_seconds?: number;
@@ -1173,7 +1173,7 @@ export interface SessionListParams extends BidirectionalPageCursorParams {
   agent_id?: string;
 
   /**
-   * Query param: Filter by agent version. Only applies when agent_id is also set.
+   * Query param: Filter by agent version. Only applies when `agent_id` is also set.
    */
   agent_version?: number;
 
@@ -1209,14 +1209,14 @@ export interface SessionListParams extends BidirectionalPageCursorParams {
   include_archived?: boolean;
 
   /**
-   * Query param: Filter sessions whose resources contain a memory_store with this
+   * Query param: Filter sessions whose resources contain a `memory_store` with this
    * memory store ID.
    */
   memory_store_id?: string;
 
   /**
-   * Query param: Sort direction for results, ordered by created_at. Defaults to desc
-   * (newest first).
+   * Query param: Sort direction for results, ordered by `created_at`. Defaults to
+   * `desc` (newest first).
    */
   order?: 'asc' | 'desc';
 

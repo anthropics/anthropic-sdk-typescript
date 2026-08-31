@@ -319,6 +319,11 @@ export interface UserProfileListParams extends PageCursorParams {
   order?: 'asc' | 'desc';
 
   /**
+   * Query param: Query parameter for order_by
+   */
+  order_by?: 'created_at' | 'name';
+
+  /**
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;

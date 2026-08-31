@@ -909,8 +909,9 @@ export interface DeploymentListParams extends PageCursorParams {
   include_archived?: boolean;
 
   /**
-   * Query param: Filter by status: active or paused. Omit for both. To include
-   * archived deployments, use include_archived instead; the two cannot be combined.
+   * Query param: Filter by status: `active` or `paused`. Omit for both. To include
+   * archived deployments, use `include_archived` instead; the two cannot be
+   * combined.
    */
   status?: BetaManagedAgentsDeploymentStatus;
 
