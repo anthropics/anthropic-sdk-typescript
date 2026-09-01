@@ -589,6 +589,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSignatureDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSkillParams</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaStopReason</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaSystemMessageOutputConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextCitation</a></code>
@@ -605,12 +606,15 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionViewResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionViewResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingBlockBinding</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigAdaptive</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigDisabled</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigEnabled</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingDelta</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingDroppedInputTransformation</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingPrefixMismatchBehavior</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingTurns</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTokenTaskBudget</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTool</a></code>

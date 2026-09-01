@@ -515,6 +515,7 @@ import {
   BetaSignatureDelta,
   BetaSkillParams,
   BetaStopReason,
+  BetaSystemMessageOutputConfig,
   BetaTextBlock,
   BetaTextBlockParam,
   BetaTextCitation,
@@ -531,12 +532,15 @@ import {
   BetaTextEditorCodeExecutionViewResultBlock,
   BetaTextEditorCodeExecutionViewResultBlockParam,
   BetaThinkingBlock,
+  BetaThinkingBlockBinding,
   BetaThinkingBlockParam,
   BetaThinkingConfigAdaptive,
   BetaThinkingConfigDisabled,
   BetaThinkingConfigEnabled,
   BetaThinkingConfigParam,
   BetaThinkingDelta,
+  BetaThinkingDroppedInputTransformation,
+  BetaThinkingPrefixMismatchBehavior,
   BetaThinkingTurns,
   BetaTokenTaskBudget,
   BetaTool,
@@ -753,7 +757,10 @@ export type AnthropicBeta =
   | 'structured-outputs-2025-11-13'
   | 'task-budgets-2026-03-13'
   | 'thinking-display-updates-2026-08-18'
-  | 'ce-user-management-2026-07-13';
+  | 'ce-user-management-2026-07-13'
+  | 'mid-conversation-output-config-2026-07-01'
+  | 'thinking-binding-controls-2026-08-01'
+  | 'mid-conversation-system-clear-at-2026-08-21';
 
 export interface BetaAPIError {
   message: string;
@@ -1113,6 +1120,7 @@ export declare namespace Beta {
     type BetaSignatureDelta as BetaSignatureDelta,
     type BetaSkillParams as BetaSkillParams,
     type BetaStopReason as BetaStopReason,
+    type BetaSystemMessageOutputConfig as BetaSystemMessageOutputConfig,
     type BetaTextBlock as BetaTextBlock,
     type BetaTextBlockParam as BetaTextBlockParam,
     type BetaTextCitation as BetaTextCitation,
@@ -1129,12 +1137,15 @@ export declare namespace Beta {
     type BetaTextEditorCodeExecutionViewResultBlock as BetaTextEditorCodeExecutionViewResultBlock,
     type BetaTextEditorCodeExecutionViewResultBlockParam as BetaTextEditorCodeExecutionViewResultBlockParam,
     type BetaThinkingBlock as BetaThinkingBlock,
+    type BetaThinkingBlockBinding as BetaThinkingBlockBinding,
     type BetaThinkingBlockParam as BetaThinkingBlockParam,
     type BetaThinkingConfigAdaptive as BetaThinkingConfigAdaptive,
     type BetaThinkingConfigDisabled as BetaThinkingConfigDisabled,
     type BetaThinkingConfigEnabled as BetaThinkingConfigEnabled,
     type BetaThinkingConfigParam as BetaThinkingConfigParam,
     type BetaThinkingDelta as BetaThinkingDelta,
+    type BetaThinkingDroppedInputTransformation as BetaThinkingDroppedInputTransformation,
+    type BetaThinkingPrefixMismatchBehavior as BetaThinkingPrefixMismatchBehavior,
     type BetaThinkingTurns as BetaThinkingTurns,
     type BetaTokenTaskBudget as BetaTokenTaskBudget,
     type BetaTool as BetaTool,
