@@ -26,7 +26,14 @@ describe('resource messages', () => {
   test('create: required and optional params', async () => {
     const response = await client.beta.messages.create({
       max_tokens: 1024,
-      messages: [{ content: 'Hello, world', role: 'user' }],
+      messages: [
+        {
+          content: 'Hello, world',
+          role: 'user',
+          clear_at: 'next_user_message',
+          output_config: { effort: 'low' },
+        },
+      ],
       model: 'claude-opus-5',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       container: {
@@ -99,7 +106,11 @@ describe('resource messages', () => {
         },
       ],
       temperature: 1,
-      thinking: { type: 'adaptive', display: 'summarized' },
+      thinking: {
+        type: 'adaptive',
+        block_binding: { prefix_mismatch_behavior: 'error' },
+        display: 'summarized',
+      },
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
         {
@@ -142,7 +153,14 @@ describe('resource messages', () => {
 
   test('countTokens: required and optional params', async () => {
     const response = await client.beta.messages.countTokens({
-      messages: [{ content: 'Hello, world', role: 'user' }],
+      messages: [
+        {
+          content: 'Hello, world',
+          role: 'user',
+          clear_at: 'next_user_message',
+          output_config: { effort: 'low' },
+        },
+      ],
       model: 'claude-opus-5',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       context_management: {
@@ -196,7 +214,11 @@ describe('resource messages', () => {
           ],
         },
       ],
-      thinking: { type: 'adaptive', display: 'summarized' },
+      thinking: {
+        type: 'adaptive',
+        block_binding: { prefix_mismatch_behavior: 'error' },
+        display: 'summarized',
+      },
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
         {

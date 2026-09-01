@@ -1,5 +1,10 @@
 import Anthropic, { APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
-import { Message, MessageStreamEvent } from '@anthropic-ai/sdk/resources/messages';
+import {
+  Message,
+  MessageDeltaUsage,
+  MessageStreamEvent,
+  RawMessageDeltaEvent,
+} from '@anthropic-ai/sdk/resources/messages';
 import * as partialJsonParser from '@anthropic-ai/sdk/_vendor/partial-json-parser/parser';
 import { mockFetch } from '../lib/mock-fetch';
 import { loadFixture, parseSSEFixture } from '../lib/sse-helpers';
@@ -10,6 +15,32 @@ jest.mock('@anthropic-ai/sdk/_vendor/partial-json-parser/parser', () => {
   const actual = jest.requireActual('@anthropic-ai/sdk/_vendor/partial-json-parser/parser');
   return { ...actual, partialParse: jest.fn(actual.partialParse) };
 });
+
+// tripwire: a new RawMessageDeltaEvent field must be handled in MessageStream#accumulateMessage,
+// then listed here (missing key -> required-property error, extra key -> excess-property error);
+// enforced at compile time by tsc via ./scripts/lint, not by jest
+const _accumulatedDeltaEventKeys: Record<keyof RawMessageDeltaEvent, true> = {
+  type: true,
+  delta: true,
+  usage: true,
+};
+const _accumulatedDeltaKeys: Record<keyof RawMessageDeltaEvent.Delta, true> = {
+  container: true,
+  stop_details: true,
+  stop_reason: true,
+  stop_sequence: true,
+};
+const _accumulatedDeltaUsageKeys: Record<keyof MessageDeltaUsage, true> = {
+  cache_creation_input_tokens: true,
+  cache_read_input_tokens: true,
+  input_tokens: true,
+  output_tokens: true,
+  output_tokens_details: true,
+  server_tool_use: true,
+};
+void _accumulatedDeltaEventKeys;
+void _accumulatedDeltaKeys;
+void _accumulatedDeltaUsageKeys;
 
 function assertNever(x: never): never {
   throw new Error(`unreachable: ${x}`);

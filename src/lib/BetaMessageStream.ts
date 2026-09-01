@@ -603,6 +603,10 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
           snapshot.context_management = event.context_management;
         }
 
+        if (event.input_transformations != null) {
+          snapshot.input_transformations = event.input_transformations;
+        }
+
         // The remaining usage counters are cumulative whole-message totals that are
         // omitted when they don't apply, so overwrite when present and never add.
         if (event.usage.input_tokens != null) {

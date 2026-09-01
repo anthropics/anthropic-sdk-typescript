@@ -38,16 +38,17 @@ const DEFAULT_BETAS: readonly AnthropicBeta[] = ['fallback-credit-2026-07-01'];
  * Remove `fallback` blocks replayed in history. They only parse under the
  * server-side fallback beta, which belongs to the caller-owned server-side
  * `fallbacks` feature — this middleware never sends it, so a request
- * replaying them would 400. An assistant turn left empty is dropped whole.
+ * replaying them would 400. A turn the strip leaves empty is dropped whole;
+ * a turn that was already empty is kept — it may carry other payload (e.g. a
+ * directive-only system message's `output_config`).
  */
 function stripFallbackBlocks(body: MessageCreateParams): MessageCreateParams {
-  const messages = body.messages
-    .map((message) =>
-      Array.isArray(message.content) ?
-        { ...message, content: message.content.filter((block) => block.type !== 'fallback') }
-      : message,
-    )
-    .filter((message) => !Array.isArray(message.content) || message.content.length > 0);
+  const messages = body.messages.flatMap((message) => {
+    if (!Array.isArray(message.content)) return [message];
+    const content = message.content.filter((block) => block.type !== 'fallback');
+    if (content.length === message.content.length) return [message];
+    return content.length > 0 ? [{ ...message, content }] : [];
+  });
   return { ...body, messages };
 }
 
@@ -453,6 +454,9 @@ async function* splicedEvents(
   // The refusal whose token is currently in flight — surfaced verbatim (with a
   // recommended_model added) if every fallback request fails and we degrade.
   let refusalDetails = a.refused.stopDetails;
+  // That refused hop's suppressed message_start `input_transformations`, which
+  // ride on the surfaced refusal delta (none for A: its start reached the client).
+  let refusalInputTransformations = a.refused.inputTransformations;
 
   // One `message` entry per refused hop, in order — A first. Failed hops are
   // skipped (no usage came back); the serving hop is appended as
@@ -559,6 +563,9 @@ async function* splicedEvents(
           stop_details: stopDetails,
         },
         usage: (lastUsage ?? {}) as BetaMessageDeltaUsage,
+        ...(refusalInputTransformations !== undefined && {
+          input_transformations: refusalInputTransformations,
+        }),
       });
       yield emit<BetaRawMessageStopEvent>('message_stop', { type: 'message_stop' });
       return;
@@ -580,6 +587,7 @@ async function* splicedEvents(
     // continues.
     token = b.refused.token;
     refusalDetails = b.refused.stopDetails;
+    refusalInputTransformations = b.refused.inputTransformations;
     base = continuation;
     partial = b.refused.hasPrefillClaim ? toPrefillBlocks(b.blocks) : [];
     iterations.push(toIterationUsage('message', model, b.refused.usage));
@@ -598,6 +606,12 @@ interface HopOutcome {
     usage: BetaMessageDeltaUsage;
     /** The refusal's stop_details verbatim, surfaced if the whole chain degrades. */
     stopDetails: BetaRefusalStopDetails;
+    /**
+     * A spliced hop's suppressed message_start `input_transformations`, forwarded
+     * on the surfaced refusal delta if the whole chain degrades; `undefined` for
+     * stream A (its start reached the client) or when the start had none.
+     */
+    inputTransformations: BetaMessage['input_transformations'] | undefined;
   } | null;
   /** The hop's serving model, from its message_start. */
   model: string | undefined;
@@ -615,7 +629,8 @@ interface HopOutcome {
  * spliced hop (`splice` set) has its message_start suppressed (the client
  * already saw A's), its block indices shifted by `indexBase`, and its
  * terminal message_delta's usage rewritten to the `usage.iterations`
- * chain shape.
+ * chain shape, with the suppressed message_start's `input_transformations`
+ * forwarded onto it.
  *
  * A refusal that can be chained — it carries a `fallback_credit_token` and a
  * fallback entry remains — ends the hop early: open blocks are closed, the
@@ -638,6 +653,10 @@ async function* consumeHop(args: {
   const tracker = new BlockTracker(indexBase);
   let model: string | undefined;
   let startUsage: BetaUsage | null = null;
+  // A spliced hop's message_start is suppressed, so its `input_transformations`
+  // must ride on the re-emitted terminal message_delta — the way a server-side
+  // fallback reports the serving model's list.
+  let startInputTransformations: BetaMessage['input_transformations'];
 
   for await (const sse of Stream.rawEvents(response, controller)) {
     const p = safeJSON(sse.data) as BetaRawMessageStreamEvent | undefined;
@@ -645,6 +664,7 @@ async function* consumeHop(args: {
       case 'message_start': {
         model = p.message.model;
         startUsage = p.message.usage;
+        if ('input_transformations' in p.message) startInputTransformations = p.message.input_transformations;
         if (splice) continue;
         break;
       }
@@ -687,6 +707,7 @@ async function* consumeHop(args: {
                 hasPrefillClaim: details.fallback_has_prefill_claim === true,
                 usage,
                 stopDetails: details,
+                inputTransformations: splice ? startInputTransformations : undefined,
               },
               model,
               blocks: tracker.contentBlocks(),
@@ -721,6 +742,9 @@ async function* consumeHop(args: {
             toIterationUsage('fallback_message', splice.model, usage),
           ];
           p.usage = usage;
+          if (!('input_transformations' in p) && startInputTransformations !== undefined) {
+            p.input_transformations = startInputTransformations;
+          }
           yield emit('message_delta', p);
           continue;
         }
