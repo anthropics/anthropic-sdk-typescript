@@ -146,8 +146,7 @@ export const loadConfigWithSource = async (profile?: string): Promise<LoadedConf
   }
   validateProfileName(profileName);
 
-  const fs = await import('node:fs');
-  const path = await import('node:path');
+  const { fs, path } = await import('../internal/node');
   const configPath = path.join(rootConfigPath, 'configs', `${profileName}.json`);
   let configRaw: string | null;
   try {
@@ -252,7 +251,7 @@ export const loadCredentials = async (): Promise<AnthropicCredentials | null> =>
     return null;
   }
 
-  const fs = await import('node:fs');
+  const { fs } = await import('../internal/node');
   let raw: string;
   try {
     raw = await fs.promises.readFile(credentialsPath, 'utf-8');
@@ -304,7 +303,7 @@ export const getCredentialsPath = async (
   }
   validateProfileName(profileName);
 
-  const path = await import('node:path');
+  const { path } = await import('../internal/node');
   return path.join(rootConfigPath, 'credentials', `${profileName}.json`);
 };
 
@@ -313,7 +312,7 @@ const getRootConfigPath = async (): Promise<string | null> => {
     return null;
   }
 
-  const path = await import('node:path');
+  const { path } = await import('../internal/node');
 
   // ANTHROPIC_CONFIG_DIR is treated as a trusted path: it is set by the
   // process operator, not by remote input, so it is not validated.
@@ -365,8 +364,7 @@ const getActiveProfileName = async (): Promise<string | null> => {
     return profileName;
   }
 
-  const fs = await import('node:fs');
-  const path = await import('node:path');
+  const { fs, path } = await import('../internal/node');
   const filePath = path.join(rootConfigPath, 'active_config');
   try {
     return (await fs.promises.readFile(filePath, 'utf-8')).trim() || 'default';

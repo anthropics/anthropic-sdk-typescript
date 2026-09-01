@@ -211,7 +211,11 @@ describe('betaRefusalFallbackMiddleware (streaming) — shape-B continuation', (
     // B's message_start is suppressed.
     expect(events.filter((e) => e.data.type === 'message_start')).toHaveLength(1);
     expect(events.filter((e) => e.data.type === 'message_stop')).toHaveLength(1);
-    expect(events.filter((e) => e.data.type === 'message_delta')).toHaveLength(1);
+    const deltas = events.filter((e) => e.data.type === 'message_delta');
+    expect(deltas).toHaveLength(1);
+    // B's suppressed message_start has no `input_transformations`, so the
+    // terminal delta gains none.
+    expect('input_transformations' in deltas[0]!.data).toBe(false);
   });
 
   test('usage.iterations is the 2-entry server shape, with no spurious message:undefined', async () => {
@@ -1005,6 +1009,108 @@ describe('betaRefusalFallbackMiddleware (streaming) — fallback chain', () => {
       ['message', 'claude-fable-5'],
       ['fallback_message', SECOND_MODEL],
     ]);
+  });
+});
+
+// --- input_transformations ---------------------------------------------------
+
+describe('betaRefusalFallbackMiddleware (streaming) — input_transformations', () => {
+  const B_TRANSFORMATIONS = [
+    { type: 'thinking_dropped', path: 'messages.1.content.0', reason: 'model_binding_mismatch' },
+  ];
+
+  // A serving fallback hop whose (suppressed) message_start carries its own
+  // input_transformations; `delta` optionally overrides the terminal delta's.
+  const hopServing = (delta: Record<string, unknown> = {}) =>
+    [
+      ev({
+        type: 'message_start',
+        message: {
+          id: 'msg_b',
+          type: 'message',
+          role: 'assistant',
+          model: FALLBACK_MODEL,
+          content: [],
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { input_tokens: 12, output_tokens: 1 },
+          input_transformations: B_TRANSFORMATIONS,
+        },
+      }),
+      ev({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }),
+      ev({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Served by B.' } }),
+      ev({ type: 'content_block_stop', index: 0 }),
+      ev({
+        type: 'message_delta',
+        delta: { stop_reason: 'end_turn', stop_sequence: null },
+        usage: { output_tokens: 5 },
+        ...delta,
+      }),
+      ev({ type: 'message_stop' }),
+    ].join('');
+
+  test("the spliced terminal message_delta carries the fallback hop's input_transformations", async () => {
+    const { events } = await runMiddleware({ fallbacks: FALLBACKS }, ORIGINAL_BODY, [
+      sseResponse(STREAM_A),
+      sseResponse(hopServing()),
+    ]);
+
+    // B's message_start is suppressed, so its list rides on the re-emitted
+    // terminal delta — the shape a server-side mid-stream fallback sends.
+    expect(events.filter((e) => e.data.type === 'message_start')).toHaveLength(1);
+    const deltas = events.filter((e) => e.data.type === 'message_delta');
+    expect(deltas).toHaveLength(1);
+    expect(deltas[0]!.data.delta.stop_reason).toBe('end_turn');
+    expect(deltas[0]!.data.input_transformations).toEqual(B_TRANSFORMATIONS);
+  });
+
+  test('a terminal message_delta that already carries input_transformations is left as-is', async () => {
+    const { events } = await runMiddleware({ fallbacks: FALLBACKS }, ORIGINAL_BODY, [
+      sseResponse(STREAM_A),
+      sseResponse(hopServing({ input_transformations: [] })),
+    ]);
+
+    const deltas = events.filter((e) => e.data.type === 'message_delta');
+    expect(deltas).toHaveLength(1);
+    expect(deltas[0]!.data.input_transformations).toEqual([]);
+  });
+
+  test("a degraded chain's surfaced refusal carries the spliced hop's input_transformations", async () => {
+    const onError = jest.fn();
+    // B refuses with a fresh token, then C's request fails with no entries
+    // left: B's held refusal is surfaced as the terminal, its list intact.
+    const hopRefusing = hopServing({
+      delta: {
+        stop_reason: 'refusal',
+        stop_sequence: null,
+        stop_details: {
+          type: 'refusal',
+          category: null,
+          explanation: null,
+          fallback_credit_token: 'tok_b',
+          fallback_has_prefill_claim: false,
+        },
+      },
+    });
+    const { events, requests } = await runMiddleware(
+      { fallbacks: [{ model: FALLBACK_MODEL }, { model: SECOND_MODEL }], onError },
+      ORIGINAL_BODY,
+      [
+        sseResponse(STREAM_A),
+        sseResponse(hopRefusing),
+        jsonResponse({ type: 'error', error: { type: 'api_error', message: 'down' } }, 503),
+      ],
+    );
+
+    expect(requests).toHaveLength(3);
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(events.filter((e) => e.data.type === 'message_start')).toHaveLength(1);
+    const deltas = events.filter((e) => e.data.type === 'message_delta');
+    expect(deltas).toHaveLength(1);
+    expect(deltas[0]!.data.delta.stop_reason).toBe('refusal');
+    expect(deltas[0]!.data.delta.stop_details.recommended_model).toBe(SECOND_MODEL);
+    expect(deltas[0]!.data.input_transformations).toEqual(B_TRANSFORMATIONS);
+    expect(events[events.length - 1]!.data.type).toBe('message_stop');
   });
 });
 

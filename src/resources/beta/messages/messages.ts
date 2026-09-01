@@ -1221,10 +1221,6 @@ export interface BetaBrowserSwitchTabConfig {
 export interface BetaBrowserToolset20260801 {
   type: 'browser_toolset_20260801';
 
-  allowed_callers?: Array<
-    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
-  >;
-
   /**
    * Create a cache control breakpoint at this content block.
    */
@@ -2472,10 +2468,6 @@ export interface BetaComputerScrollConfig {
 export interface BetaComputerToolset20260801 {
   type: 'computer_toolset_20260801';
 
-  allowed_callers?: Array<
-    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
-  >;
-
   /**
    * Create a cache control breakpoint at this content block.
    */
@@ -3692,6 +3684,25 @@ export interface BetaMessage {
    * `cache_creation_input_tokens`, and `cache_read_input_tokens`.
    */
   usage: BetaUsage;
+
+  /**
+   * Changes the API made to the request's input before showing it to the model: one
+   * entry per change, in request order. Today the only entry type is
+   * `thinking_dropped` — a `thinking`, `redacted_thinking` or `connector_text` block
+   * from the request's `messages` that was removed from the prompt instead of being
+   * shown to the model because it failed a binding check. More entry types may be
+   * added over time; ignore types you do not recognize.
+   *
+   * Requires `anthropic-beta: thinking-binding-controls-2026-08-01`. Present on
+   * every such response from a model that supports extended thinking, as `[]` when
+   * nothing was changed; without the beta, blocks are removed all the same but
+   * nothing is reported. Removed blocks contribute nothing to `usage.input_tokens`.
+   * When streaming, the array is final in `message_start`; the final `message_delta`
+   * event carries it only when a server-side model fallback happened mid-stream, in
+   * which case it holds the serving model's entries and replaces the one in
+   * `message_start`.
+   */
+  input_transformations?: Array<BetaThinkingDroppedInputTransformation> | null;
 }
 
 export interface BetaMessageDeltaUsage {
@@ -3809,6 +3820,25 @@ export interface BetaMessageParam {
   content: string | Array<BetaContentBlockParam>;
 
   role: 'user' | 'assistant' | 'system';
+
+  /**
+   * How long this system message's text stays in front of the model. `"never"` (the
+   * default) renders it on every request that includes it. `"next_user_message"`
+   * renders it only for the user turn it follows: once a later `role: "user"`
+   * message exists in `messages` the message stays in the array (send it unchanged)
+   * but is no longer shown to the model. Only permitted on `role: "system"`
+   * messages.
+   */
+  clear_at?: 'next_user_message' | 'never' | null;
+
+  /**
+   * Per-message output configuration on a role:"system" input message.
+   *
+   * Fields here apply per-turn; `format` remains top-level only. An empty `{}` is
+   * accepted on a message that carries content; a message with neither content nor
+   * output_config fields is rejected.
+   */
+  output_config?: BetaSystemMessageOutputConfig | null;
 }
 
 export interface BetaMessageTokensCount {
@@ -3953,6 +3983,25 @@ export interface BetaRawMessageDeltaEvent {
    * `cache_creation_input_tokens`, and `cache_read_input_tokens`.
    */
   usage: BetaMessageDeltaUsage;
+
+  /**
+   * Changes the API made to the request's input before showing it to the model: one
+   * entry per change, in request order. Today the only entry type is
+   * `thinking_dropped` — a `thinking`, `redacted_thinking` or `connector_text` block
+   * from the request's `messages` that was removed from the prompt instead of being
+   * shown to the model because it failed a binding check. More entry types may be
+   * added over time; ignore types you do not recognize.
+   *
+   * Requires `anthropic-beta: thinking-binding-controls-2026-08-01`. Present on
+   * every such response from a model that supports extended thinking, as `[]` when
+   * nothing was changed; without the beta, blocks are removed all the same but
+   * nothing is reported. Removed blocks contribute nothing to `usage.input_tokens`.
+   * When streaming, the array is final in `message_start`; the final `message_delta`
+   * event carries it only when a server-side model fallback happened mid-stream, in
+   * which case it holds the serving model's entries and replaces the one in
+   * `message_start`.
+   */
+  input_transformations?: Array<BetaThinkingDroppedInputTransformation> | null;
 }
 
 export namespace BetaRawMessageDeltaEvent {
@@ -4343,6 +4392,20 @@ export type BetaStopReason =
   | 'refusal'
   | 'model_context_window_exceeded';
 
+/**
+ * Per-message output configuration on a role:"system" input message.
+ *
+ * Fields here apply per-turn; `format` remains top-level only. An empty `{}` is
+ * accepted on a message that carries content; a message with neither content nor
+ * output_config fields is rejected.
+ */
+export interface BetaSystemMessageOutputConfig {
+  /**
+   * All possible effort levels.
+   */
+  effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | null;
+}
+
 export interface BetaTextBlock {
   /**
    * Citations supporting the text block.
@@ -4537,6 +4600,22 @@ export interface BetaThinkingBlock {
   type: 'thinking';
 }
 
+/**
+ * Controls for block binding: what happens when a thinking block this request
+ * sends back fails the conversation check. Every field is optional; an empty
+ * object means every default.
+ */
+export interface BetaThinkingBlockBinding {
+  /**
+   * What happens when a thinking block in `messages` fails the conversation check:
+   * it was created in a different conversation, or the messages before it have
+   * changed since. `"error"` (the default) fails the request with a 400 error.
+   * `"drop_block"` removes the failing blocks and the request proceeds; the model no
+   * longer sees the dropped reasoning.
+   */
+  prefix_mismatch_behavior?: BetaThinkingPrefixMismatchBehavior | null;
+}
+
 export interface BetaThinkingBlockParam {
   /**
    * The `signature` value of this thinking block, exactly as returned by the API in
@@ -4557,6 +4636,13 @@ export interface BetaThinkingBlockParam {
 
 export interface BetaThinkingConfigAdaptive {
   type: 'adaptive';
+
+  /**
+   * Controls for block binding: what happens when a thinking block this request
+   * sends back fails the conversation check. Every field is optional; an empty
+   * object means every default.
+   */
+  block_binding?: BetaThinkingBlockBinding | null;
 
   /**
    * Controls how thinking content appears in the response. When set to `summarized`,
@@ -4586,6 +4672,13 @@ export interface BetaThinkingConfigEnabled {
   budget_tokens: number;
 
   type: 'enabled';
+
+  /**
+   * Controls for block binding: what happens when a thinking block this request
+   * sends back fails the conversation check. Every field is optional; an empty
+   * object means every default.
+   */
+  block_binding?: BetaThinkingBlockBinding | null;
 
   /**
    * Controls how thinking content appears in the response. When set to `summarized`,
@@ -4634,6 +4727,50 @@ export interface BetaThinkingDelta {
 
   type: 'thinking_delta';
 }
+
+export interface BetaThinkingDroppedInputTransformation {
+  /**
+   * Where the removed block was in your request, as `messages.{i}.content.{j}`: `i`
+   * indexes the `messages` array you sent and `j` that message's `content` array —
+   * the same form error messages use.
+   */
+  path: string;
+
+  /**
+   * Which binding check removed the block: `model_binding_mismatch` — it was created
+   * by a model whose reasoning the requested model may not read;
+   * `prefix_binding_mismatch` — the conversation before it differs from the
+   * conversation it was created in (the rest of that turn's consecutive thinking
+   * blocks are removed with it, each with this reason);
+   * `organization_binding_mismatch` — it was created under a different organization
+   * (an Anthropic organization, AWS account or Google Cloud project) and this
+   * organization is not one of its additional organizations;
+   * `end_user_binding_mismatch` — it was created for a different end user, or was
+   * removed by the consumer-organization binding. A block that would fail several
+   * checks reports one reason, in this order of precedence:
+   * `organization_binding_mismatch`, `end_user_binding_mismatch`,
+   * `model_binding_mismatch`, `prefix_binding_mismatch`.
+   */
+  reason:
+    | 'model_binding_mismatch'
+    | 'prefix_binding_mismatch'
+    | 'organization_binding_mismatch'
+    | 'end_user_binding_mismatch';
+
+  /**
+   * Always `thinking_dropped` for this entry type.
+   */
+  type: 'thinking_dropped';
+}
+
+/**
+ * What happens when a thinking block in `messages` fails the conversation check:
+ * it was created in a different conversation, or the messages before it have
+ * changed since. `"error"` (the default) fails the request with a 400 error.
+ * `"drop_block"` removes the failing blocks and the request proceeds; the model no
+ * longer sees the dropped reasoning.
+ */
+export type BetaThinkingPrefixMismatchBehavior = 'error' | 'drop_block';
 
 export interface BetaThinkingTurns {
   type: 'thinking_turns';
@@ -7060,6 +7197,7 @@ export declare namespace Messages {
     type BetaSignatureDelta as BetaSignatureDelta,
     type BetaSkillParams as BetaSkillParams,
     type BetaStopReason as BetaStopReason,
+    type BetaSystemMessageOutputConfig as BetaSystemMessageOutputConfig,
     type BetaTextBlock as BetaTextBlock,
     type BetaTextBlockParam as BetaTextBlockParam,
     type BetaTextCitation as BetaTextCitation,
@@ -7076,12 +7214,15 @@ export declare namespace Messages {
     type BetaTextEditorCodeExecutionViewResultBlock as BetaTextEditorCodeExecutionViewResultBlock,
     type BetaTextEditorCodeExecutionViewResultBlockParam as BetaTextEditorCodeExecutionViewResultBlockParam,
     type BetaThinkingBlock as BetaThinkingBlock,
+    type BetaThinkingBlockBinding as BetaThinkingBlockBinding,
     type BetaThinkingBlockParam as BetaThinkingBlockParam,
     type BetaThinkingConfigAdaptive as BetaThinkingConfigAdaptive,
     type BetaThinkingConfigDisabled as BetaThinkingConfigDisabled,
     type BetaThinkingConfigEnabled as BetaThinkingConfigEnabled,
     type BetaThinkingConfigParam as BetaThinkingConfigParam,
     type BetaThinkingDelta as BetaThinkingDelta,
+    type BetaThinkingDroppedInputTransformation as BetaThinkingDroppedInputTransformation,
+    type BetaThinkingPrefixMismatchBehavior as BetaThinkingPrefixMismatchBehavior,
     type BetaThinkingTurns as BetaThinkingTurns,
     type BetaTokenTaskBudget as BetaTokenTaskBudget,
     type BetaTool as BetaTool,

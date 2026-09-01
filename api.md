@@ -603,6 +603,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSignatureDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSkillParams</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaStopReason</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaSystemMessageOutputConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextCitation</a></code>
@@ -619,12 +620,15 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionViewResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextEditorCodeExecutionViewResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingBlockBinding</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigAdaptive</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigDisabled</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigEnabled</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingDelta</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingDroppedInputTransformation</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingPrefixMismatchBehavior</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingTurns</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTokenTaskBudget</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTool</a></code>
@@ -1364,9 +1368,11 @@ Types:
 - <code><a href="./src/resources/beta/dreams.ts">BetaDreamSessionsInput</a></code>
 - <code><a href="./src/resources/beta/dreams.ts">BetaDreamStatus</a></code>
 - <code><a href="./src/resources/beta/dreams.ts">BetaDreamUsage</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaDreamingError</a></code>
 - <code><a href="./src/resources/beta/dreams.ts">BetaOutputBehavior</a></code>
 - <code><a href="./src/resources/beta/dreams.ts">BetaOutputBehaviorCreateNew</a></code>
 - <code><a href="./src/resources/beta/dreams.ts">BetaOutputBehaviorUpdateExisting</a></code>
+- <code><a href="./src/resources/beta/dreams.ts">BetaTargetStoreHeldError</a></code>
 
 Methods:
 
@@ -1630,3 +1636,18 @@ Types:
 Methods:
 
 - <code title="get /v1/organizations/rate_limits?beta=true">client.beta.organization.rateLimits.<a href="./src/resources/beta/organization/rate-limits.ts">list</a>({ ...params }) -> BetaOrganizationRateLimitsPageCursor</code>
+
+### ComplianceSettings
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/compliance-settings.ts">BetaComplianceSettings</a></code>
+- <code><a href="./src/resources/beta/organization/compliance-settings.ts">BetaComplianceSettingsStateDisabled</a></code>
+- <code><a href="./src/resources/beta/organization/compliance-settings.ts">BetaComplianceSettingsStateDisabledParam</a></code>
+- <code><a href="./src/resources/beta/organization/compliance-settings.ts">BetaComplianceSettingsStateEnabled</a></code>
+- <code><a href="./src/resources/beta/organization/compliance-settings.ts">BetaComplianceSettingsStateEnabledParam</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/compliance_settings?beta=true">client.beta.organization.complianceSettings.<a href="./src/resources/beta/organization/compliance-settings.ts">retrieve</a>() -> BetaComplianceSettings</code>
+- <code title="post /v1/organizations/compliance_settings?beta=true">client.beta.organization.complianceSettings.<a href="./src/resources/beta/organization/compliance-settings.ts">update</a>({ ...params }) -> BetaComplianceSettings</code>

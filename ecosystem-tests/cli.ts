@@ -32,6 +32,18 @@ const TARBALL = path.join(ECO, '.pack', 'anthropic-ai-sdk.tgz');
 const FAKE_API_KEY = 'ecosystem-test-key';
 // left behind by running a project in place (shared: a local copy of ../shared, see README.md)
 const NOT_COPIED = /^(node_modules|dist|shared|\.wrangler|\.yarn|\.pnp\..*)$/;
+// `pnpm test:ecosystem` exports pnpm's own settings and script context as npm_config_*/npm_* variables:
+// npm warns on every key it doesn't know, and the projects are meant to install standalone anyway.
+// A registry or userconfig set for npm itself is kept so a custom registry still applies.
+const CHILD_ENV: NodeJS.ProcessEnv = Object.fromEntries(
+  Object.entries(process.env).filter(
+    ([key]) =>
+      /^npm_config_(registry|userconfig)$/i.test(key) ||
+      !/^(npm_(config|package|lifecycle)_|pnpm_config_|(npm_command|npm_execpath|npm_node_execpath|INIT_CWD|PNPM_SCRIPT_SRC_DIR|PNPM_PACKAGE_NAME)$)/i.test(
+        key,
+      ),
+  ),
+);
 
 const useColor = !process.env['NO_COLOR'] && (process.stdout.isTTY || !!process.env['CI']);
 const paint = (code: number) => (s: string) => (useColor ? `\x1b[${code}m${s}\x1b[0m` : s);
@@ -159,7 +171,7 @@ function run(
   return new Promise<number>((resolve) => {
     const child = spawn(cmd[0]!, cmd.slice(1), {
       cwd: opts.cwd,
-      env: opts.env ?? process.env,
+      env: opts.env ?? CHILD_ENV,
       stdio: opts.capture ? ['ignore', 'pipe', 'pipe'] : ['ignore', 'inherit', 'inherit'],
     });
     child.stdout?.on('data', (d) => opts.log(String(d)));
@@ -194,6 +206,7 @@ async function buildAndPack(opts: { skipBuild: boolean; skipPack: boolean }) {
   fs.mkdirSync(packDir, { recursive: true });
   const result = spawnSync('npm', ['pack', '--json', '--pack-destination', packDir], {
     cwd: dist,
+    env: CHILD_ENV,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'inherit'],
   });
@@ -267,7 +280,7 @@ async function execute(
   // other's entries (ENOENT mid-extract, or a half-copied SDK). Each yarn run gets its own cache instead.
   const yarnCache = config.packageManager === 'yarn' ? `${dir}.yarn-cache` : undefined;
   try {
-    const env: NodeJS.ProcessEnv = { ...process.env };
+    const env: NodeJS.ProcessEnv = { ...CHILD_ENV };
     for (const key of Object.keys(env)) if (key.startsWith('ANTHROPIC_')) delete env[key];
     // ANTHROPIC_* for a zero-config `new Anthropic()`; ECOSYSTEM_TESTS_FAKE_KEY for code that must name a key
     Object.assign(env, {

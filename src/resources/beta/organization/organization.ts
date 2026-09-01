@@ -14,6 +14,16 @@ import {
   BetaAPIKeyWorkspaceScope,
   BetaAPIKeysPage,
 } from './api-keys';
+import * as ComplianceSettingsAPI from './compliance-settings';
+import {
+  BetaComplianceSettings,
+  BetaComplianceSettingsStateDisabled,
+  BetaComplianceSettingsStateDisabledParam,
+  BetaComplianceSettingsStateEnabled,
+  BetaComplianceSettingsStateEnabledParam,
+  ComplianceSettingUpdateParams,
+  ComplianceSettings,
+} from './compliance-settings';
 import * as ExternalKeysAPI from './external-keys';
 import {
   BetaAWSExternalKeyConfig,
@@ -99,6 +109,9 @@ export class Organization extends APIResource {
   users: UsersAPI.Users = new UsersAPI.Users(this._client);
   workspaces: WorkspacesAPI.Workspaces = new WorkspacesAPI.Workspaces(this._client);
   rateLimits: RateLimitsAPI.RateLimits = new RateLimitsAPI.RateLimits(this._client);
+  complianceSettings: ComplianceSettingsAPI.ComplianceSettings = new ComplianceSettingsAPI.ComplianceSettings(
+    this._client,
+  );
 
   /**
    * Retrieve information about the organization associated with the authenticated
@@ -153,6 +166,7 @@ Organization.ServiceAccounts = ServiceAccounts;
 Organization.Users = Users;
 Organization.Workspaces = Workspaces;
 Organization.RateLimits = RateLimits;
+Organization.ComplianceSettings = ComplianceSettings;
 
 export declare namespace Organization {
   export { type BetaOrganization as BetaOrganization, type BetaOrganizationRole as BetaOrganizationRole };
@@ -241,5 +255,15 @@ export declare namespace Organization {
     type BetaOrganizationRateLimitValue as BetaOrganizationRateLimitValue,
     type BetaOrganizationRateLimitsPageCursor as BetaOrganizationRateLimitsPageCursor,
     type RateLimitListParams as RateLimitListParams,
+  };
+
+  export {
+    ComplianceSettings as ComplianceSettings,
+    type BetaComplianceSettings as BetaComplianceSettings,
+    type BetaComplianceSettingsStateDisabled as BetaComplianceSettingsStateDisabled,
+    type BetaComplianceSettingsStateDisabledParam as BetaComplianceSettingsStateDisabledParam,
+    type BetaComplianceSettingsStateEnabled as BetaComplianceSettingsStateEnabled,
+    type BetaComplianceSettingsStateEnabledParam as BetaComplianceSettingsStateEnabledParam,
+    type ComplianceSettingUpdateParams as ComplianceSettingUpdateParams,
   };
 }

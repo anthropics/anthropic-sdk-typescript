@@ -1,6 +1,11 @@
 import Anthropic, { APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
 import { AnthropicError } from '@anthropic-ai/sdk/error';
-import { BetaMessage, BetaRawMessageStreamEvent } from '@anthropic-ai/sdk/resources/beta/messages';
+import {
+  BetaMessage,
+  BetaMessageDeltaUsage,
+  BetaRawMessageDeltaEvent,
+  BetaRawMessageStreamEvent,
+} from '@anthropic-ai/sdk/resources/beta/messages';
 import * as partialJsonParser from '@anthropic-ai/sdk/_vendor/partial-json-parser/parser';
 import { mockFetch } from '../lib/mock-fetch';
 import { loadFixture, parseSSEFixture } from '../lib/sse-helpers';
@@ -11,6 +16,36 @@ jest.mock('@anthropic-ai/sdk/_vendor/partial-json-parser/parser', () => {
   const actual = jest.requireActual('@anthropic-ai/sdk/_vendor/partial-json-parser/parser');
   return { ...actual, partialParse: jest.fn(actual.partialParse) };
 });
+
+// tripwire: a new BetaRawMessageDeltaEvent field must be handled in BetaMessageStream#accumulateMessage,
+// then listed here (missing key -> required-property error, extra key -> excess-property error);
+// enforced at compile time by tsc via ./scripts/lint, not by jest
+const _accumulatedDeltaEventKeys: Record<keyof BetaRawMessageDeltaEvent, true> = {
+  type: true,
+  delta: true,
+  usage: true,
+  context_management: true,
+  input_transformations: true,
+};
+const _accumulatedDeltaKeys: Record<keyof BetaRawMessageDeltaEvent.Delta, true> = {
+  container: true,
+  stop_details: true,
+  stop_reason: true,
+  stop_sequence: true,
+};
+const _accumulatedDeltaUsageKeys: Record<keyof BetaMessageDeltaUsage, true> = {
+  cache_creation_input_tokens: true,
+  cache_read_input_tokens: true,
+  fallback_credit: true,
+  input_tokens: true,
+  iterations: true,
+  output_tokens: true,
+  output_tokens_details: true,
+  server_tool_use: true,
+};
+void _accumulatedDeltaEventKeys;
+void _accumulatedDeltaKeys;
+void _accumulatedDeltaUsageKeys;
 
 const EXPECTED_BASIC_MESSAGE = {
   id: 'msg_4QpJur2dWWDjF6C758FbBw5vm12BaVipnK',
@@ -716,6 +751,146 @@ describe('BetaMessageStream class', () => {
       output_tokens: 99,
       service_tier: 'standard',
     });
+  });
+
+  it('replaces input_transformations with the list from message_delta', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_beta_delta_03',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-8',
+          stop_reason: null,
+          stop_sequence: null,
+          input_transformations: [
+            { type: 'thinking_dropped', path: 'messages.2.content.0', reason: 'prefix_binding_mismatch' },
+          ],
+          usage: { input_tokens: 10, output_tokens: 1 },
+        },
+      },
+      { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+      { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Done.' } },
+      { type: 'content_block_stop', index: 0 },
+      {
+        type: 'message_delta',
+        input_transformations: [
+          { type: 'thinking_dropped', path: 'messages.1.content.0', reason: 'model_binding_mismatch' },
+        ],
+        delta: { stop_reason: 'end_turn', stop_sequence: null, stop_details: null },
+        usage: { output_tokens: 5 },
+      },
+      { type: 'message_stop' },
+    ]);
+
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'Hello.' }],
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(finalMessage.input_transformations).toEqual([
+      { type: 'thinking_dropped', path: 'messages.1.content.0', reason: 'model_binding_mismatch' },
+    ]);
+  });
+
+  it('clears input_transformations when message_delta sends an empty list', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_beta_delta_05',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-8',
+          stop_reason: null,
+          stop_sequence: null,
+          input_transformations: [
+            { type: 'thinking_dropped', path: 'messages.1.content.0', reason: 'prefix_binding_mismatch' },
+          ],
+          usage: { input_tokens: 10, output_tokens: 1 },
+        },
+      },
+      { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+      { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Done.' } },
+      { type: 'content_block_stop', index: 0 },
+      {
+        type: 'message_delta',
+        input_transformations: [],
+        delta: { stop_reason: 'end_turn', stop_sequence: null, stop_details: null },
+        usage: { output_tokens: 5 },
+      },
+      { type: 'message_stop' },
+    ]);
+
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'Hello.' }],
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(finalMessage.input_transformations).toEqual([]);
+  });
+
+  it('keeps input_transformations from message_start when message_delta omits them', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_beta_delta_04',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-8',
+          stop_reason: null,
+          stop_sequence: null,
+          input_transformations: [
+            { type: 'thinking_dropped', path: 'messages.1.content.0', reason: 'prefix_binding_mismatch' },
+          ],
+          usage: { input_tokens: 10, output_tokens: 1 },
+        },
+      },
+      { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+      { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Done.' } },
+      { type: 'content_block_stop', index: 0 },
+      {
+        type: 'message_delta',
+        delta: { stop_reason: 'end_turn', stop_sequence: null, stop_details: null },
+        usage: { output_tokens: 5 },
+      },
+      { type: 'message_stop' },
+    ]);
+
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'Hello.' }],
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(finalMessage.input_transformations).toEqual([
+      { type: 'thinking_dropped', path: 'messages.1.content.0', reason: 'prefix_binding_mismatch' },
+    ]);
   });
 
   it('relabels the snapshot model from fallback content blocks', async () => {

@@ -240,7 +240,7 @@ function cachedExchangeProvider(
   onSafetyWarning: ((msg: string) => void) | undefined,
 ): AccessTokenProvider {
   return async (opts) => {
-    const fs = await import('node:fs');
+    const { fs } = await import('../../internal/node');
 
     await checkCredentialsFileSafety(credentialsPath, onSafetyWarning);
 

@@ -130,8 +130,8 @@ export interface BetaManagedAgentsDeploymentRun {
     | null;
 
   /**
-   * Populated on success. Null on creation failure. Exactly one of session_id or
-   * error is non-null.
+   * Populated on success. Null on creation failure. Exactly one of `session_id` or
+   * `error` is non-null.
    */
   session_id: string | null;
 
@@ -389,14 +389,14 @@ export interface DeploymentRunListParams extends PageCursorParams {
 
   /**
    * Query param: Filter to a specific deployment. Omit to list across all
-   * deployments in the workspace. Filtering by a non-existent deployment_id returns
-   * 200 with empty data.
+   * deployments in the workspace. Filtering by a non-existent `deployment_id`
+   * returns 200 with empty data.
    */
   deployment_id?: string;
 
   /**
-   * Query param: Filter: true for runs with non-null error, false for runs with
-   * non-null session_id. Omit for all.
+   * Query param: Filter: true for runs with non-null `error`, false for runs with
+   * non-null `session_id`. Omit for all.
    */
   has_error?: boolean;
 

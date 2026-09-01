@@ -70,6 +70,7 @@ describe('resource userProfiles', () => {
         {
           limit: 0,
           order: 'asc',
+          order_by: 'created_at',
           page: 'page',
           betas: ['message-batches-2024-09-24'],
         },

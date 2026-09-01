@@ -170,7 +170,7 @@ export async function checkCredentialsFileSafety(
   onWarn: (msg: string) => void = (m) => console.warn(`anthropic-sdk: ${m}`),
 ): Promise<void> {
   if (typeof process === 'undefined' || process.platform === 'win32') return;
-  const fs = await import('node:fs');
+  const { fs } = await import('../../internal/node');
   let resolved = path;
   let st;
   try {
@@ -208,8 +208,7 @@ export async function checkCredentialsFileSafety(
  * Creates the parent directory with mode 0700 and the file with mode 0600.
  */
 export async function writeCredentialsFileAtomic(targetPath: string, data: unknown): Promise<void> {
-  const fs = await import('node:fs');
-  const path = await import('node:path');
+  const { fs, path } = await import('../../internal/node');
   const dir = path.dirname(targetPath);
   await fs.promises.mkdir(dir, { recursive: true, mode: 0o700 });
   // Unique temp name avoids two concurrent writers (different processes or

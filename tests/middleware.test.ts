@@ -2004,6 +2004,43 @@ describe('betaRefusalFallbackMiddleware', () => {
     expect(fallbackState.index).toBeUndefined();
   });
 
+  test('strips replayed fallback blocks, dropping only the turns the strip empties', async () => {
+    const { client, bodies } = makeClient(
+      [message('primary-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    const fallbackBlock = {
+      type: 'fallback' as const,
+      from: { model: 'primary-model' },
+      to: { model: 'fallback-model' },
+      trigger: { type: 'refusal' as const, category: null },
+    };
+    await client.beta.messages.create({
+      ...params,
+      messages: [
+        // directive-only system turn: already-empty content must survive
+        { role: 'system', content: [], output_config: { effort: 'high' } },
+        { role: 'user', content: 'hi' },
+        // emptied by the strip: dropped whole
+        { role: 'assistant', content: [fallbackBlock] },
+        { role: 'user', content: [{ type: 'text', text: 'again' }] },
+        // partially stripped: kept without the fallback block
+        { role: 'assistant', content: [fallbackBlock, { type: 'text', text: 'ok' }] },
+        { role: 'user', content: 'more' },
+      ],
+    });
+
+    expect(bodies).toHaveLength(1);
+    expect(bodies[0]!['messages']).toEqual([
+      { role: 'system', content: [], output_config: { effort: 'high' } },
+      { role: 'user', content: 'hi' },
+      { role: 'user', content: [{ type: 'text', text: 'again' }] },
+      { role: 'assistant', content: [{ type: 'text', text: 'ok' }] },
+      { role: 'user', content: 'more' },
+    ]);
+  });
+
   test('throws when the request carries a server-side fallbacks param', async () => {
     const { client, bodies } = makeClient(
       [message('primary-model')],

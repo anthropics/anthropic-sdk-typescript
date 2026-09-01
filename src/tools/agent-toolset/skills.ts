@@ -5,19 +5,14 @@
  * `node.ts` — distinct enough, and large enough, to review on its own.
  */
 
-import * as fs from 'node:fs/promises';
-import * as fssync from 'node:fs';
-import * as path from 'node:path';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
-import { Readable } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
+import { child_process, fs as fssync, path, stream, util } from '../../internal/node';
 import { AnthropicError } from '../../core/error';
 import { loggerFor } from '../../internal/utils/log';
 import { DIR_CREATE_MODE, errnoCode } from './fs-util';
 import type { AgentToolContext } from './node';
 
-const execFileAsync = promisify(execFile);
+const fs = fssync.promises;
+const execFileAsync = util.promisify(child_process.execFile);
 
 /**
  * Download the session agent's skills into `{ctx.workdir}/skills/<name>/`.
@@ -265,8 +260,8 @@ export async function extractSkillArchive(resp: Response, dest: string): Promise
   if (!resp.body) {
     throw new AnthropicError('skill download response had no body');
   }
-  await pipeline(
-    Readable.fromWeb(resp.body as Parameters<typeof Readable.fromWeb>[0]),
+  await stream.promises.pipeline(
+    stream.Readable.fromWeb(resp.body as Parameters<typeof stream.Readable.fromWeb>[0]),
     fssync.createWriteStream(tmp),
   );
   const stage = path.join(path.dirname(dest), `.skill-stage-${process.pid}-${Date.now()}`);

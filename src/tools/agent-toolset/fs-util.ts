@@ -5,10 +5,11 @@
  * and these helpers can be reused by every file tool.
  */
 
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
-import { randomUUID } from 'node:crypto';
+import type { FileHandle } from 'node:fs/promises';
+import { crypto, fs as nodefs, path } from '../../internal/node';
 import { ToolError } from '../../lib/tools/ToolError';
+
+const fs = nodefs.promises;
 
 /** Mode for directories the file tools create — not world-writable under a 0 umask. */
 export const DIR_CREATE_MODE = 0o755;
@@ -140,8 +141,8 @@ export async function confineToRoot(
  */
 export async function atomicWriteFile(targetPath: string, content: string): Promise<void> {
   const dir = path.dirname(targetPath);
-  const tempPath = path.join(dir, `.tmp-${process.pid}-${randomUUID()}`);
-  let handle: fs.FileHandle | undefined;
+  const tempPath = path.join(dir, `.tmp-${process.pid}-${crypto.randomUUID()}`);
+  let handle: FileHandle | undefined;
   try {
     handle = await fs.open(tempPath, 'wx', FILE_CREATE_MODE);
     await handle.writeFile(content, 'utf-8');

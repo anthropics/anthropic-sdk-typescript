@@ -36,7 +36,7 @@ export type UserOAuthConfig = {
  */
 export function userOAuthProvider(config: UserOAuthConfig): AccessTokenProvider {
   return async (opts) => {
-    const fs = await import('node:fs');
+    const { fs } = await import('../../internal/node');
 
     await checkCredentialsFileSafety(config.credentialsPath, config.onSafetyWarning);
 

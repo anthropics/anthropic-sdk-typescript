@@ -949,10 +949,6 @@ export interface BrowserSwitchTabConfig {
 export interface BrowserToolset20260801 {
   type: 'browser_toolset_20260801';
 
-  allowed_callers?: Array<
-    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
-  >;
-
   /**
    * Create a cache control breakpoint at this content block.
    */
@@ -1960,10 +1956,6 @@ export interface ComputerScrollConfig {
 export interface ComputerToolset20260801 {
   type: 'computer_toolset_20260801';
 
-  allowed_callers?: Array<
-    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
-  >;
-
   /**
    * Create a cache control breakpoint at this content block.
    */
@@ -2664,6 +2656,8 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
+  | 'claude-fable-5-1'
+  | 'claude-mythos-5-1'
   | 'claude-sonnet-5'
   | 'claude-fable-5'
   | 'claude-mythos-5'

@@ -58,6 +58,7 @@ TEST_PATHS=(
 	tests/api-resources/beta/organization/workspaces/members.test.ts
 	tests/api-resources/beta/organization/workspaces/service-accounts.test.ts
 	tests/api-resources/beta/organization/rate-limits.test.ts
+	tests/api-resources/beta/organization/compliance-settings.test.ts
 	tests/index.test.ts
 )
 
