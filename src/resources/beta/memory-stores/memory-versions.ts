@@ -121,7 +121,7 @@ export type BetaManagedAgentsMemoryVersionsPageCursor = PageCursor<BetaManagedAg
  * the `memory_version` row. The API key that created a session is not recorded on
  * agent writes; attribution answers who made the write, not who is ultimately
  * responsible. Look up session provenance separately via the
- * [Sessions API](/en/api/sessions-retrieve).
+ * [Sessions API](/en/api/beta/sessions/retrieve).
  */
 export type BetaManagedAgentsActor =
   | BetaManagedAgentsSessionActor
@@ -210,7 +210,7 @@ export interface BetaManagedAgentsMemoryVersion {
    * the `memory_version` row. The API key that created a session is not recorded on
    * agent writes; attribution answers who made the write, not who is ultimately
    * responsible. Look up session provenance separately via the
-   * [Sessions API](/en/api/sessions-retrieve).
+   * [Sessions API](/en/api/beta/sessions/retrieve).
    */
   created_by?: BetaManagedAgentsActor;
 
@@ -230,7 +230,7 @@ export interface BetaManagedAgentsMemoryVersion {
    * the `memory_version` row. The API key that created a session is not recorded on
    * agent writes; attribution answers who made the write, not who is ultimately
    * responsible. Look up session provenance separately via the
-   * [Sessions API](/en/api/sessions-retrieve).
+   * [Sessions API](/en/api/beta/sessions/retrieve).
    */
   redacted_by?: BetaManagedAgentsActor;
 }
@@ -261,7 +261,7 @@ export interface BetaManagedAgentsServiceAccountActor {
 export interface BetaManagedAgentsSessionActor {
   /**
    * ID of the session that performed the write (a `sesn_...` value). Look up the
-   * session via [Retrieve a session](/en/api/sessions-retrieve) for further
+   * session via [Retrieve a session](/en/api/beta/sessions/retrieve) for further
    * provenance.
    */
   session_id: string;
