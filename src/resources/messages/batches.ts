@@ -209,9 +209,9 @@ export class Batches extends APIResource {
       );
     }
 
+    const { workspace_id } = params ?? {};
     return this._client
       .get(batch.results_url, {
-        ...options,
         ...options,
         headers: buildHeaders([
           {

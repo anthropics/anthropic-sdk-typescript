@@ -238,6 +238,7 @@ export class Batches extends APIResource {
           {
             'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
             Accept: 'application/binary',
+            ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
           },
           options?.headers,
         ]),

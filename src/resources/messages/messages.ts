@@ -73,11 +73,11 @@ export class Messages extends APIResource {
     options?: RequestOptions,
   ): APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>> {
     const { user_profile_id, workspace_id, ...body } = params;
-    return this._client.post('/v1/messages', {
-      body,
-      timeout: timeout ?? 600000,
-      ...options,
-      headers: buildHeaders([
+    if (body.model in DEPRECATED_MODELS) {
+      console.warn(
+        `The model '${body.model}' is deprecated and will reach end-of-life on ${
+          DEPRECATED_MODELS[body.model]
+        }\nPlease migrate to a newer model. Visit https://docs.anthropic.com/en/docs/resources/model-deprecations for more information.`,
       );
     }
     if (

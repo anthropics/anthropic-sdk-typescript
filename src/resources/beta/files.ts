@@ -152,6 +152,7 @@ export class Files extends APIResource {
               ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
               ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
             },
+            stainlessHelperHeaderFromFile(body.file),
             options?.headers,
           ]),
         },
