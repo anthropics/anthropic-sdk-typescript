@@ -30,6 +30,9 @@ export {
   type DeletedFile,
   type FileMetadata,
   type FileListParams,
+  type FileDeleteParams,
+  type FileDownloadParams,
+  type FileRetrieveMetadataParams,
   type FileUploadParams,
   type FileMetadataPageCursor,
 } from './files';
@@ -286,6 +289,8 @@ export {
   type Skill,
   type SkillSource,
   type SkillCreateParams,
+  type SkillRetrieveParams,
   type SkillListParams,
+  type SkillDeleteParams,
   type SkillsPageCursor,
 } from './skills/skills';

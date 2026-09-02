@@ -42,7 +42,7 @@ export class Batches extends APIResource {
    * ```
    */
   create(params: BatchCreateParams, options?: RequestOptions): APIPromise<BetaMessageBatch> {
-    const { betas, user_profile_id, ...body } = params;
+    const { betas, user_profile_id, workspace_id, ...body } = params;
     return this._client.post('/v1/messages/batches?beta=true', {
       body,
       ...options,
@@ -50,6 +50,7 @@ export class Batches extends APIResource {
         {
           'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
           ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
         },
         options?.headers,
       ]),
@@ -77,11 +78,14 @@ export class Batches extends APIResource {
     params: BatchRetrieveParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<BetaMessageBatch> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.get(path`/v1/messages/batches/${messageBatchID}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -106,12 +110,15 @@ export class Batches extends APIResource {
     params: BatchListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaMessageBatchesPage, BetaMessageBatch> {
-    const { betas, ...query } = params ?? {};
+    const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList('/v1/messages/batches?beta=true', Page<BetaMessageBatch>, {
       query,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -139,11 +146,14 @@ export class Batches extends APIResource {
     params: BatchDeleteParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<BetaDeletedMessageBatch> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.delete(path`/v1/messages/batches/${messageBatchID}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -176,11 +186,14 @@ export class Batches extends APIResource {
     params: BatchCancelParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<BetaMessageBatch> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -209,7 +222,7 @@ export class Batches extends APIResource {
     params: BatchResultsParams | undefined = {},
     options?: RequestOptions,
   ): APIPromise<JSONLDecoder<BetaMessageBatchIndividualResponse>> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client
       .get(path`/v1/messages/batches/${messageBatchID}/results?beta=true`, {
         ...options,
@@ -217,6 +230,7 @@ export class Batches extends APIResource {
           {
             'anthropic-beta': [...(betas ?? []), 'message-batches-2024-09-24'].toString(),
             Accept: 'application/x-jsonl',
+            ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
           },
           options?.headers,
         ]),
@@ -428,6 +442,16 @@ export interface BatchCreateParams {
    * is errored.
    */
   user_profile_id?: string;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export namespace BatchCreateParams {
@@ -814,6 +838,16 @@ export interface BatchRetrieveParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface BatchListParams extends PageParams {
@@ -821,6 +855,16 @@ export interface BatchListParams extends PageParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface BatchDeleteParams {
@@ -828,6 +872,16 @@ export interface BatchDeleteParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface BatchCancelParams {
@@ -835,6 +889,16 @@ export interface BatchCancelParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface BatchResultsParams {
@@ -842,6 +906,16 @@ export interface BatchResultsParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export declare namespace Batches {

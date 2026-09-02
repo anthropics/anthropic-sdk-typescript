@@ -92,6 +92,7 @@ describe('resource messages', () => {
       top_k: 5,
       top_p: 0.7,
       user_profile_id: 'anthropic-user-profile-id',
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -159,6 +160,7 @@ describe('resource messages', () => {
         },
       ],
       user_profile_id: 'anthropic-user-profile-id',
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 });

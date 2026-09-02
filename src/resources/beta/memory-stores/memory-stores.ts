@@ -61,12 +61,15 @@ export class MemoryStores extends APIResource {
     params: MemoryStoreCreateParams,
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsMemoryStore> {
-    const { betas, ...body } = params;
+    const { betas, workspace_id, ...body } = params;
     return this._client.post('/v1/memory_stores?beta=true', {
       body,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -88,11 +91,14 @@ export class MemoryStores extends APIResource {
     params: MemoryStoreRetrieveParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsMemoryStore> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.get(path`/v1/memory_stores/${memoryStoreID}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -112,12 +118,15 @@ export class MemoryStores extends APIResource {
     params: MemoryStoreUpdateParams,
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsMemoryStore> {
-    const { betas, ...body } = params;
+    const { betas, workspace_id, ...body } = params;
     return this._client.post(path`/v1/memory_stores/${memoryStoreID}?beta=true`, {
       body,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -138,12 +147,15 @@ export class MemoryStores extends APIResource {
     params: MemoryStoreListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaManagedAgentsMemoryStoresPageCursor, BetaManagedAgentsMemoryStore> {
-    const { betas, ...query } = params ?? {};
+    const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList('/v1/memory_stores?beta=true', PageCursor<BetaManagedAgentsMemoryStore>, {
       query,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -163,11 +175,14 @@ export class MemoryStores extends APIResource {
     params: MemoryStoreDeleteParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeletedMemoryStore> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.delete(path`/v1/memory_stores/${memoryStoreID}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -187,11 +202,14 @@ export class MemoryStores extends APIResource {
     params: MemoryStoreArchiveParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsMemoryStore> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.post(path`/v1/memory_stores/${memoryStoreID}/archive?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -291,6 +309,16 @@ export interface MemoryStoreCreateParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface MemoryStoreRetrieveParams {
@@ -298,6 +326,16 @@ export interface MemoryStoreRetrieveParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface MemoryStoreUpdateParams {
@@ -325,6 +363,16 @@ export interface MemoryStoreUpdateParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface MemoryStoreListParams extends PageCursorParams {
@@ -350,6 +398,16 @@ export interface MemoryStoreListParams extends PageCursorParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface MemoryStoreDeleteParams {
@@ -357,6 +415,16 @@ export interface MemoryStoreDeleteParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface MemoryStoreArchiveParams {
@@ -364,6 +432,16 @@ export interface MemoryStoreArchiveParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 MemoryStores.Memories = Memories;

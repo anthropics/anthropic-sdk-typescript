@@ -4,6 +4,7 @@ import { APIResource } from '../../core/resource';
 import { APIPromise } from '../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagination';
 import { type Uploadable } from '../../core/uploads';
+import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
 import { multipartFormRequestOptions } from '../../internal/uploads';
 import { path } from '../../internal/utils/path';
@@ -11,50 +12,112 @@ import { path } from '../../internal/utils/path';
 export class Versions extends APIResource {
   /**
    * Create Skill Version
+   *
+   * @example
+   * ```ts
+   * const skillVersion = await client.skills.versions.create(
+   *   'skill_id',
+   *   { files: [fs.createReadStream('path/to/file')] },
+   * );
+   * ```
    */
-  create(skillID: string, body: VersionCreateParams, options?: RequestOptions): APIPromise<SkillVersion> {
+  create(skillID: string, params: VersionCreateParams, options?: RequestOptions): APIPromise<SkillVersion> {
+    const { workspace_id, ...body } = params;
     return this._client.post(
       path`/v1/skills/${skillID}/versions`,
-      multipartFormRequestOptions({ body, ...options }, this._client),
+      multipartFormRequestOptions(
+        {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
+            options?.headers,
+          ]),
+        },
+        this._client,
+      ),
     );
   }
 
   /**
    * Get Skill Version
+   *
+   * @example
+   * ```ts
+   * const skillVersion = await client.skills.versions.retrieve(
+   *   'version',
+   *   { skill_id: 'skill_id' },
+   * );
+   * ```
    */
   retrieve(
     version: string,
     params: VersionRetrieveParams,
     options?: RequestOptions,
   ): APIPromise<SkillVersion> {
-    const { skill_id } = params;
-    return this._client.get(path`/v1/skills/${skill_id}/versions/${version}`, options);
+    const { skill_id, workspace_id } = params;
+    return this._client.get(path`/v1/skills/${skill_id}/versions/${version}`, {
+      ...options,
+      headers: buildHeaders([
+        { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
    * List Skill Versions
+   *
+   * @example
+   * ```ts
+   * // Automatically fetches more pages as needed.
+   * for await (const skillVersion of client.skills.versions.list(
+   *   'skill_id',
+   * )) {
+   *   // ...
+   * }
+   * ```
    */
   list(
     skillID: string,
-    query: VersionListParams | null | undefined = {},
+    params: VersionListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<SkillVersionsPageCursor, SkillVersion> {
+    const { workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(path`/v1/skills/${skillID}/versions`, PageCursor<SkillVersion>, {
       query,
       ...options,
+      headers: buildHeaders([
+        { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
+        options?.headers,
+      ]),
     });
   }
 
   /**
    * Delete Skill Version
+   *
+   * @example
+   * ```ts
+   * const deletedSkillVersion =
+   *   await client.skills.versions.delete('version', {
+   *     skill_id: 'skill_id',
+   *   });
+   * ```
    */
   delete(
     version: string,
     params: VersionDeleteParams,
     options?: RequestOptions,
   ): APIPromise<DeletedSkillVersion> {
-    const { skill_id } = params;
-    return this._client.delete(path`/v1/skills/${skill_id}/versions/${version}`, options);
+    const { skill_id, workspace_id } = params;
+    return this._client.delete(path`/v1/skills/${skill_id}/versions/${version}`, {
+      ...options,
+      headers: buildHeaders([
+        { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 }
 
@@ -119,32 +182,72 @@ export interface SkillVersion {
 
 export interface VersionCreateParams {
   /**
-   * Files to upload for the skill.
+   * Body param: Files to upload for the skill.
    *
    * All files must be in the same top-level directory and must include a SKILL.md
    * file at the root of that directory.
    */
   files: Array<Uploadable>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface VersionRetrieveParams {
   /**
-   * Unique identifier for the skill.
+   * Path param: Unique identifier for the skill.
    *
    * The format and length of IDs may change over time.
    */
   skill_id: string;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
-export interface VersionListParams extends PageCursorParams {}
+export interface VersionListParams extends PageCursorParams {
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
+}
 
 export interface VersionDeleteParams {
   /**
-   * Unique identifier for the skill.
+   * Path param: Unique identifier for the skill.
    *
    * The format and length of IDs may change over time.
    */
   skill_id: string;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export declare namespace Versions {

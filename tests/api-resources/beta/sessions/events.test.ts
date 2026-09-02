@@ -36,6 +36,7 @@ describe('resource events', () => {
           page: 'page',
           types: ['string'],
           betas: ['message-batches-2024-09-24'],
+          workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -59,6 +60,7 @@ describe('resource events', () => {
     const response = await client.beta.sessions.events.send('sesn_011CZkZAtmR3yMPDzynEDxu7', {
       events: [{ content: [{ text: 'Where is my order #1234?', type: 'text' }], type: 'user.message' }],
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -78,7 +80,11 @@ describe('resource events', () => {
     await expect(
       client.beta.sessions.events.stream(
         'sesn_011CZkZAtmR3yMPDzynEDxu7',
-        { event_deltas: ['agent.message'], betas: ['message-batches-2024-09-24'] },
+        {
+          event_deltas: ['agent.message'],
+          betas: ['message-batches-2024-09-24'],
+          workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
+        },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

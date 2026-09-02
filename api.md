@@ -269,11 +269,11 @@ Types:
 Methods:
 
 - <code title="post /v1/messages/batches">client.messages.batches.<a href="./src/resources/messages/batches.ts">create</a>({ ...params }) -> MessageBatch</code>
-- <code title="get /v1/messages/batches/{message_batch_id}">client.messages.batches.<a href="./src/resources/messages/batches.ts">retrieve</a>(messageBatchID) -> MessageBatch</code>
+- <code title="get /v1/messages/batches/{message_batch_id}">client.messages.batches.<a href="./src/resources/messages/batches.ts">retrieve</a>(messageBatchID, { ...params }) -> MessageBatch</code>
 - <code title="get /v1/messages/batches">client.messages.batches.<a href="./src/resources/messages/batches.ts">list</a>({ ...params }) -> MessageBatchesPage</code>
-- <code title="delete /v1/messages/batches/{message_batch_id}">client.messages.batches.<a href="./src/resources/messages/batches.ts">delete</a>(messageBatchID) -> DeletedMessageBatch</code>
-- <code title="post /v1/messages/batches/{message_batch_id}/cancel">client.messages.batches.<a href="./src/resources/messages/batches.ts">cancel</a>(messageBatchID) -> MessageBatch</code>
-- <code title="get /v1/messages/batches/{message_batch_id}/results">client.messages.batches.<a href="./src/resources/messages/batches.ts">results</a>(messageBatchID) -> MessageBatchIndividualResponse</code>
+- <code title="delete /v1/messages/batches/{message_batch_id}">client.messages.batches.<a href="./src/resources/messages/batches.ts">delete</a>(messageBatchID, { ...params }) -> DeletedMessageBatch</code>
+- <code title="post /v1/messages/batches/{message_batch_id}/cancel">client.messages.batches.<a href="./src/resources/messages/batches.ts">cancel</a>(messageBatchID, { ...params }) -> MessageBatch</code>
+- <code title="get /v1/messages/batches/{message_batch_id}/results">client.messages.batches.<a href="./src/resources/messages/batches.ts">results</a>(messageBatchID, { ...params }) -> MessageBatchIndividualResponse</code>
 
 # Models
 
@@ -302,9 +302,9 @@ Types:
 Methods:
 
 - <code title="get /v1/files">client.files.<a href="./src/resources/files.ts">list</a>({ ...params }) -> FileMetadataPageCursor</code>
-- <code title="delete /v1/files/{file_id}">client.files.<a href="./src/resources/files.ts">delete</a>(fileID) -> DeletedFile</code>
-- <code title="get /v1/files/{file_id}/content">client.files.<a href="./src/resources/files.ts">download</a>(fileID) -> Response</code>
-- <code title="get /v1/files/{file_id}">client.files.<a href="./src/resources/files.ts">retrieveMetadata</a>(fileID) -> FileMetadata</code>
+- <code title="delete /v1/files/{file_id}">client.files.<a href="./src/resources/files.ts">delete</a>(fileID, { ...params }) -> DeletedFile</code>
+- <code title="get /v1/files/{file_id}/content">client.files.<a href="./src/resources/files.ts">download</a>(fileID, { ...params }) -> Response</code>
+- <code title="get /v1/files/{file_id}">client.files.<a href="./src/resources/files.ts">retrieveMetadata</a>(fileID, { ...params }) -> FileMetadata</code>
 - <code title="post /v1/files">client.files.<a href="./src/resources/files.ts">upload</a>({ ...params }) -> FileMetadata</code>
 
 # Skills
@@ -318,9 +318,9 @@ Types:
 Methods:
 
 - <code title="post /v1/skills">client.skills.<a href="./src/resources/skills/skills.ts">create</a>({ ...params }) -> Skill</code>
-- <code title="get /v1/skills/{skill_id}">client.skills.<a href="./src/resources/skills/skills.ts">retrieve</a>(skillID) -> Skill</code>
+- <code title="get /v1/skills/{skill_id}">client.skills.<a href="./src/resources/skills/skills.ts">retrieve</a>(skillID, { ...params }) -> Skill</code>
 - <code title="get /v1/skills">client.skills.<a href="./src/resources/skills/skills.ts">list</a>({ ...params }) -> SkillsPageCursor</code>
-- <code title="delete /v1/skills/{skill_id}">client.skills.<a href="./src/resources/skills/skills.ts">delete</a>(skillID) -> DeletedSkill</code>
+- <code title="delete /v1/skills/{skill_id}">client.skills.<a href="./src/resources/skills/skills.ts">delete</a>(skillID, { ...params }) -> DeletedSkill</code>
 
 ## Versions
 

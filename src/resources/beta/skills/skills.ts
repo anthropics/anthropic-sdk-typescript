@@ -36,7 +36,7 @@ export class Skills extends APIResource {
    * ```
    */
   create(params: SkillCreateParams, options?: RequestOptions): APIPromise<BetaSkill> {
-    const { betas, ...body } = params;
+    const { betas, workspace_id, ...body } = params;
     return this._client.post(
       '/v1/skills?beta=true',
       multipartFormRequestOptions(
@@ -44,7 +44,10 @@ export class Skills extends APIResource {
           body,
           ...options,
           headers: buildHeaders([
-            { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+            {
+              ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+              ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+            },
             options?.headers,
           ]),
         },
@@ -68,11 +71,14 @@ export class Skills extends APIResource {
     params: SkillRetrieveParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<BetaSkill> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.get(path`/v1/skills/${skillID}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        {
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -93,12 +99,15 @@ export class Skills extends APIResource {
     params: SkillListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaSkillsPageCursor, BetaSkill> {
-    const { betas, ...query } = params ?? {};
+    const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList('/v1/skills?beta=true', PageCursor<BetaSkill>, {
       query,
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        {
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -119,11 +128,14 @@ export class Skills extends APIResource {
     params: SkillDeleteParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<BetaDeletedSkill> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.delete(path`/v1/skills/${skillID}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        {
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -233,6 +245,16 @@ export interface SkillCreateParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface SkillRetrieveParams {
@@ -240,6 +262,16 @@ export interface SkillRetrieveParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface SkillListParams extends PageCursorParams {
@@ -257,6 +289,16 @@ export interface SkillListParams extends PageCursorParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface SkillDeleteParams {
@@ -264,6 +306,16 @@ export interface SkillDeleteParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 Skills.Versions = Versions;

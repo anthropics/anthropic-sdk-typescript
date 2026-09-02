@@ -6,7 +6,9 @@ export {
   type Skill,
   type SkillSource,
   type SkillCreateParams,
+  type SkillRetrieveParams,
   type SkillListParams,
+  type SkillDeleteParams,
   type SkillsPageCursor,
 } from './skills';
 export {

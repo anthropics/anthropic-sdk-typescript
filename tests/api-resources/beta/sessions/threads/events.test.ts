@@ -29,6 +29,7 @@ describe('resource events', () => {
       limit: 0,
       page: 'page',
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -50,6 +51,7 @@ describe('resource events', () => {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
       event_deltas: ['agent.message'],
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 });

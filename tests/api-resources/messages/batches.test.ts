@@ -106,6 +106,7 @@ describe('resource batches', () => {
         },
       ],
       user_profile_id: 'anthropic-user-profile-id',
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -118,6 +119,17 @@ describe('resource batches', () => {
     const dataAndResponse = await responsePromise.withResponse();
     expect(dataAndResponse.data).toBe(response);
     expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('retrieve: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.messages.batches.retrieve(
+        'message_batch_id',
+        { workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
   test('list', async () => {
@@ -139,6 +151,7 @@ describe('resource batches', () => {
           after_id: 'after_id',
           before_id: 'before_id',
           limit: 1,
+          workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -156,6 +169,17 @@ describe('resource batches', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
+  test('delete: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.messages.batches.delete(
+        'message_batch_id',
+        { workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
+  });
+
   test('cancel', async () => {
     const responsePromise = client.messages.batches.cancel('message_batch_id');
     const rawResponse = await responsePromise.asResponse();
@@ -167,6 +191,17 @@ describe('resource batches', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
+  test('cancel: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.messages.batches.cancel(
+        'message_batch_id',
+        { workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
+  });
+
   test('results', async () => {
     const responsePromise = client.messages.batches.results('message_batch_id');
     const rawResponse = await responsePromise.asResponse();
@@ -176,5 +211,16 @@ describe('resource batches', () => {
     const dataAndResponse = await responsePromise.withResponse();
     expect(dataAndResponse.data).toBe(response);
     expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('results: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.messages.batches.results(
+        'message_batch_id',
+        { workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
   });
 });

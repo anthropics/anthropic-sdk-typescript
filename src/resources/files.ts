@@ -12,44 +12,134 @@ import { path } from '../internal/utils/path';
 export class Files extends APIResource {
   /**
    * List Files
+   *
+   * @example
+   * ```ts
+   * // Automatically fetches more pages as needed.
+   * for await (const fileMetadata of client.files.list()) {
+   *   // ...
+   * }
+   * ```
    */
   list(
-    query: FileListParams | null | undefined = {},
+    params: FileListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<FileMetadataPageCursor, FileMetadata> {
-    return this._client.getAPIList('/v1/files', PageCursor<FileMetadata>, { query, ...options });
+    const { workspace_id, ...query } = params ?? {};
+    return this._client.getAPIList('/v1/files', PageCursor<FileMetadata>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
    * Delete File
+   *
+   * @example
+   * ```ts
+   * const deletedFile = await client.files.delete('file_id');
+   * ```
    */
-  delete(fileID: string, options?: RequestOptions): APIPromise<DeletedFile> {
-    return this._client.delete(path`/v1/files/${fileID}`, options);
+  delete(
+    fileID: string,
+    params: FileDeleteParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<DeletedFile> {
+    const { workspace_id } = params ?? {};
+    return this._client.delete(path`/v1/files/${fileID}`, {
+      ...options,
+      headers: buildHeaders([
+        { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
    * Download File
+   *
+   * @example
+   * ```ts
+   * const response = await client.files.download('file_id');
+   *
+   * const content = await response.blob();
+   * console.log(content);
+   * ```
    */
-  download(fileID: string, options?: RequestOptions): APIPromise<Response> {
+  download(
+    fileID: string,
+    params: FileDownloadParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<Response> {
+    const { workspace_id } = params ?? {};
     return this._client.get(path`/v1/files/${fileID}/content`, {
       ...options,
-      headers: buildHeaders([{ Accept: 'application/binary' }, options?.headers]),
+      headers: buildHeaders([
+        {
+          Accept: 'application/binary',
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
+        options?.headers,
+      ]),
       __binaryResponse: true,
     });
   }
 
   /**
    * Get File Metadata
+   *
+   * @example
+   * ```ts
+   * const fileMetadata = await client.files.retrieveMetadata(
+   *   'file_id',
+   * );
+   * ```
    */
-  retrieveMetadata(fileID: string, options?: RequestOptions): APIPromise<FileMetadata> {
-    return this._client.get(path`/v1/files/${fileID}`, options);
+  retrieveMetadata(
+    fileID: string,
+    params: FileRetrieveMetadataParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<FileMetadata> {
+    const { workspace_id } = params ?? {};
+    return this._client.get(path`/v1/files/${fileID}`, {
+      ...options,
+      headers: buildHeaders([
+        { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
    * Upload File
+   *
+   * @example
+   * ```ts
+   * const fileMetadata = await client.files.upload({
+   *   file: fs.createReadStream('path/to/file'),
+   * });
+   * ```
    */
-  upload(body: FileUploadParams, options?: RequestOptions): APIPromise<FileMetadata> {
-    return this._client.post('/v1/files', multipartFormRequestOptions({ body, ...options }, this._client));
+  upload(params: FileUploadParams, options?: RequestOptions): APIPromise<FileMetadata> {
+    const { workspace_id, ...body } = params;
+    return this._client.post(
+      '/v1/files',
+      multipartFormRequestOptions(
+        {
+          body,
+          ...options,
+          headers: buildHeaders([
+            { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
+            options?.headers,
+          ]),
+        },
+        this._client,
+      ),
+    );
   }
 }
 
@@ -119,26 +209,83 @@ export interface FileMetadata {
 
 export interface FileListParams extends PageCursorParams {
   /**
-   * Restrict the result set to Files whose `id` is in this list. At most 100 entries
-   * (after de-duplication). Mutually exclusive with `page` and `limit`. When
-   * supplied, the response is always a single page (`next_page` is null). IDs that
-   * do not resolve to a visible File — including deleted Files — are silently
-   * omitted.
+   * Query param: Restrict the result set to Files whose `id` is in this list. At
+   * most 100 entries (after de-duplication). Mutually exclusive with `page` and
+   * `limit`. When supplied, the response is always a single page (`next_page` is
+   * null). IDs that do not resolve to a visible File — including deleted Files — are
+   * silently omitted.
    */
   ids?: Array<string> | null;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
+}
+
+export interface FileDeleteParams {
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
+}
+
+export interface FileDownloadParams {
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
+}
+
+export interface FileRetrieveMetadataParams {
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface FileUploadParams {
   /**
-   * The file to upload
+   * Body param: The file to upload
    */
   file: Uploadable;
 
   /**
-   * Seconds from upload until the file expires and its bytes become permanently
-   * unavailable. Must be between 3600 (one hour) and 7776000 (ninety days).
+   * Body param: Seconds from upload until the file expires and its bytes become
+   * permanently unavailable. Must be between 3600 (one hour) and 7776000 (ninety
+   * days).
    */
   expires_in_seconds?: number;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export declare namespace Files {
@@ -147,6 +294,9 @@ export declare namespace Files {
     type FileMetadata as FileMetadata,
     type FileMetadataPageCursor as FileMetadataPageCursor,
     type FileListParams as FileListParams,
+    type FileDeleteParams as FileDeleteParams,
+    type FileDownloadParams as FileDownloadParams,
+    type FileRetrieveMetadataParams as FileRetrieveMetadataParams,
     type FileUploadParams as FileUploadParams,
   };
 }
