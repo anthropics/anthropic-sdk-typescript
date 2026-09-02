@@ -28,6 +28,7 @@ describe('resource memories', () => {
       path: 'xx',
       view: 'basic',
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -49,6 +50,7 @@ describe('resource memories', () => {
       memory_store_id: 'memory_store_id',
       view: 'basic',
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -73,6 +75,7 @@ describe('resource memories', () => {
       path: 'xx',
       precondition: { type: 'content_sha256', content_sha256: 'content_sha256' },
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -101,6 +104,7 @@ describe('resource memories', () => {
           path_prefix: 'path_prefix',
           view: 'basic',
           betas: ['message-batches-2024-09-24'],
+          workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -125,6 +129,7 @@ describe('resource memories', () => {
       memory_store_id: 'memory_store_id',
       expected_content_sha256: 'expected_content_sha256',
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 });

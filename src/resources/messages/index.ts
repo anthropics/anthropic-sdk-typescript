@@ -12,7 +12,11 @@ export {
   type MessageBatchResult,
   type MessageBatchSucceededResult,
   type BatchCreateParams,
+  type BatchRetrieveParams,
   type BatchListParams,
+  type BatchDeleteParams,
+  type BatchCancelParams,
+  type BatchResultsParams,
   type MessageBatchesPage,
 } from './batches';
 export {

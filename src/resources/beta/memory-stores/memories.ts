@@ -26,13 +26,16 @@ export class Memories extends APIResource {
     params: MemoryCreateParams,
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsMemory> {
-    const { view, betas, ...body } = params;
+    const { view, betas, workspace_id, ...body } = params;
     return this._client.post(path`/v1/memory_stores/${memoryStoreID}/memories?beta=true`, {
       query: { view },
       body,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -55,12 +58,15 @@ export class Memories extends APIResource {
     params: MemoryRetrieveParams,
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsMemory> {
-    const { memory_store_id, betas, ...query } = params;
+    const { memory_store_id, betas, workspace_id, ...query } = params;
     return this._client.get(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}?beta=true`, {
       query,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -83,13 +89,16 @@ export class Memories extends APIResource {
     params: MemoryUpdateParams,
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsMemory> {
-    const { memory_store_id, view, betas, ...body } = params;
+    const { memory_store_id, view, betas, workspace_id, ...body } = params;
     return this._client.post(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}?beta=true`, {
       query: { view },
       body,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -113,7 +122,7 @@ export class Memories extends APIResource {
     params: MemoryListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaManagedAgentsMemoryListItemsPageCursor, BetaManagedAgentsMemoryListItem> {
-    const { betas, ...query } = params ?? {};
+    const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(
       path`/v1/memory_stores/${memoryStoreID}/memories?beta=true`,
       PageCursor<BetaManagedAgentsMemoryListItem>,
@@ -121,7 +130,10 @@ export class Memories extends APIResource {
         query,
         ...options,
         headers: buildHeaders([
-          { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
+          {
+            'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString(),
+            ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+          },
           options?.headers,
         ]),
       },
@@ -145,12 +157,15 @@ export class Memories extends APIResource {
     params: MemoryDeleteParams,
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeletedMemory> {
-    const { memory_store_id, expected_content_sha256, betas } = params;
+    const { memory_store_id, expected_content_sha256, betas, workspace_id } = params;
     return this._client.delete(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}?beta=true`, {
       query: { expected_content_sha256 },
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -381,6 +396,16 @@ export interface MemoryCreateParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface MemoryRetrieveParams {
@@ -398,6 +423,16 @@ export interface MemoryRetrieveParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface MemoryUpdateParams {
@@ -441,6 +476,16 @@ export interface MemoryUpdateParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface MemoryListParams extends PageCursorParams {
@@ -470,6 +515,16 @@ export interface MemoryListParams extends PageCursorParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface MemoryDeleteParams {
@@ -487,6 +542,16 @@ export interface MemoryDeleteParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export declare namespace Memories {

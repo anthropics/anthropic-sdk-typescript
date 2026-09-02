@@ -27,7 +27,7 @@ export class Versions extends APIResource {
     params: VersionCreateParams,
     options?: RequestOptions,
   ): APIPromise<BetaSkillVersion> {
-    const { betas, ...body } = params;
+    const { betas, workspace_id, ...body } = params;
     return this._client.post(
       path`/v1/skills/${skillID}/versions?beta=true`,
       multipartFormRequestOptions(
@@ -35,7 +35,10 @@ export class Versions extends APIResource {
           body,
           ...options,
           headers: buildHeaders([
-            { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+            {
+              ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+              ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+            },
             options?.headers,
           ]),
         },
@@ -61,11 +64,14 @@ export class Versions extends APIResource {
     params: VersionRetrieveParams,
     options?: RequestOptions,
   ): APIPromise<BetaSkillVersion> {
-    const { skill_id, betas } = params;
+    const { skill_id, betas, workspace_id } = params;
     return this._client.get(path`/v1/skills/${skill_id}/versions/${version}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        {
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -89,7 +95,7 @@ export class Versions extends APIResource {
     params: VersionListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaSkillVersionsPageCursor, BetaSkillVersion> {
-    const { betas, ...query } = params ?? {};
+    const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(
       path`/v1/skills/${skillID}/versions?beta=true`,
       PageCursor<BetaSkillVersion>,
@@ -97,7 +103,10 @@ export class Versions extends APIResource {
         query,
         ...options,
         headers: buildHeaders([
-          { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+          {
+            ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+            ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+          },
           options?.headers,
         ]),
       },
@@ -120,11 +129,14 @@ export class Versions extends APIResource {
     params: VersionDeleteParams,
     options?: RequestOptions,
   ): APIPromise<BetaDeletedSkillVersion> {
-    const { skill_id, betas } = params;
+    const { skill_id, betas, workspace_id } = params;
     return this._client.delete(path`/v1/skills/${skill_id}/versions/${version}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        {
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -145,13 +157,14 @@ export class Versions extends APIResource {
    * ```
    */
   download(version: string, params: VersionDownloadParams, options?: RequestOptions): APIPromise<Response> {
-    const { skill_id, betas } = params;
+    const { skill_id, betas, workspace_id } = params;
     return this._client.get(path`/v1/skills/${skill_id}/versions/${version}/content?beta=true`, {
       ...options,
       headers: buildHeaders([
         {
           Accept: 'application/binary',
           ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
         },
         options?.headers,
       ]),
@@ -232,6 +245,16 @@ export interface VersionCreateParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface VersionRetrieveParams {
@@ -246,6 +269,16 @@ export interface VersionRetrieveParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface VersionListParams extends PageCursorParams {
@@ -253,6 +286,16 @@ export interface VersionListParams extends PageCursorParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface VersionDeleteParams {
@@ -267,6 +310,16 @@ export interface VersionDeleteParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface VersionDownloadParams {
@@ -281,6 +334,16 @@ export interface VersionDownloadParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export declare namespace Versions {

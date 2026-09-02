@@ -90,7 +90,7 @@ export class Messages extends APIResource {
     // Transform deprecated output_format to output_config.format
     const modifiedParams = transformOutputFormat(params);
 
-    const { betas, user_profile_id, ...body } = modifiedParams;
+    const { betas, user_profile_id, workspace_id, ...body } = modifiedParams;
 
     if (body.model in DEPRECATED_MODELS) {
       console.warn(
@@ -127,6 +127,7 @@ export class Messages extends APIResource {
         {
           ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
           ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
         },
         helperHeader,
         options?.headers,
@@ -203,7 +204,7 @@ export class Messages extends APIResource {
     // Transform deprecated output_format to output_config.format
     const modifiedParams = transformOutputFormat(params);
 
-    const { betas, user_profile_id, ...body } = modifiedParams;
+    const { betas, user_profile_id, workspace_id, ...body } = modifiedParams;
     return this._client.post('/v1/messages/count_tokens?beta=true', {
       body,
       ...options,
@@ -211,6 +212,7 @@ export class Messages extends APIResource {
         {
           'anthropic-beta': [...(betas ?? []), 'token-counting-2024-11-01'].toString(),
           ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
         },
         options?.headers,
       ]),
@@ -6674,6 +6676,16 @@ export interface MessageCreateParamsBase {
    * beta header.
    */
   user_profile_id?: string;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export namespace MessageCreateParams {
@@ -6972,6 +6984,16 @@ export interface MessageCountTokensParams {
    * beta header.
    */
   user_profile_id?: string;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export { BetaToolRunner, type BetaToolRunnerParams } from '../../../lib/tools/BetaToolRunner';

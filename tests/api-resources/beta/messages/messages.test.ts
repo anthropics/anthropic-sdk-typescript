@@ -134,6 +134,7 @@ describe('resource messages', () => {
       top_p: 0.7,
       betas: ['message-batches-2024-09-24'],
       user_profile_id: 'anthropic-user-profile-id',
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -240,6 +241,7 @@ describe('resource messages', () => {
       ],
       betas: ['message-batches-2024-09-24'],
       user_profile_id: 'anthropic-user-profile-id',
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 });

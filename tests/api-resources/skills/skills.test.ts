@@ -25,6 +25,7 @@ describe('resource skills', () => {
     const response = await client.skills.create({
       files: [await toFile(Buffer.from('Example data'), 'README.md')],
       display_name: 'display_name',
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -37,6 +38,17 @@ describe('resource skills', () => {
     const dataAndResponse = await responsePromise.withResponse();
     expect(dataAndResponse.data).toBe(response);
     expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('retrieve: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.skills.retrieve(
+        'skill_id',
+        { workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
   test('list', async () => {
@@ -58,6 +70,7 @@ describe('resource skills', () => {
           limit: 1,
           page: 'page',
           source: 'source',
+          workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -73,5 +86,16 @@ describe('resource skills', () => {
     const dataAndResponse = await responsePromise.withResponse();
     expect(dataAndResponse.data).toBe(response);
     expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('delete: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.skills.delete(
+        'skill_id',
+        { workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
   });
 });

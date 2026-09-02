@@ -26,6 +26,7 @@ describe('resource memoryVersions', () => {
       memory_store_id: 'memory_store_id',
       view: 'basic',
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -59,6 +60,7 @@ describe('resource memoryVersions', () => {
           session_id: 'session_id',
           view: 'basic',
           betas: ['message-batches-2024-09-24'],
+          workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -82,6 +84,7 @@ describe('resource memoryVersions', () => {
     const response = await client.beta.memoryStores.memoryVersions.redact('memory_version_id', {
       memory_store_id: 'memory_store_id',
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 });

@@ -27,6 +27,7 @@ describe('resource resources', () => {
     const response = await client.beta.sessions.resources.retrieve('sesrsc_011CZkZBJq5dWxk9fVLNcPht', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -51,6 +52,7 @@ describe('resource resources', () => {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
       authorization_token: 'ghp_exampletoken',
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -76,6 +78,7 @@ describe('resource resources', () => {
           limit: 0,
           page: 'page',
           betas: ['message-batches-2024-09-24'],
+          workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -101,6 +104,7 @@ describe('resource resources', () => {
     const response = await client.beta.sessions.resources.delete('sesrsc_011CZkZBJq5dWxk9fVLNcPht', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -126,6 +130,7 @@ describe('resource resources', () => {
       type: 'file',
       mount_path: '/uploads/receipt.pdf',
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 });

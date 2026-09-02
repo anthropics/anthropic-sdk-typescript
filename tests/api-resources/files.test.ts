@@ -27,6 +27,7 @@ describe('resource files', () => {
           ids: ['string'],
           limit: 1,
           page: 'page',
+          workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -44,6 +45,28 @@ describe('resource files', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
+  test('delete: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.files.delete(
+        'file_id',
+        { workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
+  });
+
+  test('download: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.files.download(
+        'file_id',
+        { workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
+  });
+
   test('retrieveMetadata', async () => {
     const responsePromise = client.files.retrieveMetadata('file_id');
     const rawResponse = await responsePromise.asResponse();
@@ -53,6 +76,17 @@ describe('resource files', () => {
     const dataAndResponse = await responsePromise.withResponse();
     expect(dataAndResponse.data).toBe(response);
     expect(dataAndResponse.response).toBe(rawResponse);
+  });
+
+  test('retrieveMetadata: request options and params are passed correctly', async () => {
+    // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
+    await expect(
+      client.files.retrieveMetadata(
+        'file_id',
+        { workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
+        { path: '/_stainless_unknown_path' },
+      ),
+    ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
   test('upload: only required params', async () => {
@@ -72,6 +106,7 @@ describe('resource files', () => {
     const response = await client.files.upload({
       file: await toFile(Buffer.from('Example data'), 'README.md'),
       expires_in_seconds: 3600,
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 });

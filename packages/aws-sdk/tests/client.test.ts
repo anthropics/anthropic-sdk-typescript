@@ -757,6 +757,25 @@ describe('AnthropicAws', () => {
       expect(headers.get('anthropic-workspace-id')).toBe('ws-from-arg');
     });
 
+    test('per-request workspace_id overrides the client-level header', async () => {
+      const client = new AnthropicAws({
+        apiKey: 'test-key',
+        awsRegion: 'us-east-1',
+        workspaceId: 'ws-client',
+        maxRetries: 0,
+      });
+
+      await client.messages.create({
+        model: 'claude-opus-4-8',
+        max_tokens: 1024,
+        messages: [{ content: 'Test message', role: 'user' }],
+        workspace_id: 'ws-request',
+      });
+
+      const headers = getRequestHeaders();
+      expect(headers.get('anthropic-workspace-id')).toBe('ws-request');
+    });
+
     test('throws when workspaceId is not set and env var is absent', () => {
       expect(() => new AnthropicAws({ apiKey: 'test-key', awsRegion: 'us-east-1' })).toThrow(
         'No workspace ID found. Set `workspaceId` in the constructor or the `ANTHROPIC_AWS_WORKSPACE_ID` environment variable.',

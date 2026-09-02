@@ -24,6 +24,7 @@ describe('resource vaults', () => {
       display_name: 'Example vault',
       metadata: { environment: 'production' },
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -43,7 +44,7 @@ describe('resource vaults', () => {
     await expect(
       client.beta.vaults.retrieve(
         'vlt_011CZkZDLs7fYzm1hXNPeRjv',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -82,6 +83,7 @@ describe('resource vaults', () => {
           limit: 0,
           page: 'page',
           betas: ['message-batches-2024-09-24'],
+          workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -104,7 +106,7 @@ describe('resource vaults', () => {
     await expect(
       client.beta.vaults.delete(
         'vlt_011CZkZDLs7fYzm1hXNPeRjv',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -126,7 +128,7 @@ describe('resource vaults', () => {
     await expect(
       client.beta.vaults.archive(
         'vlt_011CZkZDLs7fYzm1hXNPeRjv',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

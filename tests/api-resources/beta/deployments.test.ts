@@ -54,6 +54,7 @@ describe('resource deployments', () => {
       },
       vault_ids: ['string'],
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -75,7 +76,7 @@ describe('resource deployments', () => {
     await expect(
       client.beta.deployments.retrieve(
         'depl_011CZkZcDH3vPqd7xnEfwTai',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -118,6 +119,7 @@ describe('resource deployments', () => {
           page: 'page',
           status: 'active',
           betas: ['message-batches-2024-09-24'],
+          workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -140,7 +142,7 @@ describe('resource deployments', () => {
     await expect(
       client.beta.deployments.archive(
         'depl_011CZkZcDH3vPqd7xnEfwTai',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -162,7 +164,7 @@ describe('resource deployments', () => {
     await expect(
       client.beta.deployments.pause(
         'depl_011CZkZcDH3vPqd7xnEfwTai',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -184,7 +186,7 @@ describe('resource deployments', () => {
     await expect(
       client.beta.deployments.run(
         'depl_011CZkZcDH3vPqd7xnEfwTai',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -206,7 +208,7 @@ describe('resource deployments', () => {
     await expect(
       client.beta.deployments.unpause(
         'depl_011CZkZcDH3vPqd7xnEfwTai',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
