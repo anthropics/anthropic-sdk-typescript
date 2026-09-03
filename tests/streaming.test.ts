@@ -115,6 +115,35 @@ describe('streaming decoding', () => {
     expect(event.done).toBeTruthy();
   });
 
+  test('multiple events in one chunk', async () => {
+    async function* body(): AsyncGenerator<Buffer> {
+      yield Buffer.from('event: a\ndata: {"i":1}\n\nevent: b\ndata: {"i":2}\n\nevent: c\n');
+      yield Buffer.from('data: {"i":3}\n\n');
+    }
+
+    const stream = _iterSSEMessages(new Response(ReadableStreamFrom(body())), new AbortController())[
+      Symbol.asyncIterator
+    ]();
+
+    let event = await stream.next();
+    assert(event.value);
+    expect(event.value.event).toEqual('a');
+    expect(JSON.parse(event.value.data)).toEqual({ i: 1 });
+
+    event = await stream.next();
+    assert(event.value);
+    expect(event.value.event).toEqual('b');
+    expect(JSON.parse(event.value.data)).toEqual({ i: 2 });
+
+    event = await stream.next();
+    assert(event.value);
+    expect(event.value.event).toEqual('c');
+    expect(JSON.parse(event.value.data)).toEqual({ i: 3 });
+
+    event = await stream.next();
+    expect(event.done).toBeTruthy();
+  });
+
   test('multiple data lines with empty line', async () => {
     async function* body(): AsyncGenerator<Buffer> {
       yield Buffer.from('event: ping\n');

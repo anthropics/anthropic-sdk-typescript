@@ -308,10 +308,12 @@ async function* iterSSEChunks(iterator: AsyncIterableIterator<Bytes>): AsyncGene
     newData.set(binaryChunk, data.length);
     data = newData;
 
+    // Yield views, not copies, so a chunk holding many events is not re-copied
+    // once per event. This relies on newData never being written again.
     let patternIndex;
     while ((patternIndex = findDoubleNewlineIndex(data)) !== -1) {
-      yield data.slice(0, patternIndex);
-      data = data.slice(patternIndex);
+      yield data.subarray(0, patternIndex);
+      data = data.subarray(patternIndex);
     }
   }
 
