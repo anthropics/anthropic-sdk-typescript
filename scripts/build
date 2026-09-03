@@ -53,3 +53,4 @@ if [ -e ./scripts/build-deno ]
 then
   ./scripts/build-deno
 fi
+

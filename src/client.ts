@@ -786,7 +786,8 @@ export class BaseAnthropic {
   }
 
   /**
-   * Create a new client instance re-using the same options given to the current client with optional overriding.
+   * Create a new client instance re-using the same options given to the
+   * current client with optional overriding.
    */
   withOptions(options: Partial<ClientOptions>): this {
     // Share the auth state object unless the caller passes any auth-related
