@@ -1,7 +1,7 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 import { APIPromise } from '@anthropic-ai/sdk/core/api-promise';
-import { APIError } from '@anthropic-ai/sdk/core/error';
+import { APIConnectionError, APIError } from '@anthropic-ai/sdk/core/error';
 
 import util from 'node:util';
 import Anthropic from '@anthropic-ai/sdk';
@@ -607,13 +607,46 @@ describe('retries', () => {
       fetch: async (_url, init: RequestInit = {}) => {
         attempts++;
         expect(await new Response(init.body).text()).toEqual('request body');
-        return new Response(undefined, { status: 500, headers: { 'Retry-After-Ms': '0' } });
+        return new Response(
+          JSON.stringify({ type: 'error', error: { type: 'api_error', message: 'upstream failed' } }),
+          {
+            status: 500,
+            headers: { 'Content-Type': 'application/json', 'Retry-After-Ms': '0' },
+          },
+        );
       },
     });
 
     await expect(
       client.request({ path: '/foo', method: 'post', body: createBody(new TextEncoder()) }),
-    ).rejects.toThrow('Cannot retry a request with a streaming body');
+    ).rejects.toMatchObject({
+      status: 500,
+      type: 'api_error',
+      error: { type: 'error', error: { type: 'api_error', message: 'upstream failed' } },
+    });
+    expect(attempts).toEqual(1);
+  });
+
+  test('preserves a connection error for a streaming request body', async () => {
+    let attempts = 0;
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      maxRetries: 1,
+      fetch: async (_url, init: RequestInit = {}) => {
+        attempts++;
+        expect(await new Response(init.body).text()).toEqual('request body');
+        throw new Error('socket failed');
+      },
+    });
+
+    const error = await client
+      .request({ path: '/foo', method: 'post', body: new Response('request body').body })
+      .then(
+        () => null,
+        (error) => error,
+      );
+    expect(error).toBeInstanceOf(APIConnectionError);
+    expect(error.cause).toHaveProperty('message', 'socket failed');
     expect(attempts).toEqual(1);
   });
 
