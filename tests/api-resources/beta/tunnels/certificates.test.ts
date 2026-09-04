@@ -29,7 +29,7 @@ describe('resource certificates', () => {
     });
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('retrieve: only required params', async () => {
     const responsePromise = client.beta.tunnels.certificates.retrieve('certificate_id', {
       tunnel_id: 'tunnel_id',
@@ -43,7 +43,7 @@ describe('resource certificates', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('retrieve: required and optional params', async () => {
     const response = await client.beta.tunnels.certificates.retrieve('certificate_id', {
       tunnel_id: 'tunnel_id',
@@ -52,7 +52,7 @@ describe('resource certificates', () => {
     });
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('list', async () => {
     const responsePromise = client.beta.tunnels.certificates.list('tunnel_id');
     const rawResponse = await responsePromise.asResponse();
@@ -64,7 +64,7 @@ describe('resource certificates', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(

@@ -8,7 +8,7 @@ const client = new Anthropic({
 });
 
 describe('resource events', () => {
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('list: only required params', async () => {
     const responsePromise = client.beta.sessions.threads.events.list('sthr_011CZkZVWa6oIjw0rgXZpnBt', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
@@ -22,7 +22,7 @@ describe('resource events', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('list: required and optional params', async () => {
     const response = await client.beta.sessions.threads.events.list('sthr_011CZkZVWa6oIjw0rgXZpnBt', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
