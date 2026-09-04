@@ -666,6 +666,6 @@ for await (const work of client.beta.environments.work.poller({
 }
 ```
 
-The toolset executes shell and file operations directly on the host. Run it inside a container or other isolation boundary you control.
+The toolset executes shell and file operations directly on the host. Run it inside a container or other isolation boundary you control. Files and directories that `write`/`edit` create are owner-only (`0o600`/`0o700`) whatever the process umask, so other local users can't read what an agent wrote; a file that already exists keeps its mode when it is rewritten.
 
 See [`examples/managed-agents-self-hosted-sandbox-worker.ts`](examples/managed-agents-self-hosted-sandbox-worker.ts) for a complete example.

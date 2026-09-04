@@ -689,6 +689,33 @@ describe('fs tools (read/write/edit)', () => {
     await expect(betaWriteTool(ctx).run({ file_path: 'ln', content: 'x' })).rejects.toThrow(/read-only/);
     expect(fs.readFileSync(path.join(ro, 'f'), 'utf8')).toBe('immutable');
   });
+
+  // Files and directories the tools create must be owner-only regardless of
+  // umask, so other local users can't read what an agent wrote; a file that
+  // already exists keeps whatever mode its owner gave it.
+  const mode = (...segments: string[]) => fs.statSync(path.join(dir, ...segments)).mode & 0o777;
+
+  testPosix('write creates new files and their missing parent directories owner-only', async () => {
+    await betaWriteTool(env).run({ file_path: 'a/b/new.txt', content: 'secret' });
+    expect(mode('a', 'b', 'new.txt') & 0o077).toBe(0);
+    expect(mode('a', 'b') & 0o077).toBe(0);
+    expect(mode('a') & 0o077).toBe(0);
+  });
+
+  testPosix('edit keeps the existing mode so an executable script stays executable', async () => {
+    fs.writeFileSync(path.join(dir, 'run.sh'), '#!/bin/sh\necho old\n');
+    fs.chmodSync(path.join(dir, 'run.sh'), 0o755);
+    await betaEditTool(env).run({ file_path: 'run.sh', old_string: 'old', new_string: 'new' });
+    expect(mode('run.sh')).toBe(0o755);
+  });
+
+  testPosix('write over an existing file keeps its mode instead of resetting it', async () => {
+    fs.writeFileSync(path.join(dir, 'shared.txt'), 'v1');
+    fs.chmodSync(path.join(dir, 'shared.txt'), 0o640);
+    await betaWriteTool(env).run({ file_path: 'shared.txt', content: 'v2' });
+    expect(mode('shared.txt')).toBe(0o640);
+    expect(fs.readFileSync(path.join(dir, 'shared.txt'), 'utf8')).toBe('v2');
+  });
 });
 
 describe('search tools (glob/grep)', () => {
