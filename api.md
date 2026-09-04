@@ -1642,10 +1642,12 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/organization/compliance-settings.ts">BetaComplianceSettings</a></code>
+- <code><a href="./src/resources/beta/organization/compliance-settings.ts">BetaComplianceSettingsState</a></code>
 - <code><a href="./src/resources/beta/organization/compliance-settings.ts">BetaComplianceSettingsStateDisabled</a></code>
 - <code><a href="./src/resources/beta/organization/compliance-settings.ts">BetaComplianceSettingsStateDisabledParam</a></code>
 - <code><a href="./src/resources/beta/organization/compliance-settings.ts">BetaComplianceSettingsStateEnabled</a></code>
 - <code><a href="./src/resources/beta/organization/compliance-settings.ts">BetaComplianceSettingsStateEnabledParam</a></code>
+- <code><a href="./src/resources/beta/organization/compliance-settings.ts">BetaComplianceSettingsStateParam</a></code>
 
 Methods:
 

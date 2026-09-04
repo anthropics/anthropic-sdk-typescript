@@ -15,10 +15,12 @@ export {
 export {
   ComplianceSettings,
   type BetaComplianceSettings,
+  type BetaComplianceSettingsState,
   type BetaComplianceSettingsStateDisabled,
   type BetaComplianceSettingsStateDisabledParam,
   type BetaComplianceSettingsStateEnabled,
   type BetaComplianceSettingsStateEnabledParam,
+  type BetaComplianceSettingsStateParam,
   type ComplianceSettingUpdateParams,
 } from './compliance-settings';
 export {

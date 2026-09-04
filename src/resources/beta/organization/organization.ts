@@ -17,10 +17,12 @@ import {
 import * as ComplianceSettingsAPI from './compliance-settings';
 import {
   BetaComplianceSettings,
+  BetaComplianceSettingsState,
   BetaComplianceSettingsStateDisabled,
   BetaComplianceSettingsStateDisabledParam,
   BetaComplianceSettingsStateEnabled,
   BetaComplianceSettingsStateEnabledParam,
+  BetaComplianceSettingsStateParam,
   ComplianceSettingUpdateParams,
   ComplianceSettings,
 } from './compliance-settings';
@@ -260,10 +262,12 @@ export declare namespace Organization {
   export {
     ComplianceSettings as ComplianceSettings,
     type BetaComplianceSettings as BetaComplianceSettings,
+    type BetaComplianceSettingsState as BetaComplianceSettingsState,
     type BetaComplianceSettingsStateDisabled as BetaComplianceSettingsStateDisabled,
     type BetaComplianceSettingsStateDisabledParam as BetaComplianceSettingsStateDisabledParam,
     type BetaComplianceSettingsStateEnabled as BetaComplianceSettingsStateEnabled,
     type BetaComplianceSettingsStateEnabledParam as BetaComplianceSettingsStateEnabledParam,
+    type BetaComplianceSettingsStateParam as BetaComplianceSettingsStateParam,
     type ComplianceSettingUpdateParams as ComplianceSettingUpdateParams,
   };
 }
