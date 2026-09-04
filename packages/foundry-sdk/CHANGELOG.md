@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.5 (2026-09-04)
+
+Full Changelog: [foundry-sdk-v0.4.4...foundry-sdk-v0.4.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.4.4...foundry-sdk-v0.4.5)
+
+### Chores
+
+* **examples:** refresh platform model IDs ([#376](https://github.com/anthropics/anthropic-sdk-typescript/issues/376)) ([2637d11](https://github.com/anthropics/anthropic-sdk-typescript/commit/2637d1198b41514f563c799bec50759cce604638))
+
 ## 0.4.4 (2026-08-19)
 
 Full Changelog: [foundry-sdk-v0.4.3...foundry-sdk-v0.4.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.4.3...foundry-sdk-v0.4.4)
