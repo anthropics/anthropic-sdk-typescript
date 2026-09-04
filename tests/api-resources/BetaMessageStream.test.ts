@@ -952,4 +952,232 @@ describe('BetaMessageStream class', () => {
       { type: 'text', text: 'Hello there!' },
     ]);
   });
+
+  it('handles compaction_delta with null content without coercing to "null"', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          type: 'message',
+          id: 'msg_test_compaction',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-8',
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { output_tokens: 0, input_tokens: 10 },
+        },
+      },
+      {
+        type: 'content_block_start',
+        index: 0,
+        content_block: {
+          type: 'compaction',
+          content: null,
+          encrypted_content: 'opaque_checkpoint_data',
+        },
+      },
+      {
+        type: 'content_block_delta',
+        index: 0,
+        delta: {
+          type: 'compaction_delta',
+          content: null,
+          encrypted_content: null,
+        },
+      },
+      {
+        type: 'content_block_stop',
+        index: 0,
+      },
+      {
+        type: 'message_delta',
+        usage: { output_tokens: 5 },
+        delta: { stop_reason: 'end_turn', stop_sequence: null },
+      },
+      {
+        type: 'message_stop',
+      },
+    ]);
+
+    const compactionEvents: string[] = [];
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'test' }],
+    });
+
+    stream.on('compaction', (compactedContent) => {
+      compactionEvents.push(compactedContent);
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(compactionEvents).toEqual([]);
+    expect(finalMessage.content).toEqual([
+      {
+        type: 'compaction',
+        content: null,
+        encrypted_content: 'opaque_checkpoint_data',
+      },
+    ]);
+  });
+
+  it('accumulates non-null compaction_delta content and emits compaction event', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          type: 'message',
+          id: 'msg_test_compaction',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-8',
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { output_tokens: 0, input_tokens: 10 },
+        },
+      },
+      {
+        type: 'content_block_start',
+        index: 0,
+        content_block: {
+          type: 'compaction',
+          content: null,
+          encrypted_content: null,
+        },
+      },
+      {
+        type: 'content_block_delta',
+        index: 0,
+        delta: {
+          type: 'compaction_delta',
+          content: 'Part 1. ',
+          encrypted_content: 'checkpoint_token',
+        },
+      },
+      {
+        type: 'content_block_delta',
+        index: 0,
+        delta: {
+          type: 'compaction_delta',
+          content: 'Part 2.',
+          encrypted_content: null,
+        },
+      },
+      {
+        type: 'content_block_delta',
+        index: 0,
+        delta: {
+          type: 'compaction_delta',
+          content: null,
+          encrypted_content: 'checkpoint_token_v2',
+        },
+      },
+      {
+        type: 'content_block_delta',
+        index: 0,
+        delta: {
+          type: 'compaction_delta',
+          encrypted_content: 'checkpoint_token_v3',
+        } as any,
+      },
+      {
+        type: 'content_block_stop',
+        index: 0,
+      },
+      {
+        type: 'message_delta',
+        usage: { output_tokens: 5 },
+        delta: { stop_reason: 'end_turn', stop_sequence: null },
+      },
+      {
+        type: 'message_stop',
+      },
+    ]);
+
+    const compactionEvents: string[] = [];
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'test' }],
+    });
+
+    stream.on('compaction', (compactedContent) => {
+      compactionEvents.push(compactedContent);
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(compactionEvents).toEqual(['Part 1. ', 'Part 1. Part 2.']);
+    expect(finalMessage.content).toEqual([
+      {
+        type: 'compaction',
+        content: 'Part 1. Part 2.',
+        encrypted_content: 'checkpoint_token_v3',
+      },
+    ]);
+  });
+
+  it('compaction that starts null and only ever gets checkpoints stays null', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_probe',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-sonnet-4-5',
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { input_tokens: 10, output_tokens: 1 },
+        },
+      },
+      {
+        type: 'content_block_start',
+        index: 0,
+        content_block: { type: 'compaction', content: null, encrypted_content: 'ck_0' },
+      },
+      {
+        type: 'content_block_delta',
+        index: 0,
+        delta: { type: 'compaction_delta', content: null, encrypted_content: 'ck_1' },
+      },
+      {
+        type: 'content_block_stop',
+        index: 0,
+      },
+      {
+        type: 'message_delta',
+        delta: { stop_reason: 'end_turn', stop_sequence: null },
+        usage: { output_tokens: 10 },
+      },
+      {
+        type: 'message_stop',
+      },
+    ]);
+
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-sonnet-4-5',
+      messages: [{ role: 'user', content: 'test' }],
+    });
+    const emitted: string[] = [];
+    stream.on('compaction', (c) => emitted.push(c));
+    const block = (await stream.finalMessage()).content[0] as any;
+
+    expect(block.content).toBeNull();
+    expect(block.encrypted_content).toBe('ck_1');
+    expect(emitted).toEqual([]);
+  });
 });

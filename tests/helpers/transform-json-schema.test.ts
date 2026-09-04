@@ -480,4 +480,67 @@ describe('transformJsonSchema', () => {
 }
 `);
   });
+
+  it('should preserve $defs when schema root is a $ref', () => {
+    const input = {
+      $ref: '#/$defs/Item',
+      $defs: {
+        Item: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            count: { type: 'integer', minimum: 1 },
+          },
+          required: ['id'],
+        },
+      },
+    };
+
+    const result = transformJSONSchema(input);
+    expect(result).toEqual({
+      $ref: '#/$defs/Item',
+      $defs: {
+        Item: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            count: {
+              type: 'integer',
+              description: '{minimum: 1}',
+            },
+          },
+          required: ['id'],
+          additionalProperties: false,
+        },
+      },
+    });
+  });
+
+  it('should preserve definitions when schema root is a $ref', () => {
+    const input = {
+      $ref: '#/definitions/Item',
+      definitions: {
+        Item: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+          },
+        },
+      },
+    };
+
+    const result = transformJSONSchema(input);
+    expect(result).toEqual({
+      $ref: '#/definitions/Item',
+      definitions: {
+        Item: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+          },
+          additionalProperties: false,
+        },
+      },
+    });
+  });
 });
