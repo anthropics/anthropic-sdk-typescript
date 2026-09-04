@@ -25,7 +25,7 @@ const client = new AnthropicFoundry({
 });
 
 const message = await client.messages.create({
-  model: 'claude-3-5-sonnet-20241022',
+  model: 'claude-sonnet-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello, Claude!' }],
 });
@@ -51,7 +51,7 @@ const client = new AnthropicFoundry({
 });
 
 const message = await client.messages.create({
-  model: 'claude-3-5-sonnet-20241022',
+  model: 'claude-sonnet-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello, Claude!' }],
 });
@@ -71,7 +71,7 @@ const client = new AnthropicFoundry({
 
 // The SDK will automatically use /deployments/my-claude-deployment/messages
 const message = await client.messages.create({
-  model: 'claude-3-5-sonnet-20241022',
+  model: 'claude-sonnet-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'Hello!' }],
 });

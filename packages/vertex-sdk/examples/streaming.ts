@@ -14,7 +14,7 @@ async function main() {
         content: 'Hello!',
       },
     ],
-    model: 'claude-3-7-sonnet@20250219',
+    model: 'claude-sonnet-5',
     max_tokens: 300,
   });
   for await (const event of stream) {
