@@ -11,10 +11,13 @@ import { ToolError } from '../../lib/tools/ToolError';
 
 const fs = nodefs.promises;
 
-/** Mode for directories the file tools create — not world-writable under a 0 umask. */
-export const DIR_CREATE_MODE = 0o755;
-/** Mode for files the file tools create. */
-export const FILE_CREATE_MODE = 0o644;
+/** Mode for directories the file tools create: owner-only under any umask, like the memory tool. */
+export const DIR_CREATE_MODE = 0o700;
+/**
+ * Mode for files the file tools create: owner-only, so other local users can't
+ * read what an agent wrote. A file that already exists keeps its own mode.
+ */
+export const FILE_CREATE_MODE = 0o600;
 
 /** True when `p` is `root` itself or lexically contained within it. */
 export function isWithin(root: string, p: string): boolean {
@@ -138,13 +141,22 @@ export async function confineToRoot(
  * Atomically write `content` to `targetPath`: write a sibling temp file, fsync
  * it, then rename over the target. The rename is atomic on most filesystems, so
  * a crash mid-write never leaves the target half-written.
+ *
+ * A new file is created {@link FILE_CREATE_MODE}; an existing one keeps its
+ * permission bits (the rename replaces the inode, so they are copied onto the
+ * temp file first) — an edit must not strip `+x` or sharing the owner chose.
  */
 export async function atomicWriteFile(targetPath: string, content: string): Promise<void> {
   const dir = path.dirname(targetPath);
   const tempPath = path.join(dir, `.tmp-${process.pid}-${crypto.randomUUID()}`);
+  const existingMode = await fs.stat(targetPath).then(
+    (st) => st.mode & 0o777,
+    () => undefined,
+  );
   let handle: FileHandle | undefined;
   try {
     handle = await fs.open(tempPath, 'wx', FILE_CREATE_MODE);
+    if (existingMode !== undefined) await handle.chmod(existingMode);
     await handle.writeFile(content, 'utf-8');
     await handle.sync();
     await handle.close();

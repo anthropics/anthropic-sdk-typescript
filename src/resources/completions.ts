@@ -39,13 +39,16 @@ export class Completions extends APIResource {
     params: CompletionCreateParams,
     options?: RequestOptions,
   ): APIPromise<Completion> | APIPromise<Stream<Completion>> {
-    const { betas, ...body } = params;
+    const { betas, workspace_id, ...body } = params;
     return this._client.post('/v1/complete', {
       body,
       timeout: (this._client as any)._options.timeout ?? 600000,
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        {
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
       stream: params.stream ?? false,
@@ -177,6 +180,16 @@ export interface CompletionCreateParamsBase {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export namespace CompletionCreateParams {

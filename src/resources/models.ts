@@ -14,17 +14,25 @@ export class Models extends APIResource {
    *
    * The Models API response can be used to determine information about a specific
    * model or resolve a model alias to a model ID.
+   *
+   * @example
+   * ```ts
+   * const modelInfo = await client.models.retrieve('model_id');
+   * ```
    */
   retrieve(
     modelID: string,
     params: ModelRetrieveParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<ModelInfo> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.get(path`/v1/models/${modelID}`, {
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        {
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -35,17 +43,28 @@ export class Models extends APIResource {
    *
    * The Models API response can be used to determine which models are available for
    * use in the API. More recently released models are listed first.
+   *
+   * @example
+   * ```ts
+   * // Automatically fetches more pages as needed.
+   * for await (const modelInfo of client.models.list()) {
+   *   // ...
+   * }
+   * ```
    */
   list(
     params: ModelListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<ModelInfosPage, ModelInfo> {
-    const { betas, ...query } = params ?? {};
+    const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList('/v1/models', Page<ModelInfo>, {
       query,
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        {
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -249,6 +268,16 @@ export interface ModelRetrieveParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface ModelListParams extends PageParams {
@@ -256,6 +285,16 @@ export interface ModelListParams extends PageParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export declare namespace Models {

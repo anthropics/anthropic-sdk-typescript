@@ -21,12 +21,15 @@ export class Dreams extends APIResource {
    * ```
    */
   create(params: DreamCreateParams, options?: RequestOptions): APIPromise<BetaDream> {
-    const { betas, ...body } = params;
+    const { betas, workspace_id, ...body } = params;
     return this._client.post('/v1/dreams?beta=true', {
       body,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'dreaming-2026-04-21'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'dreaming-2026-04-21'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -47,11 +50,14 @@ export class Dreams extends APIResource {
     params: DreamRetrieveParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<BetaDream> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.get(path`/v1/dreams/${dreamID}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'dreaming-2026-04-21'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'dreaming-2026-04-21'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -72,12 +78,15 @@ export class Dreams extends APIResource {
     params: DreamListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaDreamsPageCursor, BetaDream> {
-    const { betas, ...query } = params ?? {};
+    const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList('/v1/dreams?beta=true', PageCursor<BetaDream>, {
       query,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'dreaming-2026-04-21'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'dreaming-2026-04-21'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -98,11 +107,14 @@ export class Dreams extends APIResource {
     params: DreamArchiveParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<BetaDream> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.post(path`/v1/dreams/${dreamID}/archive?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'dreaming-2026-04-21'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'dreaming-2026-04-21'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -123,11 +135,14 @@ export class Dreams extends APIResource {
     params: DreamCancelParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<BetaDream> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.post(path`/v1/dreams/${dreamID}/cancel?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'dreaming-2026-04-21'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'dreaming-2026-04-21'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -414,6 +429,16 @@ export interface DreamCreateParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface DreamRetrieveParams {
@@ -421,6 +446,16 @@ export interface DreamRetrieveParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface DreamListParams extends PageCursorParams {
@@ -451,6 +486,16 @@ export interface DreamListParams extends PageCursorParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface DreamArchiveParams {
@@ -458,6 +503,16 @@ export interface DreamArchiveParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface DreamCancelParams {
@@ -465,6 +520,16 @@ export interface DreamCancelParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export declare namespace Dreams {

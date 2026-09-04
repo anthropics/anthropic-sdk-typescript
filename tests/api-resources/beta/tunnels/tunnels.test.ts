@@ -19,7 +19,7 @@ describe('resource tunnels', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('retrieve', async () => {
     const responsePromise = client.beta.tunnels.retrieve('tunnel_id');
     const rawResponse = await responsePromise.asResponse();
@@ -31,19 +31,19 @@ describe('resource tunnels', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.tunnels.retrieve(
         'tunnel_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('list', async () => {
     const responsePromise = client.beta.tunnels.list();
     const rawResponse = await responsePromise.asResponse();
@@ -55,7 +55,7 @@ describe('resource tunnels', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
@@ -65,6 +65,7 @@ describe('resource tunnels', () => {
           limit: 0,
           page: 'page',
           betas: ['message-batches-2024-09-24'],
+          workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -87,7 +88,7 @@ describe('resource tunnels', () => {
     await expect(
       client.beta.tunnels.archive(
         'tunnel_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -109,7 +110,7 @@ describe('resource tunnels', () => {
     await expect(
       client.beta.tunnels.revealToken(
         'tunnel_id',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

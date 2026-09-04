@@ -54,10 +54,11 @@ describe('resource deployments', () => {
       },
       vault_ids: ['string'],
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('retrieve', async () => {
     const responsePromise = client.beta.deployments.retrieve('depl_011CZkZcDH3vPqd7xnEfwTai');
     const rawResponse = await responsePromise.asResponse();
@@ -69,13 +70,13 @@ describe('resource deployments', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('retrieve: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.deployments.retrieve(
         'depl_011CZkZcDH3vPqd7xnEfwTai',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -92,7 +93,7 @@ describe('resource deployments', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('list', async () => {
     const responsePromise = client.beta.deployments.list();
     const rawResponse = await responsePromise.asResponse();
@@ -104,7 +105,7 @@ describe('resource deployments', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
@@ -118,6 +119,7 @@ describe('resource deployments', () => {
           page: 'page',
           status: 'active',
           betas: ['message-batches-2024-09-24'],
+          workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -140,7 +142,7 @@ describe('resource deployments', () => {
     await expect(
       client.beta.deployments.archive(
         'depl_011CZkZcDH3vPqd7xnEfwTai',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -162,7 +164,7 @@ describe('resource deployments', () => {
     await expect(
       client.beta.deployments.pause(
         'depl_011CZkZcDH3vPqd7xnEfwTai',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -184,7 +186,7 @@ describe('resource deployments', () => {
     await expect(
       client.beta.deployments.run(
         'depl_011CZkZcDH3vPqd7xnEfwTai',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -206,7 +208,7 @@ describe('resource deployments', () => {
     await expect(
       client.beta.deployments.unpause(
         'depl_011CZkZcDH3vPqd7xnEfwTai',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

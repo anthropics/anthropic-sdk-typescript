@@ -44,6 +44,7 @@ describe('resource sessions', () => {
       title: 'Order #1234 inquiry',
       vault_ids: ['string'],
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -63,7 +64,7 @@ describe('resource sessions', () => {
     await expect(
       client.beta.sessions.retrieve(
         'sesn_011CZkZAtmR3yMPDzynEDxu7',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -80,7 +81,7 @@ describe('resource sessions', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('list', async () => {
     const responsePromise = client.beta.sessions.list();
     const rawResponse = await responsePromise.asResponse();
@@ -92,7 +93,7 @@ describe('resource sessions', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
@@ -112,6 +113,7 @@ describe('resource sessions', () => {
           page: 'page',
           statuses: ['rescheduling'],
           betas: ['message-batches-2024-09-24'],
+          workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -134,7 +136,7 @@ describe('resource sessions', () => {
     await expect(
       client.beta.sessions.delete(
         'sesn_011CZkZAtmR3yMPDzynEDxu7',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);
@@ -156,7 +158,7 @@ describe('resource sessions', () => {
     await expect(
       client.beta.sessions.archive(
         'sesn_011CZkZAtmR3yMPDzynEDxu7',
-        { betas: ['message-batches-2024-09-24'] },
+        { betas: ['message-batches-2024-09-24'], workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy' },
         { path: '/_stainless_unknown_path' },
       ),
     ).rejects.toThrow(Anthropic.NotFoundError);

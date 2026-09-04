@@ -28,6 +28,7 @@ describe('resource memories', () => {
       path: 'xx',
       view: 'basic',
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -49,6 +50,7 @@ describe('resource memories', () => {
       memory_store_id: 'memory_store_id',
       view: 'basic',
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
@@ -73,10 +75,11 @@ describe('resource memories', () => {
       path: 'xx',
       precondition: { type: 'content_sha256', content_sha256: 'content_sha256' },
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('list', async () => {
     const responsePromise = client.beta.memoryStores.memories.list('memory_store_id');
     const rawResponse = await responsePromise.asResponse();
@@ -88,7 +91,7 @@ describe('resource memories', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
@@ -101,6 +104,7 @@ describe('resource memories', () => {
           path_prefix: 'path_prefix',
           view: 'basic',
           betas: ['message-batches-2024-09-24'],
+          workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -125,6 +129,7 @@ describe('resource memories', () => {
       memory_store_id: 'memory_store_id',
       expected_content_sha256: 'expected_content_sha256',
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 });

@@ -15,8 +15,12 @@ import {
 } from '../../lib/parser';
 import * as BatchesAPI from './batches';
 import {
+  BatchCancelParams,
   BatchCreateParams,
+  BatchDeleteParams,
   BatchListParams,
+  BatchResultsParams,
+  BatchRetrieveParams,
   Batches,
   DeletedMessageBatch,
   MessageBatch,
@@ -68,7 +72,7 @@ export class Messages extends APIResource {
     params: MessageCreateParams,
     options?: RequestOptions,
   ): APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>> {
-    const { user_profile_id, ...body } = params;
+    const { user_profile_id, workspace_id, ...body } = params;
     if (body.model in DEPRECATED_MODELS) {
       console.warn(
         `The model '${body.model}' is deprecated and will reach end-of-life on ${
@@ -99,7 +103,10 @@ export class Messages extends APIResource {
       timeout: timeout ?? 600000,
       ...options,
       headers: buildHeaders([
-        { ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined) },
+        {
+          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         helperHeader,
         options?.headers,
       ]),
@@ -186,12 +193,15 @@ export class Messages extends APIResource {
    * ```
    */
   countTokens(params: MessageCountTokensParams, options?: RequestOptions): APIPromise<MessageTokensCount> {
-    const { user_profile_id, ...body } = params;
+    const { user_profile_id, workspace_id, ...body } = params;
     return this._client.post('/v1/messages/count_tokens', {
       body,
       ...options,
       headers: buildHeaders([
-        { ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined) },
+        {
+          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -4820,6 +4830,16 @@ export interface MessageCreateParamsBase {
    * beta header.
    */
   user_profile_id?: string;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export namespace MessageCreateParams {
@@ -5057,6 +5077,16 @@ export interface MessageCountTokensParams {
    * beta header.
    */
   user_profile_id?: string;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 Messages.Batches = Batches;
@@ -5316,6 +5346,10 @@ export declare namespace Messages {
     type MessageBatchSucceededResult as MessageBatchSucceededResult,
     type MessageBatchesPage as MessageBatchesPage,
     type BatchCreateParams as BatchCreateParams,
+    type BatchRetrieveParams as BatchRetrieveParams,
     type BatchListParams as BatchListParams,
+    type BatchDeleteParams as BatchDeleteParams,
+    type BatchCancelParams as BatchCancelParams,
+    type BatchResultsParams as BatchResultsParams,
   };
 }

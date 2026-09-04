@@ -55,10 +55,14 @@ export interface BetaComplianceSettings {
   /**
    * Whether the Compliance API is enabled for this organization.
    */
-  state: BetaComplianceSettingsStateEnabled | BetaComplianceSettingsStateDisabled;
+  state: BetaComplianceSettingsState;
 
   type: 'compliance_settings';
 }
+
+export type BetaComplianceSettingsState =
+  | BetaComplianceSettingsStateEnabled
+  | BetaComplianceSettingsStateDisabled;
 
 export interface BetaComplianceSettingsStateDisabled {
   type: 'disabled';
@@ -76,21 +80,27 @@ export interface BetaComplianceSettingsStateEnabledParam {
   type: 'enabled';
 }
 
+export type BetaComplianceSettingsStateParam =
+  | BetaComplianceSettingsStateEnabledParam
+  | BetaComplianceSettingsStateDisabledParam;
+
 export interface ComplianceSettingUpdateParams {
   /**
    * Desired state. Accepts the string shorthand "enabled" or "disabled" in place of
    * the object form; the response always returns the canonical object form.
    */
-  state: BetaComplianceSettingsStateEnabledParam | BetaComplianceSettingsStateDisabledParam;
+  state: BetaComplianceSettingsStateParam;
 }
 
 export declare namespace ComplianceSettings {
   export {
     type BetaComplianceSettings as BetaComplianceSettings,
+    type BetaComplianceSettingsState as BetaComplianceSettingsState,
     type BetaComplianceSettingsStateDisabled as BetaComplianceSettingsStateDisabled,
     type BetaComplianceSettingsStateDisabledParam as BetaComplianceSettingsStateDisabledParam,
     type BetaComplianceSettingsStateEnabled as BetaComplianceSettingsStateEnabled,
     type BetaComplianceSettingsStateEnabledParam as BetaComplianceSettingsStateEnabledParam,
+    type BetaComplianceSettingsStateParam as BetaComplianceSettingsStateParam,
     type ComplianceSettingUpdateParams as ComplianceSettingUpdateParams,
   };
 }

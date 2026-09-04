@@ -27,12 +27,15 @@ export class Files extends APIResource {
     params: FileListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaFileMetadataPageCursor, BetaFileMetadata> {
-    const { betas, ...query } = params ?? {};
+    const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList('/v1/files?beta=true', PageCursor<BetaFileMetadata>, {
       query,
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        {
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -53,11 +56,14 @@ export class Files extends APIResource {
     params: FileDeleteParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<BetaDeletedFile> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.delete(path`/v1/files/${fileID}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        {
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -81,13 +87,14 @@ export class Files extends APIResource {
     params: FileDownloadParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<Response> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.get(path`/v1/files/${fileID}/content?beta=true`, {
       ...options,
       headers: buildHeaders([
         {
           Accept: 'application/binary',
           ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
         },
         options?.headers,
       ]),
@@ -109,11 +116,14 @@ export class Files extends APIResource {
     params: FileRetrieveMetadataParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<BetaFileMetadata> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.get(path`/v1/files/${fileID}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        {
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -130,8 +140,7 @@ export class Files extends APIResource {
    * ```
    */
   upload(params: FileUploadParams, options?: RequestOptions): APIPromise<BetaFileMetadata> {
-    const { betas, ...body } = params;
-
+    const { betas, workspace_id, ...body } = params;
     return this._client.post(
       '/v1/files?beta=true',
       multipartFormRequestOptions(
@@ -139,7 +148,10 @@ export class Files extends APIResource {
           body,
           ...options,
           headers: buildHeaders([
-            { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+            {
+              ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+              ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+            },
             stainlessHelperHeaderFromFile(body.file),
             options?.headers,
           ]),
@@ -252,6 +264,16 @@ export interface FileListParams extends PageCursorParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface FileDeleteParams {
@@ -259,6 +281,16 @@ export interface FileDeleteParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface FileDownloadParams {
@@ -266,6 +298,16 @@ export interface FileDownloadParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface FileRetrieveMetadataParams {
@@ -273,11 +315,23 @@ export interface FileRetrieveMetadataParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface FileUploadParams {
   /**
-   * Body param: The file to upload
+   * Body param: The file to upload. Only the final path component of the part's
+   * `filename` is kept; an absent or empty `filename` is replaced with `unnamed`
+   * plus the extension for the file's stored `mime_type`, when known.
    */
   file: Uploadable;
 
@@ -292,6 +346,16 @@ export interface FileUploadParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export declare namespace Files {

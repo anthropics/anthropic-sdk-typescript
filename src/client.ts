@@ -55,9 +55,12 @@ import {
 } from './resources/completions';
 import {
   DeletedFile,
+  FileDeleteParams,
+  FileDownloadParams,
   FileListParams,
   FileMetadata,
   FileMetadataPageCursor,
+  FileRetrieveMetadataParams,
   FileUploadParams,
   Files,
 } from './resources/files';
@@ -337,7 +340,9 @@ import {
   DeletedSkill,
   Skill,
   SkillCreateParams,
+  SkillDeleteParams,
   SkillListParams,
+  SkillRetrieveParams,
   SkillSource,
   Skills,
   SkillsPageCursor,
@@ -781,7 +786,8 @@ export class BaseAnthropic {
   }
 
   /**
-   * Create a new client instance re-using the same options given to the current client with optional overriding.
+   * Create a new client instance re-using the same options given to the
+   * current client with optional overriding.
    */
   withOptions(options: Partial<ClientOptions>): this {
     // Share the auth state object unless the caller passes any auth-related
@@ -1982,6 +1988,9 @@ export declare namespace Anthropic {
     type FileMetadata as FileMetadata,
     type FileMetadataPageCursor as FileMetadataPageCursor,
     type FileListParams as FileListParams,
+    type FileDeleteParams as FileDeleteParams,
+    type FileDownloadParams as FileDownloadParams,
+    type FileRetrieveMetadataParams as FileRetrieveMetadataParams,
     type FileUploadParams as FileUploadParams,
   };
 
@@ -1992,7 +2001,9 @@ export declare namespace Anthropic {
     type SkillSource as SkillSource,
     type SkillsPageCursor as SkillsPageCursor,
     type SkillCreateParams as SkillCreateParams,
+    type SkillRetrieveParams as SkillRetrieveParams,
     type SkillListParams as SkillListParams,
+    type SkillDeleteParams as SkillDeleteParams,
   };
 
   export {

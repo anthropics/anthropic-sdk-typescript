@@ -41,12 +41,15 @@ export class Batches extends APIResource {
    * ```
    */
   create(params: BatchCreateParams, options?: RequestOptions): APIPromise<MessageBatch> {
-    const { user_profile_id, ...body } = params;
+    const { user_profile_id, workspace_id, ...body } = params;
     return this._client.post('/v1/messages/batches', {
       body,
       ...options,
       headers: buildHeaders([
-        { ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined) },
+        {
+          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -67,8 +70,19 @@ export class Batches extends APIResource {
    * );
    * ```
    */
-  retrieve(messageBatchID: string, options?: RequestOptions): APIPromise<MessageBatch> {
-    return this._client.get(path`/v1/messages/batches/${messageBatchID}`, options);
+  retrieve(
+    messageBatchID: string,
+    params: BatchRetrieveParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<MessageBatch> {
+    const { workspace_id } = params ?? {};
+    return this._client.get(path`/v1/messages/batches/${messageBatchID}`, {
+      ...options,
+      headers: buildHeaders([
+        { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -87,10 +101,18 @@ export class Batches extends APIResource {
    * ```
    */
   list(
-    query: BatchListParams | null | undefined = {},
+    params: BatchListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<MessageBatchesPage, MessageBatch> {
-    return this._client.getAPIList('/v1/messages/batches', Page<MessageBatch>, { query, ...options });
+    const { workspace_id, ...query } = params ?? {};
+    return this._client.getAPIList('/v1/messages/batches', Page<MessageBatch>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -108,8 +130,19 @@ export class Batches extends APIResource {
    *   await client.messages.batches.delete('message_batch_id');
    * ```
    */
-  delete(messageBatchID: string, options?: RequestOptions): APIPromise<DeletedMessageBatch> {
-    return this._client.delete(path`/v1/messages/batches/${messageBatchID}`, options);
+  delete(
+    messageBatchID: string,
+    params: BatchDeleteParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<DeletedMessageBatch> {
+    const { workspace_id } = params ?? {};
+    return this._client.delete(path`/v1/messages/batches/${messageBatchID}`, {
+      ...options,
+      headers: buildHeaders([
+        { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -133,8 +166,19 @@ export class Batches extends APIResource {
    * );
    * ```
    */
-  cancel(messageBatchID: string, options?: RequestOptions): APIPromise<MessageBatch> {
-    return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel`, options);
+  cancel(
+    messageBatchID: string,
+    params: BatchCancelParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<MessageBatch> {
+    const { workspace_id } = params ?? {};
+    return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel`, {
+      ...options,
+      headers: buildHeaders([
+        { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -155,19 +199,27 @@ export class Batches extends APIResource {
    */
   async results(
     messageBatchID: string,
+    params: BatchResultsParams | undefined = {},
     options?: RequestOptions,
   ): Promise<JSONLDecoder<MessageBatchIndividualResponse>> {
-    const batch = await this.retrieve(messageBatchID);
+    const batch = await this.retrieve(messageBatchID, params, options);
     if (!batch.results_url) {
       throw new AnthropicError(
         `No batch \`results_url\`; Has it finished processing? ${batch.processing_status} - ${batch.id}`,
       );
     }
 
+    const { workspace_id } = params ?? {};
     return this._client
       .get(batch.results_url, {
         ...options,
-        headers: buildHeaders([{ Accept: 'application/binary' }, options?.headers]),
+        headers: buildHeaders([
+          {
+            Accept: 'application/binary',
+            ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+          },
+          options?.headers,
+        ]),
         stream: true,
         __binaryResponse: true,
       })
@@ -371,6 +423,16 @@ export interface BatchCreateParams {
    * is errored.
    */
   user_profile_id?: string;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export namespace BatchCreateParams {
@@ -394,7 +456,65 @@ export namespace BatchCreateParams {
   }
 }
 
-export interface BatchListParams extends PageParams {}
+export interface BatchRetrieveParams {
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
+}
+
+export interface BatchListParams extends PageParams {
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
+}
+
+export interface BatchDeleteParams {
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
+}
+
+export interface BatchCancelParams {
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
+}
+
+export interface BatchResultsParams {
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
+}
 
 export declare namespace Batches {
   export {
@@ -409,6 +529,10 @@ export declare namespace Batches {
     type MessageBatchSucceededResult as MessageBatchSucceededResult,
     type MessageBatchesPage as MessageBatchesPage,
     type BatchCreateParams as BatchCreateParams,
+    type BatchRetrieveParams as BatchRetrieveParams,
     type BatchListParams as BatchListParams,
+    type BatchDeleteParams as BatchDeleteParams,
+    type BatchCancelParams as BatchCancelParams,
+    type BatchResultsParams as BatchResultsParams,
   };
 }

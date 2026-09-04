@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0 (2026-09-04)
+
+Full Changelog: [aws-sdk-v0.6.6...aws-sdk-v0.7.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.6.6...aws-sdk-v0.7.0)
+
+### Features
+
+* **api:** add support for sending a workspace ID on more endpoints ([a11e6f1](https://github.com/anthropics/anthropic-sdk-typescript/commit/a11e6f1d3bb0e12e6369d3611a232a6234e715eb))
+
 ## 0.6.6 (2026-08-27)
 
 Full Changelog: [aws-sdk-v0.6.5...aws-sdk-v0.6.6](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.6.5...aws-sdk-v0.6.6)

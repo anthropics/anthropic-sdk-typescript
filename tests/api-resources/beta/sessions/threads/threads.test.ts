@@ -25,10 +25,11 @@ describe('resource threads', () => {
     const response = await client.beta.sessions.threads.retrieve('sthr_011CZkZVWa6oIjw0rgXZpnBt', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('list', async () => {
     const responsePromise = client.beta.sessions.threads.list('sesn_011CZkZAtmR3yMPDzynEDxu7');
     const rawResponse = await responsePromise.asResponse();
@@ -40,7 +41,7 @@ describe('resource threads', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params (SDK-4349)
+  // buildURL drops path-level query params
   test.skip('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
@@ -50,6 +51,7 @@ describe('resource threads', () => {
           limit: 0,
           page: 'page',
           betas: ['message-batches-2024-09-24'],
+          workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },
         { path: '/_stainless_unknown_path' },
       ),
@@ -73,6 +75,7 @@ describe('resource threads', () => {
     const response = await client.beta.sessions.threads.archive('sthr_011CZkZVWa6oIjw0rgXZpnBt', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
       betas: ['message-batches-2024-09-24'],
+      workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 });

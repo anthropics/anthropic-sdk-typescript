@@ -27,14 +27,17 @@ export class MemoryVersions extends APIResource {
     params: MemoryVersionRetrieveParams,
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsMemoryVersion> {
-    const { memory_store_id, betas, ...query } = params;
+    const { memory_store_id, betas, workspace_id, ...query } = params;
     return this._client.get(
       path`/v1/memory_stores/${memory_store_id}/memory_versions/${memoryVersionID}?beta=true`,
       {
         query,
         ...options,
         headers: buildHeaders([
-          { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
+          {
+            'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString(),
+            ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+          },
           options?.headers,
         ]),
       },
@@ -59,7 +62,7 @@ export class MemoryVersions extends APIResource {
     params: MemoryVersionListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaManagedAgentsMemoryVersionsPageCursor, BetaManagedAgentsMemoryVersion> {
-    const { betas, ...query } = params ?? {};
+    const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(
       path`/v1/memory_stores/${memoryStoreID}/memory_versions?beta=true`,
       PageCursor<BetaManagedAgentsMemoryVersion>,
@@ -67,7 +70,10 @@ export class MemoryVersions extends APIResource {
         query,
         ...options,
         headers: buildHeaders([
-          { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
+          {
+            'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString(),
+            ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+          },
           options?.headers,
         ]),
       },
@@ -91,13 +97,16 @@ export class MemoryVersions extends APIResource {
     params: MemoryVersionRedactParams,
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsMemoryVersion> {
-    const { memory_store_id, betas } = params;
+    const { memory_store_id, betas, workspace_id } = params;
     return this._client.post(
       path`/v1/memory_stores/${memory_store_id}/memory_versions/${memoryVersionID}/redact?beta=true`,
       {
         ...options,
         headers: buildHeaders([
-          { 'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString() },
+          {
+            'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString(),
+            ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+          },
           options?.headers,
         ]),
       },
@@ -112,7 +121,7 @@ export type BetaManagedAgentsMemoryVersionsPageCursor = PageCursor<BetaManagedAg
  * the `memory_version` row. The API key that created a session is not recorded on
  * agent writes; attribution answers who made the write, not who is ultimately
  * responsible. Look up session provenance separately via the
- * [Sessions API](/en/api/sessions-retrieve).
+ * [Sessions API](/en/api/beta/sessions/retrieve).
  */
 export type BetaManagedAgentsActor =
   | BetaManagedAgentsSessionActor
@@ -201,7 +210,7 @@ export interface BetaManagedAgentsMemoryVersion {
    * the `memory_version` row. The API key that created a session is not recorded on
    * agent writes; attribution answers who made the write, not who is ultimately
    * responsible. Look up session provenance separately via the
-   * [Sessions API](/en/api/sessions-retrieve).
+   * [Sessions API](/en/api/beta/sessions/retrieve).
    */
   created_by?: BetaManagedAgentsActor;
 
@@ -221,7 +230,7 @@ export interface BetaManagedAgentsMemoryVersion {
    * the `memory_version` row. The API key that created a session is not recorded on
    * agent writes; attribution answers who made the write, not who is ultimately
    * responsible. Look up session provenance separately via the
-   * [Sessions API](/en/api/sessions-retrieve).
+   * [Sessions API](/en/api/beta/sessions/retrieve).
    */
   redacted_by?: BetaManagedAgentsActor;
 }
@@ -252,7 +261,7 @@ export interface BetaManagedAgentsServiceAccountActor {
 export interface BetaManagedAgentsSessionActor {
   /**
    * ID of the session that performed the write (a `sesn_...` value). Look up the
-   * session via [Retrieve a session](/en/api/sessions-retrieve) for further
+   * session via [Retrieve a session](/en/api/beta/sessions/retrieve) for further
    * provenance.
    */
   session_id: string;
@@ -287,6 +296,16 @@ export interface MemoryVersionRetrieveParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface MemoryVersionListParams extends PageCursorParams {
@@ -334,6 +353,16 @@ export interface MemoryVersionListParams extends PageCursorParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface MemoryVersionRedactParams {
@@ -346,6 +375,16 @@ export interface MemoryVersionRedactParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export declare namespace MemoryVersions {

@@ -513,6 +513,39 @@ describe('client credentials integration', () => {
     expect(seenWs).toEqual(['ws-shared', 'ws-shared']);
   });
 
+  it('per-request workspace_id overrides the profile workspace_id header', async () => {
+    process.env['ANTHROPIC_CONFIG_DIR'] = testDir;
+    fs.mkdirSync(path.join(testDir, 'configs'), { recursive: true });
+    fs.mkdirSync(path.join(testDir, 'credentials'), { recursive: true });
+    fs.writeFileSync(
+      path.join(testDir, 'configs', 'default.json'),
+      JSON.stringify({ workspace_id: 'ws-profile', authentication: { type: 'user_oauth' } }),
+    );
+    fs.writeFileSync(
+      path.join(testDir, 'credentials', 'default.json'),
+      JSON.stringify({ access_token: 'tok', expires_at: farFuture() }),
+      { mode: 0o600 },
+    );
+
+    const seenWs: (string | null)[] = [];
+    const client = new Anthropic({
+      fetch: async (_url: any, init?: RequestInit) => {
+        seenWs.push(getHeader(init, 'anthropic-workspace-id'));
+        return jsonResponse(VALID_MSG_RESPONSE);
+      },
+    });
+
+    await client.messages.create({ model: 'claude-opus-4-8', max_tokens: 1, messages: [] });
+    await client.messages.create({
+      model: 'claude-opus-4-8',
+      max_tokens: 1,
+      messages: [],
+      workspace_id: 'ws-request',
+    });
+
+    expect(seenWs).toEqual(['ws-profile', 'ws-request']);
+  });
+
   it('pins withOptions({apiKey: undefined}) and ({credentials: null}) override semantics', async () => {
     process.env['ANTHROPIC_CONFIG_DIR'] = path.join(testDir, 'empty');
     fs.mkdirSync(path.join(testDir, 'empty'), { recursive: true });
