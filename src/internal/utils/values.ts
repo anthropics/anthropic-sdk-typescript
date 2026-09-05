@@ -1,5 +1,3 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 import { AnthropicError } from '../../core/error';
 
 // https://url.spec.whatwg.org/#url-scheme-string

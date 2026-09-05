@@ -1,5 +1,3 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 import { AnthropicError } from '../../../error';
 import { Anthropic } from '../../../client';
 import * as BatchesAPI from './batches';

@@ -1,5 +1,3 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 import { hasOwn } from './values';
 import { readEnv } from './env';
 import { type BaseAnthropic } from '../../client';

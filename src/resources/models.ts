@@ -1,5 +1,3 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 import { APIResource } from '../core/resource';
 import * as BetaAPI from './beta/beta';
 import { APIPromise } from '../core/api-promise';

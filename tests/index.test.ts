@@ -1,5 +1,3 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 import { APIPromise } from '@anthropic-ai/sdk/core/api-promise';
 import { APIError } from '@anthropic-ai/sdk/core/error';
 
