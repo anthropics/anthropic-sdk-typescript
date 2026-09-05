@@ -1476,7 +1476,7 @@ export class BaseAnthropic {
 
     // About the Retry-After header: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
     const retryAfterHeader = responseHeaders?.get('retry-after');
-    if (retryAfterHeader && !timeoutMillis) {
+    if (retryAfterHeader && timeoutMillis === undefined) {
       const timeoutSeconds = parseFloat(retryAfterHeader);
       if (!Number.isNaN(timeoutSeconds)) {
         timeoutMillis = timeoutSeconds * 1000;

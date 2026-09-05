@@ -800,6 +800,36 @@ describe('retries', () => {
     expect(count).toEqual(3);
   });
 
+  test('retry-after-ms zero takes precedence over retry-after', async () => {
+    let count = 0;
+    const setTimeoutSpy = jest.spyOn(globalThis, 'setTimeout');
+    const testFetch = async (
+      url: string | URL | Request,
+      { signal }: RequestInit = {},
+    ): Promise<Response> => {
+      if (count++ === 0) {
+        return new Response(undefined, {
+          status: 429,
+          headers: {
+            'Retry-After-Ms': '0',
+            'Retry-After': '0.05',
+          },
+        });
+      }
+      return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+    };
+
+    const client = new Anthropic({ apiKey: 'my-anthropic-api-key', fetch: testFetch });
+
+    try {
+      expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
+      expect(count).toEqual(2);
+      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 0);
+    } finally {
+      setTimeoutSpy.mockRestore();
+    }
+  });
+
   test('HTTP error response exposes error type', async () => {
     const client = new Anthropic({
       apiKey: 'test-key',
