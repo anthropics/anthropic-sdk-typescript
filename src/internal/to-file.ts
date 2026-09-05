@@ -107,7 +107,9 @@ export async function toFile(
 
   if (isResponseLike(value)) {
     const blob = await value.blob();
-    name ||= new URL(value.url).pathname.split(/[\\/]/).pop();
+    if (!name && value.url) {
+      name = new URL(value.url).pathname.split(/[\\/]/).pop();
+    }
 
     return makeFile(await getBytes(blob), name, options);
   }
