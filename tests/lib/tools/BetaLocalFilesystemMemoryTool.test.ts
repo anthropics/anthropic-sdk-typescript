@@ -185,6 +185,26 @@ describe('BetaLocalFilesystemMemoryTool', () => {
   });
 
   describe('str_replace', () => {
+    it.each(['$$', '$&', '$`', "$'"])('should preserve %s literally in replacement text', async (pattern) => {
+      await tool.create({
+        command: 'create',
+        file_text: 'Before Old Text After',
+        path: '/memories/replace_test.txt',
+      });
+
+      const replacement = `Literal ${pattern}`;
+      const result = await tool.str_replace({
+        command: 'str_replace',
+        path: '/memories/replace_test.txt',
+        old_str: 'Old Text',
+        new_str: replacement,
+      });
+
+      const expected = `Before ${replacement} After`;
+      expect(await fs.readFile(path.join(tempDir, 'memories/replace_test.txt'), 'utf-8')).toBe(expected);
+      expect(result).toContain(expected);
+    });
+
     it('should replace string in file', async () => {
       await tool.create({
         command: 'create',
