@@ -1,6 +1,5 @@
 import type { RequestInit, RequestInfo, BodyInit } from './internal/builtin-types';
 import type { HTTPMethod, PromiseOrValue, MergedRequestInit, FinalizedRequestInit } from './internal/types';
-import { uuid4 } from './internal/utils/uuid';
 import { validatePositiveInteger, isAbsoluteURL, safeJSON } from './internal/utils/values';
 import { sleep } from './internal/utils/sleep';
 export type { Logger, LogLevel } from './internal/utils/log';
@@ -586,7 +585,6 @@ export class BaseAnthropic {
 
   private fetch: Fetch;
   #encoder: Opts.RequestEncoder;
-  protected idempotencyHeader?: string;
   protected _options: ClientOptions;
 
   /**
@@ -957,10 +955,6 @@ export class BaseAnthropic {
 
   protected getUserAgent(): string {
     return `Anthropic/JS ${VERSION}`;
-  }
-
-  protected defaultIdempotencyKey(): string {
-    return `stainless-node-retry-${uuid4()}`;
   }
 
   protected makeStatusError(
@@ -1572,14 +1566,7 @@ export class BaseAnthropic {
     bodyHeaders: HeadersLike;
     retryCount: number;
   }): Promise<Headers> {
-    let idempotencyHeaders: HeadersLike = {};
-    if (this.idempotencyHeader && method !== 'get') {
-      if (!options.idempotencyKey) options.idempotencyKey = this.defaultIdempotencyKey();
-      idempotencyHeaders[this.idempotencyHeader] = options.idempotencyKey;
-    }
-
     const headers = buildHeaders([
-      idempotencyHeaders,
       {
         Accept: 'application/json',
         'User-Agent': this.getUserAgent(),

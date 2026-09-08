@@ -118,7 +118,7 @@ export interface RequestOptions {
   fallbackState?: BetaFallbackState;
 
   /**
-   * A unique key for this request to enable idempotency.
+   * @deprecated This option has no effect and will be removed in a future major version.
    */
   idempotencyKey?: string;
 
