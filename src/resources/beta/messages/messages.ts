@@ -6049,7 +6049,8 @@ export type BetaWebFetchToolResultErrorCode =
   | 'unsupported_content_type'
   | 'too_many_requests'
   | 'max_uses_exceeded'
-  | 'unavailable';
+  | 'unavailable'
+  | 'content_too_large';
 
 export interface BetaWebSearchResultBlock {
   encrypted_content: string;

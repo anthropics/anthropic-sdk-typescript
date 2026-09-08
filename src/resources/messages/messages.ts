@@ -4249,7 +4249,8 @@ export type WebFetchToolResultErrorCode =
   | 'unsupported_content_type'
   | 'too_many_requests'
   | 'max_uses_exceeded'
-  | 'unavailable';
+  | 'unavailable'
+  | 'content_too_large';
 
 export interface WebSearchResultBlock {
   encrypted_content: string;
