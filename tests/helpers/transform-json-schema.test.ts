@@ -258,6 +258,37 @@ describe('transformJsonSchema', () => {
 `);
   });
 
+  it('should keep $defs when the root schema is a $ref', () => {
+    // Shape emitted by pydantic's RootModel and zod-to-json-schema for a
+    // top-level model: the root is a $ref with the definitions beside it.
+    const input = {
+      $ref: '#/$defs/Item',
+      $defs: {
+        Item: {
+          type: 'object',
+          properties: {
+            a: { type: 'string' },
+          },
+        },
+      },
+    };
+
+    const result = transformJSONSchema(input);
+
+    expect(result).toEqual({
+      $ref: '#/$defs/Item',
+      $defs: {
+        Item: {
+          type: 'object',
+          properties: {
+            a: { type: 'string' },
+          },
+          additionalProperties: false,
+        },
+      },
+    });
+  });
+
   it('should remove additionalProperties: true', () => {
     const input = {
       type: 'object',
