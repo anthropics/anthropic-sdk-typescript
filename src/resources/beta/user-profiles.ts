@@ -179,9 +179,18 @@ export interface BetaUserProfile {
   access_type?: 'application' | 'passthrough';
 
   /**
-   * Platform's own identifier for this user. Not enforced unique.
+   * Platform's own identifier for this user. Not enforced unique. Present under the
+   * `user-profiles-2026-03-24` and `user-profiles-2026-08-18` beta headers; under
+   * `user-profiles-2026-09-04` the value is `external_user_details.reference_id`.
    */
   external_id?: string | null;
+
+  /**
+   * Details about the entity this profile represents, as the platform states them.
+   * Anthropic does not verify them. Every field is present, `null` until the
+   * platform supplies a value.
+   */
+  external_user_details?: BetaUserProfileExternalUserDetails;
 
   /**
    * A timestamp in RFC 3339 format
@@ -213,6 +222,106 @@ export interface BetaUserProfileEnrollmentURL {
   url: string;
 }
 
+/**
+ * Details about the entity this profile represents, as the platform states them.
+ * Anthropic does not verify them. Every field is present, `null` until the
+ * platform supplies a value.
+ */
+export interface BetaUserProfileExternalUserDetails {
+  /**
+   * The status of the entity's account on the platform, as the platform states it:
+   * `active`; `suspended`, when the platform has restricted the account and may
+   * restore it; or `blocked`, when the platform has barred it. It records the
+   * platform's decision only; the statuses in `trust_grants` are Anthropic's and do
+   * not follow it.
+   */
+  account_status: 'active' | 'suspended' | 'blocked' | null;
+
+  /**
+   * The country the platform associates with the entity, as an ISO 3166-1 alpha-2
+   * code. `null` until the platform supplies one.
+   */
+  country: string | null;
+
+  /**
+   * The platform-computed hash of the entity's email address. `null` until the
+   * platform supplies one.
+   */
+  email_hash: string | null;
+
+  /**
+   * What kind of entity the profile represents, as the platform states it:
+   * `individual`, `business`, `non_profit` or `government`.
+   */
+  entity_type: 'individual' | 'business' | 'non_profit' | 'government' | null;
+
+  /**
+   * The platform-computed hash of the entity's name. `null` until the platform
+   * supplies one.
+   */
+  name_hash: string | null;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  onboarded_at: string | null;
+
+  /**
+   * The platform's own reference for the entity. `null` until the platform supplies
+   * one.
+   */
+  reference_id: string | null;
+}
+
+export interface BetaUserProfileExternalUserDetailsParams {
+  /**
+   * The status of the entity's account on the platform, as the platform states it:
+   * `active`; `suspended`, when the platform has restricted the account and may
+   * restore it; or `blocked`, when the platform has barred it. It records the
+   * platform's decision only; the statuses in `trust_grants` are Anthropic's and do
+   * not follow it.
+   */
+  account_status?: 'active' | 'suspended' | 'blocked' | null;
+
+  /**
+   * The country of the entity (not of the platform), as the platform determines it:
+   * an ISO 3166-1 alpha-2 code in upper case, for example `US`. Only the form, two
+   * uppercase ASCII letters, is checked.
+   */
+  country?: string | null;
+
+  /**
+   * A hash of the entity's email address, computed by the platform. Anthropic treats
+   * it as an opaque string and does not prescribe the hash function. 1 to 255
+   * characters.
+   */
+  email_hash?: string | null;
+
+  /**
+   * What kind of entity the profile represents, as the platform states it:
+   * `individual`, `business`, `non_profit` or `government`.
+   */
+  entity_type?: 'individual' | 'business' | 'non_profit' | 'government' | null;
+
+  /**
+   * A hash of the entity's name, computed by the platform. Anthropic treats it as an
+   * opaque string and does not prescribe the hash function. 1 to 255 characters.
+   */
+  name_hash?: string | null;
+
+  /**
+   * A timestamp in RFC 3339 format
+   */
+  onboarded_at?: string;
+
+  /**
+   * The platform's own reference for the entity, for example the key of the
+   * end-user's row in the platform's database. Not interpreted by Anthropic and not
+   * enforced unique. 1 to 255 characters.
+   */
+  reference_id?: string | null;
+}
+
 export interface BetaUserProfileTrustGrant {
   /**
    * Status of the trust grant.
@@ -232,9 +341,18 @@ export interface UserProfileCreateParams {
 
   /**
    * Body param: Platform's own identifier for this user. Not enforced unique.
-   * Maximum 255 characters.
+   * Maximum 255 characters. Accepted under the `user-profiles-2026-03-24` and
+   * `user-profiles-2026-08-18` beta headers; under `user-profiles-2026-09-04` send
+   * `external_user_details.reference_id` instead.
    */
   external_id?: string | null;
+
+  /**
+   * Body param: Details about the entity this profile represents, as the platform
+   * states them. Every field is optional. Accepted under the
+   * `user-profiles-2026-09-04` beta header only.
+   */
+  external_user_details?: BetaUserProfileExternalUserDetailsParams;
 
   /**
    * Body param: A timestamp in RFC 3339 format
@@ -281,9 +399,19 @@ export interface UserProfileUpdateParams {
 
   /**
    * Body param: If present, replaces the stored external_id. Omit to leave
-   * unchanged. Maximum 255 characters.
+   * unchanged. Maximum 255 characters. Accepted under the `user-profiles-2026-03-24`
+   * and `user-profiles-2026-08-18` beta headers; under `user-profiles-2026-09-04`
+   * send `external_user_details.reference_id` instead.
    */
   external_id?: string | null;
+
+  /**
+   * Body param: Details about the entity this profile represents, as the platform
+   * states them. Each field sent replaces the stored value; omit a field to leave it
+   * unchanged. Once set, a value cannot be cleared and `null` is rejected. Accepted
+   * under the `user-profiles-2026-09-04` beta header only.
+   */
+  external_user_details?: BetaUserProfileExternalUserDetailsParams;
 
   /**
    * Body param: A timestamp in RFC 3339 format
@@ -338,6 +466,8 @@ export declare namespace UserProfiles {
   export {
     type BetaUserProfile as BetaUserProfile,
     type BetaUserProfileEnrollmentURL as BetaUserProfileEnrollmentURL,
+    type BetaUserProfileExternalUserDetails as BetaUserProfileExternalUserDetails,
+    type BetaUserProfileExternalUserDetailsParams as BetaUserProfileExternalUserDetailsParams,
     type BetaUserProfileTrustGrant as BetaUserProfileTrustGrant,
     type BetaUserProfilesPageCursor as BetaUserProfilesPageCursor,
     type UserProfileCreateParams as UserProfileCreateParams,

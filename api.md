@@ -1343,6 +1343,8 @@ Types:
 
 - <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfile</a></code>
 - <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileEnrollmentURL</a></code>
+- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileExternalUserDetails</a></code>
+- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileExternalUserDetailsParams</a></code>
 - <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileTrustGrant</a></code>
 
 Methods:

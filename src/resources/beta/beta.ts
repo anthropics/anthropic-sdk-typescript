@@ -130,6 +130,8 @@ import * as UserProfilesAPI from './user-profiles';
 import {
   BetaUserProfile,
   BetaUserProfileEnrollmentURL,
+  BetaUserProfileExternalUserDetails,
+  BetaUserProfileExternalUserDetailsParams,
   BetaUserProfileTrustGrant,
   BetaUserProfilesPageCursor,
   UserProfileCreateEnrollmentURLParams,
@@ -729,6 +731,7 @@ export type AnthropicBeta =
   | 'output-300k-2026-03-24'
   | 'user-profiles-2026-03-24'
   | 'user-profiles-2026-08-18'
+  | 'user-profiles-2026-09-04'
   | 'advisor-tool-2026-03-01'
   | 'managed-agents-2026-04-01'
   | 'cache-diagnosis-2026-04-07'
@@ -1515,6 +1518,8 @@ export declare namespace Beta {
     UserProfiles as UserProfiles,
     type BetaUserProfile as BetaUserProfile,
     type BetaUserProfileEnrollmentURL as BetaUserProfileEnrollmentURL,
+    type BetaUserProfileExternalUserDetails as BetaUserProfileExternalUserDetails,
+    type BetaUserProfileExternalUserDetailsParams as BetaUserProfileExternalUserDetailsParams,
     type BetaUserProfileTrustGrant as BetaUserProfileTrustGrant,
     type BetaUserProfilesPageCursor as BetaUserProfilesPageCursor,
     type UserProfileCreateParams as UserProfileCreateParams,

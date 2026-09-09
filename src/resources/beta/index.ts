@@ -624,6 +624,8 @@ export {
   UserProfiles,
   type BetaUserProfile,
   type BetaUserProfileEnrollmentURL,
+  type BetaUserProfileExternalUserDetails,
+  type BetaUserProfileExternalUserDetailsParams,
   type BetaUserProfileTrustGrant,
   type UserProfileCreateParams,
   type UserProfileRetrieveParams,
