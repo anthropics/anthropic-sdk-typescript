@@ -50,8 +50,9 @@ export interface EnvironmentWorkerOptions {
    * The environment key — the worker's standing credential: polling always
    * uses it, and per-session calls fall back to it when a claimed item's
    * `secret` doesn't yield a sessions token. Required by
-   * {@link EnvironmentWorker.run}; falls back to `ANTHROPIC_ENVIRONMENT_KEY` in
-   * {@link EnvironmentWorker.handleItem}.
+   * {@link EnvironmentWorker.run}; {@link EnvironmentWorker.handleItem} falls
+   * back to `ANTHROPIC_ENVIRONMENT_KEY` and needs a key only when the work
+   * item's `secret` yields no sessions token.
    */
   environmentKey?: string;
   /**
@@ -130,9 +131,10 @@ export interface HandleItemOptions {
   /** Session id. Falls back to `ANTHROPIC_SESSION_ID`. */
   sessionId?: string;
   /**
-   * The environment key used to authenticate every per-session call. Resolution
-   * order: this option, then the worker's own `environmentKey`, then
-   * `ANTHROPIC_ENVIRONMENT_KEY`.
+   * The environment key. Resolution order: this option, then the worker's own
+   * `environmentKey`, then `ANTHROPIC_ENVIRONMENT_KEY`. Needed only when
+   * `workSecret` is absent or its payload yields no sessions token — with a
+   * token-bearing secret the item runs on that token alone.
    */
   environmentKey?: string;
   /**
@@ -334,9 +336,13 @@ export class EnvironmentWorker {
    * `ANTHROPIC_ENVIRONMENT_ID` / `ANTHROPIC_SESSION_ID` (the env vars that
    * command sets) when not passed; the environment key resolves from this
    * option, then the worker's own `environmentKey`, then
-   * `ANTHROPIC_ENVIRONMENT_KEY`. With no arguments inside that command it just
-   * works. Throws a clear error naming the first of the four required values
-   * still missing after resolution. Throws `SessionMemoryError` when the
+   * `ANTHROPIC_ENVIRONMENT_KEY`, and is needed only when the work item's
+   * `secret` yields no sessions token — a host that receives only the
+   * per-item secret runs without ever holding the key. With no arguments
+   * inside that command it just works. Throws a clear error naming the first
+   * required value still missing after resolution, and — rather than ever
+   * running unauthenticated — when neither a sessions token nor an
+   * environment key resolved. Throws `SessionMemoryError` when the
    * session has memory stores attached but they cannot be mounted — the work
    * item carried no sessions token (unless `memorySyncIntervalMs` turned
    * memory off), or a store failed to download.
@@ -351,10 +357,10 @@ export class EnvironmentWorker {
     const workId = opts?.workId ?? readEnv('ANTHROPIC_WORK_ID');
     const environmentId = opts?.environmentId ?? readEnv('ANTHROPIC_ENVIRONMENT_ID');
     const sessionId = opts?.sessionId ?? readEnv('ANTHROPIC_SESSION_ID');
+    // Trailing `|| undefined` / `||` between fallbacks so an empty value reads
+    // as absent (matching how `readEnv` treats empty values).
     const environmentKey =
-      opts?.environmentKey ?? this.environmentKey ?? readEnv('ANTHROPIC_ENVIRONMENT_KEY');
-    // `||` rather than `??` so an empty option still falls through to the env
-    // var and then to null (matching how `readEnv` treats empty values).
+      (opts?.environmentKey ?? this.environmentKey ?? readEnv('ANTHROPIC_ENVIRONMENT_KEY')) || undefined;
     const workSecret = opts?.workSecret || readEnv('ANTHROPIC_WORK_SECRET') || null;
 
     if (!workId) {
@@ -368,9 +374,9 @@ export class EnvironmentWorker {
     if (!sessionId) {
       throw new AnthropicError('handleItem: sessionId is required — pass it or set ANTHROPIC_SESSION_ID');
     }
-    if (!environmentKey) {
+    if (!environmentKey && !workSecret) {
       throw new AnthropicError(
-        'handleItem: environmentKey is required — pass it, construct the worker with it, or set ANTHROPIC_ENVIRONMENT_KEY',
+        'handleItem: environmentKey is required when there is no work secret — pass it, construct the worker with it, or set ANTHROPIC_ENVIRONMENT_KEY',
       );
     }
 
@@ -397,7 +403,7 @@ export class EnvironmentWorker {
    */
   async #handleItem(
     work: ClaimedWork,
-    environmentKey: string,
+    environmentKey: string | undefined,
     externalSignal: AbortSignal | undefined,
   ): Promise<void> {
     const log = loggerFor(this.client);
@@ -405,6 +411,15 @@ export class EnvironmentWorker {
     // item's secret payload when the server issued one, otherwise the
     // environment key. Never log this value.
     const sessionsToken = sessionsTokenFromSecret(work.secret);
+    const itemCredential = sessionsToken ?? environmentKey;
+    if (itemCredential === undefined) {
+      throw new AnthropicError(
+        'handleItem: the work item carried a secret payload but no sessions token could be extracted, ' +
+          'and there is no environment key to fall back to; the poller must issue a secret whose ' +
+          'payload carries `sessions_token`, or provide the environment key (pass it, construct the ' +
+          'worker with it, or set ANTHROPIC_ENVIRONMENT_KEY)',
+      );
+    }
     if (work.secret && sessionsToken === null) {
       log.warn(
         'work item carried a secret payload but no sessions token could be extracted; ' +
@@ -412,7 +427,6 @@ export class EnvironmentWorker {
         { work_id: work.id },
       );
     }
-    const itemCredential = sessionsToken ?? environmentKey;
     // Every per-session call — the SessionToolRunner event stream/list/send, the
     // lease heartbeat, the skill download, and the work force-stop —
     // authenticates with the per-item credential. Scope a client to it once and
