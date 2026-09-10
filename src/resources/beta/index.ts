@@ -19,7 +19,6 @@ export {
   type BetaManagedAgentsAlwaysAskPolicy,
   type BetaManagedAgentsAnthropicSkill,
   type BetaManagedAgentsAnthropicSkillParams,
-  type BetaManagedAgentsAutoPolicy,
   type BetaManagedAgentsBashToolConfig,
   type BetaManagedAgentsBashToolConfigParams,
   type BetaManagedAgentsCustomSkill,

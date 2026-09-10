@@ -151,52 +151,6 @@ export class Events extends APIResource {
 export type BetaManagedAgentsSessionEventsPageCursor = PageCursor<BetaManagedAgentsSessionEvent>;
 
 /**
- * The server's per-invocation judgement under the auto permission policy. Its type
- * always equals the event's top-level evaluated_permission. Open union: clients
- * must tolerate unknown variants.
- */
-export type BetaManagedAgentsAgentAutoEvaluatedPermission =
-  | BetaManagedAgentsAgentAutoEvaluatedPermissionAllow
-  | BetaManagedAgentsAgentAutoEvaluatedPermissionAsk
-  | BetaManagedAgentsAgentAutoEvaluatedPermissionDeny;
-
-/**
- * The server judged the invocation safe to execute without client approval.
- */
-export interface BetaManagedAgentsAgentAutoEvaluatedPermissionAllow {
-  type: 'allow';
-}
-
-/**
- * The server reached no judgement; the invocation is held for client approval.
- */
-export interface BetaManagedAgentsAgentAutoEvaluatedPermissionAsk {
-  /**
-   * The judgement's grounds in registry-bound terms, for client branching and audit
-   * rather than end-user display. Open registry; currently "indeterminate" (no
-   * judgement was reached). Clients must tolerate values outside this set.
-   */
-  reason_code: string;
-
-  type: 'ask';
-}
-
-/**
- * The server judged the invocation high-risk; it does not execute and a synthetic
- * error tool result is appended.
- */
-export interface BetaManagedAgentsAgentAutoEvaluatedPermissionDeny {
-  /**
-   * The judgement's grounds in registry-bound terms. Open registry; currently
-   * "high_risk" (judged high-risk; the call does not run). Clients must tolerate
-   * values outside this set.
-   */
-  reason_code: string;
-
-  type: 'deny';
-}
-
-/**
  * Event emitted when the agent calls a custom tool. The session goes idle until
  * the client sends a `user.custom_tool_result` event with the result.
  */
@@ -303,13 +257,6 @@ export interface BetaManagedAgentsAgentMCPToolUseEvent {
    * AgentEvaluatedPermission enum
    */
   evaluated_permission?: 'allow' | 'ask' | 'deny';
-
-  /**
-   * Names the resolved permission_policy that produced evaluated_permission, and
-   * under auto carries the judgement. Open union: clients must tolerate unknown
-   * variants.
-   */
-  evaluation?: BetaManagedAgentsAgentToolEvaluation;
 
   /**
    * When set, this event was cross-posted from a subagent's thread to surface its
@@ -456,47 +403,6 @@ export interface BetaManagedAgentsAgentThreadMessageSentEvent {
 }
 
 /**
- * Names the resolved permission_policy that produced evaluated_permission, and
- * under auto carries the judgement. Open union: clients must tolerate unknown
- * variants.
- */
-export type BetaManagedAgentsAgentToolEvaluation =
-  | BetaManagedAgentsAgentToolEvaluationAlwaysAllow
-  | BetaManagedAgentsAgentToolEvaluationAlwaysAsk
-  | BetaManagedAgentsAgentToolEvaluationAuto;
-
-/**
- * The resolved permission_policy was always_allow; accompanies
- * evaluated_permission "allow".
- */
-export interface BetaManagedAgentsAgentToolEvaluationAlwaysAllow {
-  type: 'always_allow';
-}
-
-/**
- * The resolved permission_policy was always_ask; accompanies evaluated_permission
- * "ask".
- */
-export interface BetaManagedAgentsAgentToolEvaluationAlwaysAsk {
-  type: 'always_ask';
-}
-
-/**
- * The resolved permission_policy was auto: the server judged this invocation
- * individually.
- */
-export interface BetaManagedAgentsAgentToolEvaluationAuto {
-  /**
-   * The server's per-invocation judgement under the auto permission policy. Its type
-   * always equals the event's top-level evaluated_permission. Open union: clients
-   * must tolerate unknown variants.
-   */
-  evaluated_permission: BetaManagedAgentsAgentAutoEvaluatedPermission;
-
-  type: 'auto';
-}
-
-/**
  * Event representing the result of an agent tool execution.
  */
 export interface BetaManagedAgentsAgentToolResultEvent {
@@ -563,13 +469,6 @@ export interface BetaManagedAgentsAgentToolUseEvent {
    * AgentEvaluatedPermission enum
    */
   evaluated_permission?: 'allow' | 'ask' | 'deny';
-
-  /**
-   * Names the resolved permission_policy that produced evaluated_permission, and
-   * under auto carries the judgement. Open union: clients must tolerate unknown
-   * variants.
-   */
-  evaluation?: BetaManagedAgentsAgentToolEvaluation;
 
   /**
    * When set, this event was cross-posted from a subagent's thread to surface its
@@ -2173,10 +2072,6 @@ export declare namespace Events {
   export { SessionToolRunner };
 
   export {
-    type BetaManagedAgentsAgentAutoEvaluatedPermission as BetaManagedAgentsAgentAutoEvaluatedPermission,
-    type BetaManagedAgentsAgentAutoEvaluatedPermissionAllow as BetaManagedAgentsAgentAutoEvaluatedPermissionAllow,
-    type BetaManagedAgentsAgentAutoEvaluatedPermissionAsk as BetaManagedAgentsAgentAutoEvaluatedPermissionAsk,
-    type BetaManagedAgentsAgentAutoEvaluatedPermissionDeny as BetaManagedAgentsAgentAutoEvaluatedPermissionDeny,
     type BetaManagedAgentsAgentCustomToolUseEvent as BetaManagedAgentsAgentCustomToolUseEvent,
     type BetaManagedAgentsAgentMCPToolResultEvent as BetaManagedAgentsAgentMCPToolResultEvent,
     type BetaManagedAgentsAgentMCPToolUseEvent as BetaManagedAgentsAgentMCPToolUseEvent,
@@ -2185,10 +2080,6 @@ export declare namespace Events {
     type BetaManagedAgentsAgentThreadContextCompactedEvent as BetaManagedAgentsAgentThreadContextCompactedEvent,
     type BetaManagedAgentsAgentThreadMessageReceivedEvent as BetaManagedAgentsAgentThreadMessageReceivedEvent,
     type BetaManagedAgentsAgentThreadMessageSentEvent as BetaManagedAgentsAgentThreadMessageSentEvent,
-    type BetaManagedAgentsAgentToolEvaluation as BetaManagedAgentsAgentToolEvaluation,
-    type BetaManagedAgentsAgentToolEvaluationAlwaysAllow as BetaManagedAgentsAgentToolEvaluationAlwaysAllow,
-    type BetaManagedAgentsAgentToolEvaluationAlwaysAsk as BetaManagedAgentsAgentToolEvaluationAlwaysAsk,
-    type BetaManagedAgentsAgentToolEvaluationAuto as BetaManagedAgentsAgentToolEvaluationAuto,
     type BetaManagedAgentsAgentToolResultEvent as BetaManagedAgentsAgentToolResultEvent,
     type BetaManagedAgentsAgentToolUseEvent as BetaManagedAgentsAgentToolUseEvent,
     type BetaManagedAgentsBase64DocumentSource as BetaManagedAgentsBase64DocumentSource,
