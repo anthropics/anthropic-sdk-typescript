@@ -651,7 +651,7 @@ export class BaseAnthropic {
       parseLogLevel(readEnv('ANTHROPIC_LOG'), "process.env['ANTHROPIC_LOG']", loggerFor(this)) ??
       defaultLogLevel;
     this.fetchOptions = options.fetchOptions;
-    this.maxRetries = options.maxRetries ?? 2;
+    this.maxRetries = validatePositiveInteger('maxRetries', options.maxRetries ?? 2);
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
     this.#encoder = Opts.FallbackEncoder;
 
@@ -1113,7 +1113,7 @@ export class BaseAnthropic {
     retryOfRequestLogID: string | undefined,
   ): Promise<APIResponseProps> {
     const options = await optionsInput;
-    const maxRetries = options.maxRetries ?? this.maxRetries;
+    const maxRetries = validatePositiveInteger('maxRetries', options.maxRetries ?? this.maxRetries);
     if (retriesRemaining == null) {
       retriesRemaining = maxRetries;
       // Top-level call: reset per-request auth flags so a reused options object
@@ -1477,9 +1477,10 @@ export class BaseAnthropic {
       }
     }
 
-    // If the API asks us to wait a certain amount of time, just do what it
-    // says, but otherwise calculate a default
-    if (timeoutMillis === undefined) {
+    // If the API asks us to wait a certain amount of time, do what it says, as long as it's a positive delay that
+    // one timer can represent (setTimeout fires after 1ms for anything above 2^31 - 1). Otherwise (no header, an
+    // unparseable value, zero/negative, a date in the past) calculate a default.
+    if (timeoutMillis === undefined || !(timeoutMillis > 0 && timeoutMillis <= 2 ** 31 - 1)) {
       const maxRetries = options.maxRetries ?? this.maxRetries;
       timeoutMillis = this.calculateDefaultRetryTimeoutMillis(retriesRemaining, maxRetries);
     }
