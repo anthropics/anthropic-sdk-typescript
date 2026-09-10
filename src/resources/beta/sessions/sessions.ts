@@ -541,17 +541,18 @@ export interface BetaManagedAgentsFileResourceParams {
  * Mount a GitHub repository into the session's container.
  */
 export interface BetaManagedAgentsGitHubRepositoryResourceParams {
-  /**
-   * GitHub authorization token used to clone the repository.
-   */
-  authorization_token: string;
-
   type: 'github_repository';
 
   /**
    * Github URL of the repository
    */
   url: string;
+
+  /**
+   * GitHub authorization token used to clone the repository. Required for private
+   * repositories; optional for public ones.
+   */
+  authorization_token?: string;
 
   /**
    * Branch or commit to check out. Defaults to the repository's default branch.
