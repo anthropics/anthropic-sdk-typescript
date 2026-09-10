@@ -3,6 +3,10 @@ import * as BetaAPI from '../beta';
 import * as AgentsAPI from '../agents/agents';
 import * as EventsAPI from './events';
 import {
+  BetaManagedAgentsAgentAutoEvaluatedPermission,
+  BetaManagedAgentsAgentAutoEvaluatedPermissionAllow,
+  BetaManagedAgentsAgentAutoEvaluatedPermissionAsk,
+  BetaManagedAgentsAgentAutoEvaluatedPermissionDeny,
   BetaManagedAgentsAgentCustomToolUseEvent,
   BetaManagedAgentsAgentMCPToolResultEvent,
   BetaManagedAgentsAgentMCPToolUseEvent,
@@ -11,6 +15,10 @@ import {
   BetaManagedAgentsAgentThreadContextCompactedEvent,
   BetaManagedAgentsAgentThreadMessageReceivedEvent,
   BetaManagedAgentsAgentThreadMessageSentEvent,
+  BetaManagedAgentsAgentToolEvaluation,
+  BetaManagedAgentsAgentToolEvaluationAlwaysAllow,
+  BetaManagedAgentsAgentToolEvaluationAlwaysAsk,
+  BetaManagedAgentsAgentToolEvaluationAuto,
   BetaManagedAgentsAgentToolResultEvent,
   BetaManagedAgentsAgentToolUseEvent,
   BetaManagedAgentsBase64DocumentSource,
@@ -1374,6 +1382,10 @@ export declare namespace Sessions {
 
   export {
     Events as Events,
+    type BetaManagedAgentsAgentAutoEvaluatedPermission as BetaManagedAgentsAgentAutoEvaluatedPermission,
+    type BetaManagedAgentsAgentAutoEvaluatedPermissionAllow as BetaManagedAgentsAgentAutoEvaluatedPermissionAllow,
+    type BetaManagedAgentsAgentAutoEvaluatedPermissionAsk as BetaManagedAgentsAgentAutoEvaluatedPermissionAsk,
+    type BetaManagedAgentsAgentAutoEvaluatedPermissionDeny as BetaManagedAgentsAgentAutoEvaluatedPermissionDeny,
     type BetaManagedAgentsAgentCustomToolUseEvent as BetaManagedAgentsAgentCustomToolUseEvent,
     type BetaManagedAgentsAgentMCPToolResultEvent as BetaManagedAgentsAgentMCPToolResultEvent,
     type BetaManagedAgentsAgentMCPToolUseEvent as BetaManagedAgentsAgentMCPToolUseEvent,
@@ -1382,6 +1394,10 @@ export declare namespace Sessions {
     type BetaManagedAgentsAgentThreadContextCompactedEvent as BetaManagedAgentsAgentThreadContextCompactedEvent,
     type BetaManagedAgentsAgentThreadMessageReceivedEvent as BetaManagedAgentsAgentThreadMessageReceivedEvent,
     type BetaManagedAgentsAgentThreadMessageSentEvent as BetaManagedAgentsAgentThreadMessageSentEvent,
+    type BetaManagedAgentsAgentToolEvaluation as BetaManagedAgentsAgentToolEvaluation,
+    type BetaManagedAgentsAgentToolEvaluationAlwaysAllow as BetaManagedAgentsAgentToolEvaluationAlwaysAllow,
+    type BetaManagedAgentsAgentToolEvaluationAlwaysAsk as BetaManagedAgentsAgentToolEvaluationAlwaysAsk,
+    type BetaManagedAgentsAgentToolEvaluationAuto as BetaManagedAgentsAgentToolEvaluationAuto,
     type BetaManagedAgentsAgentToolResultEvent as BetaManagedAgentsAgentToolResultEvent,
     type BetaManagedAgentsAgentToolUseEvent as BetaManagedAgentsAgentToolUseEvent,
     type BetaManagedAgentsBase64DocumentSource as BetaManagedAgentsBase64DocumentSource,
