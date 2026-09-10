@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.6 (2026-09-10)
+
+Full Changelog: [foundry-sdk-v0.4.5...foundry-sdk-v0.4.6](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.4.5...foundry-sdk-v0.4.6)
+
 ## 0.4.5 (2026-09-04)
 
 Full Changelog: [foundry-sdk-v0.4.4...foundry-sdk-v0.4.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.4.4...foundry-sdk-v0.4.5)
