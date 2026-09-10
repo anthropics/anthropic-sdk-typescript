@@ -1,5 +1,3 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 import { APIPromise } from '../../core/api-promise';
 import { APIResource } from '../../core/resource';
 import { Stream } from '../../core/streaming';
@@ -4251,7 +4249,8 @@ export type WebFetchToolResultErrorCode =
   | 'unsupported_content_type'
   | 'too_many_requests'
   | 'max_uses_exceeded'
-  | 'unavailable';
+  | 'unavailable'
+  | 'content_too_large';
 
 export interface WebSearchResultBlock {
   encrypted_content: string;

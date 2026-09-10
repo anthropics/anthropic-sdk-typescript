@@ -1,5 +1,3 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 import { APIResource } from '../../core/resource';
 import * as DeploymentRunsAPI from './deployment-runs';
 import {
@@ -132,6 +130,8 @@ import * as UserProfilesAPI from './user-profiles';
 import {
   BetaUserProfile,
   BetaUserProfileEnrollmentURL,
+  BetaUserProfileExternalUserDetails,
+  BetaUserProfileExternalUserDetailsParams,
   BetaUserProfileTrustGrant,
   BetaUserProfilesPageCursor,
   UserProfileCreateEnrollmentURLParams,
@@ -220,6 +220,7 @@ import {
   BetaManagedAgentsAlwaysAskPolicy,
   BetaManagedAgentsAnthropicSkill,
   BetaManagedAgentsAnthropicSkillParams,
+  BetaManagedAgentsAutoPolicy,
   BetaManagedAgentsBashToolConfig,
   BetaManagedAgentsBashToolConfigParams,
   BetaManagedAgentsCustomSkill,
@@ -731,6 +732,7 @@ export type AnthropicBeta =
   | 'output-300k-2026-03-24'
   | 'user-profiles-2026-03-24'
   | 'user-profiles-2026-08-18'
+  | 'user-profiles-2026-09-04'
   | 'advisor-tool-2026-03-01'
   | 'managed-agents-2026-04-01'
   | 'cache-diagnosis-2026-04-07'
@@ -1219,6 +1221,7 @@ export declare namespace Beta {
     type BetaManagedAgentsAlwaysAskPolicy as BetaManagedAgentsAlwaysAskPolicy,
     type BetaManagedAgentsAnthropicSkill as BetaManagedAgentsAnthropicSkill,
     type BetaManagedAgentsAnthropicSkillParams as BetaManagedAgentsAnthropicSkillParams,
+    type BetaManagedAgentsAutoPolicy as BetaManagedAgentsAutoPolicy,
     type BetaManagedAgentsBashToolConfig as BetaManagedAgentsBashToolConfig,
     type BetaManagedAgentsBashToolConfigParams as BetaManagedAgentsBashToolConfigParams,
     type BetaManagedAgentsCustomSkill as BetaManagedAgentsCustomSkill,
@@ -1517,6 +1520,8 @@ export declare namespace Beta {
     UserProfiles as UserProfiles,
     type BetaUserProfile as BetaUserProfile,
     type BetaUserProfileEnrollmentURL as BetaUserProfileEnrollmentURL,
+    type BetaUserProfileExternalUserDetails as BetaUserProfileExternalUserDetails,
+    type BetaUserProfileExternalUserDetailsParams as BetaUserProfileExternalUserDetailsParams,
     type BetaUserProfileTrustGrant as BetaUserProfileTrustGrant,
     type BetaUserProfilesPageCursor as BetaUserProfilesPageCursor,
     type UserProfileCreateParams as UserProfileCreateParams,

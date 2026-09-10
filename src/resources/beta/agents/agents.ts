@@ -1,5 +1,3 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
 import * as VersionsAPI from './versions';
@@ -278,7 +276,10 @@ export interface BetaManagedAgentsAgentToolsetDefaultConfig {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+  permission_policy:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy;
 }
 
 /**
@@ -294,7 +295,11 @@ export interface BetaManagedAgentsAgentToolsetDefaultConfigParams {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+  permission_policy?:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy
+    | null;
 }
 
 export interface BetaManagedAgentsAgentToolset20260401 {
@@ -488,6 +493,16 @@ export interface BetaManagedAgentsAnthropicSkillParams {
 }
 
 /**
+ * The server decides each tool call individually: it judges, from the tool, its
+ * input, and the session content so far, whether the call is safe to execute or
+ * high-risk, and evaluates it to allow when judged safe and to deny when judged
+ * high-risk. A call the server cannot reach a judgement on evaluates to ask.
+ */
+export interface BetaManagedAgentsAutoPolicy {
+  type: 'auto';
+}
+
+/**
  * Configuration for the bash tool.
  */
 export interface BetaManagedAgentsBashToolConfig {
@@ -498,7 +513,10 @@ export interface BetaManagedAgentsBashToolConfig {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+  permission_policy:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy;
 
   type: 'bash';
 }
@@ -521,7 +539,11 @@ export interface BetaManagedAgentsBashToolConfigParams {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+  permission_policy?:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy
+    | null;
 
   type?: 'bash';
 }
@@ -621,7 +643,10 @@ export interface BetaManagedAgentsEditToolConfig {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+  permission_policy:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy;
 
   type: 'edit';
 }
@@ -644,7 +669,11 @@ export interface BetaManagedAgentsEditToolConfigParams {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+  permission_policy?:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy
+    | null;
 
   type?: 'edit';
 }
@@ -695,7 +724,10 @@ export interface BetaManagedAgentsGlobToolConfig {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+  permission_policy:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy;
 
   type: 'glob';
 }
@@ -718,7 +750,11 @@ export interface BetaManagedAgentsGlobToolConfigParams {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+  permission_policy?:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy
+    | null;
 
   type?: 'glob';
 }
@@ -734,7 +770,10 @@ export interface BetaManagedAgentsGrepToolConfig {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+  permission_policy:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy;
 
   type: 'grep';
 }
@@ -757,7 +796,11 @@ export interface BetaManagedAgentsGrepToolConfigParams {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+  permission_policy?:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy
+    | null;
 
   type?: 'grep';
 }
@@ -784,7 +827,10 @@ export interface BetaManagedAgentsMCPToolConfig {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+  permission_policy:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy;
 }
 
 /**
@@ -804,7 +850,11 @@ export interface BetaManagedAgentsMCPToolConfigParams {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+  permission_policy?:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy
+    | null;
 }
 
 export interface BetaManagedAgentsMCPToolset {
@@ -829,7 +879,10 @@ export interface BetaManagedAgentsMCPToolsetDefaultConfig {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+  permission_policy:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy;
 }
 
 /**
@@ -844,7 +897,11 @@ export interface BetaManagedAgentsMCPToolsetDefaultConfigParams {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+  permission_policy?:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy
+    | null;
 }
 
 /**
@@ -1025,7 +1082,10 @@ export interface BetaManagedAgentsReadToolConfig {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+  permission_policy:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy;
 
   type: 'read';
 }
@@ -1048,7 +1108,11 @@ export interface BetaManagedAgentsReadToolConfigParams {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+  permission_policy?:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy
+    | null;
 
   type?: 'read';
 }
@@ -1151,7 +1215,10 @@ export interface BetaManagedAgentsWebFetchToolConfig {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+  permission_policy:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy;
 
   type: 'web_fetch';
 
@@ -1202,7 +1269,11 @@ export interface BetaManagedAgentsWebFetchToolConfigParams {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+  permission_policy?:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy
+    | null;
 
   type?: 'web_fetch';
 }
@@ -1218,7 +1289,10 @@ export interface BetaManagedAgentsWebSearchToolConfig {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+  permission_policy:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy;
 
   type: 'web_search';
 
@@ -1266,7 +1340,11 @@ export interface BetaManagedAgentsWebSearchToolConfigParams {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+  permission_policy?:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy
+    | null;
 
   type?: 'web_search';
 
@@ -1287,7 +1365,10 @@ export interface BetaManagedAgentsWriteToolConfig {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy;
+  permission_policy:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy;
 
   type: 'write';
 }
@@ -1310,7 +1391,11 @@ export interface BetaManagedAgentsWriteToolConfigParams {
   /**
    * Permission policy for tool execution.
    */
-  permission_policy?: BetaManagedAgentsAlwaysAllowPolicy | BetaManagedAgentsAlwaysAskPolicy | null;
+  permission_policy?:
+    | BetaManagedAgentsAlwaysAllowPolicy
+    | BetaManagedAgentsAlwaysAskPolicy
+    | BetaManagedAgentsAutoPolicy
+    | null;
 
   type?: 'write';
 }
@@ -1575,6 +1660,7 @@ export declare namespace Agents {
     type BetaManagedAgentsAlwaysAskPolicy as BetaManagedAgentsAlwaysAskPolicy,
     type BetaManagedAgentsAnthropicSkill as BetaManagedAgentsAnthropicSkill,
     type BetaManagedAgentsAnthropicSkillParams as BetaManagedAgentsAnthropicSkillParams,
+    type BetaManagedAgentsAutoPolicy as BetaManagedAgentsAutoPolicy,
     type BetaManagedAgentsBashToolConfig as BetaManagedAgentsBashToolConfig,
     type BetaManagedAgentsBashToolConfigParams as BetaManagedAgentsBashToolConfigParams,
     type BetaManagedAgentsCustomSkill as BetaManagedAgentsCustomSkill,

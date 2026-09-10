@@ -1,5 +1,3 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 import { AnthropicError } from '../../../error';
 import { Anthropic } from '../../../client';
 import * as BatchesAPI from './batches';
@@ -6051,7 +6049,8 @@ export type BetaWebFetchToolResultErrorCode =
   | 'unsupported_content_type'
   | 'too_many_requests'
   | 'max_uses_exceeded'
-  | 'unavailable';
+  | 'unavailable'
+  | 'content_too_large';
 
 export interface BetaWebSearchResultBlock {
   encrypted_content: string;
