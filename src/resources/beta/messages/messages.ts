@@ -1060,14 +1060,6 @@ export interface BetaBrowserStateBlockParam {
   state_changes?: Array<BetaBrowserStateChange> | null;
 }
 
-/**
- * A tab this call's execution opened that remains open at its end — the creation
- * delta of the `tabs` inventory, not an event log.
- *
- * Carries only the `tab_id`; the tab's `title` and `url` live on its `tabs` entry,
- * which must include the same `tab_id`. A tab opened during a failed call gets no
- * deferred `tab_opened`; it simply appears in the next result's `tabs` inventory.
- */
 export type BetaBrowserStateChange =
   | BetaBrowserStateChangeTabOpened
   | BetaBrowserStateChangeDownloadStarted
@@ -2045,9 +2037,6 @@ export interface BetaCodeExecutionTool20260521 {
 }
 
 export interface BetaCodeExecutionToolResultBlock {
-  /**
-   * Code execution result with encrypted stdout for PFC + web_search results.
-   */
   content: BetaCodeExecutionToolResultBlockContent;
 
   tool_use_id: string;
@@ -2055,18 +2044,12 @@ export interface BetaCodeExecutionToolResultBlock {
   type: 'code_execution_tool_result';
 }
 
-/**
- * Code execution result with encrypted stdout for PFC + web_search results.
- */
 export type BetaCodeExecutionToolResultBlockContent =
   | BetaCodeExecutionToolResultError
   | BetaCodeExecutionResultBlock
   | BetaEncryptedCodeExecutionResultBlock;
 
 export interface BetaCodeExecutionToolResultBlockParam {
-  /**
-   * Code execution result with encrypted stdout for PFC + web_search results.
-   */
   content: BetaCodeExecutionToolResultBlockParamContent;
 
   tool_use_id: string;
@@ -2079,9 +2062,6 @@ export interface BetaCodeExecutionToolResultBlockParam {
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
-/**
- * Code execution result with encrypted stdout for PFC + web_search results.
- */
 export type BetaCodeExecutionToolResultBlockParamContent =
   | BetaCodeExecutionToolResultErrorParam
   | BetaCodeExecutionResultBlockParam
@@ -2729,9 +2709,6 @@ export interface BetaContainerUploadBlockParam {
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
-/**
- * Response model for a file uploaded to the container.
- */
 export type BetaContentBlock =
   | BetaTextBlock
   | BetaThinkingBlock
@@ -2751,9 +2728,6 @@ export type BetaContentBlock =
   | BetaCompactionBlock
   | BetaFallbackBlock;
 
-/**
- * Regular text content.
- */
 export type BetaContentBlockParam =
   | BetaTextBlockParam
   | BetaImageBlockParam
@@ -3922,9 +3896,6 @@ export interface BetaRawContentBlockDeltaEvent {
 }
 
 export interface BetaRawContentBlockStartEvent {
-  /**
-   * Response model for a file uploaded to the container.
-   */
   content_block:
     | BetaTextBlock
     | BetaThinkingBlock
@@ -4219,11 +4190,6 @@ export interface BetaRequestMCPToolResultBlockParam {
  * is offered to the model from this point in the conversation onward.
  */
 export interface BetaRequestToolAdditionBlock {
-  /**
-   * Reference to a single tool the caller declared directly in `tools[]`. Does not
-   * accept the composed `{server}_{name}` form the server assigns to MCP-resolved
-   * tools — use `mcp_tool_reference` or `mcp_toolset_reference` for those.
-   */
   tool: BetaToolChangeToolReference | BetaToolChangeMCPToolReference | BetaToolChangeMCPToolsetReference;
 
   type: 'tool_addition';
@@ -4241,11 +4207,6 @@ export interface BetaRequestToolAdditionBlock {
  * is no longer offered to the model from this point in the conversation onward.
  */
 export interface BetaRequestToolRemovalBlock {
-  /**
-   * Reference to a single tool the caller declared directly in `tools[]`. Does not
-   * accept the composed `{server}_{name}` form the server assigns to MCP-resolved
-   * tools — use `mcp_tool_reference` or `mcp_toolset_reference` for those.
-   */
   tool: BetaToolChangeToolReference | BetaToolChangeMCPToolReference | BetaToolChangeMCPToolsetReference;
 
   type: 'tool_removal';
@@ -4317,9 +4278,6 @@ export interface BetaServerToolUseBlock {
 
   type: 'server_tool_use';
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
@@ -4345,9 +4303,6 @@ export interface BetaServerToolUseBlockParam {
    */
   cache_control?: BetaCacheControlEphemeral | null;
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
@@ -5487,10 +5442,6 @@ export interface BetaToolTextEditor20250728 {
   strict?: boolean;
 }
 
-/**
- * Code execution tool with REPL state persistence (daemon mode + gVisor
- * checkpoint).
- */
 export type BetaToolUnion =
   | BetaTool
   | BetaToolBash20241022
@@ -5530,9 +5481,6 @@ export interface BetaToolUseBlock {
 
   type: 'tool_use';
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 
   /**
@@ -5555,9 +5503,6 @@ export interface BetaToolUseBlockParam {
    */
   cache_control?: BetaCacheControlEphemeral | null;
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 
   /**
@@ -6004,9 +5949,6 @@ export interface BetaWebFetchToolResultBlock {
 
   type: 'web_fetch_tool_result';
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
@@ -6022,9 +5964,6 @@ export interface BetaWebFetchToolResultBlockParam {
    */
   cache_control?: BetaCacheControlEphemeral | null;
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
@@ -6261,9 +6200,6 @@ export interface BetaWebSearchToolResultBlock {
 
   type: 'web_search_tool_result';
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
@@ -6283,9 +6219,6 @@ export interface BetaWebSearchToolResultBlockParam {
    */
   cache_control?: BetaCacheControlEphemeral | null;
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 

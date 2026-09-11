@@ -1041,11 +1041,6 @@ export interface BetaManagedAgentsSessionErrorEvent {
    */
   id: string;
 
-  /**
-   * An unknown or unexpected error occurred during session execution. A fallback
-   * variant; clients that don't recognize a new error code can match on
-   * `retry_status` and `message` alone.
-   */
   error:
     | BetaManagedAgentsUnknownError
     | BetaManagedAgentsModelOverloadedError
@@ -1141,9 +1136,6 @@ export interface BetaManagedAgentsSessionStatusIdleEvent {
    */
   processed_at: string;
 
-  /**
-   * The agent completed its turn naturally and is ready for the next user message.
-   */
   stop_reason:
     | BetaManagedAgentsSessionEndTurn
     | BetaManagedAgentsSessionRequiresAction
@@ -1258,9 +1250,6 @@ export interface BetaManagedAgentsSessionThreadStatusIdleEvent {
    */
   session_thread_id: string;
 
-  /**
-   * The agent completed its turn naturally and is ready for the next user message.
-   */
   stop_reason:
     | BetaManagedAgentsSessionEndTurn
     | BetaManagedAgentsSessionRequiresAction
