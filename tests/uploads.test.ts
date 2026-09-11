@@ -43,6 +43,12 @@ describe('toFile', () => {
     expect(file.name).toEqual('audio.mp3');
   });
 
+  it('uses the default file name for a Response without a URL', async () => {
+    const file = await toFile(new Response('content'));
+    expect(file.name).toEqual('unknown_file');
+    await expect(file.text()).resolves.toEqual('content');
+  });
+
   it('extracts a file name from a File', async () => {
     const input = new File(['foo'], 'input.jsonl');
     const file = await toFile(input);
