@@ -480,4 +480,48 @@ describe('transformJsonSchema', () => {
 }
 `);
   });
+
+  it('preserves const and enum for discriminated-union branches (output-format path)', () => {
+    // betaZodOutputFormat / jsonSchemaOutputFormat run schemas through
+    // transformJSONSchema; betaZodTool does not today (#1116 discussion).
+    const input = {
+      type: 'object',
+      properties: {
+        change: {
+          anyOf: [
+            {
+              type: 'object',
+              properties: {
+                action: { type: 'string', const: 'set_title' },
+                title: { type: 'string' },
+              },
+              required: ['action', 'title'],
+            },
+            {
+              type: 'object',
+              properties: {
+                action: { type: 'string', enum: ['add_members'] },
+                emails: { type: 'array', items: { type: 'string' } },
+              },
+              required: ['action', 'emails'],
+            },
+          ],
+        },
+      },
+      required: ['change'],
+    };
+
+    const result = transformJSONSchema(input);
+
+    expect(result.properties.change.anyOf[0].properties.action).toEqual({
+      type: 'string',
+      const: 'set_title',
+    });
+    expect(result.properties.change.anyOf[1].properties.action).toEqual({
+      type: 'string',
+      enum: ['add_members'],
+    });
+    expect(result.properties.change.anyOf[0].properties.action.description).toBeUndefined();
+    expect(result.properties.change.anyOf[1].properties.action.description).toBeUndefined();
+  });
 });
