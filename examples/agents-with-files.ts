@@ -31,7 +31,7 @@ async function main() {
 
   // Upload a file
   const file = await client.files.upload({
-    file: fs.createReadStream(path.join(__dirname, 'data.csv')),
+    file: fs.createReadStream(path.join(path.dirname(process.argv[1]!), 'data.csv')),
   });
   console.log('Uploaded file:', file.id);
 

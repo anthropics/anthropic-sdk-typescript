@@ -25,8 +25,8 @@ interface ProjectConfig {
 
 type Status = 'PASS' | 'FAIL' | 'SKIP' | 'XFAIL' | 'XPASS';
 
-const ROOT = path.resolve(__dirname, '..');
-const ECO = __dirname;
+const ROOT = path.resolve(import.meta.dirname, '..');
+const ECO = import.meta.dirname;
 const TARBALL = path.join(ECO, '.pack', 'anthropic-ai-sdk.tgz');
 // not a credential: a fixed value that only the local mock server accepts
 const FAKE_API_KEY = 'ecosystem-test-key';
