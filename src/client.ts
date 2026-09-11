@@ -1484,7 +1484,7 @@ export class BaseAnthropic {
       const maxRetries = options.maxRetries ?? this.maxRetries;
       timeoutMillis = this.calculateDefaultRetryTimeoutMillis(retriesRemaining, maxRetries);
     }
-    await sleep(timeoutMillis);
+    await sleep(timeoutMillis, options.signal ?? undefined);
 
     return this.makeRequest(options, retriesRemaining - 1, requestLogID);
   }
