@@ -285,20 +285,30 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
     }
 
     const content = await readFileContent(fullPath, command.path);
-    const lines = content.split('\n');
 
-    const matchingLines: number[] = [];
-    lines.forEach((line, index) => {
-      if (line.includes(command.old_str)) {
-        matchingLines.push(index + 1);
+    // Search the whole file rather than line by line. A single line can never
+    // contain a newline, so a multi-line old_str could never match, and Claude
+    // does send them. This matches the Python SDK, which counts occurrences
+    // over the whole content.
+    const matchOffsets: number[] = [];
+    if (command.old_str.length > 0) {
+      for (
+        let offset = content.indexOf(command.old_str);
+        offset !== -1;
+        offset = content.indexOf(command.old_str, offset + command.old_str.length)
+      ) {
+        matchOffsets.push(offset);
       }
-    });
+    }
 
-    if (matchingLines.length === 0) {
+    // Errors and the snippet below still report line numbers.
+    const matchingLines = matchOffsets.map((offset) => content.slice(0, offset).split('\n').length);
+
+    if (matchOffsets.length === 0) {
       throw new Error(
         `No replacement was performed, old_str \`${command.old_str}\` did not appear verbatim in ${command.path}.`,
       );
-    } else if (matchingLines.length > 1) {
+    } else if (matchOffsets.length > 1) {
       throw new Error(
         `No replacement was performed. Multiple occurrences of old_str \`${
           command.old_str
@@ -306,7 +316,17 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
       );
     }
 
-    const newContent = content.replace(command.old_str, command.new_str);
+    // new_str is optional for str_replace: omitting it deletes old_str. The
+    // generated type marks it required, but these commands arrive from the
+    // model at runtime, so the value can still be absent. Without this the
+    // literal string "undefined" was written into the file.
+    const newStr = typeof command.new_str === 'string' ? command.new_str : '';
+
+    // Splice by offset instead of String#replace, which would interpret `$&`
+    // and friends in new_str as replacement patterns.
+    const matchOffset = matchOffsets[0]!;
+    const newContent =
+      content.slice(0, matchOffset) + newStr + content.slice(matchOffset + command.old_str.length);
     await atomicWriteFile(fullPath, newContent);
 
     const newLines = newContent.split('\n');
