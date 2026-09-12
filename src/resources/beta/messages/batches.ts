@@ -718,7 +718,7 @@ export namespace BatchCreateParams {
 
       /**
        * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
-       * setting temperature. A value of 1.0 of will be accepted for backwards
+       * setting temperature. A value of 1.0 will be accepted for backwards
        * compatibility, all other values will be rejected with a 400 error.
        */
       temperature?: number;
