@@ -1,5 +1,9 @@
 const pkgJson = require(process.env['PKG_JSON_PATH'] || '../../package.json');
 
+// The published package.json keeps "type": "commonjs" whatever the root one says, so its .js files
+// load as CommonJS and its .mjs files as ESM.
+pkgJson.type = 'commonjs';
+
 function processExportMap(m) {
   for (const key in m) {
     const value = m[key];
