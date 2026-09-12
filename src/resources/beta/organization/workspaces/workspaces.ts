@@ -146,17 +146,17 @@ export interface BetaDataResidency {
   /**
    * Permitted inference geo values. 'unrestricted' means all geos are allowed.
    */
-  allowed_inference_geos: Array<string> | 'unrestricted';
+  allowed_inference_geos: Array<BetaAllowedInferenceGeo> | 'unrestricted';
 
   /**
    * Default inference geo applied when requests omit the parameter.
    */
-  default_inference_geo: string;
+  default_inference_geo: 'global' | 'us';
 
   /**
    * Geographic region for workspace data storage. Immutable after creation.
    */
-  workspace_geo: string;
+  workspace_geo: 'us';
 }
 
 export interface BetaDataResidencyCreateConfig {
