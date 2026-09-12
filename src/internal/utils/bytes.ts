@@ -14,7 +14,7 @@ export function concatBytes(buffers: Uint8Array[]): Uint8Array {
 }
 
 let encodeUTF8_: (str: string) => Uint8Array;
-export function encodeUTF8(str: string) {
+export function encodeUTF8(str: string): Uint8Array {
   let encoder;
   return (
     encodeUTF8_ ??
