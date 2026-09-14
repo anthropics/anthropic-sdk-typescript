@@ -3945,6 +3945,16 @@ export interface WebFetchTool20250910 {
    * When true, guarantees schema validation on tool names and inputs
    */
   strict?: boolean;
+
+  /**
+   * Which sources contribute to the set of URLs web fetch may fetch.
+   *
+   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+   * (every result but the named tools'). A named tool must be declared in this
+   * request's `tools[]`.
+   */
+  url_sources?: WebFetchURLSources | null;
 }
 
 export interface WebFetchTool20260209 {
@@ -4003,6 +4013,16 @@ export interface WebFetchTool20260209 {
    * When true, guarantees schema validation on tool names and inputs
    */
   strict?: boolean;
+
+  /**
+   * Which sources contribute to the set of URLs web fetch may fetch.
+   *
+   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+   * (every result but the named tools'). A named tool must be declared in this
+   * request's `tools[]`.
+   */
+  url_sources?: WebFetchURLSources | null;
 }
 
 /**
@@ -4064,6 +4084,16 @@ export interface WebFetchTool20260309 {
    * When true, guarantees schema validation on tool names and inputs
    */
   strict?: boolean;
+
+  /**
+   * Which sources contribute to the set of URLs web fetch may fetch.
+   *
+   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+   * (every result but the named tools'). A named tool must be declared in this
+   * request's `tools[]`.
+   */
+  url_sources?: WebFetchURLSources | null;
 
   /**
    * Whether to use cached content. Set to false to bypass the cache and fetch fresh
@@ -4141,6 +4171,16 @@ export interface WebFetchTool20260318 {
   strict?: boolean;
 
   /**
+   * Which sources contribute to the set of URLs web fetch may fetch.
+   *
+   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+   * (every result but the named tools'). A named tool must be declared in this
+   * request's `tools[]`.
+   */
+  url_sources?: WebFetchURLSources | null;
+
+  /**
    * Whether to use cached content. Set to false to bypass the cache and fetch fresh
    * content. Only set to false when the user explicitly requests fresh content or
    * when fetching rapidly-changing sources.
@@ -4196,6 +4236,87 @@ export type WebFetchToolResultErrorCode =
   | 'max_uses_exceeded'
   | 'unavailable'
   | 'content_too_large';
+
+/**
+ * The `url_sources` variant under which a source contributes in full: every result
+ * of the tool filter's source, or all user input.
+ */
+export interface WebFetchURLSourceAll {
+  type: 'all';
+}
+
+/**
+ * The tool filter variant under which every result but the named tools'
+ * contributes.
+ */
+export interface WebFetchURLSourceExcept {
+  tools: Array<WebFetchURLSourceToolReference>;
+
+  type: 'except';
+}
+
+/**
+ * The `url_sources` variant under which a source contributes nothing: no result of
+ * the tool filter's source, or no user input.
+ */
+export interface WebFetchURLSourceNone {
+  type: 'none';
+}
+
+/**
+ * The tool filter variant under which only the named tools' results contribute.
+ */
+export interface WebFetchURLSourceOnly {
+  tools: Array<WebFetchURLSourceToolReference>;
+
+  type: 'only';
+}
+
+/**
+ * One entry of a tool filter's `tools`: it must name a tool declared in this
+ * request's `tools[]`.
+ */
+export interface WebFetchURLSourceToolReference {
+  name: string;
+
+  type: 'tool_reference';
+}
+
+/**
+ * Which sources contribute to the set of URLs web fetch may fetch.
+ *
+ * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+ * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+ * (every result but the named tools'). A named tool must be declared in this
+ * request's `tools[]`.
+ */
+export interface WebFetchURLSources {
+  /**
+   * Which client tools' results contribute fetchable URLs: "all", "none", or an only
+   * or except list of client tool names from tools[].
+   */
+  client_tool_results?:
+    | WebFetchURLSourceAll
+    | WebFetchURLSourceNone
+    | WebFetchURLSourceOnly
+    | WebFetchURLSourceExcept;
+
+  /**
+   * Which server tools' results contribute fetchable URLs: "all", "none", or an only
+   * or except list of server tool names from tools[]; only web_search and web_fetch
+   * results ever contribute.
+   */
+  server_tool_results?:
+    | WebFetchURLSourceAll
+    | WebFetchURLSourceNone
+    | WebFetchURLSourceOnly
+    | WebFetchURLSourceExcept;
+
+  /**
+   * Whether URLs in user messages are fetchable: "all" or "none".
+   */
+  user_input?: WebFetchURLSourceAll | WebFetchURLSourceNone;
+}
 
 export interface WebSearchResultBlock {
   encrypted_content: string;
@@ -5249,6 +5370,12 @@ export declare namespace Messages {
     type WebFetchToolResultErrorBlock as WebFetchToolResultErrorBlock,
     type WebFetchToolResultErrorBlockParam as WebFetchToolResultErrorBlockParam,
     type WebFetchToolResultErrorCode as WebFetchToolResultErrorCode,
+    type WebFetchURLSourceAll as WebFetchURLSourceAll,
+    type WebFetchURLSourceExcept as WebFetchURLSourceExcept,
+    type WebFetchURLSourceNone as WebFetchURLSourceNone,
+    type WebFetchURLSourceOnly as WebFetchURLSourceOnly,
+    type WebFetchURLSourceToolReference as WebFetchURLSourceToolReference,
+    type WebFetchURLSources as WebFetchURLSources,
     type WebSearchResultBlock as WebSearchResultBlock,
     type WebSearchResultBlockParam as WebSearchResultBlockParam,
     type WebSearchTool20250305 as WebSearchTool20250305,

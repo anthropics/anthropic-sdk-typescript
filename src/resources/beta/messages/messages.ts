@@ -5787,6 +5787,16 @@ export interface BetaWebFetchTool20250910 {
    * When true, guarantees schema validation on tool names and inputs
    */
   strict?: boolean;
+
+  /**
+   * Which sources contribute to the set of URLs web fetch may fetch.
+   *
+   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+   * (every result but the named tools'). A named tool must be declared in this
+   * request's `tools[]`.
+   */
+  url_sources?: BetaWebFetchURLSources | null;
 }
 
 export interface BetaWebFetchTool20260209 {
@@ -5845,6 +5855,16 @@ export interface BetaWebFetchTool20260209 {
    * When true, guarantees schema validation on tool names and inputs
    */
   strict?: boolean;
+
+  /**
+   * Which sources contribute to the set of URLs web fetch may fetch.
+   *
+   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+   * (every result but the named tools'). A named tool must be declared in this
+   * request's `tools[]`.
+   */
+  url_sources?: BetaWebFetchURLSources | null;
 }
 
 /**
@@ -5906,6 +5926,16 @@ export interface BetaWebFetchTool20260309 {
    * When true, guarantees schema validation on tool names and inputs
    */
   strict?: boolean;
+
+  /**
+   * Which sources contribute to the set of URLs web fetch may fetch.
+   *
+   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+   * (every result but the named tools'). A named tool must be declared in this
+   * request's `tools[]`.
+   */
+  url_sources?: BetaWebFetchURLSources | null;
 
   /**
    * Whether to use cached content. Set to false to bypass the cache and fetch fresh
@@ -5983,6 +6013,16 @@ export interface BetaWebFetchTool20260318 {
   strict?: boolean;
 
   /**
+   * Which sources contribute to the set of URLs web fetch may fetch.
+   *
+   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+   * (every result but the named tools'). A named tool must be declared in this
+   * request's `tools[]`.
+   */
+  url_sources?: BetaWebFetchURLSources | null;
+
+  /**
    * Whether to use cached content. Set to false to bypass the cache and fetch fresh
    * content. Only set to false when the user explicitly requests fresh content or
    * when fetching rapidly-changing sources.
@@ -6038,6 +6078,87 @@ export type BetaWebFetchToolResultErrorCode =
   | 'max_uses_exceeded'
   | 'unavailable'
   | 'content_too_large';
+
+/**
+ * The `url_sources` variant under which a source contributes in full: every result
+ * of the tool filter's source, or all user input.
+ */
+export interface BetaWebFetchURLSourceAll {
+  type: 'all';
+}
+
+/**
+ * The tool filter variant under which every result but the named tools'
+ * contributes.
+ */
+export interface BetaWebFetchURLSourceExcept {
+  tools: Array<BetaWebFetchURLSourceToolReference>;
+
+  type: 'except';
+}
+
+/**
+ * The `url_sources` variant under which a source contributes nothing: no result of
+ * the tool filter's source, or no user input.
+ */
+export interface BetaWebFetchURLSourceNone {
+  type: 'none';
+}
+
+/**
+ * The tool filter variant under which only the named tools' results contribute.
+ */
+export interface BetaWebFetchURLSourceOnly {
+  tools: Array<BetaWebFetchURLSourceToolReference>;
+
+  type: 'only';
+}
+
+/**
+ * One entry of a tool filter's `tools`: it must name a tool declared in this
+ * request's `tools[]`.
+ */
+export interface BetaWebFetchURLSourceToolReference {
+  name: string;
+
+  type: 'tool_reference';
+}
+
+/**
+ * Which sources contribute to the set of URLs web fetch may fetch.
+ *
+ * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+ * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+ * (every result but the named tools'). A named tool must be declared in this
+ * request's `tools[]`.
+ */
+export interface BetaWebFetchURLSources {
+  /**
+   * Which client tools' results contribute fetchable URLs: "all", "none", or an only
+   * or except list of client tool names from tools[].
+   */
+  client_tool_results?:
+    | BetaWebFetchURLSourceAll
+    | BetaWebFetchURLSourceNone
+    | BetaWebFetchURLSourceOnly
+    | BetaWebFetchURLSourceExcept;
+
+  /**
+   * Which server tools' results contribute fetchable URLs: "all", "none", or an only
+   * or except list of server tool names from tools[]; only web_search and web_fetch
+   * results ever contribute.
+   */
+  server_tool_results?:
+    | BetaWebFetchURLSourceAll
+    | BetaWebFetchURLSourceNone
+    | BetaWebFetchURLSourceOnly
+    | BetaWebFetchURLSourceExcept;
+
+  /**
+   * Whether URLs in user messages are fetchable: "all" or "none".
+   */
+  user_input?: BetaWebFetchURLSourceAll | BetaWebFetchURLSourceNone;
+}
 
 export interface BetaWebSearchResultBlock {
   encrypted_content: string;
@@ -7279,6 +7400,12 @@ export declare namespace Messages {
     type BetaWebFetchToolResultErrorBlock as BetaWebFetchToolResultErrorBlock,
     type BetaWebFetchToolResultErrorBlockParam as BetaWebFetchToolResultErrorBlockParam,
     type BetaWebFetchToolResultErrorCode as BetaWebFetchToolResultErrorCode,
+    type BetaWebFetchURLSourceAll as BetaWebFetchURLSourceAll,
+    type BetaWebFetchURLSourceExcept as BetaWebFetchURLSourceExcept,
+    type BetaWebFetchURLSourceNone as BetaWebFetchURLSourceNone,
+    type BetaWebFetchURLSourceOnly as BetaWebFetchURLSourceOnly,
+    type BetaWebFetchURLSourceToolReference as BetaWebFetchURLSourceToolReference,
+    type BetaWebFetchURLSources as BetaWebFetchURLSources,
     type BetaWebSearchResultBlock as BetaWebSearchResultBlock,
     type BetaWebSearchResultBlockParam as BetaWebSearchResultBlockParam,
     type BetaWebSearchTool20250305 as BetaWebSearchTool20250305,

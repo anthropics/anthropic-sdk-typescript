@@ -239,6 +239,12 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">WebFetchToolResultErrorBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchToolResultErrorBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchToolResultErrorCode</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebFetchURLSourceAll</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebFetchURLSourceExcept</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebFetchURLSourceNone</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebFetchURLSourceOnly</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebFetchURLSourceToolReference</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebFetchURLSources</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchResultBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchResultBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchTool20250305</a></code>
@@ -682,6 +688,12 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchToolResultErrorBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchToolResultErrorBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchToolResultErrorCode</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchURLSourceAll</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchURLSourceExcept</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchURLSourceNone</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchURLSourceOnly</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchURLSourceToolReference</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchURLSources</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchTool20250305</a></code>
