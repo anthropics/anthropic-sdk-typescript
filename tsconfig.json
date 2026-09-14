@@ -3,10 +3,11 @@
   "exclude": [],
   "compilerOptions": {
     "target": "es2020",
-    "lib": ["es2020"],
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "lib": ["es2022"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
+    "types": ["node", "jest"],
     "paths": {
       "@anthropic-ai/sdk/*": ["./src/*"],
       "@anthropic-ai/sdk": ["./src/index.ts"]
@@ -18,14 +19,7 @@
     "forceConsistentCasingInFileNames": true,
 
     "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
     "noImplicitReturns": true,
-    "alwaysStrict": true,
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
