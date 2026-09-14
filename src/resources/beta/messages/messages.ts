@@ -3239,6 +3239,11 @@ export interface BetaInputTokensTrigger {
   value: number;
 }
 
+/**
+ * One entry of `input_transformations`: either a change the API made to the
+ * request's input before showing it to the model, or a block that failed a binding
+ * check and was still shown to the model unchanged. The `type` field says which.
+ */
 export type BetaInputTransformation =
   | BetaThinkingDroppedInputTransformation
   | BetaThinkingMismatchAllowedInputTransformation;
@@ -3987,9 +3992,7 @@ export interface BetaRawMessageDeltaEvent {
    * only when a server-side model fallback happened mid-stream, in which case it
    * holds the serving model's entries and replaces the one in `message_start`.
    */
-  input_transformations?: Array<
-    BetaThinkingDroppedInputTransformation | BetaThinkingMismatchAllowedInputTransformation
-  > | null;
+  input_transformations?: Array<BetaInputTransformation> | null;
 }
 
 export namespace BetaRawMessageDeltaEvent {
