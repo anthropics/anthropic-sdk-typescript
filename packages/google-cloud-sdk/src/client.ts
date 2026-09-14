@@ -304,7 +304,6 @@ export class AnthropicGoogleCloud extends Anthropic {
           const error = new Errors.AnthropicError(
             `No project was given and it could not be resolved from Google credentials. ${NO_PROJECT_HINT}`,
           );
-          // @ts-expect-error — Error options.cause requires ES2022 lib target
           error.cause = err;
           throw error;
         },

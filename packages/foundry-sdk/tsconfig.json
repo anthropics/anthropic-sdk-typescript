@@ -3,14 +3,14 @@
   "exclude": ["dist/src/internal/detect-platform.ts", "dist/src/internal/message-stream-utils.ts"],
   "compilerOptions": {
     "target": "es2020",
-    "lib": ["es2020"],
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "lib": ["es2022"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
-    "baseUrl": "./",
+    "types": ["node", "jest"],
     "paths": {
-      "@anthropic-ai/foundry-sdk/*": ["src/*"],
-      "@anthropic-ai/foundry-sdk": ["src/index.ts"]
+      "@anthropic-ai/foundry-sdk/*": ["./src/*"],
+      "@anthropic-ai/foundry-sdk": ["./src/index.ts"]
     },
     "noEmit": true,
 
@@ -19,14 +19,7 @@
     "forceConsistentCasingInFileNames": true,
 
     "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
     "noImplicitReturns": true,
-    "alwaysStrict": true,
     "exactOptionalPropertyTypes": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
