@@ -830,6 +830,30 @@ describe('search tools (glob/grep)', () => {
     const out = await betaGrepTool(env).run({ pattern: 'beta' });
     expect(out).toMatch(/a\.txt:2:beta/);
   });
+
+  testPosix.each(['stdout', 'stderr'])('grep preserves UTF-8 split across %s chunks', async (output) => {
+    const redirect = output === 'stderr' ? ' >&2' : '';
+    fs.writeFileSync(
+      path.join(dir, 'rg'),
+      `#!/bin/sh\nprintf '\\342'${redirect}\n/bin/sleep 0.05\nprintf '\\202\\254'${redirect}\nexit ${
+        output === 'stderr' ? 2 : 0
+      }\n`,
+      { mode: 0o755 },
+    );
+    const previousPath = process.env['PATH'];
+    try {
+      process.env['PATH'] = dir;
+      const result = betaGrepTool(env).run({ pattern: 'ignored' });
+      if (output === 'stderr') {
+        await expect(result).rejects.toThrow('grep: rg failed: €');
+      } else {
+        await expect(result).resolves.toBe('€');
+      }
+    } finally {
+      if (previousPath === undefined) delete process.env['PATH'];
+      else process.env['PATH'] = previousPath;
+    }
+  });
 });
 
 const describeBash = process.platform === 'win32' ? describe.skip : describe;
