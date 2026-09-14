@@ -304,6 +304,7 @@ export class BashSession {
   #buf = '';
   #truncated = false;
   #closed = false;
+  #processError: AnthropicError | undefined;
   // While a command is in flight, the resolver to fire once its sentinel lands
   // in `#buf` (or once the shell dies). Event-driven: no polling loop.
   #waiting: { sentinel: string; resolve: () => void } | null = null;
@@ -324,6 +325,11 @@ export class BashSession {
     this.#proc.stderr.setEncoding('utf8');
     this.#proc.stdout.on('data', (d: string) => this.#append(d));
     this.#proc.stderr.on('data', (d: string) => this.#append(d));
+    this.#proc.on('error', (err) => {
+      // A failed spawn (e.g. a missing cwd) emits error before close. Handle
+      // it so close can wake exec instead of an uncaught event killing the host.
+      this.#processError = new AnthropicError(`bash session failed: ${err.message}`);
+    });
     this.#proc.once('close', () => {
       this.#closed = true;
       // Wake any in-flight exec so it fails fast instead of waiting for its deadline.
@@ -359,7 +365,7 @@ export class BashSession {
     opts: { timeoutMs?: number; signal?: AbortSignal | null | undefined } = {},
   ): Promise<{ output: string; exitCode: number }> {
     if (this.#closed) {
-      throw new AnthropicError('bash session terminated');
+      throw this.#processError ?? new AnthropicError('bash session terminated');
     }
     const timeoutMs = opts.timeoutMs ?? BASH_DEFAULT_TIMEOUT_MS;
     const signal = opts.signal;
@@ -408,7 +414,7 @@ export class BashSession {
     const idx = this.#buf.indexOf(sentinel);
     if (idx < 0) {
       // The shell closed (or was killed) before emitting the sentinel.
-      throw new AnthropicError('bash session terminated');
+      throw this.#processError ?? new AnthropicError('bash session terminated');
     }
     const tail = this.#buf.slice(idx + sentinel.length);
     const m = tail.match(/^(-?\d+)/);
