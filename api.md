@@ -552,6 +552,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaJSONOutputFormat</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaInputTokensClearAtLeast</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaInputTokensTrigger</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaInputTransformation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaIterationsUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaJSONOutputFormat</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolConfig</a></code>
@@ -628,6 +629,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingDroppedInputTransformation</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingMismatchAllowedInputTransformation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingPrefixMismatchBehavior</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingTurns</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTokenTaskBudget</a></code>
