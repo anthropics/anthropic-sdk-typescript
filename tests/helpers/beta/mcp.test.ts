@@ -33,6 +33,13 @@ import { mockFetch } from '../../lib/mock-fetch';
  */
 describe('MCP helpers', () => {
   describe('mcpContent', () => {
+    it.each(['IMAGE/PNG', 'image/png; name="preview.png"'])('normalizes image MIME type %s', (mimeType) => {
+      expect(mcpContent({ type: 'image', mimeType, data: 'imagedata' })).toMatchObject({
+        type: 'image',
+        source: { media_type: 'image/png', data: 'imagedata' },
+      });
+    });
+
     it('throws UnsupportedMCPValueError for audio content', () => {
       const audioContent: AudioContent = {
         type: 'audio',
@@ -605,6 +612,31 @@ describe('MCP helpers', () => {
   });
 
   describe('mcpResourceToContent', () => {
+    it.each(['IMAGE/SVG+XML', '; charset=UTF-8'])(
+      'still rejects unsupported resource MIME type %s',
+      (mimeType) => {
+        const resource = { uri: 'file:///resource', mimeType, blob: 'ZGF0YQ==' };
+        expect(() => mcpResourceToContent({ contents: [resource] })).toThrow(UnsupportedMCPValueError);
+        expect(() => mcpContent({ type: 'resource', resource })).toThrow(UnsupportedMCPValueError);
+      },
+    );
+
+    it.each([
+      ['IMAGE/PNG', 'image/png'],
+      ['image/png; name="preview.png"', 'image/png'],
+      ['APPLICATION/PDF', 'application/pdf'],
+      ['application/pdf; version=1.7', 'application/pdf'],
+      ['TEXT/PLAIN; charset=UTF-8', 'text/plain'],
+    ])('normalizes resource MIME type %s', (mimeType, mediaType) => {
+      const resource = { uri: 'file:///resource', mimeType, blob: 'ZGF0YQ==' };
+      for (const block of [
+        mcpResourceToContent({ contents: [resource] }),
+        mcpContent({ type: 'resource', resource }),
+      ]) {
+        expect(block).toMatchObject({ source: { media_type: mediaType } });
+      }
+    });
+
     it('sends text resource as document to API', async () => {
       const { fetch, handleRequest } = mockFetch();
       const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
