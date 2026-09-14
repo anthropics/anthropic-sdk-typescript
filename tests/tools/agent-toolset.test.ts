@@ -835,7 +835,9 @@ describe('search tools (glob/grep)', () => {
     const redirect = output === 'stderr' ? ' >&2' : '';
     fs.writeFileSync(
       path.join(dir, 'rg'),
-      `#!/bin/sh\nprintf '\\342'${redirect}\n/bin/sleep 0.05\nprintf '\\202\\254'${redirect}\nexit ${output === 'stderr' ? 2 : 0}\n`,
+      `#!/bin/sh\nprintf '\\342'${redirect}\n/bin/sleep 0.05\nprintf '\\202\\254'${redirect}\nexit ${
+        output === 'stderr' ? 2 : 0
+      }\n`,
       { mode: 0o755 },
     );
     const previousPath = process.env['PATH'];
