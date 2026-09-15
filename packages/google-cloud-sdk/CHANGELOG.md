@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.12 (2026-09-15)
+
+Full Changelog: [google-cloud-sdk-v0.0.11...google-cloud-sdk-v0.0.12](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.11...google-cloud-sdk-v0.0.12)
+
+### Chores
+
+* **internal:** move the sub-packages off ts-node and modernise their tsconfig ([1d7cd91](https://github.com/anthropics/anthropic-sdk-typescript/commit/1d7cd915ab581332085f738d1eb5ed17464004d7))
+
 ## 0.0.11 (2026-08-26)
 
 Full Changelog: [google-cloud-sdk-v0.0.10...google-cloud-sdk-v0.0.11](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.10...google-cloud-sdk-v0.0.11)
