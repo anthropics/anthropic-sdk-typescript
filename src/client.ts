@@ -1,8 +1,5 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 import type { RequestInit, RequestInfo, BodyInit } from './internal/builtin-types';
 import type { HTTPMethod, PromiseOrValue, MergedRequestInit, FinalizedRequestInit } from './internal/types';
-import { uuid4 } from './internal/utils/uuid';
 import { validatePositiveInteger, isAbsoluteURL, safeJSON } from './internal/utils/values';
 import { sleep } from './internal/utils/sleep';
 export type { Logger, LogLevel } from './internal/utils/log';
@@ -588,7 +585,6 @@ export class BaseAnthropic {
 
   private fetch: Fetch;
   #encoder: Opts.RequestEncoder;
-  protected idempotencyHeader?: string;
   protected _options: ClientOptions;
 
   /**
@@ -655,7 +651,7 @@ export class BaseAnthropic {
       parseLogLevel(readEnv('ANTHROPIC_LOG'), "process.env['ANTHROPIC_LOG']", loggerFor(this)) ??
       defaultLogLevel;
     this.fetchOptions = options.fetchOptions;
-    this.maxRetries = options.maxRetries ?? 2;
+    this.maxRetries = validatePositiveInteger('maxRetries', options.maxRetries ?? 2);
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
     this.#encoder = Opts.FallbackEncoder;
 
@@ -961,10 +957,6 @@ export class BaseAnthropic {
     return `Anthropic/JS ${VERSION}`;
   }
 
-  protected defaultIdempotencyKey(): string {
-    return `stainless-node-retry-${uuid4()}`;
-  }
-
   protected makeStatusError(
     status: number,
     error: Object,
@@ -1121,7 +1113,7 @@ export class BaseAnthropic {
     retryOfRequestLogID: string | undefined,
   ): Promise<APIResponseProps> {
     const options = await optionsInput;
-    const maxRetries = options.maxRetries ?? this.maxRetries;
+    const maxRetries = validatePositiveInteger('maxRetries', options.maxRetries ?? this.maxRetries);
     if (retriesRemaining == null) {
       retriesRemaining = maxRetries;
       // Top-level call: reset per-request auth flags so a reused options object
@@ -1490,9 +1482,10 @@ export class BaseAnthropic {
       }
     }
 
-    // If the API asks us to wait a certain amount of time, just do what it
-    // says, but otherwise calculate a default
-    if (timeoutMillis === undefined) {
+    // If the API asks us to wait a certain amount of time, do what it says, as long as it's a positive delay that
+    // one timer can represent (setTimeout fires after 1ms for anything above 2^31 - 1). Otherwise (no header, an
+    // unparseable value, zero/negative, a date in the past) calculate a default.
+    if (timeoutMillis === undefined || !(timeoutMillis > 0 && timeoutMillis <= 2 ** 31 - 1)) {
       const maxRetries = options.maxRetries ?? this.maxRetries;
       timeoutMillis = this.calculateDefaultRetryTimeoutMillis(retriesRemaining, maxRetries);
     }
@@ -1589,14 +1582,7 @@ export class BaseAnthropic {
     bodyHeaders: HeadersLike;
     retryCount: number;
   }): Promise<Headers> {
-    let idempotencyHeaders: HeadersLike = {};
-    if (this.idempotencyHeader && method !== 'get') {
-      if (!options.idempotencyKey) options.idempotencyKey = this.defaultIdempotencyKey();
-      idempotencyHeaders[this.idempotencyHeader] = options.idempotencyKey;
-    }
-
     const headers = buildHeaders([
-      idempotencyHeaders,
       {
         Accept: 'application/json',
         'User-Agent': this.getUserAgent(),

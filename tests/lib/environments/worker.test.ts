@@ -245,14 +245,17 @@ function okTool(name: string): BetaRunnableTool {
 const TERMINATED: AnyEvent = { type: 'session.status_terminated', id: 'ev_term' };
 
 describe('EnvironmentWorker', () => {
-  // A leftover per-item secret on the host must not bleed into tests that
-  // exercise the environment-key paths.
+  // Leftover credentials on the host must not bleed into tests that exercise
+  // the environment-key and keyless paths.
   const savedWorkSecret = process.env['ANTHROPIC_WORK_SECRET'];
+  const savedEnvironmentKey = process.env['ANTHROPIC_ENVIRONMENT_KEY'];
   beforeEach(() => {
     delete process.env['ANTHROPIC_WORK_SECRET'];
+    delete process.env['ANTHROPIC_ENVIRONMENT_KEY'];
   });
   afterAll(() => {
     if (savedWorkSecret !== undefined) process.env['ANTHROPIC_WORK_SECRET'] = savedWorkSecret;
+    if (savedEnvironmentKey !== undefined) process.env['ANTHROPIC_ENVIRONMENT_KEY'] = savedEnvironmentKey;
   });
 
   test('claims a session, dispatches its tools, heartbeats the lease, and force-stops on exit', async () => {
@@ -517,8 +520,8 @@ describe('EnvironmentWorker', () => {
 
   test('handleItem uses the workSecret option as the per-item credential', async () => {
     // An explicit workSecret payload supplies the per-item Bearer credential
-    // (its sessions token); environmentKey is still required but only used as
-    // the fallback.
+    // (its sessions token); the environmentKey passed alongside is only the
+    // fallback and goes unused.
     const secret = encodeSecret({ sessions_token: 'sessions-token-arg' });
     const { client, calls } = makeFake({ sessionStream: [TERMINATED] });
 
@@ -559,6 +562,48 @@ describe('EnvironmentWorker', () => {
     }
 
     expect(calls.withOptions.map((o) => o['authToken'])).toEqual(['sessions-token-env']);
+  });
+
+  test('handleItem runs keyless when the work secret carries a sessions token', async () => {
+    // A host that receives only the per-item secret (the Kubernetes sandbox
+    // hands the pod nothing else) runs the item on the sessions token alone —
+    // it never holds the environment key.
+    const secret = encodeSecret({ sessions_token: 'sessions-token-keyless' });
+    const { client, calls } = makeFake({ sessionStream: [TERMINATED] });
+
+    await new EnvironmentWorker({
+      client,
+      tools: [],
+      workdir: '/tmp',
+      maxIdleMs: 0,
+    }).handleItem({ workId: 'work_1', environmentId: 'env_1', sessionId: 'sesn_1', workSecret: secret });
+
+    // The item was served and stopped on the token, with no key in sight.
+    expect(calls.withOptions.map((o) => o['authToken'])).toEqual(['sessions-token-keyless']);
+    expect(calls.retrieve).toBe(1);
+    expect(calls.stop.some((s) => s.force === true)).toBe(true);
+    expect(loggedText(calls)).not.toContain('falling back to the environment key');
+  });
+
+  test('handleItem with neither a key nor a sessions token in the secret fails closed', async () => {
+    // A secret that yields no sessions token normally falls back to the
+    // environment key; without one there is no credential, so the item fails
+    // up front instead of issuing unauthenticated calls.
+    const { client, calls } = makeFake({ sessionStream: [TERMINATED] });
+
+    await expect(
+      new EnvironmentWorker({ client, tools: [], workdir: '/tmp', maxIdleMs: 0 }).handleItem({
+        workId: 'work_1',
+        environmentId: 'env_1',
+        sessionId: 'sesn_1',
+        workSecret: 'not-a-valid-payload',
+      }),
+    ).rejects.toThrow(/no sessions token could be extracted[\s\S]*no environment key to fall back to/);
+
+    // Nothing ran: no credentialed sub-client, no session fetch, no stop.
+    expect(calls.withOptions).toEqual([]);
+    expect(calls.retrieve).toBe(0);
+    expect(calls.stop).toEqual([]);
   });
 
   test('run() requires environmentId and environmentKey', async () => {
@@ -604,21 +649,15 @@ describe('EnvironmentWorker', () => {
     );
   });
 
-  test('handleItem throws when the environment key cannot be resolved', async () => {
+  test('handleItem without an environment key or a work secret throws', async () => {
     const { client } = makeFake({ sessionStream: [TERMINATED] });
-    const saved = process.env['ANTHROPIC_ENVIRONMENT_KEY'];
-    delete process.env['ANTHROPIC_ENVIRONMENT_KEY'];
-    try {
-      await expect(
-        new EnvironmentWorker({ client, tools: [], workdir: '/tmp' }).handleItem({
-          workId: 'work_1',
-          environmentId: 'env_1',
-          sessionId: 'sesn_1',
-        }),
-      ).rejects.toThrow(/environmentKey is required/);
-    } finally {
-      if (saved !== undefined) process.env['ANTHROPIC_ENVIRONMENT_KEY'] = saved;
-    }
+    await expect(
+      new EnvironmentWorker({ client, tools: [], workdir: '/tmp' }).handleItem({
+        workId: 'work_1',
+        environmentId: 'env_1',
+        sessionId: 'sesn_1',
+      }),
+    ).rejects.toThrow(/environmentKey is required when there is no work secret/);
   });
 
   test.each([true, false])('unrestrictedPaths=%s is rejected at construction', (unrestrictedPaths) => {

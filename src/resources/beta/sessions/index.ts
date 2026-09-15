@@ -1,7 +1,9 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 export {
   Events,
+  type BetaManagedAgentsAgentAutoEvaluatedPermission,
+  type BetaManagedAgentsAgentAutoEvaluatedPermissionAllow,
+  type BetaManagedAgentsAgentAutoEvaluatedPermissionAsk,
+  type BetaManagedAgentsAgentAutoEvaluatedPermissionDeny,
   type BetaManagedAgentsAgentCustomToolUseEvent,
   type BetaManagedAgentsAgentMCPToolResultEvent,
   type BetaManagedAgentsAgentMCPToolUseEvent,
@@ -10,6 +12,10 @@ export {
   type BetaManagedAgentsAgentThreadContextCompactedEvent,
   type BetaManagedAgentsAgentThreadMessageReceivedEvent,
   type BetaManagedAgentsAgentThreadMessageSentEvent,
+  type BetaManagedAgentsAgentToolEvaluation,
+  type BetaManagedAgentsAgentToolEvaluationAlwaysAllow,
+  type BetaManagedAgentsAgentToolEvaluationAlwaysAsk,
+  type BetaManagedAgentsAgentToolEvaluationAuto,
   type BetaManagedAgentsAgentToolResultEvent,
   type BetaManagedAgentsAgentToolUseEvent,
   type BetaManagedAgentsBase64DocumentSource,

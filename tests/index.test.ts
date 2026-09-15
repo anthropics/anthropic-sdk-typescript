@@ -1,5 +1,3 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 import { APIPromise } from '@anthropic-ai/sdk/core/api-promise';
 import { APIConnectionError, APIError } from '@anthropic-ai/sdk/core/error';
 
@@ -650,6 +648,22 @@ describe('retries', () => {
     expect(attempts).toEqual(1);
   });
 
+  test('maxRetries must be a non-negative integer', async () => {
+    expect(() => new Anthropic({ apiKey: 'my-anthropic-api-key', maxRetries: -1 })).toThrow(
+      'maxRetries must be',
+    );
+    expect(() => new Anthropic({ apiKey: 'my-anthropic-api-key', maxRetries: 1.5 })).toThrow(
+      'maxRetries must be',
+    );
+
+    const testFetch = async (): Promise<Response> =>
+      new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+    const client = new Anthropic({ apiKey: 'my-anthropic-api-key', fetch: testFetch });
+    await expect(client.request({ path: '/foo', method: 'get', maxRetries: -1 })).rejects.toThrow(
+      'maxRetries must be',
+    );
+  });
+
   test('retry on timeout', async () => {
     let count = 0;
     const testFetch = async (
@@ -838,6 +852,28 @@ describe('retries', () => {
     ).toEqual(JSON.stringify({ a: 1 }));
     expect(count).toEqual(3);
   });
+
+  test.each(['junk', '0', '-1', 'Thu, 01 Jan 1970 00:00:00 GMT', '2147484'])(
+    'retry-after of %j falls back to the default backoff',
+    async (retryAfter) => {
+      const attempts: number[] = [];
+      const testFetch = async (): Promise<Response> => {
+        attempts.push(Date.now());
+        if (attempts.length === 1) {
+          return new Response(undefined, { status: 429, headers: { 'Retry-After': retryAfter } });
+        }
+        return new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+      };
+
+      const client = new Anthropic({ apiKey: 'my-anthropic-api-key', fetch: testFetch });
+
+      expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
+      expect(attempts.length).toEqual(2);
+      // An unusable Retry-After (including one too large for a single timer) must not shorten the wait
+      // below the default first-retry backoff: 75% of the 0.5s initial delay, less 20ms slack.
+      expect(attempts[1]! - attempts[0]!).toBeGreaterThanOrEqual(0.5 * 1000 * 0.75 - 20);
+    },
+  );
 
   test('retry on 429 with retry-after-ms', async () => {
     let count = 0;

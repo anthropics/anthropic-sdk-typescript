@@ -745,6 +745,7 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAlwaysAskPolicy</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAnthropicSkill</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAnthropicSkillParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAutoPolicy</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsBashToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsBashToolConfigParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsCustomSkill</a></code>
@@ -903,6 +904,10 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentAutoEvaluatedPermission</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentAutoEvaluatedPermissionAllow</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentAutoEvaluatedPermissionAsk</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentAutoEvaluatedPermissionDeny</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentCustomToolUseEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentMCPToolResultEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentMCPToolUseEvent</a></code>
@@ -911,6 +916,10 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentThreadContextCompactedEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentThreadMessageReceivedEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentThreadMessageSentEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentToolEvaluation</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentToolEvaluationAlwaysAllow</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentToolEvaluationAlwaysAsk</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentToolEvaluationAuto</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentToolResultEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentToolUseEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsBase64DocumentSource</a></code>
@@ -1343,6 +1352,8 @@ Types:
 
 - <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfile</a></code>
 - <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileEnrollmentURL</a></code>
+- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileExternalUserDetails</a></code>
+- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileExternalUserDetailsParams</a></code>
 - <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileTrustGrant</a></code>
 
 Methods:

@@ -1,5 +1,3 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 import { NullableHeaders } from './headers';
 
 import type { BodyInit } from './builtin-types';
@@ -120,7 +118,7 @@ export interface RequestOptions {
   fallbackState?: BetaFallbackState;
 
   /**
-   * A unique key for this request to enable idempotency.
+   * @deprecated This option has no effect and will be removed in a future major version.
    */
   idempotencyKey?: string;
 

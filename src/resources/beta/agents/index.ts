@@ -1,5 +1,3 @@
-// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 export {
   Agents,
   type BetaManagedAgentsAdvisor,
@@ -21,6 +19,7 @@ export {
   type BetaManagedAgentsAlwaysAskPolicy,
   type BetaManagedAgentsAnthropicSkill,
   type BetaManagedAgentsAnthropicSkillParams,
+  type BetaManagedAgentsAutoPolicy,
   type BetaManagedAgentsBashToolConfig,
   type BetaManagedAgentsBashToolConfigParams,
   type BetaManagedAgentsCustomSkill,
