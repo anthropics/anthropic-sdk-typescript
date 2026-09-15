@@ -43,6 +43,64 @@ describe('TokenCache', () => {
     expect(provider).toHaveBeenCalledTimes(1);
   });
 
+  function deferredToken() {
+    let resolve!: (t: AccessToken) => void;
+    const promise = new Promise<AccessToken>((res) => {
+      resolve = res;
+    });
+    return { promise, resolve };
+  }
+
+  it('a slower superseded refresh cannot overwrite a newer forced result', async () => {
+    const calls: Array<{ forceRefresh?: boolean } | undefined> = [];
+    const hung = deferredToken();
+    const provider = jest.fn((opts?: { forceRefresh?: boolean }) => {
+      calls.push(opts);
+      if (opts?.forceRefresh) {
+        return Promise.resolve({ token: 'fresh', expiresAt: fakeNow + 3600 });
+      }
+      return hung.promise;
+    }) as unknown as jest.Mock;
+    const cache = new TokenCache(provider as never);
+
+    // Plain refresh starts and hangs (call 1, non-forced).
+    const first = cache.getToken();
+    expect(calls[0]?.forceRefresh).toBeUndefined();
+
+    // A 401 lands elsewhere: invalidate forces the next fetch to bypass the
+    // hang instead of coalescing into it.
+    cache.invalidate();
+    expect(await cache.getToken()).toBe('fresh');
+
+    // The hung refresh finally settles with an older token. It must not
+    // commit over the forced result.
+    hung.resolve({ token: 'stale', expiresAt: fakeNow + 3600 });
+    await first;
+
+    expect(await cache.getToken()).toBe('fresh');
+  });
+
+  it('discards an in-flight refresh invalidated mid-flight', async () => {
+    const hung = deferredToken();
+    const provider = jest.fn((opts?: { forceRefresh?: boolean }) => {
+      if (opts?.forceRefresh) {
+        return Promise.resolve({ token: 'fresh', expiresAt: fakeNow + 3600 });
+      }
+      return hung.promise;
+    }) as unknown as jest.Mock;
+    const cache = new TokenCache(provider as never);
+
+    const first = cache.getToken(); // starts a plain refresh, hangs
+    cache.invalidate(); // e.g. a concurrent request just saw a 401
+    hung.resolve({ token: 'stale', expiresAt: fakeNow + 3600 });
+    await first.catch(() => {});
+
+    // A forced refresh lands after the stale result settled; the stale
+    // generation must not overwrite it.
+    expect(await cache.getToken()).toBe('fresh');
+    expect(await cache.getToken()).toBe('fresh');
+  });
+
   it('caches forever when expiresAt is null', async () => {
     const provider = jest.fn<Promise<AccessToken>, []>().mockResolvedValue({
       token: 'eternal',
