@@ -51,6 +51,8 @@ async function postprocess() {
       types: './index.d.mts',
       default: './index.mjs',
     },
+    // private like the top-level `internal`; a `null` target wins over the broader `./lib/*` patterns
+    './lib/internal/*': null,
   };
 
   for (const entry of await fs.promises.readdir(distDir, { withFileTypes: true })) {
