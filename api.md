@@ -379,6 +379,7 @@ Types:
 Types:
 
 - <code><a href="./src/resources/beta/models.ts">BetaCapabilitySupport</a></code>
+- <code><a href="./src/resources/beta/models.ts">BetaCompactionCapability</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaContextManagementCapability</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaEffortCapability</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaModelCapabilities</a></code>
@@ -499,6 +500,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompact20260112Edit</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionContentBlockDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionIterationUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerCursorPositionConfig</a></code>
@@ -610,6 +612,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSignatureDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSkillParams</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaStopReason</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaSummarizeCompaction</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSystemMessageOutputConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlockParam</a></code>

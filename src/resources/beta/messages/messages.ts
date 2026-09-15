@@ -2127,6 +2127,11 @@ export interface BetaCompactionBlock {
   encrypted_content: string | null;
 
   type: 'compaction';
+
+  /**
+   * Signature over the summary, to be sent back with the block verbatim
+   */
+  signature?: string | null;
 }
 
 /**
@@ -2155,6 +2160,32 @@ export interface BetaCompactionBlockParam {
    * Opaque metadata from prior compaction, to be round-tripped verbatim
    */
   encrypted_content?: string | null;
+
+  /**
+   * The block's signature as returned, to be sent back verbatim
+   */
+  signature?: string | null;
+}
+
+/**
+ * Compact the whole conversation and return a signed `compaction` block, alone,
+ * that a later request sends back first in `messages`, in place of the messages it
+ * summarizes. There is no trigger and no pause flag: sending the parameter
+ * compacts, and nothing is sampled after the block.
+ *
+ * The summarization prompt is the server's own unless `instructions` are given,
+ * which then replace it for this request; a value that is empty or only whitespace
+ * counts as absent.
+ */
+export interface BetaCompactionConfig {
+  type: 'summarize';
+
+  /**
+   * Replaces the server's summarization prompt for this request. When set, earlier
+   * thinking blocks are left out of the content being summarized on models that
+   * require it.
+   */
+  instructions?: string | null;
 }
 
 export interface BetaCompactionContentBlockDelta {
@@ -4368,6 +4399,27 @@ export type BetaStopReason =
   | 'model_context_window_exceeded';
 
 /**
+ * Compact the whole conversation and return a signed `compaction` block, alone,
+ * that a later request sends back first in `messages`, in place of the messages it
+ * summarizes. There is no trigger and no pause flag: sending the parameter
+ * compacts, and nothing is sampled after the block.
+ *
+ * The summarization prompt is the server's own unless `instructions` are given,
+ * which then replace it for this request; a value that is empty or only whitespace
+ * counts as absent.
+ */
+export interface BetaSummarizeCompaction {
+  type: 'summarize';
+
+  /**
+   * Replaces the server's summarization prompt for this request. When set, earlier
+   * thinking blocks are left out of the content being summarized on models that
+   * require it.
+   */
+  instructions?: string | null;
+}
+
+/**
  * Per-message output configuration on a role:"system" input message.
  *
  * Fields here apply per-turn; `format` remains top-level only. An empty `{}` is
@@ -6521,6 +6573,18 @@ export interface MessageCreateParamsBase {
   cache_control?: BetaCacheControlEphemeral | null;
 
   /**
+   * Body param: Compact the whole conversation and return a signed `compaction`
+   * block, alone, that a later request sends back first in `messages`, in place of
+   * the messages it summarizes. There is no trigger and no pause flag: sending the
+   * parameter compacts, and nothing is sampled after the block.
+   *
+   * The summarization prompt is the server's own unless `instructions` are given,
+   * which then replace it for this request; a value that is empty or only whitespace
+   * counts as absent.
+   */
+  compaction?: BetaCompactionConfig | null;
+
+  /**
    * Body param: Container identifier for reuse across requests.
    */
   container?: BetaContainerParams | string | null;
@@ -6905,6 +6969,18 @@ export interface MessageCountTokensParams {
   cache_control?: BetaCacheControlEphemeral | null;
 
   /**
+   * Body param: Compact the whole conversation and return a signed `compaction`
+   * block, alone, that a later request sends back first in `messages`, in place of
+   * the messages it summarizes. There is no trigger and no pause flag: sending the
+   * parameter compacts, and nothing is sampled after the block.
+   *
+   * The summarization prompt is the server's own unless `instructions` are given,
+   * which then replace it for this request; a value that is empty or only whitespace
+   * counts as absent.
+   */
+  compaction?: BetaCompactionConfig | null;
+
+  /**
    * Body param: Context management configuration.
    *
    * This allows you to control how Claude manages context across multiple requests,
@@ -7214,6 +7290,7 @@ export declare namespace Messages {
     type BetaCompact20260112Edit as BetaCompact20260112Edit,
     type BetaCompactionBlock as BetaCompactionBlock,
     type BetaCompactionBlockParam as BetaCompactionBlockParam,
+    type BetaCompactionConfig as BetaCompactionConfig,
     type BetaCompactionContentBlockDelta as BetaCompactionContentBlockDelta,
     type BetaCompactionIterationUsage as BetaCompactionIterationUsage,
     type BetaComputerCursorPositionConfig as BetaComputerCursorPositionConfig,
@@ -7324,6 +7401,7 @@ export declare namespace Messages {
     type BetaSignatureDelta as BetaSignatureDelta,
     type BetaSkillParams as BetaSkillParams,
     type BetaStopReason as BetaStopReason,
+    type BetaSummarizeCompaction as BetaSummarizeCompaction,
     type BetaSystemMessageOutputConfig as BetaSystemMessageOutputConfig,
     type BetaTextBlock as BetaTextBlock,
     type BetaTextBlockParam as BetaTextBlockParam,

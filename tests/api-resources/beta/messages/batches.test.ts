@@ -46,6 +46,7 @@ describe('resource batches', () => {
             ],
             model: 'claude-opus-5',
             cache_control: { type: 'ephemeral', ttl: '5m' },
+            compaction: { type: 'summarize', instructions: 'instructions' },
             container: {
               id: 'id',
               skills: [

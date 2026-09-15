@@ -115,6 +115,7 @@ import {
 import * as ModelsAPI from './models';
 import {
   BetaCapabilitySupport,
+  BetaCompactionCapability,
   BetaContextManagementCapability,
   BetaEffortCapability,
   BetaModelCapabilities,
@@ -407,6 +408,7 @@ import {
   BetaCompact20260112Edit,
   BetaCompactionBlock,
   BetaCompactionBlockParam,
+  BetaCompactionConfig,
   BetaCompactionContentBlockDelta,
   BetaCompactionIterationUsage,
   BetaComputerCursorPositionConfig,
@@ -514,6 +516,7 @@ import {
   BetaSignatureDelta,
   BetaSkillParams,
   BetaStopReason,
+  BetaSummarizeCompaction,
   BetaSystemMessageOutputConfig,
   BetaTextBlock,
   BetaTextBlockParam,
@@ -761,7 +764,8 @@ export type AnthropicBeta =
   | 'ce-user-management-2026-07-13'
   | 'mid-conversation-output-config-2026-07-01'
   | 'thinking-binding-controls-2026-08-01'
-  | 'mid-conversation-system-clear-at-2026-08-21';
+  | 'mid-conversation-system-clear-at-2026-08-21'
+  | 'compact-2026-09-04';
 
 export interface BetaAPIError {
   message: string;
@@ -895,6 +899,7 @@ export declare namespace Beta {
   export {
     Models as Models,
     type BetaCapabilitySupport as BetaCapabilitySupport,
+    type BetaCompactionCapability as BetaCompactionCapability,
     type BetaContextManagementCapability as BetaContextManagementCapability,
     type BetaEffortCapability as BetaEffortCapability,
     type BetaModelCapabilities as BetaModelCapabilities,
@@ -1012,6 +1017,7 @@ export declare namespace Beta {
     type BetaCompact20260112Edit as BetaCompact20260112Edit,
     type BetaCompactionBlock as BetaCompactionBlock,
     type BetaCompactionBlockParam as BetaCompactionBlockParam,
+    type BetaCompactionConfig as BetaCompactionConfig,
     type BetaCompactionContentBlockDelta as BetaCompactionContentBlockDelta,
     type BetaCompactionIterationUsage as BetaCompactionIterationUsage,
     type BetaComputerCursorPositionConfig as BetaComputerCursorPositionConfig,
@@ -1121,6 +1127,7 @@ export declare namespace Beta {
     type BetaSignatureDelta as BetaSignatureDelta,
     type BetaSkillParams as BetaSkillParams,
     type BetaStopReason as BetaStopReason,
+    type BetaSummarizeCompaction as BetaSummarizeCompaction,
     type BetaSystemMessageOutputConfig as BetaSystemMessageOutputConfig,
     type BetaTextBlock as BetaTextBlock,
     type BetaTextBlockParam as BetaTextBlockParam,

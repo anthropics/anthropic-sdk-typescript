@@ -335,6 +335,7 @@ export {
   type BetaCompact20260112Edit,
   type BetaCompactionBlock,
   type BetaCompactionBlockParam,
+  type BetaCompactionConfig,
   type BetaCompactionContentBlockDelta,
   type BetaCompactionIterationUsage,
   type BetaComputerCursorPositionConfig,
@@ -445,6 +446,7 @@ export {
   type BetaSignatureDelta,
   type BetaSkillParams,
   type BetaStopReason,
+  type BetaSummarizeCompaction,
   type BetaSystemMessageOutputConfig,
   type BetaTextBlock,
   type BetaTextBlockParam,
@@ -551,6 +553,7 @@ export {
 export {
   Models,
   type BetaCapabilitySupport,
+  type BetaCompactionCapability,
   type BetaContextManagementCapability,
   type BetaEffortCapability,
   type BetaModelCapabilities,
