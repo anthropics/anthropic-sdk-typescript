@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { mkdtempSync } from 'node:fs';
@@ -8,11 +9,11 @@ import { defaultCredentials } from '@anthropic-ai/sdk/lib/credentials/credential
 const NOW_IN_SECONDS = 1700000000;
 
 beforeAll(() => {
-  jest.useFakeTimers({ now: NOW_IN_SECONDS * 1000 });
+  vi.useFakeTimers({ now: NOW_IN_SECONDS * 1000 });
 });
 
 afterAll(() => {
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 function jsonResponse(body: object, status = 200): Response {
@@ -63,7 +64,7 @@ describe('defaultCredentials', () => {
 
   const baseOptions = {
     baseURL: 'https://api.anthropic.com',
-    fetch: jest.fn() as unknown as Fetch,
+    fetch: vi.fn() as unknown as Fetch,
   };
 
   function writeConfig(profile: string, config: object) {
@@ -121,15 +122,13 @@ describe('defaultCredentials', () => {
         identity_token: { source: 'file', path: tokenPath },
       },
     });
-    const fedFetch: Fetch = jest
-      .fn()
-      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+    const fedFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
     const fedResult = await defaultCredentials({ ...baseOptions, fetch: fedFetch });
     // Federation profiles send workspace_id in the exchange body, not as a header.
     expect(fedResult!.extraHeaders).toEqual({});
     // forceRefresh bypasses the still-fresh user_oauth credential cache from above.
     await fedResult!.provider({ forceRefresh: true });
-    const fedBody = JSON.parse((fedFetch as jest.Mock).mock.calls[0]![1].body);
+    const fedBody = JSON.parse((fedFetch as Mock).mock.calls[0]![1].body);
     expect(fedBody.workspace_id).toBe('ws-fed');
   });
 
@@ -146,7 +145,7 @@ describe('defaultCredentials', () => {
       },
     });
 
-    const mockFetch: Fetch = jest
+    const mockFetch: Fetch = vi
       .fn()
       .mockResolvedValue(jsonResponse({ access_token: 'exchanged-tok', expires_in: 3600 }));
 
@@ -174,7 +173,7 @@ describe('defaultCredentials', () => {
       expires_at: NOW_IN_SECONDS + 3600,
     });
 
-    const mockFetch: Fetch = jest.fn();
+    const mockFetch: Fetch = vi.fn();
 
     const result = await defaultCredentials({ ...baseOptions, fetch: mockFetch });
     expect(result).not.toBeNull();
@@ -204,7 +203,7 @@ describe('defaultCredentials', () => {
       custom_field: 'kept',
     });
 
-    const mockFetch: Fetch = jest
+    const mockFetch: Fetch = vi
       .fn()
       .mockResolvedValue(jsonResponse({ access_token: 'new-tok', expires_in: 3600 }));
 
@@ -233,10 +232,8 @@ describe('defaultCredentials', () => {
       },
     });
 
-    const mockFetch: Fetch = jest
-      .fn()
-      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
-    const onErr = jest.fn();
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+    const onErr = vi.fn();
 
     const result = await defaultCredentials({ ...baseOptions, fetch: mockFetch, onCacheWriteError: onErr });
     const token = await result!.provider();
@@ -260,14 +257,12 @@ describe('defaultCredentials', () => {
       },
     });
 
-    const mockFetch: Fetch = jest
-      .fn()
-      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
 
     const result = await defaultCredentials({ ...baseOptions, fetch: mockFetch, userAgent: 'ant-cli/1.2.3' });
     await result!.provider();
 
-    expect((mockFetch as jest.Mock).mock.calls[0]![1].headers['User-Agent']).toBe('ant-cli/1.2.3');
+    expect((mockFetch as Mock).mock.calls[0]![1].headers['User-Agent']).toBe('ant-cli/1.2.3');
   });
 
   it('writes back credential file after oidc_federation exchange', async () => {
@@ -284,7 +279,7 @@ describe('defaultCredentials', () => {
     });
     // No cached credentials. Will exchange
 
-    const mockFetch: Fetch = jest
+    const mockFetch: Fetch = vi
       .fn()
       .mockResolvedValue(jsonResponse({ access_token: 'new-tok', expires_in: 3600 }));
 
@@ -310,7 +305,7 @@ describe('defaultCredentials', () => {
     process.env['ANTHROPIC_ORGANIZATION_ID'] = 'org-env';
     process.env['ANTHROPIC_IDENTITY_TOKEN_FILE'] = tokenPath;
 
-    const mockFetch: Fetch = jest
+    const mockFetch: Fetch = vi
       .fn()
       .mockResolvedValue(jsonResponse({ access_token: 'env-tok', expires_in: 60 }));
 
@@ -329,7 +324,7 @@ describe('defaultCredentials', () => {
     process.env['ANTHROPIC_ORGANIZATION_ID'] = 'org-env';
     process.env['ANTHROPIC_IDENTITY_TOKEN'] = 'static-jwt';
 
-    const mockFetch: Fetch = jest
+    const mockFetch: Fetch = vi
       .fn()
       .mockResolvedValue(jsonResponse({ access_token: 'static-tok', expires_in: 60 }));
 
@@ -339,7 +334,7 @@ describe('defaultCredentials', () => {
     const token = await result!.provider();
     expect(token.token).toBe('static-tok');
 
-    const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
+    const body = JSON.parse((mockFetch as Mock).mock.calls[0]![1].body);
     expect(body.assertion).toBe('static-jwt');
   });
 
@@ -356,7 +351,7 @@ describe('defaultCredentials', () => {
     process.env['ANTHROPIC_IDENTITY_TOKEN'] = 'env-jwt';
     process.env['ANTHROPIC_WORKSPACE_ID'] = 'wrkspc_env';
 
-    const mockFetch: Fetch = jest
+    const mockFetch: Fetch = vi
       .fn()
       .mockResolvedValue(jsonResponse({ access_token: 'env-tok', expires_in: 3600 }));
 
@@ -382,7 +377,7 @@ describe('defaultCredentials', () => {
     process.env['ANTHROPIC_ORGANIZATION_ID'] = 'org-env';
     process.env['ANTHROPIC_IDENTITY_TOKEN'] = 'env-jwt';
 
-    const mockFetch: Fetch = jest
+    const mockFetch: Fetch = vi
       .fn()
       .mockResolvedValue(jsonResponse({ access_token: 'fresh-tok', expires_in: 3600 }));
 
@@ -405,15 +400,13 @@ describe('defaultCredentials', () => {
     process.env['ANTHROPIC_IDENTITY_TOKEN'] = 'literal-jwt';
     process.env['ANTHROPIC_WORKSPACE_ID'] = 'wrkspc_01abc';
 
-    const mockFetch: Fetch = jest
-      .fn()
-      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
 
     const result = await defaultCredentials({ ...baseOptions, fetch: mockFetch });
     expect(result).not.toBeNull();
     await result!.provider();
 
-    const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
+    const body = JSON.parse((mockFetch as Mock).mock.calls[0]![1].body);
     expect(body.workspace_id).toBe('wrkspc_01abc');
   });
 
@@ -429,15 +422,13 @@ describe('defaultCredentials', () => {
     process.env['ANTHROPIC_IDENTITY_TOKEN'] = 'literal-jwt';
     process.env['ANTHROPIC_WORKSPACE_ID'] = '';
 
-    const mockFetch: Fetch = jest
-      .fn()
-      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
 
     const result = await defaultCredentials({ ...baseOptions, fetch: mockFetch });
     expect(result).not.toBeNull();
     await result!.provider();
 
-    const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
+    const body = JSON.parse((mockFetch as Mock).mock.calls[0]![1].body);
     expect(body).not.toHaveProperty('workspace_id');
   });
 
@@ -456,15 +447,13 @@ describe('defaultCredentials', () => {
       },
     });
 
-    const mockFetch: Fetch = jest
-      .fn()
-      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
 
     const result = await defaultCredentials({ ...baseOptions, fetch: mockFetch });
     expect(result).not.toBeNull();
     await result!.provider();
 
-    const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
+    const body = JSON.parse((mockFetch as Mock).mock.calls[0]![1].body);
     expect(body.workspace_id).toBe('wrkspc_from_env');
   });
 
@@ -503,15 +492,13 @@ describe('defaultCredentials', () => {
       },
     });
 
-    const mockFetch: Fetch = jest
-      .fn()
-      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
 
     const result = await defaultCredentials({ ...baseOptions, fetch: mockFetch });
     expect(result).not.toBeNull();
     await result!.provider();
 
-    const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
+    const body = JSON.parse((mockFetch as Mock).mock.calls[0]![1].body);
     expect(body.workspace_id).toBe('wrkspc_file');
   });
 
@@ -540,14 +527,12 @@ describe('defaultCredentials', () => {
       },
     });
 
-    const mockFetch: Fetch = jest
-      .fn()
-      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
 
     const result = await defaultCredentials({ ...baseOptions, fetch: mockFetch });
     await result!.provider();
 
-    const [url] = (mockFetch as jest.Mock).mock.calls[0]!;
+    const [url] = (mockFetch as Mock).mock.calls[0]!;
     expect(url).toBe('https://custom-api.example.com/v1/oauth/token');
   });
 

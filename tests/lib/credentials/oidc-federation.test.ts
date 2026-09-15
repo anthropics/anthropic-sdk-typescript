@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import type { Fetch } from '@anthropic-ai/sdk/internal/builtin-types';
 import { oidcFederationProvider } from '@anthropic-ai/sdk/lib/credentials/oidc-federation';
 import {
@@ -10,11 +11,11 @@ import {
 const NOW_IN_SECONDS = 1700000000;
 
 beforeAll(() => {
-  jest.useFakeTimers({ now: NOW_IN_SECONDS * 1000 });
+  vi.useFakeTimers({ now: NOW_IN_SECONDS * 1000 });
 });
 
 afterAll(() => {
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 function jsonResponse(body: object, status = 200): Response {
@@ -33,7 +34,7 @@ describe('oidcFederationProvider', () => {
   };
 
   it('exchanges a JWT for an access token', async () => {
-    const mockFetch: Fetch = jest
+    const mockFetch: Fetch = vi
       .fn()
       .mockResolvedValue(jsonResponse({ access_token: 'ant-at_xxx', expires_in: 3600 }));
 
@@ -43,7 +44,7 @@ describe('oidcFederationProvider', () => {
     expect(token.token).toBe('ant-at_xxx');
     expect(token.expiresAt).toBe(NOW_IN_SECONDS + 3600);
 
-    const [url, init] = (mockFetch as jest.Mock).mock.calls[0]!;
+    const [url, init] = (mockFetch as Mock).mock.calls[0]!;
     expect(url).toBe('https://api.anthropic.com/v1/oauth/token');
     expect(init.method).toBe('POST');
     expect(init.headers['anthropic-beta']).toBe(`${OAUTH_API_BETA_HEADER},${FEDERATION_BETA_HEADER}`);
@@ -58,9 +59,7 @@ describe('oidcFederationProvider', () => {
   });
 
   it('includes service_account_id when provided and never sends scope', async () => {
-    const mockFetch: Fetch = jest
-      .fn()
-      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
 
     const provider = oidcFederationProvider({
       ...baseConfig,
@@ -69,15 +68,13 @@ describe('oidcFederationProvider', () => {
     });
     await provider();
 
-    const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
+    const body = JSON.parse((mockFetch as Mock).mock.calls[0]![1].body);
     expect(body.service_account_id).toBe('svac_01abc');
     expect(body).not.toHaveProperty('scope');
   });
 
   it('includes workspace_id when provided', async () => {
-    const mockFetch: Fetch = jest
-      .fn()
-      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
 
     const provider = oidcFederationProvider({
       ...baseConfig,
@@ -86,14 +83,12 @@ describe('oidcFederationProvider', () => {
     });
     await provider();
 
-    const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
+    const body = JSON.parse((mockFetch as Mock).mock.calls[0]![1].body);
     expect(body.workspace_id).toBe('wrkspc_01abc');
   });
 
   it('passes through the literal "default" workspace_id sentinel', async () => {
-    const mockFetch: Fetch = jest
-      .fn()
-      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
 
     const provider = oidcFederationProvider({
       ...baseConfig,
@@ -102,14 +97,12 @@ describe('oidcFederationProvider', () => {
     });
     await provider();
 
-    const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
+    const body = JSON.parse((mockFetch as Mock).mock.calls[0]![1].body);
     expect(body.workspace_id).toBe('default');
   });
 
   it('uses custom userAgent when provided', async () => {
-    const mockFetch: Fetch = jest
-      .fn()
-      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
 
     const provider = oidcFederationProvider({
       ...baseConfig,
@@ -118,12 +111,12 @@ describe('oidcFederationProvider', () => {
     });
     await provider();
 
-    const headers = (mockFetch as jest.Mock).mock.calls[0]![1].headers;
+    const headers = (mockFetch as Mock).mock.calls[0]![1].headers;
     expect(headers['User-Agent']).toBe('ant-cli/1.2.3');
   });
 
   it('throws WorkloadIdentityError with requestId on non-ok response', async () => {
-    const mockFetch: Fetch = jest.fn().mockResolvedValue(
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(
       new Response('unauthorized', {
         status: 401,
         headers: { 'Request-Id': 'req_123' },
@@ -135,7 +128,7 @@ describe('oidcFederationProvider', () => {
     await expect(provider()).rejects.toThrow(WorkloadIdentityError);
     try {
       await provider();
-      fail('expected throw');
+      throw new Error('expected throw');
     } catch (err) {
       expect((err as WorkloadIdentityError).statusCode).toBe(401);
       expect((err as WorkloadIdentityError).requestId).toBe('req_123');
@@ -146,12 +139,12 @@ describe('oidcFederationProvider', () => {
     // Without a workspaceId the most common cause is a federation rule that
     // spans multiple workspaces — surface the workspace-ID fix alongside the
     // generic guidance and the Console auth-event pointer.
-    const mockFetch: Fetch = jest.fn().mockResolvedValue(jsonResponse({ error: 'unauthorized' }, 401));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ error: 'unauthorized' }, 401));
 
     const provider = oidcFederationProvider({ ...baseConfig, fetch: mockFetch });
     try {
       await provider();
-      fail('expected throw');
+      throw new Error('expected throw');
     } catch (err) {
       const message = (err as WorkloadIdentityError).message;
       expect(message).toContain('Ensure your federation rule matches your identity token');
@@ -163,7 +156,7 @@ describe('oidcFederationProvider', () => {
   it('omits the workspace-ID portion of the hint on 401 when workspaceId is set', async () => {
     // When workspaceId is already configured the workspace-ID suggestion is
     // noise, but the generic guidance and Console auth-event pointer still apply.
-    const mockFetch: Fetch = jest.fn().mockResolvedValue(jsonResponse({ error: 'unauthorized' }, 401));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ error: 'unauthorized' }, 401));
 
     const provider = oidcFederationProvider({
       ...baseConfig,
@@ -172,7 +165,7 @@ describe('oidcFederationProvider', () => {
     });
     try {
       await provider();
-      fail('expected throw');
+      throw new Error('expected throw');
     } catch (err) {
       const message = (err as WorkloadIdentityError).message;
       expect(message).toContain('Ensure your federation rule');
@@ -183,12 +176,12 @@ describe('oidcFederationProvider', () => {
 
   it('omits hint on non-401 errors', async () => {
     // The hint is 401-specific; a 5xx or 400 should not append any guidance.
-    const mockFetch: Fetch = jest.fn().mockResolvedValue(jsonResponse({ error: 'server_error' }, 500));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ error: 'server_error' }, 500));
 
     const provider = oidcFederationProvider({ ...baseConfig, fetch: mockFetch });
     try {
       await provider();
-      fail('expected throw');
+      throw new Error('expected throw');
     } catch (err) {
       const message = (err as WorkloadIdentityError).message;
       expect(message).not.toContain('Ensure your federation rule');
@@ -198,14 +191,14 @@ describe('oidcFederationProvider', () => {
   });
 
   it('throws WorkloadIdentityError on missing access_token', async () => {
-    const mockFetch: Fetch = jest.fn().mockResolvedValue(jsonResponse({ expires_in: 3600 }));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ expires_in: 3600 }));
 
     const provider = oidcFederationProvider({ ...baseConfig, fetch: mockFetch });
     await expect(provider()).rejects.toThrow('missing access_token');
   });
 
   it('rejects non-Bearer token_type', async () => {
-    const mockFetch: Fetch = jest
+    const mockFetch: Fetch = vi
       .fn()
       .mockResolvedValue(jsonResponse({ access_token: 'tok', token_type: 'mac', expires_in: 60 }));
 
@@ -214,7 +207,7 @@ describe('oidcFederationProvider', () => {
   });
 
   it('accepts Bearer token_type case-insensitively', async () => {
-    const mockFetch: Fetch = jest
+    const mockFetch: Fetch = vi
       .fn()
       .mockResolvedValue(jsonResponse({ access_token: 'tok', token_type: 'bearer', expires_in: 60 }));
 
@@ -227,7 +220,7 @@ describe('oidcFederationProvider', () => {
     const provider = oidcFederationProvider({
       ...baseConfig,
       baseURL: 'http://api.example.com',
-      fetch: jest.fn(),
+      fetch: vi.fn(),
     });
     await expect(provider()).rejects.toThrow('non-https token endpoint');
 
@@ -235,7 +228,7 @@ describe('oidcFederationProvider', () => {
       const loopback = oidcFederationProvider({
         ...baseConfig,
         baseURL,
-        fetch: jest.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 })),
+        fetch: vi.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 })),
       });
       await expect(loopback()).resolves.toEqual({ token: 'tok', expiresAt: NOW_IN_SECONDS + 60 });
     }
@@ -245,20 +238,18 @@ describe('oidcFederationProvider', () => {
     const provider = oidcFederationProvider({
       ...baseConfig,
       identityTokenProvider: () => 'x'.repeat(17 * 1024),
-      fetch: jest.fn(),
+      fetch: vi.fn(),
     });
     await expect(provider()).rejects.toThrow('exceeds the 16 KiB assertion limit');
   });
 
   it('omits empty-string serviceAccountId from request body', async () => {
-    const mockFetch: Fetch = jest
-      .fn()
-      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
 
     const provider = oidcFederationProvider({ ...baseConfig, fetch: mockFetch, serviceAccountId: '' });
     await provider();
 
-    const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
+    const body = JSON.parse((mockFetch as Mock).mock.calls[0]![1].body);
     expect(body).not.toHaveProperty('service_account_id');
   });
 
@@ -288,7 +279,7 @@ describe('oidcFederationProvider', () => {
   });
 
   it('error bodies from the token endpoint are allowlist-redacted', async () => {
-    const mockFetch: Fetch = jest
+    const mockFetch: Fetch = vi
       .fn()
       .mockResolvedValue(
         new Response(
@@ -300,7 +291,7 @@ describe('oidcFederationProvider', () => {
     const provider = oidcFederationProvider({ ...baseConfig, fetch: mockFetch });
     try {
       await provider();
-      fail('expected throw');
+      throw new Error('expected throw');
     } catch (err) {
       const e = err as WorkloadIdentityError;
       expect(e.message).not.toContain('SECRET');
@@ -310,7 +301,7 @@ describe('oidcFederationProvider', () => {
   });
 
   it('throws WorkloadIdentityError on network failure', async () => {
-    const mockFetch: Fetch = jest.fn().mockRejectedValue(new Error('network down'));
+    const mockFetch: Fetch = vi.fn().mockRejectedValue(new Error('network down'));
 
     const provider = oidcFederationProvider({ ...baseConfig, fetch: mockFetch });
     await expect(provider()).rejects.toThrow('Failed to reach token endpoint');
@@ -318,9 +309,7 @@ describe('oidcFederationProvider', () => {
 
   it('supports async identity token providers', async () => {
     const asyncIdentity = async () => 'async-jwt';
-    const mockFetch: Fetch = jest
-      .fn()
-      .mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ access_token: 'tok', expires_in: 60 }));
 
     const provider = oidcFederationProvider({
       ...baseConfig,
@@ -329,7 +318,7 @@ describe('oidcFederationProvider', () => {
     });
     await provider();
 
-    const body = JSON.parse((mockFetch as jest.Mock).mock.calls[0]![1].body);
+    const body = JSON.parse((mockFetch as Mock).mock.calls[0]![1].body);
     expect(body.assertion).toBe('async-jwt');
   });
 });

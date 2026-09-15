@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`betaRefusalFallbackMiddleware (streaming) — shape-B continuation splices the fallback onto the refused stream (matches server-side shape) 1`] = `
+exports[`betaRefusalFallbackMiddleware (streaming) — shape-B continuation > splices the fallback onto the refused stream (matches server-side shape) 1`] = `
 [
   "message_start",
   "start[0] thinking",

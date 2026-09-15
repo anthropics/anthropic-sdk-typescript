@@ -10,16 +10,17 @@ import * as partialJsonParser from '@anthropic-ai/sdk/_vendor/partial-json-parse
 import { mockFetch } from '../lib/mock-fetch';
 import { loadFixture, parseSSEFixture } from '../lib/sse-helpers';
 
-// The swc-compiled module exports are non-configurable, so `jest.spyOn` can't patch
-// `partialParse`; wrap the real implementation in a `jest.fn` to count calls instead.
-jest.mock('@anthropic-ai/sdk/_vendor/partial-json-parser/parser', () => {
-  const actual = jest.requireActual('@anthropic-ai/sdk/_vendor/partial-json-parser/parser');
-  return { ...actual, partialParse: jest.fn(actual.partialParse) };
+// Wrap the real `partialParse` in a `vi.fn` so tests can count calls.
+vi.mock('@anthropic-ai/sdk/_vendor/partial-json-parser/parser', async () => {
+  const actual = await vi.importActual<typeof import('@anthropic-ai/sdk/_vendor/partial-json-parser/parser')>(
+    '@anthropic-ai/sdk/_vendor/partial-json-parser/parser',
+  );
+  return { ...actual, partialParse: vi.fn(actual.partialParse) };
 });
 
 // tripwire: a new BetaRawMessageDeltaEvent field must be handled in BetaMessageStream#accumulateMessage,
 // then listed here (missing key -> required-property error, extra key -> excess-property error);
-// enforced at compile time by tsc via ./scripts/lint, not by jest
+// enforced at compile time by tsc via ./scripts/lint, not by the test runner
 const _accumulatedDeltaEventKeys: Record<keyof BetaRawMessageDeltaEvent, true> = {
   type: true,
   delta: true,
@@ -375,7 +376,7 @@ describe('BetaMessageStream class', () => {
   });
 
   it('parses tool input lazily — once per block, not per delta', async () => {
-    const partialParse = jest.mocked(partialJsonParser.partialParse);
+    const partialParse = vi.mocked(partialJsonParser.partialParse);
     partialParse.mockClear();
     const { fetch, handleStreamEvents } = mockFetch();
     const anthropic = new Anthropic({ apiKey: 'test-key', fetch });

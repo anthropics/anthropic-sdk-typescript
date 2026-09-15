@@ -7,7 +7,7 @@
     "module": "preserve",
     "moduleResolution": "bundler",
     "esModuleInterop": true,
-    "types": ["node", "jest"],
+    "types": ["node"],
     "paths": {
       "@anthropic-ai/vertex-sdk/*": ["./src/*"],
       "@anthropic-ai/vertex-sdk": ["./src/index.ts"]

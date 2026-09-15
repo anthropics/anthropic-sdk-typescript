@@ -3,10 +3,10 @@ import { zodOutputFormat } from '../../../src/helpers/zod';
 import { Messages } from '../../../src/resources/messages/messages';
 
 // Mock the APIResource base class methods
-const mockPost = jest.fn();
+const mockPost = vi.fn();
 const mockClient = {
   post: mockPost,
-  calculateNonstreamingTimeout: jest.fn().mockReturnValue(600000),
+  calculateNonstreamingTimeout: vi.fn().mockReturnValue(600000),
   _options: {
     timeout: null,
   },
@@ -17,7 +17,7 @@ const messages = new Messages(mockClient);
 
 describe('Messages.parse()', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('parses structured output correctly', async () => {

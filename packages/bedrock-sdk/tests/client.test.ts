@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { getAuthHeaders } from '@anthropic-ai/bedrock-sdk/core/auth';
 import { VERSION } from '@anthropic-ai/sdk/version';
 import AnthropicBedrock from '../src';
@@ -11,12 +12,12 @@ import { tmpdir } from 'os';
 // dependencies while still testing the integration behavior
 
 // Mock specific parts of the client
-jest.mock('../src/core/auth', () => ({
-  getAuthHeaders: jest.fn().mockResolvedValue({}),
+vi.mock('../src/core/auth', () => ({
+  getAuthHeaders: vi.fn().mockResolvedValue({}),
 }));
 
 // Create a mock fetch function
-const mockFetch = jest.fn().mockImplementation(() => {
+const mockFetch = vi.fn().mockImplementation(() => {
   return Promise.resolve({
     ok: true,
     status: 200,
@@ -45,7 +46,7 @@ describe('Bedrock model ARN URL encoding integration test', () => {
 
   test('properly encodes model ARNs with slashes in URL path', async () => {
     // Import the client - do this inside the test to ensure mocks are set up first
-    const { AnthropicBedrock } = require('../src');
+    const { AnthropicBedrock } = await import('../src');
 
     // Create client instance
     const client = new AnthropicBedrock({
@@ -72,7 +73,7 @@ describe('Bedrock model ARN URL encoding integration test', () => {
     expect(mockFetch).toHaveBeenCalled();
 
     // Get the URL that was passed to fetch
-    const fetchUrl = mockFetch.mock.calls[0][0];
+    const fetchUrl = mockFetch.mock.calls[0]![0];
 
     // Expected URL with properly encoded ARN (slash encoded as %2F)
     const expectedUrl =
@@ -84,7 +85,7 @@ describe('Bedrock model ARN URL encoding integration test', () => {
 
   test('properly constructs URL path for normal model names', async () => {
     // Import the client - do this inside the test to ensure mocks are set up first
-    const { AnthropicBedrock } = require('../src');
+    const { AnthropicBedrock } = await import('../src');
 
     // Create client instance
     const client = new AnthropicBedrock({
@@ -110,7 +111,7 @@ describe('Bedrock model ARN URL encoding integration test', () => {
     expect(mockFetch).toHaveBeenCalled();
 
     // Get the URL that was passed to fetch
-    const fetchUrl = mockFetch.mock.calls[0][0];
+    const fetchUrl = mockFetch.mock.calls[0]![0];
 
     // Expected URL with properly encoded model name
     const expectedUrl = 'http://localhost:4010/model/anthropic.claude-3-5-sonnet-20241022-v2:0/invoke';
@@ -121,7 +122,7 @@ describe('Bedrock model ARN URL encoding integration test', () => {
 });
 
 describe('Bedrock bearer token authentication', () => {
-  const mockFetch = jest.fn().mockImplementation(() => {
+  const mockFetch = vi.fn().mockImplementation(() => {
     return Promise.resolve({
       ok: true,
       status: 200,
@@ -137,7 +138,7 @@ describe('Bedrock bearer token authentication', () => {
   beforeEach(() => {
     global.fetch = mockFetch;
     mockFetch.mockClear();
-    (getAuthHeaders as jest.Mock).mockClear();
+    (getAuthHeaders as Mock).mockClear();
   });
 
   afterEach(() => {
@@ -145,7 +146,7 @@ describe('Bedrock bearer token authentication', () => {
   });
 
   test('sends Authorization Bearer header when apiKey is provided', async () => {
-    const { AnthropicBedrock } = require('../src');
+    const { AnthropicBedrock } = await import('../src');
 
     const client = new AnthropicBedrock({
       apiKey: 'test-bearer-token',
@@ -165,14 +166,14 @@ describe('Bedrock bearer token authentication', () => {
 
     expect(mockFetch).toHaveBeenCalled();
 
-    const [_url, init] = mockFetch.mock.calls[0];
+    const [_url, init] = mockFetch.mock.calls[0]!;
     const headers = new Headers(init.headers);
 
     expect(headers.get('Authorization')).toBe('Bearer test-bearer-token');
   });
 
   test('does not send Authorization header when no apiKey is provided', async () => {
-    const { AnthropicBedrock } = require('../src');
+    const { AnthropicBedrock } = await import('../src');
 
     const client = new AnthropicBedrock({
       awsRegion: 'us-east-1',
@@ -191,17 +192,17 @@ describe('Bedrock bearer token authentication', () => {
 
     expect(mockFetch).toHaveBeenCalled();
 
-    const [, init] = mockFetch.mock.calls[0];
+    const [, init] = mockFetch.mock.calls[0]!;
     const headers = new Headers(init.headers);
 
     expect(headers.get('Authorization')).toBeNull();
   });
 
   test('skips SigV4 signing when apiKey is provided', async () => {
-    const authModule = require('../src/core/auth');
-    const getAuthHeadersSpy = jest.spyOn(authModule, 'getAuthHeaders');
+    const authModule = await import('../src/core/auth');
+    const getAuthHeadersSpy = vi.spyOn(authModule, 'getAuthHeaders');
 
-    const { AnthropicBedrock } = require('../src');
+    const { AnthropicBedrock } = await import('../src');
 
     const client = new AnthropicBedrock({
       apiKey: 'test-bearer-token',
@@ -225,7 +226,7 @@ describe('Bedrock bearer token authentication', () => {
 });
 
 describe('ambient first-party credentials never reach Bedrock', () => {
-  const mockFetch = jest.fn().mockImplementation(() => {
+  const mockFetch = vi.fn().mockImplementation(() => {
     return Promise.resolve({
       ok: true,
       status: 200,
@@ -244,7 +245,7 @@ describe('ambient first-party credentials never reach Bedrock', () => {
   beforeEach(() => {
     global.fetch = mockFetch;
     mockFetch.mockClear();
-    (getAuthHeaders as jest.Mock).mockClear();
+    (getAuthHeaders as Mock).mockClear();
     for (const name of envVars) {
       originalEnv[name] = process.env[name];
       delete process.env[name];
@@ -274,7 +275,7 @@ describe('ambient first-party credentials never reach Bedrock', () => {
     process.env['ANTHROPIC_API_KEY'] = 'env-anthropic-key';
     process.env['ANTHROPIC_AUTH_TOKEN'] = 'env-oauth-token';
 
-    const { AnthropicBedrock } = require('../src');
+    const { AnthropicBedrock } = await import('../src');
     const client = new AnthropicBedrock({
       awsRegion: 'us-east-1',
       baseURL: 'http://localhost:4010',
@@ -291,7 +292,7 @@ describe('ambient first-party credentials never reach Bedrock', () => {
     // SigV4 still signs the request — the ambient bearer token must not
     // flip the client out of SigV4 mode.
     expect(getAuthHeaders).toHaveBeenCalledTimes(1);
-    const [, init] = mockFetch.mock.calls[0];
+    const [, init] = mockFetch.mock.calls[0]!;
     const headers = new Headers(init.headers);
     expect(headers.get('x-api-key')).toBeNull();
     expect(headers.get('authorization')).toBeNull();
@@ -314,7 +315,7 @@ describe('ambient first-party credentials never reach Bedrock', () => {
       }),
     );
 
-    const { AnthropicBedrock } = require('../src');
+    const { AnthropicBedrock } = await import('../src');
     const client = new AnthropicBedrock({
       awsRegion: 'us-east-1',
       baseURL: 'http://localhost:4010',
@@ -329,7 +330,7 @@ describe('ambient first-party credentials never reach Bedrock', () => {
     // Exactly the one Bedrock request — no token-exchange call — and no
     // store-derived auth or org header on the wire.
     expect(mockFetch).toHaveBeenCalledTimes(1);
-    const [url, init] = mockFetch.mock.calls[0];
+    const [url, init] = mockFetch.mock.calls[0]!;
     expect(url).not.toContain('/v1/oauth/token');
     const headers = new Headers(init.headers);
     expect(headers.get('x-api-key')).toBeNull();
@@ -339,7 +340,7 @@ describe('ambient first-party credentials never reach Bedrock', () => {
 });
 
 describe('middleware order (Bedrock adaptation runs inside user middleware)', () => {
-  const mockFetch = jest.fn().mockImplementation(() => {
+  const mockFetch = vi.fn().mockImplementation(() => {
     return Promise.resolve({
       ok: true,
       status: 200,
@@ -352,7 +353,7 @@ describe('middleware order (Bedrock adaptation runs inside user middleware)', ()
 
   beforeEach(() => {
     mockFetch.mockClear();
-    (getAuthHeaders as jest.Mock).mockClear();
+    (getAuthHeaders as Mock).mockClear();
   });
 
   const createParams = {
@@ -383,7 +384,7 @@ describe('middleware order (Bedrock adaptation runs inside user middleware)', ()
     expect(observed.body.model).toBe(createParams.model);
     expect(observed.body.anthropic_version).toBeUndefined();
 
-    const [wireUrl, wireInit] = mockFetch.mock.calls[0];
+    const [wireUrl, wireInit] = mockFetch.mock.calls[0]!;
     expect(wireUrl).toBe(`http://localhost:4010/model/${createParams.model}/invoke`);
     const wireBody = JSON.parse(wireInit.body);
     expect(wireBody.model).toBeUndefined();
@@ -400,7 +401,7 @@ describe('middleware order (Bedrock adaptation runs inside user middleware)', ()
 
     await client.messages.create(createParams);
 
-    const [wireUrl] = mockFetch.mock.calls[0];
+    const [wireUrl] = mockFetch.mock.calls[0]!;
     expect(wireUrl).toBe(`http://localhost:4010/prefix/model/${createParams.model}/invoke`);
   });
 
@@ -423,7 +424,7 @@ describe('middleware order (Bedrock adaptation runs inside user middleware)', ()
     await client.messages.create(createParams);
 
     expect(getAuthHeaders).toHaveBeenCalledTimes(1);
-    const [signedRequest, signedProps] = (getAuthHeaders as jest.Mock).mock.calls[0];
+    const [signedRequest, signedProps] = (getAuthHeaders as Mock).mock.calls[0]!;
     const signedBody = JSON.parse(signedRequest.body);
     expect(signedBody.metadata).toEqual({ user_id: 'user-123' });
     expect(signedBody.model).toBeUndefined();
@@ -446,7 +447,7 @@ describe('middleware order (Bedrock adaptation runs inside user middleware)', ()
 
     await client.messages.create(createParams);
 
-    const [, wireInit] = mockFetch.mock.calls[0];
+    const [, wireInit] = mockFetch.mock.calls[0]!;
     const wireBody = JSON.parse(wireInit.body);
     expect(wireBody.anthropic_beta).toEqual(['beta-1', 'beta-2']);
   });
@@ -457,10 +458,10 @@ describe('AnthropicBedrock constructor deprecation warnings', () => {
   // loggerFor() caches bound log functions per logger object, so a
   // console spy installed after the cache is populated is bypassed.
   const makeLogger = () => ({
-    error: jest.fn(),
-    warn: jest.fn(),
-    info: jest.fn(),
-    debug: jest.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
   });
 
   test('does not warn when both credentials are provided', () => {

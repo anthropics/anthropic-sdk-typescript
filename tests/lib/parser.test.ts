@@ -302,7 +302,7 @@ describe('Beta Parser', () => {
         output_config: { format: betaZodOutputFormat(z.object({ city: z.string() })) },
       };
 
-      const mockLogger = { warn: jest.fn() };
+      const mockLogger = { warn: vi.fn() };
 
       const parsed = maybeParseBetaMessage(mockMessage, params, { logger: mockLogger as any });
       expect(parsed.parsed_output).toEqual({ city: 'San Francisco' });

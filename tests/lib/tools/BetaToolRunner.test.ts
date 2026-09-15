@@ -408,7 +408,7 @@ describe('ToolRunner', () => {
 
     // Second attempt to get iterator should throw
     handleAssistantMessage(getTextContent());
-    expect(async () => await runner[Symbol.asyncIterator]().next()).rejects.toThrow(
+    await expect(async () => await runner[Symbol.asyncIterator]().next()).rejects.toThrow(
       'Cannot iterate over a consumed stream',
     );
   });
@@ -538,7 +538,7 @@ describe('ToolRunner', () => {
     });
 
     it('treats a tool_use for a mid-conversation removed tool like an undefined tool', async () => {
-      const run = jest.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
+      const run = vi.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
       const trackedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run };
 
       // Baseline: the model calls a tool that was never defined in `tools`.
@@ -596,7 +596,7 @@ describe('ToolRunner', () => {
     });
 
     it('re-enables a removed tool after a later tool_addition', async () => {
-      const run = jest.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
+      const run = vi.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
       const trackedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run };
 
       const { runner, handleAssistantMessage } = setupTest({
@@ -775,8 +775,8 @@ describe('ToolRunner', () => {
       // We let you consume the iterator again to continue the conversation when there is an error.
       handleAssistantMessageStream(getTextContent());
       const iterator2 = runner[Symbol.asyncIterator]();
-      await expectEvent(iterator2, (message) => {
-        expect(message.finalMessage()).resolves.toMatchObject({ content: [getTextContent()] });
+      await expectEvent(iterator2, async (message) => {
+        await expect(message.finalMessage()).resolves.toMatchObject({ content: [getTextContent()] });
       });
       await expectDone(iterator2);
     });
@@ -840,7 +840,7 @@ describe('ToolRunner', () => {
     });
 
     it('does not execute tools and ends the loop when the turn is refusal-terminated', async () => {
-      const runSpy = jest.fn(async () => 'should never run');
+      const runSpy = vi.fn(async () => 'should never run');
       const spiedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run: runSpy };
       const { runner, handleRequest } = setupTest({ tools: [spiedWeatherTool] });
 
@@ -914,7 +914,7 @@ describe('ToolRunner', () => {
     };
 
     it('honors a tool_removal added via pushMessages() between turns on the next assistant tool_use', async () => {
-      const run = jest.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
+      const run = vi.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
       const trackedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run };
 
       const { runner, handleAssistantMessage } = setupTest({
@@ -954,7 +954,7 @@ describe('ToolRunner', () => {
     // guarantees the removal is honored when the caller then requests the tool response
     // itself via generateToolResponse().
     it('honors a tool_removal supplied via setMessagesParams() during the tool_use turn when the caller calls generateToolResponse()', async () => {
-      const run = jest.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
+      const run = vi.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
       const trackedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run };
 
       const { runner, handleAssistantMessage } = setupTest({
@@ -999,7 +999,7 @@ describe('ToolRunner', () => {
     });
 
     it('re-enables execution after a tool_addition added via pushMessages() between turns', async () => {
-      const run = jest.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
+      const run = vi.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
       const trackedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run };
 
       const { runner, handleAssistantMessage } = setupTest({
@@ -1318,7 +1318,7 @@ describe('ToolRunner', () => {
 
     // Every first turn carries a client tool_use block; only `run_tools` may execute it.
     it.each(cases)('%s → %s', async (stop_reason, nextStep) => {
-      const runSpy = jest.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
+      const runSpy = vi.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
       const { runner, handleRequest } = setupTest({ tools: [{ ...weatherTool, run: runSpy }] });
       const bodies: Array<Record<string, unknown>> = [];
       const first = assistantMessage(stop_reason, getWeatherToolUse('SF'));
@@ -1352,7 +1352,7 @@ describe('ToolRunner', () => {
     });
 
     it('does not execute the tool call of a max_tokens-truncated turn', async () => {
-      const runSpy = jest.fn(async () => {
+      const runSpy = vi.fn(async () => {
         throw new Error('truncated tool call must not run');
       });
       const { runner, handleRequest } = setupTest({ tools: [{ ...weatherTool, run: runSpy }] });

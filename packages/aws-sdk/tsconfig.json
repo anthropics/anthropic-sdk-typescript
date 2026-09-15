@@ -7,7 +7,7 @@
     "module": "preserve",
     "moduleResolution": "bundler",
     "esModuleInterop": true,
-    "types": ["node", "jest"],
+    "types": ["node"],
     "paths": {
       "@anthropic-ai/aws-sdk/*": ["./src/*"],
       "@anthropic-ai/aws-sdk": ["./src/index.ts"]

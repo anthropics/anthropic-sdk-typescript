@@ -145,7 +145,7 @@ describe('betaStandardSchemaOutputFormat', () => {
 
 describe('beta Messages.parse() with betaStandardSchemaOutputFormat', () => {
   it('sends the derived schema and attaches parsed_output', async () => {
-    const mockPost = jest.fn().mockResolvedValue({
+    const mockPost = vi.fn().mockResolvedValue({
       id: 'msg_123',
       type: 'message',
       role: 'assistant',
@@ -157,7 +157,7 @@ describe('beta Messages.parse() with betaStandardSchemaOutputFormat', () => {
     });
     const messages = new Messages({
       post: mockPost,
-      calculateNonstreamingTimeout: jest.fn().mockReturnValue(600000),
+      calculateNonstreamingTimeout: vi.fn().mockReturnValue(600000),
       _options: { timeout: null },
     } as any);
 

@@ -1,9 +1,18 @@
 import Anthropic, { APIConnectionTimeoutError } from '@anthropic-ai/sdk';
 import { castToError, isAbortError } from '@anthropic-ai/sdk/internal/errors';
+import vm from 'node:vm';
 
-// undici rejects an aborted fetch with a `DOMException` from Node's own realm; under jest's
-// vm-isolated globals that object is not `instanceof` the test realm's `Error`.
-const crossRealmAbortError = () => new DOMException('This operation was aborted', 'AbortError');
+// undici rejects an aborted fetch with a `DOMException` from Node's own realm; callers with
+// vm-isolated globals (e.g. under jest) get an object that is not `instanceof` their `Error`.
+// A fresh vm context reproduces that whatever the test runner's isolation.
+const crossRealmAbortError = () =>
+  vm.runInNewContext(
+    `Object.defineProperty(
+      Object.assign(new Error('This operation was aborted'), { name: 'AbortError' }),
+      Symbol.toStringTag,
+      { value: 'DOMException' },
+    )`,
+  );
 
 describe('castToError', () => {
   test('returns real Errors as-is', () => {

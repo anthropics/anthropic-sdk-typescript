@@ -8,11 +8,11 @@ import {
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 
-const isRunningInBrowserMock = jest.fn();
-const osNameMock = jest.fn();
-const runtimeMock = jest.fn();
+const isRunningInBrowserMock = vi.fn();
+const osNameMock = vi.fn();
+const runtimeMock = vi.fn();
 
-jest.mock('../src/internal/detect-platform', () => ({
+vi.mock('../src/internal/detect-platform', () => ({
   isRunningInBrowser: () => isRunningInBrowserMock(),
   getPlatformHeaders: () => ({
     'X-Stainless-OS': osNameMock(),

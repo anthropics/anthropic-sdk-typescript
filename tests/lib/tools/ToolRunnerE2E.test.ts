@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import { Anthropic } from '../../../src';
 import { betaZodTool } from '../../../src/helpers/beta/zod';
 import * as z from 'zod/v4';
@@ -253,9 +254,9 @@ describe('toolRunner integration tests', () => {
   });
 
   describe('compaction', () => {
-    let warnSpy: jest.SpyInstance;
+    let warnSpy: MockInstance;
     beforeEach(() => {
-      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     });
     afterEach(() => {
       warnSpy.mockRestore();

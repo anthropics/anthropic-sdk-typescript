@@ -2,7 +2,7 @@ import type { AwsCredentialIdentityProvider } from '@smithy/types';
 import { APIConnectionError } from '../src/core/error';
 import { AnthropicBedrock, AnthropicBedrockMantle } from '../src';
 
-const mockFetch = jest.fn().mockImplementation(() =>
+const mockFetch = vi.fn().mockImplementation(() =>
   Promise.resolve({
     ok: true,
     status: 200,
@@ -61,8 +61,8 @@ describe.each([
   });
 
   test('a transient credential provider failure is retried', async () => {
-    const provider = jest
-      .fn<Promise<typeof credentials>, []>()
+    const provider = vi
+      .fn<() => Promise<typeof credentials>>()
       .mockRejectedValueOnce(transientFailure)
       .mockResolvedValue(credentials);
 
@@ -73,7 +73,7 @@ describe.each([
   });
 
   test('persistent credential failures surface as APIConnectionError once retries are exhausted', async () => {
-    const provider = jest.fn<Promise<typeof credentials>, []>().mockRejectedValue(transientFailure);
+    const provider = vi.fn<() => Promise<typeof credentials>>().mockRejectedValue(transientFailure);
 
     await expect(makeClient(provider, 1).messages.create(createParams)).rejects.toThrow(APIConnectionError);
 
