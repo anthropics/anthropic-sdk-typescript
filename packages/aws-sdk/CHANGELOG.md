@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.2 (2026-09-15)
+
+Full Changelog: [aws-sdk-v0.7.1...aws-sdk-v0.7.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.1...aws-sdk-v0.7.2)
+
+### Chores
+
+* **internal:** move the sub-packages off ts-node and modernise their tsconfig ([1d7cd91](https://github.com/anthropics/anthropic-sdk-typescript/commit/1d7cd915ab581332085f738d1eb5ed17464004d7))
+
 ## 0.7.1 (2026-09-10)
 
 Full Changelog: [aws-sdk-v0.7.0...aws-sdk-v0.7.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.0...aws-sdk-v0.7.1)
