@@ -96,6 +96,36 @@ describe('instantiate client', () => {
       expect(debugMock).toHaveBeenCalled();
     });
 
+    test('debug logs include redacted request and response details', async () => {
+      const debugMock = jest.fn();
+      const client = new Anthropic({
+        logger: { debug: debugMock, info: jest.fn(), warn: jest.fn(), error: jest.fn() },
+        logLevel: 'debug',
+        apiKey: 'my-anthropic-api-key',
+        fetch: async () =>
+          new Response('{}', {
+            headers: { 'content-type': 'application/json', 'set-cookie': 'session=1' },
+          }),
+      });
+
+      await client.get('/foo');
+
+      const sending = debugMock.mock.calls.find(([message]) => message.endsWith('sending request'));
+      expect(sending?.[1]).toMatchObject({
+        url: new URL('https://api.anthropic.com/foo').toString(),
+        options: { method: 'get', path: '/foo' },
+        headers: expect.objectContaining({ 'x-api-key': '***' }),
+      });
+      expect(sending?.[1].options).not.toHaveProperty('headers');
+      expect(sending?.[1]).not.toHaveProperty('retryOfRequestLogID');
+
+      const started = debugMock.mock.calls.find(([message]) => message.endsWith('response start'));
+      expect(started?.[1]).toMatchObject({
+        status: 200,
+        headers: expect.objectContaining({ 'set-cookie': '***' }),
+      });
+    });
+
     test('default logLevel is warn', async () => {
       const client = new Anthropic({ apiKey: 'my-anthropic-api-key' });
       expect(client.logLevel).toBe('warn');

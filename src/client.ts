@@ -358,8 +358,8 @@ import { readEnv } from './internal/utils/env';
 import {
   type LogLevel,
   type Logger,
+  debugLogRequestDetails,
   defaultLogLevel,
-  formatRequestDetails,
   loggerFor,
   parseLogLevel,
 } from './internal/utils/log';
@@ -1172,43 +1172,42 @@ export class BaseAnthropic {
         this.middleware.length > 0 || !!options.middleware?.length || this.backendMiddleware().length > 0;
       if (hasMiddleware && !isTimeout && !isRetryableError(response)) {
         loggerFor(this).info(`[${requestLogID}] middleware error (not retryable)`);
-        loggerFor(this).debug(
-          `[${requestLogID}] middleware error (not retryable)`,
-          formatRequestDetails({
-            retryOfRequestLogID,
-            url,
-            durationMs: headersTime - startTime,
-            message: response.message,
-          }),
-        );
+        debugLogRequestDetails(loggerFor(this), `[${requestLogID}] middleware error (not retryable)`, {
+          retryOfRequestLogID,
+          url,
+          durationMs: headersTime - startTime,
+          message: response.message,
+        });
         throw response;
       }
       if (retriesRemaining) {
         loggerFor(this).info(
           `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - ${retryMessage}`,
         );
-        loggerFor(this).debug(
+        debugLogRequestDetails(
+          loggerFor(this),
           `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (${retryMessage})`,
-          formatRequestDetails({
+          {
             retryOfRequestLogID,
             url,
             durationMs: headersTime - startTime,
             message: response.message,
-          }),
+          },
         );
         return this.retryRequest(options, retriesRemaining, retryOfRequestLogID ?? requestLogID);
       }
       loggerFor(this).info(
         `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - error; no more retries left`,
       );
-      loggerFor(this).debug(
+      debugLogRequestDetails(
+        loggerFor(this),
         `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (error; no more retries left)`,
-        formatRequestDetails({
+        {
           retryOfRequestLogID,
           url,
           durationMs: headersTime - startTime,
           message: response.message,
-        }),
+        },
       );
       if (isTimeout) {
         throw new Errors.APIConnectionTimeoutError();
@@ -1238,16 +1237,13 @@ export class BaseAnthropic {
         await Shims.CancelReadableStream(response.body);
         releaseRequestSignal(controller);
         loggerFor(this).info(`${responseInfo} - ${retryMessage}`);
-        loggerFor(this).debug(
-          `[${requestLogID}] response error (${retryMessage})`,
-          formatRequestDetails({
-            retryOfRequestLogID,
-            url: response.url,
-            status: response.status,
-            headers: response.headers,
-            durationMs: headersTime - startTime,
-          }),
-        );
+        debugLogRequestDetails(loggerFor(this), `[${requestLogID}] response error (${retryMessage})`, {
+          retryOfRequestLogID,
+          url: response.url,
+          status: response.status,
+          headers: response.headers,
+          durationMs: headersTime - startTime,
+        });
         return this.retryRequest(
           options,
           retriesRemaining,
@@ -1264,17 +1260,14 @@ export class BaseAnthropic {
       const errJSON = safeJSON(errText) as any;
       const errMessage = errJSON ? undefined : errText;
 
-      loggerFor(this).debug(
-        `[${requestLogID}] response error (${retryMessage})`,
-        formatRequestDetails({
-          retryOfRequestLogID,
-          url: response.url,
-          status: response.status,
-          headers: response.headers,
-          message: errMessage,
-          durationMs: Date.now() - startTime,
-        }),
-      );
+      debugLogRequestDetails(loggerFor(this), `[${requestLogID}] response error (${retryMessage})`, {
+        retryOfRequestLogID,
+        url: response.url,
+        status: response.status,
+        headers: response.headers,
+        message: errMessage,
+        durationMs: Date.now() - startTime,
+      });
 
       releaseRequestSignal(controller);
       const err = this.makeStatusError(response.status, errJSON, errMessage, response.headers);
@@ -1282,16 +1275,13 @@ export class BaseAnthropic {
     }
 
     loggerFor(this).info(responseInfo);
-    loggerFor(this).debug(
-      `[${requestLogID}] response start`,
-      formatRequestDetails({
-        retryOfRequestLogID,
-        url: response.url,
-        status: response.status,
-        headers: response.headers,
-        durationMs: headersTime - startTime,
-      }),
-    );
+    debugLogRequestDetails(loggerFor(this), `[${requestLogID}] response start`, {
+      retryOfRequestLogID,
+      url: response.url,
+      status: response.status,
+      headers: response.headers,
+      durationMs: headersTime - startTime,
+    });
 
     armAbandonmentBackstop(response.body ?? response, controller);
     return { response, options, controller, requestLogID, retryOfRequestLogID, startTime };
@@ -1390,16 +1380,13 @@ export class BaseAnthropic {
           await this.prepareRequest(innerInit, { url: innerUrlStr, options: requestOptions });
 
           if (logCtx) {
-            loggerFor(this).debug(
-              `[${logCtx.requestLogID}] sending request`,
-              formatRequestDetails({
-                retryOfRequestLogID: logCtx.retryOfRequestLogID,
-                method: innerInit.method,
-                url: innerUrlStr,
-                options: requestOptions,
-                headers: innerInit.headers,
-              }),
-            );
+            debugLogRequestDetails(loggerFor(this), `[${logCtx.requestLogID}] sending request`, {
+              retryOfRequestLogID: logCtx.retryOfRequestLogID,
+              method: innerInit.method,
+              url: innerUrlStr,
+              options: requestOptions,
+              headers: innerInit.headers,
+            });
           }
 
           return timedFetch(innerUrl, innerInit);
