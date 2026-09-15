@@ -495,7 +495,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
             break;
           }
           case 'compaction_delta': {
-            if (content.type === 'compaction' && content.content) {
+            if (content.type === 'compaction' && content.content && event.delta.content !== null) {
               this._emit('compaction', content.content);
             }
             break;
@@ -697,8 +697,11 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
             if (snapshotContent?.type === 'compaction') {
               snapshot.content[event.index] = {
                 ...snapshotContent,
-                content: (snapshotContent.content || '') + event.delta.content,
-                encrypted_content: event.delta.encrypted_content,
+                content:
+                  event.delta.content === null ?
+                    snapshotContent.content
+                  : (snapshotContent.content ?? '') + event.delta.content,
+                encrypted_content: event.delta.encrypted_content ?? snapshotContent.encrypted_content,
               };
             }
             break;
