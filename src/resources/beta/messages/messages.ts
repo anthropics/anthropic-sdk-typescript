@@ -1060,14 +1060,6 @@ export interface BetaBrowserStateBlockParam {
   state_changes?: Array<BetaBrowserStateChange> | null;
 }
 
-/**
- * A tab this call's execution opened that remains open at its end — the creation
- * delta of the `tabs` inventory, not an event log.
- *
- * Carries only the `tab_id`; the tab's `title` and `url` live on its `tabs` entry,
- * which must include the same `tab_id`. A tab opened during a failed call gets no
- * deferred `tab_opened`; it simply appears in the next result's `tabs` inventory.
- */
 export type BetaBrowserStateChange =
   | BetaBrowserStateChangeTabOpened
   | BetaBrowserStateChangeDownloadStarted
@@ -2045,9 +2037,6 @@ export interface BetaCodeExecutionTool20260521 {
 }
 
 export interface BetaCodeExecutionToolResultBlock {
-  /**
-   * Code execution result with encrypted stdout for PFC + web_search results.
-   */
   content: BetaCodeExecutionToolResultBlockContent;
 
   tool_use_id: string;
@@ -2055,18 +2044,12 @@ export interface BetaCodeExecutionToolResultBlock {
   type: 'code_execution_tool_result';
 }
 
-/**
- * Code execution result with encrypted stdout for PFC + web_search results.
- */
 export type BetaCodeExecutionToolResultBlockContent =
   | BetaCodeExecutionToolResultError
   | BetaCodeExecutionResultBlock
   | BetaEncryptedCodeExecutionResultBlock;
 
 export interface BetaCodeExecutionToolResultBlockParam {
-  /**
-   * Code execution result with encrypted stdout for PFC + web_search results.
-   */
   content: BetaCodeExecutionToolResultBlockParamContent;
 
   tool_use_id: string;
@@ -2079,9 +2062,6 @@ export interface BetaCodeExecutionToolResultBlockParam {
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
-/**
- * Code execution result with encrypted stdout for PFC + web_search results.
- */
 export type BetaCodeExecutionToolResultBlockParamContent =
   | BetaCodeExecutionToolResultErrorParam
   | BetaCodeExecutionResultBlockParam
@@ -2147,6 +2127,11 @@ export interface BetaCompactionBlock {
   encrypted_content: string | null;
 
   type: 'compaction';
+
+  /**
+   * Signature over the summary, to be sent back with the block verbatim
+   */
+  signature?: string | null;
 }
 
 /**
@@ -2175,6 +2160,31 @@ export interface BetaCompactionBlockParam {
    * Opaque metadata from prior compaction, to be round-tripped verbatim
    */
   encrypted_content?: string | null;
+
+  /**
+   * The block's signature as returned, to be sent back verbatim
+   */
+  signature?: string | null;
+}
+
+/**
+ * Compact the whole conversation and return a signed `compaction` block, alone,
+ * that a later request sends back first in `messages`, in place of the messages it
+ * summarizes. There is no trigger and no pause flag: sending the parameter
+ * compacts, and nothing is sampled after the block.
+ *
+ * The summarization prompt is the server's own unless `instructions` are given,
+ * which then replace it for this request; a value that is empty or only whitespace
+ * counts as absent.
+ */
+export interface BetaCompactionConfig {
+  type: 'summarize';
+
+  /**
+   * Replaces the server's default summarization prompt for this request. An empty or
+   * whitespace-only value counts as absent.
+   */
+  instructions?: string | null;
 }
 
 export interface BetaCompactionContentBlockDelta {
@@ -2729,9 +2739,6 @@ export interface BetaContainerUploadBlockParam {
   cache_control?: BetaCacheControlEphemeral | null;
 }
 
-/**
- * Response model for a file uploaded to the container.
- */
 export type BetaContentBlock =
   | BetaTextBlock
   | BetaThinkingBlock
@@ -2751,9 +2758,6 @@ export type BetaContentBlock =
   | BetaCompactionBlock
   | BetaFallbackBlock;
 
-/**
- * Regular text content.
- */
 export type BetaContentBlockParam =
   | BetaTextBlockParam
   | BetaImageBlockParam
@@ -3084,10 +3088,11 @@ export interface BetaFallbackInfoParam {
 /**
  * Token usage for the fallback-model attempt of a server-side fallback request.
  *
- * Produced in place of a `message` entry for whichever hop served the response. A
- * declined hop produces the existing `message` entry. Whether a fallback model
- * served the response is signalled by the presence of this entry in
- * `usage.iterations`.
+ * The terminal entry of a fallback-served turn: when a fallback hop's output is
+ * the returned message, the entry for the iteration that completed it carries this
+ * type in place of `message`. A declined hop and the serving hop's earlier
+ * tool-loop iterations produce `message` entries. Whether a fallback model served
+ * the response is signalled by the presence of this entry in `usage.iterations`.
  */
 export interface BetaFallbackMessageIterationUsage {
   /**
@@ -3263,6 +3268,15 @@ export interface BetaInputTokensTrigger {
 
   value: number;
 }
+
+/**
+ * One entry of `input_transformations`: either a change the API made to the
+ * request's input before showing it to the model, or a block that failed a binding
+ * check and was still shown to the model unchanged. The `type` field says which.
+ */
+export type BetaInputTransformation =
+  | BetaThinkingDroppedInputTransformation
+  | BetaThinkingMismatchAllowedInputTransformation;
 
 /**
  * Per-iteration token usage breakdown.
@@ -3686,23 +3700,28 @@ export interface BetaMessage {
   usage: BetaUsage;
 
   /**
-   * Changes the API made to the request's input before showing it to the model: one
-   * entry per change, in request order. Today the only entry type is
-   * `thinking_dropped` — a `thinking`, `redacted_thinking` or `connector_text` block
-   * from the request's `messages` that was removed from the prompt instead of being
-   * shown to the model because it failed a binding check. More entry types may be
-   * added over time; ignore types you do not recognize.
+   * Changes the API made to the request's input before showing it to the model, and
+   * blocks that failed a binding check but were left unchanged: one entry per block,
+   * in request order. Two entry types today. `thinking_dropped` — a `thinking`,
+   * `redacted_thinking` or `connector_text` block from the request's `messages` that
+   * was removed from the prompt instead of being shown to the model because it
+   * failed a binding check. `thinking_mismatch_allowed` — a `thinking` or
+   * `redacted_thinking` block that failed the conversation check (the conversation
+   * before it differs from the one it was created in, or it carries no record of one
+   * on a model that requires it) and was shown to the model all the same, because
+   * that check is not enforced for this request. More entry types may be added over
+   * time; ignore types you do not recognize.
    *
    * Requires `anthropic-beta: thinking-binding-controls-2026-08-01`. Present on
    * every such response from a model that supports extended thinking, as `[]` when
-   * nothing was changed; without the beta, blocks are removed all the same but
-   * nothing is reported. Removed blocks contribute nothing to `usage.input_tokens`.
-   * When streaming, the array is final in `message_start`; the final `message_delta`
-   * event carries it only when a server-side model fallback happened mid-stream, in
-   * which case it holds the serving model's entries and replaces the one in
-   * `message_start`.
+   * there is no entry to report; without the beta, blocks are removed or left in
+   * place all the same but nothing is reported. Removed blocks contribute nothing to
+   * `usage.input_tokens`; blocks left in place count as sent. When streaming, the
+   * array is final in `message_start`; the final `message_delta` event carries it
+   * only when a server-side model fallback happened mid-stream, in which case it
+   * holds the serving model's entries and replaces the one in `message_start`.
    */
-  input_transformations?: Array<BetaThinkingDroppedInputTransformation> | null;
+  input_transformations?: Array<BetaInputTransformation> | null;
 }
 
 export interface BetaMessageDeltaUsage {
@@ -3803,7 +3822,7 @@ export interface BetaMessageIterationUsage {
    * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
-  model: MessagesAPI.Model;
+  model: MessagesAPI.Model | null;
 
   /**
    * The number of output tokens which were used.
@@ -3922,9 +3941,6 @@ export interface BetaRawContentBlockDeltaEvent {
 }
 
 export interface BetaRawContentBlockStartEvent {
-  /**
-   * Response model for a file uploaded to the container.
-   */
   content_block:
     | BetaTextBlock
     | BetaThinkingBlock
@@ -3985,23 +4001,28 @@ export interface BetaRawMessageDeltaEvent {
   usage: BetaMessageDeltaUsage;
 
   /**
-   * Changes the API made to the request's input before showing it to the model: one
-   * entry per change, in request order. Today the only entry type is
-   * `thinking_dropped` — a `thinking`, `redacted_thinking` or `connector_text` block
-   * from the request's `messages` that was removed from the prompt instead of being
-   * shown to the model because it failed a binding check. More entry types may be
-   * added over time; ignore types you do not recognize.
+   * Changes the API made to the request's input before showing it to the model, and
+   * blocks that failed a binding check but were left unchanged: one entry per block,
+   * in request order. Two entry types today. `thinking_dropped` — a `thinking`,
+   * `redacted_thinking` or `connector_text` block from the request's `messages` that
+   * was removed from the prompt instead of being shown to the model because it
+   * failed a binding check. `thinking_mismatch_allowed` — a `thinking` or
+   * `redacted_thinking` block that failed the conversation check (the conversation
+   * before it differs from the one it was created in, or it carries no record of one
+   * on a model that requires it) and was shown to the model all the same, because
+   * that check is not enforced for this request. More entry types may be added over
+   * time; ignore types you do not recognize.
    *
    * Requires `anthropic-beta: thinking-binding-controls-2026-08-01`. Present on
    * every such response from a model that supports extended thinking, as `[]` when
-   * nothing was changed; without the beta, blocks are removed all the same but
-   * nothing is reported. Removed blocks contribute nothing to `usage.input_tokens`.
-   * When streaming, the array is final in `message_start`; the final `message_delta`
-   * event carries it only when a server-side model fallback happened mid-stream, in
-   * which case it holds the serving model's entries and replaces the one in
-   * `message_start`.
+   * there is no entry to report; without the beta, blocks are removed or left in
+   * place all the same but nothing is reported. Removed blocks contribute nothing to
+   * `usage.input_tokens`; blocks left in place count as sent. When streaming, the
+   * array is final in `message_start`; the final `message_delta` event carries it
+   * only when a server-side model fallback happened mid-stream, in which case it
+   * holds the serving model's entries and replaces the one in `message_start`.
    */
-  input_transformations?: Array<BetaThinkingDroppedInputTransformation> | null;
+  input_transformations?: Array<BetaInputTransformation> | null;
 }
 
 export namespace BetaRawMessageDeltaEvent {
@@ -4219,11 +4240,6 @@ export interface BetaRequestMCPToolResultBlockParam {
  * is offered to the model from this point in the conversation onward.
  */
 export interface BetaRequestToolAdditionBlock {
-  /**
-   * Reference to a single tool the caller declared directly in `tools[]`. Does not
-   * accept the composed `{server}_{name}` form the server assigns to MCP-resolved
-   * tools — use `mcp_tool_reference` or `mcp_toolset_reference` for those.
-   */
   tool: BetaToolChangeToolReference | BetaToolChangeMCPToolReference | BetaToolChangeMCPToolsetReference;
 
   type: 'tool_addition';
@@ -4241,11 +4257,6 @@ export interface BetaRequestToolAdditionBlock {
  * is no longer offered to the model from this point in the conversation onward.
  */
 export interface BetaRequestToolRemovalBlock {
-  /**
-   * Reference to a single tool the caller declared directly in `tools[]`. Does not
-   * accept the composed `{server}_{name}` form the server assigns to MCP-resolved
-   * tools — use `mcp_tool_reference` or `mcp_toolset_reference` for those.
-   */
   tool: BetaToolChangeToolReference | BetaToolChangeMCPToolReference | BetaToolChangeMCPToolsetReference;
 
   type: 'tool_removal';
@@ -4317,9 +4328,6 @@ export interface BetaServerToolUseBlock {
 
   type: 'server_tool_use';
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
@@ -4345,9 +4353,6 @@ export interface BetaServerToolUseBlockParam {
    */
   cache_control?: BetaCacheControlEphemeral | null;
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
@@ -4391,6 +4396,26 @@ export type BetaStopReason =
   | 'compaction'
   | 'refusal'
   | 'model_context_window_exceeded';
+
+/**
+ * Compact the whole conversation and return a signed `compaction` block, alone,
+ * that a later request sends back first in `messages`, in place of the messages it
+ * summarizes. There is no trigger and no pause flag: sending the parameter
+ * compacts, and nothing is sampled after the block.
+ *
+ * The summarization prompt is the server's own unless `instructions` are given,
+ * which then replace it for this request; a value that is empty or only whitespace
+ * counts as absent.
+ */
+export interface BetaSummarizeCompaction {
+  type: 'summarize';
+
+  /**
+   * Replaces the server's default summarization prompt for this request. An empty or
+   * whitespace-only value counts as absent.
+   */
+  instructions?: string | null;
+}
 
 /**
  * Per-message output configuration on a role:"system" input message.
@@ -4761,6 +4786,37 @@ export interface BetaThinkingDroppedInputTransformation {
    * Always `thinking_dropped` for this entry type.
    */
   type: 'thinking_dropped';
+}
+
+export interface BetaThinkingMismatchAllowedInputTransformation {
+  /**
+   * Where the block is in your request, as `messages.{i}.content.{j}`: `i` indexes
+   * the `messages` array you sent and `j` that message's `content` array — the same
+   * form error messages use.
+   */
+  path: string;
+
+  /**
+   * Which binding check the block failed; the block was shown to the model all the
+   * same. Always `prefix_binding_mismatch` today — the conversation before the block
+   * differs from the conversation it was created in, or the block carries no record
+   * of one on a model that requires it. Were the check enforced for this request,
+   * the block would have been removed or the request rejected
+   * (`thinking.block_binding.prefix_mismatch_behavior`). A removal also takes the
+   * rest of that turn's consecutive thinking blocks, whereas here each block is
+   * checked on its own, so `thinking_mismatch_allowed` entries are a lower bound on
+   * what enforcement would remove.
+   */
+  reason:
+    | 'model_binding_mismatch'
+    | 'prefix_binding_mismatch'
+    | 'organization_binding_mismatch'
+    | 'end_user_binding_mismatch';
+
+  /**
+   * Always `thinking_mismatch_allowed` for this entry type.
+   */
+  type: 'thinking_mismatch_allowed';
 }
 
 /**
@@ -5487,10 +5543,6 @@ export interface BetaToolTextEditor20250728 {
   strict?: boolean;
 }
 
-/**
- * Code execution tool with REPL state persistence (daemon mode + gVisor
- * checkpoint).
- */
 export type BetaToolUnion =
   | BetaTool
   | BetaToolBash20241022
@@ -5530,9 +5582,6 @@ export interface BetaToolUseBlock {
 
   type: 'tool_use';
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 
   /**
@@ -5555,9 +5604,6 @@ export interface BetaToolUseBlockParam {
    */
   cache_control?: BetaCacheControlEphemeral | null;
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 
   /**
@@ -5794,6 +5840,16 @@ export interface BetaWebFetchTool20250910 {
    * When true, guarantees schema validation on tool names and inputs
    */
   strict?: boolean;
+
+  /**
+   * Which sources contribute to the set of URLs web fetch may fetch.
+   *
+   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+   * (every result but the named tools'). A named tool must be declared in this
+   * request's `tools[]`.
+   */
+  url_sources?: BetaWebFetchURLSources | null;
 }
 
 export interface BetaWebFetchTool20260209 {
@@ -5852,6 +5908,16 @@ export interface BetaWebFetchTool20260209 {
    * When true, guarantees schema validation on tool names and inputs
    */
   strict?: boolean;
+
+  /**
+   * Which sources contribute to the set of URLs web fetch may fetch.
+   *
+   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+   * (every result but the named tools'). A named tool must be declared in this
+   * request's `tools[]`.
+   */
+  url_sources?: BetaWebFetchURLSources | null;
 }
 
 /**
@@ -5913,6 +5979,16 @@ export interface BetaWebFetchTool20260309 {
    * When true, guarantees schema validation on tool names and inputs
    */
   strict?: boolean;
+
+  /**
+   * Which sources contribute to the set of URLs web fetch may fetch.
+   *
+   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+   * (every result but the named tools'). A named tool must be declared in this
+   * request's `tools[]`.
+   */
+  url_sources?: BetaWebFetchURLSources | null;
 
   /**
    * Whether to use cached content. Set to false to bypass the cache and fetch fresh
@@ -5990,6 +6066,16 @@ export interface BetaWebFetchTool20260318 {
   strict?: boolean;
 
   /**
+   * Which sources contribute to the set of URLs web fetch may fetch.
+   *
+   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+   * (every result but the named tools'). A named tool must be declared in this
+   * request's `tools[]`.
+   */
+  url_sources?: BetaWebFetchURLSources | null;
+
+  /**
    * Whether to use cached content. Set to false to bypass the cache and fetch fresh
    * content. Only set to false when the user explicitly requests fresh content or
    * when fetching rapidly-changing sources.
@@ -6004,9 +6090,6 @@ export interface BetaWebFetchToolResultBlock {
 
   type: 'web_fetch_tool_result';
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
@@ -6022,9 +6105,6 @@ export interface BetaWebFetchToolResultBlockParam {
    */
   cache_control?: BetaCacheControlEphemeral | null;
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
@@ -6051,6 +6131,87 @@ export type BetaWebFetchToolResultErrorCode =
   | 'max_uses_exceeded'
   | 'unavailable'
   | 'content_too_large';
+
+/**
+ * The `url_sources` variant under which a source contributes in full: every result
+ * of the tool filter's source, or all user input.
+ */
+export interface BetaWebFetchURLSourceAll {
+  type: 'all';
+}
+
+/**
+ * The tool filter variant under which every result but the named tools'
+ * contributes.
+ */
+export interface BetaWebFetchURLSourceExcept {
+  tools: Array<BetaWebFetchURLSourceToolReference>;
+
+  type: 'except';
+}
+
+/**
+ * The `url_sources` variant under which a source contributes nothing: no result of
+ * the tool filter's source, or no user input.
+ */
+export interface BetaWebFetchURLSourceNone {
+  type: 'none';
+}
+
+/**
+ * The tool filter variant under which only the named tools' results contribute.
+ */
+export interface BetaWebFetchURLSourceOnly {
+  tools: Array<BetaWebFetchURLSourceToolReference>;
+
+  type: 'only';
+}
+
+/**
+ * One entry of a tool filter's `tools`: it must name a tool declared in this
+ * request's `tools[]`.
+ */
+export interface BetaWebFetchURLSourceToolReference {
+  name: string;
+
+  type: 'tool_reference';
+}
+
+/**
+ * Which sources contribute to the set of URLs web fetch may fetch.
+ *
+ * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+ * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+ * (every result but the named tools'). A named tool must be declared in this
+ * request's `tools[]`.
+ */
+export interface BetaWebFetchURLSources {
+  /**
+   * Which client tools' results contribute fetchable URLs: "all", "none", or an only
+   * or except list of client tool names from tools[].
+   */
+  client_tool_results?:
+    | BetaWebFetchURLSourceAll
+    | BetaWebFetchURLSourceNone
+    | BetaWebFetchURLSourceOnly
+    | BetaWebFetchURLSourceExcept;
+
+  /**
+   * Which server tools' results contribute fetchable URLs: "all", "none", or an only
+   * or except list of server tool names from tools[]; only web_search and web_fetch
+   * results ever contribute.
+   */
+  server_tool_results?:
+    | BetaWebFetchURLSourceAll
+    | BetaWebFetchURLSourceNone
+    | BetaWebFetchURLSourceOnly
+    | BetaWebFetchURLSourceExcept;
+
+  /**
+   * Whether URLs in user messages are fetchable: "all" or "none".
+   */
+  user_input?: BetaWebFetchURLSourceAll | BetaWebFetchURLSourceNone;
+}
 
 export interface BetaWebSearchResultBlock {
   encrypted_content: string;
@@ -6261,9 +6422,6 @@ export interface BetaWebSearchToolResultBlock {
 
   type: 'web_search_tool_result';
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
@@ -6283,9 +6441,6 @@ export interface BetaWebSearchToolResultBlockParam {
    */
   cache_control?: BetaCacheControlEphemeral | null;
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: BetaDirectCaller | BetaServerToolCaller | BetaServerToolCaller20260120;
 }
 
@@ -6414,6 +6569,18 @@ export interface MessageCreateParamsBase {
    * to the last cacheable block in the request.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Body param: Compact the whole conversation and return a signed `compaction`
+   * block, alone, that a later request sends back first in `messages`, in place of
+   * the messages it summarizes. There is no trigger and no pause flag: sending the
+   * parameter compacts, and nothing is sampled after the block.
+   *
+   * The summarization prompt is the server's own unless `instructions` are given,
+   * which then replace it for this request; a value that is empty or only whitespace
+   * counts as absent.
+   */
+  compaction?: BetaCompactionConfig | null;
 
   /**
    * Body param: Container identifier for reuse across requests.
@@ -6546,7 +6713,7 @@ export interface MessageCreateParamsBase {
 
   /**
    * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
-   * setting temperature. A value of 1.0 of will be accepted for backwards
+   * setting temperature. A value of 1.0 will be accepted for backwards
    * compatibility, all other values will be rejected with a 400 error.
    */
   temperature?: number;
@@ -6798,6 +6965,18 @@ export interface MessageCountTokensParams {
    * to the last cacheable block in the request.
    */
   cache_control?: BetaCacheControlEphemeral | null;
+
+  /**
+   * Body param: Compact the whole conversation and return a signed `compaction`
+   * block, alone, that a later request sends back first in `messages`, in place of
+   * the messages it summarizes. There is no trigger and no pause flag: sending the
+   * parameter compacts, and nothing is sampled after the block.
+   *
+   * The summarization prompt is the server's own unless `instructions` are given,
+   * which then replace it for this request; a value that is empty or only whitespace
+   * counts as absent.
+   */
+  compaction?: BetaCompactionConfig | null;
 
   /**
    * Body param: Context management configuration.
@@ -7109,6 +7288,7 @@ export declare namespace Messages {
     type BetaCompact20260112Edit as BetaCompact20260112Edit,
     type BetaCompactionBlock as BetaCompactionBlock,
     type BetaCompactionBlockParam as BetaCompactionBlockParam,
+    type BetaCompactionConfig as BetaCompactionConfig,
     type BetaCompactionContentBlockDelta as BetaCompactionContentBlockDelta,
     type BetaCompactionIterationUsage as BetaCompactionIterationUsage,
     type BetaComputerCursorPositionConfig as BetaComputerCursorPositionConfig,
@@ -7167,6 +7347,7 @@ export declare namespace Messages {
     type BetaInputJSONDelta as BetaInputJSONDelta,
     type BetaInputTokensClearAtLeast as BetaInputTokensClearAtLeast,
     type BetaInputTokensTrigger as BetaInputTokensTrigger,
+    type BetaInputTransformation as BetaInputTransformation,
     type BetaIterationsUsage as BetaIterationsUsage,
     type BetaJSONOutputFormat as BetaJSONOutputFormat,
     type BetaMCPToolConfig as BetaMCPToolConfig,
@@ -7218,6 +7399,7 @@ export declare namespace Messages {
     type BetaSignatureDelta as BetaSignatureDelta,
     type BetaSkillParams as BetaSkillParams,
     type BetaStopReason as BetaStopReason,
+    type BetaSummarizeCompaction as BetaSummarizeCompaction,
     type BetaSystemMessageOutputConfig as BetaSystemMessageOutputConfig,
     type BetaTextBlock as BetaTextBlock,
     type BetaTextBlockParam as BetaTextBlockParam,
@@ -7243,6 +7425,7 @@ export declare namespace Messages {
     type BetaThinkingConfigParam as BetaThinkingConfigParam,
     type BetaThinkingDelta as BetaThinkingDelta,
     type BetaThinkingDroppedInputTransformation as BetaThinkingDroppedInputTransformation,
+    type BetaThinkingMismatchAllowedInputTransformation as BetaThinkingMismatchAllowedInputTransformation,
     type BetaThinkingPrefixMismatchBehavior as BetaThinkingPrefixMismatchBehavior,
     type BetaThinkingTurns as BetaThinkingTurns,
     type BetaTokenTaskBudget as BetaTokenTaskBudget,
@@ -7296,6 +7479,12 @@ export declare namespace Messages {
     type BetaWebFetchToolResultErrorBlock as BetaWebFetchToolResultErrorBlock,
     type BetaWebFetchToolResultErrorBlockParam as BetaWebFetchToolResultErrorBlockParam,
     type BetaWebFetchToolResultErrorCode as BetaWebFetchToolResultErrorCode,
+    type BetaWebFetchURLSourceAll as BetaWebFetchURLSourceAll,
+    type BetaWebFetchURLSourceExcept as BetaWebFetchURLSourceExcept,
+    type BetaWebFetchURLSourceNone as BetaWebFetchURLSourceNone,
+    type BetaWebFetchURLSourceOnly as BetaWebFetchURLSourceOnly,
+    type BetaWebFetchURLSourceToolReference as BetaWebFetchURLSourceToolReference,
+    type BetaWebFetchURLSources as BetaWebFetchURLSources,
     type BetaWebSearchResultBlock as BetaWebSearchResultBlock,
     type BetaWebSearchResultBlockParam as BetaWebSearchResultBlockParam,
     type BetaWebSearchTool20250305 as BetaWebSearchTool20250305,

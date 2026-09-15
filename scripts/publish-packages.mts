@@ -42,14 +42,15 @@
 
 import { execSync } from 'child_process';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 function main() {
   const data = process.argv[2] ?? process.env['DATA'];
   if (!data) {
-    throw new Error(`Usage: publish-packages.ts '{"json": "obj"}'`);
+    throw new Error(`Usage: publish-packages.mts '{"json": "obj"}'`);
   }
 
-  const rootDir = path.join(__dirname, '..');
+  const rootDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
   console.log('root dir', rootDir);
   console.log(`publish-packages called with ${data}`);
 

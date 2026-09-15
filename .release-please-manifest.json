@@ -1,8 +1,8 @@
 {
-  ".": "0.125.0",
-  "packages/vertex-sdk": "0.19.8",
-  "packages/bedrock-sdk": "0.33.5",
-  "packages/foundry-sdk": "0.4.6",
-  "packages/aws-sdk": "0.7.1",
-  "packages/google-cloud-sdk": "0.0.11"
+  ".": "0.126.0",
+  "packages/vertex-sdk": "0.19.9",
+  "packages/bedrock-sdk": "0.33.6",
+  "packages/foundry-sdk": "0.4.7",
+  "packages/aws-sdk": "0.7.2",
+  "packages/google-cloud-sdk": "0.0.12"
 }

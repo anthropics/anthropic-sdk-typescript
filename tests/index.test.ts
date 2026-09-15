@@ -806,6 +806,25 @@ describe('retries', () => {
     },
   );
 
+  test('aborting the request interrupts the retry backoff', async () => {
+    const controller = new AbortController();
+    let count = 0;
+    const testFetch = async (): Promise<Response> => {
+      count++;
+      // Abort while the client is waiting out the 60 s the server asked for.
+      setTimeout(() => controller.abort(), 50);
+      return new Response(undefined, { status: 429, headers: { 'Retry-After': '60' } });
+    };
+    const client = new Anthropic({ apiKey: 'my-anthropic-api-key', fetch: testFetch });
+
+    const started = Date.now();
+    await expect(client.request({ path: '/foo', method: 'get', signal: controller.signal })).rejects.toThrow(
+      APIUserAbortError,
+    );
+    expect(Date.now() - started).toBeLessThan(5000);
+    expect(count).toEqual(1);
+  });
+
   test('retry on 429 with retry-after-ms', async () => {
     let count = 0;
     const testFetch = async (

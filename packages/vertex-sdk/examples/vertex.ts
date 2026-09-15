@@ -1,4 +1,4 @@
-#!/usr/bin/env -S npm run tsn -T
+#!/usr/bin/env node
 
 import { AnthropicVertex } from '@anthropic-ai/vertex-sdk';
 

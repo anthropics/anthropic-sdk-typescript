@@ -1,4 +1,4 @@
-#!/usr/bin/env -S npm run tsn -T
+#!/usr/bin/env node
 
 // Self-hosted runner, "observe every tool call" flavor: the low-level
 // `client.beta.sessions.events.toolRunner(...)` path. It is an async iterable

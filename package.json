@@ -1,14 +1,15 @@
 {
   "name": "@anthropic-ai/sdk",
-  "version": "0.125.0",
+  "version": "0.126.0",
   "description": "The official TypeScript library for the Anthropic API",
   "author": "Anthropic <support@anthropic.com>",
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
-  "type": "commonjs",
+  "type": "module",
+  "sideEffects": false,
   "repository": "github:anthropics/anthropic-sdk-typescript",
   "license": "MIT",
-  "packageManager": "pnpm@10.34.5",
+  "packageManager": "pnpm@10.34.5+sha512.a4ee05f2f73658255bd6a89859c065a45c28a57daefae2c893a168ee2b73168c37b91e83e57ea67654ad03f03031746430e8bce38e362e042605fb8abc80192e",
   "files": [
     "**/*"
   ],
@@ -19,12 +20,11 @@
   },
   "scripts": {
     "test": "./scripts/test",
-    "test:ecosystem": "ts-node -T ecosystem-tests/cli.ts",
+    "test:ecosystem": "node ecosystem-tests/cli.mts",
     "build": "./scripts/build-all",
     "prepublishOnly": "echo 'to publish, run pnpm build && (cd dist; pnpm publish)' && exit 1",
     "format": "./scripts/format",
     "prepare": "if ./scripts/utils/check-is-in-git-install.sh; then ./scripts/build && ./scripts/utils/git-swap.sh; fi",
-    "tsn": "ts-node -r tsconfig-paths/register",
     "lint": "./scripts/lint",
     "fix": "./scripts/format"
   },
@@ -59,9 +59,7 @@
     "prettier": "^3.0.0",
     "publint": "^0.2.12",
     "ts-jest": "^29.1.0",
-    "ts-node": "^10.5.0",
     "tsc-multi": "npm:@stainless-api/tsc-multi@1.1.12",
-    "tsconfig-paths": "^4.0.0",
     "tslib": "^2.8.1",
     "typescript": "5.8.3",
     "typescript-eslint": "8.31.1",

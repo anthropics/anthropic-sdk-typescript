@@ -5,8 +5,8 @@
   "compilerOptions": {
     "rootDir": "./dist/src",
     "paths": {
-      "@anthropic-ai/google-cloud-sdk/*": ["src/*"],
-      "@anthropic-ai/google-cloud-sdk": ["src/index.ts"]
+      "@anthropic-ai/google-cloud-sdk/*": ["./src/*"],
+      "@anthropic-ai/google-cloud-sdk": ["./src/index.ts"]
     },
     "noEmit": false,
     "declaration": true,

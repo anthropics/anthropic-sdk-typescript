@@ -84,6 +84,23 @@ export interface BetaCapabilitySupport {
 }
 
 /**
+ * Compaction capability details: whether the model accepts the top-level
+ * `compaction` request parameter, with one entry per supported `compaction.type`
+ * value.
+ */
+export interface BetaCompactionCapability {
+  /**
+   * Whether the summarize compaction type is supported.
+   */
+  summarize: BetaCapabilitySupport;
+
+  /**
+   * Whether this capability is supported by the model.
+   */
+  supported: boolean;
+}
+
+/**
  * Context management capability details.
  */
 export interface BetaContextManagementCapability {
@@ -161,6 +178,13 @@ export interface BetaModelCapabilities {
    * Whether the model supports code execution tools.
    */
   code_execution: BetaCapabilitySupport;
+
+  /**
+   * Compaction capability details: whether the model accepts the top-level
+   * `compaction` request parameter, with one entry per supported `compaction.type`
+   * value.
+   */
+  compaction: BetaCompactionCapability | null;
 
   /**
    * Context management support and available strategies.
@@ -307,6 +331,7 @@ export interface ModelListParams extends PageParams {
 export declare namespace Models {
   export {
     type BetaCapabilitySupport as BetaCapabilitySupport,
+    type BetaCompactionCapability as BetaCompactionCapability,
     type BetaContextManagementCapability as BetaContextManagementCapability,
     type BetaEffortCapability as BetaEffortCapability,
     type BetaModelCapabilities as BetaModelCapabilities,

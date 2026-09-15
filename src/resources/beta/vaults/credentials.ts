@@ -289,11 +289,6 @@ export interface BetaManagedAgentsCredential {
   display_name?: string | null;
 }
 
-/**
- * Substitute the secret on any host the session's Environment network policy
- * permits egress to. The Environment's network policy is the only boundary on
- * where the secret can reach.
- */
 export type BetaManagedAgentsCredentialNetworkingParams =
   | BetaManagedAgentsUnrestrictedCredentialNetworkingParams
   | BetaManagedAgentsLimitedCredentialNetworkingParams;
@@ -573,9 +568,6 @@ export interface BetaManagedAgentsMCPOAuthRefreshParams {
    */
   token_endpoint: string;
 
-  /**
-   * Token endpoint requires no client authentication.
-   */
   token_endpoint_auth:
     | BetaManagedAgentsTokenEndpointAuthNoneParam
     | BetaManagedAgentsTokenEndpointAuthBasicParam
@@ -606,9 +598,6 @@ export interface BetaManagedAgentsMCPOAuthRefreshResponse {
    */
   token_endpoint: string;
 
-  /**
-   * Token endpoint requires no client authentication.
-   */
   token_endpoint_auth:
     | BetaManagedAgentsTokenEndpointAuthNoneResponse
     | BetaManagedAgentsTokenEndpointAuthBasicResponse
@@ -639,9 +628,6 @@ export interface BetaManagedAgentsMCPOAuthRefreshUpdateParams {
    */
   scope?: string | null;
 
-  /**
-   * Updated HTTP Basic authentication parameters for the token endpoint.
-   */
   token_endpoint_auth?:
     | BetaManagedAgentsTokenEndpointAuthBasicUpdateParam
     | BetaManagedAgentsTokenEndpointAuthPostUpdateParam;

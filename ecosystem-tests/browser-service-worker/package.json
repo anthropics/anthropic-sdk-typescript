@@ -1,0 +1,16 @@
+{
+  "name": "@anthropic-ai/ecosystem-tests-browser-service-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "tsc && node build.mjs && webpack && node --test tests/browser.test.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1",
+    "playwright-core": "1.57.0",
+    "ts-loader": "9.6.2",
+    "typescript": "5.8.3",
+    "webpack": "5.107.1",
+    "webpack-cli": "6.0.1"
+  }
+}

@@ -1,6 +1,5 @@
-import type { JestConfigWithTsJest } from 'ts-jest';
-
-const config: JestConfigWithTsJest = {
+/** @type {import('ts-jest').JestConfigWithTsJest} */
+const config = {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
   transform: {
@@ -18,6 +17,7 @@ const config: JestConfigWithTsJest = {
     '<rootDir>/packages/',
   ],
   testPathIgnorePatterns: ['scripts'],
+  // Jest 29 cannot format inline snapshots with Prettier 3, so it is told not to use Prettier.
   prettierPath: null,
 };
 

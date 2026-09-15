@@ -590,6 +590,18 @@ export namespace BatchCreateParams {
       cache_control?: BetaMessagesAPI.BetaCacheControlEphemeral | null;
 
       /**
+       * Compact the whole conversation and return a signed `compaction` block, alone,
+       * that a later request sends back first in `messages`, in place of the messages it
+       * summarizes. There is no trigger and no pause flag: sending the parameter
+       * compacts, and nothing is sampled after the block.
+       *
+       * The summarization prompt is the server's own unless `instructions` are given,
+       * which then replace it for this request; a value that is empty or only whitespace
+       * counts as absent.
+       */
+      compaction?: BetaMessagesAPI.BetaCompactionConfig | null;
+
+      /**
        * Container identifier for reuse across requests.
        */
       container?: BetaMessagesAPI.BetaContainerParams | string | null;
@@ -718,7 +730,7 @@ export namespace BatchCreateParams {
 
       /**
        * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
-       * setting temperature. A value of 1.0 of will be accepted for backwards
+       * setting temperature. A value of 1.0 will be accepted for backwards
        * compatibility, all other values will be rejected with a 400 error.
        */
       temperature?: number;

@@ -226,7 +226,9 @@ export interface BetaManagedAgentsAgentCustomToolUseEvent {
   /**
    * When set, this event was cross-posted from a subagent's thread to surface its
    * custom tool use on the primary thread's stream. Empty on the thread's own
-   * events. Echo this on a `user.custom_tool_result` event to route the result back.
+   * events. Informational only: the server routes the matching
+   * `user.custom_tool_result` by `custom_tool_use_id`, so clients do not send it
+   * back.
    */
   session_thread_id?: string | null;
 }
@@ -314,8 +316,8 @@ export interface BetaManagedAgentsAgentMCPToolUseEvent {
   /**
    * When set, this event was cross-posted from a subagent's thread to surface its
    * permission request on the primary thread's stream. Empty on the thread's own
-   * events. Echo this on a `user.tool_confirmation` event to route the approval
-   * back.
+   * events. Informational only: the server routes the matching
+   * `user.tool_confirmation` by `tool_use_id`, so clients do not send it back.
    */
   session_thread_id?: string | null;
 }
@@ -574,8 +576,9 @@ export interface BetaManagedAgentsAgentToolUseEvent {
   /**
    * When set, this event was cross-posted from a subagent's thread to surface its
    * permission request on the primary thread's stream. Empty on the thread's own
-   * events. Echo this on a `user.tool_confirmation` event to route the approval
-   * back.
+   * events. Informational only: the server routes the matching
+   * `user.tool_confirmation` or `user.tool_result` by `tool_use_id`, so clients do
+   * not send it back.
    */
   session_thread_id?: string | null;
 }
@@ -1041,11 +1044,6 @@ export interface BetaManagedAgentsSessionErrorEvent {
    */
   id: string;
 
-  /**
-   * An unknown or unexpected error occurred during session execution. A fallback
-   * variant; clients that don't recognize a new error code can match on
-   * `retry_status` and `message` alone.
-   */
   error:
     | BetaManagedAgentsUnknownError
     | BetaManagedAgentsModelOverloadedError
@@ -1141,9 +1139,6 @@ export interface BetaManagedAgentsSessionStatusIdleEvent {
    */
   processed_at: string;
 
-  /**
-   * The agent completed its turn naturally and is ready for the next user message.
-   */
   stop_reason:
     | BetaManagedAgentsSessionEndTurn
     | BetaManagedAgentsSessionRequiresAction
@@ -1258,9 +1253,6 @@ export interface BetaManagedAgentsSessionThreadStatusIdleEvent {
    */
   session_thread_id: string;
 
-  /**
-   * The agent completed its turn naturally and is ready for the next user message.
-   */
   stop_reason:
     | BetaManagedAgentsSessionEndTurn
     | BetaManagedAgentsSessionRequiresAction
@@ -1777,8 +1769,8 @@ export interface BetaManagedAgentsUserCustomToolResultEvent {
   processed_at?: string | null;
 
   /**
-   * Routes this result to a subagent thread. Copy from the `agent.custom_tool_use`
-   * event's `session_thread_id`.
+   * Set by the server to the subagent thread this result was routed to. Omitted when
+   * it was routed to the primary thread.
    */
   session_thread_id?: string | null;
 }
@@ -1993,9 +1985,8 @@ export interface BetaManagedAgentsUserToolConfirmationEvent {
   processed_at?: string | null;
 
   /**
-   * When set, the confirmation routes to this subagent's thread rather than the
-   * primary. Echo this from the `session_thread_id` on the `agent.tool_use` or
-   * `agent.mcp_tool_use` event that prompted the approval.
+   * Set by the server to the subagent thread this confirmation was routed to.
+   * Omitted when it was routed to the primary thread.
    */
   session_thread_id?: string | null;
 }

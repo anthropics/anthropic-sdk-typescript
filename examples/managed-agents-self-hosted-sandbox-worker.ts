@@ -1,4 +1,4 @@
-#!/usr/bin/env -S npm run tsn -T
+#!/usr/bin/env node
 
 // Self-contained demo: create an agent and session that target a self-hosted
 // environment, then run an `EnvironmentWorker` locally to serve the default

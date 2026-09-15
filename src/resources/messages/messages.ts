@@ -796,14 +796,6 @@ export interface BrowserStateBlockParam {
   state_changes?: Array<BrowserStateChange> | null;
 }
 
-/**
- * A tab this call's execution opened that remains open at its end — the creation
- * delta of the `tabs` inventory, not an event log.
- *
- * Carries only the `tab_id`; the tab's `title` and `url` live on its `tabs` entry,
- * which must include the same `tab_id`. A tab opened during a failed call gets no
- * deferred `tab_opened`; it simply appears in the next result's `tabs` inventory.
- */
 export type BrowserStateChange =
   | BrowserStateChangeTabOpened
   | BrowserStateChangeDownloadStarted
@@ -1659,9 +1651,6 @@ export interface CodeExecutionTool20260521 {
 }
 
 export interface CodeExecutionToolResultBlock {
-  /**
-   * Code execution result with encrypted stdout for PFC + web_search results.
-   */
   content: CodeExecutionToolResultBlockContent;
 
   tool_use_id: string;
@@ -1669,18 +1658,12 @@ export interface CodeExecutionToolResultBlock {
   type: 'code_execution_tool_result';
 }
 
-/**
- * Code execution result with encrypted stdout for PFC + web_search results.
- */
 export type CodeExecutionToolResultBlockContent =
   | CodeExecutionToolResultError
   | CodeExecutionResultBlock
   | EncryptedCodeExecutionResultBlock;
 
 export interface CodeExecutionToolResultBlockParam {
-  /**
-   * Code execution result with encrypted stdout for PFC + web_search results.
-   */
   content: CodeExecutionToolResultBlockParamContent;
 
   tool_use_id: string;
@@ -1693,9 +1676,6 @@ export interface CodeExecutionToolResultBlockParam {
   cache_control?: CacheControlEphemeral | null;
 }
 
-/**
- * Code execution result with encrypted stdout for PFC + web_search results.
- */
 export type CodeExecutionToolResultBlockParamContent =
   | CodeExecutionToolResultErrorParam
   | CodeExecutionResultBlockParam
@@ -2225,9 +2205,6 @@ export interface ContainerUploadBlockParam {
   cache_control?: CacheControlEphemeral | null;
 }
 
-/**
- * Response model for a file uploaded to the container.
- */
 export type ContentBlock =
   | TextBlock
   | ThinkingBlock
@@ -2242,9 +2219,6 @@ export type ContentBlock =
   | ToolSearchToolResultBlock
   | ContainerUploadBlock;
 
-/**
- * Regular text content.
- */
 export type ContentBlockParam =
   | TextBlockParam
   | ImageBlockParam
@@ -2563,10 +2537,6 @@ export interface Message {
   usage: Usage;
 }
 
-/**
- * Code execution tool with REPL state persistence (daemon mode + gVisor
- * checkpoint).
- */
 export type MessageCountTokensTool =
   | Tool
   | ToolBash20250124
@@ -2739,9 +2709,6 @@ export interface RawContentBlockDeltaEvent {
 }
 
 export interface RawContentBlockStartEvent {
-  /**
-   * Response model for a file uploaded to the container.
-   */
   content_block:
     | TextBlock
     | ThinkingBlock
@@ -2939,9 +2906,6 @@ export interface ServerToolUsage {
 export interface ServerToolUseBlock {
   id: string;
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 
   input: unknown;
@@ -2979,9 +2943,6 @@ export interface ServerToolUseBlockParam {
    */
   cache_control?: CacheControlEphemeral | null;
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 }
 
@@ -3744,10 +3705,6 @@ export interface ToolTextEditor20250728 {
   strict?: boolean;
 }
 
-/**
- * Code execution tool with REPL state persistence (daemon mode + gVisor
- * checkpoint).
- */
 export type ToolUnion =
   | Tool
   | ToolBash20250124
@@ -3774,9 +3731,6 @@ export type ToolUnion =
 export interface ToolUseBlock {
   id: string;
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 
   input: unknown;
@@ -3805,9 +3759,6 @@ export interface ToolUseBlockParam {
    */
   cache_control?: CacheControlEphemeral | null;
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 
   /**
@@ -3994,6 +3945,16 @@ export interface WebFetchTool20250910 {
    * When true, guarantees schema validation on tool names and inputs
    */
   strict?: boolean;
+
+  /**
+   * Which sources contribute to the set of URLs web fetch may fetch.
+   *
+   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+   * (every result but the named tools'). A named tool must be declared in this
+   * request's `tools[]`.
+   */
+  url_sources?: WebFetchURLSources | null;
 }
 
 export interface WebFetchTool20260209 {
@@ -4052,6 +4013,16 @@ export interface WebFetchTool20260209 {
    * When true, guarantees schema validation on tool names and inputs
    */
   strict?: boolean;
+
+  /**
+   * Which sources contribute to the set of URLs web fetch may fetch.
+   *
+   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+   * (every result but the named tools'). A named tool must be declared in this
+   * request's `tools[]`.
+   */
+  url_sources?: WebFetchURLSources | null;
 }
 
 /**
@@ -4113,6 +4084,16 @@ export interface WebFetchTool20260309 {
    * When true, guarantees schema validation on tool names and inputs
    */
   strict?: boolean;
+
+  /**
+   * Which sources contribute to the set of URLs web fetch may fetch.
+   *
+   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+   * (every result but the named tools'). A named tool must be declared in this
+   * request's `tools[]`.
+   */
+  url_sources?: WebFetchURLSources | null;
 
   /**
    * Whether to use cached content. Set to false to bypass the cache and fetch fresh
@@ -4190,6 +4171,16 @@ export interface WebFetchTool20260318 {
   strict?: boolean;
 
   /**
+   * Which sources contribute to the set of URLs web fetch may fetch.
+   *
+   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+   * (every result but the named tools'). A named tool must be declared in this
+   * request's `tools[]`.
+   */
+  url_sources?: WebFetchURLSources | null;
+
+  /**
    * Whether to use cached content. Set to false to bypass the cache and fetch fresh
    * content. Only set to false when the user explicitly requests fresh content or
    * when fetching rapidly-changing sources.
@@ -4198,9 +4189,6 @@ export interface WebFetchTool20260318 {
 }
 
 export interface WebFetchToolResultBlock {
-  /**
-   * Tool invocation directly from the model.
-   */
   caller: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 
   content: WebFetchToolResultErrorBlock | WebFetchBlock;
@@ -4222,9 +4210,6 @@ export interface WebFetchToolResultBlockParam {
    */
   cache_control?: CacheControlEphemeral | null;
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 }
 
@@ -4251,6 +4236,87 @@ export type WebFetchToolResultErrorCode =
   | 'max_uses_exceeded'
   | 'unavailable'
   | 'content_too_large';
+
+/**
+ * The `url_sources` variant under which a source contributes in full: every result
+ * of the tool filter's source, or all user input.
+ */
+export interface WebFetchURLSourceAll {
+  type: 'all';
+}
+
+/**
+ * The tool filter variant under which every result but the named tools'
+ * contributes.
+ */
+export interface WebFetchURLSourceExcept {
+  tools: Array<WebFetchURLSourceToolReference>;
+
+  type: 'except';
+}
+
+/**
+ * The `url_sources` variant under which a source contributes nothing: no result of
+ * the tool filter's source, or no user input.
+ */
+export interface WebFetchURLSourceNone {
+  type: 'none';
+}
+
+/**
+ * The tool filter variant under which only the named tools' results contribute.
+ */
+export interface WebFetchURLSourceOnly {
+  tools: Array<WebFetchURLSourceToolReference>;
+
+  type: 'only';
+}
+
+/**
+ * One entry of a tool filter's `tools`: it must name a tool declared in this
+ * request's `tools[]`.
+ */
+export interface WebFetchURLSourceToolReference {
+  name: string;
+
+  type: 'tool_reference';
+}
+
+/**
+ * Which sources contribute to the set of URLs web fetch may fetch.
+ *
+ * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
+ * filters are `all`, `none`, `only` (only the named tools' results) or `except`
+ * (every result but the named tools'). A named tool must be declared in this
+ * request's `tools[]`.
+ */
+export interface WebFetchURLSources {
+  /**
+   * Which client tools' results contribute fetchable URLs: "all", "none", or an only
+   * or except list of client tool names from tools[].
+   */
+  client_tool_results?:
+    | WebFetchURLSourceAll
+    | WebFetchURLSourceNone
+    | WebFetchURLSourceOnly
+    | WebFetchURLSourceExcept;
+
+  /**
+   * Which server tools' results contribute fetchable URLs: "all", "none", or an only
+   * or except list of server tool names from tools[]; only web_search and web_fetch
+   * results ever contribute.
+   */
+  server_tool_results?:
+    | WebFetchURLSourceAll
+    | WebFetchURLSourceNone
+    | WebFetchURLSourceOnly
+    | WebFetchURLSourceExcept;
+
+  /**
+   * Whether URLs in user messages are fetchable: "all" or "none".
+   */
+  user_input?: WebFetchURLSourceAll | WebFetchURLSourceNone;
+}
 
 export interface WebSearchResultBlock {
   encrypted_content: string;
@@ -4473,9 +4539,6 @@ export interface WebSearchToolRequestError {
 }
 
 export interface WebSearchToolResultBlock {
-  /**
-   * Tool invocation directly from the model.
-   */
   caller: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 
   content: WebSearchToolResultBlockContent;
@@ -4499,9 +4562,6 @@ export interface WebSearchToolResultBlockParam {
    */
   cache_control?: CacheControlEphemeral | null;
 
-  /**
-   * Tool invocation directly from the model.
-   */
   caller?: DirectCaller | ServerToolCaller | ServerToolCaller20260120;
 }
 
@@ -4705,7 +4765,7 @@ export interface MessageCreateParamsBase {
 
   /**
    * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
-   * setting temperature. A value of 1.0 of will be accepted for backwards
+   * setting temperature. A value of 1.0 will be accepted for backwards
    * compatibility, all other values will be rejected with a 400 error.
    */
   temperature?: number;
@@ -5310,6 +5370,12 @@ export declare namespace Messages {
     type WebFetchToolResultErrorBlock as WebFetchToolResultErrorBlock,
     type WebFetchToolResultErrorBlockParam as WebFetchToolResultErrorBlockParam,
     type WebFetchToolResultErrorCode as WebFetchToolResultErrorCode,
+    type WebFetchURLSourceAll as WebFetchURLSourceAll,
+    type WebFetchURLSourceExcept as WebFetchURLSourceExcept,
+    type WebFetchURLSourceNone as WebFetchURLSourceNone,
+    type WebFetchURLSourceOnly as WebFetchURLSourceOnly,
+    type WebFetchURLSourceToolReference as WebFetchURLSourceToolReference,
+    type WebFetchURLSources as WebFetchURLSources,
     type WebSearchResultBlock as WebSearchResultBlock,
     type WebSearchResultBlockParam as WebSearchResultBlockParam,
     type WebSearchTool20250305 as WebSearchTool20250305,

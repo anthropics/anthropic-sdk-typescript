@@ -239,6 +239,12 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">WebFetchToolResultErrorBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchToolResultErrorBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchToolResultErrorCode</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebFetchURLSourceAll</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebFetchURLSourceExcept</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebFetchURLSourceNone</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebFetchURLSourceOnly</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebFetchURLSourceToolReference</a></code>
+- <code><a href="./src/resources/messages/messages.ts">WebFetchURLSources</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchResultBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchResultBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebSearchTool20250305</a></code>
@@ -373,6 +379,7 @@ Types:
 Types:
 
 - <code><a href="./src/resources/beta/models.ts">BetaCapabilitySupport</a></code>
+- <code><a href="./src/resources/beta/models.ts">BetaCompactionCapability</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaContextManagementCapability</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaEffortCapability</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaModelCapabilities</a></code>
@@ -493,6 +500,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompact20260112Edit</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionContentBlockDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCompactionIterationUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaComputerCursorPositionConfig</a></code>
@@ -552,6 +560,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaJSONOutputFormat</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaInputTokensClearAtLeast</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaInputTokensTrigger</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaInputTransformation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaIterationsUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaJSONOutputFormat</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolConfig</a></code>
@@ -603,6 +612,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSignatureDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSkillParams</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaStopReason</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaSummarizeCompaction</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSystemMessageOutputConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlockParam</a></code>
@@ -628,6 +638,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingDelta</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingDroppedInputTransformation</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingMismatchAllowedInputTransformation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingPrefixMismatchBehavior</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingTurns</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTokenTaskBudget</a></code>
@@ -680,6 +691,12 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchToolResultErrorBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchToolResultErrorBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchToolResultErrorCode</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchURLSourceAll</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchURLSourceExcept</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchURLSourceNone</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchURLSourceOnly</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchURLSourceToolReference</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchURLSources</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebSearchTool20250305</a></code>

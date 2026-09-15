@@ -190,11 +190,6 @@ export interface BetaDream {
    */
   model: BetaDreamModelConfig;
 
-  /**
-   * The default destination: the job creates a new output memory store as a clone of
-   * the memory_store input and writes the consolidated memories into it. The input
-   * store is never mutated.
-   */
   output_behavior: BetaOutputBehavior;
 
   outputs: Array<BetaDreamOutput>;
@@ -223,11 +218,6 @@ export interface BetaDreamError {
   type: string;
 }
 
-/**
- * An input memory store the dream reads from. The dream never mutates this store
- * unless it is also the destination: with output_behavior {type:
- * "update_existing"} the job consolidates this store in place.
- */
 export type BetaDreamInput = BetaDreamMemoryStoreInput | BetaDreamSessionsInput;
 
 /**
@@ -333,15 +323,6 @@ export interface BetaDreamUsage {
   output_tokens: number;
 }
 
-/**
- * The `output_behavior.memory_store_id` target is still held by a prior
- * `{type: "update_existing"}` dream — one that is `pending` or `running`, or was
- * canceled with its final writes still landing. Rarely the named dream has just
- * finished (`completed`/`failed`) and its execution is still closing; an immediate
- * retry then almost always succeeds. The message names the holding dream when the
- * server can identify it (rarely omitted); poll it to a terminal state or cancel
- * it, then retry. Carried with `x-should-retry: false`.
- */
 export type BetaDreamingError =
   | BetaAPI.BetaInvalidRequestError
   | BetaAPI.BetaAuthenticationError
@@ -354,11 +335,6 @@ export type BetaDreamingError =
   | BetaAPI.BetaOverloadedError
   | BetaTargetStoreHeldError;
 
-/**
- * The default destination: the job creates a new output memory store as a clone of
- * the memory_store input and writes the consolidated memories into it. The input
- * store is never mutated.
- */
 export type BetaOutputBehavior = BetaOutputBehaviorCreateNew | BetaOutputBehaviorUpdateExisting;
 
 /**
@@ -407,7 +383,7 @@ export interface DreamCreateParams {
   inputs: Array<BetaDreamInput>;
 
   /**
-   * Body param: Model identifier and configuration applied to every pipeline stage.
+   * Body param
    */
   model: string | BetaDreamModelConfigParam;
 
@@ -417,9 +393,7 @@ export interface DreamCreateParams {
   instructions?: string | null;
 
   /**
-   * Body param: The default destination: the job creates a new output memory store
-   * as a clone of the memory_store input and writes the consolidated memories into
-   * it. The input store is never mutated.
+   * Body param
    */
   output_behavior?: BetaOutputBehavior;
 

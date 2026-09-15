@@ -320,6 +320,12 @@ import {
   WebFetchToolResultErrorBlock,
   WebFetchToolResultErrorBlockParam,
   WebFetchToolResultErrorCode,
+  WebFetchURLSourceAll,
+  WebFetchURLSourceExcept,
+  WebFetchURLSourceNone,
+  WebFetchURLSourceOnly,
+  WebFetchURLSourceToolReference,
+  WebFetchURLSources,
   WebSearchResultBlock,
   WebSearchResultBlockParam,
   WebSearchTool20250305,
@@ -1484,7 +1490,7 @@ export class BaseAnthropic {
       const maxRetries = options.maxRetries ?? this.maxRetries;
       timeoutMillis = this.calculateDefaultRetryTimeoutMillis(retriesRemaining, maxRetries);
     }
-    await sleep(timeoutMillis);
+    await sleep(timeoutMillis, options.signal ?? undefined);
 
     return this.makeRequest(options, retriesRemaining - 1, requestLogID);
   }
@@ -1935,6 +1941,12 @@ export declare namespace Anthropic {
     type WebFetchToolResultErrorBlock as WebFetchToolResultErrorBlock,
     type WebFetchToolResultErrorBlockParam as WebFetchToolResultErrorBlockParam,
     type WebFetchToolResultErrorCode as WebFetchToolResultErrorCode,
+    type WebFetchURLSourceAll as WebFetchURLSourceAll,
+    type WebFetchURLSourceExcept as WebFetchURLSourceExcept,
+    type WebFetchURLSourceNone as WebFetchURLSourceNone,
+    type WebFetchURLSourceOnly as WebFetchURLSourceOnly,
+    type WebFetchURLSourceToolReference as WebFetchURLSourceToolReference,
+    type WebFetchURLSources as WebFetchURLSources,
     type WebSearchResultBlock as WebSearchResultBlock,
     type WebSearchResultBlockParam as WebSearchResultBlockParam,
     type WebSearchTool20250305 as WebSearchTool20250305,

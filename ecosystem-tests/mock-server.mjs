@@ -221,6 +221,22 @@ async function handle(req, res) {
       // lets projects test timeouts and aborts
       if (body.model === 'mock-slow' && (await wait(5000, res))) return;
       if (body.stream === true) return streamMessage(res, body.model);
+      // lets projects drive a tool runner: calls the first tool, then repeats what it returned
+      if (body.model === 'mock-tool') {
+        const last = body.messages.at(-1).content;
+        const result = Array.isArray(last) && last.find((block) => block.type === 'tool_result');
+        if (!result) {
+          const toolUse = {
+            type: 'tool_use',
+            id: 'toolu_mock_0123456789',
+            name: body.tools?.[0]?.name,
+            input: { city: 'Paris' },
+          };
+          return send(res, 200, message(body.model, [toolUse], 'tool_use', 5));
+        }
+        const said = { type: 'text', text: `Tool said: ${JSON.stringify(result.content)}`, citations: null };
+        return send(res, 200, message(body.model, [said], 'end_turn', 5));
+      }
       const text = { type: 'text', text: TEXT_CHUNKS.join(''), citations: null };
       return send(res, 200, message(body.model, [text], 'end_turn', 5));
     }
