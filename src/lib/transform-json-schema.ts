@@ -28,12 +28,10 @@ export function transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
 function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
   const strictSchema: JSONSchema = {};
 
-  const ref = pop(jsonSchema, '$ref');
-  if (ref !== undefined) {
-    strictSchema['$ref'] = ref;
-    return strictSchema;
-  }
-
+  // Process `$defs` before the `$ref` early-return below: a schema whose root is
+  // a `$ref` (as pydantic's `RootModel` and zod-to-json-schema emit for a
+  // top-level model) carries its definitions alongside the `$ref`, and returning
+  // early would drop them and leave the reference dangling.
   const defs = pop(jsonSchema, '$defs');
   if (defs !== undefined) {
     const strictDefs: Record<string, any> = {};
@@ -41,6 +39,12 @@ function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
     for (const [name, defSchema] of Object.entries(defs)) {
       strictDefs[name] = _transformJSONSchema(defSchema as JSONSchema);
     }
+  }
+
+  const ref = pop(jsonSchema, '$ref');
+  if (ref !== undefined) {
+    strictSchema['$ref'] = ref;
+    return strictSchema;
   }
 
   const type = pop(jsonSchema, 'type');
