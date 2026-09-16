@@ -1307,6 +1307,73 @@ describe('betaRefusalFallbackMiddleware (streaming) — tool-use refusals', () =
     expect(appended.content[1].type).toBe('web_search_tool_result');
   });
 
+  test('a compaction block streamed before the refusal is echoed with its summary, not the empty shell', async () => {
+    // Wire shape: the block opens with null content and one compaction_delta carries its final value.
+    const streamA = [
+      messageStart(),
+      ev({ type: 'content_block_start', index: 0, content_block: { type: 'compaction', content: null } }),
+      ev({
+        type: 'content_block_delta',
+        index: 0,
+        delta: { type: 'compaction_delta', content: 'Summary of the conversation so far' },
+      }),
+      ev({ type: 'content_block_stop', index: 0 }),
+      ev({ type: 'content_block_start', index: 1, content_block: { type: 'text', text: '' } }),
+      ev({
+        type: 'content_block_delta',
+        index: 1,
+        delta: { type: 'text_delta', text: 'A solar eclipse is' },
+      }),
+      refusalDelta(),
+      ev({ type: 'message_stop' }),
+    ].join('');
+
+    const { requests } = await runMiddleware({ fallbacks: FALLBACKS }, ORIGINAL_BODY, [
+      sseResponse(streamA),
+      sseResponse(STREAM_B),
+    ]);
+
+    const appended = JSON.parse(requests[1]!.body as string).messages[1];
+    expect(appended.role).toBe('assistant');
+    expect(appended.content).toEqual([
+      { type: 'compaction', content: 'Summary of the conversation so far' },
+      { type: 'text', text: 'A solar eclipse is' },
+    ]);
+  });
+
+  test('a failed compaction block is echoed with its null content', async () => {
+    const streamA = [
+      messageStart(),
+      ev({
+        type: 'content_block_start',
+        index: 0,
+        content_block: { type: 'compaction', content: null, encrypted_content: null },
+      }),
+      ev({
+        type: 'content_block_delta',
+        index: 0,
+        delta: { type: 'compaction_delta', content: null, encrypted_content: null },
+      }),
+      ev({ type: 'content_block_stop', index: 0 }),
+      ev({ type: 'content_block_start', index: 1, content_block: { type: 'text', text: '' } }),
+      ev({
+        type: 'content_block_delta',
+        index: 1,
+        delta: { type: 'text_delta', text: 'A solar eclipse is' },
+      }),
+      refusalDelta(),
+      ev({ type: 'message_stop' }),
+    ].join('');
+
+    const { requests } = await runMiddleware({ fallbacks: FALLBACKS }, ORIGINAL_BODY, [
+      sseResponse(streamA),
+      sseResponse(STREAM_B),
+    ]);
+
+    const appended = JSON.parse(requests[1]!.body as string).messages[1];
+    expect(appended.content[0]).toEqual({ type: 'compaction', content: null, encrypted_content: null });
+  });
+
   test('mid-loop refusal ending in thinking is appended as-is when the claim allows it', async () => {
     // [server_tool_use, result, thinking] — the server granted a prefill
     // claim, so the middleware appends the whole partial output verbatim,

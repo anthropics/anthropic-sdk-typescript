@@ -895,6 +895,11 @@ function applyDelta(
       break;
     }
     case 'compaction_delta': {
+      // The delta carries the block's final value; the start event is only a null-content shell.
+      block.content = delta.content;
+      if ('encrypted_content' in delta) {
+        block.encrypted_content = delta.encrypted_content;
+      }
       break;
     }
     default:
