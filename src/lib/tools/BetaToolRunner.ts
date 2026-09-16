@@ -26,6 +26,7 @@ import {
   helperHeader,
   STAINLESS_HELPER_HEADER,
 } from '../../internal/stainless-helper-header';
+import type { Simplify } from '../internal/types';
 
 /**
  * A ToolRunner handles the automatic conversation loop between the assistant and tools.
@@ -643,9 +644,6 @@ function determineNextStepFromStopReason(stopReason: BetaStopReason | null): Nex
       return 'stop';
   }
 }
-
-// vendored from typefest just to make things look a bit nicer on hover
-type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {};
 
 /**
  * Parameters for creating a ToolRunner, extending MessageCreateParams with runnable tools.
