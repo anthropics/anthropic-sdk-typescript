@@ -1,6 +1,8 @@
 import Anthropic, { APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
 import { AnthropicError } from '@anthropic-ai/sdk/error';
 import {
+  BetaCompactionBlock,
+  BetaCompactionContentBlockDelta,
   BetaMessage,
   BetaMessageDeltaUsage,
   BetaRawMessageDeltaEvent,
@@ -952,5 +954,104 @@ describe('BetaMessageStream class', () => {
       },
       { type: 'text', text: 'Hello there!' },
     ]);
+  });
+
+  describe('compaction_delta', () => {
+    // Mirrors the wire: the server opens a compaction block with null content, then sends one
+    // compaction_delta carrying the block's final values (`content: null` when compaction failed).
+    function streamCompaction(
+      contentBlock: Partial<BetaCompactionBlock>,
+      deltas: Array<Partial<BetaCompactionContentBlockDelta>>,
+    ) {
+      const { fetch, handleStreamEvents } = mockFetch();
+      const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+      handleStreamEvents([
+        {
+          type: 'message_start',
+          message: {
+            id: 'msg_compaction_01',
+            type: 'message',
+            role: 'assistant',
+            content: [],
+            model: 'claude-opus-4-8',
+            stop_reason: null,
+            stop_sequence: null,
+            usage: { input_tokens: 10, output_tokens: 1 },
+          },
+        },
+        { type: 'content_block_start', index: 0, content_block: contentBlock },
+        ...deltas.map((delta) => ({
+          type: 'content_block_delta',
+          index: 0,
+          delta: { type: 'compaction_delta', ...delta },
+        })),
+        { type: 'content_block_stop', index: 0 },
+        {
+          type: 'message_delta',
+          delta: { stop_reason: 'compaction', stop_sequence: null },
+          usage: { output_tokens: 5 },
+        },
+        { type: 'message_stop' },
+      ]);
+
+      const stream = anthropic.beta.messages.stream({
+        max_tokens: 1024,
+        model: 'claude-opus-4-8',
+        messages: [{ role: 'user', content: 'test' }],
+      });
+      const compactions: string[] = [];
+      stream.on('compaction', (content) => compactions.push(content));
+      return { stream, compactions };
+    }
+
+    it('accumulates the summary and checkpoint', async () => {
+      const { stream, compactions } = streamCompaction(
+        { type: 'compaction', content: null, encrypted_content: null },
+        [{ content: 'Summary of the conversation so far', encrypted_content: 'checkpoint_1' }],
+      );
+
+      const message = await stream.finalMessage();
+
+      expect(message.content).toStrictEqual([
+        {
+          type: 'compaction',
+          content: 'Summary of the conversation so far',
+          encrypted_content: 'checkpoint_1',
+        },
+      ]);
+      expect(compactions).toEqual(['Summary of the conversation so far']);
+    });
+
+    it('keeps a failed compaction null rather than coercing it to "null"', async () => {
+      // encrypted_content is beta-gated, so the server can omit the key entirely
+      const { stream, compactions } = streamCompaction({ type: 'compaction', content: null }, [
+        { content: null },
+      ]);
+
+      const message = await stream.finalMessage();
+
+      // strict: no `encrypted_content: undefined` key is materialized either
+      expect(message.content).toStrictEqual([{ type: 'compaction', content: null }]);
+      expect(compactions).toEqual([]);
+    });
+
+    it('takes the latest delta as the whole value rather than appending', async () => {
+      // not a sequence the server sends today; pins last-write-wins, as in the other SDKs
+      const { stream, compactions } = streamCompaction(
+        { type: 'compaction', content: null, encrypted_content: null },
+        [
+          { content: 'Summary v1', encrypted_content: 'checkpoint_1' },
+          { content: 'Summary v2', encrypted_content: null },
+        ],
+      );
+
+      const message = await stream.finalMessage();
+
+      expect(message.content).toStrictEqual([
+        { type: 'compaction', content: 'Summary v2', encrypted_content: null },
+      ]);
+      expect(compactions).toEqual(['Summary v1', 'Summary v2']);
+    });
   });
 });
