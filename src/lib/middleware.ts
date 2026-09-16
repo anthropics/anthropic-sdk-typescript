@@ -938,8 +938,8 @@ function withMiddlewareHeaders(request: APIRequest, betas: readonly AnthropicBet
   );
   for (const beta of betas) {
     if (!existing.has(beta)) {
-      headers.append('anthropic-beta', beta);
       existing.add(beta);
+      headers.set('anthropic-beta', [...existing].join(','));
     }
   }
   headers.set(

@@ -273,8 +273,8 @@ describe('betaRefusalFallbackMiddleware (streaming) — shape-B continuation', (
     ]);
 
     expect(requests.map((r) => r.headers.get('anthropic-beta'))).toEqual([
-      'interleaved-thinking-2025-05-14, fallback-credit-2026-07-01',
-      'interleaved-thinking-2025-05-14, fallback-credit-2026-07-01',
+      'interleaved-thinking-2025-05-14,fallback-credit-2026-07-01',
+      'interleaved-thinking-2025-05-14,fallback-credit-2026-07-01',
     ]);
   });
 
@@ -286,8 +286,8 @@ describe('betaRefusalFallbackMiddleware (streaming) — shape-B continuation', (
     );
 
     expect(requests.map((r) => r.headers.get('anthropic-beta'))).toEqual([
-      'interleaved-thinking-2025-05-14, fallback-credit-2027-01-01',
-      'interleaved-thinking-2025-05-14, fallback-credit-2027-01-01',
+      'interleaved-thinking-2025-05-14,fallback-credit-2027-01-01',
+      'interleaved-thinking-2025-05-14,fallback-credit-2027-01-01',
     ]);
   });
 });

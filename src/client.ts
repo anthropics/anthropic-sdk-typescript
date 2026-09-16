@@ -1046,7 +1046,7 @@ export class BaseAnthropic {
         ?.split(',')
         .map((s) => s.trim());
       if (!existing?.includes(OAUTH_API_BETA_HEADER)) {
-        headers.append('anthropic-beta', OAUTH_API_BETA_HEADER);
+        headers.set('anthropic-beta', [...(existing ?? []), OAUTH_API_BETA_HEADER].join(','));
       }
       request.headers = headers;
     }

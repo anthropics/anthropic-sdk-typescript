@@ -2286,7 +2286,7 @@ describe('betaRefusalFallbackMiddleware', () => {
       );
 
       await client.beta.messages.create(params);
-      expect(betaHeaders).toEqual(['fallback-credit-2027-01-01, interleaved-thinking-2025-05-14']);
+      expect(betaHeaders).toEqual(['fallback-credit-2027-01-01,interleaved-thinking-2025-05-14']);
     });
 
     test('betas: [] sends no beta header', async () => {
@@ -2316,7 +2316,7 @@ describe('betaRefusalFallbackMiddleware', () => {
       );
 
       await client.beta.messages.create({ ...params, betas: ['interleaved-thinking-2025-05-14'] });
-      expect(betaHeaders).toEqual(['interleaved-thinking-2025-05-14, fallback-credit-2026-07-01']);
+      expect(betaHeaders).toEqual(['interleaved-thinking-2025-05-14,fallback-credit-2026-07-01']);
     });
   });
 });
