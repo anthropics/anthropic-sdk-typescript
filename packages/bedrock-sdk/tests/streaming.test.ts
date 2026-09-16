@@ -8,24 +8,44 @@ import { AnthropicBedrock } from '../src';
 
 type Frame =
   | { eventType: 'chunk'; payload: unknown }
-  | { eventType: 'internalServerException' | 'validationException'; payload: { message: string } };
+  | { exceptionType: string; payload: { message: string } }
+  | { errorCode: string; errorMessage: string };
+
+function encodeFrame(frame: Frame) {
+  const header = (value: string) => ({ type: 'string', value });
+  if ('exceptionType' in frame) {
+    return {
+      headers: {
+        ':message-type': header('exception'),
+        ':exception-type': header(frame.exceptionType),
+        ':content-type': header('application/json'),
+      },
+      body: fromUtf8(JSON.stringify(frame.payload)),
+    };
+  }
+  if ('errorCode' in frame) {
+    return {
+      headers: {
+        ':message-type': header('error'),
+        ':error-code': header(frame.errorCode),
+        ':error-message': header(frame.errorMessage),
+      },
+      body: new Uint8Array(),
+    };
+  }
+  return {
+    headers: {
+      ':message-type': header('event'),
+      ':event-type': header(frame.eventType),
+      ':content-type': header('application/json'),
+    },
+    body: fromUtf8(JSON.stringify({ bytes: Buffer.from(JSON.stringify(frame.payload)).toString('base64') })),
+  };
+}
 
 function encodeFrames(frames: Frame[]): ReadableStream {
   const marshaller = new EventStreamMarshaller({ utf8Encoder: toUtf8, utf8Decoder: fromUtf8 });
-  const messages = frames.map((frame) => {
-    const body =
-      frame.eventType === 'chunk' ?
-        fromUtf8(JSON.stringify({ bytes: Buffer.from(JSON.stringify(frame.payload)).toString('base64') }))
-      : fromUtf8(JSON.stringify(frame.payload));
-    return {
-      headers: {
-        ':message-type': { type: 'string', value: 'event' },
-        ':event-type': { type: 'string', value: frame.eventType },
-        ':content-type': { type: 'string', value: 'application/json' },
-      },
-      body,
-    };
-  });
+  const messages = frames.map(encodeFrame);
   const serialized = marshaller.serialize(
     (async function* () {
       yield* messages;
@@ -41,6 +61,18 @@ function eventStreamResponse(frames: Frame[], init: ResponseInit = {}): Response
     headers: { 'content-type': 'application/vnd.amazon.eventstream' },
     ...init,
   });
+}
+
+async function consume(response: Response): Promise<{ events: any[]; caught: unknown }> {
+  const events: any[] = [];
+  try {
+    for await (const event of Stream.fromSSEResponse<any>(response, new AbortController())) {
+      events.push(event);
+    }
+  } catch (caught) {
+    return { events, caught };
+  }
+  return { events, caught: undefined };
 }
 
 describe('eventStreamToSSEResponse', () => {
@@ -115,26 +147,59 @@ describe('eventStreamToSSEResponse', () => {
     expect(text).toEqual('event: message_stop\ndata: {"type":"message_stop"}\n\n');
   });
 
-  test('AWS exception frames become Anthropic-shaped SSE error events', async () => {
+  test.each([
+    'internalServerException',
+    'modelStreamErrorException',
+    'validationException',
+    'throttlingException',
+    'modelTimeoutException',
+    'serviceUnavailableException',
+  ])('throws APIError after the preceding events on a %s frame', async (exceptionType) => {
     const response = eventStreamToSSEResponse(
-      eventStreamResponse([{ eventType: 'internalServerException', payload: { message: 'boom' } }]),
+      eventStreamResponse([
+        { eventType: 'chunk', payload: { type: 'message_start', message: { id: 'msg_1' } } },
+        { exceptionType, payload: { message: 'Too many requests' } },
+      ]),
     );
-    const stream = Stream.fromSSEResponse(response, new AbortController());
 
-    let caught: unknown;
-    try {
-      for await (const _ of stream) {
-        // consume
-      }
-    } catch (e) {
-      caught = e;
-    }
+    const { events, caught } = await consume(response);
 
+    expect(events.map((event) => event.type)).toEqual(['message_start']);
     expect(caught).toBeInstanceOf(APIError);
+    expect((caught as APIError).type).toBe(exceptionType);
     expect((caught as APIError).error).toEqual({
       type: 'error',
-      error: { type: 'api_error', message: 'InternalServerException' },
+      error: { type: exceptionType, message: 'Too many requests' },
     });
+  });
+
+  test('throws APIError after the preceding events on an error frame', async () => {
+    const response = eventStreamToSSEResponse(
+      eventStreamResponse([
+        { eventType: 'chunk', payload: { type: 'message_start', message: { id: 'msg_1' } } },
+        { errorCode: 'InternalFailure', errorMessage: 'Something went wrong' },
+      ]),
+    );
+
+    const { events, caught } = await consume(response);
+
+    expect(events.map((event) => event.type)).toEqual(['message_start']);
+    expect(caught).toBeInstanceOf(APIError);
+    expect((caught as APIError).type).toBe('InternalFailure');
+    expect((caught as APIError).error).toEqual({
+      type: 'error',
+      error: { type: 'InternalFailure', message: 'Something went wrong' },
+    });
+  });
+
+  test('rethrows errors that do not come from a frame', async () => {
+    const wire = eventStreamResponse([{ eventType: 'chunk', payload: { type: 'message_stop' } }]);
+    const truncated = (await wire.arrayBuffer()).slice(0, -4);
+
+    const { caught } = await consume(eventStreamToSSEResponse(new Response(truncated)));
+
+    expect(caught).not.toBeInstanceOf(APIError);
+    expect(String(caught)).toContain('Truncated event message received');
   });
 
   test('preserves status, headers, and url, and sets an SSE content type', () => {
