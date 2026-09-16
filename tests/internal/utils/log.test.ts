@@ -3,10 +3,10 @@ import { debugLogRequestDetails, loggerFor } from '@anthropic-ai/sdk/internal/ut
 
 describe('debugLogRequestDetails', () => {
   const setup = (logLevel: 'debug' | 'info') => {
-    const debug = jest.fn();
+    const debug = vi.fn();
     const client = new Anthropic({
       apiKey: 'my-anthropic-api-key',
-      logger: { debug, info: jest.fn(), warn: jest.fn(), error: jest.fn() },
+      logger: { debug, info: vi.fn(), warn: vi.fn(), error: vi.fn() },
       logLevel,
     });
     let headerReads = 0;

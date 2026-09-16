@@ -97,9 +97,9 @@ describe('instantiate client', () => {
     });
 
     test('debug logs include redacted request and response details', async () => {
-      const debugMock = jest.fn();
+      const debugMock = vi.fn();
       const client = new Anthropic({
-        logger: { debug: debugMock, info: jest.fn(), warn: jest.fn(), error: jest.fn() },
+        logger: { debug: debugMock, info: vi.fn(), warn: vi.fn(), error: vi.fn() },
         logLevel: 'debug',
         apiKey: 'my-anthropic-api-key',
         fetch: async () =>
