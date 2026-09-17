@@ -31,12 +31,16 @@ export type { Middleware, MiddlewareContext, MiddlewareNext } from './core/middl
 export type { APIRequest } from './core/api';
 import * as Pagination from './core/pagination';
 import {
+  BidirectionalPageCursor,
   type BidirectionalPageCursorParams,
   BidirectionalPageCursorResponse,
+  Page,
+  PageCursor,
   type PageCursorParams,
   PageCursorResponse,
   type PageParams,
   PageResponse,
+  TokenPage,
   type TokenPageParams,
   TokenPageResponse,
 } from './core/pagination';
@@ -1681,17 +1685,22 @@ export declare namespace Anthropic {
 
   export type { ApiKeySetter };
 
-  export import Page = Pagination.Page;
-  export { type PageParams as PageParams, type PageResponse as PageResponse };
+  export { Page as Page, type PageParams as PageParams, type PageResponse as PageResponse };
 
-  export import TokenPage = Pagination.TokenPage;
-  export { type TokenPageParams as TokenPageParams, type TokenPageResponse as TokenPageResponse };
-
-  export import PageCursor = Pagination.PageCursor;
-  export { type PageCursorParams as PageCursorParams, type PageCursorResponse as PageCursorResponse };
-
-  export import BidirectionalPageCursor = Pagination.BidirectionalPageCursor;
   export {
+    TokenPage as TokenPage,
+    type TokenPageParams as TokenPageParams,
+    type TokenPageResponse as TokenPageResponse,
+  };
+
+  export {
+    PageCursor as PageCursor,
+    type PageCursorParams as PageCursorParams,
+    type PageCursorResponse as PageCursorResponse,
+  };
+
+  export {
+    BidirectionalPageCursor as BidirectionalPageCursor,
     type BidirectionalPageCursorParams as BidirectionalPageCursorParams,
     type BidirectionalPageCursorResponse as BidirectionalPageCursorResponse,
   };
