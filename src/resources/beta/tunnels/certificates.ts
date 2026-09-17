@@ -225,7 +225,7 @@ export interface CertificateCreateParams {
 
 export interface CertificateRetrieveParams {
   /**
-   * Path param: Path parameter tunnel_id
+   * Path param: ID of the tunnel (`tnl_...`).
    */
   tunnel_id: string;
 
@@ -270,7 +270,7 @@ export interface CertificateListParams extends PageCursorParams {
 
 export interface CertificateArchiveParams {
   /**
-   * Path param: Path parameter tunnel_id
+   * Path param: ID of the tunnel (`tnl_...`).
    */
   tunnel_id: string;
 
