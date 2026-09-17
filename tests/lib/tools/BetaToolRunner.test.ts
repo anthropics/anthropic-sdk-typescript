@@ -1,4 +1,4 @@
-import Anthropic, { BetaFallbackState, type Middleware } from '@anthropic-ai/sdk';
+import Anthropic, { BetaFallbackState, type ClientOptions, type Middleware } from '@anthropic-ai/sdk';
 import { mockFetch } from '../../lib/mock-fetch';
 import {
   BetaMessage,
@@ -215,6 +215,8 @@ function betaMessageToStreamEvents(message: BetaMessage): BetaRawMessageStreamEv
           },
         });
       }
+    } else {
+      events.push({ type: 'content_block_start', index, content_block: block });
     }
 
     events.push({
@@ -281,9 +283,18 @@ interface SetupTestResult<Stream extends boolean> {
 
 type ToolRunnerParams = Parameters<typeof Anthropic.Beta.Messages.prototype.toolRunner>[0];
 
-function setupTest(params?: Partial<ToolRunnerParams> & { stream?: false }): SetupTestResult<false>;
-function setupTest(params: Partial<ToolRunnerParams> & { stream: true }): SetupTestResult<true>;
-function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<boolean> {
+function setupTest(
+  params?: Partial<ToolRunnerParams> & { stream?: false },
+  clientOptions?: ClientOptions,
+): SetupTestResult<false>;
+function setupTest(
+  params: Partial<ToolRunnerParams> & { stream: true },
+  clientOptions?: ClientOptions,
+): SetupTestResult<true>;
+function setupTest(
+  params: Partial<ToolRunnerParams> = {},
+  clientOptions: ClientOptions = {},
+): SetupTestResult<boolean> {
   const { handleRequest, handleStreamEvents, fetch } = mockFetch();
   let messageIdCounter = 0;
 
@@ -363,7 +374,7 @@ function setupTest(params: Partial<ToolRunnerParams> = {}): SetupTestResult<bool
     return message;
   };
 
-  const client = new Anthropic({ apiKey: 'test-key', fetch: fetch, maxRetries: 0 });
+  const client = new Anthropic({ apiKey: 'test-key', fetch: fetch, maxRetries: 0, ...clientOptions });
 
   const runnerParams: ToolRunnerParams = {
     messages: params.messages || [{ role: 'user', content: 'What is the weather?' }],
@@ -1295,6 +1306,453 @@ describe('ToolRunner', () => {
         expect(runner.params.messages).toHaveLength(3);
       },
     );
+  });
+
+  describe('.compactBeforeNextTurn()', () => {
+    const question = { role: 'user', content: 'What is the weather?' };
+    const compactionBlock = (content: string | null = 'Summary so far.', signature = 'sig_01') =>
+      ({ type: 'compaction', content, encrypted_content: null, signature }) satisfies BetaContentBlock;
+    const compacted = (content?: string, signature?: string) =>
+      assistantMessage('compaction', compactionBlock(content, signature));
+    const toolTurn = () => assistantMessage('tool_use', getWeatherToolUse('SF'));
+    const finalTurn = () => assistantMessage('end_turn', getTextContent());
+    const historyAfterToolTurn = () => [
+      question,
+      { role: 'assistant', content: [getWeatherToolUse('SF')] },
+      { role: 'user', content: [getWeatherToolResult('SF')] },
+    ];
+    const compactionBlockAlone = () => [{ role: 'assistant', content: [compactionBlock()] }];
+
+    function failOnAnotherRequest(handleRequest: (handler: Fetch) => void) {
+      handleRequest(async () => {
+        throw new Error('Runner made an unexpected request');
+      });
+    }
+
+    // Runs to the end, handing each message to `onMessage`, and returns the stop reasons it yielded.
+    async function run(
+      runner: AsyncIterable<BetaMessage | { finalMessage(): Promise<BetaMessage> }>,
+      onMessage: (message: BetaMessage) => void,
+    ) {
+      const stopReasons: Array<BetaMessage['stop_reason']> = [];
+      for await (const item of runner) {
+        const message = 'finalMessage' in item ? await item.finalMessage() : item;
+        stopReasons.push(message.stop_reason);
+        onMessage(message);
+      }
+      return stopReasons;
+    }
+
+    const testLogger = () => ({ debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() });
+
+    it.each([false, true])('is sent once the tool calls have run (stream=%s)', async (stream) => {
+      const context_management = { edits: [{ type: 'clear_tool_uses_20250919' as const }] };
+      // The compaction request is not a model turn, so both real turns still fit.
+      const params = { context_management, max_iterations: 2 };
+      const { runner, handleRequest } = stream ? setupTest({ ...params, stream: true }) : setupTest(params);
+      const bodies: Array<Record<string, unknown>> = [];
+      // A block type this SDK version doesn't model has to go back with the rest of the response.
+      const listing = { type: 'mcp_tool_listing', mcp_server_name: 'docs', tools: [] };
+      const compaction = assistantMessage(
+        'compaction',
+        compactionBlock(),
+        listing as unknown as BetaContentBlock,
+      );
+
+      reply(handleRequest, bodies, toolTurn(), stream);
+      reply(handleRequest, bodies, compaction, stream);
+      reply(handleRequest, bodies, finalTurn(), stream);
+      failOnAnotherRequest(handleRequest);
+
+      const yielded: BetaMessage[] = [];
+      const stopReasons = await run(runner, (message) => {
+        yielded.push(message);
+        if (message.stop_reason === 'tool_use') {
+          runner.compactBeforeNextTurn({ type: 'summarize', instructions: 'Keep the city.' });
+        }
+      });
+
+      expect(stopReasons).toEqual(['tool_use', 'compaction', 'end_turn']);
+      expect(yielded[1]).toMatchObject({ id: compaction.id, content: compaction.content });
+      expect(bodies).toHaveLength(3);
+      const [first, compactionRequest, after] = [bodies[0]!, bodies[1]!, bodies[2]!];
+      expect(first).not.toHaveProperty('compaction');
+      expect(compactionRequest['compaction']).toEqual({ type: 'summarize', instructions: 'Keep the city.' });
+      expect(compactionRequest).not.toHaveProperty('context_management');
+      expect(compactionRequest['messages']).toEqual(historyAfterToolTurn());
+      expect(compactionRequest['stream']).toBe(stream);
+      expect(after['messages']).toEqual([{ role: 'assistant', content: [compactionBlock(), listing] }]);
+      expect(after).not.toHaveProperty('compaction');
+      expect(after['context_management']).toEqual(context_management);
+      expect(runner.params.messages).toHaveLength(2);
+    });
+
+    it('sends only the betas the caller passed', async () => {
+      const betaHeaders: Array<string | null> = [];
+      const answer = (handleRequest: (handler: Fetch) => void, message: BetaMessage) =>
+        handleRequest(async (_req, init) => {
+          betaHeaders.push(new Headers(init!.headers as Record<string, string>).get('anthropic-beta'));
+          return new Response(JSON.stringify(message), { headers: { 'content-type': 'application/json' } });
+        });
+
+      for (const betas of [undefined, ['compact-2026-09-04']]) {
+        const { runner, handleRequest } = setupTest(betas ? { betas } : {});
+        answer(handleRequest, compacted());
+        answer(handleRequest, finalTurn());
+        runner.compactBeforeNextTurn();
+        await runner.runUntilDone();
+      }
+
+      expect(betaHeaders).toEqual([null, null, 'compact-2026-09-04', 'compact-2026-09-04']);
+    });
+
+    it('is the first request when called before iterating', async () => {
+      const { runner, handleRequest } = setupTest();
+      const bodies: Array<Record<string, unknown>> = [];
+
+      reply(handleRequest, bodies, compacted(), false);
+      reply(handleRequest, bodies, finalTurn(), false);
+      failOnAnotherRequest(handleRequest);
+
+      // An edit made before the compaction request is part of what gets summarized.
+      runner.pushMessages({ role: 'user', content: 'And in NYC?' });
+      runner.compactBeforeNextTurn();
+      await expect(runner.runUntilDone()).resolves.toMatchObject({ stop_reason: 'end_turn' });
+
+      expect(bodies.map((body) => body['compaction'])).toEqual([{ type: 'summarize' }, undefined]);
+      expect(bodies[0]!['messages']).toEqual([question, { role: 'user', content: 'And in NYC?' }]);
+      expect(bodies[1]!['messages']).toEqual(compactionBlockAlone());
+    });
+
+    it('replaces the pending compaction when called again', async () => {
+      const { runner, handleRequest } = setupTest();
+      const bodies: Array<Record<string, unknown>> = [];
+
+      reply(handleRequest, bodies, toolTurn(), false);
+      reply(handleRequest, bodies, compacted(), false);
+      reply(handleRequest, bodies, finalTurn(), false);
+      failOnAnotherRequest(handleRequest);
+
+      await run(runner, (message) => {
+        if (message.stop_reason === 'tool_use') {
+          runner.compactBeforeNextTurn({ type: 'summarize', instructions: 'Keep the city.' });
+          runner.compactBeforeNextTurn({ type: 'summarize', instructions: 'Keep the units.' });
+        }
+      });
+
+      expect(bodies.map((body) => body['compaction'])).toEqual([
+        undefined,
+        { type: 'summarize', instructions: 'Keep the units.' },
+        undefined,
+      ]);
+    });
+
+    const pausedTurn = () =>
+      assistantMessage('pause_turn', getTextContent('Let me look that up.'), {
+        type: 'server_tool_use',
+        id: 'srvtoolu_1',
+        name: 'web_search',
+        input: { query: 'weather in SF' },
+      });
+    const badRequest = async () =>
+      new Response(
+        JSON.stringify({ type: 'error', error: { type: 'invalid_request_error', message: 'Bad request' } }),
+        { status: 400, headers: { 'content-type': 'application/json' } },
+      );
+
+    // The older pause_after_compaction turn (`compaction`) is resumed the same way as `pause_turn`.
+    it.each(['pause_turn', 'compaction'] as const)(
+      'waits for a paused turn (%s) to finish',
+      async (stop_reason) => {
+        const { runner, handleRequest } = setupTest();
+        const bodies: Array<Record<string, unknown>> = [];
+        const paused = stop_reason === 'pause_turn' ? pausedTurn() : compacted('Earlier summary.', 'sig_00');
+
+        reply(handleRequest, bodies, paused, false);
+        reply(handleRequest, bodies, toolTurn(), false);
+        reply(handleRequest, bodies, compacted(), false);
+        reply(handleRequest, bodies, finalTurn(), false);
+        failOnAnotherRequest(handleRequest);
+
+        let yielded = 0;
+        await run(runner, () => {
+          if (++yielded === 1) {
+            runner.compactBeforeNextTurn();
+          }
+        });
+
+        expect(bodies.map((body) => body['compaction'])).toEqual([
+          undefined,
+          undefined,
+          { type: 'summarize' },
+          undefined,
+        ]);
+        expect(bodies[1]!['messages']).toEqual([question, { role: 'assistant', content: paused.content }]);
+        expect((bodies[2]!['messages'] as unknown[]).at(-1)).toEqual({
+          role: 'user',
+          content: [getWeatherToolResult('SF')],
+        });
+        expect(bodies[3]!['messages']).toEqual(compactionBlockAlone());
+      },
+    );
+
+    it('still waits for the paused turn when the request resuming it failed', async () => {
+      const { runner, handleRequest } = setupTest();
+      const bodies: Array<Record<string, unknown>> = [];
+
+      reply(handleRequest, bodies, pausedTurn(), false);
+      handleRequest(badRequest);
+      await expect(run(runner, () => runner.compactBeforeNextTurn())).rejects.toThrow(
+        Anthropic.BadRequestError,
+      );
+
+      reply(handleRequest, bodies, finalTurn(), false);
+      reply(handleRequest, bodies, compacted(), false);
+      failOnAnotherRequest(handleRequest);
+      await run(runner, () => {});
+
+      expect(bodies.map((body) => body['compaction'])).toEqual([undefined, undefined, { type: 'summarize' }]);
+    });
+
+    it.each([false, true])(
+      'is sent on the final turn before the runner stops (stream=%s)',
+      async (stream) => {
+        // The final answer is also the last iteration allowed; the compaction still goes out.
+        const { runner, handleRequest } =
+          stream ? setupTest({ max_iterations: 1, stream: true }) : setupTest({ max_iterations: 1 });
+        const bodies: Array<Record<string, unknown>> = [];
+        const final = finalTurn();
+
+        reply(handleRequest, bodies, final, stream);
+        reply(handleRequest, bodies, compacted(), stream);
+        failOnAnotherRequest(handleRequest);
+
+        const stopReasons = await run(runner, (message) => {
+          if (message.stop_reason === 'end_turn') {
+            runner.compactBeforeNextTurn();
+          }
+        });
+
+        expect(stopReasons).toEqual(['end_turn', 'compaction']);
+        expect(bodies[1]!['compaction']).toEqual({ type: 'summarize' });
+        expect(bodies[1]!['messages']).toEqual([question, { role: 'assistant', content: final.content }]);
+        expect(runner.params.messages).toEqual(compactionBlockAlone());
+        await expect(runner.done()).resolves.toMatchObject({ stop_reason: 'compaction' });
+      },
+    );
+
+    it('is skipped with a warning when the final turn has tool calls that never ran', async () => {
+      const logger = testLogger();
+      const { runner, handleRequest } = setupTest({}, { logger });
+      const bodies: Array<Record<string, unknown>> = [];
+
+      reply(handleRequest, bodies, assistantMessage('max_tokens', getWeatherToolUse('SF')), false);
+      failOnAnotherRequest(handleRequest);
+
+      const stopReasons = await run(runner, () => runner.compactBeforeNextTurn());
+
+      expect(stopReasons).toEqual(['max_tokens']);
+      expect(bodies).toHaveLength(1);
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('The pending compaction was skipped'));
+    });
+
+    it('is dropped when max_iterations ends the run after a tool turn', async () => {
+      const logger = testLogger();
+      const { runner, handleRequest } = setupTest({ max_iterations: 1 }, { logger });
+      const bodies: Array<Record<string, unknown>> = [];
+
+      reply(handleRequest, bodies, toolTurn(), false);
+      failOnAnotherRequest(handleRequest);
+
+      await run(runner, () => runner.compactBeforeNextTurn());
+
+      expect(bodies).toHaveLength(1);
+      expect(logger.warn).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      // A failed compaction: the block is there, without a summary.
+      ['a block without content', assistantMessage('compaction', compactionBlock(null))],
+      // Or nothing at all, with the summarization call's own stop reason.
+      ['no content', assistantMessage('max_tokens')],
+    ])('keeps the history and warns when the response has %s', async (_, response) => {
+      const logger = testLogger();
+      const { runner, handleRequest } = setupTest({}, { logger });
+      const bodies: Array<Record<string, unknown>> = [];
+
+      reply(handleRequest, bodies, toolTurn(), false);
+      reply(handleRequest, bodies, response, false);
+      reply(handleRequest, bodies, finalTurn(), false);
+      failOnAnotherRequest(handleRequest);
+
+      let yielded = 0;
+      await run(runner, () => {
+        // The second call is made on the compaction response, so it is ignored: no retry is sent.
+        if (++yielded <= 2) {
+          runner.compactBeforeNextTurn();
+        }
+      });
+
+      expect(bodies).toHaveLength(3);
+      expect(bodies[2]!['messages']).toEqual(bodies[1]!['messages']);
+      expect(bodies[2]).not.toHaveProperty('compaction');
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Compaction produced no summary'));
+    });
+
+    it('resolves to the final answer when a final-turn compaction produces no summary', async () => {
+      const { runner, handleRequest } = setupTest({}, { logger: testLogger() });
+      const final = finalTurn();
+
+      reply(handleRequest, [], final, false);
+      reply(handleRequest, [], assistantMessage('max_tokens'), false);
+      failOnAnotherRequest(handleRequest);
+
+      const stopReasons = await run(runner, (message) => {
+        if (message.stop_reason === 'end_turn') {
+          runner.compactBeforeNextTurn();
+        }
+      });
+
+      expect(stopReasons).toEqual(['end_turn', 'max_tokens']);
+      await expect(runner.done()).resolves.toMatchObject({ id: final.id, stop_reason: 'end_turn' });
+      expect(runner.params.messages).toEqual([question, { role: 'assistant', content: final.content }]);
+    });
+
+    it('ignores a call made on the compaction response', async () => {
+      const edits: Array<{ type: 'compact_20260112' }> = [];
+      const { runner, handleRequest } = setupTest({ context_management: { edits } });
+      const bodies: Array<Record<string, unknown>> = [];
+
+      reply(handleRequest, bodies, toolTurn(), false);
+      reply(handleRequest, bodies, compacted(), false);
+      reply(handleRequest, bodies, finalTurn(), false);
+      failOnAnotherRequest(handleRequest);
+
+      // A token threshold keeps firing on the compaction response, whose usage counts what it summarized.
+      const stopReasons = await run(runner, (message) => {
+        if (message.stop_reason === 'compaction') {
+          // A call that is going to be ignored doesn't throw either.
+          edits.push({ type: 'compact_20260112' });
+        }
+        if (message.stop_reason !== 'end_turn') {
+          runner.compactBeforeNextTurn();
+        }
+      });
+
+      expect(stopReasons).toEqual(['tool_use', 'compaction', 'end_turn']);
+      expect(bodies.map((body) => body['compaction'])).toEqual([undefined, { type: 'summarize' }, undefined]);
+    });
+
+    it('refuses to replace the messages while the conversation is being compacted', async () => {
+      const { runner, handleRequest } = setupTest();
+      const bodies: Array<Record<string, unknown>> = [];
+
+      reply(handleRequest, bodies, toolTurn(), false);
+      reply(handleRequest, bodies, compacted(), false);
+      reply(handleRequest, bodies, finalTurn(), false);
+
+      await run(runner, (message) => {
+        if (message.stop_reason === 'tool_use') {
+          runner.compactBeforeNextTurn();
+        } else if (message.stop_reason === 'compaction') {
+          const refusal = "Message params can't be changed while the conversation is being compacted";
+          expect(() => runner.pushMessages({ role: 'user', content: 'And in NYC?' })).toThrow(refusal);
+          expect(() => runner.setMessagesParams((params) => ({ ...params, messages: [] }))).toThrow(refusal);
+          // Other params can still change, and the change is kept after the history is replaced.
+          runner.setMessagesParams((params) => ({ ...params, max_tokens: 2048 }));
+        }
+      });
+
+      expect(bodies[2]!['messages']).toEqual(compactionBlockAlone());
+      expect(bodies[2]!['max_tokens']).toBe(2048);
+    });
+
+    it('has no tool results to give for the compaction response', async () => {
+      const { runner, handleRequest } = setupTest();
+
+      reply(handleRequest, [], toolTurn(), false);
+      reply(handleRequest, [], compacted(), false);
+
+      const iterator = runner[Symbol.asyncIterator]();
+      await expectEvent(iterator, () => runner.compactBeforeNextTurn());
+      await expectEvent(iterator, async (message) => {
+        expect(message.stop_reason).toBe('compaction');
+        await expect(runner.generateToolResponse()).resolves.toBeNull();
+      });
+    });
+
+    it('lets the messages change again after a compaction request fails', async () => {
+      const { runner, handleRequest } = setupTest();
+
+      reply(handleRequest, [], toolTurn(), false);
+      handleRequest(badRequest);
+
+      await expect(
+        run(runner, (message) => {
+          if (message.stop_reason === 'tool_use') {
+            runner.compactBeforeNextTurn();
+          }
+        }),
+      ).rejects.toThrow(Anthropic.BadRequestError);
+
+      runner.pushMessages({ role: 'user', content: 'And in NYC?' });
+      expect(runner.params.messages).toHaveLength(4);
+    });
+
+    it('lets the messages change again after leaving the loop on the compaction response', async () => {
+      const { runner, handleRequest } = setupTest();
+
+      reply(handleRequest, [], toolTurn(), false);
+      reply(handleRequest, [], compacted(), false);
+
+      for await (const message of runner) {
+        if (message.stop_reason === 'compaction') {
+          break;
+        }
+        runner.compactBeforeNextTurn();
+      }
+
+      runner.pushMessages({ role: 'user', content: 'And in NYC?' });
+      expect(runner.params.messages).toHaveLength(4);
+    });
+
+    it('refuses `compaction` in the runner params', () => {
+      const refusal =
+        '`compaction` cannot be set on a tool runner: every request in the loop would compact again. ' +
+        'Call `runner.compactBeforeNextTurn()` when the conversation should be compacted instead.';
+      const compaction = { type: 'summarize' as const };
+
+      // @ts-expect-error `compaction` is left out of the runner's params type
+      expect(() => setupTest({ compaction })).toThrow(refusal);
+
+      const { runner } = setupTest();
+      expect(() => runner.setMessagesParams((params) => ({ ...params, compaction }))).toThrow(refusal);
+      expect(() => runner.setMessagesParams({ ...runner.params, compaction } as ToolRunnerParams)).toThrow(
+        refusal,
+      );
+      expect(runner.params).not.toHaveProperty('compaction');
+    });
+
+    it('is refused while context_management has a compaction edit', async () => {
+      const compactionEdit = { type: 'compact_20260112' as const };
+      const context_management = { edits: [compactionEdit] };
+      const refusal = 'has a compaction edit';
+
+      expect(() => setupTest({ context_management }).runner.compactBeforeNextTurn()).toThrow(refusal);
+
+      // Once a compaction is scheduled, the setter refuses the edit too...
+      const edits: Array<typeof compactionEdit> = [];
+      const { runner, handleRequest } = setupTest({ context_management: { edits } });
+      failOnAnotherRequest(handleRequest);
+      runner.compactBeforeNextTurn();
+      expect(() => runner.setMessagesParams((params) => ({ ...params, context_management }))).toThrow(
+        refusal,
+      );
+      // ...and an edit made to the caller's own params object is caught when the request would be sent.
+      edits.push(compactionEdit);
+      await expect(runner.runUntilDone()).rejects.toThrow(refusal);
+    });
   });
 
   describe('next step from stop_reason', () => {
