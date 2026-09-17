@@ -3,7 +3,7 @@ import { APIError } from '@anthropic-ai/sdk/core/error';
 
 import util from 'node:util';
 import Anthropic from '@anthropic-ai/sdk';
-import { APIUserAbortError } from '@anthropic-ai/sdk';
+import { APIUserAbortError, InternalServerError } from '@anthropic-ai/sdk';
 const defaultFetch = fetch;
 
 describe('instantiate client', () => {
@@ -623,6 +623,34 @@ describe('retries', () => {
     await expect(client.request({ path: '/foo', method: 'get', maxRetries: -1 })).rejects.toThrow(
       'maxRetries must be',
     );
+  });
+
+  test.each([
+    ['a ReadableStream', () => new Response('hello').body],
+    [
+      'an async iterator',
+      () =>
+        (async function* () {
+          yield new TextEncoder().encode('hello');
+        })(),
+    ],
+  ])('%s body is sent once, so a retryable error is thrown rather than retried', async (_, makeBody) => {
+    let count = 0;
+    const testFetch = async (): Promise<Response> => {
+      count++;
+      return new Response(JSON.stringify({ message: 'unavailable' }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    };
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      fetch: testFetch,
+      maxRetries: 3,
+    });
+
+    await expect(client.post('/foo', { body: makeBody() })).rejects.toThrow(InternalServerError);
+    expect(count).toEqual(1);
   });
 
   test('retry on timeout', async () => {

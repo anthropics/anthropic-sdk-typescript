@@ -1123,7 +1123,10 @@ export class BaseAnthropic {
     retryOfRequestLogID: string | undefined,
   ): Promise<APIResponseProps> {
     const options = await optionsInput;
-    const maxRetries = validatePositiveInteger('maxRetries', options.maxRetries ?? this.maxRetries);
+    let maxRetries = validatePositiveInteger('maxRetries', options.maxRetries ?? this.maxRetries);
+    if (this.isStreamBody(options.body)) {
+      maxRetries = 0;
+    }
     if (retriesRemaining == null) {
       retriesRemaining = maxRetries;
       // Top-level call: reset per-request auth flags so a reused options object
@@ -1619,11 +1622,7 @@ export class BaseAnthropic {
       ((globalThis as any).ReadableStream && body instanceof (globalThis as any).ReadableStream)
     ) {
       return { bodyHeaders: undefined, body: body as BodyInit };
-    } else if (
-      typeof body === 'object' &&
-      (Symbol.asyncIterator in body ||
-        (Symbol.iterator in body && 'next' in body && typeof body.next === 'function'))
-    ) {
+    } else if (this.isStreamBody(body)) {
       return { bodyHeaders: undefined, body: Shims.ReadableStreamFrom(body as AsyncIterable<Uint8Array>) };
     } else if (
       typeof body === 'object' &&
@@ -1636,6 +1635,22 @@ export class BaseAnthropic {
     } else {
       return this.#encoder({ body, headers });
     }
+  }
+
+  /**
+   * Whether `body` is sent as a stream, which can be read only once:
+   * a `ReadableStream`, an async iterable or an iterator.
+   */
+  private isStreamBody(body: unknown): boolean {
+    if ((globalThis as any).ReadableStream && body instanceof (globalThis as any).ReadableStream) {
+      return true;
+    }
+    return (
+      typeof body === 'object' &&
+      body !== null &&
+      (Symbol.asyncIterator in body ||
+        (Symbol.iterator in body && 'next' in body && typeof body.next === 'function'))
+    );
   }
 
   static Anthropic = this;
