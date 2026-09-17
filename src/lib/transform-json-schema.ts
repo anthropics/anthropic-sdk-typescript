@@ -71,6 +71,21 @@ function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
     strictSchema['title'] = title;
   }
 
+  // Preserve machine-readable discriminants. Dumping these into `description`
+  // breaks Zod discriminated unions / literal branches for helpers that run
+  // through this transformer (e.g. betaZodOutputFormat / jsonSchemaOutputFormat).
+  // See https://github.com/anthropics/anthropic-sdk-typescript/issues/1116
+  // (note: betaZodTool does not call transformJSONSchema today).
+  const constValue = pop(jsonSchema, 'const');
+  if (constValue !== undefined) {
+    strictSchema['const'] = constValue;
+  }
+
+  const enumValue = pop(jsonSchema, 'enum');
+  if (enumValue !== undefined) {
+    strictSchema['enum'] = enumValue;
+  }
+
   if (type === 'object') {
     const properties = pop(jsonSchema, 'properties') || {};
 
