@@ -260,6 +260,79 @@ describe('BetaLocalFilesystemMemoryTool', () => {
         }),
       ).rejects.toThrow('The path /memories/nonexistent.txt does not exist. Please provide a valid path.');
     });
+
+    it('should replace a multi-line old_str', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: '# Title\n\n## Notes\n- (none yet)\n\n## End\n',
+        path: '/memories/multiline.md',
+      });
+
+      await tool.str_replace({
+        command: 'str_replace',
+        path: '/memories/multiline.md',
+        old_str: '## Notes\n- (none yet)',
+        new_str: '## Notes\n- first note',
+      });
+
+      const content = await fs.readFile(path.join(tempDir, 'memories', 'multiline.md'), 'utf-8');
+      expect(content).toBe('# Title\n\n## Notes\n- first note\n\n## End\n');
+    });
+
+    it('should report every line when a multi-line old_str appears more than once', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: 'a\nb\nfiller\na\nb\n',
+        path: '/memories/multi_dup.txt',
+      });
+
+      await expect(
+        tool.str_replace({
+          command: 'str_replace',
+          path: '/memories/multi_dup.txt',
+          old_str: 'a\nb',
+          new_str: 'c',
+        }),
+      ).rejects.toThrow(
+        'No replacement was performed. Multiple occurrences of old_str `a\nb` in lines: 1, 4. ' +
+          'Please ensure it is unique',
+      );
+    });
+
+    it('should delete old_str when new_str is omitted', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: 'Line 1\nRemove Me\nLine 3',
+        path: '/memories/omitted.txt',
+      });
+
+      await tool.str_replace({
+        command: 'str_replace',
+        path: '/memories/omitted.txt',
+        old_str: 'Remove Me\n',
+      } as Parameters<typeof tool.str_replace>[0]);
+
+      const content = await fs.readFile(path.join(tempDir, 'memories', 'omitted.txt'), 'utf-8');
+      expect(content).toBe('Line 1\nLine 3');
+    });
+
+    it('should treat $ sequences in new_str literally', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: 'price: PLACEHOLDER\n',
+        path: '/memories/dollar.txt',
+      });
+
+      await tool.str_replace({
+        command: 'str_replace',
+        path: '/memories/dollar.txt',
+        old_str: 'PLACEHOLDER',
+        new_str: '$& $1 $$',
+      });
+
+      const content = await fs.readFile(path.join(tempDir, 'memories', 'dollar.txt'), 'utf-8');
+      expect(content).toBe('price: $& $1 $$\n');
+    });
   });
 
   describe('insert', () => {
