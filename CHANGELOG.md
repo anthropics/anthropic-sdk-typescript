@@ -36,8 +36,7 @@ Full Changelog: [sdk-v0.126.0...sdk-v0.127.0](https://github.com/anthropics/anth
 * **internal:** keep lib/internal out of the published exports map ([763fb43](https://github.com/anthropics/anthropic-sdk-typescript/commit/763fb43ee3a8d55fda55d99fe84a3af4d894366c))
 * **internal:** re-export pagination classes with a plain export list ([c77bdc3](https://github.com/anthropics/anthropic-sdk-typescript/commit/c77bdc3ce95e56cfce425fb1fb1edf21caa74de5))
 * **internal:** share a single Simplify type util ([31d5e75](https://github.com/anthropics/anthropic-sdk-typescript/commit/31d5e7574613a6be77e9be5b88b2e73eef50dca2))
-* **internal:** switch unit tests from jest to vitest ([110542d](https://github.com/anthropics/anthropic-sdk-typescript/commit/110542dde844ce5171807af0b8f6dcd14a89a825))
-* **internal:** switch unit tests from jest to vitest ([788c9c6](https://github.com/anthropics/anthropic-sdk-typescript/commit/788c9c62ba2bd8180ffc7dcebd1cee14cd692d03))
+* **internal:** switch unit tests from jest to vitest ([110542d](https://github.com/anthropics/anthropic-sdk-typescript/commit/110542dde844ce5171807af0b8f6dcd14a89a825), [788c9c6](https://github.com/anthropics/anthropic-sdk-typescript/commit/788c9c62ba2bd8180ffc7dcebd1cee14cd692d03))
 
 ## 0.126.0 (2026-09-15)
 
