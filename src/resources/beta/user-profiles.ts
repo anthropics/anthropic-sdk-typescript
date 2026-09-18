@@ -151,6 +151,15 @@ export class UserProfiles extends APIResource {
 
 export type BetaUserProfilesPageCursor = PageCursor<BetaUserProfile>;
 
+/**
+ * A record of an entity that the platform serves through the API, such as an
+ * end-user of the platform's product or a company that the platform resells Claude
+ * access to.
+ *
+ * A Messages, Message Batches or token counting request can send a profile's `id`
+ * in the `anthropic-user-profile-id` header to attribute the request to that
+ * entity.
+ */
 export interface BetaUserProfile {
   /**
    * Unique identifier for this user profile, prefixed `uprof_`.
@@ -190,6 +199,12 @@ export interface BetaUserProfile {
    * and the profile represents an individual end-user of that product.
    * `passthrough`: the platform resells raw inference, and the profile identifies
    * the resold-to company.
+   *
+   * - `application` - The user profile represents an individual end-user of a
+   *   product that the platform builds on the API. New profiles get this value by
+   *   default.
+   * - `passthrough` - The user profile represents a company that the platform
+   *   resells Claude access to.
    */
   access_type?: 'application' | 'passthrough';
 
@@ -220,6 +235,10 @@ export interface BetaUserProfile {
   name?: string | null;
 }
 
+/**
+ * A URL to give to the entity that a user profile represents, so that the entity
+ * can enroll for a trust grant.
+ */
 export interface BetaUserProfileEnrollmentURL {
   /**
    * A timestamp in RFC 3339 format
@@ -249,6 +268,13 @@ export interface BetaUserProfileExternalUserDetails {
    * restore it; or `blocked`, when the platform has barred it. It records the
    * platform's decision only; the statuses in `trust_grants` are Anthropic's and do
    * not follow it.
+   *
+   * - `active` - The platform has neither restricted nor barred the account of the
+   *   entity that the user profile represents.
+   * - `suspended` - The platform has restricted the account of the entity that the
+   *   user profile represents and may restore it.
+   * - `blocked` - The platform has barred the account of the entity that the user
+   *   profile represents.
    */
   account_status: 'active' | 'suspended' | 'blocked' | null;
 
@@ -295,6 +321,13 @@ export interface BetaUserProfileExternalUserDetailsParams {
    * restore it; or `blocked`, when the platform has barred it. It records the
    * platform's decision only; the statuses in `trust_grants` are Anthropic's and do
    * not follow it.
+   *
+   * - `active` - The platform has neither restricted nor barred the account of the
+   *   entity that the user profile represents.
+   * - `suspended` - The platform has restricted the account of the entity that the
+   *   user profile represents and may restore it.
+   * - `blocked` - The platform has barred the account of the entity that the user
+   *   profile represents.
    */
   account_status?: 'active' | 'suspended' | 'blocked' | null;
 
@@ -337,6 +370,10 @@ export interface BetaUserProfileExternalUserDetailsParams {
   reference_id?: string | null;
 }
 
+/**
+ * The status of one trust grant on a user profile, listed in the profile's
+ * `trust_grants` map under the grant's name.
+ */
 export interface BetaUserProfileTrustGrant {
   /**
    * Status of the trust grant.
@@ -351,6 +388,12 @@ export interface UserProfileCreateParams {
    * the scenes, and the profile represents an individual end-user of that product.
    * `passthrough`: the platform resells raw inference, and the profile identifies
    * the resold-to company.
+   *
+   * - `application` - The user profile represents an individual end-user of a
+   *   product that the platform builds on the API. New profiles get this value by
+   *   default.
+   * - `passthrough` - The user profile represents a company that the platform
+   *   resells Claude access to.
    */
   access_type?: 'application' | 'passthrough';
 
@@ -429,6 +472,12 @@ export interface UserProfileUpdateParams {
    * the scenes, and the profile represents an individual end-user of that product.
    * `passthrough`: the platform resells raw inference, and the profile identifies
    * the resold-to company.
+   *
+   * - `application` - The user profile represents an individual end-user of a
+   *   product that the platform builds on the API. New profiles get this value by
+   *   default.
+   * - `passthrough` - The user profile represents a company that the platform
+   *   resells Claude access to.
    */
   access_type?: 'application' | 'passthrough' | null;
 
@@ -485,13 +534,24 @@ export interface UserProfileUpdateParams {
 
 export interface UserProfileListParams extends PageCursorParams {
   /**
-   * Query param: ListOrder enum
+   * Query param: The sort direction, applied to the field that `order_by` selects.
+   * Defaults to `desc`.
+   *
+   * - `asc` - Oldest first when `order_by` is `created_at`, or names in ascending
+   *   order when `order_by` is `name`.
+   * - `desc` - Newest first when `order_by` is `created_at`, or names in descending
+   *   order when `order_by` is `name`. This is the default.
    */
   order?: 'asc' | 'desc';
 
   /**
-   * Query param: Sort field for listing user profiles: `created_at` (default) or
-   * `name` (case-insensitive; profiles without a name sort last).
+   * Query param: The field to sort user profiles by, in the direction that `order`
+   * sets. Defaults to `created_at`.
+   *
+   * - `created_at` - Sort by when each user profile was created. This is the
+   *   default.
+   * - `name` - Sort by `name`, ignoring the case of ASCII letters. Profiles without
+   *   a name come last in either direction.
    */
   order_by?: 'created_at' | 'name';
 

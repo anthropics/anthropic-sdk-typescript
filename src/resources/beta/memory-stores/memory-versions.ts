@@ -288,7 +288,7 @@ export interface BetaManagedAgentsUserActor {
 
 export interface MemoryVersionRetrieveParams {
   /**
-   * Path param
+   * Path param: The ID of the memory store that holds the version (`memstore_...`).
    */
   memory_store_id: string;
 
@@ -319,7 +319,7 @@ export interface MemoryVersionRetrieveParams {
 
 export interface MemoryVersionListParams extends PageCursorParams {
   /**
-   * Query param
+   * Query param: Return only versions written with the API key that has this ID.
    */
   api_key_id?: string;
 
@@ -334,23 +334,26 @@ export interface MemoryVersionListParams extends PageCursorParams {
   'created_at[lte]'?: string;
 
   /**
-   * Query param
+   * Query param: Return only versions of the memory with this ID (`mem_...`).
+   *
+   * The filter still works after the memory is deleted. The results then include the
+   * version whose `operation` is `deleted`.
    */
   memory_id?: string;
 
   /**
-   * Query param: The kind of mutation a `memory_version` records. Every non-no-op
-   * mutation to a memory appends exactly one version row with one of these values.
+   * Query param: Return only versions that record this kind of change.
    */
   operation?: BetaManagedAgentsMemoryVersionOperation;
 
   /**
-   * Query param
+   * Query param: Return only versions written by the service account with this ID
+   * (`svac_...`).
    */
   service_account_id?: string;
 
   /**
-   * Query param
+   * Query param: Return only versions written by the session with this ID.
    */
   session_id?: string;
 
@@ -381,7 +384,7 @@ export interface MemoryVersionListParams extends PageCursorParams {
 
 export interface MemoryVersionRedactParams {
   /**
-   * Path param
+   * Path param: The ID of the memory store that holds the version (`memstore_...`).
    */
   memory_store_id: string;
 
