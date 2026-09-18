@@ -99,10 +99,10 @@ function makeWork(id = 'work_1', dataType = 'session'): Record<string, unknown> 
 
 describe('WorkPoller', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   test('yields the work item and posts ack before yield, stop after consumer body', async () => {
@@ -125,7 +125,7 @@ describe('WorkPoller', () => {
       }
     })();
 
-    await jest.advanceTimersByTimeAsync(5_000);
+    await vi.advanceTimersByTimeAsync(5_000);
     await consumer;
 
     expect(items).toEqual([{ workId: 'work_1' }]);
@@ -155,7 +155,7 @@ describe('WorkPoller', () => {
         break;
       }
     })();
-    await jest.advanceTimersByTimeAsync(5_000);
+    await vi.advanceTimersByTimeAsync(5_000);
     await consumer;
 
     expect(withOptionsCalls).toContainEqual(
@@ -179,7 +179,7 @@ describe('WorkPoller', () => {
         break;
       }
     })();
-    await jest.advanceTimersByTimeAsync(5_000);
+    await vi.advanceTimersByTimeAsync(5_000);
     await consumer;
 
     expect(calls.some((c) => c.method === 'stop')).toBe(true);
@@ -210,7 +210,7 @@ describe('WorkPoller', () => {
         }
       })();
       // Drive past the initial 1s backoff window.
-      await jest.advanceTimersByTimeAsync(2_000);
+      await vi.advanceTimersByTimeAsync(2_000);
       await consumer;
 
       expect(calls.filter((c) => c.method === 'poll').length).toBe(2);
@@ -234,7 +234,7 @@ describe('WorkPoller', () => {
       }
     })();
     const outcome = expect(consumer).rejects.toBe(err);
-    await jest.advanceTimersByTimeAsync(5_000);
+    await vi.advanceTimersByTimeAsync(5_000);
     await outcome;
 
     expect(calls.filter((c) => c.method === 'poll').length).toBe(1);
@@ -253,7 +253,7 @@ describe('WorkPoller', () => {
         break;
       }
     })();
-    await jest.advanceTimersByTimeAsync(5_000);
+    await vi.advanceTimersByTimeAsync(5_000);
     await consumer;
 
     expect(calls.some((c) => c.method === 'stop')).toBe(true);
@@ -277,7 +277,7 @@ describe('WorkPoller', () => {
       }
     })();
     abortCtl.abort();
-    await jest.advanceTimersByTimeAsync(5_000);
+    await vi.advanceTimersByTimeAsync(5_000);
     await consumer;
     // Reaching here without timeout is the assertion.
     expect(iter.signal.aborted).toBe(true);
@@ -316,7 +316,7 @@ describe('WorkPoller', () => {
         break;
       }
     })();
-    await jest.advanceTimersByTimeAsync(5_000);
+    await vi.advanceTimersByTimeAsync(5_000);
     await consumer;
 
     const poll = calls.find((c) => c.method === 'poll')!;
@@ -342,7 +342,7 @@ describe('WorkPoller', () => {
         break;
       }
     })();
-    await jest.advanceTimersByTimeAsync(5_000);
+    await vi.advanceTimersByTimeAsync(5_000);
     await consumer;
 
     const poll = calls.find((c) => c.method === 'poll')!;
@@ -367,7 +367,7 @@ describe('WorkPoller', () => {
         break;
       }
     })();
-    await jest.advanceTimersByTimeAsync(5_000);
+    await vi.advanceTimersByTimeAsync(5_000);
     await consumer;
 
     const poll = calls.find((c) => c.method === 'poll')!;
@@ -389,7 +389,7 @@ describe('WorkPoller', () => {
     const consumer = (async () => {
       for await (const work of iter) items.push(work);
     })();
-    await jest.advanceTimersByTimeAsync(5_000);
+    await vi.advanceTimersByTimeAsync(5_000);
     await consumer;
 
     expect(items).toEqual([]);
@@ -411,7 +411,7 @@ describe('WorkPoller', () => {
       }
     })();
     // Advance past the empty-poll jittered wait (1-3s) so the second poll runs.
-    await jest.advanceTimersByTimeAsync(5_000);
+    await vi.advanceTimersByTimeAsync(5_000);
     await consumer;
 
     expect(calls.filter((c) => c.method === 'poll').length).toBe(2);
@@ -434,7 +434,7 @@ describe('WorkPoller', () => {
         break;
       }
     })();
-    await jest.advanceTimersByTimeAsync(5_000);
+    await vi.advanceTimersByTimeAsync(5_000);
     await consumer;
 
     // poll + ack happened, but the poller left the stop to the consumer.
@@ -448,13 +448,13 @@ describe('WorkPoller', () => {
     // item), DEBUG per empty poll after that, and an INFO reminder every 5 minutes.
     const abortCtl = new AbortController();
     // Absolute times: the jittered waits move the fake clock too, so a relative jump would not print 301s.
-    jest.setSystemTime(0);
+    vi.setSystemTime(0);
     const { client, logs } = makeFakeClient({
       poll: [
         { type: 'null' },
         { type: 'null' },
         { type: 'null' },
-        { type: 'null', before: () => jest.setSystemTime(301_000) },
+        { type: 'null', before: () => vi.setSystemTime(301_000) },
         { type: 'null' },
         { type: 'work', value: makeWork('work_a') },
         { type: 'null' },
@@ -475,7 +475,7 @@ describe('WorkPoller', () => {
       }
     })();
     // Six empty-poll waits of at most 3s each separate the eight polls.
-    await jest.advanceTimersByTimeAsync(30_000);
+    await vi.advanceTimersByTimeAsync(30_000);
     await consumer;
 
     const pollerLines = (level: LogRecord['level']) =>

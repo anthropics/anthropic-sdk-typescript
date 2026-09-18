@@ -164,7 +164,7 @@ describe('resource messages', () => {
 });
 
 test('create: does not warn for non-deprecated models', async () => {
-  const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+  const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
   await client.messages.create({
     max_tokens: 1024,

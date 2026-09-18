@@ -50,7 +50,13 @@ export { Organization, type BetaOrganization, type BetaOrganizationRole } from '
 export {
   RateLimits,
   type BetaOrganizationRateLimit,
+  type BetaOrganizationRateLimitBatchGroup,
+  type BetaOrganizationRateLimitFilesGroup,
+  type BetaOrganizationRateLimitModelGroup,
+  type BetaOrganizationRateLimitSkillsGroup,
+  type BetaOrganizationRateLimitTokenCountGroup,
   type BetaOrganizationRateLimitValue,
+  type BetaOrganizationRateLimitWebSearchGroup,
   type RateLimitListParams,
   type BetaOrganizationRateLimitsPageCursor,
 } from './rate-limits';

@@ -53,7 +53,13 @@ import {
 import * as RateLimitsAPI from './rate-limits';
 import {
   BetaOrganizationRateLimit,
+  BetaOrganizationRateLimitBatchGroup,
+  BetaOrganizationRateLimitFilesGroup,
+  BetaOrganizationRateLimitModelGroup,
+  BetaOrganizationRateLimitSkillsGroup,
+  BetaOrganizationRateLimitTokenCountGroup,
   BetaOrganizationRateLimitValue,
+  BetaOrganizationRateLimitWebSearchGroup,
   BetaOrganizationRateLimitsPageCursor,
   RateLimitListParams,
   RateLimits,
@@ -252,7 +258,13 @@ export declare namespace Organization {
   export {
     RateLimits as RateLimits,
     type BetaOrganizationRateLimit as BetaOrganizationRateLimit,
+    type BetaOrganizationRateLimitBatchGroup as BetaOrganizationRateLimitBatchGroup,
+    type BetaOrganizationRateLimitFilesGroup as BetaOrganizationRateLimitFilesGroup,
+    type BetaOrganizationRateLimitModelGroup as BetaOrganizationRateLimitModelGroup,
+    type BetaOrganizationRateLimitSkillsGroup as BetaOrganizationRateLimitSkillsGroup,
+    type BetaOrganizationRateLimitTokenCountGroup as BetaOrganizationRateLimitTokenCountGroup,
     type BetaOrganizationRateLimitValue as BetaOrganizationRateLimitValue,
+    type BetaOrganizationRateLimitWebSearchGroup as BetaOrganizationRateLimitWebSearchGroup,
     type BetaOrganizationRateLimitsPageCursor as BetaOrganizationRateLimitsPageCursor,
     type RateLimitListParams as RateLimitListParams,
   };

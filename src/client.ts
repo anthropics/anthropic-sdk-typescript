@@ -31,12 +31,16 @@ export type { Middleware, MiddlewareContext, MiddlewareNext } from './core/middl
 export type { APIRequest } from './core/api';
 import * as Pagination from './core/pagination';
 import {
+  type BidirectionalPageCursor,
   type BidirectionalPageCursorParams,
   BidirectionalPageCursorResponse,
+  type Page,
+  type PageCursor,
   type PageCursorParams,
   PageCursorResponse,
   type PageParams,
   PageResponse,
+  type TokenPage,
   type TokenPageParams,
   TokenPageResponse,
 } from './core/pagination';
@@ -358,8 +362,8 @@ import { readEnv } from './internal/utils/env';
 import {
   type LogLevel,
   type Logger,
+  debugLogRequestDetails,
   defaultLogLevel,
-  formatRequestDetails,
   loggerFor,
   parseLogLevel,
 } from './internal/utils/log';
@@ -1046,7 +1050,7 @@ export class BaseAnthropic {
         ?.split(',')
         .map((s) => s.trim());
       if (!existing?.includes(OAUTH_API_BETA_HEADER)) {
-        headers.append('anthropic-beta', OAUTH_API_BETA_HEADER);
+        headers.set('anthropic-beta', [...(existing ?? []), OAUTH_API_BETA_HEADER].join(','));
       }
       request.headers = headers;
     }
@@ -1119,7 +1123,10 @@ export class BaseAnthropic {
     retryOfRequestLogID: string | undefined,
   ): Promise<APIResponseProps> {
     const options = await optionsInput;
-    const maxRetries = validatePositiveInteger('maxRetries', options.maxRetries ?? this.maxRetries);
+    let maxRetries = validatePositiveInteger('maxRetries', options.maxRetries ?? this.maxRetries);
+    if (this.isStreamBody(options.body)) {
+      maxRetries = 0;
+    }
     if (retriesRemaining == null) {
       retriesRemaining = maxRetries;
       // Top-level call: reset per-request auth flags so a reused options object
@@ -1172,43 +1179,42 @@ export class BaseAnthropic {
         this.middleware.length > 0 || !!options.middleware?.length || this.backendMiddleware().length > 0;
       if (hasMiddleware && !isTimeout && !isRetryableError(response)) {
         loggerFor(this).info(`[${requestLogID}] middleware error (not retryable)`);
-        loggerFor(this).debug(
-          `[${requestLogID}] middleware error (not retryable)`,
-          formatRequestDetails({
-            retryOfRequestLogID,
-            url,
-            durationMs: headersTime - startTime,
-            message: response.message,
-          }),
-        );
+        debugLogRequestDetails(loggerFor(this), `[${requestLogID}] middleware error (not retryable)`, {
+          retryOfRequestLogID,
+          url,
+          durationMs: headersTime - startTime,
+          message: response.message,
+        });
         throw response;
       }
       if (retriesRemaining) {
         loggerFor(this).info(
           `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - ${retryMessage}`,
         );
-        loggerFor(this).debug(
+        debugLogRequestDetails(
+          loggerFor(this),
           `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (${retryMessage})`,
-          formatRequestDetails({
+          {
             retryOfRequestLogID,
             url,
             durationMs: headersTime - startTime,
             message: response.message,
-          }),
+          },
         );
         return this.retryRequest(options, retriesRemaining, retryOfRequestLogID ?? requestLogID);
       }
       loggerFor(this).info(
         `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - error; no more retries left`,
       );
-      loggerFor(this).debug(
+      debugLogRequestDetails(
+        loggerFor(this),
         `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (error; no more retries left)`,
-        formatRequestDetails({
+        {
           retryOfRequestLogID,
           url,
           durationMs: headersTime - startTime,
           message: response.message,
-        }),
+        },
       );
       if (isTimeout) {
         throw new Errors.APIConnectionTimeoutError();
@@ -1238,16 +1244,13 @@ export class BaseAnthropic {
         await Shims.CancelReadableStream(response.body);
         releaseRequestSignal(controller);
         loggerFor(this).info(`${responseInfo} - ${retryMessage}`);
-        loggerFor(this).debug(
-          `[${requestLogID}] response error (${retryMessage})`,
-          formatRequestDetails({
-            retryOfRequestLogID,
-            url: response.url,
-            status: response.status,
-            headers: response.headers,
-            durationMs: headersTime - startTime,
-          }),
-        );
+        debugLogRequestDetails(loggerFor(this), `[${requestLogID}] response error (${retryMessage})`, {
+          retryOfRequestLogID,
+          url: response.url,
+          status: response.status,
+          headers: response.headers,
+          durationMs: headersTime - startTime,
+        });
         return this.retryRequest(
           options,
           retriesRemaining,
@@ -1264,17 +1267,14 @@ export class BaseAnthropic {
       const errJSON = safeJSON(errText) as any;
       const errMessage = errJSON ? undefined : errText;
 
-      loggerFor(this).debug(
-        `[${requestLogID}] response error (${retryMessage})`,
-        formatRequestDetails({
-          retryOfRequestLogID,
-          url: response.url,
-          status: response.status,
-          headers: response.headers,
-          message: errMessage,
-          durationMs: Date.now() - startTime,
-        }),
-      );
+      debugLogRequestDetails(loggerFor(this), `[${requestLogID}] response error (${retryMessage})`, {
+        retryOfRequestLogID,
+        url: response.url,
+        status: response.status,
+        headers: response.headers,
+        message: errMessage,
+        durationMs: Date.now() - startTime,
+      });
 
       releaseRequestSignal(controller);
       const err = this.makeStatusError(response.status, errJSON, errMessage, response.headers);
@@ -1282,16 +1282,13 @@ export class BaseAnthropic {
     }
 
     loggerFor(this).info(responseInfo);
-    loggerFor(this).debug(
-      `[${requestLogID}] response start`,
-      formatRequestDetails({
-        retryOfRequestLogID,
-        url: response.url,
-        status: response.status,
-        headers: response.headers,
-        durationMs: headersTime - startTime,
-      }),
-    );
+    debugLogRequestDetails(loggerFor(this), `[${requestLogID}] response start`, {
+      retryOfRequestLogID,
+      url: response.url,
+      status: response.status,
+      headers: response.headers,
+      durationMs: headersTime - startTime,
+    });
 
     armAbandonmentBackstop(response.body ?? response, controller);
     return { response, options, controller, requestLogID, retryOfRequestLogID, startTime };
@@ -1390,16 +1387,13 @@ export class BaseAnthropic {
           await this.prepareRequest(innerInit, { url: innerUrlStr, options: requestOptions });
 
           if (logCtx) {
-            loggerFor(this).debug(
-              `[${logCtx.requestLogID}] sending request`,
-              formatRequestDetails({
-                retryOfRequestLogID: logCtx.retryOfRequestLogID,
-                method: innerInit.method,
-                url: innerUrlStr,
-                options: requestOptions,
-                headers: innerInit.headers,
-              }),
-            );
+            debugLogRequestDetails(loggerFor(this), `[${logCtx.requestLogID}] sending request`, {
+              retryOfRequestLogID: logCtx.retryOfRequestLogID,
+              method: innerInit.method,
+              url: innerUrlStr,
+              options: requestOptions,
+              headers: innerInit.headers,
+            });
           }
 
           return timedFetch(innerUrl, innerInit);
@@ -1628,11 +1622,7 @@ export class BaseAnthropic {
       ((globalThis as any).ReadableStream && body instanceof (globalThis as any).ReadableStream)
     ) {
       return { bodyHeaders: undefined, body: body as BodyInit };
-    } else if (
-      typeof body === 'object' &&
-      (Symbol.asyncIterator in body ||
-        (Symbol.iterator in body && 'next' in body && typeof body.next === 'function'))
-    ) {
+    } else if (this.isStreamBody(body)) {
       return { bodyHeaders: undefined, body: Shims.ReadableStreamFrom(body as AsyncIterable<Uint8Array>) };
     } else if (
       typeof body === 'object' &&
@@ -1645,6 +1635,22 @@ export class BaseAnthropic {
     } else {
       return this.#encoder({ body, headers });
     }
+  }
+
+  /**
+   * Whether `body` is sent as a stream, which can be read only once:
+   * a `ReadableStream`, an async iterable or an iterator.
+   */
+  private isStreamBody(body: unknown): boolean {
+    if ((globalThis as any).ReadableStream && body instanceof (globalThis as any).ReadableStream) {
+      return true;
+    }
+    return (
+      typeof body === 'object' &&
+      body !== null &&
+      (Symbol.asyncIterator in body ||
+        (Symbol.iterator in body && 'next' in body && typeof body.next === 'function'))
+    );
   }
 
   static Anthropic = this;
@@ -1694,17 +1700,22 @@ export declare namespace Anthropic {
 
   export type { ApiKeySetter };
 
-  export import Page = Pagination.Page;
-  export { type PageParams as PageParams, type PageResponse as PageResponse };
+  export { type Page as Page, type PageParams as PageParams, type PageResponse as PageResponse };
 
-  export import TokenPage = Pagination.TokenPage;
-  export { type TokenPageParams as TokenPageParams, type TokenPageResponse as TokenPageResponse };
-
-  export import PageCursor = Pagination.PageCursor;
-  export { type PageCursorParams as PageCursorParams, type PageCursorResponse as PageCursorResponse };
-
-  export import BidirectionalPageCursor = Pagination.BidirectionalPageCursor;
   export {
+    type TokenPage as TokenPage,
+    type TokenPageParams as TokenPageParams,
+    type TokenPageResponse as TokenPageResponse,
+  };
+
+  export {
+    type PageCursor as PageCursor,
+    type PageCursorParams as PageCursorParams,
+    type PageCursorResponse as PageCursorResponse,
+  };
+
+  export {
+    type BidirectionalPageCursor as BidirectionalPageCursor,
     type BidirectionalPageCursorParams as BidirectionalPageCursorParams,
     type BidirectionalPageCursorResponse as BidirectionalPageCursorResponse,
   };

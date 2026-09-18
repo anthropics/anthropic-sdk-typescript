@@ -42,7 +42,7 @@ describe('MCP helpers', () => {
 
       try {
         mcpContent(audioContent);
-        fail('Expected error to be thrown');
+        throw new Error('Expected error to be thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(UnsupportedMCPValueError);
         expect((e as Error).message).toContain('audio');
@@ -596,7 +596,7 @@ describe('MCP helpers', () => {
 
       try {
         mcpMessage(promptMessage);
-        fail('Expected error to be thrown');
+        throw new Error('Expected error to be thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(UnsupportedMCPValueError);
         expect((e as Error).message).toContain('image/bmp');
@@ -791,7 +791,7 @@ describe('MCP helpers', () => {
 
       try {
         mcpResourceToContent({ contents: [resource] });
-        fail('Expected error to be thrown');
+        throw new Error('Expected error to be thrown');
       } catch (e) {
         expect(e).toBeInstanceOf(UnsupportedMCPValueError);
         expect((e as Error).message).toContain('application/octet-stream');

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { mkdtempSync } from 'node:fs';
@@ -14,11 +15,11 @@ import {
 const NOW_IN_SECONDS = 1700000000;
 
 beforeAll(() => {
-  jest.useFakeTimers({ now: NOW_IN_SECONDS * 1000 });
+  vi.useFakeTimers({ now: NOW_IN_SECONDS * 1000 });
 });
 
 afterAll(() => {
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 function jsonResponse(body: object, status = 200): Response {
@@ -57,7 +58,7 @@ describe('userOAuthProvider', () => {
       expires_at: futureExpiry,
     });
 
-    const mockFetch: Fetch = jest.fn();
+    const mockFetch: Fetch = vi.fn();
     const provider = userOAuthProvider({ ...baseConfig, credentialsPath: credPath, fetch: mockFetch });
     const token = await provider();
 
@@ -73,7 +74,7 @@ describe('userOAuthProvider', () => {
       expires_at: NOW_IN_SECONDS + 3600,
     });
 
-    const mockFetch = jest
+    const mockFetch = vi
       .fn()
       .mockResolvedValue(
         new Response(JSON.stringify({ access_token: 'forced-new', expires_in: 3600 }), { status: 200 }),
@@ -97,7 +98,7 @@ describe('userOAuthProvider', () => {
       expires_at: pastExpiry,
     });
 
-    const mockFetch: Fetch = jest
+    const mockFetch: Fetch = vi
       .fn()
       .mockResolvedValue(
         jsonResponse({ access_token: 'new-token', expires_in: 3600, refresh_token: 'new-refresh' }),
@@ -110,7 +111,7 @@ describe('userOAuthProvider', () => {
     expect(token.expiresAt).toBe(NOW_IN_SECONDS + 3600);
     expect(mockFetch).toHaveBeenCalledTimes(1);
 
-    const [url, init] = (mockFetch as jest.Mock).mock.calls[0]!;
+    const [url, init] = (mockFetch as Mock).mock.calls[0]!;
     expect(url).toBe('https://api.anthropic.com/v1/oauth/token');
     const body = JSON.parse(init.body);
     expect(body.grant_type).toBe('refresh_token');
@@ -128,7 +129,7 @@ describe('userOAuthProvider', () => {
       expires_at: NOW_IN_SECONDS - 10,
     });
 
-    const mockFetch: Fetch = jest
+    const mockFetch: Fetch = vi
       .fn()
       .mockResolvedValue(
         jsonResponse({ access_token: 'new-tok', expires_in: 7200, refresh_token: 'rotated-refresh' }),
@@ -149,7 +150,7 @@ describe('userOAuthProvider', () => {
   it('treats token as static when clientId is empty', async () => {
     writeCreds({ access_token: 'static-tok' });
 
-    const mockFetch: Fetch = jest.fn();
+    const mockFetch: Fetch = vi.fn();
     const provider = userOAuthProvider({
       ...baseConfig,
       clientId: undefined,
@@ -166,7 +167,7 @@ describe('userOAuthProvider', () => {
   it('throws when expired and no refresh available (empty clientId)', async () => {
     writeCreds({ access_token: 'expired', expires_at: NOW_IN_SECONDS - 10, refresh_token: 'r' });
 
-    const mockFetch: Fetch = jest.fn();
+    const mockFetch: Fetch = vi.fn();
     const provider = userOAuthProvider({
       ...baseConfig,
       clientId: undefined,
@@ -181,7 +182,7 @@ describe('userOAuthProvider', () => {
   it('throws when credentials file is missing access_token', async () => {
     writeCreds({ refresh_token: 'r' });
 
-    const mockFetch: Fetch = jest.fn();
+    const mockFetch: Fetch = vi.fn();
     const provider = userOAuthProvider({ ...baseConfig, credentialsPath: credPath, fetch: mockFetch });
 
     await expect(provider()).rejects.toThrow("must include 'access_token'");
@@ -190,7 +191,7 @@ describe('userOAuthProvider', () => {
   it('throws WorkloadIdentityError on corrupt credentials JSON', async () => {
     writeCreds('{not json');
 
-    const provider = userOAuthProvider({ ...baseConfig, credentialsPath: credPath, fetch: jest.fn() });
+    const provider = userOAuthProvider({ ...baseConfig, credentialsPath: credPath, fetch: vi.fn() });
     await expect(provider()).rejects.toThrow(WorkloadIdentityError);
     await expect(provider()).rejects.toThrow('not valid JSON');
   });
@@ -198,7 +199,7 @@ describe('userOAuthProvider', () => {
   it('throws when refresh response lacks expires_in (fail closed)', async () => {
     writeCreds({ access_token: 'x', refresh_token: 'y', expires_at: 0 });
 
-    const mockFetch: Fetch = jest.fn().mockResolvedValue(jsonResponse({ access_token: 'tok' }));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(jsonResponse({ access_token: 'tok' }));
 
     const provider = userOAuthProvider({ ...baseConfig, credentialsPath: credPath, fetch: mockFetch });
     await expect(provider()).rejects.toThrow('missing or invalid expires_in');
@@ -207,7 +208,7 @@ describe('userOAuthProvider', () => {
   it('throws on refresh failure', async () => {
     writeCreds({ access_token: 'x', refresh_token: 'y', expires_at: 0 });
 
-    const mockFetch: Fetch = jest.fn().mockResolvedValue(new Response('bad', { status: 400 }));
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(new Response('bad', { status: 400 }));
 
     const provider = userOAuthProvider({ ...baseConfig, credentialsPath: credPath, fetch: mockFetch });
     await expect(provider()).rejects.toThrow(WorkloadIdentityError);
@@ -220,7 +221,7 @@ describe('userOAuthProvider', () => {
       ...baseConfig,
       baseURL: 'http://api.example.com',
       credentialsPath: credPath,
-      fetch: jest.fn(),
+      fetch: vi.fn(),
     });
     await expect(provider()).rejects.toThrow('non-https token endpoint');
   });
@@ -228,7 +229,7 @@ describe('userOAuthProvider', () => {
   it('rejects non-Bearer token_type on refresh', async () => {
     writeCreds({ access_token: 'x', refresh_token: 'y', expires_at: 0 });
 
-    const mockFetch: Fetch = jest
+    const mockFetch: Fetch = vi
       .fn()
       .mockResolvedValue(jsonResponse({ access_token: 'tok', token_type: 'mac', expires_in: 60 }));
 
@@ -253,7 +254,7 @@ describe('userOAuthProvider', () => {
     fs.writeFileSync(real, JSON.stringify({ access_token: 'via-symlink' }), { mode: 0o600 });
     fs.symlinkSync(real, credPath);
 
-    const provider = userOAuthProvider({ ...baseConfig, credentialsPath: credPath, fetch: jest.fn() });
+    const provider = userOAuthProvider({ ...baseConfig, credentialsPath: credPath, fetch: vi.fn() });
     const token = await provider();
     expect(token.token).toBe('via-symlink');
 
@@ -265,7 +266,7 @@ describe('userOAuthProvider', () => {
   itPosix('refuses a group/world-readable credentials file', async () => {
     writeCreds({ access_token: 'x' });
     fs.chmodSync(credPath, 0o644);
-    const provider = userOAuthProvider({ ...baseConfig, credentialsPath: credPath, fetch: jest.fn() });
+    const provider = userOAuthProvider({ ...baseConfig, credentialsPath: credPath, fetch: vi.fn() });
     await expect(provider()).rejects.toThrow('group/world-readable');
 
     fs.chmodSync(credPath, 0o640);
@@ -275,7 +276,7 @@ describe('userOAuthProvider', () => {
   itPosix('refuses a group/world-writable credentials file', async () => {
     writeCreds({ access_token: 'x' });
     fs.chmodSync(credPath, 0o602);
-    const provider = userOAuthProvider({ ...baseConfig, credentialsPath: credPath, fetch: jest.fn() });
+    const provider = userOAuthProvider({ ...baseConfig, credentialsPath: credPath, fetch: vi.fn() });
     await expect(provider()).rejects.toThrow('group/world-writable');
 
     fs.chmodSync(credPath, 0o620);

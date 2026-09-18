@@ -337,6 +337,12 @@ export interface BetaManagedAgentsCredentialValidation {
 
 /**
  * Overall verdict of a credential validation probe.
+ *
+ * - `valid` - The credential successfully authenticated against its MCP server.
+ * - `invalid` - The probe reached the MCP server and was rejected, and a refresh
+ *   (if attempted) did not recover it.
+ * - `unknown` - The probe could not determine validity — for example, a transport
+ *   error or a successful refresh that was not re-probed.
  */
 export type BetaManagedAgentsCredentialValidationStatus = 'valid' | 'invalid' | 'unknown';
 
@@ -707,6 +713,14 @@ export interface BetaManagedAgentsRefreshObject {
 
   /**
    * Outcome of a refresh-token exchange attempted during credential validation.
+   *
+   * - `succeeded` - The token endpoint returned a new access token.
+   * - `failed` - The token endpoint returned an error response. See `http_response`
+   *   for detail.
+   * - `connect_error` - The token endpoint could not be reached (DNS, TLS, or
+   *   connection error).
+   * - `no_refresh_token` - No refresh token is stored for the credential, so no
+   *   exchange was attempted.
    */
   status: 'succeeded' | 'failed' | 'connect_error' | 'no_refresh_token';
 }
@@ -884,7 +898,7 @@ export interface CredentialCreateParams {
 
 export interface CredentialRetrieveParams {
   /**
-   * Path param: Path parameter vault_id
+   * Path param: Identifier of the vault containing the credential.
    */
   vault_id: string;
 
@@ -906,7 +920,7 @@ export interface CredentialRetrieveParams {
 
 export interface CredentialUpdateParams {
   /**
-   * Path param: Path parameter vault_id
+   * Path param: Identifier of the vault containing the credential.
    */
   vault_id: string;
 
@@ -969,7 +983,7 @@ export interface CredentialListParams extends PageCursorParams {
 
 export interface CredentialDeleteParams {
   /**
-   * Path param: Path parameter vault_id
+   * Path param: Identifier of the vault containing the credential.
    */
   vault_id: string;
 
@@ -991,7 +1005,7 @@ export interface CredentialDeleteParams {
 
 export interface CredentialArchiveParams {
   /**
-   * Path param: Path parameter vault_id
+   * Path param: Identifier of the vault containing the credential.
    */
   vault_id: string;
 
@@ -1013,7 +1027,7 @@ export interface CredentialArchiveParams {
 
 export interface CredentialMCPOAuthValidateParams {
   /**
-   * Path param: Path parameter vault_id
+   * Path param: Identifier of the vault containing the credential.
    */
   vault_id: string;
 

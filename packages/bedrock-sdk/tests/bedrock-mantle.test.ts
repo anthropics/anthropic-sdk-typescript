@@ -1,3 +1,4 @@
+import type { MockedFunction } from 'vitest';
 import { VERSION } from '@anthropic-ai/sdk/version';
 import { AnthropicBedrockMantle } from '../src';
 import { getAuthHeaders } from '../src/core/aws-auth';
@@ -5,16 +6,16 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { tmpdir } from 'os';
 
-jest.mock('../src/core/aws-auth', () => ({
-  getAuthHeaders: jest.fn().mockResolvedValue({
+vi.mock('../src/core/aws-auth', () => ({
+  getAuthHeaders: vi.fn().mockResolvedValue({
     authorization: 'AWS4-HMAC-SHA256 Credential=mock',
     'x-amz-date': '20260312T000000Z',
   }),
 }));
 
-const mockGetAuthHeaders = getAuthHeaders as jest.MockedFunction<typeof getAuthHeaders>;
+const mockGetAuthHeaders = getAuthHeaders as MockedFunction<typeof getAuthHeaders>;
 
-const mockFetch = jest.fn().mockImplementation(() => {
+const mockFetch = vi.fn().mockImplementation(() => {
   return Promise.resolve({
     ok: true,
     status: 200,

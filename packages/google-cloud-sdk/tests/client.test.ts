@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import path from 'node:path';
 import { VERSION } from '@anthropic-ai/sdk/version';
 import { AnthropicGoogleCloud } from '../src';
@@ -7,7 +8,7 @@ import { GoogleAuth } from 'google-auth-library';
 // that the base client's credential chain would adopt if it ever ran.
 const PROFILE_FIXTURE_DIR = path.join(__dirname, 'fixtures', 'anthropic-config');
 
-const mockFetch = jest.fn().mockImplementation(() => {
+const mockFetch = vi.fn().mockImplementation(() => {
   return Promise.resolve({
     ok: true,
     status: 200,
@@ -41,8 +42,8 @@ describe('AnthropicGoogleCloud', () => {
     // Keep the suite hermetic: without this, constructing a client with no
     // bearerTokenProvider/authClient starts a real ADC probe (keyfile reads
     // and a GCE metadata request) whose outcome depends on the machine.
-    jest.spyOn(GoogleAuth.prototype, 'getClient').mockResolvedValue({
-      getAccessToken: jest.fn().mockResolvedValue({ token: 'adc-token' }),
+    vi.spyOn(GoogleAuth.prototype, 'getClient').mockResolvedValue({
+      getAccessToken: vi.fn().mockResolvedValue({ token: 'adc-token' }),
     } as any);
     process.env = { ...originalEnv };
     delete process.env['ANTHROPIC_API_KEY'];
@@ -61,7 +62,7 @@ describe('AnthropicGoogleCloud', () => {
   afterEach(() => {
     global.fetch = originalFetch;
     process.env = originalEnv;
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('base URL derivation', () => {
@@ -253,10 +254,10 @@ describe('AnthropicGoogleCloud', () => {
   });
 
   describe('lazy project resolution', () => {
-    let getProjectIdSpy: jest.SpyInstance;
+    let getProjectIdSpy: MockInstance;
 
     beforeEach(() => {
-      getProjectIdSpy = jest.spyOn(GoogleAuth.prototype, 'getProjectId');
+      getProjectIdSpy = vi.spyOn(GoogleAuth.prototype, 'getProjectId');
     });
 
     test('back-fills the project from credentials; first request goes to the derived URL', async () => {
@@ -351,7 +352,7 @@ describe('AnthropicGoogleCloud', () => {
     test('does not emit unhandledRejection when ready rejects and is not awaited', async () => {
       getProjectIdSpy.mockRejectedValue(new Error('no project'));
 
-      const handler = jest.fn();
+      const handler = vi.fn();
       process.on('unhandledRejection', handler);
       try {
         new AnthropicGoogleCloud({ location: 'us-central1', workspaceId: 'wrkspc_test' });
@@ -364,11 +365,11 @@ describe('AnthropicGoogleCloud', () => {
     });
 
     test('does not emit unhandledRejection when ADC discovery fails; the error surfaces on the first request', async () => {
-      jest
-        .spyOn(GoogleAuth.prototype, 'getClient')
-        .mockRejectedValue(new Error('Could not load the default credentials'));
+      vi.spyOn(GoogleAuth.prototype, 'getClient').mockRejectedValue(
+        new Error('Could not load the default credentials'),
+      );
 
-      const handler = jest.fn();
+      const handler = vi.fn();
       process.on('unhandledRejection', handler);
       try {
         const client = new AnthropicGoogleCloud({
@@ -389,7 +390,7 @@ describe('AnthropicGoogleCloud', () => {
     test('prefers a caller-supplied googleAuth for project resolution even when bearerTokenProvider is set', async () => {
       getProjectIdSpy.mockResolvedValue('ambient-project');
       const googleAuth = new GoogleAuth({ scopes: 'https://www.googleapis.com/auth/cloud-platform' });
-      jest.spyOn(googleAuth, 'getProjectId').mockResolvedValue('caller-project');
+      vi.spyOn(googleAuth, 'getProjectId').mockResolvedValue('caller-project');
 
       const client = new AnthropicGoogleCloud({
         location: 'us-central1',
@@ -409,7 +410,7 @@ describe('AnthropicGoogleCloud', () => {
 
   describe('buildRequest gating', () => {
     test('the unresolved-state baseURL is an unroutable placeholder, never the default API host', () => {
-      jest.spyOn(GoogleAuth.prototype, 'getProjectId').mockReturnValue(new Promise(() => {}));
+      vi.spyOn(GoogleAuth.prototype, 'getProjectId').mockReturnValue(new Promise(() => {}));
 
       const client = new AnthropicGoogleCloud({ location: 'us-central1', workspaceId: 'wrkspc_test' });
 
@@ -418,9 +419,9 @@ describe('AnthropicGoogleCloud', () => {
 
     test('a direct buildRequest() call waits for resolution and targets the derived gateway URL', async () => {
       let resolveProject!: (project: string) => void;
-      jest
-        .spyOn(GoogleAuth.prototype, 'getProjectId')
-        .mockReturnValue(new Promise<string>((r) => (resolveProject = r)));
+      vi.spyOn(GoogleAuth.prototype, 'getProjectId').mockReturnValue(
+        new Promise<string>((r) => (resolveProject = r)),
+      );
 
       const client = new AnthropicGoogleCloud({
         location: 'us-central1',
@@ -447,7 +448,7 @@ describe('AnthropicGoogleCloud', () => {
     });
 
     test('buildRequest() rejects when resolution failed — no default-host request can carry the bearer', async () => {
-      jest.spyOn(GoogleAuth.prototype, 'getProjectId').mockRejectedValue(new Error('no project'));
+      vi.spyOn(GoogleAuth.prototype, 'getProjectId').mockRejectedValue(new Error('no project'));
 
       const client = new AnthropicGoogleCloud({
         location: 'us-central1',
@@ -465,7 +466,7 @@ describe('AnthropicGoogleCloud', () => {
 
   describe('withOptions', () => {
     test('clones keep the gateway options: URL, workspace ID, and token provider', async () => {
-      const bearerTokenProvider = jest.fn().mockResolvedValue('my-google-token');
+      const bearerTokenProvider = vi.fn().mockResolvedValue('my-google-token');
       const client = new AnthropicGoogleCloud({
         project: 'my-project',
         location: 'us-central1',
@@ -491,7 +492,7 @@ describe('AnthropicGoogleCloud', () => {
     });
 
     test('clones keep a caller-supplied authClient', async () => {
-      const authClient = { getAccessToken: jest.fn().mockResolvedValue({ token: 'impersonated-token' }) };
+      const authClient = { getAccessToken: vi.fn().mockResolvedValue({ token: 'impersonated-token' }) };
       const client = new AnthropicGoogleCloud({
         baseURL: 'https://gw.example.com',
         workspaceId: 'wrkspc_test',
@@ -520,7 +521,7 @@ describe('AnthropicGoogleCloud', () => {
     });
 
     test('a clone created mid-resolution resolves the project itself', async () => {
-      jest.spyOn(GoogleAuth.prototype, 'getProjectId').mockResolvedValue('adc-project');
+      vi.spyOn(GoogleAuth.prototype, 'getProjectId').mockResolvedValue('adc-project');
 
       const client = new AnthropicGoogleCloud({
         location: 'us-central1',
@@ -538,9 +539,7 @@ describe('AnthropicGoogleCloud', () => {
     });
 
     test('a clone created post-resolution inherits the derived URL without re-resolving', async () => {
-      const getProjectIdSpy = jest
-        .spyOn(GoogleAuth.prototype, 'getProjectId')
-        .mockResolvedValue('adc-project');
+      const getProjectIdSpy = vi.spyOn(GoogleAuth.prototype, 'getProjectId').mockResolvedValue('adc-project');
 
       const client = new AnthropicGoogleCloud({
         location: 'us-central1',
@@ -598,7 +597,7 @@ describe('AnthropicGoogleCloud', () => {
     });
 
     test('a clone created mid-resolution derives with its overridden workspaceId', async () => {
-      jest.spyOn(GoogleAuth.prototype, 'getProjectId').mockResolvedValue('adc-project');
+      vi.spyOn(GoogleAuth.prototype, 'getProjectId').mockResolvedValue('adc-project');
 
       const client = new AnthropicGoogleCloud({
         location: 'us-central1',
@@ -618,7 +617,7 @@ describe('AnthropicGoogleCloud', () => {
 
   describe('auth headers', () => {
     test('sends a bearer token from bearerTokenProvider and no workspace header', async () => {
-      const bearerTokenProvider = jest.fn().mockResolvedValue('my-google-token');
+      const bearerTokenProvider = vi.fn().mockResolvedValue('my-google-token');
 
       const client = new AnthropicGoogleCloud({
         project: 'my-project',
@@ -646,7 +645,7 @@ describe('AnthropicGoogleCloud', () => {
     });
 
     test('uses a google-auth AuthClient when no bearerTokenProvider is given', async () => {
-      const authClient = { getAccessToken: jest.fn().mockResolvedValue({ token: 'adc-token' }) };
+      const authClient = { getAccessToken: vi.fn().mockResolvedValue({ token: 'adc-token' }) };
 
       const client = new AnthropicGoogleCloud({
         baseURL: 'https://gw.example.com',
@@ -663,7 +662,7 @@ describe('AnthropicGoogleCloud', () => {
     });
 
     test('a constructor defaultHeaders Authorization suppresses the token fetch', async () => {
-      const bearerTokenProvider = jest.fn();
+      const bearerTokenProvider = vi.fn();
       const client = new AnthropicGoogleCloud({
         baseURL: 'https://gw.example.com',
         workspaceId: 'wrkspc_test',
@@ -681,7 +680,7 @@ describe('AnthropicGoogleCloud', () => {
     });
 
     test('a per-request `Authorization: null` sends the request unauthenticated', async () => {
-      const bearerTokenProvider = jest.fn();
+      const bearerTokenProvider = vi.fn();
       const client = new AnthropicGoogleCloud({
         baseURL: 'https://gw.example.com',
         workspaceId: 'wrkspc_test',
@@ -706,7 +705,7 @@ describe('AnthropicGoogleCloud', () => {
       // Exactly one Authorization header goes out — the env-supplied one — and
       // the token provider is never called.
       process.env['ANTHROPIC_CUSTOM_HEADERS'] = 'Authorization: Bearer env-token';
-      const bearerTokenProvider = jest.fn();
+      const bearerTokenProvider = vi.fn();
 
       const client = new AnthropicGoogleCloud({
         project: 'my-project',
@@ -727,7 +726,7 @@ describe('AnthropicGoogleCloud', () => {
     });
 
     test('an explicit credential source suppresses ADC discovery', async () => {
-      const getClientSpy = jest.spyOn(GoogleAuth.prototype, 'getClient');
+      const getClientSpy = vi.spyOn(GoogleAuth.prototype, 'getClient');
       getClientSpy.mockClear();
 
       const provider = new AnthropicGoogleCloud({
@@ -739,7 +738,7 @@ describe('AnthropicGoogleCloud', () => {
       await makeRequest(provider);
       expect(getClientSpy).not.toHaveBeenCalled();
 
-      const authClient = { getAccessToken: jest.fn().mockResolvedValue({ token: 'tok' }) };
+      const authClient = { getAccessToken: vi.fn().mockResolvedValue({ token: 'tok' }) };
       const explicit = new AnthropicGoogleCloud({
         baseURL: 'https://gw.example.com',
         workspaceId: 'wrkspc_test',
@@ -888,7 +887,7 @@ describe('AnthropicGoogleCloud', () => {
     });
 
     test('the profile base_url cannot win the race against lazy project resolution', async () => {
-      const getProjectIdSpy: jest.SpyInstance = jest.spyOn(GoogleAuth.prototype, 'getProjectId');
+      const getProjectIdSpy: MockInstance = vi.spyOn(GoogleAuth.prototype, 'getProjectId');
       getProjectIdSpy.mockResolvedValue('adc-project');
 
       const client = new AnthropicGoogleCloud({

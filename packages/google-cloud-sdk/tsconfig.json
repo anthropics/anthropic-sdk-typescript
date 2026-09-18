@@ -7,7 +7,7 @@
     "module": "preserve",
     "moduleResolution": "bundler",
     "esModuleInterop": true,
-    "types": ["node", "jest"],
+    "types": ["node"],
     "paths": {
       "@anthropic-ai/google-cloud-sdk/*": ["./src/*"],
       "@anthropic-ai/google-cloud-sdk": ["./src/index.ts"]

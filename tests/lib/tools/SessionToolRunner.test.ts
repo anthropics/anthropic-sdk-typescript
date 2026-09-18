@@ -367,8 +367,8 @@ describe('SessionToolRunner', () => {
   });
 
   describe('send retries (fake timers)', () => {
-    beforeEach(() => jest.useFakeTimers());
-    afterEach(() => jest.useRealTimers());
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
 
     /** Start a runner whose first `failures` sends fail transiently; the consumer runs in the background. */
     function startFailingSend(failures: number) {
@@ -388,7 +388,7 @@ describe('SessionToolRunner', () => {
     test('keeps retrying a transiently failing send past three attempts until it lands', async () => {
       const { calls, out, consumer } = startFailingSend(5);
 
-      await jest.advanceTimersByTimeAsync(60_000);
+      await vi.advanceTimersByTimeAsync(60_000);
       await consumer;
 
       expect(calls.send).toHaveLength(6);
@@ -400,12 +400,12 @@ describe('SessionToolRunner', () => {
       const { calls, out, consumer } = startFailingSend(1_000);
 
       // Still retrying well past the old three-attempt / ~3s budget.
-      await jest.advanceTimersByTimeAsync(4 * 60_000);
+      await vi.advanceTimersByTimeAsync(4 * 60_000);
       expect(out).toHaveLength(0);
       expect(calls.send.length).toBeGreaterThan(3);
 
       // The window (>= the 300s work-item lease TTL) elapses; the call surfaces unposted.
-      await jest.advanceTimersByTimeAsync(2 * 60_000);
+      await vi.advanceTimersByTimeAsync(2 * 60_000);
       await consumer;
 
       expect(out).toHaveLength(1);
@@ -416,13 +416,13 @@ describe('SessionToolRunner', () => {
     test('a send retry window update bounds a send that is already retrying', async () => {
       const { runner, calls, out, consumer } = startFailingSend(1_000);
 
-      await jest.advanceTimersByTimeAsync(20_000);
+      await vi.advanceTimersByTimeAsync(20_000);
       expect(out).toHaveLength(0);
       const attemptsBefore = calls.send.length;
 
       // e.g. the enclosing worker's heartbeat reported a 10s lease TTL.
       runner._setSendRetryWindow(10_000);
-      await jest.advanceTimersByTimeAsync(40_000);
+      await vi.advanceTimersByTimeAsync(40_000);
       await consumer;
 
       expect(out).toHaveLength(1);
@@ -460,7 +460,7 @@ describe('SessionToolRunner', () => {
       maxIdleMs: 0,
       signal: ctl.signal,
     });
-    // If the bug is back, this hangs and Jest's per-test timeout fires.
+    // If the bug is back, this hangs and the per-test timeout fires.
     await Promise.race([
       (async () => {
         for await (const _ of runner) {
@@ -472,7 +472,7 @@ describe('SessionToolRunner', () => {
   }, 5_000);
 
   test('idle watchdog stops the runner maxIdleMs after an end_turn idle', async () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     try {
       // Session goes idle with end_turn and nothing else happens — the idle
       // watchdog should stop the runner after maxIdleMs.
@@ -488,11 +488,11 @@ describe('SessionToolRunner', () => {
         done = true;
       })();
 
-      await jest.advanceTimersByTimeAsync(2_000);
+      await vi.advanceTimersByTimeAsync(2_000);
       await consumer;
       expect(done).toBe(true);
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 

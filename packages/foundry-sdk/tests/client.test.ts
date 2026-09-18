@@ -1,7 +1,7 @@
 import { VERSION } from '@anthropic-ai/sdk/version';
 import { AnthropicFoundry } from '../src';
 
-const mockFetch = jest.fn().mockImplementation(() => {
+const mockFetch = vi.fn().mockImplementation(() => {
   return Promise.resolve({
     ok: true,
     status: 200,
@@ -56,7 +56,7 @@ describe('AnthropicFoundry', () => {
     const originalEnv = process.env;
 
     beforeEach(() => {
-      jest.resetModules();
+      vi.resetModules();
       process.env = { ...originalEnv };
     });
 
@@ -140,7 +140,7 @@ describe('AnthropicFoundry', () => {
     });
 
     test('AD provider', async () => {
-      const tokenProvider = jest.fn().mockResolvedValue('my-azure-ad-token');
+      const tokenProvider = vi.fn().mockResolvedValue('my-azure-ad-token');
 
       const client = new AnthropicFoundry({
         azureADTokenProvider: tokenProvider,
@@ -157,7 +157,7 @@ describe('AnthropicFoundry', () => {
       expect(tokenProvider).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledTimes(1);
 
-      const [url, options] = mockFetch.mock.calls[0];
+      const [url, options] = mockFetch.mock.calls[0]!;
       expect(url).toBe('https://my-resource.services.ai.azure.com/anthropic/v1/messages');
 
       const headers = options.headers as Headers;

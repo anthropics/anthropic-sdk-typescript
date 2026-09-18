@@ -5000,7 +5000,7 @@ export interface BetaToolBash20250124 {
 }
 
 /**
- * Reference to a single MCP tool by its server and remote name — the same
+ * Reference to a single MCP tool by its server and remote name; the same
  * `server_name`/`name` pair `mcp_tool_use` carries.
  */
 export interface BetaToolChangeMCPToolReference {
