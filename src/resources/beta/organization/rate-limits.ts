@@ -37,14 +37,26 @@ export type BetaOrganizationRateLimitsPageCursor = PageCursor<BetaOrganizationRa
 
 export interface BetaOrganizationRateLimit {
   /**
-   * Stable identifier for this rate-limit group within the organization.
+   * Identifier of this rate-limit entry. It is stable within the organization and
+   * differs between organizations; the group's own identifier is `group.id`.
    */
   id: string;
 
   /**
-   * The kind of rate-limit group this entry represents. `model_group` entries apply
-   * to a family of models (listed in `models`); other values apply to an API-surface
-   * category and have `models` set to `null`.
+   * The rate-limit group this entry's limits apply to. Its `type` equals
+   * `group_type`.
+   */
+  group:
+    | BetaOrganizationRateLimitModelGroup
+    | BetaOrganizationRateLimitBatchGroup
+    | BetaOrganizationRateLimitTokenCountGroup
+    | BetaOrganizationRateLimitFilesGroup
+    | BetaOrganizationRateLimitSkillsGroup
+    | BetaOrganizationRateLimitWebSearchGroup;
+
+  /**
+   * @deprecated Use `group.type` instead. `group_type` is still returned and always
+   * equals `group.type`.
    */
   group_type: 'batch' | 'files' | 'model_group' | 'skills' | 'token_count' | 'web_search';
 
@@ -65,6 +77,82 @@ export interface BetaOrganizationRateLimit {
   type: 'rate_limit';
 }
 
+export interface BetaOrganizationRateLimitBatchGroup {
+  /**
+   * Opaque identifier of the rate-limit group (for example,
+   * `rlg_01VPTCmyiu5ZLsWkcxYG2pY8`). It is the same in every organization and never
+   * changes, unlike the entry's own identifier, which differs per organization.
+   */
+  id: string;
+
+  /**
+   * Always `batch`: the Message Batches API.
+   */
+  type: 'batch';
+}
+
+export interface BetaOrganizationRateLimitFilesGroup {
+  /**
+   * Opaque identifier of the rate-limit group (for example,
+   * `rlg_01VPTCmyiu5ZLsWkcxYG2pY8`). It is the same in every organization and never
+   * changes, unlike the entry's own identifier, which differs per organization.
+   */
+  id: string;
+
+  /**
+   * Always `files`: the Files API.
+   */
+  type: 'files';
+}
+
+export interface BetaOrganizationRateLimitModelGroup {
+  /**
+   * Opaque identifier of the rate-limit group (for example,
+   * `rlg_01VPTCmyiu5ZLsWkcxYG2pY8`). It is the same in every organization and never
+   * changes, unlike the entry's own identifier, which differs per organization.
+   */
+  id: string;
+
+  /**
+   * Human-readable name of the model group (for example, `Claude Sonnet 4.x`). For
+   * display only; it may change.
+   */
+  display_name: string;
+
+  /**
+   * Always `model_group`: a family of models.
+   */
+  type: 'model_group';
+}
+
+export interface BetaOrganizationRateLimitSkillsGroup {
+  /**
+   * Opaque identifier of the rate-limit group (for example,
+   * `rlg_01VPTCmyiu5ZLsWkcxYG2pY8`). It is the same in every organization and never
+   * changes, unlike the entry's own identifier, which differs per organization.
+   */
+  id: string;
+
+  /**
+   * Always `skills`: the Skills API.
+   */
+  type: 'skills';
+}
+
+export interface BetaOrganizationRateLimitTokenCountGroup {
+  /**
+   * Opaque identifier of the rate-limit group (for example,
+   * `rlg_01VPTCmyiu5ZLsWkcxYG2pY8`). It is the same in every organization and never
+   * changes, unlike the entry's own identifier, which differs per organization.
+   */
+  id: string;
+
+  /**
+   * Always `token_count`: the Token Count API.
+   */
+  type: 'token_count';
+}
+
 export interface BetaOrganizationRateLimitValue {
   /**
    * The limiter type (for example, `requests_per_minute` or
@@ -76,6 +164,20 @@ export interface BetaOrganizationRateLimitValue {
    * The configured limit value for this limiter type.
    */
   value: number;
+}
+
+export interface BetaOrganizationRateLimitWebSearchGroup {
+  /**
+   * Opaque identifier of the rate-limit group (for example,
+   * `rlg_01VPTCmyiu5ZLsWkcxYG2pY8`). It is the same in every organization and never
+   * changes, unlike the entry's own identifier, which differs per organization.
+   */
+  id: string;
+
+  /**
+   * Always `web_search`: the Messages API web search tool.
+   */
+  type: 'web_search';
 }
 
 export interface RateLimitListParams extends PageCursorParams {
@@ -95,7 +197,13 @@ export interface RateLimitListParams extends PageCursorParams {
 export declare namespace RateLimits {
   export {
     type BetaOrganizationRateLimit as BetaOrganizationRateLimit,
+    type BetaOrganizationRateLimitBatchGroup as BetaOrganizationRateLimitBatchGroup,
+    type BetaOrganizationRateLimitFilesGroup as BetaOrganizationRateLimitFilesGroup,
+    type BetaOrganizationRateLimitModelGroup as BetaOrganizationRateLimitModelGroup,
+    type BetaOrganizationRateLimitSkillsGroup as BetaOrganizationRateLimitSkillsGroup,
+    type BetaOrganizationRateLimitTokenCountGroup as BetaOrganizationRateLimitTokenCountGroup,
     type BetaOrganizationRateLimitValue as BetaOrganizationRateLimitValue,
+    type BetaOrganizationRateLimitWebSearchGroup as BetaOrganizationRateLimitWebSearchGroup,
     type BetaOrganizationRateLimitsPageCursor as BetaOrganizationRateLimitsPageCursor,
     type RateLimitListParams as RateLimitListParams,
   };

@@ -1,4 +1,5 @@
 import { APIResource } from '../../../../core/resource';
+import * as RateLimitsAPI from '../rate-limits';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
 import { path } from '../../../../internal/utils/path';
@@ -41,9 +42,20 @@ export type BetaWorkspaceRateLimitsPageCursor = PageCursor<BetaWorkspaceRateLimi
 
 export interface BetaWorkspaceRateLimit {
   /**
-   * The kind of rate-limit group this entry represents. `model_group` entries apply
-   * to a family of models (listed in `models`); other values apply to an API-surface
-   * category and have `models` set to `null`.
+   * The rate-limit group this entry's limits apply to. Its `type` equals
+   * `group_type`.
+   */
+  group:
+    | RateLimitsAPI.BetaOrganizationRateLimitModelGroup
+    | RateLimitsAPI.BetaOrganizationRateLimitBatchGroup
+    | RateLimitsAPI.BetaOrganizationRateLimitTokenCountGroup
+    | RateLimitsAPI.BetaOrganizationRateLimitFilesGroup
+    | RateLimitsAPI.BetaOrganizationRateLimitSkillsGroup
+    | RateLimitsAPI.BetaOrganizationRateLimitWebSearchGroup;
+
+  /**
+   * @deprecated Use `group.type` instead. `group_type` is still returned and always
+   * equals `group.type`.
    */
   group_type: 'batch' | 'files' | 'model_group' | 'skills' | 'token_count' | 'web_search';
 
@@ -60,7 +72,7 @@ export interface BetaWorkspaceRateLimit {
   models: Array<string> | null;
 
   /**
-   * The `id` of the RateLimit group this override applies to.
+   * The `id` of the organization's RateLimit entry this override applies to.
    */
   rate_limit_id: string;
 

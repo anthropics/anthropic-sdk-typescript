@@ -1659,7 +1659,13 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/organization/rate-limits.ts">BetaOrganizationRateLimit</a></code>
+- <code><a href="./src/resources/beta/organization/rate-limits.ts">BetaOrganizationRateLimitBatchGroup</a></code>
+- <code><a href="./src/resources/beta/organization/rate-limits.ts">BetaOrganizationRateLimitFilesGroup</a></code>
+- <code><a href="./src/resources/beta/organization/rate-limits.ts">BetaOrganizationRateLimitModelGroup</a></code>
+- <code><a href="./src/resources/beta/organization/rate-limits.ts">BetaOrganizationRateLimitSkillsGroup</a></code>
+- <code><a href="./src/resources/beta/organization/rate-limits.ts">BetaOrganizationRateLimitTokenCountGroup</a></code>
 - <code><a href="./src/resources/beta/organization/rate-limits.ts">BetaOrganizationRateLimitValue</a></code>
+- <code><a href="./src/resources/beta/organization/rate-limits.ts">BetaOrganizationRateLimitWebSearchGroup</a></code>
 
 Methods:
 
