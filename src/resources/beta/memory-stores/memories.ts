@@ -392,7 +392,11 @@ export interface MemoryCreateParams {
   path: string;
 
   /**
-   * Query param: Query parameter for view
+   * Query param: Selects which projection of a `memory` or `memory_version` the
+   * server returns. `basic` returns the object with `content` set to `null`; `full`
+   * populates `content`. When omitted, the default is endpoint-specific: retrieve
+   * operations default to `full`; list, create, and update operations default to
+   * `basic`. Listing with `view=full` caps `limit` at 20.
    */
   view?: BetaManagedAgentsMemoryView;
 
@@ -414,12 +418,16 @@ export interface MemoryCreateParams {
 
 export interface MemoryRetrieveParams {
   /**
-   * Path param: Path parameter memory_store_id
+   * Path param
    */
   memory_store_id: string;
 
   /**
-   * Query param: Query parameter for view
+   * Query param: Selects which projection of a `memory` or `memory_version` the
+   * server returns. `basic` returns the object with `content` set to `null`; `full`
+   * populates `content`. When omitted, the default is endpoint-specific: retrieve
+   * operations default to `full`; list, create, and update operations default to
+   * `basic`. Listing with `view=full` caps `limit` at 20.
    */
   view?: BetaManagedAgentsMemoryView;
 
@@ -441,12 +449,16 @@ export interface MemoryRetrieveParams {
 
 export interface MemoryUpdateParams {
   /**
-   * Path param: Path parameter memory_store_id
+   * Path param
    */
   memory_store_id: string;
 
   /**
-   * Query param: Query parameter for view
+   * Query param: Selects which projection of a `memory` or `memory_version` the
+   * server returns. `basic` returns the object with `content` set to `null`; `full`
+   * populates `content`. When omitted, the default is endpoint-specific: retrieve
+   * operations default to `full`; list, create, and update operations default to
+   * `basic`. Listing with `view=full` caps `limit` at 20.
    */
   view?: BetaManagedAgentsMemoryView;
 
@@ -533,12 +545,12 @@ export interface MemoryListParams extends PageCursorParams {
 
 export interface MemoryDeleteParams {
   /**
-   * Path param: Path parameter memory_store_id
+   * Path param
    */
   memory_store_id: string;
 
   /**
-   * Query param: Query parameter for expected_content_sha256
+   * Query param
    */
   expected_content_sha256?: string;
 

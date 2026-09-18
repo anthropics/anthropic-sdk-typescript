@@ -291,7 +291,7 @@ export type ResourceUpdateResponse =
 
 export interface ResourceRetrieveParams {
   /**
-   * Path param: Path parameter session_id
+   * Path param
    */
   session_id: string;
 
@@ -313,7 +313,7 @@ export interface ResourceRetrieveParams {
 
 export interface ResourceUpdateParams {
   /**
-   * Path param: Path parameter session_id
+   * Path param
    */
   session_id: string;
 
@@ -358,7 +358,7 @@ export interface ResourceListParams extends PageCursorParams {
 
 export interface ResourceDeleteParams {
   /**
-   * Path param: Path parameter session_id
+   * Path param
    */
   session_id: string;
 

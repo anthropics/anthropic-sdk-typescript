@@ -461,7 +461,7 @@ export interface DreamListParams extends PageCursorParams {
   'created_at[lt]'?: string;
 
   /**
-   * Query param: Query parameter for include_archived
+   * Query param
    */
   include_archived?: boolean;
 

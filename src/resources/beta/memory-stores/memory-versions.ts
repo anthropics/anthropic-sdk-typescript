@@ -288,12 +288,16 @@ export interface BetaManagedAgentsUserActor {
 
 export interface MemoryVersionRetrieveParams {
   /**
-   * Path param: Path parameter memory_store_id
+   * Path param
    */
   memory_store_id: string;
 
   /**
-   * Query param: Query parameter for view
+   * Query param: Selects which projection of a `memory` or `memory_version` the
+   * server returns. `basic` returns the object with `content` set to `null`; `full`
+   * populates `content`. When omitted, the default is endpoint-specific: retrieve
+   * operations default to `full`; list, create, and update operations default to
+   * `basic`. Listing with `view=full` caps `limit` at 20.
    */
   view?: MemoriesAPI.BetaManagedAgentsMemoryView;
 
@@ -315,7 +319,7 @@ export interface MemoryVersionRetrieveParams {
 
 export interface MemoryVersionListParams extends PageCursorParams {
   /**
-   * Query param: Query parameter for api_key_id
+   * Query param
    */
   api_key_id?: string;
 
@@ -330,27 +334,32 @@ export interface MemoryVersionListParams extends PageCursorParams {
   'created_at[lte]'?: string;
 
   /**
-   * Query param: Query parameter for memory_id
+   * Query param
    */
   memory_id?: string;
 
   /**
-   * Query param: Query parameter for operation
+   * Query param: The kind of mutation a `memory_version` records. Every non-no-op
+   * mutation to a memory appends exactly one version row with one of these values.
    */
   operation?: BetaManagedAgentsMemoryVersionOperation;
 
   /**
-   * Query param: Query parameter for service_account_id
+   * Query param
    */
   service_account_id?: string;
 
   /**
-   * Query param: Query parameter for session_id
+   * Query param
    */
   session_id?: string;
 
   /**
-   * Query param: Query parameter for view
+   * Query param: Selects which projection of a `memory` or `memory_version` the
+   * server returns. `basic` returns the object with `content` set to `null`; `full`
+   * populates `content`. When omitted, the default is endpoint-specific: retrieve
+   * operations default to `full`; list, create, and update operations default to
+   * `basic`. Listing with `view=full` caps `limit` at 20.
    */
   view?: MemoriesAPI.BetaManagedAgentsMemoryView;
 
@@ -372,7 +381,7 @@ export interface MemoryVersionListParams extends PageCursorParams {
 
 export interface MemoryVersionRedactParams {
   /**
-   * Path param: Path parameter memory_store_id
+   * Path param
    */
   memory_store_id: string;
 

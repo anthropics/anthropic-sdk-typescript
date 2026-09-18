@@ -286,7 +286,7 @@ export type BetaManagedAgentsStreamSessionThreadEvents =
 
 export interface ThreadRetrieveParams {
   /**
-   * Path param: Path parameter session_id
+   * Path param
    */
   session_id: string;
 
@@ -325,7 +325,7 @@ export interface ThreadListParams extends PageCursorParams {
 
 export interface ThreadArchiveParams {
   /**
-   * Path param: Path parameter session_id
+   * Path param
    */
   session_id: string;
 
