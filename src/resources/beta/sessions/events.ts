@@ -234,6 +234,11 @@ export interface BetaManagedAgentsAgentCustomToolUseEvent {
 }
 
 /**
+ * AgentEvaluatedPermission enum
+ */
+export type BetaManagedAgentsAgentEvaluatedPermission = 'allow' | 'ask' | 'deny';
+
+/**
  * Event representing the result of an MCP tool execution.
  */
 export interface BetaManagedAgentsAgentMCPToolResultEvent {
@@ -304,7 +309,7 @@ export interface BetaManagedAgentsAgentMCPToolUseEvent {
   /**
    * AgentEvaluatedPermission enum
    */
-  evaluated_permission?: 'allow' | 'ask' | 'deny';
+  evaluated_permission?: BetaManagedAgentsAgentEvaluatedPermission;
 
   /**
    * Names the resolved permission_policy that produced evaluated_permission, and
@@ -564,7 +569,7 @@ export interface BetaManagedAgentsAgentToolUseEvent {
   /**
    * AgentEvaluatedPermission enum
    */
-  evaluated_permission?: 'allow' | 'ask' | 'deny';
+  evaluated_permission?: BetaManagedAgentsAgentEvaluatedPermission;
 
   /**
    * Names the resolved permission_policy that produced evaluated_permission, and
@@ -2169,6 +2174,7 @@ export declare namespace Events {
     type BetaManagedAgentsAgentAutoEvaluatedPermissionAsk as BetaManagedAgentsAgentAutoEvaluatedPermissionAsk,
     type BetaManagedAgentsAgentAutoEvaluatedPermissionDeny as BetaManagedAgentsAgentAutoEvaluatedPermissionDeny,
     type BetaManagedAgentsAgentCustomToolUseEvent as BetaManagedAgentsAgentCustomToolUseEvent,
+    type BetaManagedAgentsAgentEvaluatedPermission as BetaManagedAgentsAgentEvaluatedPermission,
     type BetaManagedAgentsAgentMCPToolResultEvent as BetaManagedAgentsAgentMCPToolResultEvent,
     type BetaManagedAgentsAgentMCPToolUseEvent as BetaManagedAgentsAgentMCPToolUseEvent,
     type BetaManagedAgentsAgentMessageEvent as BetaManagedAgentsAgentMessageEvent,

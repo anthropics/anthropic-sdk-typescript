@@ -926,6 +926,7 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentAutoEvaluatedPermissionAsk</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentAutoEvaluatedPermissionDeny</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentCustomToolUseEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentEvaluatedPermission</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentMCPToolResultEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentMCPToolUseEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentMessageEvent</a></code>

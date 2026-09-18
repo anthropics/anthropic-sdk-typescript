@@ -5,6 +5,7 @@ export {
   type BetaManagedAgentsAgentAutoEvaluatedPermissionAsk,
   type BetaManagedAgentsAgentAutoEvaluatedPermissionDeny,
   type BetaManagedAgentsAgentCustomToolUseEvent,
+  type BetaManagedAgentsAgentEvaluatedPermission,
   type BetaManagedAgentsAgentMCPToolResultEvent,
   type BetaManagedAgentsAgentMCPToolUseEvent,
   type BetaManagedAgentsAgentMessageEvent,
