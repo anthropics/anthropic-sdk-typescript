@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.3 (2026-09-18)
+
+Full Changelog: [aws-sdk-v0.7.2...aws-sdk-v0.7.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.2...aws-sdk-v0.7.3)
+
+### Chores
+
+* **internal:** build the sub-packages with TypeScript 6.0.3 ([8a69ff5](https://github.com/anthropics/anthropic-sdk-typescript/commit/8a69ff594ffeec3f6bd964030086b01ae5354aaf))
+* **internal:** switch unit tests from jest to vitest ([788c9c6](https://github.com/anthropics/anthropic-sdk-typescript/commit/788c9c62ba2bd8180ffc7dcebd1cee14cd692d03))
+
 ## 0.7.2 (2026-09-15)
 
 Full Changelog: [aws-sdk-v0.7.1...aws-sdk-v0.7.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.1...aws-sdk-v0.7.2)
