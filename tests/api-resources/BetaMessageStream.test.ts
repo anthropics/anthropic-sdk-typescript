@@ -756,6 +756,156 @@ describe('BetaMessageStream class', () => {
     });
   });
 
+  it('keeps stop_reason and stop_details when a usage-only message_delta follows', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_beta_delta_03',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-8',
+          stop_reason: null,
+          stop_sequence: null,
+          container: null,
+          usage: { input_tokens: 10, output_tokens: 1 },
+        },
+      },
+      { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+      { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Done.' } },
+      { type: 'content_block_stop', index: 0 },
+      {
+        type: 'message_delta',
+        delta: {
+          stop_reason: 'refusal',
+          stop_sequence: null,
+          stop_details: { type: 'refusal', category: 'cyber', explanation: 'Declined by a classifier.' },
+        },
+        usage: { output_tokens: 42 },
+      },
+      // a later delta that carries neither stop_* field must not reset the ones
+      // an earlier delta already accumulated
+      { type: 'message_delta', delta: {}, usage: { output_tokens: 99 } },
+      { type: 'message_stop' },
+    ]);
+
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'Do something disallowed.' }],
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(finalMessage.stop_reason).toBe('refusal');
+    expect(finalMessage.stop_details).toEqual({
+      type: 'refusal',
+      category: 'cyber',
+      explanation: 'Declined by a classifier.',
+    });
+    expect(finalMessage.usage.output_tokens).toBe(99);
+  });
+
+  it('keeps stop_sequence when a later message_delta omits it', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_beta_delta_04',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-8',
+          stop_reason: null,
+          stop_sequence: null,
+          container: null,
+          usage: { input_tokens: 10, output_tokens: 1 },
+        },
+      },
+      {
+        type: 'message_delta',
+        delta: { stop_reason: 'stop_sequence', stop_sequence: 'END_TOKEN', stop_details: null },
+        usage: { output_tokens: 12 },
+      },
+      {
+        type: 'message_delta',
+        delta: { stop_details: null },
+        usage: { output_tokens: 15 },
+      },
+      { type: 'message_stop' },
+    ]);
+
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'Say hi.' }],
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(finalMessage.stop_reason).toBe('stop_sequence');
+    expect(finalMessage.stop_sequence).toBe('END_TOKEN');
+    expect(finalMessage.usage.output_tokens).toBe(15);
+  });
+
+  it('keeps the accumulated stop_* when a later message_delta sends them as null', async () => {
+    // Same convention as the `container` guard asserted by the "keeps accumulated
+    // container and context_management" test, which passes an explicit
+    // `container: null` and still expects the earlier value: null means "not
+    // applicable here", so it must not clobber what we already have.
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_beta_delta_05',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-8',
+          stop_reason: null,
+          stop_sequence: null,
+          container: null,
+          usage: { input_tokens: 10, output_tokens: 1 },
+        },
+      },
+      {
+        type: 'message_delta',
+        delta: { stop_reason: 'end_turn', stop_sequence: null, stop_details: null },
+        usage: { output_tokens: 12 },
+      },
+      {
+        type: 'message_delta',
+        delta: { stop_reason: null, stop_sequence: null, stop_details: null },
+        usage: { output_tokens: 20 },
+      },
+      { type: 'message_stop' },
+    ]);
+
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'Say hi.' }],
+    });
+
+    const finalMessage = await stream.finalMessage();
+
+    expect(finalMessage.stop_reason).toBe('end_turn');
+    expect(finalMessage.usage.output_tokens).toBe(20);
+  });
+
   it('replaces input_transformations with the list from message_delta', async () => {
     const { fetch, handleStreamEvents } = mockFetch();
 
