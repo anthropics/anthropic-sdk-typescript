@@ -950,6 +950,18 @@ describe('MCP helpers', () => {
       expect(file.name).toBe('my-file.pdf');
     });
 
+    it.each([
+      ['file:///reports/annual%20report.pdf', 'annual report.pdf'],
+      ['https://example.com/za%C5%BC%C3%B3%C5%82%C4%87.txt?download=1', 'zażółć.txt'],
+      ['file:///100%25.txt', '100%.txt'],
+      ['file:///literal%2520.txt', 'literal%20.txt'],
+      ['file:///literal%.txt', 'literal%.txt'],
+      ['file:///reports/', 'file'],
+    ])('extracts the decoded filename from %s', (uri, name) => {
+      const file = mcpResourceToFile({ contents: [{ uri, text: 'data' }] });
+      expect(file.name).toBe(name);
+    });
+
     it('decodes base64 blob with UTF-8 characters correctly', async () => {
       // UTF-8 text with non-ASCII characters encoded to base64
       const utf8Text = 'Hello, 世界! 🌍 Ñoño';
