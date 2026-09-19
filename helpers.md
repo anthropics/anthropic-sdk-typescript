@@ -462,7 +462,7 @@ const calculatorTool = betaTool({
 });
 ```
 
-### `client.messages.toolRunner(params): BetaToolRunner`
+### `client.beta.messages.toolRunner(params): BetaToolRunner`
 
 **Parameters:** All standard message parameters except `compaction` (see [Compaction](#compaction)), plus:
 
