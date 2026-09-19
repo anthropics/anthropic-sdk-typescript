@@ -304,9 +304,9 @@ export class BashSession {
   #buf = '';
   #truncated = false;
   #closed = false;
-  // While a command is in flight, the resolver to fire once its sentinel lands
+  // While a command is in flight, the resolver to fire once its complete status lands
   // in `#buf` (or once the shell dies). Event-driven: no polling loop.
-  #waiting: { sentinel: string; resolve: () => void } | null = null;
+  #waiting: { pattern: RegExp; resolve: () => void } | null = null;
 
   constructor(dir: string, env: Record<string, string | undefined> = scrubbedShellEnv()) {
     this.#proc = cp.spawn('/bin/bash', ['--noprofile', '--norc'], {
@@ -340,14 +340,14 @@ export class BashSession {
 
   // Cap the buffer during accumulation so a command that streams unboundedly
   // can't OOM the runner. Keeps the tail so the sentinel stays detectable.
-  // Also resolves the in-flight exec the instant its sentinel is buffered.
+  // Resolve only after both the sentinel and the newline-terminated exit code arrive.
   #append(d: string): void {
     this.#buf += d;
     if (this.#buf.length > BASH_OUTPUT_LIMIT) {
       this.#buf = this.#buf.slice(this.#buf.length - BASH_OUTPUT_LIMIT);
       this.#truncated = true;
     }
-    if (this.#waiting && this.#buf.indexOf(this.#waiting.sentinel) >= 0) {
+    if (this.#waiting && this.#waiting.pattern.test(this.#buf)) {
       const w = this.#waiting;
       this.#waiting = null;
       w.resolve();
@@ -372,18 +372,19 @@ export class BashSession {
     // exit-code framing. The `''` split keeps the literal out of what we write
     // to stdin — only the shell's printf reassembles it.
     const sentinel = `__ANT_CMD_${crypto.randomUUID()}_DONE__`;
+    const completion = new RegExp(`${sentinel}(-?\\d+)\\n`);
     const sentinelSplit = `${sentinel.slice(0, 8)}''${sentinel.slice(8)}`;
     // </dev/null: a stdin-reading command (`cat`, `read`) gets EOF instead of
     // blocking on the shared pipe until the timeout.
     const wrapped = `{ ${command}\n} </dev/null 2>&1; printf '\\n${sentinelSplit}%d\\n' $?\n`;
     this.#proc.stdin.write(wrapped);
 
-    if (this.#buf.indexOf(sentinel) < 0) {
-      // Park until the sentinel lands, the deadline passes, the caller aborts,
+    if (!completion.test(this.#buf)) {
+      // Park until the full status lands, the deadline passes, the caller aborts,
       // or the shell dies — whichever comes first. `#append` (and the `close`
       // handler) resolve `sentinelSeen`; the deadline / abort reject.
       const { promise: sentinelSeen, resolve } = promiseWithResolvers<void>();
-      this.#waiting = { sentinel, resolve };
+      this.#waiting = { pattern: completion, resolve };
       let timer: ReturnType<typeof setTimeout> | undefined;
       let onAbort: (() => void) | undefined;
       try {
@@ -405,15 +406,13 @@ export class BashSession {
       }
     }
 
-    const idx = this.#buf.indexOf(sentinel);
-    if (idx < 0) {
-      // The shell closed (or was killed) before emitting the sentinel.
+    const match = completion.exec(this.#buf);
+    if (!match) {
+      // The shell closed (or was killed) before emitting the complete status.
       throw new AnthropicError('bash session terminated');
     }
-    const tail = this.#buf.slice(idx + sentinel.length);
-    const m = tail.match(/^(-?\d+)/);
-    const exitCode = m ? parseInt(m[1]!, 10) : -1;
-    let out = this.#buf.slice(0, idx).replace(ANSI_RE, '').replace(/\n+$/, '');
+    const exitCode = parseInt(match[1]!, 10);
+    let out = this.#buf.slice(0, match.index).replace(ANSI_RE, '').replace(/\n+$/, '');
     if (this.#truncated) {
       out = `[output truncated]\n${out}`;
     }
