@@ -1,7 +1,7 @@
 import { STAINLESS_HELPER_METHOD_HEADER } from '../internal/stainless-helper-header';
 import { isAbortError } from '../internal/errors';
 import { checkNever } from '../internal/utils/values';
-import { AnthropicError, APIUserAbortError } from '../error';
+import { AnthropicError, APIUserAbortError, APIConnectionTimeoutError } from '../error';
 import {
   type ContentBlock,
   Messages,
@@ -76,8 +76,12 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
   #request_id: string | null | undefined;
   #workspace_id: string | null | undefined;
   #logger: Logger;
+  #idleTimeoutMs: number | undefined;
 
-  constructor(params: MessageCreateParamsBase | null, opts?: { logger?: Logger | undefined }) {
+  constructor(
+    params: MessageCreateParamsBase | null,
+    opts?: { logger?: Logger | undefined; idleTimeoutMs?: number | undefined },
+  ) {
     this.#connectedPromise = new Promise<Response | null>((resolve, reject) => {
       this.#resolveConnectedPromise = resolve;
       this.#rejectConnectedPromise = reject;
@@ -97,6 +101,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
 
     this.#params = params;
     this.#logger = opts?.logger ?? console;
+    this.#idleTimeoutMs = opts?.idleTimeoutMs;
   }
 
   get response(): Response | null | undefined {
@@ -149,8 +154,11 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
    * Note that messages sent to the model do not appear in `.on('message')`
    * in this context.
    */
-  static fromReadableStream(stream: ReadableStream): MessageStream {
-    const runner = new MessageStream(null);
+  static fromReadableStream(
+    stream: ReadableStream,
+    opts?: { idleTimeoutMs?: number | undefined; logger?: Logger | undefined },
+  ): MessageStream {
+    const runner = new MessageStream(null, opts);
     runner._run(() => runner._fromReadableStream(stream));
     return runner;
   }
@@ -158,10 +166,11 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
   static createMessage<ParsedT>(
     messages: Messages,
     params: MessageCreateParamsBase,
-    options?: RequestOptions,
-    { logger }: { logger?: Logger | undefined } = {},
+    options?: RequestOptions & { idleTimeoutMs?: number },
+    { logger, idleTimeoutMs }: { logger?: Logger | undefined; idleTimeoutMs?: number | undefined } = {},
   ): MessageStream<ParsedT> {
-    const runner = new MessageStream<ParsedT>(params, { logger });
+    const effectiveIdleTimeout = idleTimeoutMs ?? (options as any)?.idleTimeoutMs;
+    const runner = new MessageStream<ParsedT>(params, { logger, idleTimeoutMs: effectiveIdleTimeout });
     for (const message of params.messages) {
       runner._addMessageParam(message);
     }
@@ -212,7 +221,11 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
         .create({ ...params, stream: true }, { ...options, signal: this.controller.signal })
         .withResponse();
       this._connected(response);
-      for await (const event of stream) {
+      const events =
+        this.#idleTimeoutMs && this.#idleTimeoutMs > 0 ?
+          this.#withIdleTimeout(stream, this.#idleTimeoutMs)
+        : stream;
+      for await (const event of events) {
         this.#addStreamEvent(event);
       }
       if (stream.controller.signal?.aborted) {
@@ -545,7 +558,11 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
       this.#beginRequest();
       this._connected(null);
       const stream = Stream.fromReadableStream<MessageStreamEvent>(readableStream, this.controller);
-      for await (const event of stream) {
+      const events =
+        this.#idleTimeoutMs && this.#idleTimeoutMs > 0 ?
+          this.#withIdleTimeout(stream, this.#idleTimeoutMs)
+        : stream;
+      for await (const event of events) {
         this.#addStreamEvent(event);
       }
       if (stream.controller.signal?.aborted) {
@@ -555,6 +572,41 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
     } finally {
       if (signal && abortHandler) {
         signal.removeEventListener('abort', abortHandler);
+      }
+    }
+  }
+
+  async *#withIdleTimeout<T>(
+    asyncIterable: AsyncIterable<T>,
+    idleTimeoutMs: number,
+  ): AsyncGenerator<T, void, unknown> {
+    const iterator = asyncIterable[Symbol.asyncIterator]();
+    while (true) {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timeoutPromise = new Promise<{ isTimeout: true }>((resolve) => {
+        timer = setTimeout(() => resolve({ isTimeout: true }), idleTimeoutMs);
+      });
+
+      try {
+        const result = await Promise.race([
+          iterator.next().then((res) => ({ isTimeout: false as const, res })),
+          timeoutPromise,
+        ]);
+
+        if (result.isTimeout) {
+          this.controller.abort();
+          throw new APIConnectionTimeoutError({
+            message: `Stream timed out after ${idleTimeoutMs}ms of idle inactivity`,
+          });
+        }
+
+        if (result.res.done) {
+          return;
+        }
+
+        yield result.res.value;
+      } finally {
+        if (timer) clearTimeout(timer);
       }
     }
   }
