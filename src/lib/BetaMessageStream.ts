@@ -506,7 +506,8 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
         break;
       }
       case 'message_stop': {
-        this._addMessageParam(messageSnapshot);
+        // Assertion needed until the generated request and response types of `tool_listing` agree.
+        this._addMessageParam(messageSnapshot as BetaMessageParam);
         this._addMessage(
           maybeParseBetaMessage(messageSnapshot, this.#params, { logger: this.#logger }),
           true,

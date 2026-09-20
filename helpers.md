@@ -542,6 +542,51 @@ Schedules a compaction of the conversation for when the current turn has finishe
 runner.compactBeforeNextTurn();
 ```
 
+#### `BetaToolRunner.addTools()` and `BetaToolRunner.removeTools()`
+
+Changing `tools` in the middle of a conversation misses the prompt cache for everything sent so far. With the `inline-tools-2026-09-15` beta a tool change is sent as a message instead, and these two methods do that for you. `tools` is sent exactly as you first passed it on every request.
+
+```ts
+const runner = anthropic.beta.messages.toolRunner({
+  model: 'claude-sonnet-5',
+  max_tokens: 1000,
+  betas: ['inline-tools-2026-09-15'],
+  messages: [{ role: 'user', content: 'How many orders shipped late last week?' }],
+  tools: [readFileTool],
+});
+
+for await (const message of runner) {
+  if (database.justConnected()) {
+    runner.addTools(queryDatabaseTool);
+  }
+  if (database.justDisconnected()) {
+    runner.removeTools(queryDatabaseTool); // or by name: 'query_database'
+  }
+}
+```
+
+`addTools()` takes what `tools` takes: runnable tools and raw tool definitions. The whole definition is sent to the model either way.
+
+- A runnable tool can be called from the request that carries its definition. If a runnable tool of the same name is already there, the new one replaces it from that request on; a call the model made before then still runs the old one.
+- A raw definition is sent as given and is never run by the tool runner, which also stops running a tool of the same name. That is what you want for server tools, such as `{ type: 'web_search_20250305', name: 'web_search' }`, which the API runs. A call to a raw client tool gets the same "not found" error result as when it is passed in `tools`.
+- An `mcp_toolset` definition also needs its server in `mcp_servers`, which `addTools()` doesn't change.
+
+`removeTools()` takes the tools themselves or their names.
+
+- The tool stops being run straight away. If the model has already called it in the message you're handling, that call gets the same "not found" error result as a call to an unknown tool, and the tool isn't run. Calls that have already started still finish.
+- The tool stays removed whatever happens to the message history later. To bring it back, pass it to `addTools()` again.
+- Removing a server tool only tells the model.
+
+A few things to know:
+
+- Changes made while you're handling a message are sent together as one `role: "system"` message, in the order you made them, right after that turn's tool results. Changes made before iterating follow the initial messages.
+- After a paused turn (`pause_turn`) the turn is sent back as it came, and the changes go out with the request after that.
+- Changes still waiting when the run ends are never sent.
+- In the rare case where a compaction response comes back without `tool_changes` even though the messages it summarized added or removed tools, the model goes back to the tools in `tools`, and the runner doesn't detect it. Call `addTools()` / `removeTools()` again after that compaction if you need the change restored.
+- The runner doesn't add the beta for you, so pass `betas: ['inline-tools-2026-09-15']`.
+- Changing `tools` with `setMessagesParams()` still works, but misses the prompt cache and does not undo what these methods did.
+- Use either these methods or `tool_addition` / `tool_removal` blocks you append yourself for a given tool, not both.
+
 #### `BetaToolRunner.setRequestOptions()`
 
 Updates the request options (e.g., headers, abort signal) for future API calls and tool executions.

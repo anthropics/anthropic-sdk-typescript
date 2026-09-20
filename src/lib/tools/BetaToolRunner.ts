@@ -4,15 +4,13 @@ import { Anthropic } from '../..';
 import { AnthropicError } from '../../core/error';
 import {
   BetaCompactionConfig,
+  BetaContentBlock,
   BetaContentBlockParam,
   BetaMessage,
   BetaMessageParam,
   BetaRequestToolAdditionBlock,
   BetaRequestToolRemovalBlock,
   BetaStopReason,
-  BetaToolChangeMCPToolReference,
-  BetaToolChangeMCPToolsetReference,
-  BetaToolChangeToolReference,
   BetaToolUnion,
   MessageCreateParams,
 } from '../../resources/beta';
@@ -60,8 +58,17 @@ export class BetaToolRunner<Stream extends boolean> {
   #iterationCount = 0;
   /** A compaction scheduled with `compactBeforeNextTurn()`, in flight until its response has been handled */
   #compaction: Compaction = { status: 'idle' };
-  /** Whether the last turn was paused; a scheduled compaction waits for it to be resumed */
-  #turnPaused = false;
+  /** The last turn's stop reason, or `null` once the history has been replaced since */
+  #lastStopReason: BetaStopReason | null = null;
+  /**
+   * `addTools()` / `removeTools()` never edit `params.tools`, because a changed `tools` misses the prompt
+   * cache, so what they change about which tool runs under a name is kept here instead: the runnable tool
+   * added under that name, or `null` once the name was removed or taken by a raw definition. A tool call is
+   * looked up here first, and in `params.tools` only when its name has no entry.
+   */
+  #toolOverrides = new Map<string, BetaRunnableTool<any> | null>();
+  /** Changes queued by `addTools()` / `removeTools()`, in call order, for the next request */
+  #pendingToolChanges: PendingToolChange[] = [];
 
   constructor(
     private client: Anthropic,
@@ -75,11 +82,13 @@ export class BetaToolRunner<Stream extends boolean> {
         // You also don't really need to clone params.messages, but it probably will prevent a foot gun
         // somewhere.
         ...params,
-        messages: structuredClone(params.messages),
+        // Not structuredClone(): it throws on a function, and a runnable tool written by value into a
+        // `tool_addition` block has `run`. A JSON copy is the messages as they are sent, which drops it.
+        messages: JSON.parse(JSON.stringify(params.messages)),
       },
     };
 
-    // structuredClone drops symbol-keyed properties, so collect helper marks
+    // Cloning drops symbol-keyed properties, so collect helper marks
     // from the original params here — the create()-side collector won't see
     // them on the cloned messages.
     const collected = collectStainlessHelpers(params.tools, params.messages);
@@ -176,10 +185,13 @@ export class BetaToolRunner<Stream extends boolean> {
     if (response.content[0]?.type !== 'text') {
       throw new AnthropicError('Expected text response for compaction');
     }
+    // Must run before the history is replaced: a removal the caller wrote into it is known only from it.
+    this.#recordRemovalsFromHistory();
+    this.#lastStopReason = null;
     this.#state.params.messages = [
       {
         role: 'user',
-        content: response.content,
+        content: asContentParam(response.content),
       },
     ];
     return true;
@@ -208,8 +220,13 @@ export class BetaToolRunner<Stream extends boolean> {
             break;
           }
 
+          this.#flushPendingToolChanges();
+
           // The API can't compact a conversation that ends mid-turn, so a paused turn is resumed first.
-          if (this.#compaction.status === 'scheduled' && !this.#turnPaused) {
+          if (
+            this.#compaction.status === 'scheduled' &&
+            determineNextStepFromStopReason(this.#lastStopReason) !== 'resume'
+          ) {
             yield* this.#compact(this.#compaction.config);
             continue;
           }
@@ -228,8 +245,11 @@ export class BetaToolRunner<Stream extends boolean> {
             if (!this.#mutated) {
               const message = await this.#message!;
               const nextStep = determineNextStepFromStopReason(message.stop_reason);
-              this.#turnPaused = nextStep === 'resume';
-              this.#state.params.messages.push({ role: message.role, content: message.content });
+              this.#lastStopReason = message.stop_reason;
+              this.#state.params.messages.push({
+                role: message.role,
+                content: asContentParam(message.content),
+              });
 
               // Container-bound server tools reject a follow-up request that omits the container the
               // previous turn ran in, so carry its id forward unless the caller pinned one themselves.
@@ -251,7 +271,7 @@ export class BetaToolRunner<Stream extends boolean> {
               }
             } else {
               // The caller has taken over the history, so the last response no longer says how it ends.
-              this.#turnPaused = false;
+              this.#lastStopReason = null;
             }
 
             const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
@@ -316,6 +336,7 @@ export class BetaToolRunner<Stream extends boolean> {
       yield* this.#send({ ...params, compaction });
       const message = await this.#message!;
       if (message.content.some((block) => block.type === 'compaction' && block.content)) {
+        this.#recordRemovalsFromHistory();
         // The response has to be sent back as it came, first, replacing the messages it summarizes.
         this.#state.params.messages = [{ role: message.role, content: message.content }];
       } else {
@@ -325,6 +346,17 @@ export class BetaToolRunner<Stream extends boolean> {
       }
     } finally {
       this.#compaction = { status: 'idle' };
+    }
+  }
+
+  /** Records in the overrides, which outlive the history, every runnable tool the history reports removed */
+  #recordRemovalsFromHistory(): void {
+    const runnable = runnableToolsByName(this.#state.params, this.#toolOverrides);
+    const available = availableToolNames(this.#state.params, runnable);
+    for (const name of runnable.keys()) {
+      if (!available.has(name)) {
+        this.#toolOverrides.set(name, null);
+      }
     }
   }
 
@@ -443,13 +475,13 @@ export class BetaToolRunner<Stream extends boolean> {
   }
 
   async #generateToolResponse(
-    lastMessage: BetaMessageParam,
+    lastMessage: BetaMessage | BetaMessageParam,
     signal: AbortSignal | null | undefined = this.#options.signal,
   ) {
     if (this.#toolResponse !== undefined) {
       return this.#toolResponse;
     }
-    this.#toolResponse = generateToolResponse(this.#state.params, lastMessage, {
+    this.#toolResponse = generateToolResponse(this.#state.params, this.#toolOverrides, lastMessage, {
       ...this.#options,
       signal,
     });
@@ -562,6 +594,78 @@ export class BetaToolRunner<Stream extends boolean> {
   }
 
   /**
+   * Give the model more tools without changing `params.tools`, which would miss the prompt cache.
+   *
+   * Each tool's whole definition is sent in a `tool_addition` block with the next request, and a
+   * runnable tool replaces a runnable tool of the same name from then on. A raw definition is only
+   * sent: the runner never runs it, and stops running a tool of the same name. Requires the
+   * `inline-tools-2026-09-15` beta, which the runner does not add for you.
+   *
+   * @param tools - Runnable tools (for example from `betaZodTool()`) or raw tool definitions
+   *
+   * @example
+   * runner.addTools(queryDatabaseTool);
+   */
+  addTools(...tools: (BetaRunnableTool<any> | BetaToolUnion)[]): void {
+    for (const tool of tools) {
+      this.#pendingToolChanges.push({ type: 'addition', tool });
+    }
+  }
+
+  /**
+   * Take tools away from the model without changing `params.tools`, which would miss the prompt cache.
+   *
+   * The tools stop being run straight away: a call to one of them, even one in the message being
+   * handled, gets the same "not found" error result as a call to an unknown tool. The model is told
+   * in a `tool_removal` block with the next request. Use {@link addTools} to bring a tool back.
+   * Requires the `inline-tools-2026-09-15` beta, which the runner does not add for you.
+   *
+   * @param tools - The tools to remove, or their names
+   *
+   * @example
+   * runner.removeTools('query_database');
+   */
+  removeTools(...tools: (BetaRunnableTool<any> | string)[]): void {
+    for (const tool of tools) {
+      const name = typeof tool === 'string' ? tool : tool.name;
+      this.#toolOverrides.set(name, null);
+      this.#pendingToolChanges.push({ type: 'removal', name });
+    }
+  }
+
+  #flushPendingToolChanges() {
+    // A paused turn has to go back as the last message, so the changes wait for the request after it.
+    if (this.#lastStopReason === 'pause_turn' || this.#pendingToolChanges.length === 0) {
+      return;
+    }
+    const content: Array<BetaRequestToolAdditionBlock | BetaRequestToolRemovalBlock> = [];
+    for (const change of this.#pendingToolChanges) {
+      if (change.type === 'removal') {
+        // Recorded again here, so that an addition followed by a removal ends removed.
+        this.#toolOverrides.set(change.name, null);
+        content.push({ type: 'tool_removal', tool: { type: 'tool_reference', name: change.name } });
+        continue;
+      }
+      // The functions stay out of the definition that is sent; the tool itself is what the runner runs.
+      const runnable = 'run' in change.tool ? change.tool : null;
+      let definition: BetaToolUnion = change.tool;
+      if (runnable) {
+        const { run, parse, close, ...rest } = runnable;
+        definition = rest;
+      }
+      // A definition without a `name` (an `mcp_toolset`) is nothing the runner runs or stops running.
+      if ('name' in definition) {
+        this.#toolOverrides.set(definition.name, runnable);
+      }
+      content.push({ type: 'tool_addition', tool: { type: 'tool_definition', definition } });
+    }
+    // Not pushMessages(): that marks the params as changed by the caller, and the runner would then
+    // leave this turn's assistant message and tool results for the caller to append.
+    this.#state.params.messages.push({ role: 'system', content });
+    this.#pendingToolChanges = [];
+  }
+
+  /**
    * Makes the ToolRunner directly awaitable, equivalent to calling .runUntilDone()
    * This allows using `await runner` instead of `await runner.runUntilDone()`
    */
@@ -595,7 +699,8 @@ function rejectCompactionEdit(params: BetaToolRunnerParams): void {
 
 async function generateToolResponse(
   params: BetaToolRunnerParams,
-  lastMessage = params.messages.at(-1),
+  toolOverrides: ToolOverrides,
+  lastMessage: BetaMessage | BetaMessageParam | undefined = params.messages.at(-1),
   requestOptions?: BetaToolRunnerRequestOptions,
 ): Promise<BetaMessageParam | null> {
   // Only process if the last message is from the assistant and has tool use blocks
@@ -613,18 +718,14 @@ async function generateToolResponse(
     return null;
   }
 
-  const available = availableToolNames(params);
+  const runnable = runnableToolsByName(params, toolOverrides);
+  const available = availableToolNames(params, runnable);
   const toolResults = await Promise.all(
     toolUseBlocks.map(async (toolUse) => {
-      const tool = params.tools.find(
-        (t) =>
-          ('name' in t ? t.name
-          : 'mcp_server_name' in t ? t.mcp_server_name
-          : t.type) === toolUse.name,
-      );
       // A `tool_removal` is only a hint to the model, which may still emit a tool_use for a
       // withdrawn tool — treat those exactly like a tool that was never defined.
-      if (!tool || !('run' in tool) || !available.has(toolUse.name)) {
+      const tool = available.has(toolUse.name) ? runnable.get(toolUse.name) : undefined;
+      if (!tool) {
         return toolNotFoundResult(toolUse);
       }
 
@@ -664,6 +765,42 @@ async function generateToolResponse(
   };
 }
 
+/**
+ * Response content is sent back as request content unchanged. The generated request type of the
+ * `tool_listing` block is narrower than its response type, so this needs an assertion until the
+ * two agree.
+ */
+function asContentParam(content: BetaContentBlock[]): BetaContentBlockParam[] {
+  return content as BetaContentBlockParam[];
+}
+
+type ToolOverrides = ReadonlyMap<string, BetaRunnableTool<any> | null>;
+
+type PendingToolChange =
+  | { type: 'addition'; tool: BetaRunnableTool<any> | BetaToolUnion }
+  | { type: 'removal'; name: string };
+
+/** The tools the runner runs, by name: the runnable tools in `params.tools` with the overrides applied */
+function runnableToolsByName(
+  params: BetaToolRunnerParams,
+  toolOverrides: ToolOverrides,
+): Map<string, BetaRunnableTool<any>> {
+  const runnable = new Map<string, BetaRunnableTool<any>>();
+  for (const tool of params.tools) {
+    if ('run' in tool) {
+      runnable.set(tool.name, tool);
+    }
+  }
+  for (const [name, tool] of toolOverrides) {
+    if (tool) {
+      runnable.set(name, tool);
+    } else {
+      runnable.delete(name);
+    }
+  }
+  return runnable;
+}
+
 function toolNotFoundResult(toolUse: { id: string; name: string }) {
   return {
     type: 'tool_result' as const,
@@ -676,26 +813,32 @@ function toolNotFoundResult(toolUse: { id: string; name: string }) {
 /**
  * Computes the names of locally runnable tools that are still available for the assistant
  * turn being answered, by folding `tool_removal` / `tool_addition` blocks from the
- * `role: "system"` messages over the runnable tools. The assistant turn being answered is
- * terminal-or-absent and only `system` messages are inspected, so folding the whole current
- * history is exactly folding the messages preceding that turn — call this before appending
- * anything after it. MCP references are ignored — those tools are executed server-side and
- * never dispatched by this runner.
+ * `role: "system"` messages, and from the `tool_changes` of `compaction` blocks, over the
+ * runnable tools. The assistant turn being answered is terminal-or-absent and a `compaction`
+ * block's changes predate the rest of its turn, so folding the whole current history is exactly
+ * folding what precedes that turn's tool calls — call this before appending anything after it.
+ * MCP references are ignored — those tools are executed server-side and never dispatched by
+ * this runner.
  */
-function availableToolNames(params: BetaToolRunnerParams): Set<string> {
-  const available = new Set<string>();
-  for (const tool of params.tools) {
-    if ('run' in tool) {
-      available.add(tool.name);
-    }
-  }
+function availableToolNames(
+  params: BetaToolRunnerParams,
+  runnable: ReadonlyMap<string, BetaRunnableTool<any>>,
+): Set<string> {
+  const available = new Set(runnable.keys());
 
   for (const message of params.messages) {
-    if (message.role !== 'system' || typeof message.content === 'string') {
+    if (typeof message.content === 'string') {
       continue;
     }
     for (const block of message.content) {
-      applyToolChange(block, available);
+      if (message.role === 'system') {
+        applyToolChange(block, available);
+      } else if (message.role === 'assistant' && block.type === 'compaction') {
+        // A compaction block's tool_changes stand in for the system messages of the turns it summarized.
+        for (const change of block.tool_changes ?? []) {
+          applyToolChange(change, available);
+        }
+      }
     }
   }
   return available;
@@ -714,7 +857,7 @@ function applyToolReference(
   block: BetaRequestToolAdditionBlock | BetaRequestToolRemovalBlock,
   available: Set<string>,
 ): void {
-  const name = referencedToolName(block.tool);
+  const name = changedToolName(block.tool);
   if (name === undefined) return;
   if (block.type === 'tool_removal') {
     available.delete(name);
@@ -723,15 +866,16 @@ function applyToolReference(
   }
 }
 
-function referencedToolName(
-  ref: BetaToolChangeToolReference | BetaToolChangeMCPToolReference | BetaToolChangeMCPToolsetReference,
-): string | undefined {
-  switch (ref.type) {
+function changedToolName(tool: BetaRequestToolAdditionBlock['tool']): string | undefined {
+  switch (tool.type) {
     case 'tool_reference':
-      return ref.name;
+      return tool.name;
+    case 'tool_definition':
+      // Not every `tools[]` entry has a `name` (e.g. `mcp_toolset`); those are never locally runnable.
+      return 'name' in tool.definition ? tool.definition.name : undefined;
     default:
-      // mcp_tool_reference / mcp_toolset_reference run server-side; unknown reference
-      // types are ignored rather than rejected.
+      // mcp_tool_reference / mcp_toolset_reference run server-side; unknown types are ignored
+      // rather than rejected.
       return undefined;
   }
 }

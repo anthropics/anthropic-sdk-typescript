@@ -2,7 +2,9 @@ import Anthropic, { BetaFallbackState, type ClientOptions, type Middleware } fro
 import { mockFetch } from '../../lib/mock-fetch';
 import {
   BetaMessage,
+  BetaMessageParam,
   BetaContentBlock,
+  BetaContentBlockParam,
   BetaStopReason,
   BetaToolResultBlockParam,
 } from '@anthropic-ai/sdk/resources/beta';
@@ -43,6 +45,12 @@ const calculatorTool: BetaRunnableTool<{ a: number; b: number; operation: string
 // Helper functions to create content blocks
 function getWeatherToolUse(location: string, id: string = 'tool_1'): BetaContentBlock {
   return { type: 'tool_use', id, name: 'getWeather', input: { location } };
+}
+
+// Response content goes back as request content unchanged; the assertion is needed until the
+// generated request and response types of the `tool_listing` block agree.
+function assistantTurn(content: BetaContentBlock[]): BetaMessageParam {
+  return { role: 'assistant', content: content as BetaContentBlockParam[] };
 }
 
 function getWeatherToolResult(location: string, id: string = 'tool_1'): BetaToolResultBlockParam {
@@ -642,6 +650,104 @@ describe('ToolRunner', () => {
       await expectDone(iterator);
     });
 
+    it('re-enables a removed tool after a later tool_addition that carries its definition', async () => {
+      const run = vi.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
+      const trackedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run };
+
+      const { runner, handleAssistantMessage } = setupTest({
+        messages: [
+          { role: 'user', content: 'What is the weather?' },
+          {
+            role: 'system',
+            content: [{ type: 'tool_removal', tool: { type: 'tool_reference', name: 'getWeather' } }],
+          },
+          {
+            role: 'system',
+            content: [
+              {
+                type: 'tool_addition',
+                tool: {
+                  type: 'tool_definition',
+                  definition: { type: 'mcp_toolset', mcp_server_name: 'docs' },
+                },
+              },
+              {
+                type: 'tool_addition',
+                tool: {
+                  type: 'tool_definition',
+                  definition: {
+                    name: 'getWeather',
+                    description: 'Get weather',
+                    input_schema: weatherTool.input_schema,
+                  },
+                },
+              },
+            ],
+          },
+        ],
+        tools: [trackedWeatherTool],
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      handleAssistantMessage(getWeatherToolUse('SF'));
+      await expectEvent(iterator);
+
+      handleAssistantMessage(getTextContent());
+      await expectEvent(iterator);
+
+      expect(run).toHaveBeenCalledWith({ location: 'SF' }, expect.anything());
+
+      await expectDone(iterator);
+    });
+
+    it('honors a tool_removal carried in a compaction block', async () => {
+      const run = vi.fn(async ({ location }: { location: string }) => `Sunny in ${location}`);
+      const trackedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run };
+
+      const { runner, handleAssistantMessage } = setupTest({
+        messages: [
+          {
+            role: 'assistant',
+            content: [
+              {
+                type: 'compaction',
+                content: 'Earlier turns, summarized.',
+                tool_changes: [
+                  { type: 'tool_removal', tool: { type: 'tool_reference', name: 'getWeather' } },
+                ],
+              },
+            ],
+          },
+          { role: 'user', content: 'What is the weather?' },
+        ],
+        tools: [trackedWeatherTool],
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      handleAssistantMessage(getWeatherToolUse('SF'));
+      await expectEvent(iterator);
+
+      handleAssistantMessage(getTextContent());
+      await expectEvent(iterator);
+
+      expect(run).not.toHaveBeenCalled();
+      expect(runner.params.messages[3]).toEqual({
+        role: 'user',
+        content: [
+          {
+            type: 'tool_result',
+            tool_use_id: 'tool_1',
+            content: `Error: Tool 'getWeather' not found`,
+            is_error: true,
+          },
+        ],
+      });
+
+      await expectDone(iterator);
+    });
+
     it('handles tool execution errors', async () => {
       const errorTool: BetaRunnableTool<{ shouldFail: boolean }> = {
         type: 'custom',
@@ -939,7 +1045,7 @@ describe('ToolRunner', () => {
       // hands the history to the caller (the assistant turn is not auto-pushed).
       const firstTurn = handleAssistantMessage(getTextContent('Which tool should I use?'));
       await expectEvent(iterator);
-      runner.pushMessages({ role: 'assistant', content: firstTurn.content }, removeWeatherTool, {
+      runner.pushMessages(assistantTurn(firstTurn.content), removeWeatherTool, {
         role: 'user',
         content: 'Try the weather tool anyway.',
       });
@@ -985,11 +1091,7 @@ describe('ToolRunner', () => {
       // so the runner appends the tool_result once it resumes.
       runner.setMessagesParams((params) => ({
         ...params,
-        messages: [
-          ...params.messages,
-          removeWeatherTool,
-          { role: 'assistant', content: toolUseTurn.content },
-        ],
+        messages: [...params.messages, removeWeatherTool, assistantTurn(toolUseTurn.content)],
       }));
 
       const toolResponse = await runner.generateToolResponse();
@@ -1023,7 +1125,7 @@ describe('ToolRunner', () => {
       // Turn 1 is text-only; re-add the tool while suspended at the yield.
       const firstTurn = handleAssistantMessage(getTextContent('That tool is unavailable.'));
       await expectEvent(iterator);
-      runner.pushMessages({ role: 'assistant', content: firstTurn.content }, addWeatherTool, {
+      runner.pushMessages(assistantTurn(firstTurn.content), addWeatherTool, {
         role: 'user',
         content: 'It is available again — check SF.',
       });
@@ -1043,6 +1145,409 @@ describe('ToolRunner', () => {
       });
 
       await expectDone(iterator);
+    });
+  });
+
+  describe('.addTools() / .removeTools()', () => {
+    const lookupDefinition = {
+      type: 'custom' as const,
+      name: 'lookup',
+      description: 'Look something up',
+      input_schema: { type: 'object' as const, properties: { query: { type: 'string' } } },
+    };
+    const lookupTool: BetaRunnableTool<{ query: string }> = {
+      ...lookupDefinition,
+      run: async ({ query }) => `Found ${query}`,
+      parse: (input: unknown) => input as { query: string },
+    };
+    const { run: _run, parse: _parse, ...weatherDefinition } = weatherTool;
+
+    const lookupToolUse = (id: string): BetaContentBlock => ({
+      type: 'tool_use',
+      id,
+      name: 'lookup',
+      input: { query: 'tides' },
+    });
+    const addition = (definition: unknown) => ({
+      type: 'tool_addition',
+      tool: { type: 'tool_definition', definition },
+    });
+    const removal = (name: string) => ({ type: 'tool_removal', tool: { type: 'tool_reference', name } });
+    const toolChanges = (...content: unknown[]) => ({ role: 'system', content });
+    const notFound = (name: string, id: string) => ({
+      type: 'tool_result',
+      tool_use_id: id,
+      content: `Error: Tool '${name}' not found`,
+      is_error: true,
+    });
+    const firstMessage = { role: 'user' as const, content: 'What is the weather?' };
+    const sent = (body: Record<string, unknown> | undefined) => body!['messages'] as unknown[];
+
+    // Drives the runner to the end, calling `onTurn` with each turn's index before its tool calls are run.
+    async function runTurns(
+      runner: Anthropic.Beta.Messages.BetaToolRunner<boolean>,
+      onTurn: (turn: number) => void,
+    ) {
+      let turn = 0;
+      for await (const _ of runner) {
+        onTurn(turn++);
+      }
+    }
+
+    it.each([false, true])(
+      'sends an added tool after the tool results of the turn and runs it from then on (stream=%s)',
+      async (stream) => {
+        const { runner, handleRequest } = stream ? setupTest({ stream: true }) : setupTest();
+        const bodies: Array<Record<string, unknown>> = [];
+        const weatherTurn = assistantMessage('tool_use', getWeatherToolUse('SF'));
+        const lookupTurn = assistantMessage('tool_use', lookupToolUse('tool_2'));
+
+        reply(handleRequest, bodies, weatherTurn, stream);
+        reply(handleRequest, bodies, lookupTurn, stream);
+        reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), stream);
+        await runTurns(runner, (turn) => {
+          if (turn === 0) runner.addTools(lookupTool);
+        });
+
+        expect(bodies).toHaveLength(3);
+        expect(sent(bodies[0])).toEqual([firstMessage]);
+        expect(sent(bodies[1])).toEqual([
+          firstMessage,
+          { role: 'assistant', content: weatherTurn.content },
+          { role: 'user', content: [getWeatherToolResult('SF')] },
+          toolChanges(addition(lookupDefinition)),
+        ]);
+        expect(sent(bodies[2]).slice(4)).toEqual([
+          { role: 'assistant', content: lookupTurn.content },
+          { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'tool_2', content: 'Found tides' }] },
+        ]);
+        for (const body of bodies) {
+          expect(body['tools']).toEqual([weatherDefinition]);
+        }
+      },
+    );
+
+    it.each([
+      ['the tool', weatherTool],
+      ['its name', 'getWeather'],
+    ])('refuses a call already in the turn being handled to a tool removed by %s', async (_, tool) => {
+      const run = vi.fn(weatherTool.run);
+      const { runner, handleRequest } = setupTest({ tools: [{ ...weatherTool, run }] });
+      const bodies: Array<Record<string, unknown>> = [];
+      const weatherTurn = assistantMessage('tool_use', getWeatherToolUse('SF'));
+
+      reply(handleRequest, bodies, weatherTurn, false);
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+      await runTurns(runner, (turn) => {
+        if (turn === 0) runner.removeTools(tool);
+      });
+
+      expect(run).not.toHaveBeenCalled();
+      expect(sent(bodies[1])).toEqual([
+        firstMessage,
+        { role: 'assistant', content: weatherTurn.content },
+        { role: 'user', content: [notFound('getWeather', 'tool_1')] },
+        toolChanges(removal('getWeather')),
+      ]);
+      expect(bodies[1]!['tools']).toEqual(bodies[0]!['tools']);
+    });
+
+    it('keeps removed tools removed when their tool_removal blocks leave the history, until added again', async () => {
+      const runWeather = vi.fn(weatherTool.run);
+      const runLookup = vi.fn(lookupTool.run);
+      const { runner, handleRequest } = setupTest({
+        tools: [{ ...weatherTool, run: runWeather }, calculatorTool],
+      });
+      const bodies: Array<Record<string, unknown>> = [];
+      const bothTurn = assistantMessage('tool_use', getWeatherToolUse('SF'), lookupToolUse('tool_2'));
+
+      runner.removeTools('getWeather');
+      runner.addTools({ ...lookupTool, run: runLookup });
+      runner.removeTools('lookup');
+      reply(handleRequest, bodies, assistantMessage('tool_use', getCalculatorToolUse(1, 2, 'add')), false);
+      reply(handleRequest, bodies, bothTurn, false);
+      reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('LA', 'tool_3')), false);
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+      await runTurns(runner, (turn) => {
+        if (turn === 1) {
+          runner.setMessagesParams((params) => ({
+            ...params,
+            messages: [firstMessage, { role: 'assistant', content: bothTurn.content }],
+          }));
+          runner.addTools({ ...weatherTool, run: runWeather });
+        }
+      });
+
+      expect(runLookup).not.toHaveBeenCalled();
+      expect(sent(bodies[2])).toEqual([
+        firstMessage,
+        { role: 'assistant', content: bothTurn.content },
+        { role: 'user', content: [notFound('getWeather', 'tool_1'), notFound('lookup', 'tool_2')] },
+        toolChanges(addition(weatherDefinition)),
+      ]);
+      expect(runWeather).toHaveBeenCalledTimes(1);
+      expect(runWeather).toHaveBeenCalledWith({ location: 'LA' }, expect.anything());
+    });
+
+    it('replaces a runnable tool of the same name from the next request', async () => {
+      const { runner, handleRequest } = setupTest();
+      const bodies: Array<Record<string, unknown>> = [];
+
+      reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('SF')), false);
+      reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('LA', 'tool_2')), false);
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+      await runTurns(runner, (turn) => {
+        if (turn === 0) runner.addTools({ ...weatherTool, run: async () => 'Raining' });
+      });
+
+      expect(sent(bodies[1]).slice(-2)).toEqual([
+        { role: 'user', content: [getWeatherToolResult('SF')] },
+        toolChanges(addition(weatherDefinition)),
+      ]);
+      expect(sent(bodies[2]).at(-1)).toEqual({
+        role: 'user',
+        content: [{ type: 'tool_result', tool_use_id: 'tool_2', content: 'Raining' }],
+      });
+    });
+
+    it('sends every change made before the first request in call order, without collapsing an add and a remove', async () => {
+      const { runner, handleRequest } = setupTest();
+      const bodies: Array<Record<string, unknown>> = [];
+
+      runner.addTools(lookupTool);
+      runner.removeTools(lookupTool);
+      runner.removeTools('getWeather');
+      runner.addTools(weatherTool);
+      reply(
+        handleRequest,
+        bodies,
+        assistantMessage('tool_use', getWeatherToolUse('SF'), lookupToolUse('tool_2')),
+        false,
+      );
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+      await runner.runUntilDone();
+
+      expect(sent(bodies[0])).toEqual([
+        firstMessage,
+        toolChanges(
+          addition(lookupDefinition),
+          removal('lookup'),
+          removal('getWeather'),
+          addition(weatherDefinition),
+        ),
+      ]);
+      expect(bodies[0]!['tools']).toEqual([weatherDefinition]);
+      expect(sent(bodies[1]).at(-1)).toEqual({
+        role: 'user',
+        content: [getWeatherToolResult('SF'), notFound('lookup', 'tool_2')],
+      });
+    });
+
+    it('sends a raw definition as given and never runs a call to it, even under the name of a runnable tool', async () => {
+      const run = vi.fn(weatherTool.run);
+      const { runner, handleRequest } = setupTest({ tools: [{ ...weatherTool, run }] });
+      const bodies: Array<Record<string, unknown>> = [];
+      const webSearch = { type: 'web_search_20250305' as const, name: 'web_search' as const, max_uses: 3 };
+      const mcpToolset = { type: 'mcp_toolset' as const, mcp_server_name: 'docs' };
+
+      runner.addTools(webSearch, mcpToolset, weatherDefinition);
+      reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('SF')), false);
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+      await runner.runUntilDone();
+
+      expect(sent(bodies[0])[1]).toEqual(
+        toolChanges(addition(webSearch), addition(mcpToolset), addition(weatherDefinition)),
+      );
+      expect(run).not.toHaveBeenCalled();
+      expect(sent(bodies[1]).at(-1)).toEqual({ role: 'user', content: [notFound('getWeather', 'tool_1')] });
+    });
+
+    it('keeps running a tool that shares its name with the server of an added MCP toolset', async () => {
+      const { runner, handleRequest } = setupTest();
+      const bodies: Array<Record<string, unknown>> = [];
+
+      runner.addTools({ type: 'mcp_toolset', mcp_server_name: 'getWeather' });
+      reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('SF')), false);
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+      await runner.runUntilDone();
+
+      expect(sent(bodies[1]).at(-1)).toEqual({ role: 'user', content: [getWeatherToolResult('SF')] });
+    });
+
+    it.each([false, true])(
+      'holds changes made during a paused turn until it has been resumed (stream=%s)',
+      async (stream) => {
+        const { runner, handleRequest } = stream ? setupTest({ stream: true }) : setupTest();
+        const bodies: Array<Record<string, unknown>> = [];
+        const pausedTurn = assistantMessage('pause_turn', getTextContent('Let me look that up.'));
+        const weatherTurn = assistantMessage('tool_use', getWeatherToolUse('SF'));
+
+        reply(handleRequest, bodies, pausedTurn, stream);
+        reply(handleRequest, bodies, weatherTurn, stream);
+        reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), stream);
+        await runTurns(runner, (turn) => {
+          if (turn === 0) runner.addTools(lookupTool);
+        });
+
+        expect(sent(bodies[1])).toEqual([firstMessage, { role: 'assistant', content: pausedTurn.content }]);
+        expect(sent(bodies[2])).toEqual([
+          firstMessage,
+          { role: 'assistant', content: pausedTurn.content },
+          { role: 'assistant', content: weatherTurn.content },
+          { role: 'user', content: [getWeatherToolResult('SF')] },
+          toolChanges(addition(lookupDefinition)),
+        ]);
+      },
+    );
+
+    it('does not hold changes after a turn that stopped on compaction', async () => {
+      const { runner, handleRequest } = setupTest();
+      const bodies: Array<Record<string, unknown>> = [];
+      const compactedTurn = assistantMessage('compaction', {
+        type: 'compaction',
+        content: 'Summary of the conversation so far.',
+        encrypted_content: null,
+      });
+
+      reply(handleRequest, bodies, compactedTurn, false);
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+      await runTurns(runner, (turn) => {
+        if (turn === 0) runner.addTools(lookupTool);
+      });
+
+      expect(sent(bodies[1])).toEqual([
+        firstMessage,
+        { role: 'assistant', content: compactedTurn.content },
+        toolChanges(addition(lookupDefinition)),
+      ]);
+    });
+
+    it('sends changes made in a turn before the compaction request that follows it', async () => {
+      const { runner, handleRequest } = setupTest();
+      const bodies: Array<Record<string, unknown>> = [];
+      const weatherTurn = assistantMessage('tool_use', getWeatherToolUse('SF'));
+      const compaction = { type: 'compaction', content: 'Summary so far.', encrypted_content: null };
+
+      reply(handleRequest, bodies, weatherTurn, false);
+      reply(handleRequest, bodies, assistantMessage('compaction', compaction as BetaContentBlock), false);
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+      await runTurns(runner, (turn) => {
+        if (turn === 0) {
+          runner.addTools(lookupTool);
+          runner.compactBeforeNextTurn();
+        }
+      });
+
+      expect(bodies).toHaveLength(3);
+      expect(bodies[1]!['compaction']).toEqual({ type: 'summarize' });
+      expect(sent(bodies[1])).toEqual([
+        firstMessage,
+        { role: 'assistant', content: weatherTurn.content },
+        { role: 'user', content: [getWeatherToolResult('SF')] },
+        toolChanges(addition(lookupDefinition)),
+      ]);
+    });
+
+    it('keeps a tool removed by a system message in the history removed after a compaction', async () => {
+      const run = vi.fn(weatherTool.run);
+      const { runner, handleRequest } = setupTest({
+        tools: [{ ...weatherTool, run }],
+        messages: [
+          firstMessage,
+          {
+            role: 'system',
+            content: [{ type: 'tool_removal', tool: { type: 'tool_reference', name: 'getWeather' } }],
+          },
+        ],
+      });
+      const bodies: Array<Record<string, unknown>> = [];
+      const compaction = { type: 'compaction', content: 'Summary so far.', encrypted_content: null };
+
+      runner.compactBeforeNextTurn();
+      reply(handleRequest, bodies, assistantMessage('compaction', compaction as BetaContentBlock), false);
+      reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('SF')), false);
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+      await runner.runUntilDone();
+
+      expect(run).not.toHaveBeenCalled();
+      expect(sent(bodies[2]).at(-1)).toEqual({ role: 'user', content: [notFound('getWeather', 'tool_1')] });
+    });
+
+    it('keeps a tool removed by a system message in the history removed after compactionControl compacts', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const run = vi.fn(weatherTool.run);
+      const { runner, handleRequest } = setupTest({
+        tools: [{ ...weatherTool, run }],
+        messages: [
+          firstMessage,
+          {
+            role: 'system',
+            content: [{ type: 'tool_removal', tool: { type: 'tool_reference', name: 'getWeather' } }],
+          },
+        ],
+        compactionControl: { enabled: true, contextTokenThreshold: 100 },
+      });
+      const bodies: Array<Record<string, unknown>> = [];
+      const long = assistantMessage('end_turn', getTextContent());
+      long.usage.input_tokens = 1000;
+
+      reply(handleRequest, bodies, long, false);
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent('Summary so far.')), false);
+      reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('SF')), false);
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+      await runner.runUntilDone();
+
+      expect(run).not.toHaveBeenCalled();
+      expect(sent(bodies[3]).at(-1)).toEqual({ role: 'user', content: [notFound('getWeather', 'tool_1')] });
+      warn.mockRestore();
+    });
+
+    it('never sends changes still pending when the run ends', async () => {
+      const { runner, handleRequest } = setupTest();
+      const bodies: Array<Record<string, unknown>> = [];
+
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+      handleRequest(async () => {
+        throw new Error('Runner made a request just to send pending tool changes');
+      });
+      await runTurns(runner, () => runner.addTools(lookupTool));
+
+      expect(bodies).toHaveLength(1);
+      expect(runner.params.messages.map((message) => message.role)).toEqual(['user', 'assistant']);
+    });
+
+    it('does not add a beta header', async () => {
+      const { runner, handleRequest } = setupTest();
+      let betaHeader: string | null | undefined;
+
+      runner.addTools(lookupTool);
+      handleRequest(async (_req, init) => {
+        betaHeader = new Headers(init?.headers).get('anthropic-beta');
+        return new Response(JSON.stringify(assistantMessage('end_turn', getTextContent())), {
+          headers: { 'content-type': 'application/json' },
+        });
+      });
+      await runner.runUntilDone();
+
+      expect(betaHeader).toBeNull();
+    });
+
+    it('accepts a runnable tool given by value in the initial messages', async () => {
+      const { runner, handleRequest } = setupTest({
+        messages: [
+          { role: 'user', content: 'What is the weather?' },
+          {
+            role: 'system',
+            content: [{ type: 'tool_addition', tool: { type: 'tool_definition', definition: lookupTool } }],
+          },
+        ],
+      });
+      const bodies: Array<Record<string, unknown>> = [];
+
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+      await runner.runUntilDone();
+
+      expect(sent(bodies[0])[1]).toEqual(toolChanges(addition(lookupDefinition)));
     });
   });
 
@@ -1119,10 +1624,7 @@ describe('ToolRunner', () => {
       // Update params to append a custom tool_use block to messages
       runner.setMessagesParams((params) => ({
         ...params,
-        messages: [
-          ...params.messages,
-          { role: 'assistant', content: [getWeatherToolUse('London', 'tool_2')] },
-        ],
+        messages: [...params.messages, assistantTurn([getWeatherToolUse('London', 'tool_2')])],
       }));
 
       // Assistant provides final response incorporating both tool results

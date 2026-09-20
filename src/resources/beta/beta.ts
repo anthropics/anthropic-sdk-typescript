@@ -469,6 +469,10 @@ import {
   BetaInputTokensClearAtLeast,
   BetaInputTokensTrigger,
   BetaInputTransformation,
+  BetaMCPTool,
+  BetaMCPToolListingBlock,
+  BetaMCPToolListingBlockParam,
+  BetaMCPToolParam,
   BetaMCPToolResultBlock,
   BetaMCPToolUseBlock,
   BetaMCPToolUseBlockParam,
@@ -507,6 +511,14 @@ import {
   BetaRequestMCPToolResultBlockParam,
   BetaRequestToolAdditionBlock,
   BetaRequestToolRemovalBlock,
+  BetaResponseTool,
+  BetaResponseToolAdditionBlock,
+  BetaResponseToolChangeMCPToolReference,
+  BetaResponseToolChangeMCPToolsetReference,
+  BetaResponseToolChangeToolReference,
+  BetaResponseToolInputSchema,
+  BetaResponseToolRemovalBlock,
+  BetaResponseToolUnion,
   BetaSearchResultBlockParam,
   BetaServerToolCaller,
   BetaServerToolCaller20260120,
@@ -551,6 +563,8 @@ import {
   BetaToolBash20250124,
   BetaToolChangeMCPToolReference,
   BetaToolChangeMCPToolsetReference,
+  BetaToolChangeToolDefinition,
+  BetaToolChangeToolDefinitionParam,
   BetaToolChangeToolReference,
   BetaToolChoice,
   BetaToolChoiceAny,
@@ -765,7 +779,9 @@ export type AnthropicBeta =
   | 'mid-conversation-output-config-2026-07-01'
   | 'thinking-binding-controls-2026-08-01'
   | 'mid-conversation-system-clear-at-2026-08-21'
-  | 'compact-2026-09-04';
+  | 'compact-2026-09-04'
+  | 'inline-tools-2026-09-15'
+  | 'mcp-client-2026-09-15';
 
 export interface BetaAPIError {
   message: string;
@@ -1078,8 +1094,12 @@ export declare namespace Beta {
     type BetaInputTokensClearAtLeast as BetaInputTokensClearAtLeast,
     type BetaInputTokensTrigger as BetaInputTokensTrigger,
     type BetaInputTransformation as BetaInputTransformation,
+    type BetaMCPTool as BetaMCPTool,
     type BetaMCPToolConfig as BetaMCPToolConfig,
     type BetaMCPToolDefaultConfig as BetaMCPToolDefaultConfig,
+    type BetaMCPToolListingBlock as BetaMCPToolListingBlock,
+    type BetaMCPToolListingBlockParam as BetaMCPToolListingBlockParam,
+    type BetaMCPToolParam as BetaMCPToolParam,
     type BetaMCPToolResultBlock as BetaMCPToolResultBlock,
     type BetaMCPToolUseBlock as BetaMCPToolUseBlock,
     type BetaMCPToolUseBlockParam as BetaMCPToolUseBlockParam,
@@ -1118,6 +1138,14 @@ export declare namespace Beta {
     type BetaRequestMCPToolResultBlockParam as BetaRequestMCPToolResultBlockParam,
     type BetaRequestToolAdditionBlock as BetaRequestToolAdditionBlock,
     type BetaRequestToolRemovalBlock as BetaRequestToolRemovalBlock,
+    type BetaResponseTool as BetaResponseTool,
+    type BetaResponseToolAdditionBlock as BetaResponseToolAdditionBlock,
+    type BetaResponseToolChangeMCPToolReference as BetaResponseToolChangeMCPToolReference,
+    type BetaResponseToolChangeMCPToolsetReference as BetaResponseToolChangeMCPToolsetReference,
+    type BetaResponseToolChangeToolReference as BetaResponseToolChangeToolReference,
+    type BetaResponseToolInputSchema as BetaResponseToolInputSchema,
+    type BetaResponseToolRemovalBlock as BetaResponseToolRemovalBlock,
+    type BetaResponseToolUnion as BetaResponseToolUnion,
     type BetaSearchResultBlockParam as BetaSearchResultBlockParam,
     type BetaServerToolCaller as BetaServerToolCaller,
     type BetaServerToolCaller20260120 as BetaServerToolCaller20260120,
@@ -1162,6 +1190,8 @@ export declare namespace Beta {
     type BetaToolBash20250124 as BetaToolBash20250124,
     type BetaToolChangeMCPToolReference as BetaToolChangeMCPToolReference,
     type BetaToolChangeMCPToolsetReference as BetaToolChangeMCPToolsetReference,
+    type BetaToolChangeToolDefinition as BetaToolChangeToolDefinition,
+    type BetaToolChangeToolDefinitionParam as BetaToolChangeToolDefinitionParam,
     type BetaToolChangeToolReference as BetaToolChangeToolReference,
     type BetaToolChoice as BetaToolChoice,
     type BetaToolChoiceAny as BetaToolChoiceAny,
