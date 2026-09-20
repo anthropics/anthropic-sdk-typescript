@@ -1047,6 +1047,86 @@ describe('ToolRunner', () => {
   });
 
   describe('iterator.return()', () => {
+    it('rejects completion waiters without dispatching pending tools', async () => {
+      const run = vi.fn(weatherTool.run);
+      const { runner, handleAssistantMessage } = setupTest({ tools: [{ ...weatherTool, run }] });
+      const onCompletionError = vi.fn();
+      const completion = runner.done();
+      const observed = completion.catch(onCompletionError);
+      handleAssistantMessage(getWeatherToolUse('SF'));
+      const iterator = runner[Symbol.asyncIterator]();
+      await expectEvent(iterator);
+
+      await iterator.return?.();
+      // Returning has finished, so completion must already have settled. Check
+      // the observer first rather than hanging on the original pending promise.
+      expect(onCompletionError).toHaveBeenCalledWith(expect.any(Anthropic.AnthropicError));
+      await observed;
+      await expect(completion).rejects.toThrow('ToolRunner iteration ended before completion');
+      expect(runner.done()).toBe(completion);
+      await expect(runner.runUntilDone()).rejects.toThrow('ToolRunner iteration ended before completion');
+      await expect(Promise.resolve(runner)).rejects.toThrow('ToolRunner iteration ended before completion');
+      await iterator.return?.();
+      expect(onCompletionError).toHaveBeenCalledTimes(1);
+      expect(run).not.toHaveBeenCalled();
+      expect(runner.params.messages).toHaveLength(1);
+    });
+
+    it('rejects completion after breaking on a final message', async () => {
+      const { runner, handleAssistantMessage } = setupTest();
+      const onCompletionError = vi.fn();
+      const observed = runner.done().catch(onCompletionError);
+      const message = handleAssistantMessage(getTextContent());
+      for await (const received of runner) {
+        expect(received).toEqual(message);
+        break;
+      }
+      expect(onCompletionError).toHaveBeenCalledWith(expect.any(Anthropic.AnthropicError));
+      await observed;
+      await expect(runner.done()).rejects.toThrow('ToolRunner iteration ended before completion');
+    });
+
+    it('rejects completion and aborts the message stream on early return', async () => {
+      const { runner, handleAssistantMessageStream } = setupTest({ stream: true });
+      const onCompletionError = vi.fn();
+      const observed = runner.done().catch(onCompletionError);
+      handleAssistantMessageStream(getWeatherToolUse('SF'));
+      const iterator = runner[Symbol.asyncIterator]();
+      const result = await iterator.next();
+      expect(result.done).toBe(false);
+      if (result.done) throw new Error('Expected a message stream');
+      const stream = result.value;
+      await iterator.return?.();
+      expect(stream.controller.signal.aborted).toBe(true);
+      expect(onCompletionError).toHaveBeenCalledWith(expect.any(Anthropic.AnthropicError));
+      await observed;
+      await expect(runner.done()).rejects.toThrow('ToolRunner iteration ended before completion');
+    });
+
+    it('preserves a consumer error while settling completion', async () => {
+      const { runner, handleAssistantMessage } = setupTest();
+      const onCompletionError = vi.fn();
+      const observed = runner.done().catch(onCompletionError);
+      const error = new Error('consumer stopped');
+      handleAssistantMessage(getTextContent());
+      await expect(async () => {
+        for await (const _ of runner) {
+          throw error;
+        }
+      }).rejects.toBe(error);
+      expect(onCompletionError).toHaveBeenCalledWith(expect.any(Anthropic.AnthropicError));
+      await observed;
+    });
+
+    it('does not consume the runner when an iterator is returned before its first next', async () => {
+      const { runner, handleAssistantMessage } = setupTest();
+      const completion = runner.done();
+      await runner[Symbol.asyncIterator]().return?.();
+      const message = handleAssistantMessage(getTextContent());
+      await expect(runner.runUntilDone()).resolves.toEqual(message);
+      await expect(completion).resolves.toEqual(message);
+    });
+
     it('stops iteration', async () => {
       const { runner, handleAssistantMessage } = setupTest();
 

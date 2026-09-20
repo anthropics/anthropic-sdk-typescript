@@ -197,6 +197,7 @@ export class BetaToolRunner<Stream extends boolean> {
     this.#consumed = true;
     this.#mutated = true;
     this.#toolResponse = undefined;
+    let finished = false;
 
     try {
       while (true) {
@@ -273,13 +274,21 @@ export class BetaToolRunner<Stream extends boolean> {
       }
 
       this.#completion.resolve(await this.#message);
+      finished = true;
     } catch (error) {
+      finished = true;
       this.#consumed = false;
       // Silence unhandled promise errors
       this.#completion.promise.catch(() => {});
       this.#completion.reject(error);
       this.#completion = promiseWithResolvers();
       throw error;
+    } finally {
+      if (!finished) {
+        // Returning from the iterator skips the normal completion path.
+        this.#completion.promise.catch(() => {});
+        this.#completion.reject(new AnthropicError('ToolRunner iteration ended before completion'));
+      }
     }
   }
 
@@ -459,6 +468,7 @@ export class BetaToolRunner<Stream extends boolean> {
   /**
    * Wait for the async iterator to complete. This works even if the async iterator hasn't yet started, and
    * will wait for an instance to start and go to completion.
+   * Rejects if an iterator that has started is closed before completing, including by breaking out of its loop.
    *
    * @returns A promise that resolves to the final BetaMessage when the iterator completes
    *
@@ -483,7 +493,7 @@ export class BetaToolRunner<Stream extends boolean> {
    * * If the iterator has been consumed, waits for it to complete and returns the final message.
    *
    * @returns A promise that resolves to the final BetaMessage from the conversation
-   * @throws {AnthropicError} If no messages were processed during the conversation
+   * @throws {AnthropicError} If no messages were processed or iteration was closed before completion
    *
    * @example
    * const finalMessage = await runner.runUntilDone();
