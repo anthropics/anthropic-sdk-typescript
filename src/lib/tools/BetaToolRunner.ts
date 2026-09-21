@@ -350,11 +350,53 @@ export class BetaToolRunner<Stream extends boolean> {
     }
   }
 
+  /** The tools the runner runs, by name: the runnable tools in `params.tools` with the overrides applied */
+  #runnableTools(): Map<string, BetaRunnableTool<any>> {
+    const runnable = new Map<string, BetaRunnableTool<any>>();
+    for (const tool of this.#state.params.tools) {
+      if ('run' in tool) {
+        runnable.set(tool.name, tool);
+      }
+    }
+    for (const [name, tool] of this.#toolOverrides) {
+      if (tool) {
+        runnable.set(name, tool);
+      } else {
+        runnable.delete(name);
+      }
+    }
+    return runnable;
+  }
+
+  /**
+   * The names of the runnable tools the model can still call. The queued changes are folded in too:
+   * they apply from when they are made, not from when they are sent.
+   */
+  #availableToolNames(): Set<string> {
+    const available = new Set(this.#runnableTools().keys());
+
+    for (const message of [...this.#state.params.messages, this.#pendingToolChangesMessage()]) {
+      if (typeof message.content === 'string') {
+        continue;
+      }
+      for (const block of message.content) {
+        if (message.role === 'system') {
+          applyToolChange(block, available);
+        } else if (message.role === 'assistant' && block.type === 'compaction') {
+          // A compaction block's tool_changes stand in for the system messages of the turns it summarized.
+          for (const change of block.tool_changes ?? []) {
+            applyToolChange(change, available);
+          }
+        }
+      }
+    }
+    return available;
+  }
+
   /** Records in the overrides, which outlive the history, every runnable tool the history reports removed */
   #recordRemovalsFromHistory(): void {
-    const runnable = runnableToolsByName(this.#state.params, this.#toolOverrides);
-    const available = availableToolNames(this.#state.params, runnable);
-    for (const name of runnable.keys()) {
+    const available = this.#availableToolNames();
+    for (const name of this.#runnableTools().keys()) {
       if (!available.has(name)) {
         this.#toolOverrides.set(name, null);
       }
@@ -482,10 +524,12 @@ export class BetaToolRunner<Stream extends boolean> {
     if (this.#toolResponse !== undefined) {
       return this.#toolResponse;
     }
-    this.#toolResponse = generateToolResponse(this.#state.params, this.#toolOverrides, lastMessage, {
-      ...this.#options,
-      signal,
-    });
+    this.#toolResponse = generateToolResponse(
+      this.#runnableTools(),
+      this.#availableToolNames(),
+      lastMessage,
+      { ...this.#options, signal },
+    );
     return this.#toolResponse;
   }
 
@@ -598,9 +642,10 @@ export class BetaToolRunner<Stream extends boolean> {
    * Give the model more tools without changing `params.tools`, which would miss the prompt cache.
    *
    * Each tool's whole definition is sent in a `tool_addition` block with the next request, and a
-   * runnable tool replaces a runnable tool of the same name from then on. A raw definition is only
-   * sent: the runner never runs it, and stops running a tool of the same name. Requires the
-   * `inline-tools-2026-09-15` beta, which the runner does not add for you.
+   * runnable tool replaces a runnable tool of the same name straight away, even for a call already in
+   * the message being handled. A raw definition is only sent: the runner never runs it, and stops
+   * running a tool of the same name. Requires the `inline-tools-2026-09-15` beta, which the runner does
+   * not add for you.
    *
    * @param tools - Runnable tools (for example from `betaZodTool()`) or raw tool definitions
    *
@@ -609,6 +654,10 @@ export class BetaToolRunner<Stream extends boolean> {
    */
   addTools(...tools: (BetaRunnableTool<any> | BetaToolUnion)[]): void {
     for (const tool of tools) {
+      // A definition without a `name` (an `mcp_toolset`) is nothing the runner runs or stops running.
+      if ('name' in tool) {
+        this.#toolOverrides.set(tool.name, 'run' in tool ? tool : null);
+      }
       this.#pendingToolChanges.push({ type: 'addition', tool });
     }
   }
@@ -639,31 +688,29 @@ export class BetaToolRunner<Stream extends boolean> {
     if (this.#lastStopReason === 'pause_turn' || this.#pendingToolChanges.length === 0) {
       return;
     }
+    // Not pushMessages(): that marks the params as changed by the caller, and the runner would then
+    // leave this turn's assistant message and tool results for the caller to append.
+    this.#state.params.messages.push(this.#pendingToolChangesMessage());
+    this.#pendingToolChanges = [];
+  }
+
+  /** The queued changes as the system message that carries them */
+  #pendingToolChangesMessage(): BetaMessageParam {
     const content: Array<BetaRequestToolAdditionBlock | BetaRequestToolRemovalBlock> = [];
     for (const change of this.#pendingToolChanges) {
       if (change.type === 'removal') {
-        // Recorded again here, so that an addition followed by a removal ends removed.
-        this.#toolOverrides.set(change.name, null);
         content.push({ type: 'tool_removal', tool: { type: 'tool_reference', name: change.name } });
         continue;
       }
-      // The functions stay out of the definition that is sent; the tool itself is what the runner runs.
-      const runnable = 'run' in change.tool ? change.tool : null;
+      // The functions stay out of the definition that is sent.
       let definition: BetaToolUnion = change.tool;
-      if (runnable) {
-        const { run, parse, close, ...rest } = runnable;
+      if ('run' in change.tool) {
+        const { run, parse, close, ...rest } = change.tool;
         definition = rest;
-      }
-      // A definition without a `name` (an `mcp_toolset`) is nothing the runner runs or stops running.
-      if ('name' in definition) {
-        this.#toolOverrides.set(definition.name, runnable);
       }
       content.push({ type: 'tool_addition', tool: { type: 'tool_definition', definition } });
     }
-    // Not pushMessages(): that marks the params as changed by the caller, and the runner would then
-    // leave this turn's assistant message and tool results for the caller to append.
-    this.#state.params.messages.push({ role: 'system', content });
-    this.#pendingToolChanges = [];
+    return { role: 'system', content };
   }
 
   /**
@@ -722,9 +769,9 @@ function withoutCompactionIncompatibleParams(params: ToolRunnerRequestParams): T
 }
 
 async function generateToolResponse(
-  params: BetaToolRunnerParams,
-  toolOverrides: ToolOverrides,
-  lastMessage: BetaMessage | BetaMessageParam | undefined = params.messages.at(-1),
+  runnable: ReadonlyMap<string, BetaRunnableTool<any>>,
+  available: ReadonlySet<string>,
+  lastMessage: BetaMessage | BetaMessageParam,
   requestOptions?: BetaToolRunnerRequestOptions,
 ): Promise<BetaMessageParam | null> {
   // Only process if the last message is from the assistant and has tool use blocks
@@ -742,8 +789,6 @@ async function generateToolResponse(
     return null;
   }
 
-  const runnable = runnableToolsByName(params, toolOverrides);
-  const available = availableToolNames(params, runnable);
   const toolResults = await Promise.all(
     toolUseBlocks.map(async (toolUse) => {
       // A `tool_removal` is only a hint to the model, which may still emit a tool_use for a
@@ -798,32 +843,9 @@ function asContentParam(content: BetaContentBlock[]): BetaContentBlockParam[] {
   return content as BetaContentBlockParam[];
 }
 
-type ToolOverrides = ReadonlyMap<string, BetaRunnableTool<any> | null>;
-
 type PendingToolChange =
   | { type: 'addition'; tool: BetaRunnableTool<any> | BetaToolUnion }
   | { type: 'removal'; name: string };
-
-/** The tools the runner runs, by name: the runnable tools in `params.tools` with the overrides applied */
-function runnableToolsByName(
-  params: BetaToolRunnerParams,
-  toolOverrides: ToolOverrides,
-): Map<string, BetaRunnableTool<any>> {
-  const runnable = new Map<string, BetaRunnableTool<any>>();
-  for (const tool of params.tools) {
-    if ('run' in tool) {
-      runnable.set(tool.name, tool);
-    }
-  }
-  for (const [name, tool] of toolOverrides) {
-    if (tool) {
-      runnable.set(name, tool);
-    } else {
-      runnable.delete(name);
-    }
-  }
-  return runnable;
-}
 
 function toolNotFoundResult(toolUse: { id: string; name: string }) {
   return {
@@ -832,40 +854,6 @@ function toolNotFoundResult(toolUse: { id: string; name: string }) {
     content: `Error: Tool '${toolUse.name}' not found`,
     is_error: true,
   };
-}
-
-/**
- * Computes the names of locally runnable tools that are still available for the assistant
- * turn being answered, by folding `tool_removal` / `tool_addition` blocks from the
- * `role: "system"` messages, and from the `tool_changes` of `compaction` blocks, over the
- * runnable tools. The assistant turn being answered is terminal-or-absent and a `compaction`
- * block's changes predate the rest of its turn, so folding the whole current history is exactly
- * folding what precedes that turn's tool calls — call this before appending anything after it.
- * MCP references are ignored — those tools are executed server-side and never dispatched by
- * this runner.
- */
-function availableToolNames(
-  params: BetaToolRunnerParams,
-  runnable: ReadonlyMap<string, BetaRunnableTool<any>>,
-): Set<string> {
-  const available = new Set(runnable.keys());
-
-  for (const message of params.messages) {
-    if (typeof message.content === 'string') {
-      continue;
-    }
-    for (const block of message.content) {
-      if (message.role === 'system') {
-        applyToolChange(block, available);
-      } else if (message.role === 'assistant' && block.type === 'compaction') {
-        // A compaction block's tool_changes stand in for the system messages of the turns it summarized.
-        for (const change of block.tool_changes ?? []) {
-          applyToolChange(change, available);
-        }
-      }
-    }
-  }
-  return available;
 }
 
 function applyToolChange(block: BetaContentBlockParam, available: Set<string>): void {

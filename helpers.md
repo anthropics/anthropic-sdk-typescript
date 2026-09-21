@@ -567,7 +567,7 @@ for await (const message of runner) {
 
 `addTools()` takes what `tools` takes: runnable tools and raw tool definitions. The whole definition is sent to the model either way.
 
-- A runnable tool can be called from the request that carries its definition. If a runnable tool of the same name is already there, the new one replaces it from that request on; a call the model made before then still runs the old one.
+- A runnable tool can be called from the request that carries its definition. If a runnable tool of the same name is already there, the new one replaces it straight away: a call the model has already made in the message you're handling runs the new one.
 - A raw definition is sent as given and is never run by the tool runner, which also stops running a tool of the same name. That is what you want for server tools, such as `{ type: 'web_search_20250305', name: 'web_search' }`, which the API runs. A call to a raw client tool gets the same "not found" error result as when it is passed in `tools`.
 - An `mcp_toolset` definition also needs its server in `mcp_servers`, which `addTools()` doesn't change.
 

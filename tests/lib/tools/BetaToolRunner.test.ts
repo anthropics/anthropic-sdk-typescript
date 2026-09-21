@@ -1252,6 +1252,27 @@ describe('ToolRunner', () => {
       expect(bodies[1]!['tools']).toEqual(bodies[0]!['tools']);
     });
 
+    it('runs a removed tool that is added back while the turn that calls it is being handled', async () => {
+      const { runner, handleRequest } = setupTest();
+      const bodies: Array<Record<string, unknown>> = [];
+      const weatherTurn = assistantMessage('tool_use', getWeatherToolUse('SF'));
+
+      runner.removeTools(weatherTool);
+      reply(handleRequest, bodies, weatherTurn, false);
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+      await runTurns(runner, (turn) => {
+        if (turn === 0) runner.addTools(weatherTool);
+      });
+
+      expect(sent(bodies[1])).toEqual([
+        firstMessage,
+        toolChanges(removal('getWeather')),
+        { role: 'assistant', content: weatherTurn.content },
+        { role: 'user', content: [getWeatherToolResult('SF')] },
+        toolChanges(addition(weatherDefinition)),
+      ]);
+    });
+
     it('keeps removed tools removed when their tool_removal blocks leave the history, until added again', async () => {
       const runWeather = vi.fn(weatherTool.run);
       const runLookup = vi.fn(lookupTool.run);
@@ -1282,14 +1303,14 @@ describe('ToolRunner', () => {
       expect(sent(bodies[2])).toEqual([
         firstMessage,
         { role: 'assistant', content: bothTurn.content },
-        { role: 'user', content: [notFound('getWeather', 'tool_1'), notFound('lookup', 'tool_2')] },
+        { role: 'user', content: [getWeatherToolResult('SF'), notFound('lookup', 'tool_2')] },
         toolChanges(addition(weatherDefinition)),
       ]);
-      expect(runWeather).toHaveBeenCalledTimes(1);
+      expect(runWeather).toHaveBeenCalledTimes(2);
       expect(runWeather).toHaveBeenCalledWith({ location: 'LA' }, expect.anything());
     });
 
-    it('replaces a runnable tool of the same name from the next request', async () => {
+    it('replaces a runnable tool of the same name straight away, even for a call already in the turn being handled', async () => {
       const { runner, handleRequest } = setupTest();
       const bodies: Array<Record<string, unknown>> = [];
 
@@ -1301,13 +1322,62 @@ describe('ToolRunner', () => {
       });
 
       expect(sent(bodies[1]).slice(-2)).toEqual([
-        { role: 'user', content: [getWeatherToolResult('SF')] },
+        { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'tool_1', content: 'Raining' }] },
         toolChanges(addition(weatherDefinition)),
       ]);
       expect(sent(bodies[2]).at(-1)).toEqual({
         role: 'user',
         content: [{ type: 'tool_result', tool_use_id: 'tool_2', content: 'Raining' }],
       });
+    });
+
+    it('answers a call already in the turn being handled with the input error of the tool added under its name', async () => {
+      const run = vi.fn(weatherTool.run);
+      const { runner, handleRequest } = setupTest({ tools: [{ ...weatherTool, run }] });
+      const bodies: Array<Record<string, unknown>> = [];
+      const weatherTurn = assistantMessage('tool_use', getWeatherToolUse('SF'));
+      const cityDefinition = {
+        ...weatherDefinition,
+        input_schema: {
+          type: 'object' as const,
+          properties: { city: { type: 'string' } },
+          required: ['city'],
+        },
+      };
+      const cityTool: BetaRunnableTool<{ city: string }> = {
+        ...cityDefinition,
+        run: async ({ city }) => `Raining in ${city}`,
+        parse: (input: unknown) => {
+          if (typeof (input as { city?: unknown }).city !== 'string') {
+            throw new Error('city: expected a string');
+          }
+          return input as { city: string };
+        },
+      };
+
+      reply(handleRequest, bodies, weatherTurn, false);
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+      await runTurns(runner, (turn) => {
+        if (turn === 0) runner.addTools(cityTool);
+      });
+
+      expect(run).not.toHaveBeenCalled();
+      expect(sent(bodies[1])).toEqual([
+        firstMessage,
+        { role: 'assistant', content: weatherTurn.content },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'tool_result',
+              tool_use_id: 'tool_1',
+              content: 'Error: city: expected a string',
+              is_error: true,
+            },
+          ],
+        },
+        toolChanges(addition(cityDefinition)),
+      ]);
     });
 
     it('sends every change made before the first request in call order, without collapsing an add and a remove', async () => {
@@ -1500,6 +1570,32 @@ describe('ToolRunner', () => {
       expect(run).not.toHaveBeenCalled();
       expect(sent(bodies[3]).at(-1)).toEqual({ role: 'user', content: [notFound('getWeather', 'tool_1')] });
       warn.mockRestore();
+    });
+
+    it('runs a removed tool that is added back while the compaction response is being handled', async () => {
+      const { runner, handleRequest } = setupTest();
+      const bodies: Array<Record<string, unknown>> = [];
+      const compactedTurn = assistantMessage('compaction', {
+        type: 'compaction',
+        content: 'Summary so far.',
+        encrypted_content: null,
+      });
+
+      runner.removeTools(weatherTool);
+      runner.compactBeforeNextTurn();
+      reply(handleRequest, bodies, compactedTurn, false);
+      reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('SF')), false);
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+      await runTurns(runner, (turn) => {
+        if (turn === 0) runner.addTools(weatherTool);
+      });
+
+      expect(sent(bodies[0])).toEqual([firstMessage, toolChanges(removal('getWeather'))]);
+      expect(sent(bodies[1])).toEqual([
+        { role: 'assistant', content: compactedTurn.content },
+        toolChanges(addition(weatherDefinition)),
+      ]);
+      expect(sent(bodies[2]).at(-1)).toEqual({ role: 'user', content: [getWeatherToolResult('SF')] });
     });
 
     it('never sends changes still pending when the run ends', async () => {
