@@ -1,0 +1,7 @@
+{
+  "description": "import every module of the packed SDK without using any, and require rollup, esbuild, rolldown and webpack to keep nothing",
+  "requires": ["node"],
+  "packageManager": "npm",
+  "minNodeVersion": 20,
+  "steps": [["node", "check.mjs"]]
+}
