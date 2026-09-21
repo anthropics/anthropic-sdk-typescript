@@ -359,7 +359,7 @@ for await (const message of runner) {
 
 The call only schedules the compaction. Once the current turn has finished, including any tool calls, the runner requests a summary, replaces its message history with the compaction response the API returns, and carries on. A turn that was paused (`pause_turn`) is resumed and finished first. If the current turn is the last one, the runner compacts and then stops. If you call it before iterating, the compaction is the first request.
 
-The compaction response is yielded like any other message and doesn't count towards `max_iterations`. It has `stop_reason: 'compaction'`, the summary is in the `content` of its first content block, and its `usage.input_tokens` is the size of the history that was just summarized. Calling `compactBeforeNextTurn()` while handling that message does nothing, so a threshold like the one above doesn't compact twice.
+The compaction response is yielded like any other message and doesn't count towards `max_iterations`. It has `stop_reason: 'compaction'`, the summary is in the `content` of its first content block, and its top-level `usage.input_tokens` and `usage.output_tokens` are 0: what the compaction cost is in `usage.iterations`. Calling `compactBeforeNextTurn()` while handling that message does nothing, so a threshold like the one above doesn't compact twice.
 
 `compactBeforeNextTurn()` takes the same config as the `compaction` param of `messages.create()`, for example to give your own summarization instructions:
 
@@ -371,7 +371,7 @@ A few things to know:
 
 - Calling it again before the compaction runs replaces the pending one.
 - The runner doesn't add the beta for you, so pass `betas: ['compact-2026-09-04']`.
-- `context_management` is left out of the compaction request, because the API doesn't accept the two together, and is sent again afterwards. `compactBeforeNextTurn()` throws if `context_management` has a `compact_*` edit, and so does adding one with `setMessagesParams()` while a compaction is scheduled.
+- A compaction request returns only the compaction block, never a reply, so the API doesn't accept `compaction` together with `context_management` or with the params that only shape a reply: `stop_sequences`, a `tool_choice` that forces a tool (`any` or `tool`), and `output_config.format` (or the deprecated `output_format`), including the `output_config.format` of any entry in `fallbacks`. The runner leaves these out of the compaction request and sends them again afterwards. `compactBeforeNextTurn()` throws if `context_management` has a `compact_*` edit, and so does adding one with `setMessagesParams()` while a compaction is scheduled.
 - While you're handling the compaction response, `pushMessages()` and replacing `messages` with `setMessagesParams()` throw, because the compaction response is about to replace the messages. Other params can still be changed.
 - If the API returns no summary, the runner logs a warning and keeps the history as it is.
 - If the run ends on a turn that was cut short with tool calls that never ran (`stop_reason: 'max_tokens'`, for example), the pending compaction is skipped with a warning. It is also skipped if `max_iterations` ends the run after a turn with tool calls, or you `break` out of the loop.

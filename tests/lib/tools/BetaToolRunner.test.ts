@@ -1889,6 +1889,96 @@ describe('ToolRunner', () => {
       expect(runner.params.messages).toHaveLength(2);
     });
 
+    const format = { type: 'json_schema' as const, schema: { type: 'object', properties: {} } };
+
+    it.each([
+      {
+        name: 'tool_choice any, output_config.format',
+        replyOnly: {
+          stop_sequences: ['END'],
+          tool_choice: { type: 'any' as const },
+          output_config: { effort: 'low' as const, format },
+        },
+        kept: { output_config: { effort: 'low' } },
+      },
+      {
+        name: 'tool_choice tool, output_format',
+        replyOnly: {
+          stop_sequences: ['END'],
+          tool_choice: { type: 'tool' as const, name: 'getWeather' },
+          output_format: format,
+        },
+        sent: {
+          stop_sequences: ['END'],
+          tool_choice: { type: 'tool', name: 'getWeather' },
+          output_config: { format },
+        },
+        kept: {},
+      },
+      {
+        name: 'tool_choice auto stays',
+        replyOnly: { tool_choice: { type: 'auto' as const } },
+        kept: { tool_choice: { type: 'auto' } },
+      },
+      {
+        name: 'fallbacks[].output_config.format',
+        replyOnly: {
+          fallbacks: [
+            { model: 'claude-3-5-haiku-latest', output_config: { effort: 'low' as const, format } },
+          ],
+        },
+        kept: { fallbacks: [{ model: 'claude-3-5-haiku-latest', output_config: { effort: 'low' } }] },
+      },
+    ])(
+      'leaves reply-only params off the compaction request only ($name)',
+      async ({ replyOnly, sent = replyOnly, kept }) => {
+        const { runner, handleRequest } = setupTest({
+          ...replyOnly,
+          system: 'Be brief.',
+          betas: ['compact-2026-09-04'],
+        });
+        const requests: Array<{ body: Record<string, unknown>; betas: string | null }> = [];
+        for (const message of [toolTurn(), compacted(), finalTurn()]) {
+          handleRequest(async (_req, init) => {
+            requests.push({
+              body: JSON.parse(init!.body as string),
+              betas: new Headers(init!.headers as Record<string, string>).get('anthropic-beta'),
+            });
+            return new Response(JSON.stringify(message), { headers: { 'content-type': 'application/json' } });
+          });
+        }
+        failOnAnotherRequest(handleRequest);
+
+        await run(runner, (message) => {
+          if (message.stop_reason === 'tool_use') {
+            runner.compactBeforeNextTurn();
+          }
+        });
+
+        const replyOnlyKeys = [
+          'stop_sequences',
+          'tool_choice',
+          'output_config',
+          'output_format',
+          'fallbacks',
+        ];
+        const replyOnlyIn = (body: Record<string, unknown>) =>
+          Object.fromEntries(replyOnlyKeys.filter((key) => key in body).map((key) => [key, body[key]]));
+        const [first, compactionRequest, after] = requests.map((request) => request.body);
+
+        expect(replyOnlyIn(first!)).toEqual(sent);
+        expect(replyOnlyIn(compactionRequest!)).toEqual(kept);
+        expect(replyOnlyIn(after!)).toEqual(sent);
+        expect(compactionRequest).toMatchObject({
+          compaction: { type: 'summarize' },
+          max_tokens: 1000,
+          system: 'Be brief.',
+          tools: first!['tools'],
+        });
+        expect(requests.map((request) => request.betas)).toEqual(Array(3).fill('compact-2026-09-04'));
+      },
+    );
+
     it('sends only the betas the caller passed', async () => {
       const betaHeaders: Array<string | null> = [];
       const answer = (handleRequest: (handler: Fetch) => void, message: BetaMessage) =>

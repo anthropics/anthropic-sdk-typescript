@@ -8,6 +8,7 @@ import {
   BetaContentBlockParam,
   BetaMessage,
   BetaMessageParam,
+  BetaOutputConfig,
   BetaRequestToolAdditionBlock,
   BetaRequestToolRemovalBlock,
   BetaStopReason,
@@ -326,8 +327,8 @@ export class BetaToolRunner<Stream extends boolean> {
     compaction: BetaCompactionConfig,
   ): AsyncGenerator<BetaToolRunnerItem<Stream>, void, undefined> {
     rejectCompactionEdit(this.#state.params);
-    // The API refuses `compaction` alongside `context_management`; later requests keep it.
-    const { max_iterations, compactionControl, context_management, ...params } = this.#state.params;
+    const { max_iterations, compactionControl, ...requestParams } = this.#state.params;
+    const params = withoutCompactionIncompatibleParams(requestParams);
     this.#compaction = { status: 'in_flight' };
     this.#toolResponse = undefined;
     const lastMessage = this.#message;
@@ -697,6 +698,29 @@ function rejectCompactionEdit(params: BetaToolRunnerParams): void {
   }
 }
 
+/**
+ * A compaction request returns only the compaction block, never a reply, so the API rejects the params that
+ * only shape a reply. The runner's later requests keep them.
+ */
+function withoutCompactionIncompatibleParams(params: ToolRunnerRequestParams): ToolRunnerRequestParams {
+  const { context_management, stop_sequences, output_format, ...kept } = params;
+  const withoutFormat = ({ format, ...outputConfig }: BetaOutputConfig): BetaOutputConfig => outputConfig;
+  if (kept.tool_choice?.type === 'any' || kept.tool_choice?.type === 'tool') {
+    delete kept.tool_choice;
+  }
+  if (kept.output_config) {
+    kept.output_config = withoutFormat(kept.output_config);
+  }
+  if (Array.isArray(kept.fallbacks)) {
+    kept.fallbacks = kept.fallbacks.map((fallback) =>
+      fallback.output_config ?
+        { ...fallback, output_config: withoutFormat(fallback.output_config) }
+      : fallback,
+    );
+  }
+  return kept;
+}
+
 async function generateToolResponse(
   params: BetaToolRunnerParams,
   toolOverrides: ToolOverrides,
@@ -936,6 +960,8 @@ export type BetaToolRunnerParams = Simplify<
 >;
 
 export type BetaToolRunnerRequestOptions = Pick<RequestOptions, 'headers' | 'signal' | 'fallbackState'>;
+
+type ToolRunnerRequestParams = Omit<BetaToolRunnerParams, 'max_iterations' | 'compactionControl'>;
 
 type Compaction =
   | { status: 'idle' }
