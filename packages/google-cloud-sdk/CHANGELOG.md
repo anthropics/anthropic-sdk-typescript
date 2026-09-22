@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.14 (2026-09-22)
+
+Full Changelog: [google-cloud-sdk-v0.0.13...google-cloud-sdk-v0.0.14](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.13...google-cloud-sdk-v0.0.14)
+
 ## 0.0.13 (2026-09-18)
 
 Full Changelog: [google-cloud-sdk-v0.0.12...google-cloud-sdk-v0.0.13](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.12...google-cloud-sdk-v0.0.13)
