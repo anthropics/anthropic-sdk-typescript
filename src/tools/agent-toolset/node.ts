@@ -880,6 +880,8 @@ function runRipgrep(
     const proc = cp.spawn(rg, ['-n', '--no-heading', '-e', pattern, '--', searchPath], {
       ...(signal ? { signal } : {}),
     });
+    proc.stdout.setEncoding('utf8');
+    proc.stderr.setEncoding('utf8');
     let out = '';
     let errOut = '';
     let truncated = false;
