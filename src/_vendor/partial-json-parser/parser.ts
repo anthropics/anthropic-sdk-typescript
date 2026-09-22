@@ -78,38 +78,36 @@ const tokenize = (input: string): Token[] => {
       }
 
       if (char === '"') {
-        let value = '';
+        // a `"` closes the string only after an even number of backslashes; escapes are kept verbatim
+        const start = current + 1;
+        let end = start;
         let danglingQuote = false;
 
-        char = input[++current];
-
-        while (char !== '"') {
-          if (current === input.length) {
+        while (true) {
+          end = input.indexOf('"', end);
+          if (end === -1) {
             danglingQuote = true;
             break;
           }
 
-          if (char === '\\') {
-            current++;
-            if (current === input.length) {
-              danglingQuote = true;
-              break;
-            }
-            value += char + input[current];
-            char = input[++current];
-          } else {
-            value += char;
-            char = input[++current];
+          let backslashes = 0;
+          let i = end - 1;
+          while (i >= start && input[i] === '\\') {
+            backslashes++;
+            i--;
           }
+          if (backslashes % 2 === 0) break;
+          end++;
         }
 
-        char = input[++current];
-
-        if (!danglingQuote) {
+        if (danglingQuote) {
+          current = input.length;
+        } else {
           tokens.push({
             type: 'string',
-            value,
+            value: input.slice(start, end),
           });
+          current = end + 1;
         }
         continue;
       }

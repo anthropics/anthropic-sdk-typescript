@@ -189,4 +189,19 @@ describe('partialParse', () => {
   test('deeply nested partial JSON objects', () => {
     expect(partialParse(`{"a": {"b": {"c": {"d": "e`)).toEqual({ a: { b: { c: {} } } });
   });
+
+  test('long unclosed array does not exhaust the call stack', () => {
+    const elements = Array.from({ length: 20_000 }, (_, i) => `"value-${i}"`).join(',');
+    expect(() => partialParse(`{"items": [${elements}`)).not.toThrow();
+    expect(partialParse(`{"items": [${elements}]}`)).toEqual({
+      items: Array.from({ length: 20_000 }, (_, i) => `value-${i}`),
+    });
+  });
+
+  test('string tokens keep escape sequences intact', () => {
+    expect(partialParse(`{"a": "x\\\\", "b": "y"}`)).toEqual({ a: 'x\\', b: 'y' });
+    expect(partialParse(`{"a": "quote \\" inside", "b": 1}`)).toEqual({ a: 'quote " inside', b: 1 });
+    expect(partialParse(`{"a": "\\\\\\"", "b": 2}`)).toEqual({ a: '\\"', b: 2 });
+    expect(partialParse(`{"a": "unterminated`)).toEqual({});
+  });
 });
