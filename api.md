@@ -563,8 +563,12 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaInputTransformation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaIterationsUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaJSONOutputFormat</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPTool</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolConfig</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolDefaultConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolListingBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolListingBlockParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolResultBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolUseBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMCPToolUseBlockParam</a></code>
@@ -603,6 +607,14 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestMCPToolResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestToolAdditionBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaRequestToolRemovalBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseTool</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseToolAdditionBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseToolChangeMCPToolReference</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseToolChangeMCPToolsetReference</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseToolChangeToolReference</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseToolInputSchema</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseToolRemovalBlock</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaResponseToolUnion</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSearchResultBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolCaller</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaServerToolCaller20260120</a></code>
@@ -647,6 +659,8 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolBash20250124</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChangeMCPToolReference</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChangeMCPToolsetReference</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChangeToolDefinition</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChangeToolDefinitionParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChangeToolReference</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChoice</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolChoiceAny</a></code>
@@ -926,6 +940,7 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentAutoEvaluatedPermissionAsk</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentAutoEvaluatedPermissionDeny</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentCustomToolUseEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentEvaluatedPermission</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentMCPToolResultEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentMCPToolUseEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsAgentMessageEvent</a></code>

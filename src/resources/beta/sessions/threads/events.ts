@@ -84,7 +84,7 @@ export class Events extends APIResource {
 
 export interface EventListParams extends PageCursorParams {
   /**
-   * Path param: Path parameter session_id
+   * Path param
    */
   session_id: string;
 
@@ -106,7 +106,7 @@ export interface EventListParams extends PageCursorParams {
 
 export interface EventStreamParams {
   /**
-   * Path param: Path parameter session_id
+   * Path param
    */
   session_id: string;
 

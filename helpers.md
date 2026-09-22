@@ -359,7 +359,7 @@ for await (const message of runner) {
 
 The call only schedules the compaction. Once the current turn has finished, including any tool calls, the runner requests a summary, replaces its message history with the compaction response the API returns, and carries on. A turn that was paused (`pause_turn`) is resumed and finished first. If the current turn is the last one, the runner compacts and then stops. If you call it before iterating, the compaction is the first request.
 
-The compaction response is yielded like any other message and doesn't count towards `max_iterations`. It has `stop_reason: 'compaction'`, the summary is in the `content` of its first content block, and its `usage.input_tokens` is the size of the history that was just summarized. Calling `compactBeforeNextTurn()` while handling that message does nothing, so a threshold like the one above doesn't compact twice.
+The compaction response is yielded like any other message and doesn't count towards `max_iterations`. It has `stop_reason: 'compaction'`, the summary is in the `content` of its first content block, and its top-level `usage.input_tokens` and `usage.output_tokens` are 0: what the compaction cost is in `usage.iterations`. Calling `compactBeforeNextTurn()` while handling that message does nothing, so a threshold like the one above doesn't compact twice.
 
 `compactBeforeNextTurn()` takes the same config as the `compaction` param of `messages.create()`, for example to give your own summarization instructions:
 
@@ -371,7 +371,7 @@ A few things to know:
 
 - Calling it again before the compaction runs replaces the pending one.
 - The runner doesn't add the beta for you, so pass `betas: ['compact-2026-09-04']`.
-- `context_management` is left out of the compaction request, because the API doesn't accept the two together, and is sent again afterwards. `compactBeforeNextTurn()` throws if `context_management` has a `compact_*` edit, and so does adding one with `setMessagesParams()` while a compaction is scheduled.
+- A compaction request returns only the compaction block, never a reply, so the API doesn't accept `compaction` together with `context_management` or with the params that only shape a reply: `stop_sequences`, a `tool_choice` that forces a tool (`any` or `tool`), and `output_config.format` (or the deprecated `output_format`), including the `output_config.format` of any entry in `fallbacks`. The runner leaves these out of the compaction request and sends them again afterwards. `compactBeforeNextTurn()` throws if `context_management` has a `compact_*` edit, and so does adding one with `setMessagesParams()` while a compaction is scheduled.
 - While you're handling the compaction response, `pushMessages()` and replacing `messages` with `setMessagesParams()` throw, because the compaction response is about to replace the messages. Other params can still be changed.
 - If the API returns no summary, the runner logs a warning and keeps the history as it is.
 - If the run ends on a turn that was cut short with tool calls that never ran (`stop_reason: 'max_tokens'`, for example), the pending compaction is skipped with a warning. It is also skipped if `max_iterations` ends the run after a turn with tool calls, or you `break` out of the loop.
@@ -541,6 +541,51 @@ Schedules a compaction of the conversation for when the current turn has finishe
 ```ts
 runner.compactBeforeNextTurn();
 ```
+
+#### `BetaToolRunner.addTools()` and `BetaToolRunner.removeTools()`
+
+Changing `tools` in the middle of a conversation misses the prompt cache for everything sent so far. With the `inline-tools-2026-09-15` beta a tool change is sent as a message instead, and these two methods do that for you. `tools` is sent exactly as you first passed it on every request.
+
+```ts
+const runner = anthropic.beta.messages.toolRunner({
+  model: 'claude-sonnet-5',
+  max_tokens: 1000,
+  betas: ['inline-tools-2026-09-15'],
+  messages: [{ role: 'user', content: 'How many orders shipped late last week?' }],
+  tools: [readFileTool],
+});
+
+for await (const message of runner) {
+  if (database.justConnected()) {
+    runner.addTools(queryDatabaseTool);
+  }
+  if (database.justDisconnected()) {
+    runner.removeTools(queryDatabaseTool); // or by name: 'query_database'
+  }
+}
+```
+
+`addTools()` takes what `tools` takes: runnable tools and raw tool definitions. The whole definition is sent to the model either way.
+
+- A runnable tool can be called from the request that carries its definition. If a runnable tool of the same name is already there, the new one replaces it straight away: a call the model has already made in the message you're handling runs the new one.
+- A raw definition is sent as given and is never run by the tool runner, which also stops running a tool of the same name. That is what you want for server tools, such as `{ type: 'web_search_20250305', name: 'web_search' }`, which the API runs. A call to a raw client tool gets the same "not found" error result as when it is passed in `tools`.
+- An `mcp_toolset` definition also needs its server in `mcp_servers`, which `addTools()` doesn't change.
+
+`removeTools()` takes the tools themselves or their names.
+
+- The tool stops being run straight away. If the model has already called it in the message you're handling, that call gets the same "not found" error result as a call to an unknown tool, and the tool isn't run. Calls that have already started still finish.
+- The tool stays removed whatever happens to the message history later. To bring it back, pass it to `addTools()` again.
+- Removing a server tool only tells the model.
+
+A few things to know:
+
+- Changes made while you're handling a message are sent together as one `role: "system"` message, in the order you made them, right after that turn's tool results. Changes made before iterating follow the initial messages.
+- After a paused turn (`pause_turn`) the turn is sent back as it came, and the changes go out with the request after that.
+- Changes still waiting when the run ends are never sent.
+- In the rare case where a compaction response comes back without `tool_changes` even though the messages it summarized added or removed tools, the model goes back to the tools in `tools`, and the runner doesn't detect it. Call `addTools()` / `removeTools()` again after that compaction if you need the change restored.
+- The runner doesn't add the beta for you, so pass `betas: ['inline-tools-2026-09-15']`.
+- Changing `tools` with `setMessagesParams()` still works, but misses the prompt cache and does not undo what these methods did.
+- Use either these methods or `tool_addition` / `tool_removal` blocks you append yourself for a given tool, not both.
 
 #### `BetaToolRunner.setRequestOptions()`
 

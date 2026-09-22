@@ -2132,6 +2132,14 @@ export interface BetaCompactionBlock {
    * Signature over the summary, to be sent back with the block verbatim
    */
   signature?: string | null;
+
+  /**
+   * The tool changes of the compacted range: the `tool_addition` and `tool_removal`
+   * blocks that take the request's `tools` to the tool set in effect at the end of
+   * the range, or `[]` when the range changed no tool. Absent when the server did
+   * not compute them. Send the block back unchanged.
+   */
+  tool_changes?: Array<BetaResponseToolAdditionBlock | BetaResponseToolRemovalBlock> | null;
 }
 
 /**
@@ -2165,6 +2173,14 @@ export interface BetaCompactionBlockParam {
    * The block's signature as returned, to be sent back verbatim
    */
   signature?: string | null;
+
+  /**
+   * The tool changes of the compacted range, as the server returned them on this
+   * block: the `tool_addition` and `tool_removal` entries that take the request's
+   * `tools` to the tool set in effect at the end of the range. Send them back
+   * unchanged with the block.
+   */
+  tool_changes?: Array<BetaRequestToolAdditionBlock | BetaRequestToolRemovalBlock> | null;
 }
 
 /**
@@ -2756,7 +2772,8 @@ export type BetaContentBlock =
   | BetaMCPToolResultBlock
   | BetaContainerUploadBlock
   | BetaCompactionBlock
-  | BetaFallbackBlock;
+  | BetaFallbackBlock
+  | BetaMCPToolListingBlock;
 
 export type BetaContentBlockParam =
   | BetaTextBlockParam
@@ -2781,6 +2798,7 @@ export type BetaContentBlockParam =
   | BetaCompactionBlockParam
   | BetaRequestToolAdditionBlock
   | BetaRequestToolRemovalBlock
+  | BetaMCPToolListingBlockParam
   | BetaFallbackBlockParam;
 
 export interface BetaContentBlockSource {
@@ -2813,8 +2831,8 @@ export interface BetaCountTokensContextManagementResponse {
 }
 
 /**
- * Response envelope for request-level diagnostics. Present (possibly null)
- * whenever the caller supplied `diagnostics` on the request.
+ * Request-level diagnostics: why the prompt cache could not fully reuse the prefix
+ * of the request named by `diagnostics.previous_message_id`.
  */
 export interface BetaDiagnostics {
   /**
@@ -3319,6 +3337,18 @@ export interface BetaJSONOutputFormat {
 }
 
 /**
+ * A tool as an MCP server lists it: its name on that server, its description, and
+ * its input schema.
+ */
+export interface BetaMCPTool {
+  input_schema: { [key: string]: unknown };
+
+  name: string;
+
+  description?: string;
+}
+
+/**
  * Configuration for a specific tool in an MCP toolset.
  */
 export interface BetaMCPToolConfig {
@@ -3334,6 +3364,60 @@ export interface BetaMCPToolDefaultConfig {
   defer_loading?: boolean;
 
   enabled?: boolean;
+}
+
+/**
+ * The tool listing the server fetched from an MCP server while producing this
+ * response. Send the assistant message back unchanged, this block included, so
+ * later requests use this listing instead of asking the MCP server again.
+ */
+export interface BetaMCPToolListingBlock {
+  mcp_server_name: string;
+
+  tools: Array<BetaMCPTool>;
+
+  type: 'mcp_tool_listing';
+}
+
+/**
+ * The tool listing an MCP server returned while an earlier response was produced,
+ * as that response carried it. Send the assistant message back unchanged, this
+ * block included, and the server uses this listing for the matching `mcp_toolset`
+ * instead of asking the MCP server again.
+ */
+export interface BetaMCPToolListingBlockParam {
+  /**
+   * The name of the MCP server this listing came from, as `mcp_servers` declares it.
+   */
+  mcp_server_name: string;
+
+  /**
+   * The server's tools, exactly as the response listed them.
+   */
+  tools: Array<BetaMCPToolParam>;
+
+  type: 'mcp_tool_listing';
+}
+
+/**
+ * A tool as an MCP server lists it: its name on that server, its description, and
+ * its input schema.
+ */
+export interface BetaMCPToolParam {
+  /**
+   * The tool's input schema as the MCP server lists it, verbatim.
+   */
+  input_schema: { [key: string]: unknown };
+
+  /**
+   * The tool's name as the MCP server lists it (not prefixed with the server name).
+   */
+  name: string;
+
+  /**
+   * The tool's description as the MCP server lists it.
+   */
+  description?: string | null;
 }
 
 export interface BetaMCPToolResultBlock {
@@ -3412,6 +3496,14 @@ export interface BetaMCPToolset {
    * Default configuration applied to all tools from this server
    */
   default_config?: BetaMCPToolDefaultConfig;
+
+  /**
+   * The server's tool listing, pinned: when present, the server is not asked for its
+   * tools before sampling and exactly these entries, with `default_config` and
+   * `configs` applied, are the toolset's tools. Copy it from the `mcp_tool_listing`
+   * block of an earlier response.
+   */
+  tools?: Array<BetaMCPToolParam> | null;
 }
 
 export interface BetaMemoryTool20250818 {
@@ -3620,8 +3712,8 @@ export interface BetaMessage {
   context_management: BetaContextManagementResponse | null;
 
   /**
-   * Response envelope for request-level diagnostics. Present (possibly null)
-   * whenever the caller supplied `diagnostics` on the request.
+   * Request-level diagnostics: why the prompt cache could not fully reuse the prefix
+   * of the request named by `diagnostics.previous_message_id`.
    */
   diagnostics: BetaDiagnostics | null;
 
@@ -3958,7 +4050,8 @@ export interface BetaRawContentBlockStartEvent {
     | BetaMCPToolResultBlock
     | BetaContainerUploadBlock
     | BetaCompactionBlock
-    | BetaFallbackBlock;
+    | BetaFallbackBlock
+    | BetaMCPToolListingBlock;
 
   index: number;
 
@@ -4234,13 +4327,22 @@ export interface BetaRequestMCPToolResultBlockParam {
 }
 
 /**
- * Mid-conversation directive to surface a declared tool.
+ * Mid-conversation directive to make a tool available.
  *
- * `tool` references a tool (or MCP toolset) by name from the request's `tools`; it
- * is offered to the model from this point in the conversation onward.
+ * `tool` is a reference to a tool (or MCP toolset) declared in the request's
+ * `tools`. Under the `inline-tools-2026-09-15` beta it may instead be a reference
+ * to a tool defined earlier in `messages`, or a `tool_definition` object that
+ * carries an inline tool definition in `definition` (the same object a `tools`
+ * entry holds). An `mcp_toolset` definition also requires the
+ * `mcp-client-2026-09-15` beta. The tool is offered to the model from this point
+ * in the conversation onward.
  */
 export interface BetaRequestToolAdditionBlock {
-  tool: BetaToolChangeToolReference | BetaToolChangeMCPToolReference | BetaToolChangeMCPToolsetReference;
+  tool:
+    | BetaToolChangeToolReference
+    | BetaToolChangeMCPToolReference
+    | BetaToolChangeMCPToolsetReference
+    | BetaToolChangeToolDefinitionParam;
 
   type: 'tool_addition';
 
@@ -4253,8 +4355,9 @@ export interface BetaRequestToolAdditionBlock {
 /**
  * Mid-conversation directive to withdraw a tool.
  *
- * `tool` references a tool (or MCP toolset) by name from the request's `tools`; it
- * is no longer offered to the model from this point in the conversation onward.
+ * `tool` references a tool (or MCP toolset) by name: one declared in the request's
+ * `tools` or defined earlier in `messages`. It is no longer offered to the model
+ * from this point in the conversation onward.
  */
 export interface BetaRequestToolRemovalBlock {
   tool: BetaToolChangeToolReference | BetaToolChangeMCPToolReference | BetaToolChangeMCPToolsetReference;
@@ -4266,6 +4369,181 @@ export interface BetaRequestToolRemovalBlock {
    */
   cache_control?: BetaCacheControlEphemeral | null;
 }
+
+/**
+ * A custom tool definition, as sent.
+ */
+export interface BetaResponseTool {
+  /**
+   * [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
+   *
+   * This defines the shape of the `input` that your tool accepts and that the model
+   * will produce.
+   */
+  input_schema: BetaResponseToolInputSchema;
+
+  /**
+   * Name of the tool.
+   *
+   * This is how the tool will be called by the model and in `tool_use` blocks.
+   */
+  name: string;
+
+  allowed_callers?: Array<
+    'direct' | 'code_execution_20250825' | 'code_execution_20260120' | 'code_execution_20260521'
+  >;
+
+  /**
+   * If true, tool will not be included in initial system prompt. Only loaded when
+   * returned via tool_reference from tool search.
+   */
+  defer_loading?: boolean;
+
+  /**
+   * Description of what this tool does.
+   *
+   * Tool descriptions should be as detailed as possible. The more information that
+   * the model has about what the tool is and how to use it, the better it will
+   * perform. You can use natural language descriptions to reinforce important
+   * aspects of the tool input JSON schema.
+   */
+  description?: string;
+
+  /**
+   * Enable eager input streaming for this tool. When true, tool input parameters
+   * will be streamed incrementally as they are generated, and types will be inferred
+   * on-the-fly rather than buffering the full JSON output. When false, streaming is
+   * disabled for this tool even if the fine-grained-tool-streaming beta is active.
+   * When null (default), uses the default behavior based on beta headers.
+   */
+  eager_input_streaming?: boolean | null;
+
+  input_examples?: Array<{ [key: string]: unknown }>;
+
+  /**
+   * When true, guarantees schema validation on tool names and inputs
+   */
+  strict?: boolean;
+
+  type?: 'custom' | null;
+}
+
+/**
+ * An entry of a `compaction` block's `tool_changes`: a tool the compacted range
+ * made available, as a reference to a `tools` entry or MCP toolset, or as the tool
+ * definition in effect at the end of the range, by value. Send it back unchanged.
+ */
+export interface BetaResponseToolAdditionBlock {
+  /**
+   * The tool made available: a reference to a `tools` entry or MCP toolset, or a
+   * `tool_definition` carrying the definition by value.
+   */
+  tool:
+    | BetaResponseToolChangeToolReference
+    | BetaResponseToolChangeMCPToolReference
+    | BetaResponseToolChangeMCPToolsetReference
+    | BetaToolChangeToolDefinition;
+
+  type: 'tool_addition';
+}
+
+/**
+ * Reference to a single MCP tool, by its server and its name on that server, as a
+ * `compaction` block's `tool_changes` entry reports it. Send it back unchanged
+ * with the block.
+ */
+export interface BetaResponseToolChangeMCPToolReference {
+  name: string;
+
+  server_name: string;
+
+  type: 'mcp_tool_reference';
+}
+
+/**
+ * Reference to every tool in the named MCP server's toolset, as a `compaction`
+ * block's `tool_changes` entry reports it. Send it back unchanged with the block.
+ */
+export interface BetaResponseToolChangeMCPToolsetReference {
+  server_name: string;
+
+  type: 'mcp_toolset_reference';
+}
+
+/**
+ * Reference to a single tool, by the name the model uses to call it, as a
+ * `compaction` block's `tool_changes` entry reports it: a tool declared in `tools`
+ * or defined by an earlier `tool_addition` block. Send it back unchanged with the
+ * block.
+ */
+export interface BetaResponseToolChangeToolReference {
+  name: string;
+
+  type: 'tool_reference';
+}
+
+/**
+ * [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
+ *
+ * This defines the shape of the `input` that your tool accepts and that the model
+ * will produce.
+ */
+export interface BetaResponseToolInputSchema {
+  type: 'object';
+
+  properties?: { [key: string]: unknown } | null;
+
+  required?: Array<string> | null;
+
+  [k: string]: unknown;
+}
+
+/**
+ * An entry of a `compaction` block's `tool_changes`: a tool of the request's
+ * `tools` (or an MCP tool or toolset) that the compacted range withdrew. Send it
+ * back unchanged.
+ */
+export interface BetaResponseToolRemovalBlock {
+  /**
+   * A reference to the withdrawn `tools` entry, MCP tool or MCP toolset.
+   */
+  tool:
+    | BetaResponseToolChangeToolReference
+    | BetaResponseToolChangeMCPToolReference
+    | BetaResponseToolChangeMCPToolsetReference;
+
+  type: 'tool_removal';
+}
+
+export type BetaResponseToolUnion =
+  | BetaResponseTool
+  | BetaToolBash20241022
+  | BetaToolBash20250124
+  | BetaCodeExecutionTool20250522
+  | BetaCodeExecutionTool20250825
+  | BetaCodeExecutionTool20260120
+  | BetaCodeExecutionTool20260521
+  | BetaBrowserToolset20260801
+  | BetaToolComputerUse20241022
+  | BetaMemoryTool20250818
+  | BetaToolComputerUse20250124
+  | BetaToolTextEditor20241022
+  | BetaToolComputerUse20251124
+  | BetaComputerToolset20260801
+  | BetaToolTextEditor20250124
+  | BetaToolTextEditor20250429
+  | BetaToolTextEditor20250728
+  | BetaWebSearchTool20250305
+  | BetaWebFetchTool20250910
+  | BetaWebSearchTool20260209
+  | BetaWebFetchTool20260209
+  | BetaWebFetchTool20260309
+  | BetaWebSearchTool20260318
+  | BetaWebFetchTool20260318
+  | BetaAdvisorTool20260301
+  | BetaToolSearchToolBm25_20251119
+  | BetaToolSearchToolRegex20251119
+  | BetaMCPToolset;
 
 export interface BetaSearchResultBlockParam {
   content: Array<BetaTextBlockParam>;
@@ -5021,9 +5299,32 @@ export interface BetaToolChangeMCPToolsetReference {
 }
 
 /**
- * Reference to a single tool the caller declared directly in `tools[]`. Does not
+ * A tool defined by value, as a `compaction` block's `tool_changes` entry reports
+ * it: `definition` is the tool's definition as it was sent, in the form of a
+ * `tools` entry, without `cache_control`. Send it back unchanged with the block.
+ */
+export interface BetaToolChangeToolDefinition {
+  definition: BetaResponseToolUnion;
+
+  type: 'tool_definition';
+}
+
+/**
+ * A tool defined by value: `definition` is a `tools` entry (any kind `tools`
+ * accepts, an MCP toolset included). An `mcp_toolset` given here also requires the
+ * `mcp-client-2026-09-15` beta.
+ */
+export interface BetaToolChangeToolDefinitionParam {
+  definition: BetaToolUnion;
+
+  type: 'tool_definition';
+}
+
+/**
+ * Reference to a single tool, by the name the model uses to call it: a tool
+ * declared in `tools` or defined by an earlier `tool_addition` block. Does not
  * accept the composed `{server}_{name}` form the server assigns to MCP-resolved
- * tools — use `mcp_tool_reference` or `mcp_toolset_reference` for those.
+ * tools; use `mcp_tool_reference` or `mcp_toolset_reference` for those.
  */
 export interface BetaToolChangeToolReference {
   name: string;
@@ -7350,8 +7651,12 @@ export declare namespace Messages {
     type BetaInputTransformation as BetaInputTransformation,
     type BetaIterationsUsage as BetaIterationsUsage,
     type BetaJSONOutputFormat as BetaJSONOutputFormat,
+    type BetaMCPTool as BetaMCPTool,
     type BetaMCPToolConfig as BetaMCPToolConfig,
     type BetaMCPToolDefaultConfig as BetaMCPToolDefaultConfig,
+    type BetaMCPToolListingBlock as BetaMCPToolListingBlock,
+    type BetaMCPToolListingBlockParam as BetaMCPToolListingBlockParam,
+    type BetaMCPToolParam as BetaMCPToolParam,
     type BetaMCPToolResultBlock as BetaMCPToolResultBlock,
     type BetaMCPToolUseBlock as BetaMCPToolUseBlock,
     type BetaMCPToolUseBlockParam as BetaMCPToolUseBlockParam,
@@ -7390,6 +7695,14 @@ export declare namespace Messages {
     type BetaRequestMCPToolResultBlockParam as BetaRequestMCPToolResultBlockParam,
     type BetaRequestToolAdditionBlock as BetaRequestToolAdditionBlock,
     type BetaRequestToolRemovalBlock as BetaRequestToolRemovalBlock,
+    type BetaResponseTool as BetaResponseTool,
+    type BetaResponseToolAdditionBlock as BetaResponseToolAdditionBlock,
+    type BetaResponseToolChangeMCPToolReference as BetaResponseToolChangeMCPToolReference,
+    type BetaResponseToolChangeMCPToolsetReference as BetaResponseToolChangeMCPToolsetReference,
+    type BetaResponseToolChangeToolReference as BetaResponseToolChangeToolReference,
+    type BetaResponseToolInputSchema as BetaResponseToolInputSchema,
+    type BetaResponseToolRemovalBlock as BetaResponseToolRemovalBlock,
+    type BetaResponseToolUnion as BetaResponseToolUnion,
     type BetaSearchResultBlockParam as BetaSearchResultBlockParam,
     type BetaServerToolCaller as BetaServerToolCaller,
     type BetaServerToolCaller20260120 as BetaServerToolCaller20260120,
@@ -7434,6 +7747,8 @@ export declare namespace Messages {
     type BetaToolBash20250124 as BetaToolBash20250124,
     type BetaToolChangeMCPToolReference as BetaToolChangeMCPToolReference,
     type BetaToolChangeMCPToolsetReference as BetaToolChangeMCPToolsetReference,
+    type BetaToolChangeToolDefinition as BetaToolChangeToolDefinition,
+    type BetaToolChangeToolDefinitionParam as BetaToolChangeToolDefinitionParam,
     type BetaToolChangeToolReference as BetaToolChangeToolReference,
     type BetaToolChoice as BetaToolChoice,
     type BetaToolChoiceAny as BetaToolChoiceAny,

@@ -120,6 +120,78 @@ describe('MCP helpers', () => {
       });
     });
 
+    it('sends the tool definition by value in a tool_addition block', async () => {
+      const { fetch, handleRequest } = mockFetch();
+      const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+      const tool: Tool = {
+        name: 'get_weather',
+        description: 'Get the weather for a location',
+        inputSchema: {
+          type: 'object' as const,
+          properties: {
+            location: { type: 'string', description: 'City name' },
+          },
+          required: ['location'],
+        },
+      };
+
+      const mockClient: MCPClientLike = {
+        callTool: async () => ({ content: [{ type: 'text', text: 'Sunny, 72°F' }] }),
+      };
+
+      let capturedBody: any;
+      let capturedHeaders: Headers | undefined;
+      handleRequest(async (_req, init) => {
+        capturedBody = JSON.parse(init?.body as string);
+        capturedHeaders = new Headers(init?.headers);
+        return new Response(
+          JSON.stringify({
+            id: 'msg_123',
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'text', text: 'The weather is nice.' }],
+            model: 'claude-opus-4-8',
+            stop_reason: 'end_turn',
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }),
+        );
+      });
+
+      await anthropic.beta.messages.create({
+        model: 'claude-opus-4-8',
+        max_tokens: 1024,
+        messages: [
+          { role: 'user', content: 'What is the weather?' },
+          {
+            role: 'system',
+            content: [
+              {
+                type: 'tool_addition',
+                tool: { type: 'tool_definition', definition: mcpTool(tool, mockClient) },
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(capturedBody.messages[1].content[0].tool).toEqual({
+        type: 'tool_definition',
+        definition: {
+          name: 'get_weather',
+          description: 'Get the weather for a location',
+          input_schema: {
+            type: 'object',
+            properties: {
+              location: { type: 'string', description: 'City name' },
+            },
+            required: ['location'],
+          },
+        },
+      });
+      expect(capturedHeaders?.get('x-stainless-helper')).toBe('mcpTool');
+    });
+
     it('sends tool with extra props to API', async () => {
       const { fetch, handleRequest } = mockFetch();
       const anthropic = new Anthropic({ apiKey: 'test-key', fetch });

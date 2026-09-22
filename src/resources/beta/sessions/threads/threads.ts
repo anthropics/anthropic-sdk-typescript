@@ -124,8 +124,7 @@ export interface BetaManagedAgentsSessionThread {
   id: string;
 
   /**
-   * The resolved agent a session thread runs: a saved-agent snapshot, the platform
-   * advisor entry, or an inline-defined (ephemeral) agent snapshot.
+   * The resolved agent a `session_thread` runs.
    */
   agent: AgentsAPI.BetaManagedAgentsSessionThreadAgent | AgentsAPI.BetaManagedAgentsAdvisor;
 
@@ -286,7 +285,7 @@ export type BetaManagedAgentsStreamSessionThreadEvents =
 
 export interface ThreadRetrieveParams {
   /**
-   * Path param: Path parameter session_id
+   * Path param
    */
   session_id: string;
 
@@ -325,7 +324,7 @@ export interface ThreadListParams extends PageCursorParams {
 
 export interface ThreadArchiveParams {
   /**
-   * Path param: Path parameter session_id
+   * Path param
    */
   session_id: string;
 

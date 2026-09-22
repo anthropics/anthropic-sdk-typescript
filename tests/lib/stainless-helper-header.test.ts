@@ -73,6 +73,26 @@ describe('stainless-helpers', () => {
       expect(result).toContain('mcpContent');
     });
 
+    it('returns helper name for a marked tool defined by value in a tool_addition block', () => {
+      const tool: WithHelper<BetaToolUnion> = {
+        name: 'test',
+        input_schema: { type: 'object' },
+        [SDK_HELPER_SYMBOL]: 'mcpTool',
+      };
+      const messages: BetaMessageParam[] = [
+        { role: 'user', content: 'hi' },
+        {
+          role: 'system',
+          content: [
+            { type: 'tool_removal', tool: { type: 'tool_reference', name: 'old' } },
+            { type: 'tool_addition', tool: { type: 'tool_reference', name: 'other' } },
+            { type: 'tool_addition', tool: { type: 'tool_definition', definition: tool } },
+          ],
+        },
+      ];
+      expect(collectStainlessHelpers(undefined, messages)).toEqual(['mcpTool']);
+    });
+
     it('collects helpers from both tools and messages', () => {
       const tool: WithHelper<BetaToolUnion> = {
         name: 'test',

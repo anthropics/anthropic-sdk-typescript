@@ -288,12 +288,16 @@ export interface BetaManagedAgentsUserActor {
 
 export interface MemoryVersionRetrieveParams {
   /**
-   * Path param: Path parameter memory_store_id
+   * Path param: The ID of the memory store that holds the version (`memstore_...`).
    */
   memory_store_id: string;
 
   /**
-   * Query param: Query parameter for view
+   * Query param: Selects which projection of a `memory` or `memory_version` the
+   * server returns. `basic` returns the object with `content` set to `null`; `full`
+   * populates `content`. When omitted, the default is endpoint-specific: retrieve
+   * operations default to `full`; list, create, and update operations default to
+   * `basic`. Listing with `view=full` caps `limit` at 20.
    */
   view?: MemoriesAPI.BetaManagedAgentsMemoryView;
 
@@ -315,7 +319,7 @@ export interface MemoryVersionRetrieveParams {
 
 export interface MemoryVersionListParams extends PageCursorParams {
   /**
-   * Query param: Query parameter for api_key_id
+   * Query param: Return only versions written with the API key that has this ID.
    */
   api_key_id?: string;
 
@@ -330,27 +334,35 @@ export interface MemoryVersionListParams extends PageCursorParams {
   'created_at[lte]'?: string;
 
   /**
-   * Query param: Query parameter for memory_id
+   * Query param: Return only versions of the memory with this ID (`mem_...`).
+   *
+   * The filter still works after the memory is deleted. The results then include the
+   * version whose `operation` is `deleted`.
    */
   memory_id?: string;
 
   /**
-   * Query param: Query parameter for operation
+   * Query param: Return only versions that record this kind of change.
    */
   operation?: BetaManagedAgentsMemoryVersionOperation;
 
   /**
-   * Query param: Query parameter for service_account_id
+   * Query param: Return only versions written by the service account with this ID
+   * (`svac_...`).
    */
   service_account_id?: string;
 
   /**
-   * Query param: Query parameter for session_id
+   * Query param: Return only versions written by the session with this ID.
    */
   session_id?: string;
 
   /**
-   * Query param: Query parameter for view
+   * Query param: Selects which projection of a `memory` or `memory_version` the
+   * server returns. `basic` returns the object with `content` set to `null`; `full`
+   * populates `content`. When omitted, the default is endpoint-specific: retrieve
+   * operations default to `full`; list, create, and update operations default to
+   * `basic`. Listing with `view=full` caps `limit` at 20.
    */
   view?: MemoriesAPI.BetaManagedAgentsMemoryView;
 
@@ -372,7 +384,7 @@ export interface MemoryVersionListParams extends PageCursorParams {
 
 export interface MemoryVersionRedactParams {
   /**
-   * Path param: Path parameter memory_store_id
+   * Path param: The ID of the memory store that holds the version (`memstore_...`).
    */
   memory_store_id: string;
 

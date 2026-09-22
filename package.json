@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/sdk",
-  "version": "0.127.0",
+  "version": "0.128.0",
   "description": "The official TypeScript library for the Anthropic API",
   "author": "Anthropic <support@anthropic.com>",
   "types": "dist/index.d.ts",
@@ -42,6 +42,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/core": "^0.18.3",
+    "@fast-check/vitest": "^0.4.1",
     "@modelcontextprotocol/sdk": "^1.24.2",
     "@types/node": "^20.17.6",
     "@typescript-eslint/eslint-plugin": "8.58.0",
