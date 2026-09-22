@@ -21,7 +21,6 @@ import { buildHeaders } from '../../internal/headers';
 import { promiseWithResolvers } from '../../internal/utils/promise';
 import { checkNever } from '../../internal/utils/values';
 import { loggerFor } from '../../internal/utils/log';
-import { CompactionControl, DEFAULT_SUMMARY_PROMPT, DEFAULT_TOKEN_THRESHOLD } from './CompactionControl';
 import {
   collectStainlessHelpers,
   helperHeader,
@@ -77,6 +76,7 @@ export class BetaToolRunner<Stream extends boolean> {
     options?: BetaToolRunnerRequestOptions,
   ) {
     rejectCompactionParam(params);
+    rejectCompactionControl(params);
     this.#state = {
       params: {
         // You can't clone the entire params since there are functions as handlers.
@@ -102,100 +102,6 @@ export class BetaToolRunner<Stream extends boolean> {
       ]),
     };
     this.#completion = promiseWithResolvers();
-
-    if (params.compactionControl?.enabled) {
-      console.warn(
-        'Anthropic: The `compactionControl` parameter is deprecated and will be removed in a future version. ' +
-          'Use server-side compaction instead by passing `edits: [{ type: "compact_20260112" }]` in the params passed to `toolRunner()`. ' +
-          'See https://platform.claude.com/docs/en/build-with-claude/compaction',
-      );
-    }
-  }
-
-  async #checkAndCompact(): Promise<boolean> {
-    const compactionControl = this.#state.params.compactionControl;
-    if (!compactionControl || !compactionControl.enabled) {
-      return false;
-    }
-
-    let tokensUsed = 0;
-    if (this.#message !== undefined) {
-      try {
-        const message = await this.#message;
-        const totalInputTokens =
-          message.usage.input_tokens +
-          (message.usage.cache_creation_input_tokens ?? 0) +
-          (message.usage.cache_read_input_tokens ?? 0);
-        tokensUsed = totalInputTokens + message.usage.output_tokens;
-      } catch {
-        // If we can't get the message, skip compaction
-        return false;
-      }
-    }
-
-    const threshold = compactionControl.contextTokenThreshold ?? DEFAULT_TOKEN_THRESHOLD;
-
-    if (tokensUsed < threshold) {
-      return false;
-    }
-
-    const model = compactionControl.model ?? this.#state.params.model;
-    const summaryPrompt = compactionControl.summaryPrompt ?? DEFAULT_SUMMARY_PROMPT;
-
-    const messages = this.#state.params.messages;
-
-    if (messages[messages.length - 1]!.role === 'assistant') {
-      // Remove tool_use blocks from the last message to avoid 400 error
-      // (tool_use requires tool_result, which we don't have yet)
-      const lastMessage = messages[messages.length - 1]!;
-      if (Array.isArray(lastMessage.content)) {
-        const nonToolBlocks = lastMessage.content.filter((block) => block.type !== 'tool_use');
-
-        if (nonToolBlocks.length === 0) {
-          // If all blocks were tool_use, just remove the message entirely
-          messages.pop();
-        } else {
-          lastMessage.content = nonToolBlocks;
-        }
-      }
-    }
-
-    const response = await this.client.beta.messages.create(
-      {
-        model,
-        messages: [
-          ...messages,
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: summaryPrompt,
-              },
-            ],
-          },
-        ],
-        max_tokens: this.#state.params.max_tokens,
-      },
-      {
-        signal: this.#options.signal,
-        headers: buildHeaders([this.#options.headers, helperHeader('compaction')]),
-      },
-    );
-
-    if (response.content[0]?.type !== 'text') {
-      throw new AnthropicError('Expected text response for compaction');
-    }
-    // Must run before the history is replaced: a removal the caller wrote into it is known only from it.
-    this.#recordRemovalsFromHistory();
-    this.#lastStopReason = null;
-    this.#state.params.messages = [
-      {
-        role: 'user',
-        content: asContentParam(response.content),
-      },
-    ];
-    return true;
   }
 
   async *[Symbol.asyncIterator](): AsyncIterator<
@@ -237,51 +143,48 @@ export class BetaToolRunner<Stream extends boolean> {
           this.#iterationCount++;
           this.#message = undefined;
 
-          const { max_iterations, compactionControl, ...params } = this.#state.params;
+          const { max_iterations, ...params } = this.#state.params;
 
           yield* this.#send(params);
 
-          const isCompacted = await this.#checkAndCompact();
-          if (!isCompacted) {
-            if (!this.#mutated) {
-              const message = await this.#message!;
-              const nextStep = determineNextStepFromStopReason(message.stop_reason);
-              this.#lastStopReason = message.stop_reason;
-              this.#state.params.messages.push({
-                role: message.role,
-                content: asContentParam(message.content),
-              });
+          if (!this.#mutated) {
+            const message = await this.#message!;
+            const nextStep = determineNextStepFromStopReason(message.stop_reason);
+            this.#lastStopReason = message.stop_reason;
+            this.#state.params.messages.push({
+              role: message.role,
+              content: asContentParam(message.content),
+            });
 
-              // Container-bound server tools reject a follow-up request that omits the container the
-              // previous turn ran in, so carry its id forward unless the caller pinned one themselves.
-              const { container } = this.#state.params;
-              if (message.container) {
-                if (container == null) {
-                  this.#state.params.container = message.container.id;
-                } else if (typeof container === 'object' && container.id == null) {
-                  this.#state.params.container = { ...container, id: message.container.id };
-                }
+            // Container-bound server tools reject a follow-up request that omits the container the
+            // previous turn ran in, so carry its id forward unless the caller pinned one themselves.
+            const { container } = this.#state.params;
+            if (message.container) {
+              if (container == null) {
+                this.#state.params.container = message.container.id;
+              } else if (typeof container === 'object' && container.id == null) {
+                this.#state.params.container = { ...container, id: message.container.id };
               }
-
-              if (nextStep === 'stop') {
-                yield* this.#compactAfterFinalTurn();
-                break;
-              }
-              if (nextStep === 'resume') {
-                continue;
-              }
-            } else {
-              // The caller has taken over the history, so the last response no longer says how it ends.
-              this.#lastStopReason = null;
             }
 
-            const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
-            if (toolMessage) {
-              this.#state.params.messages.push(toolMessage);
-            } else if (!this.#mutated) {
+            if (nextStep === 'stop') {
               yield* this.#compactAfterFinalTurn();
               break;
             }
+            if (nextStep === 'resume') {
+              continue;
+            }
+          } else {
+            // The caller has taken over the history, so the last response no longer says how it ends.
+            this.#lastStopReason = null;
+          }
+
+          const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
+          if (toolMessage) {
+            this.#state.params.messages.push(toolMessage);
+          } else if (!this.#mutated) {
+            yield* this.#compactAfterFinalTurn();
+            break;
           }
         } finally {
           this.#stream?.abort();
@@ -327,7 +230,7 @@ export class BetaToolRunner<Stream extends boolean> {
     compaction: BetaCompactionConfig,
   ): AsyncGenerator<BetaToolRunnerItem<Stream>, void, undefined> {
     rejectCompactionEdit(this.#state.params);
-    const { max_iterations, compactionControl, ...requestParams } = this.#state.params;
+    const { max_iterations, ...requestParams } = this.#state.params;
     const params = withoutCompactionIncompatibleParams(requestParams);
     this.#compaction = { status: 'in_flight' };
     this.#toolResponse = undefined;
@@ -734,6 +637,16 @@ function rejectCompactionParam(params: BetaToolRunnerParams): void {
   }
 }
 
+function rejectCompactionControl(params: BetaToolRunnerParams): void {
+  // No longer in the params type, so only untyped callers reach this; forwarding it would be an opaque API 400.
+  if ('compactionControl' in params && params.compactionControl != null) {
+    throw new AnthropicError(
+      '`compactionControl` has been removed from the tool runner. Use server-side compaction instead: ' +
+        'call `runner.compactBeforeNextTurn()` when the conversation should be compacted.',
+    );
+  }
+}
+
 function rejectCompactionEdit(params: BetaToolRunnerParams): void {
   // The compaction request is sent without `context_management`, so the API can't refuse the pair there:
   // it would run and bill the compaction, then refuse the next request.
@@ -938,18 +851,12 @@ export type BetaToolRunnerParams = Simplify<
      * When exceeded, the loop will terminate even if tools are still being requested.
      */
     max_iterations?: number;
-    /**
-     * @deprecated Use server-side compaction instead by passing
-     * `edits: [{ type: 'compact_20260112' }]` in the params passed to `toolRunner()`.
-     * See https://platform.claude.com/docs/en/build-with-claude/compaction
-     */
-    compactionControl?: CompactionControl;
   }
 >;
 
 export type BetaToolRunnerRequestOptions = Pick<RequestOptions, 'headers' | 'signal' | 'fallbackState'>;
 
-type ToolRunnerRequestParams = Omit<BetaToolRunnerParams, 'max_iterations' | 'compactionControl'>;
+type ToolRunnerRequestParams = Omit<BetaToolRunnerParams, 'max_iterations'>;
 
 type Compaction =
   | { status: 'idle' }
