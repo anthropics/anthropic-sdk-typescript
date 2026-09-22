@@ -429,6 +429,20 @@ describe('MCP helpers', () => {
       expect(result).toEqual([]);
     });
 
+    it.each([false, true])('preserves MCP error details with text content: %s', async (withText) => {
+      const content: TextContent[] = withText ? [{ type: 'text', text: 'Retry later' }] : [];
+      const structuredContent = { error: 'Rate limited', retryAfter: 30 };
+      const runnableTool = mcpTool(
+        { name: 'failing_tool', inputSchema: { type: 'object' } },
+        { callTool: async () => ({ isError: true, content, structuredContent }) },
+      );
+
+      await expect(runnableTool.run({})).rejects.toMatchObject({
+        name: 'ToolError',
+        content: withText ? [{ type: 'text', text: 'Retry later' }] : JSON.stringify(structuredContent),
+      });
+    });
+
     it('sends image tool result to API correctly', async () => {
       const { fetch, handleRequest } = mockFetch();
       const anthropic = new Anthropic({ apiKey: 'test-key', fetch });

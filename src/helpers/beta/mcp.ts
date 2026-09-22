@@ -244,24 +244,25 @@ export function mcpTool(
         arguments: input,
       });
 
-      if (result.isError) {
-        const content = result.content.map((item) => mcpContent(item));
-        throw new ToolError(content);
-      }
-
       // If content is empty but structuredContent is present, JSON encode it
       // Spec: "For backwards compatibility, a tool that returns structured content SHOULD also return the serialized JSON in a TextContent block."
       // meaning it's not required and cannot be assumed.
+      let content: string | Array<BetaToolResultContentBlockParam>;
       if (
         result.content.length === 0 &&
         // Spec: "Structured content is returned as a JSON object in the structuredContent field of a result."
         typeof result.structuredContent === 'object' &&
         result.structuredContent !== null
       ) {
-        return JSON.stringify(result.structuredContent);
+        content = JSON.stringify(result.structuredContent);
+      } else {
+        content = result.content.map((item) => mcpContent(item));
       }
 
-      return result.content.map((item) => mcpContent(item));
+      if (result.isError) {
+        throw new ToolError(content);
+      }
+      return content;
     },
     parse: (content: unknown): Record<string, unknown> => content as Record<string, unknown>,
     [SDK_HELPER_SYMBOL]: 'mcpTool',
