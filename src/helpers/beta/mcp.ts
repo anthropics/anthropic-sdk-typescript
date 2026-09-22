@@ -615,7 +615,12 @@ export function mcpResourceToFile(result: MCPReadResourceResultLike): File {
     throw new UnsupportedMCPValueError('Resource contents array must contain at least one item');
   }
   const resourceContents = result.contents[0]!;
-  const name = new URL(resourceContents.uri).pathname.split('/').at(-1) || 'file';
+  let name = new URL(resourceContents.uri).pathname.split('/').at(-1) || 'file';
+  try {
+    name = decodeURIComponent(name);
+  } catch {
+    // Preserve names containing malformed percent escapes or non-UTF-8 bytes.
+  }
   const type = resourceContents.mimeType;
   const data = bytesFromResource(resourceContents);
   const file = new File([data], name, type ? { type } : undefined);
