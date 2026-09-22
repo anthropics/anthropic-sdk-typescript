@@ -369,6 +369,9 @@ import {
 } from './internal/utils/log';
 import { isEmptyObj } from './internal/utils/values';
 
+export const HUMAN_PROMPT = '\\n\\nHuman:';
+export const AI_PROMPT = '\\n\\nAssistant:';
+
 /**
  * Shared auth state. A `withOptions()` clone receives the parent's instance
  * (unless the caller overrides auth options) so a clone created before lazy
@@ -549,9 +552,6 @@ export interface ClientOptions {
    */
   logger?: Logger | undefined;
 }
-
-export const HUMAN_PROMPT = '\\n\\nHuman:';
-export const AI_PROMPT = '\\n\\nAssistant:';
 
 /**
  * Base class for Anthropic API clients.
@@ -1654,8 +1654,6 @@ export class BaseAnthropic {
   }
 
   static Anthropic = this;
-  static HUMAN_PROMPT = HUMAN_PROMPT;
-  static AI_PROMPT = AI_PROMPT;
   static DEFAULT_TIMEOUT = 600000; // 10 minutes
 
   static AnthropicError = Errors.AnthropicError;
@@ -1673,6 +1671,9 @@ export class BaseAnthropic {
   static UnprocessableEntityError = Errors.UnprocessableEntityError;
 
   static toFile = Uploads.toFile;
+
+  static HUMAN_PROMPT = HUMAN_PROMPT;
+  static AI_PROMPT = AI_PROMPT;
 }
 
 /**
