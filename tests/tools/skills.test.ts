@@ -184,6 +184,24 @@ describe('extractSkillArchive', () => {
     await extractSkillArchive(new Response(buf), into);
   }
 
+  test('removes the temporary archive when the download stream fails', async () => {
+    await fsp.mkdir(dest, { recursive: true });
+    await fsp.writeFile(path.join(dest, 'keep.txt'), 'existing content');
+    const failure = new Error('download interrupted');
+    const body = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('partial archive'));
+      },
+      pull(controller) {
+        controller.error(failure);
+      },
+    });
+
+    await expect(extractSkillArchive(new Response(body), dest)).rejects.toBe(failure);
+    expect(await fsp.readdir(dest)).toEqual(['keep.txt']);
+    expect(await fsp.readFile(path.join(dest, 'keep.txt'), 'utf8')).toBe('existing content');
+  });
+
   for (const kind of ['zip', 'targz'] as const) {
     test(`${kind}: strips the skill wrapper directory (no doubling)`, async () => {
       const buf = pack(kind, {
