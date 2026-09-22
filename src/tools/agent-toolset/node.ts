@@ -674,6 +674,7 @@ export function betaWriteTool(ctx: AgentToolContext): BetaRunnableTool {
     },
     run: async ({ file_path, content }) => {
       if (!file_path) throw new ToolError('write: file_path is required');
+      if (typeof content !== 'string') throw new ToolError('write: content must be a string');
       const abs = await resolvePath(ctx, file_path);
       const ro = await readOnlyRootFor(ctx, abs);
       if (ro !== undefined) {
@@ -681,11 +682,11 @@ export function betaWriteTool(ctx: AgentToolContext): BetaRunnableTool {
       }
       try {
         await fs.mkdir(path.dirname(abs), { recursive: true, mode: DIR_CREATE_MODE });
-        await atomicWriteFile(abs, content ?? '');
+        await atomicWriteFile(abs, content);
       } catch (e) {
         throw new ToolError(`write: ${fsErrorMessage(e, file_path)}`);
       }
-      return `wrote ${Buffer.byteLength(content ?? '')} bytes to ${file_path}`;
+      return `wrote ${Buffer.byteLength(content)} bytes to ${file_path}`;
     },
   });
 }
@@ -709,6 +710,7 @@ export function betaEditTool(ctx: AgentToolContext): BetaRunnableTool {
     run: async ({ file_path, old_string, new_string, replace_all }) => {
       if (!file_path) throw new ToolError('edit: file_path is required');
       if (!old_string) throw new ToolError('edit: old_string is required');
+      if (typeof new_string !== 'string') throw new ToolError('edit: new_string must be a string');
       const abs = await resolvePath(ctx, file_path);
       const ro = await readOnlyRootFor(ctx, abs);
       if (ro !== undefined) {
