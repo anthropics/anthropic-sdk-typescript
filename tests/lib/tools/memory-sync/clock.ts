@@ -1,5 +1,6 @@
 /** Shared fixtures for the memory-sync suite. */
 
+import type { MockInstance } from 'vitest';
 import type { SessionMemoryStores } from '@anthropic-ai/sdk/tools/agent-toolset/node';
 
 /**
@@ -13,10 +14,10 @@ export const runSync = (stores: SessionMemoryStores): Promise<void> => stores.sy
 /** A settable stand-in for the module's `Date.now`. */
 export class Clock {
   now = 0;
-  #spy: jest.SpyInstance<number, []>;
+  #spy: MockInstance<() => number>;
 
   constructor() {
-    this.#spy = jest.spyOn(Date, 'now').mockImplementation(() => this.now);
+    this.#spy = vi.spyOn(Date, 'now').mockImplementation(() => this.now);
   }
 
   restore(): void {

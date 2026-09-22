@@ -1,26 +1,27 @@
+import type { MockedFunction } from 'vitest';
 import { VERSION } from '@anthropic-ai/sdk/version';
 import { AnthropicAws } from '../src';
 import { getAuthHeaders } from '../src/core/auth';
 
-jest.mock('../src/core/auth', () => ({
-  getAuthHeaders: jest.fn().mockResolvedValue({
+vi.mock('../src/core/auth', () => ({
+  getAuthHeaders: vi.fn().mockResolvedValue({
     authorization: 'AWS4-HMAC-SHA256 Credential=mock',
     'x-amz-date': '20260312T000000Z',
   }),
 }));
 
-const mockLoadConfig = jest.fn();
-jest.mock('@smithy/node-config-provider', () => ({
+const mockLoadConfig = vi.fn();
+vi.mock('@smithy/node-config-provider', () => ({
   loadConfig: (...args: unknown[]) => mockLoadConfig(...args),
 }));
-jest.mock('@smithy/config-resolver', () => ({
+vi.mock('@smithy/config-resolver', () => ({
   NODE_REGION_CONFIG_OPTIONS: { __mock: 'options' },
   NODE_REGION_CONFIG_FILE_OPTIONS: { __mock: 'fileOptions' },
 }));
 
-const mockGetAuthHeaders = getAuthHeaders as jest.MockedFunction<typeof getAuthHeaders>;
+const mockGetAuthHeaders = getAuthHeaders as MockedFunction<typeof getAuthHeaders>;
 
-const mockFetch = jest.fn().mockImplementation(() => {
+const mockFetch = vi.fn().mockImplementation(() => {
   return Promise.resolve({
     ok: true,
     status: 200,
@@ -133,7 +134,7 @@ describe('AnthropicAws', () => {
     });
 
     test('creates client with provider chain resolver', () => {
-      const resolver = jest.fn();
+      const resolver = vi.fn();
 
       const client = new AnthropicAws({
         providerChainResolver: resolver,
@@ -268,7 +269,7 @@ describe('AnthropicAws', () => {
     });
 
     test('does not emit unhandledRejection when ready rejects and is not awaited', async () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       process.on('unhandledRejection', handler);
       try {
         new AnthropicAws({ workspaceId: 'ws-test' });
@@ -309,10 +310,10 @@ describe('AnthropicAws', () => {
     // These base-client options are never valid auth for the AWS gateway; a
     // config-supplied base_url must not be able to redirect signed traffic.
     const makeLogger = () => ({
-      error: jest.fn(),
-      warn: jest.fn(),
-      info: jest.fn(),
-      debug: jest.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      info: vi.fn(),
+      debug: vi.fn(),
     });
 
     test.each([

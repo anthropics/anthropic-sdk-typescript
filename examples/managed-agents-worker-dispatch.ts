@@ -1,4 +1,4 @@
-#!/usr/bin/env -S npm run tsn -T
+#!/usr/bin/env node
 
 // Self-hosted runner, "worker-dispatch" flavor: this process was handed ONE
 // already-claimed work item by an upstream poller/orchestrator — e.g. an

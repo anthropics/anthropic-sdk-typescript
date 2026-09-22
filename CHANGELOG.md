@@ -1,5 +1,93 @@
 # Changelog
 
+## 0.127.0 (2026-09-18)
+
+Full Changelog: [sdk-v0.126.0...sdk-v0.127.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.126.0...sdk-v0.127.0)
+
+### Features
+
+* **api:** add group with display_name to rate limits, deprecate group_type ([2575d97](https://github.com/anthropics/anthropic-sdk-typescript/commit/2575d977be0508d0bd3e3c429b758efeb1e240a2))
+* **tools:** add compactBeforeNextTurn() to the tool runner ([#682](https://github.com/anthropics/anthropic-sdk-typescript/issues/682)) ([9f75ca6](https://github.com/anthropics/anthropic-sdk-typescript/commit/9f75ca69905ba808709c95f31c4159e74fbf6e19))
+
+
+### Bug Fixes
+
+* **BetaMessageStream:** stop coercing a null compaction_delta content into "null" ([#655](https://github.com/anthropics/anthropic-sdk-typescript/issues/655)) ([dbd6845](https://github.com/anthropics/anthropic-sdk-typescript/commit/dbd684543914f57d8d974d28ad97769d123e56a1))
+* **client:** don't retry requests whose body is a stream or iterator ([eebc1b9](https://github.com/anthropics/anthropic-sdk-typescript/commit/eebc1b995b031c7e288a03c1621a3834cc71f3e3))
+* **client:** join multiple anthropic-beta values with a comma and no space ([#638](https://github.com/anthropics/anthropic-sdk-typescript/issues/638)) ([e0cb1ff](https://github.com/anthropics/anthropic-sdk-typescript/commit/e0cb1ff479dcd26e58e47dc1ba8c9d68d191e6b5))
+* **client:** make pagination exports on the client namespace type-only ([5adea1f](https://github.com/anthropics/anthropic-sdk-typescript/commit/5adea1f6fa5063b06fe3384f23d46fb0418da3c4))
+* **internal:** drop jest from tsconfig types ([60588af](https://github.com/anthropics/anthropic-sdk-typescript/commit/60588af343e0c19cc507e5eaef62fb86f28c4c38))
+* **middleware:** echo a streamed compaction summary in the fallback continuation ([#657](https://github.com/anthropics/anthropic-sdk-typescript/issues/657)) ([2e0f004](https://github.com/anthropics/anthropic-sdk-typescript/commit/2e0f0042e8d39d0dccfac8bdcaa42e3d10de626e))
+* **tools:** keep $defs when transformJSONSchema root is a $ref ([#687](https://github.com/anthropics/anthropic-sdk-typescript/issues/687)) ([57a9f30](https://github.com/anthropics/anthropic-sdk-typescript/commit/57a9f30bf3cb166666dc8fa3006384977cca8bf6))
+
+
+### Performance Improvements
+
+* **client:** skip formatting request details when debug logging is off ([2b29ed2](https://github.com/anthropics/anthropic-sdk-typescript/commit/2b29ed2f71ea72beed40fea45f532f5aec64af2d))
+
+
+### Chores
+
+* **ci:** publish releases from Node 24 with its bundled npm ([6b3c6f5](https://github.com/anthropics/anthropic-sdk-typescript/commit/6b3c6f544a17d268ca24e56458b391bb3ad13b26))
+* **docs:** add descriptions for enum values and path parameters ([cb254c4](https://github.com/anthropics/anthropic-sdk-typescript/commit/cb254c48f3d15edb66b77ff36a3835123ef31fc6))
+* **docs:** clarify the compaction tool_changes and tool change descriptions ([5a695eb](https://github.com/anthropics/anthropic-sdk-typescript/commit/5a695eb84e48b7e639465aecd09442ac168f78a5))
+* **internal:** build the sub-packages with TypeScript 6.0.3 ([8a69ff5](https://github.com/anthropics/anthropic-sdk-typescript/commit/8a69ff594ffeec3f6bd964030086b01ae5354aaf))
+* **internal:** build with TypeScript 6.0.3 and typescript-eslint 8.58.0 ([01f3ee6](https://github.com/anthropics/anthropic-sdk-typescript/commit/01f3ee693619bd099ce2a85c76a565a46885be19))
+* **internal:** keep lib/internal out of the published exports map ([763fb43](https://github.com/anthropics/anthropic-sdk-typescript/commit/763fb43ee3a8d55fda55d99fe84a3af4d894366c))
+* **internal:** re-export pagination classes with a plain export list ([c77bdc3](https://github.com/anthropics/anthropic-sdk-typescript/commit/c77bdc3ce95e56cfce425fb1fb1edf21caa74de5))
+* **internal:** share a single Simplify type util ([31d5e75](https://github.com/anthropics/anthropic-sdk-typescript/commit/31d5e7574613a6be77e9be5b88b2e73eef50dca2))
+* **internal:** switch unit tests from jest to vitest ([110542d](https://github.com/anthropics/anthropic-sdk-typescript/commit/110542dde844ce5171807af0b8f6dcd14a89a825), [788c9c6](https://github.com/anthropics/anthropic-sdk-typescript/commit/788c9c62ba2bd8180ffc7dcebd1cee14cd692d03))
+
+## 0.126.0 (2026-09-15)
+
+Full Changelog: [sdk-v0.125.0...sdk-v0.126.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.125.0...sdk-v0.126.0)
+
+### Features
+
+* **api:** add auto mode tool permissions for Managed Agents ([7829b43](https://github.com/anthropics/anthropic-sdk-typescript/commit/7829b4302375a14db64d5536226768601f843233))
+* **api:** add compaction parameter and signed compaction blocks (beta) ([05fd878](https://github.com/anthropics/anthropic-sdk-typescript/commit/05fd87804f1cb2db1ea94528ba3b5087403177ba))
+* **api:** add enum types for workspace data-residency geo fields ([89c5920](https://github.com/anthropics/anthropic-sdk-typescript/commit/89c59203ec82987a500f8ab9ddf591d1ee6067ae))
+* **api:** add thinking_mismatch_allowed entries to input_transformations (beta) ([1f32871](https://github.com/anthropics/anthropic-sdk-typescript/commit/1f32871253f8791de968bcc72e33cc0acf350811))
+* **api:** add url_sources to the web fetch tool ([ee23dd2](https://github.com/anthropics/anthropic-sdk-typescript/commit/ee23dd2b1000499cdbe5dcce1c7487c6744d33d1))
+* **api:** add workspace_id parameter to user profiles methods ([f5b9fb7](https://github.com/anthropics/anthropic-sdk-typescript/commit/f5b9fb74ec19e23cd19f6be5120d403a54e05515))
+
+
+### Bug Fixes
+
+* **api:** mark usage iteration model as nullable ([bec3bec](https://github.com/anthropics/anthropic-sdk-typescript/commit/bec3beca3c3b1111b078b9aaedc9791a7baf6b9e))
+* **api:** use one input transformation type for message and delta event ([e016d25](https://github.com/anthropics/anthropic-sdk-typescript/commit/e016d25ee46611fb6e37d856e3c54f234ca04b27))
+* **client:** ignore invalid Retry-After values and validate maxRetries ([7829b43](https://github.com/anthropics/anthropic-sdk-typescript/commit/7829b4302375a14db64d5536226768601f843233))
+* **client:** retry connection errors in the async client and stop blocking in the coroutine retry loop ([7829b43](https://github.com/anthropics/anthropic-sdk-typescript/commit/7829b4302375a14db64d5536226768601f843233))
+* **client:** stop waiting for a retry as soon as the request is aborted ([941aaea](https://github.com/anthropics/anthropic-sdk-typescript/commit/941aaea3ca9a42e00b1979f9eac8ca19ae9eb0dd))
+* **client:** use the default backoff when Retry-After is out of range ([1090c44](https://github.com/anthropics/anthropic-sdk-typescript/commit/1090c44d11afa79316f68acd53392cbd1ad071ca))
+* **internal:** stop a declaration file using a type that needs TypeScript 5.7 ([e32a956](https://github.com/anthropics/anthropic-sdk-typescript/commit/e32a956ec4fa40189579357dd2a3f090142cde0f))
+
+
+### Performance Improvements
+
+* add "sideEffects": false so bundlers can drop unused modules ([f804366](https://github.com/anthropics/anthropic-sdk-typescript/commit/f804366911e95fb15a73dc69f918d2ade3adfaf3))
+* mark classes as pure so bundlers can drop unused ones ([f804366](https://github.com/anthropics/anthropic-sdk-typescript/commit/f804366911e95fb15a73dc69f918d2ade3adfaf3))
+
+
+### Chores
+
+* **docs:** clarify that session_thread_id on tool use events is informational ([a07ecf3](https://github.com/anthropics/anthropic-sdk-typescript/commit/a07ecf3e54502cc635c6a5a6ed790d4a2fd70b47))
+* **docs:** correct the compaction beta's parameter descriptions ([eb9abd2](https://github.com/anthropics/anthropic-sdk-typescript/commit/eb9abd200de3a13098a796fa8482f2764df6bd98))
+* **internal:** move the sub-packages off ts-node and modernise their tsconfig ([1d7cd91](https://github.com/anthropics/anthropic-sdk-typescript/commit/1d7cd915ab581332085f738d1eb5ed17464004d7))
+* **internal:** move tsconfig off settings deprecated in TypeScript 6 ([e0d58f6](https://github.com/anthropics/anthropic-sdk-typescript/commit/e0d58f60a4261d5620af2a1496b0d9d5dc2d307c))
+* **internal:** pin the pnpm version with an integrity hash ([f804366](https://github.com/anthropics/anthropic-sdk-typescript/commit/f804366911e95fb15a73dc69f918d2ade3adfaf3))
+* **internal:** root package drops ts-node; repo root becomes ESM ([3f371a1](https://github.com/anthropics/anthropic-sdk-typescript/commit/3f371a1e11b66938914fbda6ee6d613b008716d1))
+* **internal:** stop using ts-node for the publish script and the ecosystem test runner ([2e589c8](https://github.com/anthropics/anthropic-sdk-typescript/commit/2e589c87fe7f151960699112bd2b42de1c198f9a))
+* **tests:** stop the mock server without failing a passing test run ([a364c12](https://github.com/anthropics/anthropic-sdk-typescript/commit/a364c123e19a19b343fb3a028d39d26065433929))
+
+
+### Documentation
+
+* **api:** clarify usage.iterations entry typing under server-side fallback ([c5f0ef3](https://github.com/anthropics/anthropic-sdk-typescript/commit/c5f0ef36fda2996081a9f9b6b931a07289199677))
+* **api:** compaction instructions replace the server's summarization prompt ([941aaea](https://github.com/anthropics/anthropic-sdk-typescript/commit/941aaea3ca9a42e00b1979f9eac8ca19ae9eb0dd))
+* **api:** fix typo in temperature deprecation message ([4a8b49b](https://github.com/anthropics/anthropic-sdk-typescript/commit/4a8b49be58c8c13d90c2cf63baeb38b0a9427c18))
+* stop documenting unions with their first variant's description ([fa06caf](https://github.com/anthropics/anthropic-sdk-typescript/commit/fa06caf394f7683aaf0fdb1335276b75688798b4))
+
 ## 0.125.0 (2026-09-10)
 
 Full Changelog: [sdk-v0.124.0...sdk-v0.125.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.124.0...sdk-v0.125.0)

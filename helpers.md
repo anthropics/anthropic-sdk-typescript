@@ -337,6 +337,47 @@ You can also set or update the signal after creating the runner:
 runner.setRequestOptions({ signal: controller.signal });
 ```
 
+#### Compaction
+
+With the `compact-2026-09-04` beta you decide when a conversation is compacted: a request with the `compaction` param returns a single `compaction` block, which then replaces the messages it summarizes. In a tool runner, call `runner.compactBeforeNextTurn()` and the runner does this for you.
+
+```ts
+const runner = anthropic.beta.messages.toolRunner({
+  model: 'claude-sonnet-5',
+  max_tokens: 1000,
+  betas: ['compact-2026-09-04'],
+  messages: [{ role: 'user', content: 'Find every page that mentions rate limits.' }],
+  tools: [searchDocsTool],
+});
+
+for await (const message of runner) {
+  if (message.usage.input_tokens > 100_000) {
+    runner.compactBeforeNextTurn();
+  }
+}
+```
+
+The call only schedules the compaction. Once the current turn has finished, including any tool calls, the runner requests a summary, replaces its message history with the compaction response the API returns, and carries on. A turn that was paused (`pause_turn`) is resumed and finished first. If the current turn is the last one, the runner compacts and then stops. If you call it before iterating, the compaction is the first request.
+
+The compaction response is yielded like any other message and doesn't count towards `max_iterations`. It has `stop_reason: 'compaction'`, the summary is in the `content` of its first content block, and its `usage.input_tokens` is the size of the history that was just summarized. Calling `compactBeforeNextTurn()` while handling that message does nothing, so a threshold like the one above doesn't compact twice.
+
+`compactBeforeNextTurn()` takes the same config as the `compaction` param of `messages.create()`, for example to give your own summarization instructions:
+
+```ts
+runner.compactBeforeNextTurn({ type: 'summarize', instructions: 'Keep the page URLs found so far.' });
+```
+
+A few things to know:
+
+- Calling it again before the compaction runs replaces the pending one.
+- The runner doesn't add the beta for you, so pass `betas: ['compact-2026-09-04']`.
+- `context_management` is left out of the compaction request, because the API doesn't accept the two together, and is sent again afterwards. `compactBeforeNextTurn()` throws if `context_management` has a `compact_*` edit, and so does adding one with `setMessagesParams()` while a compaction is scheduled.
+- While you're handling the compaction response, `pushMessages()` and replacing `messages` with `setMessagesParams()` throw, because the compaction response is about to replace the messages. Other params can still be changed.
+- If the API returns no summary, the runner logs a warning and keeps the history as it is.
+- If the run ends on a turn that was cut short with tool calls that never ran (`stop_reason: 'max_tokens'`, for example), the pending compaction is skipped with a warning. It is also skipped if `max_iterations` ends the run after a turn with tool calls, or you `break` out of the loop.
+- When the runner compacts on the last turn and a summary comes back, the compaction response is the last message it receives, so that is what `await runner` and `runner.done()` resolve to.
+- The `compaction` param itself can't be set on a tool runner, because every request in the loop would compact again.
+
 ### `betaZodTool`
 
 Zod schemas can be used to define the input schema for your tools:
@@ -423,7 +464,7 @@ const calculatorTool = betaTool({
 
 ### `client.messages.toolRunner(params): BetaToolRunner`
 
-**Parameters:** All standard message parameters plus:
+**Parameters:** All standard message parameters except `compaction` (see [Compaction](#compaction)), plus:
 
 - `tools: Array<BetaToolUnion | BetaRunnableTool>` - Array of tools
 - `max_iterations?: number` - Maximum number of tool execution iterations (default: no limit)
@@ -491,6 +532,14 @@ runner.pushMessages(
   { role: 'user', content: 'Please also consider this information...' },
   { role: 'assistant', content: 'I understand, let me factor that in.' },
 );
+```
+
+#### `BetaToolRunner.compactBeforeNextTurn()`
+
+Schedules a compaction of the conversation for when the current turn has finished. Takes the same config as the `compaction` param of `messages.create()` and defaults to `{ type: 'summarize' }`. See [Compaction](#compaction).
+
+```ts
+runner.compactBeforeNextTurn();
 ```
 
 #### `BetaToolRunner.setRequestOptions()`

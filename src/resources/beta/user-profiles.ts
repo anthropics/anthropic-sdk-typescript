@@ -17,12 +17,15 @@ export class UserProfiles extends APIResource {
    * ```
    */
   create(params: UserProfileCreateParams, options?: RequestOptions): APIPromise<BetaUserProfile> {
-    const { betas, ...body } = params;
+    const { betas, workspace_id, ...body } = params;
     return this._client.post('/v1/user_profiles?beta=true', {
       body,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-08-18'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-08-18'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -44,11 +47,14 @@ export class UserProfiles extends APIResource {
     params: UserProfileRetrieveParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<BetaUserProfile> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.get(path`/v1/user_profiles/${userProfileID}?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-08-18'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-08-18'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -70,12 +76,15 @@ export class UserProfiles extends APIResource {
     params: UserProfileUpdateParams,
     options?: RequestOptions,
   ): APIPromise<BetaUserProfile> {
-    const { betas, ...body } = params;
+    const { betas, workspace_id, ...body } = params;
     return this._client.post(path`/v1/user_profiles/${userProfileID}?beta=true`, {
       body,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-08-18'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-08-18'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -96,12 +105,15 @@ export class UserProfiles extends APIResource {
     params: UserProfileListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaUserProfilesPageCursor, BetaUserProfile> {
-    const { betas, ...query } = params ?? {};
+    const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList('/v1/user_profiles?beta=true', PageCursor<BetaUserProfile>, {
       query,
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-08-18'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-08-18'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -123,11 +135,14 @@ export class UserProfiles extends APIResource {
     params: UserProfileCreateEnrollmentURLParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<BetaUserProfileEnrollmentURL> {
-    const { betas } = params ?? {};
+    const { betas, workspace_id } = params ?? {};
     return this._client.post(path`/v1/user_profiles/${userProfileID}/enrollment_url?beta=true`, {
       ...options,
       headers: buildHeaders([
-        { 'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-08-18'].toString() },
+        {
+          'anthropic-beta': [...(betas ?? []), 'user-profiles-2026-08-18'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
         options?.headers,
       ]),
     });
@@ -378,6 +393,16 @@ export interface UserProfileCreateParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface UserProfileRetrieveParams {
@@ -385,6 +410,16 @@ export interface UserProfileRetrieveParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface UserProfileUpdateParams {
@@ -436,6 +471,16 @@ export interface UserProfileUpdateParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface UserProfileListParams extends PageCursorParams {
@@ -453,6 +498,16 @@ export interface UserProfileListParams extends PageCursorParams {
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Header param: Optional header to select the Workspace for this request. The
+   * value is a Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export interface UserProfileCreateEnrollmentURLParams {
@@ -460,6 +515,16 @@ export interface UserProfileCreateEnrollmentURLParams {
    * Optional header to specify the beta version(s) you want to use.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
+
+  /**
+   * Optional header to select the Workspace for this request. The value is a
+   * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
+   *
+   * Only needed for credentials that can act on more than one Workspace. A
+   * credential that belongs to a specific Workspace may omit it; if sent, it must
+   * match that Workspace.
+   */
+  workspace_id?: string;
 }
 
 export declare namespace UserProfiles {

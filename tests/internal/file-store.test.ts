@@ -135,14 +135,15 @@ describe('FileStore', () => {
 
   test('openFileStore refuses a platform without O_NOFOLLOW', async () => {
     try {
-      await jest.isolateModulesAsync(async () => {
-        const real = jest.requireActual('node:fs');
-        jest.doMock('node:fs', () => ({ ...real, constants: { ...real.constants, O_NOFOLLOW: 0 } }));
-        const { openFileStore: open } = require('../../src/internal/file-store');
-        await expect(open(path.join(tmp, 'gated'))).rejects.toThrow(/O_NOFOLLOW/);
-      });
+      vi.resetModules();
+      const real = await vi.importActual<typeof import('node:fs')>('node:fs');
+      const mocked = { ...real, constants: { ...real.constants, O_NOFOLLOW: 0 } };
+      vi.doMock('node:fs', () => ({ ...mocked, default: mocked }));
+      const { openFileStore: open } = await import('../../src/internal/file-store');
+      await expect(open(path.join(tmp, 'gated'))).rejects.toThrow(/O_NOFOLLOW/);
     } finally {
-      jest.dontMock('node:fs');
+      vi.doUnmock('node:fs');
+      vi.resetModules();
     }
   });
 
@@ -253,7 +254,7 @@ describe('FileStore', () => {
   posixOnly('hashFile hashes one file and shares the cache', async () => {
     const hashed: string[] = [];
     const realHash = _internals.hashFile;
-    const spy = jest.spyOn(_internals, 'hashFile').mockImplementation((full) => {
+    const spy = vi.spyOn(_internals, 'hashFile').mockImplementation((full) => {
       hashed.push(path.basename(full));
       return realHash(full);
     });
@@ -490,7 +491,7 @@ describe('FileStore', () => {
     // re-hashed, because userspace cannot restore ctime.
     const hashed: string[] = [];
     const realHash = _internals.hashFile;
-    const spy = jest.spyOn(_internals, 'hashFile').mockImplementation((full) => {
+    const spy = vi.spyOn(_internals, 'hashFile').mockImplementation((full) => {
       hashed.push(path.basename(full));
       return realHash(full);
     });
@@ -535,7 +536,7 @@ describe('FileStore', () => {
     // by freezing the walk clock at the file's own stamp time.
     const hashed: string[] = [];
     const realHash = _internals.hashFile;
-    const spy = jest.spyOn(_internals, 'hashFile').mockImplementation((full) => {
+    const spy = vi.spyOn(_internals, 'hashFile').mockImplementation((full) => {
       hashed.push(path.basename(full));
       return realHash(full);
     });

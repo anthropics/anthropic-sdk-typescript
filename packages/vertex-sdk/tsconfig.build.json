@@ -5,8 +5,8 @@
   "compilerOptions": {
     "rootDir": "./dist/src",
     "paths": {
-      "@anthropic-ai/vertex-sdk/*": ["src/*"],
-      "@anthropic-ai/vertex-sdk": ["src/index.ts"]
+      "@anthropic-ai/vertex-sdk/*": ["./src/*"],
+      "@anthropic-ai/vertex-sdk": ["./src/index.ts"]
     },
     "noEmit": false,
     "declaration": true,

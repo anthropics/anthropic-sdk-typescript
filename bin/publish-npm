@@ -7,6 +7,13 @@ if [[ ${NPM_TOKEN:-} ]]; then
 elif [[ ! ${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-} ]]; then
   echo "ERROR: NPM_TOKEN must be set if not running in a Github Action with id-token permission"
   exit 1
+else
+  NPM_VERSION="$(npm --version 2>/dev/null | tail -n 1)"
+  # sort -V -C exits 0 when its input is already in version order, that is, when npm is 11.5.1 or newer
+  if ! { echo 11.5.1; echo "$NPM_VERSION"; } | sort -V -C; then
+    echo "ERROR: npm trusted publishing needs npm 11.5.1 or newer, but this is npm ${NPM_VERSION:-unknown}. Run the release on Node 24.5 or newer."
+    exit 1
+  fi
 fi
 
 pnpm build
@@ -62,8 +69,5 @@ else
   TAG="latest"
 fi
 
-# Install OIDC compatible npm version
-npm install --prefix ../oidc/ npm@11.6.2
-
 # Publish with the appropriate tag
-pnpm publish --npm-path "$(cd ../ && pwd)/oidc/node_modules/.bin/npm" --no-git-checks --tag "$TAG"
+pnpm publish --no-git-checks --tag "$TAG"

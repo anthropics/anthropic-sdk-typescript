@@ -1,4 +1,4 @@
-#!/usr/bin/env -S npm run tsn -T
+#!/usr/bin/env node
 
 // Same as managed-agents-streaming-deltas.ts but driving
 // `accumulateManagedAgentsEvent` directly instead of the `SessionEventStream`

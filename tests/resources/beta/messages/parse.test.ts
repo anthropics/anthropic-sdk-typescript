@@ -4,10 +4,10 @@ import { Messages } from '../../../../src/resources/beta/messages/messages';
 import { AnthropicError } from '../../../../src/error';
 
 // Mock the APIResource base class methods
-const mockPost = jest.fn();
+const mockPost = vi.fn();
 const mockClient = {
   post: mockPost,
-  calculateNonstreamingTimeout: jest.fn().mockReturnValue(600000),
+  calculateNonstreamingTimeout: vi.fn().mockReturnValue(600000),
   _options: {
     timeout: null,
   },
@@ -18,7 +18,7 @@ const messages = new Messages(mockClient);
 
 describe('Messages.parse()', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('parses structured output correctly', async () => {
@@ -145,7 +145,7 @@ describe('Messages.parse()', () => {
           format: betaZodOutputFormat(schema),
         },
       } as any);
-      fail('Expected an error to be thrown');
+      throw new Error('Expected an error to be thrown');
     } catch (error) {
       expect(error).toBeInstanceOf(AnthropicError);
       expect((error as AnthropicError).message).toContain('output_format');

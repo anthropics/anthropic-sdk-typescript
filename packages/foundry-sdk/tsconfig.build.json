@@ -5,8 +5,8 @@
   "compilerOptions": {
     "rootDir": "./dist/src",
     "paths": {
-      "@anthropic-ai/foundry-sdk/*": ["src/*"],
-      "@anthropic-ai/foundry-sdk": ["src/index.ts"]
+      "@anthropic-ai/foundry-sdk/*": ["./src/*"],
+      "@anthropic-ai/foundry-sdk": ["./src/index.ts"]
     },
     "noEmit": false,
     "declaration": true,

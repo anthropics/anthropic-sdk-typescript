@@ -268,9 +268,6 @@ export interface BetaManagedAgentsMemoryStoreResource {
   name?: string | null;
 }
 
-/**
- * A memory store attached to an agent session.
- */
 export type BetaManagedAgentsSessionResource =
   | BetaManagedAgentsGitHubRepositoryResource
   | BetaManagedAgentsFileResource

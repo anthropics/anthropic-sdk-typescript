@@ -20,6 +20,12 @@ test('import shapes', () => {
   assert.ok(client.messages instanceof Messages);
 });
 
+test('internal directories are not importable', async () => {
+  for (const subpath of ['internal/headers', 'lib/internal/stub']) {
+    await assert.rejects(import(`@anthropic-ai/sdk/${subpath}`), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' });
+  }
+});
+
 test('messages.create', async () => {
   const message = await client.messages.create(params);
   const block = message.content[0];

@@ -4,21 +4,21 @@ import type { AccessToken, AccessTokenProvider } from '@anthropic-ai/sdk/lib/cre
 let fakeNow = 1700000000;
 
 beforeAll(() => {
-  jest.useFakeTimers({ now: fakeNow * 1000 });
+  vi.useFakeTimers({ now: fakeNow * 1000 });
 });
 
 afterAll(() => {
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 function setFakeNow(seconds: number) {
   fakeNow = seconds;
-  jest.setSystemTime(seconds * 1000);
+  vi.setSystemTime(seconds * 1000);
 }
 
 describe('TokenCache', () => {
   it('fetches on first call when cache is empty', async () => {
-    const provider = jest.fn<Promise<AccessToken>, []>().mockResolvedValue({
+    const provider = vi.fn<() => Promise<AccessToken>>().mockResolvedValue({
       token: 'tok-1',
       expiresAt: fakeNow + 3600,
     });
@@ -29,7 +29,7 @@ describe('TokenCache', () => {
   });
 
   it('returns cached token without calling provider when fresh', async () => {
-    const provider = jest.fn<Promise<AccessToken>, []>().mockResolvedValue({
+    const provider = vi.fn<() => Promise<AccessToken>>().mockResolvedValue({
       token: 'tok-1',
       expiresAt: fakeNow + 3600,
     });
@@ -44,7 +44,7 @@ describe('TokenCache', () => {
   });
 
   it('caches forever when expiresAt is null', async () => {
-    const provider = jest.fn<Promise<AccessToken>, []>().mockResolvedValue({
+    const provider = vi.fn<() => Promise<AccessToken>>().mockResolvedValue({
       token: 'eternal',
       expiresAt: null,
     });
@@ -94,7 +94,7 @@ describe('TokenCache', () => {
       return Promise.reject(new Error('refresh failed'));
     };
 
-    const onError = jest.fn();
+    const onError = vi.fn();
     const cache = new TokenCache(provider, onError);
     await cache.getToken();
 
@@ -233,7 +233,7 @@ describe('TokenCache', () => {
       return Promise.reject(new Error('refresh failed'));
     };
 
-    const onError = jest.fn();
+    const onError = vi.fn();
     const cache = new TokenCache(provider, onError);
     await cache.getToken();
 

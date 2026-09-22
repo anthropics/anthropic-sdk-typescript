@@ -1,0 +1,12 @@
+{
+  "description": "esbuild (split and single-file) and webpack 5 (target webworker) bundles of the SDK, run inside a service worker in headless Chromium via playwright-core",
+  "requires": ["node"],
+  "packageManager": "npm",
+  "minNodeVersion": 20,
+  "steps": [
+    ["npx", "tsc"],
+    ["node", "build.mjs"],
+    ["npx", "webpack"],
+    ["node", "--test", "tests/browser.test.mjs"]
+  ]
+}

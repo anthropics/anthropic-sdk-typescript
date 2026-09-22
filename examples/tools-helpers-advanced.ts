@@ -1,8 +1,8 @@
-#!/usr/bin/env -S npm run tsn -T
+#!/usr/bin/env node
 
 import Anthropic from '@anthropic-ai/sdk';
 import { betaZodTool } from '@anthropic-ai/sdk/helpers/beta/zod';
-import { BetaToolUseBlock } from '@anthropic-ai/sdk/resources/beta';
+import type { BetaToolUseBlock } from '@anthropic-ai/sdk/resources/beta';
 import { z } from 'zod/v4';
 
 const client = new Anthropic();

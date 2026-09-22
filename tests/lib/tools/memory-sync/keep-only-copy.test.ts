@@ -177,7 +177,7 @@ test('a failed re-read does not resurrect a server-deleted memory', async () => 
   server.delete('z.md');
 
   const realHashFile = LocalFileStore.prototype.hashFile;
-  const flakyHashFile = jest.spyOn(LocalFileStore.prototype, 'hashFile').mockImplementation(async function (
+  const flakyHashFile = vi.spyOn(LocalFileStore.prototype, 'hashFile').mockImplementation(async function (
     this: FileStore,
     rel: string,
   ) {

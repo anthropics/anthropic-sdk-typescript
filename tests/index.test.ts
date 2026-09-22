@@ -3,14 +3,14 @@ import { APIConnectionError, APIError } from '@anthropic-ai/sdk/core/error';
 
 import util from 'node:util';
 import Anthropic from '@anthropic-ai/sdk';
-import { APIUserAbortError } from '@anthropic-ai/sdk';
+import { APIUserAbortError, InternalServerError } from '@anthropic-ai/sdk';
 const defaultFetch = fetch;
 
 describe('instantiate client', () => {
   const env = process.env;
 
   beforeEach(() => {
-    jest.resetModules();
+    vi.resetModules();
     process.env = { ...env };
   });
 
@@ -78,12 +78,12 @@ describe('instantiate client', () => {
     };
 
     test('debug logs when log level is debug', async () => {
-      const debugMock = jest.fn();
+      const debugMock = vi.fn();
       const logger = {
         debug: debugMock,
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
       };
 
       const client = new Anthropic({
@@ -96,18 +96,48 @@ describe('instantiate client', () => {
       expect(debugMock).toHaveBeenCalled();
     });
 
+    test('debug logs include redacted request and response details', async () => {
+      const debugMock = vi.fn();
+      const client = new Anthropic({
+        logger: { debug: debugMock, info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+        logLevel: 'debug',
+        apiKey: 'my-anthropic-api-key',
+        fetch: async () =>
+          new Response('{}', {
+            headers: { 'content-type': 'application/json', 'set-cookie': 'session=1' },
+          }),
+      });
+
+      await client.get('/foo');
+
+      const sending = debugMock.mock.calls.find(([message]) => message.endsWith('sending request'));
+      expect(sending?.[1]).toMatchObject({
+        url: new URL('https://api.anthropic.com/foo').toString(),
+        options: { method: 'get', path: '/foo' },
+        headers: expect.objectContaining({ 'x-api-key': '***' }),
+      });
+      expect(sending?.[1].options).not.toHaveProperty('headers');
+      expect(sending?.[1]).not.toHaveProperty('retryOfRequestLogID');
+
+      const started = debugMock.mock.calls.find(([message]) => message.endsWith('response start'));
+      expect(started?.[1]).toMatchObject({
+        status: 200,
+        headers: expect.objectContaining({ 'set-cookie': '***' }),
+      });
+    });
+
     test('default logLevel is warn', async () => {
       const client = new Anthropic({ apiKey: 'my-anthropic-api-key' });
       expect(client.logLevel).toBe('warn');
     });
 
     test('debug logs are skipped when log level is info', async () => {
-      const debugMock = jest.fn();
+      const debugMock = vi.fn();
       const logger = {
         debug: debugMock,
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
       };
 
       const client = new Anthropic({
@@ -121,12 +151,12 @@ describe('instantiate client', () => {
     });
 
     test('debug logs happen with debug env var', async () => {
-      const debugMock = jest.fn();
+      const debugMock = vi.fn();
       const logger = {
         debug: debugMock,
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
       };
 
       process.env['ANTHROPIC_LOG'] = 'debug';
@@ -138,12 +168,12 @@ describe('instantiate client', () => {
     });
 
     test('warn when env var level is invalid', async () => {
-      const warnMock = jest.fn();
+      const warnMock = vi.fn();
       const logger = {
-        debug: jest.fn(),
-        info: jest.fn(),
+        debug: vi.fn(),
+        info: vi.fn(),
         warn: warnMock,
-        error: jest.fn(),
+        error: vi.fn(),
       };
 
       process.env['ANTHROPIC_LOG'] = 'not a log level';
@@ -155,12 +185,12 @@ describe('instantiate client', () => {
     });
 
     test('client log level overrides env var', async () => {
-      const debugMock = jest.fn();
+      const debugMock = vi.fn();
       const logger = {
         debug: debugMock,
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
       };
 
       process.env['ANTHROPIC_LOG'] = 'debug';
@@ -175,12 +205,12 @@ describe('instantiate client', () => {
     });
 
     test('no warning logged for invalid env var level + valid client level', async () => {
-      const warnMock = jest.fn();
+      const warnMock = vi.fn();
       const logger = {
-        debug: jest.fn(),
-        info: jest.fn(),
+        debug: vi.fn(),
+        info: vi.fn(),
         warn: warnMock,
-        error: jest.fn(),
+        error: vi.fn(),
       };
 
       process.env['ANTHROPIC_LOG'] = 'not a log level';
@@ -194,9 +224,9 @@ describe('instantiate client', () => {
     });
 
     test('stream parse errors are logged through the custom logger', async () => {
-      const errorMock = jest.fn();
+      const errorMock = vi.fn();
       const client = new Anthropic({
-        logger: { debug: jest.fn(), info: jest.fn(), warn: jest.fn(), error: errorMock },
+        logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: errorMock },
         apiKey: 'my-anthropic-api-key',
         fetch: async () =>
           new Response('event: message_start\ndata: {malformed\n\n', {
@@ -295,7 +325,7 @@ describe('instantiate client', () => {
     const controller = new AbortController();
     setTimeout(() => controller.abort(), 200);
 
-    const spy = jest.spyOn(client, 'request');
+    const spy = vi.spyOn(client, 'request');
 
     await expect(client.get('/foo', { signal: controller.signal })).rejects.toThrowError(APIUserAbortError);
     expect(spy).toHaveBeenCalledTimes(1);
@@ -664,6 +694,34 @@ describe('retries', () => {
     );
   });
 
+  test.each([
+    ['a ReadableStream', () => new Response('hello').body],
+    [
+      'an async iterator',
+      () =>
+        (async function* () {
+          yield new TextEncoder().encode('hello');
+        })(),
+    ],
+  ])('%s body is sent once, so a retryable error is thrown rather than retried', async (_, makeBody) => {
+    let count = 0;
+    const testFetch = async (): Promise<Response> => {
+      count++;
+      return new Response(JSON.stringify({ message: 'unavailable' }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    };
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      fetch: testFetch,
+      maxRetries: 3,
+    });
+
+    await expect(client.post('/foo', { body: makeBody() })).rejects.toThrow(InternalServerError);
+    expect(count).toEqual(1);
+  });
+
   test('retry on timeout', async () => {
     let count = 0;
     const testFetch = async (
@@ -874,6 +932,25 @@ describe('retries', () => {
       expect(attempts[1]! - attempts[0]!).toBeGreaterThanOrEqual(0.5 * 1000 * 0.75 - 20);
     },
   );
+
+  test('aborting the request interrupts the retry backoff', async () => {
+    const controller = new AbortController();
+    let count = 0;
+    const testFetch = async (): Promise<Response> => {
+      count++;
+      // Abort while the client is waiting out the 60 s the server asked for.
+      setTimeout(() => controller.abort(), 50);
+      return new Response(undefined, { status: 429, headers: { 'Retry-After': '60' } });
+    };
+    const client = new Anthropic({ apiKey: 'my-anthropic-api-key', fetch: testFetch });
+
+    const started = Date.now();
+    await expect(client.request({ path: '/foo', method: 'get', signal: controller.signal })).rejects.toThrow(
+      APIUserAbortError,
+    );
+    expect(Date.now() - started).toBeLessThan(5000);
+    expect(count).toEqual(1);
+  });
 
   test('retry on 429 with retry-after-ms', async () => {
     let count = 0;

@@ -115,6 +115,7 @@ import {
 import * as ModelsAPI from './models';
 import {
   BetaCapabilitySupport,
+  BetaCompactionCapability,
   BetaContextManagementCapability,
   BetaEffortCapability,
   BetaModelCapabilities,
@@ -407,6 +408,7 @@ import {
   BetaCompact20260112Edit,
   BetaCompactionBlock,
   BetaCompactionBlockParam,
+  BetaCompactionConfig,
   BetaCompactionContentBlockDelta,
   BetaCompactionIterationUsage,
   BetaComputerCursorPositionConfig,
@@ -466,6 +468,7 @@ import {
   BetaJSONOutputFormat,
   BetaInputTokensClearAtLeast,
   BetaInputTokensTrigger,
+  BetaInputTransformation,
   BetaMCPToolResultBlock,
   BetaMCPToolUseBlock,
   BetaMCPToolUseBlockParam,
@@ -513,6 +516,7 @@ import {
   BetaSignatureDelta,
   BetaSkillParams,
   BetaStopReason,
+  BetaSummarizeCompaction,
   BetaSystemMessageOutputConfig,
   BetaTextBlock,
   BetaTextBlockParam,
@@ -538,6 +542,7 @@ import {
   BetaThinkingConfigParam,
   BetaThinkingDelta,
   BetaThinkingDroppedInputTransformation,
+  BetaThinkingMismatchAllowedInputTransformation,
   BetaThinkingPrefixMismatchBehavior,
   BetaThinkingTurns,
   BetaTokenTaskBudget,
@@ -582,6 +587,12 @@ import {
   BetaWebFetchToolResultErrorBlock,
   BetaWebFetchToolResultErrorBlockParam,
   BetaWebFetchToolResultErrorCode,
+  BetaWebFetchURLSourceAll,
+  BetaWebFetchURLSourceExcept,
+  BetaWebFetchURLSourceNone,
+  BetaWebFetchURLSourceOnly,
+  BetaWebFetchURLSourceToolReference,
+  BetaWebFetchURLSources,
   BetaWebSearchResultBlock,
   BetaWebSearchResultBlockParam,
   BetaWebSearchTool20250305,
@@ -753,7 +764,8 @@ export type AnthropicBeta =
   | 'ce-user-management-2026-07-13'
   | 'mid-conversation-output-config-2026-07-01'
   | 'thinking-binding-controls-2026-08-01'
-  | 'mid-conversation-system-clear-at-2026-08-21';
+  | 'mid-conversation-system-clear-at-2026-08-21'
+  | 'compact-2026-09-04';
 
 export interface BetaAPIError {
   message: string;
@@ -887,6 +899,7 @@ export declare namespace Beta {
   export {
     Models as Models,
     type BetaCapabilitySupport as BetaCapabilitySupport,
+    type BetaCompactionCapability as BetaCompactionCapability,
     type BetaContextManagementCapability as BetaContextManagementCapability,
     type BetaEffortCapability as BetaEffortCapability,
     type BetaModelCapabilities as BetaModelCapabilities,
@@ -1004,6 +1017,7 @@ export declare namespace Beta {
     type BetaCompact20260112Edit as BetaCompact20260112Edit,
     type BetaCompactionBlock as BetaCompactionBlock,
     type BetaCompactionBlockParam as BetaCompactionBlockParam,
+    type BetaCompactionConfig as BetaCompactionConfig,
     type BetaCompactionContentBlockDelta as BetaCompactionContentBlockDelta,
     type BetaCompactionIterationUsage as BetaCompactionIterationUsage,
     type BetaComputerCursorPositionConfig as BetaComputerCursorPositionConfig,
@@ -1063,6 +1077,7 @@ export declare namespace Beta {
     type BetaJSONOutputFormat as BetaJSONOutputFormat,
     type BetaInputTokensClearAtLeast as BetaInputTokensClearAtLeast,
     type BetaInputTokensTrigger as BetaInputTokensTrigger,
+    type BetaInputTransformation as BetaInputTransformation,
     type BetaMCPToolConfig as BetaMCPToolConfig,
     type BetaMCPToolDefaultConfig as BetaMCPToolDefaultConfig,
     type BetaMCPToolResultBlock as BetaMCPToolResultBlock,
@@ -1112,6 +1127,7 @@ export declare namespace Beta {
     type BetaSignatureDelta as BetaSignatureDelta,
     type BetaSkillParams as BetaSkillParams,
     type BetaStopReason as BetaStopReason,
+    type BetaSummarizeCompaction as BetaSummarizeCompaction,
     type BetaSystemMessageOutputConfig as BetaSystemMessageOutputConfig,
     type BetaTextBlock as BetaTextBlock,
     type BetaTextBlockParam as BetaTextBlockParam,
@@ -1137,6 +1153,7 @@ export declare namespace Beta {
     type BetaThinkingConfigParam as BetaThinkingConfigParam,
     type BetaThinkingDelta as BetaThinkingDelta,
     type BetaThinkingDroppedInputTransformation as BetaThinkingDroppedInputTransformation,
+    type BetaThinkingMismatchAllowedInputTransformation as BetaThinkingMismatchAllowedInputTransformation,
     type BetaThinkingPrefixMismatchBehavior as BetaThinkingPrefixMismatchBehavior,
     type BetaThinkingTurns as BetaThinkingTurns,
     type BetaTokenTaskBudget as BetaTokenTaskBudget,
@@ -1181,6 +1198,12 @@ export declare namespace Beta {
     type BetaWebFetchToolResultErrorBlock as BetaWebFetchToolResultErrorBlock,
     type BetaWebFetchToolResultErrorBlockParam as BetaWebFetchToolResultErrorBlockParam,
     type BetaWebFetchToolResultErrorCode as BetaWebFetchToolResultErrorCode,
+    type BetaWebFetchURLSourceAll as BetaWebFetchURLSourceAll,
+    type BetaWebFetchURLSourceExcept as BetaWebFetchURLSourceExcept,
+    type BetaWebFetchURLSourceNone as BetaWebFetchURLSourceNone,
+    type BetaWebFetchURLSourceOnly as BetaWebFetchURLSourceOnly,
+    type BetaWebFetchURLSourceToolReference as BetaWebFetchURLSourceToolReference,
+    type BetaWebFetchURLSources as BetaWebFetchURLSources,
     type BetaWebSearchResultBlock as BetaWebSearchResultBlock,
     type BetaWebSearchResultBlockParam as BetaWebSearchResultBlockParam,
     type BetaWebSearchTool20250305 as BetaWebSearchTool20250305,

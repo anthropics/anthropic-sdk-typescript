@@ -3,6 +3,7 @@ import { ToolError } from './ToolError';
 import { Anthropic } from '../..';
 import { AnthropicError } from '../../core/error';
 import {
+  BetaCompactionConfig,
   BetaContentBlockParam,
   BetaMessage,
   BetaMessageParam,
@@ -20,12 +21,14 @@ import { RequestOptions } from '../../internal/request-options';
 import { buildHeaders } from '../../internal/headers';
 import { promiseWithResolvers } from '../../internal/utils/promise';
 import { checkNever } from '../../internal/utils/values';
+import { loggerFor } from '../../internal/utils/log';
 import { CompactionControl, DEFAULT_SUMMARY_PROMPT, DEFAULT_TOKEN_THRESHOLD } from './CompactionControl';
 import {
   collectStainlessHelpers,
   helperHeader,
   STAINLESS_HELPER_HEADER,
 } from '../../internal/stainless-helper-header';
+import type { Simplify } from '../internal/types';
 
 /**
  * A ToolRunner handles the automatic conversation loop between the assistant and tools.
@@ -43,6 +46,8 @@ export class BetaToolRunner<Stream extends boolean> {
   #options: BetaToolRunnerRequestOptions;
   /** Promise for the last message received from the assistant */
   #message?: Promise<BetaMessage> | undefined;
+  /** The stream of the request in progress, when streaming */
+  #stream?: BetaMessageStream | undefined;
   /** Cached tool response to avoid redundant executions */
   #toolResponse?: Promise<BetaMessageParam | null> | undefined;
   /** Promise resolvers for waiting on completion */
@@ -53,12 +58,17 @@ export class BetaToolRunner<Stream extends boolean> {
   };
   /** Number of iterations (API requests) made so far */
   #iterationCount = 0;
+  /** A compaction scheduled with `compactBeforeNextTurn()`, in flight until its response has been handled */
+  #compaction: Compaction = { status: 'idle' };
+  /** Whether the last turn was paused; a scheduled compaction waits for it to be resumed */
+  #turnPaused = false;
 
   constructor(
     private client: Anthropic,
     params: BetaToolRunnerParams,
     options?: BetaToolRunnerRequestOptions,
   ) {
+    rejectCompactionParam(params);
     this.#state = {
       params: {
         // You can't clone the entire params since there are functions as handlers.
@@ -190,13 +200,18 @@ export class BetaToolRunner<Stream extends boolean> {
 
     try {
       while (true) {
-        let stream;
         try {
           if (
             this.#state.params.max_iterations &&
             this.#iterationCount >= this.#state.params.max_iterations
           ) {
             break;
+          }
+
+          // The API can't compact a conversation that ends mid-turn, so a paused turn is resumed first.
+          if (this.#compaction.status === 'scheduled' && !this.#turnPaused) {
+            yield* this.#compact(this.#compaction.config);
+            continue;
           }
 
           this.#mutated = false;
@@ -206,23 +221,14 @@ export class BetaToolRunner<Stream extends boolean> {
 
           const { max_iterations, compactionControl, ...params } = this.#state.params;
 
-          if (params.stream) {
-            stream = this.client.beta.messages.stream({ ...params }, this.#options);
-            this.#message = stream.finalMessage();
-            // Make sure that this promise doesn't throw before we get the option to do something about it.
-            // Error will be caught when we call await this.#message ultimately
-            this.#message.catch(() => {});
-            yield stream as any;
-          } else {
-            this.#message = this.client.beta.messages.create({ ...params, stream: false }, this.#options);
-            yield this.#message as any;
-          }
+          yield* this.#send(params);
 
           const isCompacted = await this.#checkAndCompact();
           if (!isCompacted) {
             if (!this.#mutated) {
-              const message = await this.#message;
+              const message = await this.#message!;
               const nextStep = determineNextStepFromStopReason(message.stop_reason);
+              this.#turnPaused = nextStep === 'resume';
               this.#state.params.messages.push({ role: message.role, content: message.content });
 
               // Container-bound server tools reject a follow-up request that omits the container the
@@ -237,24 +243,28 @@ export class BetaToolRunner<Stream extends boolean> {
               }
 
               if (nextStep === 'stop') {
+                yield* this.#compactAfterFinalTurn();
                 break;
               }
               if (nextStep === 'resume') {
                 continue;
               }
+            } else {
+              // The caller has taken over the history, so the last response no longer says how it ends.
+              this.#turnPaused = false;
             }
 
             const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
             if (toolMessage) {
               this.#state.params.messages.push(toolMessage);
             } else if (!this.#mutated) {
+              yield* this.#compactAfterFinalTurn();
               break;
             }
           }
         } finally {
-          if (stream) {
-            stream.abort();
-          }
+          this.#stream?.abort();
+          this.#stream = undefined;
         }
       }
 
@@ -271,6 +281,69 @@ export class BetaToolRunner<Stream extends boolean> {
       this.#completion = promiseWithResolvers();
       throw error;
     }
+  }
+
+  /**
+   * Sends one request and yields its message, or its stream when streaming. `#message` and `#stream` are set
+   * before the yield, so they are there while the caller handles the item; the loop aborts the stream at the
+   * end of the iteration.
+   */
+  async *#send(params: MessageCreateParams): AsyncGenerator<BetaToolRunnerItem<Stream>, void, undefined> {
+    if (params.stream) {
+      this.#stream = this.client.beta.messages.stream({ ...params }, this.#options);
+      this.#message = this.#stream.finalMessage();
+      // Make sure that this promise doesn't throw before we get the option to do something about it.
+      // Error will be caught when we call await this.#message ultimately
+      this.#message.catch(() => {});
+      yield this.#stream as any;
+    } else {
+      this.#message = this.client.beta.messages.create({ ...params, stream: false }, this.#options);
+      yield this.#message as any;
+    }
+  }
+
+  async *#compact(
+    compaction: BetaCompactionConfig,
+  ): AsyncGenerator<BetaToolRunnerItem<Stream>, void, undefined> {
+    rejectCompactionEdit(this.#state.params);
+    // The API refuses `compaction` alongside `context_management`; later requests keep it.
+    const { max_iterations, compactionControl, context_management, ...params } = this.#state.params;
+    this.#compaction = { status: 'in_flight' };
+    this.#toolResponse = undefined;
+    const lastMessage = this.#message;
+
+    try {
+      yield* this.#send({ ...params, compaction });
+      const message = await this.#message!;
+      if (message.content.some((block) => block.type === 'compaction' && block.content)) {
+        // The response has to be sent back as it came, first, replacing the messages it summarizes.
+        this.#state.params.messages = [{ role: message.role, content: message.content }];
+      } else {
+        loggerFor(this.client).warn('Compaction produced no summary; keeping the conversation as it is.');
+        // If the run ends here, `done()` resolves to the last real message rather than this response.
+        this.#message = lastMessage;
+      }
+    } finally {
+      this.#compaction = { status: 'idle' };
+    }
+  }
+
+  async *#compactAfterFinalTurn(): AsyncGenerator<BetaToolRunnerItem<Stream>, void, undefined> {
+    if (this.#compaction.status !== 'scheduled') {
+      return;
+    }
+    const lastContent = this.#state.params.messages.at(-1)?.content;
+    if (Array.isArray(lastContent) && lastContent.some((block) => block.type === 'tool_use')) {
+      // A turn that was cut short can end with tool calls that are never run, and the API can't
+      // compact a conversation whose last turn has an unanswered tool call.
+      loggerFor(this.client).warn(
+        'The pending compaction was skipped because the last turn ended with tool calls that were not run. ' +
+          'Call `compactBeforeNextTurn()` again if you continue the conversation.',
+      );
+      this.#compaction = { status: 'idle' };
+      return;
+    }
+    yield* this.#compact(this.#compaction.config);
   }
 
   /**
@@ -297,11 +370,19 @@ export class BetaToolRunner<Stream extends boolean> {
   setMessagesParams(
     paramsOrMutator: BetaToolRunnerParams | ((prevParams: BetaToolRunnerParams) => BetaToolRunnerParams),
   ) {
-    if (typeof paramsOrMutator === 'function') {
-      this.#state.params = paramsOrMutator(this.#state.params);
-    } else {
-      this.#state.params = paramsOrMutator;
+    const params =
+      typeof paramsOrMutator === 'function' ? paramsOrMutator(this.#state.params) : paramsOrMutator;
+    rejectCompactionParam(params);
+    if (this.#compaction.status !== 'idle') {
+      rejectCompactionEdit(params);
     }
+    if (this.#compaction.status === 'in_flight' && params.messages !== this.#state.params.messages) {
+      throw new AnthropicError(
+        "Message params can't be changed while the conversation is being compacted, because the compaction " +
+          'response is about to replace them. Change them after this iteration instead.',
+      );
+    }
+    this.#state.params = params;
     this.#mutated = true;
     // Invalidate cached tool response since parameters changed
     this.#toolResponse = undefined;
@@ -459,6 +540,28 @@ export class BetaToolRunner<Stream extends boolean> {
   }
 
   /**
+   * Schedule a compaction of the conversation. Once the current turn has finished, including any tool
+   * calls, the runner requests a summary and replaces the message history with the compaction response,
+   * which is yielded like any other message. Requires the `compact-2026-09-04` beta.
+   *
+   * @param compaction - The config to send, as `messages.create()` takes it. Defaults to `{ type: 'summarize' }`
+   *
+   * @example
+   * for await (const message of runner) {
+   *   if (message.usage.input_tokens > 100_000) {
+   *     runner.compactBeforeNextTurn();
+   *   }
+   * }
+   */
+  compactBeforeNextTurn(compaction?: BetaCompactionConfig): void {
+    if (this.#compaction.status === 'in_flight') {
+      return;
+    }
+    rejectCompactionEdit(this.#state.params);
+    this.#compaction = { status: 'scheduled', config: compaction ?? { type: 'summarize' } };
+  }
+
+  /**
    * Makes the ToolRunner directly awaitable, equivalent to calling .runUntilDone()
    * This allows using `await runner` instead of `await runner.runUntilDone()`
    */
@@ -467,6 +570,26 @@ export class BetaToolRunner<Stream extends boolean> {
     onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
   ): Promise<TResult1 | TResult2> {
     return this.runUntilDone().then(onfulfilled, onrejected);
+  }
+}
+
+function rejectCompactionParam(params: BetaToolRunnerParams): void {
+  if ('compaction' in params && params.compaction != null) {
+    throw new AnthropicError(
+      '`compaction` cannot be set on a tool runner: every request in the loop would compact again. ' +
+        'Call `runner.compactBeforeNextTurn()` when the conversation should be compacted instead.',
+    );
+  }
+}
+
+function rejectCompactionEdit(params: BetaToolRunnerParams): void {
+  // The compaction request is sent without `context_management`, so the API can't refuse the pair there:
+  // it would run and bill the compaction, then refuse the next request.
+  if (params.context_management?.edits?.some((edit) => edit.type.startsWith('compact_'))) {
+    throw new AnthropicError(
+      "`compactBeforeNextTurn()` can't be used while `context_management` has a compaction edit, " +
+        "because the API doesn't accept a compaction block together with one. Remove the edit first.",
+    );
   }
 }
 
@@ -644,14 +767,14 @@ function determineNextStepFromStopReason(stopReason: BetaStopReason | null): Nex
   }
 }
 
-// vendored from typefest just to make things look a bit nicer on hover
-type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {};
-
 /**
  * Parameters for creating a ToolRunner, extending MessageCreateParams with runnable tools.
+ *
+ * `compaction` is left out because every request in the loop would compact again; call
+ * `BetaToolRunner.compactBeforeNextTurn()` instead.
  */
 export type BetaToolRunnerParams = Simplify<
-  Omit<MessageCreateParams, 'tools'> & {
+  Omit<MessageCreateParams, 'tools' | 'compaction'> & {
     tools: (BetaToolUnion | BetaRunnableTool<any>)[];
     /**
      * Maximum number of iterations (API requests) to make in the tool execution loop.
@@ -669,3 +792,13 @@ export type BetaToolRunnerParams = Simplify<
 >;
 
 export type BetaToolRunnerRequestOptions = Pick<RequestOptions, 'headers' | 'signal' | 'fallbackState'>;
+
+type Compaction =
+  | { status: 'idle' }
+  | { status: 'scheduled'; config: BetaCompactionConfig }
+  | { status: 'in_flight' };
+
+type BetaToolRunnerItem<Stream extends boolean> =
+  Stream extends true ? BetaMessageStream
+  : Stream extends false ? BetaMessage
+  : BetaMessage | BetaMessageStream;

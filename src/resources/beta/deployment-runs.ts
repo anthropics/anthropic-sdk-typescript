@@ -311,6 +311,10 @@ export type BetaManagedAgentsTriggerContext =
 
 /**
  * What triggered a deployment run.
+ *
+ * - `schedule` - The run was fired by the deployment's cron schedule.
+ * - `manual` - The run was started manually by creating a session directly against
+ *   the deployment.
  */
 export type BetaManagedAgentsTriggerType = 'schedule' | 'manual';
 

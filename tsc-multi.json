@@ -3,12 +3,14 @@
     {
       "extname": ".js",
       "module": "commonjs",
-      "shareHelpers": "internal/tslib.js"
+      "shareHelpers": "internal/tslib.js",
+      "pureClassAssignment": true
     },
     {
       "extname": ".mjs",
       "module": "esnext",
-      "shareHelpers": "internal/tslib.mjs"
+      "shareHelpers": "internal/tslib.mjs",
+      "pureClassAssignment": true
     }
   ],
   "projects": ["tsconfig.build.json"]

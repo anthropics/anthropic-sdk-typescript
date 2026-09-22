@@ -28,12 +28,8 @@ export function transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
 function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
   const strictSchema: JSONSchema = {};
 
-  const ref = pop(jsonSchema, '$ref');
-  if (ref !== undefined) {
-    strictSchema['$ref'] = ref;
-    return strictSchema;
-  }
-
+  // `$defs` must be handled before the `$ref` early-return so that a root-level
+  // `$ref` with sibling `$defs` keeps its (transformed) definitions.
   const defs = pop(jsonSchema, '$defs');
   if (defs !== undefined) {
     const strictDefs: Record<string, any> = {};
@@ -41,6 +37,12 @@ function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
     for (const [name, defSchema] of Object.entries(defs)) {
       strictDefs[name] = _transformJSONSchema(defSchema as JSONSchema);
     }
+  }
+
+  const ref = pop(jsonSchema, '$ref');
+  if (ref !== undefined) {
+    strictSchema['$ref'] = ref;
+    return strictSchema;
   }
 
   const type = pop(jsonSchema, 'type');

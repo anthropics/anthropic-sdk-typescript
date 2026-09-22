@@ -13,10 +13,10 @@ function unavailable<T extends object>(module: string): T {
   });
 }
 
-export const child_process: typeof node.child_process = unavailable('child_process');
-export const crypto: typeof node.crypto = unavailable('crypto');
-export const fs: typeof node.fs = unavailable('fs');
-export const os: typeof node.os = unavailable('os');
-export const path: typeof node.path = unavailable('path');
-export const stream: typeof node.stream = unavailable('stream');
-export const util: typeof node.util = unavailable('util');
+export const child_process: typeof node.child_process = /* @__PURE__ */ unavailable('child_process');
+export const crypto: typeof node.crypto = /* @__PURE__ */ unavailable('crypto');
+export const fs: typeof node.fs = /* @__PURE__ */ unavailable('fs');
+export const os: typeof node.os = /* @__PURE__ */ unavailable('os');
+export const path: typeof node.path = /* @__PURE__ */ unavailable('path');
+export const stream: typeof node.stream = /* @__PURE__ */ unavailable('stream');
+export const util: typeof node.util = /* @__PURE__ */ unavailable('util');

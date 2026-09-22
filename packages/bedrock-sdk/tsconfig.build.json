@@ -5,8 +5,8 @@
   "compilerOptions": {
     "rootDir": "./dist/src",
     "paths": {
-      "@anthropic-ai/bedrock-sdk/*": ["src/*"],
-      "@anthropic-ai/bedrock-sdk": ["src/index.ts"]
+      "@anthropic-ai/bedrock-sdk/*": ["./src/*"],
+      "@anthropic-ai/bedrock-sdk": ["./src/index.ts"]
     },
     "noEmit": false,
     "declaration": true,

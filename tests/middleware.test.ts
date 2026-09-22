@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
@@ -539,8 +540,7 @@ describe('middleware', () => {
   });
 
   test('timeout applies to the underlying fetch, not middleware', async () => {
-    // jest's sandbox realm breaks `DOMException instanceof Error`, so simulate
-    // fetch's abort rejection with a plain Error carrying the AbortError name
+    // the SDK only inspects `name`, so a plain Error stands in for fetch's abort `DOMException`
     const abortError = () => {
       const err = new Error('This operation was aborted');
       err.name = 'AbortError';
@@ -1474,11 +1474,11 @@ describe('middleware', () => {
     });
 
     test("debug-logs 'sending request' once per inner fetch, with the prepared headers", async () => {
-      const debugMock = jest.fn();
+      const debugMock = vi.fn();
       const client = new SigningClient({
         apiKey: 'my-anthropic-api-key',
         logLevel: 'debug',
-        logger: { debug: debugMock, info: jest.fn(), warn: jest.fn(), error: jest.fn() },
+        logger: { debug: debugMock, info: vi.fn(), warn: vi.fn(), error: vi.fn() },
         fetch: async () => jsonResponse(),
         middleware: [
           async (request, next) => {
@@ -1553,8 +1553,8 @@ describe('wrapFetchWithMiddleware', () => {
   });
 
   test('without a client, ctx.logger falls back to console at the default level', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const originalEnv = process.env['ANTHROPIC_LOG'];
     try {
       const middleware: Middleware = async (request, next, ctx) => {
@@ -1822,9 +1822,9 @@ describe('backend middleware', () => {
 });
 
 describe('betaRefusalFallbackMiddleware', () => {
-  let warn: jest.SpyInstance;
+  let warn: MockInstance;
   beforeEach(() => {
-    warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
   afterEach(() => warn.mockRestore());
 
@@ -1944,7 +1944,7 @@ describe('betaRefusalFallbackMiddleware', () => {
   test('warns once when falling back without a fallbackState', async () => {
     // an injected logger rather than the console.warn spy: the SDK caches
     // bound console methods across tests, so per-test console spies go stale
-    const logger = { error: jest.fn(), warn: jest.fn(), info: jest.fn(), debug: jest.fn() };
+    const logger = { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() };
     const responses = [
       refusal('primary-model'),
       message('fallback-model'),
@@ -1965,7 +1965,7 @@ describe('betaRefusalFallbackMiddleware', () => {
   });
 
   test('the missing-fallbackState warning respects the client logLevel', async () => {
-    const logger = { error: jest.fn(), warn: jest.fn(), info: jest.fn(), debug: jest.fn() };
+    const logger = { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() };
     const responses = [refusal('primary-model'), message('fallback-model')];
     const client = new Anthropic({
       apiKey: 'my-anthropic-api-key',
@@ -2286,7 +2286,7 @@ describe('betaRefusalFallbackMiddleware', () => {
       );
 
       await client.beta.messages.create(params);
-      expect(betaHeaders).toEqual(['fallback-credit-2027-01-01, interleaved-thinking-2025-05-14']);
+      expect(betaHeaders).toEqual(['fallback-credit-2027-01-01,interleaved-thinking-2025-05-14']);
     });
 
     test('betas: [] sends no beta header', async () => {
@@ -2316,7 +2316,7 @@ describe('betaRefusalFallbackMiddleware', () => {
       );
 
       await client.beta.messages.create({ ...params, betas: ['interleaved-thinking-2025-05-14'] });
-      expect(betaHeaders).toEqual(['interleaved-thinking-2025-05-14, fallback-credit-2026-07-01']);
+      expect(betaHeaders).toEqual(['interleaved-thinking-2025-05-14,fallback-credit-2026-07-01']);
     });
   });
 });

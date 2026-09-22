@@ -29,14 +29,16 @@ All files in the `examples/` directory are not modified by the generator and can
 ```ts
 // add an example to examples/<your-example>.ts
 
-#!/usr/bin/env -S npm run tsn -T
+#!/usr/bin/env node
 …
 ```
 
 ```sh
 $ chmod +x examples/<your-example>.ts
-# run the example against your api
-$ pnpm tsn -T examples/<your-example>.ts
+# the example imports the package by name, which resolves to the built output, so build first
+$ pnpm build
+# run the example against your api (Node.js 22.18 or later runs TypeScript files directly)
+$ node examples/<your-example>.ts
 ```
 
 ## Using the repository from source

@@ -18,7 +18,7 @@ const newClient = () =>
   });
 
 live('AnthropicGoogleCloud — live', () => {
-  jest.setTimeout(60_000);
+  vi.setConfig({ testTimeout: 60_000 });
 
   test('non-streaming create', async () => {
     const client = newClient();

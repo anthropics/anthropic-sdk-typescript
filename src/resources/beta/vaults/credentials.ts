@@ -289,11 +289,6 @@ export interface BetaManagedAgentsCredential {
   display_name?: string | null;
 }
 
-/**
- * Substitute the secret on any host the session's Environment network policy
- * permits egress to. The Environment's network policy is the only boundary on
- * where the secret can reach.
- */
 export type BetaManagedAgentsCredentialNetworkingParams =
   | BetaManagedAgentsUnrestrictedCredentialNetworkingParams
   | BetaManagedAgentsLimitedCredentialNetworkingParams;
@@ -342,6 +337,12 @@ export interface BetaManagedAgentsCredentialValidation {
 
 /**
  * Overall verdict of a credential validation probe.
+ *
+ * - `valid` - The credential successfully authenticated against its MCP server.
+ * - `invalid` - The probe reached the MCP server and was rejected, and a refresh
+ *   (if attempted) did not recover it.
+ * - `unknown` - The probe could not determine validity — for example, a transport
+ *   error or a successful refresh that was not re-probed.
  */
 export type BetaManagedAgentsCredentialValidationStatus = 'valid' | 'invalid' | 'unknown';
 
@@ -573,9 +574,6 @@ export interface BetaManagedAgentsMCPOAuthRefreshParams {
    */
   token_endpoint: string;
 
-  /**
-   * Token endpoint requires no client authentication.
-   */
   token_endpoint_auth:
     | BetaManagedAgentsTokenEndpointAuthNoneParam
     | BetaManagedAgentsTokenEndpointAuthBasicParam
@@ -606,9 +604,6 @@ export interface BetaManagedAgentsMCPOAuthRefreshResponse {
    */
   token_endpoint: string;
 
-  /**
-   * Token endpoint requires no client authentication.
-   */
   token_endpoint_auth:
     | BetaManagedAgentsTokenEndpointAuthNoneResponse
     | BetaManagedAgentsTokenEndpointAuthBasicResponse
@@ -639,9 +634,6 @@ export interface BetaManagedAgentsMCPOAuthRefreshUpdateParams {
    */
   scope?: string | null;
 
-  /**
-   * Updated HTTP Basic authentication parameters for the token endpoint.
-   */
   token_endpoint_auth?:
     | BetaManagedAgentsTokenEndpointAuthBasicUpdateParam
     | BetaManagedAgentsTokenEndpointAuthPostUpdateParam;
@@ -721,6 +713,14 @@ export interface BetaManagedAgentsRefreshObject {
 
   /**
    * Outcome of a refresh-token exchange attempted during credential validation.
+   *
+   * - `succeeded` - The token endpoint returned a new access token.
+   * - `failed` - The token endpoint returned an error response. See `http_response`
+   *   for detail.
+   * - `connect_error` - The token endpoint could not be reached (DNS, TLS, or
+   *   connection error).
+   * - `no_refresh_token` - No refresh token is stored for the credential, so no
+   *   exchange was attempted.
    */
   status: 'succeeded' | 'failed' | 'connect_error' | 'no_refresh_token';
 }
@@ -898,7 +898,7 @@ export interface CredentialCreateParams {
 
 export interface CredentialRetrieveParams {
   /**
-   * Path param: Path parameter vault_id
+   * Path param: Identifier of the vault containing the credential.
    */
   vault_id: string;
 
@@ -920,7 +920,7 @@ export interface CredentialRetrieveParams {
 
 export interface CredentialUpdateParams {
   /**
-   * Path param: Path parameter vault_id
+   * Path param: Identifier of the vault containing the credential.
    */
   vault_id: string;
 
@@ -983,7 +983,7 @@ export interface CredentialListParams extends PageCursorParams {
 
 export interface CredentialDeleteParams {
   /**
-   * Path param: Path parameter vault_id
+   * Path param: Identifier of the vault containing the credential.
    */
   vault_id: string;
 
@@ -1005,7 +1005,7 @@ export interface CredentialDeleteParams {
 
 export interface CredentialArchiveParams {
   /**
-   * Path param: Path parameter vault_id
+   * Path param: Identifier of the vault containing the credential.
    */
   vault_id: string;
 
@@ -1027,7 +1027,7 @@ export interface CredentialArchiveParams {
 
 export interface CredentialMCPOAuthValidateParams {
   /**
-   * Path param: Path parameter vault_id
+   * Path param: Identifier of the vault containing the credential.
    */
   vault_id: string;
 

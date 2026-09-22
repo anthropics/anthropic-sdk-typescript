@@ -741,6 +741,12 @@ export interface BetaManagedAgentsSession {
 
   /**
    * SessionStatus enum
+   *
+   * - `rescheduling` - Transient error occurred, retrying automatically.
+   * - `running` - Agent is actively executing.
+   * - `idle` - Agent is waiting for input, including user messages or tool
+   *   confirmations. Sessions start in idle.
+   * - `terminated` - Session has ended, either due to an error or completion.
    */
   status: 'rescheduling' | 'running' | 'idle' | 'terminated';
 
@@ -1077,8 +1083,8 @@ export interface BetaManagedAgentsUserToolResultEvent {
   processed_at?: string | null;
 
   /**
-   * Routes this result to a subagent thread. Copy from the `agent.tool_use` event's
-   * `session_thread_id`.
+   * Set by the server to the subagent thread this result was routed to. Omitted when
+   * it was routed to the primary thread.
    */
   session_thread_id?: string | null;
 }

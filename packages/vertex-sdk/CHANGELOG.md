@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.19.10 (2026-09-18)
+
+Full Changelog: [vertex-sdk-v0.19.9...vertex-sdk-v0.19.10](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.19.9...vertex-sdk-v0.19.10)
+
+### Chores
+
+* **internal:** build the sub-packages with TypeScript 6.0.3 ([8a69ff5](https://github.com/anthropics/anthropic-sdk-typescript/commit/8a69ff594ffeec3f6bd964030086b01ae5354aaf))
+* **internal:** switch unit tests from jest to vitest ([788c9c6](https://github.com/anthropics/anthropic-sdk-typescript/commit/788c9c62ba2bd8180ffc7dcebd1cee14cd692d03))
+
+## 0.19.9 (2026-09-15)
+
+Full Changelog: [vertex-sdk-v0.19.8...vertex-sdk-v0.19.9](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.19.8...vertex-sdk-v0.19.9)
+
+### Chores
+
+* **internal:** move the sub-packages off ts-node and modernise their tsconfig ([1d7cd91](https://github.com/anthropics/anthropic-sdk-typescript/commit/1d7cd915ab581332085f738d1eb5ed17464004d7))
+
 ## 0.19.8 (2026-09-10)
 
 Full Changelog: [vertex-sdk-v0.19.7...vertex-sdk-v0.19.8](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.19.7...vertex-sdk-v0.19.8)

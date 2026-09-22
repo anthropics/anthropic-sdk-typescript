@@ -695,11 +695,13 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
           }
           case 'compaction_delta': {
             if (snapshotContent?.type === 'compaction') {
-              snapshot.content[event.index] = {
-                ...snapshotContent,
-                content: (snapshotContent.content || '') + event.delta.content,
-                encrypted_content: event.delta.encrypted_content,
-              };
+              // The delta carries the block's final value (null content = failed compaction), so assign.
+              const block = { ...snapshotContent, content: event.delta.content };
+              // beta-gated key: only copy it when the server sent it
+              if ('encrypted_content' in event.delta) {
+                block.encrypted_content = event.delta.encrypted_content;
+              }
+              snapshot.content[event.index] = block;
             }
             break;
           }
