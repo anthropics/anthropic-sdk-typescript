@@ -207,24 +207,12 @@ describe('extractSkillArchive', () => {
   }
 
   test('refuses a zip-slip member', async () => {
-    const src = fs.mkdtempSync(path.join(os.tmpdir(), 'evil-'));
-    const archive = path.join(work, 'evil.zip');
-    try {
-      fs.writeFileSync(path.join(src, 'escape.txt'), 'pwned');
-      execFileSync('zip', ['-q', archive, 'escape.txt'], { cwd: src });
-      // Rewrite the entry name to a traversal path via zipnote.
-      execFileSync('zipnote', ['-w', archive], { input: '@ escape.txt\n@=../escape.txt\n' });
-
-      const x = path.join(work, 'skills', 'x');
-      await fsp.mkdir(x, { recursive: true });
-      await expect(extractSkillArchive(new Response(fs.readFileSync(archive)), x)).rejects.toThrow(
-        /unsafe archive member/,
-      );
-      expect(fs.existsSync(path.join(work, 'skills', 'escape.txt'))).toBe(false);
-      expect(fs.existsSync(path.join(work, 'escape.txt'))).toBe(false);
-    } finally {
-      fs.rmSync(src, { recursive: true, force: true });
-    }
+    const archive = makeZip([{ name: '../escape.txt', body: 'pwned' }]);
+    const x = path.join(work, 'skills', 'x');
+    await fsp.mkdir(x, { recursive: true });
+    await expect(extractSkillArchive(new Response(archive), x)).rejects.toThrow(/unsafe archive member/);
+    expect(fs.existsSync(path.join(work, 'skills', 'escape.txt'))).toBe(false);
+    expect(fs.existsSync(path.join(work, 'escape.txt'))).toBe(false);
   });
 
   test('tar: symlink, hardlink, fifo and device members are skipped and everything else extracts', async () => {
