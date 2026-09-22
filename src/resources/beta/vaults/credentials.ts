@@ -249,12 +249,12 @@ export interface BetaManagedAgentsCredential {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the credential was archived. Null if not archived.
    */
   archived_at: string | null;
 
   /**
-   * Authentication details for a credential.
+   * Authentication configuration for this credential.
    */
   auth:
     | BetaManagedAgentsMCPOAuthAuthResponse
@@ -308,24 +308,25 @@ export interface BetaManagedAgentsCredentialValidation {
   has_refresh_token: boolean;
 
   /**
-   * The failing step of an MCP validation probe.
+   * Details of the failing MCP probe step. Null when the probe succeeded.
    */
   mcp_probe: BetaManagedAgentsMCPProbe | null;
 
   /**
-   * Outcome of a refresh-token exchange attempted during credential validation.
+   * Details of the refresh-token exchange attempted on a 401. Null when no refresh
+   * was attempted.
    */
   refresh: BetaManagedAgentsRefreshObject | null;
 
   /**
-   * Overall verdict of a credential validation probe.
+   * Overall verdict of the validation probe.
    */
   status: BetaManagedAgentsCredentialValidationStatus;
 
   type: 'vault_credential_validation';
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the validation probe was performed.
    */
   validated_at: string;
 
@@ -523,7 +524,7 @@ export interface BetaManagedAgentsMCPOAuthAuthResponse {
   expires_at?: string | null;
 
   /**
-   * OAuth refresh token configuration returned in credential responses.
+   * Refresh token configuration, if the credential supports token refresh.
    */
   refresh?: BetaManagedAgentsMCPOAuthRefreshResponse | null;
 }
@@ -550,7 +551,7 @@ export interface BetaManagedAgentsMCPOAuthCreateParams {
   expires_at?: string | null;
 
   /**
-   * OAuth refresh token parameters for creating a credential with refresh support.
+   * Refresh token configuration, if the credential supports token refresh.
    */
   refresh?: BetaManagedAgentsMCPOAuthRefreshParams | null;
 }
@@ -657,7 +658,7 @@ export interface BetaManagedAgentsMCPOAuthUpdateParams {
   expires_at?: string | null;
 
   /**
-   * Parameters for updating OAuth refresh token configuration.
+   * Updated refresh token configuration.
    */
   refresh?: BetaManagedAgentsMCPOAuthRefreshUpdateParams | null;
 }
@@ -667,7 +668,8 @@ export interface BetaManagedAgentsMCPOAuthUpdateParams {
  */
 export interface BetaManagedAgentsMCPProbe {
   /**
-   * An HTTP response captured during a credential validation probe.
+   * The captured HTTP error response. Null when no HTTP response was received
+   * (timeout, DNS, TLS).
    */
   http_response: BetaManagedAgentsRefreshHTTPResponse | null;
 
@@ -707,12 +709,13 @@ export interface BetaManagedAgentsRefreshHTTPResponse {
  */
 export interface BetaManagedAgentsRefreshObject {
   /**
-   * An HTTP response captured during a credential validation probe.
+   * The captured HTTP error response from the token endpoint. Populated only when
+   * `status` is `failed`.
    */
   http_response: BetaManagedAgentsRefreshHTTPResponse | null;
 
   /**
-   * Outcome of a refresh-token exchange attempted during credential validation.
+   * Outcome of the refresh attempt.
    *
    * - `succeeded` - The token endpoint returned a new access token.
    * - `failed` - The token endpoint returned an error response. See `http_response`
@@ -862,7 +865,7 @@ export interface BetaManagedAgentsUnrestrictedCredentialNetworkingResponse {
 
 export interface CredentialCreateParams {
   /**
-   * Body param: Authentication details for creating a credential.
+   * Body param: Authentication configuration for the credential.
    */
   auth:
     | BetaManagedAgentsMCPOAuthCreateParams
@@ -925,7 +928,8 @@ export interface CredentialUpdateParams {
   vault_id: string;
 
   /**
-   * Body param: Updated authentication details for a credential.
+   * Body param: Updated authentication configuration. The `type` is immutable; the
+   * variant sent must match the stored credential's type.
    */
   auth?:
     | BetaManagedAgentsMCPOAuthUpdateParams

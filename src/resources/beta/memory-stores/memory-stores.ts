@@ -243,7 +243,7 @@ export interface BetaManagedAgentsMemoryStore {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the store was created.
    */
   created_at: string;
 
@@ -256,12 +256,15 @@ export interface BetaManagedAgentsMemoryStore {
   type: 'memory_store';
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the store's `name`, `description`, or `metadata` was last
+   * modified. Memory writes inside the store do not advance this.
    */
   updated_at: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the store was archived, or `null` if active. Set once and never
+   * cleared; archiving is one-way. Archived stores are read-only and cannot be
+   * attached to new sessions.
    */
   archived_at?: string | null;
 

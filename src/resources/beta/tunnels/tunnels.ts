@@ -236,12 +236,13 @@ export interface BetaTunnel {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * RFC 3339 datetime string indicating when the tunnel was archived. Null if it is
+   * not archived.
    */
   archived_at: string | null;
 
   /**
-   * A timestamp in RFC 3339 format
+   * RFC 3339 datetime string indicating when the tunnel was created.
    */
   created_at: string;
 

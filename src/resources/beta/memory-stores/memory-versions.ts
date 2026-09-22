@@ -158,7 +158,7 @@ export interface BetaManagedAgentsMemoryVersion {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When this version was written, in RFC 3339 format.
    */
   created_at: string;
 
@@ -177,8 +177,7 @@ export interface BetaManagedAgentsMemoryVersion {
   memory_store_id: string;
 
   /**
-   * The kind of mutation a `memory_version` records. Every non-no-op mutation to a
-   * memory appends exactly one version row with one of these values.
+   * The kind of mutation this version records: `created`, `modified`, or `deleted`.
    */
   operation: BetaManagedAgentsMemoryVersionOperation;
 
@@ -204,11 +203,9 @@ export interface BetaManagedAgentsMemoryVersion {
   content_size_bytes?: number | null;
 
   /**
-   * Identifies who performed a write or redact operation. Captured at write time on
-   * the `memory_version` row. The API key that created a session is not recorded on
-   * agent writes; attribution answers who made the write, not who is ultimately
-   * responsible. Look up session provenance separately via the
-   * [Sessions API](/en/api/beta/sessions/retrieve).
+   * Who performed this write: one of `session_actor`, `api_actor`, `user_actor`, or
+   * `service_account_actor`; `null` when no writer is recorded. Captured at write
+   * time and preserved through redaction.
    */
   created_by?: BetaManagedAgentsActor;
 
@@ -219,16 +216,17 @@ export interface BetaManagedAgentsMemoryVersion {
   path?: string | null;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When this version was redacted, in RFC 3339 format, or `null` if it has not been
+   * redacted. When set, `content`, `path`, `content_size_bytes`, and
+   * `content_sha256` are all `null`. See
+   * [Redact a memory version](/en/api/beta/memory_stores/memory_versions/redact).
    */
   redacted_at?: string | null;
 
   /**
-   * Identifies who performed a write or redact operation. Captured at write time on
-   * the `memory_version` row. The API key that created a session is not recorded on
-   * agent writes; attribution answers who made the write, not who is ultimately
-   * responsible. Look up session provenance separately via the
-   * [Sessions API](/en/api/beta/sessions/retrieve).
+   * Who redacted this version, or `null` if it has not been redacted. In practice
+   * always an `api_actor`, `user_actor`, or `service_account_actor` (agents do not
+   * have a redact capability).
    */
   redacted_by?: BetaManagedAgentsActor;
 }

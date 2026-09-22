@@ -1219,11 +1219,8 @@ export interface BetaBrowserToolset20260801 {
   cache_control?: BetaCacheControlEphemeral | null;
 
   /**
-   * Per-member configuration for `browser_toolset_20260801`: one optional field per
-   * member tool, keyed by the member name — the same name the member's `tool_use`
-   * blocks carry. Every member is an accepted key, and a member's defaults apply
-   * wherever its key is absent. Unknown keys are rejected: the field set is this
-   * toolset version's complete member set.
+   * Sparse per-member overrides, keyed by member name. Absent, null, and {} are
+   * equivalent; a member's defaults apply wherever its key is absent.
    */
   configs?: BetaBrowserToolsetConfigs | null;
 }
@@ -2500,11 +2497,8 @@ export interface BetaComputerToolset20260801 {
   cache_control?: BetaCacheControlEphemeral | null;
 
   /**
-   * Per-member configuration for `computer_toolset_20260801`: one optional field per
-   * member tool, keyed by the member name — the same name the member's `tool_use`
-   * blocks carry. Every member is an accepted key, and a member's defaults apply
-   * wherever its key is absent. Unknown keys are rejected: the field set is this
-   * toolset version's complete member set.
+   * Sparse per-member overrides, keyed by member name. Absent, null, and {} are
+   * equivalent; a member's defaults apply wherever its key is absent.
    */
   configs?: BetaComputerToolsetConfigs | null;
 }
@@ -3190,7 +3184,9 @@ export interface BetaFallbackParam {
  */
 export interface BetaFallbackRefusalTrigger {
   /**
-   * The policy category that triggered a refusal.
+   * The policy category that triggered the `from` model's refusal at this hop.
+   * `null` when the refusal doesn't map to a named category. Same vocabulary as
+   * `stop_details.category`.
    *
    * - `cyber` - The request could enable cyber harm, such as malware or exploit
    *   development. Benign cybersecurity work can also trigger this category.
@@ -3663,8 +3659,9 @@ export interface BetaMessage {
   id: string;
 
   /**
-   * Information about the container used in the request (for the code execution
-   * tool)
+   * Information about the container used in this request.
+   *
+   * This will be non-null if a container tool (e.g. code execution) was used.
    */
   container: BetaContainer | null;
 
@@ -3712,8 +3709,8 @@ export interface BetaMessage {
   context_management: BetaContextManagementResponse | null;
 
   /**
-   * Request-level diagnostics: why the prompt cache could not fully reuse the prefix
-   * of the request named by `diagnostics.previous_message_id`.
+   * Request-level diagnostics. `null` when the request did not supply `diagnostics`,
+   * or when it did and no prompt-cache divergence was detected.
    */
   diagnostics: BetaDiagnostics | null;
 
@@ -3733,7 +3730,9 @@ export interface BetaMessage {
   role: 'assistant';
 
   /**
-   * Structured information about a refusal.
+   * Structured information about why model output stopped.
+   *
+   * This is `null` when the `stop_reason` has no additional detail to report.
    */
   stop_details: BetaRefusalStopDetails | null;
 
@@ -3829,6 +3828,10 @@ export interface BetaMessageDeltaUsage {
 
   /**
    * Outcome of the `fallback_credit_token` presented on this request.
+   *
+   * Present on every response to a non-batch request that carried a
+   * `fallback_credit_token`, in either redemption mode; absent otherwise (batch
+   * items accept and ignore the token and carry no outcome object).
    */
   fallback_credit: BetaFallbackCreditUsage | null;
 
@@ -3978,7 +3981,10 @@ export interface BetaMetadata {
 
 export interface BetaOutputConfig {
   /**
-   * All possible effort levels.
+   * How much effort the model should put into its response. Higher effort levels may
+   * result in more thorough analysis but take longer.
+   *
+   * Valid values are `low`, `medium`, `high`, `xhigh`, or `max`.
    */
   effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | null;
 
@@ -3989,7 +3995,7 @@ export interface BetaOutputConfig {
   format?: BetaJSONOutputFormat | null;
 
   /**
-   * User-configurable total token budget across contexts.
+   * Configuration for token budget tracking across contexts.
    */
   task_budget?: BetaTokenTaskBudget | null;
 }
@@ -4121,13 +4127,16 @@ export interface BetaRawMessageDeltaEvent {
 export namespace BetaRawMessageDeltaEvent {
   export interface Delta {
     /**
-     * Information about the container used in the request (for the code execution
-     * tool)
+     * Information about the container used in this request.
+     *
+     * This will be non-null if a container tool (e.g. code execution) was used.
      */
     container: BetaMessagesAPI.BetaContainer | null;
 
     /**
-     * Structured information about a refusal.
+     * Structured information about why model output stopped.
+     *
+     * This is `null` when the `stop_reason` has no additional detail to report.
      */
     stop_details: BetaMessagesAPI.BetaRefusalStopDetails | null;
 
@@ -4188,7 +4197,9 @@ export interface BetaRedactedThinkingBlockParam {
  */
 export interface BetaRefusalStopDetails {
   /**
-   * The policy category that triggered a refusal.
+   * The policy category that triggered the refusal.
+   *
+   * `null` when the refusal doesn't map to a named category.
    *
    * - `cyber` - The request could enable cyber harm, such as malware or exploit
    *   development. Benign cybersecurity work can also trigger this category.
@@ -4704,7 +4715,10 @@ export interface BetaSummarizeCompaction {
  */
 export interface BetaSystemMessageOutputConfig {
   /**
-   * All possible effort levels.
+   * How much effort the model should put into its response. Higher effort levels may
+   * result in more thorough analysis but take longer.
+   *
+   * Valid values are `low`, `medium`, `high`, `xhigh`, or `max`.
    */
   effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | null;
 }
@@ -4910,11 +4924,11 @@ export interface BetaThinkingBlock {
  */
 export interface BetaThinkingBlockBinding {
   /**
-   * What happens when a thinking block in `messages` fails the conversation check:
-   * it was created in a different conversation, or the messages before it have
-   * changed since. `"error"` (the default) fails the request with a 400 error.
-   * `"drop_block"` removes the failing blocks and the request proceeds; the model no
-   * longer sees the dropped reasoning.
+   * "error" (default) | "drop_block". What happens when a thinking block in
+   * `messages` fails the conversation check (it was created in a different
+   * conversation, or the messages before it have changed since). "error" fails the
+   * request with a 400 error. "drop_block" removes the failing blocks and the
+   * request proceeds; each removal is reported in `input_transformations`.
    */
   prefix_mismatch_behavior?: BetaThinkingPrefixMismatchBehavior | null;
 }
@@ -4942,8 +4956,8 @@ export interface BetaThinkingConfigAdaptive {
 
   /**
    * Controls for block binding: what happens when a thinking block this request
-   * sends back fails the conversation check. Every field is optional; an empty
-   * object means every default.
+   * sends back fails the conversation check. `null`, absent or an empty object means
+   * every default.
    */
   block_binding?: BetaThinkingBlockBinding | null;
 
@@ -4978,8 +4992,8 @@ export interface BetaThinkingConfigEnabled {
 
   /**
    * Controls for block binding: what happens when a thinking block this request
-   * sends back fails the conversation check. Every field is optional; an empty
-   * object means every default.
+   * sends back fails the conversation check. `null`, absent or an empty object means
+   * every default.
    */
   block_binding?: BetaThinkingBlockBinding | null;
 
@@ -5955,6 +5969,10 @@ export interface BetaUsage {
 
   /**
    * Outcome of the `fallback_credit_token` presented on this request.
+   *
+   * Present on every response to a non-batch request that carried a
+   * `fallback_credit_token`, in either redemption mode; absent otherwise (batch
+   * items accept and ignore the token and carry no outcome object).
    */
   fallback_credit: BetaFallbackCreditUsage | null;
 
@@ -6020,9 +6038,7 @@ export interface BetaUsage {
   service_tier: 'standard' | 'priority' | 'batch' | null;
 
   /**
-   * Inference speed mode. `fast` provides significantly faster output token
-   * generation at premium pricing. Not all models support `fast`; invalid
-   * combinations are rejected at create time.
+   * The inference speed mode used for this request.
    */
   speed: 'standard' | 'fast' | null;
 }
@@ -6143,12 +6159,8 @@ export interface BetaWebFetchTool20250910 {
   strict?: boolean;
 
   /**
-   * Which sources contribute to the set of URLs web fetch may fetch.
-   *
-   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
-   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
-   * (every result but the named tools'). A named tool must be declared in this
-   * request's `tools[]`.
+   * Which sources contribute to the set of URLs the tool may fetch. Omitted means
+   * every source.
    */
   url_sources?: BetaWebFetchURLSources | null;
 }
@@ -6211,12 +6223,8 @@ export interface BetaWebFetchTool20260209 {
   strict?: boolean;
 
   /**
-   * Which sources contribute to the set of URLs web fetch may fetch.
-   *
-   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
-   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
-   * (every result but the named tools'). A named tool must be declared in this
-   * request's `tools[]`.
+   * Which sources contribute to the set of URLs the tool may fetch. Omitted means
+   * every source.
    */
   url_sources?: BetaWebFetchURLSources | null;
 }
@@ -6282,12 +6290,8 @@ export interface BetaWebFetchTool20260309 {
   strict?: boolean;
 
   /**
-   * Which sources contribute to the set of URLs web fetch may fetch.
-   *
-   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
-   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
-   * (every result but the named tools'). A named tool must be declared in this
-   * request's `tools[]`.
+   * Which sources contribute to the set of URLs the tool may fetch. Omitted means
+   * every source.
    */
   url_sources?: BetaWebFetchURLSources | null;
 
@@ -6367,12 +6371,8 @@ export interface BetaWebFetchTool20260318 {
   strict?: boolean;
 
   /**
-   * Which sources contribute to the set of URLs web fetch may fetch.
-   *
-   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
-   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
-   * (every result but the named tools'). A named tool must be declared in this
-   * request's `tools[]`.
+   * Which sources contribute to the set of URLs the tool may fetch. Omitted means
+   * every source.
    */
   url_sources?: BetaWebFetchURLSources | null;
 
@@ -6872,14 +6872,15 @@ export interface MessageCreateParamsBase {
   cache_control?: BetaCacheControlEphemeral | null;
 
   /**
-   * Body param: Compact the whole conversation and return a signed `compaction`
-   * block, alone, that a later request sends back first in `messages`, in place of
-   * the messages it summarizes. There is no trigger and no pause flag: sending the
-   * parameter compacts, and nothing is sampled after the block.
+   * Body param: Compaction configuration.
    *
-   * The summarization prompt is the server's own unless `instructions` are given,
-   * which then replace it for this request; a value that is empty or only whitespace
-   * counts as absent.
+   * When set on `POST /v1/messages`, the request is a compaction request: the
+   * conversation in `messages` is summarized and the response holds only the
+   * resulting `compaction` block (`stop_reason` `"compaction"`), which later
+   * requests send first in `messages` in place of the messages it summarizes.
+   * `POST /v1/messages/count_tokens` accepts this parameter and ignores it: the
+   * count it returns is for the conversation in `messages` as sent. Cannot be
+   * combined with `context_management`.
    */
   compaction?: BetaCompactionConfig | null;
 
@@ -6897,8 +6898,9 @@ export interface MessageCreateParamsBase {
   context_management?: BetaContextManagementConfig | null;
 
   /**
-   * Body param: Request-level diagnostics. Currently carries the previous response
-   * id for prompt-cache divergence reporting.
+   * Body param: Request-level diagnostics. Supply `previous_message_id` to have the
+   * response include `diagnostics.cache_miss_reason` explaining any prompt-cache
+   * divergence from that prior request.
    */
   diagnostics?: BetaDiagnosticsParam | null;
 
@@ -6975,9 +6977,8 @@ export interface MessageCreateParamsBase {
   service_tier?: 'auto' | 'standard_only';
 
   /**
-   * Body param: Inference speed mode. `fast` provides significantly faster output
-   * token generation at premium pricing. Not all models support `fast`; invalid
-   * combinations are rejected at create time.
+   * Body param: The inference speed mode for this request. `"fast"` enables high
+   * output-tokens-per-second inference.
    */
   speed?: 'standard' | 'fast' | null;
 
@@ -7268,14 +7269,15 @@ export interface MessageCountTokensParams {
   cache_control?: BetaCacheControlEphemeral | null;
 
   /**
-   * Body param: Compact the whole conversation and return a signed `compaction`
-   * block, alone, that a later request sends back first in `messages`, in place of
-   * the messages it summarizes. There is no trigger and no pause flag: sending the
-   * parameter compacts, and nothing is sampled after the block.
+   * Body param: Compaction configuration.
    *
-   * The summarization prompt is the server's own unless `instructions` are given,
-   * which then replace it for this request; a value that is empty or only whitespace
-   * counts as absent.
+   * When set on `POST /v1/messages`, the request is a compaction request: the
+   * conversation in `messages` is summarized and the response holds only the
+   * resulting `compaction` block (`stop_reason` `"compaction"`), which later
+   * requests send first in `messages` in place of the messages it summarizes.
+   * `POST /v1/messages/count_tokens` accepts this parameter and ignores it: the
+   * count it returns is for the conversation in `messages` as sent. Cannot be
+   * combined with `context_management`.
    */
   compaction?: BetaCompactionConfig | null;
 
@@ -7308,9 +7310,8 @@ export interface MessageCountTokensParams {
   output_format?: BetaJSONOutputFormat | null;
 
   /**
-   * Body param: Inference speed mode. `fast` provides significantly faster output
-   * token generation at premium pricing. Not all models support `fast`; invalid
-   * combinations are rejected at create time.
+   * Body param: The inference speed mode for this request. `"fast"` enables high
+   * output-tokens-per-second inference.
    */
   speed?: 'standard' | 'fast' | null;
 

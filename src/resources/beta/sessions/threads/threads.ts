@@ -124,17 +124,18 @@ export interface BetaManagedAgentsSessionThread {
   id: string;
 
   /**
-   * The resolved agent a `session_thread` runs.
+   * Resolved agent definition for this thread. Snapshot of the agent at thread
+   * creation time.
    */
   agent: AgentsAPI.BetaManagedAgentsSessionThreadAgent | AgentsAPI.BetaManagedAgentsAdvisor;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the thread was archived. Null if not archived.
    */
   archived_at: string | null;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the thread was created.
    */
   created_at: string;
 
@@ -149,24 +150,26 @@ export interface BetaManagedAgentsSessionThread {
   session_id: string;
 
   /**
-   * Timing statistics for a session thread.
+   * Timing statistics for this thread. Null until the thread's first status
+   * transition.
    */
   stats: BetaManagedAgentsSessionThreadStats | null;
 
   /**
-   * SessionThreadStatus enum
+   * Current execution status of the thread.
    */
   status: BetaManagedAgentsSessionThreadStatus;
 
   type: 'session_thread';
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the thread was last updated.
    */
   updated_at: string;
 
   /**
-   * Cumulative token usage for a session thread across all turns.
+   * Cumulative token usage for this thread. Null until the thread's first idle
+   * transition.
    */
   usage: BetaManagedAgentsSessionThreadUsage | null;
 }
@@ -211,7 +214,7 @@ export interface BetaManagedAgentsSessionThreadUsage {
   active_seconds?: number;
 
   /**
-   * Prompt-cache creation token usage broken down by cache lifetime.
+   * Tokens used to create prompt cache entries, broken down by cache TTL.
    */
   cache_creation?: SessionsAPI.BetaManagedAgentsCacheCreationUsage;
 
@@ -226,7 +229,12 @@ export interface BetaManagedAgentsSessionThreadUsage {
   input_tokens?: number;
 
   /**
-   * A monetary amount in a specific currency.
+   * Cumulative list cost of this thread across all turns, priced at public list
+   * rates. Absent until cost tracking is available for the thread. Each figure is
+   * rounded to the nearest cent independently and the session's aggregate
+   * `usage.list_cost` additionally includes session runtime, so per-thread costs do
+   * not sum exactly to the session figure; the session figure is authoritative and
+   * is what a budget is enforced against.
    */
   list_cost?: BetaAPI.BetaMonetaryAmount | null;
 
@@ -236,7 +244,8 @@ export interface BetaManagedAgentsSessionThreadUsage {
   output_tokens?: number;
 
   /**
-   * Cumulative count of server-executed tool invocations, broken down by tool.
+   * Cumulative server-executed tool usage across all turns of this thread. Absent
+   * until server-tool tracking is available for the thread.
    */
   server_tool_use?: SessionsAPI.BetaManagedAgentsServerToolUsage | null;
 }

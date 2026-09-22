@@ -955,11 +955,8 @@ export interface BrowserToolset20260801 {
   cache_control?: CacheControlEphemeral | null;
 
   /**
-   * Per-member configuration for `browser_toolset_20260801`: one optional field per
-   * member tool, keyed by the member name — the same name the member's `tool_use`
-   * blocks carry. Every member is an accepted key, and a member's defaults apply
-   * wherever its key is absent. Unknown keys are rejected: the field set is this
-   * toolset version's complete member set.
+   * Sparse per-member overrides, keyed by member name. Absent, null, and {} are
+   * equivalent; a member's defaults apply wherever its key is absent.
    */
   configs?: BrowserToolsetConfigs | null;
 }
@@ -1950,11 +1947,8 @@ export interface ComputerToolset20260801 {
   cache_control?: CacheControlEphemeral | null;
 
   /**
-   * Per-member configuration for `computer_toolset_20260801`: one optional field per
-   * member tool, keyed by the member name — the same name the member's `tool_use`
-   * blocks carry. Every member is an accepted key, and a member's defaults apply
-   * wherever its key is absent. Unknown keys are rejected: the field set is this
-   * toolset version's complete member set.
+   * Sparse per-member overrides, keyed by member name. Absent, null, and {} are
+   * equivalent; a member's defaults apply wherever its key is absent.
    */
   configs?: ComputerToolsetConfigs | null;
 }
@@ -2421,8 +2415,9 @@ export interface Message {
   id: string;
 
   /**
-   * Information about the container used in the request (for the code execution
-   * tool)
+   * Information about the container used in this request.
+   *
+   * This will be non-null if a container tool (e.g. code execution) was used.
    */
   container: Container | null;
 
@@ -2478,7 +2473,9 @@ export interface Message {
   role: 'assistant';
 
   /**
-   * Structured information about a refusal.
+   * Structured information about why model output stopped.
+   *
+   * This is `null` when the `stop_reason` has no additional detail to report.
    */
   stop_details: RefusalStopDetails | null;
 
@@ -2634,6 +2631,7 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
+  | (string & {})
   | 'claude-fable-5-1'
   | 'claude-opus-5-5'
   | 'claude-mythos-5-1'
@@ -2651,12 +2649,14 @@ export type Model =
   | 'claude-opus-4-5'
   | 'claude-opus-4-5-20251101'
   | 'claude-sonnet-4-5'
-  | 'claude-sonnet-4-5-20250929'
-  | (string & {});
+  | 'claude-sonnet-4-5-20250929';
 
 export interface OutputConfig {
   /**
-   * All possible effort levels.
+   * How much effort the model should put into its response. Higher effort levels may
+   * result in more thorough analysis but take longer.
+   *
+   * Valid values are `low`, `medium`, `high`, `xhigh`, or `max`.
    */
   effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | null;
 
@@ -2763,13 +2763,16 @@ export interface RawMessageDeltaEvent {
 export namespace RawMessageDeltaEvent {
   export interface Delta {
     /**
-     * Information about the container used in the request (for the code execution
-     * tool)
+     * Information about the container used in this request.
+     *
+     * This will be non-null if a container tool (e.g. code execution) was used.
      */
     container: MessagesAPI.Container | null;
 
     /**
-     * Structured information about a refusal.
+     * Structured information about why model output stopped.
+     *
+     * This is `null` when the `stop_reason` has no additional detail to report.
      */
     stop_details: MessagesAPI.RefusalStopDetails | null;
 
@@ -2830,7 +2833,9 @@ export interface RedactedThinkingBlockParam {
  */
 export interface RefusalStopDetails {
   /**
-   * The policy category that triggered a refusal.
+   * The policy category that triggered the refusal.
+   *
+   * `null` when the refusal doesn't map to a named category.
    *
    * - `cyber` - The request could enable cyber harm, such as malware or exploit
    *   development. Benign cybersecurity work can also trigger this category.
@@ -3948,12 +3953,8 @@ export interface WebFetchTool20250910 {
   strict?: boolean;
 
   /**
-   * Which sources contribute to the set of URLs web fetch may fetch.
-   *
-   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
-   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
-   * (every result but the named tools'). A named tool must be declared in this
-   * request's `tools[]`.
+   * Which sources contribute to the set of URLs the tool may fetch. Omitted means
+   * every source.
    */
   url_sources?: WebFetchURLSources | null;
 }
@@ -4016,12 +4017,8 @@ export interface WebFetchTool20260209 {
   strict?: boolean;
 
   /**
-   * Which sources contribute to the set of URLs web fetch may fetch.
-   *
-   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
-   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
-   * (every result but the named tools'). A named tool must be declared in this
-   * request's `tools[]`.
+   * Which sources contribute to the set of URLs the tool may fetch. Omitted means
+   * every source.
    */
   url_sources?: WebFetchURLSources | null;
 }
@@ -4087,12 +4084,8 @@ export interface WebFetchTool20260309 {
   strict?: boolean;
 
   /**
-   * Which sources contribute to the set of URLs web fetch may fetch.
-   *
-   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
-   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
-   * (every result but the named tools'). A named tool must be declared in this
-   * request's `tools[]`.
+   * Which sources contribute to the set of URLs the tool may fetch. Omitted means
+   * every source.
    */
   url_sources?: WebFetchURLSources | null;
 
@@ -4172,12 +4165,8 @@ export interface WebFetchTool20260318 {
   strict?: boolean;
 
   /**
-   * Which sources contribute to the set of URLs web fetch may fetch.
-   *
-   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
-   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
-   * (every result but the named tools'). A named tool must be declared in this
-   * request's `tools[]`.
+   * Which sources contribute to the set of URLs the tool may fetch. Omitted means
+   * every source.
    */
   url_sources?: WebFetchURLSources | null;
 

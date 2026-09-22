@@ -209,22 +209,25 @@ export interface BetaDream {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the dream was archived, in RFC 3339, or `null` if it hasn't been archived.
    */
   archived_at: string | null;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the dream was created, in RFC 3339.
+   *
+   * Lists of dreams are sorted by this time, newest first.
    */
   created_at: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the dream reached `completed`, `failed`, or `canceled`, in RFC 3339, or
+   * `null` if it is still `pending` or `running`.
    */
   ended_at: string | null;
 
   /**
-   * Failure detail for a Dream whose `status` is `failed`.
+   * Why the dream failed, or `null` if `status` isn't `failed`.
    */
   error: BetaDreamError | null;
 
@@ -247,8 +250,9 @@ export interface BetaDream {
   model: BetaDreamModelConfig;
 
   /**
-   * Which memory store a dream writes its result to. Defaults to `create_new` when
-   * left out of a create request.
+   * Where the dream writes its result, as set in the request that created the dream.
+   * If that request left out `output_behavior`, the dream used the `create_new`
+   * behavior.
    */
   output_behavior: BetaOutputBehavior;
 
@@ -294,16 +298,8 @@ export interface BetaDream {
   type: 'dream';
 
   /**
-   * The tokens that a dream has used so far.
-   *
-   * The counts are zero while the dream is `pending` and update while it is
-   * `running`. They can keep changing after a cancel.
-   *
-   * See the
-   * [Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#billing)
-   * for how dreams are billed. See the
-   * [prompt caching guide](https://platform.claude.com/docs/en/build-with-claude/prompt-caching#tracking-cache-performance)
-   * for how the input token counts add up.
+   * The dream's token counts, which stop changing once its `status` is `completed`
+   * or `failed`. After a cancel, they can keep changing.
    */
   usage: BetaDreamUsage;
 }
@@ -379,9 +375,7 @@ export interface BetaDreamModelConfig {
   id: string;
 
   /**
-   * Inference speed mode. `fast` provides significantly faster output token
-   * generation at premium pricing. Not all models support `fast`; invalid
-   * combinations are rejected at create time.
+   * How fast the model generates output for the dream. Always `standard`.
    */
   speed?: 'standard' | 'fast';
 }
@@ -402,15 +396,16 @@ export interface BetaDreamModelConfigParam {
   id: string;
 
   /**
-   * Inference speed mode. `fast` provides significantly faster output token
-   * generation at premium pricing. Not all models support `fast`; invalid
-   * combinations are rejected at create time.
+   * How fast the model generates output for the dream. Defaults to `standard`.
+   *
+   * Dreams accept only `standard`.
    */
   speed?: 'standard' | 'fast' | null;
 }
 
 /**
- * The memory store that holds a dream's result, as an entry in `outputs`.
+ * An entry in a dream's `outputs` that references the memory store holding its
+ * result.
  */
 export interface BetaDreamOutput {
   /**
