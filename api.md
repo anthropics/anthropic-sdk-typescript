@@ -1635,7 +1635,9 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimit</a></code>
+- <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitOrganizationSource</a></code>
 - <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitValue</a></code>
+- <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitWorkspaceSource</a></code>
 
 Methods:
 

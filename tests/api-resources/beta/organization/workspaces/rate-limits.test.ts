@@ -24,6 +24,7 @@ describe('resource rateLimits', () => {
         'workspace_id',
         {
           group_type: 'batch',
+          include_inherited: true,
           limit: 1,
           page: 'page',
         },
