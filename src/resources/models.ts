@@ -264,7 +264,9 @@ export interface ThinkingTypes {
 
 export interface ModelRetrieveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * @deprecated Deprecated. This parameter will be removed from this method in a
+   * future release. To use beta features, call the beta models methods
+   * (`client.beta.models`) instead.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -281,7 +283,9 @@ export interface ModelRetrieveParams {
 
 export interface ModelListParams extends PageParams {
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * @deprecated Deprecated. This parameter will be removed from this method in a
+   * future release. To use beta features, call the beta models methods
+   * (`client.beta.models`) instead.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

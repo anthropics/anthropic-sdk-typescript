@@ -175,7 +175,8 @@ export interface CompletionCreateParamsBase {
   top_p?: number;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * @deprecated Deprecated. This parameter has no effect on this method and will be
+   * removed in a future release.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
