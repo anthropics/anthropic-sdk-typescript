@@ -387,6 +387,58 @@ describe('EnvironmentWorker', () => {
     }
   });
 
+  for (const entrypoint of ['run', 'handleItem'] as const) {
+    test.each(['before', 'during', 'never'] as const)(
+      `${entrypoint} ignores requestOptions.signal during cleanup (%s)`,
+      async (cancellation) => {
+        const ignored = new AbortController();
+        if (cancellation === 'before') ignored.abort();
+        const { client, calls, signal } = makeFake({ sessionStream: [TERMINATED] });
+        const fetchMock = vi.fn<typeof fetch>(async () =>
+          Response.json({ id: 'work_1', environment_id: 'env_1', state: 'stopped' }),
+        );
+        // Keep the worker orchestration fake, but exercise the real request
+        // path for cleanup: an aborted signal prevents this fetch entirely.
+        const transportClient = new Anthropic({
+          apiKey: 'test-key',
+          baseURL: 'http://worker.test',
+          maxRetries: 0,
+          fetch: fetchMock,
+        });
+        const stop = vi.spyOn((client as Anthropic).beta.environments.work, 'stop');
+        stop.mockImplementation(
+          transportClient.beta.environments.work.stop.bind(transportClient.beta.environments.work),
+        );
+        const requestOptions = { signal: ignored.signal, headers: { 'x-proxy-token': 'test-proxy' } };
+        const worker = new EnvironmentWorker({
+          client,
+          environmentId: 'env_1',
+          environmentKey: 'env_key',
+          tools: () => {
+            if (cancellation === 'during') ignored.abort();
+            return [];
+          },
+          workdir: '/tmp',
+          maxIdleMs: 0,
+          signal,
+          requestOptions,
+        });
+        if (entrypoint === 'run') await worker.run();
+        else await worker.handleItem({ workId: 'work_1', environmentId: 'env_1', sessionId: 'sesn_1' });
+
+        expect(fetchMock, cancellation).toHaveBeenCalledTimes(1);
+        const [url, options] = fetchMock.mock.calls[0]!;
+        expect(String(url)).toContain('/work/work_1/stop');
+        expect(JSON.parse(options!.body as string)).toEqual({ force: true });
+        expect(new URL(String(url)).pathname).toBe('/v1/environments/env_1/work/work_1/stop');
+        expect(new Headers(options!.headers).get('x-proxy-token')).toBe('test-proxy');
+        expect(loggedText(calls)).not.toContain('force-stop on exit failed');
+        expect(requestOptions.signal).toBe(ignored.signal);
+        stop.mockRestore();
+      },
+    );
+  }
+
   test('prefers the sessions token from the work item secret for per-item calls', async () => {
     // A claimed item carrying a per-item `secret` payload authenticates that
     // item's heartbeat / force-stop / skill-download / session-runner calls
