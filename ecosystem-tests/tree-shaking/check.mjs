@@ -72,8 +72,7 @@ console.log(`left out, a Node built-in is reachable: ${[...loadsBuiltin].map(rel
 // /* @__PURE__ */ in front of its initialiser and any other entry is removed (this check bundles the
 // package, it never runs it). Anything else that a bundler keeps fails the check, and so does an entry
 // that no longer matches, so the list can only shrink. It empties when the `pure` entries carry that mark
-// in the source, the two arithmetic constants become literals, the registry is built inside a pure call,
-// and the build keeps a class's private methods inside the class's pure call.
+// in the source, the two arithmetic constants become literals, and the registry is built inside a pure call.
 const noEffect =
   "module-level constant built by a constructor with no effect; webpack's minifier does not assume that";
 const arithmetic = 'constant arithmetic; esbuild keeps an unused binding whose initialiser uses << or *';
@@ -142,12 +141,6 @@ const accepted = [
     file: 'lib/tools/SessionToolRunner.mjs',
     why: arithmetic,
     statement: 'const SEND_RETRY_WINDOW_MS = 5 * 60000;',
-  },
-  {
-    file: 'lib/tools/SessionToolRunner.mjs',
-    why: "the class's private methods, which the build assigns to module-level variables after the class's pure call instead of inside it; rollup drops unused assignments, the other bundlers do not",
-    statement:
-      /^_SessionToolRunner_requestOptions = function _SessionToolRunner_requestOptions\(\) \{\n[\s\S]*?\n\};\n/m,
   },
   {
     file: 'lib/transform-json-schema.mjs',

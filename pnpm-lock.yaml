@@ -9,7 +9,7 @@ overrides:
 
 patchedDependencies:
   '@stainless-api/tsc-multi@1.1.12':
-    hash: fd44ee4c749171210df299ee8e9c3b4ec0c3ee13f34c8ac2145d732309a53c1c
+    hash: ba1345bae57386d4cdb246c910e775a615e69253a9fb330009f7779f609d6c0f
     path: patches/@stainless-api__tsc-multi@1.1.12.patch
 
 importers:
@@ -66,7 +66,7 @@ importers:
         version: 0.2.12
       tsc-multi:
         specifier: npm:@stainless-api/tsc-multi@1.1.12
-        version: '@stainless-api/tsc-multi@1.1.12(patch_hash=fd44ee4c749171210df299ee8e9c3b4ec0c3ee13f34c8ac2145d732309a53c1c)(typescript@6.0.3)'
+        version: '@stainless-api/tsc-multi@1.1.12(patch_hash=ba1345bae57386d4cdb246c910e775a615e69253a9fb330009f7779f609d6c0f)(typescript@6.0.3)'
       tslib:
         specifier: ^2.8.1
         version: 2.8.1
@@ -143,7 +143,7 @@ importers:
         version: 19.0.0
       tsc-multi:
         specifier: npm:@stainless-api/tsc-multi@1.1.12
-        version: '@stainless-api/tsc-multi@1.1.12(patch_hash=fd44ee4c749171210df299ee8e9c3b4ec0c3ee13f34c8ac2145d732309a53c1c)(typescript@6.0.3)'
+        version: '@stainless-api/tsc-multi@1.1.12(patch_hash=ba1345bae57386d4cdb246c910e775a615e69253a9fb330009f7779f609d6c0f)(typescript@6.0.3)'
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -213,7 +213,7 @@ importers:
         version: 19.0.0
       tsc-multi:
         specifier: npm:@stainless-api/tsc-multi@1.1.12
-        version: '@stainless-api/tsc-multi@1.1.12(patch_hash=fd44ee4c749171210df299ee8e9c3b4ec0c3ee13f34c8ac2145d732309a53c1c)(typescript@6.0.3)'
+        version: '@stainless-api/tsc-multi@1.1.12(patch_hash=ba1345bae57386d4cdb246c910e775a615e69253a9fb330009f7779f609d6c0f)(typescript@6.0.3)'
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -253,7 +253,7 @@ importers:
         version: 19.0.0
       tsc-multi:
         specifier: npm:@stainless-api/tsc-multi@1.1.12
-        version: '@stainless-api/tsc-multi@1.1.12(patch_hash=fd44ee4c749171210df299ee8e9c3b4ec0c3ee13f34c8ac2145d732309a53c1c)(typescript@6.0.3)'
+        version: '@stainless-api/tsc-multi@1.1.12(patch_hash=ba1345bae57386d4cdb246c910e775a615e69253a9fb330009f7779f609d6c0f)(typescript@6.0.3)'
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -296,7 +296,7 @@ importers:
         version: 19.0.0
       tsc-multi:
         specifier: npm:@stainless-api/tsc-multi@1.1.12
-        version: '@stainless-api/tsc-multi@1.1.12(patch_hash=fd44ee4c749171210df299ee8e9c3b4ec0c3ee13f34c8ac2145d732309a53c1c)(typescript@6.0.3)'
+        version: '@stainless-api/tsc-multi@1.1.12(patch_hash=ba1345bae57386d4cdb246c910e775a615e69253a9fb330009f7779f609d6c0f)(typescript@6.0.3)'
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -339,7 +339,7 @@ importers:
         version: 19.0.0
       tsc-multi:
         specifier: npm:@stainless-api/tsc-multi@1.1.12
-        version: '@stainless-api/tsc-multi@1.1.12(patch_hash=fd44ee4c749171210df299ee8e9c3b4ec0c3ee13f34c8ac2145d732309a53c1c)(typescript@6.0.3)'
+        version: '@stainless-api/tsc-multi@1.1.12(patch_hash=ba1345bae57386d4cdb246c910e775a615e69253a9fb330009f7779f609d6c0f)(typescript@6.0.3)'
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -6683,7 +6683,7 @@ snapshots:
 
   '@stablelib/base64@1.0.1': {}
 
-  '@stainless-api/tsc-multi@1.1.12(patch_hash=fd44ee4c749171210df299ee8e9c3b4ec0c3ee13f34c8ac2145d732309a53c1c)(typescript@6.0.3)':
+  '@stainless-api/tsc-multi@1.1.12(patch_hash=ba1345bae57386d4cdb246c910e775a615e69253a9fb330009f7779f609d6c0f)(typescript@6.0.3)':
     dependencies:
       debug: 4.4.3
       fast-glob: 3.3.2
