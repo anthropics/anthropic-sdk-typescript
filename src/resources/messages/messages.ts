@@ -1227,6 +1227,62 @@ export interface CacheCreation {
   ephemeral_5m_input_tokens: number;
 }
 
+export interface CacheMissMessagesChanged {
+  /**
+   * Approximate number of input tokens that would have been read from cache had the
+   * prefix matched the previous request.
+   */
+  cache_missed_input_tokens: number;
+
+  type: 'messages_changed';
+}
+
+export interface CacheMissModelChanged {
+  /**
+   * Approximate number of input tokens that would have been read from cache had the
+   * prefix matched the previous request.
+   */
+  cache_missed_input_tokens: number;
+
+  type: 'model_changed';
+}
+
+export interface CacheMissPreviousMessageNotFound {
+  type: 'previous_message_not_found';
+}
+
+export type CacheMissReason =
+  | CacheMissModelChanged
+  | CacheMissSystemChanged
+  | CacheMissToolsChanged
+  | CacheMissMessagesChanged
+  | CacheMissPreviousMessageNotFound
+  | CacheMissUnavailable;
+
+export interface CacheMissSystemChanged {
+  /**
+   * Approximate number of input tokens that would have been read from cache had the
+   * prefix matched the previous request.
+   */
+  cache_missed_input_tokens: number;
+
+  type: 'system_changed';
+}
+
+export interface CacheMissToolsChanged {
+  /**
+   * Approximate number of input tokens that would have been read from cache had the
+   * prefix matched the previous request.
+   */
+  cache_missed_input_tokens: number;
+
+  type: 'tools_changed';
+}
+
+export interface CacheMissUnavailable {
+  type: 'unavailable';
+}
+
 export interface CitationCharLocation {
   cited_text: string;
 
@@ -2240,6 +2296,35 @@ export interface ContentBlockSource {
 export type ContentBlockSourceContent = TextBlockParam | ImageBlockParam;
 
 /**
+ * Request-level diagnostics: why the prompt cache could not fully reuse the prefix
+ * of the request named by `diagnostics.previous_message_id`.
+ */
+export interface Diagnostics {
+  /**
+   * Explains why the prompt cache could not fully reuse the prefix from the request
+   * identified by `diagnostics.previous_message_id`. `null` means diagnosis is still
+   * pending — the response was serialized before the background comparison
+   * completed.
+   */
+  cache_miss_reason: CacheMissReason | null;
+}
+
+/**
+ * Request-level diagnostics. Currently carries the previous response id for
+ * prompt-cache divergence reporting.
+ */
+export interface DiagnosticsParam {
+  /**
+   * The `id` (`msg_...`) from this client's previous /v1/messages response. The
+   * server compares that request's prompt fingerprint against this one and returns
+   * `diagnostics.cache_miss_reason` when the prompt-cache prefix could not be
+   * reused. Pass `null` on the first turn to opt in without a prior message to
+   * compare.
+   */
+  previous_message_id?: string | null;
+}
+
+/**
  * Tool invocation directly from the model.
  */
 export interface DirectCaller {
@@ -2456,6 +2541,12 @@ export interface Message {
    * ```
    */
   content: Array<ContentBlock>;
+
+  /**
+   * Request-level diagnostics. `null` when the request did not supply `diagnostics`,
+   * or when it did and no prompt-cache divergence was detected.
+   */
+  diagnostics: Diagnostics | null;
 
   /**
    * The model that will complete your prompt.
@@ -4696,6 +4787,13 @@ export interface MessageCreateParamsBase {
   container?: MessageCreateParamsContainer | null;
 
   /**
+   * Body param: Request-level diagnostics. Supply `previous_message_id` to have the
+   * response include `diagnostics.cache_miss_reason` explaining any prompt-cache
+   * divergence from that prior request.
+   */
+  diagnostics?: DiagnosticsParam | null;
+
+  /**
    * Body param: Specifies the geographic region for inference processing. If not
    * specified, the workspace's `default_inference_geo` is used.
    */
@@ -5195,6 +5293,13 @@ export declare namespace Messages {
     type BrowserZoomConfig as BrowserZoomConfig,
     type CacheControlEphemeral as CacheControlEphemeral,
     type CacheCreation as CacheCreation,
+    type CacheMissMessagesChanged as CacheMissMessagesChanged,
+    type CacheMissModelChanged as CacheMissModelChanged,
+    type CacheMissPreviousMessageNotFound as CacheMissPreviousMessageNotFound,
+    type CacheMissReason as CacheMissReason,
+    type CacheMissSystemChanged as CacheMissSystemChanged,
+    type CacheMissToolsChanged as CacheMissToolsChanged,
+    type CacheMissUnavailable as CacheMissUnavailable,
     type CitationCharLocation as CitationCharLocation,
     type CitationCharLocationParam as CitationCharLocationParam,
     type CitationContentBlockLocation as CitationContentBlockLocation,
@@ -5253,6 +5358,8 @@ export declare namespace Messages {
     type ContentBlockStopEvent as ContentBlockStopEvent,
     type ContentBlockSource as ContentBlockSource,
     type ContentBlockSourceContent as ContentBlockSourceContent,
+    type Diagnostics as Diagnostics,
+    type DiagnosticsParam as DiagnosticsParam,
     type DirectCaller as DirectCaller,
     type DocumentBlock as DocumentBlock,
     type DocumentBlockParam as DocumentBlockParam,

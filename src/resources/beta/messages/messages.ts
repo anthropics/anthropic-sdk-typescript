@@ -1515,6 +1515,14 @@ export interface BetaCacheMissPreviousMessageNotFound {
   type: 'previous_message_not_found';
 }
 
+export type BetaCacheMissReason =
+  | BetaCacheMissModelChanged
+  | BetaCacheMissSystemChanged
+  | BetaCacheMissToolsChanged
+  | BetaCacheMissMessagesChanged
+  | BetaCacheMissPreviousMessageNotFound
+  | BetaCacheMissUnavailable;
+
 export interface BetaCacheMissSystemChanged {
   /**
    * Approximate number of input tokens that would have been read from cache had the
@@ -2835,14 +2843,7 @@ export interface BetaDiagnostics {
    * pending — the response was serialized before the background comparison
    * completed.
    */
-  cache_miss_reason:
-    | BetaCacheMissModelChanged
-    | BetaCacheMissSystemChanged
-    | BetaCacheMissToolsChanged
-    | BetaCacheMissMessagesChanged
-    | BetaCacheMissPreviousMessageNotFound
-    | BetaCacheMissUnavailable
-    | null;
+  cache_miss_reason: BetaCacheMissReason | null;
 }
 
 /**
@@ -7552,6 +7553,7 @@ export declare namespace Messages {
     type BetaCacheMissMessagesChanged as BetaCacheMissMessagesChanged,
     type BetaCacheMissModelChanged as BetaCacheMissModelChanged,
     type BetaCacheMissPreviousMessageNotFound as BetaCacheMissPreviousMessageNotFound,
+    type BetaCacheMissReason as BetaCacheMissReason,
     type BetaCacheMissSystemChanged as BetaCacheMissSystemChanged,
     type BetaCacheMissToolsChanged as BetaCacheMissToolsChanged,
     type BetaCacheMissUnavailable as BetaCacheMissUnavailable,

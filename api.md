@@ -74,6 +74,13 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">BrowserZoomConfig</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CacheControlEphemeral</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CacheCreation</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CacheMissMessagesChanged</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CacheMissModelChanged</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CacheMissPreviousMessageNotFound</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CacheMissReason</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CacheMissSystemChanged</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CacheMissToolsChanged</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CacheMissUnavailable</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationCharLocation</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationCharLocationParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationContentBlockLocation</a></code>
@@ -132,6 +139,8 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockSourceContent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockStartEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockStopEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">Diagnostics</a></code>
+- <code><a href="./src/resources/messages/messages.ts">DiagnosticsParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">DirectCaller</a></code>
 - <code><a href="./src/resources/messages/messages.ts">DocumentBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">DocumentBlockParam</a></code>
@@ -462,6 +471,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissMessagesChanged</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissModelChanged</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissPreviousMessageNotFound</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissReason</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissSystemChanged</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissToolsChanged</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissUnavailable</a></code>

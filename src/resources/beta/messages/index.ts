@@ -85,6 +85,7 @@ export {
   type BetaCacheMissMessagesChanged,
   type BetaCacheMissModelChanged,
   type BetaCacheMissPreviousMessageNotFound,
+  type BetaCacheMissReason,
   type BetaCacheMissSystemChanged,
   type BetaCacheMissToolsChanged,
   type BetaCacheMissUnavailable,
