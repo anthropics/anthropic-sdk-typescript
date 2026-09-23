@@ -1158,7 +1158,7 @@ export class BaseAnthropic {
 
     if (response instanceof globalThis.Error) {
       releaseRequestSignal(controller);
-      const retryMessage = `retrying, ${retriesRemaining} attempts remaining`;
+      const retryingMessage = `retrying, ${retriesRemaining} attempts remaining`;
       if (options.signal?.aborted) {
         throw new Errors.APIUserAbortError();
       }
@@ -1187,13 +1187,13 @@ export class BaseAnthropic {
         });
         throw response;
       }
-      if (retriesRemaining) {
+      if (retriesRemaining && !this.hasSingleUseBody(options.body)) {
         loggerFor(this).info(
-          `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - ${retryMessage}`,
+          `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - ${retryingMessage}`,
         );
         debugLogRequestDetails(
           loggerFor(this),
-          `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (${retryMessage})`,
+          `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (${retryingMessage})`,
           {
             retryOfRequestLogID,
             url,
@@ -1203,12 +1203,14 @@ export class BaseAnthropic {
         );
         return this.retryRequest(options, retriesRemaining, retryOfRequestLogID ?? requestLogID);
       }
+      const retryMessage =
+        retriesRemaining ? 'error; request body is not replayable' : 'error; no more retries left';
       loggerFor(this).info(
-        `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - error; no more retries left`,
+        `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - ${retryMessage}`,
       );
       debugLogRequestDetails(
         loggerFor(this),
-        `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (error; no more retries left)`,
+        `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (${retryMessage})`,
         {
           retryOfRequestLogID,
           url,
@@ -1237,7 +1239,7 @@ export class BaseAnthropic {
 
     if (!response.ok) {
       const shouldRetry = await this.shouldRetry(response, options);
-      if (retriesRemaining && shouldRetry) {
+      if (retriesRemaining && shouldRetry && !this.hasSingleUseBody(options.body)) {
         const retryMessage = `retrying, ${retriesRemaining} attempts remaining`;
 
         // We don't need the body of this response.
@@ -1259,7 +1261,10 @@ export class BaseAnthropic {
         );
       }
 
-      const retryMessage = shouldRetry ? `error; no more retries left` : `error; not retryable`;
+      const retryMessage =
+        !shouldRetry ? `error; not retryable`
+        : retriesRemaining ? `error; request body is not replayable`
+        : `error; no more retries left`;
 
       loggerFor(this).info(`${responseInfo} - ${retryMessage}`);
 
@@ -1487,6 +1492,16 @@ export class BaseAnthropic {
     await sleep(timeoutMillis, options.signal ?? undefined);
 
     return this.makeRequest(options, retriesRemaining - 1, requestLogID);
+  }
+
+  private hasSingleUseBody(body: unknown): boolean {
+    return !!(
+      body &&
+      typeof body === 'object' &&
+      (((globalThis as any).ReadableStream && body instanceof (globalThis as any).ReadableStream) ||
+        Symbol.asyncIterator in body ||
+        (Symbol.iterator in body && 'next' in body && typeof body.next === 'function'))
+    );
   }
 
   private calculateDefaultRetryTimeoutMillis(retriesRemaining: number, maxRetries: number): number {
