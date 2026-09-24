@@ -77,11 +77,6 @@ function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
   // process all applicable types without changing the union's representation.
   const types = Array.isArray(type) ? type : [type];
 
-  // A sibling combinator intersects with the type union; it does not replace it.
-  if (Array.isArray(type)) {
-    strictSchema['type'] = type;
-  }
-
   if (types.includes('object')) {
     const properties = pop(jsonSchema, 'properties') || {};
 
