@@ -3175,9 +3175,20 @@ export interface BetaFallbackParam {
    */
   speed?: 'standard' | 'fast' | null;
 
-  thinking?: BetaThinkingConfigEnabled | BetaThinkingConfigDisabled | BetaThinkingConfigAdaptive | null;
+  thinking?:
+    | BetaThinkingConfigEnabled
+    | BetaThinkingConfigDisabled
+    | BetaFallbackParam.BetaThinkingConfigBetweenTools
+    | BetaThinkingConfigAdaptive
+    | null;
 
   [k: string]: unknown;
+}
+
+export namespace BetaFallbackParam {
+  export interface BetaThinkingConfigBetweenTools {
+    type: 'between_tools';
+  }
 }
 
 /**
@@ -5021,7 +5032,14 @@ export interface BetaThinkingConfigEnabled {
 export type BetaThinkingConfigParam =
   | BetaThinkingConfigEnabled
   | BetaThinkingConfigDisabled
+  | BetaThinkingConfigParam.BetaThinkingConfigBetweenTools
   | BetaThinkingConfigAdaptive;
+
+export namespace BetaThinkingConfigParam {
+  export interface BetaThinkingConfigBetweenTools {
+    type: 'between_tools';
+  }
+}
 
 export interface BetaThinkingDelta {
   /**

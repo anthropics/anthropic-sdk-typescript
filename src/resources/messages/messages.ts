@@ -3344,7 +3344,17 @@ export interface ThinkingConfigEnabled {
  * [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
  * for details.
  */
-export type ThinkingConfigParam = ThinkingConfigEnabled | ThinkingConfigDisabled | ThinkingConfigAdaptive;
+export type ThinkingConfigParam =
+  | ThinkingConfigEnabled
+  | ThinkingConfigDisabled
+  | ThinkingConfigParam.ThinkingConfigBetweenTools
+  | ThinkingConfigAdaptive;
+
+export namespace ThinkingConfigParam {
+  export interface ThinkingConfigBetweenTools {
+    type: 'between_tools';
+  }
+}
 
 export interface ThinkingDelta {
   /**
