@@ -85,9 +85,11 @@ export interface RequestOptions {
    * The maximum amount of time (in milliseconds) that the client should wait for a response
    * from the server before timing out a single request.
    *
+   * Pass `undefined` to fall back to the client-level timeout.
+   *
    * @unit milliseconds
    */
-  timeout?: number;
+  timeout?: number | undefined;
 
   /**
    * Additional `RequestInit` options to be passed to the underlying `fetch` call.
