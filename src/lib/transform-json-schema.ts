@@ -73,7 +73,16 @@ function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
     strictSchema['title'] = title;
   }
 
-  if (type === 'object') {
+  // JSON Schema permits a type array. Each type's keywords still apply, so
+  // process all applicable types without changing the union's representation.
+  const types = Array.isArray(type) ? type : [type];
+
+  // A sibling combinator intersects with the type union; it does not replace it.
+  if (Array.isArray(type)) {
+    strictSchema['type'] = type;
+  }
+
+  if (types.includes('object')) {
     const properties = pop(jsonSchema, 'properties') || {};
 
     strictSchema['properties'] = Object.fromEntries(
@@ -90,14 +99,18 @@ function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
     if (required !== undefined) {
       strictSchema['required'] = required;
     }
-  } else if (type === 'string') {
+  }
+
+  if (types.includes('string')) {
     const format = pop(jsonSchema, 'format');
     if (format !== undefined && SUPPORTED_STRING_FORMATS.has(format)) {
       strictSchema['format'] = format;
     } else if (format !== undefined) {
       jsonSchema['format'] = format;
     }
-  } else if (type === 'array') {
+  }
+
+  if (types.includes('array')) {
     const items = pop(jsonSchema, 'items');
     if (items !== undefined) {
       strictSchema['items'] = _transformJSONSchema(items as JSONSchema);
