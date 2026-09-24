@@ -49,12 +49,25 @@ export function makeFile(
   return new File(fileBits as any, fileName ?? '', options);
 }
 
+/**
+ * Returns the path of a URL, so that the query string and fragment of e.g. a
+ * signed download link don't end up in the file name derived from it.
+ */
+function getURLPath(url: string): string {
+  try {
+    return new URL(url).pathname;
+  } catch {
+    // Not an absolute URL; drop the query string / fragment by hand.
+    return url.split(/[?#]/)[0] || '';
+  }
+}
+
 export function getName(value: any, stripPath: boolean): string | undefined {
   const val =
     (typeof value === 'object' &&
       value !== null &&
       (('name' in value && value.name && String(value.name)) ||
-        ('url' in value && value.url && String(value.url)) ||
+        ('url' in value && value.url && getURLPath(String(value.url))) ||
         ('filename' in value && value.filename && String(value.filename)) ||
         ('path' in value && value.path && String(value.path)))) ||
     '';
