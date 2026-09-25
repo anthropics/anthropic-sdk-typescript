@@ -4845,10 +4845,13 @@ export interface MessageCreateParamsBase {
 
   /**
    * Body param: Whether to incrementally stream the response using server-sent
-   * events.
+   * events. When `true`, SDKs return a raw event stream.
    *
-   * See [streaming](https://platform.claude.com/docs/en/build-with-claude/streaming)
-   * for details.
+   * In the TypeScript, Python and Ruby SDKs, the recommended way to stream is
+   * `messages.stream()`. It sets `stream` for you and accumulates the events into
+   * the final message. See
+   * [Streaming with SDKs](https://platform.claude.com/docs/en/build-with-claude/streaming#streaming-with-sdks)
+   * for an example in each language.
    */
   stream?: boolean;
 
@@ -5007,10 +5010,13 @@ export namespace MessageCreateParams {
 export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase {
   /**
    * Body param: Whether to incrementally stream the response using server-sent
-   * events.
+   * events. When `true`, SDKs return a raw event stream.
    *
-   * See [streaming](https://platform.claude.com/docs/en/build-with-claude/streaming)
-   * for details.
+   * In the TypeScript, Python and Ruby SDKs, the recommended way to stream is
+   * `messages.stream()`. It sets `stream` for you and accumulates the events into
+   * the final message. See
+   * [Streaming with SDKs](https://platform.claude.com/docs/en/build-with-claude/streaming#streaming-with-sdks)
+   * for an example in each language.
    */
   stream?: false;
 }
@@ -5018,10 +5024,13 @@ export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase
 export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
   /**
    * Body param: Whether to incrementally stream the response using server-sent
-   * events.
+   * events. When `true`, SDKs return a raw event stream.
    *
-   * See [streaming](https://platform.claude.com/docs/en/build-with-claude/streaming)
-   * for details.
+   * In the TypeScript, Python and Ruby SDKs, the recommended way to stream is
+   * `messages.stream()`. It sets `stream` for you and accumulates the events into
+   * the final message. See
+   * [Streaming with SDKs](https://platform.claude.com/docs/en/build-with-claude/streaming#streaming-with-sdks)
+   * for an example in each language.
    */
   stream: true;
 }
