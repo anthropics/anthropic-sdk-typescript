@@ -9,11 +9,13 @@ pnpm test:ecosystem node-ts-esm 'browser-*'  # run projects by name or glob
 pnpm test:ecosystem --list                   # list projects and known failures
 pnpm test:ecosystem --skip-build --skip-pack # reuse .pack/anthropic-ai-sdk.tgz
 pnpm test:ecosystem --node-versions 20,22,24 # run the Node projects once per installed Node major
+pnpm test:ecosystem --only node              # only the projects --node-versions repeats; --only non-node is the rest
 ```
 
 `--keep` keeps the temp copies (failed projects are always kept) and `--jobs N` runs projects in parallel.
 `--node-versions` finds each major where actions/setup-node, nvm, fnm or volta install it, or in `$ECOSYSTEM_NODE_<major>` (a bin directory).
-CI runs these tests from `.github/workflows/ecosystem-tests.yml`.
+`--only node` keeps the projects that set `perNodeVersion` and `--only non-node` keeps the others, so the two never overlap and together cover every project.
+CI runs these tests from `.github/workflows/ecosystem-tests.yml`, split into one `--only node` job per Node major and one `--only non-node` job.
 
 ## Shared test cases
 
