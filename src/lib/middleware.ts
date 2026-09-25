@@ -75,6 +75,10 @@ function applyFallbackPatch(body: MessageCreateParams, entry: BetaFallbackParam)
       patchField(patched, key, value);
     }
   }
+  // the fallback model may not accept `between_tools`
+  if (entry.thinking === undefined && body.thinking?.type === 'between_tools') {
+    patched['thinking'] = { type: 'disabled' };
+  }
   return patched as unknown as MessageCreateParams;
 }
 
@@ -161,6 +165,10 @@ export interface BetaRefusalFallbackOptions {
  * the credit token is redeemable only against the refused request's body, so
  * the other per-entry overrides (`max_tokens`, `thinking`, ...) would be
  * rejected.
+ *
+ * A `between_tools` thinking config is sent to a fallback as `disabled`, since
+ * the fallback model may not accept it; when not streaming, an entry that sets
+ * `thinking` overrides this.
  *
  * The fallback-credit beta the credit tokens require is sent by default on
  * every request the middleware handles; the `betas` option controls this.
@@ -845,6 +853,9 @@ function buildFallbackRequest(
 
   body.model = model;
   body.fallback_credit_token = creditTokenParam(creditToken);
+  if (body.thinking?.type === 'between_tools') {
+    body.thinking = { type: 'disabled' };
+  }
 
   // Append the continuation (decided by the chain loop) as a trailing
   // assistant turn; everything else must stay identical to the refused
@@ -859,7 +870,9 @@ function buildFallbackRequest(
   // model, fallback_credit_token, and the one appended assistant turn are the
   // only permitted deltas; anything else is a 400 ("request body ... does not
   // match the original refused request"). This is also why the per-entry
-  // BetaFallbackParam overrides are ignored on the streaming path.
+  // BetaFallbackParam overrides are ignored on the streaming path. The one
+  // exception is a carried `between_tools` thinking config, which the fallback
+  // model may not accept: it becomes `disabled`, served without the credit.
 
   return { ...orig, headers: new Headers(orig.headers), body: JSON.stringify(body) };
 }

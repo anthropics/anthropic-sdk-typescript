@@ -2143,6 +2143,28 @@ describe('betaRefusalFallbackMiddleware', () => {
     expect(bodies.map((b) => 'speed' in b)).toEqual([true, false, true]);
   });
 
+  test('between_tools thinking degrades to disabled on the hop', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model', 'credit-token'), message('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    await client.beta.messages.create({ ...params, thinking: { type: 'between_tools' } });
+
+    expect(bodies.map((b) => b['thinking'])).toEqual([{ type: 'between_tools' }, { type: 'disabled' }]);
+  });
+
+  test('an entry that sets thinking overrides between_tools', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model', 'credit-token'), message('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model', thinking: { type: 'between_tools' } }]),
+    );
+
+    await client.beta.messages.create({ ...params, thinking: { type: 'between_tools' } });
+
+    expect(bodies[1]!['thinking']).toEqual({ type: 'between_tools' });
+  });
+
   describe('output_config patches one level deep', () => {
     const withConfig = {
       ...params,
