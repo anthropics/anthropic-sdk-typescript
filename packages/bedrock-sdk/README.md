@@ -19,7 +19,7 @@ npm install @anthropic-ai/bedrock-sdk
 import { AnthropicBedrock } from '@anthropic-ai/bedrock-sdk';
 
 // Note: this assumes you have configured AWS credentials in a way
-// that the AWS Node SDK will recognise, typicaly a shared `~/.aws/credentials`
+// that the AWS Node SDK will recognise, typically a shared `~/.aws/credentials`
 // file or `AWS_ACCESS_KEY_ID` & `AWS_SECRET_ACCESS_KEY` environment variables.
 //
 // https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-credentials-node.html
