@@ -939,7 +939,6 @@ export interface BetaManagedAgentsMCPToolsetParams {
  * details and options.
  */
 export type BetaManagedAgentsModel =
-  | (string & {})
   | 'claude-opus-5-5'
   | 'claude-fable-5-1'
   | 'claude-sonnet-5'
@@ -954,7 +953,8 @@ export type BetaManagedAgentsModel =
   | 'claude-opus-4-5'
   | 'claude-opus-4-5-20251101'
   | 'claude-sonnet-4-5'
-  | 'claude-sonnet-4-5-20250929';
+  | 'claude-sonnet-4-5-20250929'
+  | (string & {});
 
 /**
  * Model identifier and configuration.

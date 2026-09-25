@@ -2722,7 +2722,6 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
-  | (string & {})
   | 'claude-fable-5-1'
   | 'claude-opus-5-5'
   | 'claude-mythos-5-1'
@@ -2740,7 +2739,8 @@ export type Model =
   | 'claude-opus-4-5'
   | 'claude-opus-4-5-20251101'
   | 'claude-sonnet-4-5'
-  | 'claude-sonnet-4-5-20250929';
+  | 'claude-sonnet-4-5-20250929'
+  | (string & {});
 
 export interface OutputConfig {
   /**
