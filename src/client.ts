@@ -1549,7 +1549,13 @@ export class BaseAnthropic {
     if ('timeout' in options) validatePositiveInteger('timeout', options.timeout);
     options.timeout = options.timeout ?? this.timeout;
     const { bodyHeaders, body } = this.buildBody({ options });
-    const reqHeaders = await this.buildHeaders({ options: inputOptions, method, bodyHeaders, retryCount });
+    const reqHeaders = await this.buildHeaders({
+      options: inputOptions,
+      method,
+      bodyHeaders,
+      retryCount,
+      timeout: options.timeout,
+    });
 
     const req: FinalizedRequestInit = {
       method,
@@ -1570,18 +1576,20 @@ export class BaseAnthropic {
     method,
     bodyHeaders,
     retryCount,
+    timeout,
   }: {
     options: FinalRequestOptions;
     method: HTTPMethod;
     bodyHeaders: HeadersLike;
     retryCount: number;
+    timeout: number;
   }): Promise<Headers> {
     const headers = buildHeaders([
       {
         Accept: 'application/json',
         'User-Agent': this.getUserAgent(),
         'X-Stainless-Retry-Count': String(retryCount),
-        ...(options.timeout ? { 'X-Stainless-Timeout': String(Math.trunc(options.timeout / 1000)) } : {}),
+        'X-Stainless-Timeout': String(Math.trunc(timeout / 1000)),
         ...getPlatformHeaders(),
         ...(this._options.dangerouslyAllowBrowser ?
           { 'anthropic-dangerous-direct-browser-access': 'true' }
