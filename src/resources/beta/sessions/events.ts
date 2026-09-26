@@ -1114,6 +1114,45 @@ export type BetaManagedAgentsSessionEvent =
   | SessionsAPI.BetaManagedAgentsSessionUsageEvent;
 
 /**
+ * The `type` of a session event.
+ */
+export type BetaManagedAgentsSessionEventType =
+  | 'user.message'
+  | 'user.interrupt'
+  | 'user.tool_confirmation'
+  | 'user.custom_tool_result'
+  | 'agent.custom_tool_use'
+  | 'agent.message'
+  | 'agent.thinking'
+  | 'agent.mcp_tool_use'
+  | 'agent.mcp_tool_result'
+  | 'agent.tool_use'
+  | 'agent.tool_result'
+  | 'agent.thread_message_received'
+  | 'agent.thread_message_sent'
+  | 'agent.thread_context_compacted'
+  | 'session.error'
+  | 'session.status_rescheduled'
+  | 'session.status_running'
+  | 'session.status_idle'
+  | 'session.status_terminated'
+  | 'session.thread_created'
+  | 'span.outcome_evaluation_start'
+  | 'span.outcome_evaluation_end'
+  | 'span.model_request_start'
+  | 'span.model_request_end'
+  | 'span.outcome_evaluation_ongoing'
+  | 'user.define_outcome'
+  | 'session.thread_status_running'
+  | 'session.thread_status_idle'
+  | 'session.thread_status_terminated'
+  | 'user.tool_result'
+  | 'session.thread_status_rescheduled'
+  | 'session.updated'
+  | 'system.message'
+  | 'session.usage';
+
+/**
  * The agent is idle waiting on one or more blocking user-input events (tool
  * confirmation, custom tool result, etc.). Resolving all of them transitions the
  * session back to running.
@@ -2098,7 +2137,7 @@ export interface EventListParams extends PageCursorParams {
    * events (for example, `user.message` or `agent.tool_use`). Omit to return all
    * event types.
    */
-  types?: Array<string>;
+  types?: Array<BetaManagedAgentsSessionEventType>;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
@@ -2226,6 +2265,7 @@ export declare namespace Events {
     type BetaManagedAgentsSessionEndTurn as BetaManagedAgentsSessionEndTurn,
     type BetaManagedAgentsSessionErrorEvent as BetaManagedAgentsSessionErrorEvent,
     type BetaManagedAgentsSessionEvent as BetaManagedAgentsSessionEvent,
+    type BetaManagedAgentsSessionEventType as BetaManagedAgentsSessionEventType,
     type BetaManagedAgentsSessionRequiresAction as BetaManagedAgentsSessionRequiresAction,
     type BetaManagedAgentsSessionRetriesExhausted as BetaManagedAgentsSessionRetriesExhausted,
     type BetaManagedAgentsSessionStatusIdleEvent as BetaManagedAgentsSessionStatusIdleEvent,
