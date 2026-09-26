@@ -1,4 +1,5 @@
 import Anthropic, { BetaFallbackState, type ClientOptions, type Middleware } from '@anthropic-ai/sdk';
+import { BetaMessageStream } from '@anthropic-ai/sdk/lib/BetaMessageStream';
 import { mockFetch } from '../../lib/mock-fetch';
 import {
   BetaMessage,
@@ -459,7 +460,7 @@ describe('ToolRunner', () => {
       // First iteration: assistant requests tool (using helper that generates proper stream events)
       handleAssistantMessageStream(getWeatherToolUse('SF'));
       await expectEvent(iterator, async (stream) => {
-        expect(stream.constructor.name).toBe('BetaMessageStream');
+        expect(stream).toBeInstanceOf(BetaMessageStream);
         const events = [];
         for await (const event of stream) {
           events.push(event);

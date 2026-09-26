@@ -63,7 +63,8 @@ export type BetaRunnableTool<Input = any> = BetaClientRunnableToolType & {
   /**
    * Runs on the event loop: a body that blocks synchronously stalls the runner
    * and, in an `EnvironmentWorker`, the lease heartbeat. Await async work or
-   * move it to a worker thread.
+   * move it to a worker thread. A streaming `client.beta.messages.toolRunner`
+   * can call it while the reply is still streaming.
    */
   run: (
     args: Input,
