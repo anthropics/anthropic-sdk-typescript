@@ -1874,6 +1874,44 @@ export interface BetaClearToolUses20250919EditResponse {
   type: 'clear_tool_uses_20250919';
 }
 
+/**
+ * A tool that the client executes: the caller runs each `tool_use` request for it
+ * and returns the output in a `tool_result` block.
+ */
+export type BetaClientToolUnion =
+  | BetaTool
+  | BetaToolBash20241022
+  | BetaToolBash20250124
+  | BetaBrowserToolset20260801
+  | BetaToolComputerUse20241022
+  | BetaMemoryTool20250818
+  | BetaToolComputerUse20250124
+  | BetaToolTextEditor20241022
+  | BetaToolComputerUse20251124
+  | BetaComputerToolset20260801
+  | BetaToolTextEditor20250124
+  | BetaToolTextEditor20250429
+  | BetaToolTextEditor20250728;
+
+export const BETA_CLIENT_TOOL_UNION_KEYS = [
+  'input_schema',
+  'name',
+  'allowed_callers',
+  'cache_control',
+  'defer_loading',
+  'description',
+  'eager_input_streaming',
+  'input_examples',
+  'strict',
+  'type',
+  'configs',
+  'display_height_px',
+  'display_width_px',
+  'display_number',
+  'enable_zoom',
+  'max_characters',
+] as const;
+
 export interface BetaCodeExecutionOutputBlock {
   file_id: string;
 
@@ -7601,6 +7639,7 @@ export declare namespace Messages {
     type BetaClearThinking20251015EditResponse as BetaClearThinking20251015EditResponse,
     type BetaClearToolUses20250919Edit as BetaClearToolUses20250919Edit,
     type BetaClearToolUses20250919EditResponse as BetaClearToolUses20250919EditResponse,
+    type BetaClientToolUnion as BetaClientToolUnion,
     type BetaCodeExecutionOutputBlock as BetaCodeExecutionOutputBlock,
     type BetaCodeExecutionOutputBlockParam as BetaCodeExecutionOutputBlockParam,
     type BetaCodeExecutionResultBlock as BetaCodeExecutionResultBlock,

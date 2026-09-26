@@ -92,6 +92,7 @@ export {
   type CitationsDelta,
   type CitationsSearchResultLocation,
   type CitationsWebSearchResultLocation,
+  type ClientToolUnion,
   type CodeExecutionOutputBlock,
   type CodeExecutionOutputBlockParam,
   type CodeExecutionResultBlock,

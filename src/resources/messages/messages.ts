@@ -1536,6 +1536,20 @@ export interface CitationsWebSearchResultLocation {
   url: string;
 }
 
+/**
+ * A tool that the client executes: the caller runs each `tool_use` request for it
+ * and returns the output in a `tool_result` block.
+ */
+export type ClientToolUnion =
+  | Tool
+  | ToolBash20250124
+  | BrowserToolset20260801
+  | MemoryTool20250818
+  | ComputerToolset20260801
+  | ToolTextEditor20250124
+  | ToolTextEditor20250429
+  | ToolTextEditor20250728;
+
 export interface CodeExecutionOutputBlock {
   file_id: string;
 
@@ -5332,6 +5346,7 @@ export declare namespace Messages {
     type CitationsDelta as CitationsDelta,
     type CitationsSearchResultLocation as CitationsSearchResultLocation,
     type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
+    type ClientToolUnion as ClientToolUnion,
     type CodeExecutionOutputBlock as CodeExecutionOutputBlock,
     type CodeExecutionOutputBlockParam as CodeExecutionOutputBlockParam,
     type CodeExecutionResultBlock as CodeExecutionResultBlock,

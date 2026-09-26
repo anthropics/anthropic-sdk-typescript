@@ -94,6 +94,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">CitationsDelta</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationsSearchResultLocation</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationsWebSearchResultLocation</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ClientToolUnion</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionOutputBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionOutputBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionResultBlock</a></code>
@@ -492,6 +493,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaClearThinking20251015EditResponse</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaClearToolUses20250919Edit</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaClearToolUses20250919EditResponse</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaClientToolUnion</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionOutputBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionOutputBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionResultBlock</a></code>
