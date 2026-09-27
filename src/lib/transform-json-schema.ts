@@ -73,7 +73,10 @@ function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
     strictSchema['title'] = title;
   }
 
-  if (type === 'object') {
+  const includesType = (target: string) =>
+    typeof type === 'string' ? type === target : Array.isArray(type) && type.includes(target);
+
+  if (includesType('object')) {
     const properties = pop(jsonSchema, 'properties') || {};
 
     strictSchema['properties'] = Object.fromEntries(
@@ -90,14 +93,18 @@ function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
     if (required !== undefined) {
       strictSchema['required'] = required;
     }
-  } else if (type === 'string') {
+  }
+
+  if (includesType('string')) {
     const format = pop(jsonSchema, 'format');
     if (format !== undefined && SUPPORTED_STRING_FORMATS.has(format)) {
       strictSchema['format'] = format;
     } else if (format !== undefined) {
       jsonSchema['format'] = format;
     }
-  } else if (type === 'array') {
+  }
+
+  if (includesType('array')) {
     const items = pop(jsonSchema, 'items');
     if (items !== undefined) {
       strictSchema['items'] = _transformJSONSchema(items as JSONSchema);
