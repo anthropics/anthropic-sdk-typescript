@@ -117,7 +117,7 @@ const NumbersResponse = z.object({
 });
 
 const message = await client.messages.parse({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
   output_config: {
@@ -147,7 +147,7 @@ const NumbersResponse = toStandardJsonSchema(
 );
 
 const message = await client.beta.messages.parse({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
   output_config: {
@@ -177,7 +177,7 @@ const NumbersResponse = {
 } as const;
 
 const message = await client.messages.parse({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
   output_config: {
@@ -236,7 +236,7 @@ const weatherTool = betaZodTool({
 });
 
 const finalMessage = await anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   messages: [{ role: 'user', content: 'What is the weather in San Francisco?' }],
   tools: [weatherTool],
@@ -252,7 +252,7 @@ When you need to process intermediate messages or control the conversation flow,
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   messages: [{ role: 'user', content: 'What is the weather in San Francisco?' }],
   tools: [weatherTool],
@@ -274,7 +274,7 @@ example.
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   messages: [{ role: 'user', content: 'What is the weather in San Francisco?' }],
   tools: [calculatorTool],
@@ -336,7 +336,7 @@ const controller = new AbortController();
 
 const runner = anthropic.beta.messages.toolRunner(
   {
-    model: 'claude-sonnet-5',
+    model: 'claude-sonnet-5-5',
     max_tokens: 1000,
     messages: [{ role: 'user', content: 'Do a long task' }],
     tools: [
@@ -375,7 +375,7 @@ With the `compact-2026-09-04` beta you decide when a conversation is compacted: 
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   betas: ['compact-2026-09-04'],
   messages: [{ role: 'user', content: 'Find every page that mentions rate limits.' }],
@@ -580,7 +580,7 @@ Changing `tools` in the middle of a conversation misses the prompt cache for eve
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   betas: ['inline-tools-2026-09-15'],
   messages: [{ role: 'user', content: 'How many orders shipped late last week?' }],

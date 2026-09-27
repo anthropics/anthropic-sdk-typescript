@@ -205,6 +205,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">ThinkingBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingConfigAdaptive</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThinkingConfigBetweenTools</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingConfigDisabled</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingConfigEnabled</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingConfigParam</a></code>
@@ -657,6 +658,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingBlockBinding</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigAdaptive</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigBetweenTools</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigDisabled</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigEnabled</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigParam</a></code>

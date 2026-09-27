@@ -323,6 +323,7 @@ export {
   type BetaThinkingBlockBinding,
   type BetaThinkingBlockParam,
   type BetaThinkingConfigAdaptive,
+  type BetaThinkingConfigBetweenTools,
   type BetaThinkingConfigDisabled,
   type BetaThinkingConfigEnabled,
   type BetaThinkingConfigParam,

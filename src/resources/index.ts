@@ -221,6 +221,7 @@ export {
   type ThinkingBlock,
   type ThinkingBlockParam,
   type ThinkingConfigAdaptive,
+  type ThinkingConfigBetweenTools,
   type ThinkingConfigDisabled,
   type ThinkingConfigEnabled,
   type ThinkingConfigParam,

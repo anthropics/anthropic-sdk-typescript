@@ -3216,17 +3216,11 @@ export interface BetaFallbackParam {
   thinking?:
     | BetaThinkingConfigEnabled
     | BetaThinkingConfigDisabled
-    | BetaFallbackParam.BetaThinkingConfigBetweenTools
+    | BetaThinkingConfigBetweenTools
     | BetaThinkingConfigAdaptive
     | null;
 
   [k: string]: unknown;
-}
-
-export namespace BetaFallbackParam {
-  export interface BetaThinkingConfigBetweenTools {
-    type: 'between_tools';
-  }
 }
 
 /**
@@ -5020,6 +5014,10 @@ export interface BetaThinkingConfigAdaptive {
   display?: 'summarized' | 'omitted' | 'updates' | null;
 }
 
+export interface BetaThinkingConfigBetweenTools {
+  type: 'between_tools';
+}
+
 export interface BetaThinkingConfigDisabled {
   type: 'disabled';
 }
@@ -5070,14 +5068,8 @@ export interface BetaThinkingConfigEnabled {
 export type BetaThinkingConfigParam =
   | BetaThinkingConfigEnabled
   | BetaThinkingConfigDisabled
-  | BetaThinkingConfigParam.BetaThinkingConfigBetweenTools
+  | BetaThinkingConfigBetweenTools
   | BetaThinkingConfigAdaptive;
-
-export namespace BetaThinkingConfigParam {
-  export interface BetaThinkingConfigBetweenTools {
-    type: 'between_tools';
-  }
-}
 
 export interface BetaThinkingDelta {
   /**
@@ -7802,6 +7794,7 @@ export declare namespace Messages {
     type BetaThinkingBlockBinding as BetaThinkingBlockBinding,
     type BetaThinkingBlockParam as BetaThinkingBlockParam,
     type BetaThinkingConfigAdaptive as BetaThinkingConfigAdaptive,
+    type BetaThinkingConfigBetweenTools as BetaThinkingConfigBetweenTools,
     type BetaThinkingConfigDisabled as BetaThinkingConfigDisabled,
     type BetaThinkingConfigEnabled as BetaThinkingConfigEnabled,
     type BetaThinkingConfigParam as BetaThinkingConfigParam,

@@ -2736,6 +2736,7 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
+  | 'claude-sonnet-5-5'
   | 'claude-fable-5-1'
   | 'claude-opus-5-5'
   | 'claude-mythos-5-1'
@@ -3318,6 +3319,10 @@ export interface ThinkingConfigAdaptive {
   display?: 'summarized' | 'omitted' | null;
 }
 
+export interface ThinkingConfigBetweenTools {
+  type: 'between_tools';
+}
+
 export interface ThinkingConfigDisabled {
   type: 'disabled';
 }
@@ -3361,14 +3366,8 @@ export interface ThinkingConfigEnabled {
 export type ThinkingConfigParam =
   | ThinkingConfigEnabled
   | ThinkingConfigDisabled
-  | ThinkingConfigParam.ThinkingConfigBetweenTools
+  | ThinkingConfigBetweenTools
   | ThinkingConfigAdaptive;
-
-export namespace ThinkingConfigParam {
-  export interface ThinkingConfigBetweenTools {
-    type: 'between_tools';
-  }
-}
 
 export interface ThinkingDelta {
   /**
@@ -5457,6 +5456,7 @@ export declare namespace Messages {
     type ThinkingBlock as ThinkingBlock,
     type ThinkingBlockParam as ThinkingBlockParam,
     type ThinkingConfigAdaptive as ThinkingConfigAdaptive,
+    type ThinkingConfigBetweenTools as ThinkingConfigBetweenTools,
     type ThinkingConfigDisabled as ThinkingConfigDisabled,
     type ThinkingConfigEnabled as ThinkingConfigEnabled,
     type ThinkingConfigParam as ThinkingConfigParam,

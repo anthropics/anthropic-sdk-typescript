@@ -22,7 +22,7 @@ async function main() {
   const client = new Anthropic();
 
   const stream = client.messages.stream({
-    model: 'claude-sonnet-5',
+    model: 'claude-sonnet-5-5',
     max_tokens: 1024,
     messages: [{ role: 'user', content: 'Provide a weather report for San Francisco.' }],
     output_config: {
