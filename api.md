@@ -1722,3 +1722,81 @@ Methods:
 
 - <code title="get /v1/organizations/compliance_settings?beta=true">client.beta.organization.complianceSettings.<a href="./src/resources/beta/organization/compliance-settings.ts">retrieve</a>() -> BetaComplianceSettings</code>
 - <code title="post /v1/organizations/compliance_settings?beta=true">client.beta.organization.complianceSettings.<a href="./src/resources/beta/organization/compliance-settings.ts">update</a>({ ...params }) -> BetaComplianceSettings</code>
+
+### Plugins
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaDeletedPlugin</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPlugin</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginAPIActor</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginComponent</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginContentScan</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginOwnerOrganization</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginOwnerUser</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginTargetOrganization</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginTargetOrganizationMember</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginTargetRBACGroup</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginUserActor</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/plugins?beta=true">client.beta.organization.plugins.<a href="./src/resources/beta/organization/plugins/plugins.ts">create</a>({ ...params }) -> BetaPlugin</code>
+- <code title="get /v1/organizations/plugins/{plugin_id}?beta=true">client.beta.organization.plugins.<a href="./src/resources/beta/organization/plugins/plugins.ts">retrieve</a>(pluginID, { ...params }) -> BetaPlugin</code>
+- <code title="post /v1/organizations/plugins/{plugin_id}?beta=true">client.beta.organization.plugins.<a href="./src/resources/beta/organization/plugins/plugins.ts">update</a>(pluginID, { ...params }) -> BetaPlugin</code>
+- <code title="get /v1/organizations/plugins?beta=true">client.beta.organization.plugins.<a href="./src/resources/beta/organization/plugins/plugins.ts">list</a>({ ...params }) -> BetaPluginsPageCursor</code>
+- <code title="delete /v1/organizations/plugins/{plugin_id}?beta=true">client.beta.organization.plugins.<a href="./src/resources/beta/organization/plugins/plugins.ts">delete</a>(pluginID, { ...params }) -> BetaDeletedPlugin</code>
+
+#### Versions
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/plugins/versions.ts">BetaPluginVersion</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/plugins/{plugin_id}/versions?beta=true">client.beta.organization.plugins.versions.<a href="./src/resources/beta/organization/plugins/versions.ts">create</a>(pluginID, { ...params }) -> BetaPluginVersion</code>
+- <code title="get /v1/organizations/plugins/{plugin_id}/versions/{version}?beta=true">client.beta.organization.plugins.versions.<a href="./src/resources/beta/organization/plugins/versions.ts">retrieve</a>(version, { ...params }) -> BetaPluginVersion</code>
+- <code title="get /v1/organizations/plugins/{plugin_id}/versions?beta=true">client.beta.organization.plugins.versions.<a href="./src/resources/beta/organization/plugins/versions.ts">list</a>(pluginID, { ...params }) -> BetaPluginVersionsPageCursor</code>
+- <code title="get /v1/organizations/plugins/{plugin_id}/versions/{version}/content?beta=true">client.beta.organization.plugins.versions.<a href="./src/resources/beta/organization/plugins/versions.ts">download</a>(version, { ...params }) -> Response</code>
+
+#### InstallationSettings
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/plugins/installation-settings.ts">BetaDeletedPluginInstallationSetting</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/installation-settings.ts">BetaPluginInstallationSetting</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/plugins/{plugin_id}/installation_settings?beta=true">client.beta.organization.plugins.installationSettings.<a href="./src/resources/beta/organization/plugins/installation-settings.ts">list</a>(pluginID, { ...params }) -> BetaPluginInstallationSettingsPageCursor</code>
+- <code title="delete /v1/organizations/plugins/{plugin_id}/installation_settings/{target}?beta=true">client.beta.organization.plugins.installationSettings.<a href="./src/resources/beta/organization/plugins/installation-settings.ts">remove</a>(target, { ...params }) -> BetaDeletedPluginInstallationSetting</code>
+- <code title="post /v1/organizations/plugins/{plugin_id}/installation_settings/{target}?beta=true">client.beta.organization.plugins.installationSettings.<a href="./src/resources/beta/organization/plugins/installation-settings.ts">set</a>(target, { ...params }) -> BetaPluginInstallationSetting</code>
+
+#### Shares
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/plugins/shares.ts">BetaPluginShare</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/plugins/{plugin_id}/shares?beta=true">client.beta.organization.plugins.shares.<a href="./src/resources/beta/organization/plugins/shares.ts">list</a>(pluginID, { ...params }) -> BetaPluginSharesPageCursor</code>
+
+### PluginMarketplaces
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/plugin-marketplaces.ts">BetaPluginMarketplace</a></code>
+- <code><a href="./src/resources/beta/organization/plugin-marketplaces.ts">BetaPluginMarketplaceValidationPluginError</a></code>
+- <code><a href="./src/resources/beta/organization/plugin-marketplaces.ts">BetaPluginMarketplaceValidationPluginWarning</a></code>
+- <code><a href="./src/resources/beta/organization/plugin-marketplaces.ts">BetaPluginMarketplaceValidationPluginWarnings</a></code>
+- <code><a href="./src/resources/beta/organization/plugin-marketplaces.ts">BetaPluginMarketplaceValidationReport</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/plugin_marketplaces/{marketplace_id}?beta=true">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">retrieve</a>(marketplaceID, { ...params }) -> BetaPluginMarketplace</code>
+- <code title="post /v1/organizations/plugin_marketplaces/{marketplace_id}?beta=true">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">update</a>(marketplaceID, { ...params }) -> BetaPluginMarketplace</code>
+- <code title="get /v1/organizations/plugin_marketplaces?beta=true">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">list</a>({ ...params }) -> BetaPluginMarketplacesPageCursor</code>
+- <code title="post /v1/organizations/plugin_marketplaces/validate_archive?beta=true">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">validateArchive</a>({ ...params }) -> BetaPluginMarketplaceValidationReport</code>
+- <code title="post /v1/organizations/plugin_marketplaces/validate_repository?beta=true">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">validateRepository</a>({ ...params }) -> BetaPluginMarketplaceValidationReport</code>

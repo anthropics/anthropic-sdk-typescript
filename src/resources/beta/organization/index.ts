@@ -48,6 +48,40 @@ export {
 } from './invites';
 export { Organization, type BetaOrganization, type BetaOrganizationRole } from './organization';
 export {
+  PluginMarketplaces,
+  type BetaPluginMarketplace,
+  type BetaPluginMarketplaceValidationPluginError,
+  type BetaPluginMarketplaceValidationPluginWarning,
+  type BetaPluginMarketplaceValidationPluginWarnings,
+  type BetaPluginMarketplaceValidationReport,
+  type PluginMarketplaceRetrieveParams,
+  type PluginMarketplaceUpdateParams,
+  type PluginMarketplaceListParams,
+  type PluginMarketplaceValidateArchiveParams,
+  type PluginMarketplaceValidateRepositoryParams,
+  type BetaPluginMarketplacesPageCursor,
+} from './plugin-marketplaces';
+export {
+  Plugins,
+  type BetaDeletedPlugin,
+  type BetaPlugin,
+  type BetaPluginAPIActor,
+  type BetaPluginComponent,
+  type BetaPluginContentScan,
+  type BetaPluginOwnerOrganization,
+  type BetaPluginOwnerUser,
+  type BetaPluginTargetOrganization,
+  type BetaPluginTargetOrganizationMember,
+  type BetaPluginTargetRBACGroup,
+  type BetaPluginUserActor,
+  type PluginCreateParams,
+  type PluginRetrieveParams,
+  type PluginUpdateParams,
+  type PluginListParams,
+  type PluginDeleteParams,
+  type BetaPluginsPageCursor,
+} from './plugins/index';
+export {
   RateLimits,
   type BetaOrganizationRateLimit,
   type BetaOrganizationRateLimitBatchGroup,

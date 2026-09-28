@@ -50,6 +50,21 @@ import {
   InviteListParams,
   Invites,
 } from './invites';
+import * as PluginMarketplacesAPI from './plugin-marketplaces';
+import {
+  BetaPluginMarketplace,
+  BetaPluginMarketplaceValidationPluginError,
+  BetaPluginMarketplaceValidationPluginWarning,
+  BetaPluginMarketplaceValidationPluginWarnings,
+  BetaPluginMarketplaceValidationReport,
+  BetaPluginMarketplacesPageCursor,
+  PluginMarketplaceListParams,
+  PluginMarketplaceRetrieveParams,
+  PluginMarketplaceUpdateParams,
+  PluginMarketplaceValidateArchiveParams,
+  PluginMarketplaceValidateRepositoryParams,
+  PluginMarketplaces,
+} from './plugin-marketplaces';
 import * as RateLimitsAPI from './rate-limits';
 import {
   BetaOrganizationRateLimit,
@@ -75,6 +90,27 @@ import {
 } from './users';
 import * as FederationAPI from './federation/federation';
 import { Federation } from './federation/federation';
+import * as PluginsAPI from './plugins/plugins';
+import {
+  BetaDeletedPlugin,
+  BetaPlugin,
+  BetaPluginAPIActor,
+  BetaPluginComponent,
+  BetaPluginContentScan,
+  BetaPluginOwnerOrganization,
+  BetaPluginOwnerUser,
+  BetaPluginTargetOrganization,
+  BetaPluginTargetOrganizationMember,
+  BetaPluginTargetRBACGroup,
+  BetaPluginUserActor,
+  BetaPluginsPageCursor,
+  PluginCreateParams,
+  PluginDeleteParams,
+  PluginListParams,
+  PluginRetrieveParams,
+  PluginUpdateParams,
+  Plugins,
+} from './plugins/plugins';
 import * as ServiceAccountsAPI from './service-accounts/service-accounts';
 import {
   BetaServiceAccount,
@@ -116,6 +152,10 @@ export class Organization extends APIResource {
   workspaces: WorkspacesAPI.Workspaces = new WorkspacesAPI.Workspaces(this._client);
   rateLimits: RateLimitsAPI.RateLimits = new RateLimitsAPI.RateLimits(this._client);
   complianceSettings: ComplianceSettingsAPI.ComplianceSettings = new ComplianceSettingsAPI.ComplianceSettings(
+    this._client,
+  );
+  plugins: PluginsAPI.Plugins = new PluginsAPI.Plugins(this._client);
+  pluginMarketplaces: PluginMarketplacesAPI.PluginMarketplaces = new PluginMarketplacesAPI.PluginMarketplaces(
     this._client,
   );
 
@@ -173,6 +213,8 @@ Organization.Users = Users;
 Organization.Workspaces = Workspaces;
 Organization.RateLimits = RateLimits;
 Organization.ComplianceSettings = ComplianceSettings;
+Organization.Plugins = Plugins;
+Organization.PluginMarketplaces = PluginMarketplaces;
 
 export declare namespace Organization {
   export { type BetaOrganization as BetaOrganization, type BetaOrganizationRole as BetaOrganizationRole };
@@ -279,5 +321,41 @@ export declare namespace Organization {
     type BetaComplianceSettingsStateEnabledParam as BetaComplianceSettingsStateEnabledParam,
     type BetaComplianceSettingsStateParam as BetaComplianceSettingsStateParam,
     type ComplianceSettingUpdateParams as ComplianceSettingUpdateParams,
+  };
+
+  export {
+    Plugins as Plugins,
+    type BetaDeletedPlugin as BetaDeletedPlugin,
+    type BetaPlugin as BetaPlugin,
+    type BetaPluginAPIActor as BetaPluginAPIActor,
+    type BetaPluginComponent as BetaPluginComponent,
+    type BetaPluginContentScan as BetaPluginContentScan,
+    type BetaPluginOwnerOrganization as BetaPluginOwnerOrganization,
+    type BetaPluginOwnerUser as BetaPluginOwnerUser,
+    type BetaPluginTargetOrganization as BetaPluginTargetOrganization,
+    type BetaPluginTargetOrganizationMember as BetaPluginTargetOrganizationMember,
+    type BetaPluginTargetRBACGroup as BetaPluginTargetRBACGroup,
+    type BetaPluginUserActor as BetaPluginUserActor,
+    type BetaPluginsPageCursor as BetaPluginsPageCursor,
+    type PluginCreateParams as PluginCreateParams,
+    type PluginRetrieveParams as PluginRetrieveParams,
+    type PluginUpdateParams as PluginUpdateParams,
+    type PluginListParams as PluginListParams,
+    type PluginDeleteParams as PluginDeleteParams,
+  };
+
+  export {
+    PluginMarketplaces as PluginMarketplaces,
+    type BetaPluginMarketplace as BetaPluginMarketplace,
+    type BetaPluginMarketplaceValidationPluginError as BetaPluginMarketplaceValidationPluginError,
+    type BetaPluginMarketplaceValidationPluginWarning as BetaPluginMarketplaceValidationPluginWarning,
+    type BetaPluginMarketplaceValidationPluginWarnings as BetaPluginMarketplaceValidationPluginWarnings,
+    type BetaPluginMarketplaceValidationReport as BetaPluginMarketplaceValidationReport,
+    type BetaPluginMarketplacesPageCursor as BetaPluginMarketplacesPageCursor,
+    type PluginMarketplaceRetrieveParams as PluginMarketplaceRetrieveParams,
+    type PluginMarketplaceUpdateParams as PluginMarketplaceUpdateParams,
+    type PluginMarketplaceListParams as PluginMarketplaceListParams,
+    type PluginMarketplaceValidateArchiveParams as PluginMarketplaceValidateArchiveParams,
+    type PluginMarketplaceValidateRepositoryParams as PluginMarketplaceValidateRepositoryParams,
   };
 }
