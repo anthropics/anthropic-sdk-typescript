@@ -1,4 +1,5 @@
 import Anthropic, { BetaFallbackState, type ClientOptions, type Middleware } from '@anthropic-ai/sdk';
+import { BetaMessageStream } from '@anthropic-ai/sdk/lib/BetaMessageStream';
 import { mockFetch } from '../../lib/mock-fetch';
 import {
   BetaMessage,
@@ -459,7 +460,7 @@ describe('ToolRunner', () => {
       // First iteration: assistant requests tool (using helper that generates proper stream events)
       handleAssistantMessageStream(getWeatherToolUse('SF'));
       await expectEvent(iterator, async (stream) => {
-        expect(stream.constructor.name).toBe('BetaMessageStream');
+        expect(stream).toBeInstanceOf(BetaMessageStream);
         const events = [];
         for await (const event of stream) {
           events.push(event);
@@ -1543,35 +1544,6 @@ describe('ToolRunner', () => {
       expect(sent(bodies[2]).at(-1)).toEqual({ role: 'user', content: [notFound('getWeather', 'tool_1')] });
     });
 
-    it('keeps a tool removed by a system message in the history removed after compactionControl compacts', async () => {
-      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const run = vi.fn(weatherTool.run);
-      const { runner, handleRequest } = setupTest({
-        tools: [{ ...weatherTool, run }],
-        messages: [
-          firstMessage,
-          {
-            role: 'system',
-            content: [{ type: 'tool_removal', tool: { type: 'tool_reference', name: 'getWeather' } }],
-          },
-        ],
-        compactionControl: { enabled: true, contextTokenThreshold: 100 },
-      });
-      const bodies: Array<Record<string, unknown>> = [];
-      const long = assistantMessage('end_turn', getTextContent());
-      long.usage.input_tokens = 1000;
-
-      reply(handleRequest, bodies, long, false);
-      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent('Summary so far.')), false);
-      reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('SF')), false);
-      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
-      await runner.runUntilDone();
-
-      expect(run).not.toHaveBeenCalled();
-      expect(sent(bodies[3]).at(-1)).toEqual({ role: 'user', content: [notFound('getWeather', 'tool_1')] });
-      warn.mockRestore();
-    });
-
     it('runs a removed tool that is added back while the compaction response is being handled', async () => {
       const { runner, handleRequest } = setupTest();
       const bodies: Array<Record<string, unknown>> = [];
@@ -2420,6 +2392,13 @@ describe('ToolRunner', () => {
         refusal,
       );
       expect(runner.params).not.toHaveProperty('compaction');
+    });
+
+    it('refuses the removed `compactionControl` option', () => {
+      // @ts-expect-error `compactionControl` is no longer in the runner's params type
+      expect(() => setupTest({ compactionControl: { enabled: true } })).toThrow(
+        '`compactionControl` has been removed from the tool runner',
+      );
     });
 
     it('is refused while context_management has a compaction edit', async () => {

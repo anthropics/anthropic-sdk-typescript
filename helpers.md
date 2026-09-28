@@ -117,7 +117,7 @@ const NumbersResponse = z.object({
 });
 
 const message = await client.messages.parse({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
   output_config: {
@@ -147,7 +147,7 @@ const NumbersResponse = toStandardJsonSchema(
 );
 
 const message = await client.beta.messages.parse({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
   output_config: {
@@ -177,7 +177,7 @@ const NumbersResponse = {
 } as const;
 
 const message = await client.messages.parse({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
   output_config: {
@@ -236,7 +236,7 @@ const weatherTool = betaZodTool({
 });
 
 const finalMessage = await anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   messages: [{ role: 'user', content: 'What is the weather in San Francisco?' }],
   tools: [weatherTool],
@@ -252,7 +252,7 @@ When you need to process intermediate messages or control the conversation flow,
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   messages: [{ role: 'user', content: 'What is the weather in San Francisco?' }],
   tools: [weatherTool],
@@ -274,7 +274,7 @@ example.
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   messages: [{ role: 'user', content: 'What is the weather in San Francisco?' }],
   tools: [calculatorTool],
@@ -295,6 +295,38 @@ console.log(await runner);
 See [`examples/tools-helpers-advanced-streaming.ts`](examples/tools-helpers-advanced-streaming.ts) for a more
 in-depth example.
 
+##### Running tools while the reply streams
+
+By default, the runner runs a reply's tools after your loop body for that reply ends. With `runToolsEagerly: true` and `stream: true`, each tool starts as soon as the model finishes writing its call. To hold a call until your loop body ends, pass it to `runner.deferToolCall()` when you see it. It won't have started yet. `runner.deferredToolCalls` lists the held calls without waiting, so read it after the stream ends.
+
+```ts
+const runner = anthropic.beta.messages.toolRunner({
+  model: 'claude-sonnet-5',
+  max_tokens: 1000,
+  messages: [{ role: 'user', content: 'Clean up the log files in /tmp/demo.' }],
+  tools: [listFiles, deleteFile],
+  stream: true,
+  runToolsEagerly: true,
+});
+
+for await (const messageStream of runner) {
+  for await (const event of messageStream) {
+    if (
+      event.type === 'content_block_start' &&
+      event.content_block.type === 'tool_use' &&
+      event.content_block.name === 'delete_file'
+    ) {
+      runner.deferToolCall(event.content_block);
+    }
+  }
+
+  const held = runner.deferredToolCalls;
+  if (held.length > 0 && !(await confirm(held))) break;
+}
+```
+
+Here, `break` means the held call never runs. A tool that has started runs to the end, even if the reply is cut short or you replace the history. The model then never gets its result and may ask for the same call again. So defer calls that aren't safe to run twice. See [`examples/tools-helpers-deferred-streaming.ts`](examples/tools-helpers-deferred-streaming.ts).
+
 #### Cancellation
 
 The `BetaToolRunner` supports cancellation via `AbortSignal`. The signal is passed to both API calls and tool `run` methods via the `BetaToolRunContext`.
@@ -304,7 +336,7 @@ const controller = new AbortController();
 
 const runner = anthropic.beta.messages.toolRunner(
   {
-    model: 'claude-sonnet-5',
+    model: 'claude-sonnet-5-5',
     max_tokens: 1000,
     messages: [{ role: 'user', content: 'Do a long task' }],
     tools: [
@@ -343,7 +375,7 @@ With the `compact-2026-09-04` beta you decide when a conversation is compacted: 
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   betas: ['compact-2026-09-04'],
   messages: [{ role: 'user', content: 'Find every page that mentions rate limits.' }],
@@ -548,7 +580,7 @@ Changing `tools` in the middle of a conversation misses the prompt cache for eve
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   betas: ['inline-tools-2026-09-15'],
   messages: [{ role: 'user', content: 'How many orders shipped late last week?' }],

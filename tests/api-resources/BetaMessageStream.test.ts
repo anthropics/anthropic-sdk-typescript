@@ -132,7 +132,12 @@ const EXPECTED_INCOMPLETE_MESSAGE = {
       name: 'make_file',
       input: {
         filename: 'taxes.txt',
-        lines_of_text: ['# COMPREHENSIVE TAX GUIDE FOR INDIVIDUALS WITH MULTIPLE W-2s'],
+        lines_of_text: [
+          '# COMPREHENSIVE TAX GUIDE FOR INDIVIDUALS WITH MULTIPLE W-2s',
+          '',
+          '## INTRODUCTION',
+          '',
+        ],
       },
     },
   ],

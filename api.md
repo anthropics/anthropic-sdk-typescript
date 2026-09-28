@@ -74,6 +74,13 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">BrowserZoomConfig</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CacheControlEphemeral</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CacheCreation</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CacheMissMessagesChanged</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CacheMissModelChanged</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CacheMissPreviousMessageNotFound</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CacheMissReason</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CacheMissSystemChanged</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CacheMissToolsChanged</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CacheMissUnavailable</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationCharLocation</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationCharLocationParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationContentBlockLocation</a></code>
@@ -87,6 +94,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">CitationsDelta</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationsSearchResultLocation</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationsWebSearchResultLocation</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ClientToolUnion</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionOutputBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionOutputBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionResultBlock</a></code>
@@ -132,6 +140,8 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockSourceContent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockStartEvent</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ContentBlockStopEvent</a></code>
+- <code><a href="./src/resources/messages/messages.ts">Diagnostics</a></code>
+- <code><a href="./src/resources/messages/messages.ts">DiagnosticsParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">DirectCaller</a></code>
 - <code><a href="./src/resources/messages/messages.ts">DocumentBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">DocumentBlockParam</a></code>
@@ -195,6 +205,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">ThinkingBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingConfigAdaptive</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThinkingConfigBetweenTools</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingConfigDisabled</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingConfigEnabled</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingConfigParam</a></code>
@@ -462,6 +473,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissMessagesChanged</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissModelChanged</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissPreviousMessageNotFound</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissReason</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissSystemChanged</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissToolsChanged</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCacheMissUnavailable</a></code>
@@ -482,6 +494,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaClearThinking20251015EditResponse</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaClearToolUses20250919Edit</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaClearToolUses20250919EditResponse</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaClientToolUnion</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionOutputBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionOutputBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaCodeExecutionResultBlock</a></code>
@@ -645,6 +658,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingBlockBinding</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigAdaptive</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigBetweenTools</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigDisabled</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigEnabled</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingConfigParam</a></code>
@@ -984,6 +998,7 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionEndTurn</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionErrorEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionEventType</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionRequiresAction</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionRetriesExhausted</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionStatusIdleEvent</a></code>
@@ -1635,7 +1650,9 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimit</a></code>
+- <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitOrganizationSource</a></code>
 - <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitValue</a></code>
+- <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitWorkspaceSource</a></code>
 
 Methods:
 

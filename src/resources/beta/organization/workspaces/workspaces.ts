@@ -13,7 +13,9 @@ import {
 import * as RateLimitsAPI from './rate-limits';
 import {
   BetaWorkspaceRateLimit,
+  BetaWorkspaceRateLimitOrganizationSource,
   BetaWorkspaceRateLimitValue,
+  BetaWorkspaceRateLimitWorkspaceSource,
   BetaWorkspaceRateLimitsPageCursor,
   RateLimitListParams,
   RateLimits,
@@ -421,7 +423,9 @@ export declare namespace Workspaces {
   export {
     RateLimits as RateLimits,
     type BetaWorkspaceRateLimit as BetaWorkspaceRateLimit,
+    type BetaWorkspaceRateLimitOrganizationSource as BetaWorkspaceRateLimitOrganizationSource,
     type BetaWorkspaceRateLimitValue as BetaWorkspaceRateLimitValue,
+    type BetaWorkspaceRateLimitWorkspaceSource as BetaWorkspaceRateLimitWorkspaceSource,
     type BetaWorkspaceRateLimitsPageCursor as BetaWorkspaceRateLimitsPageCursor,
     type RateLimitListParams as RateLimitListParams,
   };

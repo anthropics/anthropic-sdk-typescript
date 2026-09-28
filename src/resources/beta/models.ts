@@ -105,17 +105,17 @@ export interface BetaCompactionCapability {
  */
 export interface BetaContextManagementCapability {
   /**
-   * Indicates whether a capability is supported.
+   * Whether the clear_thinking_20251015 strategy is supported.
    */
   clear_thinking_20251015: BetaCapabilitySupport | null;
 
   /**
-   * Indicates whether a capability is supported.
+   * Whether the clear_tool_uses_20250919 strategy is supported.
    */
   clear_tool_uses_20250919: BetaCapabilitySupport | null;
 
   /**
-   * Indicates whether a capability is supported.
+   * Whether the compact_20260112 strategy is supported.
    */
   compact_20260112: BetaCapabilitySupport | null;
 
@@ -155,7 +155,7 @@ export interface BetaEffortCapability {
   supported: boolean;
 
   /**
-   * Indicates whether a capability is supported.
+   * Whether the model supports xhigh effort level.
    */
   xhigh: BetaCapabilitySupport | null;
 }
@@ -180,9 +180,8 @@ export interface BetaModelCapabilities {
   code_execution: BetaCapabilitySupport;
 
   /**
-   * Compaction capability details: whether the model accepts the top-level
-   * `compaction` request parameter, with one entry per supported `compaction.type`
-   * value.
+   * Server-side compaction support (the top-level `compaction` parameter) and the
+   * accepted `compaction.type` values.
    */
   compaction: BetaCompactionCapability | null;
 
@@ -231,7 +230,8 @@ export interface BetaModelInfo {
   allowed_fallback_models: Array<string> | null;
 
   /**
-   * Model capability information.
+   * Object mapping capability names to their support details. Keys are always
+   * present for all known capabilities.
    */
   capabilities: BetaModelCapabilities | null;
 

@@ -6,11 +6,13 @@ import { path } from '../../../../internal/utils/path';
 
 export class RateLimits extends APIResource {
   /**
-   * List rate-limit overrides configured for a workspace.
+   * List a workspace's rate limits.
    *
-   * Returns only the groups and limiter types that have a workspace-level override.
-   * Groups without overrides inherit the organization limits and are not listed; use
-   * `GET /v1/organizations/rate_limits` to see those.
+   * By default, returns only the groups and limiter types that have a
+   * workspace-level override. With `include_inherited=true`, returns every group
+   * with organization-level limits the workspace can see, listing for each the
+   * values it inherits from the organization as well as its own overrides. Each
+   * value's `source` says which it is.
    *
    * When `limit` is omitted, every matching entry is returned in a single page; when
    * `limit` truncates the result, follow `next_page` to fetch the remaining entries.
@@ -60,8 +62,10 @@ export interface BetaWorkspaceRateLimit {
   group_type: 'batch' | 'files' | 'model_group' | 'skills' | 'token_count' | 'web_search';
 
   /**
-   * The limiter values overridden for this group in this workspace. Limiter types
-   * without a workspace override are omitted and inherit the organization value.
+   * The workspace's limiter values for this group. By default only the limiter types
+   * with a workspace-level override are listed. With `include_inherited` set to
+   * `true`, the limiter types the workspace inherits from the organization are
+   * listed too, each marked by `source`.
    */
   limits: Array<BetaWorkspaceRateLimitValue>;
 
@@ -72,7 +76,7 @@ export interface BetaWorkspaceRateLimit {
   models: Array<string> | null;
 
   /**
-   * The `id` of the organization's RateLimit entry this override applies to.
+   * The `id` of the organization's RateLimit entry this entry applies to.
    */
   rate_limit_id: string;
 
@@ -82,9 +86,17 @@ export interface BetaWorkspaceRateLimit {
   type: 'workspace_rate_limit';
 
   /**
-   * ID of the Workspace this override applies to.
+   * ID of the Workspace this entry applies to.
    */
   workspace_id: string;
+}
+
+export interface BetaWorkspaceRateLimitOrganizationSource {
+  /**
+   * Always `organization`: no workspace-level override is stored, so the
+   * organization's value applies.
+   */
+  type: 'organization';
 }
 
 export interface BetaWorkspaceRateLimitValue {
@@ -95,15 +107,29 @@ export interface BetaWorkspaceRateLimitValue {
   org_limit: number | null;
 
   /**
+   * Where `value` comes from. `organization` values are listed only when
+   * `include_inherited` is `true`, and then `value` equals `org_limit`.
+   */
+  source: BetaWorkspaceRateLimitWorkspaceSource | BetaWorkspaceRateLimitOrganizationSource;
+
+  /**
    * The limiter type (for example, `requests_per_minute` or
    * `input_tokens_per_minute`).
    */
   type: string;
 
   /**
-   * The workspace-level override value for this limiter type.
+   * The workspace's value for this limiter type: the workspace-level override when
+   * `source.type` is `workspace`, otherwise the organization's value.
    */
   value: number;
+}
+
+export interface BetaWorkspaceRateLimitWorkspaceSource {
+  /**
+   * Always `workspace`: a workspace-level override is stored.
+   */
+  type: 'workspace';
 }
 
 export interface RateLimitListParams extends PageCursorParams {
@@ -111,12 +137,20 @@ export interface RateLimitListParams extends PageCursorParams {
    * Filter by group type.
    */
   group_type?: 'batch' | 'files' | 'model_group' | 'skills' | 'token_count' | 'web_search' | null;
+
+  /**
+   * Also list the limiter values the workspace inherits from the organization,
+   * including groups with no workspace-level override.
+   */
+  include_inherited?: boolean;
 }
 
 export declare namespace RateLimits {
   export {
     type BetaWorkspaceRateLimit as BetaWorkspaceRateLimit,
+    type BetaWorkspaceRateLimitOrganizationSource as BetaWorkspaceRateLimitOrganizationSource,
     type BetaWorkspaceRateLimitValue as BetaWorkspaceRateLimitValue,
+    type BetaWorkspaceRateLimitWorkspaceSource as BetaWorkspaceRateLimitWorkspaceSource,
     type BetaWorkspaceRateLimitsPageCursor as BetaWorkspaceRateLimitsPageCursor,
     type RateLimitListParams as RateLimitListParams,
   };

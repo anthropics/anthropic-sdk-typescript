@@ -11,7 +11,7 @@ async function main() {
   // Create a stream with web search enabled
   const stream = client.messages
     .stream({
-      model: 'claude-sonnet-5',
+      model: 'claude-sonnet-5-5',
       max_tokens: 1024,
       messages: [
         {

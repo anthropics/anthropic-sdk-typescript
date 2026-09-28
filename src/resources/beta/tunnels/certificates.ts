@@ -173,17 +173,19 @@ export interface BetaTunnelCertificate {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * RFC 3339 datetime string indicating when the certificate was archived. Null if
+   * it is still in the trusted set.
    */
   archived_at: string | null;
 
   /**
-   * A timestamp in RFC 3339 format
+   * RFC 3339 datetime string indicating when the certificate was registered.
    */
   created_at: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * RFC 3339 datetime string indicating when the certificate expires, or `null` if
+   * it does not expire.
    */
   expires_at: string | null;
 

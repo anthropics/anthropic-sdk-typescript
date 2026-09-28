@@ -32,7 +32,7 @@ describe('resource events', () => {
           limit: 0,
           order: 'asc',
           page: 'page',
-          types: ['string'],
+          types: ['user.message'],
           betas: ['message-batches-2024-09-24'],
           workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
         },

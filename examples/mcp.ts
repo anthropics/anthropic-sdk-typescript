@@ -7,7 +7,7 @@ const anthropic = new Anthropic(); // gets API Key from environment variable ANT
 const main = async () => {
   const stream = anthropic.beta.messages.stream(
     {
-      model: 'claude-sonnet-5',
+      model: 'claude-sonnet-5-5',
       max_tokens: 1000,
       mcp_servers: [
         {

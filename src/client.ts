@@ -149,6 +149,13 @@ import {
   BrowserZoomConfig,
   CacheControlEphemeral,
   CacheCreation,
+  CacheMissMessagesChanged,
+  CacheMissModelChanged,
+  CacheMissPreviousMessageNotFound,
+  CacheMissReason,
+  CacheMissSystemChanged,
+  CacheMissToolsChanged,
+  CacheMissUnavailable,
   CitationCharLocation,
   CitationCharLocationParam,
   CitationContentBlockLocation,
@@ -162,6 +169,7 @@ import {
   CitationsDelta,
   CitationsSearchResultLocation,
   CitationsWebSearchResultLocation,
+  ClientToolUnion,
   CodeExecutionOutputBlock,
   CodeExecutionOutputBlockParam,
   CodeExecutionResultBlock,
@@ -208,6 +216,8 @@ import {
   ContentBlockStopEvent,
   ContentBlockSource,
   ContentBlockSourceContent,
+  Diagnostics,
+  DiagnosticsParam,
   DirectCaller,
   DocumentBlock,
   DocumentBlockParam,
@@ -280,6 +290,7 @@ import {
   ThinkingBlock,
   ThinkingBlockParam,
   ThinkingConfigAdaptive,
+  ThinkingConfigBetweenTools,
   ThinkingConfigDisabled,
   ThinkingConfigEnabled,
   ThinkingConfigParam,
@@ -368,6 +379,9 @@ import {
   parseLogLevel,
 } from './internal/utils/log';
 import { isEmptyObj } from './internal/utils/values';
+
+export const HUMAN_PROMPT = '\\n\\nHuman:';
+export const AI_PROMPT = '\\n\\nAssistant:';
 
 /**
  * Shared auth state. A `withOptions()` clone receives the parent's instance
@@ -549,9 +563,6 @@ export interface ClientOptions {
    */
   logger?: Logger | undefined;
 }
-
-export const HUMAN_PROMPT = '\\n\\nHuman:';
-export const AI_PROMPT = '\\n\\nAssistant:';
 
 /**
  * Base class for Anthropic API clients.
@@ -1540,7 +1551,13 @@ export class BaseAnthropic {
     if ('timeout' in options) validatePositiveInteger('timeout', options.timeout);
     options.timeout = options.timeout ?? this.timeout;
     const { bodyHeaders, body } = this.buildBody({ options });
-    const reqHeaders = await this.buildHeaders({ options: inputOptions, method, bodyHeaders, retryCount });
+    const reqHeaders = await this.buildHeaders({
+      options: inputOptions,
+      method,
+      bodyHeaders,
+      retryCount,
+      timeout: options.timeout,
+    });
 
     const req: FinalizedRequestInit = {
       method,
@@ -1561,18 +1578,20 @@ export class BaseAnthropic {
     method,
     bodyHeaders,
     retryCount,
+    timeout,
   }: {
     options: FinalRequestOptions;
     method: HTTPMethod;
     bodyHeaders: HeadersLike;
     retryCount: number;
+    timeout: number;
   }): Promise<Headers> {
     const headers = buildHeaders([
       {
         Accept: 'application/json',
         'User-Agent': this.getUserAgent(),
         'X-Stainless-Retry-Count': String(retryCount),
-        ...(options.timeout ? { 'X-Stainless-Timeout': String(Math.trunc(options.timeout / 1000)) } : {}),
+        'X-Stainless-Timeout': String(Math.trunc(timeout / 1000)),
         ...getPlatformHeaders(),
         ...(this._options.dangerouslyAllowBrowser ?
           { 'anthropic-dangerous-direct-browser-access': 'true' }
@@ -1654,8 +1673,6 @@ export class BaseAnthropic {
   }
 
   static Anthropic = this;
-  static HUMAN_PROMPT = HUMAN_PROMPT;
-  static AI_PROMPT = AI_PROMPT;
   static DEFAULT_TIMEOUT = 600000; // 10 minutes
 
   static AnthropicError = Errors.AnthropicError;
@@ -1673,6 +1690,9 @@ export class BaseAnthropic {
   static UnprocessableEntityError = Errors.UnprocessableEntityError;
 
   static toFile = Uploads.toFile;
+
+  static HUMAN_PROMPT = HUMAN_PROMPT;
+  static AI_PROMPT = AI_PROMPT;
 }
 
 /**
@@ -1783,6 +1803,13 @@ export declare namespace Anthropic {
     type BrowserZoomConfig as BrowserZoomConfig,
     type CacheControlEphemeral as CacheControlEphemeral,
     type CacheCreation as CacheCreation,
+    type CacheMissMessagesChanged as CacheMissMessagesChanged,
+    type CacheMissModelChanged as CacheMissModelChanged,
+    type CacheMissPreviousMessageNotFound as CacheMissPreviousMessageNotFound,
+    type CacheMissReason as CacheMissReason,
+    type CacheMissSystemChanged as CacheMissSystemChanged,
+    type CacheMissToolsChanged as CacheMissToolsChanged,
+    type CacheMissUnavailable as CacheMissUnavailable,
     type CitationCharLocation as CitationCharLocation,
     type CitationCharLocationParam as CitationCharLocationParam,
     type CitationContentBlockLocation as CitationContentBlockLocation,
@@ -1796,6 +1823,7 @@ export declare namespace Anthropic {
     type CitationsDelta as CitationsDelta,
     type CitationsSearchResultLocation as CitationsSearchResultLocation,
     type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
+    type ClientToolUnion as ClientToolUnion,
     type CodeExecutionOutputBlock as CodeExecutionOutputBlock,
     type CodeExecutionOutputBlockParam as CodeExecutionOutputBlockParam,
     type CodeExecutionResultBlock as CodeExecutionResultBlock,
@@ -1842,6 +1870,8 @@ export declare namespace Anthropic {
     type ContentBlockStopEvent as ContentBlockStopEvent,
     type ContentBlockSource as ContentBlockSource,
     type ContentBlockSourceContent as ContentBlockSourceContent,
+    type Diagnostics as Diagnostics,
+    type DiagnosticsParam as DiagnosticsParam,
     type DirectCaller as DirectCaller,
     type DocumentBlock as DocumentBlock,
     type DocumentBlockParam as DocumentBlockParam,
@@ -1908,6 +1938,7 @@ export declare namespace Anthropic {
     type ThinkingBlock as ThinkingBlock,
     type ThinkingBlockParam as ThinkingBlockParam,
     type ThinkingConfigAdaptive as ThinkingConfigAdaptive,
+    type ThinkingConfigBetweenTools as ThinkingConfigBetweenTools,
     type ThinkingConfigDisabled as ThinkingConfigDisabled,
     type ThinkingConfigEnabled as ThinkingConfigEnabled,
     type ThinkingConfigParam as ThinkingConfigParam,

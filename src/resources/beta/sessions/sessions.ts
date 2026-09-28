@@ -52,6 +52,7 @@ import {
   BetaManagedAgentsSessionEndTurn,
   BetaManagedAgentsSessionErrorEvent,
   BetaManagedAgentsSessionEvent,
+  BetaManagedAgentsSessionEventType,
   BetaManagedAgentsSessionEventsPageCursor,
   BetaManagedAgentsSessionRequiresAction,
   BetaManagedAgentsSessionRetriesExhausted,
@@ -443,7 +444,8 @@ export interface BetaManagedAgentsBranchCheckout {
  */
 export interface BetaManagedAgentsBudgetLimit {
   /**
-   * A monetary amount in a specific currency.
+   * Maximum list cost the session may accrue. List price is used regardless of any
+   * negotiated discount, so the cap fires at or before the actual charge.
    */
   max_list_cost: BetaAPI.BetaMonetaryAmount;
 
@@ -485,7 +487,8 @@ export interface BetaManagedAgentsDeletedSession {
 
 export interface BetaManagedAgentsDeltaContent {
   /**
-   * Regular text content.
+   * A partial element of the content array at index, typed like the element itself —
+   * the same shape the buffered agent.message carries in content.
    */
   content: EventsAPI.BetaManagedAgentsTextBlock;
 
@@ -587,7 +590,8 @@ export interface BetaManagedAgentsMemoryStoreResourceParam {
   type: 'memory_store';
 
   /**
-   * Access mode for an attached memory store.
+   * Access mode for the mounted store. Defaults to read_write. read_only mounts the
+   * store as a read-only filesystem.
    */
   access?: 'read_write' | 'read_only' | null;
 
@@ -599,7 +603,7 @@ export interface BetaManagedAgentsMemoryStoreResourceParam {
 }
 
 /**
- * Resolved coordinator topology with a concrete agent roster.
+ * Resolved multiagent orchestration configuration as returned in API responses.
  */
 export interface BetaManagedAgentsMultiagent {
   /**
@@ -612,8 +616,8 @@ export interface BetaManagedAgentsMultiagent {
 }
 
 /**
- * A coordinator topology: the session's primary thread orchestrates work by
- * spawning session threads, each running an agent drawn from the `agents` roster.
+ * Multiagent orchestration configuration. Currently supports the `coordinator`
+ * topology.
  */
 export interface BetaManagedAgentsMultiagentParams {
   /**
@@ -644,7 +648,8 @@ export type BetaManagedAgentsMultiagentRosterEntryParams =
  */
 export interface BetaManagedAgentsOutcomeEvaluationResource {
   /**
-   * A timestamp in RFC 3339 format
+   * When the outcome reached a terminal result. Null while
+   * `pending`/`running`/`evaluating`.
    */
   completed_at: string | null;
 
@@ -708,13 +713,12 @@ export interface BetaManagedAgentsSession {
   agent: BetaManagedAgentsSessionAgent;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the session was archived. Null if not archived.
    */
   archived_at: string | null;
 
   /**
-   * A hard spend ceiling. The session stops issuing new model requests once the
-   * tracked list cost reaches `max_list_cost`.
+   * The session's enforced spend ceiling, or null when no budget is set.
    */
   budget: BetaManagedAgentsBudgetLimit | null;
 
@@ -736,7 +740,7 @@ export interface BetaManagedAgentsSession {
   resources: Array<ResourcesAPI.BetaManagedAgentsSessionResource>;
 
   /**
-   * Timing statistics for a session.
+   * Timing statistics for the session.
    */
   stats: BetaManagedAgentsSessionStats;
 
@@ -761,7 +765,7 @@ export interface BetaManagedAgentsSession {
   updated_at: string;
 
   /**
-   * Cumulative token usage for a session across all turns.
+   * Cumulative token usage for the session.
    */
   usage: BetaManagedAgentsSessionUsage;
 
@@ -795,8 +799,8 @@ export interface BetaManagedAgentsSessionAgent {
   model: AgentsAPI.BetaManagedAgentsModelConfig;
 
   /**
-   * Resolved coordinator topology with full agent definitions for each roster
-   * member.
+   * Resolved multiagent orchestration configuration. Null when the agent is
+   * single-threaded.
    */
   multiagent: BetaManagedAgentsSessionMultiagentCoordinator | null;
 
@@ -882,21 +886,23 @@ export interface BetaManagedAgentsSessionUpdatedEvent {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the update was applied.
    */
   processed_at: string;
 
   type: 'session.updated';
 
   /**
-   * Resolved `agent` definition for a `session`. Snapshot of the `agent` at
-   * `session` creation time.
+   * The session's effective agent configuration after the update. Present only when
+   * the update changed `agent` (tools or mcp_servers); when present it is the full
+   * materialised snapshot, not a diff.
    */
   agent?: BetaManagedAgentsSessionAgent | null;
 
   /**
-   * A hard spend ceiling. The session stops issuing new model requests once the
-   * tracked list cost reaches `max_list_cost`.
+   * The session's budget after the update: the new budget when set or replaced, or
+   * null when the update removed it. Present only when the update changed the
+   * budget.
    */
   budget?: BetaManagedAgentsBudgetLimit | null;
 
@@ -925,7 +931,7 @@ export interface BetaManagedAgentsSessionUsage {
   active_seconds?: number;
 
   /**
-   * Prompt-cache creation token usage broken down by cache lifetime.
+   * Tokens used to create prompt cache entries, broken down by cache TTL.
    */
   cache_creation?: BetaManagedAgentsCacheCreationUsage;
 
@@ -940,7 +946,8 @@ export interface BetaManagedAgentsSessionUsage {
   input_tokens?: number;
 
   /**
-   * A monetary amount in a specific currency.
+   * Cumulative list cost of the session across all turns, priced at public list
+   * rates. Absent until cost tracking is available for the session.
    */
   list_cost?: BetaAPI.BetaMonetaryAmount | null;
 
@@ -950,7 +957,8 @@ export interface BetaManagedAgentsSessionUsage {
   output_tokens?: number;
 
   /**
-   * Cumulative count of server-executed tool invocations, broken down by tool.
+   * Cumulative server-executed tool usage across all turns. Absent until server-tool
+   * tracking is available for the session.
    */
   server_tool_use?: BetaManagedAgentsServerToolUsage | null;
 }
@@ -965,20 +973,20 @@ export interface BetaManagedAgentsSessionUsageEvent {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the snapshot was taken.
    */
   processed_at: string;
 
   type: 'session.usage';
 
   /**
-   * Point-in-time snapshot of a session's cumulative usage.
+   * The session's cumulative usage at the snapshot time.
    */
   usage: EventsAPI.BetaManagedAgentsSessionUsageSnapshot;
 
   /**
-   * A hard spend ceiling. The session stops issuing new model requests once the
-   * tracked list cost reaches `max_list_cost`.
+   * The session's configured budget at the snapshot time, or null when the session
+   * has no budget.
    */
   budget?: BetaManagedAgentsBudgetLimit | null;
 }
@@ -1008,7 +1016,7 @@ export type BetaManagedAgentsStartEventPreview =
   | BetaManagedAgentsAgentThinkingPreview;
 
 /**
- * Regular text content.
+ * Content block in a mid-conversation system message. Text-only.
  */
 export interface BetaManagedAgentsSystemContentBlock {
   /**
@@ -1037,7 +1045,7 @@ export interface BetaManagedAgentsSystemMessageEvent {
   type: 'system.message';
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when this system message was processed.
    */
   processed_at?: string | null;
 }
@@ -1079,7 +1087,7 @@ export interface BetaManagedAgentsUserToolResultEvent {
   is_error?: boolean | null;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when this result was processed.
    */
   processed_at?: string | null;
 
@@ -1105,8 +1113,10 @@ export interface SessionCreateParams {
   environment_id: string;
 
   /**
-   * Body param: A hard spend ceiling. The session stops issuing new model requests
-   * once the tracked list cost reaches `max_list_cost`.
+   * Body param: Enforced spend ceiling for the session. Omit to create an uncapped
+   * session. Every model the session can run — the agent's model and each callable
+   * agent's model — must have a public list price, or the request is rejected with
+   * reason `model_not_budgetable`.
    */
   budget?: BetaManagedAgentsBudgetLimit;
 
@@ -1182,16 +1192,21 @@ export interface SessionRetrieveParams {
 
 export interface SessionUpdateParams {
   /**
-   * Body param: Mid-session agent configuration update. Only `tools` and
-   * `mcp_servers` are updatable. Full replacement: the provided array becomes the
-   * new value. To preserve existing entries, GET the session, modify the array, and
-   * POST it back.
+   * Body param: Agent configuration update. Only `tools` and `mcp_servers` are
+   * updatable mid-session. Only valid for sessions created from an agent or
+   * deployment reference. The session must not be running.
    */
   agent?: BetaManagedAgentsSessionAgentUpdate;
 
   /**
-   * Body param: A hard spend ceiling. The session stops issuing new model requests
-   * once the tracked list cost reaches `max_list_cost`.
+   * Body param: Enforced spend ceiling for the session. Set an object to replace the
+   * budget of a session that was created with one, or `null` to remove it; omit to
+   * preserve. A budget cannot be added to a session created without one (rejected
+   * with reason `budget_create_only`), and a removed budget cannot be re-added.
+   * Allowed in any non-terminated status. Lowering `max_list_cost` to at or below
+   * the session's consumed list cost is rejected with reason `budget_not_raised`,
+   * and every model the session can run must have a public list price or the request
+   * is rejected with reason `model_not_budgetable`.
    */
   budget?: BetaManagedAgentsBudgetLimit | null;
 
@@ -1438,6 +1453,7 @@ export declare namespace Sessions {
     type BetaManagedAgentsSessionEndTurn as BetaManagedAgentsSessionEndTurn,
     type BetaManagedAgentsSessionErrorEvent as BetaManagedAgentsSessionErrorEvent,
     type BetaManagedAgentsSessionEvent as BetaManagedAgentsSessionEvent,
+    type BetaManagedAgentsSessionEventType as BetaManagedAgentsSessionEventType,
     type BetaManagedAgentsSessionRequiresAction as BetaManagedAgentsSessionRequiresAction,
     type BetaManagedAgentsSessionRetriesExhausted as BetaManagedAgentsSessionRetriesExhausted,
     type BetaManagedAgentsSessionStatusIdleEvent as BetaManagedAgentsSessionStatusIdleEvent,

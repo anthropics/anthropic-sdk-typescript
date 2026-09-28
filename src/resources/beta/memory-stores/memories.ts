@@ -259,7 +259,7 @@ export interface BetaManagedAgentsMemory {
   content_size_bytes: number;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When this memory was created, in RFC 3339 format.
    */
   created_at: string;
 
@@ -287,7 +287,10 @@ export interface BetaManagedAgentsMemory {
   type: 'memory';
 
   /**
-   * A timestamp in RFC 3339 format
+   * When this memory was last modified, in RFC 3339 format. Use this as a cheap
+   * freshness signal; for who made the change, look up the head version's
+   * `created_by` via
+   * [List memory versions](/en/api/beta/memory_stores/memory_versions/list).
    */
   updated_at: string;
 
@@ -394,12 +397,11 @@ export interface BetaManagedAgentsMemoryPrefix {
 export type BetaManagedAgentsMemoryView = 'basic' | 'full';
 
 /**
- * Optimistic-concurrency precondition: the update applies only if the memory's
- * stored `content_sha256` equals the supplied value. On mismatch, the request
- * returns `memory_precondition_failed_error` (HTTP 409); re-read the memory and
- * retry against the fresh state. If the precondition fails but the stored state
- * already exactly matches the requested `content` and `path`, the server returns
- * 200 instead of 409.
+ * Optional condition that must hold for an update to apply. When omitted, the
+ * update is unconditional. Asserts the current state of the memory being updated.
+ * When an update changes `path`, the precondition still refers to the memory's
+ * current content, not the destination path. Currently the only supported variant
+ * is `content_sha256`.
  */
 export interface BetaManagedAgentsPrecondition {
   type: 'content_sha256';
@@ -517,12 +519,10 @@ export interface MemoryUpdateParams {
   path?: string | null;
 
   /**
-   * Body param: Optimistic-concurrency precondition: the update applies only if the
-   * memory's stored `content_sha256` equals the supplied value. On mismatch, the
-   * request returns `memory_precondition_failed_error` (HTTP 409); re-read the
-   * memory and retry against the fresh state. If the precondition fails but the
-   * stored state already exactly matches the requested `content` and `path`, the
-   * server returns 200 instead of 409.
+   * Body param: Optional optimistic-concurrency precondition. When supplied, the
+   * update applies only if the memory's current state matches; on mismatch the
+   * request returns `memory_precondition_failed_error` (HTTP 409). When omitted, the
+   * update is unconditional.
    */
   precondition?: BetaManagedAgentsPrecondition;
 

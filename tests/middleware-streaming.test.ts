@@ -265,6 +265,27 @@ describe('betaRefusalFallbackMiddleware (streaming) — shape-B continuation', (
     expect(appended.content[0]).toHaveProperty('signature');
   });
 
+  test('between_tools thinking degrades to disabled on the hop', async () => {
+    const { requests } = await runMiddleware(
+      { fallbacks: FALLBACKS },
+      { ...ORIGINAL_BODY, thinking: { type: 'between_tools' } },
+      [sseResponse(STREAM_A), sseResponse(STREAM_B)],
+    );
+
+    const bodies = requests.map((r) => JSON.parse(r.body as string));
+    expect(bodies.map((b) => b.thinking)).toEqual([{ type: 'between_tools' }, { type: 'disabled' }]);
+  });
+
+  test('between_tools thinking degrades even when the entry sets thinking', async () => {
+    const { requests } = await runMiddleware(
+      { fallbacks: [{ model: FALLBACK_MODEL, thinking: { type: 'between_tools' } }] },
+      { ...ORIGINAL_BODY, thinking: { type: 'between_tools' } },
+      [sseResponse(STREAM_A), sseResponse(STREAM_B)],
+    );
+
+    expect(JSON.parse(requests[1]!.body as string).thinking).toEqual({ type: 'disabled' });
+  });
+
   test('appends the fallback-credit beta to both the original and hop requests', async () => {
     // requestA already carries a beta header; the default is appended to it.
     const { requests } = await runMiddleware({ fallbacks: FALLBACKS }, ORIGINAL_BODY, [

@@ -49,6 +49,7 @@ export {
   type BetaManagedAgentsSessionEndTurn,
   type BetaManagedAgentsSessionErrorEvent,
   type BetaManagedAgentsSessionEvent,
+  type BetaManagedAgentsSessionEventType,
   type BetaManagedAgentsSessionRequiresAction,
   type BetaManagedAgentsSessionRetriesExhausted,
   type BetaManagedAgentsSessionStatusIdleEvent,

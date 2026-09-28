@@ -181,7 +181,7 @@ export interface BetaManagedAgentsAgent {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the agent was archived. Null if not archived.
    */
   archived_at: string | null;
 
@@ -202,7 +202,7 @@ export interface BetaManagedAgentsAgent {
   model: BetaManagedAgentsModelConfig;
 
   /**
-   * Resolved coordinator topology with a concrete agent roster.
+   * Multiagent orchestration configuration. Null when the agent is single-threaded.
    */
   multiagent: SessionsAPI.BetaManagedAgentsMultiagent | null;
 
@@ -293,7 +293,8 @@ export interface BetaManagedAgentsAgentToolsetDefaultConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Default permission policy for tools. Controls whether tool calls are
+   * auto-approved or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -412,7 +413,7 @@ export interface BetaManagedAgentsAgentToolset20260401Params {
   configs?: Array<BetaManagedAgentsAgentToolConfigParams>;
 
   /**
-   * Default configuration for all tools in a toolset.
+   * Default configuration applied to all tools in this set.
    */
   default_config?: BetaManagedAgentsAgentToolsetDefaultConfigParams | null;
 }
@@ -537,7 +538,8 @@ export interface BetaManagedAgentsBashToolConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Controls whether tool calls are auto-approved
+   * or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -619,7 +621,7 @@ export interface BetaManagedAgentsCustomToolParams {
   description: string;
 
   /**
-   * JSON Schema for custom tool input parameters.
+   * JSON Schema defining the expected input parameters for the tool.
    */
   input_schema: BetaManagedAgentsCustomToolInputSchema;
 
@@ -667,7 +669,8 @@ export interface BetaManagedAgentsEditToolConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Controls whether tool calls are auto-approved
+   * or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -748,7 +751,8 @@ export interface BetaManagedAgentsGlobToolConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Controls whether tool calls are auto-approved
+   * or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -794,7 +798,8 @@ export interface BetaManagedAgentsGrepToolConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Controls whether tool calls are auto-approved
+   * or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -848,7 +853,7 @@ export interface BetaManagedAgentsMCPToolConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Overrides the `default_config` setting.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -895,7 +900,7 @@ export interface BetaManagedAgentsMCPToolsetDefaultConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Default permission policy for tools from this server.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -922,7 +927,7 @@ export interface BetaManagedAgentsMCPToolsetParams {
   configs?: Array<BetaManagedAgentsMCPToolConfigParams>;
 
   /**
-   * Default configuration for all tools from an MCP server.
+   * Default configuration for all tools from this server.
    */
   default_config?: BetaManagedAgentsMCPToolsetDefaultConfigParams | null;
 }
@@ -934,6 +939,7 @@ export interface BetaManagedAgentsMCPToolsetParams {
  * details and options.
  */
 export type BetaManagedAgentsModel =
+  | 'claude-sonnet-5-5'
   | 'claude-opus-5-5'
   | 'claude-fable-5-1'
   | 'claude-sonnet-5'
@@ -964,8 +970,9 @@ export interface BetaManagedAgentsModelConfig {
   id: BetaManagedAgentsModel;
 
   /**
-   * How hard Claude works on each turn. Sets `output_config.effort` on every
-   * Messages call the session makes.
+   * How hard Claude works on each inference call. One of `low`, `medium`, `high`,
+   * `xhigh`, `max`. Always present; resolved to the per-model default at save time
+   * when not supplied.
    */
   effort?:
     | BetaManagedAgentsEffortLow
@@ -982,8 +989,8 @@ export interface BetaManagedAgentsModelConfig {
 
   /**
    * Inference speed mode. `fast` provides significantly faster output token
-   * generation at premium pricing. Not all models support `fast`; invalid
-   * combinations are rejected at create time.
+   * generation at premium pricing. Defaults to `standard`. Not all models support
+   * `fast`; invalid combinations are rejected at create time.
    */
   speed?: 'standard' | 'fast';
 }
@@ -1026,9 +1033,7 @@ export interface BetaManagedAgentsModelConfigParams {
   inference_geo?: string | null;
 
   /**
-   * Inference speed mode. `fast` provides significantly faster output token
-   * generation at premium pricing. Not all models support `fast`; invalid
-   * combinations are rejected at create time.
+   * Inference speed mode. Defaults to `standard`.
    */
   speed?: 'standard' | 'fast' | null;
 }
@@ -1107,7 +1112,8 @@ export interface BetaManagedAgentsReadToolConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Controls whether tool calls are auto-approved
+   * or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -1268,7 +1274,8 @@ export interface BetaManagedAgentsWebFetchToolConfigParams {
   max_content_tokens?: number | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Controls whether tool calls are auto-approved
+   * or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -1339,7 +1346,8 @@ export interface BetaManagedAgentsWebSearchToolConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Controls whether tool calls are auto-approved
+   * or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -1390,7 +1398,8 @@ export interface BetaManagedAgentsWriteToolConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Controls whether tool calls are auto-approved
+   * or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -1435,9 +1444,8 @@ export interface AgentCreateParams {
   metadata?: { [key: string]: string };
 
   /**
-   * Body param: A coordinator topology: the session's primary thread orchestrates
-   * work by spawning session threads, each running an agent drawn from the `agents`
-   * roster.
+   * Body param: Multiagent orchestration configuration. Currently supports the
+   * `coordinator` topology with a roster of 1-20 agents.
    */
   multiagent?: SessionsAPI.BetaManagedAgentsMultiagentParams | null;
 
@@ -1531,9 +1539,8 @@ export interface AgentUpdateParams {
   model?: BetaManagedAgentsModel | BetaManagedAgentsModelConfigParams;
 
   /**
-   * Body param: A coordinator topology: the session's primary thread orchestrates
-   * work by spawning session threads, each running an agent drawn from the `agents`
-   * roster.
+   * Body param: Multiagent orchestration configuration. Full replacement. Omit to
+   * preserve; send null to clear.
    */
   multiagent?: SessionsAPI.BetaManagedAgentsMultiagentParams | null;
 

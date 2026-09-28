@@ -1,3 +1,17 @@
+diff --git a/dist/transformer.js b/dist/transformer.js
+index e294feb709cc8fbc19667db48a5879d1f3630076..75b3e0b7f4628aa51f7f2eedbd3d762ba3412d8e 100644
+--- a/dist/transformer.js
++++ b/dist/transformer.js
+@@ -139,6 +139,9 @@ function createTransformer(options) {
+             const newStatements = [];
+             const classes = Object.create(null);
+             const shouldGroupExpression = (expression) => {
++                if (options.ts.isCommaListExpression(expression)) {
++                    return expression.elements.map(shouldGroupExpression).find(Boolean);
++                }
+                 if (options.ts.isBinaryExpression(expression)) {
+                     if (expression.operatorToken.kind === SyntaxKind.EqualsToken) {
+                         if (options.ts.isPropertyAccessExpression(expression.left) &&
 diff --git a/dist/worker/worker.js b/dist/worker/worker.js
 index e61cfacd3ea87591d1889a869175b95cea2574ae..d2f05e615c0f6f40685258c209660368e8dd002d 100644
 --- a/dist/worker/worker.js

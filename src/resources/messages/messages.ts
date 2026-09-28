@@ -955,11 +955,8 @@ export interface BrowserToolset20260801 {
   cache_control?: CacheControlEphemeral | null;
 
   /**
-   * Per-member configuration for `browser_toolset_20260801`: one optional field per
-   * member tool, keyed by the member name — the same name the member's `tool_use`
-   * blocks carry. Every member is an accepted key, and a member's defaults apply
-   * wherever its key is absent. Unknown keys are rejected: the field set is this
-   * toolset version's complete member set.
+   * Sparse per-member overrides, keyed by member name. Absent, null, and {} are
+   * equivalent; a member's defaults apply wherever its key is absent.
    */
   configs?: BrowserToolsetConfigs | null;
 }
@@ -1230,6 +1227,62 @@ export interface CacheCreation {
   ephemeral_5m_input_tokens: number;
 }
 
+export interface CacheMissMessagesChanged {
+  /**
+   * Approximate number of input tokens that would have been read from cache had the
+   * prefix matched the previous request.
+   */
+  cache_missed_input_tokens: number;
+
+  type: 'messages_changed';
+}
+
+export interface CacheMissModelChanged {
+  /**
+   * Approximate number of input tokens that would have been read from cache had the
+   * prefix matched the previous request.
+   */
+  cache_missed_input_tokens: number;
+
+  type: 'model_changed';
+}
+
+export interface CacheMissPreviousMessageNotFound {
+  type: 'previous_message_not_found';
+}
+
+export type CacheMissReason =
+  | CacheMissModelChanged
+  | CacheMissSystemChanged
+  | CacheMissToolsChanged
+  | CacheMissMessagesChanged
+  | CacheMissPreviousMessageNotFound
+  | CacheMissUnavailable;
+
+export interface CacheMissSystemChanged {
+  /**
+   * Approximate number of input tokens that would have been read from cache had the
+   * prefix matched the previous request.
+   */
+  cache_missed_input_tokens: number;
+
+  type: 'system_changed';
+}
+
+export interface CacheMissToolsChanged {
+  /**
+   * Approximate number of input tokens that would have been read from cache had the
+   * prefix matched the previous request.
+   */
+  cache_missed_input_tokens: number;
+
+  type: 'tools_changed';
+}
+
+export interface CacheMissUnavailable {
+  type: 'unavailable';
+}
+
 export interface CitationCharLocation {
   cited_text: string;
 
@@ -1482,6 +1535,20 @@ export interface CitationsWebSearchResultLocation {
 
   url: string;
 }
+
+/**
+ * A tool that the client executes: the caller runs each `tool_use` request for it
+ * and returns the output in a `tool_result` block.
+ */
+export type ClientToolUnion =
+  | Tool
+  | ToolBash20250124
+  | BrowserToolset20260801
+  | MemoryTool20250818
+  | ComputerToolset20260801
+  | ToolTextEditor20250124
+  | ToolTextEditor20250429
+  | ToolTextEditor20250728;
 
 export interface CodeExecutionOutputBlock {
   file_id: string;
@@ -1950,11 +2017,8 @@ export interface ComputerToolset20260801 {
   cache_control?: CacheControlEphemeral | null;
 
   /**
-   * Per-member configuration for `computer_toolset_20260801`: one optional field per
-   * member tool, keyed by the member name — the same name the member's `tool_use`
-   * blocks carry. Every member is an accepted key, and a member's defaults apply
-   * wherever its key is absent. Unknown keys are rejected: the field set is this
-   * toolset version's complete member set.
+   * Sparse per-member overrides, keyed by member name. Absent, null, and {} are
+   * equivalent; a member's defaults apply wherever its key is absent.
    */
   configs?: ComputerToolsetConfigs | null;
 }
@@ -2246,6 +2310,35 @@ export interface ContentBlockSource {
 export type ContentBlockSourceContent = TextBlockParam | ImageBlockParam;
 
 /**
+ * Request-level diagnostics: why the prompt cache could not fully reuse the prefix
+ * of the request named by `diagnostics.previous_message_id`.
+ */
+export interface Diagnostics {
+  /**
+   * Explains why the prompt cache could not fully reuse the prefix from the request
+   * identified by `diagnostics.previous_message_id`. `null` means diagnosis is still
+   * pending — the response was serialized before the background comparison
+   * completed.
+   */
+  cache_miss_reason: CacheMissReason | null;
+}
+
+/**
+ * Request-level diagnostics. Currently carries the previous response id for
+ * prompt-cache divergence reporting.
+ */
+export interface DiagnosticsParam {
+  /**
+   * The `id` (`msg_...`) from this client's previous /v1/messages response. The
+   * server compares that request's prompt fingerprint against this one and returns
+   * `diagnostics.cache_miss_reason` when the prompt-cache prefix could not be
+   * reused. Pass `null` on the first turn to opt in without a prior message to
+   * compare.
+   */
+  previous_message_id?: string | null;
+}
+
+/**
  * Tool invocation directly from the model.
  */
 export interface DirectCaller {
@@ -2421,8 +2514,9 @@ export interface Message {
   id: string;
 
   /**
-   * Information about the container used in the request (for the code execution
-   * tool)
+   * Information about the container used in this request.
+   *
+   * This will be non-null if a container tool (e.g. code execution) was used.
    */
   container: Container | null;
 
@@ -2463,6 +2557,12 @@ export interface Message {
   content: Array<ContentBlock>;
 
   /**
+   * Request-level diagnostics. `null` when the request did not supply `diagnostics`,
+   * or when it did and no prompt-cache divergence was detected.
+   */
+  diagnostics: Diagnostics | null;
+
+  /**
    * The model that will complete your prompt.
    *
    * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
@@ -2478,7 +2578,9 @@ export interface Message {
   role: 'assistant';
 
   /**
-   * Structured information about a refusal.
+   * Structured information about why model output stopped.
+   *
+   * This is `null` when the `stop_reason` has no additional detail to report.
    */
   stop_details: RefusalStopDetails | null;
 
@@ -2634,6 +2736,7 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
+  | 'claude-sonnet-5-5'
   | 'claude-fable-5-1'
   | 'claude-opus-5-5'
   | 'claude-mythos-5-1'
@@ -2656,7 +2759,10 @@ export type Model =
 
 export interface OutputConfig {
   /**
-   * All possible effort levels.
+   * How much effort the model should put into its response. Higher effort levels may
+   * result in more thorough analysis but take longer.
+   *
+   * Valid values are `low`, `medium`, `high`, `xhigh`, or `max`.
    */
   effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | null;
 
@@ -2763,13 +2869,16 @@ export interface RawMessageDeltaEvent {
 export namespace RawMessageDeltaEvent {
   export interface Delta {
     /**
-     * Information about the container used in the request (for the code execution
-     * tool)
+     * Information about the container used in this request.
+     *
+     * This will be non-null if a container tool (e.g. code execution) was used.
      */
     container: MessagesAPI.Container | null;
 
     /**
-     * Structured information about a refusal.
+     * Structured information about why model output stopped.
+     *
+     * This is `null` when the `stop_reason` has no additional detail to report.
      */
     stop_details: MessagesAPI.RefusalStopDetails | null;
 
@@ -2830,7 +2939,9 @@ export interface RedactedThinkingBlockParam {
  */
 export interface RefusalStopDetails {
   /**
-   * The policy category that triggered a refusal.
+   * The policy category that triggered the refusal.
+   *
+   * `null` when the refusal doesn't map to a named category.
    *
    * - `cyber` - The request could enable cyber harm, such as malware or exploit
    *   development. Benign cybersecurity work can also trigger this category.
@@ -3208,6 +3319,10 @@ export interface ThinkingConfigAdaptive {
   display?: 'summarized' | 'omitted' | null;
 }
 
+export interface ThinkingConfigBetweenTools {
+  type: 'between_tools';
+}
+
 export interface ThinkingConfigDisabled {
   type: 'disabled';
 }
@@ -3248,7 +3363,11 @@ export interface ThinkingConfigEnabled {
  * [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
  * for details.
  */
-export type ThinkingConfigParam = ThinkingConfigEnabled | ThinkingConfigDisabled | ThinkingConfigAdaptive;
+export type ThinkingConfigParam =
+  | ThinkingConfigEnabled
+  | ThinkingConfigDisabled
+  | ThinkingConfigBetweenTools
+  | ThinkingConfigAdaptive;
 
 export interface ThinkingDelta {
   /**
@@ -3948,12 +4067,8 @@ export interface WebFetchTool20250910 {
   strict?: boolean;
 
   /**
-   * Which sources contribute to the set of URLs web fetch may fetch.
-   *
-   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
-   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
-   * (every result but the named tools'). A named tool must be declared in this
-   * request's `tools[]`.
+   * Which sources contribute to the set of URLs the tool may fetch. Omitted means
+   * every source.
    */
   url_sources?: WebFetchURLSources | null;
 }
@@ -4016,12 +4131,8 @@ export interface WebFetchTool20260209 {
   strict?: boolean;
 
   /**
-   * Which sources contribute to the set of URLs web fetch may fetch.
-   *
-   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
-   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
-   * (every result but the named tools'). A named tool must be declared in this
-   * request's `tools[]`.
+   * Which sources contribute to the set of URLs the tool may fetch. Omitted means
+   * every source.
    */
   url_sources?: WebFetchURLSources | null;
 }
@@ -4087,12 +4198,8 @@ export interface WebFetchTool20260309 {
   strict?: boolean;
 
   /**
-   * Which sources contribute to the set of URLs web fetch may fetch.
-   *
-   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
-   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
-   * (every result but the named tools'). A named tool must be declared in this
-   * request's `tools[]`.
+   * Which sources contribute to the set of URLs the tool may fetch. Omitted means
+   * every source.
    */
   url_sources?: WebFetchURLSources | null;
 
@@ -4172,12 +4279,8 @@ export interface WebFetchTool20260318 {
   strict?: boolean;
 
   /**
-   * Which sources contribute to the set of URLs web fetch may fetch.
-   *
-   * Each key is a tagged variant: `user_input` is `all` or `none`; the two tool
-   * filters are `all`, `none`, `only` (only the named tools' results) or `except`
-   * (every result but the named tools'). A named tool must be declared in this
-   * request's `tools[]`.
+   * Which sources contribute to the set of URLs the tool may fetch. Omitted means
+   * every source.
    */
   url_sources?: WebFetchURLSources | null;
 
@@ -4707,6 +4810,13 @@ export interface MessageCreateParamsBase {
   container?: MessageCreateParamsContainer | null;
 
   /**
+   * Body param: Request-level diagnostics. Supply `previous_message_id` to have the
+   * response include `diagnostics.cache_miss_reason` explaining any prompt-cache
+   * divergence from that prior request.
+   */
+  diagnostics?: DiagnosticsParam | null;
+
+  /**
    * Body param: Specifies the geographic region for inference processing. If not
    * specified, the workspace's `default_inference_geo` is used.
    */
@@ -4748,10 +4858,13 @@ export interface MessageCreateParamsBase {
 
   /**
    * Body param: Whether to incrementally stream the response using server-sent
-   * events.
+   * events. When `true`, SDKs return a raw event stream.
    *
-   * See [streaming](https://platform.claude.com/docs/en/build-with-claude/streaming)
-   * for details.
+   * In the TypeScript, Python and Ruby SDKs, the recommended way to stream is
+   * `messages.stream()`. It sets `stream` for you and accumulates the events into
+   * the final message. See
+   * [Streaming with SDKs](https://platform.claude.com/docs/en/build-with-claude/streaming#streaming-with-sdks)
+   * for an example in each language.
    */
   stream?: boolean;
 
@@ -4910,10 +5023,13 @@ export namespace MessageCreateParams {
 export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase {
   /**
    * Body param: Whether to incrementally stream the response using server-sent
-   * events.
+   * events. When `true`, SDKs return a raw event stream.
    *
-   * See [streaming](https://platform.claude.com/docs/en/build-with-claude/streaming)
-   * for details.
+   * In the TypeScript, Python and Ruby SDKs, the recommended way to stream is
+   * `messages.stream()`. It sets `stream` for you and accumulates the events into
+   * the final message. See
+   * [Streaming with SDKs](https://platform.claude.com/docs/en/build-with-claude/streaming#streaming-with-sdks)
+   * for an example in each language.
    */
   stream?: false;
 }
@@ -4921,10 +5037,13 @@ export interface MessageCreateParamsNonStreaming extends MessageCreateParamsBase
 export interface MessageCreateParamsStreaming extends MessageCreateParamsBase {
   /**
    * Body param: Whether to incrementally stream the response using server-sent
-   * events.
+   * events. When `true`, SDKs return a raw event stream.
    *
-   * See [streaming](https://platform.claude.com/docs/en/build-with-claude/streaming)
-   * for details.
+   * In the TypeScript, Python and Ruby SDKs, the recommended way to stream is
+   * `messages.stream()`. It sets `stream` for you and accumulates the events into
+   * the final message. See
+   * [Streaming with SDKs](https://platform.claude.com/docs/en/build-with-claude/streaming#streaming-with-sdks)
+   * for an example in each language.
    */
   stream: true;
 }
@@ -5206,6 +5325,13 @@ export declare namespace Messages {
     type BrowserZoomConfig as BrowserZoomConfig,
     type CacheControlEphemeral as CacheControlEphemeral,
     type CacheCreation as CacheCreation,
+    type CacheMissMessagesChanged as CacheMissMessagesChanged,
+    type CacheMissModelChanged as CacheMissModelChanged,
+    type CacheMissPreviousMessageNotFound as CacheMissPreviousMessageNotFound,
+    type CacheMissReason as CacheMissReason,
+    type CacheMissSystemChanged as CacheMissSystemChanged,
+    type CacheMissToolsChanged as CacheMissToolsChanged,
+    type CacheMissUnavailable as CacheMissUnavailable,
     type CitationCharLocation as CitationCharLocation,
     type CitationCharLocationParam as CitationCharLocationParam,
     type CitationContentBlockLocation as CitationContentBlockLocation,
@@ -5219,6 +5345,7 @@ export declare namespace Messages {
     type CitationsDelta as CitationsDelta,
     type CitationsSearchResultLocation as CitationsSearchResultLocation,
     type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
+    type ClientToolUnion as ClientToolUnion,
     type CodeExecutionOutputBlock as CodeExecutionOutputBlock,
     type CodeExecutionOutputBlockParam as CodeExecutionOutputBlockParam,
     type CodeExecutionResultBlock as CodeExecutionResultBlock,
@@ -5264,6 +5391,8 @@ export declare namespace Messages {
     type ContentBlockStopEvent as ContentBlockStopEvent,
     type ContentBlockSource as ContentBlockSource,
     type ContentBlockSourceContent as ContentBlockSourceContent,
+    type Diagnostics as Diagnostics,
+    type DiagnosticsParam as DiagnosticsParam,
     type DirectCaller as DirectCaller,
     type DocumentBlock as DocumentBlock,
     type DocumentBlockParam as DocumentBlockParam,
@@ -5327,6 +5456,7 @@ export declare namespace Messages {
     type ThinkingBlock as ThinkingBlock,
     type ThinkingBlockParam as ThinkingBlockParam,
     type ThinkingConfigAdaptive as ThinkingConfigAdaptive,
+    type ThinkingConfigBetweenTools as ThinkingConfigBetweenTools,
     type ThinkingConfigDisabled as ThinkingConfigDisabled,
     type ThinkingConfigEnabled as ThinkingConfigEnabled,
     type ThinkingConfigParam as ThinkingConfigParam,

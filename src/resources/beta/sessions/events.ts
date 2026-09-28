@@ -217,7 +217,7 @@ export interface BetaManagedAgentsAgentCustomToolUseEvent {
   name: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when this tool use was processed.
    */
   processed_at: string;
 
@@ -253,7 +253,7 @@ export interface BetaManagedAgentsAgentMCPToolResultEvent {
   mcp_tool_use_id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when this event was processed.
    */
   processed_at: string;
 
@@ -300,21 +300,25 @@ export interface BetaManagedAgentsAgentMCPToolUseEvent {
   name: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when this event was processed.
    */
   processed_at: string;
 
   type: 'agent.mcp_tool_use';
 
   /**
-   * AgentEvaluatedPermission enum
+   * The evaluated permission policy for this tool invocation.
    */
   evaluated_permission?: BetaManagedAgentsAgentEvaluatedPermission;
 
   /**
-   * Names the resolved permission_policy that produced evaluated_permission, and
-   * under auto carries the judgement. Open union: clients must tolerate unknown
-   * variants.
+   * Which resolved permission_policy produced evaluated_permission: always_allow,
+   * always_ask, or auto (with the server's per-invocation judgement). Absent only
+   * when the server refused the call before any policy applied (for example, the
+   * named tool is not enabled in the session); such a refusal has
+   * evaluated_permission deny. An event recorded before this field existed reads as
+   * the arm its evaluated_permission implies (always_allow for allow, always_ask for
+   * ask).
    */
   evaluation?: BetaManagedAgentsAgentToolEvaluation;
 
@@ -342,7 +346,7 @@ export interface BetaManagedAgentsAgentMessageEvent {
   content: Array<BetaManagedAgentsTextBlock | BetaManagedAgentsRedactedBlock>;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when this response was generated.
    */
   processed_at: string;
 
@@ -360,7 +364,7 @@ export interface BetaManagedAgentsAgentThinkingEvent {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when this thinking was produced.
    */
   processed_at: string;
 
@@ -377,7 +381,7 @@ export interface BetaManagedAgentsAgentThreadContextCompactedEvent {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when compaction was processed.
    */
   processed_at: string;
 
@@ -410,7 +414,7 @@ export interface BetaManagedAgentsAgentThreadMessageReceivedEvent {
   from_session_thread_id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the message was received.
    */
   processed_at: string;
 
@@ -444,7 +448,7 @@ export interface BetaManagedAgentsAgentThreadMessageSentEvent {
   >;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the message was sent.
    */
   processed_at: string;
 
@@ -494,9 +498,7 @@ export interface BetaManagedAgentsAgentToolEvaluationAlwaysAsk {
  */
 export interface BetaManagedAgentsAgentToolEvaluationAuto {
   /**
-   * The server's per-invocation judgement under the auto permission policy. Its type
-   * always equals the event's top-level evaluated_permission. Open union: clients
-   * must tolerate unknown variants.
+   * The server's judgement for this invocation.
    */
   evaluated_permission: BetaManagedAgentsAgentAutoEvaluatedPermission;
 
@@ -513,7 +515,7 @@ export interface BetaManagedAgentsAgentToolResultEvent {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when this event was processed.
    */
   processed_at: string;
 
@@ -560,21 +562,25 @@ export interface BetaManagedAgentsAgentToolUseEvent {
   name: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when this event was processed.
    */
   processed_at: string;
 
   type: 'agent.tool_use';
 
   /**
-   * AgentEvaluatedPermission enum
+   * The evaluated permission policy for this tool invocation.
    */
   evaluated_permission?: BetaManagedAgentsAgentEvaluatedPermission;
 
   /**
-   * Names the resolved permission_policy that produced evaluated_permission, and
-   * under auto carries the judgement. Open union: clients must tolerate unknown
-   * variants.
+   * Which resolved permission_policy produced evaluated_permission: always_allow,
+   * always_ask, or auto (with the server's per-invocation judgement). Absent only
+   * when the server refused the call before any policy applied (for example, the
+   * named tool is not enabled in the session); such a refusal has
+   * evaluated_permission deny. An event recorded before this field existed reads as
+   * the arm its evaluated_permission implies (always_allow for allow, always_ask for
+   * ask).
    */
   evaluation?: BetaManagedAgentsAgentToolEvaluation;
 
@@ -635,7 +641,7 @@ export interface BetaManagedAgentsBillingError {
   message: string;
 
   /**
-   * What the client should do next in response to this error.
+   * What the client should do next.
    */
   retry_status:
     | BetaManagedAgentsRetryStatusRetrying
@@ -661,7 +667,7 @@ export interface BetaManagedAgentsCredentialHostUnreachableError {
   message: string;
 
   /**
-   * What the client should do next in response to this error.
+   * What the client should do next.
    */
   retry_status:
     | BetaManagedAgentsRetryStatusRetrying
@@ -682,7 +688,7 @@ export interface BetaManagedAgentsCredentialHostUnreachableError {
  */
 export interface BetaManagedAgentsDocumentBlock {
   /**
-   * Union type for document source variants.
+   * The source of the document data.
    */
   source:
     | BetaManagedAgentsBase64DocumentSource
@@ -768,7 +774,7 @@ export interface BetaManagedAgentsFileRubricParams {
  */
 export interface BetaManagedAgentsImageBlock {
   /**
-   * Union type for image source variants.
+   * The source of the image data.
    */
   source:
     | BetaManagedAgentsBase64ImageSource
@@ -793,7 +799,7 @@ export interface BetaManagedAgentsMCPAuthenticationFailedError {
   message: string;
 
   /**
-   * What the client should do next in response to this error.
+   * What the client should do next.
    */
   retry_status:
     | BetaManagedAgentsRetryStatusRetrying
@@ -818,7 +824,7 @@ export interface BetaManagedAgentsMCPConnectionFailedError {
   message: string;
 
   /**
-   * What the client should do next in response to this error.
+   * What the client should do next.
    */
   retry_status:
     | BetaManagedAgentsRetryStatusRetrying
@@ -839,7 +845,7 @@ export interface BetaManagedAgentsModelOverloadedError {
   message: string;
 
   /**
-   * What the client should do next in response to this error.
+   * What the client should do next.
    */
   retry_status:
     | BetaManagedAgentsRetryStatusRetrying
@@ -859,7 +865,7 @@ export interface BetaManagedAgentsModelRateLimitedError {
   message: string;
 
   /**
-   * What the client should do next in response to this error.
+   * What the client should do next.
    */
   retry_status:
     | BetaManagedAgentsRetryStatusRetrying
@@ -879,7 +885,7 @@ export interface BetaManagedAgentsModelRequestFailedError {
   message: string;
 
   /**
-   * What the client should do next in response to this error.
+   * What the client should do next.
    */
   retry_status:
     | BetaManagedAgentsRetryStatusRetrying
@@ -943,7 +949,7 @@ export interface BetaManagedAgentsRetryStatusTerminal {
  */
 export interface BetaManagedAgentsSearchResultBlock {
   /**
-   * Citation settings for a search result.
+   * Citation settings for this search result.
    */
   citations: BetaManagedAgentsSearchResultCitations;
 
@@ -1026,7 +1032,7 @@ export interface BetaManagedAgentsSessionDeletedEvent {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the session was deleted.
    */
   processed_at: string;
 
@@ -1060,7 +1066,7 @@ export interface BetaManagedAgentsSessionErrorEvent {
     | BetaManagedAgentsCredentialHostUnreachableError;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the error occurred.
    */
   processed_at: string;
 
@@ -1108,6 +1114,45 @@ export type BetaManagedAgentsSessionEvent =
   | SessionsAPI.BetaManagedAgentsSessionUsageEvent;
 
 /**
+ * The `type` of a session event.
+ */
+export type BetaManagedAgentsSessionEventType =
+  | 'user.message'
+  | 'user.interrupt'
+  | 'user.tool_confirmation'
+  | 'user.custom_tool_result'
+  | 'agent.custom_tool_use'
+  | 'agent.message'
+  | 'agent.thinking'
+  | 'agent.mcp_tool_use'
+  | 'agent.mcp_tool_result'
+  | 'agent.tool_use'
+  | 'agent.tool_result'
+  | 'agent.thread_message_received'
+  | 'agent.thread_message_sent'
+  | 'agent.thread_context_compacted'
+  | 'session.error'
+  | 'session.status_rescheduled'
+  | 'session.status_running'
+  | 'session.status_idle'
+  | 'session.status_terminated'
+  | 'session.thread_created'
+  | 'span.outcome_evaluation_start'
+  | 'span.outcome_evaluation_end'
+  | 'span.model_request_start'
+  | 'span.model_request_end'
+  | 'span.outcome_evaluation_ongoing'
+  | 'user.define_outcome'
+  | 'session.thread_status_running'
+  | 'session.thread_status_idle'
+  | 'session.thread_status_terminated'
+  | 'user.tool_result'
+  | 'session.thread_status_rescheduled'
+  | 'session.updated'
+  | 'system.message'
+  | 'session.usage';
+
+/**
  * The agent is idle waiting on one or more blocking user-input events (tool
  * confirmation, custom tool result, etc.). Resolving all of them transitions the
  * session back to running.
@@ -1140,7 +1185,7 @@ export interface BetaManagedAgentsSessionStatusIdleEvent {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp of status change.
    */
   processed_at: string;
 
@@ -1164,7 +1209,7 @@ export interface BetaManagedAgentsSessionStatusRescheduledEvent {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp of status change.
    */
   processed_at: string;
 
@@ -1181,7 +1226,7 @@ export interface BetaManagedAgentsSessionStatusRunningEvent {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp of status change.
    */
   processed_at: string;
 
@@ -1198,7 +1243,7 @@ export interface BetaManagedAgentsSessionStatusTerminatedEvent {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp of status change.
    */
   processed_at: string;
 
@@ -1221,7 +1266,7 @@ export interface BetaManagedAgentsSessionThreadCreatedEvent {
   agent_name: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the thread was created.
    */
   processed_at: string;
 
@@ -1249,7 +1294,7 @@ export interface BetaManagedAgentsSessionThreadStatusIdleEvent {
   agent_name: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp of the status transition.
    */
   processed_at: string;
 
@@ -1284,7 +1329,7 @@ export interface BetaManagedAgentsSessionThreadStatusRescheduledEvent {
   agent_name: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp of the status transition.
    */
   processed_at: string;
 
@@ -1312,7 +1357,7 @@ export interface BetaManagedAgentsSessionThreadStatusRunningEvent {
   agent_name: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp of the status transition.
    */
   processed_at: string;
 
@@ -1340,7 +1385,7 @@ export interface BetaManagedAgentsSessionThreadStatusTerminatedEvent {
   agent_name: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp of the status transition.
    */
   processed_at: string;
 
@@ -1364,7 +1409,7 @@ export interface BetaManagedAgentsSessionUsageSnapshot {
   active_seconds?: number;
 
   /**
-   * Prompt-cache creation token usage broken down by cache lifetime.
+   * Tokens used to create prompt cache entries, broken down by cache TTL.
    */
   cache_creation?: SessionsAPI.BetaManagedAgentsCacheCreationUsage;
 
@@ -1379,7 +1424,8 @@ export interface BetaManagedAgentsSessionUsageSnapshot {
   input_tokens?: number;
 
   /**
-   * A monetary amount in a specific currency.
+   * Cumulative list cost of the session across all turns, priced at public list
+   * rates.
    */
   list_cost?: BetaAPI.BetaMonetaryAmount;
 
@@ -1389,7 +1435,7 @@ export interface BetaManagedAgentsSessionUsageSnapshot {
   output_tokens?: number;
 
   /**
-   * Cumulative count of server-executed tool invocations, broken down by tool.
+   * Cumulative server-executed tool usage across all turns.
    */
   server_tool_use?: SessionsAPI.BetaManagedAgentsServerToolUsage;
 }
@@ -1414,12 +1460,12 @@ export interface BetaManagedAgentsSpanModelRequestEndEvent {
   model_request_start_id: string;
 
   /**
-   * Token usage for a single model request.
+   * Token usage for this model request.
    */
   model_usage: BetaManagedAgentsSpanModelUsage;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the model request completed.
    */
   processed_at: string;
 
@@ -1436,7 +1482,7 @@ export interface BetaManagedAgentsSpanModelRequestStartEvent {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the model request started.
    */
   processed_at: string;
 
@@ -1468,9 +1514,8 @@ export interface BetaManagedAgentsSpanModelUsage {
   output_tokens: number;
 
   /**
-   * Inference speed mode. `fast` provides significantly faster output token
-   * generation at premium pricing. Not all models support `fast`; invalid
-   * combinations are rejected at create time.
+   * Inference speed tier this request actually ran at. Mirrors `usage.speed` on
+   * /v1/messages. Only present when the fast-mode beta is active.
    */
   speed?: 'standard' | 'fast' | null;
 }
@@ -1510,7 +1555,7 @@ export interface BetaManagedAgentsSpanOutcomeEvaluationEndEvent {
   outcome_id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when outcome evaluation ended.
    */
   processed_at: string;
 
@@ -1528,7 +1573,8 @@ export interface BetaManagedAgentsSpanOutcomeEvaluationEndEvent {
   type: 'span.outcome_evaluation_end';
 
   /**
-   * Token usage for a single model request.
+   * Aggregate token usage for this evaluation cycle. Sums across all grader model
+   * requests within the cycle.
    */
   usage: BetaManagedAgentsSpanModelUsage;
 }
@@ -1557,7 +1603,7 @@ export interface BetaManagedAgentsSpanOutcomeEvaluationOngoingEvent {
   outcome_id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when this heartbeat was emitted.
    */
   processed_at: string;
 
@@ -1585,7 +1631,7 @@ export interface BetaManagedAgentsSpanOutcomeEvaluationStartEvent {
   outcome_id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when outcome evaluation started.
    */
   processed_at: string;
 
@@ -1700,7 +1746,7 @@ export interface BetaManagedAgentsUnknownError {
   message: string;
 
   /**
-   * What the client should do next in response to this error.
+   * What the client should do next.
    */
   retry_status:
     | BetaManagedAgentsRetryStatusRetrying
@@ -1769,7 +1815,7 @@ export interface BetaManagedAgentsUserCustomToolResultEvent {
   is_error?: boolean | null;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when this result was processed.
    */
   processed_at?: string | null;
 
@@ -1837,12 +1883,13 @@ export interface BetaManagedAgentsUserDefineOutcomeEvent {
   outcome_id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the outcome was accepted.
    */
   processed_at: string;
 
   /**
-   * Rubric for grading the quality of an outcome.
+   * How to grade the outcome. File rubrics are currently resolved to their text
+   * content; clients should handle both variants.
    */
   rubric: BetaManagedAgentsFileRubric | BetaManagedAgentsTextRubric;
 
@@ -1860,7 +1907,7 @@ export interface BetaManagedAgentsUserDefineOutcomeEventParams {
   description: string;
 
   /**
-   * Rubric for grading the quality of an outcome.
+   * How to grade the outcome. Text or file reference.
    */
   rubric: BetaManagedAgentsFileRubricParams | BetaManagedAgentsTextRubricParams;
 
@@ -1884,7 +1931,7 @@ export interface BetaManagedAgentsUserInterruptEvent {
   type: 'user.interrupt';
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the interrupt was processed.
    */
   processed_at?: string | null;
 
@@ -1932,7 +1979,7 @@ export interface BetaManagedAgentsUserMessageEvent {
   type: 'user.message';
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the agent finished processing this message.
    */
   processed_at?: string | null;
 }
@@ -1964,7 +2011,7 @@ export interface BetaManagedAgentsUserToolConfirmationEvent {
   id: string;
 
   /**
-   * UserToolConfirmationResult enum
+   * The confirmation result: 'allow' or 'deny'.
    */
   result: 'allow' | 'deny';
 
@@ -1985,7 +2032,7 @@ export interface BetaManagedAgentsUserToolConfirmationEvent {
   deny_message?: string | null;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the confirmation was processed.
    */
   processed_at?: string | null;
 
@@ -2001,7 +2048,7 @@ export interface BetaManagedAgentsUserToolConfirmationEvent {
  */
 export interface BetaManagedAgentsUserToolConfirmationEventParams {
   /**
-   * UserToolConfirmationResult enum
+   * The confirmation result: 'allow' or 'deny'.
    */
   result: 'allow' | 'deny';
 
@@ -2090,7 +2137,7 @@ export interface EventListParams extends PageCursorParams {
    * events (for example, `user.message` or `agent.tool_use`). Omit to return all
    * event types.
    */
-  types?: Array<string>;
+  types?: Array<BetaManagedAgentsSessionEventType>;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
@@ -2218,6 +2265,7 @@ export declare namespace Events {
     type BetaManagedAgentsSessionEndTurn as BetaManagedAgentsSessionEndTurn,
     type BetaManagedAgentsSessionErrorEvent as BetaManagedAgentsSessionErrorEvent,
     type BetaManagedAgentsSessionEvent as BetaManagedAgentsSessionEvent,
+    type BetaManagedAgentsSessionEventType as BetaManagedAgentsSessionEventType,
     type BetaManagedAgentsSessionRequiresAction as BetaManagedAgentsSessionRequiresAction,
     type BetaManagedAgentsSessionRetriesExhausted as BetaManagedAgentsSessionRetriesExhausted,
     type BetaManagedAgentsSessionStatusIdleEvent as BetaManagedAgentsSessionStatusIdleEvent,

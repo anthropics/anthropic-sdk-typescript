@@ -10,7 +10,9 @@ export {
 export {
   RateLimits,
   type BetaWorkspaceRateLimit,
+  type BetaWorkspaceRateLimitOrganizationSource,
   type BetaWorkspaceRateLimitValue,
+  type BetaWorkspaceRateLimitWorkspaceSource,
   type RateLimitListParams,
   type BetaWorkspaceRateLimitsPageCursor,
 } from './rate-limits';

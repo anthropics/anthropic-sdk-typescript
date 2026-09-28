@@ -285,7 +285,8 @@ export interface BetaManagedAgentsCronSchedule {
   type: 'cron';
 
   /**
-   * A timestamp in RFC 3339 format
+   * Time the most recent scheduled run actually started. Null until one completes;
+   * preserved after the deployment is archived. Manual runs do not update this.
    */
   last_run_at?: string | null;
 
@@ -334,17 +335,17 @@ export interface BetaManagedAgentsDeployment {
   id: string;
 
   /**
-   * A resolved agent reference with a concrete version.
+   * Reference to the agent this deployment runs, resolved to a concrete version.
    */
   agent: AgentsAPI.BetaManagedAgentsAgentReference;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Time the deployment was archived. Null if not archived.
    */
   archived_at: string | null;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Time the deployment was created.
    */
   created_at: string;
 
@@ -374,7 +375,8 @@ export interface BetaManagedAgentsDeployment {
   name: string;
 
   /**
-   * Why a deployment is paused. Non-null exactly when `status` is `paused`.
+   * Why the deployment is `paused`. Non-null exactly when `status` is `paused`; null
+   * otherwise.
    */
   paused_reason: BetaManagedAgentsDeploymentPausedReason | null;
 
@@ -385,19 +387,22 @@ export interface BetaManagedAgentsDeployment {
   resources: Array<BetaManagedAgentsSessionResourceConfig>;
 
   /**
-   * 5-field POSIX cron schedule with computed runtime timestamps.
+   * Recurring cron schedule. Presence enables scheduled execution; null means
+   * manual-only. Includes computed timestamps (next fire times, last run) on the
+   * cron variant.
    */
   schedule: BetaManagedAgentsSchedule | null;
 
   /**
-   * Lifecycle status of a deployment.
+   * Computed status of the deployment: `active` or `paused`. Archived deployments
+   * report `active` with `archived_at` set.
    */
   status: BetaManagedAgentsDeploymentStatus;
 
   type: 'deployment';
 
   /**
-   * A timestamp in RFC 3339 format
+   * Time the deployment was last updated.
    */
   updated_at: string;
 
@@ -408,8 +413,8 @@ export interface BetaManagedAgentsDeployment {
   vault_ids: Array<string>;
 
   /**
-   * A hard spend ceiling. The session stops issuing new model requests once the
-   * tracked list cost reaches `max_list_cost`.
+   * Spend ceiling stamped onto each session created from this deployment. Absent
+   * when no budget is set.
    */
   budget?: SessionsAPI.BetaManagedAgentsBudgetLimit | null;
 }
@@ -492,7 +497,7 @@ export interface BetaManagedAgentsDeploymentUserDefineOutcomeEvent {
   description: string;
 
   /**
-   * Rubric for grading the quality of an outcome.
+   * How to grade the outcome. Text or file reference.
    */
   rubric: EventsAPI.BetaManagedAgentsFileRubric | EventsAPI.BetaManagedAgentsTextRubric;
 
@@ -540,7 +545,7 @@ export interface BetaManagedAgentsEnvironmentNotFoundDeploymentPausedReasonError
  */
 export interface BetaManagedAgentsErrorDeploymentPausedReason {
   /**
-   * The error that triggered an auto-pause. Matches the failed run's `error.type`.
+   * The failed run's error.
    */
   error: BetaManagedAgentsDeploymentPausedReasonError;
 
@@ -629,7 +634,8 @@ export interface BetaManagedAgentsMemoryStoreResourceConfig {
   type: 'memory_store';
 
   /**
-   * Access mode for an attached memory store.
+   * Access mode for the mounted store. Defaults to `read_write`. `read_only` mounts
+   * the store as a read-only filesystem.
    */
   access?: 'read_write' | 'read_only' | null;
 
@@ -648,7 +654,8 @@ export interface BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonErro
 }
 
 /**
- * 5-field POSIX cron schedule with computed runtime timestamps.
+ * A recurring schedule with computed runtime timestamps. Discriminated union —
+ * only cron is supported currently.
  */
 export interface BetaManagedAgentsSchedule {
   /**
@@ -668,7 +675,8 @@ export interface BetaManagedAgentsSchedule {
   type: 'cron';
 
   /**
-   * A timestamp in RFC 3339 format
+   * Time the most recent scheduled run actually started. Null until one completes;
+   * preserved after the deployment is archived. Manual runs do not update this.
    */
   last_run_at?: string | null;
 
@@ -683,8 +691,7 @@ export interface BetaManagedAgentsSchedule {
 }
 
 /**
- * 5-field POSIX cron schedule. Literal wall-clock matching in the configured
- * timezone.
+ * A recurring schedule. Discriminated union — only cron is supported currently.
  */
 export interface BetaManagedAgentsScheduleParams {
   /**
@@ -790,8 +797,11 @@ export interface DeploymentCreateParams {
   name: string;
 
   /**
-   * Body param: A hard spend ceiling. The session stops issuing new model requests
-   * once the tracked list cost reaches `max_list_cost`.
+   * Body param: Enforced spend ceiling stamped onto each session created from this
+   * deployment, copied at session-creation time. Omit to leave sessions uncapped.
+   * The deployment agent's model must have a public list price, or the request is
+   * rejected; a multiagent roster is re-validated in full when each fire copies the
+   * cap, which fails closed the same way.
    */
   budget?: SessionsAPI.BetaManagedAgentsBudgetLimit | null;
 
@@ -817,8 +827,8 @@ export interface DeploymentCreateParams {
   >;
 
   /**
-   * Body param: 5-field POSIX cron schedule. Literal wall-clock matching in the
-   * configured timezone.
+   * Body param: Optional recurring cron schedule. When present, the deployment fires
+   * automatically. Both expression and timezone are required when schedule is set.
    */
   schedule?: BetaManagedAgentsScheduleParams | null;
 
@@ -870,8 +880,11 @@ export interface DeploymentUpdateParams {
   agent?: string | SessionsAPI.BetaManagedAgentsAgentParams;
 
   /**
-   * Body param: A hard spend ceiling. The session stops issuing new model requests
-   * once the tracked list cost reaches `max_list_cost`.
+   * Body param: Spend ceiling for future sessions. Full replacement. Omit to
+   * preserve; send null to clear (sessions created afterwards are uncapped). The
+   * deployment agent's model must have a public list price, or the request is
+   * rejected; a multiagent roster is re-validated in full when each fire copies the
+   * cap, which fails closed the same way.
    */
   budget?: SessionsAPI.BetaManagedAgentsBudgetLimit | null;
 
@@ -916,8 +929,8 @@ export interface DeploymentUpdateParams {
   > | null;
 
   /**
-   * Body param: 5-field POSIX cron schedule. Literal wall-clock matching in the
-   * configured timezone.
+   * Body param: Cron schedule. Full replacement. Omit to preserve; send null to
+   * clear (revert to manual-only).
    */
   schedule?: BetaManagedAgentsScheduleParams | null;
 

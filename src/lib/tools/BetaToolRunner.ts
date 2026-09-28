@@ -12,16 +12,18 @@ import {
   BetaRequestToolAdditionBlock,
   BetaRequestToolRemovalBlock,
   BetaStopReason,
+  BetaToolResultBlockParam,
   BetaToolUnion,
+  BetaToolUseBlock,
   MessageCreateParams,
 } from '../../resources/beta';
 import { BetaMessageStream } from '../BetaMessageStream';
+import { BetaToolRunnerStream } from '../internal/BetaToolRunnerStream';
 import { RequestOptions } from '../../internal/request-options';
 import { buildHeaders } from '../../internal/headers';
 import { promiseWithResolvers } from '../../internal/utils/promise';
 import { checkNever } from '../../internal/utils/values';
 import { loggerFor } from '../../internal/utils/log';
-import { CompactionControl, DEFAULT_SUMMARY_PROMPT, DEFAULT_TOKEN_THRESHOLD } from './CompactionControl';
 import {
   collectStainlessHelpers,
   helperHeader,
@@ -33,7 +35,8 @@ import type { Simplify } from '../internal/types';
  * A ToolRunner handles the automatic conversation loop between the assistant and tools.
  *
  * A ToolRunner is an async iterable that yields either BetaMessage or BetaMessageStream objects
- * depending on the streaming configuration.
+ * depending on the streaming configuration. With `runToolsEagerly` it starts each tool call while the
+ * reply is still streaming, unless `deferToolCall()` holds the call.
  */
 export class BetaToolRunner<Stream extends boolean> {
   /** Whether the async iterator has been consumed */
@@ -59,6 +62,8 @@ export class BetaToolRunner<Stream extends boolean> {
   #iterationCount = 0;
   /** A compaction scheduled with `compactBeforeNextTurn()`, in flight until its response has been handled */
   #compaction: Compaction = { status: 'idle' };
+  /** The tool calls of the current reply that are held or have started, by `tool_use` id. See `runToolsEagerly`. */
+  #calls: Map<string, ToolCallState> | undefined;
   /** The last turn's stop reason, or `null` once the history has been replaced since */
   #lastStopReason: BetaStopReason | null = null;
   /**
@@ -77,6 +82,8 @@ export class BetaToolRunner<Stream extends boolean> {
     options?: BetaToolRunnerRequestOptions,
   ) {
     rejectCompactionParam(params);
+    rejectCompactionControl(params);
+    rejectRunToolsEagerlyWithoutStream(params);
     this.#state = {
       params: {
         // You can't clone the entire params since there are functions as handlers.
@@ -102,100 +109,6 @@ export class BetaToolRunner<Stream extends boolean> {
       ]),
     };
     this.#completion = promiseWithResolvers();
-
-    if (params.compactionControl?.enabled) {
-      console.warn(
-        'Anthropic: The `compactionControl` parameter is deprecated and will be removed in a future version. ' +
-          'Use server-side compaction instead by passing `edits: [{ type: "compact_20260112" }]` in the params passed to `toolRunner()`. ' +
-          'See https://platform.claude.com/docs/en/build-with-claude/compaction',
-      );
-    }
-  }
-
-  async #checkAndCompact(): Promise<boolean> {
-    const compactionControl = this.#state.params.compactionControl;
-    if (!compactionControl || !compactionControl.enabled) {
-      return false;
-    }
-
-    let tokensUsed = 0;
-    if (this.#message !== undefined) {
-      try {
-        const message = await this.#message;
-        const totalInputTokens =
-          message.usage.input_tokens +
-          (message.usage.cache_creation_input_tokens ?? 0) +
-          (message.usage.cache_read_input_tokens ?? 0);
-        tokensUsed = totalInputTokens + message.usage.output_tokens;
-      } catch {
-        // If we can't get the message, skip compaction
-        return false;
-      }
-    }
-
-    const threshold = compactionControl.contextTokenThreshold ?? DEFAULT_TOKEN_THRESHOLD;
-
-    if (tokensUsed < threshold) {
-      return false;
-    }
-
-    const model = compactionControl.model ?? this.#state.params.model;
-    const summaryPrompt = compactionControl.summaryPrompt ?? DEFAULT_SUMMARY_PROMPT;
-
-    const messages = this.#state.params.messages;
-
-    if (messages[messages.length - 1]!.role === 'assistant') {
-      // Remove tool_use blocks from the last message to avoid 400 error
-      // (tool_use requires tool_result, which we don't have yet)
-      const lastMessage = messages[messages.length - 1]!;
-      if (Array.isArray(lastMessage.content)) {
-        const nonToolBlocks = lastMessage.content.filter((block) => block.type !== 'tool_use');
-
-        if (nonToolBlocks.length === 0) {
-          // If all blocks were tool_use, just remove the message entirely
-          messages.pop();
-        } else {
-          lastMessage.content = nonToolBlocks;
-        }
-      }
-    }
-
-    const response = await this.client.beta.messages.create(
-      {
-        model,
-        messages: [
-          ...messages,
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: summaryPrompt,
-              },
-            ],
-          },
-        ],
-        max_tokens: this.#state.params.max_tokens,
-      },
-      {
-        signal: this.#options.signal,
-        headers: buildHeaders([this.#options.headers, helperHeader('compaction')]),
-      },
-    );
-
-    if (response.content[0]?.type !== 'text') {
-      throw new AnthropicError('Expected text response for compaction');
-    }
-    // Must run before the history is replaced: a removal the caller wrote into it is known only from it.
-    this.#recordRemovalsFromHistory();
-    this.#lastStopReason = null;
-    this.#state.params.messages = [
-      {
-        role: 'user',
-        content: asContentParam(response.content),
-      },
-    ];
-    return true;
   }
 
   async *[Symbol.asyncIterator](): AsyncIterator<
@@ -237,51 +150,48 @@ export class BetaToolRunner<Stream extends boolean> {
           this.#iterationCount++;
           this.#message = undefined;
 
-          const { max_iterations, compactionControl, ...params } = this.#state.params;
+          const { max_iterations, runToolsEagerly, ...params } = this.#state.params;
 
           yield* this.#send(params);
 
-          const isCompacted = await this.#checkAndCompact();
-          if (!isCompacted) {
-            if (!this.#mutated) {
-              const message = await this.#message!;
-              const nextStep = determineNextStepFromStopReason(message.stop_reason);
-              this.#lastStopReason = message.stop_reason;
-              this.#state.params.messages.push({
-                role: message.role,
-                content: asContentParam(message.content),
-              });
+          if (!this.#mutated) {
+            const message = await this.#message!;
+            const nextStep = determineNextStepFromStopReason(message.stop_reason);
+            this.#lastStopReason = message.stop_reason;
+            this.#state.params.messages.push({
+              role: message.role,
+              content: asContentParam(message.content),
+            });
 
-              // Container-bound server tools reject a follow-up request that omits the container the
-              // previous turn ran in, so carry its id forward unless the caller pinned one themselves.
-              const { container } = this.#state.params;
-              if (message.container) {
-                if (container == null) {
-                  this.#state.params.container = message.container.id;
-                } else if (typeof container === 'object' && container.id == null) {
-                  this.#state.params.container = { ...container, id: message.container.id };
-                }
+            // Container-bound server tools reject a follow-up request that omits the container the
+            // previous turn ran in, so carry its id forward unless the caller pinned one themselves.
+            const { container } = this.#state.params;
+            if (message.container) {
+              if (container == null) {
+                this.#state.params.container = message.container.id;
+              } else if (typeof container === 'object' && container.id == null) {
+                this.#state.params.container = { ...container, id: message.container.id };
               }
-
-              if (nextStep === 'stop') {
-                yield* this.#compactAfterFinalTurn();
-                break;
-              }
-              if (nextStep === 'resume') {
-                continue;
-              }
-            } else {
-              // The caller has taken over the history, so the last response no longer says how it ends.
-              this.#lastStopReason = null;
             }
 
-            const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
-            if (toolMessage) {
-              this.#state.params.messages.push(toolMessage);
-            } else if (!this.#mutated) {
+            if (nextStep === 'stop') {
               yield* this.#compactAfterFinalTurn();
               break;
             }
+            if (nextStep === 'resume') {
+              continue;
+            }
+          } else {
+            // The caller has taken over the history, so the last response no longer says how it ends.
+            this.#lastStopReason = null;
+          }
+
+          const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
+          if (toolMessage) {
+            this.#state.params.messages.push(toolMessage);
+          } else if (!this.#mutated) {
+            yield* this.#compactAfterFinalTurn();
+            break;
           }
         } finally {
           this.#stream?.abort();
@@ -289,6 +199,7 @@ export class BetaToolRunner<Stream extends boolean> {
         }
       }
 
+      await this.#startedCallsSettled();
       if (!this.#message) {
         throw new AnthropicError('ToolRunner concluded without a message from the server');
       }
@@ -310,8 +221,13 @@ export class BetaToolRunner<Stream extends boolean> {
    * end of the iteration.
    */
   async *#send(params: MessageCreateParams): AsyncGenerator<BetaToolRunnerItem<Stream>, void, undefined> {
+    await this.#startedCallsSettled();
+    this.#calls = undefined;
     if (params.stream) {
-      this.#stream = this.client.beta.messages.stream({ ...params }, this.#options);
+      this.#stream =
+        this.#state.params.runToolsEagerly ?
+          this.#streamThatStartsTools(params)
+        : this.client.beta.messages.stream({ ...params }, this.#options);
       this.#message = this.#stream.finalMessage();
       // Make sure that this promise doesn't throw before we get the option to do something about it.
       // Error will be caught when we call await this.#message ultimately
@@ -323,11 +239,34 @@ export class BetaToolRunner<Stream extends boolean> {
     }
   }
 
+  /** Sends the request as a stream that starts each tool call while the reply streams. See `runToolsEagerly`. */
+  #streamThatStartsTools(params: MessageCreateParams): BetaToolRunnerStream {
+    const calls = new Map<string, ToolCallState>();
+    this.#calls = calls;
+    return BetaToolRunnerStream.start(this.client.beta.messages, params, this.#options, (toolUse) => {
+      // Held, or started by `generateToolResponse()` before a reader that is behind got to the call.
+      if (calls.has(toolUse.id)) {
+        return;
+      }
+      // The call looks its tool up now, so a later `addTools()` or `removeTools()` doesn't change it.
+      const result = runToolCall(this.#runnableTools(), this.#availableToolNames(), toolUse, this.#options);
+      // Marks a rejection as handled until the results are collected.
+      result.catch(() => {});
+      calls.set(toolUse.id, { status: 'started', result });
+    });
+  }
+
+  /** Waits for the calls of the last streamed reply that have started, whether or not their results were sent. */
+  async #startedCallsSettled(): Promise<void> {
+    const started = [...(this.#calls?.values() ?? [])].filter((call) => call.status === 'started');
+    await Promise.allSettled(started.map((call) => call.result));
+  }
+
   async *#compact(
     compaction: BetaCompactionConfig,
   ): AsyncGenerator<BetaToolRunnerItem<Stream>, void, undefined> {
     rejectCompactionEdit(this.#state.params);
-    const { max_iterations, compactionControl, ...requestParams } = this.#state.params;
+    const { max_iterations, runToolsEagerly, ...requestParams } = this.#state.params;
     const params = withoutCompactionIncompatibleParams(requestParams);
     this.#compaction = { status: 'in_flight' };
     this.#toolResponse = undefined;
@@ -422,7 +361,8 @@ export class BetaToolRunner<Stream extends boolean> {
   }
 
   /**
-   * Update the parameters for the next API call. This invalidates any cached tool responses.
+   * Update the parameters for the next API call. This invalidates any cached tool responses. With
+   * `runToolsEagerly`, a tool call of the reply that has started doesn't run again.
    *
    * @param paramsOrMutator - Either new parameters or a function to mutate existing parameters
    *
@@ -448,6 +388,7 @@ export class BetaToolRunner<Stream extends boolean> {
     const params =
       typeof paramsOrMutator === 'function' ? paramsOrMutator(this.#state.params) : paramsOrMutator;
     rejectCompactionParam(params);
+    rejectRunToolsEagerlyWithoutStream(params);
     if (this.#compaction.status !== 'idle') {
       rejectCompactionEdit(params);
     }
@@ -499,7 +440,9 @@ export class BetaToolRunner<Stream extends boolean> {
 
   /**
    * Get the tool response for the last message from the assistant.
-   * Avoids redundant tool executions by caching results.
+   * Avoids redundant tool executions by caching results. With `runToolsEagerly`, it reuses the calls of
+   * the reply that have started and runs the rest, including the ones `deferToolCall()` is holding, so that no
+   * call runs twice.
    *
    * @returns A promise that resolves to a BetaMessageParam containing tool results, or null if no tools need to be executed
    *
@@ -529,8 +472,70 @@ export class BetaToolRunner<Stream extends boolean> {
       this.#availableToolNames(),
       lastMessage,
       { ...this.#options, signal },
+      this.#calls,
     );
     return this.#toolResponse;
+  }
+
+  /**
+   * Hold a tool call of the current reply until you are done with the reply, which is when it runs without
+   * streaming: at the end of the loop body, or when you call `generateToolResponse()`.
+   *
+   * With `runToolsEagerly` the runner otherwise starts each call while the reply streams, as soon as
+   * the model has moved on from it: when the next block starts, or the reply stops with `tool_use`. A call
+   * never starts before your stream listeners and any `for await` over the stream have handled that event, so
+   * you can call this from either once you have seen the call. The other calls of the reply still start early.
+   * It does nothing for a call that has started, outside the loop body, and without `runToolsEagerly`.
+   *
+   * @param toolUse - The `tool_use` block of the call, or its id
+   *
+   * @example
+   * for await (const stream of runner) {
+   *   stream.on('contentBlock', (block) => {
+   *     if (block.type === 'tool_use' && block.name === 'delete_file') {
+   *       runner.deferToolCall(block);
+   *     }
+   *   });
+   *   await stream.finalMessage();
+   *   // No `delete_file` call has started yet.
+   * }
+   */
+  deferToolCall(toolUse: BetaToolUseBlock | string): void {
+    const id = typeof toolUse === 'string' ? toolUse : toolUse.id;
+    if (this.#calls && !this.#calls.has(id)) {
+      this.#calls.set(id, { status: 'held' });
+    }
+  }
+
+  /**
+   * The tool calls of the current reply that `deferToolCall()` is holding, in the model's order, as their
+   * `tool_use` blocks. A call is in the list once its block has finished streaming, so read the list when you
+   * are done with the stream. A call that has started is not in it. It is empty without
+   * `runToolsEagerly`.
+   *
+   * Held calls are listed whatever the reply's `stop_reason`, because `generateToolResponse()` runs them
+   * whatever it is. After `max_tokens` the input of the last call can be cut off.
+   *
+   * @example
+   * for await (const stream of runner) {
+   *   stream.on('contentBlock', (block) => {
+   *     if (block.type === 'tool_use' && block.name === 'delete_file') {
+   *       runner.deferToolCall(block);
+   *     }
+   *   });
+   *   await stream.finalMessage();
+   *
+   *   const held = runner.deferredToolCalls;
+   *   if (held.length > 0 && !(await confirm(held))) break;
+   * }
+   */
+  get deferredToolCalls(): BetaToolUseBlock[] {
+    const stream = this.#stream;
+    const calls = this.#calls;
+    if (!(stream instanceof BetaToolRunnerStream) || !calls) {
+      return [];
+    }
+    return stream.toolCalls.filter((toolUse) => calls.get(toolUse.id)?.status === 'held');
   }
 
   /**
@@ -643,9 +648,9 @@ export class BetaToolRunner<Stream extends boolean> {
    *
    * Each tool's whole definition is sent in a `tool_addition` block with the next request, and a
    * runnable tool replaces a runnable tool of the same name straight away, even for a call already in
-   * the message being handled. A raw definition is only sent: the runner never runs it, and stops
-   * running a tool of the same name. Requires the `inline-tools-2026-09-15` beta, which the runner does
-   * not add for you.
+   * the message being handled. A call that started while the reply streamed keeps the old one. A raw
+   * definition is only sent: the runner never runs it, and stops running a tool of the same name.
+   * Requires the `inline-tools-2026-09-15` beta, which the runner does not add for you.
    *
    * @param tools - Runnable tools (for example from `betaZodTool()`) or raw tool definitions
    *
@@ -666,8 +671,9 @@ export class BetaToolRunner<Stream extends boolean> {
    * Take tools away from the model without changing `params.tools`, which would miss the prompt cache.
    *
    * The tools stop being run straight away: a call to one of them, even one in the message being
-   * handled, gets the same "not found" error result as a call to an unknown tool. The model is told
-   * in a `tool_removal` block with the next request. Use {@link addTools} to bring a tool back.
+   * handled, gets the same "not found" error result as a call to an unknown tool. A call that started
+   * while the reply streamed finishes as usual. The model is told in a `tool_removal` block with the
+   * next request. Use {@link addTools} to bring a tool back.
    * Requires the `inline-tools-2026-09-15` beta, which the runner does not add for you.
    *
    * @param tools - The tools to remove, or their names
@@ -734,6 +740,25 @@ function rejectCompactionParam(params: BetaToolRunnerParams): void {
   }
 }
 
+function rejectCompactionControl(params: BetaToolRunnerParams): void {
+  // No longer in the params type, so only untyped callers reach this; forwarding it would be an opaque API 400.
+  if ('compactionControl' in params && params.compactionControl != null) {
+    throw new AnthropicError(
+      '`compactionControl` has been removed from the tool runner. Use server-side compaction instead: ' +
+        'call `runner.compactBeforeNextTurn()` when the conversation should be compacted.',
+    );
+  }
+}
+
+function rejectRunToolsEagerlyWithoutStream(params: BetaToolRunnerParams): void {
+  if (params.runToolsEagerly && !params.stream) {
+    throw new TypeError(
+      "`runToolsEagerly: true` needs `stream: true` in the tool runner's params, because a reply that " +
+        "isn't streamed arrives whole.",
+    );
+  }
+}
+
 function rejectCompactionEdit(params: BetaToolRunnerParams): void {
   // The compaction request is sent without `context_management`, so the API can't refuse the pair there:
   // it would run and bill the compaction, then refuse the next request.
@@ -773,6 +798,7 @@ async function generateToolResponse(
   available: ReadonlySet<string>,
   lastMessage: BetaMessage | BetaMessageParam,
   requestOptions?: BetaToolRunnerRequestOptions,
+  calls?: Map<string, ToolCallState>,
 ): Promise<BetaMessageParam | null> {
   // Only process if the last message is from the assistant and has tool use blocks
   if (
@@ -790,41 +816,14 @@ async function generateToolResponse(
   }
 
   const toolResults = await Promise.all(
-    toolUseBlocks.map(async (toolUse) => {
-      // A `tool_removal` is only a hint to the model, which may still emit a tool_use for a
-      // withdrawn tool — treat those exactly like a tool that was never defined.
-      const tool = available.has(toolUse.name) ? runnable.get(toolUse.name) : undefined;
-      if (!tool) {
-        return toolNotFoundResult(toolUse);
+    toolUseBlocks.map((toolUse) => {
+      const call = calls?.get(toolUse.id);
+      if (call?.status === 'started') {
+        return call.result;
       }
-
-      try {
-        let input = toolUse.input;
-        if ('parse' in tool && tool.parse) {
-          input = tool.parse(input);
-        }
-
-        const result = await tool.run(input, {
-          toolUse: toolUse,
-          toolUseBlock: toolUse,
-          signal: requestOptions?.signal,
-        });
-        return {
-          type: 'tool_result' as const,
-          tool_use_id: toolUse.id,
-          content: result,
-        };
-      } catch (error) {
-        return {
-          type: 'tool_result' as const,
-          tool_use_id: toolUse.id,
-          content:
-            error instanceof ToolError ?
-              error.content
-            : `Error: ${error instanceof Error ? error.message : String(error)}`,
-          is_error: true,
-        };
-      }
+      const result = runToolCall(runnable, available, toolUse, requestOptions);
+      calls?.set(toolUse.id, { status: 'started', result });
+      return result;
     }),
   );
 
@@ -832,6 +831,48 @@ async function generateToolResponse(
     role: 'user' as const,
     content: toolResults,
   };
+}
+
+async function runToolCall(
+  runnable: ReadonlyMap<string, BetaRunnableTool<any>>,
+  available: ReadonlySet<string>,
+  toolUse: BetaToolUseBlock,
+  requestOptions?: BetaToolRunnerRequestOptions,
+): Promise<BetaToolResultBlockParam> {
+  // A `tool_removal` is only a hint to the model, which may still emit a tool_use for a
+  // withdrawn tool — treat those exactly like a tool that was never defined.
+  const tool = available.has(toolUse.name) ? runnable.get(toolUse.name) : undefined;
+  if (!tool) {
+    return toolNotFoundResult(toolUse);
+  }
+
+  try {
+    let input = toolUse.input;
+    if ('parse' in tool && tool.parse) {
+      input = tool.parse(input);
+    }
+
+    const result = await tool.run(input, {
+      toolUse: toolUse,
+      toolUseBlock: toolUse,
+      signal: requestOptions?.signal,
+    });
+    return {
+      type: 'tool_result' as const,
+      tool_use_id: toolUse.id,
+      content: result,
+    };
+  } catch (error) {
+    return {
+      type: 'tool_result' as const,
+      tool_use_id: toolUse.id,
+      content:
+        error instanceof ToolError ?
+          error.content
+        : `Error: ${error instanceof Error ? error.message : String(error)}`,
+      is_error: true,
+    };
+  }
 }
 
 /**
@@ -939,17 +980,24 @@ export type BetaToolRunnerParams = Simplify<
      */
     max_iterations?: number;
     /**
-     * @deprecated Use server-side compaction instead by passing
-     * `edits: [{ type: 'compact_20260112' }]` in the params passed to `toolRunner()`.
-     * See https://platform.claude.com/docs/en/build-with-claude/compaction
+     * Run each tool as soon as its call is complete, before the reply finishes, instead of once you are done
+     * with the reply. This is optimistic: if the reply is interrupted or changes course, the tool may have
+     * already run, so use `deferToolCall()` to hold the calls that aren't safe to run twice. Requires
+     * `stream: true`.
+     *
+     * This will be the default in a future version.
+     *
+     * @default false
      */
-    compactionControl?: CompactionControl;
+    runToolsEagerly?: boolean;
   }
 >;
 
 export type BetaToolRunnerRequestOptions = Pick<RequestOptions, 'headers' | 'signal' | 'fallbackState'>;
 
-type ToolRunnerRequestParams = Omit<BetaToolRunnerParams, 'max_iterations' | 'compactionControl'>;
+type ToolRunnerRequestParams = Omit<BetaToolRunnerParams, 'max_iterations' | 'runToolsEagerly'>;
+
+type ToolCallState = { status: 'held' } | { status: 'started'; result: Promise<BetaToolResultBlockParam> };
 
 type Compaction =
   | { status: 'idle' }

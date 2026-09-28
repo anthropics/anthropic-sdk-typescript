@@ -1,6 +1,8 @@
 type Token = {
   type: string;
   value: string;
+  /** set on a number that runs to the very end of the input, so more digits may follow */
+  unterminated?: boolean;
 };
 
 const tokenize = (input: string): Token[] => {
@@ -76,38 +78,36 @@ const tokenize = (input: string): Token[] => {
       }
 
       if (char === '"') {
-        let value = '';
+        // a `"` closes the string only after an even number of backslashes; escapes are kept verbatim
+        const start = current + 1;
+        let end = start;
         let danglingQuote = false;
 
-        char = input[++current];
-
-        while (char !== '"') {
-          if (current === input.length) {
+        while (true) {
+          end = input.indexOf('"', end);
+          if (end === -1) {
             danglingQuote = true;
             break;
           }
 
-          if (char === '\\') {
-            current++;
-            if (current === input.length) {
-              danglingQuote = true;
-              break;
-            }
-            value += char + input[current];
-            char = input[++current];
-          } else {
-            value += char;
-            char = input[++current];
+          let backslashes = 0;
+          let i = end - 1;
+          while (i >= start && input[i] === '\\') {
+            backslashes++;
+            i--;
           }
+          if (backslashes % 2 === 0) break;
+          end++;
         }
 
-        char = input[++current];
-
-        if (!danglingQuote) {
+        if (danglingQuote) {
+          current = input.length;
+        } else {
           tokens.push({
             type: 'string',
-            value,
+            value: input.slice(start, end),
           });
+          current = end + 1;
         }
         continue;
       }
@@ -145,6 +145,7 @@ const tokenize = (input: string): Token[] => {
         tokens.push({
           type: 'number',
           value,
+          unterminated: current === input.length,
         });
         continue;
       }
@@ -180,46 +181,60 @@ const tokenize = (input: string): Token[] => {
     return tokens;
   },
   strip = (tokens: Token[]): Token[] => {
-    if (tokens.length === 0) {
-      return tokens;
+    let open: string[] = [];
+
+    for (const token of tokens) {
+      if (token.type === 'brace' || token.type === 'paren') {
+        if (token.value === '{' || token.value === '[') {
+          open.push(token.value);
+        } else {
+          open.pop();
+        }
+      }
     }
 
-    let lastToken = tokens[tokens.length - 1]!;
+    // brackets are never stripped, so this holds for every token looked at below
+    let innermostOpenBracket = open[open.length - 1];
+    let length = tokens.length;
+    let JSON_NUMBER = /^-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?$/;
 
-    switch (lastToken.type) {
-      case 'separator':
-        tokens = tokens.slice(0, tokens.length - 1);
-        return strip(tokens);
-        break;
-      case 'number':
-        let lastCharacterOfLastToken = lastToken.value[lastToken.value.length - 1];
-        if (
-          lastCharacterOfLastToken === '.' ||
-          lastCharacterOfLastToken === '-' ||
-          lastCharacterOfLastToken === '+' ||
-          lastCharacterOfLastToken === 'e' ||
-          lastCharacterOfLastToken === 'E'
-        ) {
-          tokens = tokens.slice(0, tokens.length - 1);
-          return strip(tokens);
-        }
-      case 'string':
-        let tokenBeforeTheLastToken = tokens[tokens.length - 2];
-        if (tokenBeforeTheLastToken?.type === 'delimiter') {
-          tokens = tokens.slice(0, tokens.length - 1);
-          return strip(tokens);
-        } else if (tokenBeforeTheLastToken?.type === 'brace' && tokenBeforeTheLastToken.value === '{') {
-          tokens = tokens.slice(0, tokens.length - 1);
-          return strip(tokens);
-        }
-        break;
-      case 'delimiter':
-        tokens = tokens.slice(0, tokens.length - 1);
-        return strip(tokens);
-        break;
+    while (length > 0) {
+      let lastToken = tokens[length - 1]!;
+
+      switch (lastToken.type) {
+        case 'separator':
+          length--;
+          continue;
+        case 'number':
+          // more digits may follow a number that runs to the end of the input, and one that
+          // something else cuts short, e.g. `1.` or `1e-`, will never be a number
+          if (lastToken.unterminated || !JSON_NUMBER.test(lastToken.value)) {
+            length--;
+            continue;
+          }
+          break;
+        case 'string':
+          // in an object this is a key without a value yet, in an array it is a complete item
+          let tokenBeforeTheLastToken = tokens[length - 2];
+          if (
+            innermostOpenBracket === '{' &&
+            (tokenBeforeTheLastToken?.type === 'delimiter' ||
+              (tokenBeforeTheLastToken?.type === 'brace' && tokenBeforeTheLastToken.value === '{'))
+          ) {
+            length--;
+            continue;
+          }
+          break;
+        case 'delimiter':
+          // whatever precedes a comma is complete
+          length--;
+          break;
+      }
+
+      break;
     }
 
-    return tokens;
+    return tokens.slice(0, length);
   },
   unstrip = (tokens: Token[]): Token[] => {
     let tail: string[] = [];
