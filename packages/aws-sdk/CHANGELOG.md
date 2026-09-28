@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.5 (2026-09-28)
+
+Full Changelog: [aws-sdk-v0.7.4...aws-sdk-v0.7.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.4...aws-sdk-v0.7.5)
+
 ## 0.7.4 (2026-09-22)
 
 Full Changelog: [aws-sdk-v0.7.3...aws-sdk-v0.7.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.3...aws-sdk-v0.7.4)
