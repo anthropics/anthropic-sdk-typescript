@@ -159,10 +159,14 @@ export class Tunnels extends APIResource {
    * deprecation period. It supersedes the Admin API endpoints at
    * `/v1/organizations/tunnels`, which remain available during a migration window.
    *
-   * Reveals a tunnel's connector token. The value is fetched live on each call;
-   * Anthropic does not store it. Repeated calls return the same value until the
-   * token is rotated. Exposed as POST so the token does not appear in intermediary
-   * access logs.
+   * Reveals a `cloudflare` tunnel's connector token. The value is fetched live on
+   * each call; Anthropic does not store it. Repeated calls return the same value
+   * until the token is rotated. Exposed as POST so the token does not appear in
+   * intermediary access logs. A tunnel on the `relay` transport has no token to
+   * reveal: its relay token was returned once when it was issued and only a hash is
+   * kept, so the request is refused with an `invalid_request_error` whose error code
+   * is `tunnel_token_not_revealable`, and `rotate_token` is the way to obtain a new
+   * value.
    *
    * @example
    * ```ts
@@ -194,9 +198,14 @@ export class Tunnels extends APIResource {
    * deprecation period. It supersedes the Admin API endpoints at
    * `/v1/organizations/tunnels`, which remain available during a migration window.
    *
-   * Rotates a tunnel's connector token. Rotation invalidates the current token for
-   * new connections and returns a fresh value; established connections are not
-   * severed. A connector restarted after rotation must use the new value.
+   * Rotates a tunnel's connector token and returns the fresh value. On the
+   * `cloudflare` transport the previous token stops working for new connections and
+   * established connections are not severed; a connector restarted after rotation
+   * must use the new value. On the `relay` transport the new relay token is returned
+   * in this response and never again (only a hash is kept), and the relay
+   * connections established with the previous token are closed, so the relay
+   * connector keeps carrying traffic only after it is redeployed with the new token;
+   * relay token rotations are also rate limited per tunnel.
    *
    * @example
    * ```ts
@@ -225,6 +234,32 @@ export class Tunnels extends APIResource {
 }
 
 export type BetaTunnelsPageCursor = PageCursor<BetaTunnel>;
+
+/**
+ * The tunnel is connected through the Cloudflare connector. Its connector token is
+ * fetched with reveal_token. `type` is transitional: it reads `relay` for every
+ * tunnel once the Cloudflare transport is retired.
+ */
+export interface BetaCloudflareTunnelTransport {
+  type: 'cloudflare';
+}
+
+/**
+ * The tunnel is connected through Anthropic's relay. In the create response
+ * `token` is the tunnel's relay token, shown that once (only a hash is kept, so
+ * reveal_token refuses a relay tunnel and rotate_token issues a new one); reads
+ * never carry it.
+ */
+export interface BetaRelayTunnelTransport {
+  type: 'relay';
+
+  /**
+   * The tunnel's relay token. Present only in the create response, which issues it;
+   * absent on every read. Store it: Anthropic keeps only a hash, reveal_token
+   * refuses a relay tunnel, and rotate_token is the only way to obtain a new one.
+   */
+  token?: BetaTunnelToken;
+}
 
 /**
  * An MCP tunnel.
@@ -258,6 +293,16 @@ export interface BetaTunnel {
    */
   domain: string;
 
+  /**
+   * How traffic reaches the tunnel. Chosen by Anthropic per organization when the
+   * tunnel is created; read-only and present on every tunnel, so automation can tell
+   * which connector to deploy. A union discriminated on `type`:
+   * `{"type": "cloudflare"}` or `{"type": "relay"}`. In the create response a
+   * `relay` tunnel's transport also carries `token`, its relay token, shown that
+   * once; no read carries a token.
+   */
+  transport: BetaTunnelTransport;
+
   type: 'tunnel';
 }
 
@@ -278,6 +323,13 @@ export interface BetaTunnelToken {
 
   type: 'tunnel_token';
 }
+
+/**
+ * How traffic reaches a tunnel: `{"type": "cloudflare"}` or `{"type": "relay"}`.
+ * In the create response a `relay` tunnel's transport also carries its relay
+ * `token`; reads never carry a token.
+ */
+export type BetaTunnelTransport = BetaCloudflareTunnelTransport | BetaRelayTunnelTransport;
 
 export interface TunnelCreateParams {
   /**
@@ -401,8 +453,11 @@ Tunnels.Certificates = Certificates;
 
 export declare namespace Tunnels {
   export {
+    type BetaCloudflareTunnelTransport as BetaCloudflareTunnelTransport,
+    type BetaRelayTunnelTransport as BetaRelayTunnelTransport,
     type BetaTunnel as BetaTunnel,
     type BetaTunnelToken as BetaTunnelToken,
+    type BetaTunnelTransport as BetaTunnelTransport,
     type BetaTunnelsPageCursor as BetaTunnelsPageCursor,
     type TunnelCreateParams as TunnelCreateParams,
     type TunnelRetrieveParams as TunnelRetrieveParams,

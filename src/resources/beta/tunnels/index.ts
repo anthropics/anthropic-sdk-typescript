@@ -9,8 +9,11 @@ export {
 } from './certificates';
 export {
   Tunnels,
+  type BetaCloudflareTunnelTransport,
+  type BetaRelayTunnelTransport,
   type BetaTunnel,
   type BetaTunnelToken,
+  type BetaTunnelTransport,
   type TunnelCreateParams,
   type TunnelRetrieveParams,
   type TunnelListParams,
