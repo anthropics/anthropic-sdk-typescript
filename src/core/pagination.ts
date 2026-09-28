@@ -299,6 +299,10 @@ export class PageCursor<Item> extends AbstractPage<Item> implements PageCursorRe
     return this.data ?? [];
   }
 
+  override hasNextPage(): boolean {
+    return this.nextPageRequestOptions() != null;
+  }
+
   nextPageRequestOptions(): PageRequestOptions | null {
     const cursor = this.next_page;
     if (!cursor) {
@@ -357,6 +361,10 @@ export class BidirectionalPageCursor<Item>
 
   getPaginatedItems(): Item[] {
     return this.data ?? [];
+  }
+
+  override hasNextPage(): boolean {
+    return this.nextPageRequestOptions() != null;
   }
 
   nextPageRequestOptions(): PageRequestOptions | null {
