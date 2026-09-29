@@ -1022,6 +1022,38 @@ describe('MCP helpers', () => {
       expect(file.name).toBe('my-file.pdf');
     });
 
+    it('decodes percent-encoding in the filename taken from the URI path', () => {
+      const result: ReadResourceResult = {
+        contents: [
+          {
+            uri: 'file:///path/to/my%20report.pdf',
+            mimeType: 'application/pdf',
+            blob: Buffer.from('fake-pdf').toString('base64'),
+          },
+        ],
+      };
+
+      const file = mcpResourceToFile(result);
+
+      expect(file.name).toBe('my report.pdf');
+    });
+
+    it('keeps a filename that is not valid percent-encoding as-is', () => {
+      const result: ReadResourceResult = {
+        contents: [
+          {
+            uri: 'file:///path/to/100%.txt',
+            mimeType: 'text/plain',
+            text: 'contents',
+          },
+        ],
+      };
+
+      const file = mcpResourceToFile(result);
+
+      expect(file.name).toBe('100%.txt');
+    });
+
     it('decodes base64 blob with UTF-8 characters correctly', async () => {
       // UTF-8 text with non-ASCII characters encoded to base64
       const utf8Text = 'Hello, 世界! 🌍 Ñoño';
