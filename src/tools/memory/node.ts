@@ -22,6 +22,34 @@ const FILE_CREATE_MODE = 0o600;
 // world-accessible in environments with permissive umasks.
 const DIR_CREATE_MODE = 0o700;
 
+// Tool runners send thrown error messages to the model. Never forward a raw
+// filesystem error: its message, path, dest, or cause can reveal host paths.
+async function withFilesystemErrors<T>(memoryPath: string, operation: () => Promise<T>): Promise<T> {
+  try {
+    return await operation();
+  } catch (err) {
+    if (typeof err !== 'object' || err === null || !('code' in err) || typeof err.code !== 'string') {
+      throw err;
+    }
+
+    switch (err.code) {
+      case 'ENOTDIR':
+        throw new Error(`A parent of ${memoryPath} is a file, not a directory`);
+      case 'EISDIR':
+        throw new Error(`The path ${memoryPath} is a directory, not a file`);
+      case 'EACCES':
+      case 'EPERM':
+        throw new Error(`Permission denied for ${memoryPath}`);
+      case 'EINVAL':
+        throw new Error(`Invalid filesystem operation for ${memoryPath}`);
+      default: {
+        const code = /^E[A-Z0-9_]+$/.test(err.code) ? ` (${err.code})` : '';
+        throw new Error(`Filesystem operation failed for ${memoryPath}${code}`);
+      }
+    }
+  }
+}
+
 async function exists(path: string) {
   return await fs
     .access(path)
@@ -153,12 +181,16 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
       throw new Error(`Path ${memoryPath} would escape /memories directory`);
     }
 
-    await validateNoSymlinkEscape(resolvedPath, this.memoryRoot);
+    await withFilesystemErrors(memoryPath, () => validateNoSymlinkEscape(resolvedPath, this.memoryRoot));
 
     return resolvedPath;
   }
 
   async view(command: BetaMemoryTool20250818ViewCommand): Promise<string> {
+    return withFilesystemErrors(command.path, () => this.viewImpl(command));
+  }
+
+  private async viewImpl(command: BetaMemoryTool20250818ViewCommand): Promise<string> {
     const fullPath = await this.validatePath(command.path);
 
     let stat;
@@ -246,6 +278,10 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async create(command: BetaMemoryTool20250818CreateCommand): Promise<string> {
+    return withFilesystemErrors(command.path, () => this.createImpl(command));
+  }
+
+  private async createImpl(command: BetaMemoryTool20250818CreateCommand): Promise<string> {
     const fullPath = await this.validatePath(command.path);
 
     await fs.mkdir(path.dirname(fullPath), { recursive: true, mode: DIR_CREATE_MODE });
@@ -268,6 +304,10 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async str_replace(command: BetaMemoryTool20250818StrReplaceCommand): Promise<string> {
+    return withFilesystemErrors(command.path, () => this.strReplaceImpl(command));
+  }
+
+  private async strReplaceImpl(command: BetaMemoryTool20250818StrReplaceCommand): Promise<string> {
     const fullPath = await this.validatePath(command.path);
 
     let stat;
@@ -324,6 +364,10 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async insert(command: BetaMemoryTool20250818InsertCommand): Promise<string> {
+    return withFilesystemErrors(command.path, () => this.insertImpl(command));
+  }
+
+  private async insertImpl(command: BetaMemoryTool20250818InsertCommand): Promise<string> {
     const fullPath = await this.validatePath(command.path);
 
     let stat;
@@ -355,6 +399,10 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async delete(command: BetaMemoryTool20250818DeleteCommand): Promise<string> {
+    return withFilesystemErrors(command.path, () => this.deleteImpl(command));
+  }
+
+  private async deleteImpl(command: BetaMemoryTool20250818DeleteCommand): Promise<string> {
     const fullPath = await this.validatePath(command.path);
 
     if (command.path === '/memories') {
@@ -374,8 +422,17 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async rename(command: BetaMemoryTool20250818RenameCommand): Promise<string> {
+    return withFilesystemErrors(`${command.old_path} to ${command.new_path}`, () => this.renameImpl(command));
+  }
+
+  private async renameImpl(command: BetaMemoryTool20250818RenameCommand): Promise<string> {
     const oldFullPath = await this.validatePath(command.old_path);
     const newFullPath = await this.validatePath(command.new_path);
+
+    const resolvedRoot = path.resolve(this.memoryRoot);
+    if (oldFullPath === resolvedRoot || newFullPath === resolvedRoot) {
+      throw new Error('Cannot rename the /memories directory itself');
+    }
 
     // POSIX rename() silently overwrites existing files without error,
     // so we can't catch this atomically. Best-effort check to warn user.
