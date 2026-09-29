@@ -920,6 +920,142 @@ export interface BetaManagedAgentsRedactedBlock {
 }
 
 /**
+ * The repository host rejected the credentials, or required credentials and
+ * received none.
+ */
+export interface BetaManagedAgentsRepositoryAuthenticationError {
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * URL of the repository that could not be cloned. Null when it could not be
+   * identified.
+   */
+  repository_url: string | null;
+
+  /**
+   * What the client should do next. Always `retrying`: the session keeps running
+   * without the repository.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'repository_authentication_error';
+}
+
+/**
+ * The requested branch or commit does not exist in the repository.
+ */
+export interface BetaManagedAgentsRepositoryCheckoutError {
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * URL of the repository that could not be cloned. Null when it could not be
+   * identified.
+   */
+  repository_url: string | null;
+
+  /**
+   * What the client should do next. Always `retrying`: the session keeps running
+   * without the repository.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'repository_checkout_error';
+}
+
+/**
+ * The repository could not be cloned.
+ */
+export interface BetaManagedAgentsRepositoryCloneError {
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * URL of the repository that could not be cloned. Null when it could not be
+   * identified.
+   */
+  repository_url: string | null;
+
+  /**
+   * What the client should do next. Always `retrying`: the session keeps running
+   * without the repository.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'repository_clone_error';
+}
+
+/**
+ * The repository host refused access to the repository.
+ */
+export interface BetaManagedAgentsRepositoryForbiddenError {
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * URL of the repository that could not be cloned. Null when it could not be
+   * identified.
+   */
+  repository_url: string | null;
+
+  /**
+   * What the client should do next. Always `retrying`: the session keeps running
+   * without the repository.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'repository_forbidden_error';
+}
+
+/**
+ * The repository host reported the repository as not found.
+ */
+export interface BetaManagedAgentsRepositoryNotFoundError {
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * URL of the repository that could not be cloned. Null when it could not be
+   * identified.
+   */
+  repository_url: string | null;
+
+  /**
+   * What the client should do next. Always `retrying`: the session keeps running
+   * without the repository.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'repository_not_found_error';
+}
+
+/**
  * This turn is dead; queued inputs are flushed and the session returns to idle.
  * Client may send a new prompt.
  */
@@ -1063,7 +1199,12 @@ export interface BetaManagedAgentsSessionErrorEvent {
     | BetaManagedAgentsMCPConnectionFailedError
     | BetaManagedAgentsMCPAuthenticationFailedError
     | BetaManagedAgentsBillingError
-    | BetaManagedAgentsCredentialHostUnreachableError;
+    | BetaManagedAgentsCredentialHostUnreachableError
+    | BetaManagedAgentsRepositoryAuthenticationError
+    | BetaManagedAgentsRepositoryForbiddenError
+    | BetaManagedAgentsRepositoryNotFoundError
+    | BetaManagedAgentsRepositoryCheckoutError
+    | BetaManagedAgentsRepositoryCloneError;
 
   /**
    * Timestamp when the error occurred.
@@ -2253,6 +2394,11 @@ export declare namespace Events {
     type BetaManagedAgentsModelRequestFailedError as BetaManagedAgentsModelRequestFailedError,
     type BetaManagedAgentsPlainTextDocumentSource as BetaManagedAgentsPlainTextDocumentSource,
     type BetaManagedAgentsRedactedBlock as BetaManagedAgentsRedactedBlock,
+    type BetaManagedAgentsRepositoryAuthenticationError as BetaManagedAgentsRepositoryAuthenticationError,
+    type BetaManagedAgentsRepositoryCheckoutError as BetaManagedAgentsRepositoryCheckoutError,
+    type BetaManagedAgentsRepositoryCloneError as BetaManagedAgentsRepositoryCloneError,
+    type BetaManagedAgentsRepositoryForbiddenError as BetaManagedAgentsRepositoryForbiddenError,
+    type BetaManagedAgentsRepositoryNotFoundError as BetaManagedAgentsRepositoryNotFoundError,
     type BetaManagedAgentsRetryStatusExhausted as BetaManagedAgentsRetryStatusExhausted,
     type BetaManagedAgentsRetryStatusRetrying as BetaManagedAgentsRetryStatusRetrying,
     type BetaManagedAgentsRetryStatusTerminal as BetaManagedAgentsRetryStatusTerminal,

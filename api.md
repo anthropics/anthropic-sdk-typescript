@@ -986,6 +986,11 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelRequestFailedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsPlainTextDocumentSource</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRedactedBlock</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryAuthenticationError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryCheckoutError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryCloneError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryForbiddenError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryNotFoundError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRetryStatusExhausted</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRetryStatusRetrying</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRetryStatusTerminal</a></code>
