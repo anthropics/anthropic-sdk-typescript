@@ -28,7 +28,7 @@ jobs:
   ecosystem:
     timeout-minutes: 30
     name: ecosystem (${{ matrix.shard }})
-    runs-on: 'ubuntu-latest'
+    runs-on: ${{ github.repository == 'anthropics/anthropic-sdk-typescript' && 'ubuntu-latest' || 'ubuntu-latest-4-core' }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork
     strategy:
       fail-fast: false
