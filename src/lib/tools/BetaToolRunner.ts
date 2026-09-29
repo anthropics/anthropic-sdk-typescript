@@ -84,6 +84,7 @@ export class BetaToolRunner<Stream extends boolean> {
     rejectCompactionParam(params);
     rejectCompactionControl(params);
     rejectRunToolsEagerlyWithoutStream(params);
+    rejectMaxIterations(params);
     this.#state = {
       params: {
         // You can't clone the entire params since there are functions as handlers.
@@ -128,7 +129,7 @@ export class BetaToolRunner<Stream extends boolean> {
       while (true) {
         try {
           if (
-            this.#state.params.max_iterations &&
+            this.#state.params.max_iterations !== undefined &&
             this.#iterationCount >= this.#state.params.max_iterations
           ) {
             break;
@@ -389,6 +390,7 @@ export class BetaToolRunner<Stream extends boolean> {
       typeof paramsOrMutator === 'function' ? paramsOrMutator(this.#state.params) : paramsOrMutator;
     rejectCompactionParam(params);
     rejectRunToolsEagerlyWithoutStream(params);
+    rejectMaxIterations(params);
     if (this.#compaction.status !== 'idle') {
       rejectCompactionEdit(params);
     }
@@ -759,6 +761,24 @@ function rejectRunToolsEagerlyWithoutStream(params: BetaToolRunnerParams): void 
   }
 }
 
+/**
+ * `max_iterations` is read with a presence check, so it needs a contract for the
+ * degenerate values the type allows. Left undefined, the loop is unbounded. `0`
+ * is not a way to ask for that: `SessionToolRunner`'s `maxIdleMs` documents and
+ * implements its own degenerate value explicitly, and this option's own
+ * docstring promises a maximum.
+ */
+function rejectMaxIterations(params: BetaToolRunnerParams): void {
+  const { max_iterations } = params;
+  if (max_iterations === undefined) return;
+  if (!Number.isInteger(max_iterations) || max_iterations < 1) {
+    throw new RangeError(
+      `\`max_iterations\` must be an integer of at least 1, or omitted for no limit; got ${max_iterations}. ` +
+        'Omit it to leave the loop unbounded.',
+    );
+  }
+}
+
 function rejectCompactionEdit(params: BetaToolRunnerParams): void {
   // The compaction request is sent without `context_management`, so the API can't refuse the pair there:
   // it would run and bill the compaction, then refuse the next request.
@@ -977,6 +997,7 @@ export type BetaToolRunnerParams = Simplify<
      * Maximum number of iterations (API requests) to make in the tool execution loop.
      * Each iteration consists of: assistant response → tool execution → tool results.
      * When exceeded, the loop will terminate even if tools are still being requested.
+     * Must be an integer of at least 1. Omit it to leave the loop unbounded.
      */
     max_iterations?: number;
     /**
