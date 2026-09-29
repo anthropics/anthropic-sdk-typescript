@@ -90,6 +90,28 @@ export async function toFile(
   // If it's a promise, resolve it.
   value = await value;
 
+  if (isResponseLike(value) && !name) {
+    // A `Response`'s file name comes from its URL, and `URL.pathname` is
+    // percent-encoded: without decoding it, a response for `my%20report.pdf`
+    // uploads under that literal name. A hand-built `Response` has `url: ''`
+    // and a relative `url` does not parse, so leave the name unset then —
+    // which is what `files.create({ file: response })` already does.
+    let lastSegment: string | undefined;
+    try {
+      lastSegment = new URL(value.url).pathname.split(/[\\/]/).pop();
+    } catch {
+      // `url` is not an absolute URL.
+    }
+    if (lastSegment) {
+      try {
+        name = decodeURIComponent(lastSegment);
+      } catch {
+        // A literal `%` in a file name is not an escape.
+        name = lastSegment;
+      }
+    }
+  }
+
   name ||= value instanceof File ? value.name : getName(value, true);
 
   // If we've been given a `File` we don't need to do anything if the name / options
@@ -107,8 +129,6 @@ export async function toFile(
 
   if (isResponseLike(value)) {
     const blob = await value.blob();
-    name ||= new URL(value.url).pathname.split(/[\\/]/).pop();
-
     return makeFile(await getBytes(blob), name, options);
   }
 
