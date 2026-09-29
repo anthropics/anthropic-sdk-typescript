@@ -496,7 +496,20 @@ describe('BetaLocalFilesystemMemoryTool', () => {
           file_text: 'Invalid',
           path: '/invalid/path.txt',
         }),
-      ).rejects.toThrow('Path must start with /memories');
+      ).rejects.toThrow('Path must be /memories or start with /memories/');
+    });
+
+    it('should reject paths that only share the /memories prefix', async () => {
+      await expect(
+        tool.create({
+          command: 'create',
+          file_text: 'Invalid',
+          path: '/memories_backup/file.txt',
+        }),
+      ).rejects.toThrow('Path must be /memories or start with /memories/');
+
+      const dirSnapshot = await getDirectorySnapshot(tempDir);
+      expect(dirSnapshot).toEqual({});
     });
 
     it('should reject paths trying to escape /memories', async () => {
