@@ -74,7 +74,11 @@ async function atomicWriteFile(targetPath: string, content: string): Promise<voi
  * Walks up from the target path to find the deepest existing ancestor,
  * then resolves it to ensure the real path stays within memoryRoot.
  */
-async function validateNoSymlinkEscape(targetPath: string, memoryRoot: string): Promise<void> {
+async function validateNoSymlinkEscape(
+  targetPath: string,
+  memoryRoot: string,
+  memoryPath?: string,
+): Promise<void> {
   const resolvedRoot = await fs.realpath(memoryRoot);
 
   let current = targetPath;
@@ -86,6 +90,13 @@ async function validateNoSymlinkEscape(targetPath: string, memoryRoot: string): 
       }
       return;
     } catch (err: any) {
+      if (err.code === 'ENOTDIR') {
+        throw new Error(
+          memoryPath ?
+            `A parent of ${memoryPath} is a file, not a directory`
+          : `A parent path component is a file, not a directory`,
+        );
+      }
       if (err.code !== 'ENOENT') throw err;
       const parent = path.dirname(current);
       if (parent === current || current === memoryRoot) {
@@ -153,7 +164,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
       throw new Error(`Path ${memoryPath} would escape /memories directory`);
     }
 
-    await validateNoSymlinkEscape(resolvedPath, this.memoryRoot);
+    await validateNoSymlinkEscape(resolvedPath, this.memoryRoot, memoryPath);
 
     return resolvedPath;
   }
@@ -167,6 +178,9 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
     } catch (err: any) {
       if (err.code === 'ENOENT') {
         throw new Error(`The path ${command.path} does not exist. Please provide a valid path.`);
+      }
+      if (err.code === 'ENOTDIR') {
+        throw new Error(`A parent of ${command.path} is a file, not a directory`);
       }
       throw err;
     }
@@ -248,7 +262,14 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   async create(command: BetaMemoryTool20250818CreateCommand): Promise<string> {
     const fullPath = await this.validatePath(command.path);
 
-    await fs.mkdir(path.dirname(fullPath), { recursive: true, mode: DIR_CREATE_MODE });
+    try {
+      await fs.mkdir(path.dirname(fullPath), { recursive: true, mode: DIR_CREATE_MODE });
+    } catch (err: any) {
+      if (err.code === 'ENOTDIR') {
+        throw new Error(`A parent of ${command.path} is a file, not a directory`);
+      }
+      throw err;
+    }
 
     let handle: fs.FileHandle | undefined;
     try {
@@ -258,6 +279,9 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
     } catch (err: any) {
       if (err?.code === 'EEXIST') {
         throw new Error(`File ${command.path} already exists`);
+      }
+      if (err?.code === 'ENOTDIR') {
+        throw new Error(`A parent of ${command.path} is a file, not a directory`);
       }
       throw err;
     } finally {
@@ -276,6 +300,9 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
     } catch (err: any) {
       if (err.code === 'ENOENT') {
         throw new Error(`The path ${command.path} does not exist. Please provide a valid path.`);
+      }
+      if (err.code === 'ENOTDIR') {
+        throw new Error(`A parent of ${command.path} is a file, not a directory`);
       }
       throw err;
     }
@@ -333,6 +360,9 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
       if (err.code === 'ENOENT') {
         throw new Error(`The path ${command.path} does not exist. Please provide a valid path.`);
       }
+      if (err.code === 'ENOTDIR') {
+        throw new Error(`A parent of ${command.path} is a file, not a directory`);
+      }
       throw err;
     }
 
@@ -374,6 +404,16 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async rename(command: BetaMemoryTool20250818RenameCommand): Promise<string> {
+    if (command.old_path === '/memories' || command.new_path === '/memories') {
+      throw new Error('Cannot rename the /memories directory itself');
+    }
+
+    const normalizedOld = command.old_path.replace(/\/+$/, '');
+    const normalizedNew = command.new_path.replace(/\/+$/, '');
+    if (normalizedNew === normalizedOld || normalizedNew.startsWith(normalizedOld + '/')) {
+      throw new Error(`Cannot rename ${command.old_path} into its own subdirectory ${command.new_path}`);
+    }
+
     const oldFullPath = await this.validatePath(command.old_path);
     const newFullPath = await this.validatePath(command.new_path);
 
@@ -384,13 +424,26 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
     }
 
     const newDir = path.dirname(newFullPath);
-    await fs.mkdir(newDir, { recursive: true, mode: DIR_CREATE_MODE });
+    try {
+      await fs.mkdir(newDir, { recursive: true, mode: DIR_CREATE_MODE });
+    } catch (err: any) {
+      if (err.code === 'ENOTDIR') {
+        throw new Error(`A parent of ${command.new_path} is a file, not a directory`);
+      }
+      throw err;
+    }
 
     try {
       await fs.rename(oldFullPath, newFullPath);
     } catch (err: any) {
       if (err.code === 'ENOENT') {
         throw new Error(`The path ${command.old_path} does not exist`);
+      }
+      if (err.code === 'EINVAL') {
+        throw new Error(`Cannot rename ${command.old_path} into its own subdirectory ${command.new_path}`);
+      }
+      if (err.code === 'ENOTDIR') {
+        throw new Error(`A parent of ${command.new_path} is a file, not a directory`);
       }
       throw err;
     }
