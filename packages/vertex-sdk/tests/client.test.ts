@@ -116,7 +116,7 @@ describe('AnthropicVertex', () => {
     });
 
     const createParams = {
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-5-5',
       max_tokens: 1024,
       messages: [{ content: 'Hello', role: 'user' as const }],
     };
@@ -254,7 +254,7 @@ describe('AnthropicVertex', () => {
     });
 
     const createParams = {
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-5-5',
       max_tokens: 1024,
       messages: [{ content: 'Hello', role: 'user' as const }],
     };

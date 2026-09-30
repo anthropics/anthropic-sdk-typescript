@@ -1,4 +1,5 @@
 import { APIResource } from '../../../../core/resource';
+import * as BetaAPI from '../../beta';
 import * as EffectiveAPI from './effective';
 import { Effective, EffectiveListParams } from './effective';
 import * as IncreaseRequestsAPI from './increase-requests';
@@ -13,7 +14,8 @@ import {
   IncreaseRequests,
 } from './increase-requests';
 import { APIPromise } from '../../../../core/api-promise';
-import { PageCursor } from '../../../../core/pagination';
+import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
+import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
 import { path } from '../../../../internal/utils/path';
 
@@ -36,6 +38,37 @@ export class SpendLimits extends APIResource {
    */
   retrieve(spendLimitID: string, options?: RequestOptions): APIPromise<BetaSpendLimit> {
     return this._client.get(path`/v1/organizations/spend_limits/${spendLimitID}?beta=true`, options);
+  }
+
+  /**
+   * List the organization's spend limits.
+   *
+   * A Claude Console organization's limits come in an order that is stable across
+   * pages. A Claude Enterprise organization's are grouped by scope type, in the
+   * order `organization`, `seat_tier`, `rbac_group`, `organization_service`, `user`;
+   * within a type they come in a fixed order that is not creation order.
+   *
+   * @example
+   * ```ts
+   * // Automatically fetches more pages as needed.
+   * for await (const betaSpendLimit of client.beta.organization.spendLimits.list()) {
+   *   // ...
+   * }
+   * ```
+   */
+  list(
+    params: SpendLimitListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): PagePromise<BetaSpendLimitsPageCursor, BetaSpendLimit> {
+    const { betas, ...query } = params ?? {};
+    return this._client.getAPIList('/v1/organizations/spend_limits?beta=true', PageCursor<BetaSpendLimit>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+    });
   }
 
   /**
@@ -86,6 +119,8 @@ export class SpendLimits extends APIResource {
   }
 }
 
+export type BetaSpendLimitsPageCursor = PageCursor<BetaSpendLimit>;
+
 export type BetaSpendSummariesPageCursor = PageCursor<BetaSpendSummary>;
 
 /**
@@ -113,6 +148,13 @@ export interface BetaSpendLimit {
    * ISO 4217 code of the organization's billing currency; the unit for `amount`.
    */
   currency: string;
+
+  /**
+   * Read-only. `false` when extra usage is switched off for this organization
+   * (`organization` limit) or for this member (`user` limit); `amount` is kept and
+   * applies again when it's switched back on. Always `true` for other limits.
+   */
+  is_enabled: boolean;
 
   /**
    * Length of the window the limit resets over. `amount` caps spend within each
@@ -299,6 +341,24 @@ export interface SpendLimitDeleteResponse {
   type: 'spend_limit_deleted';
 }
 
+export interface SpendLimitListParams extends PageCursorParams {
+  /**
+   * Query param: Return only limits with these scope types. A Claude Console
+   * organization has `organization` and `workspace` limits; a Claude Enterprise
+   * organization has `organization`, `seat_tier`, `rbac_group`,
+   * `organization_service` and `user` limits. Omit for all.
+   */
+  scope_type?: Array<
+    'organization' | 'organization_service' | 'rbac_group' | 'seat_tier' | 'user' | 'workspace'
+  > | null;
+
+  /**
+   * Header param: This endpoint is in beta: requests must send
+   * `spend-limit-reads-2026-09-26` in this header.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
+}
+
 export interface SpendLimitSetParams {
   /**
    * Limit amount as a non-negative integer decimal string in the minor unit of the
@@ -337,6 +397,8 @@ export declare namespace SpendLimits {
     type BetaSpendLimitWorkspaceScope as BetaSpendLimitWorkspaceScope,
     type BetaSpendSummary as BetaSpendSummary,
     type SpendLimitDeleteResponse as SpendLimitDeleteResponse,
+    type BetaSpendLimitsPageCursor as BetaSpendLimitsPageCursor,
+    type SpendLimitListParams as SpendLimitListParams,
     type SpendLimitSetParams as SpendLimitSetParams,
   };
 

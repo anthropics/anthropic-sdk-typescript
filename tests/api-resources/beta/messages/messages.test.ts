@@ -273,7 +273,7 @@ describe('create: non-streaming timeout', () => {
 
   // max_tokens large enough that the estimated non-streaming duration exceeds the 10 minute default
   const longParams = {
-    model: 'claude-sonnet-4-5',
+    model: 'claude-sonnet-5-5',
     max_tokens: 128_000,
     messages: [{ role: 'user' as const, content: 'hi' }],
   };

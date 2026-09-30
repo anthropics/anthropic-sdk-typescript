@@ -290,7 +290,7 @@ describe('BetaMessageStream class', () => {
 
     const stream = anthropic.beta.messages.stream({
       max_tokens: 1024,
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-5-5',
       messages: [{ role: 'user', content: 'Create a tax guide' }],
     });
 
@@ -459,7 +459,7 @@ describe('BetaMessageStream class', () => {
     const stream = anthropic.beta.messages.stream(
       {
         max_tokens: 1024,
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-5-5',
         messages: [{ role: 'user', content: 'Say hello there!' }],
       },
       { maxRetries: 0 },
@@ -490,7 +490,7 @@ describe('BetaMessageStream class', () => {
     const stream = anthropic.beta.messages.stream(
       {
         max_tokens: 1024,
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-5-5',
         messages: [{ role: 'user', content: 'Say hello there!' }],
       },
       { maxRetries: 0 },
@@ -601,7 +601,7 @@ describe('BetaMessageStream class', () => {
 
     const stream = anthropic.beta.messages.stream({
       max_tokens: 1024,
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-5-5',
       messages: [{ role: 'user', content: 'Say hello again!' }],
     });
 

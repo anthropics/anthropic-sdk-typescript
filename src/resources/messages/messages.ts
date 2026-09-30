@@ -119,7 +119,7 @@ export class Messages extends APIResource {
    * @example
    * ```ts
    * const message = await client.messages.parse({
-   *   model: 'claude-sonnet-4-5-20250929',
+   *   model: 'claude-sonnet-5-5',
    *   max_tokens: 1024,
    *   messages: [{ role: 'user', content: 'What is 2+2?' }],
    *   output_config: {
@@ -148,7 +148,7 @@ export class Messages extends APIResource {
    * @example
    * ```ts
    * const stream = client.messages.stream({
-   *   model: 'claude-sonnet-4-5-20250929',
+   *   model: 'claude-sonnet-5-5',
    *   max_tokens: 1024,
    *   messages: [{ role: 'user', content: 'What is 2+2?' }],
    *   output_config: {
@@ -2788,7 +2788,10 @@ export interface OutputTokensDetails {
 }
 const DEPRECATED_MODELS: {
   [K in Model]?: string;
-} = {};
+} = {
+  'claude-sonnet-4-5': 'November 30th, 2026',
+  'claude-sonnet-4-5-20250929': 'November 30th, 2026',
+};
 
 const MODELS_TO_WARN_WITH_THINKING_ENABLED: Model[] = ['claude-mythos-preview', 'claude-opus-4-6'];
 

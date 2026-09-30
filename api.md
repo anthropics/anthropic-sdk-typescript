@@ -2118,6 +2118,7 @@ Types:
 Methods:
 
 - <code title="get /v1/organizations/spend_limits/{spend_limit_id}?beta=true">client.beta.organization.spendLimits.<a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">retrieve</a>(spendLimitID) -> BetaSpendLimit</code>
+- <code title="get /v1/organizations/spend_limits?beta=true">client.beta.organization.spendLimits.<a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">list</a>({ ...params }) -> BetaSpendLimitsPageCursor</code>
 - <code title="delete /v1/organizations/spend_limits/{spend_limit_id}?beta=true">client.beta.organization.spendLimits.<a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">delete</a>(spendLimitID) -> SpendLimitDeleteResponse</code>
 - <code title="post /v1/organizations/spend_limits?beta=true">client.beta.organization.spendLimits.<a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">set</a>({ ...params }) -> BetaSpendLimit</code>
 
