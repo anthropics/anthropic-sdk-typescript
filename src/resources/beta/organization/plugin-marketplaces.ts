@@ -279,13 +279,7 @@ export interface BetaPluginMarketplace {
    * marketplace. One of `required`, `auto_install`, `available`, `not_available`; a
    * value this API does not yet name is returned as stored.
    */
-  default_installation_preference:
-    | 'auto_install'
-    | 'available'
-    | 'not_available'
-    | 'required'
-    | (string & {})
-    | null;
+  default_installation_preference: 'auto_install' | 'available' | 'not_available' | 'required' | null;
 
   /**
    * RFC 3339. When the most recent synchronization attempt to finish did so,
@@ -321,7 +315,7 @@ export interface BetaPluginMarketplace {
    * `directory` is Anthropic's own catalog, which this API does not list. A value
    * this API does not yet name is returned as stored.
    */
-  source: 'directory' | 'github' | 'gitlab' | 'manual' | 'public_git' | (string & {});
+  source: 'directory' | 'github' | 'gitlab' | 'manual' | 'public_git';
 
   /**
    * Outcome of the plugin marketplace's most recent synchronization: one of
@@ -337,7 +331,6 @@ export interface BetaPluginMarketplace {
     | 'failed_transient'
     | 'in_progress'
     | 'success'
-    | (string & {})
     | null;
 
   /**

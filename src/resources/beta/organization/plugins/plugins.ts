@@ -365,13 +365,7 @@ export interface BetaPlugin {
    * which has shares instead. One of `required`, `auto_install`, `available`,
    * `not_available`; a value this API does not yet name is returned as stored.
    */
-  organization_installation_preference:
-    | 'auto_install'
-    | 'available'
-    | 'not_available'
-    | 'required'
-    | (string & {})
-    | null;
+  organization_installation_preference: 'auto_install' | 'available' | 'not_available' | 'required' | null;
 
   /**
    * Organization-owned Plugin: true while it has no organization-wide setting of its

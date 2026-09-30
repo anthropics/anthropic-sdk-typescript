@@ -210,7 +210,7 @@ export interface BetaPluginInstallationSetting {
    * `available`, `not_available`; a value this API does not yet name is returned as
    * stored.
    */
-  installation_preference: 'auto_install' | 'available' | 'not_available' | 'required' | (string & {});
+  installation_preference: 'auto_install' | 'available' | 'not_available' | 'required';
 
   /**
    * The Plugin's ID.
