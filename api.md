@@ -1004,6 +1004,8 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionErrorEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionEventType</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionRefusal</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionRefusalStopDetails</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionRequiresAction</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionRetriesExhausted</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsSessionStatusIdleEvent</a></code>

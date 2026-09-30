@@ -1291,6 +1291,33 @@ export type BetaManagedAgentsSessionEventType =
   | 'session.usage';
 
 /**
+ * The turn ended because the model's response was refused, for example by a safety
+ * classifier.
+ */
+export interface BetaManagedAgentsSessionRefusal {
+  type: 'refusal';
+}
+
+/**
+ * Structured information about a refusal.
+ */
+export interface BetaManagedAgentsSessionRefusalStopDetails {
+  /**
+   * The policy category that triggered the refusal, or `null` when there is no named
+   * category. New values can be added over time.
+   */
+  category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | 'general_harms' | null;
+
+  /**
+   * Human-readable explanation of the refusal, or `null` when none is available. The
+   * wording can change, so do not parse it.
+   */
+  explanation: string | null;
+
+  type: 'refusal';
+}
+
+/**
  * The agent is idle waiting on one or more blocking user-input events (tool
  * confirmation, custom tool result, etc.). Resolving all of them transitions the
  * session back to running.
@@ -1327,11 +1354,18 @@ export interface BetaManagedAgentsSessionStatusIdleEvent {
    */
   processed_at: string;
 
+  /**
+   * Structured information about why the session stopped. `null` when there is
+   * nothing more to report.
+   */
+  stop_details: BetaManagedAgentsSessionRefusalStopDetails | null;
+
   stop_reason:
     | BetaManagedAgentsSessionEndTurn
     | BetaManagedAgentsSessionRequiresAction
     | BetaManagedAgentsSessionRetriesExhausted
-    | BetaManagedAgentsSessionBudgetReached;
+    | BetaManagedAgentsSessionBudgetReached
+    | BetaManagedAgentsSessionRefusal;
 
   type: 'session.status_idle';
 }
@@ -1441,11 +1475,18 @@ export interface BetaManagedAgentsSessionThreadStatusIdleEvent {
    */
   session_thread_id: string;
 
+  /**
+   * Structured information about why the thread stopped. `null` when there is
+   * nothing more to report.
+   */
+  stop_details: BetaManagedAgentsSessionRefusalStopDetails | null;
+
   stop_reason:
     | BetaManagedAgentsSessionEndTurn
     | BetaManagedAgentsSessionRequiresAction
     | BetaManagedAgentsSessionRetriesExhausted
-    | BetaManagedAgentsSessionBudgetReached;
+    | BetaManagedAgentsSessionBudgetReached
+    | BetaManagedAgentsSessionRefusal;
 
   type: 'session.thread_status_idle';
 }
@@ -2409,6 +2450,8 @@ export declare namespace Events {
     type BetaManagedAgentsSessionErrorEvent as BetaManagedAgentsSessionErrorEvent,
     type BetaManagedAgentsSessionEvent as BetaManagedAgentsSessionEvent,
     type BetaManagedAgentsSessionEventType as BetaManagedAgentsSessionEventType,
+    type BetaManagedAgentsSessionRefusal as BetaManagedAgentsSessionRefusal,
+    type BetaManagedAgentsSessionRefusalStopDetails as BetaManagedAgentsSessionRefusalStopDetails,
     type BetaManagedAgentsSessionRequiresAction as BetaManagedAgentsSessionRequiresAction,
     type BetaManagedAgentsSessionRetriesExhausted as BetaManagedAgentsSessionRetriesExhausted,
     type BetaManagedAgentsSessionStatusIdleEvent as BetaManagedAgentsSessionStatusIdleEvent,

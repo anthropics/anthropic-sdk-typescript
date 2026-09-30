@@ -55,6 +55,8 @@ export {
   type BetaManagedAgentsSessionErrorEvent,
   type BetaManagedAgentsSessionEvent,
   type BetaManagedAgentsSessionEventType,
+  type BetaManagedAgentsSessionRefusal,
+  type BetaManagedAgentsSessionRefusalStopDetails,
   type BetaManagedAgentsSessionRequiresAction,
   type BetaManagedAgentsSessionRetriesExhausted,
   type BetaManagedAgentsSessionStatusIdleEvent,
