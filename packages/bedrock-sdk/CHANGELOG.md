@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.34.1 (2026-09-30)
+
+Full Changelog: [bedrock-sdk-v0.34.0...bedrock-sdk-v0.34.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.34.0...bedrock-sdk-v0.34.1)
+
 ## 0.34.0 (2026-09-28)
 
 Full Changelog: [bedrock-sdk-v0.33.8...bedrock-sdk-v0.34.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.33.8...bedrock-sdk-v0.34.0)
