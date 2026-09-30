@@ -160,7 +160,7 @@ describe('MessageStream class', () => {
     const stream = anthropic.messages.stream(
       {
         max_tokens: 1024,
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-5-5',
         messages: [{ role: 'user', content: 'Say hello there!' }],
       },
       { maxRetries: 0 },
@@ -185,7 +185,7 @@ describe('MessageStream class', () => {
     const stream = anthropic.messages.stream(
       {
         max_tokens: 1024,
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-5-5',
         messages: [{ role: 'user', content: 'Say hello there!' }],
       },
       { maxRetries: 0 },
