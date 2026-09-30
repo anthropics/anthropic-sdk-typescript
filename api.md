@@ -1449,11 +1449,8 @@ Methods:
 
 Types:
 
-- <code><a href="./src/resources/beta/tunnels/tunnels.ts">BetaCloudflareTunnelTransport</a></code>
-- <code><a href="./src/resources/beta/tunnels/tunnels.ts">BetaRelayTunnelTransport</a></code>
 - <code><a href="./src/resources/beta/tunnels/tunnels.ts">BetaTunnel</a></code>
 - <code><a href="./src/resources/beta/tunnels/tunnels.ts">BetaTunnelToken</a></code>
-- <code><a href="./src/resources/beta/tunnels/tunnels.ts">BetaTunnelTransport</a></code>
 
 Methods:
 

@@ -691,11 +691,8 @@ import {
 } from './skills/skills';
 import * as TunnelsAPI from './tunnels/tunnels';
 import {
-  BetaCloudflareTunnelTransport,
-  BetaRelayTunnelTransport,
   BetaTunnel,
   BetaTunnelToken,
-  BetaTunnelTransport,
   BetaTunnelsPageCursor,
   TunnelArchiveParams,
   TunnelCreateParams,
@@ -1622,11 +1619,8 @@ export declare namespace Beta {
 
   export {
     Tunnels as Tunnels,
-    type BetaCloudflareTunnelTransport as BetaCloudflareTunnelTransport,
-    type BetaRelayTunnelTransport as BetaRelayTunnelTransport,
     type BetaTunnel as BetaTunnel,
     type BetaTunnelToken as BetaTunnelToken,
-    type BetaTunnelTransport as BetaTunnelTransport,
     type BetaTunnelsPageCursor as BetaTunnelsPageCursor,
     type TunnelCreateParams as TunnelCreateParams,
     type TunnelRetrieveParams as TunnelRetrieveParams,
