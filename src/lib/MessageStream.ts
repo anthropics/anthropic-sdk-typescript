@@ -479,7 +479,14 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
           }
           case 'input_json_delta': {
             if (tracksToolInput(content) && this.#listeners.inputJson?.length) {
-              this._emit('inputJson', event.delta.partial_json, content.input);
+              let jsonSnapshot: unknown;
+              try {
+                jsonSnapshot = content.input;
+              } catch (err) {
+                this.#handleError(this.#toolInputParseError(content, err));
+                break;
+              }
+              this._emit('inputJson', event.delta.partial_json, jsonSnapshot);
             }
             break;
           }
@@ -673,8 +680,15 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
       case 'content_block_stop': {
         const snapshotContent = snapshot.content.at(event.index);
         if (snapshotContent && tracksToolInput(snapshotContent) && JSON_BUF_PROPERTY in snapshotContent) {
+          let input: unknown;
+          try {
+            input = snapshotContent.input;
+          } catch (err) {
+            input = {};
+            this.#handleError(this.#toolInputParseError(snapshotContent, err));
+          }
           Object.defineProperty(snapshotContent, 'input', {
-            value: snapshotContent.input,
+            value: input,
             enumerable: true,
             configurable: true,
             writable: true,
@@ -683,6 +697,13 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
         return snapshot;
       }
     }
+  }
+
+  #toolInputParseError(block: TracksToolInput, err: unknown): AnthropicError {
+    const jsonBuf = (block as any)[JSON_BUF_PROPERTY];
+    return new AnthropicError(
+      `Unable to parse tool parameter JSON from model. Please retry your request or adjust your prompt. Error: ${err}. JSON: ${jsonBuf}`,
+    );
   }
 
   [Symbol.asyncIterator](): AsyncIterator<MessageStreamEvent> {
