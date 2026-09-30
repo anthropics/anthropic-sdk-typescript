@@ -75,6 +75,18 @@ const NEWLINE = Buffer.from('\n');
 const GREP_OUTPUT_LIMIT = 100 * 1024;
 const GREP_MAX_LINE_LENGTH = 2000;
 const GLOB_RESULT_LIMIT = 200;
+const WALK_MAX_DEPTH = 40;
+const WALK_MAX_ENTRIES = 50_000;
+
+// The search tools bound their work so a single call cannot walk an unbounded
+// tree or return an unbounded result set. A bound that is hit has to say so:
+// the model reads the tool's return value as the complete answer, so a
+// silently shortened list reads as "that is all there is" — the same reason the
+// output-length caps append a marker (see `runRipgrep` / `runWalkGrep`).
+const WALK_ENTRIES_TRUNCATED = `[output truncated: stopped after ${WALK_MAX_ENTRIES} entries]`;
+const WALK_DEPTH_TRUNCATED = `[output truncated: stopped at the ${WALK_MAX_DEPTH}-level depth limit]`;
+const GLOB_RESULTS_TRUNCATED = (shown: number, total: number) =>
+  `[output truncated at ${GLOB_RESULT_LIMIT} matches: ${total - shown} more not shown]`;
 
 /**
  * A bash command exceeded its `timeoutMs`. Carries the timeout so a caller can
@@ -803,6 +815,7 @@ export function betaGlobTool(ctx: AgentToolContext): BetaRunnableTool {
       // Bounds the walk for patterns that match, or brace-expand into,
       // enormous trees.
       let remaining = WALK_MAX_ENTRIES;
+      let walkTruncated = false;
       try {
         // Native `fs.glob` (Node 22+). `exclude` prunes the noisy dirs the
         // legacy walker skipped; only regular files are collected.
@@ -811,7 +824,10 @@ export function betaGlobTool(ctx: AgentToolContext): BetaRunnableTool {
           withFileTypes: true,
           exclude: (d) => d.name === '.git' || d.name === 'node_modules',
         })) {
-          if (remaining-- <= 0) break;
+          if (remaining-- <= 0) {
+            walkTruncated = true;
+            break;
+          }
           if (!entry.isFile()) continue;
           const full = path.join(entry.parentPath, entry.name);
           // Drop any match that resolves outside the search root. A pattern
@@ -839,12 +855,16 @@ export function betaGlobTool(ctx: AgentToolContext): BetaRunnableTool {
       } catch (e) {
         throw new ToolError(`glob: ${e instanceof Error ? e.message : String(e)}`);
       }
-      if (matches.length === 0) return 'no matches';
+      if (matches.length === 0) return walkTruncated ? WALK_ENTRIES_TRUNCATED : 'no matches';
       matches.sort((a, b) => b.mtime - a.mtime);
-      return matches
-        .slice(0, GLOB_RESULT_LIMIT)
-        .map((m) => m.path)
-        .join('\n');
+      const shown = matches.slice(0, GLOB_RESULT_LIMIT);
+      const lines = shown.map((m) => m.path);
+      // Both bounds drop matches the caller never sees, so neither may pass for
+      // the complete result set.
+      if (walkTruncated) lines.push(WALK_ENTRIES_TRUNCATED);
+      else if (shown.length < matches.length)
+        lines.push(GLOB_RESULTS_TRUNCATED(shown.length, matches.length));
+      return lines.join('\n');
     },
   });
 }
@@ -931,12 +951,17 @@ async function runWalkGrep(
     return true;
   };
   const stat = await fs.stat(root).catch(() => null);
+  let walkStop: WalkStop = 'complete';
   if (stat?.isFile()) {
     await grepFile(root, re, push);
   } else {
-    await walk(root, '', (rel) => grepFile(path.join(root, rel), re, push), signal);
+    walkStop = await walk(root, '', (rel) => grepFile(path.join(root, rel), re, push), signal);
   }
   if (signal?.aborted) throw new ToolError('grep: aborted');
+  // A walk that stopped on a bound never saw the rest of the tree, so the hits
+  // it did find are not the whole answer — say which bound cut it short.
+  if (walkStop === 'entries') hits.push(WALK_ENTRIES_TRUNCATED);
+  else if (walkStop === 'depth') hits.push(WALK_DEPTH_TRUNCATED);
   if (hits.length === 0) return 'no matches';
   return hits.join('\n');
 }
@@ -963,24 +988,36 @@ async function grepFile(file: string, re: RegExp, push: (line: string) => boolea
 
 // ---- utils ---------------------------------------------------------------
 
-const WALK_MAX_DEPTH = 40;
-const WALK_MAX_ENTRIES = 50_000;
+/**
+ * Why a bounded walk stopped, so a caller can tell a complete result from a
+ * partial one. `complete` covers both a walk that reached the end and one
+ * `fn` aborted with `false` — that caller already knows why it stopped.
+ */
+type WalkStop = 'complete' | 'entries' | 'depth';
 
 /**
  * Bounded recursive walk. `fn` may return `false` to abort. Only real
  * directories are descended into and only real files are handed to `fn` —
  * symlinks (and devices/fifos/sockets) are skipped entirely so a symlink inside
  * the root cannot be followed out of it.
+ *
+ * Returns which bound stopped the walk, or `'complete'`. The bounds drop files
+ * the caller never sees, so a partial result has to be reportable rather than
+ * looking like an exhaustive search.
  */
 async function walk(
   root: string,
   rel: string,
   fn: (rel: string) => boolean | void | Promise<boolean | void>,
   signal?: AbortSignal | null | undefined,
-): Promise<void> {
+): Promise<WalkStop> {
   let remaining = WALK_MAX_ENTRIES;
+  let stopped: Exclude<WalkStop, 'complete'> | undefined;
   async function inner(rel: string, depth: number): Promise<boolean> {
-    if (depth > WALK_MAX_DEPTH) return true;
+    if (depth > WALK_MAX_DEPTH) {
+      stopped ??= 'depth';
+      return true;
+    }
     if (signal?.aborted) return false;
     let entries: fssync.Dirent[];
     try {
@@ -990,7 +1027,10 @@ async function walk(
     }
     for (const e of entries) {
       if (e.name === '.git' || e.name === 'node_modules') continue;
-      if (remaining-- <= 0) return false;
+      if (remaining-- <= 0) {
+        stopped = 'entries';
+        return false;
+      }
       if (signal?.aborted) return false;
       const childRel = rel ? path.join(rel, e.name) : e.name;
       if (e.isDirectory()) {
@@ -1003,6 +1043,7 @@ async function walk(
     return true;
   }
   await inner(rel, 0);
+  return stopped ?? 'complete';
 }
 
 async function findRg(): Promise<string | null> {
