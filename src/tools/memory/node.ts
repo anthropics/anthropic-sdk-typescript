@@ -285,14 +285,20 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
     }
 
     const content = await readFileContent(fullPath, command.path);
-    const lines = content.split('\n');
 
+    const matchingIndices: number[] = [];
     const matchingLines: number[] = [];
-    lines.forEach((line, index) => {
-      if (line.includes(command.old_str)) {
-        matchingLines.push(index + 1);
+    let searchFrom = 0;
+    while (searchFrom <= content.length) {
+      const foundIndex = content.indexOf(command.old_str, searchFrom);
+      if (foundIndex === -1) {
+        break;
       }
-    });
+      matchingIndices.push(foundIndex);
+      const lineNum = content.slice(0, foundIndex).split('\n').length;
+      matchingLines.push(lineNum);
+      searchFrom = foundIndex + (command.old_str.length || 1);
+    }
 
     if (matchingLines.length === 0) {
       throw new Error(
@@ -306,13 +312,17 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
       );
     }
 
-    const newContent = content.replace(command.old_str, command.new_str);
+    const matchIndex = matchingIndices[0]!;
+    const newStr = command.new_str ?? '';
+    const newContent =
+      content.slice(0, matchIndex) + newStr + content.slice(matchIndex + command.old_str.length);
     await atomicWriteFile(fullPath, newContent);
 
     const newLines = newContent.split('\n');
     const changedLineIndex = matchingLines[0]! - 1;
     const contextStart = Math.max(0, changedLineIndex - 2);
-    const contextEnd = Math.min(newLines.length, changedLineIndex + 3);
+    const replacementLinesCount = newStr.split('\n').length;
+    const contextEnd = Math.min(newLines.length, changedLineIndex + replacementLinesCount + 2);
     const snippet = newLines.slice(contextStart, contextEnd).map((line, i) => {
       const lineNum = contextStart + i + 1;
       return `${String(lineNum).padStart(LINE_NUMBER_WIDTH, ' ')}\t${line}`;
