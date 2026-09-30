@@ -957,6 +957,67 @@ describe('ToolRunner', () => {
       });
     });
 
+    // max_iterations was read with a truthiness test, so `0` silently meant
+    // "no limit" — the opposite of the tightest bound a caller can ask for — and
+    // a negative value broke the loop before any request, surfacing as
+    // `ToolRunner concluded without a message from the server`, which says
+    // nothing about the option that was wrong.
+    it.each([0, -1, -10, 1.5, NaN])('rejects max_iterations: %p', (max_iterations) => {
+      expect(() =>
+        setupTest({
+          messages: [{ role: 'user', content: 'hi' }],
+          max_iterations,
+        }),
+      ).toThrow(RangeError);
+    });
+
+    it('names max_iterations in the error so the caller knows which option is wrong', () => {
+      expect(() =>
+        setupTest({
+          messages: [{ role: 'user', content: 'hi' }],
+          max_iterations: 0,
+        }),
+      ).toThrow(/`max_iterations` must be an integer of at least 1/);
+    });
+
+    it('rejects a bad max_iterations passed to setMessagesParams too', () => {
+      const { runner } = setupTest({
+        messages: [{ role: 'user', content: 'hi' }],
+        max_iterations: 2,
+      });
+      expect(() => runner.setMessagesParams((prev) => ({ ...prev, max_iterations: 0 }))).toThrow(RangeError);
+    });
+
+    it('still leaves the loop unbounded when max_iterations is omitted', async () => {
+      const { runner, handleAssistantMessage } = setupTest({
+        messages: [{ role: 'user', content: 'Use tools repeatedly' }],
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      // More turns than any of the limits used above; an omitted max_iterations
+      // must not have picked one up.
+      for (const [city, id] of [
+        ['Paris', 'tool_1'],
+        ['Berlin', 'tool_2'],
+        ['Rome', 'tool_3'],
+        ['Oslo', 'tool_4'],
+      ] as const) {
+        handleAssistantMessage(getWeatherToolUse(city, id));
+        await expectEvent(iterator, (message) => {
+          expect(message.content).toMatchObject([getWeatherToolUse(city, id)]);
+        });
+      }
+
+      // Four tool turns ran, past every limit used above. Only a stop reason
+      // ends the loop now, which is what "no max_iterations" has to mean.
+      handleAssistantMessage(getTextContent());
+      await expectEvent(iterator, (message) => {
+        expect(message.content).toMatchObject([getTextContent()]);
+      });
+      await expectDone(iterator);
+    }, 10000);
+
     it('does not execute tools and ends the loop when the turn is refusal-terminated', async () => {
       const runSpy = vi.fn(async () => 'should never run');
       const spiedWeatherTool: BetaRunnableTool<{ location: string }> = { ...weatherTool, run: runSpy };
