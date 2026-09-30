@@ -43,6 +43,25 @@ describe('toFile', () => {
     expect(file.name).toEqual('audio.mp3');
   });
 
+  it('decodes percent-encoding in a Response file name', async () => {
+    const response = mockResponse({ url: 'https://example.com/my/my%20report.pdf' });
+    const file = await toFile(response);
+    expect(file.name).toEqual('my report.pdf');
+  });
+
+  it('keeps a Response file name that is not valid percent-encoding as-is', async () => {
+    const response = mockResponse({ url: 'https://example.com/my/100%.txt' });
+    const file = await toFile(response);
+    expect(file.name).toEqual('100%.txt');
+  });
+
+  it('leaves the name unset for a Response whose url cannot be parsed', async () => {
+    // A hand-built `Response` has `url: ''`, and `new URL('')` throws, so this
+    // used to fail with `TypeError: Invalid URL` instead of producing a file.
+    const file = await toFile(new Response('contents'));
+    expect(file.name).toEqual('');
+  });
+
   it('extracts a file name from a File', async () => {
     const input = new File(['foo'], 'input.jsonl');
     const file = await toFile(input);
