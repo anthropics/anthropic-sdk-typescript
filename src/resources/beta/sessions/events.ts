@@ -233,9 +233,6 @@ export interface BetaManagedAgentsAgentCustomToolUseEvent {
   session_thread_id?: string | null;
 }
 
-/**
- * AgentEvaluatedPermission enum
- */
 export type BetaManagedAgentsAgentEvaluatedPermission = 'allow' | 'ask' | 'deny';
 
 /**
@@ -920,6 +917,142 @@ export interface BetaManagedAgentsRedactedBlock {
 }
 
 /**
+ * The repository host rejected the credentials, or required credentials and
+ * received none.
+ */
+export interface BetaManagedAgentsRepositoryAuthenticationError {
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * URL of the repository that could not be cloned. Null when it could not be
+   * identified.
+   */
+  repository_url: string | null;
+
+  /**
+   * What the client should do next. Always `retrying`: the session keeps running
+   * without the repository.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'repository_authentication_error';
+}
+
+/**
+ * The requested branch or commit does not exist in the repository.
+ */
+export interface BetaManagedAgentsRepositoryCheckoutError {
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * URL of the repository that could not be cloned. Null when it could not be
+   * identified.
+   */
+  repository_url: string | null;
+
+  /**
+   * What the client should do next. Always `retrying`: the session keeps running
+   * without the repository.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'repository_checkout_error';
+}
+
+/**
+ * The repository could not be cloned.
+ */
+export interface BetaManagedAgentsRepositoryCloneError {
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * URL of the repository that could not be cloned. Null when it could not be
+   * identified.
+   */
+  repository_url: string | null;
+
+  /**
+   * What the client should do next. Always `retrying`: the session keeps running
+   * without the repository.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'repository_clone_error';
+}
+
+/**
+ * The repository host refused access to the repository.
+ */
+export interface BetaManagedAgentsRepositoryForbiddenError {
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * URL of the repository that could not be cloned. Null when it could not be
+   * identified.
+   */
+  repository_url: string | null;
+
+  /**
+   * What the client should do next. Always `retrying`: the session keeps running
+   * without the repository.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'repository_forbidden_error';
+}
+
+/**
+ * The repository host reported the repository as not found.
+ */
+export interface BetaManagedAgentsRepositoryNotFoundError {
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * URL of the repository that could not be cloned. Null when it could not be
+   * identified.
+   */
+  repository_url: string | null;
+
+  /**
+   * What the client should do next. Always `retrying`: the session keeps running
+   * without the repository.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'repository_not_found_error';
+}
+
+/**
  * This turn is dead; queued inputs are flushed and the session returns to idle.
  * Client may send a new prompt.
  */
@@ -1063,7 +1196,12 @@ export interface BetaManagedAgentsSessionErrorEvent {
     | BetaManagedAgentsMCPConnectionFailedError
     | BetaManagedAgentsMCPAuthenticationFailedError
     | BetaManagedAgentsBillingError
-    | BetaManagedAgentsCredentialHostUnreachableError;
+    | BetaManagedAgentsCredentialHostUnreachableError
+    | BetaManagedAgentsRepositoryAuthenticationError
+    | BetaManagedAgentsRepositoryForbiddenError
+    | BetaManagedAgentsRepositoryNotFoundError
+    | BetaManagedAgentsRepositoryCheckoutError
+    | BetaManagedAgentsRepositoryCloneError;
 
   /**
    * Timestamp when the error occurred.
@@ -1153,6 +1291,33 @@ export type BetaManagedAgentsSessionEventType =
   | 'session.usage';
 
 /**
+ * The turn ended because the model's response was refused, for example by a safety
+ * classifier.
+ */
+export interface BetaManagedAgentsSessionRefusal {
+  type: 'refusal';
+}
+
+/**
+ * Structured information about a refusal.
+ */
+export interface BetaManagedAgentsSessionRefusalStopDetails {
+  /**
+   * The policy category that triggered the refusal, or `null` when there is no named
+   * category. New values can be added over time.
+   */
+  category: 'cyber' | 'bio' | 'frontier_llm' | 'reasoning_extraction' | 'general_harms' | null;
+
+  /**
+   * Human-readable explanation of the refusal, or `null` when none is available. The
+   * wording can change, so do not parse it.
+   */
+  explanation: string | null;
+
+  type: 'refusal';
+}
+
+/**
  * The agent is idle waiting on one or more blocking user-input events (tool
  * confirmation, custom tool result, etc.). Resolving all of them transitions the
  * session back to running.
@@ -1189,11 +1354,18 @@ export interface BetaManagedAgentsSessionStatusIdleEvent {
    */
   processed_at: string;
 
+  /**
+   * Structured information about why the session stopped. `null` when there is
+   * nothing more to report.
+   */
+  stop_details: BetaManagedAgentsSessionRefusalStopDetails | null;
+
   stop_reason:
     | BetaManagedAgentsSessionEndTurn
     | BetaManagedAgentsSessionRequiresAction
     | BetaManagedAgentsSessionRetriesExhausted
-    | BetaManagedAgentsSessionBudgetReached;
+    | BetaManagedAgentsSessionBudgetReached
+    | BetaManagedAgentsSessionRefusal;
 
   type: 'session.status_idle';
 }
@@ -1303,11 +1475,18 @@ export interface BetaManagedAgentsSessionThreadStatusIdleEvent {
    */
   session_thread_id: string;
 
+  /**
+   * Structured information about why the thread stopped. `null` when there is
+   * nothing more to report.
+   */
+  stop_details: BetaManagedAgentsSessionRefusalStopDetails | null;
+
   stop_reason:
     | BetaManagedAgentsSessionEndTurn
     | BetaManagedAgentsSessionRequiresAction
     | BetaManagedAgentsSessionRetriesExhausted
-    | BetaManagedAgentsSessionBudgetReached;
+    | BetaManagedAgentsSessionBudgetReached
+    | BetaManagedAgentsSessionRefusal;
 
   type: 'session.thread_status_idle';
 }
@@ -2253,6 +2432,11 @@ export declare namespace Events {
     type BetaManagedAgentsModelRequestFailedError as BetaManagedAgentsModelRequestFailedError,
     type BetaManagedAgentsPlainTextDocumentSource as BetaManagedAgentsPlainTextDocumentSource,
     type BetaManagedAgentsRedactedBlock as BetaManagedAgentsRedactedBlock,
+    type BetaManagedAgentsRepositoryAuthenticationError as BetaManagedAgentsRepositoryAuthenticationError,
+    type BetaManagedAgentsRepositoryCheckoutError as BetaManagedAgentsRepositoryCheckoutError,
+    type BetaManagedAgentsRepositoryCloneError as BetaManagedAgentsRepositoryCloneError,
+    type BetaManagedAgentsRepositoryForbiddenError as BetaManagedAgentsRepositoryForbiddenError,
+    type BetaManagedAgentsRepositoryNotFoundError as BetaManagedAgentsRepositoryNotFoundError,
     type BetaManagedAgentsRetryStatusExhausted as BetaManagedAgentsRetryStatusExhausted,
     type BetaManagedAgentsRetryStatusRetrying as BetaManagedAgentsRetryStatusRetrying,
     type BetaManagedAgentsRetryStatusTerminal as BetaManagedAgentsRetryStatusTerminal,
@@ -2266,6 +2450,8 @@ export declare namespace Events {
     type BetaManagedAgentsSessionErrorEvent as BetaManagedAgentsSessionErrorEvent,
     type BetaManagedAgentsSessionEvent as BetaManagedAgentsSessionEvent,
     type BetaManagedAgentsSessionEventType as BetaManagedAgentsSessionEventType,
+    type BetaManagedAgentsSessionRefusal as BetaManagedAgentsSessionRefusal,
+    type BetaManagedAgentsSessionRefusalStopDetails as BetaManagedAgentsSessionRefusalStopDetails,
     type BetaManagedAgentsSessionRequiresAction as BetaManagedAgentsSessionRequiresAction,
     type BetaManagedAgentsSessionRetriesExhausted as BetaManagedAgentsSessionRetriesExhausted,
     type BetaManagedAgentsSessionStatusIdleEvent as BetaManagedAgentsSessionStatusIdleEvent,

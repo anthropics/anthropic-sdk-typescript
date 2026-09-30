@@ -14,6 +14,23 @@ TEST_PATHS=(
 	tests/api-resources/files.test.ts
 	tests/api-resources/skills/skills.test.ts
 	tests/api-resources/skills/versions.test.ts
+	tests/api-resources/organization/organization.test.ts
+	tests/api-resources/organization/api-keys.test.ts
+	tests/api-resources/organization/external-keys.test.ts
+	tests/api-resources/organization/federation/federation.test.ts
+	tests/api-resources/organization/federation/issuers.test.ts
+	tests/api-resources/organization/federation/rules/rules.test.ts
+	tests/api-resources/organization/federation/rules/workspaces.test.ts
+	tests/api-resources/organization/invites.test.ts
+	tests/api-resources/organization/service-accounts/service-accounts.test.ts
+	tests/api-resources/organization/service-accounts/workspaces.test.ts
+	tests/api-resources/organization/users.test.ts
+	tests/api-resources/organization/workspaces/workspaces.test.ts
+	tests/api-resources/organization/workspaces/rate-limits.test.ts
+	tests/api-resources/organization/workspaces/members.test.ts
+	tests/api-resources/organization/workspaces/service-accounts.test.ts
+	tests/api-resources/organization/rate-limits.test.ts
+	tests/api-resources/organization/compliance-settings.test.ts
 	tests/api-resources/beta/beta.test.ts
 	tests/api-resources/beta/models.test.ts
 	tests/api-resources/beta/messages/messages.test.ts
@@ -59,6 +76,32 @@ TEST_PATHS=(
 	tests/api-resources/beta/organization/workspaces/service-accounts.test.ts
 	tests/api-resources/beta/organization/rate-limits.test.ts
 	tests/api-resources/beta/organization/compliance-settings.test.ts
+	tests/api-resources/beta/organization/analytics/analytics.test.ts
+	tests/api-resources/beta/organization/analytics/summaries.test.ts
+	tests/api-resources/beta/organization/analytics/users.test.ts
+	tests/api-resources/beta/organization/analytics/apps/apps.test.ts
+	tests/api-resources/beta/organization/analytics/apps/chat/chat.test.ts
+	tests/api-resources/beta/organization/analytics/apps/chat/projects.test.ts
+	tests/api-resources/beta/organization/analytics/connectors.test.ts
+	tests/api-resources/beta/organization/analytics/plugins.test.ts
+	tests/api-resources/beta/organization/analytics/skills.test.ts
+	tests/api-resources/beta/organization/analytics/artifacts.test.ts
+	tests/api-resources/beta/organization/analytics/usage-report.test.ts
+	tests/api-resources/beta/organization/analytics/user-usage-report.test.ts
+	tests/api-resources/beta/organization/analytics/cost-report.test.ts
+	tests/api-resources/beta/organization/analytics/user-cost-report.test.ts
+	tests/api-resources/beta/organization/spend-limits/spend-limits.test.ts
+	tests/api-resources/beta/organization/spend-limits/effective.test.ts
+	tests/api-resources/beta/organization/spend-limits/increase-requests.test.ts
+	tests/api-resources/beta/organization/rbac-groups/rbac-groups.test.ts
+	tests/api-resources/beta/organization/rbac-groups/members.test.ts
+	tests/api-resources/beta/organization/rbac-roles/rbac-roles.test.ts
+	tests/api-resources/beta/organization/rbac-roles/permissions.test.ts
+	tests/api-resources/beta/organization/plugins/plugins.test.ts
+	tests/api-resources/beta/organization/plugins/versions.test.ts
+	tests/api-resources/beta/organization/plugins/installation-settings.test.ts
+	tests/api-resources/beta/organization/plugins/shares.test.ts
+	tests/api-resources/beta/organization/plugin-marketplaces.test.ts
 	tests/index.test.ts
 )
 

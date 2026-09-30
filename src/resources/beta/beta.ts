@@ -471,6 +471,7 @@ import {
   BetaInputTokensClearAtLeast,
   BetaInputTokensTrigger,
   BetaInputTransformation,
+  BetaIterationsUsage,
   BetaMCPTool,
   BetaMCPToolListingBlock,
   BetaMCPToolListingBlockParam,
@@ -784,7 +785,8 @@ export type AnthropicBeta =
   | 'mid-conversation-system-clear-at-2026-08-21'
   | 'compact-2026-09-04'
   | 'inline-tools-2026-09-15'
-  | 'mcp-client-2026-09-15';
+  | 'mcp-client-2026-09-15'
+  | 'ce-plugins-2026-09-01';
 
 export interface BetaAPIError {
   message: string;
@@ -1099,6 +1101,7 @@ export declare namespace Beta {
     type BetaInputTokensClearAtLeast as BetaInputTokensClearAtLeast,
     type BetaInputTokensTrigger as BetaInputTokensTrigger,
     type BetaInputTransformation as BetaInputTransformation,
+    type BetaIterationsUsage as BetaIterationsUsage,
     type BetaMCPTool as BetaMCPTool,
     type BetaMCPToolConfig as BetaMCPToolConfig,
     type BetaMCPToolDefaultConfig as BetaMCPToolDefaultConfig,

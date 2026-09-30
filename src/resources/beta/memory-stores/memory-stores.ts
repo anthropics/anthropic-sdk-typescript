@@ -243,9 +243,30 @@ export interface BetaManagedAgentsMemoryStore {
   id: string;
 
   /**
+   * Timestamp when the store was archived, or `null` if active. Set once and never
+   * cleared; archiving is one-way. Archived stores are read-only and cannot be
+   * attached to new sessions.
+   */
+  archived_at: string | null;
+
+  /**
    * Timestamp when the store was created.
    */
   created_at: string;
+
+  /**
+   * Free-text description of what the store contains, up to 1024 characters.
+   * Included in the agent's system prompt when the store is attached, so word it to
+   * be useful to the agent. Empty string when unset.
+   */
+  description: string;
+
+  /**
+   * Arbitrary key-value tags for your own bookkeeping (such as the end user a store
+   * belongs to). Up to 16 pairs; keys 1–64 characters; values up to 512 characters.
+   * Returned on retrieve/list but not filterable.
+   */
+  metadata: { [key: string]: string };
 
   /**
    * Human-readable name for the store. 1–255 characters. The store's mount-path slug
@@ -260,27 +281,6 @@ export interface BetaManagedAgentsMemoryStore {
    * modified. Memory writes inside the store do not advance this.
    */
   updated_at: string;
-
-  /**
-   * Timestamp when the store was archived, or `null` if active. Set once and never
-   * cleared; archiving is one-way. Archived stores are read-only and cannot be
-   * attached to new sessions.
-   */
-  archived_at?: string | null;
-
-  /**
-   * Free-text description of what the store contains, up to 1024 characters.
-   * Included in the agent's system prompt when the store is attached, so word it to
-   * be useful to the agent. Empty string when unset.
-   */
-  description?: string;
-
-  /**
-   * Arbitrary key-value tags for your own bookkeeping (such as the end user a store
-   * belongs to). Up to 16 pairs; keys 1–64 characters; values up to 512 characters.
-   * Returned on retrieve/list but not filterable.
-   */
-  metadata?: { [key: string]: string };
 }
 
 export interface MemoryStoreCreateParams {

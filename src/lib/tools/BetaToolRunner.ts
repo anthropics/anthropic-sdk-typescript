@@ -3,6 +3,7 @@ import { ToolError } from './ToolError';
 import { Anthropic } from '../..';
 import { AnthropicError } from '../../core/error';
 import {
+  BETA_CLIENT_TOOL_UNION_KEYS,
   BetaCompactionConfig,
   BetaContentBlock,
   BetaContentBlockParam,
@@ -27,7 +28,9 @@ import { loggerFor } from '../../internal/utils/log';
 import {
   collectStainlessHelpers,
   helperHeader,
+  SDK_HELPER_SYMBOL,
   STAINLESS_HELPER_HEADER,
+  wasCreatedByStainlessHelper,
 } from '../../internal/stainless-helper-header';
 import type { Simplify } from '../internal/types';
 
@@ -92,7 +95,7 @@ export class BetaToolRunner<Stream extends boolean> {
         ...params,
         // Not structuredClone(): it throws on a function, and a runnable tool written by value into a
         // `tool_addition` block has `run`. A JSON copy is the messages as they are sent, which drops it.
-        messages: JSON.parse(JSON.stringify(params.messages)),
+        messages: JSON.parse(JSON.stringify(withToolDefinitions(params.messages))),
       },
     };
 
@@ -223,6 +226,11 @@ export class BetaToolRunner<Stream extends boolean> {
   async *#send(params: MessageCreateParams): AsyncGenerator<BetaToolRunnerItem<Stream>, void, undefined> {
     await this.#startedCallsSettled();
     this.#calls = undefined;
+    params = {
+      ...params,
+      ...(params.tools && { tools: params.tools.map(toolDefinition) }),
+      messages: withToolDefinitions(params.messages),
+    };
     if (params.stream) {
       this.#stream =
         this.#state.params.runToolsEagerly ?
@@ -708,12 +716,7 @@ export class BetaToolRunner<Stream extends boolean> {
         content.push({ type: 'tool_removal', tool: { type: 'tool_reference', name: change.name } });
         continue;
       }
-      // The functions stay out of the definition that is sent.
-      let definition: BetaToolUnion = change.tool;
-      if ('run' in change.tool) {
-        const { run, parse, close, ...rest } = change.tool;
-        definition = rest;
-      }
+      const definition = toolDefinition(change.tool);
       content.push({ type: 'tool_addition', tool: { type: 'tool_definition', definition } });
     }
     return { role: 'system', content };
@@ -791,6 +794,32 @@ function withoutCompactionIncompatibleParams(params: ToolRunnerRequestParams): T
     );
   }
   return kept;
+}
+
+function toolDefinition(tool: BetaToolUnion | BetaRunnableTool): BetaToolUnion {
+  if (!('run' in tool)) {
+    return tool;
+  }
+
+  const apiKeys: readonly string[] = BETA_CLIENT_TOOL_UNION_KEYS;
+  return {
+    ...Object.fromEntries(Object.entries(tool).filter(([key]) => apiKeys.includes(key))),
+    ...(wasCreatedByStainlessHelper(tool) && { [SDK_HELPER_SYMBOL]: tool[SDK_HELPER_SYMBOL] }),
+  } as BetaToolUnion;
+}
+
+function withToolDefinitions(messages: BetaMessageParam[]): BetaMessageParam[] {
+  return messages.map((message) => {
+    if (message.role !== 'system' || typeof message.content === 'string') {
+      return message;
+    }
+    const content = message.content.map((block) =>
+      block.type === 'tool_addition' && block.tool.type === 'tool_definition' ?
+        { ...block, tool: { ...block.tool, definition: toolDefinition(block.tool.definition) } }
+      : block,
+    );
+    return { ...message, content };
+  });
 }
 
 async function generateToolResponse(

@@ -40,6 +40,11 @@ import {
   BetaManagedAgentsModelRequestFailedError,
   BetaManagedAgentsPlainTextDocumentSource,
   BetaManagedAgentsRedactedBlock,
+  BetaManagedAgentsRepositoryAuthenticationError,
+  BetaManagedAgentsRepositoryCheckoutError,
+  BetaManagedAgentsRepositoryCloneError,
+  BetaManagedAgentsRepositoryForbiddenError,
+  BetaManagedAgentsRepositoryNotFoundError,
   BetaManagedAgentsRetryStatusExhausted,
   BetaManagedAgentsRetryStatusRetrying,
   BetaManagedAgentsRetryStatusTerminal,
@@ -54,6 +59,8 @@ import {
   BetaManagedAgentsSessionEvent,
   BetaManagedAgentsSessionEventType,
   BetaManagedAgentsSessionEventsPageCursor,
+  BetaManagedAgentsSessionRefusal,
+  BetaManagedAgentsSessionRefusalStopDetails,
   BetaManagedAgentsSessionRequiresAction,
   BetaManagedAgentsSessionRetriesExhausted,
   BetaManagedAgentsSessionStatusIdleEvent,
@@ -527,9 +534,6 @@ export interface BetaManagedAgentsDeltaEvent {
   type: 'event_delta';
 }
 
-/**
- * EventDeltaType enum
- */
 export type BetaManagedAgentsDeltaType = 'agent.message' | 'agent.thinking';
 
 /**
@@ -745,8 +749,6 @@ export interface BetaManagedAgentsSession {
   stats: BetaManagedAgentsSessionStats;
 
   /**
-   * SessionStatus enum
-   *
    * - `rescheduling` - Transient error occurred, retrying automatically.
    * - `running` - Agent is actively executing.
    * - `idle` - Agent is waiting for input, including user messages or tool
@@ -1441,6 +1443,11 @@ export declare namespace Sessions {
     type BetaManagedAgentsModelRequestFailedError as BetaManagedAgentsModelRequestFailedError,
     type BetaManagedAgentsPlainTextDocumentSource as BetaManagedAgentsPlainTextDocumentSource,
     type BetaManagedAgentsRedactedBlock as BetaManagedAgentsRedactedBlock,
+    type BetaManagedAgentsRepositoryAuthenticationError as BetaManagedAgentsRepositoryAuthenticationError,
+    type BetaManagedAgentsRepositoryCheckoutError as BetaManagedAgentsRepositoryCheckoutError,
+    type BetaManagedAgentsRepositoryCloneError as BetaManagedAgentsRepositoryCloneError,
+    type BetaManagedAgentsRepositoryForbiddenError as BetaManagedAgentsRepositoryForbiddenError,
+    type BetaManagedAgentsRepositoryNotFoundError as BetaManagedAgentsRepositoryNotFoundError,
     type BetaManagedAgentsRetryStatusExhausted as BetaManagedAgentsRetryStatusExhausted,
     type BetaManagedAgentsRetryStatusRetrying as BetaManagedAgentsRetryStatusRetrying,
     type BetaManagedAgentsRetryStatusTerminal as BetaManagedAgentsRetryStatusTerminal,
@@ -1454,6 +1461,8 @@ export declare namespace Sessions {
     type BetaManagedAgentsSessionErrorEvent as BetaManagedAgentsSessionErrorEvent,
     type BetaManagedAgentsSessionEvent as BetaManagedAgentsSessionEvent,
     type BetaManagedAgentsSessionEventType as BetaManagedAgentsSessionEventType,
+    type BetaManagedAgentsSessionRefusal as BetaManagedAgentsSessionRefusal,
+    type BetaManagedAgentsSessionRefusalStopDetails as BetaManagedAgentsSessionRefusalStopDetails,
     type BetaManagedAgentsSessionRequiresAction as BetaManagedAgentsSessionRequiresAction,
     type BetaManagedAgentsSessionRetriesExhausted as BetaManagedAgentsSessionRetriesExhausted,
     type BetaManagedAgentsSessionStatusIdleEvent as BetaManagedAgentsSessionStatusIdleEvent,
