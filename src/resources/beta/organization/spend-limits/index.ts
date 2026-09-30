@@ -23,6 +23,8 @@ export {
   type BetaSpendLimitWorkspaceScope,
   type BetaSpendSummary,
   type SpendLimitDeleteResponse,
+  type SpendLimitListParams,
   type SpendLimitSetParams,
   type BetaSpendSummariesPageCursor,
+  type BetaSpendLimitsPageCursor,
 } from './spend-limits';

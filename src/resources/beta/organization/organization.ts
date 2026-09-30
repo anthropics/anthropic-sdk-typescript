@@ -201,8 +201,10 @@ import {
   BetaSpendLimitUserActor,
   BetaSpendLimitUserScope,
   BetaSpendLimitWorkspaceScope,
+  BetaSpendLimitsPageCursor,
   BetaSpendSummary,
   SpendLimitDeleteResponse,
+  SpendLimitListParams,
   SpendLimitSetParams,
   SpendLimits,
 } from './spend-limits/spend-limits';
@@ -477,6 +479,8 @@ export declare namespace Organization {
     type BetaSpendLimitWorkspaceScope as BetaSpendLimitWorkspaceScope,
     type BetaSpendSummary as BetaSpendSummary,
     type SpendLimitDeleteResponse as SpendLimitDeleteResponse,
+    type BetaSpendLimitsPageCursor as BetaSpendLimitsPageCursor,
+    type SpendLimitListParams as SpendLimitListParams,
     type SpendLimitSetParams as SpendLimitSetParams,
   };
 
