@@ -366,6 +366,257 @@ Methods:
 - <code title="get /v1/skills/{skill_id}/versions">client.skills.versions.<a href="./src/resources/skills/versions.ts">list</a>(skillID, { ...params }) -> SkillVersionsPageCursor</code>
 - <code title="delete /v1/skills/{skill_id}/versions/{version}">client.skills.versions.<a href="./src/resources/skills/versions.ts">delete</a>(version, { ...params }) -> DeletedSkillVersion</code>
 
+# Organization
+
+Types:
+
+- <code><a href="./src/resources/organization/organization.ts">OrganizationInfo</a></code>
+- <code><a href="./src/resources/organization/organization.ts">OrganizationRole</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/me">client.organization.<a href="./src/resources/organization/organization.ts">retrieve</a>() -> OrganizationInfo</code>
+
+## APIKeys
+
+Types:
+
+- <code><a href="./src/resources/organization/api-keys.ts">APIKey</a></code>
+- <code><a href="./src/resources/organization/api-keys.ts">APIKeyCreatedBy</a></code>
+- <code><a href="./src/resources/organization/api-keys.ts">APIKeyOrganizationScope</a></code>
+- <code><a href="./src/resources/organization/api-keys.ts">APIKeyServiceAccountActor</a></code>
+- <code><a href="./src/resources/organization/api-keys.ts">APIKeyUserActor</a></code>
+- <code><a href="./src/resources/organization/api-keys.ts">APIKeyWorkspaceScope</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/api_keys/{api_key_id}">client.organization.apiKeys.<a href="./src/resources/organization/api-keys.ts">retrieve</a>(apiKeyID) -> APIKey</code>
+- <code title="post /v1/organizations/api_keys/{api_key_id}">client.organization.apiKeys.<a href="./src/resources/organization/api-keys.ts">update</a>(apiKeyID, { ...params }) -> APIKey</code>
+- <code title="get /v1/organizations/api_keys">client.organization.apiKeys.<a href="./src/resources/organization/api-keys.ts">list</a>({ ...params }) -> APIKeysPage</code>
+
+## ExternalKeys
+
+Types:
+
+- <code><a href="./src/resources/organization/external-keys.ts">AWSExternalKeyConfig</a></code>
+- <code><a href="./src/resources/organization/external-keys.ts">AzureExternalKeyConfig</a></code>
+- <code><a href="./src/resources/organization/external-keys.ts">AzureExternalKeyConfigParam</a></code>
+- <code><a href="./src/resources/organization/external-keys.ts">ExternalKey</a></code>
+- <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyAttachedAttachment</a></code>
+- <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyUnattachedAttachment</a></code>
+- <code><a href="./src/resources/organization/external-keys.ts">GCPExternalKeyConfig</a></code>
+- <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyDeleteResponse</a></code>
+- <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyValidateResponse</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/external_keys">client.organization.externalKeys.<a href="./src/resources/organization/external-keys.ts">create</a>({ ...params }) -> ExternalKey</code>
+- <code title="get /v1/organizations/external_keys/{external_key_id}">client.organization.externalKeys.<a href="./src/resources/organization/external-keys.ts">retrieve</a>(externalKeyID) -> ExternalKey</code>
+- <code title="post /v1/organizations/external_keys/{external_key_id}">client.organization.externalKeys.<a href="./src/resources/organization/external-keys.ts">update</a>(externalKeyID, { ...params }) -> ExternalKey</code>
+- <code title="get /v1/organizations/external_keys">client.organization.externalKeys.<a href="./src/resources/organization/external-keys.ts">list</a>({ ...params }) -> ExternalKeysPageCursor</code>
+- <code title="delete /v1/organizations/external_keys/{external_key_id}">client.organization.externalKeys.<a href="./src/resources/organization/external-keys.ts">delete</a>(externalKeyID) -> ExternalKeyDeleteResponse</code>
+- <code title="post /v1/organizations/external_keys/{external_key_id}/validate">client.organization.externalKeys.<a href="./src/resources/organization/external-keys.ts">validate</a>(externalKeyID) -> ExternalKeyValidateResponse</code>
+
+## Federation
+
+### Issuers
+
+Types:
+
+- <code><a href="./src/resources/organization/federation/issuers.ts">FederationIssuer</a></code>
+- <code><a href="./src/resources/organization/federation/issuers.ts">FederationIssuerPollStatus</a></code>
+- <code><a href="./src/resources/organization/federation/issuers.ts">JWKSDiscovery</a></code>
+- <code><a href="./src/resources/organization/federation/issuers.ts">JWKSExplicitURL</a></code>
+- <code><a href="./src/resources/organization/federation/issuers.ts">JWKSInline</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/federation_issuers">client.organization.federation.issuers.<a href="./src/resources/organization/federation/issuers.ts">create</a>({ ...params }) -> FederationIssuer</code>
+- <code title="get /v1/organizations/federation_issuers/{federation_issuer_id}">client.organization.federation.issuers.<a href="./src/resources/organization/federation/issuers.ts">retrieve</a>(federationIssuerID) -> FederationIssuer</code>
+- <code title="post /v1/organizations/federation_issuers/{federation_issuer_id}">client.organization.federation.issuers.<a href="./src/resources/organization/federation/issuers.ts">update</a>(federationIssuerID, { ...params }) -> FederationIssuer</code>
+- <code title="get /v1/organizations/federation_issuers">client.organization.federation.issuers.<a href="./src/resources/organization/federation/issuers.ts">list</a>({ ...params }) -> FederationIssuersPageCursor</code>
+- <code title="post /v1/organizations/federation_issuers/{federation_issuer_id}/archive">client.organization.federation.issuers.<a href="./src/resources/organization/federation/issuers.ts">archive</a>(federationIssuerID) -> FederationIssuer</code>
+
+### Rules
+
+Types:
+
+- <code><a href="./src/resources/organization/federation/rules/rules.ts">FederationRule</a></code>
+- <code><a href="./src/resources/organization/federation/rules/rules.ts">FederationRuleMatch</a></code>
+- <code><a href="./src/resources/organization/federation/rules/rules.ts">FederationRuleWorkspace</a></code>
+- <code><a href="./src/resources/organization/federation/rules/rules.ts">ServiceAccountTarget</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/federation_rules">client.organization.federation.rules.<a href="./src/resources/organization/federation/rules/rules.ts">create</a>({ ...params }) -> FederationRule</code>
+- <code title="get /v1/organizations/federation_rules/{federation_rule_id}">client.organization.federation.rules.<a href="./src/resources/organization/federation/rules/rules.ts">retrieve</a>(federationRuleID) -> FederationRule</code>
+- <code title="post /v1/organizations/federation_rules/{federation_rule_id}">client.organization.federation.rules.<a href="./src/resources/organization/federation/rules/rules.ts">update</a>(federationRuleID, { ...params }) -> FederationRule</code>
+- <code title="get /v1/organizations/federation_rules">client.organization.federation.rules.<a href="./src/resources/organization/federation/rules/rules.ts">list</a>({ ...params }) -> FederationRulesPageCursor</code>
+- <code title="post /v1/organizations/federation_rules/{federation_rule_id}/archive">client.organization.federation.rules.<a href="./src/resources/organization/federation/rules/rules.ts">archive</a>(federationRuleID) -> FederationRule</code>
+
+#### Workspaces
+
+Types:
+
+- <code><a href="./src/resources/organization/federation/rules/workspaces.ts">WorkspaceRemoveResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/federation_rules/{federation_rule_id}/workspaces">client.organization.federation.rules.workspaces.<a href="./src/resources/organization/federation/rules/workspaces.ts">list</a>(federationRuleID, { ...params }) -> FederationRuleWorkspacesPageCursor</code>
+- <code title="post /v1/organizations/federation_rules/{federation_rule_id}/workspaces">client.organization.federation.rules.workspaces.<a href="./src/resources/organization/federation/rules/workspaces.ts">add</a>(federationRuleID, { ...params }) -> FederationRuleWorkspace</code>
+- <code title="delete /v1/organizations/federation_rules/{federation_rule_id}/workspaces/{workspace_id}">client.organization.federation.rules.workspaces.<a href="./src/resources/organization/federation/rules/workspaces.ts">remove</a>(workspaceID, { ...params }) -> WorkspaceRemoveResponse</code>
+
+## Invites
+
+Types:
+
+- <code><a href="./src/resources/organization/invites.ts">OrganizationInvite</a></code>
+- <code><a href="./src/resources/organization/invites.ts">InviteDeleteResponse</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/invites">client.organization.invites.<a href="./src/resources/organization/invites.ts">create</a>({ ...params }) -> OrganizationInvite</code>
+- <code title="get /v1/organizations/invites/{invite_id}">client.organization.invites.<a href="./src/resources/organization/invites.ts">retrieve</a>(inviteID) -> OrganizationInvite</code>
+- <code title="get /v1/organizations/invites">client.organization.invites.<a href="./src/resources/organization/invites.ts">list</a>({ ...params }) -> OrganizationInvitesPage</code>
+- <code title="delete /v1/organizations/invites/{invite_id}">client.organization.invites.<a href="./src/resources/organization/invites.ts">delete</a>(inviteID) -> InviteDeleteResponse</code>
+
+## ServiceAccounts
+
+Types:
+
+- <code><a href="./src/resources/organization/service-accounts/service-accounts.ts">ServiceAccount</a></code>
+- <code><a href="./src/resources/organization/service-accounts/service-accounts.ts">ServiceAccountWorkspaceMember</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/service_accounts">client.organization.serviceAccounts.<a href="./src/resources/organization/service-accounts/service-accounts.ts">create</a>({ ...params }) -> ServiceAccount</code>
+- <code title="get /v1/organizations/service_accounts/{service_account_id}">client.organization.serviceAccounts.<a href="./src/resources/organization/service-accounts/service-accounts.ts">retrieve</a>(serviceAccountID) -> ServiceAccount</code>
+- <code title="post /v1/organizations/service_accounts/{service_account_id}">client.organization.serviceAccounts.<a href="./src/resources/organization/service-accounts/service-accounts.ts">update</a>(serviceAccountID, { ...params }) -> ServiceAccount</code>
+- <code title="get /v1/organizations/service_accounts">client.organization.serviceAccounts.<a href="./src/resources/organization/service-accounts/service-accounts.ts">list</a>({ ...params }) -> ServiceAccountsPageCursor</code>
+- <code title="post /v1/organizations/service_accounts/{service_account_id}/archive">client.organization.serviceAccounts.<a href="./src/resources/organization/service-accounts/service-accounts.ts">archive</a>(serviceAccountID) -> ServiceAccount</code>
+
+### Workspaces
+
+Types:
+
+- <code><a href="./src/resources/organization/service-accounts/workspaces.ts">WorkspaceRemoveResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/service_accounts/{service_account_id}/workspaces">client.organization.serviceAccounts.workspaces.<a href="./src/resources/organization/service-accounts/workspaces.ts">list</a>(serviceAccountID, { ...params }) -> ServiceAccountWorkspaceMembersPageCursor</code>
+- <code title="post /v1/organizations/service_accounts/{service_account_id}/workspaces">client.organization.serviceAccounts.workspaces.<a href="./src/resources/organization/service-accounts/workspaces.ts">add</a>(serviceAccountID, { ...params }) -> ServiceAccountWorkspaceMember</code>
+- <code title="delete /v1/organizations/service_accounts/{service_account_id}/workspaces/{workspace_id}">client.organization.serviceAccounts.workspaces.<a href="./src/resources/organization/service-accounts/workspaces.ts">remove</a>(workspaceID, { ...params }) -> WorkspaceRemoveResponse</code>
+
+## Users
+
+Types:
+
+- <code><a href="./src/resources/organization/users.ts">OrganizationUser</a></code>
+- <code><a href="./src/resources/organization/users.ts">UserRemoveResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/users/{user_id}">client.organization.users.<a href="./src/resources/organization/users.ts">retrieve</a>(userID) -> OrganizationUser</code>
+- <code title="post /v1/organizations/users/{user_id}">client.organization.users.<a href="./src/resources/organization/users.ts">update</a>(userID, { ...params }) -> OrganizationUser</code>
+- <code title="get /v1/organizations/users">client.organization.users.<a href="./src/resources/organization/users.ts">list</a>({ ...params }) -> OrganizationUsersPage</code>
+- <code title="delete /v1/organizations/users/{user_id}">client.organization.users.<a href="./src/resources/organization/users.ts">remove</a>(userID) -> UserRemoveResponse</code>
+
+## Workspaces
+
+Types:
+
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">AllowedInferenceGeo</a></code>
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">DataResidency</a></code>
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">DataResidencyCreateConfig</a></code>
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">DataResidencyUpdateConfig</a></code>
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">NoBillingWorkspaceRole</a></code>
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">Workspace</a></code>
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">WorkspaceMember</a></code>
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">WorkspaceRole</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/workspaces">client.organization.workspaces.<a href="./src/resources/organization/workspaces/workspaces.ts">create</a>({ ...params }) -> Workspace</code>
+- <code title="get /v1/organizations/workspaces/{workspace_id}">client.organization.workspaces.<a href="./src/resources/organization/workspaces/workspaces.ts">retrieve</a>(workspaceID) -> Workspace</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}">client.organization.workspaces.<a href="./src/resources/organization/workspaces/workspaces.ts">update</a>(workspaceID, { ...params }) -> Workspace</code>
+- <code title="get /v1/organizations/workspaces">client.organization.workspaces.<a href="./src/resources/organization/workspaces/workspaces.ts">list</a>({ ...params }) -> WorkspacesPage</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}/archive">client.organization.workspaces.<a href="./src/resources/organization/workspaces/workspaces.ts">archive</a>(workspaceID) -> Workspace</code>
+
+### RateLimits
+
+Types:
+
+- <code><a href="./src/resources/organization/workspaces/rate-limits.ts">WorkspaceRateLimit</a></code>
+- <code><a href="./src/resources/organization/workspaces/rate-limits.ts">WorkspaceRateLimitOrganizationSource</a></code>
+- <code><a href="./src/resources/organization/workspaces/rate-limits.ts">WorkspaceRateLimitValue</a></code>
+- <code><a href="./src/resources/organization/workspaces/rate-limits.ts">WorkspaceRateLimitWorkspaceSource</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/workspaces/{workspace_id}/rate_limits">client.organization.workspaces.rateLimits.<a href="./src/resources/organization/workspaces/rate-limits.ts">list</a>(workspaceID, { ...params }) -> WorkspaceRateLimitsPageCursor</code>
+
+### Members
+
+Types:
+
+- <code><a href="./src/resources/organization/workspaces/members.ts">MemberRemoveResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/workspaces/{workspace_id}/members/{user_id}">client.organization.workspaces.members.<a href="./src/resources/organization/workspaces/members.ts">retrieve</a>(userID, { ...params }) -> WorkspaceMember</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}/members/{user_id}">client.organization.workspaces.members.<a href="./src/resources/organization/workspaces/members.ts">update</a>(userID, { ...params }) -> WorkspaceMember</code>
+- <code title="get /v1/organizations/workspaces/{workspace_id}/members">client.organization.workspaces.members.<a href="./src/resources/organization/workspaces/members.ts">list</a>(workspaceID, { ...params }) -> WorkspaceMembersPage</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}/members">client.organization.workspaces.members.<a href="./src/resources/organization/workspaces/members.ts">add</a>(workspaceID, { ...params }) -> WorkspaceMember</code>
+- <code title="delete /v1/organizations/workspaces/{workspace_id}/members/{user_id}">client.organization.workspaces.members.<a href="./src/resources/organization/workspaces/members.ts">remove</a>(userID, { ...params }) -> MemberRemoveResponse</code>
+
+### ServiceAccounts
+
+Types:
+
+- <code><a href="./src/resources/organization/workspaces/service-accounts.ts">ServiceAccountRemoveResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}">client.organization.workspaces.serviceAccounts.<a href="./src/resources/organization/workspaces/service-accounts.ts">retrieve</a>(serviceAccountID, { ...params }) -> ServiceAccountWorkspaceMember</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}">client.organization.workspaces.serviceAccounts.<a href="./src/resources/organization/workspaces/service-accounts.ts">update</a>(serviceAccountID, { ...params }) -> ServiceAccountWorkspaceMember</code>
+- <code title="get /v1/organizations/workspaces/{workspace_id}/service_accounts">client.organization.workspaces.serviceAccounts.<a href="./src/resources/organization/workspaces/service-accounts.ts">list</a>(workspaceID, { ...params }) -> ServiceAccountWorkspaceMembersPageCursor</code>
+- <code title="post /v1/organizations/workspaces/{workspace_id}/service_accounts">client.organization.workspaces.serviceAccounts.<a href="./src/resources/organization/workspaces/service-accounts.ts">add</a>(workspaceID, { ...params }) -> ServiceAccountWorkspaceMember</code>
+- <code title="delete /v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}">client.organization.workspaces.serviceAccounts.<a href="./src/resources/organization/workspaces/service-accounts.ts">remove</a>(serviceAccountID, { ...params }) -> ServiceAccountRemoveResponse</code>
+
+## RateLimits
+
+Types:
+
+- <code><a href="./src/resources/organization/rate-limits.ts">OrganizationRateLimit</a></code>
+- <code><a href="./src/resources/organization/rate-limits.ts">OrganizationRateLimitBatchGroup</a></code>
+- <code><a href="./src/resources/organization/rate-limits.ts">OrganizationRateLimitFilesGroup</a></code>
+- <code><a href="./src/resources/organization/rate-limits.ts">OrganizationRateLimitModelGroup</a></code>
+- <code><a href="./src/resources/organization/rate-limits.ts">OrganizationRateLimitSkillsGroup</a></code>
+- <code><a href="./src/resources/organization/rate-limits.ts">OrganizationRateLimitTokenCountGroup</a></code>
+- <code><a href="./src/resources/organization/rate-limits.ts">OrganizationRateLimitValue</a></code>
+- <code><a href="./src/resources/organization/rate-limits.ts">OrganizationRateLimitWebSearchGroup</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/rate_limits">client.organization.rateLimits.<a href="./src/resources/organization/rate-limits.ts">list</a>({ ...params }) -> OrganizationRateLimitsPageCursor</code>
+
+## ComplianceSettings
+
+Types:
+
+- <code><a href="./src/resources/organization/compliance-settings.ts">ComplianceSettingsState</a></code>
+- <code><a href="./src/resources/organization/compliance-settings.ts">ComplianceSettingsStateDisabled</a></code>
+- <code><a href="./src/resources/organization/compliance-settings.ts">ComplianceSettingsStateDisabledParam</a></code>
+- <code><a href="./src/resources/organization/compliance-settings.ts">ComplianceSettingsStateEnabled</a></code>
+- <code><a href="./src/resources/organization/compliance-settings.ts">ComplianceSettingsStateEnabledParam</a></code>
+- <code><a href="./src/resources/organization/compliance-settings.ts">ComplianceSettingsStateParam</a></code>
+- <code><a href="./src/resources/organization/compliance-settings.ts">OrganizationComplianceSettings</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/compliance_settings">client.organization.complianceSettings.<a href="./src/resources/organization/compliance-settings.ts">retrieve</a>() -> OrganizationComplianceSettings</code>
+- <code title="post /v1/organizations/compliance_settings">client.organization.complianceSettings.<a href="./src/resources/organization/compliance-settings.ts">update</a>({ ...params }) -> OrganizationComplianceSettings</code>
+
 # Beta
 
 Types:

@@ -14,6 +14,23 @@ TEST_PATHS=(
 	tests/api-resources/files.test.ts
 	tests/api-resources/skills/skills.test.ts
 	tests/api-resources/skills/versions.test.ts
+	tests/api-resources/organization/organization.test.ts
+	tests/api-resources/organization/api-keys.test.ts
+	tests/api-resources/organization/external-keys.test.ts
+	tests/api-resources/organization/federation/federation.test.ts
+	tests/api-resources/organization/federation/issuers.test.ts
+	tests/api-resources/organization/federation/rules/rules.test.ts
+	tests/api-resources/organization/federation/rules/workspaces.test.ts
+	tests/api-resources/organization/invites.test.ts
+	tests/api-resources/organization/service-accounts/service-accounts.test.ts
+	tests/api-resources/organization/service-accounts/workspaces.test.ts
+	tests/api-resources/organization/users.test.ts
+	tests/api-resources/organization/workspaces/workspaces.test.ts
+	tests/api-resources/organization/workspaces/rate-limits.test.ts
+	tests/api-resources/organization/workspaces/members.test.ts
+	tests/api-resources/organization/workspaces/service-accounts.test.ts
+	tests/api-resources/organization/rate-limits.test.ts
+	tests/api-resources/organization/compliance-settings.test.ts
 	tests/api-resources/beta/beta.test.ts
 	tests/api-resources/beta/models.test.ts
 	tests/api-resources/beta/messages/messages.test.ts

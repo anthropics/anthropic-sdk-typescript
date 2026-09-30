@@ -354,6 +354,7 @@ import {
   WebSearchToolResultError,
   WebSearchToolResultErrorCode,
 } from './resources/messages/messages';
+import { Organization, OrganizationInfo, OrganizationRole } from './resources/organization/organization';
 import {
   DeletedSkill,
   Skill,
@@ -1704,6 +1705,7 @@ export class Anthropic extends BaseAnthropic {
   models: API.Models = new API.Models(this);
   files: API.Files = new API.Files(this);
   skills: API.Skills = new API.Skills(this);
+  organization: API.Organization = new API.Organization(this);
   beta: API.Beta = new API.Beta(this);
 }
 
@@ -1712,6 +1714,7 @@ Anthropic.Messages = Messages;
 Anthropic.Models = Models;
 Anthropic.Files = Files;
 Anthropic.Skills = Skills;
+Anthropic.Organization = Organization;
 Anthropic.Beta = Beta;
 
 export declare namespace Anthropic {
@@ -2044,6 +2047,12 @@ export declare namespace Anthropic {
     type SkillRetrieveParams as SkillRetrieveParams,
     type SkillListParams as SkillListParams,
     type SkillDeleteParams as SkillDeleteParams,
+  };
+
+  export {
+    Organization as Organization,
+    type OrganizationInfo as OrganizationInfo,
+    type OrganizationRole as OrganizationRole,
   };
 
   export {

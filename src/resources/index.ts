@@ -302,6 +302,7 @@ export {
   type ModelListParams,
   type ModelInfosPage,
 } from './models';
+export { Organization, type OrganizationInfo, type OrganizationRole } from './organization/organization';
 export {
   Skills,
   type DeletedSkill,
