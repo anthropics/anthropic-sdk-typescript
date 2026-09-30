@@ -532,9 +532,6 @@ export interface BetaManagedAgentsDeltaEvent {
   type: 'event_delta';
 }
 
-/**
- * EventDeltaType enum
- */
 export type BetaManagedAgentsDeltaType = 'agent.message' | 'agent.thinking';
 
 /**
@@ -750,8 +747,6 @@ export interface BetaManagedAgentsSession {
   stats: BetaManagedAgentsSessionStats;
 
   /**
-   * SessionStatus enum
-   *
    * - `rescheduling` - Transient error occurred, retrying automatically.
    * - `running` - Agent is actively executing.
    * - `idle` - Agent is waiting for input, including user messages or tool

@@ -197,9 +197,6 @@ export interface BetaManagedAgentsSessionThreadStats {
   startup_seconds?: number;
 }
 
-/**
- * SessionThreadStatus enum
- */
 export type BetaManagedAgentsSessionThreadStatus = 'running' | 'idle' | 'rescheduling' | 'terminated';
 
 /**

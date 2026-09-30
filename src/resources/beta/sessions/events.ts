@@ -233,9 +233,6 @@ export interface BetaManagedAgentsAgentCustomToolUseEvent {
   session_thread_id?: string | null;
 }
 
-/**
- * AgentEvaluatedPermission enum
- */
 export type BetaManagedAgentsAgentEvaluatedPermission = 'allow' | 'ask' | 'deny';
 
 /**
