@@ -120,7 +120,7 @@ async function main() {
     //    locally, posts the result back, and yields one `DispatchedToolCall` per
     //    completed call. `tools` is the standard set bound to `ctx` plus our
     //    custom tool. The runner stops on its own once the session goes idle
-    //    (`maxIdleMs` after an `end_turn`); the timeout signal is just a hard
+    //    (`maxIdleMs` after its turn ends); the timeout signal is just a hard
     //    cap for the demo. `toolRunner` does NOT touch any work-item lease.
     console.log('\n--- tool calls ---');
     for await (const call of client.beta.sessions.events.toolRunner(session.id, {
