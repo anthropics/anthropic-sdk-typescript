@@ -1997,6 +1997,7 @@ Types:
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsCostBucketedResult</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsCostReportTimeBucket</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsCostType</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsCostUsersItem</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsCoworkMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsDesignMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsInferenceGeoFilter</a></code>
@@ -2022,8 +2023,10 @@ Types:
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsToolActions</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageBucketedResult</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageReportTimeBucket</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageUsersItem</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUser</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUserActivity</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUserActor</a></code>
 
 #### Summaries
 
@@ -2077,11 +2080,23 @@ Methods:
 
 - <code title="get /v1/organizations/analytics/usage_report?beta=true">client.beta.organization.analytics.usageReport.<a href="./src/resources/beta/organization/analytics/usage-report.ts">list</a>({ ...params }) -> BetaAnalyticsUsageReportTimeBucketsPageCursor</code>
 
+#### UserUsageReport
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/user_usage_report?beta=true">client.beta.organization.analytics.userUsageReport.<a href="./src/resources/beta/organization/analytics/user-usage-report.ts">list</a>({ ...params }) -> BetaAnalyticsUsageUsersItemsPageCursor</code>
+
 #### CostReport
 
 Methods:
 
 - <code title="get /v1/organizations/analytics/cost_report?beta=true">client.beta.organization.analytics.costReport.<a href="./src/resources/beta/organization/analytics/cost-report.ts">list</a>({ ...params }) -> BetaAnalyticsCostReportTimeBucketsPageCursor</code>
+
+#### UserCostReport
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/user_cost_report?beta=true">client.beta.organization.analytics.userCostReport.<a href="./src/resources/beta/organization/analytics/user-cost-report.ts">list</a>({ ...params }) -> BetaAnalyticsCostUsersItemsPageCursor</code>
 
 ### SpendLimits
 

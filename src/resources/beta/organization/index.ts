@@ -27,6 +27,7 @@ export {
   type BetaAnalyticsCostBucketedResult,
   type BetaAnalyticsCostReportTimeBucket,
   type BetaAnalyticsCostType,
+  type BetaAnalyticsCostUsersItem,
   type BetaAnalyticsCoworkMetrics,
   type BetaAnalyticsDesignMetrics,
   type BetaAnalyticsInferenceGeoFilter,
@@ -52,8 +53,10 @@ export {
   type BetaAnalyticsToolActions,
   type BetaAnalyticsUsageBucketedResult,
   type BetaAnalyticsUsageReportTimeBucket,
+  type BetaAnalyticsUsageUsersItem,
   type BetaAnalyticsUser,
   type BetaAnalyticsUserActivity,
+  type BetaAnalyticsUserActor,
   type BetaAnalyticsSingleDayActivitySummariesPageCursor,
   type BetaAnalyticsUserActivitiesPageCursor,
   type BetaAnalyticsProjectActivitiesPageCursor,
@@ -62,7 +65,9 @@ export {
   type BetaAnalyticsSkillActivitiesPageCursor,
   type BetaAnalyticsArtifactActivitiesPageCursor,
   type BetaAnalyticsUsageReportTimeBucketsPageCursor,
+  type BetaAnalyticsUsageUsersItemsPageCursor,
   type BetaAnalyticsCostReportTimeBucketsPageCursor,
+  type BetaAnalyticsCostUsersItemsPageCursor,
 } from './analytics/index';
 export {
   ComplianceSettings,

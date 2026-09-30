@@ -106,6 +106,7 @@ import {
   BetaAnalyticsCostBucketedResult,
   BetaAnalyticsCostReportTimeBucket,
   BetaAnalyticsCostType,
+  BetaAnalyticsCostUsersItem,
   BetaAnalyticsCoworkMetrics,
   BetaAnalyticsDesignMetrics,
   BetaAnalyticsInferenceGeoFilter,
@@ -131,8 +132,10 @@ import {
   BetaAnalyticsToolActions,
   BetaAnalyticsUsageBucketedResult,
   BetaAnalyticsUsageReportTimeBucket,
+  BetaAnalyticsUsageUsersItem,
   BetaAnalyticsUser,
   BetaAnalyticsUserActivity,
+  BetaAnalyticsUserActor,
 } from './analytics/analytics';
 import * as FederationAPI from './federation/federation';
 import { Federation } from './federation/federation';
@@ -428,6 +431,7 @@ export declare namespace Organization {
     type BetaAnalyticsCostBucketedResult as BetaAnalyticsCostBucketedResult,
     type BetaAnalyticsCostReportTimeBucket as BetaAnalyticsCostReportTimeBucket,
     type BetaAnalyticsCostType as BetaAnalyticsCostType,
+    type BetaAnalyticsCostUsersItem as BetaAnalyticsCostUsersItem,
     type BetaAnalyticsCoworkMetrics as BetaAnalyticsCoworkMetrics,
     type BetaAnalyticsDesignMetrics as BetaAnalyticsDesignMetrics,
     type BetaAnalyticsInferenceGeoFilter as BetaAnalyticsInferenceGeoFilter,
@@ -453,8 +457,10 @@ export declare namespace Organization {
     type BetaAnalyticsToolActions as BetaAnalyticsToolActions,
     type BetaAnalyticsUsageBucketedResult as BetaAnalyticsUsageBucketedResult,
     type BetaAnalyticsUsageReportTimeBucket as BetaAnalyticsUsageReportTimeBucket,
+    type BetaAnalyticsUsageUsersItem as BetaAnalyticsUsageUsersItem,
     type BetaAnalyticsUser as BetaAnalyticsUser,
     type BetaAnalyticsUserActivity as BetaAnalyticsUserActivity,
+    type BetaAnalyticsUserActor as BetaAnalyticsUserActor,
   };
 
   export {

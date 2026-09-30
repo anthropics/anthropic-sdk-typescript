@@ -14,6 +14,10 @@ import * as SummariesAPI from './summaries';
 import { Summaries, SummaryListParams } from './summaries';
 import * as UsageReportAPI from './usage-report';
 import { UsageReport, UsageReportListParams } from './usage-report';
+import * as UserCostReportAPI from './user-cost-report';
+import { UserCostReport, UserCostReportListParams } from './user-cost-report';
+import * as UserUsageReportAPI from './user-usage-report';
+import { UserUsageReport, UserUsageReportListParams } from './user-usage-report';
 import * as UsersAPI from './users';
 import { UserListParams, Users } from './users';
 import * as AppsAPI from './apps/apps';
@@ -29,7 +33,9 @@ export class Analytics extends APIResource {
   skills: SkillsAPI.Skills = new SkillsAPI.Skills(this._client);
   artifacts: ArtifactsAPI.Artifacts = new ArtifactsAPI.Artifacts(this._client);
   usageReport: UsageReportAPI.UsageReport = new UsageReportAPI.UsageReport(this._client);
+  userUsageReport: UserUsageReportAPI.UserUsageReport = new UserUsageReportAPI.UserUsageReport(this._client);
   costReport: CostReportAPI.CostReport = new CostReportAPI.CostReport(this._client);
+  userCostReport: UserCostReportAPI.UserCostReport = new UserCostReportAPI.UserCostReport(this._client);
 }
 
 export type BetaAnalyticsSingleDayActivitySummariesPageCursor =
@@ -49,7 +55,11 @@ export type BetaAnalyticsArtifactActivitiesPageCursor = PageCursor<BetaAnalytics
 
 export type BetaAnalyticsUsageReportTimeBucketsPageCursor = PageCursor<BetaAnalyticsUsageReportTimeBucket>;
 
+export type BetaAnalyticsUsageUsersItemsPageCursor = PageCursor<BetaAnalyticsUsageUsersItem>;
+
 export type BetaAnalyticsCostReportTimeBucketsPageCursor = PageCursor<BetaAnalyticsCostReportTimeBucket>;
+
+export type BetaAnalyticsCostUsersItemsPageCursor = PageCursor<BetaAnalyticsCostUsersItem>;
 
 /**
  * Artifact-creation activity for one (`artifact_type`, `is_shared`) bucket on a
@@ -636,6 +646,141 @@ export interface BetaAnalyticsCostReportTimeBucket {
 }
 
 export type BetaAnalyticsCostType = 'code_execution' | 'tokens' | 'web_search';
+
+export interface BetaAnalyticsCostUsersItem {
+  /**
+   * The user this row's usage or cost is attributed to. Always a `user_actor`.
+   */
+  actor: BetaAnalyticsUserActor;
+
+  /**
+   * Amount (post-discount, pre-credit) in fractional cents (minor units).
+   */
+  amount: string;
+
+  /**
+   * Claude Tag (Claude in Slack) spend category: `engaged` (a person addressed
+   * Claude in a channel or thread), `proactive` (Claude responded without being
+   * addressed), `scheduled` (a scheduled routine ran), `monitoring` (Claude watching
+   * a channel it was asked to monitor), or `dm` (direct messages with Claude).
+   * Populated only when `claude_tag_category` is in `group_by[]`; null for usage
+   * that is not Claude Tag. Direct-message usage is billed to the individual user
+   * and is reported under that user's product, not under `claude-tag`. New
+   * categories may be added over time.
+   */
+  claude_tag_category: BetaAnalyticsClaudeTagCategory | null;
+
+  /**
+   * Slack user ID (for example `U0123ABCDEF`) of the member the Claude Tag (Claude
+   * in Slack) usage is attributed to, not a claude.ai user ID. Populated only when
+   * `claude_tag_user_id` is in `group_by[]`; null for usage that is not Claude Tag
+   * and for Claude Tag usage that is not attributed to a single user (for example
+   * `monitoring`, and `proactive` usage Claude initiated), so per-user rows can sum
+   * to less than the Claude Tag total. Cannot be combined with
+   * `group_by[]=rbac_group_id` or the `rbac_group_ids[]` filter.
+   */
+  claude_tag_user_id: string | null;
+
+  /**
+   * Context-window pricing tier of the usage or cost. Null unless `context_window`
+   * is in `group_by[]`; it can also be null on grouped rows with no context-window
+   * tier, such as code execution.
+   */
+  context_window: BetaAnalyticsContextWindow | null;
+
+  /**
+   * Cost component breakdown; null when returning the combined total.
+   */
+  cost_type: BetaAnalyticsCostType | null;
+
+  /**
+   * Currency code for the cost amount. Currently always `"USD"`.
+   */
+  currency: string;
+
+  /**
+   * End of the row's UTC time bucket (exclusive), as an RFC 3339 timestamp; equal to
+   * `starting_at` plus one `bucket_width`. Null unless `bucket_width` is set.
+   */
+  ending_at: string | null;
+
+  /**
+   * Inference region of the usage or cost. Null unless `inference_geo` is in
+   * `group_by[]`; it can also be null on grouped rows where the region is not set
+   * (the rows that `inference_geos[]=not_available` matches).
+   */
+  inference_geo: 'global' | 'us' | null;
+
+  /**
+   * List-price amount (pre-discount) in fractional cents.
+   */
+  list_amount: string;
+
+  /**
+   * Model that produced the usage or cost, as a model name in the form the
+   * `models[]` filter accepts (for example, `claude-opus-5`). Null unless `model` is
+   * in `group_by[]`; it can also be null on grouped rows whose usage or cost is not
+   * attributed to a specific model, such as code execution.
+   */
+  model: string | null;
+
+  /**
+   * Product surface that produced the usage or cost. Null unless product is in
+   * `group_by[]`; it can also be null on grouped rows whose usage cannot be
+   * attributed to a known surface. Values include `chat`, `claude_code`, `cowork`,
+   * `office_agent`, `claude_in_chrome`, `claude_design`, and `claude-tag`.
+   * `claude-tag` is Claude Tag, the Claude product in Slack. Some unattributed usage
+   * is reported as "other".
+   */
+  product: string | null;
+
+  /**
+   * RBAC group (team) the usage is attributed to, in the public tagged
+   * `rbac_group_...` spelling — the same spelling the activity resources use for
+   * this key, so the same team has one id across resources and it round-trips as an
+   * `rbac_group_ids[]` filter value. Populated only when `rbac_group_id` is in
+   * `group_by[]`. Any-membership semantics: a user in several groups contributes
+   * their full usage to each of those groups' rows, so the named-group rows overlap
+   * and their sum can exceed the org total. A null value is the single unassigned
+   * row: users in no group on that (UTC) day. For the true org total, run the same
+   * query without `group_by[]`.
+   */
+  rbac_group_id: string | null;
+
+  /**
+   * Number of API requests in this row's scope. Null when `group_by` includes
+   * `cost_type` or `token_type` (the count has no per-component attribution; read it
+   * from the ungrouped response). For sandbox / code-execution events, this counts
+   * execution spans rather than HTTP requests (these rows surface with
+   * `product: null`).
+   */
+  requests: number | null;
+
+  /**
+   * Slack channel the usage originated from. Populated only when `slack_channel_id`
+   * is in `group_by[]`; null for usage outside Slack (and for rows recorded before
+   * channel attribution was enabled).
+   */
+  slack_channel_id: string | null;
+
+  /**
+   * Inference speed mode of the usage or cost: `fast` or `standard`. Null unless
+   * `speed` is in `group_by[]`.
+   */
+  speed: 'fast' | 'standard' | null;
+
+  /**
+   * Start of the row's UTC time bucket (inclusive), as an RFC 3339 timestamp. Null
+   * unless `bucket_width` is set; without `bucket_width`, each row aggregates the
+   * full requested range.
+   */
+  starting_at: string | null;
+
+  /**
+   * Token type when `cost_type` is `tokens`; null otherwise.
+   */
+  token_type: BetaAnalyticsTokenType | null;
+}
 
 /**
  * Cowork activity metrics for a single user on a given day.
@@ -1761,6 +1906,145 @@ export interface BetaAnalyticsUsageReportTimeBucket {
   starting_at: string;
 }
 
+export interface BetaAnalyticsUsageUsersItem {
+  /**
+   * The user this row's usage or cost is attributed to. Always a `user_actor`.
+   */
+  actor: BetaAnalyticsUserActor;
+
+  /**
+   * The number of input tokens for cache creation.
+   */
+  cache_creation: MessagesAPI.BetaCacheCreation;
+
+  /**
+   * The number of input tokens read from the cache.
+   */
+  cache_read_input_tokens: number;
+
+  /**
+   * Claude Tag (Claude in Slack) spend category: `engaged` (a person addressed
+   * Claude in a channel or thread), `proactive` (Claude responded without being
+   * addressed), `scheduled` (a scheduled routine ran), `monitoring` (Claude watching
+   * a channel it was asked to monitor), or `dm` (direct messages with Claude).
+   * Populated only when `claude_tag_category` is in `group_by[]`; null for usage
+   * that is not Claude Tag. Direct-message usage is billed to the individual user
+   * and is reported under that user's product, not under `claude-tag`. New
+   * categories may be added over time.
+   */
+  claude_tag_category: BetaAnalyticsClaudeTagCategory | null;
+
+  /**
+   * Slack user ID (for example `U0123ABCDEF`) of the member the Claude Tag (Claude
+   * in Slack) usage is attributed to, not a claude.ai user ID. Populated only when
+   * `claude_tag_user_id` is in `group_by[]`; null for usage that is not Claude Tag
+   * and for Claude Tag usage that is not attributed to a single user (for example
+   * `monitoring`, and `proactive` usage Claude initiated), so per-user rows can sum
+   * to less than the Claude Tag total. Cannot be combined with
+   * `group_by[]=rbac_group_id` or the `rbac_group_ids[]` filter.
+   */
+  claude_tag_user_id: string | null;
+
+  /**
+   * Context-window pricing tier of the usage or cost. Null unless `context_window`
+   * is in `group_by[]`; it can also be null on grouped rows with no context-window
+   * tier, such as code execution.
+   */
+  context_window: BetaAnalyticsContextWindow | null;
+
+  /**
+   * End of the row's UTC time bucket (exclusive), as an RFC 3339 timestamp; equal to
+   * `starting_at` plus one `bucket_width`. Null unless `bucket_width` is set.
+   */
+  ending_at: string | null;
+
+  /**
+   * Inference region of the usage or cost. Null unless `inference_geo` is in
+   * `group_by[]`; it can also be null on grouped rows where the region is not set
+   * (the rows that `inference_geos[]=not_available` matches).
+   */
+  inference_geo: 'global' | 'us' | null;
+
+  /**
+   * Model that produced the usage or cost, as a model name in the form the
+   * `models[]` filter accepts (for example, `claude-opus-5`). Null unless `model` is
+   * in `group_by[]`; it can also be null on grouped rows whose usage or cost is not
+   * attributed to a specific model, such as code execution.
+   */
+  model: string | null;
+
+  /**
+   * The number of output tokens generated.
+   */
+  output_tokens: number;
+
+  /**
+   * Product surface that produced the usage or cost. Null unless product is in
+   * `group_by[]`; it can also be null on grouped rows whose usage cannot be
+   * attributed to a known surface. Values include `chat`, `claude_code`, `cowork`,
+   * `office_agent`, `claude_in_chrome`, `claude_design`, and `claude-tag`.
+   * `claude-tag` is Claude Tag, the Claude product in Slack. Some unattributed usage
+   * is reported as "other".
+   */
+  product: string | null;
+
+  /**
+   * RBAC group (team) the usage is attributed to, in the public tagged
+   * `rbac_group_...` spelling — the same spelling the activity resources use for
+   * this key, so the same team has one id across resources and it round-trips as an
+   * `rbac_group_ids[]` filter value. Populated only when `rbac_group_id` is in
+   * `group_by[]`. Any-membership semantics: a user in several groups contributes
+   * their full usage to each of those groups' rows, so the named-group rows overlap
+   * and their sum can exceed the org total. A null value is the single unassigned
+   * row: users in no group on that (UTC) day. For the true org total, run the same
+   * query without `group_by[]`.
+   */
+  rbac_group_id: string | null;
+
+  /**
+   * Number of API requests in this row's scope. For sandbox / code-execution events,
+   * this counts execution spans rather than HTTP requests (these rows surface with
+   * `product: null`).
+   */
+  requests: number | null;
+
+  /**
+   * Server-side tool usage metrics.
+   */
+  server_tool_use: BetaAnalyticsServerToolUse;
+
+  /**
+   * Slack channel the usage originated from. Populated only when `slack_channel_id`
+   * is in `group_by[]`; null for usage outside Slack (and for rows recorded before
+   * channel attribution was enabled).
+   */
+  slack_channel_id: string | null;
+
+  /**
+   * Inference speed mode of the usage or cost: `fast` or `standard`. Null unless
+   * `speed` is in `group_by[]`.
+   */
+  speed: 'fast' | 'standard' | null;
+
+  /**
+   * Start of the row's UTC time bucket (inclusive), as an RFC 3339 timestamp. Null
+   * unless `bucket_width` is set; without `bucket_width`, each row aggregates the
+   * full requested range.
+   */
+  starting_at: string | null;
+
+  /**
+   * Total token count across all token types. This is the value the default
+   * `order_by` (`total_tokens`) sorts on.
+   */
+  total_tokens: number;
+
+  /**
+   * The number of uncached input tokens processed.
+   */
+  uncached_input_tokens: number;
+}
+
 /**
  * A user in the organization, identified by tagged id and email address.
  */
@@ -1862,6 +2146,47 @@ export interface BetaAnalyticsUserActivity {
   user?: BetaAnalyticsUser | null;
 }
 
+export interface BetaAnalyticsUserActor {
+  /**
+   * True when the account has been deleted, or when the user is no longer a member
+   * of the organization or its associated organizations (for example, their
+   * membership was removed or they were deprovisioned via your identity provider).
+   * `email_address` stays populated for removed users and is null when the account
+   * has been deleted. `name` follows the rules described on that field. The
+   * `user_id` is still populated for reconciliation.
+   */
+  deleted: boolean;
+
+  /**
+   * The user's email address, including for users who are no longer members of the
+   * organization or its associated organizations. Null when the account has been
+   * deleted (check `deleted`) and for system-minted service accounts, which have no
+   * person's mailbox behind them (check `name`).
+   */
+  email_address: string | null;
+
+  /**
+   * The user's full name. Null when the user has not set a name. Returns
+   * `"Deleted User"` when the account itself has been deleted, or when the user is
+   * no longer a member of the organization or its associated organizations and the
+   * organization has chosen to hide the names of removed users. Otherwise, the name
+   * stays populated for removed users. Rows for system-minted service accounts
+   * render the service name (for example, `"Claude Security"` for usage by
+   * Anthropic's security-patching service) or null.
+   */
+  name: string | null;
+
+  /**
+   * Actor type. Always `"user_actor"`.
+   */
+  type: 'user_actor';
+
+  /**
+   * Tagged user ID.
+   */
+  user_id: string;
+}
+
 Analytics.Summaries = Summaries;
 Analytics.Users = Users;
 Analytics.Apps = Apps;
@@ -1870,7 +2195,9 @@ Analytics.Plugins = Plugins;
 Analytics.Skills = Skills;
 Analytics.Artifacts = Artifacts;
 Analytics.UsageReport = UsageReport;
+Analytics.UserUsageReport = UserUsageReport;
 Analytics.CostReport = CostReport;
+Analytics.UserCostReport = UserCostReport;
 
 export declare namespace Analytics {
   export {
@@ -1889,6 +2216,7 @@ export declare namespace Analytics {
     type BetaAnalyticsCostBucketedResult as BetaAnalyticsCostBucketedResult,
     type BetaAnalyticsCostReportTimeBucket as BetaAnalyticsCostReportTimeBucket,
     type BetaAnalyticsCostType as BetaAnalyticsCostType,
+    type BetaAnalyticsCostUsersItem as BetaAnalyticsCostUsersItem,
     type BetaAnalyticsCoworkMetrics as BetaAnalyticsCoworkMetrics,
     type BetaAnalyticsDesignMetrics as BetaAnalyticsDesignMetrics,
     type BetaAnalyticsInferenceGeoFilter as BetaAnalyticsInferenceGeoFilter,
@@ -1914,8 +2242,10 @@ export declare namespace Analytics {
     type BetaAnalyticsToolActions as BetaAnalyticsToolActions,
     type BetaAnalyticsUsageBucketedResult as BetaAnalyticsUsageBucketedResult,
     type BetaAnalyticsUsageReportTimeBucket as BetaAnalyticsUsageReportTimeBucket,
+    type BetaAnalyticsUsageUsersItem as BetaAnalyticsUsageUsersItem,
     type BetaAnalyticsUser as BetaAnalyticsUser,
     type BetaAnalyticsUserActivity as BetaAnalyticsUserActivity,
+    type BetaAnalyticsUserActor as BetaAnalyticsUserActor,
   };
 
   export { Summaries as Summaries, type SummaryListParams as SummaryListParams };
@@ -1934,5 +2264,9 @@ export declare namespace Analytics {
 
   export { UsageReport as UsageReport, type UsageReportListParams as UsageReportListParams };
 
+  export { UserUsageReport as UserUsageReport, type UserUsageReportListParams as UserUsageReportListParams };
+
   export { CostReport as CostReport, type CostReportListParams as CostReportListParams };
+
+  export { UserCostReport as UserCostReport, type UserCostReportListParams as UserCostReportListParams };
 }

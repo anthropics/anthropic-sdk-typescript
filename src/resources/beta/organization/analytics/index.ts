@@ -15,6 +15,7 @@ export {
   type BetaAnalyticsCostBucketedResult,
   type BetaAnalyticsCostReportTimeBucket,
   type BetaAnalyticsCostType,
+  type BetaAnalyticsCostUsersItem,
   type BetaAnalyticsCoworkMetrics,
   type BetaAnalyticsDesignMetrics,
   type BetaAnalyticsInferenceGeoFilter,
@@ -40,8 +41,10 @@ export {
   type BetaAnalyticsToolActions,
   type BetaAnalyticsUsageBucketedResult,
   type BetaAnalyticsUsageReportTimeBucket,
+  type BetaAnalyticsUsageUsersItem,
   type BetaAnalyticsUser,
   type BetaAnalyticsUserActivity,
+  type BetaAnalyticsUserActor,
   type BetaAnalyticsSingleDayActivitySummariesPageCursor,
   type BetaAnalyticsUserActivitiesPageCursor,
   type BetaAnalyticsProjectActivitiesPageCursor,
@@ -50,7 +53,9 @@ export {
   type BetaAnalyticsSkillActivitiesPageCursor,
   type BetaAnalyticsArtifactActivitiesPageCursor,
   type BetaAnalyticsUsageReportTimeBucketsPageCursor,
+  type BetaAnalyticsUsageUsersItemsPageCursor,
   type BetaAnalyticsCostReportTimeBucketsPageCursor,
+  type BetaAnalyticsCostUsersItemsPageCursor,
 } from './analytics';
 export { Apps } from './apps/index';
 export { Artifacts, type ArtifactListParams } from './artifacts';
@@ -60,4 +65,6 @@ export { Plugins, type PluginListParams } from './plugins';
 export { Skills, type SkillListParams } from './skills';
 export { Summaries, type SummaryListParams } from './summaries';
 export { UsageReport, type UsageReportListParams } from './usage-report';
+export { UserCostReport, type UserCostReportListParams } from './user-cost-report';
+export { UserUsageReport, type UserUsageReportListParams } from './user-usage-report';
 export { Users, type UserListParams } from './users';
