@@ -641,8 +641,9 @@ async function forceStop(
       { environment_id: work.environment_id, force: true },
       // Caller's headers pass through; the helper-tag header is on the scoped
       // sub-client's default_headers via copyClientForHelper, so no per-call
-      // re-stamping needed.
-      { ...requestOptions, headers: buildHeaders([requestOptions?.headers]) },
+      // re-stamping needed. Ignore requestOptions.signal here too: cleanup
+      // must run even if a caller supplied an aborted per-request signal.
+      { ...requestOptions, headers: buildHeaders([requestOptions?.headers]), signal: undefined },
     );
   } catch (e) {
     if (!isStatus(e, 409)) {
