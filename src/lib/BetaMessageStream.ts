@@ -591,9 +591,20 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
       case 'message_stop':
         return snapshot;
       case 'message_delta':
-        snapshot.stop_reason = event.delta.stop_reason;
-        snapshot.stop_sequence = event.delta.stop_sequence;
-        snapshot.stop_details = event.delta.stop_details;
+        // Like `container` below, these are omitted or sent as null when they don't
+        // apply, so a later delta must not reset what an earlier one accumulated.
+        if (event.delta.stop_reason != null) {
+          snapshot.stop_reason = event.delta.stop_reason;
+        }
+
+        if (event.delta.stop_sequence != null) {
+          snapshot.stop_sequence = event.delta.stop_sequence;
+        }
+
+        if (event.delta.stop_details != null) {
+          snapshot.stop_details = event.delta.stop_details;
+        }
+
         snapshot.usage.output_tokens = event.usage.output_tokens;
 
         if (event.delta.container != null) {
