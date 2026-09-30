@@ -76,6 +76,25 @@ TEST_PATHS=(
 	tests/api-resources/beta/organization/workspaces/service-accounts.test.ts
 	tests/api-resources/beta/organization/rate-limits.test.ts
 	tests/api-resources/beta/organization/compliance-settings.test.ts
+	tests/api-resources/beta/organization/analytics/analytics.test.ts
+	tests/api-resources/beta/organization/analytics/summaries.test.ts
+	tests/api-resources/beta/organization/analytics/users.test.ts
+	tests/api-resources/beta/organization/analytics/apps/apps.test.ts
+	tests/api-resources/beta/organization/analytics/apps/chat/chat.test.ts
+	tests/api-resources/beta/organization/analytics/apps/chat/projects.test.ts
+	tests/api-resources/beta/organization/analytics/connectors.test.ts
+	tests/api-resources/beta/organization/analytics/plugins.test.ts
+	tests/api-resources/beta/organization/analytics/skills.test.ts
+	tests/api-resources/beta/organization/analytics/artifacts.test.ts
+	tests/api-resources/beta/organization/analytics/usage-report.test.ts
+	tests/api-resources/beta/organization/analytics/cost-report.test.ts
+	tests/api-resources/beta/organization/spend-limits/spend-limits.test.ts
+	tests/api-resources/beta/organization/spend-limits/effective.test.ts
+	tests/api-resources/beta/organization/spend-limits/increase-requests.test.ts
+	tests/api-resources/beta/organization/rbac-groups/rbac-groups.test.ts
+	tests/api-resources/beta/organization/rbac-groups/members.test.ts
+	tests/api-resources/beta/organization/rbac-roles/rbac-roles.test.ts
+	tests/api-resources/beta/organization/rbac-roles/permissions.test.ts
 	tests/api-resources/beta/organization/plugins/plugins.test.ts
 	tests/api-resources/beta/organization/plugins/versions.test.ts
 	tests/api-resources/beta/organization/plugins/installation-settings.test.ts

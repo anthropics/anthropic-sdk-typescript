@@ -88,6 +88,52 @@ import {
   UserUpdateParams,
   Users,
 } from './users';
+import * as AnalyticsAPI from './analytics/analytics';
+import {
+  Analytics,
+  BetaAnalyticsArtifactActivity,
+  BetaAnalyticsChatMetrics,
+  BetaAnalyticsClaudeCodeMetrics,
+  BetaAnalyticsClaudeTagCategory,
+  BetaAnalyticsConnectorActivity,
+  BetaAnalyticsConnectorChatMetrics,
+  BetaAnalyticsConnectorClaudeCodeMetrics,
+  BetaAnalyticsConnectorCoworkMetrics,
+  BetaAnalyticsConnectorOfficeMetrics,
+  BetaAnalyticsConnectorOfficeProductMetrics,
+  BetaAnalyticsContextWindow,
+  BetaAnalyticsCoreCodeMetrics,
+  BetaAnalyticsCostBucketedResult,
+  BetaAnalyticsCostReportTimeBucket,
+  BetaAnalyticsCostType,
+  BetaAnalyticsCoworkMetrics,
+  BetaAnalyticsDesignMetrics,
+  BetaAnalyticsInferenceGeoFilter,
+  BetaAnalyticsLinesOfCode,
+  BetaAnalyticsOfficeMetrics,
+  BetaAnalyticsOfficeProductMetrics,
+  BetaAnalyticsPluginActivity,
+  BetaAnalyticsPluginClaudeCodeMetrics,
+  BetaAnalyticsPluginCoworkMetrics,
+  BetaAnalyticsProductFilter,
+  BetaAnalyticsProjectActivity,
+  BetaAnalyticsScienceMetrics,
+  BetaAnalyticsServerToolUse,
+  BetaAnalyticsSingleDayActivitySummary,
+  BetaAnalyticsSkillActivity,
+  BetaAnalyticsSkillChatMetrics,
+  BetaAnalyticsSkillClaudeCodeMetrics,
+  BetaAnalyticsSkillCoworkMetrics,
+  BetaAnalyticsSkillOfficeMetrics,
+  BetaAnalyticsSkillOfficeProductMetrics,
+  BetaAnalyticsTokenType,
+  BetaAnalyticsToolActionCounts,
+  BetaAnalyticsToolActions,
+  BetaAnalyticsUsageBucketedResult,
+  BetaAnalyticsUsageReportTimeBucket,
+  BetaAnalyticsUser,
+  BetaAnalyticsUserActivity,
+} from './analytics/analytics';
 import * as FederationAPI from './federation/federation';
 import { Federation } from './federation/federation';
 import * as PluginsAPI from './plugins/plugins';
@@ -111,6 +157,23 @@ import {
   PluginUpdateParams,
   Plugins,
 } from './plugins/plugins';
+import * as RBACGroupsAPI from './rbac-groups/rbac-groups';
+import {
+  BetaRBACGroup,
+  BetaRBACGroupsPageCursor,
+  RBACGroupCreateParams,
+  RBACGroupDeleteResponse,
+  RBACGroupListParams,
+  RBACGroupUpdateParams,
+  RBACGroups,
+} from './rbac-groups/rbac-groups';
+import * as RBACRolesAPI from './rbac-roles/rbac-roles';
+import {
+  BetaRBACRole,
+  BetaRBACRolesPageCursor,
+  RBACRoleListParams,
+  RBACRoles,
+} from './rbac-roles/rbac-roles';
 import * as ServiceAccountsAPI from './service-accounts/service-accounts';
 import {
   BetaServiceAccount,
@@ -123,6 +186,23 @@ import {
   ServiceAccountUpdateParams,
   ServiceAccounts,
 } from './service-accounts/service-accounts';
+import * as SpendLimitsAPI from './spend-limits/spend-limits';
+import {
+  BetaSpendLimit,
+  BetaSpendLimitOrganizationScope,
+  BetaSpendLimitOrganizationServiceScope,
+  BetaSpendLimitPeriod,
+  BetaSpendLimitRBACGroupScope,
+  BetaSpendLimitScopedAPIKeyActor,
+  BetaSpendLimitSeatTierScope,
+  BetaSpendLimitUserActor,
+  BetaSpendLimitUserScope,
+  BetaSpendLimitWorkspaceScope,
+  BetaSpendSummary,
+  SpendLimitDeleteResponse,
+  SpendLimitSetParams,
+  SpendLimits,
+} from './spend-limits/spend-limits';
 import * as WorkspacesAPI from './workspaces/workspaces';
 import {
   BetaAllowedInferenceGeo,
@@ -154,6 +234,10 @@ export class Organization extends APIResource {
   complianceSettings: ComplianceSettingsAPI.ComplianceSettings = new ComplianceSettingsAPI.ComplianceSettings(
     this._client,
   );
+  analytics: AnalyticsAPI.Analytics = new AnalyticsAPI.Analytics(this._client);
+  spendLimits: SpendLimitsAPI.SpendLimits = new SpendLimitsAPI.SpendLimits(this._client);
+  rbacGroups: RBACGroupsAPI.RBACGroups = new RBACGroupsAPI.RBACGroups(this._client);
+  rbacRoles: RBACRolesAPI.RBACRoles = new RBACRolesAPI.RBACRoles(this._client);
   plugins: PluginsAPI.Plugins = new PluginsAPI.Plugins(this._client);
   pluginMarketplaces: PluginMarketplacesAPI.PluginMarketplaces = new PluginMarketplacesAPI.PluginMarketplaces(
     this._client,
@@ -213,6 +297,10 @@ Organization.Users = Users;
 Organization.Workspaces = Workspaces;
 Organization.RateLimits = RateLimits;
 Organization.ComplianceSettings = ComplianceSettings;
+Organization.Analytics = Analytics;
+Organization.SpendLimits = SpendLimits;
+Organization.RBACGroups = RBACGroups;
+Organization.RBACRoles = RBACRoles;
 Organization.Plugins = Plugins;
 Organization.PluginMarketplaces = PluginMarketplaces;
 
@@ -321,6 +409,86 @@ export declare namespace Organization {
     type BetaComplianceSettingsStateEnabledParam as BetaComplianceSettingsStateEnabledParam,
     type BetaComplianceSettingsStateParam as BetaComplianceSettingsStateParam,
     type ComplianceSettingUpdateParams as ComplianceSettingUpdateParams,
+  };
+
+  export {
+    Analytics as Analytics,
+    type BetaAnalyticsArtifactActivity as BetaAnalyticsArtifactActivity,
+    type BetaAnalyticsChatMetrics as BetaAnalyticsChatMetrics,
+    type BetaAnalyticsClaudeCodeMetrics as BetaAnalyticsClaudeCodeMetrics,
+    type BetaAnalyticsClaudeTagCategory as BetaAnalyticsClaudeTagCategory,
+    type BetaAnalyticsConnectorActivity as BetaAnalyticsConnectorActivity,
+    type BetaAnalyticsConnectorChatMetrics as BetaAnalyticsConnectorChatMetrics,
+    type BetaAnalyticsConnectorClaudeCodeMetrics as BetaAnalyticsConnectorClaudeCodeMetrics,
+    type BetaAnalyticsConnectorCoworkMetrics as BetaAnalyticsConnectorCoworkMetrics,
+    type BetaAnalyticsConnectorOfficeMetrics as BetaAnalyticsConnectorOfficeMetrics,
+    type BetaAnalyticsConnectorOfficeProductMetrics as BetaAnalyticsConnectorOfficeProductMetrics,
+    type BetaAnalyticsContextWindow as BetaAnalyticsContextWindow,
+    type BetaAnalyticsCoreCodeMetrics as BetaAnalyticsCoreCodeMetrics,
+    type BetaAnalyticsCostBucketedResult as BetaAnalyticsCostBucketedResult,
+    type BetaAnalyticsCostReportTimeBucket as BetaAnalyticsCostReportTimeBucket,
+    type BetaAnalyticsCostType as BetaAnalyticsCostType,
+    type BetaAnalyticsCoworkMetrics as BetaAnalyticsCoworkMetrics,
+    type BetaAnalyticsDesignMetrics as BetaAnalyticsDesignMetrics,
+    type BetaAnalyticsInferenceGeoFilter as BetaAnalyticsInferenceGeoFilter,
+    type BetaAnalyticsLinesOfCode as BetaAnalyticsLinesOfCode,
+    type BetaAnalyticsOfficeMetrics as BetaAnalyticsOfficeMetrics,
+    type BetaAnalyticsOfficeProductMetrics as BetaAnalyticsOfficeProductMetrics,
+    type BetaAnalyticsPluginActivity as BetaAnalyticsPluginActivity,
+    type BetaAnalyticsPluginClaudeCodeMetrics as BetaAnalyticsPluginClaudeCodeMetrics,
+    type BetaAnalyticsPluginCoworkMetrics as BetaAnalyticsPluginCoworkMetrics,
+    type BetaAnalyticsProductFilter as BetaAnalyticsProductFilter,
+    type BetaAnalyticsProjectActivity as BetaAnalyticsProjectActivity,
+    type BetaAnalyticsScienceMetrics as BetaAnalyticsScienceMetrics,
+    type BetaAnalyticsServerToolUse as BetaAnalyticsServerToolUse,
+    type BetaAnalyticsSingleDayActivitySummary as BetaAnalyticsSingleDayActivitySummary,
+    type BetaAnalyticsSkillActivity as BetaAnalyticsSkillActivity,
+    type BetaAnalyticsSkillChatMetrics as BetaAnalyticsSkillChatMetrics,
+    type BetaAnalyticsSkillClaudeCodeMetrics as BetaAnalyticsSkillClaudeCodeMetrics,
+    type BetaAnalyticsSkillCoworkMetrics as BetaAnalyticsSkillCoworkMetrics,
+    type BetaAnalyticsSkillOfficeMetrics as BetaAnalyticsSkillOfficeMetrics,
+    type BetaAnalyticsSkillOfficeProductMetrics as BetaAnalyticsSkillOfficeProductMetrics,
+    type BetaAnalyticsTokenType as BetaAnalyticsTokenType,
+    type BetaAnalyticsToolActionCounts as BetaAnalyticsToolActionCounts,
+    type BetaAnalyticsToolActions as BetaAnalyticsToolActions,
+    type BetaAnalyticsUsageBucketedResult as BetaAnalyticsUsageBucketedResult,
+    type BetaAnalyticsUsageReportTimeBucket as BetaAnalyticsUsageReportTimeBucket,
+    type BetaAnalyticsUser as BetaAnalyticsUser,
+    type BetaAnalyticsUserActivity as BetaAnalyticsUserActivity,
+  };
+
+  export {
+    SpendLimits as SpendLimits,
+    type BetaSpendLimit as BetaSpendLimit,
+    type BetaSpendLimitOrganizationScope as BetaSpendLimitOrganizationScope,
+    type BetaSpendLimitOrganizationServiceScope as BetaSpendLimitOrganizationServiceScope,
+    type BetaSpendLimitPeriod as BetaSpendLimitPeriod,
+    type BetaSpendLimitRBACGroupScope as BetaSpendLimitRBACGroupScope,
+    type BetaSpendLimitScopedAPIKeyActor as BetaSpendLimitScopedAPIKeyActor,
+    type BetaSpendLimitSeatTierScope as BetaSpendLimitSeatTierScope,
+    type BetaSpendLimitUserActor as BetaSpendLimitUserActor,
+    type BetaSpendLimitUserScope as BetaSpendLimitUserScope,
+    type BetaSpendLimitWorkspaceScope as BetaSpendLimitWorkspaceScope,
+    type BetaSpendSummary as BetaSpendSummary,
+    type SpendLimitDeleteResponse as SpendLimitDeleteResponse,
+    type SpendLimitSetParams as SpendLimitSetParams,
+  };
+
+  export {
+    RBACGroups as RBACGroups,
+    type BetaRBACGroup as BetaRBACGroup,
+    type RBACGroupDeleteResponse as RBACGroupDeleteResponse,
+    type BetaRBACGroupsPageCursor as BetaRBACGroupsPageCursor,
+    type RBACGroupCreateParams as RBACGroupCreateParams,
+    type RBACGroupUpdateParams as RBACGroupUpdateParams,
+    type RBACGroupListParams as RBACGroupListParams,
+  };
+
+  export {
+    RBACRoles as RBACRoles,
+    type BetaRBACRole as BetaRBACRole,
+    type BetaRBACRolesPageCursor as BetaRBACRolesPageCursor,
+    type RBACRoleListParams as RBACRoleListParams,
   };
 
   export {

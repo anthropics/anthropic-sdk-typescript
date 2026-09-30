@@ -1978,6 +1978,209 @@ Methods:
 - <code title="get /v1/organizations/compliance_settings?beta=true">client.beta.organization.complianceSettings.<a href="./src/resources/beta/organization/compliance-settings.ts">retrieve</a>() -> BetaComplianceSettings</code>
 - <code title="post /v1/organizations/compliance_settings?beta=true">client.beta.organization.complianceSettings.<a href="./src/resources/beta/organization/compliance-settings.ts">update</a>({ ...params }) -> BetaComplianceSettings</code>
 
+### Analytics
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsArtifactActivity</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsChatMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsClaudeCodeMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsClaudeTagCategory</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorActivity</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorChatMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorClaudeCodeMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorCoworkMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorOfficeMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorOfficeProductMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsContextWindow</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsCoreCodeMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsCostBucketedResult</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsCostReportTimeBucket</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsCostType</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsCoworkMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsDesignMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsInferenceGeoFilter</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsLinesOfCode</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsOfficeMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsOfficeProductMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsPluginActivity</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsPluginClaudeCodeMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsPluginCoworkMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsProductFilter</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsProjectActivity</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsScienceMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsServerToolUse</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSingleDayActivitySummary</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillActivity</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillChatMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillClaudeCodeMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillCoworkMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillOfficeMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillOfficeProductMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsTokenType</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsToolActionCounts</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsToolActions</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageBucketedResult</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageReportTimeBucket</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUser</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUserActivity</a></code>
+
+#### Summaries
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/summaries?beta=true">client.beta.organization.analytics.summaries.<a href="./src/resources/beta/organization/analytics/summaries.ts">list</a>({ ...params }) -> BetaAnalyticsSingleDayActivitySummariesPageCursor</code>
+
+#### Users
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/users?beta=true">client.beta.organization.analytics.users.<a href="./src/resources/beta/organization/analytics/users.ts">list</a>({ ...params }) -> BetaAnalyticsUserActivitiesPageCursor</code>
+
+#### Apps
+
+##### Chat
+
+###### Projects
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/apps/chat/projects?beta=true">client.beta.organization.analytics.apps.chat.projects.<a href="./src/resources/beta/organization/analytics/apps/chat/projects.ts">list</a>({ ...params }) -> BetaAnalyticsProjectActivitiesPageCursor</code>
+
+#### Connectors
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/connectors?beta=true">client.beta.organization.analytics.connectors.<a href="./src/resources/beta/organization/analytics/connectors.ts">list</a>({ ...params }) -> BetaAnalyticsConnectorActivitiesPageCursor</code>
+
+#### Plugins
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/plugins?beta=true">client.beta.organization.analytics.plugins.<a href="./src/resources/beta/organization/analytics/plugins.ts">list</a>({ ...params }) -> BetaAnalyticsPluginActivitiesPageCursor</code>
+
+#### Skills
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/skills?beta=true">client.beta.organization.analytics.skills.<a href="./src/resources/beta/organization/analytics/skills.ts">list</a>({ ...params }) -> BetaAnalyticsSkillActivitiesPageCursor</code>
+
+#### Artifacts
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/artifacts?beta=true">client.beta.organization.analytics.artifacts.<a href="./src/resources/beta/organization/analytics/artifacts.ts">list</a>({ ...params }) -> BetaAnalyticsArtifactActivitiesPageCursor</code>
+
+#### UsageReport
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/usage_report?beta=true">client.beta.organization.analytics.usageReport.<a href="./src/resources/beta/organization/analytics/usage-report.ts">list</a>({ ...params }) -> BetaAnalyticsUsageReportTimeBucketsPageCursor</code>
+
+#### CostReport
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/cost_report?beta=true">client.beta.organization.analytics.costReport.<a href="./src/resources/beta/organization/analytics/cost-report.ts">list</a>({ ...params }) -> BetaAnalyticsCostReportTimeBucketsPageCursor</code>
+
+### SpendLimits
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimit</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitOrganizationScope</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitOrganizationServiceScope</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitPeriod</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitRBACGroupScope</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitScopedAPIKeyActor</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitSeatTierScope</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitUserActor</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitUserScope</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitWorkspaceScope</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendSummary</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">SpendLimitDeleteResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/spend_limits/{spend_limit_id}?beta=true">client.beta.organization.spendLimits.<a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">retrieve</a>(spendLimitID) -> BetaSpendLimit</code>
+- <code title="delete /v1/organizations/spend_limits/{spend_limit_id}?beta=true">client.beta.organization.spendLimits.<a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">delete</a>(spendLimitID) -> SpendLimitDeleteResponse</code>
+- <code title="post /v1/organizations/spend_limits?beta=true">client.beta.organization.spendLimits.<a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">set</a>({ ...params }) -> BetaSpendLimit</code>
+
+#### Effective
+
+Methods:
+
+- <code title="get /v1/organizations/spend_limits/effective?beta=true">client.beta.organization.spendLimits.effective.<a href="./src/resources/beta/organization/spend-limits/effective.ts">list</a>({ ...params }) -> BetaSpendSummariesPageCursor</code>
+
+#### IncreaseRequests
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">BetaSpendLimitIncreaseRequest</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">BetaSpendLimitIncreaseRequestStatus</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">IncreaseRequestApproveResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}?beta=true">client.beta.organization.spendLimits.increaseRequests.<a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">retrieve</a>(spendLimitIncreaseRequestID) -> BetaSpendLimitIncreaseRequest</code>
+- <code title="get /v1/organizations/spend_limit_increase_requests?beta=true">client.beta.organization.spendLimits.increaseRequests.<a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">list</a>({ ...params }) -> BetaSpendLimitIncreaseRequestsPageCursor</code>
+- <code title="post /v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}/approve?beta=true">client.beta.organization.spendLimits.increaseRequests.<a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">approve</a>(spendLimitIncreaseRequestID, { ...params }) -> IncreaseRequestApproveResponse</code>
+- <code title="post /v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}/deny?beta=true">client.beta.organization.spendLimits.increaseRequests.<a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">deny</a>(spendLimitIncreaseRequestID, { ...params }) -> BetaSpendLimitIncreaseRequest</code>
+
+### RBACGroups
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">BetaRBACGroup</a></code>
+- <code><a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">RBACGroupDeleteResponse</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/rbac_groups?beta=true">client.beta.organization.rbacGroups.<a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">create</a>({ ...params }) -> BetaRBACGroup</code>
+- <code title="get /v1/organizations/rbac_groups/{rbac_group_id}?beta=true">client.beta.organization.rbacGroups.<a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">retrieve</a>(rbacGroupID) -> BetaRBACGroup</code>
+- <code title="post /v1/organizations/rbac_groups/{rbac_group_id}?beta=true">client.beta.organization.rbacGroups.<a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">update</a>(rbacGroupID, { ...params }) -> BetaRBACGroup</code>
+- <code title="get /v1/organizations/rbac_groups?beta=true">client.beta.organization.rbacGroups.<a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">list</a>({ ...params }) -> BetaRBACGroupsPageCursor</code>
+- <code title="delete /v1/organizations/rbac_groups/{rbac_group_id}?beta=true">client.beta.organization.rbacGroups.<a href="./src/resources/beta/organization/rbac-groups/rbac-groups.ts">delete</a>(rbacGroupID) -> RBACGroupDeleteResponse</code>
+
+#### Members
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/rbac-groups/members.ts">BetaRBACGroupMember</a></code>
+- <code><a href="./src/resources/beta/organization/rbac-groups/members.ts">MemberRemoveResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/rbac_groups/{rbac_group_id}/members?beta=true">client.beta.organization.rbacGroups.members.<a href="./src/resources/beta/organization/rbac-groups/members.ts">list</a>(rbacGroupID, { ...params }) -> BetaRBACGroupMembersPageCursor</code>
+- <code title="post /v1/organizations/rbac_groups/{rbac_group_id}/members?beta=true">client.beta.organization.rbacGroups.members.<a href="./src/resources/beta/organization/rbac-groups/members.ts">add</a>(rbacGroupID, { ...params }) -> BetaRBACGroupMember</code>
+- <code title="delete /v1/organizations/rbac_groups/{rbac_group_id}/members/{user_id}?beta=true">client.beta.organization.rbacGroups.members.<a href="./src/resources/beta/organization/rbac-groups/members.ts">remove</a>(userID, { ...params }) -> MemberRemoveResponse</code>
+
+### RBACRoles
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/rbac-roles/rbac-roles.ts">BetaRBACRole</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/rbac_roles/{rbac_role_id}?beta=true">client.beta.organization.rbacRoles.<a href="./src/resources/beta/organization/rbac-roles/rbac-roles.ts">retrieve</a>(rbacRoleID) -> BetaRBACRole</code>
+- <code title="get /v1/organizations/rbac_roles?beta=true">client.beta.organization.rbacRoles.<a href="./src/resources/beta/organization/rbac-roles/rbac-roles.ts">list</a>({ ...params }) -> BetaRBACRolesPageCursor</code>
+
+#### Permissions
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/rbac-roles/permissions.ts">BetaRBACAllConnectorsPermissionResource</a></code>
+- <code><a href="./src/resources/beta/organization/rbac-roles/permissions.ts">BetaRBACConnectorPermissionResource</a></code>
+- <code><a href="./src/resources/beta/organization/rbac-roles/permissions.ts">BetaRBACConnectorScopePermissionResource</a></code>
+- <code><a href="./src/resources/beta/organization/rbac-roles/permissions.ts">BetaRBACConnectorToolPermissionResource</a></code>
+- <code><a href="./src/resources/beta/organization/rbac-roles/permissions.ts">BetaRBACOrganizationPermissionResource</a></code>
+- <code><a href="./src/resources/beta/organization/rbac-roles/permissions.ts">BetaRBACRolePermission</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/rbac_roles/{rbac_role_id}/permissions?beta=true">client.beta.organization.rbacRoles.permissions.<a href="./src/resources/beta/organization/rbac-roles/permissions.ts">list</a>(rbacRoleID, { ...params }) -> BetaRBACRolePermissionsPageCursor</code>
+
 ### Plugins
 
 Types:
