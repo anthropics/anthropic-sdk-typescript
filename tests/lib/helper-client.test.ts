@@ -92,14 +92,15 @@ describe('copyClientForHelper', () => {
     expect(parent.authToken).toBeNull();
   });
 
-  test('throws on an empty auth token', () => {
-    // An empty `authToken` would otherwise silently produce a sub-client
-    // with `authToken: ""` which both fails auth and looks like a
-    // misconfiguration — fail loudly instead.
+  test('supports undefined or omitted auth token for custom parent clients (e.g. AWS SDK)', () => {
+    // When using custom parent clients like @anthropic-ai/aws-sdk where auth is handled via custom signers
+    // and authToken is not set, copyClientForHelper should preserve parent auth and stamp telemetry header.
     const parent = new Anthropic({ apiKey: 'parent-key' });
-    expect(() => copyClientForHelper(parent, { authToken: '', helper: 'environments-work-poller' })).toThrow(
-      AnthropicError,
-    );
+    const scoped = copyClientForHelper(parent, { helper: 'environments-work-poller' });
+    expect(scoped.apiKey).toBe('parent-key');
+    const defaults = (scoped as unknown as { _options: { defaultHeaders: { values: Headers } } })._options
+      .defaultHeaders;
+    expect(defaults.values.get('x-stainless-helper')).toBe('environments-work-poller');
   });
 
   test('returns the same concrete subclass as the parent', () => {
