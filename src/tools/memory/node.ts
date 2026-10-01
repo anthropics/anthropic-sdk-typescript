@@ -306,7 +306,8 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
       );
     }
 
-    const newContent = content.replace(command.old_str, command.new_str);
+    // Use a callback so replacement patterns such as $& are written literally.
+    const newContent = content.replace(command.old_str, () => command.new_str);
     await atomicWriteFile(fullPath, newContent);
 
     const newLines = newContent.split('\n');
