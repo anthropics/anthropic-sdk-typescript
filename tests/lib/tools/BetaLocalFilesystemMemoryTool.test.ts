@@ -260,6 +260,85 @@ describe('BetaLocalFilesystemMemoryTool', () => {
         }),
       ).rejects.toThrow('The path /memories/nonexistent.txt does not exist. Please provide a valid path.');
     });
+
+    it('should replace multi-line old_str verbatim across line boundaries', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: 'line1\nline2\nline3\n',
+        path: '/memories/multiline.txt',
+      });
+
+      const result = await tool.str_replace({
+        command: 'str_replace',
+        path: '/memories/multiline.txt',
+        old_str: 'line1\nline2',
+        new_str: 'joined',
+      });
+
+      expect(result).toContain('joined');
+      const dirSnapshot = await getDirectorySnapshot(tempDir);
+      expect(dirSnapshot).toEqual({
+        'memories/multiline.txt': 'joined\nline3\n',
+      });
+    });
+
+    it('should delete old_str when new_str is omitted without inserting undefined', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: 'keep DELETEME keep\n',
+        path: '/memories/omit.txt',
+      });
+
+      await tool.str_replace({
+        command: 'str_replace',
+        path: '/memories/omit.txt',
+        old_str: 'DELETEME ',
+      } as any);
+
+      const dirSnapshot = await getDirectorySnapshot(tempDir);
+      expect(dirSnapshot).toEqual({
+        'memories/omit.txt': 'keep keep\n',
+      });
+    });
+
+    it('should preserve literal replacement strings containing $&, $$, and $1 without regex substitution', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: 'before TARGET after\n',
+        path: '/memories/literal_dollars.txt',
+      });
+
+      await tool.str_replace({
+        command: 'str_replace',
+        path: '/memories/literal_dollars.txt',
+        old_str: 'TARGET',
+        new_str: 'literal $& and $$ and $1',
+      });
+
+      const dirSnapshot = await getDirectorySnapshot(tempDir);
+      expect(dirSnapshot).toEqual({
+        'memories/literal_dollars.txt': 'before literal $& and $$ and $1 after\n',
+      });
+    });
+
+    it('should detect multiple occurrences of multi-line old_str with accurate line numbers', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: 'header\na\nb\nmiddle\na\nb\nfooter',
+        path: '/memories/multiline_multi.txt',
+      });
+
+      await expect(
+        tool.str_replace({
+          command: 'str_replace',
+          path: '/memories/multiline_multi.txt',
+          old_str: 'a\nb',
+          new_str: 'c',
+        }),
+      ).rejects.toThrow(
+        'No replacement was performed. Multiple occurrences of old_str `a\nb` in lines: 2, 5. Please ensure it is unique',
+      );
+    });
   });
 
   describe('insert', () => {
