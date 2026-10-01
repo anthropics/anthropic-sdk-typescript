@@ -296,6 +296,7 @@ export {
   type EffortCapability,
   type ModelCapabilities,
   type ModelInfo,
+  type ModelLine,
   type ThinkingCapability,
   type ThinkingTypes,
   type ModelRetrieveParams,

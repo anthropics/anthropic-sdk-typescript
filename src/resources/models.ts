@@ -215,6 +215,13 @@ export interface ModelInfo {
   display_name: string;
 
   /**
+   * The model line this model belongs to, such as `opus` for both Claude Opus 4.5
+   * and Claude Opus 4.6. More lines may be added. `null` when the model belongs to
+   * no line, as a fine-tuned model does; do not infer a line from the `id`.
+   */
+  line: ModelLine | null;
+
+  /**
    * Maximum input context window size in tokens for this model.
    */
   max_input_tokens: number | null;
@@ -231,6 +238,12 @@ export interface ModelInfo {
    */
   type: 'model';
 }
+
+/**
+ * A Claude model line, such as `opus` or `sonnet`. More lines may be added as new
+ * values.
+ */
+export type ModelLine = 'haiku' | 'sonnet' | 'opus' | 'fable' | 'mythos';
 
 /**
  * Thinking capability details.
@@ -307,6 +320,7 @@ export declare namespace Models {
     type EffortCapability as EffortCapability,
     type ModelCapabilities as ModelCapabilities,
     type ModelInfo as ModelInfo,
+    type ModelLine as ModelLine,
     type ThinkingCapability as ThinkingCapability,
     type ThinkingTypes as ThinkingTypes,
     type ModelInfosPage as ModelInfosPage,

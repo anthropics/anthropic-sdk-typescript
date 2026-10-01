@@ -576,6 +576,7 @@ export {
   type BetaEffortCapability,
   type BetaModelCapabilities,
   type BetaModelInfo,
+  type BetaModelLine,
   type BetaThinkingCapability,
   type BetaThinkingTypes,
   type ModelRetrieveParams,

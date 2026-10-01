@@ -247,6 +247,13 @@ export interface BetaModelInfo {
   display_name: string;
 
   /**
+   * The model line this model belongs to, such as `opus` for both Claude Opus 4.5
+   * and Claude Opus 4.6. More lines may be added. `null` when the model belongs to
+   * no line, as a fine-tuned model does; do not infer a line from the `id`.
+   */
+  line: BetaModelLine | null;
+
+  /**
    * Maximum input context window size in tokens for this model.
    */
   max_input_tokens: number | null;
@@ -263,6 +270,12 @@ export interface BetaModelInfo {
    */
   type: 'model';
 }
+
+/**
+ * A Claude model line, such as `opus` or `sonnet`. More lines may be added as new
+ * values.
+ */
+export type BetaModelLine = 'haiku' | 'sonnet' | 'opus' | 'fable' | 'mythos';
 
 /**
  * Thinking capability details.
@@ -336,6 +349,7 @@ export declare namespace Models {
     type BetaEffortCapability as BetaEffortCapability,
     type BetaModelCapabilities as BetaModelCapabilities,
     type BetaModelInfo as BetaModelInfo,
+    type BetaModelLine as BetaModelLine,
     type BetaThinkingCapability as BetaThinkingCapability,
     type BetaThinkingTypes as BetaThinkingTypes,
     type BetaModelInfosPage as BetaModelInfosPage,

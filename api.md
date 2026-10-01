@@ -314,6 +314,7 @@ Types:
 - <code><a href="./src/resources/models.ts">EffortCapability</a></code>
 - <code><a href="./src/resources/models.ts">ModelCapabilities</a></code>
 - <code><a href="./src/resources/models.ts">ModelInfo</a></code>
+- <code><a href="./src/resources/models.ts">ModelLine</a></code>
 - <code><a href="./src/resources/models.ts">ThinkingCapability</a></code>
 - <code><a href="./src/resources/models.ts">ThinkingTypes</a></code>
 
@@ -646,6 +647,7 @@ Types:
 - <code><a href="./src/resources/beta/models.ts">BetaEffortCapability</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaModelCapabilities</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaModelInfo</a></code>
+- <code><a href="./src/resources/beta/models.ts">BetaModelLine</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaThinkingCapability</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaThinkingTypes</a></code>
 
