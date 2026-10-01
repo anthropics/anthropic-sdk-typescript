@@ -161,8 +161,7 @@ describe('resource credentials', () => {
     });
   });
 
-  // prism can't find endpoint with beta only tag
-  test.skip('mcpOAuthValidate: only required params', async () => {
+  test('mcpOAuthValidate: only required params', async () => {
     const responsePromise = client.beta.vaults.credentials.mcpOAuthValidate('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
     });
@@ -175,8 +174,7 @@ describe('resource credentials', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // prism can't find endpoint with beta only tag
-  test.skip('mcpOAuthValidate: required and optional params', async () => {
+  test('mcpOAuthValidate: required and optional params', async () => {
     const response = await client.beta.vaults.credentials.mcpOAuthValidate('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
       betas: ['message-batches-2024-09-24'],
