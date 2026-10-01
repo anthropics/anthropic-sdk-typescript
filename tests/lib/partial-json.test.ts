@@ -204,4 +204,27 @@ describe('partialParse', () => {
     expect(partialParse(`{"a": "\\\\\\"", "b": 2}`)).toEqual({ a: '\\"', b: 2 });
     expect(partialParse(`{"a": "unterminated`)).toEqual({});
   });
+
+  test('repairs invalid escape sequences in string tokens without corrupting valid escapes', () => {
+    // Single backslash before non-escape characters (e.g. PHP namespaces, regexes)
+    expect(
+      partialParse('{"edits":[{"oldText":"use App\\Http\\Middleware\\HandleAppearance;","newText":""}]}'),
+    ).toEqual({
+      edits: [{ oldText: 'use App\\Http\\Middleware\\HandleAppearance;', newText: '' }],
+    });
+
+    // Control: valid escaped backslashes are preserved intact
+    expect(partialParse('{"a":"App\\\\Http"}')).toEqual({ a: 'App\\Http' });
+
+    // Standard escapes remain intact
+    expect(partialParse('{"msg":"line1\\nline2\\ttab\\/slash\\"quote"}')).toEqual({
+      msg: 'line1\nline2\ttab/slash"quote',
+    });
+
+    // Valid unicode escapes remain intact
+    expect(partialParse('{"char":"\\u0041"}')).toEqual({ char: 'A' });
+
+    // Incomplete/invalid unicode escapes are sanitized gracefully without throwing
+    expect(partialParse('{"char":"\\uZZ"}')).toEqual({ char: '\\uZZ' });
+  });
 });
