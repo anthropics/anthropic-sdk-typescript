@@ -544,4 +544,35 @@ describe('transformJsonSchema', () => {
 }
 `);
   });
+
+  it('should transform constraints correctly for array-form type unions (e.g. nullable objects)', () => {
+    const input = {
+      type: 'object',
+      properties: {
+        result: {
+          type: ['object', 'null'],
+          properties: { name: { type: 'string' } },
+          required: ['name'],
+          additionalProperties: false,
+        },
+      },
+      required: ['result'],
+      additionalProperties: false,
+    };
+
+    const result = transformJSONSchema(input);
+    expect(result).toEqual({
+      type: 'object',
+      properties: {
+        result: {
+          type: ['object', 'null'],
+          properties: { name: { type: 'string' } },
+          required: ['name'],
+          additionalProperties: false,
+        },
+      },
+      required: ['result'],
+      additionalProperties: false,
+    });
+  });
 });
