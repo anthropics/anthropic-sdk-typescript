@@ -274,13 +274,49 @@ const tokenize = (input: string): Token[] => {
 
     return tokens;
   },
+  sanitizeJsonString = (str: string): string => {
+    let result = '';
+    let i = 0;
+    const hex = /^[0-9a-fA-F]{4}$/;
+    while (i < str.length) {
+      if (str[i] === '\\') {
+        const next = str[i + 1];
+        if (
+          next === '"' ||
+          next === '\\' ||
+          next === '/' ||
+          next === 'b' ||
+          next === 'f' ||
+          next === 'n' ||
+          next === 'r' ||
+          next === 't'
+        ) {
+          result += '\\' + next;
+          i += 2;
+          continue;
+        }
+        if (next === 'u' && hex.test(str.slice(i + 2, i + 6))) {
+          result += str.slice(i, i + 6);
+          i += 6;
+          continue;
+        }
+        // Invalid escape sequence (e.g. \H in PHP namespaces): double backslash so JSON.parse preserves it
+        result += '\\\\';
+        i++;
+      } else {
+        result += str[i];
+        i++;
+      }
+    }
+    return result;
+  },
   generate = (tokens: Token[]): string => {
     let output = '';
 
     tokens.map((token) => {
       switch (token.type) {
         case 'string':
-          output += '"' + token.value + '"';
+          output += '"' + sanitizeJsonString(token.value) + '"';
           break;
         default:
           output += token.value;

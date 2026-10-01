@@ -1,4 +1,4 @@
-import Anthropic, { APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
+import Anthropic, { AnthropicError, APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
 import {
   Message,
   MessageDeltaUsage,
@@ -329,6 +329,82 @@ describe('MessageStream class', () => {
     // Four non-empty deltas parsed; the final block's cached getter is reused
     // at content_block_stop, so no extra parse there.
     expect(partialParse).toHaveBeenCalledTimes(4);
+  });
+
+  it('handles malformed tool parameter JSON gracefully with AnthropicError naming the tool buffer', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+    const streamEvents: MessageStreamEvent[] = [
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_test_01',
+          type: 'message',
+          role: 'assistant',
+          content: [],
+          model: 'claude-opus-4-8',
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { input_tokens: 10, output_tokens: 5 },
+        },
+      },
+      {
+        type: 'content_block_start',
+        index: 0,
+        content_block: {
+          type: 'tool_use',
+          id: 'tool_test_01',
+          name: 'test_tool',
+          input: {},
+        },
+      },
+      {
+        type: 'content_block_delta',
+        index: 0,
+        delta: {
+          type: 'input_json_delta',
+          partial_json: '{"foo": "bar", "baz": "qux": "quux"}',
+        },
+      },
+      {
+        type: 'content_block_stop',
+        index: 0,
+      },
+      {
+        type: 'message_delta',
+        delta: { stop_reason: 'tool_use', stop_sequence: null },
+        usage: { output_tokens: 15 },
+      },
+      {
+        type: 'message_stop',
+      },
+    ];
+
+    handleStreamEvents(streamEvents);
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'Use the test tool' }],
+    });
+
+    const errors: AnthropicError[] = [];
+    stream.on('error', (error) => {
+      errors.push(error);
+    });
+
+    try {
+      await stream.done();
+    } catch {
+      // Stream processing may throw the error
+    }
+
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toBeInstanceOf(AnthropicError);
+    expect(errors[0]!.message).toContain('Unable to parse tool parameter JSON from model');
+    expect(errors[0]!.message).toContain('{"foo": "bar", "baz": "qux": "quux"}');
   });
 
   it('applies every message_delta field onto the accumulated message', async () => {
