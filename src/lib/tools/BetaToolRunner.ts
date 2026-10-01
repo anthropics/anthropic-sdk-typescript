@@ -46,6 +46,8 @@ export class BetaToolRunner<Stream extends boolean> {
   #consumed = false;
   /** Whether parameters have been mutated since the last API call */
   #mutated = false;
+  /** Whether the message history has been mutated by the caller since the last API call */
+  #messagesMutated = false;
   /** Current state containing the request parameters */
   #state: { params: BetaToolRunnerParams };
   #options: BetaToolRunnerRequestOptions;
@@ -125,6 +127,7 @@ export class BetaToolRunner<Stream extends boolean> {
 
     this.#consumed = true;
     this.#mutated = true;
+    this.#messagesMutated = true;
     this.#toolResponse = undefined;
 
     try {
@@ -149,6 +152,7 @@ export class BetaToolRunner<Stream extends boolean> {
           }
 
           this.#mutated = false;
+          this.#messagesMutated = false;
           this.#toolResponse = undefined;
           this.#iterationCount++;
           this.#message = undefined;
@@ -157,7 +161,7 @@ export class BetaToolRunner<Stream extends boolean> {
 
           yield* this.#send(params);
 
-          if (!this.#mutated) {
+          if (!this.#messagesMutated) {
             const message = await this.#message!;
             const nextStep = determineNextStepFromStopReason(message.stop_reason);
             this.#lastStopReason = message.stop_reason;
@@ -192,7 +196,7 @@ export class BetaToolRunner<Stream extends boolean> {
           const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
           if (toolMessage) {
             this.#state.params.messages.push(toolMessage);
-          } else if (!this.#mutated) {
+          } else if (!this.#messagesMutated) {
             yield* this.#compactAfterFinalTurn();
             break;
           }
@@ -393,18 +397,21 @@ export class BetaToolRunner<Stream extends boolean> {
   setMessagesParams(
     paramsOrMutator: BetaToolRunnerParams | ((prevParams: BetaToolRunnerParams) => BetaToolRunnerParams),
   ) {
-    const params =
-      typeof paramsOrMutator === 'function' ? paramsOrMutator(this.#state.params) : paramsOrMutator;
+    const prevParams = this.#state.params;
+    const params = typeof paramsOrMutator === 'function' ? paramsOrMutator(prevParams) : paramsOrMutator;
     rejectCompactionParam(params);
     rejectRunToolsEagerlyWithoutStream(params);
     if (this.#compaction.status !== 'idle') {
       rejectCompactionEdit(params);
     }
-    if (this.#compaction.status === 'in_flight' && params.messages !== this.#state.params.messages) {
+    if (this.#compaction.status === 'in_flight' && !haveSameMessages(params.messages, prevParams.messages)) {
       throw new AnthropicError(
         "Message params can't be changed while the conversation is being compacted, because the compaction " +
           'response is about to replace them. Change them after this iteration instead.',
       );
+    }
+    if (!haveSameMessages(params.messages, prevParams.messages)) {
+      this.#messagesMutated = true;
     }
     this.#state.params = params;
     this.#mutated = true;
@@ -914,8 +921,7 @@ function asContentParam(content: BetaContentBlock[]): BetaContentBlockParam[] {
 }
 
 type PendingToolChange =
-  | { type: 'addition'; tool: BetaRunnableTool<any> | BetaToolUnion }
-  | { type: 'removal'; name: string };
+  { type: 'addition'; tool: BetaRunnableTool<any> | BetaToolUnion } | { type: 'removal'; name: string };
 
 function toolNotFoundResult(toolUse: { id: string; name: string }) {
   return {
@@ -1029,11 +1035,19 @@ type ToolRunnerRequestParams = Omit<BetaToolRunnerParams, 'max_iterations' | 'ru
 type ToolCallState = { status: 'held' } | { status: 'started'; result: Promise<BetaToolResultBlockParam> };
 
 type Compaction =
-  | { status: 'idle' }
-  | { status: 'scheduled'; config: BetaCompactionConfig }
-  | { status: 'in_flight' };
+  { status: 'idle' } | { status: 'scheduled'; config: BetaCompactionConfig } | { status: 'in_flight' };
 
 type BetaToolRunnerItem<Stream extends boolean> =
   Stream extends true ? BetaMessageStream
   : Stream extends false ? BetaMessage
   : BetaMessage | BetaMessageStream;
+
+function haveSameMessages(a: BetaMessageParam[] | undefined, b: BetaMessageParam[] | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}

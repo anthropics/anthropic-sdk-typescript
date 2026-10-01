@@ -1716,6 +1716,163 @@ describe('ToolRunner', () => {
       });
       await expectDone(iterator);
     });
+
+    it('preserves assistant tool turn and executes tools when only non-message parameters mutate (stream=false)', async () => {
+      const { runner, handleAssistantMessage } = setupTest({
+        messages: [{ role: 'user', content: 'What is the weather in Paris?' }],
+        tools: [weatherTool],
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      handleAssistantMessage(getWeatherToolUse('Paris'));
+      await expectEvent(iterator, (message) => {
+        expect(message.content).toMatchObject([getWeatherToolUse('Paris')]);
+      });
+
+      // Mutate non-message parameter (e.g. max_tokens) between turns
+      runner.setMessagesParams((params) => ({
+        ...params,
+        max_tokens: 2048,
+      }));
+
+      // Next response from assistant completes the conversation
+      handleAssistantMessage(getTextContent('It is sunny in Paris'));
+      await expectEvent(iterator, (message) => {
+        expect(message.content[0]).toMatchObject(getTextContent('It is sunny in Paris'));
+      });
+
+      await expectDone(iterator);
+
+      // Verify the messages array: initial user, assistant tool_use, user tool_result, assistant text
+      expect(runner.params.messages).toHaveLength(4);
+      expect(runner.params.max_tokens).toBe(2048);
+      expect(runner.params.messages[1]).toMatchObject({
+        role: 'assistant',
+        content: [getWeatherToolUse('Paris')],
+      });
+      expect(runner.params.messages[2]).toMatchObject({
+        role: 'user',
+        content: [getWeatherToolResult('Paris')],
+      });
+      expect(runner.params.messages[3]).toMatchObject({
+        role: 'assistant',
+        content: [getTextContent('It is sunny in Paris')],
+      });
+    });
+
+    it('preserves assistant tool turn and executes tools when only non-message parameters mutate (stream=true)', async () => {
+      const { runner, handleAssistantMessageStream } = setupTest({
+        messages: [{ role: 'user', content: 'What is the weather in Paris?' }],
+        tools: [weatherTool],
+        stream: true,
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      handleAssistantMessageStream(getWeatherToolUse('Paris'));
+      await expectEvent(iterator, async (stream) => {
+        const message = await stream.finalMessage();
+        expect(message.content).toMatchObject([getWeatherToolUse('Paris')]);
+      });
+
+      runner.setMessagesParams((params) => ({
+        ...params,
+        max_tokens: 4096,
+      }));
+
+      handleAssistantMessageStream(getTextContent('It is sunny in Paris'));
+      await expectEvent(iterator, async (stream) => {
+        const message = await stream.finalMessage();
+        expect(message.content[0]).toMatchObject(getTextContent('It is sunny in Paris'));
+      });
+
+      await expectDone(iterator);
+
+      expect(runner.params.messages).toHaveLength(4);
+      expect(runner.params.max_tokens).toBe(4096);
+      expect(runner.params.messages[1]).toMatchObject({
+        role: 'assistant',
+        content: [getWeatherToolUse('Paris')],
+      });
+      expect(runner.params.messages[2]).toMatchObject({
+        role: 'user',
+        content: [getWeatherToolResult('Paris')],
+      });
+      expect(runner.params.messages[3]).toMatchObject({
+        role: 'assistant',
+        content: [getTextContent('It is sunny in Paris')],
+      });
+    });
+
+    it('forwards container.id to next request when non-message parameters are updated via setMessagesParams()', async () => {
+      const { runner, handleRequest } = setupTest({
+        messages: [{ role: 'user', content: 'Run code and tool' }],
+        tools: [weatherTool],
+      });
+
+      const requestBodies: Array<Record<string, unknown>> = [];
+      const toolUseMsg: BetaMessage = {
+        ...assistantMessage('tool_use', getWeatherToolUse('Paris')),
+        container: { id: 'container_test_123', expires_at: '2026-03-31T00:00:00Z', skills: null },
+      };
+      const finalMsg = assistantMessage('end_turn', getTextContent('Done'));
+
+      reply(handleRequest, requestBodies, toolUseMsg, false);
+      reply(handleRequest, requestBodies, finalMsg, false);
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      await expectEvent(iterator, (message) => {
+        expect(message.container?.id).toBe('container_test_123');
+      });
+
+      // Update non-message param using setMessagesParams
+      runner.setMessagesParams((params) => ({
+        ...params,
+        max_tokens: 1500,
+      }));
+
+      await expectEvent(iterator, (message) => {
+        expect(message.content[0]).toMatchObject(getTextContent('Done'));
+      });
+
+      expect(requestBodies).toHaveLength(2);
+      expect(requestBodies[1]?.container).toBe('container_test_123');
+      expect(requestBodies[1]?.max_tokens).toBe(1500);
+      expect(requestBodies[1]?.messages).toMatchObject([
+        { role: 'user', content: 'Run code and tool' },
+        { role: 'assistant', content: [getWeatherToolUse('Paris')] },
+        { role: 'user', content: [getWeatherToolResult('Paris')] },
+      ]);
+      await expectDone(iterator);
+    });
+
+    it('stops gracefully without looping when setMessagesParams() is called during final text turn', async () => {
+      const { runner, handleAssistantMessage } = setupTest({
+        messages: [{ role: 'user', content: 'Say hello' }],
+      });
+
+      const iterator = runner[Symbol.asyncIterator]();
+
+      handleAssistantMessage(getTextContent('Hello there!'));
+      await expectEvent(iterator, (message) => {
+        expect(message.content[0]).toMatchObject(getTextContent('Hello there!'));
+      });
+
+      runner.setMessagesParams((params) => ({
+        ...params,
+        max_tokens: 300,
+      }));
+
+      // Iteration should complete normally without entering an infinite loop
+      await expectDone(iterator);
+      expect(runner.params.messages).toHaveLength(2);
+      expect(runner.params.messages[1]).toMatchObject({
+        role: 'assistant',
+        content: [getTextContent('Hello there!')],
+      });
+    });
   });
 
   describe('tool params', () => {
