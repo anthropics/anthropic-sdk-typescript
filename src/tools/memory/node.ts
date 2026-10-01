@@ -13,6 +13,7 @@ import {
   BetaMemoryTool20250818StrReplaceCommand,
   BetaMemoryTool20250818ViewCommand,
 } from '../../resources/beta';
+import { promiseWithResolvers } from '../../internal/utils/promise';
 
 // Owner read/write only. Avoids the Node.js default of 0o666 which, in
 // environments with a permissive umask (e.g. Docker where umask is often
@@ -125,6 +126,7 @@ const LINE_NUMBER_WIDTH = String(MAX_LINES).length;
 export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   private basePath: string;
   private memoryRoot: string;
+  private queue: Promise<unknown> = Promise.resolve();
 
   constructor(basePath: string = './memory') {
     this.basePath = basePath;
@@ -137,6 +139,23 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
     await fs.mkdir(memory.memoryRoot, { recursive: true, mode: DIR_CREATE_MODE });
 
     return memory;
+  }
+
+  private async serialize<T>(op: () => Promise<T>): Promise<T> {
+    const prev = this.queue;
+    const gate = promiseWithResolvers<void>();
+    this.queue = gate.promise;
+    try {
+      await prev;
+    } catch {
+      // Swallow prior rejections — earlier callers got their own error path;
+      // we just need to wait for earlier operations to settle.
+    }
+    try {
+      return await op();
+    } finally {
+      gate.resolve();
+    }
   }
 
   private async validatePath(memoryPath: string): Promise<string> {
@@ -159,242 +178,254 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async view(command: BetaMemoryTool20250818ViewCommand): Promise<string> {
-    const fullPath = await this.validatePath(command.path);
+    return this.serialize(async () => {
+      const fullPath = await this.validatePath(command.path);
 
-    let stat;
-    try {
-      stat = await fs.stat(fullPath);
-    } catch (err: any) {
-      if (err.code === 'ENOENT') {
-        throw new Error(`The path ${command.path} does not exist. Please provide a valid path.`);
-      }
-      throw err;
-    }
-
-    if (stat.isDirectory()) {
-      const items: Array<{ size: string; path: string }> = [];
-
-      const collectItems = async (dirPath: string, relativePath: string, depth: number): Promise<void> => {
-        if (depth > 2) return;
-
-        const dirContents = await fs.readdir(dirPath);
-
-        for (const item of dirContents.sort()) {
-          if (item.startsWith('.') || item === 'node_modules') {
-            continue;
-          }
-          const itemPath = path.join(dirPath, item);
-          const itemRelativePath = relativePath ? `${relativePath}/${item}` : item;
-          let itemStat;
-          try {
-            itemStat = await fs.stat(itemPath);
-          } catch {
-            continue;
-          }
-
-          if (itemStat.isDirectory()) {
-            items.push({ size: formatFileSize(itemStat.size), path: `${itemRelativePath}/` });
-            if (depth < 2) {
-              await collectItems(itemPath, itemRelativePath, depth + 1);
-            }
-          } else if (itemStat.isFile()) {
-            items.push({ size: formatFileSize(itemStat.size), path: itemRelativePath });
-          }
+      let stat;
+      try {
+        stat = await fs.stat(fullPath);
+      } catch (err: any) {
+        if (err.code === 'ENOENT') {
+          throw new Error(`The path ${command.path} does not exist. Please provide a valid path.`);
         }
-      };
+        throw err;
+      }
 
-      await collectItems(fullPath, '', 1);
+      if (stat.isDirectory()) {
+        const items: Array<{ size: string; path: string }> = [];
 
-      const header = `Here're the files and directories up to 2 levels deep in ${command.path}, excluding hidden items and node_modules:`;
-      const dirSize = formatFileSize(stat.size);
-      const lines = [
-        `${dirSize}\t${command.path}`,
-        ...items.map((item) => `${item.size}\t${command.path}/${item.path}`),
-      ];
+        const collectItems = async (dirPath: string, relativePath: string, depth: number): Promise<void> => {
+          if (depth > 2) return;
 
-      return `${header}\n${lines.join('\n')}`;
-    } else if (stat.isFile()) {
-      const content = await readFileContent(fullPath, command.path);
-      const lines = content.split('\n');
+          const dirContents = await fs.readdir(dirPath);
 
-      if (lines.length > MAX_LINES) {
-        throw new Error(
-          `File ${command.path} has too many lines (${
-            lines.length
-          }). Maximum is ${MAX_LINES.toLocaleString()} lines.`,
+          for (const item of dirContents.sort()) {
+            if (item.startsWith('.') || item === 'node_modules') {
+              continue;
+            }
+            const itemPath = path.join(dirPath, item);
+            const itemRelativePath = relativePath ? `${relativePath}/${item}` : item;
+            let itemStat;
+            try {
+              itemStat = await fs.stat(itemPath);
+            } catch {
+              continue;
+            }
+
+            if (itemStat.isDirectory()) {
+              items.push({ size: formatFileSize(itemStat.size), path: `${itemRelativePath}/` });
+              if (depth < 2) {
+                await collectItems(itemPath, itemRelativePath, depth + 1);
+              }
+            } else if (itemStat.isFile()) {
+              items.push({ size: formatFileSize(itemStat.size), path: itemRelativePath });
+            }
+          }
+        };
+
+        await collectItems(fullPath, '', 1);
+
+        const header = `Here're the files and directories up to 2 levels deep in ${command.path}, excluding hidden items and node_modules:`;
+        const dirSize = formatFileSize(stat.size);
+        const lines = [
+          `${dirSize}\t${command.path}`,
+          ...items.map((item) => `${item.size}\t${command.path}/${item.path}`),
+        ];
+
+        return `${header}\n${lines.join('\n')}`;
+      } else if (stat.isFile()) {
+        const content = await readFileContent(fullPath, command.path);
+        const lines = content.split('\n');
+
+        if (lines.length > MAX_LINES) {
+          throw new Error(
+            `File ${command.path} has too many lines (${
+              lines.length
+            }). Maximum is ${MAX_LINES.toLocaleString()} lines.`,
+          );
+        }
+
+        let displayLines = lines;
+        let startNum = 1;
+
+        if (command.view_range && command.view_range.length === 2) {
+          const startLine = Math.max(1, command.view_range[0]!) - 1;
+          const endLine = command.view_range[1] === -1 ? lines.length : command.view_range[1];
+          displayLines = lines.slice(startLine, endLine);
+          startNum = startLine + 1;
+        }
+
+        const numberedLines = displayLines.map(
+          (line, i) => `${String(i + startNum).padStart(LINE_NUMBER_WIDTH, ' ')}\t${line}`,
         );
+
+        return `Here's the content of ${command.path} with line numbers:\n${numberedLines.join('\n')}`;
+      } else {
+        throw new Error(`Unsupported file type for ${command.path}`);
       }
-
-      let displayLines = lines;
-      let startNum = 1;
-
-      if (command.view_range && command.view_range.length === 2) {
-        const startLine = Math.max(1, command.view_range[0]!) - 1;
-        const endLine = command.view_range[1] === -1 ? lines.length : command.view_range[1];
-        displayLines = lines.slice(startLine, endLine);
-        startNum = startLine + 1;
-      }
-
-      const numberedLines = displayLines.map(
-        (line, i) => `${String(i + startNum).padStart(LINE_NUMBER_WIDTH, ' ')}\t${line}`,
-      );
-
-      return `Here's the content of ${command.path} with line numbers:\n${numberedLines.join('\n')}`;
-    } else {
-      throw new Error(`Unsupported file type for ${command.path}`);
-    }
+    });
   }
 
   async create(command: BetaMemoryTool20250818CreateCommand): Promise<string> {
-    const fullPath = await this.validatePath(command.path);
+    return this.serialize(async () => {
+      const fullPath = await this.validatePath(command.path);
 
-    await fs.mkdir(path.dirname(fullPath), { recursive: true, mode: DIR_CREATE_MODE });
+      await fs.mkdir(path.dirname(fullPath), { recursive: true, mode: DIR_CREATE_MODE });
 
-    let handle: fs.FileHandle | undefined;
-    try {
-      handle = await fs.open(fullPath, 'wx', FILE_CREATE_MODE);
-      await handle.writeFile(command.file_text, 'utf-8');
-      await handle.sync();
-    } catch (err: any) {
-      if (err?.code === 'EEXIST') {
-        throw new Error(`File ${command.path} already exists`);
+      let handle: fs.FileHandle | undefined;
+      try {
+        handle = await fs.open(fullPath, 'wx', FILE_CREATE_MODE);
+        await handle.writeFile(command.file_text, 'utf-8');
+        await handle.sync();
+      } catch (err: any) {
+        if (err?.code === 'EEXIST') {
+          throw new Error(`File ${command.path} already exists`);
+        }
+        throw err;
+      } finally {
+        await handle?.close().catch(() => {});
       }
-      throw err;
-    } finally {
-      await handle?.close().catch(() => {});
-    }
 
-    return `File created successfully at: ${command.path}`;
+      return `File created successfully at: ${command.path}`;
+    });
   }
 
   async str_replace(command: BetaMemoryTool20250818StrReplaceCommand): Promise<string> {
-    const fullPath = await this.validatePath(command.path);
+    return this.serialize(async () => {
+      const fullPath = await this.validatePath(command.path);
 
-    let stat;
-    try {
-      stat = await fs.stat(fullPath);
-    } catch (err: any) {
-      if (err.code === 'ENOENT') {
-        throw new Error(`The path ${command.path} does not exist. Please provide a valid path.`);
+      let stat;
+      try {
+        stat = await fs.stat(fullPath);
+      } catch (err: any) {
+        if (err.code === 'ENOENT') {
+          throw new Error(`The path ${command.path} does not exist. Please provide a valid path.`);
+        }
+        throw err;
       }
-      throw err;
-    }
 
-    if (!stat.isFile()) {
-      throw new Error(`The path ${command.path} is not a file.`);
-    }
-
-    const content = await readFileContent(fullPath, command.path);
-    const lines = content.split('\n');
-
-    const matchingLines: number[] = [];
-    lines.forEach((line, index) => {
-      if (line.includes(command.old_str)) {
-        matchingLines.push(index + 1);
+      if (!stat.isFile()) {
+        throw new Error(`The path ${command.path} is not a file.`);
       }
+
+      const content = await readFileContent(fullPath, command.path);
+      const lines = content.split('\n');
+
+      const matchingLines: number[] = [];
+      lines.forEach((line, index) => {
+        if (line.includes(command.old_str)) {
+          matchingLines.push(index + 1);
+        }
+      });
+
+      if (matchingLines.length === 0) {
+        throw new Error(
+          `No replacement was performed, old_str \`${command.old_str}\` did not appear verbatim in ${command.path}.`,
+        );
+      } else if (matchingLines.length > 1) {
+        throw new Error(
+          `No replacement was performed. Multiple occurrences of old_str \`${
+            command.old_str
+          }\` in lines: ${matchingLines.join(', ')}. Please ensure it is unique`,
+        );
+      }
+
+      const newContent = content.replace(command.old_str, command.new_str);
+      await atomicWriteFile(fullPath, newContent);
+
+      const newLines = newContent.split('\n');
+      const changedLineIndex = matchingLines[0]! - 1;
+      const contextStart = Math.max(0, changedLineIndex - 2);
+      const contextEnd = Math.min(newLines.length, changedLineIndex + 3);
+      const snippet = newLines.slice(contextStart, contextEnd).map((line, i) => {
+        const lineNum = contextStart + i + 1;
+        return `${String(lineNum).padStart(LINE_NUMBER_WIDTH, ' ')}\t${line}`;
+      });
+
+      return `The memory file has been edited. Here is the snippet showing the change (with line numbers):\n${snippet.join(
+        '\n',
+      )}`;
     });
-
-    if (matchingLines.length === 0) {
-      throw new Error(
-        `No replacement was performed, old_str \`${command.old_str}\` did not appear verbatim in ${command.path}.`,
-      );
-    } else if (matchingLines.length > 1) {
-      throw new Error(
-        `No replacement was performed. Multiple occurrences of old_str \`${
-          command.old_str
-        }\` in lines: ${matchingLines.join(', ')}. Please ensure it is unique`,
-      );
-    }
-
-    const newContent = content.replace(command.old_str, command.new_str);
-    await atomicWriteFile(fullPath, newContent);
-
-    const newLines = newContent.split('\n');
-    const changedLineIndex = matchingLines[0]! - 1;
-    const contextStart = Math.max(0, changedLineIndex - 2);
-    const contextEnd = Math.min(newLines.length, changedLineIndex + 3);
-    const snippet = newLines.slice(contextStart, contextEnd).map((line, i) => {
-      const lineNum = contextStart + i + 1;
-      return `${String(lineNum).padStart(LINE_NUMBER_WIDTH, ' ')}\t${line}`;
-    });
-
-    return `The memory file has been edited. Here is the snippet showing the change (with line numbers):\n${snippet.join(
-      '\n',
-    )}`;
   }
 
   async insert(command: BetaMemoryTool20250818InsertCommand): Promise<string> {
-    const fullPath = await this.validatePath(command.path);
+    return this.serialize(async () => {
+      const fullPath = await this.validatePath(command.path);
 
-    let stat;
-    try {
-      stat = await fs.stat(fullPath);
-    } catch (err: any) {
-      if (err.code === 'ENOENT') {
-        throw new Error(`The path ${command.path} does not exist. Please provide a valid path.`);
+      let stat;
+      try {
+        stat = await fs.stat(fullPath);
+      } catch (err: any) {
+        if (err.code === 'ENOENT') {
+          throw new Error(`The path ${command.path} does not exist. Please provide a valid path.`);
+        }
+        throw err;
       }
-      throw err;
-    }
 
-    if (!stat.isFile()) {
-      throw new Error(`The path ${command.path} is not a file.`);
-    }
+      if (!stat.isFile()) {
+        throw new Error(`The path ${command.path} is not a file.`);
+      }
 
-    const content = await readFileContent(fullPath, command.path);
-    const lines = content.split('\n');
+      const content = await readFileContent(fullPath, command.path);
+      const lines = content.split('\n');
 
-    if (command.insert_line < 0 || command.insert_line > lines.length) {
-      throw new Error(
-        `Invalid \`insert_line\` parameter: ${command.insert_line}. It should be within the range of lines of the file: [0, ${lines.length}]`,
-      );
-    }
+      if (command.insert_line < 0 || command.insert_line > lines.length) {
+        throw new Error(
+          `Invalid \`insert_line\` parameter: ${command.insert_line}. It should be within the range of lines of the file: [0, ${lines.length}]`,
+        );
+      }
 
-    lines.splice(command.insert_line, 0, command.insert_text.replace(/\n$/, ''));
-    await atomicWriteFile(fullPath, lines.join('\n'));
-    return `The file ${command.path} has been edited.`;
+      lines.splice(command.insert_line, 0, command.insert_text.replace(/\n$/, ''));
+      await atomicWriteFile(fullPath, lines.join('\n'));
+      return `The file ${command.path} has been edited.`;
+    });
   }
 
   async delete(command: BetaMemoryTool20250818DeleteCommand): Promise<string> {
-    const fullPath = await this.validatePath(command.path);
+    return this.serialize(async () => {
+      const fullPath = await this.validatePath(command.path);
 
-    if (command.path === '/memories') {
-      throw new Error('Cannot delete the /memories directory itself');
-    }
-
-    try {
-      await fs.rm(fullPath, { recursive: true, force: false });
-    } catch (err: any) {
-      if (err.code === 'ENOENT') {
-        throw new Error(`The path ${command.path} does not exist`);
+      if (command.path === '/memories') {
+        throw new Error('Cannot delete the /memories directory itself');
       }
-      throw err;
-    }
 
-    return `Successfully deleted ${command.path}`;
+      try {
+        await fs.rm(fullPath, { recursive: true, force: false });
+      } catch (err: any) {
+        if (err.code === 'ENOENT') {
+          throw new Error(`The path ${command.path} does not exist`);
+        }
+        throw err;
+      }
+
+      return `Successfully deleted ${command.path}`;
+    });
   }
 
   async rename(command: BetaMemoryTool20250818RenameCommand): Promise<string> {
-    const oldFullPath = await this.validatePath(command.old_path);
-    const newFullPath = await this.validatePath(command.new_path);
+    return this.serialize(async () => {
+      const oldFullPath = await this.validatePath(command.old_path);
+      const newFullPath = await this.validatePath(command.new_path);
 
-    // POSIX rename() silently overwrites existing files without error,
-    // so we can't catch this atomically. Best-effort check to warn user.
-    if (await exists(newFullPath)) {
-      throw new Error(`The destination ${command.new_path} already exists`);
-    }
-
-    const newDir = path.dirname(newFullPath);
-    await fs.mkdir(newDir, { recursive: true, mode: DIR_CREATE_MODE });
-
-    try {
-      await fs.rename(oldFullPath, newFullPath);
-    } catch (err: any) {
-      if (err.code === 'ENOENT') {
-        throw new Error(`The path ${command.old_path} does not exist`);
+      // POSIX rename() silently overwrites existing files without error,
+      // so we can't catch this atomically. Best-effort check to warn user.
+      if (await exists(newFullPath)) {
+        throw new Error(`The destination ${command.new_path} already exists`);
       }
-      throw err;
-    }
 
-    return `Successfully renamed ${command.old_path} to ${command.new_path}`;
+      const newDir = path.dirname(newFullPath);
+      await fs.mkdir(newDir, { recursive: true, mode: DIR_CREATE_MODE });
+
+      try {
+        await fs.rename(oldFullPath, newFullPath);
+      } catch (err: any) {
+        if (err.code === 'ENOENT') {
+          throw new Error(`The path ${command.old_path} does not exist`);
+        }
+        throw err;
+      }
+
+      return `Successfully renamed ${command.old_path} to ${command.new_path}`;
+    });
   }
 }
