@@ -373,6 +373,11 @@ export interface WorkspaceListParams extends PageParams {
    * Whether to include Workspaces that have been archived in the response
    */
   include_archived?: boolean;
+
+  /**
+   * Whether to include the organization's default Workspace in the response
+   */
+  include_default?: boolean;
 }
 
 Workspaces.RateLimits = RateLimits;
