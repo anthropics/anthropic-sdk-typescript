@@ -65,7 +65,7 @@ export class SpendLimits extends APIResource {
       query,
       ...options,
       headers: buildHeaders([
-        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        { 'anthropic-beta': [...(betas ?? []), 'spend-limit-reads-2026-09-26'].toString() },
         options?.headers,
       ]),
     });
