@@ -207,13 +207,27 @@ describe('extractSkillArchive', () => {
   }
 
   test('refuses a zip-slip member', async () => {
-    const src = fs.mkdtempSync(path.join(os.tmpdir(), 'evil-'));
     const archive = path.join(work, 'evil.zip');
     try {
-      fs.writeFileSync(path.join(src, 'escape.txt'), 'pwned');
-      execFileSync('zip', ['-q', archive, 'escape.txt'], { cwd: src });
-      // Rewrite the entry name to a traversal path via zipnote.
-      execFileSync('zipnote', ['-w', archive], { input: '@ escape.txt\n@=../escape.txt\n' });
+      try {
+        execFileSync(
+          'python3',
+          [
+            '-c',
+            "import zipfile, sys; z = zipfile.ZipFile(sys.argv[1], 'w'); z.writestr('../escape.txt', 'pwned'); z.close()",
+            archive,
+          ],
+        );
+      } catch {
+        const src = fs.mkdtempSync(path.join(os.tmpdir(), 'evil-'));
+        try {
+          fs.writeFileSync(path.join(src, 'escape.txt'), 'pwned');
+          execFileSync('zip', ['-q', archive, 'escape.txt'], { cwd: src });
+          execFileSync('zipnote', ['-w', archive], { input: '@ escape.txt\n@=../escape.txt\n' });
+        } finally {
+          fs.rmSync(src, { recursive: true, force: true });
+        }
+      }
 
       const x = path.join(work, 'skills', 'x');
       await fsp.mkdir(x, { recursive: true });
@@ -223,7 +237,7 @@ describe('extractSkillArchive', () => {
       expect(fs.existsSync(path.join(work, 'skills', 'escape.txt'))).toBe(false);
       expect(fs.existsSync(path.join(work, 'escape.txt'))).toBe(false);
     } finally {
-      fs.rmSync(src, { recursive: true, force: true });
+      if (fs.existsSync(archive)) fs.unlinkSync(archive);
     }
   });
 
