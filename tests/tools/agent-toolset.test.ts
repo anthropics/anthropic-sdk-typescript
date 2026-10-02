@@ -163,7 +163,8 @@ describe('betaAgentToolset20260401', () => {
 });
 
 describe('resolvePath', () => {
-  const root = '/tmp/work';
+  const root = fs.realpathSync(tmpdir());
+  afterAll(() => fs.rmSync(root, { recursive: true, force: true }));
   const cases: { description: string; env: AgentToolContext; p: string; want?: string; wantErr?: RegExp }[] =
     [
       {
@@ -198,8 +199,8 @@ describe('resolvePath', () => {
       },
       {
         description: 'sibling directory with a shared prefix (work vs workdir2) is correctly rejected',
-        env: { workdir: '/tmp/work' },
-        p: '../work2/file',
+        env: { workdir: root },
+        p: path.join(root + '2', 'file'),
         wantErr: /is outside the session's working directory/,
       },
       {
