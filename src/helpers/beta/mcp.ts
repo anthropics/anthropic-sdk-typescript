@@ -159,13 +159,14 @@ function isSupportedImageType(mimeType: string): mimeType is SupportedImageType 
   return SUPPORTED_IMAGE_TYPES.includes(mimeType as SupportedImageType);
 }
 
+function normalizeMimeType(mimeType: string): string {
+  return mimeType.split(';', 1)[0]!.trim().toLowerCase();
+}
+
 function isSupportedResourceMimeType(mimeType: string | undefined): boolean {
-  return (
-    !mimeType ||
-    mimeType.startsWith('text/') ||
-    mimeType === 'application/pdf' ||
-    isSupportedImageType(mimeType)
-  );
+  if (!mimeType) return true;
+  const type = normalizeMimeType(mimeType);
+  return type.startsWith('text/') || type === 'application/pdf' || isSupportedImageType(type);
 }
 
 // -----------------------------------------------------------------------------
@@ -422,7 +423,8 @@ export function mcpContent(
     }
 
     case 'image': {
-      if (!isSupportedImageType(content.mimeType)) {
+      const mimeType = normalizeMimeType(content.mimeType);
+      if (!isSupportedImageType(mimeType)) {
         throw new UnsupportedMCPValueError(`Unsupported image MIME type: ${content.mimeType}`);
       }
       const imageBlock = {
@@ -430,7 +432,7 @@ export function mcpContent(
         source: {
           type: 'base64' as const,
           data: content.data,
-          media_type: content.mimeType,
+          media_type: mimeType,
         },
         ...extraProps,
         [SDK_HELPER_SYMBOL]: 'mcpContent',
@@ -462,7 +464,7 @@ function mcpResourceContentToContentBlock(
   extraProps?: Partial<Omit<BetaRequestDocumentBlock, 'type' | 'source'>>,
   helperName: string = 'mcpResourceToContent',
 ): BetaTextBlockParam | BetaImageBlockParam | BetaRequestDocumentBlock {
-  const mimeType = resourceContent.mimeType;
+  const mimeType = resourceContent.mimeType && normalizeMimeType(resourceContent.mimeType);
 
   // Handle images (requires blob - base64-encoded binary data)
   if (mimeType && isSupportedImageType(mimeType)) {
@@ -505,7 +507,7 @@ function mcpResourceContentToContentBlock(
   }
 
   // Handle text types (text/*, or no MIME type defaults to text)
-  if (!mimeType || mimeType.startsWith('text/')) {
+  if (!resourceContent.mimeType || mimeType?.startsWith('text/')) {
     const textDocBlock = {
       type: 'document' as const,
       source: textSourceFromResource(resourceContent),
@@ -516,7 +518,7 @@ function mcpResourceContentToContentBlock(
   }
 
   throw new UnsupportedMCPValueError(
-    `Unsupported MIME type "${mimeType}" for resource: ${resourceContent.uri}`,
+    `Unsupported MIME type "${resourceContent.mimeType}" for resource: ${resourceContent.uri}`,
   );
 }
 
