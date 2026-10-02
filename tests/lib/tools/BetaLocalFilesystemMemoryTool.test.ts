@@ -212,6 +212,59 @@ describe('BetaLocalFilesystemMemoryTool', () => {
       });
     });
 
+    it('should preserve concurrent edits to the same file', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: 'alpha\nbeta\n',
+        path: '/memories/concurrent.txt',
+      });
+
+      await Promise.all([
+        tool.str_replace({
+          command: 'str_replace',
+          path: '/memories/concurrent.txt',
+          old_str: 'alpha',
+          new_str: 'ALPHA',
+        }),
+        tool.str_replace({
+          command: 'str_replace',
+          path: '/memories/concurrent.txt',
+          old_str: 'beta',
+          new_str: 'BETA',
+        }),
+      ]);
+
+      const content = await fs.readFile(path.join(tempDir, 'memories', 'concurrent.txt'), 'utf-8');
+      expect(content).toBe('ALPHA\nBETA\n');
+    });
+
+    it('should continue processing after a failed edit', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: 'alpha',
+        path: '/memories/recover.txt',
+      });
+
+      await expect(
+        tool.str_replace({
+          command: 'str_replace',
+          path: '/memories/recover.txt',
+          old_str: 'missing',
+          new_str: 'MISSING',
+        }),
+      ).rejects.toThrow();
+
+      await tool.str_replace({
+        command: 'str_replace',
+        path: '/memories/recover.txt',
+        old_str: 'alpha',
+        new_str: 'ALPHA',
+      });
+
+      const content = await fs.readFile(path.join(tempDir, 'memories', 'recover.txt'), 'utf-8');
+      expect(content).toBe('ALPHA');
+    });
+
     it('should throw error when string not found', async () => {
       await tool.create({
         command: 'create',
@@ -283,6 +336,32 @@ describe('BetaLocalFilesystemMemoryTool', () => {
       expect(dirSnapshot).toEqual({
         'memories/insert_test.txt': 'Line 1\nInserted Line\nLine 2',
       });
+    });
+
+    it('should preserve concurrent inserts to the same file', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: 'alpha\n',
+        path: '/memories/concurrent-insert.txt',
+      });
+
+      await Promise.all([
+        tool.insert({
+          command: 'insert',
+          path: '/memories/concurrent-insert.txt',
+          insert_line: 1,
+          insert_text: 'first',
+        }),
+        tool.insert({
+          command: 'insert',
+          path: '/memories/concurrent-insert.txt',
+          insert_line: 2,
+          insert_text: 'second',
+        }),
+      ]);
+
+      const content = await fs.readFile(path.join(tempDir, 'memories', 'concurrent-insert.txt'), 'utf-8');
+      expect(content).toBe('alpha\nfirst\nsecond\n');
     });
 
     it('should insert at beginning of file', async () => {
