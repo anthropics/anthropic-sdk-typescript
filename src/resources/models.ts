@@ -217,7 +217,7 @@ export interface ModelInfo {
   /**
    * The model line this model belongs to, such as `opus` for both Claude Opus 4.5
    * and Claude Opus 4.6. More lines may be added. `null` when the model belongs to
-   * no line, as a fine-tuned model does; do not infer a line from the `id`.
+   * no line; do not infer a line from the `id`.
    */
   line: ModelLine | null;
 
