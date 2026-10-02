@@ -180,9 +180,9 @@ export function parseWithStandardSchema<Schema extends StandardSchemaV1>(
 ): StandardSchemaV1.InferOutput<Schema> {
   const result = schema['~standard'].validate(value);
 
-  if (result instanceof Promise) {
+  if (result instanceof Promise || ('then' in result && typeof result.then === 'function')) {
     // avoid an unhandled rejection from the discarded result
-    result.catch(() => {});
+    Promise.resolve(result).catch(() => {});
     throw new AnthropicError(
       `Async validation is not supported: the ${schema['~standard'].vendor} schema's \`~standard.validate()\` returned a Promise.`,
     );

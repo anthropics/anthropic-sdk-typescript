@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { runInNewContext } from 'node:vm';
 import { z } from 'zod/v4';
 import { toStandardJsonSchema } from '@valibot/to-json-schema';
 import { AnthropicError } from '../../../src/core/error';
@@ -141,6 +142,24 @@ describe('betaStandardSchemaOutputFormat', () => {
       /Async validation is not supported/,
     );
   });
+
+  it.each(['resolve({ value: {} })', 'reject(new Error("validation failed"))'])(
+    'rejects async validation from another realm: Promise.%s',
+    (expression) => {
+      const result = runInNewContext(`Promise.${expression}`);
+      expect(result).not.toBeInstanceOf(Promise);
+      // Keep the failing baseline from producing an unhandled rejection.
+      result.catch(() => {});
+      const format = betaStandardSchemaOutputFormat(
+        validateOnlySchema(() => result),
+        {
+          jsonSchema: weatherJSONSchema,
+        },
+      );
+
+      expect(() => format.parse('{}')).toThrow(/Async validation is not supported/);
+    },
+  );
 });
 
 describe('beta Messages.parse() with betaStandardSchemaOutputFormat', () => {
