@@ -1460,7 +1460,7 @@ export interface AgentCreateParams {
   system?: string | null;
 
   /**
-   * Body param: Tool configurations available to the agent. Maximum of 128 tools
+   * Body param: Tool configurations available to the agent. Maximum of 256 tools
    * across all toolsets allowed.
    */
   tools?: Array<
@@ -1563,7 +1563,7 @@ export interface AgentUpdateParams {
 
   /**
    * Body param: Tool configurations available to the agent. Full replacement. Omit
-   * to preserve; send empty array or null to clear. Maximum of 128 tools across all
+   * to preserve; send empty array or null to clear. Maximum of 256 tools across all
    * toolsets allowed.
    */
   tools?: Array<
