@@ -922,6 +922,25 @@ describeBash('BashSession (direct)', () => {
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
+  test.each([0, 1])(
+    'waits for the complete exit code when output splits after %i digits',
+    async (splitAt) => {
+      // Override printf only to force the real shell's completion frame into separate writes.
+      const command = [
+        'printf() {',
+        '  local format="$1" code="$2"',
+        '  builtin printf "%b" "${format:0:${#format}-4}"',
+        '  builtin printf "%s" "${code:0:' + splitAt + '}"',
+        '  /bin/sleep 0.05',
+        '  builtin printf "%s\\n" "${code:' + splitAt + '}"',
+        '}',
+        '(exit 127)',
+      ].join('\n');
+      const result = await session.exec(command);
+      expect(result).toEqual({ output: '', exitCode: 127 });
+    },
+  );
+
   test('changing directory persists so a later pwd reports the new location', async () => {
     await session.exec('cd /tmp');
     const r = await session.exec('pwd');
