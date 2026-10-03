@@ -11,7 +11,8 @@ export type AccumulatedEvent = BetaManagedAgentsAgentMessageEvent;
  * snapshot — the `msg` argument is never mutated.
  *
  * - `event_start` opens the preview: a new snapshot with empty content is
- *   returned (so `msg` may be `undefined`). Returns `undefined` when the
+ *   returned (so `msg` may be `undefined`). Replayed starts for the same
+ *   completed message preserve its canonical snapshot. Returns `undefined` when the
  *   previewed event is not an `agent.message` — this helper only tracks
  *   `agent.message` previews.
  * - `event_delta` is folded into `msg`: a new `delta.index` inserts the
@@ -39,6 +40,7 @@ export function accumulateManagedAgentsEvent(
   switch (event.type) {
     case 'event_start': {
       if (event.event.type === 'agent.message') {
+        if (accumulated?.id === event.event.id && accumulated.processed_at) return accumulated;
         return { id: event.event.id, type: 'agent.message', content: [], processed_at: '' };
       }
 
