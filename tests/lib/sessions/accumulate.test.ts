@@ -1,3 +1,4 @@
+import Anthropic from '@anthropic-ai/sdk';
 import { accumulateManagedAgentsEvent } from '@anthropic-ai/sdk/lib/sessions/accumulate';
 import type { BetaManagedAgentsAgentMessageEvent } from '@anthropic-ai/sdk/resources/beta/sessions/events';
 import type {
@@ -164,5 +165,87 @@ describe('accumulateManagedAgentsEvent', () => {
     } as any;
     const next = accumulateManagedAgentsEvent(msg, ev);
     expect(next?.content).toEqual([{ type: 'text', text: 'kept' }]);
+  });
+});
+
+describe('authoritative session messages', () => {
+  const final: BetaManagedAgentsAgentMessageEvent = {
+    id: 'evt_final',
+    type: 'agent.message',
+    content: [{ type: 'text', text: 'Canonical answer' }],
+    processed_at: '2026-01-01T00:00:00Z',
+  };
+
+  test.each([0, 1, 8])('ignores late delta at index %i after a final message', (index) => {
+    const snapshot = accumulateManagedAgentsEvent(seed(final.id), final);
+    const before = structuredClone(snapshot);
+    Object.freeze(snapshot.content[0]);
+    Object.freeze(snapshot.content);
+    Object.freeze(snapshot);
+    const event = delta(final.id, ' stale preview', index);
+    const eventBefore = structuredClone(event);
+    const after = accumulateManagedAgentsEvent(snapshot, event);
+    expect(after).toBe(snapshot);
+    expect(after).toEqual(before);
+    expect(final.content).toEqual([{ type: 'text', text: 'Canonical answer' }]);
+    expect(event).toEqual(eventBefore);
+  });
+
+  test('final messages loaded without a preview also reject late deltas', () => {
+    const snapshot = accumulateManagedAgentsEvent(undefined, final);
+    expect(accumulateManagedAgentsEvent(snapshot, delta(final.id, 'duplicate'))).toBe(snapshot);
+    const correction = { ...final, content: [{ type: 'text' as const, text: 'New authoritative value' }] };
+    expect(accumulateManagedAgentsEvent(snapshot, correction)).toEqual(correction);
+    const next = seed('next');
+    expect(fold(next, delta('next', 'still streams')).content).toEqual([
+      { type: 'text', text: 'still streams' },
+    ]);
+  });
+
+  test('a fully decoded HTTP stream cannot extend its final record with a stale preview', async () => {
+    const events = [
+      start(final.id),
+      delta(final.id, 'partial'),
+      final,
+      delta(final.id, 'duplicated'),
+      delta(final.id, 'invented block', 1),
+    ];
+    const bytes = new TextEncoder().encode(
+      events.map((event) => `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`).join(''),
+    );
+    let requests = 0;
+    const client = new Anthropic({
+      apiKey: 'test-key',
+      baseURL: 'https://example.test',
+      maxRetries: 0,
+      fetch: async (url, init) => {
+        requests += 1;
+        expect(String(url)).toContain('/v1/sessions/session_test/events/stream');
+        expect(init?.method).toBe('GET');
+        let position = 0;
+        return new Response(
+          new ReadableStream<Uint8Array>({
+            pull(controller) {
+              if (position === bytes.length) return controller.close();
+              const end = Math.min(position + 7, bytes.length);
+              controller.enqueue(bytes.slice(position, end));
+              position = end;
+            },
+          }),
+          { headers: { 'content-type': 'text/event-stream' } },
+        );
+      },
+    });
+    let snapshot: BetaManagedAgentsAgentMessageEvent | undefined;
+    let count = 0;
+    for await (const event of await client.beta.sessions.events.stream('session_test', {
+      event_deltas: ['agent.message'],
+    })) {
+      snapshot = accumulateManagedAgentsEvent(snapshot, event);
+      count += 1;
+    }
+    expect(requests).toBe(1);
+    expect(count).toBe(events.length);
+    expect(snapshot).toEqual(final);
   });
 });

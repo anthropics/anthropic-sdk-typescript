@@ -17,8 +17,8 @@ export type AccumulatedEvent = BetaManagedAgentsAgentMessageEvent;
  * - `event_delta` is folded into `msg`: a new `delta.index` inserts the
  *   fragment as a fresh content entry; an existing index returns a copy with
  *   that entry appended to. An unrecognised fragment type on an existing
- *   index passes the entry through unchanged — deltas are best-effort and the
- *   buffered final event is canonical.
+ *   index passes the entry through unchanged. Deltas arriving after the final
+ *   event are ignored: previews are best-effort and the buffered event is canonical.
  * - `agent.message` is the buffered final event: a copy of it is returned,
  *   replacing whatever the preview had accumulated.
  * - Every other event type returns `accumulated` unchanged, so new event types
@@ -53,6 +53,9 @@ export function accumulateManagedAgentsEvent(
       if (accumulated === undefined) {
         throw new AnthropicError(`event_delta for ${event.event_id} received before its event_start`);
       }
+
+      // The buffered final event is canonical; late previews cannot extend it.
+      if (accumulated.processed_at) return accumulated;
 
       const idx = event.delta.index ?? 0;
       const fragment = event.delta.content;
