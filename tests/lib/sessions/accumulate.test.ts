@@ -199,6 +199,28 @@ describe('completed message preview restarts', () => {
     expect(accumulateManagedAgentsEvent(completed, correction)).toEqual(correction);
   });
 
+  test('an empty processed_at remains the incomplete-preview sentinel', () => {
+    const incomplete = {
+      ...final,
+      content: [{ type: 'text' as const, text: 'partial' }],
+      processed_at: '',
+    };
+    expect(accumulateManagedAgentsEvent(incomplete, start(final.id))).toEqual(seed(final.id));
+  });
+
+  test('callers can keep interleaved preview ids independent', () => {
+    const otherId = 'evt_other';
+    const snapshots = new Map<string, BetaManagedAgentsAgentMessageEvent>();
+
+    snapshots.set(final.id, accumulateManagedAgentsEvent(undefined, final));
+    snapshots.set(otherId, accumulateManagedAgentsEvent(undefined, start(otherId))!);
+    snapshots.set(final.id, accumulateManagedAgentsEvent(snapshots.get(final.id), start(final.id))!);
+    snapshots.set(otherId, accumulateManagedAgentsEvent(snapshots.get(otherId), delta(otherId, 'late'))!);
+
+    expect(snapshots.get(final.id)).toEqual(final);
+    expect(snapshots.get(otherId)?.content).toEqual([{ type: 'text', text: 'late' }]);
+  });
+
   test('an SDK-decoded replayed start cannot replace its buffered final event', async () => {
     const events = [start(final.id), delta(final.id, 'unfinished'), final, start(final.id)];
     const bytes = new TextEncoder().encode(
