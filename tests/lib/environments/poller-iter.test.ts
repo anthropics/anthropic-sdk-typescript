@@ -1,5 +1,6 @@
 import { WorkPoller, POLL_BLOCK_MS } from '@anthropic-ai/sdk/lib/environments';
 import { APIError } from '@anthropic-ai/sdk/core/error';
+import Anthropic from '@anthropic-ai/sdk';
 
 // Minimal fake `client.beta.environments.work` resource. Tests script
 // poll/ack/stop responses; we record how each was called for assertions.
@@ -30,7 +31,7 @@ interface LogRecord {
 
 function makeFakeClient(opts: {
   poll: PollResponse[];
-  ack?: { type: 'ok' | 'throw'; err?: unknown }[];
+  ack?: { type: 'ok' | 'throw'; err?: unknown; before?: () => void }[];
   stop?: { type: 'ok' | 'throw'; err?: unknown }[];
 }) {
   const calls: RecordedCall[] = [];
@@ -68,6 +69,7 @@ function makeFakeClient(opts: {
           ack: (...args: unknown[]) => {
             calls.push({ method: 'ack', args });
             const r = opts.ack?.[ackIdx++] ?? { type: 'ok' };
+            r.before?.();
             if (r.type === 'throw') return Promise.reject(r.err);
             return Promise.resolve({});
           },
@@ -161,6 +163,224 @@ describe('WorkPoller', () => {
     expect(withOptionsCalls).toContainEqual(
       expect.objectContaining({ apiKey: null, authToken: 'env_key', credentials: undefined }),
     );
+  });
+
+  test.each([408, 409, 429, 500, 503])(
+    'retries a transient %s ack for the claimed item before polling again',
+    async (status) => {
+      const work = { ...makeWork(), secret: 'opaque-per-item-secret' };
+      const { client, calls } = makeFakeClient({
+        poll: [{ type: 'work', value: work }, { type: 'null' }],
+        ack: [{ type: 'throw', err: apiError(status) }, { type: 'ok' }],
+      });
+      const poller = new WorkPoller({
+        client,
+        environmentId: 'env_1',
+        environmentKey: 'env_key',
+        drain: true,
+        requestOptions: { headers: { 'x-proxy-token': 'proxy-token' } },
+      });
+      const yielded: unknown[] = [];
+      const consumer = (async () => {
+        for await (const item of poller) yielded.push(item);
+      })();
+
+      await vi.advanceTimersByTimeAsync(2_000);
+      await consumer;
+
+      expect(yielded).toEqual([work]);
+      expect(yielded[0]).toBe(work);
+      expect(calls.map((call) => call.method)).toEqual(['poll', 'ack', 'ack', 'stop', 'poll']);
+      const acks = calls.filter((call) => call.method === 'ack');
+      expect(acks.map((call) => call.args[0])).toEqual(['work_1', 'work_1']);
+      expect(acks[1]!.args[2]).toEqual(acks[0]!.args[2]);
+    },
+  );
+
+  test('drain mode retains a claimed item after the HTTP client exhausts its ack retries', async () => {
+    const work = { ...makeWork(), secret: 'opaque-per-item-secret' };
+    const requests: Request[] = [];
+    let polls = 0;
+    let acks = 0;
+    const client = new Anthropic({
+      apiKey: 'parent-key',
+      maxRetries: 1,
+      fetch: async (url, init) => {
+        const request = new Request(url, init);
+        requests.push(request);
+        const path = new URL(request.url).pathname;
+        if (path.endsWith('/poll')) {
+          return new Response(JSON.stringify(polls++ === 0 ? work : null), {
+            headers: { 'content-type': 'application/json' },
+          });
+        }
+        if (path.endsWith('/ack') && acks++ < 2) {
+          return new Response(
+            JSON.stringify({ type: 'error', error: { type: 'api_error', message: 'temporary outage' } }),
+            {
+              status: 503,
+              headers: { 'content-type': 'application/json', 'retry-after-ms': '1' },
+            },
+          );
+        }
+        return new Response(JSON.stringify(makeWork()), { headers: { 'content-type': 'application/json' } });
+      },
+    });
+    const poller = client.beta.environments.work.poller({
+      environmentId: 'env_1',
+      environmentKey: 'env_key',
+      drain: true,
+      requestOptions: { headers: { 'x-proxy-token': 'proxy-token' } },
+    });
+    const yielded: unknown[] = [];
+    const consumer = (async () => {
+      for await (const item of poller) yielded.push(item);
+    })();
+
+    await vi.advanceTimersByTimeAsync(2_000);
+    await consumer;
+
+    expect(yielded).toEqual([work]);
+    expect(requests.map((request) => new URL(request.url).pathname.split('/').pop())).toEqual([
+      'poll',
+      'ack',
+      'ack',
+      'ack',
+      'stop',
+      'poll',
+    ]);
+    for (const request of requests) {
+      expect(request.headers.get('authorization')).toBe('Bearer env_key');
+      expect(request.headers.has('x-api-key')).toBe(false);
+      expect(request.headers.get('x-proxy-token')).toBe('proxy-token');
+    }
+  });
+
+  test.each([400, 401, 403, 404])('does not retry a permanent %s ack failure', async (status) => {
+    const nextWork = makeWork('work_2');
+    const { client, calls } = makeFakeClient({
+      poll: [{ type: 'work', value: makeWork() }, { type: 'work', value: nextWork }, { type: 'null' }],
+      ack: [{ type: 'throw', err: apiError(status) }, { type: 'ok' }],
+    });
+    const poller = new WorkPoller({
+      client,
+      environmentId: 'env_1',
+      environmentKey: 'env_key',
+      drain: true,
+    });
+    const yielded: unknown[] = [];
+    for await (const item of poller) yielded.push(item);
+
+    expect(yielded).toEqual([nextWork]);
+    expect(calls.map((call) => call.method)).toEqual(['poll', 'ack', 'poll', 'ack', 'stop', 'poll']);
+    expect(calls.filter((call) => call.method === 'ack').map((call) => call.args[0])).toEqual([
+      'work_1',
+      'work_2',
+    ]);
+  });
+
+  test('abort during ack retry backoff ends iteration without yielding or polling again', async () => {
+    const controller = new AbortController();
+    const { client, calls } = makeFakeClient({
+      poll: [{ type: 'work', value: makeWork() }, { type: 'null' }],
+      ack: [{ type: 'throw', err: apiError(503) }, { type: 'ok' }],
+    });
+    const poller = new WorkPoller({
+      client,
+      environmentId: 'env_1',
+      environmentKey: 'env_key',
+      signal: controller.signal,
+      drain: true,
+    });
+    const yielded: unknown[] = [];
+    let settled = false;
+    const consumer = (async () => {
+      for await (const item of poller) yielded.push(item);
+      settled = true;
+    })();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(settled).toBe(false);
+    expect(calls.map((call) => call.method)).toEqual(['poll', 'ack']);
+
+    controller.abort();
+    await consumer;
+
+    expect(yielded).toEqual([]);
+    expect(calls.map((call) => call.method)).toEqual(['poll', 'ack']);
+  });
+
+  test('abort during a rejected ack does not yield work or poll again', async () => {
+    const controller = new AbortController();
+    const { client, calls } = makeFakeClient({
+      poll: [{ type: 'work', value: makeWork() }, { type: 'null' }],
+      ack: [
+        { type: 'throw', err: new DOMException('aborted', 'AbortError'), before: () => controller.abort() },
+      ],
+    });
+    const poller = new WorkPoller({
+      client,
+      environmentId: 'env_1',
+      environmentKey: 'env_key',
+      signal: controller.signal,
+      drain: true,
+    });
+    const yielded: unknown[] = [];
+    for await (const item of poller) yielded.push(item);
+
+    expect(yielded).toEqual([]);
+    expect(calls.map((call) => call.method)).toEqual(['poll', 'ack']);
+  });
+
+  test.each([true, false])('hands off a successful ack racing abort with autoStop %s', async (autoStop) => {
+    const controller = new AbortController();
+    const work = makeWork();
+    const { client, calls } = makeFakeClient({
+      poll: [{ type: 'work', value: work }, { type: 'null' }],
+      ack: [{ type: 'ok', before: () => controller.abort() }],
+    });
+    const poller = new WorkPoller({
+      client,
+      environmentId: 'env_1',
+      environmentKey: 'env_key',
+      signal: controller.signal,
+      autoStop,
+      drain: true,
+    });
+    const yielded: unknown[] = [];
+    for await (const item of poller) yielded.push(item);
+
+    // The consumer must receive an acknowledged item so it can own cleanup
+    // when autoStop is false, as EnvironmentWorker does.
+    expect(yielded).toEqual([work]);
+    expect(calls.map((call) => call.method)).toEqual(autoStop ? ['poll', 'ack', 'stop'] : ['poll', 'ack']);
+    if (autoStop) expect(calls[2]!.args[2]).not.toHaveProperty('signal');
+  });
+
+  test('a retried ack respects autoStop false when the consumer breaks', async () => {
+    const work = makeWork();
+    const { client, calls } = makeFakeClient({
+      poll: [{ type: 'work', value: work }, { type: 'null' }],
+      ack: [{ type: 'throw', err: apiError(503) }, { type: 'ok' }],
+    });
+    const poller = new WorkPoller({
+      client,
+      environmentId: 'env_1',
+      environmentKey: 'env_key',
+      autoStop: false,
+      drain: true,
+    });
+    const yielded: unknown[] = [];
+    const consumer = (async () => {
+      for await (const item of poller) {
+        yielded.push(item);
+        break;
+      }
+    })();
+    await vi.advanceTimersByTimeAsync(2_000);
+    await consumer;
+
+    expect(yielded).toEqual([work]);
+    expect(calls.map((call) => call.method)).toEqual(['poll', 'ack', 'ack']);
   });
 
   test('stops the work item even when the consumer breaks immediately', async () => {

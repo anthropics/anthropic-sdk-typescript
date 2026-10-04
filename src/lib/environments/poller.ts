@@ -209,16 +209,35 @@ export class WorkPoller implements AsyncIterable<BetaSelfHostedWork> {
           work_type: work.data.type,
         });
 
-        try {
-          await this.#runnerClient.beta.environments.work.ack(
-            work.id,
-            { environment_id: work.environment_id },
-            { headers: buildHeaders([this.#requestOpts?.headers]), signal: this.#controller.signal },
-          );
-        } catch (e) {
-          log.error('ack failed', { work_id: work.id, error: String(e) });
-          continue;
+        // Keep the claim while retrying: polling again can return another item
+        // (or an empty queue) before this one has been acknowledged or yielded.
+        let acked = false;
+        let ackAttempt = 0;
+        while (!this.#controller.signal.aborted) {
+          try {
+            await this.#runnerClient.beta.environments.work.ack(
+              work.id,
+              { environment_id: work.environment_id },
+              { headers: buildHeaders([this.#requestOpts?.headers]), signal: this.#controller.signal },
+            );
+            acked = true;
+            break;
+          } catch (e) {
+            if (this.#controller.signal.aborted) return;
+            if (isFatal4xx(e)) {
+              log.error('ack failed', { work_id: work.id, error: String(e) });
+              break;
+            }
+            const wait = applyJitter(backoff(ackAttempt++));
+            log.warn('ack failed, retrying claimed work', {
+              work_id: work.id,
+              error: String(e),
+              backoff_ms: wait,
+            });
+            await sleep(wait, this.#controller.signal);
+          }
         }
+        if (!acked) continue;
 
         try {
           yield work;
