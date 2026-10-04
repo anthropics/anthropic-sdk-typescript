@@ -52,15 +52,23 @@ function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
 
   if (Array.isArray(anyOf)) {
     strictSchema['anyOf'] = anyOf.map((variant) => _transformJSONSchema(variant as JSONSchema));
-  } else if (Array.isArray(oneOf)) {
-    strictSchema['anyOf'] = oneOf.map((variant) => _transformJSONSchema(variant as JSONSchema));
-  } else if (Array.isArray(allOf)) {
+  }
+  if (Array.isArray(allOf)) {
     strictSchema['allOf'] = allOf.map((entry) => _transformJSONSchema(entry as JSONSchema));
-  } else {
-    if (type === undefined) {
-      throw new Error('JSON schema must have a type defined if anyOf/oneOf/allOf are not used');
+  }
+  if (Array.isArray(oneOf)) {
+    const converted = oneOf.map((variant) => _transformJSONSchema(variant as JSONSchema));
+    if (Array.isArray(anyOf)) {
+      // Sibling constraints all apply, so keep the converted union separate.
+      strictSchema['allOf'] = [...(strictSchema['allOf'] ?? []), { anyOf: converted }];
+    } else {
+      strictSchema['anyOf'] = converted;
     }
+  }
+  if (type !== undefined) {
     strictSchema['type'] = type;
+  } else if (!Array.isArray(anyOf) && !Array.isArray(oneOf) && !Array.isArray(allOf)) {
+    throw new Error('JSON schema must have a type defined if anyOf/oneOf/allOf are not used');
   }
 
   const description = pop(jsonSchema, 'description');
