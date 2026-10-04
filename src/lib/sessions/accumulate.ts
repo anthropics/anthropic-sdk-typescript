@@ -6,12 +6,21 @@ import type {
 
 export type AccumulatedEvent = BetaManagedAgentsAgentMessageEvent;
 
+function isCompletedAgentMessage(message: AccumulatedEvent): boolean {
+  // Buffered wire events carry a processed_at timestamp. The helper-created
+  // preview seed deliberately uses the empty string as its incomplete sentinel.
+  return message.processed_at !== '';
+}
+
 /**
  * Fold one preview event into an `agent.message` snapshot. Returns a fresh
- * snapshot — the `msg` argument is never mutated.
+ * snapshot — the `msg` argument is never mutated. This accumulator represents
+ * one previewed event id; callers consuming an interleaved stream should keep
+ * one accumulator per event id.
  *
  * - `event_start` opens the preview: a new snapshot with empty content is
- *   returned (so `msg` may be `undefined`). Returns `undefined` when the
+ *   returned (so `msg` may be `undefined`). Replayed starts for the same
+ *   completed message preserve its canonical snapshot. Returns `undefined` when the
  *   previewed event is not an `agent.message` — this helper only tracks
  *   `agent.message` previews.
  * - `event_delta` is folded into `msg`: a new `delta.index` inserts the
@@ -39,6 +48,7 @@ export function accumulateManagedAgentsEvent(
   switch (event.type) {
     case 'event_start': {
       if (event.event.type === 'agent.message') {
+        if (accumulated?.id === event.event.id && isCompletedAgentMessage(accumulated)) return accumulated;
         return { id: event.event.id, type: 'agent.message', content: [], processed_at: '' };
       }
 

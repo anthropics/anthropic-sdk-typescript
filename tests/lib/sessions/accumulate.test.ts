@@ -1,3 +1,4 @@
+import Anthropic from '@anthropic-ai/sdk';
 import { accumulateManagedAgentsEvent } from '@anthropic-ai/sdk/lib/sessions/accumulate';
 import type { BetaManagedAgentsAgentMessageEvent } from '@anthropic-ai/sdk/resources/beta/sessions/events';
 import type {
@@ -164,5 +165,100 @@ describe('accumulateManagedAgentsEvent', () => {
     } as any;
     const next = accumulateManagedAgentsEvent(msg, ev);
     expect(next?.content).toEqual([{ type: 'text', text: 'kept' }]);
+  });
+});
+
+describe('completed message preview restarts', () => {
+  const final: BetaManagedAgentsAgentMessageEvent = {
+    id: 'evt_final',
+    type: 'agent.message',
+    content: [{ type: 'text', text: 'Canonical answer' }],
+    processed_at: '2026-01-01T00:00:00Z',
+  };
+
+  test.each([false, true])('same-id replay preserves a completed message (preview=%s)', (preview) => {
+    const initial = preview ? fold(seed(final.id), delta(final.id, 'unfinished')) : undefined;
+    const completed = accumulateManagedAgentsEvent(initial, final);
+    const before = structuredClone(completed);
+    Object.freeze(completed.content[0]);
+    Object.freeze(completed.content);
+    Object.freeze(completed);
+    const event = start(final.id);
+    const eventBefore = structuredClone(event);
+    expect(accumulateManagedAgentsEvent(completed, event)).toBe(completed);
+    expect(completed).toEqual(before);
+    expect(event).toEqual(eventBefore);
+  });
+
+  test('unfinished previews can still restart and other event IDs open new previews', () => {
+    const unfinished = fold(seed(final.id), delta(final.id, 'discarded'));
+    expect(accumulateManagedAgentsEvent(unfinished, start(final.id))).toEqual(seed(final.id));
+    const completed = accumulateManagedAgentsEvent(undefined, final);
+    expect(accumulateManagedAgentsEvent(completed, start('evt_next'))).toEqual(seed('evt_next'));
+    const correction = { ...final, content: [{ type: 'text' as const, text: 'Correction' }] };
+    expect(accumulateManagedAgentsEvent(completed, correction)).toEqual(correction);
+  });
+
+  test('an empty processed_at remains the incomplete-preview sentinel', () => {
+    const incomplete = {
+      ...final,
+      content: [{ type: 'text' as const, text: 'partial' }],
+      processed_at: '',
+    };
+    expect(accumulateManagedAgentsEvent(incomplete, start(final.id))).toEqual(seed(final.id));
+  });
+
+  test('callers can keep interleaved preview ids independent', () => {
+    const otherId = 'evt_other';
+    const snapshots = new Map<string, BetaManagedAgentsAgentMessageEvent>();
+
+    snapshots.set(final.id, accumulateManagedAgentsEvent(undefined, final));
+    snapshots.set(otherId, accumulateManagedAgentsEvent(undefined, start(otherId))!);
+    snapshots.set(final.id, accumulateManagedAgentsEvent(snapshots.get(final.id), start(final.id))!);
+    snapshots.set(otherId, accumulateManagedAgentsEvent(snapshots.get(otherId), delta(otherId, 'late'))!);
+
+    expect(snapshots.get(final.id)).toEqual(final);
+    expect(snapshots.get(otherId)?.content).toEqual([{ type: 'text', text: 'late' }]);
+  });
+
+  test('an SDK-decoded replayed start cannot replace its buffered final event', async () => {
+    const events = [start(final.id), delta(final.id, 'unfinished'), final, start(final.id)];
+    const bytes = new TextEncoder().encode(
+      events.map((event) => `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`).join(''),
+    );
+    let requests = 0;
+    const client = new Anthropic({
+      apiKey: 'test-key',
+      baseURL: 'https://example.test',
+      maxRetries: 0,
+      fetch: async (url, init) => {
+        requests++;
+        expect(String(url)).toContain('/v1/sessions/session_test/events/stream');
+        expect(init?.method).toBe('GET');
+        let offset = 0;
+        return new Response(
+          new ReadableStream<Uint8Array>({
+            pull(controller) {
+              if (offset === bytes.length) return controller.close();
+              const end = Math.min(offset + 7, bytes.length);
+              controller.enqueue(bytes.slice(offset, end));
+              offset = end;
+            },
+          }),
+          { headers: { 'content-type': 'text/event-stream' } },
+        );
+      },
+    });
+    let snapshot: BetaManagedAgentsAgentMessageEvent | undefined;
+    let count = 0;
+    for await (const event of await client.beta.sessions.events.stream('session_test', {
+      event_deltas: ['agent.message'],
+    })) {
+      snapshot = accumulateManagedAgentsEvent(snapshot, event);
+      count++;
+    }
+    expect(count).toBe(events.length);
+    expect(requests).toBe(1);
+    expect(snapshot).toEqual(final);
   });
 });
