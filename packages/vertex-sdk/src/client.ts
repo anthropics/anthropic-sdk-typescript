@@ -229,11 +229,10 @@ export class AnthropicVertex extends BaseAnthropic {
       }
     }
 
-    if (
-      options &&
-      (options.path === '/v1/messages/count_tokens' ||
-        (options.path == '/v1/messages/count_tokens?beta=true' && options.method === 'post'))
-    ) {
+    const isCountTokens =
+      options?.method === 'post' && options?.path.split('?')[0] === '/v1/messages/count_tokens';
+
+    if (isCountTokens && options) {
       const canonicalPath = options.path.split('?')[0]!;
       if (url.pathname.endsWith(canonicalPath)) {
         if (!this.projectId) {
@@ -248,12 +247,17 @@ export class AnthropicVertex extends BaseAnthropic {
       }
     }
 
+    const wireHeaders = buildHeaders([googleAuthHeaders, request.headers]).values;
+    if (isCountTokens) {
+      wireHeaders.delete('anthropic-beta');
+    }
+
     const adapted = {
       ...request,
       url: url.toString(),
       // Request/middleware-set headers win over the OAuth headers, preserving
       // the ability to override `Authorization` explicitly.
-      headers: buildHeaders([googleAuthHeaders, request.headers]).values,
+      headers: wireHeaders,
     } as APIRequest;
     if (parsedBody) {
       adapted.body = JSON.stringify(parsedBody);

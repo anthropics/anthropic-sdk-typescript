@@ -215,6 +215,56 @@ describe('AnthropicVertex', () => {
         'https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models/count-tokens:rawPredict',
       );
     });
+
+    test('strips anthropic-beta header from count_tokens requests', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        defaultHeaders: {
+          'anthropic-beta': 'pdfs-2024-09-25',
+        },
+        fetch: mockFetch as any,
+      });
+
+      await client.messages.countTokens(
+        {
+          model: createParams.model,
+          messages: createParams.messages,
+        },
+        {
+          headers: {
+            'anthropic-beta': 'token-counting-2024-11-01',
+          },
+        },
+      );
+
+      const [wireUrl, wireInit] = mockFetch.mock.calls[0]!;
+      expect(wireUrl).toBe(
+        'https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models/count-tokens:rawPredict',
+      );
+      const wireHeaders = new Headers(wireInit.headers);
+      expect(wireHeaders.get('anthropic-beta')).toBeNull();
+    });
+
+    test('strips anthropic-beta header and query param from beta count_tokens requests', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        fetch: mockFetch as any,
+      });
+
+      await client.beta.messages.countTokens({
+        model: createParams.model,
+        messages: createParams.messages,
+      });
+
+      const [wireUrl, wireInit] = mockFetch.mock.calls[0]!;
+      expect(wireUrl).toBe(
+        'https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models/count-tokens:rawPredict',
+      );
+      const wireHeaders = new Headers(wireInit.headers);
+      expect(wireHeaders.get('anthropic-beta')).toBeNull();
+    });
   });
 
   describe('ambient first-party credentials never reach Vertex', () => {
