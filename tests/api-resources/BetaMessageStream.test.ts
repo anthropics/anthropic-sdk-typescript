@@ -1060,3 +1060,82 @@ describe('BetaMessageStream class', () => {
     });
   });
 });
+
+describe('iterator failures between reads', () => {
+  test.each(['paused', 'buffered', 'waiting'] as const)(
+    '%s consumer observes a transport failure',
+    async (state) => {
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch });
+      let controller: ReadableStreamDefaultController<Uint8Array>;
+      const body = new ReadableStream<Uint8Array>({
+        start(value) {
+          controller = value;
+        },
+      });
+      handleRequest(async () => new Response(body, { headers: { 'Content-Type': 'text/event-stream' } }));
+      const stream = client.beta.messages.stream({
+        model: 'claude-sonnet-5-5',
+        max_tokens: 32,
+        messages: [{ role: 'user', content: 'hello' }],
+      });
+      const iterator = stream[Symbol.asyncIterator]();
+      const completion = stream.done().catch((error: unknown) => error);
+      const fixture = await parseSSEFixture(loadFixture('basic_response.txt'));
+      const write = (eventType: string, event: unknown) => {
+        controller.enqueue(
+          new TextEncoder().encode(`event: ${eventType}\ndata: ${JSON.stringify(event)}\n\n`),
+        );
+      };
+      const first = iterator.next();
+      write('message_start', fixture[0]);
+      expect((await first).done).toBe(false);
+      if (state === 'buffered') {
+        const received = stream.emitted('streamEvent');
+        write('content_block_start', fixture[1]);
+        await received;
+      }
+      const pending = state === 'waiting' ? iterator.next().catch((error: unknown) => error) : undefined;
+      controller!.error(new Error('connection interrupted between reads'));
+      const failure = await completion;
+      expect(failure).toBeInstanceOf(Error);
+      if (state === 'buffered') {
+        expect((await iterator.next()).value).toEqual(fixture[1]);
+      }
+      if (pending) {
+        expect(await pending).toBe(failure);
+      } else {
+        await expect(iterator.next()).rejects.toBe(failure);
+      }
+    },
+  );
+
+  test('an abort between reads is not reported as normal completion', async () => {
+    const { fetch, handleRequest } = mockFetch();
+    const client = new Anthropic({ apiKey: 'test-key', fetch });
+    let controller: ReadableStreamDefaultController<Uint8Array>;
+    const body = new ReadableStream<Uint8Array>({
+      start(value) {
+        controller = value;
+      },
+    });
+    handleRequest(async () => new Response(body, { headers: { 'Content-Type': 'text/event-stream' } }));
+    const stream = client.beta.messages.stream({
+      model: 'claude-sonnet-5-5',
+      max_tokens: 32,
+      messages: [{ role: 'user', content: 'hello' }],
+    });
+    const iterator = stream[Symbol.asyncIterator]();
+    const completion = stream.done().catch((error: unknown) => error);
+    const fixture = await parseSSEFixture(loadFixture('basic_response.txt'));
+    const first = iterator.next();
+    controller!.enqueue(
+      new TextEncoder().encode(`event: message_start\ndata: ${JSON.stringify(fixture[0])}\n\n`),
+    );
+    await first;
+    controller!.error(new APIUserAbortError());
+    const failure = await completion;
+    expect(failure).toBeInstanceOf(APIUserAbortError);
+    await expect(iterator.next()).rejects.toBe(failure);
+  });
+});

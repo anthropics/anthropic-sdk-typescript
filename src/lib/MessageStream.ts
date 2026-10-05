@@ -692,6 +692,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
       reject: (error: unknown) => void;
     }[] = [];
     let done = false;
+    let error: AnthropicError | undefined;
 
     this.on('streamEvent', (event) => {
       const reader = readQueue.shift();
@@ -712,6 +713,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
 
     this.on('abort', (err) => {
       done = true;
+      error = err;
       for (const reader of readQueue) {
         reader.reject(err);
       }
@@ -720,6 +722,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
 
     this.on('error', (err) => {
       done = true;
+      error = err;
       for (const reader of readQueue) {
         reader.reject(err);
       }
@@ -729,6 +732,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
     return {
       next: async (): Promise<IteratorResult<MessageStreamEvent>> => {
         if (!pushQueue.length) {
+          if (error) throw error;
           if (done) {
             return { value: undefined, done: true };
           }
