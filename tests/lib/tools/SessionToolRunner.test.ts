@@ -1,3 +1,4 @@
+import Anthropic from '@anthropic-ai/sdk';
 import { SessionToolRunner } from '@anthropic-ai/sdk/lib/tools/SessionToolRunner';
 import type { DispatchedToolCall } from '@anthropic-ai/sdk/lib/tools/SessionToolRunner';
 import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
@@ -753,10 +754,131 @@ describe('SessionToolRunner', () => {
     const out: DispatchedToolCall[] = [];
     for await (const c of runner) out.push(c);
 
-    // Re-executed (and re-posted) once the failed post was retried.
-    expect(runs).toBe(2);
+    // Retry delivery without executing the same tool a second time.
+    expect(runs).toBe(1);
     expect(calls.send.flat().filter((e) => e.type === 'user.tool_result')).toHaveLength(2);
     expect(out.map((c) => c.posted)).toEqual([false, true]);
+  });
+
+  test.each([
+    ['builtin', false, false],
+    ['builtin', true, false],
+    ['custom', false, false],
+    ['custom', true, false],
+    ['builtin', false, true],
+    ['custom', true, true],
+  ] as const)(
+    'reuses the completed %s result after delivery fails (toolError=%s, retryExhausted=%s)',
+    async (kind, toolError, retryExhausted) => {
+      let runs = 0;
+      const tool = makeOkTool('record', async () => {
+        runs++;
+        if (toolError) throw new Error(`recorded failure ${runs}`);
+        return `recorded outcome ${runs}`;
+      });
+      const ev = kind === 'builtin' ? toolUse('tu_saved', 'record') : customToolUse('tu_saved', 'record');
+      const failure = Object.assign(Object.create(APIError.prototype) as APIError, {
+        status: retryExhausted ? 503 : 400,
+      });
+      const { client, calls } = makeFake({
+        streams: [[ev], [], [TERMINATED]],
+        streamErrors: [0, 1],
+        list: [[], [ev], [ev]],
+        sendErrors: [
+          { at: 0, err: failure },
+          { at: 1, err: failure },
+        ],
+      });
+      const runner = new SessionToolRunner('s', { client, tools: [tool], maxIdleMs: 0 });
+      if (retryExhausted) runner._setSendRetryWindow(0);
+      const out: DispatchedToolCall[] = [];
+      for await (const call of runner) out.push(call);
+      expect(runs).toBe(1);
+      expect(out.map((call) => call.posted)).toEqual([false, false, true]);
+      expect(out.every((call) => call.isError === toolError)).toBe(true);
+      expect(calls.send).toHaveLength(3);
+      expect(calls.send[1]).toEqual(calls.send[0]);
+      expect(calls.send[2]).toEqual(calls.send[0]);
+      expect(calls.send[0]![0]).toMatchObject({
+        type: kind === 'builtin' ? 'user.tool_result' : 'user.custom_tool_result',
+        is_error: toolError,
+        content: [{ type: 'text', text: expect.stringContaining('1') }],
+      });
+    },
+  );
+
+  test('does not retry a saved result answered by another client before reconnect', async () => {
+    let runs = 0;
+    const ev = toolUse('tu_external', 'record');
+    const { client, calls } = makeFake({
+      streams: [[ev], [TERMINATED]],
+      streamErrors: [0],
+      list: [[], [ev, { type: 'user.tool_result', id: 'external', tool_use_id: ev['id'] }]],
+      sendErrors: [
+        { at: 0, err: Object.assign(Object.create(APIError.prototype) as APIError, { status: 400 }) },
+      ],
+    });
+    const tool = makeOkTool('record', async () => {
+      runs++;
+      return 'saved';
+    });
+    const runner = new SessionToolRunner('s', { client, tools: [tool], maxIdleMs: 0 });
+    const outcomes: DispatchedToolCall[] = [];
+    for await (const outcome of runner) outcomes.push(outcome);
+    expect(runs).toBe(1);
+    expect(calls.send).toHaveLength(1);
+    expect(outcomes).toHaveLength(1);
+    expect(outcomes[0]!.posted).toBe(false);
+  });
+
+  test('retries the same result through real HTTP and SSE clients without rerunning the tool', async () => {
+    const ev = toolUse('tu_http', 'record');
+    const sent: string[] = [];
+    let streams = 0;
+    let lists = 0;
+    let runs = 0;
+    const client = new Anthropic({
+      apiKey: 'test-key',
+      baseURL: 'http://localhost',
+      maxRetries: 0,
+      fetch: async (input, init) => {
+        const request = new Request(input, init);
+        expect(request.headers.get('x-test-routing')).toBe('retained');
+        const path = new URL(request.url).pathname;
+        if (path.endsWith('/stream')) {
+          streams++;
+          const event = streams === 1 ? ev : TERMINATED;
+          return new Response(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`, {
+            headers: { 'content-type': 'text/event-stream' },
+          });
+        }
+        if (request.method === 'GET') {
+          lists++;
+          return Response.json({ data: lists === 1 ? [] : [ev], has_more: false });
+        }
+        expect(request.method).toBe('POST');
+        sent.push(await request.text());
+        return sent.length === 1 ?
+            Response.json(
+              { type: 'error', error: { type: 'invalid_request_error', message: 'rejected result' } },
+              { status: 400 },
+            )
+          : Response.json({});
+      },
+    });
+    const runner = client.beta.sessions.events.toolRunner('sesn_http', {
+      tools: [makeOkTool('record', async () => `side effect ${++runs}`)],
+      maxIdleMs: 0,
+      requestOptions: { headers: { 'x-test-routing': 'retained' } },
+    });
+    const outcomes: DispatchedToolCall[] = [];
+    for await (const outcome of runner) outcomes.push(outcome);
+    expect(runs).toBe(1);
+    expect(streams).toBe(2);
+    expect(lists).toBe(2);
+    expect(sent).toHaveLength(2);
+    expect(sent[1]).toBe(sent[0]);
+    expect(outcomes.map((outcome) => outcome.posted)).toEqual([false, true]);
   });
 
   // ===== tool calls that need user approval =====
