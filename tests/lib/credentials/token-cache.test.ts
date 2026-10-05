@@ -258,3 +258,70 @@ describe('TokenCache', () => {
     expect(onError).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('TokenCache synchronous provider failures', () => {
+  it.each(['throw', 'reject'] as const)(
+    'serves advisory tokens and backs off after a provider %s',
+    async (failure) => {
+      setFakeNow(1700000000);
+      const error = new Error('provider unavailable');
+      const onError = vi.fn();
+      const provider = vi
+        .fn<AccessTokenProvider>()
+        .mockResolvedValueOnce({ token: 'usable', expiresAt: fakeNow + 90 })
+        .mockImplementationOnce(() => {
+          if (failure === 'throw') throw error;
+          return Promise.reject(error);
+        })
+        .mockResolvedValue({ token: 'refreshed', expiresAt: fakeNow + 3600 });
+      const cache = new TokenCache(provider, onError);
+      expect(await cache.getToken()).toBe('usable');
+      await expect(cache.getToken()).resolves.toBe('usable');
+      await Promise.resolve();
+      expect(onError).toHaveBeenCalledExactlyOnceWith(error);
+      setFakeNow(fakeNow + 2);
+      expect(await cache.getToken()).toBe('usable');
+      expect(provider).toHaveBeenCalledTimes(2);
+      setFakeNow(fakeNow + 4);
+      expect(await cache.getToken()).toBe('usable');
+      await Promise.resolve();
+      expect(await cache.getToken()).toBe('refreshed');
+      expect(provider).toHaveBeenCalledTimes(3);
+    },
+  );
+
+  it('deduplicates simultaneous calls when a provider throws before returning', async () => {
+    const error = new Error('synchronous refresh failure');
+    const provider = vi.fn<AccessTokenProvider>().mockImplementation(() => {
+      throw error;
+    });
+    const cache = new TokenCache(provider);
+    const requests = [cache.getToken(), cache.getToken(), cache.getToken()];
+    const outcomes = await Promise.allSettled(requests);
+    expect(outcomes).toEqual(Array(3).fill({ status: 'rejected', reason: error }));
+    expect(provider).toHaveBeenCalledTimes(1);
+    provider.mockResolvedValue({ token: 'recovered', expiresAt: null });
+    expect(await cache.getToken()).toBe('recovered');
+    expect(await cache.getToken()).toBe('recovered');
+    expect(provider).toHaveBeenCalledTimes(2);
+  });
+
+  it('propagates mandatory synchronous failures and permits a later refresh', async () => {
+    setFakeNow(1700000000);
+    const error = new Error('mandatory refresh unavailable');
+    const onError = vi.fn();
+    const provider = vi
+      .fn<AccessTokenProvider>()
+      .mockResolvedValueOnce({ token: 'expiring', expiresAt: fakeNow + 10 })
+      .mockImplementationOnce(() => {
+        throw error;
+      })
+      .mockResolvedValue({ token: 'recovered', expiresAt: null });
+    const cache = new TokenCache(provider, onError);
+    expect(await cache.getToken()).toBe('expiring');
+    await expect(cache.getToken()).rejects.toBe(error);
+    expect(onError).not.toHaveBeenCalled();
+    expect(await cache.getToken()).toBe('recovered');
+    expect(provider).toHaveBeenCalledTimes(3);
+  });
+});

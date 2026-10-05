@@ -114,7 +114,14 @@ export class TokenCache {
    * (both advisory and mandatory) coalesce into a single provider call.
    */
   private doRefresh(force = false): Promise<AccessToken> {
-    this.pendingRefresh = this.provider(force ? { forceRefresh: true } : undefined).then(
+    let refresh: Promise<AccessToken>;
+    try {
+      refresh = this.provider(force ? { forceRefresh: true } : undefined);
+    } catch (error) {
+      // A provider may fail before returning its promise; use the same refresh error path.
+      refresh = Promise.reject(error);
+    }
+    this.pendingRefresh = refresh.then(
       (token) => {
         this.cached = token;
         this.pendingRefresh = null;
