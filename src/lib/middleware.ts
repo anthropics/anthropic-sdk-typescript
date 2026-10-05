@@ -3,6 +3,7 @@ import { AnthropicError } from '../core/error';
 import type { Middleware, MiddlewareContext, MiddlewareNext } from '../core/middleware';
 import { Stream, type ServerSentEvent } from '../core/streaming';
 import { isAbortError } from '../internal/errors';
+import { linkAbort } from '../internal/utils/abort';
 import { appendHeaderValue } from '../internal/headers';
 import { STAINLESS_HELPER_HEADER } from '../internal/stainless-helper-header';
 import { safeJSON } from '../internal/utils/values';
@@ -405,24 +406,24 @@ interface FallbackStreamArgs {
  */
 function spliceFallbackStream(args: FallbackStreamArgs): Response {
   const controller = new AbortController();
-  const signal = args.request.signal;
-  if (signal?.aborted) {
-    controller.abort(signal.reason);
-  } else {
-    signal?.addEventListener('abort', makeAbort(controller, signal), { once: true });
-  }
+  const detach = linkAbort(args.request.signal, controller);
   const iter = splicedEvents(args, controller);
   const body = new ReadableStream<Uint8Array>({
     async pull(ctrl) {
       try {
         const { value, done } = await iter.next();
-        if (done) return ctrl.close();
+        if (done) {
+          detach();
+          return ctrl.close();
+        }
         ctrl.enqueue(value);
       } catch (err) {
+        detach();
         ctrl.error(err);
       }
     },
     async cancel() {
+      detach();
       controller.abort();
       await iter.return?.(undefined);
     },
@@ -1029,8 +1030,4 @@ function serializeSSE(sse: ServerSentEvent): string {
   if (sse.event !== null) out += `event: ${sse.event}\n`;
   for (const line of sse.data.split('\n')) out += `data: ${line}\n`;
   return out + '\n';
-}
-
-function makeAbort(controller: AbortController, signal: AbortSignal) {
-  return () => controller.abort(signal.reason);
 }

@@ -1,3 +1,5 @@
+import { linkAbort } from '@anthropic-ai/sdk/internal/utils/abort';
+import { getEventListeners } from 'node:events';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { APIRequest } from '@anthropic-ai/sdk/core/api';
@@ -82,6 +84,7 @@ const refusalDelta = (token: string | null = 'tok_abc', hasPrefillClaim = true) 
   });
 
 interface RunOptions extends BetaRefusalFallbackOptions {
+  signal?: AbortSignal;
   fallbacks: BetaFallbackParam[];
   fallbackState?: BetaFallbackState;
   /** Overrides the wire body of the original request (defaults to the JSON-encoded originalBody). */
@@ -131,6 +134,7 @@ async function runMiddleware(
     method: 'post',
     headers: new Headers({ 'anthropic-beta': 'interleaved-thinking-2025-05-14' }),
     body: opts.requestBody ?? JSON.stringify(originalBody),
+    signal: opts.signal ?? null,
   };
 
   const out = await betaRefusalFallbackMiddleware(opts.fallbacks, {
@@ -1139,6 +1143,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — input_transformations', 
 
 describe('betaRefusalFallbackMiddleware (streaming) — cancellation', () => {
   test('cancelling the spliced body aborts an in-flight fallback request', async () => {
+    const external = new AbortController();
     let hopSignal: AbortSignal | null | undefined;
     let call = 0;
     const next = async (req: APIRequest): Promise<Response> => {
@@ -1164,6 +1169,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — cancellation', () => {
       method: 'post',
       headers: new Headers(),
       body: JSON.stringify(ORIGINAL_BODY),
+      signal: external.signal,
     };
 
     const out = await betaRefusalFallbackMiddleware(FALLBACKS)(requestA, next, ctx);
@@ -1187,7 +1193,9 @@ describe('betaRefusalFallbackMiddleware (streaming) — cancellation', () => {
 
     // cancel() must abort the in-flight hop request and resolve promptly
     // rather than waiting for the hop's headers.
+    expect(getEventListeners(external.signal, 'abort')).toHaveLength(1);
     await reader.cancel();
+    expect(getEventListeners(external.signal, 'abort')).toHaveLength(0);
     expect(hopSignal!.aborted).toBe(true);
     // the pending read settles (with a queued chunk or done) instead of hanging
     await pending;
@@ -1446,5 +1454,62 @@ describe('betaRefusalFallbackMiddleware (streaming) — tool-use refusals', () =
       'thinking',
     ]);
     expect(appended.content[2]).toEqual({ type: 'thinking', thinking: 'hmm', signature: 'sig==' });
+  });
+});
+
+describe('streaming fallback abort-listener cleanup', () => {
+  test.each(['accepted', 'fallback', 'exhausted'] as const)(
+    'detaches after %s completion while the caller signal remains reusable',
+    async (outcome) => {
+      const controller = new AbortController();
+      for (let i = 0; i < 3; i++) {
+        const responses =
+          outcome === 'accepted' ?
+            [sseResponse(STREAM_B)]
+          : [sseResponse(STREAM_A), sseResponse(outcome === 'fallback' ? STREAM_B : STREAM_A)];
+        const result = await runMiddleware(
+          { fallbacks: FALLBACKS, signal: controller.signal, onError: () => {} },
+          ORIGINAL_BODY,
+          responses,
+        );
+        expect(result.events.at(-1)?.data.type).toBe('message_stop');
+        expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0);
+        expect(controller.signal.aborted).toBe(false);
+      }
+    },
+  );
+
+  test('detaches after the source body fails', async () => {
+    const controller = new AbortController();
+    const failure = new Error('source read failed');
+    const body = new ReadableStream<Uint8Array>({
+      start(ctrl) {
+        ctrl.error(failure);
+      },
+    });
+    await expect(
+      runMiddleware({ fallbacks: FALLBACKS, signal: controller.signal }, ORIGINAL_BODY, [
+        new Response(body, { headers: { 'content-type': 'text/event-stream' } }),
+      ]),
+    ).rejects.toThrow('source read failed');
+    expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0);
+  });
+});
+
+describe('linked fallback abort reasons', () => {
+  test.each([false, true])('preserves caller reason with pre-aborted=%s', (preAborted) => {
+    const external = new AbortController();
+    const local = new AbortController();
+    const reason = new Error('caller cancelled');
+    if (preAborted) external.abort(reason);
+    const detach = linkAbort(external.signal, local);
+    if (!preAborted) {
+      expect(local.signal.aborted).toBe(false);
+      external.abort(reason);
+    }
+    expect(local.signal.reason).toBe(reason);
+    expect(getEventListeners(external.signal, 'abort')).toHaveLength(0);
+    detach();
+    detach();
   });
 });
