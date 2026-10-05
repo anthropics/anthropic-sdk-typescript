@@ -12,10 +12,10 @@
 export function linkAbort(external: AbortSignal | null | undefined, controller: AbortController): () => void {
   if (!external) return () => {};
   if (external.aborted) {
-    controller.abort();
+    controller.abort(external.reason);
     return () => {};
   }
-  const onAbort = () => controller.abort();
-  external.addEventListener('abort', onAbort);
+  const onAbort = () => controller.abort(external.reason);
+  external.addEventListener('abort', onAbort, { once: true });
   return () => external.removeEventListener('abort', onAbort);
 }
