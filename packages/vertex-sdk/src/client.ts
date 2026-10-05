@@ -131,6 +131,10 @@ export class AnthropicVertex extends BaseAnthropic {
       this._auth =
         opts.googleAuth ?? new GoogleAuth({ scopes: 'https://www.googleapis.com/auth/cloud-platform' });
       this._authClientPromise = this._auth.getClient();
+      // Suppress unhandledRejection if credential discovery fails before
+      // anything awaits the promise; the error surfaces when #adaptRequest()
+      // awaits it on the first request.
+      this._authClientPromise.catch(() => {});
     }
   }
 
