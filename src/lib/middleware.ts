@@ -244,7 +244,7 @@ export function betaRefusalFallbackMiddleware(
       );
     }
 
-    // pin requests sharing the state to the entry being tried
+    // Pin requests sharing the state only after a fallback successfully serves.
     const pin = (index: number) => {
       if (state) {
         state.index = index;
@@ -302,7 +302,6 @@ export function betaRefusalFallbackMiddleware(
       }
 
       index += 1;
-      pin(index);
       const entry = fallbacks[index]!;
       // One `fallback` seam block per model boundary, prepended to the serving
       // hop's content below — the same block shape the server places in
@@ -334,9 +333,15 @@ export function betaRefusalFallbackMiddleware(
     // Chain exhausted on a refusal (or an error/malformed body): surface it
     // verbatim. The array guard keeps a message-shaped body with non-array
     // `content` from throwing at the spread below.
-    if (served?.type !== 'message' || served.stop_reason === 'refusal' || !Array.isArray(served.content)) {
+    if (
+      !res.ok ||
+      served?.type !== 'message' ||
+      served.stop_reason === 'refusal' ||
+      !Array.isArray(served.content)
+    ) {
       return res;
     }
+    pin(index);
     // A fallback hop served (or exhausted the chain with output): prepend the
     // seam blocks so the app-visible `content` opens with one `fallback` block
     // per model boundary. Response init is preserved (same `_request_id`);
@@ -476,7 +481,6 @@ async function* splicedEvents(
   for (let hop = firstHop; hop < fallbacks.length; hop++) {
     const model = fallbacks[hop]!.model;
     const hasNext = hop + 1 < fallbacks.length;
-    pin(hop);
 
     // --- boundary: a `fallback` content block at the next monotonic index ---
     // Emitted before the request, so a hop that fails leaves its boundary in
@@ -588,7 +592,10 @@ async function* splicedEvents(
       onError,
       splice: { iterations, model },
     });
-    if (!b.refused) return;
+    if (!b.refused) {
+      if (b.accepted) pin(hop);
+      return;
+    }
 
     // This hop refused too, with a fresh token: its emitted partial stays in
     // the client's message, becomes the next partial segment, and the chain
@@ -607,6 +614,8 @@ async function* splicedEvents(
 
 /** The outcome of consuming one hop's stream. */
 interface HopOutcome {
+  /** A complete, non-refusal response was received from this hop. */
+  accepted: boolean;
   /** Set when the hop refused with a credit token and an entry remained to chain to. */
   refused: {
     token: string;
@@ -660,6 +669,8 @@ async function* consumeHop(args: {
   const { response, controller, indexBase, hasNext, onError, splice } = args;
   const tracker = new BlockTracker(indexBase);
   let model: string | undefined;
+  let stopReason: BetaRawMessageDeltaEvent['delta']['stop_reason'] | undefined;
+  let completed = false;
   let startUsage: BetaUsage | null = null;
   // A spliced hop's message_start is suppressed, so its `input_transformations`
   // must ride on the re-emitted terminal message_delta — the way a server-side
@@ -701,6 +712,7 @@ async function* consumeHop(args: {
         break;
       }
       case 'message_delta': {
+        if (p.delta.stop_reason != null) stopReason = p.delta.stop_reason;
         if (p.delta.stop_reason === 'refusal') {
           // `fallback_credit_token` is null when the refusal isn't eligible
           // for a fallback credit; without one we don't retry.
@@ -710,6 +722,7 @@ async function* consumeHop(args: {
             yield* tracker.closeOpenBlocks();
             // suppress this hop's message_delta + message_stop
             return {
+              accepted: false,
               refused: {
                 token: details.fallback_credit_token,
                 hasPrefillClaim: details.fallback_has_prefill_claim === true,
@@ -758,13 +771,22 @@ async function* consumeHop(args: {
         }
         break;
       }
+      case 'message_stop':
+        completed = true;
+        break;
     }
 
     // message_stop, ping, error, unrecognised — and for stream A every
     // event — pass through in their original wire bytes.
     yield passthroughSSE(sse);
   }
-  return { refused: null, model, blocks: tracker.contentBlocks(), nextIndex: tracker.nextIndex };
+  return {
+    accepted: completed && stopReason != null && stopReason !== 'refusal',
+    refused: null,
+    model,
+    blocks: tracker.contentBlocks(),
+    nextIndex: tracker.nextIndex,
+  };
 }
 
 /**

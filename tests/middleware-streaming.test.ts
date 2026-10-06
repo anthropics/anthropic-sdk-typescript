@@ -82,6 +82,7 @@ const refusalDelta = (token: string | null = 'tok_abc', hasPrefillClaim = true) 
   });
 
 interface RunOptions extends BetaRefusalFallbackOptions {
+  logger?: MiddlewareContext['logger'];
   fallbacks: BetaFallbackParam[];
   fallbackState?: BetaFallbackState;
   /** Overrides the wire body of the original request (defaults to the JSON-encoded originalBody). */
@@ -122,7 +123,7 @@ async function runMiddleware(
       stream,
       fallbackState: opts.fallbackState,
     } as any,
-    logger: defaultLogger(),
+    logger: opts.logger ?? defaultLogger(),
     parse: async <T>(r: Response): Promise<T> => JSON.parse(await r.clone().text()) as T,
   };
 
@@ -1446,5 +1447,132 @@ describe('betaRefusalFallbackMiddleware (streaming) — tool-use refusals', () =
       'thinking',
     ]);
     expect(appended.content[2]).toEqual({ type: 'thinking', thinking: 'hmm', signature: 'sig==' });
+  });
+});
+
+describe('fallbackState retains only accepted routes', () => {
+  const envelope = (model: string, stop_reason: 'end_turn' | 'refusal') => ({
+    id: 'msg_state',
+    type: 'message',
+    role: 'assistant',
+    model,
+    content: [{ type: 'text', text: 'response' }],
+    stop_reason,
+    stop_sequence: null,
+    stop_details:
+      stop_reason === 'refusal' ? { type: 'refusal', fallback_credit_token: 'token_state' } : null,
+    usage: { input_tokens: 2, output_tokens: 3 },
+  });
+  const acceptedStream = () =>
+    messageStart() +
+    ev({
+      type: 'message_delta',
+      delta: { stop_reason: 'end_turn', stop_sequence: null },
+      usage: { output_tokens: 3 },
+    }) +
+    ev({ type: 'message_stop' });
+
+  test.each([false, true])('failed/exhausted routes leave state intact (stream=%s)', async (stream) => {
+    for (const initial of [undefined, 0]) {
+      for (const outcome of ['refusal', 'http-error', 'malformed', 'served'] as const) {
+        const state = new BetaFallbackState();
+        if (initial !== undefined) state.index = initial;
+        const fallbacks = [{ model: FALLBACK_MODEL }, { model: SECOND_MODEL }];
+        const chain = initial === undefined ? fallbacks.slice(0, 1) : fallbacks;
+        const candidate = chain[chain.length - 1]!.model;
+        const first =
+          stream ?
+            sseResponse(messageStart() + refusalDelta() + ev({ type: 'message_stop' }))
+          : jsonResponse(
+              envelope(initial === undefined ? ORIGINAL_BODY.model : FALLBACK_MODEL, 'refusal'),
+              200,
+            );
+        const last =
+          outcome === 'http-error' ? jsonResponse({ error: { message: 'unavailable' } }, 503)
+          : stream ?
+            sseResponse(
+              outcome === 'refusal' ? messageStart() + refusalDelta() + ev({ type: 'message_stop' })
+              : outcome === 'served' ? acceptedStream()
+              : messageStart(),
+            )
+          : jsonResponse(
+              outcome === 'malformed' ?
+                { type: 'message', content: null }
+              : envelope(candidate, outcome === 'served' ? 'end_turn' : 'refusal'),
+              200,
+            );
+        const onError = vi.fn();
+        const result = await runMiddleware(
+          { fallbacks: chain, fallbackState: state, onError },
+          ORIGINAL_BODY,
+          [first, last],
+          { stream },
+        );
+        expect(result.requests).toHaveLength(2);
+        expect(state.index, `${outcome}, initial=${initial}, stream=${stream}`).toBe(
+          outcome === 'served' ? chain.length - 1 : initial,
+        );
+        const follow = await runMiddleware(
+          { fallbacks: chain, fallbackState: state, onError },
+          ORIGINAL_BODY,
+          [stream ? sseResponse(acceptedStream()) : jsonResponse(envelope('follow-up', 'end_turn'), 200)],
+          { stream },
+        );
+        expect(follow.requests).toHaveLength(1);
+        expect(JSON.parse(follow.requests[0]!.body as string).model).toBe(
+          outcome === 'served' ? candidate
+          : initial === undefined ? ORIGINAL_BODY.model
+          : FALLBACK_MODEL,
+        );
+      }
+    }
+  });
+
+  test.each([false, true])('transport failures do not pin an unserved model (stream=%s)', async (stream) => {
+    for (const initial of [undefined, 0]) {
+      const state = new BetaFallbackState();
+      if (initial !== undefined) state.index = initial;
+      const chain = initial === undefined ? FALLBACKS : [{ model: FALLBACK_MODEL }, { model: SECOND_MODEL }];
+      const first = stream ? sseResponse(STREAM_A) : jsonResponse(envelope('primary', 'refusal'), 200);
+      const error = new TypeError('connection failed');
+      const operation = runMiddleware(
+        { fallbacks: chain, fallbackState: state, onError: vi.fn() },
+        ORIGINAL_BODY,
+        [first, error],
+        { stream },
+      );
+      if (stream) expect((await operation).requests).toHaveLength(2);
+      else await expect(operation).rejects.toBe(error);
+      expect(state.index).toBe(initial);
+    }
+  });
+
+  test('stream must complete before a serving route is pinned', async () => {
+    for (const suffix of [
+      '',
+      ev({ type: 'message_delta', delta: { stop_reason: 'end_turn' }, usage: { output_tokens: 3 } }),
+    ]) {
+      const state = new BetaFallbackState();
+      const result = await runMiddleware({ fallbacks: FALLBACKS, fallbackState: state }, ORIGINAL_BODY, [
+        sseResponse(STREAM_A),
+        sseResponse(messageStart() + suffix),
+      ]);
+      expect(result.requests).toHaveLength(2);
+      expect(state.index).toBeUndefined();
+    }
+  });
+
+  test('missing-state warning is emitted only for a serving fallback', async () => {
+    const logger = { ...defaultLogger(), warn: vi.fn() };
+    await runMiddleware({ fallbacks: FALLBACKS, onError: vi.fn(), logger }, ORIGINAL_BODY, [
+      sseResponse(STREAM_A),
+      sseResponse(messageStart() + refusalDelta() + ev({ type: 'message_stop' })),
+    ]);
+    expect(logger.warn).not.toHaveBeenCalled();
+    await runMiddleware({ fallbacks: FALLBACKS, logger }, ORIGINAL_BODY, [
+      sseResponse(STREAM_A),
+      sseResponse(acceptedStream()),
+    ]);
+    expect(logger.warn).toHaveBeenCalledTimes(1);
   });
 });
