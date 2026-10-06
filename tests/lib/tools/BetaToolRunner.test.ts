@@ -3364,3 +3364,62 @@ describe('ToolRunner', () => {
     });
   });
 });
+
+describe('replacement message ownership', () => {
+  test.each([false, true])('setMessagesParams keeps caller history reusable (stream=%s)', async (stream) => {
+    for (const style of ['value', 'mutator', 'in-place'] as const) {
+      const history: BetaMessageParam[] = [{ role: 'user', content: 'Weather in Paris?' }];
+      const before = structuredClone(history);
+      for (let run = 0; run < 2; run++) {
+        const setup = stream ? setupTest({ stream: true }) : setupTest();
+        const { runner } = setup;
+        const params = { ...runner.params, messages: history };
+        if (style === 'value') runner.setMessagesParams(params);
+        else if (style === 'mutator') runner.setMessagesParams(() => params);
+        else
+          runner.setMessagesParams((current) => {
+            current.messages = history;
+            return current;
+          });
+        if (stream) {
+          setup.handleAssistantMessageStream(getWeatherToolUse('Paris'));
+          setup.handleAssistantMessageStream(getTextContent('Done.'));
+        } else {
+          setup.handleAssistantMessage(getWeatherToolUse('Paris'));
+          setup.handleAssistantMessage(getTextContent('Done.'));
+        }
+        const result = await runner.runUntilDone();
+        expect(result.content[0]).toMatchObject({ type: 'text', text: 'Done.' });
+        expect(history).toEqual(before);
+        expect(params.messages).toBe(history);
+        expect(runner.params.messages).not.toBe(history);
+        expect(runner.params.messages).toHaveLength(4);
+        expect(runner.params.messages[2]).toEqual({ role: 'user', content: [getWeatherToolResult('Paris')] });
+      }
+    }
+  });
+
+  test.each([false, true])('can complete after replacement history is frozen (stream=%s)', async (stream) => {
+    const history: BetaMessageParam[] = [{ role: 'user', content: 'Finish.' }];
+    const setup = stream ? setupTest({ stream: true, tools: [] }) : setupTest({ tools: [] });
+    const { runner } = setup;
+    runner.setMessagesParams({ ...runner.params, messages: history });
+    Object.freeze(history);
+    if (stream) setup.handleAssistantMessageStream(getTextContent('Done.'));
+    else setup.handleAssistantMessage(getTextContent('Done.'));
+    await expect(runner.runUntilDone()).resolves.toMatchObject({ stop_reason: 'end_turn' });
+    expect(history).toEqual([{ role: 'user', content: 'Finish.' }]);
+    expect(runner.params.messages).toHaveLength(2);
+  });
+
+  test('same-history parameter updates preserve the owned history reference', async () => {
+    const { runner, handleAssistantMessage } = setupTest({ tools: [] });
+    const owned = runner.params.messages;
+    runner.setMessagesParams((params) => ({ ...params, max_tokens: 1500 }));
+    expect(runner.params.messages).toBe(owned);
+    handleAssistantMessage(getTextContent('Done.'));
+    await runner.runUntilDone();
+    expect(runner.params.max_tokens).toBe(1500);
+    expect(owned).toHaveLength(2);
+  });
+});
