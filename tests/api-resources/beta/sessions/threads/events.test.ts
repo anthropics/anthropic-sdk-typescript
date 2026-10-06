@@ -7,7 +7,7 @@ const client = new Anthropic({
 
 describe('resource events', () => {
   test('list: only required params', async () => {
-    const responsePromise = client.beta.sessions.threads.events.list('sthr_011CZkZVWa6oIjw0rgXZpnBt', {
+    const responsePromise = client.beta.sessions.threads.events.list('sthr_011CZkZVWa6oJjw1rgXZpnBt', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -20,7 +20,7 @@ describe('resource events', () => {
   });
 
   test('list: required and optional params', async () => {
-    const response = await client.beta.sessions.threads.events.list('sthr_011CZkZVWa6oIjw0rgXZpnBt', {
+    const response = await client.beta.sessions.threads.events.list('sthr_011CZkZVWa6oJjw1rgXZpnBt', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
       limit: 0,
       page: 'page',
@@ -30,7 +30,7 @@ describe('resource events', () => {
   });
 
   test('stream: only required params', async () => {
-    const responsePromise = client.beta.sessions.threads.events.stream('sthr_011CZkZVWa6oIjw0rgXZpnBt', {
+    const responsePromise = client.beta.sessions.threads.events.stream('sthr_011CZkZVWa6oJjw1rgXZpnBt', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -43,7 +43,7 @@ describe('resource events', () => {
   });
 
   test('stream: required and optional params', async () => {
-    const response = await client.beta.sessions.threads.events.stream('sthr_011CZkZVWa6oIjw0rgXZpnBt', {
+    const response = await client.beta.sessions.threads.events.stream('sthr_011CZkZVWa6oJjw1rgXZpnBt', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
       event_deltas: ['agent.message'],
       betas: ['message-batches-2024-09-24'],

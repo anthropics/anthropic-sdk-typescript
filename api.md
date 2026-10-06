@@ -315,6 +315,7 @@ Types:
 - <code><a href="./src/resources/models.ts">ModelCapabilities</a></code>
 - <code><a href="./src/resources/models.ts">ModelInfo</a></code>
 - <code><a href="./src/resources/models.ts">ModelLine</a></code>
+- <code><a href="./src/resources/models.ts">ServerToolsCapability</a></code>
 - <code><a href="./src/resources/models.ts">ThinkingCapability</a></code>
 - <code><a href="./src/resources/models.ts">ThinkingTypes</a></code>
 
@@ -648,6 +649,7 @@ Types:
 - <code><a href="./src/resources/beta/models.ts">BetaModelCapabilities</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaModelInfo</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaModelLine</a></code>
+- <code><a href="./src/resources/beta/models.ts">BetaServerToolsCapability</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaThinkingCapability</a></code>
 - <code><a href="./src/resources/beta/models.ts">BetaThinkingTypes</a></code>
 
@@ -1083,6 +1085,18 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsUserLocation</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchToolConfigParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceAll</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceExcept</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceNone</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceOnly</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceShorthand</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceToolFilter</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceToolFilterParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceToolReference</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceUserInput</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourceUserInputParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSources</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebFetchURLSourcesParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebSearchToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWebSearchToolConfigParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsWriteToolConfig</a></code>

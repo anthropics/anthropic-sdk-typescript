@@ -1348,8 +1348,7 @@ describe('MCP helpers', () => {
       });
     });
 
-    // Skip: mockFetch doesn't work well with multipart form uploads
-    it.skip('uploads MCP resource as file using mcpResourceToFile()', async () => {
+    it('uploads MCP resource as file using mcpResourceToFile()', async () => {
       const { fetch, handleRequest } = mockFetch();
       const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
       const mcpClient = createMockMCPClient();
@@ -1357,6 +1356,8 @@ describe('MCP helpers', () => {
       // Read resource from MCP client
       const resourceResult = await mcpClient.readResource({ uri: 'file:///documents/readme.txt' });
 
+      // Multipart uploads first call fetch('data:,') to check FormData support
+      handleRequest(async () => new Response());
       handleRequest(async () => {
         return new Response(
           JSON.stringify({

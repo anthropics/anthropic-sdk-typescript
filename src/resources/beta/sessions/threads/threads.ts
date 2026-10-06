@@ -21,7 +21,7 @@ export class Threads extends APIResource {
    * ```ts
    * const betaManagedAgentsSessionThread =
    *   await client.beta.sessions.threads.retrieve(
-   *     'sthr_011CZkZVWa6oIjw0rgXZpnBt',
+   *     'sthr_011CZkZVWa6oJjw1rgXZpnBt',
    *     { session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7' },
    *   );
    * ```
@@ -87,7 +87,7 @@ export class Threads extends APIResource {
    * ```ts
    * const betaManagedAgentsSessionThread =
    *   await client.beta.sessions.threads.archive(
-   *     'sthr_011CZkZVWa6oIjw0rgXZpnBt',
+   *     'sthr_011CZkZVWa6oJjw1rgXZpnBt',
    *     { session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7' },
    *   );
    * ```
@@ -115,7 +115,7 @@ export type BetaManagedAgentsSessionThreadsPageCursor = PageCursor<BetaManagedAg
 
 /**
  * An execution thread within a `session`. Each session has one primary thread plus
- * zero or more child threads spawned by the coordinator.
+ * zero or more child threads.
  */
 export interface BetaManagedAgentsSessionThread {
   /**

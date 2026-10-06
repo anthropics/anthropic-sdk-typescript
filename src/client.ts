@@ -76,6 +76,7 @@ import {
   ModelListParams,
   ModelRetrieveParams,
   Models,
+  ServerToolsCapability,
   ThinkingCapability,
   ThinkingTypes,
 } from './resources/models';
@@ -2020,6 +2021,7 @@ export declare namespace Anthropic {
     type ModelCapabilities as ModelCapabilities,
     type ModelInfo as ModelInfo,
     type ModelLine as ModelLine,
+    type ServerToolsCapability as ServerToolsCapability,
     type ThinkingCapability as ThinkingCapability,
     type ThinkingTypes as ThinkingTypes,
     type ModelInfosPage as ModelInfosPage,

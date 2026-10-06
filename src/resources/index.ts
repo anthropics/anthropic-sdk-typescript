@@ -297,6 +297,7 @@ export {
   type ModelCapabilities,
   type ModelInfo,
   type ModelLine,
+  type ServerToolsCapability,
   type ThinkingCapability,
   type ThinkingTypes,
   type ModelRetrieveParams,

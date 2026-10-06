@@ -19,7 +19,7 @@ export class Events extends APIResource {
    * ```ts
    * // Automatically fetches more pages as needed.
    * for await (const betaManagedAgentsSessionEvent of client.beta.sessions.threads.events.list(
-   *   'sthr_011CZkZVWa6oIjw0rgXZpnBt',
+   *   'sthr_011CZkZVWa6oJjw1rgXZpnBt',
    *   { session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7' },
    * )) {
    *   // ...
@@ -56,7 +56,7 @@ export class Events extends APIResource {
    * ```ts
    * const betaManagedAgentsStreamSessionThreadEvents =
    *   await client.beta.sessions.threads.events.stream(
-   *     'sthr_011CZkZVWa6oIjw0rgXZpnBt',
+   *     'sthr_011CZkZVWa6oJjw1rgXZpnBt',
    *     { session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7' },
    *   );
    * ```

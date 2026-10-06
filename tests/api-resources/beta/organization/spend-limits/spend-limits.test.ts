@@ -73,6 +73,7 @@ describe('resource spendLimits', () => {
       amount: '50000',
       scope: { type: 'user', user_id: 'user_01WCz1FkmYMm4gnmykNKUu3Q' },
       period: 'monthly',
+      betas: ['message-batches-2024-09-24'],
     });
   });
 });

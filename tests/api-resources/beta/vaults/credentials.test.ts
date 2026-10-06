@@ -38,7 +38,7 @@ describe('resource credentials', () => {
   });
 
   test('retrieve: only required params', async () => {
-    const responsePromise = client.beta.vaults.credentials.retrieve('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const responsePromise = client.beta.vaults.credentials.retrieve('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -51,7 +51,7 @@ describe('resource credentials', () => {
   });
 
   test('retrieve: required and optional params', async () => {
-    const response = await client.beta.vaults.credentials.retrieve('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const response = await client.beta.vaults.credentials.retrieve('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
       betas: ['message-batches-2024-09-24'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
@@ -59,7 +59,7 @@ describe('resource credentials', () => {
   });
 
   test('update: only required params', async () => {
-    const responsePromise = client.beta.vaults.credentials.update('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const responsePromise = client.beta.vaults.credentials.update('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -72,7 +72,7 @@ describe('resource credentials', () => {
   });
 
   test('update: required and optional params', async () => {
-    const response = await client.beta.vaults.credentials.update('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const response = await client.beta.vaults.credentials.update('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
       auth: {
         type: 'mcp_oauth',
@@ -120,7 +120,7 @@ describe('resource credentials', () => {
   });
 
   test('delete: only required params', async () => {
-    const responsePromise = client.beta.vaults.credentials.delete('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const responsePromise = client.beta.vaults.credentials.delete('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -133,7 +133,7 @@ describe('resource credentials', () => {
   });
 
   test('delete: required and optional params', async () => {
-    const response = await client.beta.vaults.credentials.delete('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const response = await client.beta.vaults.credentials.delete('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
       betas: ['message-batches-2024-09-24'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
@@ -141,7 +141,7 @@ describe('resource credentials', () => {
   });
 
   test('archive: only required params', async () => {
-    const responsePromise = client.beta.vaults.credentials.archive('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const responsePromise = client.beta.vaults.credentials.archive('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -154,7 +154,7 @@ describe('resource credentials', () => {
   });
 
   test('archive: required and optional params', async () => {
-    const response = await client.beta.vaults.credentials.archive('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const response = await client.beta.vaults.credentials.archive('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
       betas: ['message-batches-2024-09-24'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
@@ -162,7 +162,7 @@ describe('resource credentials', () => {
   });
 
   test('mcpOAuthValidate: only required params', async () => {
-    const responsePromise = client.beta.vaults.credentials.mcpOAuthValidate('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const responsePromise = client.beta.vaults.credentials.mcpOAuthValidate('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -175,7 +175,7 @@ describe('resource credentials', () => {
   });
 
   test('mcpOAuthValidate: required and optional params', async () => {
-    const response = await client.beta.vaults.credentials.mcpOAuthValidate('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const response = await client.beta.vaults.credentials.mcpOAuthValidate('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
       betas: ['message-batches-2024-09-24'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',

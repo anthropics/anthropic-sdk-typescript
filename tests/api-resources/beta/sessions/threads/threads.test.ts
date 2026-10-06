@@ -7,7 +7,7 @@ const client = new Anthropic({
 
 describe('resource threads', () => {
   test('retrieve: only required params', async () => {
-    const responsePromise = client.beta.sessions.threads.retrieve('sthr_011CZkZVWa6oIjw0rgXZpnBt', {
+    const responsePromise = client.beta.sessions.threads.retrieve('sthr_011CZkZVWa6oJjw1rgXZpnBt', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -20,7 +20,7 @@ describe('resource threads', () => {
   });
 
   test('retrieve: required and optional params', async () => {
-    const response = await client.beta.sessions.threads.retrieve('sthr_011CZkZVWa6oIjw0rgXZpnBt', {
+    const response = await client.beta.sessions.threads.retrieve('sthr_011CZkZVWa6oJjw1rgXZpnBt', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
       betas: ['message-batches-2024-09-24'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
@@ -55,7 +55,7 @@ describe('resource threads', () => {
   });
 
   test('archive: only required params', async () => {
-    const responsePromise = client.beta.sessions.threads.archive('sthr_011CZkZVWa6oIjw0rgXZpnBt', {
+    const responsePromise = client.beta.sessions.threads.archive('sthr_011CZkZVWa6oJjw1rgXZpnBt', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -68,7 +68,7 @@ describe('resource threads', () => {
   });
 
   test('archive: required and optional params', async () => {
-    const response = await client.beta.sessions.threads.archive('sthr_011CZkZVWa6oIjw0rgXZpnBt', {
+    const response = await client.beta.sessions.threads.archive('sthr_011CZkZVWa6oJjw1rgXZpnBt', {
       session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7',
       betas: ['message-batches-2024-09-24'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',

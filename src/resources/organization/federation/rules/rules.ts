@@ -253,8 +253,9 @@ export interface FederationRule {
   oauth_scope: string;
 
   /**
-   * Identity that tokens minted via this rule act as. Currently always a
-   * `service_account` target.
+   * What this rule targets. Check `type` before reading the other fields. Tokens
+   * minted via a rule whose target `type` is `service_account` act as that service
+   * account.
    */
   target: ServiceAccountTarget;
 
