@@ -513,3 +513,94 @@ describe('MessageStream class', () => {
     await expect(stream).rejects.toThrow(APIConnectionError);
   });
 });
+
+describe('MessageStream emitted cancellation', () => {
+  test.each(['message', 'finalMessage', 'text'] as const)(
+    'rejects pending %s when aborted',
+    async (event) => {
+      const { fetch, handleRequest } = mockFetch();
+      handleRequest(() => new Promise<Response>(() => {}));
+      const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+      const controller = new AbortController();
+      const stream = anthropic.messages.stream(
+        {
+          model: 'claude-haiku-4-5',
+          max_tokens: 1024,
+          messages: [{ role: 'user', content: 'Hello' }],
+        },
+        { signal: controller.signal },
+      );
+      let outcome: unknown = 'pending';
+      const waiting = stream.emitted(event).then(
+        (value) => {
+          outcome = value;
+        },
+        (error) => {
+          outcome = error;
+        },
+      );
+      const aborted = stream.emitted('abort');
+      controller.abort();
+      await expect(stream.done()).rejects.toBeInstanceOf(APIUserAbortError);
+      const reason = await aborted;
+      expect(outcome).toBe(reason);
+      expect(outcome).toBeInstanceOf(APIUserAbortError);
+      await waiting;
+    },
+  );
+
+  test('rejects a pending message wait when output is cancelled', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+    handleStreamEvents((await parseSSEFixture(loadFixture('basic_response.txt'))).slice(0, 2));
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+    const stream = anthropic.messages.stream({
+      model: 'claude-haiku-4-5',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: 'Hello' }],
+    });
+    let outcome: unknown = 'pending';
+    const waiting = stream.emitted('message').then(
+      (value) => {
+        outcome = value;
+      },
+      (error) => {
+        outcome = error;
+      },
+    );
+    stream.on('streamEvent', (event) => {
+      if (event.type === 'content_block_start') stream.abort();
+    });
+    await expect(stream.done()).rejects.toBeInstanceOf(APIUserAbortError);
+    expect(outcome).toBeInstanceOf(APIUserAbortError);
+    await waiting;
+  });
+
+  test('still resolves successful messages and preserves error-event behavior', async () => {
+    const { fetch, handleStreamEvents } = mockFetch();
+    handleStreamEvents(await parseSSEFixture(loadFixture('basic_response.txt')));
+    const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+    const stream = anthropic.messages.stream({
+      model: 'claude-haiku-4-5',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: 'Hello' }],
+    });
+    const waiting = stream.emitted('message');
+    await stream.done();
+    expect(await waiting).toEqual(await stream.finalMessage());
+
+    const bad = mockFetch();
+    bad.handleRequest(async () => {
+      throw new Error('failed fixture');
+    });
+    const failedClient = new Anthropic({ apiKey: 'test-key', fetch: bad.fetch, maxRetries: 0 });
+    const failed = failedClient.messages.stream({
+      model: 'claude-haiku-4-5',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: 'Hello' }],
+    });
+    const errorEvent = failed.emitted('error');
+    const messageError = failed.emitted('message').catch((error) => error);
+    await expect(failed.done()).rejects.toBeInstanceOf(APIConnectionError);
+    expect(await messageError).toBe(await errorEvent);
+  });
+});
