@@ -486,6 +486,40 @@ describe('BetaLocalFilesystemMemoryTool', () => {
         }),
       ).rejects.toThrow('The destination /memories/file2.txt already exists');
     });
+
+    it('should not allow renaming /memories directory itself', async () => {
+      await expect(
+        tool.rename({
+          command: 'rename',
+          old_path: '/memories',
+          new_path: '/memories/archive',
+        }),
+      ).rejects.toThrow('Cannot rename the /memories directory itself');
+
+      await expect(
+        tool.rename({
+          command: 'rename',
+          old_path: '/memories/archive',
+          new_path: '/memories',
+        }),
+      ).rejects.toThrow('Cannot rename the /memories directory itself');
+    });
+
+    it('should not allow renaming a directory into its own subdirectory', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: 'content',
+        path: '/memories/a/file.md',
+      });
+
+      await expect(
+        tool.rename({
+          command: 'rename',
+          old_path: '/memories/a',
+          new_path: '/memories/a/sub',
+        }),
+      ).rejects.toThrow('Cannot rename /memories/a into its own subdirectory /memories/a/sub');
+    });
   });
 
   describe('path validation', () => {
@@ -507,6 +541,31 @@ describe('BetaLocalFilesystemMemoryTool', () => {
           path: '/memories/../../../etc/passwd',
         }),
       ).rejects.toThrow('Path /memories/../../../etc/passwd would escape /memories directory');
+    });
+
+    it('should sanitize filesystem ENOTDIR errors when a parent component is a file without exposing host path', async () => {
+      await tool.create({
+        command: 'create',
+        path: '/memories/a/file.md',
+        file_text: 'x',
+      });
+
+      let caughtError: Error | undefined;
+      try {
+        await tool.create({
+          command: 'create',
+          path: '/memories/a/file.md/child.md',
+          file_text: 'y',
+        });
+      } catch (err: any) {
+        caughtError = err;
+      }
+
+      expect(caughtError).toBeDefined();
+      expect(caughtError!.message).toBe(
+        'A parent of /memories/a/file.md/child.md is a file, not a directory',
+      );
+      expect(caughtError!.message).not.toContain(tempDir);
     });
   });
 
