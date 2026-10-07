@@ -46,7 +46,9 @@ export class SpendLimits extends APIResource {
    * A Claude Console organization's limits come in an order that is stable across
    * pages. A Claude Enterprise organization's are grouped by scope type, in the
    * order `organization`, `seat_tier`, `rbac_group`, `organization_service`, `user`;
-   * within a type they come in a fixed order that is not creation order.
+   * within a type they come in a fixed order that is not creation order. Listing
+   * Claude Console limits is in an early access preview. To request access, contact
+   * your Anthropic account team.
    *
    * @example
    * ```ts
