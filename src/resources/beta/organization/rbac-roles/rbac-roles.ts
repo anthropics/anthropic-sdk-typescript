@@ -74,7 +74,14 @@ export interface BetaRBACRole {
   created_at: string;
 
   /**
-   * Name of the RBAC Role.
+   * Name of the RBAC Role. For a role created by Anthropic, this name can differ
+   * from the label claude.ai shows, and Anthropic may change the name. To keep a
+   * lasting reference to a role, store its `id`.
+   */
+  display_name: string;
+
+  /**
+   * @deprecated Use `display_name` instead; `name` always has the same value.
    */
   name: string;
 

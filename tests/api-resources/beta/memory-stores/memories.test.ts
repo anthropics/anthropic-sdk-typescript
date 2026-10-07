@@ -77,8 +77,7 @@ describe('resource memories', () => {
     });
   });
 
-  // buildURL drops path-level query params
-  test.skip('list', async () => {
+  test('list', async () => {
     const responsePromise = client.beta.memoryStores.memories.list('memory_store_id');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -89,8 +88,7 @@ describe('resource memories', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params
-  test.skip('list: request options and params are passed correctly', async () => {
+  test('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.memoryStores.memories.list(

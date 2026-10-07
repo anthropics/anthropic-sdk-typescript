@@ -297,7 +297,7 @@ in-depth example.
 
 ##### Running tools while the reply streams
 
-By default, the runner runs a reply's tools after your loop body for that reply ends. With `runToolsEagerly: true` and `stream: true`, each tool starts as soon as the model finishes writing its call. To hold a call until your loop body ends, pass it to `runner.deferToolCall()` when you see it. It won't have started yet. `runner.deferredToolCalls` lists the held calls without waiting, so read it after the stream ends.
+By default, the runner runs a reply's tools after your loop body for that reply ends. With `runToolsEagerly: true` and `stream: true`, each tool starts as soon as the model finishes writing its call. A toolset's call starts early too when the toolset's earlier calls have ended, and otherwise waits for the reply. Its `confirm` is still asked before each call runs. To hold a call until your loop body ends, pass it to `runner.deferToolCall()` when you see it. It won't have started yet. `runner.deferredToolCalls` lists the held calls without waiting, so read it after the stream ends.
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
@@ -597,7 +597,7 @@ for await (const message of runner) {
 }
 ```
 
-`addTools()` takes what `tools` takes: runnable tools and raw tool definitions. The whole definition is sent to the model either way.
+`addTools()` takes runnable tools and raw tool definitions, as `tools` does, but not a runnable toolset or a raw definition of a toolset the runner has. The whole definition is sent to the model either way.
 
 - A runnable tool can be called from the request that carries its definition. If a runnable tool of the same name is already there, the new one replaces it straight away: a call the model has already made in the message you're handling runs the new one.
 - A raw definition is sent as given and is never run by the tool runner, which also stops running a tool of the same name. That is what you want for server tools, such as `{ type: 'web_search_20250305', name: 'web_search' }`, which the API runs. A call to a raw client tool gets the same "not found" error result as when it is passed in `tools`.
@@ -618,6 +618,7 @@ A few things to know:
 - The runner doesn't add the beta for you, so pass `betas: ['inline-tools-2026-09-15']`.
 - Changing `tools` with `setMessagesParams()` still works, but misses the prompt cache and does not undo what these methods did.
 - Use either these methods or `tool_addition` / `tool_removal` blocks you append yourself for a given tool, not both.
+- Runnable toolsets, such as a browser or computer toolset, can't be added or removed this way: change them with `setMessagesParams()`, or build a new runner.
 
 #### `BetaToolRunner.setRequestOptions()`
 
@@ -659,7 +660,7 @@ console.log('Message count:', runner.params.messages.length);
 
 ### `ToolError`
 
-When a tool encounters an error, you can throw a `ToolError` to return structured content blocks as the error result instead of just a string message. The ToolRunner will catch this error and send the content back to the model with `is_error: true`.
+When a tool encounters an error, you can throw a `ToolError` to return structured content blocks as the error result instead of just a string message. The ToolRunner will catch this error and send the content back to the model with `is_error: true`. From a browser or computer toolset, only a `ToolError`'s text blocks are sent.
 
 ```ts
 import { ToolError } from '@anthropic-ai/sdk/resources/beta/messages';
@@ -697,6 +698,14 @@ See the following example files for more usage patterns:
 - [`examples/tools-helpers-standard-schema.ts`](examples/tools-helpers-standard-schema.ts) - Standard Schema (Valibot) tools
 - [`examples/tools-helpers-json-schema.ts`](examples/tools-helpers-json-schema.ts) - JSON Schema tools
 - [`examples/tools.ts`](examples/tools.ts) - Basic tool usage
+
+## Browser toolset
+
+The browser toolset has its own guide, [browser-toolset.md](browser-toolset.md): subclassing `BetaAbstractBrowserToolset20260801` to drive a real browser, its options, policies and result types, and how to run one safely.
+
+## Computer toolset
+
+The computer toolset has its own guide, [computer-toolset.md](computer-toolset.md): subclassing `BetaAbstractComputerToolset20260801` to drive a desktop, its options and result types, the coordinate and image rules, and how to run one safely.
 
 # Self-Hosted Environment Runner
 

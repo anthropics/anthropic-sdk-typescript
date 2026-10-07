@@ -73,6 +73,7 @@ describe('resource workspaces', () => {
           after_id: 'after_id',
           before_id: 'before_id',
           include_archived: true,
+          include_default: true,
           limit: 1,
         },
         { path: '/_stainless_unknown_path' },

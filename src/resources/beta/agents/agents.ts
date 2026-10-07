@@ -939,6 +939,7 @@ export interface BetaManagedAgentsMCPToolsetParams {
  * details and options.
  */
 export type BetaManagedAgentsModel =
+  | 'claude-haiku-5-5'
   | 'claude-sonnet-5-5'
   | 'claude-opus-5-5'
   | 'claude-fable-5-1'
@@ -1229,6 +1230,12 @@ export interface BetaManagedAgentsWebFetchToolConfig {
 
   type: 'web_fetch';
 
+  /**
+   * Which sources contribute URLs the tool may fetch, always in the object form.
+   * Null when not set, which allows every source.
+   */
+  url_sources: BetaManagedAgentsWebFetchURLSources | null;
+
   allowed_domains?: Array<string>;
 
   blocked_domains?: Array<string>;
@@ -1284,6 +1291,163 @@ export interface BetaManagedAgentsWebFetchToolConfigParams {
     | null;
 
   type?: 'web_fetch';
+
+  /**
+   * Which sources contribute URLs the tool may fetch. Omit to allow every source.
+   */
+  url_sources?: BetaManagedAgentsWebFetchURLSourcesParams | null;
+}
+
+/**
+ * Every URL from this source may be fetched. This is the default.
+ */
+export interface BetaManagedAgentsWebFetchURLSourceAll {
+  type: 'all';
+}
+
+/**
+ * Every tool's results contribute URLs that may be fetched, except the named
+ * tools' results.
+ */
+export interface BetaManagedAgentsWebFetchURLSourceExcept {
+  /**
+   * The tools whose results do not contribute. Between 1 and 128 entries, each with
+   * a different name. An empty list is rejected; use "all" to leave out no tool's
+   * results.
+   */
+  tools: Array<BetaManagedAgentsWebFetchURLSourceToolReference>;
+
+  type: 'except';
+}
+
+/**
+ * This source contributes no URLs that may be fetched.
+ */
+export interface BetaManagedAgentsWebFetchURLSourceNone {
+  type: 'none';
+}
+
+/**
+ * Only the named tools' results contribute URLs that may be fetched.
+ */
+export interface BetaManagedAgentsWebFetchURLSourceOnly {
+  /**
+   * The tools whose results contribute. Between 1 and 128 entries, each with a
+   * different name. An empty list is rejected; use "none" to allow no tool's
+   * results.
+   */
+  tools: Array<BetaManagedAgentsWebFetchURLSourceToolReference>;
+
+  type: 'only';
+}
+
+/**
+ * String form of a url_sources value that has no field other than its type: "all"
+ * means {"type": "all"} and "none" means {"type": "none"}.
+ */
+export type BetaManagedAgentsWebFetchURLSourceShorthand = 'all' | 'none';
+
+/**
+ * Which tools' results contribute URLs that may be fetched.
+ */
+export type BetaManagedAgentsWebFetchURLSourceToolFilter =
+  | BetaManagedAgentsWebFetchURLSourceAll
+  | BetaManagedAgentsWebFetchURLSourceNone
+  | BetaManagedAgentsWebFetchURLSourceOnly
+  | BetaManagedAgentsWebFetchURLSourceExcept;
+
+/**
+ * Which tools' results contribute URLs that may be fetched. Accepts the string
+ * "all" or "none", or an object whose type is "all", "none", "only" or "except".
+ * Responses use the object form.
+ */
+export type BetaManagedAgentsWebFetchURLSourceToolFilterParams =
+  | BetaManagedAgentsWebFetchURLSourceShorthand
+  | BetaManagedAgentsWebFetchURLSourceToolFilter;
+
+/**
+ * Names one tool in an only or except list.
+ */
+export interface BetaManagedAgentsWebFetchURLSourceToolReference {
+  /**
+   * Name of the tool. Compared exactly, so upper and lower case letters are
+   * different.
+   */
+  name: string;
+
+  /**
+   * Must be "tool_reference".
+   */
+  type: 'tool_reference';
+}
+
+/**
+ * Whether URLs in the text of user messages may be fetched.
+ */
+export type BetaManagedAgentsWebFetchURLSourceUserInput =
+  | BetaManagedAgentsWebFetchURLSourceAll
+  | BetaManagedAgentsWebFetchURLSourceNone;
+
+/**
+ * Whether URLs in the text of user messages may be fetched. Accepts the string
+ * "all" or "none", or the object {"type": "all"} or {"type": "none"}. Responses
+ * use the object form.
+ */
+export type BetaManagedAgentsWebFetchURLSourceUserInputParams =
+  | BetaManagedAgentsWebFetchURLSourceShorthand
+  | BetaManagedAgentsWebFetchURLSourceUserInput;
+
+/**
+ * Which sources contribute URLs the web_fetch tool may fetch. A key that is null
+ * was not set and allows every URL from that source.
+ */
+export interface BetaManagedAgentsWebFetchURLSources {
+  /**
+   * Which custom tools' results contribute URLs that may be fetched. Null when not
+   * set, which allows every custom tool's results.
+   */
+  client_tool_results: BetaManagedAgentsWebFetchURLSourceToolFilter | null;
+
+  /**
+   * Which of the web_search and web_fetch tools' results contribute URLs that may be
+   * fetched. Null when not set, which allows both.
+   */
+  server_tool_results: BetaManagedAgentsWebFetchURLSourceToolFilter | null;
+
+  /**
+   * Whether URLs in the text of user messages may be fetched. Null when not set,
+   * which allows them.
+   */
+  user_input: BetaManagedAgentsWebFetchURLSourceUserInput | null;
+}
+
+/**
+ * Which sources contribute URLs the web_fetch tool may fetch. When web_fetch is
+ * limited to URLs the conversation has already shown the model (in a user message,
+ * a custom tool's result, or an earlier web_search or web_fetch result), each key
+ * narrows one of those sources and defaults to "all". Setting all three keys to
+ * "none" is rejected.
+ */
+export interface BetaManagedAgentsWebFetchURLSourcesParams {
+  /**
+   * Which custom tools' results contribute URLs that may be fetched: "all" (the
+   * default), "none", or an only or except list. Each name in a list must be a
+   * custom tool in the same tools array.
+   */
+  client_tool_results?: BetaManagedAgentsWebFetchURLSourceToolFilterParams | null;
+
+  /**
+   * Which of the web_search and web_fetch tools' results contribute URLs that may be
+   * fetched: "all" (the default), "none", or an only or except list. Each name in a
+   * list must be "web_search" or "web_fetch".
+   */
+  server_tool_results?: BetaManagedAgentsWebFetchURLSourceToolFilterParams | null;
+
+  /**
+   * Whether URLs in the text of user messages may be fetched: "all" (the default) or
+   * "none".
+   */
+  user_input?: BetaManagedAgentsWebFetchURLSourceUserInputParams | null;
 }
 
 /**
@@ -1444,8 +1608,7 @@ export interface AgentCreateParams {
   metadata?: { [key: string]: string };
 
   /**
-   * Body param: Multiagent orchestration configuration. Currently supports the
-   * `coordinator` topology with a roster of 1-20 agents.
+   * Body param: Multiagent orchestration configuration.
    */
   multiagent?: SessionsAPI.BetaManagedAgentsMultiagentParams | null;
 
@@ -1460,7 +1623,7 @@ export interface AgentCreateParams {
   system?: string | null;
 
   /**
-   * Body param: Tool configurations available to the agent. Maximum of 128 tools
+   * Body param: Tool configurations available to the agent. Maximum of 256 tools
    * across all toolsets allowed.
    */
   tools?: Array<
@@ -1563,7 +1726,7 @@ export interface AgentUpdateParams {
 
   /**
    * Body param: Tool configurations available to the agent. Full replacement. Omit
-   * to preserve; send empty array or null to clear. Maximum of 128 tools across all
+   * to preserve; send empty array or null to clear. Maximum of 256 tools across all
    * toolsets allowed.
    */
   tools?: Array<
@@ -1708,6 +1871,18 @@ export declare namespace Agents {
     type BetaManagedAgentsUserLocation as BetaManagedAgentsUserLocation,
     type BetaManagedAgentsWebFetchToolConfig as BetaManagedAgentsWebFetchToolConfig,
     type BetaManagedAgentsWebFetchToolConfigParams as BetaManagedAgentsWebFetchToolConfigParams,
+    type BetaManagedAgentsWebFetchURLSourceAll as BetaManagedAgentsWebFetchURLSourceAll,
+    type BetaManagedAgentsWebFetchURLSourceExcept as BetaManagedAgentsWebFetchURLSourceExcept,
+    type BetaManagedAgentsWebFetchURLSourceNone as BetaManagedAgentsWebFetchURLSourceNone,
+    type BetaManagedAgentsWebFetchURLSourceOnly as BetaManagedAgentsWebFetchURLSourceOnly,
+    type BetaManagedAgentsWebFetchURLSourceShorthand as BetaManagedAgentsWebFetchURLSourceShorthand,
+    type BetaManagedAgentsWebFetchURLSourceToolFilter as BetaManagedAgentsWebFetchURLSourceToolFilter,
+    type BetaManagedAgentsWebFetchURLSourceToolFilterParams as BetaManagedAgentsWebFetchURLSourceToolFilterParams,
+    type BetaManagedAgentsWebFetchURLSourceToolReference as BetaManagedAgentsWebFetchURLSourceToolReference,
+    type BetaManagedAgentsWebFetchURLSourceUserInput as BetaManagedAgentsWebFetchURLSourceUserInput,
+    type BetaManagedAgentsWebFetchURLSourceUserInputParams as BetaManagedAgentsWebFetchURLSourceUserInputParams,
+    type BetaManagedAgentsWebFetchURLSources as BetaManagedAgentsWebFetchURLSources,
+    type BetaManagedAgentsWebFetchURLSourcesParams as BetaManagedAgentsWebFetchURLSourcesParams,
     type BetaManagedAgentsWebSearchToolConfig as BetaManagedAgentsWebSearchToolConfig,
     type BetaManagedAgentsWebSearchToolConfigParams as BetaManagedAgentsWebSearchToolConfigParams,
     type BetaManagedAgentsWriteToolConfig as BetaManagedAgentsWriteToolConfig,

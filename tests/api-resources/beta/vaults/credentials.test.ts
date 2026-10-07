@@ -38,7 +38,7 @@ describe('resource credentials', () => {
   });
 
   test('retrieve: only required params', async () => {
-    const responsePromise = client.beta.vaults.credentials.retrieve('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const responsePromise = client.beta.vaults.credentials.retrieve('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -51,7 +51,7 @@ describe('resource credentials', () => {
   });
 
   test('retrieve: required and optional params', async () => {
-    const response = await client.beta.vaults.credentials.retrieve('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const response = await client.beta.vaults.credentials.retrieve('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
       betas: ['message-batches-2024-09-24'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
@@ -59,7 +59,7 @@ describe('resource credentials', () => {
   });
 
   test('update: only required params', async () => {
-    const responsePromise = client.beta.vaults.credentials.update('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const responsePromise = client.beta.vaults.credentials.update('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -72,7 +72,7 @@ describe('resource credentials', () => {
   });
 
   test('update: required and optional params', async () => {
-    const response = await client.beta.vaults.credentials.update('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const response = await client.beta.vaults.credentials.update('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
       auth: {
         type: 'mcp_oauth',
@@ -91,8 +91,7 @@ describe('resource credentials', () => {
     });
   });
 
-  // buildURL drops path-level query params
-  test.skip('list', async () => {
+  test('list', async () => {
     const responsePromise = client.beta.vaults.credentials.list('vlt_011CZkZDLs7fYzm1hXNPeRjv');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -103,8 +102,7 @@ describe('resource credentials', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params
-  test.skip('list: request options and params are passed correctly', async () => {
+  test('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.vaults.credentials.list(
@@ -122,7 +120,7 @@ describe('resource credentials', () => {
   });
 
   test('delete: only required params', async () => {
-    const responsePromise = client.beta.vaults.credentials.delete('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const responsePromise = client.beta.vaults.credentials.delete('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -135,7 +133,7 @@ describe('resource credentials', () => {
   });
 
   test('delete: required and optional params', async () => {
-    const response = await client.beta.vaults.credentials.delete('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const response = await client.beta.vaults.credentials.delete('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
       betas: ['message-batches-2024-09-24'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
@@ -143,7 +141,7 @@ describe('resource credentials', () => {
   });
 
   test('archive: only required params', async () => {
-    const responsePromise = client.beta.vaults.credentials.archive('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const responsePromise = client.beta.vaults.credentials.archive('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -156,16 +154,15 @@ describe('resource credentials', () => {
   });
 
   test('archive: required and optional params', async () => {
-    const response = await client.beta.vaults.credentials.archive('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+    const response = await client.beta.vaults.credentials.archive('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
       betas: ['message-batches-2024-09-24'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
   });
 
-  // prism can't find endpoint with beta only tag
-  test.skip('mcpOAuthValidate: only required params', async () => {
-    const responsePromise = client.beta.vaults.credentials.mcpOAuthValidate('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+  test('mcpOAuthValidate: only required params', async () => {
+    const responsePromise = client.beta.vaults.credentials.mcpOAuthValidate('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -177,9 +174,8 @@ describe('resource credentials', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // prism can't find endpoint with beta only tag
-  test.skip('mcpOAuthValidate: required and optional params', async () => {
-    const response = await client.beta.vaults.credentials.mcpOAuthValidate('vcrd_011CZkZEMt8gZan2iYOQfSkw', {
+  test('mcpOAuthValidate: required and optional params', async () => {
+    const response = await client.beta.vaults.credentials.mcpOAuthValidate('vcrd_011CZkZEMt8gZan2iYPQfSkw', {
       vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv',
       betas: ['message-batches-2024-09-24'],
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',

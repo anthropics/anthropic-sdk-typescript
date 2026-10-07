@@ -4,6 +4,7 @@ import { LineDecoder, type Bytes } from './line';
 
 export class JSONLDecoder<T> {
   controller: AbortController;
+  #consumed = false;
 
   constructor(
     private iterator: AsyncIterableIterator<Bytes>,
@@ -13,6 +14,11 @@ export class JSONLDecoder<T> {
   }
 
   private async *decoder(): AsyncIterator<T, any, undefined> {
+    if (this.#consumed) {
+      throw new AnthropicError('Cannot iterate over a consumed stream.');
+    }
+    this.#consumed = true;
+
     const lineDecoder = new LineDecoder();
     for await (const chunk of this.iterator) {
       for (const line of lineDecoder.decode(chunk)) {

@@ -52,7 +52,7 @@ export class Credentials extends APIResource {
    * ```ts
    * const betaManagedAgentsCredential =
    *   await client.beta.vaults.credentials.retrieve(
-   *     'vcrd_011CZkZEMt8gZan2iYOQfSkw',
+   *     'vcrd_011CZkZEMt8gZan2iYPQfSkw',
    *     { vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv' },
    *   );
    * ```
@@ -82,7 +82,7 @@ export class Credentials extends APIResource {
    * ```ts
    * const betaManagedAgentsCredential =
    *   await client.beta.vaults.credentials.update(
-   *     'vcrd_011CZkZEMt8gZan2iYOQfSkw',
+   *     'vcrd_011CZkZEMt8gZan2iYPQfSkw',
    *     { vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv' },
    *   );
    * ```
@@ -149,7 +149,7 @@ export class Credentials extends APIResource {
    * ```ts
    * const betaManagedAgentsDeletedCredential =
    *   await client.beta.vaults.credentials.delete(
-   *     'vcrd_011CZkZEMt8gZan2iYOQfSkw',
+   *     'vcrd_011CZkZEMt8gZan2iYPQfSkw',
    *     { vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv' },
    *   );
    * ```
@@ -179,7 +179,7 @@ export class Credentials extends APIResource {
    * ```ts
    * const betaManagedAgentsCredential =
    *   await client.beta.vaults.credentials.archive(
-   *     'vcrd_011CZkZEMt8gZan2iYOQfSkw',
+   *     'vcrd_011CZkZEMt8gZan2iYPQfSkw',
    *     { vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv' },
    *   );
    * ```
@@ -209,7 +209,7 @@ export class Credentials extends APIResource {
    * ```ts
    * const betaManagedAgentsCredentialValidation =
    *   await client.beta.vaults.credentials.mcpOAuthValidate(
-   *     'vcrd_011CZkZEMt8gZan2iYOQfSkw',
+   *     'vcrd_011CZkZEMt8gZan2iYPQfSkw',
    *     { vault_id: 'vlt_011CZkZDLs7fYzm1hXNPeRjv' },
    *   );
    * ```

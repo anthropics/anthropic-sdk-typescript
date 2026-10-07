@@ -126,6 +126,12 @@ type AttachedStore = {
   refusedShas: Map<string, string>;
   /** `{rel → Date.now()}` when first seen missing locally. */
   pendingDeletes: Map<string, number>;
+  /**
+   * `{rel → sha}` of content sent whose outcome is unknown — recorded before
+   * the request, dropped after a successful response, else settled by the
+   * next listing.
+   */
+  sentShas: Map<string, string>;
 };
 
 /** One sync's remote-delete gate and counters. */
@@ -182,6 +188,10 @@ export interface SessionMemoryStoresOptions {
  * - a file the server refuses (too large, invalid content) is skipped —
  *   warned once and retried only after the file changes; other files keep
  *   syncing;
+ * - an upload whose response never arrives may still have been saved, so the
+ *   sha of the bytes sent is remembered until the next sync has listed the
+ *   server: a memory holding exactly that sha is this sync's own upload, not
+ *   a remote edit, and a newer local edit goes out over it;
  * - a file deleted locally is deleted on the server after a delay and a
  *   re-check — never on the first sync that notices, and only up to a
  *   per-sync cap. `syncDeletions` gates it;
@@ -304,6 +314,7 @@ export class SessionMemoryStores {
           baseline: new Map(),
           refusedShas: new Map(),
           pendingDeletes: new Map(),
+          sentShas: new Map(),
         };
         // A root `open` did not create is a dead run's leftovers; the first
         // sync would upload them into the customer's store.
@@ -399,16 +410,17 @@ export class SessionMemoryStores {
         await this.#recover(store, 'the folder or its marker is gone');
         return;
       }
-      // A lone file vanishing is an ordinary deletion; two or more at
-      // once with nothing left is a wiped folder.
-      if (Object.keys(local).length === 0 && store.baseline.size > 1) {
-        await this.#recover(store, 'every memory file is gone at once');
-        return;
-      }
-
       const remote = new Map<string, BetaManagedAgentsMemory>();
       for await (const [rel, item] of this.#listMemories(store.memoryStoreId)) {
         remote.set(rel, item);
+      }
+      this.#settleSent(store, remote);
+      // A lone file vanishing is an ordinary deletion; two or more at
+      // once with nothing left is a wiped folder — counted after settling,
+      // so an upload that landed unheard counts.
+      if (Object.keys(local).length === 0 && store.baseline.size > 1) {
+        await this.#recover(store, 'every memory file is gone at once');
+        return;
       }
 
       const deletes = new DeletePass(
@@ -494,7 +506,10 @@ export class SessionMemoryStores {
         return;
       }
       for (const [rel, sha] of Object.entries(scan.files)) {
-        if (sha !== store.baseline.get(rel) && store.refusedShas.get(rel) !== sha) {
+        // A path with an unsettled send counts even at its baseline sha: the
+        // send may have landed, leaving the server ahead of the file.
+        const changed = sha !== store.baseline.get(rel) || store.sentShas.has(rel);
+        if (changed && store.refusedShas.get(rel) !== sha) {
           dirty.set(rel, sha);
           unsent.add(rel);
         }
@@ -505,6 +520,7 @@ export class SessionMemoryStores {
         if (signal?.aborted) return;
         remote.set(rel, item);
       }
+      this.#settleSent(store, remote);
       const uploads: Array<
         [rel: string, localSha: string | undefined, existing: BetaManagedAgentsMemory | undefined]
       > = [];
@@ -512,6 +528,12 @@ export class SessionMemoryStores {
         const localSha = dirty.get(rel);
         const baseSha = store.baseline.get(rel);
         const existing = remote.get(rel);
+        if (localSha === baseSha) {
+          // Listed only for its unsettled send, which never landed: the file
+          // holds nothing the server lacks.
+          unsent.delete(rel);
+          continue;
+        }
         if (existing !== undefined && existing.content_sha256 === localSha) {
           store.baseline.set(rel, existing.content_sha256);
           unsent.delete(rel);
@@ -590,6 +612,21 @@ export class SessionMemoryStores {
   }
 
   /**
+   * Resolve the uploads whose response never arrived, against a fresh listing.
+   *
+   * A memory holding exactly the sha that was sent is that upload, saved after
+   * all: it enters the baseline, so it reads as synced rather than as a remote
+   * edit. Every record is then dropped — kept past this listing, one would
+   * claim another writer's identical bytes.
+   */
+  #settleSent(store: AttachedStore, remote: Map<string, BetaManagedAgentsMemory>): void {
+    for (const [rel, sha] of store.sentShas) {
+      if (remote.get(rel)?.content_sha256 === sha) store.baseline.set(rel, sha);
+    }
+    store.sentShas.clear();
+  }
+
+  /**
    * Write the marker, then pull every remote memory. Baseline is cleared
    * first so a failed write never leaves an entry whose file is not on disk.
    * Every memory is needed here, so the listing carries the content — pages
@@ -597,6 +634,7 @@ export class SessionMemoryStores {
    */
   async #stampAndPull(store: AttachedStore): Promise<void> {
     store.baseline = new Map();
+    store.sentShas.clear();
     store.pendingDeletes.clear();
     await store.files.put(MARKER_PATH, `version ${MARKER_VERSION}\n${store.memoryStoreId}`);
     for await (const [rel, item] of this.#listMemories(store.memoryStoreId, 'full')) {
@@ -858,6 +896,8 @@ export class SessionMemoryStores {
       const data = await store.files.get(rel);
       if (data === null) return undefined;
       const content = decodeUTF8(data);
+      // Hashed as sent: decoding may have dropped a byte-order mark.
+      store.sentShas.set(rel, crypto.createHash('sha256').update(content, 'utf-8').digest('hex'));
       const item =
         existing ?
           await this.#client.beta.memoryStores.memories.update(existing.id, {
@@ -870,6 +910,7 @@ export class SessionMemoryStores {
             content,
           });
       store.refusedShas.delete(rel);
+      store.sentShas.delete(rel);
       return item.content_sha256;
     } catch (e) {
       if (existing && isStatus(e, 404)) {
@@ -880,7 +921,9 @@ export class SessionMemoryStores {
       if (existing && isStatus(e, 409)) {
         // The precondition lost a race: the remote moved under us, so the push
         // is dropped. The local file is now stale — the next sync sees
-        // remoteChanged and pulls the winner over it.
+        // remoteChanged and pulls the winner over it. A client retry of an
+        // attempt that was saved ends here too, so the sent sha stays for the
+        // next listing to tell the two apart.
         this.#log.warn(
           'memory changed both locally and remotely; the upload was refused and the local edit loses',
           {

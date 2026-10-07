@@ -157,6 +157,17 @@ export class Sessions extends APIResource {
    *   await client.beta.sessions.create({
    *     agent: 'agent_011CZkYpogX7uDKUyvBTophP',
    *     environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
+   *     initial_events: [
+   *       {
+   *         type: 'user.message',
+   *         content: [
+   *           {
+   *             type: 'text',
+   *             text: 'Where is my order #1234?',
+   *           },
+   *         ],
+   *       },
+   *     ],
    *   });
    * ```
    */
@@ -337,7 +348,7 @@ export type BetaManagedAgentsSessionsBidirectionalPageCursor =
 export interface BetaManagedAgentsAdvisorParams {
   /**
    * A Claude model id. The model must be permitted as an advisor for this agent's
-   * model — see the sessions/threads/advisor spec.
+   * model.
    */
   model: string;
 
@@ -620,8 +631,7 @@ export interface BetaManagedAgentsMultiagent {
 }
 
 /**
- * Multiagent orchestration configuration. Currently supports the `coordinator`
- * topology.
+ * Multiagent orchestration configuration.
  */
 export interface BetaManagedAgentsMultiagentParams {
   /**

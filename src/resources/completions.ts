@@ -18,14 +18,7 @@ export class Completions extends APIResource {
    * [migration guide](https://platform.claude.com/docs/en/build-with-claude/working-with-messages)
    * for guidance in migrating from Text Completions to Messages.
    *
-   * @example
-   * ```ts
-   * const completion = await client.completions.create({
-   *   max_tokens_to_sample: 256,
-   *   model: 'claude-2.1',
-   *   prompt: '\n\nHuman: Hello, world!\n\nAssistant:',
-   * });
-   * ```
+   * @deprecated Use the [Messages API](https://platform.claude.com/docs/en/api/messages/create) instead.
    */
   create(params: CompletionCreateParamsNonStreaming, options?: RequestOptions): APIPromise<Completion>;
   create(params: CompletionCreateParamsStreaming, options?: RequestOptions): APIPromise<Stream<Completion>>;
