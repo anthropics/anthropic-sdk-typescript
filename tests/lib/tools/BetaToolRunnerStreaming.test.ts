@@ -14,6 +14,7 @@
 import Anthropic, { APIUserAbortError } from '@anthropic-ai/sdk';
 import { BetaMessageStream } from '@anthropic-ai/sdk/lib/BetaMessageStream';
 import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableTool';
+import type { BetaRunnableToolset } from '@anthropic-ai/sdk/lib/tools/BetaRunnableToolset';
 import type {
   BetaMessage,
   BetaMessageParam,
@@ -22,7 +23,9 @@ import type {
   BetaToolUseBlock,
 } from '@anthropic-ai/sdk/resources/beta';
 import type { BetaRawMessageStreamEvent } from '@anthropic-ai/sdk/resources/beta/messages';
+import { ToolError } from '@anthropic-ai/sdk/lib/tools/ToolError';
 import { mockFetch } from '../mock-fetch';
+import { FakeBrowser, World } from './toolsets/fakes';
 
 describe('a tool runner with `runToolsEagerly`', () => {
   it('starts each tool as soon as the model has moved on from its call', async () => {
@@ -1088,6 +1091,429 @@ describe('a call that has started', () => {
   });
 });
 
+describe('a toolset call', () => {
+  it('runs once, like a function tool call, when the reply is answered twice', async () => {
+    const { runner, timeline } = setup([reply(toolsetCall('a', 'navigate'), call('b'))], {
+      extraTools: (timeline) => [browserToolset(timeline)],
+    });
+
+    for await (const stream of runner) {
+      const message = await stream.finalMessage();
+
+      const response = await runner.generateToolResponse();
+      // pushMessages() drops the cached response, so the second call answers the reply again.
+      runner.pushMessages(assistantTurn(message), response!);
+      expect(await runner.generateToolResponse()).toEqual(response);
+      break;
+    }
+
+    expect(timeline.filter((entry) => entry.endsWith('STARTS'))).toEqual([
+      'toolset navigate STARTS',
+      'lookup(b) STARTS',
+    ]);
+  });
+
+  it('starts while the reply streams, and a function tool after it starts without waiting for it', async () => {
+    const { runner, timeline } = setup([reply(toolsetCall('a', 'navigate'), call('b')), done()], {
+      extraTools: (timeline) => [slowBrowserToolset(timeline)],
+    });
+
+    for await (const stream of runner) {
+      await stream.finalMessage();
+      timeline.push('loop body ends');
+    }
+
+    expect(firstReply(timeline)).toEqual([
+      'toolset navigate STARTS',
+      'lookup(b) STARTS',
+      'loop body ends',
+      'toolset navigate ENDS',
+    ]);
+    expect(resultsSent(runner).map((result) => result.tool_use_id)).toEqual(['toolu_a', 'toolu_b']);
+  });
+
+  it('starts after the loop body without `runToolsEagerly`', async () => {
+    const { runner, timeline } = setupWithoutOption([reply(toolsetCall('a', 'navigate')), done()], {
+      extraTools: (timeline) => [browserToolset(timeline)],
+    });
+
+    for await (const stream of runner) {
+      await stream.finalMessage();
+      timeline.push('loop body ends');
+    }
+
+    expect(firstReply(timeline)).toEqual(['loop body ends', 'toolset navigate STARTS']);
+  });
+
+  it("starts early again once the toolset's earlier call has ended", async () => {
+    const { runner, timeline } = setup(
+      [reply(toolsetCall('a', 'navigate'), toolsetCall('b', 'screenshot'), call('c')), done()],
+      { extraTools: (timeline) => [browserToolset(timeline)] },
+    );
+
+    for await (const stream of runner) {
+      for await (const _event of stream) {
+        // The caller takes a while over each event, so navigate has ended when the model has written screenshot.
+        await new Promise((resolve) => setTimeout(resolve, 1));
+      }
+      timeline.push('loop body ends');
+    }
+
+    expect(firstReply(timeline)).toEqual([
+      'toolset navigate STARTS',
+      'toolset screenshot STARTS',
+      'lookup(c) STARTS',
+      'loop body ends',
+    ]);
+  });
+
+  it("runs a toolset's calls one at a time, in the model's order", async () => {
+    const { runner, timeline } = setup(
+      [reply(toolsetCall('a', 'navigate'), toolsetCall('b', 'screenshot')), done()],
+      { extraTools: (timeline) => [slowBrowserToolset(timeline)] },
+    );
+
+    for await (const stream of runner) {
+      await stream.finalMessage();
+    }
+
+    expect(firstReply(timeline)).toEqual([
+      'toolset navigate STARTS',
+      'toolset navigate ENDS',
+      'toolset screenshot STARTS',
+      'toolset screenshot ENDS',
+    ]);
+  });
+
+  it("doesn't run the toolset's later calls once one of its calls has failed", async () => {
+    const { runner, timeline } = setup(
+      [reply(toolsetCall('a', 'navigate'), toolsetCall('b', 'screenshot'), call('c')), done()],
+      {
+        extraTools: (timeline) => [
+          {
+            type: 'browser_toolset_20260801',
+            run: async (_ctx, toolUse) => {
+              timeline.push(`toolset ${toolUse.name} STARTS`);
+              throw new ToolError('no such page');
+            },
+          },
+        ],
+      },
+    );
+
+    for await (const stream of runner) {
+      await stream.finalMessage();
+      timeline.push('loop body ends');
+    }
+
+    expect(firstReply(timeline)).toEqual(['toolset navigate STARTS', 'lookup(c) STARTS', 'loop body ends']);
+    expect(resultsSent(runner)).toEqual([
+      expect.objectContaining({ tool_use_id: 'toolu_a', is_error: true }),
+      {
+        type: 'tool_result',
+        tool_use_id: 'toolu_b',
+        toolset_name: 'browser',
+        content: 'Not executed: an earlier action in this turn failed.',
+        is_error: true,
+      },
+      { type: 'tool_result', tool_use_id: 'toolu_c', content: 'value of c' },
+    ]);
+  });
+
+  it("that the caller defers holds the toolset's later calls, and not a function tool's", async () => {
+    const { runner, timeline } = setup(
+      [reply(toolsetCall('a', 'navigate'), toolsetCall('b', 'screenshot'), call('c')), done()],
+      { extraTools: (timeline) => [browserToolset(timeline)] },
+    );
+    const listed: string[][] = [];
+
+    for await (const stream of runner) {
+      stream.on('contentBlock', (block) => {
+        if (block.type === 'tool_use' && block.id === 'toolu_a') {
+          runner.deferToolCall(block);
+        }
+      });
+      await stream.finalMessage();
+      listed.push(runner.deferredToolCalls.map((toolUse) => toolUse.id));
+      timeline.push('loop body ends');
+    }
+
+    // Only the call the caller holds is listed, not the toolset's call that waits behind it.
+    expect(listed[0]).toEqual(['toolu_a']);
+    expect(firstReply(timeline)).toEqual([
+      'lookup(c) STARTS',
+      'loop body ends',
+      'toolset navigate STARTS',
+      'toolset screenshot STARTS',
+    ]);
+  });
+
+  it("doesn't start once the caller has left the loop, when it was waiting for the toolset's earlier call", async () => {
+    const { runner, timeline } = setup(
+      [reply(toolsetCall('a', 'navigate'), toolsetCall('b', 'screenshot')), done()],
+      { extraTools: (timeline) => [slowBrowserToolset(timeline)] },
+    );
+
+    for await (const stream of runner) {
+      await stream.finalMessage();
+      timeline.push('caller leaves the loop');
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(timeline).toEqual(['toolset navigate STARTS', 'caller leaves the loop', 'toolset navigate ENDS']);
+  });
+
+  it("can be held while it waits for the toolset's earlier call", async () => {
+    const { runner, timeline } = setup(
+      [reply(toolsetCall('a', 'navigate'), toolsetCall('b', 'screenshot'), call('c')), done()],
+      { extraTools: (timeline) => [slowBrowserToolset(timeline)] },
+    );
+    const listed: string[][] = [];
+
+    for await (const stream of runner) {
+      stream.on('contentBlock', (block) => {
+        // navigate is still running, so screenshot has not started.
+        if (block.type === 'tool_use' && block.id === 'toolu_c') runner.deferToolCall('toolu_b');
+      });
+      await stream.finalMessage();
+      listed.push(runner.deferredToolCalls.map((toolUse) => toolUse.id));
+      timeline.push('loop body ends');
+    }
+
+    expect(listed[0]).toEqual(['toolu_b']);
+    expect(firstReply(timeline)).toEqual([
+      'toolset navigate STARTS',
+      'lookup(c) STARTS',
+      'loop body ends',
+      'toolset navigate ENDS',
+      'toolset screenshot STARTS',
+      'toolset screenshot ENDS',
+    ]);
+  });
+
+  it("isn't run once one of the toolset's calls has failed, when the caller held it and pushed the reply", async () => {
+    const { runner, timeline } = setup(
+      [reply(toolsetCall('a', 'navigate'), toolsetCall('b', 'screenshot')), done()],
+      {
+        extraTools: (timeline) => [
+          {
+            type: 'browser_toolset_20260801',
+            run: async (_ctx, toolUse) => {
+              timeline.push(`toolset ${toolUse.name} RUNS`);
+              if (toolUse.name === 'navigate') throw new ToolError('no such page');
+              return [{ type: 'text', text: 'done' }];
+            },
+          },
+        ],
+      },
+    );
+
+    let results: BetaToolResultBlockParam[] = [];
+    for await (const stream of runner) {
+      runner.deferToolCall('toolu_b');
+      const message = await stream.finalMessage();
+      runner.pushMessages(assistantTurn(message));
+      results = toolResults(await runner.generateToolResponse());
+      break;
+    }
+
+    expect(timeline.filter((entry) => entry.startsWith('toolset'))).toEqual(['toolset navigate RUNS']);
+    expect(results.map((result) => [result.tool_use_id, result.content])).toEqual([
+      ['toolu_a', 'no such page'],
+      ['toolu_b', 'Not executed: an earlier action in this turn failed.'],
+    ]);
+  });
+
+  it("doesn't start once the caller has taken over the history, when it was waiting for the toolset's earlier call", async () => {
+    const { runner, timeline } = setup(
+      [reply(toolsetCall('a', 'navigate'), toolsetCall('b', 'screenshot')), done()],
+      { extraTools: (timeline) => [slowBrowserToolset(timeline)] },
+    );
+
+    let first = true;
+    for await (const stream of runner) {
+      await stream.finalMessage();
+      if (first) {
+        runner.pushMessages({ role: 'user', content: 'Never mind.' });
+        timeline.push('caller takes over');
+        // navigate ends while the loop body is still running.
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      first = false;
+    }
+
+    expect(firstReply(timeline)).toEqual([
+      'toolset navigate STARTS',
+      'caller takes over',
+      'toolset navigate ENDS',
+    ]);
+  });
+
+  it('runs in a turn the caller pushed, after a call of the streamed reply failed', async () => {
+    const { runner, timeline } = setup([reply(toolsetCall('a', 'navigate')), done()], {
+      extraTools: (timeline) => [
+        {
+          type: 'browser_toolset_20260801',
+          run: async (_ctx, toolUse) => {
+            timeline.push(`toolset ${toolUse.id} RUNS`);
+            if (toolUse.id === 'toolu_a') throw new ToolError('no such page');
+            return [{ type: 'text', text: 'navigated' }];
+          },
+        },
+      ],
+    });
+    const pushed: BetaMessageParam = {
+      role: 'assistant',
+      content: [
+        {
+          type: 'tool_use',
+          id: 'toolu_x',
+          name: 'navigate',
+          input: { url: 'https://example.com' },
+          toolset_name: 'browser',
+        },
+      ],
+    };
+
+    let first = true;
+    for await (const stream of runner) {
+      await stream.finalMessage();
+      if (first) runner.pushMessages({ role: 'user', content: 'Never mind.' }, pushed);
+      first = false;
+    }
+
+    expect(firstReply(timeline)).toEqual(['toolset toolu_a RUNS', 'toolset toolu_x RUNS']);
+    expect(resultsSent(runner)).toEqual([
+      {
+        type: 'tool_result',
+        tool_use_id: 'toolu_x',
+        toolset_name: 'browser',
+        content: [{ type: 'text', text: 'navigated' }],
+      },
+    ]);
+  });
+
+  describe('of a toolset with `confirm`', () => {
+    /** A browser toolset that writes to `timeline` when `confirm` is asked and when the driver's tool runs. */
+    function confirmedBrowser(answer: boolean) {
+      return (timeline: string[]) => {
+        const world = new World();
+        world.gate = async (name) => void timeline.push(`driver ${name} RUNS`);
+        return [
+          new FakeBrowser({
+            world,
+            confirm: (ctx) => {
+              timeline.push(`confirm ${ctx.member}`);
+              return answer;
+            },
+          }),
+        ];
+      };
+    }
+
+    const calls = [toolsetCall('a', 'navigate'), toolsetCall('b', 'screenshot', {}), call('c')];
+
+    it('starts while the reply streams, once `confirm` has approved it', async () => {
+      const { runner, timeline } = setup([reply(...calls), done()], { extraTools: confirmedBrowser(true) });
+
+      for await (const stream of runner) {
+        await stream.finalMessage();
+        timeline.push('loop body ends');
+      }
+
+      expect(firstReply(timeline)).toEqual([
+        'confirm navigate',
+        'driver navigate RUNS',
+        'lookup(c) STARTS', // a function tool doesn't wait for the toolset's call
+        'loop body ends',
+        // navigate was still running when the model had written screenshot, so screenshot waited for the reply
+        'confirm screenshot',
+        'driver screenshot RUNS',
+      ]);
+      expect(resultsSent(runner).map((result) => result.is_error ?? false)).toEqual([false, false, false]);
+    });
+
+    it("doesn't run when `confirm` declines it, and neither do the toolset's later calls", async () => {
+      const { runner, timeline } = setup([reply(...calls), done()], { extraTools: confirmedBrowser(false) });
+
+      for await (const stream of runner) {
+        await stream.finalMessage();
+        timeline.push('loop body ends');
+      }
+
+      expect(firstReply(timeline)).toEqual(['confirm navigate', 'lookup(c) STARTS', 'loop body ends']);
+      expect(resultsSent(runner)).toEqual([
+        expect.objectContaining({ tool_use_id: 'toolu_a', toolset_name: 'browser', is_error: true }),
+        {
+          type: 'tool_result',
+          tool_use_id: 'toolu_b',
+          toolset_name: 'browser',
+          content: 'Not executed: an earlier action in this turn failed.',
+          is_error: true,
+        },
+        { type: 'tool_result', tool_use_id: 'toolu_c', content: 'value of c' },
+      ]);
+    });
+  });
+
+  it("isn't run by a function tool with the same name while the reply streams", async () => {
+    const { runner, timeline } = setup([reply(toolsetCall('a', 'navigate')), done()], {
+      extraTools: (timeline) => [functionToolNamedNavigate(timeline), browserToolset(timeline)],
+    });
+
+    for await (const stream of runner) {
+      await stream.finalMessage();
+      timeline.push('loop body ends');
+    }
+
+    expect(firstReply(timeline)).toEqual(['toolset navigate STARTS', 'loop body ends']);
+    expect(resultsSent(runner)).toEqual([
+      {
+        type: 'tool_result',
+        tool_use_id: 'toolu_a',
+        toolset_name: 'browser',
+        content: [{ type: 'text', text: 'navigated' }],
+      },
+    ]);
+  });
+
+  it("with malformed actions stops the toolset's later calls, as it does when the reply isn't streamed", async () => {
+    const malformed: Block = {
+      type: 'tool_use',
+      key: 'a',
+      json: JSON.stringify({ actions: 'not a list' }),
+      name: 'browser',
+    };
+    const { runner, timeline } = setup([reply(malformed, toolsetCall('b', 'navigate')), done()], {
+      extraTools: (timeline) => [browserToolset(timeline)],
+    });
+
+    for await (const stream of runner) {
+      await stream.finalMessage();
+      timeline.push('loop body ends');
+    }
+
+    expect(firstReply(timeline)).toEqual(['loop body ends']);
+    expect(resultsSent(runner)).toEqual([
+      {
+        type: 'tool_result',
+        tool_use_id: 'toolu_a',
+        content:
+          "Error: the 'browser' toolset could not run this call: 'actions' is text, not a list of actions; nothing in the batch was executed",
+        is_error: true,
+      },
+      {
+        type: 'tool_result',
+        tool_use_id: 'toolu_b',
+        toolset_name: 'browser',
+        content: 'Not executed: an earlier action in this turn failed.',
+        is_error: true,
+      },
+    ]);
+  });
+});
+
 // ---------------------------------------------------------------------------------------------------------
 // Fixtures
 // ---------------------------------------------------------------------------------------------------------
@@ -1096,7 +1522,7 @@ type StreamEvent = BetaRawMessageStreamEvent;
 
 /** One content block of a canned reply. */
 type Block =
-  | { type: 'tool_use'; key: string; json: string }
+  | { type: 'tool_use'; key: string; json: string; name?: string; toolsetName?: string }
   | { type: 'text'; text: string }
   | { type: 'fallback' };
 
@@ -1105,6 +1531,17 @@ type Reply = { blocks: Block[]; stopReason: BetaStopReason };
 /** The model calls `lookup({ key })` with the id `toolu_<key>`. `json` is the input as sent, which may be cut off. */
 function call(key: string, json = JSON.stringify({ key })): Block {
   return { type: 'tool_use', key, json };
+}
+
+/** The model calls the member `name` of the browser toolset, with the id `toolu_<key>`. */
+function toolsetCall(key: string, name: string, input: object = { url: 'https://example.com' }): Block {
+  return {
+    type: 'tool_use',
+    key,
+    json: JSON.stringify(input),
+    name,
+    toolsetName: 'browser',
+  };
 }
 
 function text(value: string): Block {
@@ -1224,7 +1661,13 @@ function toEvents({ blocks, stopReason }: Reply): StreamEvent[] {
   const events: StreamEvent[] = [{ type: 'message_start', message: emptyMessage() }];
   blocks.forEach((block, index) => {
     if (block.type === 'tool_use') {
-      const start = { type: 'tool_use' as const, id: `toolu_${block.key}`, name: 'lookup', input: {} };
+      const start = {
+        type: 'tool_use' as const,
+        id: `toolu_${block.key}`,
+        name: block.name ?? 'lookup',
+        input: {},
+        ...(block.toolsetName ? { toolset_name: block.toolsetName } : {}),
+      };
       events.push({ type: 'content_block_start', index, content_block: start });
       events.push({
         type: 'content_block_delta',
@@ -1275,7 +1718,15 @@ function toEvents({ blocks, stopReason }: Reply): StreamEvent[] {
 function toMessage({ blocks, stopReason }: Reply): BetaMessage {
   const content = blocks.flatMap((block): BetaMessage['content'] => {
     if (block.type === 'tool_use') {
-      return [{ type: 'tool_use', id: `toolu_${block.key}`, name: 'lookup', input: JSON.parse(block.json) }];
+      return [
+        {
+          type: 'tool_use',
+          id: `toolu_${block.key}`,
+          name: block.name ?? 'lookup',
+          input: JSON.parse(block.json),
+          ...(block.toolsetName ? { toolset_name: block.toolsetName } : {}),
+        },
+      ];
     }
     return block.type === 'text' ? [{ type: 'text', text: block.text, citations: null }] : [];
   });
@@ -1307,6 +1758,8 @@ type Options = {
   lookup?: (key: string) => Promise<string>;
   /** Whether the timeline also gets `lookup(<key>) returns`. */
   logReturns?: boolean;
+  /** Tools that go into the request after `lookup`. */
+  extraTools?: (timeline: string[]) => Array<BetaRunnableTool<any> | BetaRunnableToolset>;
   messages?: BetaMessageParam[];
 };
 
@@ -1371,7 +1824,7 @@ function fixture(replies: CannedReply[], stream: boolean, options: Options) {
     model: 'claude-haiku-4-5',
     max_tokens: 1024,
     messages: options.messages ?? [{ role: 'user' as const, content: 'Look these up.' }],
-    tools: [lookup],
+    tools: [lookup, ...(options.extraTools?.(timeline) ?? [])],
   };
   const requestOptions = options.signal ? { signal: options.signal } : undefined;
   const labelOf = eventLabeler();
@@ -1387,6 +1840,45 @@ function fixture(replies: CannedReply[], stream: boolean, options: Options) {
     label: labelOf,
     /** Adds a stream event to the timeline, as the caller saw it. */
     see: (event: StreamEvent) => void timeline.push(labelOf(event)),
+  };
+}
+
+/** A function tool that shares its name with a member of the browser toolset. */
+function functionToolNamedNavigate(timeline: string[]): BetaRunnableTool<{ url?: string }> {
+  return {
+    type: 'custom',
+    name: 'navigate',
+    description: 'Opens a page',
+    input_schema: { type: 'object', properties: { url: { type: 'string' } } },
+    run: async () => {
+      timeline.push('function navigate STARTS');
+      return 'function tool ran';
+    },
+    parse: (input: unknown) => input as { url?: string },
+  };
+}
+
+/** A browser toolset whose members write to `timeline` when they start. */
+function browserToolset(timeline: string[]): BetaRunnableToolset {
+  return {
+    type: 'browser_toolset_20260801',
+    run: async (_ctx, toolUse) => {
+      timeline.push(`toolset ${toolUse.name} STARTS`);
+      return [{ type: 'text', text: 'navigated' }];
+    },
+  };
+}
+
+/** A browser toolset whose members take a while. They write to `timeline` when they start and when they end. */
+function slowBrowserToolset(timeline: string[]): BetaRunnableToolset {
+  return {
+    type: 'browser_toolset_20260801',
+    run: async (_ctx, toolUse) => {
+      timeline.push(`toolset ${toolUse.name} STARTS`);
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      timeline.push(`toolset ${toolUse.name} ENDS`);
+      return [{ type: 'text', text: 'done' }];
+    },
   };
 }
 

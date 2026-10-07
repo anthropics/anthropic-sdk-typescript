@@ -25,7 +25,9 @@ export const STAINLESS_HELPER_METHOD_HEADER = 'x-stainless-helper-method';
 export type StainlessHelperHeaderValue =
   | 'BetaToolRunner'
   | 'betaZodTool'
+  | 'browser-toolset'
   | 'compaction'
+  | 'computer-toolset'
   | 'environments-work-poller'
   | 'environments-worker'
   | 'fallback-refusal-middleware'

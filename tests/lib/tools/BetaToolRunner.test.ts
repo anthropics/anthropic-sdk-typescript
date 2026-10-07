@@ -13,6 +13,7 @@ import { BetaRunnableTool, BetaToolRunContext } from '@anthropic-ai/sdk/lib/tool
 import { BetaRawMessageStreamEvent, ToolError } from '@anthropic-ai/sdk/resources/beta/messages';
 import { Fetch } from '@anthropic-ai/sdk/internal/builtin-types';
 import { SDK_HELPER_SYMBOL } from '../../../src/internal/stainless-helper-header';
+import { FakeBrowser } from './toolsets/fakes';
 
 const weatherTool: BetaRunnableTool<{ location: string }> = {
   type: 'custom',
@@ -1780,6 +1781,33 @@ describe('ToolRunner', () => {
       },
     );
 
+    it.each([
+      { stream: false, runToolsEagerly: false },
+      { stream: true, runToolsEagerly: false },
+      { stream: true, runToolsEagerly: true },
+    ])(
+      'sends what `toJSON()` returns for a toolset (stream=$stream, runToolsEagerly=$runToolsEagerly)',
+      async ({ stream, runToolsEagerly }) => {
+        const browser = new FakeBrowser({ toolConfigs: { cache_control: { type: 'ephemeral' } } });
+        const tools = [browser];
+        const { runner, handleRequest } =
+          stream ? setupTest({ stream: true, runToolsEagerly, tools }) : setupTest({ tools });
+        const bodies: Array<Record<string, unknown>> = [];
+
+        reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), stream);
+        await runner.runUntilDone();
+
+        expect(browser.configs).not.toBeNull();
+        expect(bodies[0]!['tools']).toEqual([
+          {
+            type: 'browser_toolset_20260801',
+            cache_control: { type: 'ephemeral' },
+            configs: browser.configs,
+          },
+        ]);
+      },
+    );
+
     it.each(['addTools()', 'pushMessages()', 'messages'])(
       'sends only API fields for a tool added through %s',
       async (via) => {
@@ -2817,6 +2845,54 @@ describe('ToolRunner', () => {
       expect(capturedHelperHeader).toBe('mcpTool, BetaToolRunner');
     });
 
+    it('reads the helpers from the live tools at each request', async () => {
+      // A marked tool added by setMessagesParams after the first turn is sent with the second request, whose header
+      // names it.
+      const { fetch, handleRequest } = mockFetch();
+      const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
+      const seen: Array<string | null> = [];
+      const reply = (content: BetaContentBlock[], stop_reason: string) =>
+        handleRequest(async (_req, init) => {
+          seen.push(init?.headers instanceof Headers ? init.headers.get('x-stainless-helper') : null);
+          return new Response(
+            JSON.stringify({
+              id: `msg_${seen.length}`,
+              type: 'message',
+              role: 'assistant',
+              content,
+              model: 'claude-3-5-sonnet-latest',
+              stop_reason,
+              stop_sequence: null,
+              container: null,
+              context_management: null,
+              usage: { input_tokens: 10, output_tokens: 5 },
+            }),
+            { headers: { 'content-type': 'application/json' } },
+          );
+        });
+      reply([getWeatherToolUse('SF')], 'tool_use');
+      reply([{ type: 'text', text: 'Done', citations: null }], 'end_turn');
+      const mcpMarkedTool = {
+        type: 'custom' as const,
+        name: 'getMCPWeather',
+        input_schema: { type: 'object' as const },
+        run: async () => 'sunny',
+        parse: (input: unknown) => input,
+        [SDK_HELPER_SYMBOL]: 'mcpTool',
+      };
+      const runner = client.beta.messages.toolRunner({
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: 'Hello' }],
+        tools: [weatherTool],
+      });
+      const turns = runner[Symbol.asyncIterator]();
+      await turns.next();
+      runner.setMessagesParams((prev) => ({ ...prev, tools: [...prev.tools, mcpMarkedTool] }));
+      await turns.next();
+      expect(seen).toEqual(['BetaToolRunner', 'mcpTool, BetaToolRunner']);
+    });
+
     it('includes only BetaToolRunner,mcpTool once for multiple MCP tools', async () => {
       const { fetch, handleRequest } = mockFetch();
       const client = new Anthropic({ apiKey: 'test-key', fetch, maxRetries: 0 });
@@ -3362,5 +3438,165 @@ describe('ToolRunner', () => {
       expect(seenStates[0]).toBe(fallbackState);
       expect(seenStates[1]).toBe(fallbackState);
     });
+  });
+
+  it('serializes a toolset for each request, like any other entry in tools', async () => {
+    const toolset: any = {
+      type: 'browser_toolset_20260801',
+      configs: { navigate: { enabled: true } },
+      run: async () => [{ type: 'text', text: 'ok' }],
+      close: async () => {},
+      toJSON() {
+        return { type: this.type, configs: this.configs };
+      },
+    };
+    const mutatingTool: any = {
+      name: 'mutate',
+      description: 'flips a toolset config while the loop is running',
+      input_schema: { type: 'object', properties: {} },
+      run: async () => {
+        toolset.configs = { navigate: { enabled: false } };
+        return 'done';
+      },
+      parse: (i: unknown) => i,
+    };
+    const { runner, handleRequest } = setupTest({ tools: [mutatingTool, toolset] as any });
+    const bodies: Array<Record<string, unknown>> = [];
+    reply(
+      handleRequest,
+      bodies,
+      assistantMessage('tool_use', { type: 'tool_use', id: 't1', name: 'mutate', input: {} }),
+      false,
+    );
+    reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+    await runner.runUntilDone();
+
+    const toolsetOf = (b: any) => (b.tools as any[]).find((t) => t.type === 'browser_toolset_20260801');
+    // The runner keeps no copy of the entry: turn 2 is built after the tool changed `configs`, and sends the change.
+    expect(toolsetOf(bodies[0]).configs).toEqual({ navigate: { enabled: true } });
+    expect(toolsetOf(bodies[1]).configs).toEqual({ navigate: { enabled: false } });
+  });
+
+  it('setMessagesParams can change the toolsets in tools', async () => {
+    const toolset: any = {
+      type: 'browser_toolset_20260801',
+      configs: { navigate: { enabled: true } },
+      run: async () => [{ type: 'text', text: 'ok' }],
+      toJSON() {
+        return { type: this.type, configs: this.configs };
+      },
+    };
+    const { runner, handleRequest } = setupTest({ tools: [weatherTool, toolset] as any });
+    const bodies: Array<Record<string, unknown>> = [];
+    reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('SF')), false);
+    reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+    // a different toolset takes the first one's place, as any other change to `tools` would
+    const another = { ...toolset, configs: { navigate: { enabled: false } } };
+    runner.setMessagesParams((p) => ({ ...p, tools: [weatherTool, another] as any }));
+    await runner.runUntilDone();
+    const toolsetOf = (b: any) => (b.tools as any[]).find((t) => t.type === 'browser_toolset_20260801');
+    expect(bodies.map((b) => toolsetOf(b).configs)).toEqual([
+      { navigate: { enabled: false } },
+      { navigate: { enabled: false } },
+    ]);
+    // and a runner created with no toolset can be given one
+    const { runner: plain } = setupTest({ tools: [weatherTool] });
+    expect(() =>
+      plain.setMessagesParams((p) => ({ ...p, tools: [weatherTool, toolset] as any })),
+    ).not.toThrow();
+  });
+
+  it.each([
+    [
+      'in place',
+      (p: any) => {
+        (p.tools as any[]).push(calculatorTool); // same array reference
+        return p;
+      },
+    ],
+    ['in a new array', (p: any) => ({ ...p, tools: [...p.tools, calculatorTool] })],
+  ])('a tool added to the tool set via setMessagesParams reaches the model (%s)', async (_label, mutate) => {
+    // Function tools pass through as given, so one added later — in place or in a new array — reaches the model.
+    const { runner, handleRequest } = setupTest({ tools: [weatherTool] });
+    const bodies: Array<Record<string, unknown>> = [];
+    runner.setMessagesParams(mutate);
+    reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+    await runner.runUntilDone();
+    const names = ((bodies[0] as any).tools as any[]).map((t) => t.name);
+    expect(names).toContain('calculate');
+  });
+
+  it("a tool pushed onto the caller's tools list during the run reaches the next request", async () => {
+    const tools: BetaRunnableTool<any>[] = [];
+    tools.push({
+      ...weatherTool,
+      run: async (input) => {
+        tools.push(calculatorTool);
+        return weatherTool.run(input);
+      },
+    });
+    const { runner, handleRequest } = setupTest({ tools });
+    const bodies: Array<Record<string, unknown>> = [];
+    reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('SF')), false);
+    reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+    await runner.runUntilDone();
+    expect(bodies.map((b) => (b['tools'] as Array<{ name: string }>).map((t) => t.name))).toEqual([
+      ['getWeather'],
+      ['getWeather', 'calculate'],
+    ]);
+  });
+
+  it('a toolset removed from the tools list during the run is not sent with the next request', async () => {
+    const toolset: any = {
+      type: 'browser_toolset_20260801',
+      configs: {},
+      run: async () => [{ type: 'text', text: 'ok' }],
+      toJSON() {
+        return { type: this.type, configs: this.configs };
+      },
+    };
+    const tools: any[] = [toolset];
+    tools.push({
+      ...weatherTool,
+      run: async (input: { location: string }) => {
+        tools.splice(tools.indexOf(toolset), 1);
+        return weatherTool.run(input);
+      },
+    });
+    const { runner, handleRequest } = setupTest({ tools });
+    const bodies: Array<Record<string, unknown>> = [];
+    reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('SF')), false);
+    reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+    await runner.runUntilDone();
+    expect(
+      bodies.map((b) => (b['tools'] as Array<{ type?: string }>).map((t) => t.type ?? 'custom')),
+    ).toEqual([['browser_toolset_20260801', 'custom'], ['custom']]);
+  });
+
+  it('a toolset pushed onto the tools list during the run is sent with the next request', async () => {
+    const toolset: any = {
+      type: 'browser_toolset_20260801',
+      configs: {},
+      run: async () => [{ type: 'text', text: 'ok' }],
+      toJSON() {
+        return { type: this.type, configs: this.configs };
+      },
+    };
+    const tools: any[] = [];
+    tools.push({
+      ...weatherTool,
+      run: async (input: { location: string }) => {
+        tools.push({ ...toolset });
+        return weatherTool.run(input);
+      },
+    });
+    const { runner, handleRequest } = setupTest({ tools });
+    const bodies: Array<Record<string, unknown>> = [];
+    reply(handleRequest, bodies, assistantMessage('tool_use', getWeatherToolUse('SF')), false);
+    reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), false);
+    await runner.runUntilDone();
+    expect(
+      bodies.map((b) => (b['tools'] as Array<{ type?: string }>).map((t) => t.type ?? 'custom')),
+    ).toEqual([['custom'], ['custom', 'browser_toolset_20260801']]);
   });
 });

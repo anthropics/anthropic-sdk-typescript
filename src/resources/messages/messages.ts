@@ -299,6 +299,11 @@ export interface BashCodeExecutionToolResultErrorParam {
 }
 
 /**
+ * Where to act: either a viewport coordinate or an element reference.
+ */
+export type BrowserClickTarget = BrowserCoordinateTarget | BrowserRefTarget;
+
+/**
  * `close_tab`'s config overrides.
  */
 export interface BrowserCloseTabConfig {
@@ -314,6 +319,55 @@ export interface BrowserCloseTabConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Close the tab with the given tab_id.
+ */
+export interface BrowserCloseTabInput {
+  /**
+   * The tab to close.
+   */
+  tab_id: string;
+}
+
+export interface BrowserCloseTabToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Close the tab with the given tab_id.
+   */
+  input: BrowserCloseTabInput;
+
+  name: 'close_tab';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+/**
+ * A point in the browser viewport, in viewport pixels (the same frame as a
+ * full-viewport screenshot).
+ */
+export interface BrowserCoordinateTarget {
+  type: 'coordinate';
+
+  /**
+   * Pixels from the left edge of the viewport.
+   */
+  x: number;
+
+  /**
+   * Pixels from the top edge of the viewport.
+   */
+  y: number;
 }
 
 /**
@@ -335,6 +389,48 @@ export interface BrowserDoubleClickConfig {
 }
 
 /**
+ * Double left-click at a viewport coordinate or on an element by reference.
+ */
+export interface BrowserDoubleClickInput {
+  /**
+   * Where to act: either a viewport coordinate or an element reference.
+   */
+  target: BrowserClickTarget;
+
+  /**
+   * Optional modifier key chord to hold for the duration of this action (e.g.
+   * "shift", "ctrl+shift", "cmd+alt").
+   */
+  modifiers?: string | null;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserDoubleClickToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Double left-click at a viewport coordinate or on an element by reference.
+   */
+  input: BrowserDoubleClickInput;
+
+  name: 'double_click';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+/**
  * `file_upload`'s config overrides.
  */
 export interface BrowserFileUploadConfig {
@@ -350,6 +446,57 @@ export interface BrowserFileUploadConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Set the value of a file-input element to one or more files. The target must be
+ * an element reference; at least one of paths or document_ids is required.
+ */
+export interface BrowserFileUploadInput {
+  /**
+   * An element on the page, identified by a reference from a prior `read_page` or
+   * `find` result. References are scoped to the tab that produced them and become
+   * stale after navigation or a major re-render.
+   */
+  target: BrowserRefTarget;
+
+  /**
+   * References to files the harness has staged, for deployments where the browser
+   * executor cannot read the caller's filesystem.
+   */
+  document_ids?: Array<string> | null;
+
+  /**
+   * File paths on the browser executor's filesystem.
+   */
+  paths?: Array<string> | null;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserFileUploadToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Set the value of a file-input element to one or more files. The target must be
+   * an element reference; at least one of paths or document_ids is required.
+   */
+  input: BrowserFileUploadInput;
+
+  name: 'file_upload';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
 }
 
 /**
@@ -371,6 +518,44 @@ export interface BrowserFindConfig {
 }
 
 /**
+ * Find elements matching a natural-language description (e.g. "search bar", "add
+ * to cart button") and return up to 20 matches with element references.
+ */
+export interface BrowserFindInput {
+  /**
+   * Natural-language description of the element(s) to find.
+   */
+  query: string;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserFindToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Find elements matching a natural-language description (e.g. "search bar", "add
+   * to cart button") and return up to 20 matches with element references.
+   */
+  input: BrowserFindInput;
+
+  name: 'find';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+/**
  * `form_input`'s config overrides.
  */
 export interface BrowserFormInputConfig {
@@ -389,6 +574,53 @@ export interface BrowserFormInputConfig {
 }
 
 /**
+ * Set the value of a form element (input, textarea, select, checkbox). Use a
+ * boolean for checkboxes, an option value or text for selects.
+ */
+export interface BrowserFormInputInput {
+  /**
+   * An element on the page, identified by a reference from a prior `read_page` or
+   * `find` result. References are scoped to the tab that produced them and become
+   * stale after navigation or a major re-render.
+   */
+  target: BrowserRefTarget;
+
+  /**
+   * The value to set.
+   */
+  value: BrowserFormInputValue;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserFormInputToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Set the value of a form element (input, textarea, select, checkbox). Use a
+   * boolean for checkboxes, an option value or text for selects.
+   */
+  input: BrowserFormInputInput;
+
+  name: 'form_input';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+export type BrowserFormInputValue = string | number | boolean;
+
+/**
  * `get_page_text`'s config overrides.
  */
 export interface BrowserGetPageTextConfig {
@@ -404,6 +636,39 @@ export interface BrowserGetPageTextConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Return the page's visible text content as plain text, prioritizing article
+ * content. Suited to articles, documentation, and other text-heavy pages.
+ */
+export interface BrowserGetPageTextInput {
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserGetPageTextToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Return the page's visible text content as plain text, prioritizing article
+   * content. Suited to articles, documentation, and other text-heavy pages.
+   */
+  input: BrowserGetPageTextInput;
+
+  name: 'get_page_text';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
 }
 
 /**
@@ -425,6 +690,49 @@ export interface BrowserHoldKeyConfig {
 }
 
 /**
+ * Hold a key or key chord down for a duration, then release it. Uses the same key
+ * names and "+" chord syntax as the key action.
+ */
+export interface BrowserHoldKeyInput {
+  /**
+   * Seconds to hold the key down (maximum 30).
+   */
+  duration: number;
+
+  /**
+   * The key or chord to hold.
+   */
+  text: string;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserHoldKeyToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Hold a key or key chord down for a duration, then release it. Uses the same key
+   * names and "+" chord syntax as the key action.
+   */
+  input: BrowserHoldKeyInput;
+
+  name: 'hold_key';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+/**
  * `hover`'s config overrides.
  */
 export interface BrowserHoverConfig {
@@ -440,6 +748,42 @@ export interface BrowserHoverConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Move the cursor to a coordinate or element without clicking.
+ */
+export interface BrowserHoverInput {
+  /**
+   * Where to act: either a viewport coordinate or an element reference.
+   */
+  target: BrowserClickTarget;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserHoverToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Move the cursor to a coordinate or element without clicking.
+   */
+  input: BrowserHoverInput;
+
+  name: 'hover';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
 }
 
 /**
@@ -461,6 +805,46 @@ export interface BrowserJavascriptExecConfig {
 }
 
 /**
+ * Execute JavaScript in the page context and return the value of the last
+ * expression. The code runs with access to the DOM, `window`, and page variables.
+ * Write the expression you want evaluated — do NOT use `return`.
+ */
+export interface BrowserJavascriptExecInput {
+  /**
+   * JavaScript to execute in the page context.
+   */
+  text: string;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserJavascriptExecToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Execute JavaScript in the page context and return the value of the last
+   * expression. The code runs with access to the DOM, `window`, and page variables.
+   * Write the expression you want evaluated — do NOT use `return`.
+   */
+  input: BrowserJavascriptExecInput;
+
+  name: 'javascript_exec';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+/**
  * `key`'s config overrides.
  */
 export interface BrowserKeyConfig {
@@ -476,6 +860,53 @@ export interface BrowserKeyConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Press a key or key chord. Use "+" to combine modifiers with a key (e.g.
+ * "ctrl+a", "cmd+shift+p") and space to sequence presses (e.g. "Backspace
+ * Backspace Delete"). Common names like "Return", "Tab", "Escape", "BackSpace" are
+ * supported.
+ */
+export interface BrowserKeyInput {
+  /**
+   * The key, chord, or space-separated sequence to press.
+   */
+  text: string;
+
+  /**
+   * Number of times to repeat. Default 1.
+   */
+  repeat?: number | null;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserKeyToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Press a key or key chord. Use "+" to combine modifiers with a key (e.g.
+   * "ctrl+a", "cmd+shift+p") and space to sequence presses (e.g. "Backspace
+   * Backspace Delete"). Common names like "Return", "Tab", "Escape", "BackSpace" are
+   * supported.
+   */
+  input: BrowserKeyInput;
+
+  name: 'key';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
 }
 
 /**
@@ -515,6 +946,91 @@ export interface BrowserLeftClickDragConfig {
 }
 
 /**
+ * Press at `from`, drag to `target`, release. Both must be coordinate targets.
+ */
+export interface BrowserLeftClickDragInput {
+  /**
+   * A point in the browser viewport, in viewport pixels (the same frame as a
+   * full-viewport screenshot).
+   */
+  from: BrowserCoordinateTarget;
+
+  /**
+   * A point in the browser viewport, in viewport pixels (the same frame as a
+   * full-viewport screenshot).
+   */
+  target: BrowserCoordinateTarget;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserLeftClickDragToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Press at `from`, drag to `target`, release. Both must be coordinate targets.
+   */
+  input: BrowserLeftClickDragInput;
+
+  name: 'left_click_drag';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+/**
+ * Left-click at a viewport coordinate or on an element by reference.
+ */
+export interface BrowserLeftClickInput {
+  /**
+   * Where to act: either a viewport coordinate or an element reference.
+   */
+  target: BrowserClickTarget;
+
+  /**
+   * Optional modifier key chord to hold for the duration of this action (e.g.
+   * "shift", "ctrl+shift", "cmd+alt").
+   */
+  modifiers?: string | null;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserLeftClickToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Left-click at a viewport coordinate or on an element by reference.
+   */
+  input: BrowserLeftClickInput;
+
+  name: 'left_click';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+/**
  * `left_mouse_down`'s config overrides.
  */
 export interface BrowserLeftMouseDownConfig {
@@ -530,6 +1046,45 @@ export interface BrowserLeftMouseDownConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Press and hold the left mouse button at a viewport coordinate. Pair with
+ * left_mouse_up to perform a custom drag.
+ */
+export interface BrowserLeftMouseDownInput {
+  /**
+   * A point in the browser viewport, in viewport pixels (the same frame as a
+   * full-viewport screenshot).
+   */
+  target: BrowserCoordinateTarget;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserLeftMouseDownToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Press and hold the left mouse button at a viewport coordinate. Pair with
+   * left_mouse_up to perform a custom drag.
+   */
+  input: BrowserLeftMouseDownInput;
+
+  name: 'left_mouse_down';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
 }
 
 /**
@@ -551,6 +1106,43 @@ export interface BrowserLeftMouseUpConfig {
 }
 
 /**
+ * Release the left mouse button at a viewport coordinate.
+ */
+export interface BrowserLeftMouseUpInput {
+  /**
+   * A point in the browser viewport, in viewport pixels (the same frame as a
+   * full-viewport screenshot).
+   */
+  target: BrowserCoordinateTarget;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserLeftMouseUpToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Release the left mouse button at a viewport coordinate.
+   */
+  input: BrowserLeftMouseUpInput;
+
+  name: 'left_mouse_up';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+/**
  * `list_tabs`'s config overrides.
  */
 export interface BrowserListTabsConfig {
@@ -569,6 +1161,136 @@ export interface BrowserListTabsConfig {
 }
 
 /**
+ * List all open tabs with each tab's tab_id, title, and URL.
+ */
+export interface BrowserListTabsInput {}
+
+export interface BrowserListTabsToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * List all open tabs with each tab's tab_id, title, and URL.
+   */
+  input: BrowserListTabsInput;
+
+  name: 'list_tabs';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+/**
+ * The `input` of a browser toolset member `tool_use` block: the member's own
+ * parameters.
+ */
+export type BrowserMemberInput =
+  | BrowserNavigateInput
+  | BrowserListTabsInput
+  | BrowserNewTabInput
+  | BrowserSwitchTabInput
+  | BrowserCloseTabInput
+  | BrowserReadPageInput
+  | BrowserGetPageTextInput
+  | BrowserReadConsoleInput
+  | BrowserReadNetworkInput
+  | BrowserFindInput
+  | BrowserFormInputInput
+  | BrowserFileUploadInput
+  | BrowserScrollToInput
+  | BrowserScreenshotInput
+  | BrowserZoomInput
+  | BrowserLeftClickInput
+  | BrowserRightClickInput
+  | BrowserMiddleClickInput
+  | BrowserDoubleClickInput
+  | BrowserTripleClickInput
+  | BrowserHoverInput
+  | BrowserLeftClickDragInput
+  | BrowserLeftMouseDownInput
+  | BrowserLeftMouseUpInput
+  | BrowserMouseMoveInput
+  | BrowserScrollInput
+  | BrowserTypeInput
+  | BrowserKeyInput
+  | BrowserHoldKeyInput
+  | BrowserWaitInput
+  | BrowserJavascriptExecInput;
+
+export type BrowserMemberName =
+  | 'navigate'
+  | 'list_tabs'
+  | 'new_tab'
+  | 'switch_tab'
+  | 'close_tab'
+  | 'read_page'
+  | 'get_page_text'
+  | 'read_console'
+  | 'read_network'
+  | 'find'
+  | 'form_input'
+  | 'file_upload'
+  | 'scroll_to'
+  | 'screenshot'
+  | 'zoom'
+  | 'left_click'
+  | 'right_click'
+  | 'middle_click'
+  | 'double_click'
+  | 'triple_click'
+  | 'hover'
+  | 'left_click_drag'
+  | 'left_mouse_down'
+  | 'left_mouse_up'
+  | 'mouse_move'
+  | 'scroll'
+  | 'type'
+  | 'key'
+  | 'hold_key'
+  | 'wait'
+  | 'javascript_exec';
+
+export const BROWSER_MEMBER_NAME_VALUES = [
+  'navigate',
+  'list_tabs',
+  'new_tab',
+  'switch_tab',
+  'close_tab',
+  'read_page',
+  'get_page_text',
+  'read_console',
+  'read_network',
+  'find',
+  'form_input',
+  'file_upload',
+  'scroll_to',
+  'screenshot',
+  'zoom',
+  'left_click',
+  'right_click',
+  'middle_click',
+  'double_click',
+  'triple_click',
+  'hover',
+  'left_click_drag',
+  'left_mouse_down',
+  'left_mouse_up',
+  'mouse_move',
+  'scroll',
+  'type',
+  'key',
+  'hold_key',
+  'wait',
+  'javascript_exec',
+] as const;
+
+/**
  * `middle_click`'s config overrides.
  */
 export interface BrowserMiddleClickConfig {
@@ -584,6 +1306,48 @@ export interface BrowserMiddleClickConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Middle-click at a viewport coordinate or on an element by reference.
+ */
+export interface BrowserMiddleClickInput {
+  /**
+   * Where to act: either a viewport coordinate or an element reference.
+   */
+  target: BrowserClickTarget;
+
+  /**
+   * Optional modifier key chord to hold for the duration of this action (e.g.
+   * "shift", "ctrl+shift", "cmd+alt").
+   */
+  modifiers?: string | null;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserMiddleClickToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Middle-click at a viewport coordinate or on an element by reference.
+   */
+  input: BrowserMiddleClickInput;
+
+  name: 'middle_click';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
 }
 
 /**
@@ -605,6 +1369,43 @@ export interface BrowserMouseMoveConfig {
 }
 
 /**
+ * Move the pointer to a viewport coordinate without clicking.
+ */
+export interface BrowserMouseMoveInput {
+  /**
+   * A point in the browser viewport, in viewport pixels (the same frame as a
+   * full-viewport screenshot).
+   */
+  target: BrowserCoordinateTarget;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserMouseMoveToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Move the pointer to a viewport coordinate without clicking.
+   */
+  input: BrowserMouseMoveInput;
+
+  name: 'mouse_move';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+/**
  * `navigate`'s config overrides.
  */
 export interface BrowserNavigateConfig {
@@ -620,6 +1421,44 @@ export interface BrowserNavigateConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Navigate to a URL, or go back/forward/reload in history. The protocol may be
+ * omitted (defaults to https://).
+ */
+export interface BrowserNavigateInput {
+  /**
+   * The URL to navigate to, or "back" / "forward" / "reload" for history navigation.
+   */
+  url: string;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserNavigateToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Navigate to a URL, or go back/forward/reload in history. The protocol may be
+   * omitted (defaults to https://).
+   */
+  input: BrowserNavigateInput;
+
+  name: 'navigate';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
 }
 
 /**
@@ -641,6 +1480,32 @@ export interface BrowserNewTabConfig {
 }
 
 /**
+ * Open a new empty tab and return its tab_id.
+ */
+export interface BrowserNewTabInput {}
+
+export interface BrowserNewTabToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Open a new empty tab and return its tab_id.
+   */
+  input: BrowserNewTabInput;
+
+  name: 'new_tab';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+/**
  * `read_console`'s config overrides.
  */
 export interface BrowserReadConsoleConfig {
@@ -656,6 +1521,41 @@ export interface BrowserReadConsoleConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Return console output (log entries, errors, warnings) accumulated since the
+ * driver attached to the tab and since the last read, one line per entry. An empty
+ * result does not mean no traffic for a tab that predates attach.
+ */
+export interface BrowserReadConsoleInput {
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserReadConsoleToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Return console output (log entries, errors, warnings) accumulated since the
+   * driver attached to the tab and since the last read, one line per entry. An empty
+   * result does not mean no traffic for a tab that predates attach.
+   */
+  input: BrowserReadConsoleInput;
+
+  name: 'read_console';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
 }
 
 /**
@@ -677,6 +1577,41 @@ export interface BrowserReadNetworkConfig {
 }
 
 /**
+ * Return the network requests (method, URL, status, MIME type, timing) recorded
+ * since the driver attached to the tab and since the last read, one line per
+ * entry. An empty result does not mean no traffic for a tab that predates attach.
+ */
+export interface BrowserReadNetworkInput {
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserReadNetworkToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Return the network requests (method, URL, status, MIME type, timing) recorded
+   * since the driver attached to the tab and since the last read, one line per
+   * entry. An empty result does not mean no traffic for a tab that predates attach.
+   */
+  input: BrowserReadNetworkInput;
+
+  name: 'read_network';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+/**
  * `read_page`'s config overrides.
  */
 export interface BrowserReadPageConfig {
@@ -692,6 +1627,76 @@ export interface BrowserReadPageConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+export type BrowserReadPageFilter = 'all' | 'interactive';
+
+/**
+ * Return a structured accessibility tree of the page (or the subtree rooted at
+ * `ref`), with element references like [ref_7] that can be used as targets on
+ * later actions. Output is capped at 50,000 characters — narrow with `ref` or a
+ * smaller `depth` when exceeded.
+ */
+export interface BrowserReadPageInput {
+  /**
+   * Maximum tree depth. Default 15.
+   */
+  depth?: number | null;
+
+  /**
+   * Which elements to include. Omitted: every visible element. "interactive":
+   * interactive elements only. "all": additionally includes off-viewport elements.
+   */
+  filter?: BrowserReadPageFilter | null;
+
+  /**
+   * Element reference to read a subtree from. Omit to read from the page root.
+   */
+  ref?: string | null;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserReadPageToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Return a structured accessibility tree of the page (or the subtree rooted at
+   * `ref`), with element references like [ref_7] that can be used as targets on
+   * later actions. Output is capped at 50,000 characters — narrow with `ref` or a
+   * smaller `depth` when exceeded.
+   */
+  input: BrowserReadPageInput;
+
+  name: 'read_page';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+/**
+ * An element on the page, identified by a reference from a prior `read_page` or
+ * `find` result. References are scoped to the tab that produced them and become
+ * stale after navigation or a major re-render.
+ */
+export interface BrowserRefTarget {
+  /**
+   * An element reference (e.g. "ref_7") returned by a prior `read_page` or `find`
+   * result.
+   */
+  ref: string;
+
+  type: 'ref';
 }
 
 /**
@@ -713,6 +1718,48 @@ export interface BrowserRightClickConfig {
 }
 
 /**
+ * Right-click at a viewport coordinate or on an element by reference.
+ */
+export interface BrowserRightClickInput {
+  /**
+   * Where to act: either a viewport coordinate or an element reference.
+   */
+  target: BrowserClickTarget;
+
+  /**
+   * Optional modifier key chord to hold for the duration of this action (e.g.
+   * "shift", "ctrl+shift", "cmd+alt").
+   */
+  modifiers?: string | null;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserRightClickToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Right-click at a viewport coordinate or on an element by reference.
+   */
+  input: BrowserRightClickInput;
+
+  name: 'right_click';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+/**
  * `screenshot`'s config overrides.
  */
 export interface BrowserScreenshotConfig {
@@ -728,6 +1775,37 @@ export interface BrowserScreenshotConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Capture the current browser viewport.
+ */
+export interface BrowserScreenshotInput {
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserScreenshotToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Capture the current browser viewport.
+   */
+  input: BrowserScreenshotInput;
+
+  name: 'screenshot';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
 }
 
 /**
@@ -748,6 +1826,31 @@ export interface BrowserScrollConfig {
   enabled?: boolean | null;
 }
 
+export type BrowserScrollDirection = 'up' | 'down' | 'left' | 'right';
+
+/**
+ * Scroll at a viewport position. `target` must be a coordinate target.
+ */
+export interface BrowserScrollInput {
+  scroll_direction: BrowserScrollDirection;
+
+  /**
+   * A point in the browser viewport, in viewport pixels (the same frame as a
+   * full-viewport screenshot).
+   */
+  target: BrowserCoordinateTarget;
+
+  /**
+   * Scroll-wheel notches (1–10). Default 3.
+   */
+  scroll_amount?: number | null;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
 /**
  * `scroll_to`'s config overrides.
  */
@@ -764,6 +1867,65 @@ export interface BrowserScrollToConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Scroll an element into view.
+ */
+export interface BrowserScrollToInput {
+  /**
+   * An element on the page, identified by a reference from a prior `read_page` or
+   * `find` result. References are scoped to the tab that produced them and become
+   * stale after navigation or a major re-render.
+   */
+  target: BrowserRefTarget;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserScrollToToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Scroll an element into view.
+   */
+  input: BrowserScrollToInput;
+
+  name: 'scroll_to';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+export interface BrowserScrollToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Scroll at a viewport position. `target` must be a coordinate target.
+   */
+  input: BrowserScrollInput;
+
+  name: 'scroll';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
 }
 
 /**
@@ -940,6 +2102,72 @@ export interface BrowserSwitchTabConfig {
    */
   enabled?: boolean | null;
 }
+
+/**
+ * Make the tab with the given tab_id the active tab — the tab that actions without
+ * a tab_id apply to.
+ */
+export interface BrowserSwitchTabInput {
+  /**
+   * The tab to switch to.
+   */
+  tab_id: string;
+}
+
+export interface BrowserSwitchTabToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Make the tab with the given tab_id the active tab — the tab that actions without
+   * a tab_id apply to.
+   */
+  input: BrowserSwitchTabInput;
+
+  name: 'switch_tab';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+export type BrowserToolUseBlock =
+  | BrowserNavigateToolUseBlock
+  | BrowserListTabsToolUseBlock
+  | BrowserNewTabToolUseBlock
+  | BrowserSwitchTabToolUseBlock
+  | BrowserCloseTabToolUseBlock
+  | BrowserReadPageToolUseBlock
+  | BrowserGetPageTextToolUseBlock
+  | BrowserReadConsoleToolUseBlock
+  | BrowserReadNetworkToolUseBlock
+  | BrowserFindToolUseBlock
+  | BrowserFormInputToolUseBlock
+  | BrowserFileUploadToolUseBlock
+  | BrowserScrollToToolUseBlock
+  | BrowserScreenshotToolUseBlock
+  | BrowserZoomToolUseBlock
+  | BrowserLeftClickToolUseBlock
+  | BrowserRightClickToolUseBlock
+  | BrowserMiddleClickToolUseBlock
+  | BrowserDoubleClickToolUseBlock
+  | BrowserTripleClickToolUseBlock
+  | BrowserHoverToolUseBlock
+  | BrowserLeftClickDragToolUseBlock
+  | BrowserLeftMouseDownToolUseBlock
+  | BrowserLeftMouseUpToolUseBlock
+  | BrowserMouseMoveToolUseBlock
+  | BrowserScrollToolUseBlock
+  | BrowserTypeToolUseBlock
+  | BrowserKeyToolUseBlock
+  | BrowserHoldKeyToolUseBlock
+  | BrowserWaitToolUseBlock
+  | BrowserJavascriptExecToolUseBlock;
 
 /**
  * The browser toolset: a single `tools[]` entry (carrying no `name`) that declares
@@ -1144,6 +2372,50 @@ export interface BrowserTripleClickConfig {
 }
 
 /**
+ * Triple left-click at a viewport coordinate or on an element by reference
+ * (typically selects a line or paragraph).
+ */
+export interface BrowserTripleClickInput {
+  /**
+   * Where to act: either a viewport coordinate or an element reference.
+   */
+  target: BrowserClickTarget;
+
+  /**
+   * Optional modifier key chord to hold for the duration of this action (e.g.
+   * "shift", "ctrl+shift", "cmd+alt").
+   */
+  modifiers?: string | null;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserTripleClickToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Triple left-click at a viewport coordinate or on an element by reference
+   * (typically selects a line or paragraph).
+   */
+  input: BrowserTripleClickInput;
+
+  name: 'triple_click';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+/**
  * `type`'s config overrides.
  */
 export interface BrowserTypeConfig {
@@ -1159,6 +2431,42 @@ export interface BrowserTypeConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Type a literal string at the current focus.
+ */
+export interface BrowserTypeInput {
+  /**
+   * The text to type.
+   */
+  text: string;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserTypeToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Type a literal string at the current focus.
+   */
+  input: BrowserTypeInput;
+
+  name: 'type';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
 }
 
 /**
@@ -1180,6 +2488,42 @@ export interface BrowserWaitConfig {
 }
 
 /**
+ * Pause for the given duration.
+ */
+export interface BrowserWaitInput {
+  /**
+   * Seconds to wait (maximum 30).
+   */
+  duration: number;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserWaitToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Pause for the given duration.
+   */
+  input: BrowserWaitInput;
+
+  name: 'wait';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
+}
+
+/**
  * `zoom`'s config overrides.
  */
 export interface BrowserZoomConfig {
@@ -1195,6 +2539,46 @@ export interface BrowserZoomConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Return a cropped screenshot of the given viewport region, scaled up for closer
+ * inspection — useful for small icons, buttons, or text. Coordinates are in the
+ * same viewport-pixel space as a full screenshot.
+ */
+export interface BrowserZoomInput {
+  /**
+   * [x0, y0, x1, y1] in viewport pixels.
+   */
+  region: Array<number>;
+
+  /**
+   * Tab to act on. Defaults to the active tab when omitted.
+   */
+  tab_id?: string | null;
+}
+
+export interface BrowserZoomToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Return a cropped screenshot of the given viewport region, scaled up for closer
+   * inspection — useful for small icons, buttons, or text. Coordinates are in the
+   * same viewport-pixel space as a full screenshot.
+   */
+  input: BrowserZoomInput;
+
+  name: 'zoom';
+
+  toolset_name: 'browser';
+
+  type: 'tool_use';
 }
 
 export interface CacheControlEphemeral {
@@ -1785,6 +3169,32 @@ export interface ComputerCursorPositionConfig {
 }
 
 /**
+ * Get the current (x, y) pixel coordinate of the cursor.
+ */
+export interface ComputerCursorPositionInput {}
+
+export interface ComputerCursorPositionToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Get the current (x, y) pixel coordinate of the cursor.
+   */
+  input: ComputerCursorPositionInput;
+
+  name: 'cursor_position';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
+}
+
+/**
  * `double_click`'s config overrides.
  */
 export interface ComputerDoubleClickConfig {
@@ -1800,6 +3210,45 @@ export interface ComputerDoubleClickConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Double-click the left mouse button at the specified (x, y) pixel coordinate, or
+ * the current cursor position if `coordinate` is omitted.
+ */
+export interface ComputerDoubleClickInput {
+  /**
+   * (x, y): x pixels from the left edge, y pixels from the top edge.
+   */
+  coordinate?: Array<number> | null;
+
+  /**
+   * Optional key combination to hold down during this action (e.g. "ctrl", "shift",
+   * "ctrl+shift").
+   */
+  text?: string | null;
+}
+
+export interface ComputerDoubleClickToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Double-click the left mouse button at the specified (x, y) pixel coordinate, or
+   * the current cursor position if `coordinate` is omitted.
+   */
+  input: ComputerDoubleClickInput;
+
+  name: 'double_click';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
 }
 
 /**
@@ -1821,6 +3270,44 @@ export interface ComputerHoldKeyConfig {
 }
 
 /**
+ * Hold down a key or key-combination for a specified duration. Uses the same key
+ * syntax as `key`.
+ */
+export interface ComputerHoldKeyInput {
+  /**
+   * Duration to hold the key, in seconds.
+   */
+  duration: number;
+
+  /**
+   * The key or key-combination to hold.
+   */
+  text: string;
+}
+
+export interface ComputerHoldKeyToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Hold down a key or key-combination for a specified duration. Uses the same key
+   * syntax as `key`.
+   */
+  input: ComputerHoldKeyInput;
+
+  name: 'hold_key';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
+}
+
+/**
  * `key`'s config overrides.
  */
 export interface ComputerKeyConfig {
@@ -1836,6 +3323,50 @@ export interface ComputerKeyConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Press a key or key-combination on the keyboard. Use "+" to combine modifiers
+ * with a key (e.g. "ctrl+s", "alt+Tab", "ctrl+shift+Escape"). Key names are
+ * case-insensitive; common names like "Return", "Tab", "Escape", "Up", "Down",
+ * "Left", "Right", "Home", "End", "Page_Up", "Page_Down", "Delete", "BackSpace"
+ * are supported.
+ */
+export interface ComputerKeyInput {
+  /**
+   * The key or key-combination to press.
+   */
+  text: string;
+
+  /**
+   * Number of times to repeat the key press. Default is 1.
+   */
+  repeat?: number | null;
+}
+
+export interface ComputerKeyToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Press a key or key-combination on the keyboard. Use "+" to combine modifiers
+   * with a key (e.g. "ctrl+s", "alt+Tab", "ctrl+shift+Escape"). Key names are
+   * case-insensitive; common names like "Return", "Tab", "Escape", "Up", "Down",
+   * "Left", "Right", "Home", "End", "Page_Up", "Page_Down", "Delete", "BackSpace"
+   * are supported.
+   */
+  input: ComputerKeyInput;
+
+  name: 'key';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
 }
 
 /**
@@ -1875,6 +3406,87 @@ export interface ComputerLeftClickDragConfig {
 }
 
 /**
+ * Click and drag the cursor from `start_coordinate` to `coordinate`.
+ */
+export interface ComputerLeftClickDragInput {
+  /**
+   * (x, y): x pixels from the left edge, y pixels from the top edge.
+   */
+  coordinate: Array<number>;
+
+  /**
+   * (x, y): x pixels from the left edge, y pixels from the top edge.
+   */
+  start_coordinate: Array<number>;
+
+  /**
+   * Optional key combination to hold down during this action (e.g. "ctrl", "shift",
+   * "ctrl+shift").
+   */
+  text?: string | null;
+}
+
+export interface ComputerLeftClickDragToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Click and drag the cursor from `start_coordinate` to `coordinate`.
+   */
+  input: ComputerLeftClickDragInput;
+
+  name: 'left_click_drag';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
+}
+
+/**
+ * Click the left mouse button at the specified (x, y) pixel coordinate, or the
+ * current cursor position if `coordinate` is omitted.
+ */
+export interface ComputerLeftClickInput {
+  /**
+   * (x, y): x pixels from the left edge, y pixels from the top edge.
+   */
+  coordinate?: Array<number> | null;
+
+  /**
+   * Optional key combination to hold down during this action (e.g. "ctrl", "shift",
+   * "ctrl+shift").
+   */
+  text?: string | null;
+}
+
+export interface ComputerLeftClickToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Click the left mouse button at the specified (x, y) pixel coordinate, or the
+   * current cursor position if `coordinate` is omitted.
+   */
+  input: ComputerLeftClickInput;
+
+  name: 'left_click';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
+}
+
+/**
  * `left_mouse_down`'s config overrides.
  */
 export interface ComputerLeftMouseDownConfig {
@@ -1890,6 +3502,32 @@ export interface ComputerLeftMouseDownConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Press and hold the left mouse button at the current cursor position.
+ */
+export interface ComputerLeftMouseDownInput {}
+
+export interface ComputerLeftMouseDownToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Press and hold the left mouse button at the current cursor position.
+   */
+  input: ComputerLeftMouseDownInput;
+
+  name: 'left_mouse_down';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
 }
 
 /**
@@ -1911,6 +3549,94 @@ export interface ComputerLeftMouseUpConfig {
 }
 
 /**
+ * Release the left mouse button.
+ */
+export interface ComputerLeftMouseUpInput {}
+
+export interface ComputerLeftMouseUpToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Release the left mouse button.
+   */
+  input: ComputerLeftMouseUpInput;
+
+  name: 'left_mouse_up';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
+}
+
+/**
+ * The `input` of a computer toolset member `tool_use` block: the member's own
+ * parameters.
+ */
+export type ComputerMemberInput =
+  | ComputerKeyInput
+  | ComputerHoldKeyInput
+  | ComputerTypeInput
+  | ComputerCursorPositionInput
+  | ComputerMouseMoveInput
+  | ComputerLeftMouseDownInput
+  | ComputerLeftMouseUpInput
+  | ComputerLeftClickInput
+  | ComputerLeftClickDragInput
+  | ComputerRightClickInput
+  | ComputerMiddleClickInput
+  | ComputerDoubleClickInput
+  | ComputerTripleClickInput
+  | ComputerScrollInput
+  | ComputerWaitInput
+  | ComputerScreenshotInput
+  | ComputerZoomInput;
+
+export type ComputerMemberName =
+  | 'key'
+  | 'hold_key'
+  | 'type'
+  | 'cursor_position'
+  | 'mouse_move'
+  | 'left_mouse_down'
+  | 'left_mouse_up'
+  | 'left_click'
+  | 'left_click_drag'
+  | 'right_click'
+  | 'middle_click'
+  | 'double_click'
+  | 'triple_click'
+  | 'scroll'
+  | 'wait'
+  | 'screenshot'
+  | 'zoom';
+
+export const COMPUTER_MEMBER_NAME_VALUES = [
+  'key',
+  'hold_key',
+  'type',
+  'cursor_position',
+  'mouse_move',
+  'left_mouse_down',
+  'left_mouse_up',
+  'left_click',
+  'left_click_drag',
+  'right_click',
+  'middle_click',
+  'double_click',
+  'triple_click',
+  'scroll',
+  'wait',
+  'screenshot',
+  'zoom',
+] as const;
+
+/**
  * `middle_click`'s config overrides.
  */
 export interface ComputerMiddleClickConfig {
@@ -1926,6 +3652,45 @@ export interface ComputerMiddleClickConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Click the middle mouse button at the specified (x, y) pixel coordinate, or the
+ * current cursor position if `coordinate` is omitted.
+ */
+export interface ComputerMiddleClickInput {
+  /**
+   * (x, y): x pixels from the left edge, y pixels from the top edge.
+   */
+  coordinate?: Array<number> | null;
+
+  /**
+   * Optional key combination to hold down during this action (e.g. "ctrl", "shift",
+   * "ctrl+shift").
+   */
+  text?: string | null;
+}
+
+export interface ComputerMiddleClickToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Click the middle mouse button at the specified (x, y) pixel coordinate, or the
+   * current cursor position if `coordinate` is omitted.
+   */
+  input: ComputerMiddleClickInput;
+
+  name: 'middle_click';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
 }
 
 /**
@@ -1947,6 +3712,39 @@ export interface ComputerMouseMoveConfig {
 }
 
 /**
+ * Move the cursor to a specified (x, y) pixel coordinate. Use this ONLY to hover
+ * without clicking; otherwise use a click action directly.
+ */
+export interface ComputerMouseMoveInput {
+  /**
+   * (x, y): x pixels from the left edge, y pixels from the top edge.
+   */
+  coordinate: Array<number>;
+}
+
+export interface ComputerMouseMoveToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Move the cursor to a specified (x, y) pixel coordinate. Use this ONLY to hover
+   * without clicking; otherwise use a click action directly.
+   */
+  input: ComputerMouseMoveInput;
+
+  name: 'mouse_move';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
+}
+
+/**
  * `right_click`'s config overrides.
  */
 export interface ComputerRightClickConfig {
@@ -1962,6 +3760,45 @@ export interface ComputerRightClickConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Click the right mouse button at the specified (x, y) pixel coordinate, or the
+ * current cursor position if `coordinate` is omitted.
+ */
+export interface ComputerRightClickInput {
+  /**
+   * (x, y): x pixels from the left edge, y pixels from the top edge.
+   */
+  coordinate?: Array<number> | null;
+
+  /**
+   * Optional key combination to hold down during this action (e.g. "ctrl", "shift",
+   * "ctrl+shift").
+   */
+  text?: string | null;
+}
+
+export interface ComputerRightClickToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Click the right mouse button at the specified (x, y) pixel coordinate, or the
+   * current cursor position if `coordinate` is omitted.
+   */
+  input: ComputerRightClickInput;
+
+  name: 'right_click';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
 }
 
 /**
@@ -1983,6 +3820,32 @@ export interface ComputerScreenshotConfig {
 }
 
 /**
+ * Take a screenshot of the screen.
+ */
+export interface ComputerScreenshotInput {}
+
+export interface ComputerScreenshotToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Take a screenshot of the screen.
+   */
+  input: ComputerScreenshotInput;
+
+  name: 'screenshot';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
+}
+
+/**
  * `scroll`'s config overrides.
  */
 export interface ComputerScrollConfig {
@@ -1999,6 +3862,75 @@ export interface ComputerScrollConfig {
    */
   enabled?: boolean | null;
 }
+
+export type ComputerScrollDirection = 'up' | 'down' | 'left' | 'right';
+
+/**
+ * Scroll the screen at the specified (x, y) pixel coordinate, or the current
+ * cursor position if `coordinate` is omitted. Do NOT use PageUp/PageDown to
+ * scroll.
+ */
+export interface ComputerScrollInput {
+  /**
+   * Number of 'clicks' of the scroll wheel.
+   */
+  scroll_amount: number;
+
+  scroll_direction: ComputerScrollDirection;
+
+  /**
+   * (x, y): x pixels from the left edge, y pixels from the top edge.
+   */
+  coordinate?: Array<number> | null;
+
+  /**
+   * Optional key combination to hold down during this action (e.g. "ctrl", "shift",
+   * "ctrl+shift").
+   */
+  text?: string | null;
+}
+
+export interface ComputerScrollToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Scroll the screen at the specified (x, y) pixel coordinate, or the current
+   * cursor position if `coordinate` is omitted. Do NOT use PageUp/PageDown to
+   * scroll.
+   */
+  input: ComputerScrollInput;
+
+  name: 'scroll';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
+}
+
+export type ComputerToolUseBlock =
+  | ComputerKeyToolUseBlock
+  | ComputerHoldKeyToolUseBlock
+  | ComputerTypeToolUseBlock
+  | ComputerCursorPositionToolUseBlock
+  | ComputerMouseMoveToolUseBlock
+  | ComputerLeftMouseDownToolUseBlock
+  | ComputerLeftMouseUpToolUseBlock
+  | ComputerLeftClickToolUseBlock
+  | ComputerLeftClickDragToolUseBlock
+  | ComputerRightClickToolUseBlock
+  | ComputerMiddleClickToolUseBlock
+  | ComputerDoubleClickToolUseBlock
+  | ComputerTripleClickToolUseBlock
+  | ComputerScrollToolUseBlock
+  | ComputerWaitToolUseBlock
+  | ComputerScreenshotToolUseBlock
+  | ComputerZoomToolUseBlock;
 
 /**
  * The computer toolset: a single `tools[]` entry (carrying no `name`) that
@@ -2136,6 +4068,45 @@ export interface ComputerTripleClickConfig {
 }
 
 /**
+ * Triple-click the left mouse button at the specified (x, y) pixel coordinate, or
+ * the current cursor position if `coordinate` is omitted.
+ */
+export interface ComputerTripleClickInput {
+  /**
+   * (x, y): x pixels from the left edge, y pixels from the top edge.
+   */
+  coordinate?: Array<number> | null;
+
+  /**
+   * Optional key combination to hold down during this action (e.g. "ctrl", "shift",
+   * "ctrl+shift").
+   */
+  text?: string | null;
+}
+
+export interface ComputerTripleClickToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Triple-click the left mouse button at the specified (x, y) pixel coordinate, or
+   * the current cursor position if `coordinate` is omitted.
+   */
+  input: ComputerTripleClickInput;
+
+  name: 'triple_click';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
+}
+
+/**
  * `type`'s config overrides.
  */
 export interface ComputerTypeConfig {
@@ -2151,6 +4122,37 @@ export interface ComputerTypeConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Type a string of text on the keyboard.
+ */
+export interface ComputerTypeInput {
+  /**
+   * The text to type.
+   */
+  text: string;
+}
+
+export interface ComputerTypeToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Type a string of text on the keyboard.
+   */
+  input: ComputerTypeInput;
+
+  name: 'type';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
 }
 
 /**
@@ -2172,6 +4174,37 @@ export interface ComputerWaitConfig {
 }
 
 /**
+ * Wait for a specified duration.
+ */
+export interface ComputerWaitInput {
+  /**
+   * Duration to wait, in seconds.
+   */
+  duration: number;
+}
+
+export interface ComputerWaitToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Wait for a specified duration.
+   */
+  input: ComputerWaitInput;
+
+  name: 'wait';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
+}
+
+/**
  * `zoom`'s config overrides.
  */
 export interface ComputerZoomConfig {
@@ -2187,6 +4220,41 @@ export interface ComputerZoomConfig {
    * the served schema.
    */
   enabled?: boolean | null;
+}
+
+/**
+ * Take a screenshot of a rectangular region. Region coordinates are in the
+ * full-screenshot space (not physical display pixels). The crop is scaled up to
+ * fill the image budget so fine details become legible.
+ */
+export interface ComputerZoomInput {
+  /**
+   * (x0, y0, x1, y1): The region to capture.
+   */
+  region: Array<number>;
+}
+
+export interface ComputerZoomToolUseBlock {
+  id: string;
+
+  /**
+   * Which party invoked the tool call: the model directly, or a server tool on its
+   * behalf.
+   */
+  caller: ToolUseCaller;
+
+  /**
+   * Take a screenshot of a rectangular region. Region coordinates are in the
+   * full-screenshot space (not physical display pixels). The crop is scaled up to
+   * fill the image budget so fine details become legible.
+   */
+  input: ComputerZoomInput;
+
+  name: 'zoom';
+
+  toolset_name: 'computer';
+
+  type: 'tool_use';
 }
 
 /**
@@ -2736,6 +4804,7 @@ export interface Metadata {
  * details and options.
  */
 export type Model =
+  | 'claude-haiku-5-5'
   | 'claude-sonnet-5-5'
   | 'claude-fable-5-1'
   | 'claude-opus-5-5'
@@ -3890,6 +5959,14 @@ export interface ToolUseBlockParam {
   toolset_name?: string | null;
 }
 
+/**
+ * Which party invoked the tool call: the model directly, or a server tool on its
+ * behalf.
+ */
+export type ToolUseCaller = DirectCaller | ServerToolCaller | ServerToolCaller20260120;
+
+export type ToolsetToolUseBlock = BrowserToolUseBlock | ComputerToolUseBlock | ToolUseBlock;
+
 export interface URLImageSource {
   type: 'url';
 
@@ -4690,6 +6767,261 @@ export type WebSearchToolResultErrorCode =
   | 'query_too_long'
   | 'request_too_large';
 
+/**
+ * @deprecated ResponseToolUseBlockUnion has been renamed to ToolsetToolUseBlock
+ */
+export type ResponseToolUseBlockUnion = ToolsetToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserToolUseBlock has been renamed to BrowserToolUseBlock
+ */
+export type ResponseBrowserToolUseBlock = BrowserToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserCloseTabToolUseBlock has been renamed to BrowserCloseTabToolUseBlock
+ */
+export type ResponseBrowserCloseTabToolUseBlock = BrowserCloseTabToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserDoubleClickToolUseBlock has been renamed to BrowserDoubleClickToolUseBlock
+ */
+export type ResponseBrowserDoubleClickToolUseBlock = BrowserDoubleClickToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserFileUploadToolUseBlock has been renamed to BrowserFileUploadToolUseBlock
+ */
+export type ResponseBrowserFileUploadToolUseBlock = BrowserFileUploadToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserFindToolUseBlock has been renamed to BrowserFindToolUseBlock
+ */
+export type ResponseBrowserFindToolUseBlock = BrowserFindToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserFormInputToolUseBlock has been renamed to BrowserFormInputToolUseBlock
+ */
+export type ResponseBrowserFormInputToolUseBlock = BrowserFormInputToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserGetPageTextToolUseBlock has been renamed to BrowserGetPageTextToolUseBlock
+ */
+export type ResponseBrowserGetPageTextToolUseBlock = BrowserGetPageTextToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserHoldKeyToolUseBlock has been renamed to BrowserHoldKeyToolUseBlock
+ */
+export type ResponseBrowserHoldKeyToolUseBlock = BrowserHoldKeyToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserHoverToolUseBlock has been renamed to BrowserHoverToolUseBlock
+ */
+export type ResponseBrowserHoverToolUseBlock = BrowserHoverToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserJavascriptExecToolUseBlock has been renamed to BrowserJavascriptExecToolUseBlock
+ */
+export type ResponseBrowserJavascriptExecToolUseBlock = BrowserJavascriptExecToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserKeyToolUseBlock has been renamed to BrowserKeyToolUseBlock
+ */
+export type ResponseBrowserKeyToolUseBlock = BrowserKeyToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserLeftClickDragToolUseBlock has been renamed to BrowserLeftClickDragToolUseBlock
+ */
+export type ResponseBrowserLeftClickDragToolUseBlock = BrowserLeftClickDragToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserLeftClickToolUseBlock has been renamed to BrowserLeftClickToolUseBlock
+ */
+export type ResponseBrowserLeftClickToolUseBlock = BrowserLeftClickToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserLeftMouseDownToolUseBlock has been renamed to BrowserLeftMouseDownToolUseBlock
+ */
+export type ResponseBrowserLeftMouseDownToolUseBlock = BrowserLeftMouseDownToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserLeftMouseUpToolUseBlock has been renamed to BrowserLeftMouseUpToolUseBlock
+ */
+export type ResponseBrowserLeftMouseUpToolUseBlock = BrowserLeftMouseUpToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserListTabsToolUseBlock has been renamed to BrowserListTabsToolUseBlock
+ */
+export type ResponseBrowserListTabsToolUseBlock = BrowserListTabsToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserMiddleClickToolUseBlock has been renamed to BrowserMiddleClickToolUseBlock
+ */
+export type ResponseBrowserMiddleClickToolUseBlock = BrowserMiddleClickToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserMouseMoveToolUseBlock has been renamed to BrowserMouseMoveToolUseBlock
+ */
+export type ResponseBrowserMouseMoveToolUseBlock = BrowserMouseMoveToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserNavigateToolUseBlock has been renamed to BrowserNavigateToolUseBlock
+ */
+export type ResponseBrowserNavigateToolUseBlock = BrowserNavigateToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserNewTabToolUseBlock has been renamed to BrowserNewTabToolUseBlock
+ */
+export type ResponseBrowserNewTabToolUseBlock = BrowserNewTabToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserReadConsoleToolUseBlock has been renamed to BrowserReadConsoleToolUseBlock
+ */
+export type ResponseBrowserReadConsoleToolUseBlock = BrowserReadConsoleToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserReadNetworkToolUseBlock has been renamed to BrowserReadNetworkToolUseBlock
+ */
+export type ResponseBrowserReadNetworkToolUseBlock = BrowserReadNetworkToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserReadPageToolUseBlock has been renamed to BrowserReadPageToolUseBlock
+ */
+export type ResponseBrowserReadPageToolUseBlock = BrowserReadPageToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserRightClickToolUseBlock has been renamed to BrowserRightClickToolUseBlock
+ */
+export type ResponseBrowserRightClickToolUseBlock = BrowserRightClickToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserScreenshotToolUseBlock has been renamed to BrowserScreenshotToolUseBlock
+ */
+export type ResponseBrowserScreenshotToolUseBlock = BrowserScreenshotToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserScrollToToolUseBlock has been renamed to BrowserScrollToToolUseBlock
+ */
+export type ResponseBrowserScrollToToolUseBlock = BrowserScrollToToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserScrollToolUseBlock has been renamed to BrowserScrollToolUseBlock
+ */
+export type ResponseBrowserScrollToolUseBlock = BrowserScrollToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserSwitchTabToolUseBlock has been renamed to BrowserSwitchTabToolUseBlock
+ */
+export type ResponseBrowserSwitchTabToolUseBlock = BrowserSwitchTabToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserTripleClickToolUseBlock has been renamed to BrowserTripleClickToolUseBlock
+ */
+export type ResponseBrowserTripleClickToolUseBlock = BrowserTripleClickToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserTypeToolUseBlock has been renamed to BrowserTypeToolUseBlock
+ */
+export type ResponseBrowserTypeToolUseBlock = BrowserTypeToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserWaitToolUseBlock has been renamed to BrowserWaitToolUseBlock
+ */
+export type ResponseBrowserWaitToolUseBlock = BrowserWaitToolUseBlock;
+
+/**
+ * @deprecated ResponseBrowserZoomToolUseBlock has been renamed to BrowserZoomToolUseBlock
+ */
+export type ResponseBrowserZoomToolUseBlock = BrowserZoomToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerToolUseBlock has been renamed to ComputerToolUseBlock
+ */
+export type ResponseComputerToolUseBlock = ComputerToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerCursorPositionToolUseBlock has been renamed to ComputerCursorPositionToolUseBlock
+ */
+export type ResponseComputerCursorPositionToolUseBlock = ComputerCursorPositionToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerDoubleClickToolUseBlock has been renamed to ComputerDoubleClickToolUseBlock
+ */
+export type ResponseComputerDoubleClickToolUseBlock = ComputerDoubleClickToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerHoldKeyToolUseBlock has been renamed to ComputerHoldKeyToolUseBlock
+ */
+export type ResponseComputerHoldKeyToolUseBlock = ComputerHoldKeyToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerKeyToolUseBlock has been renamed to ComputerKeyToolUseBlock
+ */
+export type ResponseComputerKeyToolUseBlock = ComputerKeyToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerLeftClickDragToolUseBlock has been renamed to ComputerLeftClickDragToolUseBlock
+ */
+export type ResponseComputerLeftClickDragToolUseBlock = ComputerLeftClickDragToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerLeftClickToolUseBlock has been renamed to ComputerLeftClickToolUseBlock
+ */
+export type ResponseComputerLeftClickToolUseBlock = ComputerLeftClickToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerLeftMouseDownToolUseBlock has been renamed to ComputerLeftMouseDownToolUseBlock
+ */
+export type ResponseComputerLeftMouseDownToolUseBlock = ComputerLeftMouseDownToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerLeftMouseUpToolUseBlock has been renamed to ComputerLeftMouseUpToolUseBlock
+ */
+export type ResponseComputerLeftMouseUpToolUseBlock = ComputerLeftMouseUpToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerMiddleClickToolUseBlock has been renamed to ComputerMiddleClickToolUseBlock
+ */
+export type ResponseComputerMiddleClickToolUseBlock = ComputerMiddleClickToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerMouseMoveToolUseBlock has been renamed to ComputerMouseMoveToolUseBlock
+ */
+export type ResponseComputerMouseMoveToolUseBlock = ComputerMouseMoveToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerRightClickToolUseBlock has been renamed to ComputerRightClickToolUseBlock
+ */
+export type ResponseComputerRightClickToolUseBlock = ComputerRightClickToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerScreenshotToolUseBlock has been renamed to ComputerScreenshotToolUseBlock
+ */
+export type ResponseComputerScreenshotToolUseBlock = ComputerScreenshotToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerScrollToolUseBlock has been renamed to ComputerScrollToolUseBlock
+ */
+export type ResponseComputerScrollToolUseBlock = ComputerScrollToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerTripleClickToolUseBlock has been renamed to ComputerTripleClickToolUseBlock
+ */
+export type ResponseComputerTripleClickToolUseBlock = ComputerTripleClickToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerTypeToolUseBlock has been renamed to ComputerTypeToolUseBlock
+ */
+export type ResponseComputerTypeToolUseBlock = ComputerTypeToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerWaitToolUseBlock has been renamed to ComputerWaitToolUseBlock
+ */
+export type ResponseComputerWaitToolUseBlock = ComputerWaitToolUseBlock;
+
+/**
+ * @deprecated ResponseComputerZoomToolUseBlock has been renamed to ComputerZoomToolUseBlock
+ */
+export type ResponseComputerZoomToolUseBlock = ComputerZoomToolUseBlock;
+
 export type MessageStreamEvent = RawMessageStreamEvent;
 
 export type MessageStartEvent = RawMessageStartEvent;
@@ -5286,32 +7618,92 @@ export declare namespace Messages {
     type BashCodeExecutionToolResultError as BashCodeExecutionToolResultError,
     type BashCodeExecutionToolResultErrorCode as BashCodeExecutionToolResultErrorCode,
     type BashCodeExecutionToolResultErrorParam as BashCodeExecutionToolResultErrorParam,
+    type BrowserClickTarget as BrowserClickTarget,
     type BrowserCloseTabConfig as BrowserCloseTabConfig,
+    type BrowserCloseTabInput as BrowserCloseTabInput,
+    type BrowserCloseTabToolUseBlock as BrowserCloseTabToolUseBlock,
+    type BrowserCoordinateTarget as BrowserCoordinateTarget,
     type BrowserDoubleClickConfig as BrowserDoubleClickConfig,
+    type BrowserDoubleClickInput as BrowserDoubleClickInput,
+    type BrowserDoubleClickToolUseBlock as BrowserDoubleClickToolUseBlock,
     type BrowserFileUploadConfig as BrowserFileUploadConfig,
+    type BrowserFileUploadInput as BrowserFileUploadInput,
+    type BrowserFileUploadToolUseBlock as BrowserFileUploadToolUseBlock,
     type BrowserFindConfig as BrowserFindConfig,
+    type BrowserFindInput as BrowserFindInput,
+    type BrowserFindToolUseBlock as BrowserFindToolUseBlock,
     type BrowserFormInputConfig as BrowserFormInputConfig,
+    type BrowserFormInputInput as BrowserFormInputInput,
+    type BrowserFormInputToolUseBlock as BrowserFormInputToolUseBlock,
+    type BrowserFormInputValue as BrowserFormInputValue,
     type BrowserGetPageTextConfig as BrowserGetPageTextConfig,
+    type BrowserGetPageTextInput as BrowserGetPageTextInput,
+    type BrowserGetPageTextToolUseBlock as BrowserGetPageTextToolUseBlock,
     type BrowserHoldKeyConfig as BrowserHoldKeyConfig,
+    type BrowserHoldKeyInput as BrowserHoldKeyInput,
+    type BrowserHoldKeyToolUseBlock as BrowserHoldKeyToolUseBlock,
     type BrowserHoverConfig as BrowserHoverConfig,
+    type BrowserHoverInput as BrowserHoverInput,
+    type BrowserHoverToolUseBlock as BrowserHoverToolUseBlock,
     type BrowserJavascriptExecConfig as BrowserJavascriptExecConfig,
+    type BrowserJavascriptExecInput as BrowserJavascriptExecInput,
+    type BrowserJavascriptExecToolUseBlock as BrowserJavascriptExecToolUseBlock,
     type BrowserKeyConfig as BrowserKeyConfig,
+    type BrowserKeyInput as BrowserKeyInput,
+    type BrowserKeyToolUseBlock as BrowserKeyToolUseBlock,
     type BrowserLeftClickConfig as BrowserLeftClickConfig,
     type BrowserLeftClickDragConfig as BrowserLeftClickDragConfig,
+    type BrowserLeftClickDragInput as BrowserLeftClickDragInput,
+    type BrowserLeftClickDragToolUseBlock as BrowserLeftClickDragToolUseBlock,
+    type BrowserLeftClickInput as BrowserLeftClickInput,
+    type BrowserLeftClickToolUseBlock as BrowserLeftClickToolUseBlock,
     type BrowserLeftMouseDownConfig as BrowserLeftMouseDownConfig,
+    type BrowserLeftMouseDownInput as BrowserLeftMouseDownInput,
+    type BrowserLeftMouseDownToolUseBlock as BrowserLeftMouseDownToolUseBlock,
     type BrowserLeftMouseUpConfig as BrowserLeftMouseUpConfig,
+    type BrowserLeftMouseUpInput as BrowserLeftMouseUpInput,
+    type BrowserLeftMouseUpToolUseBlock as BrowserLeftMouseUpToolUseBlock,
     type BrowserListTabsConfig as BrowserListTabsConfig,
+    type BrowserListTabsInput as BrowserListTabsInput,
+    type BrowserListTabsToolUseBlock as BrowserListTabsToolUseBlock,
+    type BrowserMemberInput as BrowserMemberInput,
+    type BrowserMemberName as BrowserMemberName,
     type BrowserMiddleClickConfig as BrowserMiddleClickConfig,
+    type BrowserMiddleClickInput as BrowserMiddleClickInput,
+    type BrowserMiddleClickToolUseBlock as BrowserMiddleClickToolUseBlock,
     type BrowserMouseMoveConfig as BrowserMouseMoveConfig,
+    type BrowserMouseMoveInput as BrowserMouseMoveInput,
+    type BrowserMouseMoveToolUseBlock as BrowserMouseMoveToolUseBlock,
     type BrowserNavigateConfig as BrowserNavigateConfig,
+    type BrowserNavigateInput as BrowserNavigateInput,
+    type BrowserNavigateToolUseBlock as BrowserNavigateToolUseBlock,
     type BrowserNewTabConfig as BrowserNewTabConfig,
+    type BrowserNewTabInput as BrowserNewTabInput,
+    type BrowserNewTabToolUseBlock as BrowserNewTabToolUseBlock,
     type BrowserReadConsoleConfig as BrowserReadConsoleConfig,
+    type BrowserReadConsoleInput as BrowserReadConsoleInput,
+    type BrowserReadConsoleToolUseBlock as BrowserReadConsoleToolUseBlock,
     type BrowserReadNetworkConfig as BrowserReadNetworkConfig,
+    type BrowserReadNetworkInput as BrowserReadNetworkInput,
+    type BrowserReadNetworkToolUseBlock as BrowserReadNetworkToolUseBlock,
     type BrowserReadPageConfig as BrowserReadPageConfig,
+    type BrowserReadPageFilter as BrowserReadPageFilter,
+    type BrowserReadPageInput as BrowserReadPageInput,
+    type BrowserReadPageToolUseBlock as BrowserReadPageToolUseBlock,
+    type BrowserRefTarget as BrowserRefTarget,
     type BrowserRightClickConfig as BrowserRightClickConfig,
+    type BrowserRightClickInput as BrowserRightClickInput,
+    type BrowserRightClickToolUseBlock as BrowserRightClickToolUseBlock,
     type BrowserScreenshotConfig as BrowserScreenshotConfig,
+    type BrowserScreenshotInput as BrowserScreenshotInput,
+    type BrowserScreenshotToolUseBlock as BrowserScreenshotToolUseBlock,
     type BrowserScrollConfig as BrowserScrollConfig,
+    type BrowserScrollDirection as BrowserScrollDirection,
+    type BrowserScrollInput as BrowserScrollInput,
     type BrowserScrollToConfig as BrowserScrollToConfig,
+    type BrowserScrollToInput as BrowserScrollToInput,
+    type BrowserScrollToToolUseBlock as BrowserScrollToToolUseBlock,
+    type BrowserScrollToolUseBlock as BrowserScrollToolUseBlock,
     type BrowserStateBlockParam as BrowserStateBlockParam,
     type BrowserStateChange as BrowserStateChange,
     type BrowserStateChangeDownloadCompleted as BrowserStateChangeDownloadCompleted,
@@ -5320,12 +7712,23 @@ export declare namespace Messages {
     type BrowserStateChangeTabOpened as BrowserStateChangeTabOpened,
     type BrowserStateTabEntry as BrowserStateTabEntry,
     type BrowserSwitchTabConfig as BrowserSwitchTabConfig,
+    type BrowserSwitchTabInput as BrowserSwitchTabInput,
+    type BrowserSwitchTabToolUseBlock as BrowserSwitchTabToolUseBlock,
+    type BrowserToolUseBlock as BrowserToolUseBlock,
     type BrowserToolset20260801 as BrowserToolset20260801,
     type BrowserToolsetConfigs as BrowserToolsetConfigs,
     type BrowserTripleClickConfig as BrowserTripleClickConfig,
+    type BrowserTripleClickInput as BrowserTripleClickInput,
+    type BrowserTripleClickToolUseBlock as BrowserTripleClickToolUseBlock,
     type BrowserTypeConfig as BrowserTypeConfig,
+    type BrowserTypeInput as BrowserTypeInput,
+    type BrowserTypeToolUseBlock as BrowserTypeToolUseBlock,
     type BrowserWaitConfig as BrowserWaitConfig,
+    type BrowserWaitInput as BrowserWaitInput,
+    type BrowserWaitToolUseBlock as BrowserWaitToolUseBlock,
     type BrowserZoomConfig as BrowserZoomConfig,
+    type BrowserZoomInput as BrowserZoomInput,
+    type BrowserZoomToolUseBlock as BrowserZoomToolUseBlock,
     type CacheControlEphemeral as CacheControlEphemeral,
     type CacheCreation as CacheCreation,
     type CacheMissMessagesChanged as CacheMissMessagesChanged,
@@ -5365,24 +7768,62 @@ export declare namespace Messages {
     type CodeExecutionToolResultErrorCode as CodeExecutionToolResultErrorCode,
     type CodeExecutionToolResultErrorParam as CodeExecutionToolResultErrorParam,
     type ComputerCursorPositionConfig as ComputerCursorPositionConfig,
+    type ComputerCursorPositionInput as ComputerCursorPositionInput,
+    type ComputerCursorPositionToolUseBlock as ComputerCursorPositionToolUseBlock,
     type ComputerDoubleClickConfig as ComputerDoubleClickConfig,
+    type ComputerDoubleClickInput as ComputerDoubleClickInput,
+    type ComputerDoubleClickToolUseBlock as ComputerDoubleClickToolUseBlock,
     type ComputerHoldKeyConfig as ComputerHoldKeyConfig,
+    type ComputerHoldKeyInput as ComputerHoldKeyInput,
+    type ComputerHoldKeyToolUseBlock as ComputerHoldKeyToolUseBlock,
     type ComputerKeyConfig as ComputerKeyConfig,
+    type ComputerKeyInput as ComputerKeyInput,
+    type ComputerKeyToolUseBlock as ComputerKeyToolUseBlock,
     type ComputerLeftClickConfig as ComputerLeftClickConfig,
     type ComputerLeftClickDragConfig as ComputerLeftClickDragConfig,
+    type ComputerLeftClickDragInput as ComputerLeftClickDragInput,
+    type ComputerLeftClickDragToolUseBlock as ComputerLeftClickDragToolUseBlock,
+    type ComputerLeftClickInput as ComputerLeftClickInput,
+    type ComputerLeftClickToolUseBlock as ComputerLeftClickToolUseBlock,
     type ComputerLeftMouseDownConfig as ComputerLeftMouseDownConfig,
+    type ComputerLeftMouseDownInput as ComputerLeftMouseDownInput,
+    type ComputerLeftMouseDownToolUseBlock as ComputerLeftMouseDownToolUseBlock,
     type ComputerLeftMouseUpConfig as ComputerLeftMouseUpConfig,
+    type ComputerLeftMouseUpInput as ComputerLeftMouseUpInput,
+    type ComputerLeftMouseUpToolUseBlock as ComputerLeftMouseUpToolUseBlock,
+    type ComputerMemberInput as ComputerMemberInput,
+    type ComputerMemberName as ComputerMemberName,
     type ComputerMiddleClickConfig as ComputerMiddleClickConfig,
+    type ComputerMiddleClickInput as ComputerMiddleClickInput,
+    type ComputerMiddleClickToolUseBlock as ComputerMiddleClickToolUseBlock,
     type ComputerMouseMoveConfig as ComputerMouseMoveConfig,
+    type ComputerMouseMoveInput as ComputerMouseMoveInput,
+    type ComputerMouseMoveToolUseBlock as ComputerMouseMoveToolUseBlock,
     type ComputerRightClickConfig as ComputerRightClickConfig,
+    type ComputerRightClickInput as ComputerRightClickInput,
+    type ComputerRightClickToolUseBlock as ComputerRightClickToolUseBlock,
     type ComputerScreenshotConfig as ComputerScreenshotConfig,
+    type ComputerScreenshotInput as ComputerScreenshotInput,
+    type ComputerScreenshotToolUseBlock as ComputerScreenshotToolUseBlock,
     type ComputerScrollConfig as ComputerScrollConfig,
+    type ComputerScrollDirection as ComputerScrollDirection,
+    type ComputerScrollInput as ComputerScrollInput,
+    type ComputerScrollToolUseBlock as ComputerScrollToolUseBlock,
+    type ComputerToolUseBlock as ComputerToolUseBlock,
     type ComputerToolset20260801 as ComputerToolset20260801,
     type ComputerToolsetConfigs as ComputerToolsetConfigs,
     type ComputerTripleClickConfig as ComputerTripleClickConfig,
+    type ComputerTripleClickInput as ComputerTripleClickInput,
+    type ComputerTripleClickToolUseBlock as ComputerTripleClickToolUseBlock,
     type ComputerTypeConfig as ComputerTypeConfig,
+    type ComputerTypeInput as ComputerTypeInput,
+    type ComputerTypeToolUseBlock as ComputerTypeToolUseBlock,
     type ComputerWaitConfig as ComputerWaitConfig,
+    type ComputerWaitInput as ComputerWaitInput,
+    type ComputerWaitToolUseBlock as ComputerWaitToolUseBlock,
     type ComputerZoomConfig as ComputerZoomConfig,
+    type ComputerZoomInput as ComputerZoomInput,
+    type ComputerZoomToolUseBlock as ComputerZoomToolUseBlock,
     type Container as Container,
     type ContainerParams as ContainerParams,
     type ContainerSkill as ContainerSkill,
@@ -5489,6 +7930,8 @@ export declare namespace Messages {
     type ToolUnion as ToolUnion,
     type ToolUseBlock as ToolUseBlock,
     type ToolUseBlockParam as ToolUseBlockParam,
+    type ToolUseCaller as ToolUseCaller,
+    type ToolsetToolUseBlock as ToolsetToolUseBlock,
     type URLImageSource as URLImageSource,
     type URLPDFSource as URLPDFSource,
     type Usage as Usage,
@@ -5521,6 +7964,57 @@ export declare namespace Messages {
     type WebSearchToolResultBlockParam as WebSearchToolResultBlockParam,
     type WebSearchToolResultBlockParamContent as WebSearchToolResultBlockParamContent,
     type WebSearchToolResultError as WebSearchToolResultError,
+    type ResponseToolUseBlockUnion as ResponseToolUseBlockUnion,
+    type ResponseBrowserToolUseBlock as ResponseBrowserToolUseBlock,
+    type ResponseBrowserCloseTabToolUseBlock as ResponseBrowserCloseTabToolUseBlock,
+    type ResponseBrowserDoubleClickToolUseBlock as ResponseBrowserDoubleClickToolUseBlock,
+    type ResponseBrowserFileUploadToolUseBlock as ResponseBrowserFileUploadToolUseBlock,
+    type ResponseBrowserFindToolUseBlock as ResponseBrowserFindToolUseBlock,
+    type ResponseBrowserFormInputToolUseBlock as ResponseBrowserFormInputToolUseBlock,
+    type ResponseBrowserGetPageTextToolUseBlock as ResponseBrowserGetPageTextToolUseBlock,
+    type ResponseBrowserHoldKeyToolUseBlock as ResponseBrowserHoldKeyToolUseBlock,
+    type ResponseBrowserHoverToolUseBlock as ResponseBrowserHoverToolUseBlock,
+    type ResponseBrowserJavascriptExecToolUseBlock as ResponseBrowserJavascriptExecToolUseBlock,
+    type ResponseBrowserKeyToolUseBlock as ResponseBrowserKeyToolUseBlock,
+    type ResponseBrowserLeftClickDragToolUseBlock as ResponseBrowserLeftClickDragToolUseBlock,
+    type ResponseBrowserLeftClickToolUseBlock as ResponseBrowserLeftClickToolUseBlock,
+    type ResponseBrowserLeftMouseDownToolUseBlock as ResponseBrowserLeftMouseDownToolUseBlock,
+    type ResponseBrowserLeftMouseUpToolUseBlock as ResponseBrowserLeftMouseUpToolUseBlock,
+    type ResponseBrowserListTabsToolUseBlock as ResponseBrowserListTabsToolUseBlock,
+    type ResponseBrowserMiddleClickToolUseBlock as ResponseBrowserMiddleClickToolUseBlock,
+    type ResponseBrowserMouseMoveToolUseBlock as ResponseBrowserMouseMoveToolUseBlock,
+    type ResponseBrowserNavigateToolUseBlock as ResponseBrowserNavigateToolUseBlock,
+    type ResponseBrowserNewTabToolUseBlock as ResponseBrowserNewTabToolUseBlock,
+    type ResponseBrowserReadConsoleToolUseBlock as ResponseBrowserReadConsoleToolUseBlock,
+    type ResponseBrowserReadNetworkToolUseBlock as ResponseBrowserReadNetworkToolUseBlock,
+    type ResponseBrowserReadPageToolUseBlock as ResponseBrowserReadPageToolUseBlock,
+    type ResponseBrowserRightClickToolUseBlock as ResponseBrowserRightClickToolUseBlock,
+    type ResponseBrowserScreenshotToolUseBlock as ResponseBrowserScreenshotToolUseBlock,
+    type ResponseBrowserScrollToToolUseBlock as ResponseBrowserScrollToToolUseBlock,
+    type ResponseBrowserScrollToolUseBlock as ResponseBrowserScrollToolUseBlock,
+    type ResponseBrowserSwitchTabToolUseBlock as ResponseBrowserSwitchTabToolUseBlock,
+    type ResponseBrowserTripleClickToolUseBlock as ResponseBrowserTripleClickToolUseBlock,
+    type ResponseBrowserTypeToolUseBlock as ResponseBrowserTypeToolUseBlock,
+    type ResponseBrowserWaitToolUseBlock as ResponseBrowserWaitToolUseBlock,
+    type ResponseBrowserZoomToolUseBlock as ResponseBrowserZoomToolUseBlock,
+    type ResponseComputerToolUseBlock as ResponseComputerToolUseBlock,
+    type ResponseComputerCursorPositionToolUseBlock as ResponseComputerCursorPositionToolUseBlock,
+    type ResponseComputerDoubleClickToolUseBlock as ResponseComputerDoubleClickToolUseBlock,
+    type ResponseComputerHoldKeyToolUseBlock as ResponseComputerHoldKeyToolUseBlock,
+    type ResponseComputerKeyToolUseBlock as ResponseComputerKeyToolUseBlock,
+    type ResponseComputerLeftClickDragToolUseBlock as ResponseComputerLeftClickDragToolUseBlock,
+    type ResponseComputerLeftClickToolUseBlock as ResponseComputerLeftClickToolUseBlock,
+    type ResponseComputerLeftMouseDownToolUseBlock as ResponseComputerLeftMouseDownToolUseBlock,
+    type ResponseComputerLeftMouseUpToolUseBlock as ResponseComputerLeftMouseUpToolUseBlock,
+    type ResponseComputerMiddleClickToolUseBlock as ResponseComputerMiddleClickToolUseBlock,
+    type ResponseComputerMouseMoveToolUseBlock as ResponseComputerMouseMoveToolUseBlock,
+    type ResponseComputerRightClickToolUseBlock as ResponseComputerRightClickToolUseBlock,
+    type ResponseComputerScreenshotToolUseBlock as ResponseComputerScreenshotToolUseBlock,
+    type ResponseComputerScrollToolUseBlock as ResponseComputerScrollToolUseBlock,
+    type ResponseComputerTripleClickToolUseBlock as ResponseComputerTripleClickToolUseBlock,
+    type ResponseComputerTypeToolUseBlock as ResponseComputerTypeToolUseBlock,
+    type ResponseComputerWaitToolUseBlock as ResponseComputerWaitToolUseBlock,
+    type ResponseComputerZoomToolUseBlock as ResponseComputerZoomToolUseBlock,
     type MessageStreamEvent as MessageStreamEvent,
     type MessageStartEvent as MessageStartEvent,
     type MessageStopEvent as MessageStopEvent,

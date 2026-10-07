@@ -1,5 +1,9 @@
-import { BetaRunnableTool } from './BetaRunnableTool';
-import { ToolError } from './ToolError';
+import { BetaRunnableTool, toolErrorContent } from './BetaRunnableTool';
+import { BetaRunnableToolset } from './BetaRunnableToolset';
+import { isRunnableToolset, toolsetFamily } from '../internal/toolsets/family';
+import { runToolsetMember, notExecutedText, toolsetResultBlock } from '../internal/toolsets/run';
+import { quotedName } from '../internal/toolsets/sanitize';
+import { ToolsetContractError } from '../internal/toolsets/errors';
 import { Anthropic } from '../..';
 import { AnthropicError } from '../../core/error';
 import {
@@ -33,6 +37,11 @@ import {
   wasCreatedByStainlessHelper,
 } from '../../internal/stainless-helper-header';
 import type { Simplify } from '../internal/types';
+
+const USE_A_NEW_RUNNER =
+  "a tool runner's toolsets come only from its tools param; change them with setMessagesParams(), or build a new runner";
+const REMOVE_WITH_A_NEW_RUNNER =
+  "a tool runner's toolsets come only from its tools param; remove it there with setMessagesParams(), or build a new runner without it";
 
 /**
  * A ToolRunner handles the automatic conversation loop between the assistant and tools.
@@ -99,9 +108,8 @@ export class BetaToolRunner<Stream extends boolean> {
       },
     };
 
-    // Cloning drops symbol-keyed properties, so collect helper marks
-    // from the original params here — the create()-side collector won't see
-    // them on the cloned messages.
+    // Cloning drops symbol-keyed properties, so collect helper marks from the original params here: the
+    // create()-side collector won't find them on the cloned messages, nor on a toolset's serialized entry.
     const collected = collectStainlessHelpers(params.tools, params.messages);
     this.#options = {
       ...options,
@@ -251,9 +259,33 @@ export class BetaToolRunner<Stream extends boolean> {
   #streamThatStartsTools(params: MessageCreateParams): BetaToolRunnerStream {
     const calls = new Map<string, ToolCallState>();
     this.#calls = calls;
+    // A toolset runs its calls one at a time, in the model's order. So a toolset's call starts here only while the
+    // toolset is idle, and once one of its calls waits for the reply or fails, its later calls wait for the reply too.
+    const toolsets = new Map<string, 'running' | 'waiting'>();
     return BetaToolRunnerStream.start(this.client.beta.messages, params, this.#options, (toolUse) => {
       // Held, or started by `generateToolResponse()` before a reader that is behind got to the call.
-      if (calls.has(toolUse.id)) {
+      const known = calls.has(toolUse.id);
+      // A call named after a toolset is a toolset call with malformed actions, which `generateToolResponse()` answers.
+      const malformed = !toolUse.toolset_name && this.#toolsetFamilies().has(toolUse.name);
+      const family = malformed ? toolUse.name : toolUse.toolset_name;
+      if (family) {
+        if (known || malformed || toolsets.has(family)) {
+          toolsets.set(family, 'waiting');
+          return;
+        }
+        toolsets.set(family, 'running');
+        const result = runToolsetCall(this.#state.params, family, toolUse, this.#options);
+        calls.set(toolUse.id, { status: 'started', result });
+        result.then(
+          ({ is_error }) => {
+            if (is_error || toolsets.get(family) === 'waiting') toolsets.set(family, 'waiting');
+            else toolsets.delete(family);
+          },
+          () => toolsets.set(family, 'waiting'),
+        );
+        return;
+      }
+      if (known) {
         return;
       }
       // The call looks its tool up now, so a later `addTools()` or `removeTools()` doesn't change it.
@@ -301,7 +333,7 @@ export class BetaToolRunner<Stream extends boolean> {
   #runnableTools(): Map<string, BetaRunnableTool<any>> {
     const runnable = new Map<string, BetaRunnableTool<any>>();
     for (const tool of this.#state.params.tools) {
-      if ('run' in tool) {
+      if ('run' in tool && 'name' in tool) {
         runnable.set(tool.name, tool);
       }
     }
@@ -476,6 +508,7 @@ export class BetaToolRunner<Stream extends boolean> {
       return this.#toolResponse;
     }
     this.#toolResponse = generateToolResponse(
+      this.#state.params,
       this.#runnableTools(),
       this.#availableToolNames(),
       lastMessage,
@@ -492,7 +525,8 @@ export class BetaToolRunner<Stream extends boolean> {
    * With `runToolsEagerly` the runner otherwise starts each call while the reply streams, as soon as
    * the model has moved on from it: when the next block starts, or the reply stops with `tool_use`. A call
    * never starts before your stream listeners and any `for await` over the stream have handled that event, so
-   * you can call this from either once you have seen the call. The other calls of the reply still start early.
+   * you can call this from either once you have seen the call. The other calls of the reply still start early,
+   * except the later calls of the same toolset, which a toolset runs in order.
    * It does nothing for a call that has started, outside the loop body, and without `runToolsEagerly`.
    *
    * @param toolUse - The `tool_use` block of the call, or its id
@@ -656,9 +690,11 @@ export class BetaToolRunner<Stream extends boolean> {
    *
    * Each tool's whole definition is sent in a `tool_addition` block with the next request, and a
    * runnable tool replaces a runnable tool of the same name straight away, even for a call already in
-   * the message being handled. A call that started while the reply streamed keeps the old one. A raw
-   * definition is only sent: the runner never runs it, and stops running a tool of the same name.
-   * Requires the `inline-tools-2026-09-15` beta, which the runner does not add for you.
+   * the message being handled. A call that started while the reply streamed keeps the old one. A raw definition
+   * is only sent: the runner never runs it, and stops running a tool of the same name. Passing a runnable toolset,
+   * or a raw definition of a toolset the runner has, throws `ToolsetContractError` and adds nothing: a runner's
+   * toolsets come only from `params.tools`. A tool named like one of its toolsets is left to the API, which rejects
+   * it with the next request. Requires the `inline-tools-2026-09-15` beta, which the runner does not add for you.
    *
    * @param tools - Runnable tools (for example from `betaZodTool()`) or raw tool definitions
    *
@@ -666,6 +702,22 @@ export class BetaToolRunner<Stream extends boolean> {
    * runner.addTools(queryDatabaseTool);
    */
   addTools(...tools: (BetaRunnableTool<any> | BetaToolUnion)[]): void {
+    const families = this.#toolsetFamilies();
+    for (const tool of tools) {
+      if (isRunnableToolset(tool)) {
+        throw new ToolsetContractError(
+          `addTools() can't add the '${quotedName(toolsetFamily(tool))}' toolset: ${USE_A_NEW_RUNNER}`,
+        );
+      }
+      // The API treats a definition of one of the runner's families as replacing that toolset, which would leave the
+      // model with a toolset the runner doesn't run.
+      const family = definitionFamily(tool);
+      if (families.has(family)) {
+        throw new ToolsetContractError(
+          `addTools() can't replace the '${quotedName(family)}' toolset: ${USE_A_NEW_RUNNER}`,
+        );
+      }
+    }
     for (const tool of tools) {
       // A definition without a `name` (an `mcp_toolset`) is nothing the runner runs or stops running.
       if ('name' in tool) {
@@ -679,10 +731,11 @@ export class BetaToolRunner<Stream extends boolean> {
    * Take tools away from the model without changing `params.tools`, which would miss the prompt cache.
    *
    * The tools stop being run straight away: a call to one of them, even one in the message being
-   * handled, gets the same "not found" error result as a call to an unknown tool. A call that started
-   * while the reply streamed finishes as usual. The model is told in a `tool_removal` block with the
-   * next request. Use {@link addTools} to bring a tool back.
-   * Requires the `inline-tools-2026-09-15` beta, which the runner does not add for you.
+   * handled, gets the same "not found" error result as a call to an unknown tool. A call that started while the
+   * reply streamed finishes as usual. The model is told in a `tool_removal` block with the next request. Use
+   * {@link addTools} to bring a tool back. Passing the name of one of the runner's toolsets throws
+   * `ToolsetContractError` and removes nothing. Requires the `inline-tools-2026-09-15` beta, which the runner does
+   * not add for you.
    *
    * @param tools - The tools to remove, or their names
    *
@@ -690,11 +743,25 @@ export class BetaToolRunner<Stream extends boolean> {
    * runner.removeTools('query_database');
    */
   removeTools(...tools: (BetaRunnableTool<any> | string)[]): void {
+    const families = this.#toolsetFamilies();
+    for (const tool of tools) {
+      // A toolset's name is always its own: the API rejects any other tool of that name.
+      const name = typeof tool === 'string' ? tool : tool.name;
+      if (families.has(name)) {
+        throw new ToolsetContractError(
+          `removeTools() can't remove the '${quotedName(name)}' toolset: ${REMOVE_WITH_A_NEW_RUNNER}`,
+        );
+      }
+    }
     for (const tool of tools) {
       const name = typeof tool === 'string' ? tool : tool.name;
       this.#toolOverrides.set(name, null);
       this.#pendingToolChanges.push({ type: 'removal', name });
     }
+  }
+
+  #toolsetFamilies(): Set<string> {
+    return new Set(this.#state.params.tools.filter(isRunnableToolset).map(toolsetFamily));
   }
 
   #flushPendingToolChanges() {
@@ -802,8 +869,9 @@ function toolDefinition(tool: BetaToolUnion | BetaRunnableTool): BetaToolUnion {
   }
 
   const apiKeys: readonly string[] = BETA_CLIENT_TOOL_UNION_KEYS;
+  const fields: object = 'toJSON' in tool && typeof tool.toJSON === 'function' ? tool.toJSON() : tool;
   return {
-    ...Object.fromEntries(Object.entries(tool).filter(([key]) => apiKeys.includes(key))),
+    ...Object.fromEntries(Object.entries(fields).filter(([key]) => apiKeys.includes(key))),
     ...(wasCreatedByStainlessHelper(tool) && { [SDK_HELPER_SYMBOL]: tool[SDK_HELPER_SYMBOL] }),
   } as BetaToolUnion;
 }
@@ -823,6 +891,7 @@ function withToolDefinitions(messages: BetaMessageParam[]): BetaMessageParam[] {
 }
 
 async function generateToolResponse(
+  params: BetaToolRunnerParams,
   runnable: ReadonlyMap<string, BetaRunnableTool<any>>,
   available: ReadonlySet<string>,
   lastMessage: BetaMessage | BetaMessageParam,
@@ -844,11 +913,58 @@ async function generateToolResponse(
     return null;
   }
 
+  // A toolset's members run one at a time in the order the model wrote them, and once one is answered with is_error
+  // the rest of that toolset's members in this turn are not run (notExecutedText). Function tools run alongside them
+  // and neither wait on nor stop a toolset's members.
+  const sequences = new Map<string, { tail: Promise<unknown>; failed: boolean }>();
   const toolResults = await Promise.all(
-    toolUseBlocks.map((toolUse) => {
+    toolUseBlocks.map(async (toolUse) => {
+      // The call may have started while the reply streamed, or in an earlier `generateToolResponse()`.
       const call = calls?.get(toolUse.id);
-      if (call?.status === 'started') {
-        return call.result;
+      const started = call?.status === 'started' ? call.result : undefined;
+
+      // Members dispatch by family, never by name: a custom tool may share the bare `name`.
+      if (toolUse.toolset_name) {
+        const family = toolUse.toolset_name;
+        const sequence = sequences.get(family) ?? { tail: Promise.resolve(), failed: false };
+        sequences.set(family, sequence);
+        const registered = params.tools.some((t) => isRunnableToolset(t) && toolsetFamily(t) === family);
+        const run =
+          started ??
+          sequence.tail.then(() =>
+            sequence.failed ?
+              toolsetResultBlock(toolUse, notExecutedText(family), true)
+            : runToolsetCall(params, family, toolUse, requestOptions),
+          );
+        // A rejection (a usage error) propagates through Promise.all and stops the run. It also stops this toolset's
+        // later members here, which would otherwise still be dispatched after the run has failed.
+        sequence.tail = run.then(
+          ({ is_error }) => {
+            if (is_error && registered) sequence.failed = true;
+          },
+          () => {
+            sequence.failed = true;
+          },
+        );
+        calls?.set(toolUse.id, { status: 'started', result: run });
+        return run;
+      }
+      if (started) {
+        return started;
+      }
+
+      // A `tool_removal` is only a hint to the model, which may still emit a tool_use for a
+      // withdrawn tool — treat those exactly like a tool that was never defined.
+      const tool = available.has(toolUse.name) ? runnable.get(toolUse.name) : undefined;
+      if (!tool && params.tools.some((t) => isRunnableToolset(t) && toolsetFamily(t) === toolUse.name)) {
+        // A call named after a toolset in the run, but with no `toolset_name`, is a toolset call with malformed
+        // actions. It fails like one of the toolset's calls, so the toolset's later calls in this turn are not run.
+        const sequence = sequences.get(toolUse.name) ?? { tail: Promise.resolve(), failed: false };
+        sequences.set(toolUse.name, sequence);
+        sequence.tail = sequence.tail.then(() => {
+          sequence.failed = true;
+        });
+        return malformedToolsetCallResult(toolUse);
       }
       const result = runToolCall(runnable, available, toolUse, requestOptions);
       calls?.set(toolUse.id, { status: 'started', result });
@@ -860,6 +976,25 @@ async function generateToolResponse(
     role: 'user' as const,
     content: toolResults,
   };
+}
+
+/** Runs a toolset's call with the toolset of its family in the run. */
+async function runToolsetCall(
+  params: BetaToolRunnerParams,
+  family: string,
+  toolUse: BetaToolUseBlock,
+  requestOptions: BetaToolRunnerRequestOptions | undefined,
+): Promise<BetaToolResultBlockParam> {
+  const toolset = params.tools.find(
+    (t): t is BetaRunnableToolset => isRunnableToolset(t) && toolsetFamily(t) === family,
+  );
+  return toolset ?
+      runToolsetMember(toolset, toolUse, { signal: requestOptions?.signal })
+    : toolsetResultBlock(
+        toolUse,
+        `Error: Toolset '${quotedName(family)}' member '${quotedName(toolUse.name)}' not found`,
+        true,
+      );
 }
 
 async function runToolCall(
@@ -895,10 +1030,7 @@ async function runToolCall(
     return {
       type: 'tool_result' as const,
       tool_use_id: toolUse.id,
-      content:
-        error instanceof ToolError ?
-          error.content
-        : `Error: ${error instanceof Error ? error.message : String(error)}`,
+      content: toolErrorContent(error),
       is_error: true,
     };
   }
@@ -917,6 +1049,14 @@ type PendingToolChange =
   | { type: 'addition'; tool: BetaRunnableTool<any> | BetaToolUnion }
   | { type: 'removal'; name: string };
 
+/**
+ * A definition's family, as the API computes it for a toolset: its type without the date, and without `_toolset`.
+ * So a later `browser_toolset_*` version is the browser family, and `computer_20250124` the computer family.
+ */
+function definitionFamily(tool: BetaRunnableTool<any> | BetaToolUnion): string {
+  return (tool.type ?? 'custom').replace(/_\d{8}$/, '').replace(/_toolset$/, '');
+}
+
 function toolNotFoundResult(toolUse: { id: string; name: string }) {
   return {
     type: 'tool_result' as const,
@@ -924,6 +1064,42 @@ function toolNotFoundResult(toolUse: { id: string; name: string }) {
     content: `Error: Tool '${toolUse.name}' not found`,
     is_error: true,
   };
+}
+
+/** The error for a toolset call with malformed actions. None of its actions run. */
+function malformedToolsetCallResult(toolUse: BetaToolUseBlock): BetaToolResultBlockParam {
+  return {
+    type: 'tool_result',
+    tool_use_id: toolUse.id,
+    content: `Error: the '${quotedName(toolUse.name)}' toolset could not run this call${malformedActions(
+      toolUse.input,
+    )}; nothing in the batch was executed`,
+    is_error: true,
+  };
+}
+
+/** What is wrong with the call's `actions`. It quotes action names but no other part of the input. */
+function malformedActions(input: unknown): string {
+  const fields: object = typeof input === 'object' && input !== null ? input : {};
+  if (!('actions' in fields)) {
+    const action = 'action' in fields ? fields.action : undefined;
+    return typeof action === 'string' ?
+        `: the call has no 'actions' list (action: '${quotedName(action)}')`
+      : ": the call has no 'actions' list";
+  }
+  const { actions } = fields;
+  if (typeof actions === 'string') return ": 'actions' is text, not a list of actions";
+  if (!Array.isArray(actions)) return ": 'actions' is not a list of actions";
+  if (actions.length === 0) return ": the 'actions' list is empty";
+  const names: string[] = [];
+  for (const [i, entry] of actions.entries()) {
+    const action =
+      typeof entry === 'object' && entry !== null && 'action' in entry ? entry.action : undefined;
+    if (typeof action !== 'string') return `: action ${i} must be an object with a string 'action' field`;
+    names.push(`'${quotedName(action)}'`);
+  }
+  const more = names.length > 10 ? `, and ${names.length - 10} more` : '';
+  return `: its actions could not be run as sent (actions: ${names.slice(0, 10).join(', ')}${more})`;
 }
 
 function applyToolChange(block: BetaContentBlockParam, available: Set<string>): void {
@@ -1001,7 +1177,7 @@ function determineNextStepFromStopReason(stopReason: BetaStopReason | null): Nex
  */
 export type BetaToolRunnerParams = Simplify<
   Omit<MessageCreateParams, 'tools' | 'compaction'> & {
-    tools: (BetaToolUnion | BetaRunnableTool<any>)[];
+    tools: (BetaToolUnion | BetaRunnableTool<any> | BetaRunnableToolset)[];
     /**
      * Maximum number of iterations (API requests) to make in the tool execution loop.
      * Each iteration consists of: assistant response → tool execution → tool results.
@@ -1013,6 +1189,10 @@ export type BetaToolRunnerParams = Simplify<
      * with the reply. This is optimistic: if the reply is interrupted or changes course, the tool may have
      * already run, so use `deferToolCall()` to hold the calls that aren't safe to run twice. Requires
      * `stream: true`.
+     *
+     * A toolset's call, such as a browser or computer action, starts early too when the toolset's earlier calls
+     * have ended. Otherwise it waits for the reply, and so do the toolset's later calls. A toolset's `confirm` is
+     * still asked before each call runs, so it may be asked while the reply streams.
      *
      * This will be the default in a future version.
      *

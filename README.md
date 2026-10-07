@@ -6,6 +6,8 @@ The Claude SDK for TypeScript provides access to the [Claude API](https://docs.a
 
 ## Documentation
 
+SDK helpers (streaming, structured outputs, tool helpers and the tool runner) are documented in [helpers.md](helpers.md). The browser and computer toolset classes have their own guides, [browser-toolset.md](browser-toolset.md) and [computer-toolset.md](computer-toolset.md).
+
 Full documentation is available at **[platform.claude.com/docs/en/api/sdks/typescript](https://platform.claude.com/docs/en/api/sdks/typescript)**.
 
 ## Installation
