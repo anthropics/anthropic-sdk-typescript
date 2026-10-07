@@ -53,6 +53,7 @@ describe('resource models', () => {
         {
           after_id: 'after_id',
           before_id: 'before_id',
+          lifecycle: ['active'],
           limit: 1,
           betas: ['message-batches-2024-09-24'],
           workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',

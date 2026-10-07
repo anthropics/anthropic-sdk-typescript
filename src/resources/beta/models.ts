@@ -253,9 +253,29 @@ export interface BetaModelInfo {
   created_at: string;
 
   /**
+   * RFC 3339 datetime string representing the time of the model's most recent
+   * deprecation. Populated for `deprecated` and `retired` models; `null` while the
+   * model is `active`.
+   */
+  deprecated_at: string | null;
+
+  /**
    * A human-readable name for the model.
    */
   display_name: string;
+
+  /**
+   * The model's current lifecycle stage.
+   *
+   * - `active`: The model is available for use, open to new adopters, and not
+   *   scheduled for retirement.
+   * - `deprecated`: The model remains callable for organizations with existing
+   *   access, but is headed for retirement and closed to new adopters.
+   * - `retired`: The model is no longer available for use; inference requests naming
+   *   it fail. It remains in the catalogue as the historical record of its
+   *   retirement.
+   */
+  lifecycle: 'active' | 'deprecated' | 'retired';
 
   /**
    * The model line this model belongs to, such as `opus` for both Claude Opus 4.5
@@ -273,6 +293,15 @@ export interface BetaModelInfo {
    * Maximum value for the `max_tokens` parameter when using this model.
    */
   max_tokens: number | null;
+
+  /**
+   * RFC 3339 datetime string representing the model's currently scheduled retirement
+   * date. The schedule can be revised until retirement occurs; `null` while the
+   * model is `active` or while no retirement is scheduled. A past date on a
+   * `deprecated` model means retirement is overdue, not that it has occurred:
+   * `lifecycle` is the retirement signal.
+   */
+  retires_at: string | null;
 
   /**
    * Object type.
@@ -368,6 +397,14 @@ export interface ModelRetrieveParams {
 }
 
 export interface ModelListParams extends PageParams {
+  /**
+   * Query param: Filter the list to models in any of the given lifecycle stages
+   * (`active`, `deprecated`, or `retired`). Up to 3 values. When omitted, the list
+   * contains the `active` and `deprecated` models; `retired` models appear only when
+   * `retired` is requested explicitly.
+   */
+  lifecycle?: Array<'active' | 'deprecated' | 'retired'>;
+
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
