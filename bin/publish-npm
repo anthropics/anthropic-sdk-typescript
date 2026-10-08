@@ -16,12 +16,18 @@ else
   fi
 fi
 
-pnpm build
-cd dist
-
 # Get package name and version from package.json
 PACKAGE_NAME="$(jq -r -e '.name' ./package.json)"
 VERSION="$(jq -r -e '.version' ./package.json)"
+
+# A run can cover packages that have no new version, and can be a second try
+if [[ "$(npm view "$PACKAGE_NAME@$VERSION" version 2>/dev/null || true)" == "$VERSION" ]]; then
+  echo "$PACKAGE_NAME@$VERSION is already on npm"
+  exit 0
+fi
+
+pnpm build
+cd dist
 
 # Get latest version from npm
 #

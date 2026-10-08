@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.5.3...foundry-sdk-v0.5.4) (2026-10-08)
+
+### Chores
+
+* **ci:** check that pull requests update the changelog
+
 ## 0.5.3 (2026-10-07)
 
 Full Changelog: [foundry-sdk-v0.5.2...foundry-sdk-v0.5.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.5.2...foundry-sdk-v0.5.3)

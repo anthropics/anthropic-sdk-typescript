@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.34.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.34.3...bedrock-sdk-v0.34.4) (2026-10-08)
+
+### Chores
+
+* **ci:** check that pull requests update the changelog
+
 ## 0.34.3 (2026-10-07)
 
 Full Changelog: [bedrock-sdk-v0.34.2...bedrock-sdk-v0.34.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.34.2...bedrock-sdk-v0.34.3)

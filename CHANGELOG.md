@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.132.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.132.0...sdk-v0.132.1) (2026-10-08)
+
+### Bug Fixes
+
+* **client:** throw before sending a request with an empty path parameter
+
+
+### Chores
+
+* **ci:** check that pull requests update the changelog
+* **ci:** publish every package from the publish workflow
+* **docs:** note that listing Claude Console spend limits is in early access
+
+
+### Documentation
+
+* split CLAUDE.md into shared, TypeScript, and repository rules
+
 ## 0.132.0 (2026-10-07)
 
 Full Changelog: [sdk-v0.131.0...sdk-v0.132.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.131.0...sdk-v0.132.0)
