@@ -314,6 +314,8 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
   readonly #logger: Logger;
   readonly #seen = new Set<string>();
   readonly #answered = new Set<string>();
+  // Completed side effects must not run again just because their result delivery failed.
+  readonly #pendingResults = new Map<string, DispatchedToolResultParams>();
   // Confirmation gating (`always_ask` tools): `#confirmationVerdicts` records
   // every `user.tool_confirmation` verdict by `tool_use_id`;
   // `#awaitingConfirmation` holds the tool-call events whose
@@ -416,6 +418,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
         this.#logger.warn('drain failed', { error: String(e) });
       }
       this.#results.close();
+      this.#pendingResults.clear();
       for (const t of this.tools) {
         try {
           // `close` is typed `() => Promisable<void>`, so a single `await`
@@ -549,14 +552,14 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
     if (ev.type === 'agent.tool_use' || ev.type === 'agent.custom_tool_use') {
       // Mark the event seen so a replay on the live stream is not dispatched
       // twice, but decide whether it still needs executing from `answered`, not
-      // `seen`: a call whose result post failed is seen-but-unanswered, and must
-      // be retried on the next reconcile pass rather than silently dropped.
+      // `seen`: a call whose result post failed is seen-but-unanswered. Retry its
+      // saved result on the next reconcile pass without repeating the tool.
       this.#seen.add(ev.id);
       if (!this.#answered.has(ev.id)) pending.push(ev);
     } else if (ev.type === 'user.tool_result') {
-      this.#answered.add(ev.tool_use_id);
+      this.#markAnswered(ev.tool_use_id);
     } else if (ev.type === 'user.custom_tool_result') {
-      this.#answered.add(ev.custom_tool_use_id);
+      this.#markAnswered(ev.custom_tool_use_id);
     } else if (ev.type === 'user.tool_confirmation') {
       // Record the verdict only, before the pending pass, so a call whose
       // confirmation appears later in the same history routes with its verdict
@@ -581,10 +584,10 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
         await this.#noteConfirmation(ev);
         return false;
       case 'user.tool_result':
-        this.#answered.add(ev.tool_use_id);
+        this.#markAnswered(ev.tool_use_id);
         return false;
       case 'user.custom_tool_result':
-        this.#answered.add(ev.custom_tool_use_id);
+        this.#markAnswered(ev.custom_tool_use_id);
         return false;
       case 'session.status_terminated':
       case 'session.deleted':
@@ -679,7 +682,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
     // denial resolves the call server-side, so mark it answered and yield it
     // (nothing ran, nothing posted).
     if (wasHeld) this.#idleClock.unblock(ev.id);
-    this.#answered.add(ev.id);
+    this.#markAnswered(ev.id);
     this.#logger.info('tool call denied; not executing', {
       component: 'session-tool-runner',
       session_id: this.sessionId,
@@ -717,72 +720,76 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
     });
     this.#inFlightCount++;
     try {
-      const tool = this.#toolByName.get(ev.name);
-      if (!tool) {
-        // Skip (split-client partial fulfilment): a name this runner
-        // is not registered for belongs to the other client servicing this
-        // session (typically the customer's app backend handling custom tools).
-        // Post NO result, do not mark it answered, and leave the tool_use_id
-        // pending for its owner — claiming it would corrupt the conversation.
-        // Still yield the call so the consumer can observe the unowned
-        // dispatch; nothing was sent, so `posted`/`isError` stay false and no
-        // `result` event is populated. The id stays unanswered, so reconcile
-        // keeps it out of the idle/end-turn accounting and re-surfaces it after
-        // a reconnect until its owner answers it.
-        this.#logger.info('tool not owned by this runner; leaving the tool_use_id pending for its owner', {
-          component: 'session-tool-runner',
-          session_id: this.sessionId,
-          tool: ev.name,
-          tool_use_id: ev.id,
-        });
-        // The approval kept the idle countdown pending on this call. Drop it
-        // instead of starting it: the owner still has to answer.
-        if (confirmation === 'allow') this.#idleClock.disarm();
-        this.#surfaceCall({
-          event: ev,
-          toolUseId: ev.id,
-          name: ev.name,
-          isError: false,
-          posted: false,
-          confirmation,
-        });
-        return;
+      let result = this.#pendingResults.get(ev.id);
+      if (result === undefined) {
+        const tool = this.#toolByName.get(ev.name);
+        if (!tool) {
+          // Skip (split-client partial fulfilment): a name this runner
+          // is not registered for belongs to the other client servicing this
+          // session (typically the customer's app backend handling custom tools).
+          // Post NO result, do not mark it answered, and leave the tool_use_id
+          // pending for its owner — claiming it would corrupt the conversation.
+          // Still yield the call so the consumer can observe the unowned
+          // dispatch; nothing was sent, so `posted`/`isError` stay false and no
+          // `result` event is populated. The id stays unanswered, so reconcile
+          // keeps it out of the idle/end-turn accounting and re-surfaces it after
+          // a reconnect until its owner answers it.
+          this.#logger.info('tool not owned by this runner; leaving the tool_use_id pending for its owner', {
+            component: 'session-tool-runner',
+            session_id: this.sessionId,
+            tool: ev.name,
+            tool_use_id: ev.id,
+          });
+          // The approval kept the idle countdown pending on this call. Drop it
+          // instead of starting it: the owner still has to answer.
+          if (confirmation === 'allow') this.#idleClock.disarm();
+          this.#surfaceCall({
+            event: ev,
+            toolUseId: ev.id,
+            name: ev.name,
+            isError: false,
+            posted: false,
+            confirmation,
+          });
+          return;
+        }
+        let content: string | Array<BetaToolResultContentBlockParam>;
+        let isError: boolean;
+        // Per-tool controller: aborts on the runner's own signal *or* the
+        // per-tool timeout, so an in-flight tool stops promptly when the runner
+        // is aborted instead of running until the timeout.
+        const toolCtrl = new AbortController();
+        const detachTool = linkAbort(this.#controller.signal, toolCtrl);
+        const timer = setTimeout(() => toolCtrl.abort(), TOOL_TIMEOUT_MS);
+        try {
+          // Pass the source `agent.tool_use` / `agent.custom_tool_use` event
+          // straight through as the run context's `toolUse` — it is a union
+          // member of `BetaToolUse`, no Messages-block adapter needed.
+          const outcome = await runRunnableTool(tool, ev.input, {
+            toolUse: ev,
+            toolUseBlock: ev,
+            signal: toolCtrl.signal,
+          });
+          content = outcome.content;
+          isError = outcome.isError;
+        } finally {
+          clearTimeout(timer);
+          detachTool();
+        }
+        // Answer with the result event that matches the call kind: a
+        // `user.tool_result` for an `agent.tool_use`, a `user.custom_tool_result`
+        // for an `agent.custom_tool_use`. Posting the wrong one leaves the call
+        // unanswered and the session stuck.
+        result = buildResultEvent(ev, isError, toSessionContent(content));
+        this.#pendingResults.set(ev.id, result);
       }
-      let content: string | Array<BetaToolResultContentBlockParam>;
-      let isError: boolean;
-      // Per-tool controller: aborts on the runner's own signal *or* the
-      // per-tool timeout, so an in-flight tool stops promptly when the runner
-      // is aborted instead of running until the timeout.
-      const toolCtrl = new AbortController();
-      const detachTool = linkAbort(this.#controller.signal, toolCtrl);
-      const timer = setTimeout(() => toolCtrl.abort(), TOOL_TIMEOUT_MS);
-      try {
-        // Pass the source `agent.tool_use` / `agent.custom_tool_use` event
-        // straight through as the run context's `toolUse` — it is a union
-        // member of `BetaToolUse`, no Messages-block adapter needed.
-        const outcome = await runRunnableTool(tool, ev.input, {
-          toolUse: ev,
-          toolUseBlock: ev,
-          signal: toolCtrl.signal,
-        });
-        content = outcome.content;
-        isError = outcome.isError;
-      } finally {
-        clearTimeout(timer);
-        detachTool();
-      }
-      // Answer with the result event that matches the call kind: a
-      // `user.tool_result` for an `agent.tool_use`, a `user.custom_tool_result`
-      // for an `agent.custom_tool_use`. Posting the wrong one leaves the call
-      // unanswered and the session stuck.
-      const result = buildResultEvent(ev, isError, toSessionContent(content));
       const posted = await this.#sendResult(result, ev.id);
       this.#surfaceCall({
         event: ev,
         result,
         toolUseId: ev.id,
         name: ev.name,
-        isError,
+        isError: result.is_error === true,
         posted,
         confirmation,
       });
@@ -790,6 +797,11 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
       this.#inFlightCount--;
       if (this.#inFlightCount === 0) this.#onIdle?.();
     }
+  }
+
+  #markAnswered(toolUseId: string): void {
+    this.#answered.add(toolUseId);
+    this.#pendingResults.delete(toolUseId);
   }
 
   async #sendResult(result: DispatchedToolResultParams, toolUseId: string): Promise<boolean> {
@@ -808,7 +820,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
           { events: [result] },
           this.#requestOptions(),
         );
-        this.#answered.add(toolUseId);
+        this.#markAnswered(toolUseId);
         return true;
       } catch (e) {
         lastErr = e;
