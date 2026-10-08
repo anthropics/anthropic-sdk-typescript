@@ -403,6 +403,7 @@ export class BetaToolRunner<Stream extends boolean> {
   /**
    * Update the parameters for the next API call. This invalidates any cached tool responses. With
    * `runToolsEagerly`, a tool call of the reply that has started doesn't run again.
+   * Replacement message arrays are copied before the runner appends turns.
    *
    * @param paramsOrMutator - Either new parameters or a function to mutate existing parameters
    *
@@ -425,6 +426,7 @@ export class BetaToolRunner<Stream extends boolean> {
   setMessagesParams(
     paramsOrMutator: BetaToolRunnerParams | ((prevParams: BetaToolRunnerParams) => BetaToolRunnerParams),
   ) {
+    const previousMessages = this.#state.params.messages;
     const params =
       typeof paramsOrMutator === 'function' ? paramsOrMutator(this.#state.params) : paramsOrMutator;
     rejectCompactionParam(params);
@@ -438,7 +440,10 @@ export class BetaToolRunner<Stream extends boolean> {
           'response is about to replace them. Change them after this iteration instead.',
       );
     }
-    this.#state.params = params;
+    this.#state.params = {
+      ...params,
+      messages: params.messages === previousMessages ? params.messages : [...params.messages],
+    };
     this.#mutated = true;
     // Invalidate cached tool response since parameters changed
     this.#toolResponse = undefined;
