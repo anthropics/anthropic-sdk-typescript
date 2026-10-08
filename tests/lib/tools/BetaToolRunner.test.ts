@@ -1260,6 +1260,50 @@ describe('ToolRunner', () => {
       await expect(runner.runUntilDone()).resolves.toMatchObject({ stop_reason: 'pause_turn' });
       expect(bodies).toHaveLength(3);
     });
+
+    it('retains the paused turn when setMessagesParams() mutates params during the stream (stream=true)', async () => {
+      const { runner, handleRequest } = setupTest({ stream: true });
+      const bodies: Array<Record<string, unknown>> = [];
+      const paused = pausedTurn();
+
+      // Queue paused turn, then end_turn
+      reply(handleRequest, bodies, paused, true);
+      reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), true);
+      handleRequest(async () => {
+        throw new Error('Runner made a request after the resumed turn ended');
+      });
+
+      // Consume the iterator manually, consuming each stream, and mutate params
+      // between the first yield and when the loop continues (simulating user
+      // calling setMessagesParams during stream consumption).
+      const iterator = runner[Symbol.asyncIterator]();
+
+      // First yield: stream for paused turn
+      const result1 = await iterator.next();
+      expect(result1.done).toBe(false);
+      const stream1: any = result1.value;
+      // Consume stream events so finalMessage() resolves
+      for await (const _ of stream1) {
+        /* drain */
+      }
+      // Mutate params — this sets #mutated = true
+      runner.setMessagesParams((params) => ({ ...params }));
+
+      // Second yield: stream for resumed end_turn
+      const result2 = await iterator.next();
+      expect(result2.done).toBe(false);
+      const stream2: any = result2.value;
+      for await (const _ of stream2) {
+        /* drain */
+      }
+
+      // The second request body must include the paused assistant turn
+      expect(bodies).toHaveLength(2);
+      expect(bodies[1]!['messages']).toEqual([
+        { role: 'user', content: 'What is the weather?' },
+        { role: 'assistant', content: paused.content },
+      ]);
+    });
   });
 
   describe('compaction', () => {

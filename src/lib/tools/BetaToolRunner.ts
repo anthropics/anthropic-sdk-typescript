@@ -220,36 +220,41 @@ export class BetaToolRunner<Stream extends boolean> {
 
           const isCompacted = await this.#checkAndCompact();
           if (!isCompacted) {
+            const message = await this.#message;
+            const nextStep = determineNextStepFromStopReason(message.stop_reason);
+
             if (!this.#mutated) {
-              const message = await this.#message;
-              const nextStep = determineNextStepFromStopReason(message.stop_reason);
               this.#state.params.messages.push({ role: message.role, content: message.content });
+            }
 
-              // Container-bound server tools reject a follow-up request that omits the container the
-              // previous turn ran in, so carry its id forward unless the caller pinned one themselves.
-              const { container } = this.#state.params;
-              if (message.container) {
-                if (container == null) {
-                  this.#state.params.container = message.container.id;
-                } else if (typeof container === 'object' && container.id == null) {
-                  this.#state.params.container = { ...container, id: message.container.id };
-                }
-              }
-
-              if (nextStep === 'stop') {
-                break;
-              }
-              if (nextStep === 'resume') {
-                continue;
+            // Container-bound server tools reject a follow-up request that omits the container the
+            // previous turn ran in, so carry its id forward unless the caller pinned one themselves.
+            const { container } = this.#state.params;
+            if (message.container) {
+              if (container == null) {
+                this.#state.params.container = message.container.id;
+              } else if (typeof container === 'object' && container.id == null) {
+                this.#state.params.container = { ...container, id: message.container.id };
               }
             }
 
-            const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
-            if (toolMessage) {
-              this.#state.params.messages.push(toolMessage);
+            if (nextStep === 'stop') {
+              if (!this.#mutated) {
+                break;
+              }
+            } else if (nextStep === 'resume') {
+              // For pause_turn / compaction the assistant turn must be sent back to the server
+              // unchanged so it can resume the paused operation. Retain it explicitly even when
+              // the caller mutated params, because skipping it breaks the resume semantics.
+              if (this.#mutated) {
+                this.#state.params.messages.push({ role: message.role, content: message.content });
+              }
+              continue;
             } else {
-              const message = await this.#message;
-              if (!this.#mutated && message.stop_reason !== 'pause_turn') {
+              const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
+              if (toolMessage) {
+                this.#state.params.messages.push(toolMessage);
+              } else if (!this.#mutated) {
                 break;
               }
             }
