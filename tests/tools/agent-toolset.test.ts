@@ -344,6 +344,49 @@ describe('fs tools (read/write/edit)', () => {
     expect(out).toBe('hello');
   });
 
+  test.each([undefined, null, 42])(
+    'write rejects non-string content (%p) without changing the file',
+    async (content) => {
+      const file = path.join(dir, 'existing.txt');
+      fs.writeFileSync(file, 'keep this');
+      await expect(betaWriteTool(env).run({ file_path: 'existing.txt', content })).rejects.toThrow(
+        'write: content must be a string',
+      );
+      expect(fs.readFileSync(file, 'utf8')).toBe('keep this');
+    },
+  );
+
+  test('write accepts an explicit empty string to truncate a file', async () => {
+    fs.writeFileSync(path.join(dir, 'existing.txt'), 'replace this');
+    await betaWriteTool(env).run({ file_path: 'existing.txt', content: '' });
+    expect(fs.readFileSync(path.join(dir, 'existing.txt'), 'utf8')).toBe('');
+  });
+
+  for (const replace_all of [false, true]) {
+    test.each([undefined, null, 42])(
+      `edit rejects non-string new_string (%p), replace_all=${replace_all}`,
+      async (new_string) => {
+        const file = path.join(dir, 'existing.txt');
+        fs.writeFileSync(file, 'keep this');
+        await expect(
+          betaEditTool(env).run({ file_path: 'existing.txt', old_string: 'keep', new_string, replace_all }),
+        ).rejects.toThrow('edit: new_string must be a string');
+        expect(fs.readFileSync(file, 'utf8')).toBe('keep this');
+      },
+    );
+
+    test(`edit accepts an empty replacement, replace_all=${replace_all}`, async () => {
+      fs.writeFileSync(path.join(dir, 'existing.txt'), 'remove this');
+      await betaEditTool(env).run({
+        file_path: 'existing.txt',
+        old_string: 'remove ',
+        new_string: '',
+        replace_all,
+      });
+      expect(fs.readFileSync(path.join(dir, 'existing.txt'), 'utf8')).toBe('this');
+    });
+  }
+
   test('write under many not-yet-existing directories succeeds because only symlink hops are capped', async () => {
     const rel = path.join(...Array.from({ length: 50 }, (_, i) => `d${i}`), 'f.txt');
     await betaWriteTool(env).run({ file_path: rel, content: 'deep' });
