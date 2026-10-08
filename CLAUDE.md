@@ -91,7 +91,6 @@ These rules don't depend on the language. The SDKs for this API in other languag
 ### Branches
 
 - PRs target the repository's default branch. In the public repository that is `main`. Elsewhere, don't assume its name (`gh repo view --json defaultBranchRef` shows it).
-- `next` is a release branch in the public repository, and only automation writes to it. Never open a PR against `next`, and never merge or push to it by hand.
 - Rebase onto the current base before you ask for review. A stale base shows up as unrelated changed files.
 
 ### Running the checks
