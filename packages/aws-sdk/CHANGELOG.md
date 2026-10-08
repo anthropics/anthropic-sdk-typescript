@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.9](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.8...aws-sdk-v0.7.9) (2026-10-08)
+
+### Chores
+
+* **ci:** check that pull requests update the changelog
+
 ## 0.7.8 (2026-10-07)
 
 Full Changelog: [aws-sdk-v0.7.7...aws-sdk-v0.7.8](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.7...aws-sdk-v0.7.8)

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.132.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.132.0...sdk-v0.132.1) (2026-10-08)
+
+### Chores
+
+* **ci:** check that pull requests update the changelog
+
 ## 0.132.0 (2026-10-07)
 
 Full Changelog: [sdk-v0.131.0...sdk-v0.132.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.131.0...sdk-v0.132.0)

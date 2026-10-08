@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.19](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.18...google-cloud-sdk-v0.0.19) (2026-10-08)
+
+### Chores
+
+* **ci:** check that pull requests update the changelog
+
 ## 0.0.18 (2026-10-07)
 
 Full Changelog: [google-cloud-sdk-v0.0.17...google-cloud-sdk-v0.0.18](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.17...google-cloud-sdk-v0.0.18)
