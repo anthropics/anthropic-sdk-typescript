@@ -1,4 +1,5 @@
 import { APIResource } from '../../../../core/resource';
+import * as AnalyticsAPI from './analytics';
 import * as MessagesAPI from '../../messages/messages';
 import * as ArtifactsAPI from './artifacts';
 import { ArtifactListParams, Artifacts } from './artifacts';
@@ -138,6 +139,221 @@ export interface BetaAnalyticsArtifactActivity {
    * by `user_id`.
    */
   user_id?: string | null;
+}
+
+/**
+ * Chat activity recorded while members had Chat and Cowork unified turned on.
+ */
+export interface BetaAnalyticsChatCoworkUnifiedChatMetrics {
+  /**
+   * Same measure as `chat_metrics.connectors_used_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on.
+   */
+  connectors_used_count: number;
+
+  /**
+   * Same measure as `chat_metrics.distinct_artifacts_created_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Exact in
+   * date-range mode: a creation belongs to exactly one day, so the per-day counts
+   * never overlap and their sum over the window is the exact count of distinct
+   * creations in it.
+   */
+  distinct_artifacts_created_count: number;
+
+  /**
+   * Same measure as `chat_metrics.distinct_connectors_used_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
+   * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
+   * count cannot be computed.
+   */
+  distinct_connectors_used_count: number | null;
+
+  /**
+   * Same measure as `chat_metrics.distinct_conversation_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
+   * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
+   * count cannot be computed.
+   */
+  distinct_conversation_count: number | null;
+
+  /**
+   * Same measure as `chat_metrics.distinct_files_uploaded_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. It counts uploaded
+   * files as well as files Claude created and images returned by Claude's tools,
+   * such as screenshots. Approximate (HLL, typical error <2%) in date-range mode.
+   * Null on aggregated rows where a distinct count cannot be computed.
+   */
+  distinct_files_uploaded_count: number | null;
+
+  /**
+   * Same measure as `chat_metrics.distinct_projects_created_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Exact in
+   * date-range mode: a creation belongs to exactly one day, so the per-day counts
+   * never overlap and their sum over the window is the exact count of distinct
+   * creations in it.
+   */
+  distinct_projects_created_count: number;
+
+  /**
+   * Same measure as `chat_metrics.distinct_projects_used_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
+   * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
+   * count cannot be computed.
+   */
+  distinct_projects_used_count: number | null;
+
+  /**
+   * Always null: shared-artifact views are not currently measured.
+   */
+  distinct_shared_artifacts_viewed_count: number | null;
+
+  /**
+   * Same measure as `chat_metrics.distinct_skills_used_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on. Approximate (HLL, typical
+   * error <2%) in date-range mode. Null on aggregated rows where a distinct count
+   * cannot be computed.
+   */
+  distinct_skills_used_count: number | null;
+
+  /**
+   * Same measure as `chat_metrics.message_count`, for activity recorded while
+   * members had Chat and Cowork unified turned on.
+   */
+  message_count: number;
+
+  /**
+   * Same measure as `chat_metrics.shared_conversations_viewed_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on.
+   */
+  shared_conversations_viewed_count: number;
+
+  /**
+   * Same measure as `chat_metrics.thinking_message_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on.
+   */
+  thinking_message_count: number;
+}
+
+/**
+ * Cowork session activity recorded while members had Chat and Cowork unified
+ * turned on.
+ */
+export interface BetaAnalyticsChatCoworkUnifiedSessionsMetrics {
+  /**
+   * Same measure as `cowork_metrics.action_count`, for activity recorded while
+   * members had Chat and Cowork unified turned on.
+   */
+  action_count: number;
+
+  /**
+   * Same measure as `cowork_metrics.artifacts_created_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on. Exact in date-range mode: a
+   * creation belongs to exactly one day, so the per-day counts never overlap and
+   * their sum over the window is the exact count of distinct creations in it.
+   */
+  artifacts_created_count: number;
+
+  /**
+   * Same measure as `cowork_metrics.connectors_used_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on.
+   */
+  connectors_used_count: number;
+
+  /**
+   * Same measure as `cowork_metrics.dispatch_turn_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on.
+   */
+  dispatch_turn_count: number;
+
+  /**
+   * Same measure as `cowork_metrics.distinct_connectors_used_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
+   * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
+   * count cannot be computed.
+   */
+  distinct_connectors_used_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.distinct_plugins_used_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
+   * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
+   * count cannot be computed.
+   */
+  distinct_plugins_used_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.distinct_session_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on. Approximate (HLL, typical
+   * error <2%) in date-range mode. Null on aggregated rows where a distinct count
+   * cannot be computed.
+   */
+  distinct_session_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.distinct_skills_used_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
+   * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
+   * count cannot be computed.
+   */
+  distinct_skills_used_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.edit_tool_count`, for activity recorded while
+   * members had Chat and Cowork unified turned on.
+   */
+  edit_tool_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.file_edit_count`, for activity recorded while
+   * members had Chat and Cowork unified turned on.
+   */
+  file_edit_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.message_count`, for activity recorded while
+   * members had Chat and Cowork unified turned on.
+   */
+  message_count: number;
+
+  /**
+   * Same measure as `cowork_metrics.multi_edit_tool_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on. Claude no longer has a
+   * multi-edit tool, so expect 0 when not null; each edit is now a separate Edit
+   * tool call, counted in `edit_tool_count` and `file_edit_count`.
+   */
+  multi_edit_tool_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.notebook_edit_tool_count`, for activity recorded
+   * while members had Chat and Cowork unified turned on.
+   */
+  notebook_edit_tool_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.plugins_used_count`, for activity recorded while
+   * members had Chat and Cowork unified turned on.
+   */
+  plugins_used_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.sessions_with_file_edits_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
+   * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
+   * count cannot be computed.
+   */
+  sessions_with_file_edits_count: number | null;
+
+  /**
+   * Same measure as `cowork_metrics.skills_used_count`, for activity recorded while
+   * members had Chat and Cowork unified turned on.
+   */
+  skills_used_count: number;
+
+  /**
+   * Same measure as `cowork_metrics.write_tool_count`, for activity recorded while
+   * members had Chat and Cowork unified turned on.
+   */
+  write_tool_count: number | null;
 }
 
 /**
@@ -417,44 +633,42 @@ export namespace BetaAnalyticsConnectorActivity {
      * A connector's use in chat conversations recorded while members had Chat and
      * Cowork unified turned on.
      */
-    chat: ChatCoworkUnifiedMetrics.Chat;
+    chat: AnalyticsAPI.BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics;
 
     /**
      * A connector's use in Cowork sessions recorded while members had Chat and Cowork
      * unified turned on.
      */
-    sessions: ChatCoworkUnifiedMetrics.Sessions;
+    sessions: AnalyticsAPI.BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics;
   }
+}
 
-  export namespace ChatCoworkUnifiedMetrics {
-    /**
-     * A connector's use in chat conversations recorded while members had Chat and
-     * Cowork unified turned on.
-     */
-    export interface Chat {
-      /**
-       * Same measure as `chat_metrics.distinct_conversation_connector_used_count`, for
-       * activity recorded while members had Chat and Cowork unified turned on.
-       * Approximate (HLL, typical error <2%) in date-range mode. Null on aggregated rows
-       * where a distinct count cannot be computed.
-       */
-      distinct_conversation_connector_used_count: number | null;
-    }
+/**
+ * A connector's use in chat conversations recorded while members had Chat and
+ * Cowork unified turned on.
+ */
+export interface BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics {
+  /**
+   * Same measure as `chat_metrics.distinct_conversation_connector_used_count`, for
+   * activity recorded while members had Chat and Cowork unified turned on.
+   * Approximate (HLL, typical error <2%) in date-range mode. Null on aggregated rows
+   * where a distinct count cannot be computed.
+   */
+  distinct_conversation_connector_used_count: number | null;
+}
 
-    /**
-     * A connector's use in Cowork sessions recorded while members had Chat and Cowork
-     * unified turned on.
-     */
-    export interface Sessions {
-      /**
-       * Same measure as `cowork_metrics.distinct_session_connector_used_count`, for
-       * activity recorded while members had Chat and Cowork unified turned on.
-       * Approximate (HLL, typical error <2%) in date-range mode. Null on aggregated rows
-       * where a distinct count cannot be computed.
-       */
-      distinct_session_connector_used_count: number | null;
-    }
-  }
+/**
+ * A connector's use in Cowork sessions recorded while members had Chat and Cowork
+ * unified turned on.
+ */
+export interface BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics {
+  /**
+   * Same measure as `cowork_metrics.distinct_session_connector_used_count`, for
+   * activity recorded while members had Chat and Cowork unified turned on.
+   * Approximate (HLL, typical error <2%) in date-range mode. Null on aggregated rows
+   * where a distinct count cannot be computed.
+   */
+  distinct_session_connector_used_count: number | null;
 }
 
 /**
@@ -1443,9 +1657,9 @@ export interface BetaAnalyticsSingleDayActivitySummary {
   chat_cowork_unified_daily_active_user_count?: number | null;
 
   /**
-   * Number of users with activity in Chat and Cowork unified in the 30-day rolling
-   * window. Omitted from the response on deployments that do not offer Chat and
-   * Cowork unified.
+   * Number of users with activity in Chat and Cowork unified in the 28-day rolling
+   * window (30 days when the request filters by `rbac_group_id`). Omitted from the
+   * response on deployments that do not offer Chat and Cowork unified.
    */
   chat_cowork_unified_monthly_active_user_count?: number | null;
 
@@ -1778,44 +1992,42 @@ export namespace BetaAnalyticsSkillActivity {
      * A skill's use in chat conversations recorded while members had Chat and Cowork
      * unified turned on.
      */
-    chat: ChatCoworkUnifiedMetrics.Chat;
+    chat: AnalyticsAPI.BetaAnalyticsSkillChatCoworkUnifiedChatMetrics;
 
     /**
      * A skill's use in Cowork sessions recorded while members had Chat and Cowork
      * unified turned on.
      */
-    sessions: ChatCoworkUnifiedMetrics.Sessions;
+    sessions: AnalyticsAPI.BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics;
   }
+}
 
-  export namespace ChatCoworkUnifiedMetrics {
-    /**
-     * A skill's use in chat conversations recorded while members had Chat and Cowork
-     * unified turned on.
-     */
-    export interface Chat {
-      /**
-       * Same measure as `chat_metrics.distinct_conversation_skill_used_count`, for
-       * activity recorded while members had Chat and Cowork unified turned on.
-       * Approximate (HLL, typical error <2%) in date-range mode. Null on aggregated rows
-       * where a distinct count cannot be computed.
-       */
-      distinct_conversation_skill_used_count: number | null;
-    }
+/**
+ * A skill's use in chat conversations recorded while members had Chat and Cowork
+ * unified turned on.
+ */
+export interface BetaAnalyticsSkillChatCoworkUnifiedChatMetrics {
+  /**
+   * Same measure as `chat_metrics.distinct_conversation_skill_used_count`, for
+   * activity recorded while members had Chat and Cowork unified turned on.
+   * Approximate (HLL, typical error <2%) in date-range mode. Null on aggregated rows
+   * where a distinct count cannot be computed.
+   */
+  distinct_conversation_skill_used_count: number | null;
+}
 
-    /**
-     * A skill's use in Cowork sessions recorded while members had Chat and Cowork
-     * unified turned on.
-     */
-    export interface Sessions {
-      /**
-       * Same measure as `cowork_metrics.distinct_session_skill_used_count`, for activity
-       * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
-       * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
-       * count cannot be computed.
-       */
-      distinct_session_skill_used_count: number | null;
-    }
-  }
+/**
+ * A skill's use in Cowork sessions recorded while members had Chat and Cowork
+ * unified turned on.
+ */
+export interface BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics {
+  /**
+   * Same measure as `cowork_metrics.distinct_session_skill_used_count`, for activity
+   * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
+   * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
+   * count cannot be computed.
+   */
+  distinct_session_skill_used_count: number | null;
 }
 
 /**
@@ -2365,227 +2577,13 @@ export namespace BetaAnalyticsUserActivity {
     /**
      * Chat activity recorded while members had Chat and Cowork unified turned on.
      */
-    chat: ChatCoworkUnifiedMetrics.Chat;
+    chat: AnalyticsAPI.BetaAnalyticsChatCoworkUnifiedChatMetrics;
 
     /**
      * Cowork session activity recorded while members had Chat and Cowork unified
      * turned on.
      */
-    sessions: ChatCoworkUnifiedMetrics.Sessions;
-  }
-
-  export namespace ChatCoworkUnifiedMetrics {
-    /**
-     * Chat activity recorded while members had Chat and Cowork unified turned on.
-     */
-    export interface Chat {
-      /**
-       * Same measure as `chat_metrics.connectors_used_count`, for activity recorded
-       * while members had Chat and Cowork unified turned on.
-       */
-      connectors_used_count: number;
-
-      /**
-       * Same measure as `chat_metrics.distinct_artifacts_created_count`, for activity
-       * recorded while members had Chat and Cowork unified turned on. Exact in
-       * date-range mode: a creation belongs to exactly one day, so the per-day counts
-       * never overlap and their sum over the window is the exact count of distinct
-       * creations in it.
-       */
-      distinct_artifacts_created_count: number;
-
-      /**
-       * Same measure as `chat_metrics.distinct_connectors_used_count`, for activity
-       * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
-       * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
-       * count cannot be computed.
-       */
-      distinct_connectors_used_count: number | null;
-
-      /**
-       * Same measure as `chat_metrics.distinct_conversation_count`, for activity
-       * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
-       * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
-       * count cannot be computed.
-       */
-      distinct_conversation_count: number | null;
-
-      /**
-       * Same measure as `chat_metrics.distinct_files_uploaded_count`, for activity
-       * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
-       * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
-       * count cannot be computed.
-       */
-      distinct_files_uploaded_count: number | null;
-
-      /**
-       * Same measure as `chat_metrics.distinct_projects_created_count`, for activity
-       * recorded while members had Chat and Cowork unified turned on. Exact in
-       * date-range mode: a creation belongs to exactly one day, so the per-day counts
-       * never overlap and their sum over the window is the exact count of distinct
-       * creations in it.
-       */
-      distinct_projects_created_count: number;
-
-      /**
-       * Same measure as `chat_metrics.distinct_projects_used_count`, for activity
-       * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
-       * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
-       * count cannot be computed.
-       */
-      distinct_projects_used_count: number | null;
-
-      /**
-       * Always null: shared-artifact views are not currently measured.
-       */
-      distinct_shared_artifacts_viewed_count: number | null;
-
-      /**
-       * Same measure as `chat_metrics.distinct_skills_used_count`, for activity recorded
-       * while members had Chat and Cowork unified turned on. Approximate (HLL, typical
-       * error <2%) in date-range mode. Null on aggregated rows where a distinct count
-       * cannot be computed.
-       */
-      distinct_skills_used_count: number | null;
-
-      /**
-       * Same measure as `chat_metrics.message_count`, for activity recorded while
-       * members had Chat and Cowork unified turned on.
-       */
-      message_count: number;
-
-      /**
-       * Same measure as `chat_metrics.shared_conversations_viewed_count`, for activity
-       * recorded while members had Chat and Cowork unified turned on.
-       */
-      shared_conversations_viewed_count: number;
-
-      /**
-       * Same measure as `chat_metrics.thinking_message_count`, for activity recorded
-       * while members had Chat and Cowork unified turned on.
-       */
-      thinking_message_count: number;
-    }
-
-    /**
-     * Cowork session activity recorded while members had Chat and Cowork unified
-     * turned on.
-     */
-    export interface Sessions {
-      /**
-       * Same measure as `cowork_metrics.action_count`, for activity recorded while
-       * members had Chat and Cowork unified turned on.
-       */
-      action_count: number;
-
-      /**
-       * Same measure as `cowork_metrics.artifacts_created_count`, for activity recorded
-       * while members had Chat and Cowork unified turned on. Exact in date-range mode: a
-       * creation belongs to exactly one day, so the per-day counts never overlap and
-       * their sum over the window is the exact count of distinct creations in it.
-       */
-      artifacts_created_count: number;
-
-      /**
-       * Same measure as `cowork_metrics.connectors_used_count`, for activity recorded
-       * while members had Chat and Cowork unified turned on.
-       */
-      connectors_used_count: number;
-
-      /**
-       * Same measure as `cowork_metrics.dispatch_turn_count`, for activity recorded
-       * while members had Chat and Cowork unified turned on.
-       */
-      dispatch_turn_count: number;
-
-      /**
-       * Same measure as `cowork_metrics.distinct_connectors_used_count`, for activity
-       * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
-       * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
-       * count cannot be computed.
-       */
-      distinct_connectors_used_count: number | null;
-
-      /**
-       * Same measure as `cowork_metrics.distinct_session_count`, for activity recorded
-       * while members had Chat and Cowork unified turned on. Approximate (HLL, typical
-       * error <2%) in date-range mode. Null on aggregated rows where a distinct count
-       * cannot be computed.
-       */
-      distinct_session_count: number | null;
-
-      /**
-       * Same measure as `cowork_metrics.distinct_skills_used_count`, for activity
-       * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
-       * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
-       * count cannot be computed.
-       */
-      distinct_skills_used_count: number | null;
-
-      /**
-       * Same measure as `cowork_metrics.message_count`, for activity recorded while
-       * members had Chat and Cowork unified turned on.
-       */
-      message_count: number;
-
-      /**
-       * Same measure as `cowork_metrics.skills_used_count`, for activity recorded while
-       * members had Chat and Cowork unified turned on.
-       */
-      skills_used_count: number;
-
-      /**
-       * Same measure as `cowork_metrics.distinct_plugins_used_count`, for activity
-       * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
-       * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
-       * count cannot be computed.
-       */
-      distinct_plugins_used_count?: number | null;
-
-      /**
-       * Same measure as `cowork_metrics.edit_tool_count`, for activity recorded while
-       * members had Chat and Cowork unified turned on.
-       */
-      edit_tool_count?: number | null;
-
-      /**
-       * Same measure as `cowork_metrics.file_edit_count`, for activity recorded while
-       * members had Chat and Cowork unified turned on.
-       */
-      file_edit_count?: number | null;
-
-      /**
-       * Same measure as `cowork_metrics.multi_edit_tool_count`, for activity recorded
-       * while members had Chat and Cowork unified turned on.
-       */
-      multi_edit_tool_count?: number | null;
-
-      /**
-       * Same measure as `cowork_metrics.notebook_edit_tool_count`, for activity recorded
-       * while members had Chat and Cowork unified turned on.
-       */
-      notebook_edit_tool_count?: number | null;
-
-      /**
-       * Same measure as `cowork_metrics.plugins_used_count`, for activity recorded while
-       * members had Chat and Cowork unified turned on.
-       */
-      plugins_used_count?: number | null;
-
-      /**
-       * Same measure as `cowork_metrics.sessions_with_file_edits_count`, for activity
-       * recorded while members had Chat and Cowork unified turned on. Approximate (HLL,
-       * typical error <2%) in date-range mode. Null on aggregated rows where a distinct
-       * count cannot be computed.
-       */
-      sessions_with_file_edits_count?: number | null;
-
-      /**
-       * Same measure as `cowork_metrics.write_tool_count`, for activity recorded while
-       * members had Chat and Cowork unified turned on.
-       */
-      write_tool_count?: number | null;
-    }
+    sessions: AnalyticsAPI.BetaAnalyticsChatCoworkUnifiedSessionsMetrics;
   }
 }
 
@@ -2645,10 +2643,14 @@ Analytics.UserCostReport = UserCostReport;
 export declare namespace Analytics {
   export {
     type BetaAnalyticsArtifactActivity as BetaAnalyticsArtifactActivity,
+    type BetaAnalyticsChatCoworkUnifiedChatMetrics as BetaAnalyticsChatCoworkUnifiedChatMetrics,
+    type BetaAnalyticsChatCoworkUnifiedSessionsMetrics as BetaAnalyticsChatCoworkUnifiedSessionsMetrics,
     type BetaAnalyticsChatMetrics as BetaAnalyticsChatMetrics,
     type BetaAnalyticsClaudeCodeMetrics as BetaAnalyticsClaudeCodeMetrics,
     type BetaAnalyticsClaudeTagCategory as BetaAnalyticsClaudeTagCategory,
     type BetaAnalyticsConnectorActivity as BetaAnalyticsConnectorActivity,
+    type BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics as BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics,
+    type BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics as BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics,
     type BetaAnalyticsConnectorChatMetrics as BetaAnalyticsConnectorChatMetrics,
     type BetaAnalyticsConnectorClaudeCodeMetrics as BetaAnalyticsConnectorClaudeCodeMetrics,
     type BetaAnalyticsConnectorCoworkMetrics as BetaAnalyticsConnectorCoworkMetrics,
@@ -2675,6 +2677,8 @@ export declare namespace Analytics {
     type BetaAnalyticsServerToolUse as BetaAnalyticsServerToolUse,
     type BetaAnalyticsSingleDayActivitySummary as BetaAnalyticsSingleDayActivitySummary,
     type BetaAnalyticsSkillActivity as BetaAnalyticsSkillActivity,
+    type BetaAnalyticsSkillChatCoworkUnifiedChatMetrics as BetaAnalyticsSkillChatCoworkUnifiedChatMetrics,
+    type BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics as BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics,
     type BetaAnalyticsSkillChatMetrics as BetaAnalyticsSkillChatMetrics,
     type BetaAnalyticsSkillClaudeCodeMetrics as BetaAnalyticsSkillClaudeCodeMetrics,
     type BetaAnalyticsSkillCoworkMetrics as BetaAnalyticsSkillCoworkMetrics,
