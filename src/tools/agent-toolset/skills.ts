@@ -260,13 +260,13 @@ export async function extractSkillArchive(resp: Response, dest: string): Promise
   if (!resp.body) {
     throw new AnthropicError('skill download response had no body');
   }
-  await stream.promises.pipeline(
-    stream.Readable.fromWeb(resp.body as Parameters<typeof stream.Readable.fromWeb>[0]),
-    fssync.createWriteStream(tmp),
-  );
   const stage = path.join(path.dirname(dest), `.skill-stage-${process.pid}-${Date.now()}`);
   const excludeFile = path.join(path.dirname(dest), `.skill-exclude-${process.pid}-${Date.now()}`);
   try {
+    await stream.promises.pipeline(
+      stream.Readable.fromWeb(resp.body as Parameters<typeof stream.Readable.fromWeb>[0]),
+      fssync.createWriteStream(tmp),
+    );
     // Sniff the first bytes: zip archives start with "PK\x03\x04"; treat
     // anything else as a tar.* archive (`tar -xf` autodetects gzip/bzip2/xz).
     const head = await readHead(tmp, 4);
