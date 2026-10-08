@@ -847,6 +847,15 @@ describeBash('betaBashTool', () => {
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
+  test('a missing workdir rejects with ToolError and a later call can recover', async () => {
+    fs.rmSync(dir, { recursive: true });
+    await expect(tool.run({ command: 'echo unreachable', timeout_ms: 1000 })).rejects.toThrow(
+      new ToolError('bash: bash session failed: spawn /bin/bash ENOENT'),
+    );
+    fs.mkdirSync(dir);
+    expect(await tool.run({ command: 'echo recovered' })).toBe('recovered');
+  });
+
   test('exporting a variable in one call makes it readable in a later call (state persists across the closure-held session)', async () => {
     expect(await tool.run({ command: 'export FOO=bar; echo set' })).toBe('set');
     expect(await tool.run({ command: 'echo $FOO' })).toBe('bar');
@@ -920,6 +929,17 @@ describeBash('BashSession (direct)', () => {
   afterEach(() => {
     session.close();
     fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  test('a failed spawn rejects exec and retains its AnthropicError for later calls', async () => {
+    session.close();
+    fs.rmSync(dir, { recursive: true });
+    session = new BashSession(dir);
+    const err = await session.exec('echo unreachable', { timeoutMs: 1000 }).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(AnthropicError);
+    expect((err as Error).message).toBe('bash session failed: spawn /bin/bash ENOENT');
+    expect(session.closed).toBe(true);
+    await expect(session.exec('echo unreachable')).rejects.toBe(err);
   });
 
   test('changing directory persists so a later pwd reports the new location', async () => {
