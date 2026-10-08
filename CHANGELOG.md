@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.133.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.132.1...sdk-v0.133.0) (2026-10-08)
+
+### Features
+
+* **api:** add types for the Chat and Cowork unified analytics metrics
+
 ## [0.132.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.132.0...sdk-v0.132.1) (2026-10-08)
 
 ### Bug Fixes
