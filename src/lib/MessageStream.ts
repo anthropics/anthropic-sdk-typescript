@@ -305,8 +305,8 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
    * This is similar to `.once()`, but returns a Promise that resolves the next time
    * the event is triggered, instead of calling a listener callback.
    * @returns a Promise that resolves the next time given event is triggered,
-   * or rejects if an error is emitted.  (If you request the 'error' event,
-   * returns a promise that resolves with the error).
+   * or rejects if an error or abort is emitted.  (If you request the 'error' event,
+   * returns a promise that resolves with the error; requesting 'abort' resolves with the abort error).
    *
    * Example:
    *
@@ -319,11 +319,23 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
     : Parameters<MessageStreamEvents<ParsedT>[Event]> extends [] ? void
     : Parameters<MessageStreamEvents<ParsedT>[Event]>
   > {
-    return new Promise((resolve, reject) => {
+    type EventResult =
+      Parameters<MessageStreamEvents<ParsedT>[Event]> extends [infer Param] ? Param
+      : Parameters<MessageStreamEvents<ParsedT>[Event]> extends [] ? void
+      : Parameters<MessageStreamEvents<ParsedT>[Event]>;
+    let cleanup: () => void;
+    return new Promise<EventResult>((resolve, reject) => {
       this.#catchingPromiseCreated = true;
+      const listener = resolve as MessageStreamEvents<ParsedT>[Event];
+      cleanup = () => {
+        this.off(event, listener);
+        this.off('error', reject);
+        this.off('abort', reject);
+      };
       if (event !== 'error') this.once('error', reject);
-      this.once(event, resolve as any);
-    });
+      if (event !== 'abort') this.once('abort', reject);
+      this.once(event, listener);
+    }).finally(() => cleanup());
   }
 
   async done(): Promise<void> {
