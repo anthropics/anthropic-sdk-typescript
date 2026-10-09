@@ -139,6 +139,21 @@ describe('accumulateManagedAgentsEvent', () => {
     expect(accumulateManagedAgentsEvent(undefined, final)).toEqual(final);
   });
 
+  test('ignores late deltas after an authoritative message', () => {
+    const final: BetaManagedAgentsAgentMessageEvent = {
+      id: 'evt_1',
+      type: 'agent.message',
+      content: [{ type: 'text', text: 'Complete' }],
+      processed_at: '2024-01-01T00:00:00Z',
+    };
+    const late = delta('evt_1', ' stale preview', 0);
+
+    const result = accumulateManagedAgentsEvent(final, late);
+
+    expect(result).toBe(final);
+    expect(result.content).toEqual([{ type: 'text', text: 'Complete' }]);
+  });
+
   test('unknown block-type pair is a no-op (forward compat)', () => {
     let msg = seed('evt_1');
     // Existing block of a future, non-text type:

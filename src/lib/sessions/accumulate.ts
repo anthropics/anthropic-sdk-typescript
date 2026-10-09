@@ -53,6 +53,9 @@ export function accumulateManagedAgentsEvent(
       if (accumulated === undefined) {
         throw new AnthropicError(`event_delta for ${event.event_id} received before its event_start`);
       }
+      if (accumulated.processed_at) {
+        return accumulated;
+      }
 
       const idx = event.delta.index ?? 0;
       const fragment = event.delta.content;
