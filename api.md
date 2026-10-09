@@ -1398,9 +1398,36 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsModel</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsModelConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsModelConfigParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentAdvisor</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentAdvisorDisabled</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentAdvisorDisabledParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentAdvisorEnabled</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentAdvisorEnabledParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentAdvisorParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentCoordinator</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentCoordinatorParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentInlineAgents</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentInlineAgentsDisabled</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentInlineAgentsDisabledParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentInlineAgentsEnabled</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentInlineAgentsEnabledParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentInlineAgentsParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentPredefinedAgentParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentSelfParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentSubagents</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentSubagentsDisabled</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentSubagentsDisabledParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentSubagentsEnabled</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentSubagentsEnabledParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentSubagentsParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentWorkflows</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentWorkflowsDisabled</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentWorkflowsDisabledParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentWorkflowsEnabled</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentWorkflowsEnabledParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagentWorkflowsParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagent20261001</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagent20261001Params</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsReadToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsReadToolConfigParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsSessionThreadAgent</a></code>
@@ -1516,7 +1543,13 @@ Types:
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSession</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionAgent</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionAgentUpdate</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionMultiagent</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionMultiagentCoordinator</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionMultiagentSubagents</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionMultiagentSubagentsEnabled</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionMultiagentWorkflows</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionMultiagentWorkflowsEnabled</a></code>
+- <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionMultiagent20261001</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionStats</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionUpdatedEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/sessions.ts">BetaManagedAgentsSessionUsage</a></code>
@@ -1570,12 +1603,14 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsFileRubric</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsFileRubricParams</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsImageBlock</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsMaxWorkflowRunsWorkflowRunError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsMCPAuthenticationFailedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsMCPConnectionFailedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelOverloadedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelRateLimitedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsModelRequestFailedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsPlainTextDocumentSource</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsProgramWorkflowRunError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRedactedBlock</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryAuthenticationError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsRepositoryCheckoutError</a></code>
@@ -1620,7 +1655,10 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTextBlock</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTextRubric</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTextRubricParams</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsThreadLimitWorkflowRunError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTimeoutWorkflowRunError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUnknownError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUnknownWorkflowRunError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsURLDocumentSource</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsURLImageSource</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUserCustomToolResultEvent</a></code>
@@ -1634,6 +1672,19 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUserToolConfirmationEvent</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUserToolConfirmationEventParams</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUserToolResultEventParams</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunCreatedEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunErrorEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunPhase</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunPhaseEndedEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunPhaseStartedEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunResult</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunResultCompleted</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunResultError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunResultStopped</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunStatusEndedEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunStatusIdleEvent</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsWorkflowRunStatusRunningEvent</a></code>
 
 Methods:
 
@@ -1665,6 +1716,7 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/beta/sessions/threads/threads.ts">BetaManagedAgentsInlineAgent</a></code>
 - <code><a href="./src/resources/beta/sessions/threads/threads.ts">BetaManagedAgentsSessionThread</a></code>
 - <code><a href="./src/resources/beta/sessions/threads/threads.ts">BetaManagedAgentsSessionThreadStats</a></code>
 - <code><a href="./src/resources/beta/sessions/threads/threads.ts">BetaManagedAgentsSessionThreadStatus</a></code>
@@ -2323,10 +2375,14 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsArtifactActivity</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsChatCoworkUnifiedChatMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsChatCoworkUnifiedSessionsMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsChatMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsClaudeCodeMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsClaudeTagCategory</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorActivity</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorChatMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorClaudeCodeMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsConnectorCoworkMetrics</a></code>
@@ -2353,6 +2409,8 @@ Types:
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsServerToolUse</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSingleDayActivitySummary</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillActivity</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillChatCoworkUnifiedChatMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillChatMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillClaudeCodeMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillCoworkMetrics</a></code>

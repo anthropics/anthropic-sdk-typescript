@@ -1040,6 +1040,59 @@ export interface BetaManagedAgentsModelConfigParams {
 }
 
 /**
+ * Whether the session's primary thread can consult an advisor model.
+ */
+export type BetaManagedAgentsMultiagentAdvisor =
+  | BetaManagedAgentsMultiagentAdvisorEnabled
+  | BetaManagedAgentsMultiagentAdvisorDisabled;
+
+/**
+ * The agent has no advisor.
+ */
+export interface BetaManagedAgentsMultiagentAdvisorDisabled {
+  type: 'disabled';
+}
+
+/**
+ * The agent has no advisor.
+ */
+export interface BetaManagedAgentsMultiagentAdvisorDisabledParams {
+  type: 'disabled';
+}
+
+/**
+ * The session's primary thread can consult `model` mid-turn.
+ */
+export interface BetaManagedAgentsMultiagentAdvisorEnabled {
+  /**
+   * The advisor model id.
+   */
+  model: string;
+
+  type: 'enabled';
+}
+
+/**
+ * The session's primary thread can consult `model` mid-turn.
+ */
+export interface BetaManagedAgentsMultiagentAdvisorEnabledParams {
+  /**
+   * A Claude model id. The model must be permitted as an advisor for this agent's
+   * model.
+   */
+  model: string;
+
+  type: 'enabled';
+}
+
+/**
+ * Whether the session's primary thread can consult an advisor model.
+ */
+export type BetaManagedAgentsMultiagentAdvisorParams =
+  | BetaManagedAgentsMultiagentAdvisorEnabledParams
+  | BetaManagedAgentsMultiagentAdvisorDisabledParams;
+
+/**
  * Resolved coordinator topology with a concrete agent roster.
  */
 export interface BetaManagedAgentsMultiagentCoordinator {
@@ -1071,11 +1124,263 @@ export interface BetaManagedAgentsMultiagentCoordinatorParams {
 }
 
 /**
+ * Whether the agent can define inline agents. The agent defines an inline agent
+ * itself, in a workflow run's plan or when it spawns a session thread, and the
+ * inline agent is not saved.
+ */
+export type BetaManagedAgentsMultiagentInlineAgents =
+  | BetaManagedAgentsMultiagentInlineAgentsEnabled
+  | BetaManagedAgentsMultiagentInlineAgentsDisabled;
+
+/**
+ * The agent cannot define inline agents.
+ */
+export interface BetaManagedAgentsMultiagentInlineAgentsDisabled {
+  type: 'disabled';
+}
+
+/**
+ * The agent cannot define inline agents.
+ */
+export interface BetaManagedAgentsMultiagentInlineAgentsDisabledParams {
+  type: 'disabled';
+}
+
+/**
+ * The agent can define inline agents.
+ */
+export interface BetaManagedAgentsMultiagentInlineAgentsEnabled {
+  type: 'enabled';
+}
+
+/**
+ * The agent can define inline agents.
+ */
+export interface BetaManagedAgentsMultiagentInlineAgentsEnabledParams {
+  type: 'enabled';
+}
+
+/**
+ * Whether the agent can define inline agents. The agent defines an inline agent
+ * itself, in a workflow run's plan or when it spawns a session thread, and the
+ * inline agent is not saved.
+ */
+export type BetaManagedAgentsMultiagentInlineAgentsParams =
+  | BetaManagedAgentsMultiagentInlineAgentsEnabledParams
+  | BetaManagedAgentsMultiagentInlineAgentsDisabledParams;
+
+/**
+ * One agent in a `predefined_agents` list. It is an agent ID string, an `agent`
+ * reference with an optional `version`, or `self` for the agent that owns this
+ * configuration.
+ */
+export type BetaManagedAgentsMultiagentPredefinedAgentParams =
+  | string
+  | SessionsAPI.BetaManagedAgentsAgentParams
+  | BetaManagedAgentsMultiagentSelfParams;
+
+/**
  * Sentinel roster entry meaning "the agent that owns this configuration". Resolved
  * server-side to a concrete agent reference.
  */
 export interface BetaManagedAgentsMultiagentSelfParams {
   type: 'self';
+}
+
+/**
+ * Whether the agent can spawn session threads.
+ */
+export type BetaManagedAgentsMultiagentSubagents =
+  | BetaManagedAgentsMultiagentSubagentsEnabled
+  | BetaManagedAgentsMultiagentSubagentsDisabled;
+
+/**
+ * The agent cannot spawn session threads.
+ */
+export interface BetaManagedAgentsMultiagentSubagentsDisabled {
+  type: 'disabled';
+}
+
+/**
+ * The agent cannot spawn session threads.
+ */
+export interface BetaManagedAgentsMultiagentSubagentsDisabledParams {
+  type: 'disabled';
+}
+
+/**
+ * The agent can spawn session threads.
+ */
+export interface BetaManagedAgentsMultiagentSubagentsEnabled {
+  /**
+   * Whether the agent can define inline agents, which are not saved, when it spawns
+   * session threads.
+   */
+  inline_agents: BetaManagedAgentsMultiagentInlineAgents;
+
+  /**
+   * Predefined agents, which are saved agents that this agent can spawn as session
+   * threads, each resolved to a specific version.
+   */
+  predefined_agents: Array<BetaManagedAgentsAgentReference>;
+
+  type: 'enabled';
+}
+
+/**
+ * The agent can spawn session threads. Each thread runs a predefined agent, which
+ * is a saved agent in `predefined_agents`, or an inline agent, which the agent
+ * defines when it spawns the thread and which is not saved. If `inline_agents` is
+ * disabled, `predefined_agents` must name at least one agent.
+ */
+export interface BetaManagedAgentsMultiagentSubagentsEnabledParams {
+  type: 'enabled';
+
+  /**
+   * Whether the agent can define inline agents when it spawns session threads.
+   * Defaults to enabled.
+   */
+  inline_agents?: BetaManagedAgentsMultiagentInlineAgentsParams | null;
+
+  /**
+   * Predefined agents that this agent can spawn as session threads. At most 20.
+   * Defaults to null. Null and an empty list both mean no predefined agents. This
+   * list is separate from `workflows.predefined_agents`, and an agent in one list is
+   * not added to the other.
+   */
+  predefined_agents?: Array<BetaManagedAgentsMultiagentPredefinedAgentParams> | null;
+}
+
+/**
+ * Whether the agent can spawn session threads.
+ */
+export type BetaManagedAgentsMultiagentSubagentsParams =
+  | BetaManagedAgentsMultiagentSubagentsEnabledParams
+  | BetaManagedAgentsMultiagentSubagentsDisabledParams;
+
+/**
+ * Whether the agent can start workflow runs.
+ */
+export type BetaManagedAgentsMultiagentWorkflows =
+  | BetaManagedAgentsMultiagentWorkflowsEnabled
+  | BetaManagedAgentsMultiagentWorkflowsDisabled;
+
+/**
+ * The agent cannot start workflow runs.
+ */
+export interface BetaManagedAgentsMultiagentWorkflowsDisabled {
+  type: 'disabled';
+}
+
+/**
+ * The agent cannot start workflow runs.
+ */
+export interface BetaManagedAgentsMultiagentWorkflowsDisabledParams {
+  type: 'disabled';
+}
+
+/**
+ * The agent can start workflow runs.
+ */
+export interface BetaManagedAgentsMultiagentWorkflowsEnabled {
+  /**
+   * Whether a run's plan can define inline agents, which are not saved.
+   */
+  inline_agents: BetaManagedAgentsMultiagentInlineAgents;
+
+  /**
+   * Predefined agents, which are saved agents that a run's plan can use, each
+   * resolved to a specific version.
+   */
+  predefined_agents: Array<BetaManagedAgentsAgentReference>;
+
+  type: 'enabled';
+}
+
+/**
+ * The agent can start workflow runs. Each run follows a plan, a program that the
+ * agent writes. A plan can use predefined agents, which are the saved agents in
+ * `predefined_agents`, and inline agents, which it defines itself and which are
+ * not saved. If `inline_agents` is disabled, `predefined_agents` must name at
+ * least one agent.
+ */
+export interface BetaManagedAgentsMultiagentWorkflowsEnabledParams {
+  type: 'enabled';
+
+  /**
+   * Whether a run's plan can define inline agents. Defaults to enabled.
+   */
+  inline_agents?: BetaManagedAgentsMultiagentInlineAgentsParams | null;
+
+  /**
+   * Predefined agents that a run's plan can use. At most 20. Defaults to null. Null
+   * and an empty list both mean no predefined agents. This list is separate from
+   * `subagents.predefined_agents`, and an agent in one list is not added to the
+   * other.
+   */
+  predefined_agents?: Array<BetaManagedAgentsMultiagentPredefinedAgentParams> | null;
+}
+
+/**
+ * Whether the agent can start workflow runs.
+ */
+export type BetaManagedAgentsMultiagentWorkflowsParams =
+  | BetaManagedAgentsMultiagentWorkflowsEnabledParams
+  | BetaManagedAgentsMultiagentWorkflowsDisabledParams;
+
+/**
+ * Resolved multiagent configuration with three members, each enabled or disabled
+ * on its own.
+ */
+export interface BetaManagedAgentsMultiagent20261001 {
+  /**
+   * Whether the session's primary thread can consult an advisor model.
+   */
+  advisor: BetaManagedAgentsMultiagentAdvisor;
+
+  /**
+   * Whether the agent can spawn session threads.
+   */
+  subagents: BetaManagedAgentsMultiagentSubagents;
+
+  type: 'multiagent_20261001';
+
+  /**
+   * Whether the agent can start workflow runs.
+   */
+  workflows: BetaManagedAgentsMultiagentWorkflows;
+}
+
+/**
+ * Multiagent configuration with three members, each enabled or disabled on its
+ * own. On an update, if the agent's stored `multiagent` also has type
+ * `multiagent_20261001`, this configuration is merged into the stored one, level
+ * by level, instead of replacing it. A key that the update omits keeps its stored
+ * value. A key sent as null takes its default, on create as well, so
+ * `"workflows": null` enables workflows. An object sent with a `type` other than
+ * the stored one replaces the stored object, and the keys that it omits take their
+ * defaults. A `predefined_agents` list that is sent replaces the stored list.
+ * Every object that is sent needs its `type`, and an enabled `advisor` needs its
+ * `model`. Other validation applies to the merged result.
+ */
+export interface BetaManagedAgentsMultiagent20261001Params {
+  type: 'multiagent_20261001';
+
+  /**
+   * Whether the session's primary thread can consult an advisor model. Defaults to
+   * disabled.
+   */
+  advisor?: BetaManagedAgentsMultiagentAdvisorParams | null;
+
+  /**
+   * Whether the agent can spawn session threads. Defaults to enabled.
+   */
+  subagents?: BetaManagedAgentsMultiagentSubagentsParams | null;
+
+  /**
+   * Whether the agent can start workflow runs. Defaults to enabled.
+   */
+  workflows?: BetaManagedAgentsMultiagentWorkflowsParams | null;
 }
 
 /**
@@ -1860,9 +2165,36 @@ export declare namespace Agents {
     type BetaManagedAgentsModel as BetaManagedAgentsModel,
     type BetaManagedAgentsModelConfig as BetaManagedAgentsModelConfig,
     type BetaManagedAgentsModelConfigParams as BetaManagedAgentsModelConfigParams,
+    type BetaManagedAgentsMultiagentAdvisor as BetaManagedAgentsMultiagentAdvisor,
+    type BetaManagedAgentsMultiagentAdvisorDisabled as BetaManagedAgentsMultiagentAdvisorDisabled,
+    type BetaManagedAgentsMultiagentAdvisorDisabledParams as BetaManagedAgentsMultiagentAdvisorDisabledParams,
+    type BetaManagedAgentsMultiagentAdvisorEnabled as BetaManagedAgentsMultiagentAdvisorEnabled,
+    type BetaManagedAgentsMultiagentAdvisorEnabledParams as BetaManagedAgentsMultiagentAdvisorEnabledParams,
+    type BetaManagedAgentsMultiagentAdvisorParams as BetaManagedAgentsMultiagentAdvisorParams,
     type BetaManagedAgentsMultiagentCoordinator as BetaManagedAgentsMultiagentCoordinator,
     type BetaManagedAgentsMultiagentCoordinatorParams as BetaManagedAgentsMultiagentCoordinatorParams,
+    type BetaManagedAgentsMultiagentInlineAgents as BetaManagedAgentsMultiagentInlineAgents,
+    type BetaManagedAgentsMultiagentInlineAgentsDisabled as BetaManagedAgentsMultiagentInlineAgentsDisabled,
+    type BetaManagedAgentsMultiagentInlineAgentsDisabledParams as BetaManagedAgentsMultiagentInlineAgentsDisabledParams,
+    type BetaManagedAgentsMultiagentInlineAgentsEnabled as BetaManagedAgentsMultiagentInlineAgentsEnabled,
+    type BetaManagedAgentsMultiagentInlineAgentsEnabledParams as BetaManagedAgentsMultiagentInlineAgentsEnabledParams,
+    type BetaManagedAgentsMultiagentInlineAgentsParams as BetaManagedAgentsMultiagentInlineAgentsParams,
+    type BetaManagedAgentsMultiagentPredefinedAgentParams as BetaManagedAgentsMultiagentPredefinedAgentParams,
     type BetaManagedAgentsMultiagentSelfParams as BetaManagedAgentsMultiagentSelfParams,
+    type BetaManagedAgentsMultiagentSubagents as BetaManagedAgentsMultiagentSubagents,
+    type BetaManagedAgentsMultiagentSubagentsDisabled as BetaManagedAgentsMultiagentSubagentsDisabled,
+    type BetaManagedAgentsMultiagentSubagentsDisabledParams as BetaManagedAgentsMultiagentSubagentsDisabledParams,
+    type BetaManagedAgentsMultiagentSubagentsEnabled as BetaManagedAgentsMultiagentSubagentsEnabled,
+    type BetaManagedAgentsMultiagentSubagentsEnabledParams as BetaManagedAgentsMultiagentSubagentsEnabledParams,
+    type BetaManagedAgentsMultiagentSubagentsParams as BetaManagedAgentsMultiagentSubagentsParams,
+    type BetaManagedAgentsMultiagentWorkflows as BetaManagedAgentsMultiagentWorkflows,
+    type BetaManagedAgentsMultiagentWorkflowsDisabled as BetaManagedAgentsMultiagentWorkflowsDisabled,
+    type BetaManagedAgentsMultiagentWorkflowsDisabledParams as BetaManagedAgentsMultiagentWorkflowsDisabledParams,
+    type BetaManagedAgentsMultiagentWorkflowsEnabled as BetaManagedAgentsMultiagentWorkflowsEnabled,
+    type BetaManagedAgentsMultiagentWorkflowsEnabledParams as BetaManagedAgentsMultiagentWorkflowsEnabledParams,
+    type BetaManagedAgentsMultiagentWorkflowsParams as BetaManagedAgentsMultiagentWorkflowsParams,
+    type BetaManagedAgentsMultiagent20261001 as BetaManagedAgentsMultiagent20261001,
+    type BetaManagedAgentsMultiagent20261001Params as BetaManagedAgentsMultiagent20261001Params,
     type BetaManagedAgentsReadToolConfig as BetaManagedAgentsReadToolConfig,
     type BetaManagedAgentsReadToolConfigParams as BetaManagedAgentsReadToolConfigParams,
     type BetaManagedAgentsSessionThreadAgent as BetaManagedAgentsSessionThreadAgent,
