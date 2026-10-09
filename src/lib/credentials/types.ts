@@ -1,4 +1,5 @@
 import { AnthropicError } from '../../core/error';
+import { isObj } from '../../internal/utils/values';
 
 export type AccessToken = {
   token: string;
@@ -93,7 +94,7 @@ export async function parseTokenResponse(
   requestId: string | null,
 ): Promise<TokenEndpointResponse & { access_token: string }> {
   const text = await readLimitedText(resp);
-  let data: TokenEndpointResponse & { token_type?: string };
+  let data: unknown;
   try {
     data = JSON.parse(text);
   } catch {
@@ -104,7 +105,7 @@ export async function parseTokenResponse(
       requestId,
     );
   }
-  if (!data.access_token) {
+  if (!isObj(data) || !data['access_token']) {
     throw new WorkloadIdentityError(
       `Token endpoint response missing access_token: ${JSON.stringify(redactSensitive(data))}`,
       resp.status,
@@ -112,9 +113,25 @@ export async function parseTokenResponse(
       requestId,
     );
   }
-  if (data.token_type && data.token_type.toLowerCase() !== 'bearer') {
+  if (typeof data['access_token'] !== 'string') {
     throw new WorkloadIdentityError(
-      `Token endpoint response: unsupported token_type "${data.token_type}" (want Bearer)`,
+      'Token endpoint response access_token must be a string',
+      resp.status,
+      redactSensitive(data),
+      requestId,
+    );
+  }
+  if (data['token_type'] !== undefined && typeof data['token_type'] !== 'string') {
+    throw new WorkloadIdentityError(
+      'Token endpoint response token_type must be a string',
+      resp.status,
+      redactSensitive(data),
+      requestId,
+    );
+  }
+  if (data['token_type'] !== undefined && data['token_type'].toLowerCase() !== 'bearer') {
+    throw new WorkloadIdentityError(
+      `Token endpoint response: unsupported token_type "${data['token_type']}" (want Bearer)`,
       resp.status,
       redactSensitive(data),
       requestId,
