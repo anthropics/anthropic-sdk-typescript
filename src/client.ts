@@ -1713,7 +1713,7 @@ export class BaseAnthropic {
     }
 
     const url = this.buildURL(path!, query as Record<string, unknown>, defaultBaseURL);
-    if ('timeout' in options) validatePositiveInteger('timeout', options.timeout);
+    if (options.timeout !== undefined) validatePositiveInteger('timeout', options.timeout);
     options.timeout = options.timeout ?? this.timeout;
     const { bodyHeaders, body } = this.buildBody({ options });
     const reqHeaders = await this.buildHeaders({
