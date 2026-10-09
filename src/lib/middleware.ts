@@ -5,7 +5,7 @@ import { Stream, type ServerSentEvent } from '../core/streaming';
 import { isAbortError } from '../internal/errors';
 import { appendHeaderValue } from '../internal/headers';
 import { STAINLESS_HELPER_HEADER } from '../internal/stainless-helper-header';
-import { safeJSON } from '../internal/utils/values';
+import { checkNever, safeJSON } from '../internal/utils/values';
 import type { AnthropicBeta } from '../resources/beta/beta';
 import type {
   BetaContentBlockParam,
@@ -737,18 +737,28 @@ async function* consumeHop(args: {
           }
         }
         if (splice) {
-          // Terminal hop. Replace iterations, don't append: this hop's own
-          // message_delta self-reports a single `{type:"message",
-          // model:undefined}` iteration (a fresh non-fallback request counts
-          // itself as one message hop). Server-side `fallbacks` relabels the
-          // whole chain instead — refused hops as `message`, the serving hop
-          // as `fallback_message` — so spreading the self-report would
-          // prepend a spurious `message:undefined` entry.
+          // Earlier tool-loop and compaction entries must survive the chain splice.
           const usage = backfill(p.usage, startUsage);
-          usage.iterations = [
-            ...splice.iterations,
-            toIterationUsage('fallback_message', splice.model, usage),
-          ];
+          const entries = [...(usage.iterations ?? [])];
+          let completed = false;
+          for (let index = entries.length - 1; index >= 0; index--) {
+            const entry = entries[index]!;
+            switch (entry.type) {
+              case 'message':
+              case 'fallback_message':
+                entries[index] = { ...entry, type: 'fallback_message', model: entry.model || splice.model };
+                completed = true;
+                break;
+              case 'compaction':
+              case 'advisor_message':
+                break;
+              default:
+                checkNever(entry);
+            }
+            if (completed) break;
+          }
+          if (!completed) entries.push(toIterationUsage('fallback_message', splice.model, usage));
+          usage.iterations = [...splice.iterations, ...entries];
           p.usage = usage;
           if (!('input_transformations' in p) && startInputTransformations !== undefined) {
             p.input_transformations = startInputTransformations;
