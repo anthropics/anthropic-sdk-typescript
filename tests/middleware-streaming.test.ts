@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import Anthropic from '@anthropic-ai/sdk';
 import type { APIRequest } from '@anthropic-ai/sdk/core/api';
 import type { MiddlewareContext } from '@anthropic-ai/sdk/core/middleware';
 import { Stream } from '@anthropic-ai/sdk/core/streaming';
@@ -8,7 +9,7 @@ import {
   BetaFallbackState,
   type BetaRefusalFallbackOptions,
 } from '@anthropic-ai/sdk/lib/middleware';
-import type { BetaFallbackParam } from '@anthropic-ai/sdk/resources/beta';
+import type { BetaFallbackParam, BetaIterationsUsage } from '@anthropic-ai/sdk/resources/beta';
 import { defaultLogger } from '@anthropic-ai/sdk/internal/utils/log';
 
 const FIXTURES = path.resolve(__dirname, 'fixtures/fable-fallback');
@@ -1446,5 +1447,124 @@ describe('betaRefusalFallbackMiddleware (streaming) — tool-use refusals', () =
       'thinking',
     ]);
     expect(appended.content[2]).toEqual({ type: 'thinking', thinking: 'hmm', signature: 'sig==' });
+  });
+});
+
+describe('serving fallback iteration usage', () => {
+  // Update consumeHop when the generated usage iteration variants change.
+  const _servingIterationTypes: Record<BetaIterationsUsage[number]['type'], true> = {
+    message: true,
+    fallback_message: true,
+    compaction: true,
+    advisor_message: true,
+  };
+  void _servingIterationTypes;
+
+  const final = {
+    type: 'message',
+    model: null,
+    input_tokens: 31,
+    output_tokens: 547,
+    cache_read_input_tokens: 0,
+    cache_creation_input_tokens: 0,
+    cache_creation: { ephemeral_5m_input_tokens: 0, ephemeral_1h_input_tokens: 0 },
+  };
+  const first = {
+    ...final,
+    model: FALLBACK_MODEL,
+    input_tokens: 210_001,
+    output_tokens: 8,
+    cache_read_input_tokens: 17,
+    cache_creation_input_tokens: 23,
+    cache_creation: { ephemeral_5m_input_tokens: 11, ephemeral_1h_input_tokens: 12 },
+    future_detail: { source: 'synthetic' },
+  };
+  const compaction = { ...final, type: 'compaction', input_tokens: 205_000, output_tokens: 64 };
+  const advisor = {
+    ...final,
+    type: 'advisor_message',
+    model: SECOND_MODEL,
+    input_tokens: 50,
+    output_tokens: 12,
+  };
+  const completer = { ...final, type: 'fallback_message', model: FALLBACK_MODEL };
+  const unknown = { type: 'future_iteration', input_tokens: 7, future_detail: { retained: true } };
+  const canonical = 'claude-opus-4-8-canonical';
+  const cases: Array<{
+    name: string;
+    reported?: Array<Record<string, unknown>>;
+    expected: Array<Record<string, unknown>>;
+  }> = [
+    { name: 'absent breakdown', expected: [completer] },
+    { name: 'empty breakdown', reported: [], expected: [completer] },
+    { name: 'single sampling', reported: [final], expected: [completer] },
+    { name: 'reported fallback sampling', reported: [completer], expected: [completer] },
+    { name: 'compaction only', reported: [compaction], expected: [compaction, completer] },
+    { name: 'server tool loop', reported: [first, final], expected: [first, completer] },
+    { name: 'multiple sampling', reported: [first, final, final], expected: [first, final, completer] },
+    {
+      name: 'mixed breakdown',
+      reported: [first, compaction, advisor, final],
+      expected: [first, compaction, advisor, completer],
+    },
+    {
+      name: 'trailing compaction',
+      reported: [first, final, compaction],
+      expected: [first, completer, compaction],
+    },
+    {
+      name: 'reported model',
+      reported: [{ ...final, model: canonical }],
+      expected: [{ ...completer, model: canonical }],
+    },
+    { name: 'unknown variant', reported: [unknown, final], expected: [unknown, completer] },
+    { name: 'unknown variant only', reported: [unknown], expected: [unknown, completer] },
+  ];
+
+  test.each(cases)('retains $name through the public stream', async ({ reported, expected }) => {
+    const serving = STREAM_B.split('\n')
+      .map((line) => {
+        if (!line.startsWith('data: ')) return line;
+        const event = JSON.parse(line.slice(6));
+        if (event.type === 'message_delta') {
+          if (reported === undefined) delete event.usage.iterations;
+          else event.usage.iterations = reported;
+        }
+        return `data: ${JSON.stringify(event)}`;
+      })
+      .join('\n');
+    const responses = [sseResponse(STREAM_A), sseResponse(serving)];
+    const fetch = vi.fn<typeof globalThis.fetch>(async () => {
+      const response = responses.shift();
+      if (!response) throw new Error('unexpected synthetic request');
+      return response;
+    });
+    const client = new Anthropic({
+      apiKey: 'test-key',
+      fetch,
+      middleware: [betaRefusalFallbackMiddleware(FALLBACKS)],
+    });
+    const stream = client.beta.messages.stream(
+      { ...ORIGINAL_BODY, messages: [{ role: 'user', content: ORIGINAL_BODY.messages[0]!.content }] },
+      { fallbackState: new BetaFallbackState() },
+    );
+    const events = [];
+    for await (const event of stream) events.push(event);
+    const message = await stream.finalMessage();
+    expect(fetch).toHaveBeenCalledTimes(2);
+    const [url, init] = fetch.mock.calls[1]!;
+    expect(new URL(String(url)).pathname).toBe('/v1/messages');
+    expect(init?.method).toBe('POST');
+    expect(new Headers(init?.headers).get('anthropic-beta')).toContain('fallback-credit-2026-07-01');
+    expect(JSON.parse(init?.body as string).model).toBe(FALLBACK_MODEL);
+    const delta = events.find((event) => event.type === 'message_delta');
+    expect(delta?.usage.iterations?.slice(1)).toEqual(expected);
+    expect(message.usage.iterations?.slice(1)).toEqual(expected);
+    expect(events.filter((event) => event.type === 'message_start')).toHaveLength(1);
+    expect(events.filter((event) => event.type === 'message_stop')).toHaveLength(1);
+    expect(message.stop_reason).toBe('end_turn');
+    expect(message.usage.output_tokens).toBe(547);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(responses).toHaveLength(0);
   });
 });
