@@ -121,7 +121,14 @@ export class Stream<Item> implements AsyncIterable<Item> {
             sse.event === 'session.thread_status_terminated' ||
             sse.event === 'event_start' ||
             sse.event === 'event_delta' ||
-            sse.event === 'system.message'
+            sse.event === 'system.message' ||
+            sse.event === 'workflow_run.created' ||
+            sse.event === 'workflow_run.status_running' ||
+            sse.event === 'workflow_run.status_idle' ||
+            sse.event === 'workflow_run.status_ended' ||
+            sse.event === 'workflow_run.error' ||
+            sse.event === 'workflow_run.phase_started' ||
+            sse.event === 'workflow_run.phase_ended'
           ) {
             try {
               yield JSON.parse(sse.data) as Item;

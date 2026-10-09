@@ -114,6 +114,39 @@ export class Threads extends APIResource {
 export type BetaManagedAgentsSessionThreadsPageCursor = PageCursor<BetaManagedAgentsSessionThread>;
 
 /**
+ * An agent that has no Agent resource, and so no `id` or `version`. It is defined
+ * inline, in a workflow run's plan or when a session thread is spawned, and is not
+ * saved.
+ */
+export interface BetaManagedAgentsInlineAgent {
+  description: string | null;
+
+  mcp_servers: Array<AgentsAPI.BetaManagedAgentsMCPServerURLDefinition>;
+
+  /**
+   * Model identifier and configuration.
+   */
+  model: AgentsAPI.BetaManagedAgentsModelConfig;
+
+  /**
+   * The name that the agent's definition gave, or one that the server assigned.
+   */
+  name: string;
+
+  skills: Array<AgentsAPI.BetaManagedAgentsAnthropicSkill | AgentsAPI.BetaManagedAgentsCustomSkill>;
+
+  system: string | null;
+
+  tools: Array<
+    | AgentsAPI.BetaManagedAgentsAgentToolset20260401
+    | AgentsAPI.BetaManagedAgentsMCPToolset
+    | AgentsAPI.BetaManagedAgentsCustomTool
+  >;
+
+  type: 'inline';
+}
+
+/**
  * An execution thread within a `session`. Each session has one primary thread plus
  * zero or more child threads.
  */
@@ -127,7 +160,10 @@ export interface BetaManagedAgentsSessionThread {
    * Resolved agent definition for this thread. Snapshot of the agent at thread
    * creation time.
    */
-  agent: AgentsAPI.BetaManagedAgentsSessionThreadAgent | AgentsAPI.BetaManagedAgentsAdvisor;
+  agent:
+    | AgentsAPI.BetaManagedAgentsSessionThreadAgent
+    | AgentsAPI.BetaManagedAgentsAdvisor
+    | BetaManagedAgentsInlineAgent;
 
   /**
    * When the thread was archived. Null if not archived.
@@ -172,6 +208,12 @@ export interface BetaManagedAgentsSessionThread {
    * transition.
    */
   usage: BetaManagedAgentsSessionThreadUsage | null;
+
+  /**
+   * Identifier of the workflow run that created the thread, or `null` for any other
+   * thread.
+   */
+  workflow_run_id: string | null;
 }
 
 /**
@@ -287,7 +329,14 @@ export type BetaManagedAgentsStreamSessionThreadEvents =
   | SessionsAPI.BetaManagedAgentsStartEvent
   | SessionsAPI.BetaManagedAgentsDeltaEvent
   | SessionsAPI.BetaManagedAgentsSystemMessageEvent
-  | SessionsAPI.BetaManagedAgentsSessionUsageEvent;
+  | SessionsAPI.BetaManagedAgentsSessionUsageEvent
+  | EventsAPI.BetaManagedAgentsWorkflowRunCreatedEvent
+  | EventsAPI.BetaManagedAgentsWorkflowRunStatusEndedEvent
+  | EventsAPI.BetaManagedAgentsWorkflowRunPhaseStartedEvent
+  | EventsAPI.BetaManagedAgentsWorkflowRunPhaseEndedEvent
+  | EventsAPI.BetaManagedAgentsWorkflowRunStatusRunningEvent
+  | EventsAPI.BetaManagedAgentsWorkflowRunStatusIdleEvent
+  | EventsAPI.BetaManagedAgentsWorkflowRunErrorEvent;
 
 export interface ThreadRetrieveParams {
   /**
@@ -312,6 +361,14 @@ export interface ThreadRetrieveParams {
 }
 
 export interface ThreadListParams extends PageCursorParams {
+  /**
+   * Query param: Return only threads that have one of these statuses.
+   *
+   * Repeat the parameter to give more than one status. Leave it out to return
+   * threads of every status.
+   */
+  statuses?: Array<BetaManagedAgentsSessionThreadStatus>;
+
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
    */
@@ -354,6 +411,7 @@ Threads.Events = Events;
 
 export declare namespace Threads {
   export {
+    type BetaManagedAgentsInlineAgent as BetaManagedAgentsInlineAgent,
     type BetaManagedAgentsSessionThread as BetaManagedAgentsSessionThread,
     type BetaManagedAgentsSessionThreadStats as BetaManagedAgentsSessionThreadStats,
     type BetaManagedAgentsSessionThreadStatus as BetaManagedAgentsSessionThreadStatus,
