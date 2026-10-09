@@ -19,7 +19,7 @@ if [ -d ".github" ]; then
   mkdir -p dist/.github
   cp -p .github/logo.svg dist/.github/ 2>/dev/null || true
 fi
-for file in LICENSE CHANGELOG.md; do
+for file in LICENSE* CHANGELOG.md; do
   if [ -e "${file}" ]; then cp "${file}" dist; fi
 done
 if [ -e "bin/cli" ]; then

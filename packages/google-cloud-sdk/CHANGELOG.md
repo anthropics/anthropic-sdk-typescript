@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.20](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.19...google-cloud-sdk-v0.0.20) (2026-10-09)
+
+### Chores
+
+* include the license files in the published packages
+
 ## [0.0.19](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.18...google-cloud-sdk-v0.0.19) (2026-10-08)
 
 ### Chores

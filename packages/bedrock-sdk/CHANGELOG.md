@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.34.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.34.4...bedrock-sdk-v0.34.5) (2026-10-09)
+
+### Chores
+
+* include the license files in the published packages
+
 ## [0.34.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.34.3...bedrock-sdk-v0.34.4) (2026-10-08)
 
 ### Chores
