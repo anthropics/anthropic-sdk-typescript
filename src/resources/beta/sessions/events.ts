@@ -198,7 +198,9 @@ export interface BetaManagedAgentsAgentAutoEvaluatedPermissionDeny {
 
 /**
  * Event emitted when the agent calls a custom tool. The session goes idle until
- * the client sends a `user.custom_tool_result` event with the result.
+ * the client sends a `user.custom_tool_result` event with the result. The client
+ * can send it as soon as this event arrives, without waiting for
+ * `session.status_idle`.
  */
 export interface BetaManagedAgentsAgentCustomToolUseEvent {
   /**
@@ -2062,8 +2064,8 @@ export interface BetaManagedAgentsUserCustomToolResultEvent {
   id: string;
 
   /**
-   * The id of the `agent.custom_tool_use` event this result corresponds to, which
-   * can be found in the last `session.status_idle`
+   * The id of the `agent.custom_tool_use` event this result corresponds to. It is
+   * also listed in the last `session.status_idle`
    * [event's](https://platform.claude.com/docs/en/api/beta/sessions/events/list#beta_managed_agents_session_requires_action.event_ids)
    * `stop_reason.event_ids` field.
    */
@@ -2103,8 +2105,8 @@ export interface BetaManagedAgentsUserCustomToolResultEvent {
  */
 export interface BetaManagedAgentsUserCustomToolResultEventParams {
   /**
-   * The id of the `agent.custom_tool_use` event this result corresponds to, which
-   * can be found in the last `session.status_idle`
+   * The id of the `agent.custom_tool_use` event this result corresponds to. It is
+   * also listed in the last `session.status_idle`
    * [event's](https://platform.claude.com/docs/en/api/beta/sessions/events/list#beta_managed_agents_session_requires_action.event_ids)
    * `stop_reason.event_ids` field.
    */
