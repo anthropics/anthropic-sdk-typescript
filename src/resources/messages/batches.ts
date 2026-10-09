@@ -31,7 +31,7 @@ export class Batches extends APIResource {
    *         messages: [
    *           { content: 'Hello, world', role: 'user' },
    *         ],
-   *         model: 'claude-opus-5',
+   *         model: 'claude-opus-5-5',
    *       },
    *     },
    *   ],

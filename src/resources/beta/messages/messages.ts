@@ -71,7 +71,7 @@ export class Messages extends APIResource {
    * const betaMessage = await client.beta.messages.create({
    *   max_tokens: 1024,
    *   messages: [{ content: 'Hello, world', role: 'user' }],
-   *   model: 'claude-opus-5',
+   *   model: 'claude-opus-5-5',
    * });
    * ```
    */
@@ -194,7 +194,7 @@ export class Messages extends APIResource {
    * const betaMessageTokensCount =
    *   await client.beta.messages.countTokens({
    *     messages: [{ content: 'Hello, world', role: 'user' }],
-   *     model: 'claude-opus-5',
+   *     model: 'claude-opus-5-5',
    *   });
    * ```
    */

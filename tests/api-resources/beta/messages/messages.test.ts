@@ -10,7 +10,7 @@ describe('resource messages', () => {
     const responsePromise = client.beta.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -32,7 +32,7 @@ describe('resource messages', () => {
           output_config: { effort: 'low' },
         },
       ],
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       compaction: { type: 'summarize', instructions: 'instructions' },
       container: {
@@ -140,7 +140,7 @@ describe('resource messages', () => {
   test('countTokens: only required params', async () => {
     const responsePromise = client.beta.messages.countTokens({
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -161,7 +161,7 @@ describe('resource messages', () => {
           output_config: { effort: 'low' },
         },
       ],
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       compaction: { type: 'summarize', instructions: 'instructions' },
       context_management: {

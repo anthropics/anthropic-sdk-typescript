@@ -53,7 +53,7 @@ export class Messages extends APIResource {
    * const message = await client.messages.create({
    *   max_tokens: 1024,
    *   messages: [{ content: 'Hello, world', role: 'user' }],
-   *   model: 'claude-opus-5',
+   *   model: 'claude-opus-5-5',
    * });
    * ```
    */
@@ -186,7 +186,7 @@ export class Messages extends APIResource {
    * const messageTokensCount =
    *   await client.messages.countTokens({
    *     messages: [{ content: 'Hello, world', role: 'user' }],
-   *     model: 'claude-opus-5',
+   *     model: 'claude-opus-5-5',
    *   });
    * ```
    */

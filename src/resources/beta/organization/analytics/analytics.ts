@@ -849,9 +849,9 @@ export interface BetaAnalyticsCostBucketedResult {
 
   /**
    * Model that produced the usage or cost, as a model name in the form the
-   * `models[]` filter accepts (for example, `claude-opus-5`). Null unless `model` is
-   * in `group_by[]`; it can also be null on grouped rows whose usage or cost is not
-   * attributed to a specific model, such as code execution.
+   * `models[]` filter accepts (for example, `claude-opus-5-5`). Null unless `model`
+   * is in `group_by[]`; it can also be null on grouped rows whose usage or cost is
+   * not attributed to a specific model, such as code execution.
    */
   model: string | null;
 
@@ -1002,9 +1002,9 @@ export interface BetaAnalyticsCostUsersItem {
 
   /**
    * Model that produced the usage or cost, as a model name in the form the
-   * `models[]` filter accepts (for example, `claude-opus-5`). Null unless `model` is
-   * in `group_by[]`; it can also be null on grouped rows whose usage or cost is not
-   * attributed to a specific model, such as code execution.
+   * `models[]` filter accepts (for example, `claude-opus-5-5`). Null unless `model`
+   * is in `group_by[]`; it can also be null on grouped rows whose usage or cost is
+   * not attributed to a specific model, such as code execution.
    */
   model: string | null;
 
@@ -2226,9 +2226,9 @@ export interface BetaAnalyticsUsageBucketedResult {
 
   /**
    * Model that produced the usage or cost, as a model name in the form the
-   * `models[]` filter accepts (for example, `claude-opus-5`). Null unless `model` is
-   * in `group_by[]`; it can also be null on grouped rows whose usage or cost is not
-   * attributed to a specific model, such as code execution.
+   * `models[]` filter accepts (for example, `claude-opus-5-5`). Null unless `model`
+   * is in `group_by[]`; it can also be null on grouped rows whose usage or cost is
+   * not attributed to a specific model, such as code execution.
    */
   model: string | null;
 
@@ -2375,9 +2375,9 @@ export interface BetaAnalyticsUsageUsersItem {
 
   /**
    * Model that produced the usage or cost, as a model name in the form the
-   * `models[]` filter accepts (for example, `claude-opus-5`). Null unless `model` is
-   * in `group_by[]`; it can also be null on grouped rows whose usage or cost is not
-   * attributed to a specific model, such as code execution.
+   * `models[]` filter accepts (for example, `claude-opus-5-5`). Null unless `model`
+   * is in `group_by[]`; it can also be null on grouped rows whose usage or cost is
+   * not attributed to a specific model, such as code execution.
    */
   model: string | null;
 
