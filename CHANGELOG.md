@@ -15,6 +15,7 @@
 * **internal:** remove `@internal` tag from a type that public types reference
 * **internal:** remove file-level `@internal` tags from toolset modules
 * **internal:** strip `@internal` declarations from published types
+* **internal:** type-check the built declarations in lint
 
 
 ### Documentation

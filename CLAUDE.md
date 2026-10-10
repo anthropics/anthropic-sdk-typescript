@@ -240,6 +240,7 @@ The SDK runs on Node, Deno, Bun, edge runtimes, and in browsers. Bundlers follow
 - **Leaking through abort listeners.** A listener on the caller's signal lives as long as that signal does, and so does everything its closure captures.
   - Build the listener in a small separate function that takes only what it needs, as `_makeAbort` in `src/client.ts` does. An arrow function written inline captures the whole enclosing scope, the request body and options included, and a long-lived signal then keeps all of it from being collected.
   - Add listeners with `{ once: true }`, and also remove them when the work finishes, because `once` only removes a listener if the signal actually aborts.
+- **Tagging `@internal` loosely.** The build drops any statement whose doc comment contains `@internal` from the published types, including an `import` under a file-header comment. Tag only a declaration that no published type refers to. `./scripts/lint` type-checks the built declarations, and the generated tests against them, so a tag that breaks either fails there.
 - **Returning early on abort.** An async function calls `signal.throwIfAborted()`. Only an async generator returns quietly.
 
 ### Style notes
