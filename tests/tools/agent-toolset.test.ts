@@ -830,6 +830,49 @@ describe('search tools (glob/grep)', () => {
     const out = await betaGrepTool(env).run({ pattern: 'beta' });
     expect(out).toMatch(/a\.txt:2:beta/);
   });
+
+  // GLOB-08 / GREP-08: every bound in the search tools drops results the
+  // caller never sees, and the model reads the return value as the complete
+  // answer. The output-length cap already appends a marker; these two did not,
+  // so a shortened list was indistinguishable from an exhaustive search.
+  test('glob says how many matches the result limit dropped instead of ending at the cap', async () => {
+    const many = tmpdir();
+    try {
+      for (let i = 0; i < 201; i++) fs.writeFileSync(path.join(many, `f${i}.txt`), 'x');
+      const out = (await betaGlobTool({ workdir: many }).run({ pattern: '*.txt' })) as string;
+      const lines = out.split('\n');
+      expect(lines).toHaveLength(201);
+      expect(lines.slice(-1)[0]).toBe('[output truncated at 200 matches: 1 more not shown]');
+    } finally {
+      fs.rmSync(many, { recursive: true, force: true });
+    }
+  });
+
+  testPosix('grep says when the built-in walker stopped at its depth limit', async () => {
+    const deep = tmpdir();
+    const noRg = tmpdir();
+    const realPath = process.env['PATH'];
+    try {
+      // 41 nested directories is one past the walker's 40-level cap, so the
+      // file inside them is never handed to the matcher.
+      const nested = path.join(deep, ...Array.from({ length: 41 }, () => 'a'));
+      fs.mkdirSync(nested, { recursive: true });
+      fs.writeFileSync(path.join(nested, 'deep.txt'), 'needle\n');
+      fs.writeFileSync(path.join(deep, 'shallow.txt'), 'needle\n');
+      // `findRg` reads PATH per call, so pointing it at an empty directory
+      // forces the built-in walker and keeps this deterministic whether or not
+      // the machine running the suite has ripgrep installed.
+      process.env['PATH'] = noRg;
+      const out = await betaGrepTool({ workdir: deep }).run({ pattern: 'needle' });
+      expect(out).toMatch(/shallow\.txt:1:needle/);
+      expect(out).not.toContain('deep.txt');
+      expect(out).toContain('[output truncated: stopped at the 40-level depth limit]');
+    } finally {
+      process.env['PATH'] = realPath;
+      fs.rmSync(deep, { recursive: true, force: true });
+      fs.rmSync(noRg, { recursive: true, force: true });
+    }
+  });
 });
 
 const describeBash = process.platform === 'win32' ? describe.skip : describe;
