@@ -499,7 +499,7 @@ const calculatorTool = betaTool({
 **Parameters:** All standard message parameters except `compaction` (see [Compaction](#compaction)), plus:
 
 - `tools: Array<BetaToolUnion | BetaRunnableTool>` - Array of tools
-- `max_iterations?: number` - Maximum number of tool execution iterations (default: no limit)
+- `max_iterations?: number` - Maximum number of tool execution iterations; an integer of at least 1 (default: no limit)
 
 **Returns:**: `BetaToolRunner`
 
