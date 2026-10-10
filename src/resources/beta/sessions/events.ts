@@ -98,10 +98,12 @@ export class Events extends APIResource {
    *
    * @example
    * ```ts
-   * const betaManagedAgentsStreamSessionEvents =
-   *   await client.beta.sessions.events.stream(
-   *     'sesn_011CZkZAtmR3yMPDzynEDxu7',
-   *   );
+   * const stream = await client.beta.sessions.events.stream(
+   *   'sesn_011CZkZAtmR3yMPDzynEDxu7',
+   * );
+   * for await (const betaManagedAgentsStreamSessionEvents of stream) {
+   *   // ...
+   * }
    * ```
    */
   stream(

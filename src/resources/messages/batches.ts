@@ -191,8 +191,12 @@ export class Batches extends APIResource {
    *
    * @example
    * ```ts
-   * const messageBatchIndividualResponse =
-   *   await client.messages.batches.results('message_batch_id');
+   * const stream = await client.messages.batches.results(
+   *   'message_batch_id',
+   * );
+   * for await (const messageBatchIndividualResponse of stream) {
+   *   // ...
+   * }
    * ```
    */
   async results(

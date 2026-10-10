@@ -54,11 +54,14 @@ export class Events extends APIResource {
    *
    * @example
    * ```ts
-   * const betaManagedAgentsStreamSessionThreadEvents =
+   * const stream =
    *   await client.beta.sessions.threads.events.stream(
    *     'sthr_011CZkZVWa6oJjw1rgXZpnBt',
    *     { session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7' },
    *   );
+   * for await (const betaManagedAgentsStreamSessionThreadEvents of stream) {
+   *   // ...
+   * }
    * ```
    */
   stream(
