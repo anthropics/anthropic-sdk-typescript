@@ -294,6 +294,81 @@ describe('MessageStream class', () => {
     expect(partialParse).toHaveBeenCalledTimes(1);
   });
 
+  it('reports malformed tool input JSON instead of a bare SyntaxError', async () => {
+    // The beta stream answers this with the tool JSON it could not parse; this
+    // is the same case on the GA stream, which used to surface the raw
+    // SyntaxError message and nothing else.
+    const { fetch, handleStreamEvents } = mockFetch();
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    handleStreamEvents([
+      {
+        type: 'message_start',
+        message: {
+          id: 'msg_01',
+          type: 'message',
+          role: 'assistant',
+          model: 'claude-opus-4-8',
+          content: [],
+          stop_reason: null,
+          stop_sequence: null,
+          usage: { output_tokens: 0, input_tokens: 10 },
+        },
+      },
+      {
+        type: 'content_block_start',
+        content_block: { type: 'tool_use', id: 'toolu_test', name: 'test_tool', input: {} },
+        index: 0,
+      },
+      {
+        type: 'content_block_delta',
+        delta: { type: 'input_json_delta', partial_json: '{"foo": "bar", "baz": ' },
+        index: 0,
+      },
+      {
+        type: 'content_block_delta',
+        delta: { type: 'input_json_delta', partial_json: '"qux": "quux"}' },
+        index: 0,
+      },
+      {
+        type: 'content_block_delta',
+        delta: {
+          type: 'input_json_delta',
+          partial_json: 'invalid malformed json with syntax errors}',
+        },
+        index: 0,
+      },
+      { type: 'content_block_stop', index: 0 },
+      {
+        type: 'message_delta',
+        usage: { output_tokens: 5 },
+        delta: { stop_reason: 'end_turn', stop_sequence: null },
+      },
+      { type: 'message_stop' },
+    ]);
+
+    const stream = anthropic.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'Use the test tool' }],
+    });
+
+    const errors: Error[] = [];
+    stream.on('error', (error) => {
+      errors.push(error);
+    });
+
+    try {
+      await stream.done();
+    } catch {
+      // The stream rejects with the same error it emits.
+    }
+
+    expect(errors.length).toBe(1);
+    expect(errors[0]!.message).toContain('Unable to parse tool parameter JSON from model');
+    expect(errors[0]!.message).toContain('"foo": "bar", "baz": "qux": "quux"');
+  });
+
   it('still emits per-delta inputJson snapshots when subscribed', async () => {
     const partialParse = vi.mocked(partialJsonParser.partialParse);
     partialParse.mockClear();
