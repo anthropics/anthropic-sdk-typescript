@@ -307,6 +307,8 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
    * @returns a Promise that resolves the next time given event is triggered,
    * or rejects if an error is emitted.  (If you request the 'error' event,
    * returns a promise that resolves with the error).
+   * Events with multiple arguments resolve to a tuple of all arguments;
+   * single-argument events resolve to that argument, and no-argument events to undefined.
    *
    * Example:
    *
@@ -322,7 +324,9 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
     return new Promise((resolve, reject) => {
       this.#catchingPromiseCreated = true;
       if (event !== 'error') this.once('error', reject);
-      this.once(event, resolve as any);
+      this.once(event, ((...args: Parameters<MessageStreamEvents<ParsedT>[Event]>) => {
+        resolve((args.length > 1 ? args : args[0]) as any);
+      }) as MessageStreamEvents<ParsedT>[Event]);
     });
   }
 
