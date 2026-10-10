@@ -1,10 +1,11 @@
 # Changelog
 
-## [0.20.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.20.4...vertex-sdk-v0.20.5) (2026-10-09)
+## [0.20.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.20.4...vertex-sdk-v0.20.5) (2026-10-10)
 
 ### Chores
 
 * include the license files in the published packages
+* **internal:** strip `@internal` declarations from published types
 
 ## [0.20.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.20.3...vertex-sdk-v0.20.4) (2026-10-08)
 

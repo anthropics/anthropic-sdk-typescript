@@ -1,10 +1,11 @@
 # Changelog
 
-## [0.7.10](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.9...aws-sdk-v0.7.10) (2026-10-09)
+## [0.7.10](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.9...aws-sdk-v0.7.10) (2026-10-10)
 
 ### Chores
 
 * include the license files in the published packages
+* **internal:** strip `@internal` declarations from published types
 
 ## [0.7.9](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.8...aws-sdk-v0.7.9) (2026-10-08)
 
