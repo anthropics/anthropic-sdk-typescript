@@ -615,7 +615,19 @@ export function mcpResourceToFile(result: MCPReadResourceResultLike): File {
     throw new UnsupportedMCPValueError('Resource contents array must contain at least one item');
   }
   const resourceContents = result.contents[0]!;
-  const name = new URL(resourceContents.uri).pathname.split('/').at(-1) || 'file';
+  const lastSegment = new URL(resourceContents.uri).pathname.split('/').at(-1) ?? '';
+  // A URL's `pathname` is percent-encoded and this name is sent as the
+  // multipart filename, so decode it. A literal `%` in a filename is not an
+  // escape and `decodeURIComponent` throws on it, so keep the raw segment then.
+  let name: string;
+  try {
+    name = decodeURIComponent(lastSegment);
+  } catch {
+    name = lastSegment;
+  }
+  if (!name) {
+    name = 'file';
+  }
   const type = resourceContents.mimeType;
   const data = bytesFromResource(resourceContents);
   const file = new File([data], name, type ? { type } : undefined);
