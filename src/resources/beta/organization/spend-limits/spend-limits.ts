@@ -159,8 +159,8 @@ export interface BetaSpendLimit {
 
   /**
    * Read-only. `false` when extra usage is switched off for this organization
-   * (`organization` limit) or for this member (`user` limit); `amount` is kept and
-   * applies again when it's switched back on. Always `true` for other limits.
+   * (`organization` limit); `amount` is kept and applies again when it's switched
+   * back on. Always `true` for other limits.
    */
   is_enabled: boolean;
 
