@@ -8,6 +8,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { mcpTools } from '@anthropic-ai/sdk/helpers/beta/mcp';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
 
 async function main() {
   const anthropic = new Anthropic();
@@ -19,13 +20,16 @@ async function main() {
   });
 
   try {
+    // @ts-expect-error MCP's sessionId getter conflicts with Transport under exactOptionalPropertyTypes.
     await mcpClient.connect(transport);
     const { tools } = await mcpClient.listTools();
     const message = await anthropic.beta.messages.toolRunner({
       model: 'claude-sonnet-5-5',
       max_tokens: 1024,
       max_iterations: 6,
-      tools: mcpTools(tools, mcpClient),
+      tools: mcpTools(tools, {
+        callTool: (params) => mcpClient.request({ method: 'tools/call', params }, CallToolResultSchema),
+      }),
       messages: [
         {
           role: 'user',
