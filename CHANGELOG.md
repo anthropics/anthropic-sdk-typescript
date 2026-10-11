@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Examples
+
+* Add a Parallel Search MCP example using the TypeScript SDK's MCP helpers and tool runner.
+
 ## [0.133.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.132.1...sdk-v0.133.0) (2026-10-09)
 
 ### Features
