@@ -3,6 +3,7 @@ import type { FilePropertyBag } from './builtin-types';
 import { checkFileSupport } from './uploads';
 
 type BlobLikePart = string | ArrayBuffer | ArrayBufferView | BlobLike | DataView;
+type BytesResult = { parts: Array<BlobPart>; type?: string };
 
 /**
  * Intended to match DOM Blob, node-fetch Blob, node:buffer Blob, etc.
@@ -109,23 +110,26 @@ export async function toFile(
     const blob = await value.blob();
     name ||= new URL(value.url).pathname.split(/[\\/]/).pop();
 
-    return makeFile(await getBytes(blob), name, options);
-  }
-
-  const parts = await getBytes(value);
-
-  if (!options?.type) {
-    const type = parts.find((part) => typeof part === 'object' && 'type' in part && part.type);
-    if (typeof type === 'string') {
-      options = { ...options, type };
+    const bytes = await getBytes(blob);
+    if (!options?.type && bytes.type) {
+      options = { ...options, type: bytes.type };
     }
+
+    return makeFile(bytes.parts, name, options);
   }
 
-  return makeFile(parts, name, options);
+  const bytes = await getBytes(value);
+
+  if (!options?.type && bytes.type) {
+    options = { ...options, type: bytes.type };
+  }
+
+  return makeFile(bytes.parts, name, options);
 }
 
-async function getBytes(value: BlobLikePart | AsyncIterable<BlobLikePart>): Promise<Array<BlobPart>> {
+async function getBytes(value: BlobLikePart | AsyncIterable<BlobLikePart>): Promise<BytesResult> {
   let parts: Array<BlobPart> = [];
+  let type: string | undefined;
   if (
     typeof value === 'string' ||
     ArrayBuffer.isView(value) || // includes Uint8Array, Buffer, etc.
@@ -134,11 +138,14 @@ async function getBytes(value: BlobLikePart | AsyncIterable<BlobLikePart>): Prom
     parts.push(value);
   } else if (isBlobLike(value)) {
     parts.push(value instanceof Blob ? value : await value.arrayBuffer());
+    type = value.type || undefined;
   } else if (
     isAsyncIterable(value) // includes Readable, ReadableStream, etc.
   ) {
     for await (const chunk of value) {
-      parts.push(...(await getBytes(chunk as BlobLikePart))); // TODO, consider validating?
+      const chunkBytes = await getBytes(chunk as BlobLikePart); // TODO, consider validating?
+      parts.push(...chunkBytes.parts);
+      type ||= chunkBytes.type;
     }
   } else {
     const constructor = value?.constructor?.name;
@@ -149,7 +156,7 @@ async function getBytes(value: BlobLikePart | AsyncIterable<BlobLikePart>): Prom
     );
   }
 
-  return parts;
+  return type ? { parts, type } : { parts };
 }
 
 function propsForError(value: unknown): string {
