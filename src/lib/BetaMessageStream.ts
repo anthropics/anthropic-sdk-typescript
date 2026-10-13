@@ -55,6 +55,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
   messages: BetaMessageParam[] = [];
   receivedMessages: ParsedBetaMessage<ParsedT>[] = [];
   #currentMessageSnapshot: BetaMessage | undefined;
+  #receivedMessageStop = false;
   #params: MessageCreateParams | null = null;
 
   controller: AbortController = new AbortController();
@@ -447,6 +448,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
   #beginRequest() {
     if (this.ended) return;
     this.#currentMessageSnapshot = undefined;
+    this.#receivedMessageStop = false;
   }
   #addStreamEvent(event: BetaMessageStreamEvent) {
     if (this.ended) return;
@@ -506,6 +508,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
         break;
       }
       case 'message_stop': {
+        this.#receivedMessageStop = true;
         // Assertion needed until the generated request and response types of `tool_listing` agree.
         this._addMessageParam(messageSnapshot as BetaMessageParam);
         this._addMessage(
@@ -534,6 +537,11 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
     const snapshot = this.#currentMessageSnapshot;
     if (!snapshot) {
       throw new AnthropicError(`request ended without sending any chunks`);
+    }
+    if (!this.#receivedMessageStop) {
+      throw new AnthropicError(
+        `stream ended before a "message_stop" event was received, so the message is incomplete`,
+      );
     }
     this.#currentMessageSnapshot = undefined;
     return maybeParseBetaMessage(snapshot, this.#params, { logger: this.#logger });

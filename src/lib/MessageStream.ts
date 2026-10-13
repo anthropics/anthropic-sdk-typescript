@@ -52,6 +52,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
   messages: MessageParam[] = [];
   receivedMessages: ParsedMessage<ParsedT>[] = [];
   #currentMessageSnapshot: Message | undefined;
+  #receivedMessageStop = false;
   #params: MessageCreateParams | null = null;
 
   controller: AbortController = new AbortController();
@@ -455,6 +456,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
   #beginRequest() {
     if (this.ended) return;
     this.#currentMessageSnapshot = undefined;
+    this.#receivedMessageStop = false;
   }
   #addStreamEvent(event: MessageStreamEvent) {
     if (this.ended) return;
@@ -501,6 +503,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
         break;
       }
       case 'message_stop': {
+        this.#receivedMessageStop = true;
         this._addMessageParam(messageSnapshot);
         this._addMessage(maybeParseMessage(messageSnapshot, this.#params, { logger: this.#logger }), true);
         break;
@@ -525,6 +528,11 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
     const snapshot = this.#currentMessageSnapshot;
     if (!snapshot) {
       throw new AnthropicError(`request ended without sending any chunks`);
+    }
+    if (!this.#receivedMessageStop) {
+      throw new AnthropicError(
+        `stream ended before a "message_stop" event was received, so the message is incomplete`,
+      );
     }
     this.#currentMessageSnapshot = undefined;
     return maybeParseMessage(snapshot, this.#params, { logger: this.#logger });

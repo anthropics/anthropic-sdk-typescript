@@ -445,6 +445,29 @@ describe('BetaMessageStream class', () => {
     expect(stream.aborted).toBe(true);
   });
 
+  it.each([
+    ['message_start', 'basic_response.txt', (e: any) => e.type === 'message_start'],
+    ['partial text', 'basic_response.txt', (e: any) => e.delta?.type === 'text_delta'],
+    ['partial tool input', 'tool_use_response.txt', (e: any) => e.delta?.type === 'input_json_delta'],
+  ])('rejects when the stream ends after %s without message_stop', async (_name, fixture, isLastEvent) => {
+    const { fetch, handleStreamEvents } = mockFetch();
+    const anthropic = new Anthropic({ apiKey: '...', fetch });
+
+    const streamEvents = await parseSSEFixture(loadFixture(fixture));
+    handleStreamEvents(streamEvents.slice(0, streamEvents.findIndex(isLastEvent) + 1));
+
+    const stream = anthropic.beta.messages.stream({
+      max_tokens: 1024,
+      model: 'claude-opus-4-8',
+      messages: [{ role: 'user', content: 'Say hello there!' }],
+    });
+
+    await expect(stream.done()).rejects.toThrow(AnthropicError);
+    await expect(stream.finalMessage()).rejects.toThrow(/message_stop/);
+    expect(stream.aborted).toBe(false);
+    expect(stream.receivedMessages).toEqual([]);
+  });
+
   it('handles network errors', async () => {
     const { fetch, handleRequest } = mockFetch();
 
