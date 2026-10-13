@@ -9,6 +9,7 @@ import {
   BetaRawMessageStreamEvent,
 } from '@anthropic-ai/sdk/resources/beta/messages';
 import * as partialJsonParser from '@anthropic-ai/sdk/_vendor/partial-json-parser/parser';
+import { BetaMessageStream } from '@anthropic-ai/sdk/lib/BetaMessageStream';
 import { mockFetch } from '../lib/mock-fetch';
 import { loadFixture, parseSSEFixture } from '../lib/sse-helpers';
 
@@ -466,6 +467,20 @@ describe('BetaMessageStream class', () => {
     await expect(stream.finalMessage()).rejects.toThrow(/message_stop/);
     expect(stream.aborted).toBe(false);
     expect(stream.receivedMessages).toEqual([]);
+  });
+
+  it('requires message_stop to complete a stream from fromReadableStream()', async () => {
+    const streamEvents = await parseSSEFixture(loadFixture('basic_response.txt'));
+    const toReadableStream = (events: unknown[]) =>
+      new Response(events.map((event) => JSON.stringify(event) + '\n').join('')).body!;
+
+    const complete = BetaMessageStream.fromReadableStream(toReadableStream(streamEvents));
+    await expect(complete.finalMessage()).resolves.toMatchObject({ stop_reason: 'end_turn' });
+
+    const truncated = BetaMessageStream.fromReadableStream(toReadableStream(streamEvents.slice(0, -1)));
+    await expect(truncated.done()).rejects.toThrow(AnthropicError);
+    await expect(truncated.finalMessage()).rejects.toThrow(/message_stop/);
+    expect(truncated.receivedMessages).toEqual([]);
   });
 
   it('handles network errors', async () => {
