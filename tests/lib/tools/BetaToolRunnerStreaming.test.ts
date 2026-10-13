@@ -307,6 +307,59 @@ describe('when a tool call starts', () => {
     },
   );
 
+  it.each(readers())(
+    'waits until a `for await` that %s has handled the event, after events from before `message_start`',
+    async (_, handleEvent) => {
+      async function* earlyEvents(): AsyncGenerator<StreamEvent> {
+        yield { type: 'message_stop' };
+        yield { type: 'message_stop' };
+        yield* toEvents(reply(call('a'), call('b')));
+      }
+      const { runner, timeline, see } = setup([earlyEvents(), done()]);
+
+      for await (const stream of runner) {
+        for await (const event of stream) {
+          see(event);
+          await handleEvent();
+        }
+      }
+
+      expect(firstReply(timeline).slice(0, 8)).toEqual([
+        'message_stop',
+        'message_stop',
+        'message_start',
+        'a: content_block_start',
+        'a: content_block_delta',
+        'a: content_block_stop',
+        'b: content_block_start',
+        'lookup(a) STARTS',
+      ]);
+    },
+  );
+
+  it('waits until a `for await` that a listener of `message_start` began has handled the event', async () => {
+    const { runner, timeline, see } = setup([reply(call('a'), call('b')), done()]);
+
+    for await (const stream of runner) {
+      await new Promise<void>((resolve) =>
+        stream.once('streamEvent', async () => {
+          for await (const event of stream) {
+            see(event);
+          }
+          resolve();
+        }),
+      );
+    }
+
+    expect(firstReply(timeline).slice(0, 5)).toEqual([
+      'a: content_block_start',
+      'a: content_block_delta',
+      'a: content_block_stop',
+      'b: content_block_start',
+      'lookup(a) STARTS',
+    ]);
+  });
+
   it('waits for the slowest of two `for await` loops over the stream', async () => {
     const { runner, timeline, see } = setup([reply(call('a')), done()]);
 

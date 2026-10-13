@@ -366,8 +366,25 @@ describe('BetaMessageStream class', () => {
       events.push(event);
       snapshotIDs.push(snapshot?.id);
     });
+    const afterMessageStart: BetaRawMessageStreamEvent[] = [];
+    const loopEnded = new Promise<void>((resolve) =>
+      stream.once('streamEvent', async () => {
+        for await (const event of stream) {
+          afterMessageStart.push(event);
+        }
+        resolve();
+      }),
+    );
+    const iterated: BetaRawMessageStreamEvent[] = [];
+    for await (const event of BetaMessageStream.fromReadableStream(stream.toReadableStream())) {
+      iterated.push(event);
+    }
 
     expect(await stream.finalMessage()).toMatchObject(EXPECTED_BASIC_MESSAGE);
+    expect(iterated.slice(0, early.length)).toEqual(early);
+    expect(iterated.slice(early.length).map((e) => e.type)).toEqual(events.map((e) => e.type));
+    await loopEnded;
+    expect(afterMessageStart).toEqual(events.slice(1));
     expect(snapshotIDs).toEqual(events.map(() => EXPECTED_BASIC_MESSAGE.id));
     expect(events.map((e) => e.type)).toEqual([
       'message_start',

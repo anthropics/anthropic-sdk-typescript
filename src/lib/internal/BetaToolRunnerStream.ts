@@ -1,12 +1,13 @@
 import { STAINLESS_HELPER_METHOD_HEADER } from '../../internal/stainless-helper-header';
 import { type RequestOptions } from '../../internal/request-options';
 import type {
+  BetaMessage,
   BetaRawMessageStreamEvent,
   BetaToolUseBlock,
   MessageCreateParamsBase,
   Messages,
 } from '../../resources/beta/messages/messages';
-import { BetaMessageStream, type MessageStreamEvents } from '../BetaMessageStream';
+import { BetaMessageStream } from '../BetaMessageStream';
 
 /**
  * The stream a tool runner yields. It hands each `tool_use` call to `onToolCall` once the model has moved on
@@ -58,24 +59,16 @@ export class BetaToolRunnerStream extends BetaMessageStream {
     return stream;
   }
 
-  protected override _emit<Event extends keyof MessageStreamEvents>(
-    event: Event,
-    ...args: Parameters<MessageStreamEvents[Event]>
-  ) {
-    if (event !== 'streamEvent' || this.ended) {
-      super._emit(event, ...args);
-      return;
-    }
+  protected override _deliverEvent(event: BetaRawMessageStreamEvent, snapshot: BetaMessage | undefined) {
     // Counted first, so that a reader created by a listener of this event starts after it.
     this.#emitted++;
-    const [streamEvent, snapshot] = args as Parameters<MessageStreamEvents['streamEvent']>;
-    const block = streamEvent.type === 'content_block_stop' ? snapshot.content[streamEvent.index] : undefined;
+    const block = event.type === 'content_block_stop' ? snapshot?.content[event.index] : undefined;
     const closed = block?.type === 'tool_use' ? block : undefined;
     if (closed) {
       this.#toolCalls.push(closed);
     }
-    super._emit(event, ...args);
-    this.#track(streamEvent, closed);
+    super._deliverEvent(event, snapshot);
+    this.#track(event, closed);
     this.#release();
   }
 

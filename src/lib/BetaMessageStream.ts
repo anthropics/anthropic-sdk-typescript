@@ -25,6 +25,8 @@ import { JSON_BUF_PROPERTY, withLazyInput } from '../internal/message-stream-uti
 
 export interface MessageStreamEvents {
   connect: () => void;
+  /** @internal Every stream event. `streamEvent` needs a snapshot, so it starts at `message_start`. */
+  _rawEvent: (event: BetaMessageStreamEvent) => void;
   streamEvent: (event: BetaMessageStreamEvent, snapshot: BetaMessage) => void;
   text: (textDelta: string, textSnapshot: string) => void;
   citation: (citation: BetaTextCitation, citationsSnapshot: BetaTextCitation[]) => void;
@@ -448,11 +450,16 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
     if (this.ended) return;
     this.#currentMessageSnapshot = undefined;
   }
+  /** @internal A method so that the tool runner's stream can act before and after an event's listeners. */
+  protected _deliverEvent(event: BetaMessageStreamEvent, snapshot: BetaMessage | undefined) {
+    this._emit('_rawEvent', event);
+    if (snapshot) this._emit('streamEvent', event, snapshot);
+  }
   #addStreamEvent(event: BetaMessageStreamEvent) {
     if (this.ended) return;
     const messageSnapshot = this.#accumulateMessage(event);
+    this._deliverEvent(event, messageSnapshot);
     if (!messageSnapshot) return;
-    this._emit('streamEvent', event, messageSnapshot);
 
     switch (event.type) {
       case 'content_block_delta': {
@@ -749,7 +756,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
     }[] = [];
     let done = false;
 
-    this.on('streamEvent', (event) => {
+    this.on('_rawEvent', (event) => {
       const reader = readQueue.shift();
       if (reader) {
         reader.resolve(event);

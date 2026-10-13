@@ -32,7 +32,8 @@ The event fired when a stream event is received from the API. Not fired when it 
 returns an accumulated `Message` which is progressively built-up over events.
 
 An event of a type this SDK version doesn't know is passed through as received, with the snapshot unchanged.
-It isn't fired for anything that arrives before `message_start`, because there is no snapshot yet.
+It isn't fired for anything that arrives before `message_start`, because there is no snapshot yet. `for await` and
+`.toReadableStream()` do yield those events.
 
 #### `.on('text', (textDelta: string, textSnapshot: string) => …)`
 

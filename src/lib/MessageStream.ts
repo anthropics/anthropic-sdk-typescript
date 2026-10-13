@@ -23,6 +23,8 @@ import { JSON_BUF_PROPERTY, withLazyInput } from '../internal/message-stream-uti
 
 export interface MessageStreamEvents<ParsedT = null> {
   connect: () => void;
+  /** @internal Every stream event. `streamEvent` needs a snapshot, so it starts at `message_start`. */
+  _rawEvent: (event: MessageStreamEvent) => void;
   streamEvent: (event: MessageStreamEvent, snapshot: Message) => void;
   text: (textDelta: string, textSnapshot: string) => void;
   citation: (citation: TextCitation, citationsSnapshot: TextCitation[]) => void;
@@ -459,6 +461,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
   #addStreamEvent(event: MessageStreamEvent) {
     if (this.ended) return;
     const messageSnapshot = this.#accumulateMessage(event);
+    this._emit('_rawEvent', event);
     if (!messageSnapshot) return;
     this._emit('streamEvent', event, messageSnapshot);
 
@@ -694,7 +697,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
     }[] = [];
     let done = false;
 
-    this.on('streamEvent', (event) => {
+    this.on('_rawEvent', (event) => {
       const reader = readQueue.shift();
       if (reader) {
         reader.resolve(event);
