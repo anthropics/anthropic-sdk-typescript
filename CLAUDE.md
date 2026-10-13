@@ -151,7 +151,7 @@ These rules don't depend on the language. The SDKs for this API in other languag
 - Inline a helper that has one caller. When you extract a helper, move every existing caller to it in the same PR.
 - Much of the hand-written logic exists more than once, for example once for each way to send the same request. A fix to one copy goes to the others in the same PR. Sharing the logic through an internal helper beats keeping copies in step.
 - Prefer generated types to hand-written copies. Where this language generates constants, use them instead of string literals.
-- Hand-written code that lists the fields, variants, or names of something generated needs a tripwire test (see Tests). Without one, a new field or variant is dropped quietly.
+- Prefer code that passes through what it doesn't handle, so that it needs no complete list of generated fields, variants, or names. A list needs a tripwire test (see Tests) only where a missed member would cause a bug, such as a new field dropped quietly.
 - Match the other SDKs on behavior: helper and option names, defaults, wire values, retry rules, credential precedence, and environment variables. Take structure, naming style, and API shape from this language. Put a divergence in the PR description, not in a code comment.
 - Add a cache only for a cost you have measured, and give the number in the PR.
 - Something presented as immutable can't be changed by the caller. Don't hand out a reference that lets them.
@@ -234,7 +234,7 @@ The SDK runs on Node, Deno, Bun, edge runtimes, and in browsers. Bundlers follow
 
 ### Common mistakes
 
-- **Hand-listing generated fields with no tripwire.** A tripwire stops compiling when the spec changes the generated type without the hand-written list. `tsc` enforces them through `./scripts/lint`, not the test runner.
+- **Hand-listing generated fields where a missed member would cause a bug, with no tripwire.** A tripwire stops compiling when the spec changes the generated type without the hand-written list. `tsc` enforces them through `./scripts/lint`, not the test runner.
 - **Runtime checks that the types already cover.** Trust typed inputs. Don't add a runtime check for something the caller's types already rule out.
 - **Validating what the API validates.** `null` is the only off-switch for a configurable cap.
 - **Leaking through abort listeners.** A listener on the caller's signal lives as long as that signal does, and so does everything its closure captures.

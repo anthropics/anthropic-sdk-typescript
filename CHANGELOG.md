@@ -25,6 +25,7 @@
 * **docs:** correct prefill, thinking, fallback and model descriptions
 * **docs:** update model examples
 * include the license files in the published packages
+* **internal:** narrow the tripwire test rule in the contributor guides
 * **internal:** remove `@internal` tag from a type that public types reference
 * **internal:** remove file-level `@internal` tags from toolset modules
 * **internal:** strip `@internal` declarations from published types
