@@ -1,10 +1,15 @@
 # Changelog
 
-## [0.134.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.133.0...sdk-v0.134.0) (2026-10-10)
+## [0.134.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.133.0...sdk-v0.134.0) (2026-10-13)
 
 ### Features
 
 * **api:** add organization_type_not_supported error to spend limit lists
+
+
+### Bug Fixes
+
+* **client:** treat proxy-authorization as a sensitive header
 
 
 ### Chores

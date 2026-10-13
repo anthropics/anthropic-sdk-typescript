@@ -149,6 +149,7 @@ export const formatRequestDetails = (details: RequestDetails) => {
           name,
           (
             name.toLowerCase() === 'authorization' ||
+            name.toLowerCase() === 'proxy-authorization' ||
             name.toLowerCase() === 'api-key' ||
             name.toLowerCase() === 'x-api-key' ||
             name.toLowerCase() === 'cookie' ||
