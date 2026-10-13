@@ -9,6 +9,7 @@
 
 ### Bug Fixes
 
+* **client:** don't follow redirects on token requests
 * **client:** treat proxy-authorization as a sensitive header
 
 
