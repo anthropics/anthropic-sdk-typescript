@@ -37,6 +37,7 @@
 
 * **api:** clarify when custom tool results can be sent
 * **api:** say is_enabled is always true for user spend limits
+* move more shared rules into the shared part of CLAUDE.md
 * show examples of streaming-only methods iterating the stream
 
 ## [0.133.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.132.1...sdk-v0.133.0) (2026-10-09)
