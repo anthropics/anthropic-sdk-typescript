@@ -13,6 +13,12 @@
 * **client:** treat proxy-authorization as a sensitive header
 
 
+### Bug Fixes
+
+* **streaming:** tolerate unknown event types in MessageStream and BetaMessageStream
+* **streaming:** stop throwing "Unexpected event order" for an event before message_start
+
+
 ### Chores
 
 * **docs:** correct prefill, thinking, fallback and model descriptions

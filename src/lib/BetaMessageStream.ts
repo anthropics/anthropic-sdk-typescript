@@ -451,6 +451,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
   #addStreamEvent(event: BetaMessageStreamEvent) {
     if (this.ended) return;
     const messageSnapshot = this.#accumulateMessage(event);
+    if (!messageSnapshot) return;
     this._emit('streamEvent', event, messageSnapshot);
 
     switch (event.type) {
@@ -573,7 +574,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
    * will be needed to be handled by the caller, this method will throw if you try to accumulate for multiple
    * messages.
    */
-  #accumulateMessage(event: BetaMessageStreamEvent): BetaMessage {
+  #accumulateMessage(event: BetaMessageStreamEvent): BetaMessage | undefined {
     let snapshot = this.#currentMessageSnapshot;
 
     if (event.type === 'message_start') {
@@ -583,9 +584,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
       return event.message;
     }
 
-    if (!snapshot) {
-      throw new AnthropicError(`Unexpected event order, got ${event.type} before "message_start"`);
-    }
+    if (!snapshot) return;
 
     switch (event.type) {
       case 'message_stop':
@@ -730,6 +729,8 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
         }
         return snapshot;
       }
+      default:
+        return snapshot;
     }
   }
 

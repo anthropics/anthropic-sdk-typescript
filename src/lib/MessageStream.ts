@@ -459,6 +459,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
   #addStreamEvent(event: MessageStreamEvent) {
     if (this.ended) return;
     const messageSnapshot = this.#accumulateMessage(event);
+    if (!messageSnapshot) return;
     this._emit('streamEvent', event, messageSnapshot);
 
     switch (event.type) {
@@ -564,7 +565,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
    * will be needed to be handled by the caller, this method will throw if you try to accumulate for multiple
    * messages.
    */
-  #accumulateMessage(event: MessageStreamEvent): Message {
+  #accumulateMessage(event: MessageStreamEvent): Message | undefined {
     let snapshot = this.#currentMessageSnapshot;
 
     if (event.type === 'message_start') {
@@ -574,9 +575,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
       return event.message;
     }
 
-    if (!snapshot) {
-      throw new AnthropicError(`Unexpected event order, got ${event.type} before "message_start"`);
-    }
+    if (!snapshot) return;
 
     switch (event.type) {
       case 'message_stop':
@@ -682,6 +681,8 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
         }
         return snapshot;
       }
+      default:
+        return snapshot;
     }
   }
 
