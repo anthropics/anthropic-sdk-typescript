@@ -21,6 +21,18 @@ export type ServerSentEvent = {
   raw: string[];
 };
 
+const STATUS_BY_ERROR_TYPE: Partial<Record<ErrorType, number>> = {
+  invalid_request_error: 400,
+  authentication_error: 401,
+  billing_error: 400,
+  permission_error: 403,
+  not_found_error: 404,
+  rate_limit_error: 429,
+  timeout_error: 504,
+  api_error: 500,
+  overloaded_error: 529,
+};
+
 export class Stream<Item> implements AsyncIterable<Item> {
   controller: AbortController;
   #client: BaseAnthropic | undefined;
@@ -146,6 +158,10 @@ export class Stream<Item> implements AsyncIterable<Item> {
           if (sse.event === 'error') {
             const body = safeJSON(sse.data) ?? sse.data;
             const type = body?.error?.type as ErrorType | undefined;
+            const status = type ? STATUS_BY_ERROR_TYPE[type] : undefined;
+            if (status) {
+              throw APIError.generate(status, body, undefined, response.headers);
+            }
             throw new APIError(undefined, body, undefined, response.headers, type);
           }
         }

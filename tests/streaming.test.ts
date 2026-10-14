@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { Stream, _iterSSEMessages } from '@anthropic-ai/sdk/core/streaming';
-import { APIError } from '@anthropic-ai/sdk/core/error';
+import { APIError, InternalServerError, RateLimitError } from '@anthropic-ai/sdk/core/error';
 import { ReadableStreamFrom } from '@anthropic-ai/sdk/internal/shims';
 
 describe('streaming decoding', () => {
@@ -268,7 +268,7 @@ test('error handling', async () => {
   ).rejects;
 
   await err.toMatchInlineSnapshot(
-    `[Error: {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}]`,
+    `[Error: 529 {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}]`,
   );
   await err.toBeInstanceOf(APIError);
 });
@@ -310,5 +310,87 @@ test('error event exposes error type', async () => {
     if (err instanceof APIError) {
       expect(err.type).toBe('overloaded_error');
     }
+  }
+});
+
+test('in-stream error maps error type to HTTP status and specific APIError subclass', async () => {
+  async function* body(): AsyncGenerator<Buffer> {
+    yield Buffer.from('event: error\n');
+    yield Buffer.from('data: {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}');
+    yield Buffer.from('\n\n');
+  }
+
+  const stream = Stream.fromSSEResponse(
+    new Response(await ReadableStreamFrom(body())),
+    new AbortController(),
+  );
+
+  try {
+    for await (const _event of stream) {
+    }
+    throw new Error('Expected stream to throw');
+  } catch (err: any) {
+    expect(err).toBeInstanceOf(InternalServerError);
+    expect(err.status).toBe(529);
+    expect(err.type).toBe('overloaded_error');
+    expect(err.message).toBe(
+      '529 {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}',
+    );
+  }
+});
+
+test('in-stream error maps rate_limit_error to RateLimitError with status 429', async () => {
+  async function* body(): AsyncGenerator<Buffer> {
+    yield Buffer.from('event: error\n');
+    yield Buffer.from(
+      'data: {"type":"error","error":{"type":"rate_limit_error","message":"Rate limit exceeded"}}',
+    );
+    yield Buffer.from('\n\n');
+  }
+
+  const stream = Stream.fromSSEResponse(
+    new Response(await ReadableStreamFrom(body())),
+    new AbortController(),
+  );
+
+  try {
+    for await (const _event of stream) {
+    }
+    throw new Error('Expected stream to throw');
+  } catch (err: any) {
+    expect(err).toBeInstanceOf(RateLimitError);
+    expect(err.status).toBe(429);
+    expect(err.type).toBe('rate_limit_error');
+    expect(err.message).toBe(
+      '429 {"type":"error","error":{"type":"rate_limit_error","message":"Rate limit exceeded"}}',
+    );
+  }
+});
+
+test('in-stream error with unrecognized type falls back to base APIError with status undefined', async () => {
+  async function* body(): AsyncGenerator<Buffer> {
+    yield Buffer.from('event: error\n');
+    yield Buffer.from(
+      'data: {"type":"error","error":{"type":"unknown_custom_error","message":"Something went wrong"}}',
+    );
+    yield Buffer.from('\n\n');
+  }
+
+  const stream = Stream.fromSSEResponse(
+    new Response(await ReadableStreamFrom(body())),
+    new AbortController(),
+  );
+
+  try {
+    for await (const _event of stream) {
+    }
+    throw new Error('Expected stream to throw');
+  } catch (err: any) {
+    expect(err).toBeInstanceOf(APIError);
+    expect(err.status).toBeUndefined();
+    expect(err.type).toBe('unknown_custom_error');
+    expect(err.message).toBe(
+      '{"type":"error","error":{"type":"unknown_custom_error","message":"Something went wrong"}}',
+    );
   }
 });
