@@ -1002,7 +1002,8 @@ export type AnthropicBeta =
   | 'inline-tools-2026-09-15'
   | 'mcp-client-2026-09-15'
   | 'ce-plugins-2026-09-01'
-  | 'spend-limit-reads-2026-09-26';
+  | 'spend-limit-reads-2026-09-26'
+  | 'telemetry-destinations-2026-08-11';
 
 export interface BetaAPIError {
   message: string;
