@@ -78,7 +78,8 @@ function endMessagesCreateSpanWhenStreamEnds(
     return;
   }
   span.setAttribute(ATTR_HTTP_RESPONSE_STATUS_CODE, props.response.status);
-  const startTime = props.options.__span?.startTime;
+  const call: MessagesCreateSpan | undefined = props.options.__span;
+  const startTime = call?.startTime;
   let message: RecordedMessage | undefined;
   let usage: RecordedUsage | undefined;
   let sawDelta = false;
@@ -146,7 +147,6 @@ function endMessagesCreateSpanWhenStreamEnds(
       }
     },
     onEnd(end) {
-      const call: MessagesCreateSpan | undefined = props.options.__span;
       try {
         if (message && usage) {
           // `message_delta` has the stop reason and the final output usage, so a stream cut short

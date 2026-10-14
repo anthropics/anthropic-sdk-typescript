@@ -1,3 +1,7 @@
+import http from 'node:http';
+import type { AddressInfo } from 'node:net';
+import v8 from 'node:v8';
+import vm from 'node:vm';
 import { trace, SpanStatusCode, type Span } from '@opentelemetry/api';
 import Anthropic from '@anthropic-ai/sdk';
 import {
@@ -523,6 +527,40 @@ describe('OpenTelemetry spans', () => {
       expect(span.status.code).toBe(SpanStatusCode.UNSET);
       expect(span.attributes['error.type']).toBeUndefined();
     },
+  );
+
+  test.each([
+    ['messages.create', (client: Anthropic) => client.messages.create({ ...PARAMS, stream: true })],
+    ['beta.messages.create', (client: Anthropic) => client.beta.messages.create({ ...PARAMS, stream: true })],
+  ])(
+    'garbage collection closes an unread %s stream that was dropped, not one that is held',
+    async (_, request) => {
+      v8.setFlagsFromString('--expose-gc');
+      const gc: () => void = vm.runInNewContext('gc');
+
+      // Left open, so that only the client can close them.
+      const responses: http.ServerResponse[] = [];
+      const server = http.createServer((_, res) => {
+        responses.push(res);
+        res.write('data: {}\n\n');
+      });
+      await new Promise<void>((resolve) => server.listen(0, resolve));
+      onTestFinished(() => server.close().closeAllConnections());
+
+      const client = new Anthropic({
+        baseURL: `http://localhost:${(server.address() as AddressInfo).port}`,
+        apiKey: 'test-key',
+      });
+
+      const held = await request(client);
+      // In its own frame, so that this one cannot keep the stream alive.
+      await (async () => void (await request(client)))();
+      await expect.poll(() => (gc(), responses[1]!.destroyed), { timeout: 20_000 }).toBe(true);
+
+      expect(responses[0]!.destroyed).toBe(false);
+      held.controller.abort();
+    },
+    30_000,
   );
 
   test('an error event fails the span with its type', async () => {
