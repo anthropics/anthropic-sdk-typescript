@@ -11,6 +11,11 @@
 
 * **client:** keep an unread JSONL response open while it is held
 
+
+### Chores
+
+* **ci:** speed up breaking change detection
+
 ## [0.134.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.133.0...sdk-v0.134.0) (2026-10-14)
 
 ### Features
