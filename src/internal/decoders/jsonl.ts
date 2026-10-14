@@ -9,6 +9,8 @@ export class JSONLDecoder<T> {
   constructor(
     private iterator: AsyncIterableIterator<Bytes>,
     controller: AbortController,
+    // Node's fetch cancels an unread body once its response is garbage collected, so we hold a reference.
+    private response?: Response,
   ) {
     this.controller = controller;
   }
@@ -49,6 +51,6 @@ export class JSONLDecoder<T> {
       throw new AnthropicError(`Attempted to iterate over a response with no body`);
     }
 
-    return new JSONLDecoder(ReadableStreamToAsyncIterable<Bytes>(response.body), controller);
+    return new JSONLDecoder(ReadableStreamToAsyncIterable<Bytes>(response.body), controller, response);
   }
 }
