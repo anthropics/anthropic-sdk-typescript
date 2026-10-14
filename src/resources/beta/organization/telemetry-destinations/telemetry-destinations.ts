@@ -240,6 +240,43 @@ export class TelemetryDestinations extends APIResource {
       ),
     });
   }
+
+  /**
+   * Send one test span, named `anthropic.test`, to the destination with its
+   * registered headers, once and without retries, and report the destination's
+   * answer. The response is 200 whether or not the destination answered with a 2xx
+   * status: its `result` has the type `success`, or the type `failure` and the
+   * reason in `error`. The destination's configuration, `state` and
+   * `delivery_health` do not change. A disabled destination can be tested too. Wait
+   * 10 seconds between tests of one destination; a request that comes sooner may be
+   * answered with status 429.
+   *
+   * @example
+   * ```ts
+   * const betaTelemetryDestinationTest =
+   *   await client.beta.organization.telemetryDestinations.test(
+   *     'destination_id',
+   *   );
+   * ```
+   */
+  test(
+    destinationID: string,
+    params: TelemetryDestinationTestParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<BetaTelemetryDestinationTest> {
+    const { betas } = params ?? {};
+    return this._client.post(path`/v1/organizations/telemetry_destinations/${destinationID}/test?beta=true`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'telemetry-destinations-2026-08-11'].toString() },
+        options?.headers,
+      ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.telemetry_destinations.test', options, {
+        route: '/v1/organizations/telemetry_destinations/{destination_id}/test',
+        attributes: { 'anthropic.organization.telemetry_destination.id': destinationID },
+      }),
+    });
+  }
 }
 
 export type BetaTelemetryDestinationsPageCursor = PageCursor<BetaTelemetryDestination>;
@@ -510,6 +547,49 @@ export interface BetaTelemetryDestinationStateEnabledParams {
 export type BetaTelemetryDestinationStateParams =
   | BetaTelemetryDestinationStateEnabledParams
   | BetaTelemetryDestinationStateDisabledParams;
+
+/**
+ * The result of one test span sent to a destination.
+ */
+export interface BetaTelemetryDestinationTest {
+  /**
+   * How the test went: `success` when the destination answered with a 2xx status,
+   * else `failure` with the reason.
+   */
+  result: BetaTelemetryDestinationTestResult;
+
+  type: 'telemetry_destination_test';
+}
+
+/**
+ * The test span was not delivered.
+ */
+export interface BetaTelemetryDestinationTestFailure {
+  /**
+   * A message that describes why the test span was not delivered, including the HTTP
+   * status code when the destination returned one. Examples:
+   * `HTTP error (status 403)`, `timeout`, `TLS failure`. It has the same form as the
+   * destination's `delivery_health.last_error` and never contains the destination's
+   * response body, any header value, a network address, or TLS details.
+   */
+  error: string;
+
+  type: 'failure';
+}
+
+/**
+ * The outcome of a test: `success`, or `failure` with the reason.
+ */
+export type BetaTelemetryDestinationTestResult =
+  | BetaTelemetryDestinationTestSuccess
+  | BetaTelemetryDestinationTestFailure;
+
+/**
+ * The destination answered the test span with a 2xx status.
+ */
+export interface BetaTelemetryDestinationTestSuccess {
+  type: 'success';
+}
 
 /**
  * A telemetry destination's settings for the traces it receives.
@@ -860,6 +940,13 @@ export interface TelemetryDestinationDeleteParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
+export interface TelemetryDestinationTestParams {
+  /**
+   * Optional header to specify the beta version(s) you want to use.
+   */
+  betas?: Array<BetaAPI.AnthropicBeta>;
+}
+
 TelemetryDestinations.Workspaces = Workspaces;
 
 export declare namespace TelemetryDestinations {
@@ -879,6 +966,10 @@ export declare namespace TelemetryDestinations {
     type BetaTelemetryDestinationStateEnabled as BetaTelemetryDestinationStateEnabled,
     type BetaTelemetryDestinationStateEnabledParams as BetaTelemetryDestinationStateEnabledParams,
     type BetaTelemetryDestinationStateParams as BetaTelemetryDestinationStateParams,
+    type BetaTelemetryDestinationTest as BetaTelemetryDestinationTest,
+    type BetaTelemetryDestinationTestFailure as BetaTelemetryDestinationTestFailure,
+    type BetaTelemetryDestinationTestResult as BetaTelemetryDestinationTestResult,
+    type BetaTelemetryDestinationTestSuccess as BetaTelemetryDestinationTestSuccess,
     type BetaTelemetryDestinationTraces as BetaTelemetryDestinationTraces,
     type BetaTelemetryDestinationTracesParams as BetaTelemetryDestinationTracesParams,
     type BetaTelemetryDestinationWorkspaces as BetaTelemetryDestinationWorkspaces,
@@ -895,6 +986,7 @@ export declare namespace TelemetryDestinations {
     type TelemetryDestinationUpdateParams as TelemetryDestinationUpdateParams,
     type TelemetryDestinationListParams as TelemetryDestinationListParams,
     type TelemetryDestinationDeleteParams as TelemetryDestinationDeleteParams,
+    type TelemetryDestinationTestParams as TelemetryDestinationTestParams,
   };
 
   export {

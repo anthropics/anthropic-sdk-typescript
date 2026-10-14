@@ -15,6 +15,10 @@ export {
   type BetaTelemetryDestinationStateEnabled,
   type BetaTelemetryDestinationStateEnabledParams,
   type BetaTelemetryDestinationStateParams,
+  type BetaTelemetryDestinationTest,
+  type BetaTelemetryDestinationTestFailure,
+  type BetaTelemetryDestinationTestResult,
+  type BetaTelemetryDestinationTestSuccess,
   type BetaTelemetryDestinationTraces,
   type BetaTelemetryDestinationTracesParams,
   type BetaTelemetryDestinationWorkspaces,
@@ -30,6 +34,7 @@ export {
   type TelemetryDestinationUpdateParams,
   type TelemetryDestinationListParams,
   type TelemetryDestinationDeleteParams,
+  type TelemetryDestinationTestParams,
   type BetaTelemetryDestinationsPageCursor,
 } from './telemetry-destinations';
 export {

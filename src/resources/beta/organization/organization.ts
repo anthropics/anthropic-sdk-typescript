@@ -231,6 +231,10 @@ import {
   BetaTelemetryDestinationStateEnabled,
   BetaTelemetryDestinationStateEnabledParams,
   BetaTelemetryDestinationStateParams,
+  BetaTelemetryDestinationTest,
+  BetaTelemetryDestinationTestFailure,
+  BetaTelemetryDestinationTestResult,
+  BetaTelemetryDestinationTestSuccess,
   BetaTelemetryDestinationTraces,
   BetaTelemetryDestinationTracesParams,
   BetaTelemetryDestinationWorkspaces,
@@ -246,6 +250,7 @@ import {
   TelemetryDestinationDeleteParams,
   TelemetryDestinationListParams,
   TelemetryDestinationRetrieveParams,
+  TelemetryDestinationTestParams,
   TelemetryDestinationUpdateParams,
   TelemetryDestinations,
 } from './telemetry-destinations/telemetry-destinations';
@@ -610,6 +615,10 @@ export declare namespace Organization {
     type BetaTelemetryDestinationStateEnabled as BetaTelemetryDestinationStateEnabled,
     type BetaTelemetryDestinationStateEnabledParams as BetaTelemetryDestinationStateEnabledParams,
     type BetaTelemetryDestinationStateParams as BetaTelemetryDestinationStateParams,
+    type BetaTelemetryDestinationTest as BetaTelemetryDestinationTest,
+    type BetaTelemetryDestinationTestFailure as BetaTelemetryDestinationTestFailure,
+    type BetaTelemetryDestinationTestResult as BetaTelemetryDestinationTestResult,
+    type BetaTelemetryDestinationTestSuccess as BetaTelemetryDestinationTestSuccess,
     type BetaTelemetryDestinationTraces as BetaTelemetryDestinationTraces,
     type BetaTelemetryDestinationTracesParams as BetaTelemetryDestinationTracesParams,
     type BetaTelemetryDestinationWorkspaces as BetaTelemetryDestinationWorkspaces,
@@ -626,5 +635,6 @@ export declare namespace Organization {
     type TelemetryDestinationUpdateParams as TelemetryDestinationUpdateParams,
     type TelemetryDestinationListParams as TelemetryDestinationListParams,
     type TelemetryDestinationDeleteParams as TelemetryDestinationDeleteParams,
+    type TelemetryDestinationTestParams as TelemetryDestinationTestParams,
   };
 }
