@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.135.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.134.0...sdk-v0.135.0) (2026-10-14)
+
+### Features
+
+* **api:** return a Console organization's usage-tier spend cap as a read-only spend limit
+
 ## [0.134.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.133.0...sdk-v0.134.0) (2026-10-14)
 
 ### Features

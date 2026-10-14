@@ -18,6 +18,7 @@ export {
   type BetaSpendLimitRBACGroupScope,
   type BetaSpendLimitScopedAPIKeyActor,
   type BetaSpendLimitSeatTierScope,
+  type BetaSpendLimitUsageTierScope,
   type BetaSpendLimitUserActor,
   type BetaSpendLimitUserScope,
   type BetaSpendLimitWorkspaceScope,
