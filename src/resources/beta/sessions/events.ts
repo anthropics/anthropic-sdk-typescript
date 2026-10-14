@@ -7,6 +7,7 @@ import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pa
 import { Stream } from '../../../core/streaming';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 import {
   SessionToolRunner,
@@ -46,6 +47,20 @@ export class Events extends APIResource {
           },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.sessions.events.list', options, {
+          route: '/v1/sessions/{session_id}/events',
+          queryParams: [
+            'created_at[gt]',
+            'created_at[gte]',
+            'created_at[lt]',
+            'created_at[lte]',
+            'limit',
+            'order',
+            'page',
+            'types',
+          ],
+          attributes: { 'anthropic.session.id': sessionID },
+        }),
       },
     );
   }
@@ -90,6 +105,10 @@ export class Events extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.events.send', options, {
+        route: '/v1/sessions/{session_id}/events',
+        attributes: { 'anthropic.session.id': sessionID },
+      }),
     });
   }
 
@@ -123,6 +142,11 @@ export class Events extends APIResource {
         options?.headers,
       ]),
       stream: true,
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.events.stream', options, {
+        route: '/v1/sessions/{session_id}/events/stream',
+        queryParams: ['event_deltas'],
+        attributes: { 'anthropic.session.id': sessionID },
+      }),
     }) as APIPromise<Stream<BetaManagedAgentsStreamSessionEvents>>;
   }
 

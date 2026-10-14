@@ -1,6 +1,12 @@
 # Changelog
 
-## [0.0.20](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.19...google-cloud-sdk-v0.0.20) (2026-10-10)
+## [0.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.19...google-cloud-sdk-v0.1.0) (2026-10-14)
+
+### Features
+
+* **api:** add execution_identity to Managed Agents agents
+* **client:** add OpenTelemetry spans for API calls
+
 
 ### Chores
 

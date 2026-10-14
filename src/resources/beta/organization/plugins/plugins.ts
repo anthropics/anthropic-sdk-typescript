@@ -27,6 +27,7 @@ import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core
 import { type Uploadable } from '../../../../core/uploads';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { multipartFormRequestOptions } from '../../../../internal/uploads';
 import { path } from '../../../../internal/utils/path';
 
@@ -94,6 +95,10 @@ export class Plugins extends APIResource {
             { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
             options?.headers,
           ]),
+          __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.create', options, {
+            route: '/v1/organizations/plugins',
+            createdIDAttribute: 'anthropic.organization.plugin.id',
+          }),
         },
         this._client,
       ),
@@ -135,6 +140,11 @@ export class Plugins extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.retrieve', options, {
+        route: '/v1/organizations/plugins/{plugin_id}',
+        queryParams: ['organization_id'],
+        attributes: { 'anthropic.organization.plugin.id': pluginID },
+      }),
     });
   }
 
@@ -192,6 +202,10 @@ export class Plugins extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.update', options, {
+        route: '/v1/organizations/plugins/{plugin_id}',
+        attributes: { 'anthropic.organization.plugin.id': pluginID },
+      }),
     });
   }
 
@@ -236,6 +250,21 @@ export class Plugins extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.list', options, {
+        route: '/v1/organizations/plugins',
+        queryParams: [
+          'created_at[gt]',
+          'created_at[gte]',
+          'created_at[lt]',
+          'created_at[lte]',
+          'limit',
+          'marketplace_id',
+          'organization_id',
+          'owner_type',
+          'owner_user_id',
+          'page',
+        ],
+      }),
     });
   }
 
@@ -282,6 +311,10 @@ export class Plugins extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.delete', options, {
+        route: '/v1/organizations/plugins/{plugin_id}',
+        attributes: { 'anthropic.organization.plugin.id': pluginID },
+      }),
     });
   }
 }

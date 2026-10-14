@@ -7,6 +7,7 @@ import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Agents extends APIResource {
@@ -36,6 +37,10 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.agents.create', options, {
+        route: '/v1/agents',
+        createdIDAttribute: 'gen_ai.agent.id',
+      }),
     });
   }
 
@@ -66,6 +71,11 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.agents.retrieve', options, {
+        route: '/v1/agents/{agent_id}',
+        queryParams: ['version'],
+        attributes: { 'gen_ai.agent.id': agentID },
+      }),
     });
   }
 
@@ -97,6 +107,10 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.agents.update', options, {
+        route: '/v1/agents/{agent_id}',
+        attributes: { 'gen_ai.agent.id': agentID },
+      }),
     });
   }
 
@@ -126,6 +140,10 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.agents.list', options, {
+        route: '/v1/agents',
+        queryParams: ['created_at[gte]', 'created_at[lte]', 'include_archived', 'limit', 'page'],
+      }),
     });
   }
 
@@ -155,6 +173,10 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.agents.archive', options, {
+        route: '/v1/agents/{agent_id}/archive',
+        attributes: { 'gen_ai.agent.id': agentID },
+      }),
     });
   }
 }
@@ -191,6 +213,12 @@ export interface BetaManagedAgentsAgent {
   created_at: string;
 
   description: string | null;
+
+  /**
+   * Execution principal for runs of this agent. Always present;
+   * `{"type": "service_account"}` when runs carry no customer-named principal.
+   */
+  execution_identity: BetaManagedAgentsExecutionIdentity;
 
   mcp_servers: Array<BetaManagedAgentsMCPServerURLDefinition>;
 
@@ -504,6 +532,31 @@ export interface BetaManagedAgentsAutoPolicy {
 }
 
 /**
+ * An AWS IAM role principal as returned in API responses.
+ */
+export interface BetaManagedAgentsAWSRoleExecutionIdentity {
+  /**
+   * The IAM role's ARN.
+   */
+  role_arn: string;
+
+  type: 'aws_role';
+}
+
+/**
+ * An AWS IAM role principal.
+ */
+export interface BetaManagedAgentsAWSRoleExecutionIdentityParams {
+  /**
+   * The IAM role's ARN, e.g. "arn:aws:iam::123456789012:role/my-agent-runner".
+   * Maximum 2048 characters.
+   */
+  role_arn: string;
+
+  type: 'aws_role';
+}
+
+/**
  * Configuration for the bash tool.
  */
 export interface BetaManagedAgentsBashToolConfig {
@@ -715,6 +768,21 @@ export interface BetaManagedAgentsEffortMedium {
 export interface BetaManagedAgentsEffortXhigh {
   type: 'xhigh';
 }
+
+/**
+ * Execution principal for runs of this agent as returned in API responses.
+ */
+export type BetaManagedAgentsExecutionIdentity =
+  | BetaManagedAgentsAWSRoleExecutionIdentity
+  | BetaManagedAgentsServiceAccountExecutionIdentity;
+
+/**
+ * Execution principal for runs of this agent: `service_account` (the default) or
+ * `aws_role`.
+ */
+export type BetaManagedAgentsExecutionIdentityParams =
+  | BetaManagedAgentsAWSRoleExecutionIdentityParams
+  | BetaManagedAgentsServiceAccountExecutionIdentityParams;
 
 /**
  * Configuration for the glob tool.
@@ -1431,6 +1499,21 @@ export interface BetaManagedAgentsReadToolConfigParams {
 }
 
 /**
+ * The Anthropic-managed service account as returned in API responses.
+ */
+export interface BetaManagedAgentsServiceAccountExecutionIdentity {
+  type: 'service_account';
+}
+
+/**
+ * The Anthropic-managed service account — the default execution principal. Carries
+ * no identifier.
+ */
+export interface BetaManagedAgentsServiceAccountExecutionIdentityParams {
+  type: 'service_account';
+}
+
+/**
  * Resolved `agent` definition for a single `session_thread`. Snapshot of the agent
  * at thread creation time. The multiagent roster is not repeated here; read it
  * from `Session.agent`.
@@ -1439,6 +1522,13 @@ export interface BetaManagedAgentsSessionThreadAgent {
   id: string;
 
   description: string | null;
+
+  /**
+   * Execution principal snapshotted from the agent at session creation. Always
+   * present; `{"type": "service_account"}` when runs carry no customer-named
+   * principal.
+   */
+  execution_identity: BetaManagedAgentsExecutionIdentity;
 
   mcp_servers: Array<BetaManagedAgentsMCPServerURLDefinition>;
 
@@ -1899,6 +1989,12 @@ export interface AgentCreateParams {
   description?: string | null;
 
   /**
+   * Body param: Execution principal for runs of this agent. Omitting it, sending
+   * null, or sending `{"type": "service_account"}` stores the default.
+   */
+  execution_identity?: BetaManagedAgentsExecutionIdentityParams | null;
+
+  /**
    * Body param: MCP servers this agent connects to. Maximum 20. Names must be unique
    * within the array. Every server must be referenced by an `mcp_toolset` in
    * `tools`; unreferenced servers are rejected. See the
@@ -1981,6 +2077,12 @@ export interface AgentUpdateParams {
    * Body param: Description. Omit to preserve; send empty string or null to clear.
    */
   description?: string | null;
+
+  /**
+   * Body param: Execution principal for runs of this agent. Full replacement. Omit
+   * to preserve; send null or `{"type": "service_account"}` to restore the default.
+   */
+  execution_identity?: BetaManagedAgentsExecutionIdentityParams | null;
 
   /**
    * Body param: MCP servers. Full replacement. Omit to preserve; send empty array or
@@ -2137,6 +2239,8 @@ export declare namespace Agents {
     type BetaManagedAgentsAnthropicSkill as BetaManagedAgentsAnthropicSkill,
     type BetaManagedAgentsAnthropicSkillParams as BetaManagedAgentsAnthropicSkillParams,
     type BetaManagedAgentsAutoPolicy as BetaManagedAgentsAutoPolicy,
+    type BetaManagedAgentsAWSRoleExecutionIdentity as BetaManagedAgentsAWSRoleExecutionIdentity,
+    type BetaManagedAgentsAWSRoleExecutionIdentityParams as BetaManagedAgentsAWSRoleExecutionIdentityParams,
     type BetaManagedAgentsBashToolConfig as BetaManagedAgentsBashToolConfig,
     type BetaManagedAgentsBashToolConfigParams as BetaManagedAgentsBashToolConfigParams,
     type BetaManagedAgentsCustomSkill as BetaManagedAgentsCustomSkill,
@@ -2151,6 +2255,8 @@ export declare namespace Agents {
     type BetaManagedAgentsEffortMax as BetaManagedAgentsEffortMax,
     type BetaManagedAgentsEffortMedium as BetaManagedAgentsEffortMedium,
     type BetaManagedAgentsEffortXhigh as BetaManagedAgentsEffortXhigh,
+    type BetaManagedAgentsExecutionIdentity as BetaManagedAgentsExecutionIdentity,
+    type BetaManagedAgentsExecutionIdentityParams as BetaManagedAgentsExecutionIdentityParams,
     type BetaManagedAgentsGlobToolConfig as BetaManagedAgentsGlobToolConfig,
     type BetaManagedAgentsGlobToolConfigParams as BetaManagedAgentsGlobToolConfigParams,
     type BetaManagedAgentsGrepToolConfig as BetaManagedAgentsGrepToolConfig,
@@ -2197,6 +2303,8 @@ export declare namespace Agents {
     type BetaManagedAgentsMultiagent20261001Params as BetaManagedAgentsMultiagent20261001Params,
     type BetaManagedAgentsReadToolConfig as BetaManagedAgentsReadToolConfig,
     type BetaManagedAgentsReadToolConfigParams as BetaManagedAgentsReadToolConfigParams,
+    type BetaManagedAgentsServiceAccountExecutionIdentity as BetaManagedAgentsServiceAccountExecutionIdentity,
+    type BetaManagedAgentsServiceAccountExecutionIdentityParams as BetaManagedAgentsServiceAccountExecutionIdentityParams,
     type BetaManagedAgentsSessionThreadAgent as BetaManagedAgentsSessionThreadAgent,
     type BetaManagedAgentsSkillParams as BetaManagedAgentsSkillParams,
     type BetaManagedAgentsURLMCPServerParams as BetaManagedAgentsURLMCPServerParams,

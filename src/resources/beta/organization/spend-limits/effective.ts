@@ -3,6 +3,7 @@ import * as SpendLimitsAPI from './spend-limits';
 import { BetaSpendSummariesPageCursor } from './spend-limits';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 
 export class Effective extends APIResource {
   /**
@@ -28,7 +29,19 @@ export class Effective extends APIResource {
     return this._client.getAPIList(
       '/v1/organizations/spend_limits/effective?beta=true',
       PageCursor<SpendLimitsAPI.BetaSpendSummary>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.spend_limits.effective.list',
+          options,
+          {
+            route: '/v1/organizations/spend_limits/effective',
+            queryParams: ['limit', 'page', 'period', 'user_ids'],
+          },
+        ),
+      },
     );
   }
 }

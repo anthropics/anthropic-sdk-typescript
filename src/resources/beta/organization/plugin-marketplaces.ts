@@ -6,6 +6,7 @@ import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pa
 import { type Uploadable } from '../../../core/uploads';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { multipartFormRequestOptions } from '../../../internal/uploads';
 import { path } from '../../../internal/utils/path';
 
@@ -45,6 +46,11 @@ export class PluginMarketplaces extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.plugin_marketplaces.retrieve', options, {
+        route: '/v1/organizations/plugin_marketplaces/{marketplace_id}',
+        queryParams: ['organization_id'],
+        attributes: { 'anthropic.organization.plugin_marketplace.id': marketplaceID },
+      }),
     });
   }
 
@@ -87,6 +93,10 @@ export class PluginMarketplaces extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.plugin_marketplaces.update', options, {
+        route: '/v1/organizations/plugin_marketplaces/{marketplace_id}',
+        attributes: { 'anthropic.organization.plugin_marketplace.id': marketplaceID },
+      }),
     });
   }
 
@@ -134,6 +144,10 @@ export class PluginMarketplaces extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.organization.plugin_marketplaces.list', options, {
+          route: '/v1/organizations/plugin_marketplaces',
+          queryParams: ['limit', 'organization_id', 'owner_type', 'page', 'source'],
+        }),
       },
     );
   }
@@ -194,6 +208,12 @@ export class PluginMarketplaces extends APIResource {
             { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
             options?.headers,
           ]),
+          __span: startApiCallSpan(
+            this._client,
+            'anthropic.organization.plugin_marketplaces.validate_archive',
+            options,
+            { route: '/v1/organizations/plugin_marketplaces/validate_archive' },
+          ),
         },
         this._client,
       ),
@@ -256,6 +276,12 @@ export class PluginMarketplaces extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __span: startApiCallSpan(
+        this._client,
+        'anthropic.organization.plugin_marketplaces.validate_repository',
+        options,
+        { route: '/v1/organizations/plugin_marketplaces/validate_repository' },
+      ),
     });
   }
 }

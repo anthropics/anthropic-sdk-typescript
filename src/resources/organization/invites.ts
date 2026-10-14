@@ -3,6 +3,7 @@ import * as OrganizationAPI from './organization';
 import { APIPromise } from '../../core/api-promise';
 import { Page, type PageParams, PagePromise } from '../../core/pagination';
 import { RequestOptions } from '../../internal/request-options';
+import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
 
 export class Invites extends APIResource {
@@ -24,7 +25,14 @@ export class Invites extends APIResource {
    * ```
    */
   create(body: InviteCreateParams, options?: RequestOptions): APIPromise<OrganizationInvite> {
-    return this._client.post('/v1/organizations/invites', { body, ...options });
+    return this._client.post('/v1/organizations/invites', {
+      body,
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.invites.create', options, {
+        route: '/v1/organizations/invites',
+        createdIDAttribute: 'anthropic.organization.invite.id',
+      }),
+    });
   }
 
   /**
@@ -37,7 +45,13 @@ export class Invites extends APIResource {
    * ```
    */
   retrieve(inviteID: string, options?: RequestOptions): APIPromise<OrganizationInvite> {
-    return this._client.get(path`/v1/organizations/invites/${inviteID}`, options);
+    return this._client.get(path`/v1/organizations/invites/${inviteID}`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.invites.retrieve', options, {
+        route: '/v1/organizations/invites/{invite_id}',
+        attributes: { 'anthropic.organization.invite.id': inviteID },
+      }),
+    });
   }
 
   /**
@@ -58,6 +72,10 @@ export class Invites extends APIResource {
     return this._client.getAPIList('/v1/organizations/invites', Page<OrganizationInvite>, {
       query,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.invites.list', options, {
+        route: '/v1/organizations/invites',
+        queryParams: ['after_id', 'before_id', 'email', 'limit', 'roles', 'statuses'],
+      }),
     });
   }
 
@@ -72,7 +90,13 @@ export class Invites extends APIResource {
    * ```
    */
   delete(inviteID: string, options?: RequestOptions): APIPromise<InviteDeleteResponse> {
-    return this._client.delete(path`/v1/organizations/invites/${inviteID}`, options);
+    return this._client.delete(path`/v1/organizations/invites/${inviteID}`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.invites.delete', options, {
+        route: '/v1/organizations/invites/{invite_id}',
+        attributes: { 'anthropic.organization.invite.id': inviteID },
+      }),
+    });
   }
 }
 

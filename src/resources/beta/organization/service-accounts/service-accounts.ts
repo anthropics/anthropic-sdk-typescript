@@ -13,6 +13,7 @@ import { APIPromise } from '../../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class ServiceAccounts extends APIResource {
@@ -50,6 +51,10 @@ export class ServiceAccounts extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.service_accounts.create', options, {
+        route: '/v1/organizations/service_accounts',
+        createdIDAttribute: 'anthropic.organization.service_account.id',
+      }),
     });
   }
 
@@ -81,6 +86,10 @@ export class ServiceAccounts extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.service_accounts.retrieve', options, {
+        route: '/v1/organizations/service_accounts/{service_account_id}',
+        attributes: { 'anthropic.organization.service_account.id': serviceAccountID },
+      }),
     });
   }
 
@@ -118,6 +127,10 @@ export class ServiceAccounts extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.service_accounts.update', options, {
+        route: '/v1/organizations/service_accounts/{service_account_id}',
+        attributes: { 'anthropic.organization.service_account.id': serviceAccountID },
+      }),
     });
   }
 
@@ -156,6 +169,10 @@ export class ServiceAccounts extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.organization.service_accounts.list', options, {
+          route: '/v1/organizations/service_accounts',
+          queryParams: ['include_archived', 'limit', 'page'],
+        }),
       },
     );
   }
@@ -193,6 +210,10 @@ export class ServiceAccounts extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.service_accounts.archive', options, {
+        route: '/v1/organizations/service_accounts/{service_account_id}/archive',
+        attributes: { 'anthropic.organization.service_account.id': serviceAccountID },
+      }),
     });
   }
 }

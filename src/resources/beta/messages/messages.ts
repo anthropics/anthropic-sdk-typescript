@@ -7,6 +7,7 @@ import { Stream } from '../../../core/streaming';
 import { MODEL_NONSTREAMING_TOKENS } from '../../../internal/constants';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { stainlessHelperHeader } from '../../../internal/stainless-helper-header';
 import {
   parseBetaMessage,
@@ -134,6 +135,7 @@ export class Messages extends APIResource {
         options?.headers,
       ]),
       stream: modifiedParams.stream ?? false,
+      __span: startApiCallSpan(this._client, 'anthropic.messages.create', options, { route: '/v1/messages' }),
     }) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
   }
 
@@ -217,6 +219,9 @@ export class Messages extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.messages.count_tokens', options, {
+        route: '/v1/messages/count_tokens',
+      }),
     });
   }
 

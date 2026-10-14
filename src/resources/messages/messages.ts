@@ -3,6 +3,7 @@ import { APIResource } from '../../core/resource';
 import { Stream } from '../../core/streaming';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { startApiCallSpan } from '../../internal/tracing';
 import { stainlessHelperHeader } from '../../internal/stainless-helper-header';
 import { MessageStream } from '../../lib/MessageStream';
 import {
@@ -109,6 +110,7 @@ export class Messages extends APIResource {
         options?.headers,
       ]),
       stream: params.stream ?? false,
+      __span: startApiCallSpan(this._client, 'anthropic.messages.create', options, { route: '/v1/messages' }),
     }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
   }
 
@@ -202,6 +204,9 @@ export class Messages extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.messages.count_tokens', options, {
+        route: '/v1/messages/count_tokens',
+      }),
     });
   }
 }

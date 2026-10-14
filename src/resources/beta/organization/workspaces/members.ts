@@ -4,6 +4,7 @@ import { BetaWorkspaceMembersPage } from './workspaces';
 import { APIPromise } from '../../../../core/api-promise';
 import { Page, type PageParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class Members extends APIResource {
@@ -25,10 +26,16 @@ export class Members extends APIResource {
     options?: RequestOptions,
   ): APIPromise<WorkspacesAPI.BetaWorkspaceMember> {
     const { workspace_id } = params;
-    return this._client.get(
-      path`/v1/organizations/workspaces/${workspace_id}/members/${userID}?beta=true`,
-      options,
-    );
+    return this._client.get(path`/v1/organizations/workspaces/${workspace_id}/members/${userID}?beta=true`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.members.retrieve', options, {
+        route: '/v1/organizations/workspaces/{workspace_id}/members/{user_id}',
+        attributes: {
+          'anthropic.organization.workspace.id': workspace_id,
+          'anthropic.organization.workspace.member.id': userID,
+        },
+      }),
+    });
   }
 
   /**
@@ -55,6 +62,13 @@ export class Members extends APIResource {
     return this._client.post(path`/v1/organizations/workspaces/${workspace_id}/members/${userID}?beta=true`, {
       body,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.members.update', options, {
+        route: '/v1/organizations/workspaces/{workspace_id}/members/{user_id}',
+        attributes: {
+          'anthropic.organization.workspace.id': workspace_id,
+          'anthropic.organization.workspace.member.id': userID,
+        },
+      }),
     });
   }
 
@@ -79,7 +93,15 @@ export class Members extends APIResource {
     return this._client.getAPIList(
       path`/v1/organizations/workspaces/${workspaceID}/members?beta=true`,
       Page<WorkspacesAPI.BetaWorkspaceMember>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.members.list', options, {
+          route: '/v1/organizations/workspaces/{workspace_id}/members',
+          queryParams: ['after_id', 'before_id', 'limit'],
+          attributes: { 'anthropic.organization.workspace.id': workspaceID },
+        }),
+      },
     );
   }
 
@@ -106,6 +128,12 @@ export class Members extends APIResource {
     return this._client.post(path`/v1/organizations/workspaces/${workspaceID}/members?beta=true`, {
       body,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.members.add', options, {
+        route: '/v1/organizations/workspaces/{workspace_id}/members',
+        attributes: { 'anthropic.organization.workspace.id': workspaceID },
+        createdIDAttribute: 'anthropic.organization.workspace.member.id',
+        createdIDField: 'user_id',
+      }),
     });
   }
 
@@ -129,7 +157,16 @@ export class Members extends APIResource {
     const { workspace_id } = params;
     return this._client.delete(
       path`/v1/organizations/workspaces/${workspace_id}/members/${userID}?beta=true`,
-      options,
+      {
+        ...options,
+        __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.members.remove', options, {
+          route: '/v1/organizations/workspaces/{workspace_id}/members/{user_id}',
+          attributes: {
+            'anthropic.organization.workspace.id': workspace_id,
+            'anthropic.organization.workspace.member.id': userID,
+          },
+        }),
+      },
     );
   }
 }

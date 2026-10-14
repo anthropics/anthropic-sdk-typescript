@@ -3,6 +3,12 @@ export { Anthropic as default } from './client';
 export { type Uploadable, toFile } from './core/uploads';
 export { APIPromise } from './core/api-promise';
 export { BaseAnthropic, Anthropic, type ClientOptions } from './client';
+export {
+  type OpenTelemetryOptions,
+  type OpenTelemetryRequestOptions,
+  type OpenTelemetryTracesOptions,
+  type ResolvedOpenTelemetryOptions,
+} from './client';
 export { PagePromise } from './core/pagination';
 export {
   AnthropicError,

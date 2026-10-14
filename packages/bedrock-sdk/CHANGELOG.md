@@ -1,6 +1,12 @@
 # Changelog
 
-## [0.34.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.34.4...bedrock-sdk-v0.34.5) (2026-10-10)
+## [0.35.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.34.4...bedrock-sdk-v0.35.0) (2026-10-14)
+
+### Features
+
+* **api:** add execution_identity to Managed Agents agents
+* **client:** add OpenTelemetry spans for API calls
+
 
 ### Chores
 

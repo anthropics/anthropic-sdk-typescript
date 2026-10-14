@@ -3,6 +3,7 @@ import * as AnalyticsAPI from './analytics';
 import { BetaAnalyticsArtifactActivitiesPageCursor } from './analytics';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 
 export class Artifacts extends APIResource {
   /**
@@ -30,7 +31,14 @@ export class Artifacts extends APIResource {
     return this._client.getAPIList(
       '/v1/organizations/analytics/artifacts?beta=true',
       PageCursor<AnalyticsAPI.BetaAnalyticsArtifactActivity>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __span: startApiCallSpan(this._client, 'anthropic.organization.analytics.artifacts.list', options, {
+          route: '/v1/organizations/analytics/artifacts',
+          queryParams: ['date', 'filter', 'group_by', 'limit', 'page'],
+        }),
+      },
     );
   }
 }

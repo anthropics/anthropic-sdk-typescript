@@ -3,6 +3,7 @@ import * as AnalyticsAPI from './analytics';
 import { BetaAnalyticsSingleDayActivitySummariesPageCursor } from './analytics';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 
 export class Summaries extends APIResource {
   /**
@@ -38,7 +39,14 @@ export class Summaries extends APIResource {
     return this._client.getAPIList(
       '/v1/organizations/analytics/summaries?beta=true',
       PageCursor<AnalyticsAPI.BetaAnalyticsSingleDayActivitySummary>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __span: startApiCallSpan(this._client, 'anthropic.organization.analytics.summaries.list', options, {
+          route: '/v1/organizations/analytics/summaries',
+          queryParams: ['ending_date', 'filter', 'limit', 'page', 'starting_date'],
+        }),
+      },
     );
   }
 }

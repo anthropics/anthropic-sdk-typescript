@@ -1,10 +1,12 @@
 # Changelog
 
-## [0.134.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.133.0...sdk-v0.134.0) (2026-10-13)
+## [0.134.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.133.0...sdk-v0.134.0) (2026-10-14)
 
 ### Features
 
+* **api:** add execution_identity to Managed Agents agents
 * **api:** add organization_type_not_supported error to spend limit lists
+* **client:** add OpenTelemetry spans for API calls
 
 
 ### Bug Fixes

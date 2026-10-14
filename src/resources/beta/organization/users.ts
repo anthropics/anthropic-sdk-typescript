@@ -3,6 +3,7 @@ import * as OrganizationAPI from './organization';
 import { APIPromise } from '../../../core/api-promise';
 import { Page, type PageParams, PagePromise } from '../../../core/pagination';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Users extends APIResource {
@@ -16,7 +17,13 @@ export class Users extends APIResource {
    * ```
    */
   retrieve(userID: string, options?: RequestOptions): APIPromise<BetaOrganizationUser> {
-    return this._client.get(path`/v1/organizations/users/${userID}?beta=true`, options);
+    return this._client.get(path`/v1/organizations/users/${userID}?beta=true`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.users.retrieve', options, {
+        route: '/v1/organizations/users/{user_id}',
+        attributes: { 'anthropic.organization.user.id': userID },
+      }),
+    });
   }
 
   /**
@@ -31,7 +38,14 @@ export class Users extends APIResource {
    * ```
    */
   update(userID: string, body: UserUpdateParams, options?: RequestOptions): APIPromise<BetaOrganizationUser> {
-    return this._client.post(path`/v1/organizations/users/${userID}?beta=true`, { body, ...options });
+    return this._client.post(path`/v1/organizations/users/${userID}?beta=true`, {
+      body,
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.users.update', options, {
+        route: '/v1/organizations/users/{user_id}',
+        attributes: { 'anthropic.organization.user.id': userID },
+      }),
+    });
   }
 
   /**
@@ -52,6 +66,10 @@ export class Users extends APIResource {
     return this._client.getAPIList('/v1/organizations/users?beta=true', Page<BetaOrganizationUser>, {
       query,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.users.list', options, {
+        route: '/v1/organizations/users',
+        queryParams: ['after_id', 'before_id', 'email', 'limit', 'roles'],
+      }),
     });
   }
 
@@ -66,7 +84,13 @@ export class Users extends APIResource {
    * ```
    */
   remove(userID: string, options?: RequestOptions): APIPromise<UserRemoveResponse> {
-    return this._client.delete(path`/v1/organizations/users/${userID}?beta=true`, options);
+    return this._client.delete(path`/v1/organizations/users/${userID}?beta=true`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.users.remove', options, {
+        route: '/v1/organizations/users/{user_id}',
+        attributes: { 'anthropic.organization.user.id': userID },
+      }),
+    });
   }
 }
 

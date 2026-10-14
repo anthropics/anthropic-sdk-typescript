@@ -5,6 +5,7 @@ import * as BetaMessagesAPI from './messages';
 import { Page, type PageParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { JSONLDecoder } from '../../../internal/decoders/jsonl';
 import { AnthropicError } from '../../../error';
 import { path } from '../../../internal/utils/path';
@@ -53,6 +54,10 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.messages.batches.create', options, {
+        route: '/v1/messages/batches',
+        createdIDAttribute: 'anthropic.message.batch.id',
+      }),
     });
   }
 
@@ -87,6 +92,10 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.messages.batches.retrieve', options, {
+        route: '/v1/messages/batches/{message_batch_id}',
+        attributes: { 'anthropic.message.batch.id': messageBatchID },
+      }),
     });
   }
 
@@ -120,6 +129,10 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.messages.batches.list', options, {
+        route: '/v1/messages/batches',
+        queryParams: ['after_id', 'before_id', 'limit'],
+      }),
     });
   }
 
@@ -155,6 +168,10 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.messages.batches.delete', options, {
+        route: '/v1/messages/batches/{message_batch_id}',
+        attributes: { 'anthropic.message.batch.id': messageBatchID },
+      }),
     });
   }
 
@@ -195,6 +212,10 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.messages.batches.cancel', options, {
+        route: '/v1/messages/batches/{message_batch_id}/cancel',
+        attributes: { 'anthropic.message.batch.id': messageBatchID },
+      }),
     });
   }
 
@@ -244,6 +265,10 @@ export class Batches extends APIResource {
         ]),
         stream: true,
         __binaryResponse: true,
+        __span: startApiCallSpan(this._client, 'anthropic.messages.batches.results', options, {
+          route: '/v1/messages/batches/{message_batch_id}/results',
+          attributes: { 'anthropic.message.batch.id': messageBatchID },
+        }),
       })
       ._thenUnwrap((_, props) => JSONLDecoder.fromResponse(props.response, props.controller)) as APIPromise<
       JSONLDecoder<BetaMessageBatchIndividualResponse>

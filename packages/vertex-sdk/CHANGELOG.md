@@ -1,6 +1,12 @@
 # Changelog
 
-## [0.20.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.20.4...vertex-sdk-v0.20.5) (2026-10-10)
+## [0.21.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.20.4...vertex-sdk-v0.21.0) (2026-10-14)
+
+### Features
+
+* **api:** add execution_identity to Managed Agents agents
+* **client:** add OpenTelemetry spans for API calls
+
 
 ### Chores
 

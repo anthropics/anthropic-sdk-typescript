@@ -15,6 +15,7 @@ import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagin
 import { type Uploadable } from '../../core/uploads';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { startApiCallSpan } from '../../internal/tracing';
 import { multipartFormRequestOptions } from '../../internal/uploads';
 import { path } from '../../internal/utils/path';
 
@@ -43,6 +44,10 @@ export class Skills extends APIResource {
             { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
             options?.headers,
           ]),
+          __span: startApiCallSpan(this._client, 'anthropic.skills.create', options, {
+            route: '/v1/skills',
+            createdIDAttribute: 'anthropic.skill.id',
+          }),
         },
         this._client,
         false,
@@ -70,6 +75,10 @@ export class Skills extends APIResource {
         { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.skills.retrieve', options, {
+        route: '/v1/skills/{skill_id}',
+        attributes: { 'anthropic.skill.id': skillID },
+      }),
     });
   }
 
@@ -96,6 +105,10 @@ export class Skills extends APIResource {
         { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.skills.list', options, {
+        route: '/v1/skills',
+        queryParams: ['limit', 'page', 'source'],
+      }),
     });
   }
 
@@ -119,6 +132,10 @@ export class Skills extends APIResource {
         { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.skills.delete', options, {
+        route: '/v1/skills/{skill_id}',
+        attributes: { 'anthropic.skill.id': skillID },
+      }),
     });
   }
 }

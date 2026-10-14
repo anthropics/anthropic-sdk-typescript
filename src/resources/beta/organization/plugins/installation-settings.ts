@@ -5,6 +5,7 @@ import { APIPromise } from '../../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class InstallationSettings extends APIResource {
@@ -53,6 +54,16 @@ export class InstallationSettings extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
           options?.headers,
         ]),
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.plugins.installation_settings.list',
+          options,
+          {
+            route: '/v1/organizations/plugins/{plugin_id}/installation_settings',
+            queryParams: ['limit', 'organization_id', 'page', 'target_type'],
+            attributes: { 'anthropic.organization.plugin.id': pluginID },
+          },
+        ),
       },
     );
   }
@@ -109,6 +120,18 @@ export class InstallationSettings extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
           options?.headers,
         ]),
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.plugins.installation_settings.remove',
+          options,
+          {
+            route: '/v1/organizations/plugins/{plugin_id}/installation_settings/{target}',
+            attributes: {
+              'anthropic.organization.plugin.id': plugin_id,
+              'anthropic.organization.plugin.installation_setting.id': target,
+            },
+          },
+        ),
       },
     );
   }
@@ -164,6 +187,18 @@ export class InstallationSettings extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
           options?.headers,
         ]),
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.plugins.installation_settings.set',
+          options,
+          {
+            route: '/v1/organizations/plugins/{plugin_id}/installation_settings/{target}',
+            attributes: {
+              'anthropic.organization.plugin.id': plugin_id,
+              'anthropic.organization.plugin.installation_setting.id': target,
+            },
+          },
+        ),
       },
     );
   }

@@ -1,6 +1,7 @@
 import { APIResource } from '../../core/resource';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagination';
 import { RequestOptions } from '../../internal/request-options';
+import { startApiCallSpan } from '../../internal/tracing';
 
 export class RateLimits extends APIResource {
   /**
@@ -28,6 +29,10 @@ export class RateLimits extends APIResource {
     return this._client.getAPIList('/v1/organizations/rate_limits', PageCursor<OrganizationRateLimit>, {
       query,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.rate_limits.list', options, {
+        route: '/v1/organizations/rate_limits',
+        queryParams: ['group_type', 'limit', 'model', 'page'],
+      }),
     });
   }
 }

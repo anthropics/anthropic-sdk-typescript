@@ -1370,6 +1370,8 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAnthropicSkill</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAnthropicSkillParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAutoPolicy</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAWSRoleExecutionIdentity</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAWSRoleExecutionIdentityParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsBashToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsBashToolConfigParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsCustomSkill</a></code>
@@ -1384,6 +1386,8 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortMax</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortMedium</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortXhigh</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsExecutionIdentity</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsExecutionIdentityParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsGlobToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsGlobToolConfigParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsGrepToolConfig</a></code>
@@ -1430,6 +1434,8 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagent20261001Params</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsReadToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsReadToolConfigParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsServiceAccountExecutionIdentity</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsServiceAccountExecutionIdentityParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsSessionThreadAgent</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsSkillParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsURLMCPServerParams</a></code>

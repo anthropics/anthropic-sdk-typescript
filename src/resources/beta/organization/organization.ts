@@ -232,6 +232,7 @@ import {
 } from './workspaces/workspaces';
 import { APIPromise } from '../../../core/api-promise';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 
 export class Organization extends APIResource {
   apiKeys: APIKeysAPI.APIKeys = new APIKeysAPI.APIKeys(this._client);
@@ -265,7 +266,12 @@ export class Organization extends APIResource {
    * ```
    */
   retrieve(options?: RequestOptions): APIPromise<BetaOrganization> {
-    return this._client.get('/v1/organizations/me?beta=true', options);
+    return this._client.get('/v1/organizations/me?beta=true', {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.retrieve', options, {
+        route: '/v1/organizations/me',
+      }),
+    });
   }
 }
 

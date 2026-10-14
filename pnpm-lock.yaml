@@ -15,6 +15,9 @@ patchedDependencies:
 importers:
   .:
     dependencies:
+      '@opentelemetry/api':
+        specifier: ^1.4.1
+        version: 1.9.1
       json-schema-to-ts:
         specifier: ^3.1.1
         version: 3.1.1
@@ -27,7 +30,7 @@ importers:
         version: 0.18.3
       '@fast-check/vitest':
         specifier: ^0.4.1
-        version: 0.4.1(vitest@4.1.11(@types/node@20.19.11)(vite@8.2.1(@types/node@20.19.11)))
+        version: 0.4.1(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@20.19.11)(vite@8.2.1(@types/node@20.19.11)))
       '@modelcontextprotocol/sdk':
         specifier: ^1.24.2
         version: 1.24.2(zod@4.4.3)
@@ -81,7 +84,7 @@ importers:
         version: 1.4.2(typescript@6.0.3)
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@types/node@20.19.11)(vite@8.2.1(@types/node@20.19.11))
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@20.19.11)(vite@8.2.1(@types/node@20.19.11))
       zod:
         specifier: ^3.25.0 || ^4.0.0
         version: 4.4.3
@@ -149,7 +152,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@types/node@20.19.37)(vite@8.2.1(@types/node@20.19.37))
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@20.19.37)(vite@8.2.1(@types/node@20.19.37))
 
   packages/bedrock-sdk:
     dependencies:
@@ -219,7 +222,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@types/node@20.19.41)(vite@8.2.1(@types/node@20.19.41))
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@20.19.41)(vite@8.2.1(@types/node@20.19.41))
 
   packages/foundry-sdk:
     dependencies:
@@ -259,7 +262,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@types/node@20.19.23)(vite@8.2.1(@types/node@20.19.23))
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@20.19.23)(vite@8.2.1(@types/node@20.19.23))
 
   packages/google-cloud-sdk:
     dependencies:
@@ -302,7 +305,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@types/node@20.19.41)(vite@8.2.1(@types/node@20.19.41))
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@20.19.41)(vite@8.2.1(@types/node@20.19.41))
 
   packages/vertex-sdk:
     dependencies:
@@ -345,7 +348,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@types/node@20.19.41)(vite@8.2.1(@types/node@20.19.41))
+        version: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@20.19.41)(vite@8.2.1(@types/node@20.19.41))
 
 packages:
   '@aashutoshrathi/word-wrap@1.2.6':
@@ -1036,6 +1039,13 @@ packages:
       {
         integrity: sha512-U69T3ItWHvLwGg5eJ0n3I62nWuE6ilHlmz7zM0npLBRvPRd7e6NYmg54vvRtP5mZG7kZqZCFVdsTWo7BPtBujg==,
       }
+
+  '@opentelemetry/api@1.9.1':
+    resolution:
+      {
+        integrity: sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q==,
+      }
+    engines: { node: '>=8.0.0' }
 
   '@oxc-project/types@0.143.0':
     resolution:
@@ -5788,10 +5798,10 @@ snapshots:
       '@eslint/core': 0.17.0
       levn: 0.4.1
 
-  '@fast-check/vitest@0.4.1(vitest@4.1.11(@types/node@20.19.11)(vite@8.2.1(@types/node@20.19.11)))':
+  '@fast-check/vitest@0.4.1(vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@20.19.11)(vite@8.2.1(@types/node@20.19.11)))':
     dependencies:
       fast-check: 4.9.0
-      vitest: 4.1.11(@types/node@20.19.11)(vite@8.2.1(@types/node@20.19.11))
+      vitest: 4.1.11(@opentelemetry/api@1.9.1)(@types/node@20.19.11)(vite@8.2.1(@types/node@20.19.11))
 
   '@humanfs/core@0.19.1': {}
 
@@ -5870,6 +5880,8 @@ snapshots:
       outvariant: 1.4.3
 
   '@open-draft/until@2.1.0': {}
+
+  '@opentelemetry/api@1.9.1': {}
 
   '@oxc-project/types@0.143.0': {}
 
@@ -8358,7 +8370,7 @@ snapshots:
       '@types/node': 20.19.41
       fsevents: 2.3.3
 
-  vitest@4.1.11(@types/node@20.19.11)(vite@8.2.1(@types/node@20.19.11)):
+  vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@20.19.11)(vite@8.2.1(@types/node@20.19.11)):
     dependencies:
       '@vitest/expect': 4.1.11
       '@vitest/mocker': 4.1.11(vite@8.2.1(@types/node@20.19.11))
@@ -8381,11 +8393,12 @@ snapshots:
       vite: 8.2.1(@types/node@20.19.11)
       why-is-node-running: 2.3.0
     optionalDependencies:
+      '@opentelemetry/api': 1.9.1
       '@types/node': 20.19.11
     transitivePeerDependencies:
       - msw
 
-  vitest@4.1.11(@types/node@20.19.23)(vite@8.2.1(@types/node@20.19.23)):
+  vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@20.19.23)(vite@8.2.1(@types/node@20.19.23)):
     dependencies:
       '@vitest/expect': 4.1.11
       '@vitest/mocker': 4.1.11(vite@8.2.1(@types/node@20.19.23))
@@ -8408,11 +8421,12 @@ snapshots:
       vite: 8.2.1(@types/node@20.19.23)
       why-is-node-running: 2.3.0
     optionalDependencies:
+      '@opentelemetry/api': 1.9.1
       '@types/node': 20.19.23
     transitivePeerDependencies:
       - msw
 
-  vitest@4.1.11(@types/node@20.19.37)(vite@8.2.1(@types/node@20.19.37)):
+  vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@20.19.37)(vite@8.2.1(@types/node@20.19.37)):
     dependencies:
       '@vitest/expect': 4.1.11
       '@vitest/mocker': 4.1.11(vite@8.2.1(@types/node@20.19.37))
@@ -8435,11 +8449,12 @@ snapshots:
       vite: 8.2.1(@types/node@20.19.37)
       why-is-node-running: 2.3.0
     optionalDependencies:
+      '@opentelemetry/api': 1.9.1
       '@types/node': 20.19.37
     transitivePeerDependencies:
       - msw
 
-  vitest@4.1.11(@types/node@20.19.41)(vite@8.2.1(@types/node@20.19.41)):
+  vitest@4.1.11(@opentelemetry/api@1.9.1)(@types/node@20.19.41)(vite@8.2.1(@types/node@20.19.41)):
     dependencies:
       '@vitest/expect': 4.1.11
       '@vitest/mocker': 4.1.11(vite@8.2.1(@types/node@20.19.41))
@@ -8462,6 +8477,7 @@ snapshots:
       vite: 8.2.1(@types/node@20.19.41)
       why-is-node-running: 2.3.0
     optionalDependencies:
+      '@opentelemetry/api': 1.9.1
       '@types/node': 20.19.41
     transitivePeerDependencies:
       - msw

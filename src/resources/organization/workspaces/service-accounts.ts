@@ -5,6 +5,7 @@ import * as WorkspacesAPI from './workspaces';
 import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class ServiceAccounts extends APIResource {
@@ -39,7 +40,21 @@ export class ServiceAccounts extends APIResource {
     const { workspace_id } = params;
     return this._client.get(
       path`/v1/organizations/workspaces/${workspace_id}/service_accounts/${serviceAccountID}`,
-      options,
+      {
+        ...options,
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.workspaces.service_accounts.retrieve',
+          options,
+          {
+            route: '/v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}',
+            attributes: {
+              'anthropic.organization.workspace.id': workspace_id,
+              'anthropic.organization.workspace.service_account.id': serviceAccountID,
+            },
+          },
+        ),
+      },
     );
   }
 
@@ -77,7 +92,22 @@ export class ServiceAccounts extends APIResource {
     const { workspace_id, ...body } = params;
     return this._client.post(
       path`/v1/organizations/workspaces/${workspace_id}/service_accounts/${serviceAccountID}`,
-      { body, ...options },
+      {
+        body,
+        ...options,
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.workspaces.service_accounts.update',
+          options,
+          {
+            route: '/v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}',
+            attributes: {
+              'anthropic.organization.workspace.id': workspace_id,
+              'anthropic.organization.workspace.service_account.id': serviceAccountID,
+            },
+          },
+        ),
+      },
     );
   }
 
@@ -113,7 +143,20 @@ export class ServiceAccounts extends APIResource {
     return this._client.getAPIList(
       path`/v1/organizations/workspaces/${workspaceID}/service_accounts`,
       PageCursor<ServiceAccountsAPI.ServiceAccountWorkspaceMember>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.workspaces.service_accounts.list',
+          options,
+          {
+            route: '/v1/organizations/workspaces/{workspace_id}/service_accounts',
+            queryParams: ['limit', 'page'],
+            attributes: { 'anthropic.organization.workspace.id': workspaceID },
+          },
+        ),
+      },
     );
   }
 
@@ -153,6 +196,17 @@ export class ServiceAccounts extends APIResource {
     return this._client.post(path`/v1/organizations/workspaces/${workspaceID}/service_accounts`, {
       body,
       ...options,
+      __span: startApiCallSpan(
+        this._client,
+        'anthropic.organization.workspaces.service_accounts.add',
+        options,
+        {
+          route: '/v1/organizations/workspaces/{workspace_id}/service_accounts',
+          attributes: { 'anthropic.organization.workspace.id': workspaceID },
+          createdIDAttribute: 'anthropic.organization.workspace.service_account.id',
+          createdIDField: 'service_account_id',
+        },
+      ),
     });
   }
 
@@ -187,7 +241,21 @@ export class ServiceAccounts extends APIResource {
     const { workspace_id } = params;
     return this._client.delete(
       path`/v1/organizations/workspaces/${workspace_id}/service_accounts/${serviceAccountID}`,
-      options,
+      {
+        ...options,
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.workspaces.service_accounts.remove',
+          options,
+          {
+            route: '/v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}',
+            attributes: {
+              'anthropic.organization.workspace.id': workspace_id,
+              'anthropic.organization.workspace.service_account.id': serviceAccountID,
+            },
+          },
+        ),
+      },
     );
   }
 }

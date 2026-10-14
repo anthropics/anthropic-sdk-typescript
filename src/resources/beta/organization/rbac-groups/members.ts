@@ -2,6 +2,7 @@ import { APIResource } from '../../../../core/resource';
 import { APIPromise } from '../../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class Members extends APIResource {
@@ -28,7 +29,15 @@ export class Members extends APIResource {
     return this._client.getAPIList(
       path`/v1/organizations/rbac_groups/${rbacGroupID}/members?beta=true`,
       PageCursor<BetaRBACGroupMember>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.members.list', options, {
+          route: '/v1/organizations/rbac_groups/{rbac_group_id}/members',
+          queryParams: ['limit', 'page'],
+          attributes: { 'anthropic.organization.rbac_group.id': rbacGroupID },
+        }),
+      },
     );
   }
 
@@ -52,6 +61,12 @@ export class Members extends APIResource {
     return this._client.post(path`/v1/organizations/rbac_groups/${rbacGroupID}/members?beta=true`, {
       body,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.members.add', options, {
+        route: '/v1/organizations/rbac_groups/{rbac_group_id}/members',
+        attributes: { 'anthropic.organization.rbac_group.id': rbacGroupID },
+        createdIDAttribute: 'anthropic.organization.rbac_group.member.id',
+        createdIDField: 'user_id',
+      }),
     });
   }
 
@@ -79,7 +94,16 @@ export class Members extends APIResource {
     const { rbac_group_id } = params;
     return this._client.delete(
       path`/v1/organizations/rbac_groups/${rbac_group_id}/members/${userID}?beta=true`,
-      options,
+      {
+        ...options,
+        __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.members.remove', options, {
+          route: '/v1/organizations/rbac_groups/{rbac_group_id}/members/{user_id}',
+          attributes: {
+            'anthropic.organization.rbac_group.id': rbac_group_id,
+            'anthropic.organization.rbac_group.member.id': userID,
+          },
+        }),
+      },
     );
   }
 }

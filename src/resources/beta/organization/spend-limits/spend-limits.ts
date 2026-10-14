@@ -17,6 +17,7 @@ import { APIPromise } from '../../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class SpendLimits extends APIResource {
@@ -37,7 +38,13 @@ export class SpendLimits extends APIResource {
    * ```
    */
   retrieve(spendLimitID: string, options?: RequestOptions): APIPromise<BetaSpendLimit> {
-    return this._client.get(path`/v1/organizations/spend_limits/${spendLimitID}?beta=true`, options);
+    return this._client.get(path`/v1/organizations/spend_limits/${spendLimitID}?beta=true`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.spend_limits.retrieve', options, {
+        route: '/v1/organizations/spend_limits/{spend_limit_id}',
+        attributes: { 'anthropic.organization.spend_limit.id': spendLimitID },
+      }),
+    });
   }
 
   /**
@@ -68,6 +75,10 @@ export class SpendLimits extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'spend-limit-reads-2026-09-26'].toString() },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.spend_limits.list', options, {
+        route: '/v1/organizations/spend_limits',
+        queryParams: ['limit', 'page', 'scope_type'],
+      }),
     });
   }
 
@@ -89,7 +100,13 @@ export class SpendLimits extends APIResource {
    * ```
    */
   delete(spendLimitID: string, options?: RequestOptions): APIPromise<SpendLimitDeleteResponse> {
-    return this._client.delete(path`/v1/organizations/spend_limits/${spendLimitID}?beta=true`, options);
+    return this._client.delete(path`/v1/organizations/spend_limits/${spendLimitID}?beta=true`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.spend_limits.delete', options, {
+        route: '/v1/organizations/spend_limits/{spend_limit_id}',
+        attributes: { 'anthropic.organization.spend_limit.id': spendLimitID },
+      }),
+    });
   }
 
   /**
@@ -123,6 +140,10 @@ export class SpendLimits extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.spend_limits.set', options, {
+        route: '/v1/organizations/spend_limits',
+        createdIDAttribute: 'anthropic.organization.spend_limit.id',
+      }),
     });
   }
 }
