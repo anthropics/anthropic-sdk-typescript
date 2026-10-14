@@ -2698,8 +2698,8 @@ Types:
 - <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationStateEnabled</a></code>
 - <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationStateEnabledParams</a></code>
 - <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationStateParams</a></code>
-- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTest</a></code>
 - <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTestFailure</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTestResponse</a></code>
 - <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTestResult</a></code>
 - <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTestSuccess</a></code>
 - <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTraces</a></code>
@@ -2720,7 +2720,7 @@ Methods:
 - <code title="post /v1/organizations/telemetry_destinations/{destination_id}?beta=true">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">update</a>(destinationID, { ...params }) -> BetaTelemetryDestination</code>
 - <code title="get /v1/organizations/telemetry_destinations?beta=true">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">list</a>({ ...params }) -> BetaTelemetryDestinationsPageCursor</code>
 - <code title="delete /v1/organizations/telemetry_destinations/{destination_id}?beta=true">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">delete</a>(destinationID, { ...params }) -> BetaDeletedTelemetryDestination</code>
-- <code title="post /v1/organizations/telemetry_destinations/{destination_id}/test?beta=true">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">test</a>(destinationID, { ...params }) -> BetaTelemetryDestinationTest</code>
+- <code title="post /v1/organizations/telemetry_destinations/{destination_id}/test?beta=true">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">test</a>(destinationID, { ...params }) -> BetaTelemetryDestinationTestResponse</code>
 
 #### Workspaces
 

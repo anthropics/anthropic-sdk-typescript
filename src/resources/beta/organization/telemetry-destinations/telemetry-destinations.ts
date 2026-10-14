@@ -253,7 +253,7 @@ export class TelemetryDestinations extends APIResource {
    *
    * @example
    * ```ts
-   * const betaTelemetryDestinationTest =
+   * const betaTelemetryDestinationTestResponse =
    *   await client.beta.organization.telemetryDestinations.test(
    *     'destination_id',
    *   );
@@ -263,7 +263,7 @@ export class TelemetryDestinations extends APIResource {
     destinationID: string,
     params: TelemetryDestinationTestParams | null | undefined = {},
     options?: RequestOptions,
-  ): APIPromise<BetaTelemetryDestinationTest> {
+  ): APIPromise<BetaTelemetryDestinationTestResponse> {
     const { betas } = params ?? {};
     return this._client.post(path`/v1/organizations/telemetry_destinations/${destinationID}/test?beta=true`, {
       ...options,
@@ -549,19 +549,6 @@ export type BetaTelemetryDestinationStateParams =
   | BetaTelemetryDestinationStateDisabledParams;
 
 /**
- * The result of one test span sent to a destination.
- */
-export interface BetaTelemetryDestinationTest {
-  /**
-   * How the test went: `success` when the destination answered with a 2xx status,
-   * else `failure` with the reason.
-   */
-  result: BetaTelemetryDestinationTestResult;
-
-  type: 'telemetry_destination_test';
-}
-
-/**
  * The test span was not delivered.
  */
 export interface BetaTelemetryDestinationTestFailure {
@@ -575,6 +562,19 @@ export interface BetaTelemetryDestinationTestFailure {
   error: string;
 
   type: 'failure';
+}
+
+/**
+ * The result of one test span sent to a destination.
+ */
+export interface BetaTelemetryDestinationTestResponse {
+  /**
+   * How the test went: `success` when the destination answered with a 2xx status,
+   * else `failure` with the reason.
+   */
+  result: BetaTelemetryDestinationTestResult;
+
+  type: 'telemetry_destination_test';
 }
 
 /**
@@ -966,8 +966,8 @@ export declare namespace TelemetryDestinations {
     type BetaTelemetryDestinationStateEnabled as BetaTelemetryDestinationStateEnabled,
     type BetaTelemetryDestinationStateEnabledParams as BetaTelemetryDestinationStateEnabledParams,
     type BetaTelemetryDestinationStateParams as BetaTelemetryDestinationStateParams,
-    type BetaTelemetryDestinationTest as BetaTelemetryDestinationTest,
     type BetaTelemetryDestinationTestFailure as BetaTelemetryDestinationTestFailure,
+    type BetaTelemetryDestinationTestResponse as BetaTelemetryDestinationTestResponse,
     type BetaTelemetryDestinationTestResult as BetaTelemetryDestinationTestResult,
     type BetaTelemetryDestinationTestSuccess as BetaTelemetryDestinationTestSuccess,
     type BetaTelemetryDestinationTraces as BetaTelemetryDestinationTraces,
