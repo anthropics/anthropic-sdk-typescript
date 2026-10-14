@@ -1,3 +1,4 @@
+import type { Span } from '@opentelemetry/api';
 import { AnthropicError, APIError } from '../../core/error';
 import type { Anthropic } from '../../client';
 import type { BetaSelfHostedWork, BetaWorkSecret } from '../../resources/beta/environments/work';
@@ -10,11 +11,13 @@ import { isFatal4xx, isStatus } from '../../internal/utils/backoff';
 import { linkAbort } from '../../internal/utils/abort';
 import { isObj } from '../../internal/utils/values';
 import { buildHeaders } from '../../internal/headers';
+import { guardTracing } from '../../internal/tracing';
 import type { BetaRunnableTool } from '../tools/BetaRunnableTool';
 import type { BetaToolRunnerRequestOptions } from '../tools/BetaToolRunner';
 import { SessionToolRunner } from '../tools/SessionToolRunner';
 import { WorkPoller } from './poller';
 import { copyClientForHelper } from '../helper-client';
+import { withEnvironmentWorkSpan } from '../internal/tracing';
 // `tools/agent-toolset/node` is Node-only (node:child_process, node:fs, …).
 // Only the type is imported statically (erased at build); the module's values
 // (`setupSkills`, `betaAgentToolset20260401`) are loaded lazily inside the
@@ -307,8 +310,11 @@ export class EnvironmentWorker {
     });
 
     for await (const work of poller) {
+      const workSpan = poller._workSpan;
       try {
-        await this.#handleItem(work, environmentKey, poller.signal);
+        await withEnvironmentWorkSpan(this.client, workSpan, poller.signal, () =>
+          this.#handleItem(work, environmentKey, poller.signal, workSpan),
+        );
       } catch (e) {
         // One bad item fails that item, not the worker: the handler's teardown
         // already stopped or released it, so the next poll claims the next
@@ -405,6 +411,7 @@ export class EnvironmentWorker {
     work: ClaimedWork,
     environmentKey: string | undefined,
     externalSignal: AbortSignal | undefined,
+    workSpan?: Span,
   ): Promise<void> {
     const log = loggerFor(this.client);
     // The per-item credential: the sessions token carried inside the work
@@ -603,6 +610,8 @@ export class EnvironmentWorker {
       } else {
         await forceStop(sessionClient, work, log, this.requestOptions);
       }
+      // The worker no longer holds the item, so it neither finished with it nor failed: no status.
+      if (lease.lost || lease.rejected) guardTracing(this.client, () => workSpan?.end());
     }
   }
 }
@@ -685,6 +694,11 @@ class Lease {
   /** True once the item belongs to the queue or another worker. */
   get lost(): boolean {
     return this.#endReason === 'lease_lost' || this.#endReason === 'assumed_lost';
+  }
+
+  /** True once the API rejected a heartbeat for good, so the worker cannot keep the lease. */
+  get rejected(): boolean {
+    return this.#endReason === 'heartbeat_rejected';
   }
 }
 

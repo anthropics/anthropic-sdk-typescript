@@ -4,6 +4,7 @@ import { FederationRuleWorkspacesPageCursor } from './rules';
 import { APIPromise } from '../../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class Workspaces extends APIResource {
@@ -39,7 +40,20 @@ export class Workspaces extends APIResource {
     return this._client.getAPIList(
       path`/v1/organizations/federation_rules/${federationRuleID}/workspaces`,
       PageCursor<RulesAPI.FederationRuleWorkspace>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.federation.rules.workspaces.list',
+          options,
+          {
+            route: '/v1/organizations/federation_rules/{federation_rule_id}/workspaces',
+            queryParams: ['limit', 'page'],
+            attributes: { 'anthropic.organization.federation_rule.id': federationRuleID },
+          },
+        ),
+      },
     );
   }
 
@@ -76,6 +90,17 @@ export class Workspaces extends APIResource {
     return this._client.post(path`/v1/organizations/federation_rules/${federationRuleID}/workspaces`, {
       body,
       ...options,
+      __span: startApiCallSpan(
+        this._client,
+        'anthropic.organization.federation.rules.workspaces.add',
+        options,
+        {
+          route: '/v1/organizations/federation_rules/{federation_rule_id}/workspaces',
+          attributes: { 'anthropic.organization.federation_rule.id': federationRuleID },
+          createdIDAttribute: 'anthropic.organization.federation_rule.workspace.id',
+          createdIDField: 'workspace_id',
+        },
+      ),
     });
   }
 
@@ -108,7 +133,21 @@ export class Workspaces extends APIResource {
     const { federation_rule_id } = params;
     return this._client.delete(
       path`/v1/organizations/federation_rules/${federation_rule_id}/workspaces/${workspaceID}`,
-      options,
+      {
+        ...options,
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.federation.rules.workspaces.remove',
+          options,
+          {
+            route: '/v1/organizations/federation_rules/{federation_rule_id}/workspaces/{workspace_id}',
+            attributes: {
+              'anthropic.organization.federation_rule.id': federation_rule_id,
+              'anthropic.organization.federation_rule.workspace.id': workspaceID,
+            },
+          },
+        ),
+      },
     );
   }
 }

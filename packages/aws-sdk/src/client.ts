@@ -5,6 +5,7 @@ import { readEnv, loggerFor } from './internal/utils';
 import { Anthropic, APIRequest, ClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 import { VERSION } from '@anthropic-ai/sdk/version';
+import { VERSION as PACKAGE_VERSION } from './version';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
 import { loadConfig } from '@smithy/node-config-provider';
 import { NODE_REGION_CONFIG_OPTIONS, NODE_REGION_CONFIG_FILE_OPTIONS } from '@smithy/config-resolver';
@@ -100,6 +101,11 @@ const noRegionError = () =>
 
 /** API Client for interfacing with the Anthropic AWS API. */
 export class AnthropicAws extends Anthropic {
+  /** @internal */
+  override _instrumentationScope() {
+    return { platform: 'aws', version: PACKAGE_VERSION };
+  }
+
   awsRegion: string | undefined;
   awsAccessKey: string | null;
   awsSecretAccessKey: string | null;

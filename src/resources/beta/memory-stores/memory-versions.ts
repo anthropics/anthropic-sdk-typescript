@@ -5,6 +5,7 @@ import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class MemoryVersions extends APIResource {
@@ -38,6 +39,14 @@ export class MemoryVersions extends APIResource {
           },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memory_versions.retrieve', options, {
+          route: '/v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}',
+          queryParams: ['view'],
+          attributes: {
+            'gen_ai.memory.store.id': memory_store_id,
+            'anthropic.memory_store.memory_version.id': memoryVersionID,
+          },
+        }),
       },
     );
   }
@@ -74,6 +83,22 @@ export class MemoryVersions extends APIResource {
           },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memory_versions.list', options, {
+          route: '/v1/memory_stores/{memory_store_id}/memory_versions',
+          queryParams: [
+            'api_key_id',
+            'created_at[gte]',
+            'created_at[lte]',
+            'limit',
+            'memory_id',
+            'operation',
+            'page',
+            'service_account_id',
+            'session_id',
+            'view',
+          ],
+          attributes: { 'gen_ai.memory.store.id': memoryStoreID },
+        }),
       },
     );
   }
@@ -107,6 +132,13 @@ export class MemoryVersions extends APIResource {
           },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memory_versions.redact', options, {
+          route: '/v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}/redact',
+          attributes: {
+            'gen_ai.memory.store.id': memory_store_id,
+            'anthropic.memory_store.memory_version.id': memoryVersionID,
+          },
+        }),
       },
     );
   }

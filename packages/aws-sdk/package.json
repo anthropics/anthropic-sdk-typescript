@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/aws-sdk",
-  "version": "0.7.9",
+  "version": "0.8.0",
   "description": "The official TypeScript library for the Anthropic AWS API",
   "author": "Anthropic <support@anthropic.com>",
   "types": "dist/index.d.ts",
@@ -26,6 +26,7 @@
     "@anthropic-ai/sdk": "workspace:*",
     "@aws-crypto/sha256-js": "^4.0.0",
     "@aws-sdk/credential-providers": "^3.796.0",
+    "@opentelemetry/api": "^1.4.1",
     "@smithy/config-resolver": "^4.1.4",
     "@smithy/fetch-http-handler": "^5.0.4",
     "@smithy/node-config-provider": "^4.1.3",

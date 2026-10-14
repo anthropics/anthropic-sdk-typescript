@@ -1,6 +1,6 @@
 {
   "name": "@anthropic-ai/google-cloud-sdk",
-  "version": "0.0.19",
+  "version": "0.1.0",
   "description": "The official TypeScript library for Claude Platform on Google Cloud",
   "author": "Anthropic <support@anthropic.com>",
   "types": "dist/index.d.ts",
@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "workspace:*",
+    "@opentelemetry/api": "^1.4.1",
     "google-auth-library": "^10.2.0"
   },
   "devDependencies": {

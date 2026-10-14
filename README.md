@@ -53,6 +53,41 @@ Note that React Native is not supported at this time.
 
 If you are interested in other runtime environments, please open or upvote an issue.
 
+## OpenTelemetry
+
+The SDK reports each API call as an OpenTelemetry span once your application has registered a tracer provider with `@opentelemetry/api`, which the SDK depends on.
+Spans are on by default, so there is nothing to enable on the client.
+The `openTelemetry` client option selects another tracer provider, turns the spans or the trace headers off, or, with `traces.contentMode: 'content'`, adds the content of requests and responses to them.
+
+```ts
+const client = new Anthropic({ openTelemetry: { tracerProvider } }); // a provider other than the registered one
+const quiet = new Anthropic({ openTelemetry: false }); // no spans
+const detailed = new Anthropic({
+  openTelemetry: { traces: { contentMode: 'content', maxContentBytes: 65_536 } }, // content, up to about 64 KiB a span
+});
+const unpropagated = new Anthropic({ openTelemetry: { propagation: false } }); // spans, and no trace headers on the requests
+
+await client.messages.create(params, { openTelemetry: { conversationId } }); // sets gen_ai.conversation.id
+```
+
+`traces` is a boolean, or an object with `enabled`, `contentMode` and `maxContentBytes`.
+With each request the client sends the trace context of its span, as the headers that your registered propagator writes: `traceparent`, and `tracestate` and `baggage` when it writes them.
+`propagation: false` sends none of them and leaves the spans as they are, for an application whose HTTP client instrumentation already propagates the trace context, so that a request does not carry it twice.
+A field that the option leaves unset has its default.
+
+A client without the option reads these environment variables once, when it is constructed: `ANTHROPIC_OPEN_TELEMETRY=false` turns its spans off, `ANTHROPIC_OPEN_TELEMETRY_PROPAGATION=false` turns `propagation` off, and `ANTHROPIC_OPEN_TELEMETRY_TRACES_CONTENT_MODE` and `ANTHROPIC_OPEN_TELEMETRY_TRACES_MAX_CONTENT_BYTES` give `contentMode` and `maxContentBytes`.
+A client with the option does not read them.
+
+`client.openTelemetry` is the option as the client settled it.
+A `withOptions()` copy that passes `openTelemetry` uses that in place of the client's whole option, so spread the settled one to change a single setting:
+
+```ts
+const { openTelemetry } = client;
+const withContent = client.withOptions({
+  openTelemetry: { ...openTelemetry, traces: { ...openTelemetry.traces, contentMode: 'content' } },
+});
+```
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md).

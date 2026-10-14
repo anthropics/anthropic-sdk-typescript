@@ -7,6 +7,7 @@ import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pa
 import { Stream } from '../../../core/streaming';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 import {
   SessionToolRunner,
@@ -46,6 +47,20 @@ export class Events extends APIResource {
           },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.sessions.events.list', options, {
+          route: '/v1/sessions/{session_id}/events',
+          queryParams: [
+            'created_at[gt]',
+            'created_at[gte]',
+            'created_at[lt]',
+            'created_at[lte]',
+            'limit',
+            'order',
+            'page',
+            'types',
+          ],
+          attributes: { 'anthropic.session.id': sessionID },
+        }),
       },
     );
   }
@@ -90,6 +105,10 @@ export class Events extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.events.send', options, {
+        route: '/v1/sessions/{session_id}/events',
+        attributes: { 'anthropic.session.id': sessionID },
+      }),
     });
   }
 
@@ -98,10 +117,12 @@ export class Events extends APIResource {
    *
    * @example
    * ```ts
-   * const betaManagedAgentsStreamSessionEvents =
-   *   await client.beta.sessions.events.stream(
-   *     'sesn_011CZkZAtmR3yMPDzynEDxu7',
-   *   );
+   * const stream = await client.beta.sessions.events.stream(
+   *   'sesn_011CZkZAtmR3yMPDzynEDxu7',
+   * );
+   * for await (const betaManagedAgentsStreamSessionEvents of stream) {
+   *   // ...
+   * }
    * ```
    */
   stream(
@@ -121,6 +142,11 @@ export class Events extends APIResource {
         options?.headers,
       ]),
       stream: true,
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.events.stream', options, {
+        route: '/v1/sessions/{session_id}/events/stream',
+        queryParams: ['event_deltas'],
+        attributes: { 'anthropic.session.id': sessionID },
+      }),
     }) as APIPromise<Stream<BetaManagedAgentsStreamSessionEvents>>;
   }
 
@@ -198,7 +224,9 @@ export interface BetaManagedAgentsAgentAutoEvaluatedPermissionDeny {
 
 /**
  * Event emitted when the agent calls a custom tool. The session goes idle until
- * the client sends a `user.custom_tool_result` event with the result.
+ * the client sends a `user.custom_tool_result` event with the result. The client
+ * can send it as soon as this event arrives, without waiting for
+ * `session.status_idle`.
  */
 export interface BetaManagedAgentsAgentCustomToolUseEvent {
   /**
@@ -2062,8 +2090,8 @@ export interface BetaManagedAgentsUserCustomToolResultEvent {
   id: string;
 
   /**
-   * The id of the `agent.custom_tool_use` event this result corresponds to, which
-   * can be found in the last `session.status_idle`
+   * The id of the `agent.custom_tool_use` event this result corresponds to. It is
+   * also listed in the last `session.status_idle`
    * [event's](https://platform.claude.com/docs/en/api/beta/sessions/events/list#beta_managed_agents_session_requires_action.event_ids)
    * `stop_reason.event_ids` field.
    */
@@ -2103,8 +2131,8 @@ export interface BetaManagedAgentsUserCustomToolResultEvent {
  */
 export interface BetaManagedAgentsUserCustomToolResultEventParams {
   /**
-   * The id of the `agent.custom_tool_use` event this result corresponds to, which
-   * can be found in the last `session.status_idle`
+   * The id of the `agent.custom_tool_use` event this result corresponds to. It is
+   * also listed in the last `session.status_idle`
    * [event's](https://platform.claude.com/docs/en/api/beta/sessions/events/list#beta_managed_agents_session_requires_action.event_ids)
    * `stop_reason.event_ids` field.
    */

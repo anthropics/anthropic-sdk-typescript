@@ -3,6 +3,7 @@ import * as SpendLimitsAPI from './spend-limits';
 import { APIPromise } from '../../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class IncreaseRequests extends APIResource {
@@ -26,7 +27,20 @@ export class IncreaseRequests extends APIResource {
   ): APIPromise<BetaSpendLimitIncreaseRequest> {
     return this._client.get(
       path`/v1/organizations/spend_limit_increase_requests/${spendLimitIncreaseRequestID}?beta=true`,
-      options,
+      {
+        ...options,
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.spend_limits.increase_requests.retrieve',
+          options,
+          {
+            route: '/v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}',
+            attributes: {
+              'anthropic.organization.spend_limit_increase_request.id': spendLimitIncreaseRequestID,
+            },
+          },
+        ),
+      },
     );
   }
 
@@ -51,7 +65,19 @@ export class IncreaseRequests extends APIResource {
     return this._client.getAPIList(
       '/v1/organizations/spend_limit_increase_requests?beta=true',
       PageCursor<BetaSpendLimitIncreaseRequest>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.spend_limits.increase_requests.list',
+          options,
+          {
+            route: '/v1/organizations/spend_limit_increase_requests',
+            queryParams: ['actor_ids', 'limit', 'page', 'status'],
+          },
+        ),
+      },
     );
   }
 
@@ -78,7 +104,22 @@ export class IncreaseRequests extends APIResource {
   ): APIPromise<IncreaseRequestApproveResponse> {
     return this._client.post(
       path`/v1/organizations/spend_limit_increase_requests/${spendLimitIncreaseRequestID}/approve?beta=true`,
-      { body, ...options },
+      {
+        body,
+        ...options,
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.spend_limits.increase_requests.approve',
+          options,
+          {
+            route:
+              '/v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}/approve',
+            attributes: {
+              'anthropic.organization.spend_limit_increase_request.id': spendLimitIncreaseRequestID,
+            },
+          },
+        ),
+      },
     );
   }
 
@@ -103,7 +144,21 @@ export class IncreaseRequests extends APIResource {
   ): APIPromise<BetaSpendLimitIncreaseRequest> {
     return this._client.post(
       path`/v1/organizations/spend_limit_increase_requests/${spendLimitIncreaseRequestID}/deny?beta=true`,
-      { body, ...options },
+      {
+        body,
+        ...options,
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.spend_limits.increase_requests.deny',
+          options,
+          {
+            route: '/v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}/deny',
+            attributes: {
+              'anthropic.organization.spend_limit_increase_request.id': spendLimitIncreaseRequestID,
+            },
+          },
+        ),
+      },
     );
   }
 }

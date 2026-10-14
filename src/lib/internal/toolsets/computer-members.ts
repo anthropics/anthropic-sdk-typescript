@@ -5,8 +5,6 @@
  * The member names and every input type are the API types in `resources/beta`. A member's result kind is kept by hand.
  * So is the confirmation text the model reads after a pure action. Neither is in the API types. A test diffs the
  * member set against the published toolset definition so the two cannot drift silently.
- *
- * @internal
  */
 import type {
   BetaComputerMemberInput,

@@ -1,7 +1,5 @@
 /**
  * Shared building blocks for each toolset family's class.
- *
- * @internal
  */
 import { APIUserAbortError } from '../../../core/error';
 import type { Promisable } from '../../tools/BetaRunnableTool';

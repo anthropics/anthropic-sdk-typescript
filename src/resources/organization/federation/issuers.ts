@@ -2,6 +2,7 @@ import { APIResource } from '../../../core/resource';
 import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Issuers extends APIResource {
@@ -33,7 +34,14 @@ export class Issuers extends APIResource {
    * ```
    */
   create(body: IssuerCreateParams, options?: RequestOptions): APIPromise<FederationIssuer> {
-    return this._client.post('/v1/organizations/federation_issuers', { body, ...options });
+    return this._client.post('/v1/organizations/federation_issuers', {
+      body,
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.issuers.create', options, {
+        route: '/v1/organizations/federation_issuers',
+        createdIDAttribute: 'anthropic.organization.federation_issuer.id',
+      }),
+    });
   }
 
   /**
@@ -53,7 +61,13 @@ export class Issuers extends APIResource {
    * ```
    */
   retrieve(federationIssuerID: string, options?: RequestOptions): APIPromise<FederationIssuer> {
-    return this._client.get(path`/v1/organizations/federation_issuers/${federationIssuerID}`, options);
+    return this._client.get(path`/v1/organizations/federation_issuers/${federationIssuerID}`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.issuers.retrieve', options, {
+        route: '/v1/organizations/federation_issuers/{federation_issuer_id}',
+        attributes: { 'anthropic.organization.federation_issuer.id': federationIssuerID },
+      }),
+    });
   }
 
   /**
@@ -86,6 +100,10 @@ export class Issuers extends APIResource {
     return this._client.post(path`/v1/organizations/federation_issuers/${federationIssuerID}`, {
       body,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.issuers.update', options, {
+        route: '/v1/organizations/federation_issuers/{federation_issuer_id}',
+        attributes: { 'anthropic.organization.federation_issuer.id': federationIssuerID },
+      }),
     });
   }
 
@@ -114,6 +132,10 @@ export class Issuers extends APIResource {
     return this._client.getAPIList('/v1/organizations/federation_issuers', PageCursor<FederationIssuer>, {
       query,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.issuers.list', options, {
+        route: '/v1/organizations/federation_issuers',
+        queryParams: ['include_archived', 'limit', 'page'],
+      }),
     });
   }
 
@@ -139,10 +161,13 @@ export class Issuers extends APIResource {
    * ```
    */
   archive(federationIssuerID: string, options?: RequestOptions): APIPromise<FederationIssuer> {
-    return this._client.post(
-      path`/v1/organizations/federation_issuers/${federationIssuerID}/archive`,
-      options,
-    );
+    return this._client.post(path`/v1/organizations/federation_issuers/${federationIssuerID}/archive`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.issuers.archive', options, {
+        route: '/v1/organizations/federation_issuers/{federation_issuer_id}/archive',
+        attributes: { 'anthropic.organization.federation_issuer.id': federationIssuerID },
+      }),
+    });
   }
 }
 

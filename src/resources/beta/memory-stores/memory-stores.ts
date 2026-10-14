@@ -40,6 +40,7 @@ import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class MemoryStores extends APIResource {
@@ -70,6 +71,10 @@ export class MemoryStores extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.create', options, {
+        route: '/v1/memory_stores',
+        createdIDAttribute: 'gen_ai.memory.store.id',
+      }),
     });
   }
 
@@ -99,6 +104,10 @@ export class MemoryStores extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.retrieve', options, {
+        route: '/v1/memory_stores/{memory_store_id}',
+        attributes: { 'gen_ai.memory.store.id': memoryStoreID },
+      }),
     });
   }
 
@@ -127,6 +136,10 @@ export class MemoryStores extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.update', options, {
+        route: '/v1/memory_stores/{memory_store_id}',
+        attributes: { 'gen_ai.memory.store.id': memoryStoreID },
+      }),
     });
   }
 
@@ -156,6 +169,10 @@ export class MemoryStores extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.list', options, {
+        route: '/v1/memory_stores',
+        queryParams: ['created_at[gte]', 'created_at[lte]', 'include_archived', 'limit', 'page'],
+      }),
     });
   }
 
@@ -183,6 +200,10 @@ export class MemoryStores extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.delete', options, {
+        route: '/v1/memory_stores/{memory_store_id}',
+        attributes: { 'gen_ai.memory.store.id': memoryStoreID },
+      }),
     });
   }
 
@@ -210,6 +231,10 @@ export class MemoryStores extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.archive', options, {
+        route: '/v1/memory_stores/{memory_store_id}/archive',
+        attributes: { 'gen_ai.memory.store.id': memoryStoreID },
+      }),
     });
   }
 }

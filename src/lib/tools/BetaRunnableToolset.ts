@@ -7,8 +7,6 @@
  * tool may be called `navigate`), so dispatch keys on `(toolset_name, name)`, never on `name`
  * alone. A runnable toolset serializes to exactly the nameless entry: functions are dropped by
  * `JSON.stringify` and the family is derived from `type`, never stored.
- *
- * @internal
  */
 import {
   BetaBrowserToolset20260801,

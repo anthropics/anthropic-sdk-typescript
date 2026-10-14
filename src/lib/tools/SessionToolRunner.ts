@@ -1,3 +1,4 @@
+import { context, type Context } from '@opentelemetry/api';
 import { AnthropicError } from '../../core/error';
 import type { Anthropic } from '../../client';
 import type {
@@ -19,6 +20,7 @@ import { helperHeader } from '../../internal/stainless-helper-header';
 import type { RequestOptions } from '../../internal/request-options';
 import { runRunnableTool, toolName, type BetaRunnableTool } from './BetaRunnableTool';
 import type { BetaToolRunnerRequestOptions } from './BetaToolRunner';
+import { withToolUseSpan } from '../internal/tracing';
 
 /** Beta header for the managed-agents API. */
 export const MANAGED_AGENTS_BETA = 'managed-agents-2026-04-01';
@@ -328,6 +330,15 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
   #sendRetryWindowMs = SEND_RETRY_WINDOW_MS;
   #onIdle: (() => void) | null = null;
   readonly #idleClock: IdleClock;
+  /** The OpenTelemetry `Context` that was active where the loop started, the parent of each tool span. */
+  #otelContext: Context | undefined;
+  /**
+   * The ID of the Session's primary thread, whose tool call events have no thread ID. It is the thread
+   * of the Session's first thread status event: a child thread starts after the primary thread has.
+   */
+  #primaryThreadId: string | undefined;
+  /** Whether the last read of the history succeeded, so that the stream's events continue it. */
+  #historyRead = false;
 
   constructor(sessionId: string, opts: SessionToolRunnerOptions) {
     this.client = opts.client;
@@ -373,6 +384,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
       throw new AnthropicError('Cannot iterate over a consumed SessionToolRunner');
     }
     this.#consumed = true;
+    this.#otelContext = this.client._tracer ? context.active() : undefined;
     this.#logger.info('session tool runner starting', {
       component: 'session-tool-runner',
       session_id: this.sessionId,
@@ -496,6 +508,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
     const ctrl = this.#controller;
     const pending: DispatchedToolUseEvent[] = [];
     let lastEndedTurn = false;
+    this.#historyRead = false;
     try {
       for await (const ev of this.client.beta.sessions.events.list(
         this.sessionId,
@@ -519,6 +532,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
       for (const ev of pending) this.#seen.delete(ev.id);
       return;
     }
+    this.#historyRead = true;
     const unanswered = pending.filter((ev) => !this.#answered.has(ev.id));
     // Disarm before routing: `#execute` runs inline here, so a timer left armed
     // from before the reconnect could fire over an in-flight tool.
@@ -546,6 +560,8 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
   }
 
   #ingestHistory(ev: BetaManagedAgentsSessionEvent, pending: DispatchedToolUseEvent[]): void {
+    // The history starts with the Session's first event.
+    this.#notePrimaryThread(ev);
     if (ev.type === 'agent.tool_use' || ev.type === 'agent.custom_tool_use') {
       // Mark the event seen so a replay on the live stream is not dispatched
       // twice, but decide whether it still needs executing from `answered`, not
@@ -566,9 +582,24 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
     }
   }
 
+  /** Takes the primary thread's ID from `ev` when it is the Session's first thread status event. */
+  #notePrimaryThread(ev: BetaManagedAgentsSessionEvent | BetaManagedAgentsStreamSessionEvents): void {
+    // Only the spans have a use for it.
+    if (!this.client._tracer || this.#primaryThreadId !== undefined) return;
+    switch (ev.type) {
+      case 'session.thread_status_running':
+      case 'session.thread_status_idle':
+      case 'session.thread_status_rescheduled':
+      case 'session.thread_status_terminated':
+        this.#primaryThreadId = ev.session_thread_id;
+    }
+  }
+
   /** Returns true when the runner should exit. */
   async #handleStreamEvent(ev: BetaManagedAgentsStreamSessionEvents): Promise<boolean> {
     this.#idleClock.noteEvent(ev);
+    // Without the history, the stream may have begun after the Session's first thread status event.
+    if (this.#historyRead) this.#notePrimaryThread(ev);
     switch (ev.type) {
       case 'agent.tool_use':
       case 'agent.custom_tool_use':
@@ -748,8 +779,12 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
         });
         return;
       }
-      let content: string | Array<BetaToolResultContentBlockParam>;
+      let content: SessionContentBlock[];
       let isError: boolean;
+      // The default is the Session thread ID, which is the conversation ID of the platform's spans.
+      // Only a child thread's call event has it, so a call without one is the primary thread's.
+      const conversationId =
+        this.#requestOpts?.openTelemetry?.conversationId ?? (ev.session_thread_id || this.#primaryThreadId);
       // Per-tool controller: aborts on the runner's own signal *or* the
       // per-tool timeout, so an in-flight tool stops promptly when the runner
       // is aborted instead of running until the timeout.
@@ -760,12 +795,30 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
         // Pass the source `agent.tool_use` / `agent.custom_tool_use` event
         // straight through as the run context's `toolUse` — it is a union
         // member of `BetaToolUse`, no Messages-block adapter needed.
-        const outcome = await runRunnableTool(tool, ev.input, {
-          toolUse: ev,
-          toolUseBlock: ev,
-          signal: toolCtrl.signal,
+        const spanOptions = {
+          signal: this.#controller.signal,
+          conversationId,
+          sessionID: this.sessionId,
+          parentContext: this.#otelContext,
+        };
+        const outcome = await withToolUseSpan(this.client, tool, ev, spanOptions, async () => {
+          const toolOutcome = await runRunnableTool(tool, ev.input, {
+            toolUse: ev,
+            toolUseBlock: ev,
+            signal: toolCtrl.signal,
+          });
+          const sent = toSessionContent(toolOutcome.content);
+          // A span keeps a text block whole, so it gets a block that is sent as its JSON as the block itself.
+          const recorded =
+            !this.client._tracer ?
+              sent
+            : sent.map((block, i) => {
+                const original = typeof toolOutcome.content === 'string' ? undefined : toolOutcome.content[i];
+                return original && original.type !== 'text' && block.type === 'text' ? original : block;
+              });
+          return { sent, content: recorded, isError: toolOutcome.isError };
         });
-        content = outcome.content;
+        content = outcome.sent;
         isError = outcome.isError;
       } finally {
         clearTimeout(timer);
@@ -775,8 +828,8 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
       // `user.tool_result` for an `agent.tool_use`, a `user.custom_tool_result`
       // for an `agent.custom_tool_use`. Posting the wrong one leaves the call
       // unanswered and the session stuck.
-      const result = buildResultEvent(ev, isError, toSessionContent(content));
-      const posted = await this.#sendResult(result, ev.id);
+      const result = buildResultEvent(ev, isError, content);
+      const posted = await this.#sendResult(result, ev.id, conversationId);
       this.#surfaceCall({
         event: ev,
         result,
@@ -792,7 +845,11 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
     }
   }
 
-  async #sendResult(result: DispatchedToolResultParams, toolUseId: string): Promise<boolean> {
+  async #sendResult(
+    result: DispatchedToolResultParams,
+    toolUseId: string,
+    conversationId: string | undefined,
+  ): Promise<boolean> {
     const ctrl = this.#controller;
     const start = Date.now();
     let lastErr: unknown;
@@ -806,7 +863,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
         await this.client.beta.sessions.events.send(
           this.sessionId,
           { events: [result] },
-          this.#requestOptions(),
+          { ...this.#requestOptions(), openTelemetry: { conversationId } },
         );
         this.#answered.add(toolUseId);
         return true;

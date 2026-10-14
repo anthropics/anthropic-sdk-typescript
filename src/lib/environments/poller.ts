@@ -1,3 +1,4 @@
+import { context, type Span } from '@opentelemetry/api';
 import { AnthropicError } from '../../core/error';
 import type { Anthropic } from '../../client';
 import type { BetaSelfHostedWork } from '../../resources/beta/environments/work';
@@ -6,6 +7,7 @@ import { sleep } from '../../internal/utils/sleep';
 import { uuid4 } from '../../internal/utils/uuid';
 import { linkAbort } from '../../internal/utils/abort';
 import { buildHeaders } from '../../internal/headers';
+import { guardTracing } from '../../internal/tracing';
 import type { BetaToolRunnerRequestOptions } from '../tools/BetaToolRunner';
 import {
   applyJitter,
@@ -15,6 +17,11 @@ import {
   jitter,
 } from '../../internal/utils/backoff';
 import { copyClientForHelper } from '../helper-client';
+import {
+  endEnvironmentWorkSpan,
+  failEnvironmentWorkSpan,
+  startEnvironmentWorkSpan,
+} from '../internal/tracing';
 
 export { is4xx, isFatal4xx, isStatus, jitter } from '../../internal/utils/backoff';
 
@@ -119,6 +126,13 @@ export class WorkPoller implements AsyncIterable<BetaSelfHostedWork> {
   readonly #reclaimOlderThanMs: number | null;
   readonly #requestOpts: BetaToolRunnerRequestOptions | undefined;
 
+  /**
+   * The span of the item that the last poll returned. `EnvironmentWorker` handles the item inside
+   * it and ends it; the poller ends it otherwise.
+   * @internal
+   */
+  _workSpan: Span | undefined;
+
   constructor(opts: WorkPollerOptions) {
     this.client = opts.client;
     this.environmentId = opts.environmentId;
@@ -154,6 +168,9 @@ export class WorkPoller implements AsyncIterable<BetaSelfHostedWork> {
       throw new AnthropicError('Cannot iterate over a consumed WorkPoller');
     }
     this.#consumed = true;
+    // The context of whoever asks for the next item. Read where that caller resumes the generator:
+    // a context manager that does not follow promises has lost it after the next `await`.
+    let callerOtelContext = context.active();
     const log = loggerFor(this.client);
     log.info('poller starting', {
       component: 'work-poller',
@@ -202,6 +219,9 @@ export class WorkPoller implements AsyncIterable<BetaSelfHostedWork> {
           continue;
         }
         idle.onClaim();
+        this._workSpan = guardTracing(this.client, () =>
+          startEnvironmentWorkSpan(this.client, work, callerOtelContext),
+        );
         log.info('claimed work', {
           component: 'work-poller',
           environment_id: this.environmentId,
@@ -217,11 +237,15 @@ export class WorkPoller implements AsyncIterable<BetaSelfHostedWork> {
           );
         } catch (e) {
           log.error('ack failed', { work_id: work.id, error: String(e) });
+          guardTracing(this.client, () =>
+            failEnvironmentWorkSpan(this._workSpan, this.#controller.signal, e),
+          );
           continue;
         }
 
         try {
           yield work;
+          callerOtelContext = context.active();
         } finally {
           // Post-handler stop. Runs whether the consumer body returned
           // normally, threw, or `break`d out of the loop — unless the consumer
@@ -237,6 +261,8 @@ export class WorkPoller implements AsyncIterable<BetaSelfHostedWork> {
               if (!isStatus(e, 409)) log.warn('stop failed', { work_id: work.id, error: String(e) });
             }
           }
+          // The consumer has asked for the next item or left its loop, so it has finished with this one.
+          guardTracing(this.client, () => endEnvironmentWorkSpan(this._workSpan, this.#controller.signal));
         }
       }
     } finally {

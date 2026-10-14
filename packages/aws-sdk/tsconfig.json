@@ -9,6 +9,8 @@
     "esModuleInterop": true,
     "types": ["node"],
     "paths": {
+      "@anthropic-ai/sdk/*": ["../../dist-internal/*"],
+      "@anthropic-ai/sdk": ["../../dist-internal/index.d.ts"],
       "@anthropic-ai/aws-sdk/*": ["./src/*"],
       "@anthropic-ai/aws-sdk": ["./src/index.ts"]
     },

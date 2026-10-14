@@ -3,6 +3,7 @@ import * as AnalyticsAPI from './analytics';
 import { BetaAnalyticsCostUsersItemsPageCursor } from './analytics';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 
 export class UserCostReport extends APIResource {
   /**
@@ -32,7 +33,39 @@ export class UserCostReport extends APIResource {
     return this._client.getAPIList(
       '/v1/organizations/analytics/user_cost_report?beta=true',
       PageCursor<AnalyticsAPI.BetaAnalyticsCostUsersItem>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.analytics.user_cost_report.list',
+          options,
+          {
+            route: '/v1/organizations/analytics/user_cost_report',
+            queryParams: [
+              'bucket_width',
+              'claude_tag_categories',
+              'claude_tag_user_ids',
+              'context_windows',
+              'ending_at',
+              'exclude_deleted_users',
+              'group_by',
+              'inference_geos',
+              'limit',
+              'models',
+              'order',
+              'order_by',
+              'page',
+              'products',
+              'rbac_group_ids',
+              'slack_channel_ids',
+              'speeds',
+              'starting_at',
+              'user_ids',
+            ],
+          },
+        ),
+      },
     );
   }
 }

@@ -1,6 +1,7 @@
 import { APIResource } from '../../../../core/resource';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class Permissions extends APIResource {
@@ -27,7 +28,20 @@ export class Permissions extends APIResource {
     return this._client.getAPIList(
       path`/v1/organizations/rbac_roles/${rbacRoleID}/permissions?beta=true`,
       PageCursor<BetaRBACRolePermission>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.rbac_roles.permissions.list',
+          options,
+          {
+            route: '/v1/organizations/rbac_roles/{rbac_role_id}/permissions',
+            queryParams: ['limit', 'page'],
+            attributes: { 'anthropic.organization.rbac_role.id': rbacRoleID },
+          },
+        ),
+      },
     );
   }
 }

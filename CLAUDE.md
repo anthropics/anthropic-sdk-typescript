@@ -1,6 +1,6 @@
 # Working in this repository
 
-Context for contributors (human or AI) on how this repository is put together, plus the things reviews most often come back to. Setup instructions live in [CONTRIBUTING.md](CONTRIBUTING.md).
+Context for contributors (human or AI) on how this repository is put together, plus the things reviews most often come back to.
 
 ## This repository's own rules
 
@@ -76,16 +76,18 @@ The generator writes the rest of this file. Rules about this repository's hand-w
 
 ## Rules every SDK shares
 
-These rules don't depend on the language. The SDKs for this API in other languages carry the same text. A helper, below, is hand-written public code built on the generated client.
+These rules don't depend on the language. The SDKs for this API in other languages carry the same text.
 
 ### Generated and hand-written code
 
 - Most of this repository is generated from the OpenAPI spec, and hand-written code sits on top. Generated files carry no marker comment, and hand-written methods, imports, and whole blocks sit inside many of them. So a file's location doesn't tell you who owns a given line.
 - Check whether a line is generated before you change it. A commit the generator produced carries a `Stainless-Generated-From: <sha>` trailer, and a hand-written commit has none. The SHA is the generator's own output for that commit, with no hand-written code in it. Find the latest one with `git log -1 --grep='^Stainless-Generated-From: ' --format='%(trailers:key=Stainless-Generated-From,valueonly)'`, fetch it with `git fetch origin <sha>`, and diff a file against it with `git diff <sha> -- <path>`. Lines that appear only on your side are hand-written. If the line you want to change is in the generated commit, the fix probably belongs in the generator.
 - New generator output is merged with hand edits, so an edit to a generated file survives regeneration but can conflict with it. What matters is where the lines go, not how many there are. Changing lines the generator writes, such as a method's parameters or how it builds the request, is likely to conflict the next time the spec changes. Adding lines of your own, such as a new file, a new method, or a block in a method body, is usually fine, even a large one.
+- When you resolve a conflict with a codegen push, don't bring back code the generator removed.
 - Fix generator-owned behavior in the generator or the spec. If a local patch has to land first, say in the PR that the real fix is upstream. A real response the generated types can't represent (a missing field, an unknown enum member, a nullability mismatch) is a spec bug. Broken generated plumbing (request building, retries, SSE decoding, serialization) is a generator bug.
 - The generator also writes `REVIEW.md`, and all of this file except "This repository's own rules".
-- Don't add a comment that marks code as hand-written or as generated.
+- The generator writes workflows under `.github/workflows` as well. Avoid editing one, because a change tends to conflict with the next codegen push.
+- Don't add a comment that marks code as hand-written or as generated. Remove one from a block you are already editing.
 - Don't commit `.stats.yml`, `scripts/mock-spec.json.gz`, or any other file only the generator writes. They conflict with the next codegen push.
 
 ### Branches
@@ -96,9 +98,61 @@ These rules don't depend on the language. The SDKs for this API in other languag
 ### Running the checks
 
 - `./scripts/lint` and `./scripts/test` are what CI runs, so run them before you push.
+- It is fine to call the tools behind `./scripts/lint` and `./scripts/test` directly for a quick, targeted check while you work.
 - `./scripts/test` starts a mock API server on port 4010, unless one is already up or `TEST_API_BASE_URL` is set. The mock server needs Node.
+- `./scripts/mock` runs the mock server on its own. It serves `scripts/mock-spec.json.gz` unless you pass a spec path or URL, and `--daemon` runs it in the background.
 - Nothing in a default run calls a real endpoint. A test that does is skipped unless an environment variable turns it on.
 - Rarely silence a checker. A suppression usually means the code is doing something wrong, so fix the code or its types first. One that stays names its rule and has an obvious reason.
+
+### Design
+
+- Ask how the repository already does it. A new sibling follows the shape of the existing ones. Extend a shared helper rather than writing a copy in a feature's folder.
+- Inline a helper that has one caller. When you extract a helper, move every existing caller to it in the same PR.
+- Prefer generated types to hand-written copies. Where this language generates constants, use them instead of string literals.
+- Prefer code that passes through what it doesn't handle, so that it needs no complete list of generated fields, variants, or names. A list needs a tripwire test (see Tests) only where a missed member would cause a bug, such as a new field dropped quietly.
+- Add a cache only for a cost you have measured, and give the number in the PR.
+- Type safety comes first. Going around the type system is occasionally necessary, but it is usually a sign that something should be restructured.
+- Name things for what they mean, not how they are built.
+- Order a file by importance. What a reader came for goes at the top, and small internal helpers go at the bottom.
+
+### Comments and docs
+
+- Write no comment by default. When one is needed, keep it to a line or two that states a non-obvious why. Prefer a clearer name to a comment.
+- Never restate the code, narrate its history, record tracked work, or note what another SDK does.
+- Public API gets a doc comment. Update it, and any Markdown guide that covers the feature, when the behavior changes.
+- Check a claim such as "the API rejects X" against the official API docs before you write it in a comment, an error message, or a PR. A third-party page or a bug report isn't a source.
+
+### Tests
+
+- A behavior change comes with a test that fails before it and passes after. Test both sides of a guard, and check that the setup really reaches the path in the test's name.
+- Test behavior through the public API with HTTP mocked. For code that shapes a request, assert on the wire request: method, path, headers, and body.
+- The generated tests for API methods only check shapes against the mock server. A behavior test for hand-written code goes in a hand-written file.
+- Cover every copy of logic that exists more than once.
+- Build fixtures from what the server sends. Keep keys and IDs in them obviously fake.
+- In a stream fixture, leave out a key the server omits rather than setting it to `null`.
+- Cases that differ only in input share one parameterized test.
+- A test that changes an environment variable or other process state puts it back.
+- A tripwire test asserts no behavior. It compares a hand-written list with the generated type the list was derived from, and fails when the spec changes one without the other. Its failure message or comment names the hand-written code to update.
+- The compiler or type checker can be the tripwire. A list that it already checks against the generated type needs no test.
+- Tripwires are a stopgap. The goal is for the generator to emit anything that depends on generated output, and each tripwire goes away once it does.
+
+### Commits and pull requests
+
+- Commit subjects and PR titles follow Conventional Commits (`feat(scope):`, `fix(scope):`, `chore`, `docs`). A `!` or a `BREAKING CHANGE:` footer marks the release as breaking (a major version, or a minor one below 1.0). Only a maintainer adds one.
+- If `.github/workflows/changelog.yml` exists, every PR adds its own line to `CHANGELOG.md` or carries the `skip-changelog` label, and CI fails it otherwise. If it doesn't, release automation writes `CHANGELOG.md` and the version files from those commit subjects, and a manual edit is overwritten or conflicts with the release PR.
+- Either way, release automation writes the version, so don't edit it by hand.
+- Where release automation writes `CHANGELOG.md`, `release-please-config.json` lists the commit types. `test` and `ci` are hidden, and a subject with no type doesn't reach the changelog.
+- A change users will notice gets a changelog note, even when it fixes a bug, so don't give it a hidden commit type. Rejecting input that used to be accepted is one such change, and so is a different error type.
+- Make one logical change per PR. Unrelated fixes, formatting churn, and incidental lockfile changes go elsewhere. Split a large feature into stacked PRs.
+- When you replace a PR, close the old one with a link to the new one.
+- Port a behavior change to the other SDKs and link the sibling PRs, or say why it is specific to this language.
+- A PR description says what was wrong, with a short before and after, what changed, and how you know it works.
+- It lists every new public name, parameter, and option. It calls out behavior changes, wire-level changes, breaks in hand-written API, divergence from the other SDKs, and anything you could not verify.
+- Update the description when a later commit changes the scope.
+
+## Rules every client library shares
+
+These rules are about the design of a client library. They don't depend on the language either. A helper, below, is hand-written public code built on the generated client.
 
 ### Public API and compatibility
 
@@ -107,12 +161,16 @@ These rules don't depend on the language. The SDKs for this API in other languag
 - Runtime behavior is the contract. A runtime change users could depend on is breaking even when no signature changes, and no check sees it.
 - With a new feature switched off, nothing changes: the requests, the responses, and the errors are the same as before the feature existed.
 - New implicit behavior ships with a way to turn it off.
-- A rename or removal keeps the old name as a deprecated alias. A behavior change users could depend on waits for a deprecation cycle or the next major version.
-- Retiring an option before a major version means keeping it working, marking it deprecated the way this language does, and removing it at the next major. Fail when it's passed only if the old behavior can't be honored at all.
+- A rename or removal keeps the old name as a deprecated alias. A behavior change users could depend on waits for a deprecation cycle or the next breaking release (a major version, or a minor one below 1.0).
+- Retiring an option before a breaking release means keeping it working, marking it deprecated the way this language does, and removing it at the next one. Fail when it's passed only if the old behavior can't be honored at all.
+- A deprecation names the replacement.
 - Don't ship a deprecated alias for something that was never released. Rename it.
-- A major version is rare and a maintainer's call. Describe the compatibility impact in the PR instead of asking for one.
+- A breaking release is rare and a maintainer's call. A small, technically breaking change doesn't warrant one. Describe the compatibility impact in the PR instead of asking for one.
+- Where CI runs `detect-breaking-changes`, it checks the generated tests from a base against your branch. The base is the `breaking-change-baseline` tag when the repository has one, otherwise `main`. With neither, the job skips.
 - Where CI runs `detect-breaking-changes`, it misses most breaks in hand-written API, and all changed defaults and newly rejected inputs. Call those out yourself.
+- If `detect-breaking-changes` fails the same way on the branch your PR targets, the break was already there and isn't yours.
 - Avoid a new runtime dependency unless it's absolutely necessary. An optional integration doesn't add its dependency for users who don't use it.
+- Where an optional dependency can be missing at runtime, the code that needs it fails with an error that names the package to install.
 
 ### Options
 
@@ -120,7 +178,8 @@ These rules don't depend on the language. The SDKs for this API in other languag
 - An option name can't change after release, so get it reviewed before the helper ships.
 - If two settings can contradict each other, look for one setting with more values that removes that state.
 - An on/off option accepts both values, so that a caller can turn a client-level setting off for one request.
-- The environment never overrides a value the caller set on purpose.
+- The environment never overrides a value the caller set on purpose, unless the caller asks it to.
+- The doc comment of an option that has a default says what the default is.
 
 ### Requests and responses
 
@@ -130,14 +189,17 @@ These rules don't depend on the language. The SDKs for this API in other languag
 - A permission or security decision is the exception. It treats an unrecognized value as a denial.
 - When API output goes into a new request, carry the raw data across. Rebuilding it from typed properties drops whatever this version doesn't model.
 - Don't send `null` for a value you mean to omit. Leave the key out, because the API can treat the two differently.
+- An empty list is a real value. Don't treat it as absent.
 - A helper never changes a list or map the caller passed. Copy it first.
 - A header that holds a list is appended to and de-duplicated, not overwritten.
+- A header that holds one value is replaced, not appended to, so that it is never sent twice.
 - A retry loop in a helper follows the client's rules: 408, 409, 429, and 5xx are retryable, delays have jitter, and delays are capped.
 
 ### Errors
 
 - A failure a caller may want to handle separately has a type or value they can match on, following this SDK's existing error design.
 - Reuse the existing error types before you add one. A family of related failures can have its own type.
+- Generated code maps an HTTP status to an error. Leave that mapping to it.
 - Keep the original error as the cause.
 - Error text is actionable. It names the option, where its value came from, and the fix. Each failed check has its own message, with the actual value in it unless that value is a secret.
 - Two options that conflict are an error, not a warning. Rejecting an option the SDK used to ignore is a breaking change, so deprecate it first.
@@ -145,62 +207,32 @@ These rules don't depend on the language. The SDKs for this API in other languag
 - Keep secrets out of errors, logs, and debug output.
 - Library code never prints to stdout.
 
-### Design
+### Library design
 
-- Ask how the repository already does it. A new sibling follows the shape of the existing ones. Extend a shared helper rather than writing a copy in a feature's folder.
-- Inline a helper that has one caller. When you extract a helper, move every existing caller to it in the same PR.
 - Much of the hand-written logic exists more than once, for example once for each way to send the same request. A fix to one copy goes to the others in the same PR. Sharing the logic through an internal helper beats keeping copies in step.
-- Prefer generated types to hand-written copies. Where this language generates constants, use them instead of string literals.
-- Hand-written code that lists the fields, variants, or names of something generated needs a tripwire test (see Tests). Without one, a new field or variant is dropped quietly.
 - Match the other SDKs on behavior: helper and option names, defaults, wire values, retry rules, credential precedence, and environment variables. Take structure, naming style, and API shape from this language. Put a divergence in the PR description, not in a code comment.
-- Add a cache only for a cost you have measured, and give the number in the PR.
 - Something presented as immutable can't be changed by the caller. Don't hand out a reference that lets them.
 - A helper that makes requests hangs off the resource it belongs to.
 
-### Comments and docs
+### Examples
 
-- Write no comment by default. When one is needed, keep it to a line or two that states a non-obvious why. Prefer a clearer name to a comment.
-- Never restate the code, narrate its history, record tracked work, or note what another SDK does.
-- Public API gets a doc comment. Update it, and any Markdown guide that covers the feature, when the behavior changes.
-- Check a claim such as "the API rejects X" against the official API docs before you write it in a comment, an error message, or a PR. A third-party page or a bug report isn't a source.
 - An example is a runnable program against a real backend. It uses only the public API, reads credentials and configuration from the environment, and has no debug output or workarounds.
-
-### Tests
-
-- A behavior change comes with a test that fails before it and passes after. Test both sides of a guard, and check that the setup really reaches the path in the test's name.
-- Test behavior through the public API with HTTP mocked. For code that shapes a request, assert on the wire request: method, path, headers, and body.
-- Generated tests only check shapes against the mock server. A behavior test for hand-written code goes in a hand-written file.
-- Cover every copy of logic that exists more than once.
-- Build fixtures from what the server sends. Keep keys and IDs in them obviously fake.
-- Cases that differ only in input share one parameterized test.
-- A test that changes an environment variable or other process state puts it back.
-- A tripwire test asserts no behavior. It compares a hand-written list with the generated type the list was derived from, and fails when the spec changes one without the other. Its failure message or comment names the hand-written code to update.
-- Tripwires are a stopgap. The goal is for the generator to emit anything that depends on generated output, and each tripwire goes away once it does.
-
-### Commits and pull requests
-
-- Commit subjects and PR titles follow Conventional Commits (`feat(scope):`, `fix(scope):`, `chore`, `docs`). A `!` or a `BREAKING CHANGE:` footer marks the release as breaking (a major version, or a minor one below 1.0). Only a maintainer adds one.
-- If `.github/workflows/changelog.yml` exists, every PR adds its own line to `CHANGELOG.md` or carries the `skip-changelog` label, and CI fails it otherwise. If it doesn't, release automation writes `CHANGELOG.md` and the version files from those commit subjects, and a manual edit is overwritten or conflicts with the release PR.
-- Make one logical change per PR. Unrelated fixes, formatting churn, and incidental lockfile changes go elsewhere. Split a large feature into stacked PRs.
-- When you replace a PR, close the old one with a link to the new one.
-- Port a behavior change to the other SDKs and link the sibling PRs, or say why it is specific to this language.
-- A PR description says what was wrong, with a short before and after, what changed, and how you know it works.
-- It lists every new public name, parameter, and option. It calls out behavior changes, wire-level changes, breaks in hand-written API, divergence from the other SDKs, and anything you could not verify.
-- Update the description when a later commit changes the scope.
+- A new public helper usually comes with an example.
 
 ## TypeScript
 
 ### Overview
 
+- Setup instructions live in [CONTRIBUTING.md](CONTRIBUTING.md).
 - `src/lib/` and `examples/` are hand-written. The generator never touches them. The generator's own files have custom code mixed in, including `src/client.ts` and files under `src/core/`, `src/internal/`, and `src/resources/`.
 - A wrong return type in `api.md` is a generator regression.
-- The version lives in `package.json`, `src/version.ts`, and `.release-please-manifest.json`. Don't edit it by hand.
+- The version lives in `package.json`, `src/version.ts`, and `.release-please-manifest.json`.
 
 ### Build, test, lint
 
 - The package manager is pnpm.
-- Run `./scripts/format` before you push as well. Calling `prettier`, `eslint`, `tsc`, `vitest`, or `pnpm` directly is fine for a quick, targeted check while you work.
-- CI's `detect-breaking-changes` checks out the generated tests from a base and runs `./scripts/lint` to see whether they still type-check against your branch. The base is the `breaking-change-baseline` tag when the repository has one, otherwise `main`.
+- Run `./scripts/format` before you push as well. For a quick check, the tools to call directly are `prettier`, `eslint`, `tsc`, `vitest`, and `pnpm`.
+- CI's `detect-breaking-changes` checks out the generated tests from the base and runs `./scripts/lint` to see whether they still type-check against your branch.
 - Anything a user can import without reaching into `src/internal/` or `src/lib/internal/` is public, documented or not, because the package's `exports` map exposes every other module. So new things start unexported or in `src/internal/`, and are made public on purpose.
 - A change that only `tsc` notices doesn't break a running program, but it can fail a user's build, so avoid it where you can and call it out in the PR where you can't.
 - Deprecating a name or an option means marking it `@deprecated` in its doc comment. A deprecated option logs a deprecation message when it's passed.
@@ -230,16 +262,17 @@ The SDK runs on Node, Deno, Bun, edge runtimes, and in browsers. Bundlers follow
 - Use the standard `TypeError`, or `RangeError` for a value out of range, where any JavaScript library would. That covers an argument of the wrong type (`buildHeaders` rejects a header name that isn't a string) and options that can't be combined. Avoid a bare `Error`, because a caller can't tell it apart from anything else.
 - Format caught values with `castToError`, or with `e instanceof Error ? e.message : String(e)`. Don't write `(e as Error).message`.
 - Detect an abort with `isAbortError(err)` from `src/internal/errors.ts`, not with `instanceof`.
-- Log through the client's logger (`loggerFor(client)`), not `console`. A deprecation message names the replacement.
+- Log through the client's logger (`loggerFor(client)`), not `console`.
 
 ### Common mistakes
 
-- **Hand-listing generated fields with no tripwire.** A tripwire stops compiling when the spec changes the generated type without the hand-written list. `tsc` enforces them through `./scripts/lint`, not the test runner.
+- **Hand-listing generated fields where a missed member would cause a bug, with no tripwire.** A tripwire stops compiling when the spec changes the generated type without the hand-written list. `tsc` enforces them through `./scripts/lint`, not the test runner.
 - **Runtime checks that the types already cover.** Trust typed inputs. Don't add a runtime check for something the caller's types already rule out.
 - **Validating what the API validates.** `null` is the only off-switch for a configurable cap.
 - **Leaking through abort listeners.** A listener on the caller's signal lives as long as that signal does, and so does everything its closure captures.
   - Build the listener in a small separate function that takes only what it needs, as `_makeAbort` in `src/client.ts` does. An arrow function written inline captures the whole enclosing scope, the request body and options included, and a long-lived signal then keeps all of it from being collected.
   - Add listeners with `{ once: true }`, and also remove them when the work finishes, because `once` only removes a listener if the signal actually aborts.
+- **Tagging `@internal` loosely.** The build drops any statement whose doc comment contains `@internal` from the published types, including an `import` under a file-header comment. Tag only a declaration that no published type refers to. `./scripts/lint` type-checks the built declarations, and the generated tests against them, so a tag that breaks either fails there.
 - **Returning early on abort.** An async function calls `signal.throwIfAborted()`. Only an async generator returns quietly.
 
 ### Style notes
@@ -259,6 +292,5 @@ The SDK runs on Node, Deno, Bun, edge runtimes, and in browsers. Bundlers follow
 ### Tests
 
 - Reuse SDK internals in tests, such as `_iterSSEMessages`. Don't write a second SSE parser.
-- In a stream fixture, leave a key out rather than setting it to `null`.
 - Use `test.each` for cases that differ only in input, and snapshots for large expected values.
 - A new header merge rule needs a case in `tests/buildHeaders.test.ts` for each `HeadersLike` shape.

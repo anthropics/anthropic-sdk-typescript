@@ -3,6 +3,7 @@ import * as AnalyticsAPI from './analytics';
 import { BetaAnalyticsUserActivitiesPageCursor } from './analytics';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 
 export class Users extends APIResource {
   /**
@@ -29,7 +30,25 @@ export class Users extends APIResource {
     return this._client.getAPIList(
       '/v1/organizations/analytics/users?beta=true',
       PageCursor<AnalyticsAPI.BetaAnalyticsUserActivity>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __span: startApiCallSpan(this._client, 'anthropic.organization.analytics.users.list', options, {
+          route: '/v1/organizations/analytics/users',
+          queryParams: [
+            'date',
+            'ending_date',
+            'filter',
+            'group_by',
+            'limit',
+            'order',
+            'order_by',
+            'page',
+            'starting_date',
+          ],
+          contentQueryParams: ['page'],
+        }),
+      },
     );
   }
 }

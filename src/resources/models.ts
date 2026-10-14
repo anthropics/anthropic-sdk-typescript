@@ -4,6 +4,7 @@ import { APIPromise } from '../core/api-promise';
 import { Page, type PageParams, PagePromise } from '../core/pagination';
 import { buildHeaders } from '../internal/headers';
 import { RequestOptions } from '../internal/request-options';
+import { startApiCallSpan } from '../internal/tracing';
 import { path } from '../internal/utils/path';
 
 export class Models extends APIResource {
@@ -33,6 +34,10 @@ export class Models extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.models.retrieve', options, {
+        route: '/v1/models/{model_id}',
+        attributes: { 'anthropic.model.id': modelID },
+      }),
     });
   }
 
@@ -65,6 +70,10 @@ export class Models extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.models.list', options, {
+        route: '/v1/models',
+        queryParams: ['after_id', 'before_id', 'lifecycle', 'limit'],
+      }),
     });
   }
 }

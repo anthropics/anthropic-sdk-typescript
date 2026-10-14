@@ -8,6 +8,7 @@ import { APIPromise } from '../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagination';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
 
 export class Deployments extends APIResource {
@@ -47,6 +48,10 @@ export class Deployments extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.deployments.create', options, {
+        route: '/v1/deployments',
+        createdIDAttribute: 'anthropic.deployment.id',
+      }),
     });
   }
 
@@ -76,6 +81,10 @@ export class Deployments extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.deployments.retrieve', options, {
+        route: '/v1/deployments/{deployment_id}',
+        attributes: { 'anthropic.deployment.id': deploymentID },
+      }),
     });
   }
 
@@ -106,6 +115,10 @@ export class Deployments extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.deployments.update', options, {
+        route: '/v1/deployments/{deployment_id}',
+        attributes: { 'anthropic.deployment.id': deploymentID },
+      }),
     });
   }
 
@@ -135,6 +148,18 @@ export class Deployments extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.deployments.list', options, {
+        route: '/v1/deployments',
+        queryParams: [
+          'agent_id',
+          'created_at[gte]',
+          'created_at[lte]',
+          'include_archived',
+          'limit',
+          'page',
+          'status',
+        ],
+      }),
     });
   }
 
@@ -164,6 +189,10 @@ export class Deployments extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.deployments.archive', options, {
+        route: '/v1/deployments/{deployment_id}/archive',
+        attributes: { 'anthropic.deployment.id': deploymentID },
+      }),
     });
   }
 
@@ -193,6 +222,10 @@ export class Deployments extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.deployments.pause', options, {
+        route: '/v1/deployments/{deployment_id}/pause',
+        attributes: { 'anthropic.deployment.id': deploymentID },
+      }),
     });
   }
 
@@ -222,6 +255,10 @@ export class Deployments extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.deployments.run', options, {
+        route: '/v1/deployments/{deployment_id}/run',
+        attributes: { 'anthropic.deployment.id': deploymentID },
+      }),
     });
   }
 
@@ -251,6 +288,10 @@ export class Deployments extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.deployments.unpause', options, {
+        route: '/v1/deployments/{deployment_id}/unpause',
+        attributes: { 'anthropic.deployment.id': deploymentID },
+      }),
     });
   }
 }

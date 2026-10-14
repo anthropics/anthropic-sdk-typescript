@@ -2,6 +2,7 @@ import { type RequestOptions } from './request-options';
 import type { FilePropertyBag, Fetch } from './builtin-types';
 import type { BaseAnthropic } from '../client';
 import { ReadableStreamFrom } from './shims';
+import { endApiCallSpan, guardTracing } from './tracing';
 
 export type BlobPart = string | ArrayBuffer | ArrayBufferView | Blob | DataView;
 type FsReadStream = AsyncIterable<Uint8Array> & { path: string | { toString(): string } };
@@ -85,7 +86,18 @@ export const multipartFormRequestOptions = async (
   fetch: BaseAnthropic | Fetch,
   stripFilenames: boolean = true,
 ): Promise<RequestOptions> => {
-  return { ...opts, body: await createForm(opts.body, fetch, stripFilenames) };
+  try {
+    return { ...opts, body: await createForm(opts.body, fetch, stripFilenames) };
+  } catch (error) {
+    // The client, which ends the call span of a failed call, never gets these options.
+    const span = opts.__span?.span;
+    if (span) {
+      guardTracing(typeof fetch === 'function' ? undefined : fetch, () =>
+        endApiCallSpan(span, { status: 'error', options: opts, error }),
+      );
+    }
+    throw error;
+  }
 };
 
 const supportsFormDataMap = /* @__PURE__ */ new WeakMap<Fetch, Promise<boolean>>();

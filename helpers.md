@@ -31,6 +31,10 @@ The first event that is fired when the connection with the Anthropic API is esta
 The event fired when a stream event is received from the API. Not fired when it is not streaming. The snapshot
 returns an accumulated `Message` which is progressively built-up over events.
 
+An event of a type this SDK version doesn't know is passed through as received, with the snapshot unchanged.
+It isn't fired for anything that arrives before `message_start`, because there is no snapshot yet. `for await` and
+`.toReadableStream()` do yield those events.
+
 #### `.on('text', (textDelta: string, textSnapshot: string) => …)`
 
 The event fired when a text delta is sent by the API. The second parameter returns a `textSnapshot`.

@@ -2,8 +2,6 @@
  * The types of the toolset constructor hooks. `BetaToolsetCallContext`, `MemberConfirmContext` and `BetaToolConfigs` serve
  * every family, `BetaComputerConfirmContext` and `BetaComputerConfirmCallable` serve the computer toolset, and the rest
  * serve the browser toolset.
- *
- * @internal
  */
 import type { BetaToolUse, Promisable } from '../../tools/BetaRunnableTool';
 import type { BetaComputerMemberInput, BetaComputerMemberName } from './computer-members';

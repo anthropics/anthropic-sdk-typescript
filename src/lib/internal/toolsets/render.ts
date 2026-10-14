@@ -6,8 +6,6 @@
  * that result. A pure action renders as its fixed acknowledgment, followed by the line it
  * returned, if any. The tab-management members render no content of their own: the API accepts the
  * `browser_state` block as their whole result and produces the text the model reads from it.
- *
- * @internal
  */
 import type {
   BetaBrowserStateBlockParam,

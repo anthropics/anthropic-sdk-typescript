@@ -6,8 +6,6 @@
  * browser and edge bundles: a static `fs`/`path` import at the top of a module reachable from it would pull the Node
  * built-ins into every bundle. Reached through `helpers/beta/toolsets/node`. The built-ins come through
  * `internal/node`, which browser builds stub, so importing this module there is harmless and using it throws.
- *
- * @internal
  */
 import { fs, path } from '../../../internal/node';
 

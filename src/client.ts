@@ -13,12 +13,31 @@ import {
 } from './internal/request-signal';
 import * as Shims from './internal/shims';
 import * as Opts from './internal/request-options';
+import {
+  endApiCallSpan,
+  getTracer,
+  guardTracing,
+  injectTraceHeaders,
+  recordAttempt,
+  resolveOpenTelemetryOptions,
+  type ApiCallResult,
+  type OpenTelemetryOptions,
+  type ResolvedOpenTelemetryOptions,
+} from './internal/tracing';
+export type {
+  OpenTelemetryOptions,
+  OpenTelemetryRequestOptions,
+  OpenTelemetryTracesOptions,
+  ResolvedOpenTelemetryOptions,
+} from './internal/tracing';
 import { stringifyQuery } from './internal/utils/query';
+import { context, trace, type Span, type Tracer } from '@opentelemetry/api';
 import { VERSION } from './version';
 import * as Errors from './core/error';
 import type { AccessTokenProvider } from './lib/credentials/types';
 import { OAUTH_API_BETA_HEADER } from './lib/credentials/types';
 import { TokenCache } from './lib/credentials/token-cache';
+import { setAnthropicSpanAttributes, takeTraceHeaders, withoutTraceHeaders } from './lib/internal/tracing';
 import { defaultCredentials, resolveCredentialsFromConfig } from './lib/credentials/credential-chain';
 import type { AnthropicConfig } from './core/credentials';
 import {
@@ -715,6 +734,28 @@ export interface ClientOptions {
   dangerouslyAllowBrowser?: boolean | undefined;
 
   /**
+   * OpenTelemetry tracing of this client's API calls. Each API call emits a span when
+   * the application has registered a tracer provider with the OpenTelemetry API.
+   *
+   * `false`, short for `{ traces: false }`, disables the spans.
+   * `propagation: false` keeps the spans and sends no trace context with the requests.
+   *
+   * A client without this option reads its environment variables once, when it is constructed:
+   * `ANTHROPIC_OPEN_TELEMETRY` set to `false` disables the spans,
+   * `ANTHROPIC_OPEN_TELEMETRY_PROPAGATION` set to `false` turns `propagation` off, and
+   * `ANTHROPIC_OPEN_TELEMETRY_TRACES_CONTENT_MODE` and
+   * `ANTHROPIC_OPEN_TELEMETRY_TRACES_MAX_CONTENT_BYTES` give `traces.contentMode` and
+   * `traces.maxContentBytes`. A client with this option does not read them: a field that the
+   * option leaves unset has its default.
+   *
+   * A `withOptions()` copy without its own `openTelemetry` option keeps this client's settled one.
+   * A copy with its own option uses that in place of this client's whole option, so it keeps none
+   * of this client's fields. Spread {@link BaseAnthropic.openTelemetry} into the copy's option to
+   * keep them.
+   */
+  openTelemetry?: OpenTelemetryOptions | false | undefined;
+
+  /**
    * Set the log level.
    *
    * Defaults to process.env['ANTHROPIC_LOG'] or 'warn' if it isn't set.
@@ -771,7 +812,57 @@ export class BaseAnthropic {
 
   private fetch: Fetch;
   #encoder: Opts.RequestEncoder;
-  protected _options: ClientOptions;
+  #openTelemetry: ResolvedOpenTelemetryOptions;
+
+  /**
+   * The `openTelemetry` option as this client settled it when it was constructed: `propagation` and
+   * each field of `traces` from the option, or else its default. A client constructed without the
+   * option has what the environment variables said. One constructed with `openTelemetry: false` has
+   * `traces.enabled: false` here.
+   *
+   * The value is frozen. It is a valid `openTelemetry` option, so a copy of this client can change
+   * one setting and keep the others:
+   *
+   * ```ts
+   * const { openTelemetry } = client;
+   * client.withOptions({
+   *   openTelemetry: { ...openTelemetry, traces: { ...openTelemetry.traces, contentMode: 'content' } },
+   * });
+   * ```
+   */
+  get openTelemetry(): ResolvedOpenTelemetryOptions {
+    return this.#openTelemetry;
+  }
+
+  /**
+   * The tracer that starts the call spans of this client's API calls, or `undefined` when the
+   * client's spans are disabled.
+   * @internal
+   */
+  _tracer: Tracer | undefined;
+
+  /**
+   * The options this client was constructed with, from which `withOptions()` builds its clone.
+   * @internal
+   */
+  _options: ClientOptions;
+
+  /**
+   * The `gen_ai.provider.name` of this client's spans: the platform that serves its requests.
+   * The clients for third-party platforms override it.
+   * @internal
+   */
+  _genAIProviderName: string = 'anthropic';
+
+  /**
+   * The instrumentation scope of this client's spans: the version of the package that the client
+   * is from, and for the client of another platform the platform's name, which the scope's name
+   * ends with. The clients for other platforms override it. The constructor calls it.
+   * @internal
+   */
+  _instrumentationScope(): { version: string; platform?: string | undefined } {
+    return { version: VERSION };
+  }
 
   /**
    * API Client for interfacing with the Anthropic API.
@@ -838,6 +929,10 @@ export class BaseAnthropic {
       defaultLogLevel;
     this.fetchOptions = options.fetchOptions;
     this.maxRetries = validatePositiveInteger('maxRetries', options.maxRetries ?? 2);
+    const scope = this._instrumentationScope();
+    this.#openTelemetry = resolveOpenTelemetryOptions(options.openTelemetry);
+    options.openTelemetry = this.#openTelemetry;
+    this._tracer = guardTracing(this, () => getTracer(this.#openTelemetry, scope.version, scope.platform));
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
     this.#encoder = Opts.FallbackEncoder;
 
@@ -1010,6 +1105,7 @@ export class BaseAnthropic {
       // mutual-exclusion check or precedence over the override.
       ...(overridesStructuredAuth ? { credentials: undefined, config: undefined, profile: undefined } : {}),
       ...options,
+      openTelemetry: options.openTelemetry ?? this.#openTelemetry,
       // Always set __auth so any stale value from ...this._options is
       // overwritten. undefined means "build fresh auth from these options".
       __auth: overridesAuth ? undefined : this._authState,
@@ -1201,8 +1297,11 @@ export class BaseAnthropic {
    *
    * Runs after all middleware (including {@link backendMiddleware}),
    * immediately before each underlying fetch call, so it sees exactly what
-   * goes over the wire. Middleware may replay a request by calling `next()`
-   * more than once, so this hook can run multiple times per attempt:
+   * goes over the wire, except the trace-context headers of a traced call
+   * (`traceparent`, `tracestate`, `baggage`, and any other that the registered
+   * propagator writes): the client sets them again after this hook, so that a
+   * signature does not cover them. Middleware may replay a request by calling
+   * `next()` more than once, so this hook can run multiple times per attempt:
    * overrides must be idempotent and overwrite headers from a previous
    * invocation rather than append to them.
    */
@@ -1243,7 +1342,8 @@ export class BaseAnthropic {
    * Running inside the user's middleware means user middleware always observes
    * canonical Anthropic-shaped traffic, and the adaptation re-runs (e.g.
    * re-signs) on every `next()` invocation, covering whatever the middleware
-   * mutated.
+   * mutated. It does not see the trace-context headers of a traced call: see
+   * {@link prepareRequest}.
    *
    * Errors thrown here follow the middleware error policy: they propagate to
    * the caller as-is — no retries, no `APIConnectionError` wrapping — unless
@@ -1290,13 +1390,43 @@ export class BaseAnthropic {
     options: PromiseOrValue<FinalRequestOptions>,
     remainingRetries: number | null = null,
   ): APIPromise<Rsp> {
-    return new APIPromise(this, this.makeRequest(options, remainingRetries, undefined));
+    if (!this._tracer) {
+      return new APIPromise(this, this.makeRequest(options, remainingRetries, undefined));
+    }
+    return new APIPromise(this, this.makeTracedRequest(options, remainingRetries));
+  }
+
+  /**
+   * Makes the request inside the call span that the SDK method started and passed in the options
+   * (`__span`). The span ends here when the call fails, and otherwise when the application has
+   * read the response body: see `APIPromise`.
+   */
+  private async makeTracedRequest(
+    optionsInput: PromiseOrValue<FinalRequestOptions>,
+    retriesRemaining: number | null,
+  ): Promise<APIResponseProps> {
+    const options = await optionsInput;
+    const span = options.__span?.span;
+    if (!span) {
+      return this.makeRequest(options, retriesRemaining, undefined);
+    }
+    try {
+      return await context.with(trace.setSpan(context.active(), span), () =>
+        this.makeRequest(options, retriesRemaining, undefined, span),
+      );
+    } catch (error) {
+      const result: ApiCallResult = { status: 'error', options, error };
+      setAnthropicSpanAttributes(this, span, result);
+      guardTracing(this, () => endApiCallSpan(span, result));
+      throw error;
+    }
   }
 
   private async makeRequest(
     optionsInput: PromiseOrValue<FinalRequestOptions>,
     retriesRemaining: number | null,
     retryOfRequestLogID: string | undefined,
+    span?: Span | undefined,
   ): Promise<APIResponseProps> {
     const options = await optionsInput;
     let maxRetries = validatePositiveInteger('maxRetries', options.maxRetries ?? this.maxRetries);
@@ -1319,6 +1449,9 @@ export class BaseAnthropic {
     /** Not an API request ID, just for correlating local log entries. */
     const requestLogID = 'log_' + ((Math.random() * (1 << 24)) | 0).toString(16).padStart(6, '0');
     const retryLogStr = retryOfRequestLogID === undefined ? '' : `, retryOf: ${retryOfRequestLogID}`;
+    if (span && this.openTelemetry.propagation) {
+      req.headers = guardTracing(this, () => injectTraceHeaders(span, req.headers)) ?? req.headers;
+    }
     const startTime = Date.now();
 
     if (options.signal?.aborted) {
@@ -1377,7 +1510,7 @@ export class BaseAnthropic {
             message: response.message,
           },
         );
-        return this.retryRequest(options, retriesRemaining, retryOfRequestLogID ?? requestLogID);
+        return this.retryRequest(options, retriesRemaining, retryOfRequestLogID ?? requestLogID, span);
       }
       loggerFor(this).info(
         `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - error; no more retries left`,
@@ -1431,6 +1564,7 @@ export class BaseAnthropic {
           options,
           retriesRemaining,
           retryOfRequestLogID ?? requestLogID,
+          span,
           response.headers,
         );
       }
@@ -1490,7 +1624,11 @@ export class BaseAnthropic {
     Page: new (...args: ConstructorParameters<typeof Pagination.AbstractPage>) => PageClass,
     options: PromiseOrValue<FinalRequestOptions>,
   ): Pagination.PagePromise<PageClass, Item> {
-    const request = this.makeRequest(options, null, undefined);
+    if (!this._tracer) {
+      const request = this.makeRequest(options, null, undefined);
+      return new Pagination.PagePromise<PageClass, Item>(this as any as Anthropic, request, Page);
+    }
+    const request = this.makeTracedRequest(options, null);
     return new Pagination.PagePromise<PageClass, Item>(this as any as Anthropic, request, Page);
   }
 
@@ -1546,10 +1684,11 @@ export class BaseAnthropic {
 
     // Prepare the request (auth signing and other `prepareRequest` hooks) as
     // the innermost step, after any middleware — including the backend
-    // middleware, so it sees exactly what goes over the wire. Runs per
-    // inner-fetch invocation, so a request middleware rewrote — or replayed
-    // via a second `next()` call — is prepared fresh each time. Preparation is
-    // outside the timeout timer, matching its pre-middleware behavior.
+    // middleware, so it sees exactly what goes over the wire, except the trace
+    // headers. Runs per inner-fetch invocation, so a request middleware rewrote
+    // — or replayed via a second `next()` call — is prepared fresh each time.
+    // Preparation is outside the timeout timer, matching its pre-middleware
+    // behavior.
     const innerFetch: Fetch =
       requestOptions === undefined ? timedFetch : (
         async (innerUrl, innerInit = {}) => {
@@ -1560,7 +1699,26 @@ export class BaseAnthropic {
           innerInit.headers =
             innerInit.headers instanceof Headers ? innerInit.headers : new Headers(innerInit.headers);
 
+          let traceHeaders: Array<[string, string]> = [];
+          if (requestOptions.__span) {
+            innerInit.headers = new Headers(innerInit.headers);
+            traceHeaders = takeTraceHeaders(innerInit.headers);
+          }
           await this.prepareRequest(innerInit, { url: innerUrlStr, options: requestOptions });
+          if (traceHeaders.length) {
+            innerInit.headers = buildHeaders([innerInit.headers, traceHeaders]).values;
+          }
+          const call = requestOptions.__span;
+          if (call) {
+            guardTracing(this, () =>
+              recordAttempt(
+                call,
+                innerInit.method ?? 'GET',
+                innerUrlStr,
+                this.openTelemetry.traces.contentMode === 'content',
+              ),
+            );
+          }
 
           if (logCtx) {
             debugLogRequestDetails(loggerFor(this), `[${logCtx.requestLogID}] sending request`, {
@@ -1577,7 +1735,8 @@ export class BaseAnthropic {
       );
 
     const requestMiddleware = requestOptions?.middleware;
-    const backendMiddleware = this.backendMiddleware();
+    const backendMiddleware =
+      requestOptions?.__span ? this.backendMiddleware().map(withoutTraceHeaders) : this.backendMiddleware();
     const allMiddleware =
       requestMiddleware?.length || backendMiddleware.length ?
         [...this.middleware, ...(requestMiddleware ?? []), ...backendMiddleware]
@@ -1629,6 +1788,7 @@ export class BaseAnthropic {
     options: FinalRequestOptions,
     retriesRemaining: number,
     requestLogID: string,
+    span: Span | undefined,
     responseHeaders?: Headers | undefined,
   ): Promise<APIResponseProps> {
     let timeoutMillis: number | undefined;
@@ -1662,7 +1822,7 @@ export class BaseAnthropic {
     }
     await sleep(timeoutMillis, options.signal ?? undefined);
 
-    return this.makeRequest(options, retriesRemaining - 1, requestLogID);
+    return this.makeRequest(options, retriesRemaining - 1, requestLogID, span);
   }
 
   private calculateDefaultRetryTimeoutMillis(retriesRemaining: number, maxRetries: number): number {

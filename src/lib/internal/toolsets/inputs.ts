@@ -1,8 +1,6 @@
 /**
  * The browser member names and input types, read off the API types.
  *
- * @internal
- *
  * The member inputs (`BetaBrowserNavigateInput`, ...) and their union `BetaBrowserMemberInput` are in
  * `resources/beta`, and so is the list of member names, `BETA_BROWSER_MEMBER_NAME_VALUES`. The per-member input map is
  * read off the `tool_use` union, so a member added to the API shows up here without a hand edit.

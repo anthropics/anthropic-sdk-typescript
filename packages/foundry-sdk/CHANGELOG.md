@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.5.4...foundry-sdk-v0.6.0) (2026-10-14)
+
+### Features
+
+* **api:** add execution_identity to Managed Agents agents
+* **client:** add OpenTelemetry spans for API calls
+
+
+### Chores
+
+* include the license files in the published packages
+* **internal:** strip `@internal` declarations from published types
+
 ## [0.5.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.5.3...foundry-sdk-v0.5.4) (2026-10-08)
 
 ### Chores

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.9...aws-sdk-v0.8.0) (2026-10-14)
+
+### Features
+
+* **api:** add execution_identity to Managed Agents agents
+* **client:** add OpenTelemetry spans for API calls
+
+
+### Chores
+
+* include the license files in the published packages
+* **internal:** strip `@internal` declarations from published types
+
 ## [0.7.9](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.8...aws-sdk-v0.7.9) (2026-10-08)
 
 ### Chores

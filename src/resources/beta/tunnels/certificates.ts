@@ -4,6 +4,7 @@ import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Certificates extends APIResource {
@@ -42,6 +43,11 @@ export class Certificates extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.tunnels.certificates.create', options, {
+        route: '/v1/tunnels/{tunnel_id}/certificates',
+        attributes: { 'anthropic.tunnel.id': tunnelID },
+        createdIDAttribute: 'anthropic.tunnel.certificate.id',
+      }),
     });
   }
 
@@ -77,6 +83,10 @@ export class Certificates extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.tunnels.certificates.retrieve', options, {
+        route: '/v1/tunnels/{tunnel_id}/certificates/{certificate_id}',
+        attributes: { 'anthropic.tunnel.id': tunnel_id, 'anthropic.tunnel.certificate.id': certificateID },
+      }),
     });
   }
 
@@ -118,6 +128,11 @@ export class Certificates extends APIResource {
           },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.tunnels.certificates.list', options, {
+          route: '/v1/tunnels/{tunnel_id}/certificates',
+          queryParams: ['include_archived', 'limit', 'page'],
+          attributes: { 'anthropic.tunnel.id': tunnelID },
+        }),
       },
     );
   }
@@ -157,6 +172,10 @@ export class Certificates extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.tunnels.certificates.archive', options, {
+        route: '/v1/tunnels/{tunnel_id}/certificates/{certificate_id}/archive',
+        attributes: { 'anthropic.tunnel.id': tunnel_id, 'anthropic.tunnel.certificate.id': certificateID },
+      }),
     });
   }
 }

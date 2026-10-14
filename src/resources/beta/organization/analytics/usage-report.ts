@@ -3,6 +3,7 @@ import * as AnalyticsAPI from './analytics';
 import { BetaAnalyticsUsageReportTimeBucketsPageCursor } from './analytics';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 
 export class UsageReport extends APIResource {
   /**
@@ -33,7 +34,36 @@ export class UsageReport extends APIResource {
     return this._client.getAPIList(
       '/v1/organizations/analytics/usage_report?beta=true',
       PageCursor<AnalyticsAPI.BetaAnalyticsUsageReportTimeBucket>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.analytics.usage_report.list',
+          options,
+          {
+            route: '/v1/organizations/analytics/usage_report',
+            queryParams: [
+              'bucket_width',
+              'claude_tag_categories',
+              'claude_tag_user_ids',
+              'context_windows',
+              'ending_at',
+              'group_by',
+              'inference_geos',
+              'limit',
+              'models',
+              'page',
+              'products',
+              'rbac_group_ids',
+              'slack_channel_ids',
+              'speeds',
+              'starting_at',
+              'user_ids',
+            ],
+          },
+        ),
+      },
     );
   }
 }

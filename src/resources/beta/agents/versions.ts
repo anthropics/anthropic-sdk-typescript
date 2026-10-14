@@ -5,6 +5,7 @@ import { BetaManagedAgentsAgentsPageCursor } from './agents';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Versions extends APIResource {
@@ -40,6 +41,11 @@ export class Versions extends APIResource {
           },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.agents.versions.list', options, {
+          route: '/v1/agents/{agent_id}/versions',
+          queryParams: ['limit', 'page'],
+          attributes: { 'gen_ai.agent.id': agentID },
+        }),
       },
     );
   }
