@@ -12,6 +12,7 @@
 
 ### Bug Fixes
 
+* **client:** close an unread stream that was dropped while tracing is on
 * **client:** don't follow redirects on token requests
 * **client:** treat proxy-authorization as a sensitive header
 

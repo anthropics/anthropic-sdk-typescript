@@ -562,7 +562,8 @@ export function observeStream<Item>(
   signal: AbortSignal,
   observer: StreamObserver<Item>,
 ): void {
-  const iterate = stream[Symbol.asyncIterator].bind(stream);
+  // Unbound, so that the abort listener, which `signal` keeps, does not keep an unread `stream`.
+  const iterate = stream[Symbol.asyncIterator];
   let ended = false;
   const end = (how: StreamEnd): void => {
     if (ended) return;
@@ -577,8 +578,8 @@ export function observeStream<Item>(
   signal.addEventListener('abort', cancel, { once: true });
 
   let observed = false;
-  stream[Symbol.asyncIterator] = () => {
-    const source = iterate();
+  stream[Symbol.asyncIterator] = function (this: AsyncIterable<Item>) {
+    const source = iterate.call(this);
     if (observed) return source;
     observed = true;
     // From here the iterator sees every way the read can end. `Stream` also aborts its own
@@ -630,10 +631,11 @@ export function endApiCallSpanWhenStreamEnds(
 ): void {
   if (!span.isRecording()) return;
   span.setAttribute(ATTR_HTTP_RESPONSE_STATUS_CODE, props.response.status);
+  const isSSE = stream instanceof Stream;
   observeStream(stream, props.controller.signal, {
     onEnd(end) {
       if (end.reason === 'failed') setErrorStatus(span, end.error);
-      else if (end.reason === 'completed' && !(stream instanceof Stream)) {
+      else if (end.reason === 'completed' && !isSSE) {
         span.setStatus({ code: SpanStatusCode.OK });
       }
       span.end();
