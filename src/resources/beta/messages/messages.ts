@@ -1,4 +1,3 @@
-import { AnthropicError } from '../../../error';
 import { Anthropic } from '../../../client';
 import * as BatchesAPI from './batches';
 import { APIPromise } from '../../../core/api-promise';
@@ -8,13 +7,20 @@ import { MODEL_NONSTREAMING_TOKENS } from '../../../internal/constants';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
 import { startApiCallSpan } from '../../../internal/tracing';
-import { stainlessHelperHeader } from '../../../internal/stainless-helper-header';
+import {
+  messagesCreateSpanSettings,
+  recordCountTokensResponse,
+  recordMessagesCreateRequest,
+  recordMessagesCreateResponse,
+} from '../../../lib/internal/tracing';
+import { ATTR_GEN_AI_REQUEST_MODEL } from '../../../lib/internal/tracing/attributes';
 import {
   parseBetaMessage,
   type ExtractParsedContentFromBetaParams,
   type ParsedBetaMessage,
 } from '../../../lib/beta-parser';
 import { BetaMessageStream } from '../../../lib/BetaMessageStream';
+import { messagesCreateHeaders, transformOutputFormat } from '../../../lib/internal/beta-messages-request';
 import {
   BetaToolRunner,
   BetaToolRunnerParams,
@@ -118,25 +124,32 @@ export class Messages extends APIResource {
       timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
     }
 
-    // Collect helper info from tools and messages
-    const helperHeader = stainlessHelperHeader(body.tools, body.messages);
-
-    return this._client.post('/v1/messages?beta=true', {
+    const headers = messagesCreateHeaders(modifiedParams, options);
+    // A client whose spans are disabled computes nothing for one, and returns its request as it is.
+    const call =
+      this._client._tracer &&
+      startApiCallSpan(
+        this._client,
+        'anthropic.messages.create',
+        options,
+        messagesCreateSpanSettings(this._client, body, headers),
+      );
+    recordMessagesCreateRequest(this._client, call, body);
+    const request = this._client.post<BetaMessage | Stream<unknown>>('/v1/messages?beta=true', {
       body,
       timeout: timeout ?? 600000,
       ...options,
-      headers: buildHeaders([
-        {
-          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
-          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
-          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-        },
-        helperHeader,
-        options?.headers,
-      ]),
+      __span: call,
+      headers,
       stream: modifiedParams.stream ?? false,
-      __span: startApiCallSpan(this._client, 'anthropic.messages.create', options, { route: '/v1/messages' }),
-    }) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
+    });
+    return (
+      call ?
+        request._thenUnwrap((data) => {
+          recordMessagesCreateResponse(this._client, call, body, data);
+          return data;
+        })
+      : request) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
   }
 
   /**
@@ -179,7 +192,7 @@ export class Messages extends APIResource {
     body: Params,
     options?: RequestOptions,
   ): BetaMessageStream<ExtractParsedContentFromBetaParams<Params>> {
-    return BetaMessageStream.createMessage(this, body, options);
+    return BetaMessageStream.createMessage(this, body, options, { client: this._client });
   }
 
   /**
@@ -208,21 +221,31 @@ export class Messages extends APIResource {
     const modifiedParams = transformOutputFormat(params);
 
     const { betas, user_profile_id, workspace_id, ...body } = modifiedParams;
-    return this._client.post('/v1/messages/count_tokens?beta=true', {
+    const headers = buildHeaders([
+      {
+        'anthropic-beta': [...(betas ?? []), 'token-counting-2024-11-01'].toString(),
+        ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+        ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+      },
+      options?.headers,
+    ]);
+    const call = startApiCallSpan(this._client, 'anthropic.messages.count_tokens', options, {
+      route: '/v1/messages/count_tokens',
+      attributes: { [ATTR_GEN_AI_REQUEST_MODEL]: body.model },
+    });
+    const request = this._client.post<BetaMessageTokensCount>('/v1/messages/count_tokens?beta=true', {
       body,
       ...options,
-      headers: buildHeaders([
-        {
-          'anthropic-beta': [...(betas ?? []), 'token-counting-2024-11-01'].toString(),
-          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
-          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-        },
-        options?.headers,
-      ]),
-      __span: startApiCallSpan(this._client, 'anthropic.messages.count_tokens', options, {
-        route: '/v1/messages/count_tokens',
-      }),
+      __span: call,
+      headers,
     });
+    // Only a request with a span has a response to record.
+    return call ?
+        request._thenUnwrap((count) => {
+          recordCountTokensResponse(this._client, call, count);
+          return count;
+        })
+      : request;
   }
 
   toolRunner(
@@ -237,33 +260,6 @@ export class Messages extends APIResource {
   toolRunner(body: BetaToolRunnerParams, options?: BetaToolRunnerRequestOptions): BetaToolRunner<boolean> {
     return new BetaToolRunner(this._client as Anthropic, body, options);
   }
-}
-
-/**
- * Transform deprecated output_format to output_config.format
- * Returns a modified copy of the params without mutating the original
- */
-function transformOutputFormat<T extends MessageCreateParams | MessageCountTokensParams>(params: T): T {
-  if (!params.output_format) {
-    return params;
-  }
-
-  if (params.output_config?.format) {
-    throw new AnthropicError(
-      'Both output_format and output_config.format were provided. ' +
-        'Please use only output_config.format (output_format is deprecated).',
-    );
-  }
-
-  const { output_format, ...rest } = params;
-
-  return {
-    ...rest,
-    output_config: {
-      ...params.output_config,
-      format: output_format,
-    },
-  } as T;
 }
 
 /**

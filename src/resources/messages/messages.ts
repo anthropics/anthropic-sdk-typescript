@@ -4,7 +4,14 @@ import { Stream } from '../../core/streaming';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
 import { startApiCallSpan } from '../../internal/tracing';
-import { stainlessHelperHeader } from '../../internal/stainless-helper-header';
+import {
+  messagesCreateSpanSettings,
+  recordCountTokensResponse,
+  recordMessagesCreateRequest,
+  recordMessagesCreateResponse,
+} from '../../lib/internal/tracing';
+import { ATTR_GEN_AI_REQUEST_MODEL } from '../../lib/internal/tracing/attributes';
+import { messagesCreateHeaders } from '../../lib/internal/messages-request';
 import { MessageStream } from '../../lib/MessageStream';
 import {
   parseMessage,
@@ -95,23 +102,32 @@ export class Messages extends APIResource {
       timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
     }
 
-    // Collect helper info from tools and messages
-    const helperHeader = stainlessHelperHeader(body.tools, body.messages);
-    return this._client.post('/v1/messages', {
+    const headers = messagesCreateHeaders(params, options);
+    // A client whose spans are disabled computes nothing for one, and returns its request as it is.
+    const call =
+      this._client._tracer &&
+      startApiCallSpan(
+        this._client,
+        'anthropic.messages.create',
+        options,
+        messagesCreateSpanSettings(this._client, body, headers),
+      );
+    recordMessagesCreateRequest(this._client, call, body);
+    const request = this._client.post<Message | Stream<unknown>>('/v1/messages', {
       body,
       timeout: timeout ?? 600000,
       ...options,
-      headers: buildHeaders([
-        {
-          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
-          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-        },
-        helperHeader,
-        options?.headers,
-      ]),
+      __span: call,
+      headers,
       stream: params.stream ?? false,
-      __span: startApiCallSpan(this._client, 'anthropic.messages.create', options, { route: '/v1/messages' }),
-    }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
+    });
+    return (
+      call ?
+        request._thenUnwrap((data) => {
+          recordMessagesCreateResponse(this._client, call, body, data);
+          return data;
+        })
+      : request) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
   }
 
   /**
@@ -166,12 +182,11 @@ export class Messages extends APIResource {
     body: Params,
     options?: RequestOptions,
   ): MessageStream<ExtractParsedContentFromParams<Params>> {
-    return MessageStream.createMessage<ExtractParsedContentFromParams<Params>>(
-      this,
-      body as MessageCreateParamsBase,
-      options,
-      { logger: this._client.logger ?? console },
-    );
+    const params = body as MessageCreateParamsBase;
+    return MessageStream.createMessage<ExtractParsedContentFromParams<Params>>(this, params, options, {
+      logger: this._client.logger ?? console,
+      client: this._client,
+    });
   }
 
   /**
@@ -194,20 +209,30 @@ export class Messages extends APIResource {
    */
   countTokens(params: MessageCountTokensParams, options?: RequestOptions): APIPromise<MessageTokensCount> {
     const { user_profile_id, workspace_id, ...body } = params;
-    return this._client.post('/v1/messages/count_tokens', {
+    const headers = buildHeaders([
+      {
+        ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+        ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+      },
+      options?.headers,
+    ]);
+    const call = startApiCallSpan(this._client, 'anthropic.messages.count_tokens', options, {
+      route: '/v1/messages/count_tokens',
+      attributes: { [ATTR_GEN_AI_REQUEST_MODEL]: body.model },
+    });
+    const request = this._client.post<MessageTokensCount>('/v1/messages/count_tokens', {
       body,
       ...options,
-      headers: buildHeaders([
-        {
-          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
-          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-        },
-        options?.headers,
-      ]),
-      __span: startApiCallSpan(this._client, 'anthropic.messages.count_tokens', options, {
-        route: '/v1/messages/count_tokens',
-      }),
+      __span: call,
+      headers,
     });
+    // Only a request with a span has a response to record.
+    return call ?
+        request._thenUnwrap((count) => {
+          recordCountTokensResponse(this._client, call, count);
+          return count;
+        })
+      : request;
   }
 }
 

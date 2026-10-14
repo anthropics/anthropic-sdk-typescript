@@ -1,6 +1,7 @@
 import { APIRequest, BaseAnthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
 import { VERSION } from '@anthropic-ai/sdk/version';
+import { VERSION as PACKAGE_VERSION } from './version';
 import { GoogleAuth, AuthClient } from 'google-auth-library';
 import { APIConnectionError } from './core/error';
 import type { Middleware } from './core/middleware';
@@ -54,6 +55,14 @@ export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
 };
 
 export class AnthropicVertex extends BaseAnthropic {
+  /** @internal */
+  override _genAIProviderName = 'gcp.vertex_ai';
+
+  /** @internal */
+  override _instrumentationScope() {
+    return { platform: 'vertex', version: PACKAGE_VERSION };
+  }
+
   region: string;
   projectId: string | null;
   accessToken: string | null;

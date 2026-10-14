@@ -17,8 +17,11 @@ import {
 } from '../resources/messages';
 import { Stream } from '../streaming';
 import { RequestOptions } from '../internal/request-options';
-import type { Logger } from '../client';
+import type { BaseAnthropic, Logger } from '../client';
 import { maybeParseMessage, type ParsedMessage } from './parser';
+import { startMessagesStreamSpan } from './internal/messages-request';
+import { recordStreamedMessageContent } from './internal/tracing';
+import type { MessagesCreateSpan } from './internal/tracing/types';
 import { JSON_BUF_PROPERTY, withLazyInput } from '../internal/message-stream-utils';
 
 export interface MessageStreamEvents<ParsedT = null> {
@@ -78,8 +81,19 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
   #request_id: string | null | undefined;
   #workspace_id: string | null | undefined;
   #logger: Logger;
+  // The client that makes the request, and the call span of the request, to record the message on.
+  // Both are set only for a stream that an SDK method created.
+  #client: BaseAnthropic | undefined;
+  #span: MessagesCreateSpan | undefined;
 
-  constructor(params: MessageCreateParamsBase | null, opts?: { logger?: Logger | undefined }) {
+  constructor(
+    params: MessageCreateParamsBase | null,
+    opts?: {
+      logger?: Logger | undefined;
+      /** The client that makes the request, for the stream to start its span and record the message on it. */
+      client?: BaseAnthropic | undefined;
+    },
+  ) {
     this.#connectedPromise = new Promise<Response | null>((resolve, reject) => {
       this.#resolveConnectedPromise = resolve;
       this.#rejectConnectedPromise = reject;
@@ -99,6 +113,7 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
 
     this.#params = params;
     this.#logger = opts?.logger ?? console;
+    this.#client = opts?.client;
   }
 
   get response(): Response | null | undefined {
@@ -161,9 +176,16 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
     messages: Messages,
     params: MessageCreateParamsBase,
     options?: RequestOptions,
-    { logger }: { logger?: Logger | undefined } = {},
+    {
+      logger,
+      client,
+    }: {
+      logger?: Logger | undefined;
+      /** The client that makes the request, for the stream to start its span and record the message on it. */
+      client?: BaseAnthropic | undefined;
+    } = {},
   ): MessageStream<ParsedT> {
-    const runner = new MessageStream<ParsedT>(params, { logger });
+    const runner = new MessageStream<ParsedT>(params, { logger, client });
     for (const message of params.messages) {
       runner._addMessageParam(message);
     }
@@ -210,12 +232,35 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
     }
     try {
       this.#beginRequest();
+      // Started here, where a throw fails the stream, and kept to record the final message on.
+      // `create()` below gets it in its options, so it uses this span instead of starting its own.
+      this.#span =
+        options?.__span ?? (this.#client && startMessagesStreamSpan(this.#client, params, options));
       const { response, data: stream } = await messages
-        .create({ ...params, stream: true }, { ...options, signal: this.controller.signal })
+        .create(
+          { ...params, stream: true },
+          { ...options, __span: this.#span, signal: this.controller.signal },
+        )
         .withResponse();
-      this._connected(response);
+      try {
+        this._connected(response);
+      } catch (error) {
+        // Nothing reads the stream after a `connect` listener throws: closing it ends its span.
+        if (this.#span) {
+          this.#span.failure = error;
+        }
+        stream.controller.abort();
+        throw error;
+      }
       for await (const event of stream) {
-        this.#addStreamEvent(event);
+        try {
+          this.#addStreamEvent(event);
+        } catch (error) {
+          if (this.#span) {
+            this.#span.failure = error;
+          }
+          throw error;
+        }
       }
       if (stream.controller.signal?.aborted) {
         throw new APIUserAbortError();
@@ -380,6 +425,10 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
 
   #handleError = (error: unknown) => {
     this.#errored = true;
+    // The stream ignores the events after an error, so its message stops being what the API sent.
+    if (this.#span) {
+      this.#span.streamed = undefined;
+    }
     if (isAbortError(error)) {
       error = new APIUserAbortError();
     }
@@ -505,6 +554,9 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
         break;
       }
       case 'message_stop': {
+        if (this.#client && this.#span && this.#params) {
+          recordStreamedMessageContent(this.#client, this.#span, this.#params, messageSnapshot);
+        }
         this._addMessageParam(messageSnapshot);
         this._addMessage(maybeParseMessage(messageSnapshot, this.#params, { logger: this.#logger }), true);
         break;
@@ -515,6 +567,9 @@ export class MessageStream<ParsedT = null> implements AsyncIterable<MessageStrea
       }
       case 'message_start': {
         this.#currentMessageSnapshot = messageSnapshot;
+        if (this.#span && this.#params) {
+          this.#span.streamed = { body: this.#params, message: messageSnapshot };
+        }
         break;
       }
       case 'content_block_start':

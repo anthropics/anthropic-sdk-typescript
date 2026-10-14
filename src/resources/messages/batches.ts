@@ -53,6 +53,8 @@ export class Batches extends APIResource {
       ]),
       __span: startApiCallSpan(this._client, 'anthropic.messages.batches.create', options, {
         route: '/v1/messages/batches',
+        // A request without `requests` is for the API to refuse, not for this line to throw on.
+        attributes: { 'anthropic.message.batch.request_count': body.requests?.length },
         createdIDAttribute: 'anthropic.message.batch.id',
       }),
     });

@@ -6,6 +6,7 @@ import { Anthropic, ClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
 import { VERSION } from '@anthropic-ai/sdk/version';
+import { VERSION as PACKAGE_VERSION } from './version';
 
 /** API Client for interfacing with the Anthropic Foundry API. */
 export interface FoundryClientOptions extends ClientOptions {
@@ -30,6 +31,11 @@ export interface FoundryClientOptions extends ClientOptions {
 
 /** API Client for interfacing with the Anthropic Foundry API. */
 export class AnthropicFoundry extends Anthropic {
+  /** @internal */
+  override _instrumentationScope() {
+    return { platform: 'foundry', version: PACKAGE_VERSION };
+  }
+
   resource: string | null = null;
 
   // @ts-expect-error are using a different Messages type that omits batches

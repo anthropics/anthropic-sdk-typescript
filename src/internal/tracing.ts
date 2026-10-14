@@ -46,6 +46,8 @@ const INSTRUMENTATION_SCOPE = 'com.anthropic.sdk.typescript';
 // `@opentelemetry/semantic-conventions` names them. They are copied rather than imported: that
 // package is not a dependency of this SDK.
 export const ATTR_ERROR_TYPE = 'error.type';
+export const ATTR_GEN_AI_CONVERSATION_ID = 'gen_ai.conversation.id';
+export const ATTR_GEN_AI_PROVIDER_NAME = 'gen_ai.provider.name';
 export const ATTR_HTTP_REQUEST_METHOD = 'http.request.method';
 export const ATTR_HTTP_REQUEST_RESEND_COUNT = 'http.request.resend_count';
 export const ATTR_HTTP_RESPONSE_STATUS_CODE = 'http.response.status_code';
@@ -56,6 +58,8 @@ export const ATTR_URL_FULL = 'url.full';
 export const ATTR_URL_PATH = 'url.path';
 export const ATTR_URL_QUERY = 'url.query';
 export const ATTR_URL_SCHEME = 'url.scheme';
+// This API's own name, in the same style.
+export const ATTR_ANTHROPIC_SESSION_THREAD_ID = 'anthropic.session.thread.id';
 
 /**
  * The `openTelemetry` client option.
@@ -72,8 +76,7 @@ export interface OpenTelemetryOptions {
    * that the propagator registered with the OpenTelemetry API writes: `traceparent`, and
    * `tracestate` and `baggage` when the propagator writes them. `false` is for an application
    * whose HTTP client instrumentation already propagates the trace context, so that a request
-   * does not carry it twice. It does not affect the spans. When unset, the environment variable
-   * `ANTHROPIC_OPEN_TELEMETRY_PROPAGATION` set to `false` turns it off.
+   * does not carry it twice. It does not affect the spans.
    *
    * @default true
    */
@@ -91,9 +94,7 @@ export interface OpenTelemetryOptions {
  */
 export interface OpenTelemetryTracesOptions {
   /**
-   * Whether this client emits spans. When unset, the environment variable
-   * `ANTHROPIC_OPEN_TELEMETRY` set to `false` disables them. A client that emits no span does not
-   * use the other settings.
+   * Whether this client emits spans. A client that emits no span does not use the other settings.
    *
    * @default true
    */
@@ -101,8 +102,7 @@ export interface OpenTelemetryTracesOptions {
 
   /**
    * Whether this client's spans carry the content of its requests and responses, such as
-   * prompts and completions. `metadata_only` leaves the content out. When unset, the
-   * environment variable `ANTHROPIC_OPEN_TELEMETRY_TRACES_CONTENT_MODE` gives the mode.
+   * prompts and completions. `metadata_only` leaves the content out.
    *
    * @default 'metadata_only'
    */
@@ -111,8 +111,7 @@ export interface OpenTelemetryTracesOptions {
   /**
    * The most content that one span carries, in bytes. The SDK measures the content attributes'
    * values by their size in UTF-8. A span with more content loses some of it, and has
-   * `anthropic.content.truncated`. An integer of at least 1. When unset, the environment
-   * variable `ANTHROPIC_OPEN_TELEMETRY_TRACES_MAX_CONTENT_BYTES` gives the size.
+   * `anthropic.content.truncated`. An integer of at least 1.
    *
    * @default 750000
    */
@@ -122,7 +121,14 @@ export interface OpenTelemetryTracesOptions {
 /**
  * The `openTelemetry` request option.
  */
-export interface OpenTelemetryRequestOptions {}
+export interface OpenTelemetryRequestOptions {
+  /**
+   * An ID that links this API call's span to the spans of the other API calls in one
+   * conversation. The SDK sets it as `gen_ai.conversation.id`, and does not send it to the API.
+   * Without one, a call to a Session thread's path has the ID of that thread there.
+   */
+  conversationId?: string | undefined;
+}
 
 /**
  * The `openTelemetry` client option as a client keeps it, with every field of `traces` settled.
@@ -151,14 +157,14 @@ export interface ResolvedOpenTelemetryOptions {
   };
 }
 
-/** The `traces.maxContentBytes` of a client whose option and environment give none. */
+/** The default `traces.maxContentBytes`. */
 const DEFAULT_MAX_CONTENT_BYTES = 750_000;
 
 /**
- * Settles `propagation` and the `traces` field of `option`, the `openTelemetry` client option:
- * each field from the option's own, or else from its environment variable, which applies only to
- * a client that leaves the field unset. A content mode or a size that is not valid is the default
- * one.
+ * Settles `propagation` and the `traces` field of `option`, the `openTelemetry` client option. The
+ * environment variables apply only to a client that is given no option. An option that is given is
+ * complete: a field that it leaves unset has the default, whatever the environment says. A content
+ * mode or a size that is not valid is the default one.
  *
  * A client calls this once, when it is constructed, and keeps the result, which a
  * `withOptions()` copy without its own option takes as it is. So a later change to the environment
@@ -169,27 +175,39 @@ export function resolveOpenTelemetryOptions(
 ): ResolvedOpenTelemetryOptions {
   // `false` is short for `{ traces: false }`.
   const { tracerProvider, propagation, traces }: OpenTelemetryOptions =
-    option === false ? { traces: false } : option ?? {};
-  const settings: OpenTelemetryTracesOptions =
+    option === false ? { traces: false } : option ?? optionFromEnv();
+  const { enabled, contentMode, maxContentBytes }: OpenTelemetryTracesOptions =
     typeof traces === 'boolean' ? { enabled: traces } : traces ?? {};
-  const contentMode =
-    settings.contentMode ?? readEnv('ANTHROPIC_OPEN_TELEMETRY_TRACES_CONTENT_MODE')?.toLowerCase();
-  // The variable holds decimal digits only: `1e3` and `0x10` are not sizes.
-  const maxContentBytes =
-    settings.maxContentBytes ??
-    Number(/^\d+$/.exec(readEnv('ANTHROPIC_OPEN_TELEMETRY_TRACES_MAX_CONTENT_BYTES') ?? '')?.[0] ?? NaN);
   return Object.freeze({
     tracerProvider,
-    propagation: propagation ?? readEnv('ANTHROPIC_OPEN_TELEMETRY_PROPAGATION')?.toLowerCase() !== 'false',
+    propagation: propagation ?? true,
     traces: Object.freeze({
-      enabled: settings.enabled ?? readEnv('ANTHROPIC_OPEN_TELEMETRY')?.toLowerCase() !== 'false',
+      enabled: enabled ?? true,
       contentMode: contentMode === 'content' ? 'content' : 'metadata_only',
       maxContentBytes:
-        Number.isInteger(maxContentBytes) && maxContentBytes >= 1 ?
+        maxContentBytes !== undefined && Number.isInteger(maxContentBytes) && maxContentBytes >= 1 ?
           maxContentBytes
         : DEFAULT_MAX_CONTENT_BYTES,
     }),
   });
+}
+
+/** What the environment variables give, for a client that is given no `openTelemetry` option. */
+function optionFromEnv(): OpenTelemetryOptions {
+  return {
+    propagation: readEnv('ANTHROPIC_OPEN_TELEMETRY_PROPAGATION')?.toLowerCase() !== 'false',
+    traces: {
+      enabled: readEnv('ANTHROPIC_OPEN_TELEMETRY')?.toLowerCase() !== 'false',
+      contentMode:
+        readEnv('ANTHROPIC_OPEN_TELEMETRY_TRACES_CONTENT_MODE')?.toLowerCase() === 'content' ?
+          'content'
+        : 'metadata_only',
+      // The variable holds decimal digits only: `1e3` and `0x10` are not sizes.
+      maxContentBytes: Number(
+        /^\d+$/.exec(readEnv('ANTHROPIC_OPEN_TELEMETRY_TRACES_MAX_CONTENT_BYTES') ?? '')?.[0] ?? NaN,
+      ),
+    },
+  };
 }
 
 /**
@@ -243,6 +261,16 @@ export interface ApiCallSpan extends ApiCallSpanSettings {
   startTime: number;
   /** How many attempts the call has made so far. */
   attempts?: number;
+  /**
+   * The error of a stream helper that failed while it read the call's stream. Without it the
+   * stream's end, which the helper's exit causes, would read as a cancellation.
+   */
+  failure?: unknown;
+  /**
+   * The size of the request's content on the span, which counts toward the content size limit, or
+   * more than that when the content was not measured.
+   */
+  requestContentSize?: number;
 }
 
 /**
@@ -310,11 +338,18 @@ export function startApiCallSpan(
   }
   return guardTracing(client, () => {
     const startTime = Date.now();
+    // A Session thread is a conversation, so its ID in the path stands in for one the application
+    // did not give.
+    const threadID = settings?.attributes?.[ATTR_ANTHROPIC_SESSION_THREAD_ID];
+    const conversationId =
+      options?.openTelemetry?.conversationId ?? (typeof threadID === 'string' ? threadID : undefined);
     const span = tracer.startSpan(name, {
       kind: SpanKind.CLIENT,
       // On the span from its start, with what the method gives, for a sampler to decide on.
       attributes: {
+        [ATTR_GEN_AI_PROVIDER_NAME]: client._genAIProviderName,
         ...serverAttributes(client.baseURL),
+        ...(conversationId != null ? { [ATTR_GEN_AI_CONVERSATION_ID]: conversationId } : undefined),
         ...(settings?.route != null ? { [ATTR_HTTP_ROUTE]: settings.route } : undefined),
         ...settings?.attributes,
       },
@@ -642,8 +677,8 @@ function injectContext(span: Span): Record<string, string> {
 }
 
 /**
- * The `error.type` of an operation that failed with `error`: for an error response, its status
- * code.
+ * The `error.type` of an operation that failed with `error`. An error response has the type of
+ * its error envelope when the API sent one, and its status code otherwise.
  */
 function errorType(error: unknown): string {
   if (error instanceof APIConnectionTimeoutError) {
@@ -652,8 +687,13 @@ function errorType(error: unknown): string {
   if (error instanceof APIConnectionError) {
     return 'connection_error';
   }
-  if (error instanceof APIError && error.status !== undefined) {
-    return String(error.status);
+  if (error instanceof APIError) {
+    if (error.type) {
+      return error.type;
+    }
+    if (error.status !== undefined) {
+      return String(error.status);
+    }
   }
   return 'client_error';
 }

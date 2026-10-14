@@ -1,3 +1,4 @@
+import type { Anthropic } from '../../client';
 import { STAINLESS_HELPER_METHOD_HEADER } from '../../internal/stainless-helper-header';
 import { type RequestOptions } from '../../internal/request-options';
 import type {
@@ -5,7 +6,6 @@ import type {
   BetaRawMessageStreamEvent,
   BetaToolUseBlock,
   MessageCreateParamsBase,
-  Messages,
 } from '../../resources/beta/messages/messages';
 import { BetaMessageStream } from '../BetaMessageStream';
 
@@ -28,8 +28,12 @@ export class BetaToolRunnerStream extends BetaMessageStream {
   /** Whether a refusal has handed the reply to a fallback model */
   #fallback = false;
 
-  constructor(params: MessageCreateParamsBase, onToolCall: (toolUse: BetaToolUseBlock) => void) {
-    super(params);
+  constructor(
+    params: MessageCreateParamsBase,
+    onToolCall: (toolUse: BetaToolUseBlock) => void,
+    client: Anthropic,
+  ) {
+    super(params, { client });
     this.#onToolCall = onToolCall;
   }
 
@@ -40,18 +44,18 @@ export class BetaToolRunnerStream extends BetaMessageStream {
 
   /** Sends the request as `client.beta.messages.stream()` does. */
   static start(
-    messages: Messages,
+    client: Anthropic,
     params: MessageCreateParamsBase,
     options: RequestOptions | undefined,
     onToolCall: (toolUse: BetaToolUseBlock) => void,
   ): BetaToolRunnerStream {
-    const stream = new BetaToolRunnerStream({ ...params, stream: true }, onToolCall);
+    const stream = new BetaToolRunnerStream({ ...params, stream: true }, onToolCall, client);
     for (const message of params.messages) {
       stream._addMessageParam(message);
     }
     stream._run(() =>
       stream._createMessage(
-        messages,
+        client.beta.messages,
         { ...params, stream: true },
         { ...options, headers: { ...options?.headers, [STAINLESS_HELPER_METHOD_HEADER]: 'stream' } },
       ),

@@ -34,6 +34,15 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.24.2
         version: 1.24.2(zod@4.4.3)
+      '@opentelemetry/context-async-hooks':
+        specifier: ~2.8.0
+        version: 2.8.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/core':
+        specifier: ~2.8.0
+        version: 2.8.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/sdk-trace-base':
+        specifier: ~2.8.0
+        version: 2.8.0(@opentelemetry/api@1.9.1)
       '@types/node':
         specifier: ^20.17.6
         version: 20.19.11
@@ -101,6 +110,9 @@ importers:
       '@aws-sdk/credential-providers':
         specifier: ^3.796.0
         version: 3.1018.0
+      '@opentelemetry/api':
+        specifier: ^1.4.1
+        version: 1.9.1
       '@smithy/config-resolver':
         specifier: ^4.1.4
         version: 4.4.13
@@ -168,6 +180,9 @@ importers:
       '@aws-sdk/credential-providers':
         specifier: ^3.796.0
         version: 3.797.0
+      '@opentelemetry/api':
+        specifier: ^1.4.1
+        version: 1.9.1
       '@smithy/eventstream-serde-node':
         specifier: ^2.0.10
         version: 2.2.0
@@ -229,6 +244,9 @@ importers:
       '@anthropic-ai/sdk':
         specifier: workspace:*
         version: link:../../dist
+      '@opentelemetry/api':
+        specifier: ^1.4.1
+        version: 1.9.1
     devDependencies:
       '@types/node':
         specifier: ^20.17.6
@@ -269,6 +287,9 @@ importers:
       '@anthropic-ai/sdk':
         specifier: workspace:*
         version: link:../../dist
+      '@opentelemetry/api':
+        specifier: ^1.4.1
+        version: 1.9.1
       google-auth-library:
         specifier: ^10.2.0
         version: 10.9.0
@@ -312,6 +333,9 @@ importers:
       '@anthropic-ai/sdk':
         specifier: workspace:*
         version: link:../../dist
+      '@opentelemetry/api':
+        specifier: ^1.4.1
+        version: 1.9.1
       google-auth-library:
         specifier: ^10.2.0
         version: 10.7.0
@@ -1046,6 +1070,49 @@ packages:
         integrity: sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q==,
       }
     engines: { node: '>=8.0.0' }
+
+  '@opentelemetry/context-async-hooks@2.8.0':
+    resolution:
+      {
+        integrity: sha512-/3FIraneMcng67SUJCxvyInk/oxzwsxyadufk0wwfOBLf5wqtAGX4MoQASwSbndBPeARzBryUM9Azr5kHIdWLw==,
+      }
+    engines: { node: ^18.19.0 || >=20.6.0 }
+    peerDependencies:
+      '@opentelemetry/api': '>=1.0.0 <1.10.0'
+
+  '@opentelemetry/core@2.8.0':
+    resolution:
+      {
+        integrity: sha512-hd1Lfh8p545nNz+jq1Ejfz+Mn1hyLuxYn1YzTfFNrxr8urEWMNQLPf1Th8kjOH+HxwawCrtgBp8JpBUR4ZSgww==,
+      }
+    engines: { node: ^18.19.0 || >=20.6.0 }
+    peerDependencies:
+      '@opentelemetry/api': '>=1.0.0 <1.10.0'
+
+  '@opentelemetry/resources@2.8.0':
+    resolution:
+      {
+        integrity: sha512-qmXQ27ilDbUK/vGMqwL8D4/rhn76C+sherM4wTbjlfknR8Nvfc/hCxjRJPhkzZzUsPiNg16SA31NxMabwttRjg==,
+      }
+    engines: { node: ^18.19.0 || >=20.6.0 }
+    peerDependencies:
+      '@opentelemetry/api': '>=1.3.0 <1.10.0'
+
+  '@opentelemetry/sdk-trace-base@2.8.0':
+    resolution:
+      {
+        integrity: sha512-mhU4jp+vW0mGbFRd+GeXHvmfA4aDqWjBjLC3pE5XMpLs0IE2ryYb019Ts2AQrOq67gaTF25D91+fgvEHDZEnuQ==,
+      }
+    engines: { node: ^18.19.0 || >=20.6.0 }
+    peerDependencies:
+      '@opentelemetry/api': '>=1.3.0 <1.10.0'
+
+  '@opentelemetry/semantic-conventions@1.43.0':
+    resolution:
+      {
+        integrity: sha512-eSYWTm620tTk45EKSedaUL8MFYI8hW164hIXsgIHyxu3VobUB3fFCu5t0hQby6OoWRPsG1KkKUG2M5UadiLiVg==,
+      }
+    engines: { node: '>=14' }
 
   '@oxc-project/types@0.143.0':
     resolution:
@@ -5882,6 +5949,30 @@ snapshots:
   '@open-draft/until@2.1.0': {}
 
   '@opentelemetry/api@1.9.1': {}
+
+  '@opentelemetry/context-async-hooks@2.8.0(@opentelemetry/api@1.9.1)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+
+  '@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/semantic-conventions': 1.43.0
+
+  '@opentelemetry/resources@2.8.0(@opentelemetry/api@1.9.1)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/core': 2.8.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/semantic-conventions': 1.43.0
+
+  '@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/core': 2.8.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/resources': 2.8.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/semantic-conventions': 1.43.0
+
+  '@opentelemetry/semantic-conventions@1.43.0': {}
 
   '@oxc-project/types@0.143.0': {}
 

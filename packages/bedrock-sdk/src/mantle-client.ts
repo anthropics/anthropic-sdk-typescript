@@ -5,6 +5,7 @@ import { readEnv } from './internal/utils/env';
 import { APIRequest, BaseAnthropic, ClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
 import { VERSION } from '@anthropic-ai/sdk/version';
+import { VERSION as PACKAGE_VERSION } from './version';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
 import { getAuthHeaders } from './core/aws-auth';
 import type { Middleware } from './core/middleware';
@@ -84,6 +85,14 @@ export interface BedrockMantleClientOptions extends ClientOptions {
  * Only the `messages` and `beta.messages` resources are supported.
  */
 export class AnthropicBedrockMantle extends BaseAnthropic {
+  /** @internal */
+  override _genAIProviderName = 'aws.bedrock';
+
+  /** @internal */
+  override _instrumentationScope() {
+    return { platform: 'bedrock', version: PACKAGE_VERSION };
+  }
+
   messages: Resources.Messages = new Resources.Messages(this);
   beta: MantleBetaResource = makeMantleBetaResource(this);
 

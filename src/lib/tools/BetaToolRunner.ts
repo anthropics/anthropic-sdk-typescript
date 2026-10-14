@@ -1,4 +1,5 @@
-import { BetaRunnableTool, toolErrorContent } from './BetaRunnableTool';
+import { context, trace, SpanStatusCode, type Context } from '@opentelemetry/api';
+import { BetaRunnableTool, runRunnableTool } from './BetaRunnableTool';
 import { BetaRunnableToolset } from './BetaRunnableToolset';
 import { isRunnableToolset, toolsetFamily } from '../internal/toolsets/family';
 import { runToolsetMember, notExecutedText, toolsetResultBlock } from '../internal/toolsets/run';
@@ -24,6 +25,8 @@ import {
 } from '../../resources/beta';
 import { BetaMessageStream } from '../BetaMessageStream';
 import { BetaToolRunnerStream } from '../internal/BetaToolRunnerStream';
+import { guardTracing, setErrorStatus } from '../../internal/tracing';
+import { startToolRunnerSpan, withToolUseSpan } from '../internal/tracing';
 import { RequestOptions } from '../../internal/request-options';
 import { buildHeaders } from '../../internal/headers';
 import { promiseWithResolvers } from '../../internal/utils/promise';
@@ -72,6 +75,11 @@ export class BetaToolRunner<Stream extends boolean> {
   };
   /** Number of iterations (API requests) made so far */
   #iterationCount = 0;
+  /**
+   * The OpenTelemetry `Context` of the loop that is running: the one that was active when the loop
+   * started, with the tool runner span set as the active span.
+   */
+  #toolRunnerOtelContext: Context | undefined;
   /** A compaction scheduled with `compactBeforeNextTurn()`, in flight until its response has been handled */
   #compaction: Compaction = { status: 'idle' };
   /** The tool calls of the current reply that are held or have started, by `tool_use` id. See `runToolsEagerly`. */
@@ -122,6 +130,18 @@ export class BetaToolRunner<Stream extends boolean> {
     this.#completion = promiseWithResolvers();
   }
 
+  /**
+   * Runs `fn` with the tool runner span current. A generator resumes in the context of whoever
+   * calls `next()`, and a `yield` cannot sit in a `context.with()` callback, so each stretch of
+   * runner code between two yields enters the context again.
+   */
+  #withToolRunnerSpan<T>(fn: () => T): T {
+    if (!this.#toolRunnerOtelContext) {
+      return fn();
+    }
+    return context.with(this.#toolRunnerOtelContext, fn);
+  }
+
   async *[Symbol.asyncIterator](): AsyncIterator<
     Stream extends true ? BetaMessageStream
     : Stream extends false ? BetaMessage
@@ -134,6 +154,11 @@ export class BetaToolRunner<Stream extends boolean> {
     this.#consumed = true;
     this.#mutated = true;
     this.#toolResponse = undefined;
+
+    const toolRunnerSpan = guardTracing(this.client, () =>
+      startToolRunnerSpan(this.client, this.#state.params, this.#options.openTelemetry?.conversationId),
+    );
+    this.#toolRunnerOtelContext = toolRunnerSpan && trace.setSpan(context.active(), toolRunnerSpan);
 
     try {
       while (true) {
@@ -165,42 +190,51 @@ export class BetaToolRunner<Stream extends boolean> {
 
           yield* this.#send(params);
 
-          if (!this.#mutated) {
-            const message = await this.#message!;
-            const nextStep = determineNextStepFromStopReason(message.stop_reason);
-            this.#lastStopReason = message.stop_reason;
-            this.#state.params.messages.push({
-              role: message.role,
-              content: asContentParam(message.content),
-            });
+          const next = await this.#withToolRunnerSpan(async () => {
+            if (!this.#mutated) {
+              const message = await this.#message!;
+              const nextStep = determineNextStepFromStopReason(message.stop_reason);
+              this.#lastStopReason = message.stop_reason;
+              this.#state.params.messages.push({
+                role: message.role,
+                content: asContentParam(message.content),
+              });
 
-            // Container-bound server tools reject a follow-up request that omits the container the
-            // previous turn ran in, so carry its id forward unless the caller pinned one themselves.
-            const { container } = this.#state.params;
-            if (message.container) {
-              if (container == null) {
-                this.#state.params.container = message.container.id;
-              } else if (typeof container === 'object' && container.id == null) {
-                this.#state.params.container = { ...container, id: message.container.id };
+              // Container-bound server tools reject a follow-up request that omits the container the
+              // previous turn ran in, so carry its id forward unless the caller pinned one themselves.
+              const { container } = this.#state.params;
+              if (message.container) {
+                if (container == null) {
+                  this.#state.params.container = message.container.id;
+                } else if (typeof container === 'object' && container.id == null) {
+                  this.#state.params.container = { ...container, id: message.container.id };
+                }
               }
+
+              if (nextStep === 'stop') {
+                return 'stop';
+              }
+              if (nextStep === 'resume') {
+                return 'continue';
+              }
+            } else {
+              // The caller has taken over the history, so the last response no longer says how it ends.
+              this.#lastStopReason = null;
             }
 
-            if (nextStep === 'stop') {
-              yield* this.#compactAfterFinalTurn();
-              break;
+            const toolMessage = await this.#generateToolResponse(
+              this.#state.params.messages.at(-1)!,
+              this.#options.signal,
+              this.#toolRunnerOtelContext,
+            );
+            if (toolMessage) {
+              this.#state.params.messages.push(toolMessage);
+            } else if (!this.#mutated) {
+              return 'stop';
             }
-            if (nextStep === 'resume') {
-              continue;
-            }
-          } else {
-            // The caller has taken over the history, so the last response no longer says how it ends.
-            this.#lastStopReason = null;
-          }
-
-          const toolMessage = await this.#generateToolResponse(this.#state.params.messages.at(-1)!);
-          if (toolMessage) {
-            this.#state.params.messages.push(toolMessage);
-          } else if (!this.#mutated) {
+            return 'continue';
+          });
+          if (next === 'stop') {
             yield* this.#compactAfterFinalTurn();
             break;
           }
@@ -216,13 +250,21 @@ export class BetaToolRunner<Stream extends boolean> {
       }
 
       this.#completion.resolve(await this.#message);
+      guardTracing(this.client, () => toolRunnerSpan?.setStatus({ code: SpanStatusCode.OK }));
     } catch (error) {
+      if (toolRunnerSpan) {
+        guardTracing(this.client, () => setErrorStatus(toolRunnerSpan, error));
+      }
       this.#consumed = false;
       // Silence unhandled promise errors
       this.#completion.promise.catch(() => {});
       this.#completion.reject(error);
       this.#completion = promiseWithResolvers();
       throw error;
+    } finally {
+      // Ends with no status when the application closed the iterator: a cancellation.
+      guardTracing(this.client, () => toolRunnerSpan?.end());
+      this.#toolRunnerOtelContext = undefined;
     }
   }
 
@@ -234,23 +276,26 @@ export class BetaToolRunner<Stream extends boolean> {
   async *#send(params: MessageCreateParams): AsyncGenerator<BetaToolRunnerItem<Stream>, void, undefined> {
     await this.#startedCallsSettled();
     this.#calls = undefined;
-    params = {
+    params = this.#withToolRunnerSpan(() => ({
       ...params,
       ...(params.tools && { tools: params.tools.map(toolDefinition) }),
       messages: withToolDefinitions(params.messages),
-    };
+    }));
     if (params.stream) {
-      this.#stream =
+      this.#stream = this.#withToolRunnerSpan(() =>
         this.#state.params.runToolsEagerly ?
           this.#streamThatStartsTools(params)
-        : this.client.beta.messages.stream({ ...params }, this.#options);
+        : this.client.beta.messages.stream({ ...params }, this.#options),
+      );
       this.#message = this.#stream.finalMessage();
       // Make sure that this promise doesn't throw before we get the option to do something about it.
       // Error will be caught when we call await this.#message ultimately
       this.#message.catch(() => {});
       yield this.#stream as any;
     } else {
-      this.#message = this.client.beta.messages.create({ ...params, stream: false }, this.#options);
+      this.#message = this.#withToolRunnerSpan(() =>
+        this.client.beta.messages.create({ ...params, stream: false }, this.#options),
+      );
       yield this.#message as any;
     }
   }
@@ -262,7 +307,7 @@ export class BetaToolRunner<Stream extends boolean> {
     // A toolset runs its calls one at a time, in the model's order. So a toolset's call starts here only while the
     // toolset is idle, and once one of its calls waits for the reply or fails, its later calls wait for the reply too.
     const toolsets = new Map<string, 'running' | 'waiting'>();
-    return BetaToolRunnerStream.start(this.client.beta.messages, params, this.#options, (toolUse) => {
+    return BetaToolRunnerStream.start(this.client, params, this.#options, (toolUse) => {
       // Held, or started by `generateToolResponse()` before a reader that is behind got to the call.
       const known = calls.has(toolUse.id);
       // A call named after a toolset is a toolset call with malformed actions, which `generateToolResponse()` answers.
@@ -274,7 +319,14 @@ export class BetaToolRunner<Stream extends boolean> {
           return;
         }
         toolsets.set(family, 'running');
-        const result = runToolsetCall(this.#state.params, family, toolUse, this.#options);
+        const result = runToolsetCall(
+          this.#state.params,
+          family,
+          toolUse,
+          this.#options,
+          this.client,
+          this.#toolRunnerOtelContext,
+        );
         calls.set(toolUse.id, { status: 'started', result });
         result.then(
           ({ is_error }) => {
@@ -289,7 +341,14 @@ export class BetaToolRunner<Stream extends boolean> {
         return;
       }
       // The call looks its tool up now, so a later `addTools()` or `removeTools()` doesn't change it.
-      const result = runToolCall(this.#runnableTools(), this.#availableToolNames(), toolUse, this.#options);
+      const result = runToolCall(
+        this.#runnableTools(),
+        this.#availableToolNames(),
+        toolUse,
+        this.#options,
+        this.client,
+        this.#toolRunnerOtelContext,
+      );
       // Marks a rejection as handled until the results are collected.
       result.catch(() => {});
       calls.set(toolUse.id, { status: 'started', result });
@@ -493,16 +552,20 @@ export class BetaToolRunner<Stream extends boolean> {
    * }
    */
   async generateToolResponse(signal: AbortSignal | null | undefined = this.#options.signal) {
+    // Read before the first `await`: a context manager that does not follow promises has lost the
+    // caller's context after it. Only a tool span has a use for it.
+    const callerOtelContext = this.client._tracer ? context.active() : undefined;
     const message = (await this.#message) ?? this.params.messages.at(-1);
     if (!message) {
       return null;
     }
-    return this.#generateToolResponse(message, signal);
+    return this.#generateToolResponse(message, signal, callerOtelContext);
   }
 
   async #generateToolResponse(
     lastMessage: BetaMessage | BetaMessageParam,
-    signal: AbortSignal | null | undefined = this.#options.signal,
+    signal: AbortSignal | null | undefined,
+    toolOtelContext: Context | undefined,
   ) {
     if (this.#toolResponse !== undefined) {
       return this.#toolResponse;
@@ -514,6 +577,8 @@ export class BetaToolRunner<Stream extends boolean> {
       lastMessage,
       { ...this.#options, signal },
       this.#calls,
+      this.client,
+      toolOtelContext,
     );
     return this.#toolResponse;
   }
@@ -895,8 +960,10 @@ async function generateToolResponse(
   runnable: ReadonlyMap<string, BetaRunnableTool<any>>,
   available: ReadonlySet<string>,
   lastMessage: BetaMessage | BetaMessageParam,
-  requestOptions?: BetaToolRunnerRequestOptions,
-  calls?: Map<string, ToolCallState>,
+  requestOptions: BetaToolRunnerRequestOptions | undefined,
+  calls: Map<string, ToolCallState> | undefined,
+  client: Anthropic,
+  toolOtelContext: Context | undefined,
 ): Promise<BetaMessageParam | null> {
   // Only process if the last message is from the assistant and has tool use blocks
   if (
@@ -934,7 +1001,7 @@ async function generateToolResponse(
           sequence.tail.then(() =>
             sequence.failed ?
               toolsetResultBlock(toolUse, notExecutedText(family), true)
-            : runToolsetCall(params, family, toolUse, requestOptions),
+            : runToolsetCall(params, family, toolUse, requestOptions, client, toolOtelContext),
           );
         // A rejection (a usage error) propagates through Promise.all and stops the run. It also stops this toolset's
         // later members here, which would otherwise still be dispatched after the run has failed.
@@ -966,7 +1033,7 @@ async function generateToolResponse(
         });
         return malformedToolsetCallResult(toolUse);
       }
-      const result = runToolCall(runnable, available, toolUse, requestOptions);
+      const result = runToolCall(runnable, available, toolUse, requestOptions, client, toolOtelContext);
       calls?.set(toolUse.id, { status: 'started', result });
       return result;
     }),
@@ -984,24 +1051,39 @@ async function runToolsetCall(
   family: string,
   toolUse: BetaToolUseBlock,
   requestOptions: BetaToolRunnerRequestOptions | undefined,
+  client: Anthropic,
+  toolOtelContext: Context | undefined,
 ): Promise<BetaToolResultBlockParam> {
   const toolset = params.tools.find(
     (t): t is BetaRunnableToolset => isRunnableToolset(t) && toolsetFamily(t) === family,
   );
-  return toolset ?
-      runToolsetMember(toolset, toolUse, { signal: requestOptions?.signal })
-    : toolsetResultBlock(
-        toolUse,
-        `Error: Toolset '${quotedName(family)}' member '${quotedName(toolUse.name)}' not found`,
-        true,
-      );
+  if (!toolset) {
+    return toolsetResultBlock(
+      toolUse,
+      `Error: Toolset '${quotedName(family)}' member '${quotedName(toolUse.name)}' not found`,
+      true,
+    );
+  }
+
+  const spanOptions = {
+    signal: requestOptions?.signal,
+    conversationId: requestOptions?.openTelemetry?.conversationId,
+    parentContext: toolOtelContext,
+  };
+  const outcome = await withToolUseSpan(client, toolset, toolUse, spanOptions, async () => {
+    const block = await runToolsetMember(toolset, toolUse, { signal: requestOptions?.signal });
+    return { block, content: block.content ?? [], isError: block.is_error === true };
+  });
+  return outcome.block;
 }
 
 async function runToolCall(
   runnable: ReadonlyMap<string, BetaRunnableTool<any>>,
   available: ReadonlySet<string>,
   toolUse: BetaToolUseBlock,
-  requestOptions?: BetaToolRunnerRequestOptions,
+  requestOptions: BetaToolRunnerRequestOptions | undefined,
+  client: Anthropic,
+  toolOtelContext: Context | undefined,
 ): Promise<BetaToolResultBlockParam> {
   // A `tool_removal` is only a hint to the model, which may still emit a tool_use for a
   // withdrawn tool — treat those exactly like a tool that was never defined.
@@ -1010,30 +1092,24 @@ async function runToolCall(
     return toolNotFoundResult(toolUse);
   }
 
-  try {
-    let input = toolUse.input;
-    if ('parse' in tool && tool.parse) {
-      input = tool.parse(input);
-    }
-
-    const result = await tool.run(input, {
-      toolUse: toolUse,
+  const spanOptions = {
+    signal: requestOptions?.signal,
+    conversationId: requestOptions?.openTelemetry?.conversationId,
+    parentContext: toolOtelContext,
+  };
+  const outcome = await withToolUseSpan(client, tool, toolUse, spanOptions, () =>
+    runRunnableTool(tool, toolUse.input, {
+      toolUse,
       toolUseBlock: toolUse,
       signal: requestOptions?.signal,
-    });
-    return {
-      type: 'tool_result' as const,
-      tool_use_id: toolUse.id,
-      content: result,
-    };
-  } catch (error) {
-    return {
-      type: 'tool_result' as const,
-      tool_use_id: toolUse.id,
-      content: toolErrorContent(error),
-      is_error: true,
-    };
-  }
+    }),
+  );
+  return {
+    type: 'tool_result' as const,
+    tool_use_id: toolUse.id,
+    content: outcome.content,
+    ...(outcome.isError ? { is_error: true } : undefined),
+  };
 }
 
 /**
@@ -1202,7 +1278,10 @@ export type BetaToolRunnerParams = Simplify<
   }
 >;
 
-export type BetaToolRunnerRequestOptions = Pick<RequestOptions, 'headers' | 'signal' | 'fallbackState'>;
+export type BetaToolRunnerRequestOptions = Pick<
+  RequestOptions,
+  'headers' | 'signal' | 'fallbackState' | 'openTelemetry'
+>;
 
 type ToolRunnerRequestParams = Omit<BetaToolRunnerParams, 'max_iterations' | 'runToolsEagerly'>;
 

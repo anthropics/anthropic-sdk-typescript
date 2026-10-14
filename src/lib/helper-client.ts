@@ -1,6 +1,6 @@
 import { AnthropicError } from '../core/error';
 import type { Anthropic } from '../client';
-import { buildHeaders, type HeadersLike, type NullableHeaders } from '../internal/headers';
+import { buildHeaders, type NullableHeaders } from '../internal/headers';
 import {
   STAINLESS_HELPER_HEADER,
   type StainlessHelperHeaderValue,
@@ -21,7 +21,6 @@ import {
  */
 
 interface ClientInternalAccess {
-  _options: { defaultHeaders?: HeadersLike };
   _authState?: { extraHeaders?: Record<string, string> };
 }
 
@@ -58,10 +57,9 @@ export function copyClientForHelper<T extends Anthropic>(
       `copyClientForHelper: expected a non-empty authToken but received ${JSON.stringify(authToken)}`,
     );
   }
-  const internal = client as unknown as ClientInternalAccess;
-  const parentDefaults = internal._options.defaultHeaders;
+  const parentDefaults = client._options.defaultHeaders;
   // Carry the parent's credential/profile headers; strip the auth ones (we re-auth below).
-  const parentAuthExtraHeaders = internal._authState?.extraHeaders;
+  const parentAuthExtraHeaders = (client as unknown as ClientInternalAccess)._authState?.extraHeaders;
   const inheritedAuthExtraHeaders: Record<string, string> | undefined =
     parentAuthExtraHeaders ?
       Object.fromEntries(
