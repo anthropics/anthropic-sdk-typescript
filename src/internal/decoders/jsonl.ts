@@ -4,10 +4,9 @@ import { LineDecoder, type Bytes } from './line';
 
 export class JSONLDecoder<T> {
   controller: AbortController;
-  #consumed = false;
 
   constructor(
-    private iterator: AsyncIterableIterator<Bytes>,
+    private iterator: AsyncIterableIterator<Bytes> | undefined,
     controller: AbortController,
     // Node's fetch cancels an unread body once its response is garbage collected, so we hold a reference.
     private response?: Response,
@@ -16,13 +15,15 @@ export class JSONLDecoder<T> {
   }
 
   private async *decoder(): AsyncIterator<T, any, undefined> {
-    if (this.#consumed) {
+    const iterator = this.iterator;
+    if (!iterator) {
       throw new AnthropicError('Cannot iterate over a consumed stream.');
     }
-    this.#consumed = true;
+    // Lets the iterator be collected with this generator, even if the decoder is still held.
+    this.iterator = undefined;
 
     const lineDecoder = new LineDecoder();
-    for await (const chunk of this.iterator) {
+    for await (const chunk of iterator) {
       for (const line of lineDecoder.decode(chunk)) {
         yield JSON.parse(line) as T;
       }

@@ -10,6 +10,7 @@
 
 ### Bug Fixes
 
+* **client:** close streams dropped without being read to the end
 * **client:** keep an unread JSONL response open while it is held
 
 
