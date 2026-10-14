@@ -1,0 +1,14 @@
+{
+  "include": ["dist/**/*.d.ts", "dist/**/*.d.mts"],
+  "exclude": ["dist/src"],
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": ["es2022"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": false
+  }
+}

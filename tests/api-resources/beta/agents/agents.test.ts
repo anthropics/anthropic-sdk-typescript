@@ -7,7 +7,7 @@ const client = new Anthropic({
 
 describe('resource agents', () => {
   test('create: only required params', async () => {
-    const responsePromise = client.beta.agents.create({ model: 'claude-opus-5', name: 'My First Agent' });
+    const responsePromise = client.beta.agents.create({ model: 'claude-opus-5-5', name: 'My First Agent' });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
     const response = await responsePromise;
@@ -19,9 +19,10 @@ describe('resource agents', () => {
 
   test('create: required and optional params', async () => {
     const response = await client.beta.agents.create({
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
       name: 'My First Agent',
       description: 'A general-purpose starter agent.',
+      execution_identity: { role_arn: 'role_arn', type: 'aws_role' },
       mcp_servers: [
         {
           name: 'example-mcp',

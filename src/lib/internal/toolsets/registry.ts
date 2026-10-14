@@ -6,8 +6,6 @@
  * model reads after a pure action, which members the API disables by default, and which members render
  * only a `browser_state` block. A test diffs the member set and the default-disabled set against the
  * published toolset definition so the two cannot drift silently.
- *
- * @internal
  */
 import type { BetaBrowserStateTabEntry, BetaBrowserToolsetConfigs } from '../../../resources/beta';
 import {

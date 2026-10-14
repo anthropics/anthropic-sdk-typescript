@@ -10,7 +10,7 @@ describe('resource messages', () => {
     const responsePromise = client.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -25,7 +25,7 @@ describe('resource messages', () => {
     const response = await client.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       container: {
         id: 'id',
@@ -98,7 +98,7 @@ describe('resource messages', () => {
   test('countTokens: only required params', async () => {
     const responsePromise = client.messages.countTokens({
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -112,7 +112,7 @@ describe('resource messages', () => {
   test('countTokens: required and optional params', async () => {
     const response = await client.messages.countTokens({
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       output_config: {
         effort: 'low',

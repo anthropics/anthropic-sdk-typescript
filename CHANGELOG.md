@@ -1,5 +1,51 @@
 # Changelog
 
+## [0.134.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.133.0...sdk-v0.134.0) (2026-10-14)
+
+### Features
+
+* **api:** add execution_identity to Managed Agents agents
+* **api:** add organization_type_not_supported error to spend limit lists
+* **api:** add telemetry destination test endpoint
+* **api:** add telemetry destinations to the Admin API
+* **client:** emit OpenTelemetry spans for API calls, streams and tool runs. They are on by default and need no setup in the SDK: the spans appear once the application has registered a tracer provider with the OpenTelemetry API, and there are none without one. Requests carry the trace context in `traceparent`, and in the other headers that the registered propagator writes. This adds a dependency on `@opentelemetry/api` (`^1.4.1`). `openTelemetry: false` or `ANTHROPIC_OPEN_TELEMETRY=false` turns all of it off; `openTelemetry: { propagation: false }` or `ANTHROPIC_OPEN_TELEMETRY_PROPAGATION=false` keeps the spans and sends no trace headers; the variables apply only to a client that is given no `openTelemetry` option
+
+
+### Bug Fixes
+
+* **api:** rename telemetry destination test response model
+* **client:** close an unread stream that was dropped while tracing is on
+* **client:** don't follow redirects on token requests
+* **client:** treat proxy-authorization as a sensitive header
+
+
+### Bug Fixes
+
+* **streaming:** tolerate unknown event types in MessageStream and BetaMessageStream
+* **streaming:** stop throwing "Unexpected event order" for an event before message_start
+* **streaming:** yield events that arrive before message_start when iterating MessageStream and BetaMessageStream
+
+
+### Chores
+
+* **docs:** correct prefill, thinking, fallback and model descriptions
+* **docs:** document the scope required to assign the managed role
+* **docs:** update model examples
+* include the license files in the published packages
+* **internal:** narrow the tripwire test rule in the contributor guides
+* **internal:** remove `@internal` tag from a type that public types reference
+* **internal:** remove file-level `@internal` tags from toolset modules
+* **internal:** strip `@internal` declarations from published types
+* **internal:** type-check the built declarations in lint
+
+
+### Documentation
+
+* **api:** clarify when custom tool results can be sent
+* **api:** say is_enabled is always true for user spend limits
+* move more shared rules into the shared part of CLAUDE.md
+* show examples of streaming-only methods iterating the stream
+
 ## [0.133.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.132.1...sdk-v0.133.0) (2026-10-09)
 
 ### Features

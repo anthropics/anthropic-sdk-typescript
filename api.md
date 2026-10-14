@@ -1370,6 +1370,8 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAnthropicSkill</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAnthropicSkillParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAutoPolicy</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAWSRoleExecutionIdentity</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsAWSRoleExecutionIdentityParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsBashToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsBashToolConfigParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsCustomSkill</a></code>
@@ -1384,6 +1386,8 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortMax</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortMedium</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsEffortXhigh</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsExecutionIdentity</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsExecutionIdentityParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsGlobToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsGlobToolConfigParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsGrepToolConfig</a></code>
@@ -1430,6 +1434,8 @@ Types:
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsMultiagent20261001Params</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsReadToolConfig</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsReadToolConfigParams</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsServiceAccountExecutionIdentity</a></code>
+- <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsServiceAccountExecutionIdentityParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsSessionThreadAgent</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsSkillParams</a></code>
 - <code><a href="./src/resources/beta/agents/agents.ts">BetaManagedAgentsURLMCPServerParams</a></code>
@@ -2672,3 +2678,59 @@ Methods:
 - <code title="get /v1/organizations/plugin_marketplaces?beta=true">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">list</a>({ ...params }) -> BetaPluginMarketplacesPageCursor</code>
 - <code title="post /v1/organizations/plugin_marketplaces/validate_archive?beta=true">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">validateArchive</a>({ ...params }) -> BetaPluginMarketplaceValidationReport</code>
 - <code title="post /v1/organizations/plugin_marketplaces/validate_repository?beta=true">client.beta.organization.pluginMarketplaces.<a href="./src/resources/beta/organization/plugin-marketplaces.ts">validateRepository</a>({ ...params }) -> BetaPluginMarketplaceValidationReport</code>
+
+### TelemetryDestinations
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaDeletedTelemetryDestination</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestination</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationContentMode</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationDeliveryHealth</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationDisabledReason</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationDisabledReasonCaller</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationDisabledReasonInvalidAddress</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationDisabledReasonRedirect</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationDisabledReasonSustainedFailure</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationState</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationStateDisabled</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationStateDisabledParams</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationStateEnabled</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationStateEnabledParams</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationStateParams</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTestFailure</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTestResponse</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTestResult</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTestSuccess</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTraces</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationTracesParams</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationWorkspaces</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationWorkspacesAll</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationWorkspacesAllParams</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationWorkspacesExclude</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationWorkspacesExcludeParams</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationWorkspacesInclude</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationWorkspacesIncludeParams</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">BetaTelemetryDestinationWorkspacesParams</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/telemetry_destinations?beta=true">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">create</a>({ ...params }) -> BetaTelemetryDestination</code>
+- <code title="get /v1/organizations/telemetry_destinations/{destination_id}?beta=true">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">retrieve</a>(destinationID, { ...params }) -> BetaTelemetryDestination</code>
+- <code title="post /v1/organizations/telemetry_destinations/{destination_id}?beta=true">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">update</a>(destinationID, { ...params }) -> BetaTelemetryDestination</code>
+- <code title="get /v1/organizations/telemetry_destinations?beta=true">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">list</a>({ ...params }) -> BetaTelemetryDestinationsPageCursor</code>
+- <code title="delete /v1/organizations/telemetry_destinations/{destination_id}?beta=true">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">delete</a>(destinationID, { ...params }) -> BetaDeletedTelemetryDestination</code>
+- <code title="post /v1/organizations/telemetry_destinations/{destination_id}/test?beta=true">client.beta.organization.telemetryDestinations.<a href="./src/resources/beta/organization/telemetry-destinations/telemetry-destinations.ts">test</a>(destinationID, { ...params }) -> BetaTelemetryDestinationTestResponse</code>
+
+#### Workspaces
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/workspaces.ts">BetaDeletedTelemetryDestinationWorkspace</a></code>
+- <code><a href="./src/resources/beta/organization/telemetry-destinations/workspaces.ts">BetaTelemetryDestinationWorkspace</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/telemetry_destinations/{destination_id}/workspaces?beta=true">client.beta.organization.telemetryDestinations.workspaces.<a href="./src/resources/beta/organization/telemetry-destinations/workspaces.ts">list</a>(destinationID, { ...params }) -> BetaTelemetryDestinationWorkspacesPageCursor</code>
+- <code title="post /v1/organizations/telemetry_destinations/{destination_id}/workspaces/{workspace_id}?beta=true">client.beta.organization.telemetryDestinations.workspaces.<a href="./src/resources/beta/organization/telemetry-destinations/workspaces.ts">add</a>(workspaceID, { ...params }) -> BetaTelemetryDestinationWorkspace</code>
+- <code title="delete /v1/organizations/telemetry_destinations/{destination_id}/workspaces/{workspace_id}?beta=true">client.beta.organization.telemetryDestinations.workspaces.<a href="./src/resources/beta/organization/telemetry-destinations/workspaces.ts">remove</a>(workspaceID, { ...params }) -> BetaDeletedTelemetryDestinationWorkspace</code>

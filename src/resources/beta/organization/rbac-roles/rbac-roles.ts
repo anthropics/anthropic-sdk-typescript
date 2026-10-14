@@ -14,6 +14,7 @@ import {
 import { APIPromise } from '../../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class RBACRoles extends APIResource {
@@ -33,7 +34,13 @@ export class RBACRoles extends APIResource {
    * ```
    */
   retrieve(rbacRoleID: string, options?: RequestOptions): APIPromise<BetaRBACRole> {
-    return this._client.get(path`/v1/organizations/rbac_roles/${rbacRoleID}?beta=true`, options);
+    return this._client.get(path`/v1/organizations/rbac_roles/${rbacRoleID}?beta=true`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_roles.retrieve', options, {
+        route: '/v1/organizations/rbac_roles/{rbac_role_id}',
+        attributes: { 'anthropic.organization.rbac_role.id': rbacRoleID },
+      }),
+    });
   }
 
   /**
@@ -56,6 +63,10 @@ export class RBACRoles extends APIResource {
     return this._client.getAPIList('/v1/organizations/rbac_roles?beta=true', PageCursor<BetaRBACRole>, {
       query,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_roles.list', options, {
+        route: '/v1/organizations/rbac_roles',
+        queryParams: ['limit', 'page'],
+      }),
     });
   }
 }

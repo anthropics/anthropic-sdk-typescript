@@ -3,7 +3,15 @@ import { APIResource } from '../../core/resource';
 import { Stream } from '../../core/streaming';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
-import { stainlessHelperHeader } from '../../internal/stainless-helper-header';
+import { startApiCallSpan } from '../../internal/tracing';
+import {
+  messagesCreateSpanSettings,
+  recordCountTokensResponse,
+  recordMessagesCreateRequest,
+  recordMessagesCreateResponse,
+} from '../../lib/internal/tracing';
+import { ATTR_GEN_AI_REQUEST_MODEL } from '../../lib/internal/tracing/attributes';
+import { messagesCreateHeaders } from '../../lib/internal/messages-request';
 import { MessageStream } from '../../lib/MessageStream';
 import {
   parseMessage,
@@ -53,7 +61,7 @@ export class Messages extends APIResource {
    * const message = await client.messages.create({
    *   max_tokens: 1024,
    *   messages: [{ content: 'Hello, world', role: 'user' }],
-   *   model: 'claude-opus-5',
+   *   model: 'claude-opus-5-5',
    * });
    * ```
    */
@@ -94,22 +102,32 @@ export class Messages extends APIResource {
       timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
     }
 
-    // Collect helper info from tools and messages
-    const helperHeader = stainlessHelperHeader(body.tools, body.messages);
-    return this._client.post('/v1/messages', {
+    const headers = messagesCreateHeaders(params, options);
+    // A client whose spans are disabled computes nothing for one, and returns its request as it is.
+    const call =
+      this._client._tracer &&
+      startApiCallSpan(
+        this._client,
+        'anthropic.messages.create',
+        options,
+        messagesCreateSpanSettings(this._client, body, headers),
+      );
+    recordMessagesCreateRequest(this._client, call, body);
+    const request = this._client.post<Message | Stream<unknown>>('/v1/messages', {
       body,
       timeout: timeout ?? 600000,
       ...options,
-      headers: buildHeaders([
-        {
-          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
-          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-        },
-        helperHeader,
-        options?.headers,
-      ]),
+      __span: call,
+      headers,
       stream: params.stream ?? false,
-    }) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
+    });
+    return (
+      call ?
+        request._thenUnwrap((data) => {
+          recordMessagesCreateResponse(this._client, call, body, data);
+          return data;
+        })
+      : request) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
   }
 
   /**
@@ -164,12 +182,11 @@ export class Messages extends APIResource {
     body: Params,
     options?: RequestOptions,
   ): MessageStream<ExtractParsedContentFromParams<Params>> {
-    return MessageStream.createMessage<ExtractParsedContentFromParams<Params>>(
-      this,
-      body as MessageCreateParamsBase,
-      options,
-      { logger: this._client.logger ?? console },
-    );
+    const params = body as MessageCreateParamsBase;
+    return MessageStream.createMessage<ExtractParsedContentFromParams<Params>>(this, params, options, {
+      logger: this._client.logger ?? console,
+      client: this._client,
+    });
   }
 
   /**
@@ -186,23 +203,36 @@ export class Messages extends APIResource {
    * const messageTokensCount =
    *   await client.messages.countTokens({
    *     messages: [{ content: 'Hello, world', role: 'user' }],
-   *     model: 'claude-opus-5',
+   *     model: 'claude-opus-5-5',
    *   });
    * ```
    */
   countTokens(params: MessageCountTokensParams, options?: RequestOptions): APIPromise<MessageTokensCount> {
     const { user_profile_id, workspace_id, ...body } = params;
-    return this._client.post('/v1/messages/count_tokens', {
+    const headers = buildHeaders([
+      {
+        ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+        ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+      },
+      options?.headers,
+    ]);
+    const call = startApiCallSpan(this._client, 'anthropic.messages.count_tokens', options, {
+      route: '/v1/messages/count_tokens',
+      attributes: { [ATTR_GEN_AI_REQUEST_MODEL]: body.model },
+    });
+    const request = this._client.post<MessageTokensCount>('/v1/messages/count_tokens', {
       body,
       ...options,
-      headers: buildHeaders([
-        {
-          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
-          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-        },
-        options?.headers,
-      ]),
+      __span: call,
+      headers,
     });
+    // Only a request with a span has a response to record.
+    return call ?
+        request._thenUnwrap((count) => {
+          recordCountTokensResponse(this._client, call, count);
+          return count;
+        })
+      : request;
   }
 }
 
@@ -5385,8 +5415,9 @@ export interface ThinkingConfigAdaptive {
   /**
    * Controls how thinking content appears in the response. When set to `summarized`,
    * thinking is returned normally. When set to `omitted`, thinking content is
-   * redacted but a signature is returned for multi-turn continuity. Defaults to
-   * `summarized`.
+   * redacted but a signature is returned for multi-turn continuity. The default
+   * depends on the model; see
+   * [Controlling thinking display](https://platform.claude.com/docs/en/build-with-claude/thinking#controlling-thinking-display).
    */
   display?: 'summarized' | 'omitted' | null;
 }
@@ -5418,22 +5449,24 @@ export interface ThinkingConfigEnabled {
   /**
    * Controls how thinking content appears in the response. When set to `summarized`,
    * thinking is returned normally. When set to `omitted`, thinking content is
-   * redacted but a signature is returned for multi-turn continuity. Defaults to
-   * `summarized`.
+   * redacted but a signature is returned for multi-turn continuity. The default
+   * depends on the model; see
+   * [Controlling thinking display](https://platform.claude.com/docs/en/build-with-claude/thinking#controlling-thinking-display).
    */
   display?: 'summarized' | 'omitted' | null;
 }
 
 /**
- * Configuration for enabling Claude's extended thinking.
+ * Configuration for Claude's thinking.
  *
- * When enabled, responses include `thinking` content blocks showing Claude's
- * thinking process before the final answer. Requires a minimum budget of 1,024
- * tokens and counts towards your `max_tokens` limit.
+ * With `{"type": "adaptive"}`, Claude decides when and how much to think. With
+ * `{"type": "enabled"}` (manual extended thinking), you set a `budget_tokens` of
+ * at least 1,024. Thinking tokens count toward your `max_tokens` limit.
  *
- * See
- * [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
- * for details.
+ * Which `type` values are accepted, and what happens when you omit `thinking`,
+ * depend on the model. See
+ * [thinking](https://platform.claude.com/docs/en/build-with-claude/thinking#configuring-thinking)
+ * for each model's behavior.
  */
 export type ThinkingConfigParam =
   | ThinkingConfigEnabled
@@ -7070,7 +7103,10 @@ export interface MessageCreateParamsBase {
    *
    * If the final message uses the `assistant` role, the response content will
    * continue immediately from the content in that message. This can be used to
-   * constrain part of the model's response.
+   * constrain part of the model's response. This is called prefill. On models that
+   * don't support prefill, creating a message that ends with a partial `assistant`
+   * response returns a 400 error. See
+   * [Prefill not supported](https://platform.claude.com/docs/en/api/errors#prefill-not-supported).
    *
    * Example with a single `user` message:
    *
@@ -7088,7 +7124,8 @@ export interface MessageCreateParamsBase {
    * ]
    * ```
    *
-   * Example with a partially-filled response from Claude:
+   * Example with a partially-filled response from Claude, for models that support
+   * prefill:
    *
    * ```json
    * [
@@ -7220,15 +7257,16 @@ export interface MessageCreateParamsBase {
   temperature?: number;
 
   /**
-   * Body param: Configuration for enabling Claude's extended thinking.
+   * Body param: Configuration for Claude's thinking.
    *
-   * When enabled, responses include `thinking` content blocks showing Claude's
-   * thinking process before the final answer. Requires a minimum budget of 1,024
-   * tokens and counts towards your `max_tokens` limit.
+   * With `{"type": "adaptive"}`, Claude decides when and how much to think. With
+   * `{"type": "enabled"}` (manual extended thinking), you set a `budget_tokens` of
+   * at least 1,024. Thinking tokens count toward your `max_tokens` limit.
    *
-   * See
-   * [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
-   * for details.
+   * Which `type` values are accepted, and what happens when you omit `thinking`,
+   * depend on the model. See
+   * [thinking](https://platform.claude.com/docs/en/build-with-claude/thinking#configuring-thinking)
+   * for each model's behavior.
    */
   thinking?: ThinkingConfigParam;
 
@@ -7401,7 +7439,10 @@ export interface MessageCountTokensParams {
    *
    * If the final message uses the `assistant` role, the response content will
    * continue immediately from the content in that message. This can be used to
-   * constrain part of the model's response.
+   * constrain part of the model's response. This is called prefill. On models that
+   * don't support prefill, creating a message that ends with a partial `assistant`
+   * response returns a 400 error. See
+   * [Prefill not supported](https://platform.claude.com/docs/en/api/errors#prefill-not-supported).
    *
    * Example with a single `user` message:
    *
@@ -7419,7 +7460,8 @@ export interface MessageCountTokensParams {
    * ]
    * ```
    *
-   * Example with a partially-filled response from Claude:
+   * Example with a partially-filled response from Claude, for models that support
+   * prefill:
    *
    * ```json
    * [
@@ -7486,15 +7528,16 @@ export interface MessageCountTokensParams {
   system?: string | Array<TextBlockParam>;
 
   /**
-   * Body param: Configuration for enabling Claude's extended thinking.
+   * Body param: Configuration for Claude's thinking.
    *
-   * When enabled, responses include `thinking` content blocks showing Claude's
-   * thinking process before the final answer. Requires a minimum budget of 1,024
-   * tokens and counts towards your `max_tokens` limit.
+   * With `{"type": "adaptive"}`, Claude decides when and how much to think. With
+   * `{"type": "enabled"}` (manual extended thinking), you set a `budget_tokens` of
+   * at least 1,024. Thinking tokens count toward your `max_tokens` limit.
    *
-   * See
-   * [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking)
-   * for details.
+   * Which `type` values are accepted, and what happens when you omit `thinking`,
+   * depend on the model. See
+   * [thinking](https://platform.claude.com/docs/en/build-with-claude/thinking#configuring-thinking)
+   * for each model's behavior.
    */
   thinking?: ThinkingConfigParam;
 

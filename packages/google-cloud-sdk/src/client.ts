@@ -6,6 +6,7 @@ import { FinalRequestOptions } from './internal/request-options';
 import { Anthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 import { VERSION } from '@anthropic-ai/sdk/version';
+import { VERSION as PACKAGE_VERSION } from './version';
 import { GoogleAuth, AuthClient } from 'google-auth-library';
 
 const DEFAULT_SCOPE = 'https://www.googleapis.com/auth/cloud-platform';
@@ -106,6 +107,11 @@ export interface GoogleCloudClientOptions
  * bearer token rather than per-request request signing.
  */
 export class AnthropicGoogleCloud extends Anthropic {
+  /** @internal */
+  override _instrumentationScope() {
+    return { platform: 'google-cloud', version: PACKAGE_VERSION };
+  }
+
   project: string | null;
   location: string | null;
   workspaceId: string | undefined;

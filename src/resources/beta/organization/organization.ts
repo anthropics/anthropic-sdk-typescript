@@ -214,6 +214,46 @@ import {
   SpendLimitSetParams,
   SpendLimits,
 } from './spend-limits/spend-limits';
+import * as TelemetryDestinationsAPI from './telemetry-destinations/telemetry-destinations';
+import {
+  BetaDeletedTelemetryDestination,
+  BetaTelemetryDestination,
+  BetaTelemetryDestinationContentMode,
+  BetaTelemetryDestinationDeliveryHealth,
+  BetaTelemetryDestinationDisabledReason,
+  BetaTelemetryDestinationDisabledReasonCaller,
+  BetaTelemetryDestinationDisabledReasonInvalidAddress,
+  BetaTelemetryDestinationDisabledReasonRedirect,
+  BetaTelemetryDestinationDisabledReasonSustainedFailure,
+  BetaTelemetryDestinationState,
+  BetaTelemetryDestinationStateDisabled,
+  BetaTelemetryDestinationStateDisabledParams,
+  BetaTelemetryDestinationStateEnabled,
+  BetaTelemetryDestinationStateEnabledParams,
+  BetaTelemetryDestinationStateParams,
+  BetaTelemetryDestinationTestFailure,
+  BetaTelemetryDestinationTestResponse,
+  BetaTelemetryDestinationTestResult,
+  BetaTelemetryDestinationTestSuccess,
+  BetaTelemetryDestinationTraces,
+  BetaTelemetryDestinationTracesParams,
+  BetaTelemetryDestinationWorkspaces,
+  BetaTelemetryDestinationWorkspacesAll,
+  BetaTelemetryDestinationWorkspacesAllParams,
+  BetaTelemetryDestinationWorkspacesExclude,
+  BetaTelemetryDestinationWorkspacesExcludeParams,
+  BetaTelemetryDestinationWorkspacesInclude,
+  BetaTelemetryDestinationWorkspacesIncludeParams,
+  BetaTelemetryDestinationWorkspacesParams,
+  BetaTelemetryDestinationsPageCursor,
+  TelemetryDestinationCreateParams,
+  TelemetryDestinationDeleteParams,
+  TelemetryDestinationListParams,
+  TelemetryDestinationRetrieveParams,
+  TelemetryDestinationTestParams,
+  TelemetryDestinationUpdateParams,
+  TelemetryDestinations,
+} from './telemetry-destinations/telemetry-destinations';
 import * as WorkspacesAPI from './workspaces/workspaces';
 import {
   BetaAllowedInferenceGeo,
@@ -232,6 +272,7 @@ import {
 } from './workspaces/workspaces';
 import { APIPromise } from '../../../core/api-promise';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 
 export class Organization extends APIResource {
   apiKeys: APIKeysAPI.APIKeys = new APIKeysAPI.APIKeys(this._client);
@@ -253,6 +294,8 @@ export class Organization extends APIResource {
   pluginMarketplaces: PluginMarketplacesAPI.PluginMarketplaces = new PluginMarketplacesAPI.PluginMarketplaces(
     this._client,
   );
+  telemetryDestinations: TelemetryDestinationsAPI.TelemetryDestinations =
+    new TelemetryDestinationsAPI.TelemetryDestinations(this._client);
 
   /**
    * Retrieve information about the organization associated with the authenticated
@@ -265,7 +308,12 @@ export class Organization extends APIResource {
    * ```
    */
   retrieve(options?: RequestOptions): APIPromise<BetaOrganization> {
-    return this._client.get('/v1/organizations/me?beta=true', options);
+    return this._client.get('/v1/organizations/me?beta=true', {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.retrieve', options, {
+        route: '/v1/organizations/me',
+      }),
+    });
   }
 }
 
@@ -314,6 +362,7 @@ Organization.RBACGroups = RBACGroups;
 Organization.RBACRoles = RBACRoles;
 Organization.Plugins = Plugins;
 Organization.PluginMarketplaces = PluginMarketplaces;
+Organization.TelemetryDestinations = TelemetryDestinations;
 
 export declare namespace Organization {
   export { type BetaOrganization as BetaOrganization, type BetaOrganizationRole as BetaOrganizationRole };
@@ -547,5 +596,45 @@ export declare namespace Organization {
     type PluginMarketplaceListParams as PluginMarketplaceListParams,
     type PluginMarketplaceValidateArchiveParams as PluginMarketplaceValidateArchiveParams,
     type PluginMarketplaceValidateRepositoryParams as PluginMarketplaceValidateRepositoryParams,
+  };
+
+  export {
+    TelemetryDestinations as TelemetryDestinations,
+    type BetaDeletedTelemetryDestination as BetaDeletedTelemetryDestination,
+    type BetaTelemetryDestination as BetaTelemetryDestination,
+    type BetaTelemetryDestinationContentMode as BetaTelemetryDestinationContentMode,
+    type BetaTelemetryDestinationDeliveryHealth as BetaTelemetryDestinationDeliveryHealth,
+    type BetaTelemetryDestinationDisabledReason as BetaTelemetryDestinationDisabledReason,
+    type BetaTelemetryDestinationDisabledReasonCaller as BetaTelemetryDestinationDisabledReasonCaller,
+    type BetaTelemetryDestinationDisabledReasonInvalidAddress as BetaTelemetryDestinationDisabledReasonInvalidAddress,
+    type BetaTelemetryDestinationDisabledReasonRedirect as BetaTelemetryDestinationDisabledReasonRedirect,
+    type BetaTelemetryDestinationDisabledReasonSustainedFailure as BetaTelemetryDestinationDisabledReasonSustainedFailure,
+    type BetaTelemetryDestinationState as BetaTelemetryDestinationState,
+    type BetaTelemetryDestinationStateDisabled as BetaTelemetryDestinationStateDisabled,
+    type BetaTelemetryDestinationStateDisabledParams as BetaTelemetryDestinationStateDisabledParams,
+    type BetaTelemetryDestinationStateEnabled as BetaTelemetryDestinationStateEnabled,
+    type BetaTelemetryDestinationStateEnabledParams as BetaTelemetryDestinationStateEnabledParams,
+    type BetaTelemetryDestinationStateParams as BetaTelemetryDestinationStateParams,
+    type BetaTelemetryDestinationTestFailure as BetaTelemetryDestinationTestFailure,
+    type BetaTelemetryDestinationTestResponse as BetaTelemetryDestinationTestResponse,
+    type BetaTelemetryDestinationTestResult as BetaTelemetryDestinationTestResult,
+    type BetaTelemetryDestinationTestSuccess as BetaTelemetryDestinationTestSuccess,
+    type BetaTelemetryDestinationTraces as BetaTelemetryDestinationTraces,
+    type BetaTelemetryDestinationTracesParams as BetaTelemetryDestinationTracesParams,
+    type BetaTelemetryDestinationWorkspaces as BetaTelemetryDestinationWorkspaces,
+    type BetaTelemetryDestinationWorkspacesAll as BetaTelemetryDestinationWorkspacesAll,
+    type BetaTelemetryDestinationWorkspacesAllParams as BetaTelemetryDestinationWorkspacesAllParams,
+    type BetaTelemetryDestinationWorkspacesExclude as BetaTelemetryDestinationWorkspacesExclude,
+    type BetaTelemetryDestinationWorkspacesExcludeParams as BetaTelemetryDestinationWorkspacesExcludeParams,
+    type BetaTelemetryDestinationWorkspacesInclude as BetaTelemetryDestinationWorkspacesInclude,
+    type BetaTelemetryDestinationWorkspacesIncludeParams as BetaTelemetryDestinationWorkspacesIncludeParams,
+    type BetaTelemetryDestinationWorkspacesParams as BetaTelemetryDestinationWorkspacesParams,
+    type BetaTelemetryDestinationsPageCursor as BetaTelemetryDestinationsPageCursor,
+    type TelemetryDestinationCreateParams as TelemetryDestinationCreateParams,
+    type TelemetryDestinationRetrieveParams as TelemetryDestinationRetrieveParams,
+    type TelemetryDestinationUpdateParams as TelemetryDestinationUpdateParams,
+    type TelemetryDestinationListParams as TelemetryDestinationListParams,
+    type TelemetryDestinationDeleteParams as TelemetryDestinationDeleteParams,
+    type TelemetryDestinationTestParams as TelemetryDestinationTestParams,
   };
 }

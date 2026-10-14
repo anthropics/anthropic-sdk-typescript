@@ -2,8 +2,6 @@
  * The stages of a member call that are plain computation: the input check, error classification,
  * rendering the outcome with the browser state. `run` on the toolset class fixes the order and does the
  * awaiting.
- *
- * @internal
  */
 import type {
   BetaBrowserFileUploadInput,

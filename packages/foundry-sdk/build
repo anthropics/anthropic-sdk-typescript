@@ -11,8 +11,8 @@ if [ -d "../../.github" ]; then
   cp -p ../../.github/logo.svg dist/.github/ 2>/dev/null || true
 fi
 
-for file in LICENSE; do
-  if [ -e "../../${file}" ]; then cp "../../${file}" dist; fi
+for file in ../../LICENSE* LICENSE*; do
+  if [ -e "${file}" ]; then cp "${file}" dist; fi
 done
 
 for file in CHANGELOG.md; do

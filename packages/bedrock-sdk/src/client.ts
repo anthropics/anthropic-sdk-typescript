@@ -1,6 +1,7 @@
 import { APIRequest, BaseAnthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
 import { VERSION } from '@anthropic-ai/sdk/version';
+import { VERSION as PACKAGE_VERSION } from './version';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
 import { getAuthHeaders } from './core/auth';
 import { eventStreamToSSEResponse } from './core/streaming';
@@ -64,6 +65,14 @@ type SecretOnly = {
 
 /** API Client for interfacing with the Anthropic Bedrock API. */
 export class AnthropicBedrock extends BaseAnthropic {
+  /** @internal */
+  override _genAIProviderName = 'aws.bedrock';
+
+  /** @internal */
+  override _instrumentationScope() {
+    return { platform: 'bedrock', version: PACKAGE_VERSION };
+  }
+
   awsSecretKey: string | null;
   awsAccessKey: string | null;
   awsRegion: string;

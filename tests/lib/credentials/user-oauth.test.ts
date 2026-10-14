@@ -113,6 +113,7 @@ describe('userOAuthProvider', () => {
 
     const [url, init] = (mockFetch as Mock).mock.calls[0]!;
     expect(url).toBe('https://api.anthropic.com/v1/oauth/token');
+    expect(init.redirect).toBe('manual');
     const body = JSON.parse(init.body);
     expect(body.grant_type).toBe('refresh_token');
     expect(body.refresh_token).toBe('refresh-tok');

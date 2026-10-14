@@ -4,6 +4,7 @@ import { PageCursor, type PageCursorParams, PagePromise } from '../core/paginati
 import { type Uploadable } from '../core/uploads';
 import { buildHeaders } from '../internal/headers';
 import { RequestOptions } from '../internal/request-options';
+import { startApiCallSpan } from '../internal/tracing';
 import { stainlessHelperHeaderFromFile } from '../internal/stainless-helper-header';
 import { multipartFormRequestOptions } from '../internal/uploads';
 import { path } from '../internal/utils/path';
@@ -32,6 +33,10 @@ export class Files extends APIResource {
         { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.files.list', options, {
+        route: '/v1/files',
+        queryParams: ['ids', 'limit', 'page'],
+      }),
     });
   }
 
@@ -55,6 +60,10 @@ export class Files extends APIResource {
         { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.files.delete', options, {
+        route: '/v1/files/{file_id}',
+        attributes: { 'anthropic.file.id': fileID },
+      }),
     });
   }
 
@@ -85,6 +94,10 @@ export class Files extends APIResource {
         options?.headers,
       ]),
       __binaryResponse: true,
+      __span: startApiCallSpan(this._client, 'anthropic.files.download', options, {
+        route: '/v1/files/{file_id}/content',
+        attributes: { 'anthropic.file.id': fileID },
+      }),
     });
   }
 
@@ -110,6 +123,10 @@ export class Files extends APIResource {
         { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.files.retrieve_metadata', options, {
+        route: '/v1/files/{file_id}',
+        attributes: { 'anthropic.file.id': fileID },
+      }),
     });
   }
 
@@ -136,6 +153,10 @@ export class Files extends APIResource {
             stainlessHelperHeaderFromFile(body.file),
             options?.headers,
           ]),
+          __span: startApiCallSpan(this._client, 'anthropic.files.upload', options, {
+            route: '/v1/files',
+            createdIDAttribute: 'anthropic.file.id',
+          }),
         },
         this._client,
       ),

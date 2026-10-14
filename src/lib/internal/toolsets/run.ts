@@ -2,8 +2,6 @@
  * What the SDK does around one member call of a runnable toolset: the `tool_result` that answers the call, and how
  * an exception out of a member is classified. Kept out of `BetaRunnableToolset`, which is public and holds only the
  * toolset contract.
- *
- * @internal
  */
 import type { BetaToolResultBlockParam, BetaToolUseBlock } from '../../../resources/beta';
 import { APIUserAbortError } from '../../../core/error';

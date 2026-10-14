@@ -9,6 +9,7 @@ import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core
 import { Stream } from '../../../../core/streaming';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class Events extends APIResource {
@@ -45,6 +46,11 @@ export class Events extends APIResource {
           },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.events.list', options, {
+          route: '/v1/sessions/{session_id}/threads/{thread_id}/events',
+          queryParams: ['limit', 'page'],
+          attributes: { 'anthropic.session.id': session_id, 'anthropic.session.thread.id': threadID },
+        }),
       },
     );
   }
@@ -54,11 +60,14 @@ export class Events extends APIResource {
    *
    * @example
    * ```ts
-   * const betaManagedAgentsStreamSessionThreadEvents =
+   * const stream =
    *   await client.beta.sessions.threads.events.stream(
    *     'sthr_011CZkZVWa6oJjw1rgXZpnBt',
    *     { session_id: 'sesn_011CZkZAtmR3yMPDzynEDxu7' },
    *   );
+   * for await (const betaManagedAgentsStreamSessionThreadEvents of stream) {
+   *   // ...
+   * }
    * ```
    */
   stream(
@@ -78,6 +87,11 @@ export class Events extends APIResource {
         options?.headers,
       ]),
       stream: true,
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.events.stream', options, {
+        route: '/v1/sessions/{session_id}/threads/{thread_id}/stream',
+        queryParams: ['event_deltas'],
+        attributes: { 'anthropic.session.id': session_id, 'anthropic.session.thread.id': threadID },
+      }),
     }) as APIPromise<Stream<ThreadsAPI.BetaManagedAgentsStreamSessionThreadEvents>>;
   }
 }

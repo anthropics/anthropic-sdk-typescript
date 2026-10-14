@@ -3,8 +3,6 @@
  *
  * Tabs and state changes are the generated wire types (`BetaBrowserStateTabEntry`,
  * `BetaBrowserStateChange`) returned as they are. Only the shapes with no wire type are declared here.
- *
- * @internal
  */
 import type { BetaBrowserStateChange, BetaBrowserStateTabEntry } from '../../../resources/beta';
 import type { BetaScreenshotResult } from './core';

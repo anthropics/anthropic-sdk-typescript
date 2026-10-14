@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["tests/api-resources", "tests/vitest-globals.d.ts"],
+  "compilerOptions": {
+    "paths": {
+      "@anthropic-ai/sdk/*": ["./dist/*"],
+      "@anthropic-ai/sdk": ["./dist/index.d.ts"]
+    }
+  }
+}

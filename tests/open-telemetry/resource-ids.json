@@ -1,0 +1,2842 @@
+{
+  "source": {
+    "map": "id-map.json",
+    "aliases": {}
+  },
+  "operations": {
+    "beta.agents.archive": {
+      "span": "anthropic.agents.archive",
+      "call": "beta.agents.archive",
+      "path": {
+        "agent_id": "gen_ai.agent.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/agents/{agent_id}/archive"
+    },
+    "beta.agents.create": {
+      "span": "anthropic.agents.create",
+      "call": "beta.agents.create",
+      "path": {},
+      "created": {
+        "attribute": "gen_ai.agent.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/agents"
+    },
+    "beta.agents.retrieve": {
+      "span": "anthropic.agents.retrieve",
+      "call": "beta.agents.retrieve",
+      "path": {
+        "agent_id": "gen_ai.agent.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/agents/{agent_id}",
+      "query": ["version"]
+    },
+    "beta.agents.update": {
+      "span": "anthropic.agents.update",
+      "call": "beta.agents.update",
+      "path": {
+        "agent_id": "gen_ai.agent.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/agents/{agent_id}"
+    },
+    "beta.agents.versions.list": {
+      "span": "anthropic.agents.versions.list",
+      "call": "beta.agents.versions.list",
+      "path": {
+        "agent_id": "gen_ai.agent.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/agents/{agent_id}/versions",
+      "query": ["limit", "page"]
+    },
+    "beta.deployment_runs.retrieve": {
+      "span": "anthropic.deployment_runs.retrieve",
+      "call": "beta.deploymentRuns.retrieve",
+      "path": {
+        "deployment_run_id": "anthropic.deployment_run.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/deployment_runs/{deployment_run_id}"
+    },
+    "beta.deployments.archive": {
+      "span": "anthropic.deployments.archive",
+      "call": "beta.deployments.archive",
+      "path": {
+        "deployment_id": "anthropic.deployment.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/deployments/{deployment_id}/archive"
+    },
+    "beta.deployments.create": {
+      "span": "anthropic.deployments.create",
+      "call": "beta.deployments.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.deployment.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/deployments"
+    },
+    "beta.deployments.pause": {
+      "span": "anthropic.deployments.pause",
+      "call": "beta.deployments.pause",
+      "path": {
+        "deployment_id": "anthropic.deployment.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/deployments/{deployment_id}/pause"
+    },
+    "beta.deployments.retrieve": {
+      "span": "anthropic.deployments.retrieve",
+      "call": "beta.deployments.retrieve",
+      "path": {
+        "deployment_id": "anthropic.deployment.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/deployments/{deployment_id}"
+    },
+    "beta.deployments.run": {
+      "span": "anthropic.deployments.run",
+      "call": "beta.deployments.run",
+      "path": {
+        "deployment_id": "anthropic.deployment.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/deployments/{deployment_id}/run"
+    },
+    "beta.deployments.unpause": {
+      "span": "anthropic.deployments.unpause",
+      "call": "beta.deployments.unpause",
+      "path": {
+        "deployment_id": "anthropic.deployment.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/deployments/{deployment_id}/unpause"
+    },
+    "beta.deployments.update": {
+      "span": "anthropic.deployments.update",
+      "call": "beta.deployments.update",
+      "path": {
+        "deployment_id": "anthropic.deployment.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/deployments/{deployment_id}"
+    },
+    "beta.dreams.archive": {
+      "span": "anthropic.dreams.archive",
+      "call": "beta.dreams.archive",
+      "path": {
+        "dream_id": "anthropic.dream.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/dreams/{dream_id}/archive"
+    },
+    "beta.dreams.cancel": {
+      "span": "anthropic.dreams.cancel",
+      "call": "beta.dreams.cancel",
+      "path": {
+        "dream_id": "anthropic.dream.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/dreams/{dream_id}/cancel"
+    },
+    "beta.dreams.create": {
+      "span": "anthropic.dreams.create",
+      "call": "beta.dreams.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.dream.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/dreams"
+    },
+    "beta.dreams.retrieve": {
+      "span": "anthropic.dreams.retrieve",
+      "call": "beta.dreams.retrieve",
+      "path": {
+        "dream_id": "anthropic.dream.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/dreams/{dream_id}"
+    },
+    "beta.environments.archive": {
+      "span": "anthropic.environments.archive",
+      "call": "beta.environments.archive",
+      "path": {
+        "environment_id": "anthropic.environment.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/environments/{environment_id}/archive"
+    },
+    "beta.environments.create": {
+      "span": "anthropic.environments.create",
+      "call": "beta.environments.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.environment.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/environments"
+    },
+    "beta.environments.delete": {
+      "span": "anthropic.environments.delete",
+      "call": "beta.environments.delete",
+      "path": {
+        "environment_id": "anthropic.environment.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/environments/{environment_id}"
+    },
+    "beta.environments.retrieve": {
+      "span": "anthropic.environments.retrieve",
+      "call": "beta.environments.retrieve",
+      "path": {
+        "environment_id": "anthropic.environment.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/environments/{environment_id}"
+    },
+    "beta.environments.update": {
+      "span": "anthropic.environments.update",
+      "call": "beta.environments.update",
+      "path": {
+        "environment_id": "anthropic.environment.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/environments/{environment_id}"
+    },
+    "beta.environments.work.ack": {
+      "span": "anthropic.environments.work.ack",
+      "call": "beta.environments.work.ack",
+      "path": {
+        "environment_id": "anthropic.environment.id",
+        "work_id": "anthropic.environment.work.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/environments/{environment_id}/work/{work_id}/ack"
+    },
+    "beta.environments.work.heartbeat": {
+      "span": "anthropic.environments.work.heartbeat",
+      "call": "beta.environments.work.heartbeat",
+      "path": {
+        "environment_id": "anthropic.environment.id",
+        "work_id": "anthropic.environment.work.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/environments/{environment_id}/work/{work_id}/heartbeat",
+      "query": ["desired_ttl_seconds", "expected_last_heartbeat"]
+    },
+    "beta.environments.work.list": {
+      "span": "anthropic.environments.work.list",
+      "call": "beta.environments.work.list",
+      "path": {
+        "environment_id": "anthropic.environment.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/environments/{environment_id}/work",
+      "query": ["limit", "page"]
+    },
+    "beta.environments.work.poll": {
+      "span": "anthropic.environments.work.poll",
+      "call": "beta.environments.work.poll",
+      "path": {
+        "environment_id": "anthropic.environment.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/environments/{environment_id}/work/poll",
+      "query": ["block_ms", "reclaim_older_than_ms"]
+    },
+    "beta.environments.work.retrieve": {
+      "span": "anthropic.environments.work.retrieve",
+      "call": "beta.environments.work.retrieve",
+      "path": {
+        "environment_id": "anthropic.environment.id",
+        "work_id": "anthropic.environment.work.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/environments/{environment_id}/work/{work_id}"
+    },
+    "beta.environments.work.stats": {
+      "span": "anthropic.environments.work.stats",
+      "call": "beta.environments.work.stats",
+      "path": {
+        "environment_id": "anthropic.environment.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/environments/{environment_id}/work/stats"
+    },
+    "beta.environments.work.stop": {
+      "span": "anthropic.environments.work.stop",
+      "call": "beta.environments.work.stop",
+      "path": {
+        "environment_id": "anthropic.environment.id",
+        "work_id": "anthropic.environment.work.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/environments/{environment_id}/work/{work_id}/stop"
+    },
+    "beta.environments.work.update": {
+      "span": "anthropic.environments.work.update",
+      "call": "beta.environments.work.update",
+      "path": {
+        "environment_id": "anthropic.environment.id",
+        "work_id": "anthropic.environment.work.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/environments/{environment_id}/work/{work_id}"
+    },
+    "beta.files.delete": {
+      "span": "anthropic.files.delete",
+      "call": "beta.files.delete",
+      "path": {
+        "file_id": "anthropic.file.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/files/{file_id}"
+    },
+    "beta.files.download": {
+      "span": "anthropic.files.download",
+      "call": "beta.files.download",
+      "path": {
+        "file_id": "anthropic.file.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/files/{file_id}/content"
+    },
+    "beta.files.retrieve_metadata": {
+      "span": "anthropic.files.retrieve_metadata",
+      "call": "beta.files.retrieveMetadata",
+      "path": {
+        "file_id": "anthropic.file.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/files/{file_id}"
+    },
+    "beta.files.upload": {
+      "span": "anthropic.files.upload",
+      "call": "beta.files.upload",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.file.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/files"
+    },
+    "beta.memory_stores.archive": {
+      "span": "anthropic.memory_stores.archive",
+      "call": "beta.memoryStores.archive",
+      "path": {
+        "memory_store_id": "gen_ai.memory.store.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/memory_stores/{memory_store_id}/archive"
+    },
+    "beta.memory_stores.create": {
+      "span": "anthropic.memory_stores.create",
+      "call": "beta.memoryStores.create",
+      "path": {},
+      "created": {
+        "attribute": "gen_ai.memory.store.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/memory_stores"
+    },
+    "beta.memory_stores.delete": {
+      "span": "anthropic.memory_stores.delete",
+      "call": "beta.memoryStores.delete",
+      "path": {
+        "memory_store_id": "gen_ai.memory.store.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/memory_stores/{memory_store_id}"
+    },
+    "beta.memory_stores.memories.create": {
+      "span": "anthropic.memory_stores.memories.create",
+      "call": "beta.memoryStores.memories.create",
+      "path": {
+        "memory_store_id": "gen_ai.memory.store.id"
+      },
+      "created": {
+        "attribute": "gen_ai.memory.record.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/memory_stores/{memory_store_id}/memories",
+      "query": ["view"]
+    },
+    "beta.memory_stores.memories.delete": {
+      "span": "anthropic.memory_stores.memories.delete",
+      "call": "beta.memoryStores.memories.delete",
+      "path": {
+        "memory_store_id": "gen_ai.memory.store.id",
+        "memory_id": "gen_ai.memory.record.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/memory_stores/{memory_store_id}/memories/{memory_id}",
+      "query": ["expected_content_sha256"]
+    },
+    "beta.memory_stores.memories.list": {
+      "span": "anthropic.memory_stores.memories.list",
+      "call": "beta.memoryStores.memories.list",
+      "path": {
+        "memory_store_id": "gen_ai.memory.store.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/memory_stores/{memory_store_id}/memories",
+      "query": ["depth", "limit", "page", "path_prefix", "view"]
+    },
+    "beta.memory_stores.memories.retrieve": {
+      "span": "anthropic.memory_stores.memories.retrieve",
+      "call": "beta.memoryStores.memories.retrieve",
+      "path": {
+        "memory_store_id": "gen_ai.memory.store.id",
+        "memory_id": "gen_ai.memory.record.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/memory_stores/{memory_store_id}/memories/{memory_id}",
+      "query": ["view"]
+    },
+    "beta.memory_stores.memories.update": {
+      "span": "anthropic.memory_stores.memories.update",
+      "call": "beta.memoryStores.memories.update",
+      "path": {
+        "memory_store_id": "gen_ai.memory.store.id",
+        "memory_id": "gen_ai.memory.record.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/memory_stores/{memory_store_id}/memories/{memory_id}",
+      "query": ["view"]
+    },
+    "beta.memory_stores.memory_versions.list": {
+      "span": "anthropic.memory_stores.memory_versions.list",
+      "call": "beta.memoryStores.memoryVersions.list",
+      "path": {
+        "memory_store_id": "gen_ai.memory.store.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/memory_stores/{memory_store_id}/memory_versions",
+      "query": [
+        "api_key_id",
+        "created_at[gte]",
+        "created_at[lte]",
+        "limit",
+        "memory_id",
+        "operation",
+        "page",
+        "service_account_id",
+        "session_id",
+        "view"
+      ]
+    },
+    "beta.memory_stores.memory_versions.redact": {
+      "span": "anthropic.memory_stores.memory_versions.redact",
+      "call": "beta.memoryStores.memoryVersions.redact",
+      "path": {
+        "memory_store_id": "gen_ai.memory.store.id",
+        "memory_version_id": "anthropic.memory_store.memory_version.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}/redact"
+    },
+    "beta.memory_stores.memory_versions.retrieve": {
+      "span": "anthropic.memory_stores.memory_versions.retrieve",
+      "call": "beta.memoryStores.memoryVersions.retrieve",
+      "path": {
+        "memory_store_id": "gen_ai.memory.store.id",
+        "memory_version_id": "anthropic.memory_store.memory_version.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}",
+      "query": ["view"]
+    },
+    "beta.memory_stores.retrieve": {
+      "span": "anthropic.memory_stores.retrieve",
+      "call": "beta.memoryStores.retrieve",
+      "path": {
+        "memory_store_id": "gen_ai.memory.store.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/memory_stores/{memory_store_id}"
+    },
+    "beta.memory_stores.update": {
+      "span": "anthropic.memory_stores.update",
+      "call": "beta.memoryStores.update",
+      "path": {
+        "memory_store_id": "gen_ai.memory.store.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/memory_stores/{memory_store_id}"
+    },
+    "beta.messages.batches.cancel": {
+      "span": "anthropic.messages.batches.cancel",
+      "call": "beta.messages.batches.cancel",
+      "path": {
+        "message_batch_id": "anthropic.message.batch.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/messages/batches/{message_batch_id}/cancel"
+    },
+    "beta.messages.batches.create": {
+      "span": "anthropic.messages.batches.create",
+      "call": "beta.messages.batches.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.message.batch.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/messages/batches"
+    },
+    "beta.messages.batches.delete": {
+      "span": "anthropic.messages.batches.delete",
+      "call": "beta.messages.batches.delete",
+      "path": {
+        "message_batch_id": "anthropic.message.batch.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/messages/batches/{message_batch_id}"
+    },
+    "beta.messages.batches.results": {
+      "span": "anthropic.messages.batches.results",
+      "call": "beta.messages.batches.results",
+      "path": {
+        "message_batch_id": "anthropic.message.batch.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/messages/batches/{message_batch_id}/results"
+    },
+    "beta.messages.batches.retrieve": {
+      "span": "anthropic.messages.batches.retrieve",
+      "call": "beta.messages.batches.retrieve",
+      "path": {
+        "message_batch_id": "anthropic.message.batch.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/messages/batches/{message_batch_id}"
+    },
+    "beta.models.retrieve": {
+      "span": "anthropic.models.retrieve",
+      "call": "beta.models.retrieve",
+      "path": {
+        "model_id": "anthropic.model.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/models/{model_id}"
+    },
+    "beta.organization.api_keys.retrieve": {
+      "span": "anthropic.organization.api_keys.retrieve",
+      "call": "beta.organization.apiKeys.retrieve",
+      "path": {
+        "api_key_id": "anthropic.organization.api_key.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/organizations/api_keys/{api_key_id}"
+    },
+    "beta.organization.api_keys.update": {
+      "span": "anthropic.organization.api_keys.update",
+      "call": "beta.organization.apiKeys.update",
+      "path": {
+        "api_key_id": "anthropic.organization.api_key.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/organizations/api_keys/{api_key_id}"
+    },
+    "beta.organization.external_keys.create": {
+      "span": "anthropic.organization.external_keys.create",
+      "call": "beta.organization.externalKeys.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.organization.external_key.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/organizations/external_keys"
+    },
+    "beta.organization.external_keys.delete": {
+      "span": "anthropic.organization.external_keys.delete",
+      "call": "beta.organization.externalKeys.delete",
+      "path": {
+        "external_key_id": "anthropic.organization.external_key.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/organizations/external_keys/{external_key_id}"
+    },
+    "beta.organization.external_keys.retrieve": {
+      "span": "anthropic.organization.external_keys.retrieve",
+      "call": "beta.organization.externalKeys.retrieve",
+      "path": {
+        "external_key_id": "anthropic.organization.external_key.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/organizations/external_keys/{external_key_id}"
+    },
+    "beta.organization.external_keys.update": {
+      "span": "anthropic.organization.external_keys.update",
+      "call": "beta.organization.externalKeys.update",
+      "path": {
+        "external_key_id": "anthropic.organization.external_key.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/organizations/external_keys/{external_key_id}"
+    },
+    "beta.organization.external_keys.validate": {
+      "span": "anthropic.organization.external_keys.validate",
+      "call": "beta.organization.externalKeys.validate",
+      "path": {
+        "external_key_id": "anthropic.organization.external_key.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/organizations/external_keys/{external_key_id}/validate"
+    },
+    "beta.organization.federation.issuers.archive": {
+      "span": "anthropic.organization.federation.issuers.archive",
+      "call": "beta.organization.federation.issuers.archive",
+      "path": {
+        "federation_issuer_id": "anthropic.organization.federation_issuer.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/organizations/federation_issuers/{federation_issuer_id}/archive"
+    },
+    "beta.organization.federation.issuers.create": {
+      "span": "anthropic.organization.federation.issuers.create",
+      "call": "beta.organization.federation.issuers.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.organization.federation_issuer.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/organizations/federation_issuers"
+    },
+    "beta.organization.federation.issuers.retrieve": {
+      "span": "anthropic.organization.federation.issuers.retrieve",
+      "call": "beta.organization.federation.issuers.retrieve",
+      "path": {
+        "federation_issuer_id": "anthropic.organization.federation_issuer.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/organizations/federation_issuers/{federation_issuer_id}"
+    },
+    "beta.organization.federation.issuers.update": {
+      "span": "anthropic.organization.federation.issuers.update",
+      "call": "beta.organization.federation.issuers.update",
+      "path": {
+        "federation_issuer_id": "anthropic.organization.federation_issuer.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/organizations/federation_issuers/{federation_issuer_id}"
+    },
+    "beta.organization.federation.rules.archive": {
+      "span": "anthropic.organization.federation.rules.archive",
+      "call": "beta.organization.federation.rules.archive",
+      "path": {
+        "federation_rule_id": "anthropic.organization.federation_rule.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/organizations/federation_rules/{federation_rule_id}/archive"
+    },
+    "beta.organization.federation.rules.create": {
+      "span": "anthropic.organization.federation.rules.create",
+      "call": "beta.organization.federation.rules.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.organization.federation_rule.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/organizations/federation_rules"
+    },
+    "beta.organization.federation.rules.retrieve": {
+      "span": "anthropic.organization.federation.rules.retrieve",
+      "call": "beta.organization.federation.rules.retrieve",
+      "path": {
+        "federation_rule_id": "anthropic.organization.federation_rule.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/organizations/federation_rules/{federation_rule_id}"
+    },
+    "beta.organization.federation.rules.update": {
+      "span": "anthropic.organization.federation.rules.update",
+      "call": "beta.organization.federation.rules.update",
+      "path": {
+        "federation_rule_id": "anthropic.organization.federation_rule.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/organizations/federation_rules/{federation_rule_id}"
+    },
+    "beta.organization.federation.rules.workspaces.add": {
+      "span": "anthropic.organization.federation.rules.workspaces.add",
+      "call": "beta.organization.federation.rules.workspaces.add",
+      "path": {
+        "federation_rule_id": "anthropic.organization.federation_rule.id"
+      },
+      "created": {
+        "attribute": "anthropic.organization.federation_rule.workspace.id",
+        "field": "workspace_id"
+      },
+      "verb": "POST",
+      "route": "/v1/organizations/federation_rules/{federation_rule_id}/workspaces"
+    },
+    "beta.organization.federation.rules.workspaces.list": {
+      "span": "anthropic.organization.federation.rules.workspaces.list",
+      "call": "beta.organization.federation.rules.workspaces.list",
+      "path": {
+        "federation_rule_id": "anthropic.organization.federation_rule.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/organizations/federation_rules/{federation_rule_id}/workspaces",
+      "query": ["limit", "page"]
+    },
+    "beta.organization.federation.rules.workspaces.remove": {
+      "span": "anthropic.organization.federation.rules.workspaces.remove",
+      "call": "beta.organization.federation.rules.workspaces.remove",
+      "path": {
+        "federation_rule_id": "anthropic.organization.federation_rule.id",
+        "workspace_id": "anthropic.organization.federation_rule.workspace.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/organizations/federation_rules/{federation_rule_id}/workspaces/{workspace_id}"
+    },
+    "beta.organization.invites.create": {
+      "span": "anthropic.organization.invites.create",
+      "call": "beta.organization.invites.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.organization.invite.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/organizations/invites"
+    },
+    "beta.organization.invites.delete": {
+      "span": "anthropic.organization.invites.delete",
+      "call": "beta.organization.invites.delete",
+      "path": {
+        "invite_id": "anthropic.organization.invite.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/organizations/invites/{invite_id}"
+    },
+    "beta.organization.invites.retrieve": {
+      "span": "anthropic.organization.invites.retrieve",
+      "call": "beta.organization.invites.retrieve",
+      "path": {
+        "invite_id": "anthropic.organization.invite.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/organizations/invites/{invite_id}"
+    },
+    "beta.organization.service_accounts.archive": {
+      "span": "anthropic.organization.service_accounts.archive",
+      "call": "beta.organization.serviceAccounts.archive",
+      "path": {
+        "service_account_id": "anthropic.organization.service_account.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/organizations/service_accounts/{service_account_id}/archive"
+    },
+    "beta.organization.service_accounts.create": {
+      "span": "anthropic.organization.service_accounts.create",
+      "call": "beta.organization.serviceAccounts.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.organization.service_account.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/organizations/service_accounts"
+    },
+    "beta.organization.service_accounts.retrieve": {
+      "span": "anthropic.organization.service_accounts.retrieve",
+      "call": "beta.organization.serviceAccounts.retrieve",
+      "path": {
+        "service_account_id": "anthropic.organization.service_account.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/organizations/service_accounts/{service_account_id}"
+    },
+    "beta.organization.service_accounts.update": {
+      "span": "anthropic.organization.service_accounts.update",
+      "call": "beta.organization.serviceAccounts.update",
+      "path": {
+        "service_account_id": "anthropic.organization.service_account.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/organizations/service_accounts/{service_account_id}"
+    },
+    "beta.organization.service_accounts.workspaces.add": {
+      "span": "anthropic.organization.service_accounts.workspaces.add",
+      "call": "beta.organization.serviceAccounts.workspaces.add",
+      "path": {
+        "service_account_id": "anthropic.organization.service_account.id"
+      },
+      "created": {
+        "attribute": "anthropic.organization.service_account.workspace.id",
+        "field": "workspace_id"
+      },
+      "verb": "POST",
+      "route": "/v1/organizations/service_accounts/{service_account_id}/workspaces"
+    },
+    "beta.organization.service_accounts.workspaces.list": {
+      "span": "anthropic.organization.service_accounts.workspaces.list",
+      "call": "beta.organization.serviceAccounts.workspaces.list",
+      "path": {
+        "service_account_id": "anthropic.organization.service_account.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/organizations/service_accounts/{service_account_id}/workspaces",
+      "query": ["limit", "page"]
+    },
+    "beta.organization.service_accounts.workspaces.remove": {
+      "span": "anthropic.organization.service_accounts.workspaces.remove",
+      "call": "beta.organization.serviceAccounts.workspaces.remove",
+      "path": {
+        "service_account_id": "anthropic.organization.service_account.id",
+        "workspace_id": "anthropic.organization.service_account.workspace.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/organizations/service_accounts/{service_account_id}/workspaces/{workspace_id}"
+    },
+    "beta.organization.users.remove": {
+      "span": "anthropic.organization.users.remove",
+      "call": "beta.organization.users.remove",
+      "path": {
+        "user_id": "anthropic.organization.user.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/organizations/users/{user_id}"
+    },
+    "beta.organization.users.retrieve": {
+      "span": "anthropic.organization.users.retrieve",
+      "call": "beta.organization.users.retrieve",
+      "path": {
+        "user_id": "anthropic.organization.user.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/organizations/users/{user_id}"
+    },
+    "beta.organization.users.update": {
+      "span": "anthropic.organization.users.update",
+      "call": "beta.organization.users.update",
+      "path": {
+        "user_id": "anthropic.organization.user.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/organizations/users/{user_id}"
+    },
+    "beta.organization.workspaces.archive": {
+      "span": "anthropic.organization.workspaces.archive",
+      "call": "beta.organization.workspaces.archive",
+      "path": {
+        "workspace_id": "anthropic.organization.workspace.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/organizations/workspaces/{workspace_id}/archive"
+    },
+    "beta.organization.workspaces.create": {
+      "span": "anthropic.organization.workspaces.create",
+      "call": "beta.organization.workspaces.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.organization.workspace.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/organizations/workspaces"
+    },
+    "beta.organization.workspaces.members.add": {
+      "span": "anthropic.organization.workspaces.members.add",
+      "call": "beta.organization.workspaces.members.add",
+      "path": {
+        "workspace_id": "anthropic.organization.workspace.id"
+      },
+      "created": {
+        "attribute": "anthropic.organization.workspace.member.id",
+        "field": "user_id"
+      },
+      "verb": "POST",
+      "route": "/v1/organizations/workspaces/{workspace_id}/members"
+    },
+    "beta.organization.workspaces.members.list": {
+      "span": "anthropic.organization.workspaces.members.list",
+      "call": "beta.organization.workspaces.members.list",
+      "path": {
+        "workspace_id": "anthropic.organization.workspace.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/organizations/workspaces/{workspace_id}/members",
+      "query": ["after_id", "before_id", "limit"]
+    },
+    "beta.organization.workspaces.members.remove": {
+      "span": "anthropic.organization.workspaces.members.remove",
+      "call": "beta.organization.workspaces.members.remove",
+      "path": {
+        "workspace_id": "anthropic.organization.workspace.id",
+        "user_id": "anthropic.organization.workspace.member.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/organizations/workspaces/{workspace_id}/members/{user_id}"
+    },
+    "beta.organization.workspaces.members.retrieve": {
+      "span": "anthropic.organization.workspaces.members.retrieve",
+      "call": "beta.organization.workspaces.members.retrieve",
+      "path": {
+        "workspace_id": "anthropic.organization.workspace.id",
+        "user_id": "anthropic.organization.workspace.member.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/organizations/workspaces/{workspace_id}/members/{user_id}"
+    },
+    "beta.organization.workspaces.members.update": {
+      "span": "anthropic.organization.workspaces.members.update",
+      "call": "beta.organization.workspaces.members.update",
+      "path": {
+        "workspace_id": "anthropic.organization.workspace.id",
+        "user_id": "anthropic.organization.workspace.member.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/organizations/workspaces/{workspace_id}/members/{user_id}"
+    },
+    "beta.organization.workspaces.rate_limits.list": {
+      "span": "anthropic.organization.workspaces.rate_limits.list",
+      "call": "beta.organization.workspaces.rateLimits.list",
+      "path": {
+        "workspace_id": "anthropic.organization.workspace.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/organizations/workspaces/{workspace_id}/rate_limits",
+      "query": ["group_type", "include_inherited", "limit", "page"]
+    },
+    "beta.organization.workspaces.retrieve": {
+      "span": "anthropic.organization.workspaces.retrieve",
+      "call": "beta.organization.workspaces.retrieve",
+      "path": {
+        "workspace_id": "anthropic.organization.workspace.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/organizations/workspaces/{workspace_id}"
+    },
+    "beta.organization.workspaces.service_accounts.add": {
+      "span": "anthropic.organization.workspaces.service_accounts.add",
+      "call": "beta.organization.workspaces.serviceAccounts.add",
+      "path": {
+        "workspace_id": "anthropic.organization.workspace.id"
+      },
+      "created": {
+        "attribute": "anthropic.organization.workspace.service_account.id",
+        "field": "service_account_id"
+      },
+      "verb": "POST",
+      "route": "/v1/organizations/workspaces/{workspace_id}/service_accounts"
+    },
+    "beta.organization.workspaces.service_accounts.list": {
+      "span": "anthropic.organization.workspaces.service_accounts.list",
+      "call": "beta.organization.workspaces.serviceAccounts.list",
+      "path": {
+        "workspace_id": "anthropic.organization.workspace.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/organizations/workspaces/{workspace_id}/service_accounts",
+      "query": ["limit", "page"]
+    },
+    "beta.organization.workspaces.service_accounts.remove": {
+      "span": "anthropic.organization.workspaces.service_accounts.remove",
+      "call": "beta.organization.workspaces.serviceAccounts.remove",
+      "path": {
+        "workspace_id": "anthropic.organization.workspace.id",
+        "service_account_id": "anthropic.organization.workspace.service_account.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}"
+    },
+    "beta.organization.workspaces.service_accounts.retrieve": {
+      "span": "anthropic.organization.workspaces.service_accounts.retrieve",
+      "call": "beta.organization.workspaces.serviceAccounts.retrieve",
+      "path": {
+        "workspace_id": "anthropic.organization.workspace.id",
+        "service_account_id": "anthropic.organization.workspace.service_account.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}"
+    },
+    "beta.organization.workspaces.service_accounts.update": {
+      "span": "anthropic.organization.workspaces.service_accounts.update",
+      "call": "beta.organization.workspaces.serviceAccounts.update",
+      "path": {
+        "workspace_id": "anthropic.organization.workspace.id",
+        "service_account_id": "anthropic.organization.workspace.service_account.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/organizations/workspaces/{workspace_id}/service_accounts/{service_account_id}"
+    },
+    "beta.organization.workspaces.update": {
+      "span": "anthropic.organization.workspaces.update",
+      "call": "beta.organization.workspaces.update",
+      "path": {
+        "workspace_id": "anthropic.organization.workspace.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/organizations/workspaces/{workspace_id}"
+    },
+    "beta.sessions.archive": {
+      "span": "anthropic.sessions.archive",
+      "call": "beta.sessions.archive",
+      "path": {
+        "session_id": "anthropic.session.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/sessions/{session_id}/archive"
+    },
+    "beta.sessions.create": {
+      "span": "anthropic.sessions.create",
+      "call": "beta.sessions.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.session.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/sessions"
+    },
+    "beta.sessions.delete": {
+      "span": "anthropic.sessions.delete",
+      "call": "beta.sessions.delete",
+      "path": {
+        "session_id": "anthropic.session.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/sessions/{session_id}"
+    },
+    "beta.sessions.events.list": {
+      "span": "anthropic.sessions.events.list",
+      "call": "beta.sessions.events.list",
+      "path": {
+        "session_id": "anthropic.session.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/sessions/{session_id}/events",
+      "query": [
+        "created_at[gt]",
+        "created_at[gte]",
+        "created_at[lt]",
+        "created_at[lte]",
+        "limit",
+        "order",
+        "page",
+        "types"
+      ]
+    },
+    "beta.sessions.events.send": {
+      "span": "anthropic.sessions.events.send",
+      "call": "beta.sessions.events.send",
+      "path": {
+        "session_id": "anthropic.session.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/sessions/{session_id}/events"
+    },
+    "beta.sessions.events.stream": {
+      "span": "anthropic.sessions.events.stream",
+      "call": "beta.sessions.events.stream",
+      "path": {
+        "session_id": "anthropic.session.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/sessions/{session_id}/events/stream",
+      "query": ["event_deltas"]
+    },
+    "beta.sessions.resources.add": {
+      "span": "anthropic.sessions.resources.add",
+      "call": "beta.sessions.resources.add",
+      "path": {
+        "session_id": "anthropic.session.id"
+      },
+      "created": {
+        "attribute": "anthropic.session.resource.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/sessions/{session_id}/resources"
+    },
+    "beta.sessions.resources.delete": {
+      "span": "anthropic.sessions.resources.delete",
+      "call": "beta.sessions.resources.delete",
+      "path": {
+        "session_id": "anthropic.session.id",
+        "resource_id": "anthropic.session.resource.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/sessions/{session_id}/resources/{resource_id}"
+    },
+    "beta.sessions.resources.list": {
+      "span": "anthropic.sessions.resources.list",
+      "call": "beta.sessions.resources.list",
+      "path": {
+        "session_id": "anthropic.session.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/sessions/{session_id}/resources",
+      "query": ["limit", "page"]
+    },
+    "beta.sessions.resources.retrieve": {
+      "span": "anthropic.sessions.resources.retrieve",
+      "call": "beta.sessions.resources.retrieve",
+      "path": {
+        "session_id": "anthropic.session.id",
+        "resource_id": "anthropic.session.resource.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/sessions/{session_id}/resources/{resource_id}"
+    },
+    "beta.sessions.resources.update": {
+      "span": "anthropic.sessions.resources.update",
+      "call": "beta.sessions.resources.update",
+      "path": {
+        "session_id": "anthropic.session.id",
+        "resource_id": "anthropic.session.resource.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/sessions/{session_id}/resources/{resource_id}"
+    },
+    "beta.sessions.retrieve": {
+      "span": "anthropic.sessions.retrieve",
+      "call": "beta.sessions.retrieve",
+      "path": {
+        "session_id": "anthropic.session.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/sessions/{session_id}"
+    },
+    "beta.sessions.threads.archive": {
+      "span": "anthropic.sessions.threads.archive",
+      "call": "beta.sessions.threads.archive",
+      "path": {
+        "session_id": "anthropic.session.id",
+        "thread_id": "anthropic.session.thread.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/sessions/{session_id}/threads/{thread_id}/archive"
+    },
+    "beta.sessions.threads.events.list": {
+      "span": "anthropic.sessions.threads.events.list",
+      "call": "beta.sessions.threads.events.list",
+      "path": {
+        "session_id": "anthropic.session.id",
+        "thread_id": "anthropic.session.thread.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/sessions/{session_id}/threads/{thread_id}/events",
+      "query": ["limit", "page"]
+    },
+    "beta.sessions.threads.events.stream": {
+      "span": "anthropic.sessions.threads.events.stream",
+      "call": "beta.sessions.threads.events.stream",
+      "path": {
+        "session_id": "anthropic.session.id",
+        "thread_id": "anthropic.session.thread.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/sessions/{session_id}/threads/{thread_id}/stream",
+      "query": ["event_deltas"]
+    },
+    "beta.sessions.threads.list": {
+      "span": "anthropic.sessions.threads.list",
+      "call": "beta.sessions.threads.list",
+      "path": {
+        "session_id": "anthropic.session.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/sessions/{session_id}/threads",
+      "query": ["limit", "page"]
+    },
+    "beta.sessions.threads.retrieve": {
+      "span": "anthropic.sessions.threads.retrieve",
+      "call": "beta.sessions.threads.retrieve",
+      "path": {
+        "session_id": "anthropic.session.id",
+        "thread_id": "anthropic.session.thread.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/sessions/{session_id}/threads/{thread_id}"
+    },
+    "beta.sessions.update": {
+      "span": "anthropic.sessions.update",
+      "call": "beta.sessions.update",
+      "path": {
+        "session_id": "anthropic.session.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/sessions/{session_id}"
+    },
+    "beta.skills.create": {
+      "span": "anthropic.skills.create",
+      "call": "beta.skills.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.skill.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/skills"
+    },
+    "beta.skills.delete": {
+      "span": "anthropic.skills.delete",
+      "call": "beta.skills.delete",
+      "path": {
+        "skill_id": "anthropic.skill.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/skills/{skill_id}"
+    },
+    "beta.skills.retrieve": {
+      "span": "anthropic.skills.retrieve",
+      "call": "beta.skills.retrieve",
+      "path": {
+        "skill_id": "anthropic.skill.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/skills/{skill_id}"
+    },
+    "beta.skills.versions.create": {
+      "span": "anthropic.skills.versions.create",
+      "call": "beta.skills.versions.create",
+      "path": {
+        "skill_id": "anthropic.skill.id"
+      },
+      "created": {
+        "attribute": "anthropic.skill.version.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/skills/{skill_id}/versions"
+    },
+    "beta.skills.versions.delete": {
+      "span": "anthropic.skills.versions.delete",
+      "call": "beta.skills.versions.delete",
+      "path": {
+        "skill_id": "anthropic.skill.id",
+        "version": "anthropic.skill.version.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/skills/{skill_id}/versions/{version}"
+    },
+    "beta.skills.versions.download": {
+      "span": "anthropic.skills.versions.download",
+      "call": "beta.skills.versions.download",
+      "path": {
+        "skill_id": "anthropic.skill.id",
+        "version": "anthropic.skill.version.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/skills/{skill_id}/versions/{version}/content"
+    },
+    "beta.skills.versions.list": {
+      "span": "anthropic.skills.versions.list",
+      "call": "beta.skills.versions.list",
+      "path": {
+        "skill_id": "anthropic.skill.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/skills/{skill_id}/versions",
+      "query": ["limit", "page"]
+    },
+    "beta.skills.versions.retrieve": {
+      "span": "anthropic.skills.versions.retrieve",
+      "call": "beta.skills.versions.retrieve",
+      "path": {
+        "skill_id": "anthropic.skill.id",
+        "version": "anthropic.skill.version.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/skills/{skill_id}/versions/{version}"
+    },
+    "beta.tunnels.archive": {
+      "span": "anthropic.tunnels.archive",
+      "call": "beta.tunnels.archive",
+      "path": {
+        "tunnel_id": "anthropic.tunnel.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/tunnels/{tunnel_id}/archive"
+    },
+    "beta.tunnels.certificates.archive": {
+      "span": "anthropic.tunnels.certificates.archive",
+      "call": "beta.tunnels.certificates.archive",
+      "path": {
+        "tunnel_id": "anthropic.tunnel.id",
+        "certificate_id": "anthropic.tunnel.certificate.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/tunnels/{tunnel_id}/certificates/{certificate_id}/archive"
+    },
+    "beta.tunnels.certificates.create": {
+      "span": "anthropic.tunnels.certificates.create",
+      "call": "beta.tunnels.certificates.create",
+      "path": {
+        "tunnel_id": "anthropic.tunnel.id"
+      },
+      "created": {
+        "attribute": "anthropic.tunnel.certificate.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/tunnels/{tunnel_id}/certificates"
+    },
+    "beta.tunnels.certificates.list": {
+      "span": "anthropic.tunnels.certificates.list",
+      "call": "beta.tunnels.certificates.list",
+      "path": {
+        "tunnel_id": "anthropic.tunnel.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/tunnels/{tunnel_id}/certificates",
+      "query": ["include_archived", "limit", "page"]
+    },
+    "beta.tunnels.certificates.retrieve": {
+      "span": "anthropic.tunnels.certificates.retrieve",
+      "call": "beta.tunnels.certificates.retrieve",
+      "path": {
+        "tunnel_id": "anthropic.tunnel.id",
+        "certificate_id": "anthropic.tunnel.certificate.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/tunnels/{tunnel_id}/certificates/{certificate_id}"
+    },
+    "beta.tunnels.create": {
+      "span": "anthropic.tunnels.create",
+      "call": "beta.tunnels.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.tunnel.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/tunnels"
+    },
+    "beta.tunnels.retrieve": {
+      "span": "anthropic.tunnels.retrieve",
+      "call": "beta.tunnels.retrieve",
+      "path": {
+        "tunnel_id": "anthropic.tunnel.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/tunnels/{tunnel_id}"
+    },
+    "beta.tunnels.reveal_token": {
+      "span": "anthropic.tunnels.reveal_token",
+      "call": "beta.tunnels.revealToken",
+      "path": {
+        "tunnel_id": "anthropic.tunnel.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/tunnels/{tunnel_id}/reveal_token"
+    },
+    "beta.tunnels.rotate_token": {
+      "span": "anthropic.tunnels.rotate_token",
+      "call": "beta.tunnels.rotateToken",
+      "path": {
+        "tunnel_id": "anthropic.tunnel.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/tunnels/{tunnel_id}/rotate_token"
+    },
+    "beta.user_profiles.create": {
+      "span": "anthropic.user_profiles.create",
+      "call": "beta.userProfiles.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.user_profile.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/user_profiles"
+    },
+    "beta.user_profiles.create_enrollment_url": {
+      "span": "anthropic.user_profiles.create_enrollment_url",
+      "call": "beta.userProfiles.createEnrollmentURL",
+      "path": {
+        "user_profile_id": "anthropic.user_profile.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/user_profiles/{user_profile_id}/enrollment_url"
+    },
+    "beta.user_profiles.retrieve": {
+      "span": "anthropic.user_profiles.retrieve",
+      "call": "beta.userProfiles.retrieve",
+      "path": {
+        "user_profile_id": "anthropic.user_profile.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/user_profiles/{user_profile_id}"
+    },
+    "beta.user_profiles.update": {
+      "span": "anthropic.user_profiles.update",
+      "call": "beta.userProfiles.update",
+      "path": {
+        "user_profile_id": "anthropic.user_profile.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/user_profiles/{user_profile_id}"
+    },
+    "beta.vaults.archive": {
+      "span": "anthropic.vaults.archive",
+      "call": "beta.vaults.archive",
+      "path": {
+        "vault_id": "anthropic.vault.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/vaults/{vault_id}/archive"
+    },
+    "beta.vaults.create": {
+      "span": "anthropic.vaults.create",
+      "call": "beta.vaults.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.vault.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/vaults"
+    },
+    "beta.vaults.credentials.archive": {
+      "span": "anthropic.vaults.credentials.archive",
+      "call": "beta.vaults.credentials.archive",
+      "path": {
+        "vault_id": "anthropic.vault.id",
+        "credential_id": "anthropic.vault.credential.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/vaults/{vault_id}/credentials/{credential_id}/archive"
+    },
+    "beta.vaults.credentials.create": {
+      "span": "anthropic.vaults.credentials.create",
+      "call": "beta.vaults.credentials.create",
+      "path": {
+        "vault_id": "anthropic.vault.id"
+      },
+      "created": {
+        "attribute": "anthropic.vault.credential.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/vaults/{vault_id}/credentials"
+    },
+    "beta.vaults.credentials.delete": {
+      "span": "anthropic.vaults.credentials.delete",
+      "call": "beta.vaults.credentials.delete",
+      "path": {
+        "vault_id": "anthropic.vault.id",
+        "credential_id": "anthropic.vault.credential.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/vaults/{vault_id}/credentials/{credential_id}"
+    },
+    "beta.vaults.credentials.list": {
+      "span": "anthropic.vaults.credentials.list",
+      "call": "beta.vaults.credentials.list",
+      "path": {
+        "vault_id": "anthropic.vault.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/vaults/{vault_id}/credentials",
+      "query": ["include_archived", "limit", "page"]
+    },
+    "beta.vaults.credentials.mcp_oauth_validate": {
+      "span": "anthropic.vaults.credentials.mcp_oauth_validate",
+      "call": "beta.vaults.credentials.mcpOAuthValidate",
+      "path": {
+        "vault_id": "anthropic.vault.id",
+        "credential_id": "anthropic.vault.credential.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/vaults/{vault_id}/credentials/{credential_id}/mcp_oauth_validate"
+    },
+    "beta.vaults.credentials.retrieve": {
+      "span": "anthropic.vaults.credentials.retrieve",
+      "call": "beta.vaults.credentials.retrieve",
+      "path": {
+        "vault_id": "anthropic.vault.id",
+        "credential_id": "anthropic.vault.credential.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/vaults/{vault_id}/credentials/{credential_id}"
+    },
+    "beta.vaults.credentials.update": {
+      "span": "anthropic.vaults.credentials.update",
+      "call": "beta.vaults.credentials.update",
+      "path": {
+        "vault_id": "anthropic.vault.id",
+        "credential_id": "anthropic.vault.credential.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/vaults/{vault_id}/credentials/{credential_id}"
+    },
+    "beta.vaults.delete": {
+      "span": "anthropic.vaults.delete",
+      "call": "beta.vaults.delete",
+      "path": {
+        "vault_id": "anthropic.vault.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/vaults/{vault_id}"
+    },
+    "beta.vaults.retrieve": {
+      "span": "anthropic.vaults.retrieve",
+      "call": "beta.vaults.retrieve",
+      "path": {
+        "vault_id": "anthropic.vault.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/vaults/{vault_id}"
+    },
+    "beta.vaults.update": {
+      "span": "anthropic.vaults.update",
+      "call": "beta.vaults.update",
+      "path": {
+        "vault_id": "anthropic.vault.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/vaults/{vault_id}"
+    },
+    "files.delete": {
+      "span": "anthropic.files.delete",
+      "call": "files.delete",
+      "path": {
+        "file_id": "anthropic.file.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/files/{file_id}"
+    },
+    "files.download": {
+      "span": "anthropic.files.download",
+      "call": "files.download",
+      "path": {
+        "file_id": "anthropic.file.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/files/{file_id}/content"
+    },
+    "files.retrieve_metadata": {
+      "span": "anthropic.files.retrieve_metadata",
+      "call": "files.retrieveMetadata",
+      "path": {
+        "file_id": "anthropic.file.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/files/{file_id}"
+    },
+    "files.upload": {
+      "span": "anthropic.files.upload",
+      "call": "files.upload",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.file.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/files"
+    },
+    "messages.batches.cancel": {
+      "span": "anthropic.messages.batches.cancel",
+      "call": "messages.batches.cancel",
+      "path": {
+        "message_batch_id": "anthropic.message.batch.id"
+      },
+      "created": null,
+      "verb": "POST",
+      "route": "/v1/messages/batches/{message_batch_id}/cancel"
+    },
+    "messages.batches.create": {
+      "span": "anthropic.messages.batches.create",
+      "call": "messages.batches.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.message.batch.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/messages/batches"
+    },
+    "messages.batches.delete": {
+      "span": "anthropic.messages.batches.delete",
+      "call": "messages.batches.delete",
+      "path": {
+        "message_batch_id": "anthropic.message.batch.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/messages/batches/{message_batch_id}"
+    },
+    "messages.batches.results": {
+      "span": "anthropic.messages.batches.results",
+      "call": "messages.batches.results",
+      "path": {
+        "message_batch_id": "anthropic.message.batch.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/messages/batches/{message_batch_id}/results"
+    },
+    "messages.batches.retrieve": {
+      "span": "anthropic.messages.batches.retrieve",
+      "call": "messages.batches.retrieve",
+      "path": {
+        "message_batch_id": "anthropic.message.batch.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/messages/batches/{message_batch_id}"
+    },
+    "models.retrieve": {
+      "span": "anthropic.models.retrieve",
+      "call": "models.retrieve",
+      "path": {
+        "model_id": "anthropic.model.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/models/{model_id}"
+    },
+    "skills.create": {
+      "span": "anthropic.skills.create",
+      "call": "skills.create",
+      "path": {},
+      "created": {
+        "attribute": "anthropic.skill.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/skills"
+    },
+    "skills.delete": {
+      "span": "anthropic.skills.delete",
+      "call": "skills.delete",
+      "path": {
+        "skill_id": "anthropic.skill.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/skills/{skill_id}"
+    },
+    "skills.retrieve": {
+      "span": "anthropic.skills.retrieve",
+      "call": "skills.retrieve",
+      "path": {
+        "skill_id": "anthropic.skill.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/skills/{skill_id}"
+    },
+    "skills.versions.create": {
+      "span": "anthropic.skills.versions.create",
+      "call": "skills.versions.create",
+      "path": {
+        "skill_id": "anthropic.skill.id"
+      },
+      "created": {
+        "attribute": "anthropic.skill.version.id",
+        "field": "id"
+      },
+      "verb": "POST",
+      "route": "/v1/skills/{skill_id}/versions"
+    },
+    "skills.versions.delete": {
+      "span": "anthropic.skills.versions.delete",
+      "call": "skills.versions.delete",
+      "path": {
+        "skill_id": "anthropic.skill.id",
+        "version": "anthropic.skill.version.id"
+      },
+      "created": null,
+      "verb": "DELETE",
+      "route": "/v1/skills/{skill_id}/versions/{version}"
+    },
+    "skills.versions.list": {
+      "span": "anthropic.skills.versions.list",
+      "call": "skills.versions.list",
+      "path": {
+        "skill_id": "anthropic.skill.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/skills/{skill_id}/versions",
+      "query": ["limit", "page"]
+    },
+    "skills.versions.retrieve": {
+      "span": "anthropic.skills.versions.retrieve",
+      "call": "skills.versions.retrieve",
+      "path": {
+        "skill_id": "anthropic.skill.id",
+        "version": "anthropic.skill.version.id"
+      },
+      "created": null,
+      "verb": "GET",
+      "route": "/v1/skills/{skill_id}/versions/{version}"
+    }
+  },
+  "cases": [
+    {
+      "kind": "path",
+      "method": "beta.agents.retrieve",
+      "call": "beta.agents.retrieve",
+      "span": "anthropic.agents.retrieve",
+      "arguments": ["agent_id_1", {}],
+      "expect": {
+        "gen_ai.agent.id": "agent_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.agents.create",
+      "call": "beta.agents.create",
+      "span": "anthropic.agents.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "gen_ai.agent.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "list",
+      "method": "beta.agents.versions.list",
+      "call": "beta.agents.versions.list",
+      "span": "anthropic.agents.versions.list",
+      "arguments": ["agent_id_1", {}],
+      "expect": {
+        "gen_ai.agent.id": "agent_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.deployment_runs.retrieve",
+      "call": "beta.deploymentRuns.retrieve",
+      "span": "anthropic.deployment_runs.retrieve",
+      "arguments": ["deployment_run_id_1", {}],
+      "expect": {
+        "anthropic.deployment_run.id": "deployment_run_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.deployments.retrieve",
+      "call": "beta.deployments.retrieve",
+      "span": "anthropic.deployments.retrieve",
+      "arguments": ["deployment_id_1", {}],
+      "expect": {
+        "anthropic.deployment.id": "deployment_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.deployments.create",
+      "call": "beta.deployments.create",
+      "span": "anthropic.deployments.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "anthropic.deployment.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "path",
+      "method": "beta.dreams.retrieve",
+      "call": "beta.dreams.retrieve",
+      "span": "anthropic.dreams.retrieve",
+      "arguments": ["dream_id_1", {}],
+      "expect": {
+        "anthropic.dream.id": "dream_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.dreams.create",
+      "call": "beta.dreams.create",
+      "span": "anthropic.dreams.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "anthropic.dream.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "path",
+      "method": "beta.environments.retrieve",
+      "call": "beta.environments.retrieve",
+      "span": "anthropic.environments.retrieve",
+      "arguments": ["environment_id_1", {}],
+      "expect": {
+        "anthropic.environment.id": "environment_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.environments.create",
+      "call": "beta.environments.create",
+      "span": "anthropic.environments.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "anthropic.environment.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "path",
+      "method": "beta.environments.work.retrieve",
+      "call": "beta.environments.work.retrieve",
+      "span": "anthropic.environments.work.retrieve",
+      "arguments": [
+        "work_id_1",
+        {
+          "environment_id": "environment_id_1"
+        }
+      ],
+      "expect": {
+        "anthropic.environment.id": "environment_id_1",
+        "anthropic.environment.work.id": "work_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "list",
+      "method": "beta.environments.work.list",
+      "call": "beta.environments.work.list",
+      "span": "anthropic.environments.work.list",
+      "arguments": ["environment_id_1", {}],
+      "expect": {
+        "anthropic.environment.id": "environment_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.files.delete",
+      "call": "beta.files.delete",
+      "span": "anthropic.files.delete",
+      "arguments": ["file_id_1", {}],
+      "expect": {
+        "anthropic.file.id": "file_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.memory_stores.memories.retrieve",
+      "call": "beta.memoryStores.memories.retrieve",
+      "span": "anthropic.memory_stores.memories.retrieve",
+      "arguments": [
+        "memory_id_1",
+        {
+          "memory_store_id": "memory_store_id_1"
+        }
+      ],
+      "expect": {
+        "gen_ai.memory.store.id": "memory_store_id_1",
+        "gen_ai.memory.record.id": "memory_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.memory_stores.memories.create",
+      "call": "beta.memoryStores.memories.create",
+      "span": "anthropic.memory_stores.memories.create",
+      "arguments": ["memory_store_id_1", {}],
+      "expect": {
+        "gen_ai.memory.store.id": "memory_store_id_1"
+      },
+      "created": {
+        "attribute": "gen_ai.memory.record.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "list",
+      "method": "beta.memory_stores.memories.list",
+      "call": "beta.memoryStores.memories.list",
+      "span": "anthropic.memory_stores.memories.list",
+      "arguments": ["memory_store_id_1", {}],
+      "expect": {
+        "gen_ai.memory.store.id": "memory_store_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.memory_stores.retrieve",
+      "call": "beta.memoryStores.retrieve",
+      "span": "anthropic.memory_stores.retrieve",
+      "arguments": ["memory_store_id_1", {}],
+      "expect": {
+        "gen_ai.memory.store.id": "memory_store_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.memory_stores.create",
+      "call": "beta.memoryStores.create",
+      "span": "anthropic.memory_stores.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "gen_ai.memory.store.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "path",
+      "method": "beta.memory_stores.memory_versions.retrieve",
+      "call": "beta.memoryStores.memoryVersions.retrieve",
+      "span": "anthropic.memory_stores.memory_versions.retrieve",
+      "arguments": [
+        "memory_version_id_1",
+        {
+          "memory_store_id": "memory_store_id_1"
+        }
+      ],
+      "expect": {
+        "gen_ai.memory.store.id": "memory_store_id_1",
+        "anthropic.memory_store.memory_version.id": "memory_version_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "list",
+      "method": "beta.memory_stores.memory_versions.list",
+      "call": "beta.memoryStores.memoryVersions.list",
+      "span": "anthropic.memory_stores.memory_versions.list",
+      "arguments": ["memory_store_id_1", {}],
+      "expect": {
+        "gen_ai.memory.store.id": "memory_store_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.messages.batches.retrieve",
+      "call": "beta.messages.batches.retrieve",
+      "span": "anthropic.messages.batches.retrieve",
+      "arguments": ["message_batch_id_1", {}],
+      "expect": {
+        "anthropic.message.batch.id": "message_batch_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.messages.batches.create",
+      "call": "beta.messages.batches.create",
+      "span": "anthropic.messages.batches.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "anthropic.message.batch.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "path",
+      "method": "beta.models.retrieve",
+      "call": "beta.models.retrieve",
+      "span": "anthropic.models.retrieve",
+      "arguments": ["model_id_1", {}],
+      "expect": {
+        "anthropic.model.id": "model_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.organization.api_keys.retrieve",
+      "call": "beta.organization.apiKeys.retrieve",
+      "span": "anthropic.organization.api_keys.retrieve",
+      "arguments": ["api_key_id_1"],
+      "expect": {
+        "anthropic.organization.api_key.id": "api_key_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.organization.external_keys.retrieve",
+      "call": "beta.organization.externalKeys.retrieve",
+      "span": "anthropic.organization.external_keys.retrieve",
+      "arguments": ["external_key_id_1"],
+      "expect": {
+        "anthropic.organization.external_key.id": "external_key_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.organization.external_keys.create",
+      "call": "beta.organization.externalKeys.create",
+      "span": "anthropic.organization.external_keys.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "anthropic.organization.external_key.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "path",
+      "method": "beta.organization.federation.issuers.retrieve",
+      "call": "beta.organization.federation.issuers.retrieve",
+      "span": "anthropic.organization.federation.issuers.retrieve",
+      "arguments": ["federation_issuer_id_1", {}],
+      "expect": {
+        "anthropic.organization.federation_issuer.id": "federation_issuer_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.organization.federation.issuers.create",
+      "call": "beta.organization.federation.issuers.create",
+      "span": "anthropic.organization.federation.issuers.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "anthropic.organization.federation_issuer.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "path",
+      "method": "beta.organization.federation.rules.retrieve",
+      "call": "beta.organization.federation.rules.retrieve",
+      "span": "anthropic.organization.federation.rules.retrieve",
+      "arguments": ["federation_rule_id_1", {}],
+      "expect": {
+        "anthropic.organization.federation_rule.id": "federation_rule_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.organization.federation.rules.create",
+      "call": "beta.organization.federation.rules.create",
+      "span": "anthropic.organization.federation.rules.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "anthropic.organization.federation_rule.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "path",
+      "method": "beta.organization.federation.rules.workspaces.remove",
+      "call": "beta.organization.federation.rules.workspaces.remove",
+      "span": "anthropic.organization.federation.rules.workspaces.remove",
+      "arguments": [
+        "workspace_id_1",
+        {
+          "federation_rule_id": "federation_rule_id_1"
+        }
+      ],
+      "expect": {
+        "anthropic.organization.federation_rule.id": "federation_rule_id_1",
+        "anthropic.organization.federation_rule.workspace.id": "workspace_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created_field",
+      "method": "beta.organization.federation.rules.workspaces.add",
+      "call": "beta.organization.federation.rules.workspaces.add",
+      "span": "anthropic.organization.federation.rules.workspaces.add",
+      "arguments": ["federation_rule_id_1", {}],
+      "expect": {
+        "anthropic.organization.federation_rule.id": "federation_rule_id_1"
+      },
+      "created": {
+        "attribute": "anthropic.organization.federation_rule.workspace.id",
+        "field": "workspace_id"
+      }
+    },
+    {
+      "kind": "list",
+      "method": "beta.organization.federation.rules.workspaces.list",
+      "call": "beta.organization.federation.rules.workspaces.list",
+      "span": "anthropic.organization.federation.rules.workspaces.list",
+      "arguments": ["federation_rule_id_1", {}],
+      "expect": {
+        "anthropic.organization.federation_rule.id": "federation_rule_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.organization.invites.retrieve",
+      "call": "beta.organization.invites.retrieve",
+      "span": "anthropic.organization.invites.retrieve",
+      "arguments": ["invite_id_1"],
+      "expect": {
+        "anthropic.organization.invite.id": "invite_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.organization.invites.create",
+      "call": "beta.organization.invites.create",
+      "span": "anthropic.organization.invites.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "anthropic.organization.invite.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "path",
+      "method": "beta.organization.service_accounts.retrieve",
+      "call": "beta.organization.serviceAccounts.retrieve",
+      "span": "anthropic.organization.service_accounts.retrieve",
+      "arguments": ["service_account_id_1", {}],
+      "expect": {
+        "anthropic.organization.service_account.id": "service_account_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.organization.service_accounts.create",
+      "call": "beta.organization.serviceAccounts.create",
+      "span": "anthropic.organization.service_accounts.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "anthropic.organization.service_account.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "path",
+      "method": "beta.organization.service_accounts.workspaces.remove",
+      "call": "beta.organization.serviceAccounts.workspaces.remove",
+      "span": "anthropic.organization.service_accounts.workspaces.remove",
+      "arguments": [
+        "workspace_id_1",
+        {
+          "service_account_id": "service_account_id_1"
+        }
+      ],
+      "expect": {
+        "anthropic.organization.service_account.id": "service_account_id_1",
+        "anthropic.organization.service_account.workspace.id": "workspace_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created_field",
+      "method": "beta.organization.service_accounts.workspaces.add",
+      "call": "beta.organization.serviceAccounts.workspaces.add",
+      "span": "anthropic.organization.service_accounts.workspaces.add",
+      "arguments": ["service_account_id_1", {}],
+      "expect": {
+        "anthropic.organization.service_account.id": "service_account_id_1"
+      },
+      "created": {
+        "attribute": "anthropic.organization.service_account.workspace.id",
+        "field": "workspace_id"
+      }
+    },
+    {
+      "kind": "list",
+      "method": "beta.organization.service_accounts.workspaces.list",
+      "call": "beta.organization.serviceAccounts.workspaces.list",
+      "span": "anthropic.organization.service_accounts.workspaces.list",
+      "arguments": ["service_account_id_1", {}],
+      "expect": {
+        "anthropic.organization.service_account.id": "service_account_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.organization.users.retrieve",
+      "call": "beta.organization.users.retrieve",
+      "span": "anthropic.organization.users.retrieve",
+      "arguments": ["user_id_1"],
+      "expect": {
+        "anthropic.organization.user.id": "user_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.organization.workspaces.members.retrieve",
+      "call": "beta.organization.workspaces.members.retrieve",
+      "span": "anthropic.organization.workspaces.members.retrieve",
+      "arguments": [
+        "user_id_1",
+        {
+          "workspace_id": "workspace_id_1"
+        }
+      ],
+      "expect": {
+        "anthropic.organization.workspace.id": "workspace_id_1",
+        "anthropic.organization.workspace.member.id": "user_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created_field",
+      "method": "beta.organization.workspaces.members.add",
+      "call": "beta.organization.workspaces.members.add",
+      "span": "anthropic.organization.workspaces.members.add",
+      "arguments": ["workspace_id_1", {}],
+      "expect": {
+        "anthropic.organization.workspace.id": "workspace_id_1"
+      },
+      "created": {
+        "attribute": "anthropic.organization.workspace.member.id",
+        "field": "user_id"
+      }
+    },
+    {
+      "kind": "list",
+      "method": "beta.organization.workspaces.members.list",
+      "call": "beta.organization.workspaces.members.list",
+      "span": "anthropic.organization.workspaces.members.list",
+      "arguments": ["workspace_id_1", {}],
+      "expect": {
+        "anthropic.organization.workspace.id": "workspace_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "list",
+      "method": "beta.organization.workspaces.rate_limits.list",
+      "call": "beta.organization.workspaces.rateLimits.list",
+      "span": "anthropic.organization.workspaces.rate_limits.list",
+      "arguments": ["workspace_id_1", {}],
+      "expect": {
+        "anthropic.organization.workspace.id": "workspace_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.organization.workspaces.service_accounts.retrieve",
+      "call": "beta.organization.workspaces.serviceAccounts.retrieve",
+      "span": "anthropic.organization.workspaces.service_accounts.retrieve",
+      "arguments": [
+        "service_account_id_1",
+        {
+          "workspace_id": "workspace_id_1"
+        }
+      ],
+      "expect": {
+        "anthropic.organization.workspace.id": "workspace_id_1",
+        "anthropic.organization.workspace.service_account.id": "service_account_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created_field",
+      "method": "beta.organization.workspaces.service_accounts.add",
+      "call": "beta.organization.workspaces.serviceAccounts.add",
+      "span": "anthropic.organization.workspaces.service_accounts.add",
+      "arguments": ["workspace_id_1", {}],
+      "expect": {
+        "anthropic.organization.workspace.id": "workspace_id_1"
+      },
+      "created": {
+        "attribute": "anthropic.organization.workspace.service_account.id",
+        "field": "service_account_id"
+      }
+    },
+    {
+      "kind": "list",
+      "method": "beta.organization.workspaces.service_accounts.list",
+      "call": "beta.organization.workspaces.serviceAccounts.list",
+      "span": "anthropic.organization.workspaces.service_accounts.list",
+      "arguments": ["workspace_id_1", {}],
+      "expect": {
+        "anthropic.organization.workspace.id": "workspace_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.organization.workspaces.retrieve",
+      "call": "beta.organization.workspaces.retrieve",
+      "span": "anthropic.organization.workspaces.retrieve",
+      "arguments": ["workspace_id_1"],
+      "expect": {
+        "anthropic.organization.workspace.id": "workspace_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.organization.workspaces.create",
+      "call": "beta.organization.workspaces.create",
+      "span": "anthropic.organization.workspaces.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "anthropic.organization.workspace.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "path",
+      "method": "beta.sessions.events.send",
+      "call": "beta.sessions.events.send",
+      "span": "anthropic.sessions.events.send",
+      "arguments": ["session_id_1", {}],
+      "expect": {
+        "anthropic.session.id": "session_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "list",
+      "method": "beta.sessions.events.list",
+      "call": "beta.sessions.events.list",
+      "span": "anthropic.sessions.events.list",
+      "arguments": ["session_id_1", {}],
+      "expect": {
+        "anthropic.session.id": "session_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.sessions.resources.retrieve",
+      "call": "beta.sessions.resources.retrieve",
+      "span": "anthropic.sessions.resources.retrieve",
+      "arguments": [
+        "resource_id_1",
+        {
+          "session_id": "session_id_1"
+        }
+      ],
+      "expect": {
+        "anthropic.session.id": "session_id_1",
+        "anthropic.session.resource.id": "resource_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.sessions.resources.add",
+      "call": "beta.sessions.resources.add",
+      "span": "anthropic.sessions.resources.add",
+      "arguments": ["session_id_1", {}],
+      "expect": {
+        "anthropic.session.id": "session_id_1"
+      },
+      "created": {
+        "attribute": "anthropic.session.resource.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "list",
+      "method": "beta.sessions.resources.list",
+      "call": "beta.sessions.resources.list",
+      "span": "anthropic.sessions.resources.list",
+      "arguments": ["session_id_1", {}],
+      "expect": {
+        "anthropic.session.id": "session_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.sessions.retrieve",
+      "call": "beta.sessions.retrieve",
+      "span": "anthropic.sessions.retrieve",
+      "arguments": ["session_id_1", {}],
+      "expect": {
+        "anthropic.session.id": "session_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.sessions.create",
+      "call": "beta.sessions.create",
+      "span": "anthropic.sessions.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "anthropic.session.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "list",
+      "method": "beta.sessions.threads.events.list",
+      "call": "beta.sessions.threads.events.list",
+      "span": "anthropic.sessions.threads.events.list",
+      "arguments": [
+        "thread_id_1",
+        {
+          "session_id": "session_id_1"
+        }
+      ],
+      "expect": {
+        "anthropic.session.id": "session_id_1",
+        "anthropic.session.thread.id": "thread_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.sessions.threads.retrieve",
+      "call": "beta.sessions.threads.retrieve",
+      "span": "anthropic.sessions.threads.retrieve",
+      "arguments": [
+        "thread_id_1",
+        {
+          "session_id": "session_id_1"
+        }
+      ],
+      "expect": {
+        "anthropic.session.id": "session_id_1",
+        "anthropic.session.thread.id": "thread_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "list",
+      "method": "beta.sessions.threads.list",
+      "call": "beta.sessions.threads.list",
+      "span": "anthropic.sessions.threads.list",
+      "arguments": ["session_id_1", {}],
+      "expect": {
+        "anthropic.session.id": "session_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.skills.retrieve",
+      "call": "beta.skills.retrieve",
+      "span": "anthropic.skills.retrieve",
+      "arguments": ["skill_id_1", {}],
+      "expect": {
+        "anthropic.skill.id": "skill_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.skills.versions.retrieve",
+      "call": "beta.skills.versions.retrieve",
+      "span": "anthropic.skills.versions.retrieve",
+      "arguments": [
+        "version_1",
+        {
+          "skill_id": "skill_id_1"
+        }
+      ],
+      "expect": {
+        "anthropic.skill.id": "skill_id_1",
+        "anthropic.skill.version.id": "version_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "list",
+      "method": "beta.skills.versions.list",
+      "call": "beta.skills.versions.list",
+      "span": "anthropic.skills.versions.list",
+      "arguments": ["skill_id_1", {}],
+      "expect": {
+        "anthropic.skill.id": "skill_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.tunnels.certificates.retrieve",
+      "call": "beta.tunnels.certificates.retrieve",
+      "span": "anthropic.tunnels.certificates.retrieve",
+      "arguments": [
+        "certificate_id_1",
+        {
+          "tunnel_id": "tunnel_id_1"
+        }
+      ],
+      "expect": {
+        "anthropic.tunnel.id": "tunnel_id_1",
+        "anthropic.tunnel.certificate.id": "certificate_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.tunnels.certificates.create",
+      "call": "beta.tunnels.certificates.create",
+      "span": "anthropic.tunnels.certificates.create",
+      "arguments": ["tunnel_id_1", {}],
+      "expect": {
+        "anthropic.tunnel.id": "tunnel_id_1"
+      },
+      "created": {
+        "attribute": "anthropic.tunnel.certificate.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "list",
+      "method": "beta.tunnels.certificates.list",
+      "call": "beta.tunnels.certificates.list",
+      "span": "anthropic.tunnels.certificates.list",
+      "arguments": ["tunnel_id_1", {}],
+      "expect": {
+        "anthropic.tunnel.id": "tunnel_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.tunnels.retrieve",
+      "call": "beta.tunnels.retrieve",
+      "span": "anthropic.tunnels.retrieve",
+      "arguments": ["tunnel_id_1", {}],
+      "expect": {
+        "anthropic.tunnel.id": "tunnel_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.tunnels.create",
+      "call": "beta.tunnels.create",
+      "span": "anthropic.tunnels.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "anthropic.tunnel.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "path",
+      "method": "beta.user_profiles.retrieve",
+      "call": "beta.userProfiles.retrieve",
+      "span": "anthropic.user_profiles.retrieve",
+      "arguments": ["user_profile_id_1", {}],
+      "expect": {
+        "anthropic.user_profile.id": "user_profile_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.user_profiles.create",
+      "call": "beta.userProfiles.create",
+      "span": "anthropic.user_profiles.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "anthropic.user_profile.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "path",
+      "method": "beta.vaults.credentials.retrieve",
+      "call": "beta.vaults.credentials.retrieve",
+      "span": "anthropic.vaults.credentials.retrieve",
+      "arguments": [
+        "credential_id_1",
+        {
+          "vault_id": "vault_id_1"
+        }
+      ],
+      "expect": {
+        "anthropic.vault.id": "vault_id_1",
+        "anthropic.vault.credential.id": "credential_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.vaults.credentials.create",
+      "call": "beta.vaults.credentials.create",
+      "span": "anthropic.vaults.credentials.create",
+      "arguments": ["vault_id_1", {}],
+      "expect": {
+        "anthropic.vault.id": "vault_id_1"
+      },
+      "created": {
+        "attribute": "anthropic.vault.credential.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "list",
+      "method": "beta.vaults.credentials.list",
+      "call": "beta.vaults.credentials.list",
+      "span": "anthropic.vaults.credentials.list",
+      "arguments": ["vault_id_1", {}],
+      "expect": {
+        "anthropic.vault.id": "vault_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "beta.vaults.retrieve",
+      "call": "beta.vaults.retrieve",
+      "span": "anthropic.vaults.retrieve",
+      "arguments": ["vault_id_1", {}],
+      "expect": {
+        "anthropic.vault.id": "vault_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "beta.vaults.create",
+      "call": "beta.vaults.create",
+      "span": "anthropic.vaults.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "anthropic.vault.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "path",
+      "method": "files.delete",
+      "call": "files.delete",
+      "span": "anthropic.files.delete",
+      "arguments": ["file_id_1", {}],
+      "expect": {
+        "anthropic.file.id": "file_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "messages.batches.retrieve",
+      "call": "messages.batches.retrieve",
+      "span": "anthropic.messages.batches.retrieve",
+      "arguments": ["message_batch_id_1", {}],
+      "expect": {
+        "anthropic.message.batch.id": "message_batch_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "created",
+      "method": "messages.batches.create",
+      "call": "messages.batches.create",
+      "span": "anthropic.messages.batches.create",
+      "arguments": [{}],
+      "expect": {},
+      "created": {
+        "attribute": "anthropic.message.batch.id",
+        "field": "id"
+      }
+    },
+    {
+      "kind": "path",
+      "method": "models.retrieve",
+      "call": "models.retrieve",
+      "span": "anthropic.models.retrieve",
+      "arguments": ["model_id_1", {}],
+      "expect": {
+        "anthropic.model.id": "model_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "skills.retrieve",
+      "call": "skills.retrieve",
+      "span": "anthropic.skills.retrieve",
+      "arguments": ["skill_id_1", {}],
+      "expect": {
+        "anthropic.skill.id": "skill_id_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "path",
+      "method": "skills.versions.retrieve",
+      "call": "skills.versions.retrieve",
+      "span": "anthropic.skills.versions.retrieve",
+      "arguments": [
+        "version_1",
+        {
+          "skill_id": "skill_id_1"
+        }
+      ],
+      "expect": {
+        "anthropic.skill.id": "skill_id_1",
+        "anthropic.skill.version.id": "version_1"
+      },
+      "created": null
+    },
+    {
+      "kind": "list",
+      "method": "skills.versions.list",
+      "call": "skills.versions.list",
+      "span": "anthropic.skills.versions.list",
+      "arguments": ["skill_id_1", {}],
+      "expect": {
+        "anthropic.skill.id": "skill_id_1"
+      },
+      "created": null
+    }
+  ]
+}

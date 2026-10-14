@@ -4,6 +4,7 @@ import * as PluginsAPI from './plugins';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class Shares extends APIResource {
@@ -54,6 +55,11 @@ export class Shares extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.shares.list', options, {
+          route: '/v1/organizations/plugins/{plugin_id}/shares',
+          queryParams: ['limit', 'organization_id', 'page', 'target_type'],
+          attributes: { 'anthropic.organization.plugin.id': pluginID },
+        }),
       },
     );
   }

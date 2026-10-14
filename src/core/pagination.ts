@@ -4,6 +4,7 @@ import { defaultParseResponse, WithRequestID } from '../internal/parse';
 import { type BaseAnthropic } from '../client';
 import { APIPromise } from './api-promise';
 import { type APIResponseProps } from '../internal/parse';
+import { startApiCallSpan } from '../internal/tracing';
 import { maybeObj } from '../internal/utils/values';
 
 export type PageRequestOptions = Pick<FinalRequestOptions, 'query' | 'headers' | 'body' | 'path' | 'method'>;
@@ -40,7 +41,25 @@ export abstract class AbstractPage<Item> implements AsyncIterable<Item> {
       );
     }
 
-    return await this.#client.requestAPIList(this.constructor as any, nextOptions);
+    // Each page is its own API call, with its own call span. `nextOptions` copies the previous
+    // page's options, including its `__span`, which has already ended.
+    const span = this.options.__span;
+    return await this.#client.requestAPIList(this.constructor as any, {
+      ...nextOptions,
+      __span:
+        span &&
+        startApiCallSpan(
+          this.#client,
+          span.name,
+          { openTelemetry: this.options.openTelemetry },
+          {
+            route: span.route,
+            queryParams: span.queryParams,
+            contentQueryParams: span.contentQueryParams,
+            attributes: span.attributes,
+          },
+        ),
+    });
   }
 
   async *iterPages(): AsyncGenerator<this> {

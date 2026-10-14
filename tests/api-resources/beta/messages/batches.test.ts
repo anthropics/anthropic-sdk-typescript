@@ -15,7 +15,7 @@ describe('resource batches', () => {
           params: {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-opus-5',
+            model: 'claude-opus-5-5',
           },
         },
       ],
@@ -44,7 +44,7 @@ describe('resource batches', () => {
                 output_config: { effort: 'low' },
               },
             ],
-            model: 'claude-opus-5',
+            model: 'claude-opus-5-5',
             cache_control: { type: 'ephemeral', ttl: '5m' },
             compaction: { type: 'summarize', instructions: 'instructions' },
             container: {

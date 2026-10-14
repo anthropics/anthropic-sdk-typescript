@@ -6,6 +6,7 @@ import { APIPromise } from '../core/api-promise';
 import { Stream } from '../core/streaming';
 import { buildHeaders } from '../internal/headers';
 import { RequestOptions } from '../internal/request-options';
+import { startApiCallSpan } from '../internal/tracing';
 
 export class Completions extends APIResource {
   /**
@@ -43,6 +44,9 @@ export class Completions extends APIResource {
         options?.headers,
       ]),
       stream: params.stream ?? false,
+      __span: startApiCallSpan(this._client, 'anthropic.completions.create', options, {
+        route: '/v1/complete',
+      }),
     }) as APIPromise<Completion> | APIPromise<Stream<Completion>>;
   }
 }

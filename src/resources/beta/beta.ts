@@ -203,6 +203,8 @@ import {
   AgentRetrieveParams,
   AgentUpdateParams,
   Agents,
+  BetaManagedAgentsAWSRoleExecutionIdentity,
+  BetaManagedAgentsAWSRoleExecutionIdentityParams,
   BetaManagedAgentsAdvisor,
   BetaManagedAgentsAgent,
   BetaManagedAgentsAgentReference,
@@ -238,6 +240,8 @@ import {
   BetaManagedAgentsEffortMax,
   BetaManagedAgentsEffortMedium,
   BetaManagedAgentsEffortXhigh,
+  BetaManagedAgentsExecutionIdentity,
+  BetaManagedAgentsExecutionIdentityParams,
   BetaManagedAgentsGlobToolConfig,
   BetaManagedAgentsGlobToolConfigParams,
   BetaManagedAgentsGrepToolConfig,
@@ -284,6 +288,8 @@ import {
   BetaManagedAgentsMultiagentWorkflowsParams,
   BetaManagedAgentsReadToolConfig,
   BetaManagedAgentsReadToolConfigParams,
+  BetaManagedAgentsServiceAccountExecutionIdentity,
+  BetaManagedAgentsServiceAccountExecutionIdentityParams,
   BetaManagedAgentsSessionThreadAgent,
   BetaManagedAgentsSkillParams,
   BetaManagedAgentsURLMCPServerParams,
@@ -996,7 +1002,8 @@ export type AnthropicBeta =
   | 'inline-tools-2026-09-15'
   | 'mcp-client-2026-09-15'
   | 'ce-plugins-2026-09-01'
-  | 'spend-limit-reads-2026-09-26';
+  | 'spend-limit-reads-2026-09-26'
+  | 'telemetry-destinations-2026-08-11';
 
 export interface BetaAPIError {
   message: string;
@@ -1658,6 +1665,8 @@ export declare namespace Beta {
     type BetaManagedAgentsAnthropicSkill as BetaManagedAgentsAnthropicSkill,
     type BetaManagedAgentsAnthropicSkillParams as BetaManagedAgentsAnthropicSkillParams,
     type BetaManagedAgentsAutoPolicy as BetaManagedAgentsAutoPolicy,
+    type BetaManagedAgentsAWSRoleExecutionIdentity as BetaManagedAgentsAWSRoleExecutionIdentity,
+    type BetaManagedAgentsAWSRoleExecutionIdentityParams as BetaManagedAgentsAWSRoleExecutionIdentityParams,
     type BetaManagedAgentsBashToolConfig as BetaManagedAgentsBashToolConfig,
     type BetaManagedAgentsBashToolConfigParams as BetaManagedAgentsBashToolConfigParams,
     type BetaManagedAgentsCustomSkill as BetaManagedAgentsCustomSkill,
@@ -1672,6 +1681,8 @@ export declare namespace Beta {
     type BetaManagedAgentsEffortMax as BetaManagedAgentsEffortMax,
     type BetaManagedAgentsEffortMedium as BetaManagedAgentsEffortMedium,
     type BetaManagedAgentsEffortXhigh as BetaManagedAgentsEffortXhigh,
+    type BetaManagedAgentsExecutionIdentity as BetaManagedAgentsExecutionIdentity,
+    type BetaManagedAgentsExecutionIdentityParams as BetaManagedAgentsExecutionIdentityParams,
     type BetaManagedAgentsGlobToolConfig as BetaManagedAgentsGlobToolConfig,
     type BetaManagedAgentsGlobToolConfigParams as BetaManagedAgentsGlobToolConfigParams,
     type BetaManagedAgentsGrepToolConfig as BetaManagedAgentsGrepToolConfig,
@@ -1718,6 +1729,8 @@ export declare namespace Beta {
     type BetaManagedAgentsMultiagent20261001Params as BetaManagedAgentsMultiagent20261001Params,
     type BetaManagedAgentsReadToolConfig as BetaManagedAgentsReadToolConfig,
     type BetaManagedAgentsReadToolConfigParams as BetaManagedAgentsReadToolConfigParams,
+    type BetaManagedAgentsServiceAccountExecutionIdentity as BetaManagedAgentsServiceAccountExecutionIdentity,
+    type BetaManagedAgentsServiceAccountExecutionIdentityParams as BetaManagedAgentsServiceAccountExecutionIdentityParams,
     type BetaManagedAgentsSessionThreadAgent as BetaManagedAgentsSessionThreadAgent,
     type BetaManagedAgentsSkillParams as BetaManagedAgentsSkillParams,
     type BetaManagedAgentsURLMCPServerParams as BetaManagedAgentsURLMCPServerParams,

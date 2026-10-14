@@ -11,6 +11,7 @@ import * as OrganizationWorkspacesAPI from '../workspaces/workspaces';
 import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class ServiceAccounts extends APIResource {
@@ -40,7 +41,14 @@ export class ServiceAccounts extends APIResource {
    * ```
    */
   create(body: ServiceAccountCreateParams, options?: RequestOptions): APIPromise<ServiceAccount> {
-    return this._client.post('/v1/organizations/service_accounts', { body, ...options });
+    return this._client.post('/v1/organizations/service_accounts', {
+      body,
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.service_accounts.create', options, {
+        route: '/v1/organizations/service_accounts',
+        createdIDAttribute: 'anthropic.organization.service_account.id',
+      }),
+    });
   }
 
   /**
@@ -60,7 +68,13 @@ export class ServiceAccounts extends APIResource {
    * ```
    */
   retrieve(serviceAccountID: string, options?: RequestOptions): APIPromise<ServiceAccount> {
-    return this._client.get(path`/v1/organizations/service_accounts/${serviceAccountID}`, options);
+    return this._client.get(path`/v1/organizations/service_accounts/${serviceAccountID}`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.service_accounts.retrieve', options, {
+        route: '/v1/organizations/service_accounts/{service_account_id}',
+        attributes: { 'anthropic.organization.service_account.id': serviceAccountID },
+      }),
+    });
   }
 
   /**
@@ -92,6 +106,10 @@ export class ServiceAccounts extends APIResource {
     return this._client.post(path`/v1/organizations/service_accounts/${serviceAccountID}`, {
       body,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.service_accounts.update', options, {
+        route: '/v1/organizations/service_accounts/{service_account_id}',
+        attributes: { 'anthropic.organization.service_account.id': serviceAccountID },
+      }),
     });
   }
 
@@ -122,6 +140,10 @@ export class ServiceAccounts extends APIResource {
     return this._client.getAPIList('/v1/organizations/service_accounts', PageCursor<ServiceAccount>, {
       query,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.service_accounts.list', options, {
+        route: '/v1/organizations/service_accounts',
+        queryParams: ['include_archived', 'limit', 'page'],
+      }),
     });
   }
 
@@ -147,7 +169,13 @@ export class ServiceAccounts extends APIResource {
    * ```
    */
   archive(serviceAccountID: string, options?: RequestOptions): APIPromise<ServiceAccount> {
-    return this._client.post(path`/v1/organizations/service_accounts/${serviceAccountID}/archive`, options);
+    return this._client.post(path`/v1/organizations/service_accounts/${serviceAccountID}/archive`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.service_accounts.archive', options, {
+        route: '/v1/organizations/service_accounts/{service_account_id}/archive',
+        attributes: { 'anthropic.organization.service_account.id': serviceAccountID },
+      }),
+    });
   }
 }
 

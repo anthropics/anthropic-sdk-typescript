@@ -5,6 +5,7 @@ import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 import {
   WorkPoller,
@@ -47,6 +48,10 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.environments.work.retrieve', options, {
+        route: '/v1/environments/{environment_id}/work/{work_id}',
+        attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
+      }),
     });
   }
 
@@ -79,6 +84,10 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.environments.work.update', options, {
+        route: '/v1/environments/{environment_id}/work/{work_id}',
+        attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
+      }),
     });
   }
 
@@ -116,6 +125,11 @@ export class Work extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.environments.work.list', options, {
+          route: '/v1/environments/{environment_id}/work',
+          queryParams: ['limit', 'page'],
+          attributes: { 'anthropic.environment.id': environmentID },
+        }),
       },
     );
   }
@@ -145,6 +159,10 @@ export class Work extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.environments.work.ack', options, {
+        route: '/v1/environments/{environment_id}/work/{work_id}/ack',
+        attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
+      }),
     });
   }
 
@@ -177,6 +195,11 @@ export class Work extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.environments.work.heartbeat', options, {
+        route: '/v1/environments/{environment_id}/work/{work_id}/heartbeat',
+        queryParams: ['desired_ttl_seconds', 'expected_last_heartbeat'],
+        attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
+      }),
     });
   }
 
@@ -212,6 +235,11 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.environments.work.poll', options, {
+        route: '/v1/environments/{environment_id}/work/poll',
+        queryParams: ['block_ms', 'reclaim_older_than_ms'],
+        attributes: { 'anthropic.environment.id': environmentID },
+      }),
     });
   }
 
@@ -241,6 +269,10 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.environments.work.stats', options, {
+        route: '/v1/environments/{environment_id}/work/stats',
+        attributes: { 'anthropic.environment.id': environmentID },
+      }),
     });
   }
 
@@ -272,6 +304,10 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.environments.work.stop', options, {
+        route: '/v1/environments/{environment_id}/work/{work_id}/stop',
+        attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
+      }),
     });
   }
 

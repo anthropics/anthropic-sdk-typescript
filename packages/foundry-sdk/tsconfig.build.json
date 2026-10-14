@@ -5,11 +5,14 @@
   "compilerOptions": {
     "rootDir": "./dist/src",
     "paths": {
+      "@anthropic-ai/sdk/*": ["../../dist-internal/*"],
+      "@anthropic-ai/sdk": ["../../dist-internal/index.d.ts"],
       "@anthropic-ai/foundry-sdk/*": ["./src/*"],
       "@anthropic-ai/foundry-sdk": ["./src/index.ts"]
     },
     "noEmit": false,
     "declaration": true,
+    "stripInternal": true,
     "declarationMap": true,
     "outDir": "dist",
     "pretty": true,

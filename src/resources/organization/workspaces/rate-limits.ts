@@ -2,6 +2,7 @@ import { APIResource } from '../../../core/resource';
 import * as RateLimitsAPI from '../rate-limits';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class RateLimits extends APIResource {
@@ -35,7 +36,20 @@ export class RateLimits extends APIResource {
     return this._client.getAPIList(
       path`/v1/organizations/workspaces/${workspaceID}/rate_limits`,
       PageCursor<WorkspaceRateLimit>,
-      { query, ...options },
+      {
+        query,
+        ...options,
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.workspaces.rate_limits.list',
+          options,
+          {
+            route: '/v1/organizations/workspaces/{workspace_id}/rate_limits',
+            queryParams: ['group_type', 'include_inherited', 'limit', 'page'],
+            attributes: { 'anthropic.organization.workspace.id': workspaceID },
+          },
+        ),
+      },
     );
   }
 }

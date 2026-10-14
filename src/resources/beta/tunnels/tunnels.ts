@@ -14,6 +14,7 @@ import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Tunnels extends APIResource {
@@ -46,6 +47,10 @@ export class Tunnels extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.tunnels.create', options, {
+        route: '/v1/tunnels',
+        createdIDAttribute: 'anthropic.tunnel.id',
+      }),
     });
   }
 
@@ -79,6 +84,10 @@ export class Tunnels extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.tunnels.retrieve', options, {
+        route: '/v1/tunnels/{tunnel_id}',
+        attributes: { 'anthropic.tunnel.id': tunnelID },
+      }),
     });
   }
 
@@ -114,6 +123,10 @@ export class Tunnels extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.tunnels.list', options, {
+        route: '/v1/tunnels',
+        queryParams: ['include_archived', 'limit', 'page'],
+      }),
     });
   }
 
@@ -150,6 +163,10 @@ export class Tunnels extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.tunnels.archive', options, {
+        route: '/v1/tunnels/{tunnel_id}/archive',
+        attributes: { 'anthropic.tunnel.id': tunnelID },
+      }),
     });
   }
 
@@ -185,6 +202,10 @@ export class Tunnels extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.tunnels.reveal_token', options, {
+        route: '/v1/tunnels/{tunnel_id}/reveal_token',
+        attributes: { 'anthropic.tunnel.id': tunnelID },
+      }),
     });
   }
 
@@ -220,6 +241,10 @@ export class Tunnels extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.tunnels.rotate_token', options, {
+        route: '/v1/tunnels/{tunnel_id}/rotate_token',
+        attributes: { 'anthropic.tunnel.id': tunnelID },
+      }),
     });
   }
 }

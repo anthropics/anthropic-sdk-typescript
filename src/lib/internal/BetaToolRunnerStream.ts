@@ -1,12 +1,13 @@
+import type { Anthropic } from '../../client';
 import { STAINLESS_HELPER_METHOD_HEADER } from '../../internal/stainless-helper-header';
 import { type RequestOptions } from '../../internal/request-options';
 import type {
+  BetaMessage,
   BetaRawMessageStreamEvent,
   BetaToolUseBlock,
   MessageCreateParamsBase,
-  Messages,
 } from '../../resources/beta/messages/messages';
-import { BetaMessageStream, type MessageStreamEvents } from '../BetaMessageStream';
+import { BetaMessageStream } from '../BetaMessageStream';
 
 /**
  * The stream a tool runner yields. It hands each `tool_use` call to `onToolCall` once the model has moved on
@@ -27,8 +28,12 @@ export class BetaToolRunnerStream extends BetaMessageStream {
   /** Whether a refusal has handed the reply to a fallback model */
   #fallback = false;
 
-  constructor(params: MessageCreateParamsBase, onToolCall: (toolUse: BetaToolUseBlock) => void) {
-    super(params);
+  constructor(
+    params: MessageCreateParamsBase,
+    onToolCall: (toolUse: BetaToolUseBlock) => void,
+    client: Anthropic,
+  ) {
+    super(params, { client });
     this.#onToolCall = onToolCall;
   }
 
@@ -39,18 +44,18 @@ export class BetaToolRunnerStream extends BetaMessageStream {
 
   /** Sends the request as `client.beta.messages.stream()` does. */
   static start(
-    messages: Messages,
+    client: Anthropic,
     params: MessageCreateParamsBase,
     options: RequestOptions | undefined,
     onToolCall: (toolUse: BetaToolUseBlock) => void,
   ): BetaToolRunnerStream {
-    const stream = new BetaToolRunnerStream({ ...params, stream: true }, onToolCall);
+    const stream = new BetaToolRunnerStream({ ...params, stream: true }, onToolCall, client);
     for (const message of params.messages) {
       stream._addMessageParam(message);
     }
     stream._run(() =>
       stream._createMessage(
-        messages,
+        client.beta.messages,
         { ...params, stream: true },
         { ...options, headers: { ...options?.headers, [STAINLESS_HELPER_METHOD_HEADER]: 'stream' } },
       ),
@@ -58,24 +63,16 @@ export class BetaToolRunnerStream extends BetaMessageStream {
     return stream;
   }
 
-  protected override _emit<Event extends keyof MessageStreamEvents>(
-    event: Event,
-    ...args: Parameters<MessageStreamEvents[Event]>
-  ) {
-    if (event !== 'streamEvent' || this.ended) {
-      super._emit(event, ...args);
-      return;
-    }
+  protected override _deliverEvent(event: BetaRawMessageStreamEvent, snapshot: BetaMessage | undefined) {
     // Counted first, so that a reader created by a listener of this event starts after it.
     this.#emitted++;
-    const [streamEvent, snapshot] = args as Parameters<MessageStreamEvents['streamEvent']>;
-    const block = streamEvent.type === 'content_block_stop' ? snapshot.content[streamEvent.index] : undefined;
+    const block = event.type === 'content_block_stop' ? snapshot?.content[event.index] : undefined;
     const closed = block?.type === 'tool_use' ? block : undefined;
     if (closed) {
       this.#toolCalls.push(closed);
     }
-    super._emit(event, ...args);
-    this.#track(streamEvent, closed);
+    super._deliverEvent(event, snapshot);
+    this.#track(event, closed);
     this.#release();
   }
 

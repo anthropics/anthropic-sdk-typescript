@@ -227,7 +227,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
   tee(): [Stream<Item>, Stream<Item>] {
     const left: Array<Promise<IteratorResult<Item>>> = [];
     const right: Array<Promise<IteratorResult<Item>>> = [];
-    const iterator = this.iterator();
+    const iterator = this[Symbol.asyncIterator]();
 
     const teeIterator = (queue: Array<Promise<IteratorResult<Item>>>): AsyncIterator<Item> => {
       return {

@@ -1,7 +1,5 @@
 /**
  * The toolset families the SDK runs, and how a `tools[]` entry maps to one.
- *
- * @internal
  */
 import type { BetaRunnableToolset, BetaToolsetParam } from '../../tools/BetaRunnableToolset';
 import type { BetaToolRunnerParams } from '../../tools/BetaToolRunner';

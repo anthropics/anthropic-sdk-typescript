@@ -6,6 +6,7 @@ import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core
 import { type Uploadable } from '../../../../core/uploads';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { multipartFormRequestOptions } from '../../../../internal/uploads';
 import { path } from '../../../../internal/utils/path';
 
@@ -67,6 +68,11 @@ export class Versions extends APIResource {
             { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
             options?.headers,
           ]),
+          __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.versions.create', options, {
+            route: '/v1/organizations/plugins/{plugin_id}/versions',
+            attributes: { 'anthropic.organization.plugin.id': pluginID },
+            createdIDAttribute: 'anthropic.organization.plugin.version.id',
+          }),
         },
         this._client,
       ),
@@ -109,6 +115,14 @@ export class Versions extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.versions.retrieve', options, {
+        route: '/v1/organizations/plugins/{plugin_id}/versions/{version}',
+        queryParams: ['organization_id'],
+        attributes: {
+          'anthropic.organization.plugin.id': plugin_id,
+          'anthropic.organization.plugin.version.id': version,
+        },
+      }),
     });
   }
 
@@ -155,6 +169,11 @@ export class Versions extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.versions.list', options, {
+          route: '/v1/organizations/plugins/{plugin_id}/versions',
+          queryParams: ['limit', 'organization_id', 'page'],
+          attributes: { 'anthropic.organization.plugin.id': pluginID },
+        }),
       },
     );
   }
@@ -216,6 +235,14 @@ export class Versions extends APIResource {
           options?.headers,
         ]),
         __binaryResponse: true,
+        __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.versions.download', options, {
+          route: '/v1/organizations/plugins/{plugin_id}/versions/{version}/content',
+          queryParams: ['organization_id'],
+          attributes: {
+            'anthropic.organization.plugin.id': plugin_id,
+            'anthropic.organization.plugin.version.id': version,
+          },
+        }),
       },
     );
   }
