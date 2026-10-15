@@ -4,6 +4,7 @@ import type { Middleware, MiddlewareContext, MiddlewareNext } from '../core/midd
 import { Stream, type ServerSentEvent } from '../core/streaming';
 import { isAbortError } from '../internal/errors';
 import { appendHeaderValue } from '../internal/headers';
+import { CancelReadableStream } from '../internal/shims';
 import { STAINLESS_HELPER_HEADER } from '../internal/stainless-helper-header';
 import { safeJSON } from '../internal/utils/values';
 import type { AnthropicBeta } from '../resources/beta/beta';
@@ -179,6 +180,10 @@ export interface BetaRefusalFallbackOptions {
  * fails outright is skipped — its token was never redeemed, so it carries to
  * the next entry.
  *
+ * A `speed: 'fast'` request that falls back to an entry with no `speed`, and
+ * is rejected with a 429 or 529, is retried once on that entry without
+ * `speed`. Set `speed: 'fast'` on the entry to keep it fast-only.
+ *
  * To keep later requests on the model that accepted, pass a
  * {@link BetaFallbackState} via the `fallbackState` request option; requests
  * sharing that state start directly at the pinned fallback. Reuse one state
@@ -263,7 +268,10 @@ export function betaRefusalFallbackMiddleware(
     const initialRequest =
       typeof request.body !== 'string' ? request : { ...request, body: JSON.stringify(initialBody) };
 
-    const response = await next(initialRequest);
+    const response =
+      startIndex === -1 ?
+        await next(initialRequest)
+      : (await sendHop(next, ctx, fallbacks[startIndex]!, initialRequest)).response;
     if (!response.ok) {
       return response;
     }
@@ -316,7 +324,7 @@ export function betaRefusalFallbackMiddleware(
         trigger: { type: 'refusal', category: message.stop_details?.category ?? null },
       });
       requestedModel = entry.model;
-      res = await next({
+      ({ response: res } = await sendHop(next, ctx, entry, {
         ...request,
         body: JSON.stringify({
           ...applyFallbackPatch(body, entry),
@@ -324,7 +332,7 @@ export function betaRefusalFallbackMiddleware(
             { fallback_credit_token: creditTokenParam(message.stop_details.fallback_credit_token) }
           : undefined),
         }),
-      });
+      }));
     }
 
     if (fallbackBlocks.length === 0) {
@@ -474,7 +482,9 @@ async function* splicedEvents(
   ];
 
   for (let hop = firstHop; hop < fallbacks.length; hop++) {
-    const { model, speed } = fallbacks[hop]!;
+    const entry = fallbacks[hop]!;
+    const { model } = entry;
+    let { speed } = entry;
     const hasNext = hop + 1 < fallbacks.length;
     pin(hop);
 
@@ -513,7 +523,9 @@ async function* splicedEvents(
       reqB.signal = controller.signal;
 
       try {
-        resB = await next(reqB);
+        const sent = await sendHop(next, ctx, entry, reqB);
+        resB = sent.response;
+        if (sent.droppedSpeed) speed = null;
       } catch (err) {
         // the consumer cancelled (or the original request was aborted): unwind
         if (isAbortError(err)) throw err;
@@ -873,6 +885,36 @@ function buildFallbackRequest(
   // thinking config are the exceptions: the fallback model may not accept them.
 
   return { ...orig, headers: new Headers(orig.headers), body: JSON.stringify(body) };
+}
+
+/**
+ * Send a request built from `entry`. One that is `fast` only because the
+ * original request was, and is rejected with a 429 or 529, is resent once
+ * without `speed`, and that response stands in for the first. `droppedSpeed`
+ * tells the caller, so a later request for the same hop can leave it out too.
+ */
+async function sendHop(
+  next: MiddlewareNext,
+  ctx: MiddlewareContext,
+  entry: BetaFallbackParam,
+  request: APIRequest,
+): Promise<{ response: Response; droppedSpeed: boolean }> {
+  const response = await next(request);
+  if (
+    (response.status !== 429 && response.status !== 529) ||
+    entry.speed !== undefined ||
+    typeof request.body !== 'string'
+  ) {
+    return { response, droppedSpeed: false };
+  }
+  const { speed, ...body } = JSON.parse(request.body) as MessageCreateParams;
+  if (speed !== 'fast') return { response, droppedSpeed: false };
+
+  ctx.logger.info(
+    `anthropic-sdk: betaRefusalFallbackMiddleware: fast fallback request to ${entry.model} was rejected (HTTP ${response.status}); retrying without \`speed\``,
+  );
+  await CancelReadableStream(response.body);
+  return { response: await next({ ...request, body: JSON.stringify(body) }), droppedSpeed: true };
 }
 
 // --- block accumulation & prefill conversion -------------------------------
