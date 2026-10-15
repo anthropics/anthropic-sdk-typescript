@@ -1,7 +1,12 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
-import { BetaLocalFilesystemMemoryTool } from '../../../src/tools/memory/node';
+import { BetaLocalFilesystemMemoryTool, betaMemoryTool } from '../../../src/tools/memory/node';
+import type { BetaMemoryTool20250818Command } from '../../../src/resources/beta';
+import { runRunnableTool } from '../../../src/lib/tools/BetaRunnableTool';
+
+// Keep real filesystem operations, but let failure-path tests replace individual calls.
+jest.mock('fs/promises', () => ({ __esModule: true, ...jest.requireActual('fs/promises') }));
 
 async function getDirectorySnapshot(basePath: string): Promise<Record<string, string>> {
   const snapshot: Record<string, string> = {};
@@ -413,6 +418,37 @@ describe('BetaLocalFilesystemMemoryTool', () => {
   });
 
   describe('rename', () => {
+    it.each(['/memories', '/memories/', '/memories/.', '/memories/dir/..'])(
+      'should reject renaming the root through %s without changing files',
+      async (rootPath) => {
+        await tool.create({ command: 'create', path: '/memories/file.txt', file_text: 'keep' });
+        const before = await getDirectorySnapshot(tempDir);
+
+        for (const [old_path, new_path] of [
+          [rootPath, '/memories/archive'],
+          ['/memories/file.txt', rootPath],
+        ] as const) {
+          await expect(tool.rename({ command: 'rename', old_path, new_path })).rejects.toThrow(
+            'Cannot rename the /memories directory itself',
+          );
+          expect(await getDirectorySnapshot(tempDir)).toEqual(before);
+          expect(await fs.readdir(path.join(tempDir, 'memories'))).toEqual(['file.txt']);
+        }
+      },
+    );
+
+    it('should report a directory rename into itself without exposing host paths', async () => {
+      await tool.create({ command: 'create', path: '/memories/a/file.txt', file_text: 'keep' });
+
+      const error = await tool
+        .rename({ command: 'rename', old_path: '/memories/a', new_path: '/memories/a/sub' })
+        .catch((err: unknown) => err);
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toContain('/memories/a');
+      expect(String(error)).not.toContain(tempDir);
+      expect(await getDirectorySnapshot(tempDir)).toEqual({ 'memories/a/file.txt': 'keep' });
+    });
+
     it('should rename a file', async () => {
       await tool.create({
         command: 'create',
@@ -508,6 +544,120 @@ describe('BetaLocalFilesystemMemoryTool', () => {
         }),
       ).rejects.toThrow('Path /memories/../../../etc/passwd would escape /memories directory');
     });
+  });
+
+  describe('filesystem errors', () => {
+    const invalidPath = '/memories/file.txt/child.txt';
+    const commands: BetaMemoryTool20250818Command[] = [
+      { command: 'view', path: invalidPath },
+      { command: 'create', path: invalidPath, file_text: 'new' },
+      { command: 'str_replace', path: invalidPath, old_str: 'old', new_str: 'new' },
+      { command: 'insert', path: invalidPath, insert_line: 0, insert_text: 'new' },
+      { command: 'delete', path: invalidPath },
+      { command: 'rename', old_path: invalidPath, new_path: '/memories/new.txt' },
+      { command: 'rename', old_path: '/memories/file.txt', new_path: invalidPath },
+    ];
+
+    it.each(commands)('should use virtual paths for $command with a file as a parent', async (command) => {
+      await tool.create({ command: 'create', path: '/memories/file.txt', file_text: 'old' });
+      const memory = betaMemoryTool(tool);
+      const error = await Promise.resolve(memory.run(command)).catch((err: unknown) => err);
+
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toBe(`A parent of ${invalidPath} is a file, not a directory`);
+      expect(String(error)).not.toContain(tempDir);
+      expect(error).not.toHaveProperty('cause');
+      expect(error).not.toHaveProperty('path');
+      expect(error).not.toHaveProperty('dest');
+      expect(await getDirectorySnapshot(tempDir)).toEqual({ 'memories/file.txt': 'old' });
+    });
+
+    const failures: Array<{
+      syscall: 'readdir' | 'readFile' | 'mkdir' | 'open' | 'rename' | 'rm';
+      command: BetaMemoryTool20250818Command;
+      code: string;
+      message: string;
+    }> = [
+      {
+        syscall: 'readdir',
+        command: { command: 'view', path: '/memories' },
+        code: 'EIO',
+        message: 'Filesystem operation failed for /memories (EIO)',
+      },
+      {
+        syscall: 'readFile',
+        command: { command: 'view', path: '/memories/file.txt' },
+        code: 'EACCES',
+        message: 'Permission denied for /memories/file.txt',
+      },
+      {
+        syscall: 'mkdir',
+        command: { command: 'create', path: '/memories/new.txt', file_text: 'new' },
+        code: 'EPERM',
+        message: 'Permission denied for /memories/new.txt',
+      },
+      {
+        syscall: 'open',
+        command: { command: 'create', path: '/memories/new.txt', file_text: 'new' },
+        code: 'EIO',
+        message: 'Filesystem operation failed for /memories/new.txt (EIO)',
+      },
+      {
+        syscall: 'open',
+        command: { command: 'insert', path: '/memories/file.txt', insert_line: 0, insert_text: 'new' },
+        code: 'EIO',
+        message: 'Filesystem operation failed for /memories/file.txt (EIO)',
+      },
+      {
+        syscall: 'rename',
+        command: { command: 'str_replace', path: '/memories/file.txt', old_str: 'old', new_str: 'new' },
+        code: 'EIO',
+        message: 'Filesystem operation failed for /memories/file.txt (EIO)',
+      },
+      {
+        syscall: 'rm',
+        command: { command: 'delete', path: '/memories/file.txt' },
+        code: 'EIO',
+        message: 'Filesystem operation failed for /memories/file.txt (EIO)',
+      },
+      {
+        syscall: 'rename',
+        command: { command: 'rename', old_path: '/memories/file.txt', new_path: '/memories/new.txt' },
+        code: 'EINVAL',
+        message: 'Invalid filesystem operation for /memories/file.txt to /memories/new.txt',
+      },
+    ];
+
+    it.each(failures)(
+      'should sanitize $syscall errors from $command.command for the tool runner',
+      async ({ syscall, command, code, message }) => {
+        await tool.create({ command: 'create', path: '/memories/file.txt', file_text: 'old' });
+        const hostPath = path.join(tempDir, 'memories', 'file.txt');
+        const rawError = Object.assign(new Error(`${code}: ${syscall} '${hostPath}'`), {
+          code,
+          syscall,
+          path: hostPath,
+          dest: path.join(tempDir, 'memories', 'new.txt'),
+          cause: new Error(`Private host path: ${hostPath}`),
+        });
+        const spy = jest.spyOn(fs, syscall).mockRejectedValueOnce(rawError);
+
+        try {
+          const toolUse = { type: 'tool_use' as const, id: 'memory_1', name: 'memory', input: command };
+          const result = await runRunnableTool(betaMemoryTool(tool), command, {
+            toolUse,
+            toolUseBlock: toolUse,
+          });
+          expect(result).toEqual({ isError: true, content: `Error: ${message}` });
+          expect(JSON.stringify(result)).not.toContain(tempDir);
+        } finally {
+          spy.mockRestore();
+        }
+
+        expect(await getDirectorySnapshot(tempDir)).toEqual({ 'memories/file.txt': 'old' });
+        expect(await fs.readdir(path.join(tempDir, 'memories'))).toEqual(['file.txt']);
+      },
+    );
   });
 
   describe('sibling directory prefix attack', () => {
