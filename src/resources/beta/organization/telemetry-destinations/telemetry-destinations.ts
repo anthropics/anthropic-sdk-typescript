@@ -835,14 +835,16 @@ export interface TelemetryDestinationCreateParams {
   traces?: BetaTelemetryDestinationTracesParams;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `telemetry-destinations-2026-08-11` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
 export interface TelemetryDestinationRetrieveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `telemetry-destinations-2026-08-11`
+   * in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
@@ -909,7 +911,8 @@ export interface TelemetryDestinationUpdateParams {
   workspaces?: BetaTelemetryDestinationWorkspacesParams;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `telemetry-destinations-2026-08-11` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
@@ -928,21 +931,24 @@ export interface TelemetryDestinationListParams extends PageCursorParams {
   workspace_ids?: Array<string>;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `telemetry-destinations-2026-08-11` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
 export interface TelemetryDestinationDeleteParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `telemetry-destinations-2026-08-11`
+   * in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
 export interface TelemetryDestinationTestParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `telemetry-destinations-2026-08-11`
+   * in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 }

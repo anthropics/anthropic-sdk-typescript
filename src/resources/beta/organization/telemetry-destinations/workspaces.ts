@@ -213,7 +213,8 @@ export interface BetaTelemetryDestinationWorkspace {
 
 export interface WorkspaceListParams extends PageCursorParams {
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `telemetry-destinations-2026-08-11` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
@@ -225,7 +226,8 @@ export interface WorkspaceAddParams {
   destination_id: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `telemetry-destinations-2026-08-11` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
@@ -237,7 +239,8 @@ export interface WorkspaceRemoveParams {
   destination_id: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `telemetry-destinations-2026-08-11` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 }

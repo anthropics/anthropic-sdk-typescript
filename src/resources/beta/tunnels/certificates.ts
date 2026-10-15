@@ -229,7 +229,8 @@ export interface CertificateCreateParams {
   ca_certificate_pem: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `mcp-tunnels-2026-06-22` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -251,7 +252,8 @@ export interface CertificateRetrieveParams {
   tunnel_id: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `mcp-tunnels-2026-06-22` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -274,7 +276,8 @@ export interface CertificateListParams extends PageCursorParams {
   include_archived?: boolean;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `mcp-tunnels-2026-06-22` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -296,7 +299,8 @@ export interface CertificateArchiveParams {
   tunnel_id: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `mcp-tunnels-2026-06-22` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

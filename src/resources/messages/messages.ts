@@ -6062,6 +6062,11 @@ export interface Usage {
    * If the request used the priority, standard, or batch tier.
    */
   service_tier: 'standard' | 'priority' | 'batch' | null;
+
+  /**
+   * The inference speed mode used for this request.
+   */
+  speed: 'standard' | 'fast' | null;
 }
 
 export interface UserLocation {
@@ -7216,6 +7221,17 @@ export interface MessageCreateParamsBase {
   service_tier?: 'auto' | 'standard_only';
 
   /**
+   * Body param: The inference speed mode for this request. `"fast"` enables high
+   * output-tokens-per-second inference.
+   *
+   * Some models require the `fast-mode-2026-02-01` beta header for any `speed`
+   * value. See
+   * [fast mode](https://platform.claude.com/docs/en/build-with-claude/fast-mode) for
+   * which models.
+   */
+  speed?: 'standard' | 'fast' | null;
+
+  /**
    * Body param: Custom text sequences that will cause the model to stop generating.
    *
    * Our models will normally stop when they have naturally completed their turn,
@@ -7517,6 +7533,17 @@ export interface MessageCountTokensParams {
    * format.
    */
   output_config?: OutputConfig;
+
+  /**
+   * Body param: The inference speed mode for this request. `"fast"` enables high
+   * output-tokens-per-second inference.
+   *
+   * Some models require the `fast-mode-2026-02-01` beta header for any `speed`
+   * value. See
+   * [fast mode](https://platform.claude.com/docs/en/build-with-claude/fast-mode) for
+   * which models.
+   */
+  speed?: 'standard' | 'fast' | null;
 
   /**
    * Body param: System prompt.

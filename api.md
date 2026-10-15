@@ -2513,6 +2513,7 @@ Types:
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitRBACGroupScope</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitScopedAPIKeyActor</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitSeatTierScope</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitUsageTierScope</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitUserActor</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitUserScope</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitWorkspaceScope</a></code>
