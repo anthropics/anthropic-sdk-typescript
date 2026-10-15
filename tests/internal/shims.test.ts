@@ -31,7 +31,7 @@ describe('dropped streams', { timeout: 60_000 }, () => {
         closed: false,
         send: () => {
           const item = JSON.stringify({ n: n++ });
-          res.write(req.url === '/jsonl' ? item + '\n' : 'event: completion\ndata: ' + item + '\n\n');
+          res.write(req.url === '/jsonl' ? item + '\n' : 'event: unhandled\ndata: ' + item + '\n\n');
         },
       };
       res.on('close', () => (connection.closed = true));

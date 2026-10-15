@@ -248,6 +248,34 @@ describe('streaming decoding', () => {
   });
 });
 
+test('skips events without data', async () => {
+  async function* body(): AsyncGenerator<Buffer> {
+    yield Buffer.from('event: foo\n');
+    yield Buffer.from('data: {"foo":true}\n');
+    yield Buffer.from('\n');
+    yield Buffer.from('event: foo\n');
+    yield Buffer.from('\n');
+    yield Buffer.from('event: foo\n');
+    yield Buffer.from('data:\n');
+    yield Buffer.from('\n');
+    yield Buffer.from('event: foo\n');
+    yield Buffer.from('data: {"bar":false}\n');
+    yield Buffer.from('\n');
+  }
+
+  const stream = Stream.fromSSEResponse(
+    new Response(await ReadableStreamFrom(body())),
+    new AbortController(),
+  );
+
+  const events: unknown[] = [];
+  for await (const event of stream) {
+    events.push(event);
+  }
+
+  expect(events).toEqual([{ foo: true }, { bar: false }]);
+});
+
 test('error handling', async () => {
   async function* body(): AsyncGenerator<Buffer> {
     yield Buffer.from('event: error\n');
