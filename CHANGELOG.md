@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Bug Fixes
+
+* **middleware:** preserve serving-hop usage iterations and relabel only the final sampling iteration during streaming refusal fallback.
+
 ## [0.135.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.134.0...sdk-v0.135.0) (2026-10-15)
 
 ### Features
