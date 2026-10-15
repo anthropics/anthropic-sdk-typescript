@@ -5,6 +5,7 @@
 ### Features
 
 * **client:** yield server-sent events with unrecognized event names
+* **tools:** accept every tool definition field in the tool helpers
 
 
 ### Chores
