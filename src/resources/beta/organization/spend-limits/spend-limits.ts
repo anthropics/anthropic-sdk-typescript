@@ -88,8 +88,9 @@ export class SpendLimits extends APIResource {
    * For a Claude Enterprise organization, this deletes a per-user override, and the
    * member falls back to any inherited spend limit at that period. Its seat-tier,
    * group, and organization-level rows cannot be deleted via this endpoint. A Claude
-   * Console organization deletes its organization and workspace limits. Deleting
-   * them through the API is in an early access preview.
+   * Console organization deletes its organization and workspace limits, but not its
+   * `usage_tier` limit. Deleting organization and workspace limits through the API
+   * is in an early access preview.
    *
    * @example
    * ```ts
@@ -201,7 +202,8 @@ export interface BetaSpendLimit {
     | BetaSpendLimitRBACGroupScope
     | BetaSpendLimitOrganizationServiceScope
     | BetaSpendLimitOrganizationScope
-    | BetaSpendLimitWorkspaceScope;
+    | BetaSpendLimitWorkspaceScope
+    | BetaSpendLimitUsageTierScope;
 
   /**
    * Object type. Always `spend_limit`.
@@ -245,6 +247,19 @@ export interface BetaSpendLimitSeatTierScope {
   seat_tier: string;
 
   type: 'seat_tier';
+}
+
+/**
+ * Scope of the monthly spend cap Anthropic sets for a Claude Console organization
+ * from its usage tier, or a higher cap Anthropic granted the organization.
+ * Read-only; its `created_at` and `updated_at` are the organization's creation
+ * time, so `amount` can change while `updated_at` stays the same.
+ */
+export interface BetaSpendLimitUsageTierScope {
+  /**
+   * Scope type. Always `usage_tier` for this scope.
+   */
+  type: 'usage_tier';
 }
 
 /**
@@ -351,7 +366,8 @@ export interface BetaSpendSummary {
     | BetaSpendLimitRBACGroupScope
     | BetaSpendLimitOrganizationServiceScope
     | BetaSpendLimitOrganizationScope
-    | BetaSpendLimitWorkspaceScope;
+    | BetaSpendLimitWorkspaceScope
+    | BetaSpendLimitUsageTierScope;
 
   source:
     | BetaSpendLimitUserScope
@@ -359,7 +375,8 @@ export interface BetaSpendSummary {
     | BetaSpendLimitRBACGroupScope
     | BetaSpendLimitOrganizationServiceScope
     | BetaSpendLimitOrganizationScope
-    | BetaSpendLimitWorkspaceScope;
+    | BetaSpendLimitWorkspaceScope
+    | BetaSpendLimitUsageTierScope;
 
   spend_limit_id: string;
 }
@@ -426,6 +443,7 @@ export declare namespace SpendLimits {
     type BetaSpendLimitRBACGroupScope as BetaSpendLimitRBACGroupScope,
     type BetaSpendLimitScopedAPIKeyActor as BetaSpendLimitScopedAPIKeyActor,
     type BetaSpendLimitSeatTierScope as BetaSpendLimitSeatTierScope,
+    type BetaSpendLimitUsageTierScope as BetaSpendLimitUsageTierScope,
     type BetaSpendLimitUserActor as BetaSpendLimitUserActor,
     type BetaSpendLimitUserScope as BetaSpendLimitUserScope,
     type BetaSpendLimitWorkspaceScope as BetaSpendLimitWorkspaceScope,

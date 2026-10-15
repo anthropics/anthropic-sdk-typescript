@@ -11,6 +11,7 @@ import {
 } from '@anthropic-ai/sdk';
 import type { Middleware } from '@anthropic-ai/sdk';
 import { BetaFallbackState, betaRefusalFallbackMiddleware } from '@anthropic-ai/sdk/lib/middleware';
+import type { BetaFallbackParam } from '@anthropic-ai/sdk/resources/beta';
 import { wrapFetchWithMiddleware } from '@anthropic-ai/sdk/core/middleware';
 import { Stream as SSEStream } from '@anthropic-ai/sdk/core/streaming';
 import { WorkloadIdentityError } from '@anthropic-ai/sdk/lib/credentials/types';
@@ -2273,6 +2274,98 @@ describe('betaRefusalFallbackMiddleware', () => {
     expect(result.model).toEqual('fallback-model');
     expect(result.stop_reason).toEqual('refusal');
     expect(bodies).toHaveLength(2);
+  });
+
+  describe('a fast hop rejected with a 429 or 529', () => {
+    const rejected = (status: number) =>
+      jsonResponse({ type: 'error', error: { type: 'api_error', message: 'rejected' } }, { status });
+    const fastParams = { ...params, speed: 'fast' as const };
+    const hopWithoutSpeed = {
+      ...params,
+      model: 'fallback-model',
+      fallback_credit_token: { token: 'credit-token', mode: 'best_effort' },
+    };
+
+    test.each([429, 529])('a %i is resent once without speed', async (status) => {
+      const cancel = vi.fn();
+      const { client, bodies } = makeClient(
+        [
+          refusal('primary-model', 'credit-token'),
+          new Response(new ReadableStream({ cancel }), { status }),
+          message('fallback-model'),
+        ],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+      );
+
+      const result = await client.beta.messages.create(fastParams, { maxRetries: 0 });
+      expect(result.model).toEqual('fallback-model');
+      expect(result.stop_reason).toEqual('end_turn');
+      expect(bodies).toEqual([fastParams, { ...hopWithoutSpeed, speed: 'fast' }, hopWithoutSpeed]);
+      expect(cancel).toHaveBeenCalledTimes(1);
+    });
+
+    test.each<[string, Partial<BetaFallbackParam>, { speed?: 'fast' | 'standard' }, number]>([
+      ["the entry sets speed: 'fast'", { speed: 'fast' }, { speed: 'fast' }, 429],
+      ['the request has no speed', {}, {}, 429],
+      ['the request is standard speed', {}, { speed: 'standard' }, 529],
+      ['the status is 400', {}, { speed: 'fast' }, 400],
+      ['the status is 500', {}, { speed: 'fast' }, 500],
+    ])('is not resent when %s', async (_name, entrySpeed, requestSpeed, status) => {
+      const { client, bodies } = makeClient(
+        [refusal('primary-model', 'credit-token'), rejected(status)],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model', ...entrySpeed }]),
+      );
+
+      await expect(
+        client.beta.messages.create({ ...params, ...requestSpeed }, { maxRetries: 0 }),
+      ).rejects.toMatchObject({ status });
+      expect(bodies).toEqual([
+        { ...params, ...requestSpeed },
+        { ...hopWithoutSpeed, ...requestSpeed },
+      ]);
+    });
+
+    test('a resend that is rejected too is returned, not resent again', async () => {
+      const { client, bodies } = makeClient(
+        [refusal('primary-model', 'credit-token'), rejected(429), rejected(429)],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+      );
+
+      const fallbackState = new BetaFallbackState();
+      await expect(
+        client.beta.messages.create(fastParams, { maxRetries: 0, fallbackState }),
+      ).rejects.toMatchObject({ status: 429 });
+      expect(bodies).toEqual([fastParams, { ...hopWithoutSpeed, speed: 'fast' }, hopWithoutSpeed]);
+      expect(fallbackState.index).toEqual(0);
+    });
+
+    test('a request that starts on the pinned entry is resent without speed', async () => {
+      const { client, bodies } = makeClient(
+        [rejected(429), message('fallback-model')],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+      );
+
+      const fallbackState = new BetaFallbackState();
+      fallbackState.index = 0;
+      const result = await client.beta.messages.create(fastParams, { maxRetries: 0, fallbackState });
+      expect(result.model).toEqual('fallback-model');
+      expect(bodies).toEqual([
+        { ...fastParams, model: 'fallback-model' },
+        { ...params, model: 'fallback-model' },
+      ]);
+    });
+
+    test('the original request is not resent', async () => {
+      const { client, bodies } = makeClient(
+        [rejected(429)],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+      );
+
+      await expect(client.beta.messages.create(fastParams, { maxRetries: 0 })).rejects.toMatchObject({
+        status: 429,
+      });
+      expect(bodies).toEqual([fastParams]);
+    });
   });
 
   describe('beta header', () => {

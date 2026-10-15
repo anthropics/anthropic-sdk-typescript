@@ -311,7 +311,8 @@ export interface TunnelCreateParams {
   display_name?: string | null;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `mcp-tunnels-2026-06-22` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -328,7 +329,8 @@ export interface TunnelCreateParams {
 
 export interface TunnelRetrieveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `mcp-tunnels-2026-06-22` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -351,7 +353,8 @@ export interface TunnelListParams extends PageCursorParams {
   include_archived?: boolean;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `mcp-tunnels-2026-06-22` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -368,7 +371,8 @@ export interface TunnelListParams extends PageCursorParams {
 
 export interface TunnelArchiveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `mcp-tunnels-2026-06-22` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -385,7 +389,8 @@ export interface TunnelArchiveParams {
 
 export interface TunnelRevealTokenParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `mcp-tunnels-2026-06-22` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -407,7 +412,8 @@ export interface TunnelRotateTokenParams {
   reason?: string | null;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `mcp-tunnels-2026-06-22` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

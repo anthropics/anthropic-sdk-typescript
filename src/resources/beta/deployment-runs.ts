@@ -391,7 +391,8 @@ export interface BetaManagedAgentsWorkspaceArchivedRunError {
 
 export interface DeploymentRunRetrieveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `managed-agents-2026-04-01` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -446,7 +447,8 @@ export interface DeploymentRunListParams extends PageCursorParams {
   trigger_type?: BetaManagedAgentsTriggerType;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

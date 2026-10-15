@@ -53,7 +53,8 @@ export class Versions extends APIResource {
 
 export interface VersionListParams extends PageCursorParams {
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
