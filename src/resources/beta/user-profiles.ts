@@ -461,7 +461,9 @@ export interface UserProfileCreateParams {
   name?: string | null;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `user-profiles-2026-03-24`, `user-profiles-2026-08-18`, or
+   * `user-profiles-2026-09-04` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -478,7 +480,8 @@ export interface UserProfileCreateParams {
 
 export interface UserProfileRetrieveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `user-profiles-2026-03-24`,
+   * `user-profiles-2026-08-18`, or `user-profiles-2026-09-04` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -546,7 +549,9 @@ export interface UserProfileUpdateParams {
   name?: string | null;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `user-profiles-2026-03-24`, `user-profiles-2026-08-18`, or
+   * `user-profiles-2026-09-04` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -585,7 +590,9 @@ export interface UserProfileListParams extends PageCursorParams {
   order_by?: 'created_at' | 'name';
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `user-profiles-2026-03-24`, `user-profiles-2026-08-18`, or
+   * `user-profiles-2026-09-04` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -602,7 +609,8 @@ export interface UserProfileListParams extends PageCursorParams {
 
 export interface UserProfileCreateEnrollmentURLParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `user-profiles-2026-03-24`,
+   * `user-profiles-2026-08-18`, or `user-profiles-2026-09-04` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

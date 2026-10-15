@@ -469,7 +469,8 @@ export interface MemoryCreateParams {
   view?: BetaManagedAgentsMemoryView;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `agent-memory-2026-07-22` or `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -500,7 +501,8 @@ export interface MemoryRetrieveParams {
   view?: BetaManagedAgentsMemoryView;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `agent-memory-2026-07-22` or `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -555,7 +557,8 @@ export interface MemoryUpdateParams {
   precondition?: BetaManagedAgentsPrecondition;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `agent-memory-2026-07-22` or `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -594,7 +597,8 @@ export interface MemoryListParams extends PageCursorParams {
   view?: BetaManagedAgentsMemoryView;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `agent-memory-2026-07-22` or `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -626,7 +630,8 @@ export interface MemoryDeleteParams {
   expected_content_sha256?: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `agent-memory-2026-07-22` or `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

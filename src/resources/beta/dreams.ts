@@ -635,7 +635,8 @@ export interface DreamCreateParams {
   output_behavior?: BetaOutputBehavior;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send `dreaming-2026-04-21`
+   * in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -652,7 +653,8 @@ export interface DreamCreateParams {
 
 export interface DreamRetrieveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `dreaming-2026-04-21` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -694,7 +696,8 @@ export interface DreamListParams extends PageCursorParams {
   statuses?: Array<BetaDreamStatus>;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send `dreaming-2026-04-21`
+   * in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -711,7 +714,8 @@ export interface DreamListParams extends PageCursorParams {
 
 export interface DreamArchiveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `dreaming-2026-04-21` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -728,7 +732,8 @@ export interface DreamArchiveParams {
 
 export interface DreamCancelParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `dreaming-2026-04-21` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

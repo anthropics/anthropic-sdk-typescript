@@ -2725,7 +2725,8 @@ export interface EventListParams extends PageCursorParams {
   types?: Array<BetaManagedAgentsSessionEventType>;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -2747,7 +2748,8 @@ export interface EventSendParams {
   events: Array<BetaManagedAgentsEventParams>;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -2778,7 +2780,8 @@ export interface EventStreamParams {
   event_deltas?: Array<SessionsAPI.BetaManagedAgentsDeltaType>;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
