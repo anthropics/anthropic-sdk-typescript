@@ -286,6 +286,31 @@ describe('betaRefusalFallbackMiddleware (streaming) — shape-B continuation', (
     expect(JSON.parse(requests[1]!.body as string).thinking).toEqual({ type: 'disabled' });
   });
 
+  test.each<[string, Partial<BetaFallbackParam>, Record<string, unknown>]>([
+    ['a null speed on the entry removes speed from the hop', { speed: null }, {}],
+    [
+      'a speed set on the entry overrides the original on the hop',
+      { speed: 'standard' },
+      { speed: 'standard' },
+    ],
+    ['an entry without speed keeps the original on the hop', {}, { speed: 'fast' }],
+  ])('%s', async (_name, entrySpeed, expectedSpeed) => {
+    const refusedWithoutPrefillClaim = messageStart() + refusalDelta('tok_abc', false);
+
+    const { requests } = await runMiddleware(
+      { fallbacks: [{ model: FALLBACK_MODEL, ...entrySpeed }] },
+      { ...ORIGINAL_BODY, speed: 'fast' },
+      [sseResponse(refusedWithoutPrefillClaim), sseResponse(STREAM_B)],
+    );
+
+    expect(JSON.parse(requests[1]!.body as string)).toEqual({
+      ...ORIGINAL_BODY,
+      ...expectedSpeed,
+      model: FALLBACK_MODEL,
+      fallback_credit_token: { token: 'tok_abc', mode: 'best_effort' },
+    });
+  });
+
   test('appends the fallback-credit beta to both the original and hop requests', async () => {
     // requestA already carries a beta header; the default is appended to it.
     const { requests } = await runMiddleware({ fallbacks: FALLBACKS }, ORIGINAL_BODY, [

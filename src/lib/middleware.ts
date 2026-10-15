@@ -161,10 +161,10 @@ export interface BetaRefusalFallbackOptions {
  * still-open stream, so the client sees one continuous message in the
  * server-side `fallbacks` wire shape: a `fallback` content block at each model
  * boundary, monotonic block indices, and per-hop `usage.iterations` on the
- * final `message_delta`. Only `model` is honored from each entry on this path:
- * the credit token is redeemable only against the refused request's body, so
- * the other per-entry overrides (`max_tokens`, `thinking`, ...) would be
- * rejected.
+ * final `message_delta`. Only `model` and `speed` are honored from each entry
+ * on this path. The other per-entry overrides are ignored, because the credit
+ * token is tied to the refused request's body. A `speed` value replaces the
+ * request's, and `speed: null` omits it.
  *
  * A `between_tools` thinking config is sent to a fallback as `disabled`, since
  * the fallback model may not accept it; when not streaming, an entry that sets
@@ -474,7 +474,7 @@ async function* splicedEvents(
   ];
 
   for (let hop = firstHop; hop < fallbacks.length; hop++) {
-    const model = fallbacks[hop]!.model;
+    const { model, speed } = fallbacks[hop]!;
     const hasNext = hop + 1 < fallbacks.length;
     pin(hop);
 
@@ -507,7 +507,7 @@ async function* splicedEvents(
     let resB: Response | null = null;
     let failure: BetaRefusalFallbackError | null = null;
     for (let attempt = 0; attempt < 2; attempt++) {
-      const reqB = buildFallbackRequest(request, { model, creditToken: token, continuation });
+      const reqB = buildFallbackRequest(request, { model, speed, creditToken: token, continuation });
       // controller mirrors the original signal and additionally fires when the
       // spliced body is cancelled — either must abort an in-flight hop request.
       reqB.signal = controller.signal;
@@ -840,10 +840,12 @@ function buildFallbackRequest(
   orig: APIRequest,
   {
     model,
+    speed,
     creditToken,
     continuation,
   }: {
     model: string;
+    speed: BetaFallbackParam['speed'];
     creditToken: string;
     continuation: BetaContentBlockParam[];
   },
@@ -852,6 +854,7 @@ function buildFallbackRequest(
   const body = JSON.parse(orig.body as string);
 
   body.model = model;
+  patchField(body, 'speed', speed);
   body.fallback_credit_token = creditTokenParam(creditToken);
   if (body.thinking?.type === 'between_tools') {
     body.thinking = { type: 'disabled' };
@@ -865,14 +868,9 @@ function buildFallbackRequest(
     body.messages = [...body.messages, { role: 'assistant', content: continuation }];
   }
 
-  // Do NOT touch max_tokens (or any other render-shaping field): the token is
-  // only redeemable against the same request body as the refused request —
-  // model, fallback_credit_token, and the one appended assistant turn are the
-  // only permitted deltas; anything else is a 400 ("request body ... does not
-  // match the original refused request"). This is also why the per-entry
-  // BetaFallbackParam overrides are ignored on the streaming path. The one
-  // exception is a carried `between_tools` thinking config, which the fallback
-  // model may not accept: it becomes `disabled`, served without the credit.
+  // The other per-entry overrides are not applied, because the credit token is
+  // tied to the refused request's body. `speed` and a carried `between_tools`
+  // thinking config are the exceptions: the fallback model may not accept them.
 
   return { ...orig, headers: new Headers(orig.headers), body: JSON.stringify(body) };
 }
