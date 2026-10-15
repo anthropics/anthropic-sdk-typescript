@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.135.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.134.0...sdk-v0.135.0) (2026-10-14)
+## [0.135.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.134.0...sdk-v0.135.0) (2026-10-15)
 
 ### Features
 
@@ -17,6 +17,11 @@
 ### Chores
 
 * **ci:** speed up breaking change detection
+
+
+### Documentation
+
+* **api:** note that some models need a beta header to use speed
 
 ## [0.134.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.133.0...sdk-v0.134.0) (2026-10-14)
 
