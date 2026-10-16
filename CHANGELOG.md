@@ -1,11 +1,16 @@
 # Changelog
 
-## [0.136.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.135.0...sdk-v0.136.0) (2026-10-15)
+## [0.136.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.135.0...sdk-v0.136.0) (2026-10-16)
 
 ### Features
 
 * **client:** yield server-sent events with unrecognized event names
 * **tools:** accept every tool definition field in the tool helpers
+
+
+### Bug Fixes
+
+* **client:** treat x-amz-security-token as a sensitive header
 
 
 ### Chores
