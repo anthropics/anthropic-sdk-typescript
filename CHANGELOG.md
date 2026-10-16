@@ -15,6 +15,7 @@
 
 ### Chores
 
+* **docs:** correct plugin manifest_version and reach descriptions
 * **tests:** cover OpenTelemetry failures, propagation and environment variables
 
 ## [0.135.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.134.0...sdk-v0.135.0) (2026-10-15)
