@@ -58,7 +58,7 @@ export class Vaults extends APIResource {
   credentials: CredentialsAPI.Credentials = new CredentialsAPI.Credentials(this._client);
 
   /**
-   * Create Vault
+   * Create a Vault
    *
    * @example
    * ```ts
@@ -88,7 +88,7 @@ export class Vaults extends APIResource {
   }
 
   /**
-   * Get Vault
+   * Retrieve a Vault
    *
    * @example
    * ```ts
@@ -121,7 +121,7 @@ export class Vaults extends APIResource {
   }
 
   /**
-   * Update Vault
+   * Update a Vault
    *
    * @example
    * ```ts
@@ -188,7 +188,7 @@ export class Vaults extends APIResource {
   }
 
   /**
-   * Delete Vault
+   * Delete a Vault
    *
    * @example
    * ```ts
@@ -221,7 +221,7 @@ export class Vaults extends APIResource {
   }
 
   /**
-   * Archive Vault
+   * Archive a Vault
    *
    * @example
    * ```ts
@@ -261,7 +261,7 @@ export type BetaManagedAgentsVaultsPageCursor = PageCursor<BetaManagedAgentsVaul
  */
 export interface BetaManagedAgentsDeletedVault {
   /**
-   * Unique identifier of the deleted vault.
+   * The unique ID of the deleted vault (`vlt_...`).
    */
   id: string;
 
@@ -273,7 +273,7 @@ export interface BetaManagedAgentsDeletedVault {
  */
 export interface BetaManagedAgentsVault {
   /**
-   * Unique identifier for the vault.
+   * The unique ID of the vault (`vlt_...`).
    */
   id: string;
 
@@ -383,7 +383,8 @@ export interface VaultUpdateParams {
 
 export interface VaultListParams extends PageCursorParams {
   /**
-   * Query param: Whether to include archived vaults in the results.
+   * Query param: Whether to include archived vaults in the results. Defaults to
+   * `false`.
    */
   include_archived?: boolean;
 
