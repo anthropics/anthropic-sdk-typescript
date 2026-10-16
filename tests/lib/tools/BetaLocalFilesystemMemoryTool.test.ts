@@ -737,4 +737,105 @@ describe('BetaLocalFilesystemMemoryTool', () => {
       expect(stat.mode & 0o777).toBe(0o600);
     });
   });
+
+  describe('concurrency and serialization', () => {
+    it('applies multiple concurrent str_replace edits to the same file without dropping either', async () => {
+      await tool.create({
+        command: 'create',
+        path: '/memories/concurrent-replace.md',
+        file_text: 'alpha\nbeta\ngamma\n',
+      });
+
+      const results = await Promise.all([
+        tool.str_replace({
+          command: 'str_replace',
+          path: '/memories/concurrent-replace.md',
+          old_str: 'alpha',
+          new_str: 'ALPHA',
+        }),
+        tool.str_replace({
+          command: 'str_replace',
+          path: '/memories/concurrent-replace.md',
+          old_str: 'beta',
+          new_str: 'BETA',
+        }),
+        tool.str_replace({
+          command: 'str_replace',
+          path: '/memories/concurrent-replace.md',
+          old_str: 'gamma',
+          new_str: 'GAMMA',
+        }),
+      ]);
+
+      expect(results).toHaveLength(3);
+      const onDisk = await fs.readFile(
+        path.join(tempDir, 'memories', 'concurrent-replace.md'),
+        'utf8',
+      );
+      expect(onDisk).toBe('ALPHA\nBETA\nGAMMA\n');
+    });
+
+    it('interleaves concurrent str_replace and insert without losing edits', async () => {
+      await tool.create({
+        command: 'create',
+        path: '/memories/concurrent-ops.md',
+        file_text: 'line1\nline2\n',
+      });
+
+      await Promise.all([
+        tool.str_replace({
+          command: 'str_replace',
+          path: '/memories/concurrent-ops.md',
+          old_str: 'line1',
+          new_str: 'FIRST',
+        }),
+        tool.insert({
+          command: 'insert',
+          path: '/memories/concurrent-ops.md',
+          insert_line: 2,
+          insert_text: 'MIDDLE',
+        }),
+      ]);
+
+      const onDisk = await fs.readFile(
+        path.join(tempDir, 'memories', 'concurrent-ops.md'),
+        'utf8',
+      );
+      expect(onDisk).toContain('FIRST');
+      expect(onDisk).toContain('MIDDLE');
+    });
+
+    it('continues processing subsequent operations when an earlier concurrent operation fails', async () => {
+      await tool.create({
+        command: 'create',
+        path: '/memories/error-resilience.md',
+        file_text: 'hello world\n',
+      });
+
+      const [res1, res2] = await Promise.allSettled([
+        tool.str_replace({
+          command: 'str_replace',
+          path: '/memories/error-resilience.md',
+          old_str: 'nonexistent',
+          new_str: 'foo',
+        }),
+        tool.str_replace({
+          command: 'str_replace',
+          path: '/memories/error-resilience.md',
+          old_str: 'hello',
+          new_str: 'HELLO',
+        }),
+      ]);
+
+      expect(res1.status).toBe('rejected');
+      expect(res2.status).toBe('fulfilled');
+
+      const onDisk = await fs.readFile(
+        path.join(tempDir, 'memories', 'error-resilience.md'),
+        'utf8',
+      );
+      expect(onDisk).toBe('HELLO world\n');
+    });
+  });
 });
+
