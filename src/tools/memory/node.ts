@@ -125,10 +125,20 @@ const LINE_NUMBER_WIDTH = String(MAX_LINES).length;
 export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   private basePath: string;
   private memoryRoot: string;
+  private operationQueue: Promise<void> = Promise.resolve();
 
   constructor(basePath: string = './memory') {
     this.basePath = basePath;
     this.memoryRoot = path.join(this.basePath, 'memories');
+  }
+
+  private runSerialized<T>(operation: () => Promise<T>): Promise<T> {
+    const result = this.operationQueue.then(operation);
+    this.operationQueue = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
   }
 
   static async init(basePath: string = './memory'): Promise<BetaLocalFilesystemMemoryTool> {
@@ -159,6 +169,10 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async view(command: BetaMemoryTool20250818ViewCommand): Promise<string> {
+    return this.runSerialized(() => this.viewInternal(command));
+  }
+
+  private async viewInternal(command: BetaMemoryTool20250818ViewCommand): Promise<string> {
     const fullPath = await this.validatePath(command.path);
 
     let stat;
@@ -246,6 +260,10 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async create(command: BetaMemoryTool20250818CreateCommand): Promise<string> {
+    return this.runSerialized(() => this.createInternal(command));
+  }
+
+  private async createInternal(command: BetaMemoryTool20250818CreateCommand): Promise<string> {
     const fullPath = await this.validatePath(command.path);
 
     await fs.mkdir(path.dirname(fullPath), { recursive: true, mode: DIR_CREATE_MODE });
@@ -268,6 +286,10 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async str_replace(command: BetaMemoryTool20250818StrReplaceCommand): Promise<string> {
+    return this.runSerialized(() => this.strReplaceInternal(command));
+  }
+
+  private async strReplaceInternal(command: BetaMemoryTool20250818StrReplaceCommand): Promise<string> {
     const fullPath = await this.validatePath(command.path);
 
     let stat;
@@ -324,6 +346,10 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async insert(command: BetaMemoryTool20250818InsertCommand): Promise<string> {
+    return this.runSerialized(() => this.insertInternal(command));
+  }
+
+  private async insertInternal(command: BetaMemoryTool20250818InsertCommand): Promise<string> {
     const fullPath = await this.validatePath(command.path);
 
     let stat;
@@ -355,6 +381,10 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async delete(command: BetaMemoryTool20250818DeleteCommand): Promise<string> {
+    return this.runSerialized(() => this.deleteInternal(command));
+  }
+
+  private async deleteInternal(command: BetaMemoryTool20250818DeleteCommand): Promise<string> {
     const fullPath = await this.validatePath(command.path);
 
     if (command.path === '/memories') {
@@ -374,6 +404,10 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   }
 
   async rename(command: BetaMemoryTool20250818RenameCommand): Promise<string> {
+    return this.runSerialized(() => this.renameInternal(command));
+  }
+
+  private async renameInternal(command: BetaMemoryTool20250818RenameCommand): Promise<string> {
     const oldFullPath = await this.validatePath(command.old_path);
     const newFullPath = await this.validatePath(command.new_path);
 
