@@ -550,7 +550,8 @@ export interface BetaManagedAgentsMCPOAuthAuthResponse {
   type: 'mcp_oauth';
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the credential's access token expires, in RFC 3339. Absent if the expiry
+   * isn't known.
    */
   expires_at?: string | null;
 
@@ -577,7 +578,9 @@ export interface BetaManagedAgentsMCPOAuthCreateParams {
   type: 'mcp_oauth';
 
   /**
-   * A timestamp in RFC 3339 format
+   * When `access_token` expires, in RFC 3339.
+   *
+   * Must be in the future.
    */
   expires_at?: string | null;
 
@@ -684,7 +687,13 @@ export interface BetaManagedAgentsMCPOAuthUpdateParams {
   access_token?: string | null;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the credential's access token expires, in RFC 3339. Leave it out to keep
+   * the stored expiry.
+   *
+   * If you send a new `access_token`, send its `expires_at` too, or the new token
+   * keeps the old expiry.
+   *
+   * Must be in the future.
    */
   expires_at?: string | null;
 

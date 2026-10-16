@@ -15,6 +15,7 @@
 
 ### Chores
 
+* **docs:** add credential expiry descriptions to the Managed Agents API reference
 * **docs:** correct plugin manifest_version and reach descriptions
 * **tests:** cover OpenTelemetry failures, propagation and environment variables
 
