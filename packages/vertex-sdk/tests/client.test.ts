@@ -390,4 +390,88 @@ describe('credential resolution retries', () => {
     expect(getRequestHeaders).toHaveBeenCalledTimes(2);
     expect(mockFetch).not.toHaveBeenCalled();
   });
+
+  test('constructor does not eagerly call getClient() and does not trigger unhandledRejection on credential failure', async () => {
+    let getClientCalls = 0;
+    const rejectingAuth = {
+      getClient: vi.fn().mockImplementation(() => {
+        getClientCalls++;
+        return Promise.reject(new Error('Could not load the default credentials'));
+      }),
+    };
+
+    const unhandledErrors: any[] = [];
+    const unhandledListener = (err: any) => {
+      unhandledErrors.push(err);
+    };
+    process.on('unhandledRejection', unhandledListener);
+
+    try {
+      const client = new AnthropicVertex({
+        region: 'us-central1',
+        projectId: 'test-project',
+        googleAuth: rejectingAuth as any,
+        fetch: mockFetch as any,
+        maxRetries: 0,
+      });
+
+      // Assert that getClient has not been called during instantiation
+      expect(getClientCalls).toBe(0);
+
+      // Wait a tick to ensure no asynchronous unhandledRejection is triggered
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(unhandledErrors).toHaveLength(0);
+
+      // Upon first request, getClient should be called and fail with APIConnectionError
+      await expect(client.messages.create(createParams)).rejects.toThrow(APIConnectionError);
+      expect(getClientCalls).toBe(1);
+
+      // Subsequent request should retry getClient fresh instead of locking onto cached rejection
+      rejectingAuth.getClient.mockImplementationOnce(() => {
+        getClientCalls++;
+        return Promise.resolve({
+          projectId: 'test-project',
+          getRequestHeaders: vi.fn().mockResolvedValue({ authorization: 'Bearer recovered-token' }),
+        });
+      });
+
+      await client.messages.create(createParams);
+      expect(getClientCalls).toBe(2);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    } finally {
+      process.off('unhandledRejection', unhandledListener);
+    }
+  });
+
+  test('concurrent requests share the same in-flight authClient lookup', async () => {
+    let getClientCalls = 0;
+    const resolvingAuth = {
+      getClient: vi.fn().mockImplementation(async () => {
+        getClientCalls++;
+        await new Promise((r) => setTimeout(r, 20));
+        return {
+          projectId: 'test-project',
+          getRequestHeaders: vi.fn().mockResolvedValue({ authorization: 'Bearer concurrent-token' }),
+        };
+      }),
+    };
+
+    const client = new AnthropicVertex({
+      region: 'us-central1',
+      projectId: 'test-project',
+      googleAuth: resolvingAuth as any,
+      fetch: mockFetch as any,
+    });
+
+    // Issue 3 concurrent requests
+    await Promise.all([
+      client.messages.create(createParams),
+      client.messages.create(createParams),
+      client.messages.create(createParams),
+    ]);
+
+    // getClient should only be invoked once for the concurrent batch
+    expect(getClientCalls).toBe(1);
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
 });
