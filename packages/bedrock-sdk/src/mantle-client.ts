@@ -11,8 +11,16 @@ import { getAuthHeaders } from './core/aws-auth';
 import type { Middleware } from './core/middleware';
 import { FinalRequestOptions } from './internal/request-options';
 import { loggerFor } from './internal/utils/log';
+import { isObj, safeJSON } from './internal/utils/values';
 
 const DEFAULT_SERVICE_NAME = 'bedrock-mantle';
+const USER_PROFILE_ID_HEADER = 'anthropic-user-profile-id';
+const USER_PROFILE_ID_BODY_ENDPOINTS = new Set<string>([
+  '/v1/messages',
+  '/v1/messages?beta=true',
+  '/v1/messages/count_tokens',
+  '/v1/messages/count_tokens?beta=true',
+]);
 
 export interface BedrockMantleClientOptions extends ClientOptions {
   /**
@@ -226,7 +234,31 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
   }
 
   protected override backendMiddleware(): ReadonlyArray<Middleware> {
-    return [async (request, next) => next(await this.#signRequest(request))];
+    return [
+      async (request, next, ctx) =>
+        next(await this.#signRequest(this.#moveUserProfileIDToBody(request, ctx.options))),
+    ];
+  }
+
+  // Mantle drops custom request headers, so it reads the user profile ID from the body.
+  #moveUserProfileIDToBody(request: APIRequest, options: FinalRequestOptions | undefined): APIRequest {
+    if (options?.method !== 'post' || !USER_PROFILE_ID_BODY_ENDPOINTS.has(options.path)) {
+      return request;
+    }
+
+    const headers = new Headers(request.headers);
+    const userProfileID = headers.get(USER_PROFILE_ID_HEADER);
+    if (userProfileID == null || typeof request.body !== 'string') {
+      return request;
+    }
+
+    const body = safeJSON(request.body);
+    if (!isObj(body)) {
+      return request;
+    }
+
+    headers.delete(USER_PROFILE_ID_HEADER);
+    return { ...request, headers, body: JSON.stringify({ user_profile_id: userProfileID, ...body }) };
   }
 
   /**

@@ -4,6 +4,7 @@ import { VERSION } from '@anthropic-ai/sdk/version';
 import { VERSION as PACKAGE_VERSION } from './version';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
 import { getAuthHeaders } from './core/auth';
+import * as Errors from './core/error';
 import { eventStreamToSSEResponse } from './core/streaming';
 import type { Middleware } from './core/middleware';
 import { readEnv } from './internal/utils/env';
@@ -154,6 +155,11 @@ export class AnthropicBedrock extends BaseAnthropic {
   messages: MessagesResource = makeMessagesResource(this);
   completions: Resources.Completions = new Resources.Completions(this);
   beta: BetaResource = makeBetaResource(this);
+
+  /** Amazon Bedrock does not serve user profiles, so reading this throws. */
+  get userProfiles(): never {
+    return throwUserProfilesUnavailable();
+  }
 
   protected override validateHeaders() {
     // auth validation is handled in the backend middleware since it needs to be async
@@ -307,9 +313,9 @@ function makeMessagesResource(client: AnthropicBedrock): MessagesResource {
 }
 
 /**
- * The Bedrock API does not currently support prompt caching, token counting or the Batch API.
+ * The Bedrock API does not currently support prompt caching, token counting, the Batch API or user profiles.
  */
-type BetaResource = Omit<Resources.Beta, 'promptCaching' | 'messages'> & {
+type BetaResource = Omit<Resources.Beta, 'promptCaching' | 'messages' | 'userProfiles'> & {
   messages: Omit<Resources.Beta['messages'], 'batches' | 'countTokens'>;
 };
 
@@ -325,5 +331,13 @@ function makeBetaResource(client: AnthropicBedrock): BetaResource {
   // @ts-expect-error we're deleting non-optional properties
   delete resource.messages.countTokens;
 
+  Object.defineProperty(resource, 'userProfiles', { enumerable: false, get: throwUserProfilesUnavailable });
+
   return resource;
+}
+
+function throwUserProfilesUnavailable(): never {
+  throw new Errors.AnthropicError(
+    'User profiles are not available on `AnthropicBedrock`. Use `AnthropicAws` from `@anthropic-ai/aws-sdk` to manage them.',
+  );
 }

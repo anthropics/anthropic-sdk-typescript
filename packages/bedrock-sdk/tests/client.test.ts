@@ -500,6 +500,27 @@ describe('AnthropicBedrock constructor deprecation warnings', () => {
   });
 });
 
+describe('AnthropicBedrock user profiles', () => {
+  const unavailable = 'User profiles are not available on `AnthropicBedrock`';
+  const newClient = () =>
+    new AnthropicBedrock({ awsAccessKey: 'access-key', awsSecretKey: 'secret-key', awsRegion: 'us-east-1' });
+
+  test('userProfiles throws an explanatory error', () => {
+    expect(() => newClient().userProfiles).toThrow(unavailable);
+  });
+
+  test('beta.userProfiles throws an explanatory error', () => {
+    expect(() => (newClient().beta as any).userProfiles).toThrow(unavailable);
+  });
+
+  test('a clone from withOptions has no user profiles either', () => {
+    const clone = newClient().withOptions({ maxRetries: 0 });
+
+    expect(() => clone.userProfiles).toThrow(unavailable);
+    expect(() => (clone.beta as any).userProfiles).toThrow(unavailable);
+  });
+});
+
 describe('AnthropicBedrock user agent', () => {
   test('is a hardcoded string', async () => {
     const originalName = AnthropicBedrock.name;
