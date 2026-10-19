@@ -18,6 +18,7 @@
 
 ### Chores
 
+* **ci:** skip the changelog check on draft pull requests
 * **docs:** add credential expiry descriptions to the Managed Agents API reference
 * **docs:** add Messages API request descriptions
 * **docs:** correct plugin manifest_version and reach descriptions
