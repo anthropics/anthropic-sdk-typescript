@@ -238,6 +238,7 @@ export class AnthropicVertex extends BaseAnthropic {
       }
     }
 
+    let isCountTokens = false;
     if (
       options &&
       (options.path === '/v1/messages/count_tokens' ||
@@ -254,6 +255,7 @@ export class AnthropicVertex extends BaseAnthropic {
         const prefix = url.pathname.slice(0, url.pathname.length - canonicalPath.length);
         url.pathname = `${prefix}/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/count-tokens:rawPredict`;
         url.searchParams.delete('beta');
+        isCountTokens = true;
       }
     }
 
@@ -262,7 +264,11 @@ export class AnthropicVertex extends BaseAnthropic {
       url: url.toString(),
       // Request/middleware-set headers win over the OAuth headers, preserving
       // the ability to override `Authorization` explicitly.
-      headers: buildHeaders([googleAuthHeaders, request.headers]).values,
+      headers: buildHeaders([
+        googleAuthHeaders,
+        request.headers,
+        isCountTokens ? { 'anthropic-beta': null } : undefined,
+      ]).values,
     } as APIRequest;
     if (parsedBody) {
       adapted.body = JSON.stringify(parsedBody);
