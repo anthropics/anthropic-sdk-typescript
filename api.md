@@ -752,11 +752,14 @@ Types:
 
 - <code><a href="./src/resources/organization/workspaces/rate-limits.ts">WorkspaceRateLimit</a></code>
 - <code><a href="./src/resources/organization/workspaces/rate-limits.ts">WorkspaceRateLimitOrganizationSource</a></code>
+- <code><a href="./src/resources/organization/workspaces/rate-limits.ts">WorkspaceRateLimitType</a></code>
+- <code><a href="./src/resources/organization/workspaces/rate-limits.ts">WorkspaceRateLimitUpdateValue</a></code>
 - <code><a href="./src/resources/organization/workspaces/rate-limits.ts">WorkspaceRateLimitValue</a></code>
 - <code><a href="./src/resources/organization/workspaces/rate-limits.ts">WorkspaceRateLimitWorkspaceSource</a></code>
 
 Methods:
 
+- <code title="post /v1/organizations/workspaces/{workspace_id}/rate_limits/{rate_limit_id}">client.organization.workspaces.rateLimits.<a href="./src/resources/organization/workspaces/rate-limits.ts">update</a>(rateLimitID, { ...params }) -> WorkspaceRateLimit</code>
 - <code title="get /v1/organizations/workspaces/{workspace_id}/rate_limits">client.organization.workspaces.rateLimits.<a href="./src/resources/organization/workspaces/rate-limits.ts">list</a>(workspaceID, { ...params }) -> WorkspaceRateLimitsPageCursor</code>
 
 ### Members
@@ -2360,11 +2363,14 @@ Types:
 
 - <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimit</a></code>
 - <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitOrganizationSource</a></code>
+- <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitType</a></code>
+- <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitUpdateValue</a></code>
 - <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitValue</a></code>
 - <code><a href="./src/resources/beta/organization/workspaces/rate-limits.ts">BetaWorkspaceRateLimitWorkspaceSource</a></code>
 
 Methods:
 
+- <code title="post /v1/organizations/workspaces/{workspace_id}/rate_limits/{rate_limit_id}?beta=true">client.beta.organization.workspaces.rateLimits.<a href="./src/resources/beta/organization/workspaces/rate-limits.ts">update</a>(rateLimitID, { ...params }) -> BetaWorkspaceRateLimit</code>
 - <code title="get /v1/organizations/workspaces/{workspace_id}/rate_limits?beta=true">client.beta.organization.workspaces.rateLimits.<a href="./src/resources/beta/organization/workspaces/rate-limits.ts">list</a>(workspaceID, { ...params }) -> BetaWorkspaceRateLimitsPageCursor</code>
 
 #### Members
