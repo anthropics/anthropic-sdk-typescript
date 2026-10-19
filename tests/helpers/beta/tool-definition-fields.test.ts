@@ -52,6 +52,7 @@ describe('tool definition fields', () => {
           stop_reason: 'end_turn',
           usage: { input_tokens: 10, output_tokens: 5 },
         }),
+        { headers: { 'content-type': 'application/json' } },
       );
     });
 
