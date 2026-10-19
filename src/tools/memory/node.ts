@@ -306,7 +306,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
       );
     }
 
-    const newContent = content.replace(command.old_str, command.new_str);
+    const newContent = content.replace(command.old_str, () => command.new_str);
     await atomicWriteFile(fullPath, newContent);
 
     const newLines = newContent.split('\n');

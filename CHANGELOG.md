@@ -11,6 +11,7 @@
 ### Bug Fixes
 
 * **client:** treat x-amz-security-token as a sensitive header
+* **tools:** keep $ sequences literal in memory tool str_replace
 
 
 ### Chores
