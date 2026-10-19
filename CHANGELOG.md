@@ -19,6 +19,7 @@
 ### Chores
 
 * **docs:** add credential expiry descriptions to the Managed Agents API reference
+* **docs:** add Messages API request descriptions
 * **docs:** correct plugin manifest_version and reach descriptions
 * **docs:** improve Managed Agents memory store descriptions
 * **docs:** improve Managed Agents vault and credential descriptions

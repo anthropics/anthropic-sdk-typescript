@@ -2641,6 +2641,15 @@ export interface CacheCreation {
   ephemeral_5m_input_tokens: number;
 }
 
+/**
+ * A `cache_miss_reason` for a request whose `messages` differ from the previous
+ * request's in an earlier entry, instead of only having entries appended. The
+ * `model`, `system`, and `tools` match.
+ *
+ * See the
+ * [cache diagnostics guide](https://platform.claude.com/docs/en/build-with-claude/cache-diagnostics#cache-miss-reason-types)
+ * to learn what to change for each reason.
+ */
 export interface CacheMissMessagesChanged {
   /**
    * Approximate number of input tokens that would have been read from cache had the
@@ -2651,6 +2660,14 @@ export interface CacheMissMessagesChanged {
   type: 'messages_changed';
 }
 
+/**
+ * A `cache_miss_reason` for a request whose `model` or `speed` differs from the
+ * previous request's.
+ *
+ * See the
+ * [cache diagnostics guide](https://platform.claude.com/docs/en/build-with-claude/cache-diagnostics#cache-miss-reason-types)
+ * to learn what to change for each reason.
+ */
 export interface CacheMissModelChanged {
   /**
    * Approximate number of input tokens that would have been read from cache had the
@@ -2661,6 +2678,16 @@ export interface CacheMissModelChanged {
   type: 'model_changed';
 }
 
+/**
+ * A `cache_miss_reason` for when the API doesn't have a stored record of the
+ * request that `diagnostics.previous_message_id` references.
+ *
+ * This doesn't mean that this request changed.
+ *
+ * See the
+ * [cache diagnostics guide](https://platform.claude.com/docs/en/build-with-claude/cache-diagnostics#cache-miss-reason-types)
+ * to learn what to change for each reason.
+ */
 export interface CacheMissPreviousMessageNotFound {
   type: 'previous_message_not_found';
 }
@@ -2673,6 +2700,14 @@ export type CacheMissReason =
   | CacheMissPreviousMessageNotFound
   | CacheMissUnavailable;
 
+/**
+ * A `cache_miss_reason` for a request whose `system` differs from the previous
+ * request's.
+ *
+ * See the
+ * [cache diagnostics guide](https://platform.claude.com/docs/en/build-with-claude/cache-diagnostics#cache-miss-reason-types)
+ * to learn what to change for each reason.
+ */
 export interface CacheMissSystemChanged {
   /**
    * Approximate number of input tokens that would have been read from cache had the
@@ -2683,6 +2718,14 @@ export interface CacheMissSystemChanged {
   type: 'system_changed';
 }
 
+/**
+ * A `cache_miss_reason` for a request whose `tools` differ from the previous
+ * request's, for example because tools were added, removed, or reordered.
+ *
+ * See the
+ * [cache diagnostics guide](https://platform.claude.com/docs/en/build-with-claude/cache-diagnostics#cache-miss-reason-types)
+ * to learn what to change for each reason.
+ */
 export interface CacheMissToolsChanged {
   /**
    * Approximate number of input tokens that would have been read from cache had the
@@ -2693,6 +2736,18 @@ export interface CacheMissToolsChanged {
   type: 'tools_changed';
 }
 
+/**
+ * A `cache_miss_reason` for when the API can't give a diagnosis. The request
+ * itself was processed normally.
+ *
+ * This includes a request whose `model`, `system`, and `tools` match the previous
+ * request's but whose other prompt-affecting parameters, such as `thinking` or
+ * `tool_choice`, differ.
+ *
+ * See the
+ * [cache diagnostics guide](https://platform.claude.com/docs/en/build-with-claude/cache-diagnostics#cache-miss-reason-types)
+ * to learn what to change for each reason.
+ */
 export interface CacheMissUnavailable {
   type: 'unavailable';
 }
