@@ -549,6 +549,31 @@ import {
   Skills,
   SkillsPageCursor,
 } from './resources/skills/skills';
+import {
+  DeletedUserProfile,
+  UserProfile,
+  UserProfileAccessType,
+  UserProfileCreateParams,
+  UserProfileCyberProgram,
+  UserProfileCyberRequirements,
+  UserProfileCyberTier,
+  UserProfileDeleteParams,
+  UserProfileEfsFeature,
+  UserProfileEfsProgram,
+  UserProfileExternalUserAccountStatus,
+  UserProfileExternalUserDetails,
+  UserProfileExternalUserDetailsParams,
+  UserProfileExternalUserEntityType,
+  UserProfileListOrder,
+  UserProfileListOrderBy,
+  UserProfileListParams,
+  UserProfileProgramStatus,
+  UserProfilePrograms,
+  UserProfileRetrieveParams,
+  UserProfileUpdateParams,
+  UserProfiles,
+  UserProfilesPageCursor,
+} from './resources/user-profiles/user-profiles';
 import { type Fetch } from './internal/builtin-types';
 import { isRunningInBrowser } from './internal/detect-platform';
 import { HeadersLike, NullableHeaders, buildHeaders } from './internal/headers';
@@ -2029,6 +2054,7 @@ export class Anthropic extends BaseAnthropic {
   models: API.Models = new API.Models(this);
   files: API.Files = new API.Files(this);
   skills: API.Skills = new API.Skills(this);
+  userProfiles: API.UserProfiles = new API.UserProfiles(this);
   organization: API.Organization = new API.Organization(this);
   beta: API.Beta = new API.Beta(this);
 }
@@ -2038,6 +2064,7 @@ Anthropic.Messages = Messages;
 Anthropic.Models = Models;
 Anthropic.Files = Files;
 Anthropic.Skills = Skills;
+Anthropic.UserProfiles = UserProfiles;
 Anthropic.Organization = Organization;
 Anthropic.Beta = Beta;
 
@@ -2535,6 +2562,32 @@ export declare namespace Anthropic {
     type SkillRetrieveParams as SkillRetrieveParams,
     type SkillListParams as SkillListParams,
     type SkillDeleteParams as SkillDeleteParams,
+  };
+
+  export {
+    UserProfiles as UserProfiles,
+    type DeletedUserProfile as DeletedUserProfile,
+    type UserProfile as UserProfile,
+    type UserProfileAccessType as UserProfileAccessType,
+    type UserProfileCyberProgram as UserProfileCyberProgram,
+    type UserProfileCyberRequirements as UserProfileCyberRequirements,
+    type UserProfileCyberTier as UserProfileCyberTier,
+    type UserProfileEfsFeature as UserProfileEfsFeature,
+    type UserProfileEfsProgram as UserProfileEfsProgram,
+    type UserProfileExternalUserAccountStatus as UserProfileExternalUserAccountStatus,
+    type UserProfileExternalUserDetails as UserProfileExternalUserDetails,
+    type UserProfileExternalUserDetailsParams as UserProfileExternalUserDetailsParams,
+    type UserProfileExternalUserEntityType as UserProfileExternalUserEntityType,
+    type UserProfileListOrder as UserProfileListOrder,
+    type UserProfileListOrderBy as UserProfileListOrderBy,
+    type UserProfileProgramStatus as UserProfileProgramStatus,
+    type UserProfilePrograms as UserProfilePrograms,
+    type UserProfilesPageCursor as UserProfilesPageCursor,
+    type UserProfileCreateParams as UserProfileCreateParams,
+    type UserProfileRetrieveParams as UserProfileRetrieveParams,
+    type UserProfileUpdateParams as UserProfileUpdateParams,
+    type UserProfileListParams as UserProfileListParams,
+    type UserProfileDeleteParams as UserProfileDeleteParams,
   };
 
   export {

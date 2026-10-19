@@ -7388,8 +7388,7 @@ export interface MessageCreateParamsBase {
 
   /**
    * Header param: The user profile ID to attribute this request to. Use when acting
-   * on behalf of a party other than your organization. Requires the `user-profiles`
-   * beta header.
+   * on behalf of a party other than your organization.
    */
   user_profile_id?: string;
 
@@ -7657,8 +7656,7 @@ export interface MessageCountTokensParams {
 
   /**
    * Header param: The user profile ID to attribute this request to. Use when acting
-   * on behalf of a party other than your organization. Requires the `user-profiles`
-   * beta header.
+   * on behalf of a party other than your organization.
    */
   user_profile_id?: string;
 

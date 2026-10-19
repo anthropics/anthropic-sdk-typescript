@@ -530,6 +530,46 @@ Methods:
 - <code title="get /v1/skills/{skill_id}/versions">client.skills.versions.<a href="./src/resources/skills/versions.ts">list</a>(skillID, { ...params }) -> SkillVersionsPageCursor</code>
 - <code title="delete /v1/skills/{skill_id}/versions/{version}">client.skills.versions.<a href="./src/resources/skills/versions.ts">delete</a>(version, { ...params }) -> DeletedSkillVersion</code>
 
+# UserProfiles
+
+Types:
+
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">DeletedUserProfile</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfile</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileAccessType</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileCyberProgram</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileCyberRequirements</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileCyberTier</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEfsFeature</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEfsProgram</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileExternalUserAccountStatus</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileExternalUserDetails</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileExternalUserDetailsParams</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileExternalUserEntityType</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileListOrder</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileListOrderBy</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileProgramStatus</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfilePrograms</a></code>
+
+Methods:
+
+- <code title="post /v1/user_profiles">client.userProfiles.<a href="./src/resources/user-profiles/user-profiles.ts">create</a>({ ...params }) -> UserProfile</code>
+- <code title="get /v1/user_profiles/{user_profile_id}">client.userProfiles.<a href="./src/resources/user-profiles/user-profiles.ts">retrieve</a>(userProfileID, { ...params }) -> UserProfile</code>
+- <code title="post /v1/user_profiles/{user_profile_id}">client.userProfiles.<a href="./src/resources/user-profiles/user-profiles.ts">update</a>(userProfileID, { ...params }) -> UserProfile</code>
+- <code title="get /v1/user_profiles">client.userProfiles.<a href="./src/resources/user-profiles/user-profiles.ts">list</a>({ ...params }) -> UserProfilesPageCursor</code>
+- <code title="delete /v1/user_profiles/{user_profile_id}">client.userProfiles.<a href="./src/resources/user-profiles/user-profiles.ts">delete</a>(userProfileID, { ...params }) -> DeletedUserProfile</code>
+
+## ActionURLs
+
+Types:
+
+- <code><a href="./src/resources/user-profiles/action-urls.ts">UserProfileActionURL</a></code>
+- <code><a href="./src/resources/user-profiles/action-urls.ts">UserProfileEnrollEndUserAction</a></code>
+
+Methods:
+
+- <code title="post /v1/user_profiles/{user_profile_id}/action_urls">client.userProfiles.actionURLs.<a href="./src/resources/user-profiles/action-urls.ts">create</a>(userProfileID, { ...params }) -> UserProfileActionURL</code>
+
 # Organization
 
 Types:
@@ -2053,19 +2093,32 @@ Methods:
 
 Types:
 
-- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfile</a></code>
-- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileEnrollmentURL</a></code>
-- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileExternalUserDetails</a></code>
-- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileExternalUserDetailsParams</a></code>
-- <code><a href="./src/resources/beta/user-profiles.ts">BetaUserProfileTrustGrant</a></code>
+- <code><a href="./src/resources/beta/user-profiles/user-profiles.ts">BetaDeletedUserProfile</a></code>
+- <code><a href="./src/resources/beta/user-profiles/user-profiles.ts">BetaUserProfile</a></code>
+- <code><a href="./src/resources/beta/user-profiles/user-profiles.ts">BetaUserProfileEnrollmentURL</a></code>
+- <code><a href="./src/resources/beta/user-profiles/user-profiles.ts">BetaUserProfileExternalUserDetails</a></code>
+- <code><a href="./src/resources/beta/user-profiles/user-profiles.ts">BetaUserProfileExternalUserDetailsParams</a></code>
+- <code><a href="./src/resources/beta/user-profiles/user-profiles.ts">BetaUserProfileTrustGrant</a></code>
 
 Methods:
 
-- <code title="post /v1/user_profiles?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">create</a>({ ...params }) -> BetaUserProfile</code>
-- <code title="get /v1/user_profiles/{user_profile_id}?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">retrieve</a>(userProfileID, { ...params }) -> BetaUserProfile</code>
-- <code title="post /v1/user_profiles/{user_profile_id}?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">update</a>(userProfileID, { ...params }) -> BetaUserProfile</code>
-- <code title="get /v1/user_profiles?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">list</a>({ ...params }) -> BetaUserProfilesPageCursor</code>
-- <code title="post /v1/user_profiles/{user_profile_id}/enrollment_url?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles.ts">createEnrollmentURL</a>(userProfileID, { ...params }) -> BetaUserProfileEnrollmentURL</code>
+- <code title="post /v1/user_profiles?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles/user-profiles.ts">create</a>({ ...params }) -> BetaUserProfile</code>
+- <code title="get /v1/user_profiles/{user_profile_id}?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles/user-profiles.ts">retrieve</a>(userProfileID, { ...params }) -> BetaUserProfile</code>
+- <code title="post /v1/user_profiles/{user_profile_id}?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles/user-profiles.ts">update</a>(userProfileID, { ...params }) -> BetaUserProfile</code>
+- <code title="get /v1/user_profiles?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles/user-profiles.ts">list</a>({ ...params }) -> BetaUserProfilesPageCursor</code>
+- <code title="delete /v1/user_profiles/{user_profile_id}?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles/user-profiles.ts">delete</a>(userProfileID, { ...params }) -> BetaDeletedUserProfile</code>
+- <code title="post /v1/user_profiles/{user_profile_id}/enrollment_url?beta=true">client.beta.userProfiles.<a href="./src/resources/beta/user-profiles/user-profiles.ts">createEnrollmentURL</a>(userProfileID, { ...params }) -> BetaUserProfileEnrollmentURL</code>
+
+### ActionURLs
+
+Types:
+
+- <code><a href="./src/resources/beta/user-profiles/action-urls.ts">BetaUserProfileActionURL</a></code>
+- <code><a href="./src/resources/beta/user-profiles/action-urls.ts">BetaUserProfileEnrollEndUserAction</a></code>
+
+Methods:
+
+- <code title="post /v1/user_profiles/{user_profile_id}/action_urls?beta=true">client.beta.userProfiles.actionURLs.<a href="./src/resources/beta/user-profiles/action-urls.ts">create</a>(userProfileID, { ...params }) -> BetaUserProfileActionURL</code>
 
 ## Dreams
 
