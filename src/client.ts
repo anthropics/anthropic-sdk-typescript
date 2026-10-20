@@ -1620,7 +1620,7 @@ export class BaseAnthropic {
         },
       );
       if (isTimeout) {
-        throw new Errors.APIConnectionTimeoutError();
+        throw new Errors.APIConnectionTimeoutError({ cause: response });
       }
       // a retryable middleware-origin error is still the caller's error: once retries are
       // exhausted it propagates as-is rather than wrapped in APIConnectionError

@@ -3,7 +3,7 @@ import { APIError } from '@anthropic-ai/sdk/core/error';
 
 import util from 'node:util';
 import Anthropic from '@anthropic-ai/sdk';
-import { APIUserAbortError, InternalServerError } from '@anthropic-ai/sdk';
+import { APIConnectionTimeoutError, APIUserAbortError, InternalServerError } from '@anthropic-ai/sdk';
 const defaultFetch = fetch;
 
 describe('instantiate client', () => {
@@ -706,6 +706,45 @@ describe('retries', () => {
       { variant: 'b' },
       { variant: 'b' },
     ]);
+  });
+
+  test('a timed-out connection keeps the fetch error as its cause', async () => {
+    const failure = new TypeError('fetch failed', {
+      cause: Object.assign(new Error('read ETIMEDOUT'), { code: 'ETIMEDOUT' }),
+    });
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      maxRetries: 0,
+      fetch: async () => {
+        throw failure;
+      },
+    });
+
+    const err = await client.request({ path: '/foo', method: 'get' }).then(
+      () => null,
+      (e) => e,
+    );
+    expect(err).toBeInstanceOf(APIConnectionTimeoutError);
+    expect(err.message).toEqual('Request timed out.');
+    expect(err.cause).toBe(failure);
+  });
+
+  test('a request past its timeout keeps the abort error as its cause', async () => {
+    const aborted = new DOMException('This operation was aborted', 'AbortError');
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      timeout: 10,
+      maxRetries: 0,
+      fetch: (url, { signal } = {}) =>
+        new Promise((resolve, reject) => signal?.addEventListener('abort', () => reject(aborted))),
+    });
+
+    const err = await client.request({ path: '/foo', method: 'get' }).then(
+      () => null,
+      (e) => e,
+    );
+    expect(err).toBeInstanceOf(APIConnectionTimeoutError);
+    expect(err.cause).toBe(aborted);
   });
 
   test('retry count header', async () => {
