@@ -46,6 +46,7 @@ describe('defaultCredentials', () => {
   beforeEach(() => {
     for (const name of envVars) {
       originalEnv[name] = process.env[name];
+      delete process.env[name];
     }
     testDir = mkdtempSync(path.join(tmpdir(), 'chain-test-'));
     process.env['ANTHROPIC_CONFIG_DIR'] = testDir;
