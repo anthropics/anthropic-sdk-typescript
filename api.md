@@ -2078,6 +2078,8 @@ Types:
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionThreadIdledEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionThreadTerminatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookSessionUpdatedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookUserProfileEnforcementActionOpenedEventData</a></code>
+- <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookUserProfileEnforcementActionResolvedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookVaultArchivedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookVaultCreatedEventData</a></code>
 - <code><a href="./src/resources/beta/webhooks.ts">BetaWebhookVaultCredentialArchivedEventData</a></code>
@@ -2794,3 +2796,22 @@ Methods:
 - <code title="get /v1/organizations/telemetry_destinations/{destination_id}/workspaces?beta=true">client.beta.organization.telemetryDestinations.workspaces.<a href="./src/resources/beta/organization/telemetry-destinations/workspaces.ts">list</a>(destinationID, { ...params }) -> BetaTelemetryDestinationWorkspacesPageCursor</code>
 - <code title="post /v1/organizations/telemetry_destinations/{destination_id}/workspaces/{workspace_id}?beta=true">client.beta.organization.telemetryDestinations.workspaces.<a href="./src/resources/beta/organization/telemetry-destinations/workspaces.ts">add</a>(workspaceID, { ...params }) -> BetaTelemetryDestinationWorkspace</code>
 - <code title="delete /v1/organizations/telemetry_destinations/{destination_id}/workspaces/{workspace_id}?beta=true">client.beta.organization.telemetryDestinations.workspaces.<a href="./src/resources/beta/organization/telemetry-destinations/workspaces.ts">remove</a>(workspaceID, { ...params }) -> BetaDeletedTelemetryDestinationWorkspace</code>
+
+### Webhooks
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/webhooks.ts">BetaDeletedOrganizationWebhookEndpoint</a></code>
+- <code><a href="./src/resources/beta/organization/webhooks.ts">BetaNewOrganizationWebhookEndpoint</a></code>
+- <code><a href="./src/resources/beta/organization/webhooks.ts">BetaOrganizationWebhookEndpoint</a></code>
+- <code><a href="./src/resources/beta/organization/webhooks.ts">BetaOrganizationWebhookEndpointSigningSecret</a></code>
+- <code><a href="./src/resources/beta/organization/webhooks.ts">BetaOrganizationWebhookEndpointState</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/webhooks?beta=true">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">create</a>({ ...params }) -> BetaNewOrganizationWebhookEndpoint</code>
+- <code title="get /v1/organizations/webhooks/{webhook_endpoint_id}?beta=true">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">retrieve</a>(webhookEndpointID, { ...params }) -> BetaOrganizationWebhookEndpoint</code>
+- <code title="post /v1/organizations/webhooks/{webhook_endpoint_id}?beta=true">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">update</a>(webhookEndpointID, { ...params }) -> BetaOrganizationWebhookEndpoint</code>
+- <code title="get /v1/organizations/webhooks?beta=true">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">list</a>({ ...params }) -> BetaOrganizationWebhookEndpointsPage</code>
+- <code title="delete /v1/organizations/webhooks/{webhook_endpoint_id}?beta=true">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">delete</a>(webhookEndpointID, { ...params }) -> BetaDeletedOrganizationWebhookEndpoint</code>
+- <code title="post /v1/organizations/webhooks/{webhook_endpoint_id}/regenerate_signing_secret?beta=true">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">regenerateSigningSecret</a>(webhookEndpointID, { ...params }) -> BetaOrganizationWebhookEndpointSigningSecret</code>

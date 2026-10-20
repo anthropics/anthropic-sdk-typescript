@@ -1,6 +1,11 @@
 # Changelog
 
-## [0.136.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.136.0...sdk-v0.136.1) (2026-10-20)
+## [0.137.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.136.0...sdk-v0.137.0) (2026-10-20)
+
+### Features
+
+* **api:** add org webhook endpoints and user profile enforcement events
+
 
 ### Chores
 
