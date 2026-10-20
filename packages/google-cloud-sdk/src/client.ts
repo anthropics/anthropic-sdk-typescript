@@ -1,7 +1,7 @@
 import type { NullableHeaders } from './internal/headers';
 import { buildHeaders } from './internal/headers';
 import * as Errors from './core/error';
-import { readEnv } from './internal/utils';
+import { isAbsoluteURL, readEnv } from './internal/utils';
 import { FinalRequestOptions } from './internal/request-options';
 import { Anthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
@@ -14,9 +14,23 @@ const DEFAULT_SCOPE = 'https://www.googleapis.com/auth/cloud-platform';
 // The gateway should always be addressed via the global region.
 const DEFAULT_LOCATION = 'global';
 
+const deriveLocationURL = (project: string, location: string): string =>
+  `https://claude.googleapis.com/v1/projects/${project}/locations/${location}`;
+
 // The gateway base URL; `baseURL` remains the override hatch.
 const deriveBaseURL = (project: string, location: string, workspaceId: string): string =>
-  `https://claude.googleapis.com/v1alpha/projects/${project}/locations/${location}/workspaces/${workspaceId}/invoke`;
+  `${deriveLocationURL(project, location)}/workspaces/${workspaceId}/invoke`;
+
+// Organization-level routes are served from a base with no workspace in it.
+const deriveOrganizationBaseURL = (project: string, location: string): string =>
+  `${deriveLocationURL(project, location)}/claudeOrganization/invoke`;
+
+const ORGANIZATION_PATH_PREFIX = '/v1/organizations/';
+
+// A reserved, guaranteed-unroutable host (RFC 2606): a request that slips
+// past the gates while no base URL is derived can never carry the Google
+// bearer to the default API host.
+const UNRESOLVED_BASE_URL = 'https://unresolved.invalid';
 
 const NO_PROJECT_HINT =
   'Set `project` or the `ANTHROPIC_GOOGLE_CLOUD_PROJECT` environment variable (or provide `baseURL`).';
@@ -54,8 +68,8 @@ export interface GoogleCloudClientOptions
   location?: string | undefined;
 
   /**
-   * The Anthropic workspace ID. Required unless `skipAuth` is set together
-   * with an explicit `baseURL`.
+   * The Anthropic workspace ID. Required when the base URL is derived, except
+   * for organization-level routes (`/v1/organizations/*`).
    *
    * @default process.env['ANTHROPIC_GOOGLE_CLOUD_WORKSPACE_ID']
    */
@@ -88,9 +102,7 @@ export interface GoogleCloudClientOptions
 
   /**
    * Skip authentication. Useful when a gateway or proxy authenticates
-   * upstream on your behalf. No token is attached. A `workspaceId` is still
-   * needed to derive the base URL — provide `baseURL` explicitly to
-   * construct without one.
+   * upstream on your behalf. No token is attached.
    *
    * @default false
    */
@@ -129,11 +141,10 @@ export class AnthropicGoogleCloud extends Anthropic {
   #googleAuth?: GoogleAuth | null;
   #authClient?: AuthClient | null;
   #authClientPromise?: Promise<AuthClient>;
-  // Whether `baseURL` was supplied explicitly (constructor arg or env var) as
-  // opposed to derived from project/location/workspace. withOptions() clones
-  // re-derive a derived URL so gateway-option overrides update the URL path;
-  // an explicit URL passes through unchanged.
-  #baseURLExplicit: boolean;
+  // The base URL this client derived and placed in `baseURL` itself; unset
+  // when `baseURL` was supplied explicitly (constructor arg or env var).
+  #derivedBaseURL: string | undefined;
+  #organizationBaseURL = UNRESOLVED_BASE_URL;
 
   // @ts-expect-error — overriding the base instance property with an accessor (TS2611) is intentional
   override get completions(): never {
@@ -153,11 +164,11 @@ export class AnthropicGoogleCloud extends Anthropic {
    *
    * @param [opts.project=process.env['ANTHROPIC_GOOGLE_CLOUD_PROJECT'] ?? process.env['GOOGLE_CLOUD_PROJECT']] - GCP project id used to derive the base URL. Back-filled lazily from Google credentials when not given.
    * @param [opts.location=process.env['ANTHROPIC_GOOGLE_CLOUD_LOCATION'] ?? 'global'] - GCP location; defaults to `global`.
-   * @param [opts.workspaceId=process.env['ANTHROPIC_GOOGLE_CLOUD_WORKSPACE_ID']] - Workspace ID. Required unless `skipAuth` is set with an explicit `baseURL`.
+   * @param [opts.workspaceId=process.env['ANTHROPIC_GOOGLE_CLOUD_WORKSPACE_ID']] - Workspace ID. Required when the base URL is derived, except for organization-level routes.
    * @param [opts.bearerTokenProvider] - Returns a Google access token; invoked on every request.
    * @param [opts.googleAuth] - Override the default Google auth config.
    * @param [opts.authClient] - A pre-configured google-auth-library `AuthClient`.
-   * @param [opts.skipAuth=false] - Skip auth (pre-authed proxy); a workspace ID is still needed unless `baseURL` is explicit.
+   * @param [opts.skipAuth=false] - Skip auth (pre-authed proxy).
    * @param [opts.baseURL=process.env['ANTHROPIC_GOOGLE_CLOUD_BASE_URL']] - Override the derived base URL.
    * @param [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
    * @param [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
@@ -205,15 +216,6 @@ export class AnthropicGoogleCloud extends Anthropic {
     // An exported-but-empty env var (or an explicit '') is the unset case.
     location = location || DEFAULT_LOCATION;
 
-    // The workspace ID is part of the derived base URL, so it is required
-    // unless `skipAuth` is set together with an explicit base URL — no URL
-    // to derive.
-    if (!workspaceId && !(skipAuth && baseURL)) {
-      throw new Errors.AnthropicError(
-        'No workspace ID found. Set `workspaceId` in the constructor or the `ANTHROPIC_GOOGLE_CLOUD_WORKSPACE_ID` environment variable.',
-      );
-    }
-
     // Base URL: explicit arg / env, otherwise derive it from project +
     // location + workspace. When no project is known yet, it is back-filled
     // lazily from Google credentials and the base URL is set once resolution
@@ -222,8 +224,9 @@ export class AnthropicGoogleCloud extends Anthropic {
     let lazyProject = false;
     if (!resolvedBaseURL) {
       if (project) {
-        // Derivation is only reachable with a workspace ID — checked above.
-        resolvedBaseURL = deriveBaseURL(project, location, workspaceId!);
+        if (workspaceId) {
+          resolvedBaseURL = deriveBaseURL(project, location, workspaceId);
+        }
       } else if (skipAuth) {
         // With skipAuth there are no Google credentials to ask for a project.
         throw new Errors.AnthropicError(`No project was given. ${NO_PROJECT_HINT}`);
@@ -234,9 +237,8 @@ export class AnthropicGoogleCloud extends Anthropic {
 
     super({
       // Always pass the resolved base URL so ANTHROPIC_BASE_URL can't leak in.
-      // Pass null (not undefined) while the project is still resolving so the
-      // base constructor's env-var default can't kick in either; the real URL
-      // is assigned when resolution lands, before any request is sent.
+      // Pass null (not undefined) while there is none so the base
+      // constructor's env-var default can't kick in either.
       baseURL: resolvedBaseURL ?? null,
       ...opts,
       // Never inherit ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN: auth here is a
@@ -263,7 +265,15 @@ export class AnthropicGoogleCloud extends Anthropic {
     this.#bearerTokenProvider = bearerTokenProvider;
     this.#googleAuth = googleAuth ?? null;
     this.#authClient = authClient ?? null;
-    this.#baseURLExplicit = !!baseURL;
+    if (!baseURL) {
+      // Without a project or a workspace ID there is no workspace base to
+      // derive, and the base constructor coerced its hardcoded default host
+      // into `baseURL`. Fail closed.
+      this.#derivedBaseURL = this.baseURL = resolvedBaseURL ?? UNRESOLVED_BASE_URL;
+      if (project) {
+        this.#organizationBaseURL = deriveOrganizationBaseURL(project, location);
+      }
+    }
 
     let auth: GoogleAuth | undefined;
     if (!skipAuth && !bearerTokenProvider) {
@@ -293,18 +303,16 @@ export class AnthropicGoogleCloud extends Anthropic {
         googleAuth ??
         new GoogleAuth({ scopes: DEFAULT_SCOPE, ...(authClient ? { authClient } : {}) });
       const resolvedLocation = location;
-      // The lazy path implies !skipAuth, so the workspace check above passed.
-      const resolvedWorkspaceId = workspaceId!;
-      // While the project is unresolved, the base constructor coerced its
-      // hardcoded default host into `baseURL`. Fail closed: point `baseURL` at a
-      // reserved, guaranteed-unroutable host (RFC 2606) so any path that
-      // bypasses the `ready` gate can never send the Google bearer to the
-      // default API host.
-      this.baseURL = 'https://unresolved.invalid';
       this.ready = projectAuth.getProjectId().then(
         (project) => {
           this.project = project;
-          this.baseURL = deriveBaseURL(project, resolvedLocation, resolvedWorkspaceId);
+          if (this.#baseURLOverridden()) {
+            return;
+          }
+          this.#organizationBaseURL = deriveOrganizationBaseURL(project, resolvedLocation);
+          if (workspaceId) {
+            this.#derivedBaseURL = this.baseURL = deriveBaseURL(project, resolvedLocation, workspaceId);
+          }
         },
         (err) => {
           const error = new Errors.AnthropicError(
@@ -327,7 +335,7 @@ export class AnthropicGoogleCloud extends Anthropic {
    * When the base URL was derived (not given explicitly), the clone re-derives
    * it from its effective `project` / `location` / `workspaceId`, so overriding
    * any of them updates the URL path too. An explicit `baseURL` (constructor
-   * arg or env var) is passed through unchanged.
+   * arg, env var, or a later assignment) is passed through unchanged.
    */
   override withOptions(options: Partial<GoogleCloudClientOptions>): this {
     // The base re-runs this constructor from `_options`, which only carries the
@@ -346,14 +354,39 @@ export class AnthropicGoogleCloud extends Anthropic {
       // is left unset so the clone's constructor re-derives it from the
       // effective gateway options above — a clone whose project is still
       // unresolved keeps deferring. Only an explicit URL passes through.
-      baseURL: this.#baseURLExplicit ? this.baseURL : undefined,
+      baseURL: this.#baseURLOverridden() ? this.baseURL : undefined,
       ...options,
     } as Partial<CoreClientOptions>);
   }
 
+  #baseURLOverridden(): boolean {
+    return this.baseURL !== this.#derivedBaseURL;
+  }
+
+  override buildURL(
+    path: string,
+    query: Record<string, unknown> | null | undefined,
+    defaultBaseURL?: string | undefined,
+  ): string {
+    if (this.#baseURLOverridden() || isAbsoluteURL(path)) {
+      return super.buildURL(path, query, defaultBaseURL);
+    }
+
+    if (path.startsWith(ORGANIZATION_PATH_PREFIX)) {
+      return super.buildURL(this.#organizationBaseURL + path, query, defaultBaseURL);
+    }
+
+    if (!this.workspaceId) {
+      throw new Errors.AnthropicError(
+        'No workspace ID found. Set `workspaceId` in the constructor or the `ANTHROPIC_GOOGLE_CLOUD_WORKSPACE_ID` environment variable.',
+      );
+    }
+    return super.buildURL(path, query, defaultBaseURL);
+  }
+
   protected override async prepareOptions(options: FinalRequestOptions): Promise<void> {
     await super.prepareOptions(options);
-    await this.ready;
+    await this.#resolved();
   }
 
   override async buildRequest(
@@ -364,8 +397,15 @@ export class AnthropicGoogleCloud extends Anthropic {
     // buildRequest() is public and reachable directly (custom transports);
     // gate it too so a request can never be built against the unroutable
     // placeholder while the project is unresolved (or after resolution failed).
-    await this.ready;
+    await this.#resolved();
     return await super.buildRequest(options, props);
+  }
+
+  // A base URL the caller assigned needs no project.
+  async #resolved(): Promise<void> {
+    if (!this.#baseURLOverridden()) {
+      await this.ready;
+    }
   }
 
   // No workspace header — the workspace ID is carried by the base URL path.
