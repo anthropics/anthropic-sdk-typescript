@@ -59,6 +59,9 @@ import {
   PageCursorResponse,
   type PageParams,
   PageResponse,
+  type ReportPageCursor,
+  type ReportPageCursorParams,
+  ReportPageCursorResponse,
   type TokenPage,
   type TokenPageParams,
   TokenPageResponse,
@@ -2092,6 +2095,12 @@ export declare namespace Anthropic {
     type BidirectionalPageCursor as BidirectionalPageCursor,
     type BidirectionalPageCursorParams as BidirectionalPageCursorParams,
     type BidirectionalPageCursorResponse as BidirectionalPageCursorResponse,
+  };
+
+  export {
+    type ReportPageCursor as ReportPageCursor,
+    type ReportPageCursorParams as ReportPageCursorParams,
+    type ReportPageCursorResponse as ReportPageCursorResponse,
   };
 
   export {

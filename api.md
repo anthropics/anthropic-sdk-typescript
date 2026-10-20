@@ -2541,25 +2541,25 @@ Methods:
 
 Methods:
 
-- <code title="get /v1/organizations/analytics/usage_report?beta=true">client.beta.organization.analytics.usageReport.<a href="./src/resources/beta/organization/analytics/usage-report.ts">list</a>({ ...params }) -> BetaAnalyticsUsageReportTimeBucketsPageCursor</code>
+- <code title="get /v1/organizations/analytics/usage_report?beta=true">client.beta.organization.analytics.usageReport.<a href="./src/resources/beta/organization/analytics/usage-report.ts">list</a>({ ...params }) -> BetaAnalyticsUsageReportTimeBucketsReportPageCursor</code>
 
 #### UserUsageReport
 
 Methods:
 
-- <code title="get /v1/organizations/analytics/user_usage_report?beta=true">client.beta.organization.analytics.userUsageReport.<a href="./src/resources/beta/organization/analytics/user-usage-report.ts">list</a>({ ...params }) -> BetaAnalyticsUsageUsersItemsPageCursor</code>
+- <code title="get /v1/organizations/analytics/user_usage_report?beta=true">client.beta.organization.analytics.userUsageReport.<a href="./src/resources/beta/organization/analytics/user-usage-report.ts">list</a>({ ...params }) -> BetaAnalyticsUsageUsersItemsReportPageCursor</code>
 
 #### CostReport
 
 Methods:
 
-- <code title="get /v1/organizations/analytics/cost_report?beta=true">client.beta.organization.analytics.costReport.<a href="./src/resources/beta/organization/analytics/cost-report.ts">list</a>({ ...params }) -> BetaAnalyticsCostReportTimeBucketsPageCursor</code>
+- <code title="get /v1/organizations/analytics/cost_report?beta=true">client.beta.organization.analytics.costReport.<a href="./src/resources/beta/organization/analytics/cost-report.ts">list</a>({ ...params }) -> BetaAnalyticsCostReportTimeBucketsReportPageCursor</code>
 
 #### UserCostReport
 
 Methods:
 
-- <code title="get /v1/organizations/analytics/user_cost_report?beta=true">client.beta.organization.analytics.userCostReport.<a href="./src/resources/beta/organization/analytics/user-cost-report.ts">list</a>({ ...params }) -> BetaAnalyticsCostUsersItemsPageCursor</code>
+- <code title="get /v1/organizations/analytics/user_cost_report?beta=true">client.beta.organization.analytics.userCostReport.<a href="./src/resources/beta/organization/analytics/user-cost-report.ts">list</a>({ ...params }) -> BetaAnalyticsCostUsersItemsReportPageCursor</code>
 
 ### SpendLimits
 
