@@ -14,10 +14,13 @@ import * as RateLimitsAPI from './rate-limits';
 import {
   BetaWorkspaceRateLimit,
   BetaWorkspaceRateLimitOrganizationSource,
+  BetaWorkspaceRateLimitType,
+  BetaWorkspaceRateLimitUpdateValue,
   BetaWorkspaceRateLimitValue,
   BetaWorkspaceRateLimitWorkspaceSource,
   BetaWorkspaceRateLimitsPageCursor,
   RateLimitListParams,
+  RateLimitUpdateParams,
   RateLimits,
 } from './rate-limits';
 import * as ServiceAccountsAPI from './service-accounts';
@@ -454,9 +457,12 @@ export declare namespace Workspaces {
     RateLimits as RateLimits,
     type BetaWorkspaceRateLimit as BetaWorkspaceRateLimit,
     type BetaWorkspaceRateLimitOrganizationSource as BetaWorkspaceRateLimitOrganizationSource,
+    type BetaWorkspaceRateLimitType as BetaWorkspaceRateLimitType,
+    type BetaWorkspaceRateLimitUpdateValue as BetaWorkspaceRateLimitUpdateValue,
     type BetaWorkspaceRateLimitValue as BetaWorkspaceRateLimitValue,
     type BetaWorkspaceRateLimitWorkspaceSource as BetaWorkspaceRateLimitWorkspaceSource,
     type BetaWorkspaceRateLimitsPageCursor as BetaWorkspaceRateLimitsPageCursor,
+    type RateLimitUpdateParams as RateLimitUpdateParams,
     type RateLimitListParams as RateLimitListParams,
   };
 

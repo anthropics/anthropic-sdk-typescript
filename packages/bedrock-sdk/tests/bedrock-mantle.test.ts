@@ -44,6 +44,11 @@ const getRequestHeaders = (call = 0): Headers => {
   return new Headers(requestInit.headers as HeadersInit);
 };
 
+const getRequestBody = (): unknown => {
+  const requestInit = mockFetch.mock.calls[0]![1] as RequestInit;
+  return JSON.parse(requestInit.body as string);
+};
+
 describe('AnthropicBedrockMantle', () => {
   const originalEnv = process.env;
 
@@ -200,6 +205,149 @@ describe('AnthropicBedrockMantle', () => {
     });
   });
 
+  describe('user profile ID', () => {
+    const params = {
+      model: 'claude-opus-4-8',
+      max_tokens: 1024,
+      messages: [{ content: 'Test message', role: 'user' as const }],
+    };
+    const countTokensParams = { model: params.model, messages: params.messages };
+
+    const newClient = () =>
+      new AnthropicBedrockMantle({ apiKey: 'test-key', awsRegion: 'us-east-1', maxRetries: 0 });
+
+    type Send = (client: AnthropicBedrockMantle, extra: { user_profile_id?: string }) => Promise<unknown>;
+
+    const sendCases: Array<[string, Send, Record<string, unknown>]> = [
+      ['messages.create', (client, extra) => client.messages.create({ ...params, ...extra }), params],
+      [
+        'messages.create with stream',
+        (client, extra) => client.messages.create({ ...params, ...extra, stream: true }),
+        { ...params, stream: true },
+      ],
+      [
+        'beta.messages.create',
+        (client, extra) => client.beta.messages.create({ ...params, ...extra }),
+        params,
+      ],
+      [
+        'beta.messages.create with stream',
+        (client, extra) => client.beta.messages.create({ ...params, ...extra, stream: true }),
+        { ...params, stream: true },
+      ],
+      [
+        'messages.countTokens',
+        (client, extra) => client.messages.countTokens({ ...countTokensParams, ...extra }),
+        countTokensParams,
+      ],
+      [
+        'beta.messages.countTokens',
+        (client, extra) => client.beta.messages.countTokens({ ...countTokensParams, ...extra }),
+        countTokensParams,
+      ],
+    ];
+
+    test.each(sendCases)('%s sends the ID in the body instead of the header', async (_name, send, body) => {
+      await send(newClient(), { user_profile_id: 'uprof_fake' });
+
+      expect(getRequestBody()).toEqual({ ...body, user_profile_id: 'uprof_fake' });
+      expect(getRequestHeaders().get('anthropic-user-profile-id')).toBeNull();
+    });
+
+    test.each(sendCases)('%s sends the body as it is without an ID', async (_name, send, body) => {
+      await send(newClient(), {});
+
+      expect(getRequestBody()).toEqual(body);
+      expect(getRequestHeaders().get('anthropic-user-profile-id')).toBeNull();
+    });
+
+    test.each<[string, () => Promise<unknown>]>([
+      [
+        'request headers',
+        () => newClient().messages.create(params, { headers: { 'anthropic-user-profile-id': 'uprof_fake' } }),
+      ],
+      [
+        'client default headers',
+        () =>
+          new AnthropicBedrockMantle({
+            apiKey: 'test-key',
+            awsRegion: 'us-east-1',
+            maxRetries: 0,
+            defaultHeaders: { 'anthropic-user-profile-id': 'uprof_fake' },
+          }).messages.create(params),
+      ],
+    ])('an ID set through %s is sent in the body instead of the header', async (_name, send) => {
+      await send();
+
+      expect(getRequestBody()).toEqual({ ...params, user_profile_id: 'uprof_fake' });
+      expect(getRequestHeaders().get('anthropic-user-profile-id')).toBeNull();
+    });
+
+    test.each(['uprof_fake_one,uprof_fake_two', ''])('the value %j is sent as it is', async (value) => {
+      await newClient().messages.create({ ...params, user_profile_id: value });
+
+      expect(getRequestBody()).toEqual({ ...params, user_profile_id: value });
+      expect(getRequestHeaders().get('anthropic-user-profile-id')).toBeNull();
+    });
+
+    test('the SigV4 signature covers the request with the ID in the body', async () => {
+      const client = new AnthropicBedrockMantle({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-east-1',
+        maxRetries: 0,
+      });
+
+      await client.messages.create({ ...params, user_profile_id: 'uprof_fake' });
+
+      const signedRequest = mockGetAuthHeaders.mock.calls[0]![0] as { headers: Headers; body?: unknown };
+      expect(JSON.parse(signedRequest.body as string)).toEqual({ ...params, user_profile_id: 'uprof_fake' });
+      expect(signedRequest.headers.get('anthropic-user-profile-id')).toBeNull();
+      expect(getRequestBody()).toEqual({ ...params, user_profile_id: 'uprof_fake' });
+      expect(getRequestHeaders().get('anthropic-user-profile-id')).toBeNull();
+    });
+
+    test.each([
+      '/v1/messages',
+      '/v1/messages?beta=true',
+      '/v1/messages/count_tokens',
+      '/v1/messages/count_tokens?beta=true',
+    ])('an ID already in the body of %s wins over the header', async (path) => {
+      await newClient().post(path, {
+        body: { ...params, user_profile_id: 'uprof_fake_from_body' },
+        headers: { 'anthropic-user-profile-id': 'uprof_fake_from_header' },
+      });
+
+      expect(getRequestBody()).toMatchObject({ user_profile_id: 'uprof_fake_from_body' });
+      expect(getRequestHeaders().get('anthropic-user-profile-id')).toBeNull();
+    });
+
+    test('a body that is not a JSON object is sent unchanged, with the header', async () => {
+      await newClient().post('/v1/messages', {
+        body: [params],
+        headers: { 'anthropic-user-profile-id': 'uprof_fake' },
+      });
+
+      expect(getRequestBody()).toEqual([params]);
+      expect(getRequestHeaders().get('anthropic-user-profile-id')).toBe('uprof_fake');
+    });
+
+    const batch = { requests: [{ custom_id: 'fake-request', params }] };
+
+    test.each<[string, Send]>([
+      ['messages.batches.create', (client, extra) => client.messages.batches.create({ ...batch, ...extra })],
+      [
+        'beta.messages.batches.create',
+        (client, extra) => client.beta.messages.batches.create({ ...batch, ...extra }),
+      ],
+    ])('%s still sends the ID as a header', async (_name, send) => {
+      await send(newClient(), { user_profile_id: 'uprof_fake' });
+
+      expect(getRequestBody()).toEqual(batch);
+      expect(getRequestHeaders().get('anthropic-user-profile-id')).toBe('uprof_fake');
+    });
+  });
+
   describe('endpoint restrictions', () => {
     test('completions resource is not available', () => {
       const client = new AnthropicBedrockMantle({
@@ -226,6 +374,16 @@ describe('AnthropicBedrockMantle', () => {
       });
 
       expect((client as any).files).toBeUndefined();
+    });
+
+    test('userProfiles resource is not available', () => {
+      const client = new AnthropicBedrockMantle({
+        apiKey: 'test-key',
+        baseURL: 'https://example.com',
+      });
+
+      expect((client as any).userProfiles).toBeUndefined();
+      expect((client.beta as any).userProfiles).toBeUndefined();
     });
 
     test('messages resource is available', () => {

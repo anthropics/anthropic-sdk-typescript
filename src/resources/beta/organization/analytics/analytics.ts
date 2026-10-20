@@ -23,7 +23,7 @@ import * as UsersAPI from './users';
 import { UserListParams, Users } from './users';
 import * as AppsAPI from './apps/apps';
 import { Apps } from './apps/apps';
-import { PageCursor } from '../../../../core/pagination';
+import { PageCursor, ReportPageCursor } from '../../../../core/pagination';
 
 export class Analytics extends APIResource {
   summaries: SummariesAPI.Summaries = new SummariesAPI.Summaries(this._client);
@@ -54,13 +54,15 @@ export type BetaAnalyticsSkillActivitiesPageCursor = PageCursor<BetaAnalyticsSki
 
 export type BetaAnalyticsArtifactActivitiesPageCursor = PageCursor<BetaAnalyticsArtifactActivity>;
 
-export type BetaAnalyticsUsageReportTimeBucketsPageCursor = PageCursor<BetaAnalyticsUsageReportTimeBucket>;
+export type BetaAnalyticsUsageReportTimeBucketsReportPageCursor =
+  ReportPageCursor<BetaAnalyticsUsageReportTimeBucket>;
 
-export type BetaAnalyticsUsageUsersItemsPageCursor = PageCursor<BetaAnalyticsUsageUsersItem>;
+export type BetaAnalyticsUsageUsersItemsReportPageCursor = ReportPageCursor<BetaAnalyticsUsageUsersItem>;
 
-export type BetaAnalyticsCostReportTimeBucketsPageCursor = PageCursor<BetaAnalyticsCostReportTimeBucket>;
+export type BetaAnalyticsCostReportTimeBucketsReportPageCursor =
+  ReportPageCursor<BetaAnalyticsCostReportTimeBucket>;
 
-export type BetaAnalyticsCostUsersItemsPageCursor = PageCursor<BetaAnalyticsCostUsersItem>;
+export type BetaAnalyticsCostUsersItemsReportPageCursor = ReportPageCursor<BetaAnalyticsCostUsersItem>;
 
 /**
  * Artifact-creation activity for one (`artifact_type`, `is_shared`) bucket on a

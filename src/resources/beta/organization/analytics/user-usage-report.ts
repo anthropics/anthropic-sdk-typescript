@@ -1,7 +1,7 @@
 import { APIResource } from '../../../../core/resource';
 import * as AnalyticsAPI from './analytics';
-import { BetaAnalyticsUsageUsersItemsPageCursor } from './analytics';
-import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
+import { BetaAnalyticsUsageUsersItemsReportPageCursor } from './analytics';
+import { PagePromise, ReportPageCursor, type ReportPageCursorParams } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
 import { startApiCallSpan } from '../../../../internal/tracing';
 
@@ -29,10 +29,10 @@ export class UserUsageReport extends APIResource {
   list(
     query: UserUsageReportListParams,
     options?: RequestOptions,
-  ): PagePromise<BetaAnalyticsUsageUsersItemsPageCursor, AnalyticsAPI.BetaAnalyticsUsageUsersItem> {
+  ): PagePromise<BetaAnalyticsUsageUsersItemsReportPageCursor, AnalyticsAPI.BetaAnalyticsUsageUsersItem> {
     return this._client.getAPIList(
       '/v1/organizations/analytics/user_usage_report?beta=true',
-      PageCursor<AnalyticsAPI.BetaAnalyticsUsageUsersItem>,
+      ReportPageCursor<AnalyticsAPI.BetaAnalyticsUsageUsersItem>,
       {
         query,
         ...options,
@@ -70,7 +70,7 @@ export class UserUsageReport extends APIResource {
   }
 }
 
-export interface UserUsageReportListParams extends PageCursorParams {
+export interface UserUsageReportListParams extends ReportPageCursorParams {
   /**
    * Start of range, inclusive. RFC 3339 tz-aware. Must be within the last 365 days
    * and no earlier than 2026-01-01T00:00:00Z.
@@ -148,6 +148,14 @@ export interface UserUsageReportListParams extends PageCursorParams {
   inference_geos?: Array<AnalyticsAPI.BetaAnalyticsInferenceGeoFilter> | null;
 
   /**
+   * Number of rows per page (1-1000, default 20). One row per actor unless
+   * `group_by[]` or `bucket_width` splits an actor across rows;
+   * `cost_type`/`token_type` fan-out rows (cost endpoint only) are the exception —
+   * they do not count toward this limit, so `data` can exceed it.
+   */
+  limit?: number;
+
+  /**
    * Models to include. Defaults to all models. Use `group_by[]=model` to break out
    * per-model values.
    */
@@ -198,4 +206,4 @@ export declare namespace UserUsageReport {
   export { type UserUsageReportListParams as UserUsageReportListParams };
 }
 
-export { type BetaAnalyticsUsageUsersItemsPageCursor };
+export { type BetaAnalyticsUsageUsersItemsReportPageCursor };

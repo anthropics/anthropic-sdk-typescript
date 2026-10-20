@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.22.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.21.0...vertex-sdk-v0.22.0) (2026-10-20)
+
+### Features
+
+* **vertex:** throw an `AnthropicError` when `userProfiles` or `beta.userProfiles` is read on `AnthropicVertex`, which doesn't serve the user profile endpoints
+
 ## [0.21.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.20.4...vertex-sdk-v0.21.0) (2026-10-14)
 
 ### Features

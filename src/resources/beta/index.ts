@@ -869,6 +869,7 @@ export {
 } from './tunnels/index';
 export {
   UserProfiles,
+  type BetaDeletedUserProfile,
   type BetaUserProfile,
   type BetaUserProfileEnrollmentURL,
   type BetaUserProfileExternalUserDetails,
@@ -878,9 +879,10 @@ export {
   type UserProfileRetrieveParams,
   type UserProfileUpdateParams,
   type UserProfileListParams,
+  type UserProfileDeleteParams,
   type UserProfileCreateEnrollmentURLParams,
   type BetaUserProfilesPageCursor,
-} from './user-profiles';
+} from './user-profiles/index';
 export {
   Vaults,
   type BetaManagedAgentsDeletedVault,

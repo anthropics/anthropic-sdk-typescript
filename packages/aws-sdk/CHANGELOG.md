@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.8.0...aws-sdk-v0.9.0) (2026-10-20)
+
+### Features
+
+* **aws:** require `@anthropic-ai/sdk` 0.136.0 or later
+* **aws:** throw an `AnthropicError` when `actionURLs` is read on `userProfiles` or `beta.userProfiles`, which the AWS gateway doesn't serve
+
 ## [0.8.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.9...aws-sdk-v0.8.0) (2026-10-14)
 
 ### Features

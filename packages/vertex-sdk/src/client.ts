@@ -3,7 +3,7 @@ import * as Resources from '@anthropic-ai/sdk/resources/index';
 import { VERSION } from '@anthropic-ai/sdk/version';
 import { VERSION as PACKAGE_VERSION } from './version';
 import { GoogleAuth, AuthClient } from 'google-auth-library';
-import { APIConnectionError } from './core/error';
+import { AnthropicError, APIConnectionError } from './core/error';
 import type { Middleware } from './core/middleware';
 import { castToError } from './internal/errors';
 import { readEnv } from './internal/utils/env';
@@ -146,6 +146,11 @@ export class AnthropicVertex extends BaseAnthropic {
   messages: MessagesResource = makeMessagesResource(this);
   beta: BetaResource = makeBetaResource(this);
 
+  /** Vertex AI does not serve the user profile endpoints, so reading this throws. */
+  get userProfiles(): never {
+    return throwUserProfilesUnavailable();
+  }
+
   protected override validateHeaders() {
     // auth validation is handled in the backend middleware since it needs to be async
   }
@@ -286,9 +291,9 @@ function makeMessagesResource(client: AnthropicVertex): MessagesResource {
 }
 
 /**
- * The Vertex API does not currently support the Batch API.
+ * The Vertex API does not currently support the Batch API or the user profile endpoints.
  */
-type BetaResource = Omit<Resources.Beta, 'messages'> & {
+type BetaResource = Omit<Resources.Beta, 'messages' | 'userProfiles'> & {
   messages: Omit<Resources.Beta['messages'], 'batches'>;
 };
 
@@ -298,5 +303,13 @@ function makeBetaResource(client: AnthropicVertex): BetaResource {
   // @ts-expect-error we're deleting non-optional properties
   delete resource.messages.batches;
 
+  Object.defineProperty(resource, 'userProfiles', { enumerable: false, get: throwUserProfilesUnavailable });
+
   return resource;
+}
+
+function throwUserProfilesUnavailable(): never {
+  throw new AnthropicError(
+    'Managing user profiles is not available on `AnthropicVertex`. To send a profile ID with a request, pass `user_profile_id` to `messages.create`.',
+  );
 }

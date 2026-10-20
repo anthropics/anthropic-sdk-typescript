@@ -11,8 +11,11 @@ export {
   RateLimits,
   type WorkspaceRateLimit,
   type WorkspaceRateLimitOrganizationSource,
+  type WorkspaceRateLimitType,
+  type WorkspaceRateLimitUpdateValue,
   type WorkspaceRateLimitValue,
   type WorkspaceRateLimitWorkspaceSource,
+  type RateLimitUpdateParams,
   type RateLimitListParams,
   type WorkspaceRateLimitsPageCursor,
 } from './rate-limits';

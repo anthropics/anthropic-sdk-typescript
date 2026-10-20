@@ -217,6 +217,75 @@ describe('AnthropicVertex', () => {
     });
   });
 
+  describe('user profiles', () => {
+    const mockFetch = vi.fn().mockImplementation(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({}),
+        text: () => Promise.resolve('{}'),
+      }),
+    );
+
+    beforeEach(() => {
+      mockFetch.mockClear();
+    });
+
+    const newClient = () =>
+      new AnthropicVertex({ region: 'us-east5', projectId: 'test-project', fetch: mockFetch as any });
+
+    const params = {
+      model: 'claude-sonnet-5-5',
+      max_tokens: 1024,
+      messages: [{ content: 'Hello', role: 'user' as const }],
+    };
+    const countTokensParams = { model: params.model, messages: params.messages };
+    const modelsURL =
+      'https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models';
+
+    test.each<[string, (client: AnthropicVertex) => Promise<unknown>, string]>([
+      [
+        'messages.create',
+        (client) => client.messages.create({ ...params, user_profile_id: 'uprof_fake' }),
+        `${modelsURL}/${params.model}:rawPredict`,
+      ],
+      [
+        'beta.messages.create',
+        (client) => client.beta.messages.create({ ...params, user_profile_id: 'uprof_fake' }),
+        `${modelsURL}/${params.model}:rawPredict`,
+      ],
+      [
+        'messages.countTokens',
+        (client) => client.messages.countTokens({ ...countTokensParams, user_profile_id: 'uprof_fake' }),
+        `${modelsURL}/count-tokens:rawPredict`,
+      ],
+      [
+        'beta.messages.countTokens',
+        (client) => client.beta.messages.countTokens({ ...countTokensParams, user_profile_id: 'uprof_fake' }),
+        `${modelsURL}/count-tokens:rawPredict`,
+      ],
+    ])('%s sends the ID as a header', async (_name, send, url) => {
+      await send(newClient());
+
+      const [wireUrl, wireInit] = mockFetch.mock.calls[0]!;
+      expect(wireUrl).toBe(url);
+      expect(new Headers(wireInit.headers).get('anthropic-user-profile-id')).toBe('uprof_fake');
+      expect(JSON.parse(wireInit.body).user_profile_id).toBeUndefined();
+    });
+
+    const unavailable = 'Managing user profiles is not available on `AnthropicVertex`';
+
+    test('userProfiles throws an explanatory error', () => {
+      expect(() => newClient().userProfiles).toThrow(unavailable);
+    });
+
+    test('beta.userProfiles throws an explanatory error', () => {
+      expect(() => (newClient().beta as any).userProfiles).toThrow(unavailable);
+    });
+  });
+
   describe('ambient first-party credentials never reach Vertex', () => {
     const mockFetch = vi.fn().mockImplementation(() =>
       Promise.resolve({

@@ -9,7 +9,7 @@ import { path } from '../../../internal/utils/path';
 
 export class Credentials extends APIResource {
   /**
-   * Create Credential
+   * Create a Credential
    *
    * @example
    * ```ts
@@ -52,7 +52,7 @@ export class Credentials extends APIResource {
   }
 
   /**
-   * Get Credential
+   * Retrieve a Credential
    *
    * @example
    * ```ts
@@ -86,7 +86,7 @@ export class Credentials extends APIResource {
   }
 
   /**
-   * Update Credential
+   * Update a Credential
    *
    * @example
    * ```ts
@@ -162,7 +162,7 @@ export class Credentials extends APIResource {
   }
 
   /**
-   * Delete Credential
+   * Delete a Credential
    *
    * @example
    * ```ts
@@ -196,7 +196,7 @@ export class Credentials extends APIResource {
   }
 
   /**
-   * Archive Credential
+   * Archive a Credential
    *
    * @example
    * ```ts
@@ -230,7 +230,7 @@ export class Credentials extends APIResource {
   }
 
   /**
-   * Validate Credential
+   * Validate an MCP OAuth Credential
    *
    * @example
    * ```ts
@@ -275,7 +275,7 @@ export type BetaManagedAgentsCredentialsPageCursor = PageCursor<BetaManagedAgent
  */
 export interface BetaManagedAgentsCredential {
   /**
-   * Unique identifier for the credential.
+   * The unique ID of the credential (`vcrd_...`).
    */
   id: string;
 
@@ -339,7 +339,8 @@ export interface BetaManagedAgentsCredentialValidation {
   has_refresh_token: boolean;
 
   /**
-   * Details of the failing MCP probe step. Null when the probe succeeded.
+   * Details of the MCP probe step that failed, or `null` if the probe succeeded or
+   * there was no access token to test.
    */
   mcp_probe: BetaManagedAgentsMCPProbe | null;
 
@@ -371,10 +372,12 @@ export interface BetaManagedAgentsCredentialValidation {
  * Overall verdict of a credential validation probe.
  *
  * - `valid` - The credential successfully authenticated against its MCP server.
- * - `invalid` - The probe reached the MCP server and was rejected, and a refresh
- *   (if attempted) did not recover it.
- * - `unknown` - The probe could not determine validity — for example, a transport
- *   error or a successful refresh that was not re-probed.
+ * - `invalid` - The probe reached the MCP server and the server rejected the
+ *   credential, or no access token is stored. A refresh, if one was tried, didn't
+ *   recover it. Usually the end user needs to authorize again.
+ * - `unknown` - The probe couldn't tell whether the credential works, for example
+ *   because of a network error or because a refresh succeeded but the new access
+ *   token wasn't tested. Validate the credential again to find out.
  */
 export type BetaManagedAgentsCredentialValidationStatus = 'valid' | 'invalid' | 'unknown';
 
@@ -383,7 +386,7 @@ export type BetaManagedAgentsCredentialValidationStatus = 'valid' | 'invalid' | 
  */
 export interface BetaManagedAgentsDeletedCredential {
   /**
-   * Unique identifier of the deleted credential.
+   * The unique ID of the deleted credential (`vcrd_...`).
    */
   id: string;
 
@@ -429,7 +432,8 @@ export interface BetaManagedAgentsEnvironmentVariableCreateParams {
   secret_name: string;
 
   /**
-   * Secret value. Write-only; never returned in responses.
+   * The secret to substitute into the agent's outbound requests. It's write-only and
+   * never returned in responses.
    */
   secret_value: string;
 
@@ -454,12 +458,12 @@ export interface BetaManagedAgentsEnvironmentVariableUpdateParams {
   injection_location?: BetaManagedAgentsInjectionLocationUpdateParams;
 
   /**
-   * Updated networking scope. Full replacement.
+   * The new networking scope, which replaces the stored one as a whole.
    */
   networking?: BetaManagedAgentsCredentialNetworkingParams | null;
 
   /**
-   * Updated secret value.
+   * The new secret value to replace the stored one.
    */
   secret_value?: string | null;
 }
@@ -495,7 +499,14 @@ export interface BetaManagedAgentsInjectionLocationResponse {
 }
 
 /**
- * Updated injection location.
+ * Changes which parts of an outbound request the secret is substituted into. A
+ * location you leave out keeps its current setting.
+ *
+ * After the change, at least one location must be enabled.
+ *
+ * See
+ * [Authenticate with vaults](https://platform.claude.com/docs/en/managed-agents/vaults#add-a-credential)
+ * to learn more about injection locations.
  */
 export interface BetaManagedAgentsInjectionLocationUpdateParams {
   /**
@@ -514,10 +525,12 @@ export interface BetaManagedAgentsInjectionLocationUpdateParams {
  */
 export interface BetaManagedAgentsLimitedCredentialNetworkingParams {
   /**
-   * Hostnames on which the secret will be substituted. Each entry is a bare hostname
-   * (`api.example.com`), an IPv4 address (`192.0.2.1`), or a `*.`-prefixed wildcard
-   * (`*.example.com`). URLs, ports, paths, and IPv6 addresses are not accepted. At
-   * most 16 entries.
+   * The destination hosts of the outbound requests that the credential's secret is
+   * substituted into.
+   *
+   * Each entry is a bare hostname (`api.example.com`), an IPv4 address
+   * (`192.0.2.1`), or a `*.` wildcard (`*.example.com`). URLs, ports, paths, and
+   * IPv6 addresses aren't accepted. The list can have up to 16 entries.
    */
   allowed_hosts: Array<string>;
 
@@ -529,9 +542,11 @@ export interface BetaManagedAgentsLimitedCredentialNetworkingParams {
  */
 export interface BetaManagedAgentsLimitedCredentialNetworkingResponse {
   /**
-   * Hostnames on which the secret will be substituted. An entry matches the request
-   * host exactly; a `*.`-prefixed entry matches any subdomain of the named domain
-   * but not the domain itself.
+   * The destination hosts of the outbound requests that the credential's secret is
+   * substituted into.
+   *
+   * An entry matches the request host exactly. An entry such as `*.example.com`
+   * matches any subdomain of `example.com` but not `example.com` itself.
    */
   allowed_hosts: Array<string>;
 
@@ -550,7 +565,8 @@ export interface BetaManagedAgentsMCPOAuthAuthResponse {
   type: 'mcp_oauth';
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the credential's access token expires, in RFC 3339. Absent if the expiry
+   * isn't known.
    */
   expires_at?: string | null;
 
@@ -565,7 +581,7 @@ export interface BetaManagedAgentsMCPOAuthAuthResponse {
  */
 export interface BetaManagedAgentsMCPOAuthCreateParams {
   /**
-   * OAuth access token.
+   * The OAuth access token to send to the MCP server.
    */
   access_token: string;
 
@@ -577,7 +593,9 @@ export interface BetaManagedAgentsMCPOAuthCreateParams {
   type: 'mcp_oauth';
 
   /**
-   * A timestamp in RFC 3339 format
+   * When `access_token` expires, in RFC 3339.
+   *
+   * Must be in the future.
    */
   expires_at?: string | null;
 
@@ -592,12 +610,14 @@ export interface BetaManagedAgentsMCPOAuthCreateParams {
  */
 export interface BetaManagedAgentsMCPOAuthRefreshParams {
   /**
-   * OAuth client ID.
+   * The OAuth client ID to use when refreshing the access token. It can't be changed
+   * after the credential is created.
    */
   client_id: string;
 
   /**
-   * OAuth refresh token.
+   * The OAuth refresh token that the API uses to get a new access token when the
+   * current one expires.
    */
   refresh_token: string;
 
@@ -627,7 +647,7 @@ export interface BetaManagedAgentsMCPOAuthRefreshParams {
  */
 export interface BetaManagedAgentsMCPOAuthRefreshResponse {
   /**
-   * OAuth client ID.
+   * The OAuth client ID used when refreshing the access token.
    */
   client_id: string;
 
@@ -657,12 +677,13 @@ export interface BetaManagedAgentsMCPOAuthRefreshResponse {
  */
 export interface BetaManagedAgentsMCPOAuthRefreshUpdateParams {
   /**
-   * Updated OAuth refresh token.
+   * The new OAuth refresh token to replace the stored one.
    */
   refresh_token?: string | null;
 
   /**
-   * Updated OAuth scope for the refresh request.
+   * The new OAuth scope for refresh requests. Send an empty string to clear the
+   * stored scope.
    */
   scope?: string | null;
 
@@ -679,12 +700,18 @@ export interface BetaManagedAgentsMCPOAuthUpdateParams {
   type: 'mcp_oauth';
 
   /**
-   * Updated OAuth access token.
+   * The new OAuth access token to replace the stored one.
    */
   access_token?: string | null;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the credential's access token expires, in RFC 3339. Leave it out to keep
+   * the stored expiry.
+   *
+   * If you send a new `access_token`, send its `expires_at` too, or the new token
+   * keeps the old expiry.
+   *
+   * Must be in the future.
    */
   expires_at?: string | null;
 
@@ -699,8 +726,9 @@ export interface BetaManagedAgentsMCPOAuthUpdateParams {
  */
 export interface BetaManagedAgentsMCPProbe {
   /**
-   * The captured HTTP error response. Null when no HTTP response was received
-   * (timeout, DNS, TLS).
+   * The HTTP error response from the MCP server, or `null` if the MCP server didn't
+   * return one for the failing step, for example after a timeout or a DNS or TLS
+   * failure.
    */
   http_response: BetaManagedAgentsRefreshHTTPResponse | null;
 
@@ -776,7 +804,8 @@ export interface BetaManagedAgentsStaticBearerAuthResponse {
  */
 export interface BetaManagedAgentsStaticBearerCreateParams {
   /**
-   * Static bearer token value.
+   * The static bearer token to send to the MCP server, such as an API key or
+   * personal access token.
    */
   token: string;
 
@@ -796,7 +825,7 @@ export interface BetaManagedAgentsStaticBearerUpdateParams {
   type: 'static_bearer';
 
   /**
-   * Updated static bearer token value.
+   * The new static bearer token to replace the stored one.
    */
   token?: string | null;
 }
@@ -806,7 +835,8 @@ export interface BetaManagedAgentsStaticBearerUpdateParams {
  */
 export interface BetaManagedAgentsTokenEndpointAuthBasicParam {
   /**
-   * OAuth client secret.
+   * The OAuth client secret, sent to `token_endpoint` with HTTP Basic
+   * authentication.
    */
   client_secret: string;
 
@@ -827,7 +857,11 @@ export interface BetaManagedAgentsTokenEndpointAuthBasicUpdateParam {
   type: 'client_secret_basic';
 
   /**
-   * Updated OAuth client secret.
+   * A new OAuth client secret to replace the stored one.
+   *
+   * The credential must already use `client_secret_basic` or `client_secret_post`.
+   * It keeps its current `token_endpoint_auth` type, even if the `type` sent with
+   * this secret is the other one.
    */
   client_secret?: string | null;
 }
@@ -851,7 +885,7 @@ export interface BetaManagedAgentsTokenEndpointAuthNoneResponse {
  */
 export interface BetaManagedAgentsTokenEndpointAuthPostParam {
   /**
-   * OAuth client secret.
+   * The OAuth client secret, sent to `token_endpoint` in the POST body.
    */
   client_secret: string;
 
@@ -872,7 +906,11 @@ export interface BetaManagedAgentsTokenEndpointAuthPostUpdateParam {
   type: 'client_secret_post';
 
   /**
-   * Updated OAuth client secret.
+   * A new OAuth client secret to replace the stored one.
+   *
+   * The credential must already use `client_secret_basic` or `client_secret_post`.
+   * It keeps its current `token_endpoint_auth` type, even if the `type` sent with
+   * this secret is the other one.
    */
   client_secret?: string | null;
 }
@@ -961,8 +999,8 @@ export interface CredentialUpdateParams {
   vault_id: string;
 
   /**
-   * Body param: Updated authentication configuration. The `type` is immutable; the
-   * variant sent must match the stored credential's type.
+   * Body param: New authentication settings for the credential. The `type` must
+   * match the credential's current type, which can't be changed.
    */
   auth?:
     | BetaManagedAgentsMCPOAuthUpdateParams
@@ -999,7 +1037,8 @@ export interface CredentialUpdateParams {
 
 export interface CredentialListParams extends PageCursorParams {
   /**
-   * Query param: Whether to include archived credentials in the results.
+   * Query param: Whether to include archived credentials in the results. Defaults to
+   * `false`.
    */
   include_archived?: boolean;
 

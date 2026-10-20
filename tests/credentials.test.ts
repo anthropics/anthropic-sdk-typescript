@@ -31,6 +31,7 @@ describe('credentials', () => {
     'ANTHROPIC_PROFILE',
     'ANTHROPIC_SCOPE',
     'ANTHROPIC_SERVICE_ACCOUNT_ID',
+    'ANTHROPIC_WORKSPACE_ID',
     'APPDATA',
     'HOME',
     'XDG_CONFIG_HOME',
@@ -70,6 +71,9 @@ describe('credentials', () => {
       osNameMock.mockReturnValue('Linux');
     }
 
+    for (const name of Object.keys(originalEnv)) {
+      delete process.env[name];
+    }
     testFolder = mkdtempSync(path.join(tmpdir(), 'credentials-test-'));
     process.env['ANTHROPIC_CONFIG_DIR'] = testFolder;
   });
