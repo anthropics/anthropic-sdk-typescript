@@ -220,8 +220,9 @@ export interface AgentToolContext {
  *
  * Concurrency note: `client.beta.sessions.events.toolRunner` dispatches a
  * session's tool calls serially (the sessions API delivers one `agent.tool_use`
- * at a time). `client.beta.messages.toolRunner` runs a turn's `tool.run` calls
- * via `Promise.all`. The toolset below is safe under either model —
+ * at a time). `client.beta.messages.toolRunner` starts a turn's `tool.run` calls
+ * without waiting for one another: together once the reply is complete or, when
+ * streaming, each as its call arrives. The toolset below is safe under either model —
  * {@link betaBashTool} serializes its persistent shell internally and the FS
  * tools are independent per call — but {@link betaEditTool}/{@link betaWriteTool}
  * cannot synchronize concurrent writes to the *same* file across processes, so a

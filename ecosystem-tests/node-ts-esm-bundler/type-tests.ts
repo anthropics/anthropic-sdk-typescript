@@ -5,6 +5,8 @@
 export async function bundlerResolution() {
   // @ts-expect-error "./internal/*" is not in the exports map
   await import('@anthropic-ai/sdk/internal/headers');
+  // @ts-expect-error "./lib/internal/*" is blocked in the exports map
+  await import('@anthropic-ai/sdk/lib/internal/stub');
   const viaMjs: typeof import('@anthropic-ai/sdk/resources/messages.mjs').Messages = (
     await import('@anthropic-ai/sdk/resources/messages')
   ).Messages;

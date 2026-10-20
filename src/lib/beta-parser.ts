@@ -8,9 +8,7 @@ import {
   BetaTextBlock,
   MessageCreateParams,
 } from '../resources/beta/messages/messages';
-
-// vendored from typefest just to make things look a bit nicer on hover
-type Simplify<T> = { [KeyType in keyof T]: T[KeyType] } & {};
+import type { Simplify } from './internal/types';
 
 type AutoParseableBetaOutputConfig = Omit<BetaOutputConfig, 'format'> & {
   format?: BetaJSONOutputFormat | AutoParseableBetaOutputFormat<any> | null;

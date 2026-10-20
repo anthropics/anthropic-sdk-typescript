@@ -176,6 +176,24 @@ describe('client credentials integration', () => {
     });
   });
 
+  it('joins the oauth beta to request betas with a comma and no space', async () => {
+    const client = new Anthropic({
+      apiKey: null,
+      credentials: async () => ({ token: 'my-access-token', expiresAt: farFuture() }),
+      fetch: async (_url, init) => {
+        expect(getHeader(init, 'anthropic-beta')).toBe(`files-api-2025-04-14,${OAUTH_API_BETA_HEADER}`);
+        return jsonResponse(VALID_MSG_RESPONSE);
+      },
+    });
+
+    await client.beta.messages.create({
+      model: 'claude-opus-4-8',
+      max_tokens: 1,
+      messages: [{ role: 'user', content: 'hi' }],
+      betas: ['files-api-2025-04-14'],
+    });
+  });
+
   it('lazily resolves credentials from env vars on first request', async () => {
     const tokenPath = path.join(testDir, 'id-token');
     fs.writeFileSync(tokenPath, 'my-jwt');

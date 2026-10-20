@@ -1,7 +1,7 @@
 import { VERSION } from '@anthropic-ai/sdk/version';
 import { AnthropicFoundry } from '../src';
 
-const mockFetch = jest.fn().mockImplementation(() => {
+const mockFetch = vi.fn().mockImplementation(() => {
   return Promise.resolve({
     ok: true,
     status: 200,
@@ -56,7 +56,7 @@ describe('AnthropicFoundry', () => {
     const originalEnv = process.env;
 
     beforeEach(() => {
-      jest.resetModules();
+      vi.resetModules();
       process.env = { ...originalEnv };
     });
 
@@ -140,7 +140,7 @@ describe('AnthropicFoundry', () => {
     });
 
     test('AD provider', async () => {
-      const tokenProvider = jest.fn().mockResolvedValue('my-azure-ad-token');
+      const tokenProvider = vi.fn().mockResolvedValue('my-azure-ad-token');
 
       const client = new AnthropicFoundry({
         azureADTokenProvider: tokenProvider,
@@ -157,7 +157,7 @@ describe('AnthropicFoundry', () => {
       expect(tokenProvider).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledTimes(1);
 
-      const [url, options] = mockFetch.mock.calls[0];
+      const [url, options] = mockFetch.mock.calls[0]!;
       expect(url).toBe('https://my-resource.services.ai.azure.com/anthropic/v1/messages');
 
       const headers = options.headers as Headers;
@@ -188,6 +188,102 @@ describe('AnthropicFoundry', () => {
       });
 
       expect(middlewareSawAuthorization).toBe('Bearer my-azure-ad-token');
+    });
+  });
+
+  describe('user profiles', () => {
+    beforeEach(() => {
+      global.fetch = mockFetch;
+      mockFetch.mockClear();
+    });
+
+    afterEach(() => {
+      global.fetch = originalFetch;
+    });
+
+    const profileURL = 'https://my-resource.services.ai.azure.com/anthropic/v1/user_profiles';
+
+    const requestCases: Array<[string, (client: AnthropicFoundry) => PromiseLike<unknown>, string, string]> =
+      [
+        ['create', (client) => client.userProfiles.create({}), 'POST', profileURL],
+        [
+          'retrieve',
+          (client) => client.userProfiles.retrieve('uprof_fake'),
+          'GET',
+          `${profileURL}/uprof_fake`,
+        ],
+        [
+          'update',
+          (client) => client.userProfiles.update('uprof_fake', { metadata: { key: 'value' } }),
+          'POST',
+          `${profileURL}/uprof_fake`,
+        ],
+        ['list', (client) => client.userProfiles.list(), 'GET', profileURL],
+        [
+          'delete',
+          (client) => client.userProfiles.delete('uprof_fake'),
+          'DELETE',
+          `${profileURL}/uprof_fake`,
+        ],
+      ];
+
+    test.each(requestCases)('%s sends the API key', async (_name, send, method, url) => {
+      const client = new AnthropicFoundry({ apiKey: 'test-key', resource: 'my-resource', maxRetries: 0 });
+
+      await send(client);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [requestURL, requestInit] = mockFetch.mock.calls[0]!;
+      expect(requestURL).toBe(url);
+      expect(requestInit.method.toUpperCase()).toBe(method);
+      expect((requestInit.headers as Headers).get('x-api-key')).toBe('test-key');
+    });
+
+    test.each(requestCases)('%s sends the Azure AD token', async (_name, send, method, url) => {
+      const client = new AnthropicFoundry({
+        azureADTokenProvider: async () => 'my-azure-ad-token',
+        resource: 'my-resource',
+        maxRetries: 0,
+      });
+
+      await send(client);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [requestURL, requestInit] = mockFetch.mock.calls[0]!;
+      expect(requestURL).toBe(url);
+      expect(requestInit.method.toUpperCase()).toBe(method);
+      expect((requestInit.headers as Headers).get('authorization')).toBe('Bearer my-azure-ad-token');
+    });
+
+    const params = {
+      model: 'claude-opus-4-8',
+      max_tokens: 1024,
+      messages: [{ content: 'Test message', role: 'user' as const }],
+    };
+    const countTokensParams = { model: params.model, messages: params.messages };
+
+    test.each<[string, (client: AnthropicFoundry) => Promise<unknown>]>([
+      ['messages.create', (client) => client.messages.create({ ...params, user_profile_id: 'uprof_fake' })],
+      [
+        'beta.messages.create',
+        (client) => client.beta.messages.create({ ...params, user_profile_id: 'uprof_fake' }),
+      ],
+      [
+        'messages.countTokens',
+        (client) => client.messages.countTokens({ ...countTokensParams, user_profile_id: 'uprof_fake' }),
+      ],
+      [
+        'beta.messages.countTokens',
+        (client) => client.beta.messages.countTokens({ ...countTokensParams, user_profile_id: 'uprof_fake' }),
+      ],
+    ])('%s sends the ID as a header', async (_name, send) => {
+      const client = new AnthropicFoundry({ apiKey: 'test-key', resource: 'my-resource', maxRetries: 0 });
+
+      await send(client);
+
+      const [, requestInit] = mockFetch.mock.calls[0]!;
+      expect((requestInit.headers as Headers).get('anthropic-user-profile-id')).toBe('uprof_fake');
+      expect(JSON.parse(requestInit.body as string).user_profile_id).toBeUndefined();
     });
   });
 

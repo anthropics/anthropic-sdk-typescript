@@ -13,12 +13,31 @@ import {
 } from './internal/request-signal';
 import * as Shims from './internal/shims';
 import * as Opts from './internal/request-options';
+import {
+  endApiCallSpan,
+  getTracer,
+  guardTracing,
+  injectTraceHeaders,
+  recordAttempt,
+  resolveOpenTelemetryOptions,
+  type ApiCallResult,
+  type OpenTelemetryOptions,
+  type ResolvedOpenTelemetryOptions,
+} from './internal/tracing';
+export type {
+  OpenTelemetryOptions,
+  OpenTelemetryRequestOptions,
+  OpenTelemetryTracesOptions,
+  ResolvedOpenTelemetryOptions,
+} from './internal/tracing';
 import { stringifyQuery } from './internal/utils/query';
+import { context, trace, type Span, type Tracer } from '@opentelemetry/api';
 import { VERSION } from './version';
 import * as Errors from './core/error';
 import type { AccessTokenProvider } from './lib/credentials/types';
 import { OAUTH_API_BETA_HEADER } from './lib/credentials/types';
 import { TokenCache } from './lib/credentials/token-cache';
+import { setAnthropicSpanAttributes, takeTraceHeaders, withoutTraceHeaders } from './lib/internal/tracing';
 import { defaultCredentials, resolveCredentialsFromConfig } from './lib/credentials/credential-chain';
 import type { AnthropicConfig } from './core/credentials';
 import {
@@ -31,12 +50,19 @@ export type { Middleware, MiddlewareContext, MiddlewareNext } from './core/middl
 export type { APIRequest } from './core/api';
 import * as Pagination from './core/pagination';
 import {
+  type BidirectionalPageCursor,
   type BidirectionalPageCursorParams,
   BidirectionalPageCursorResponse,
+  type Page,
+  type PageCursor,
   type PageCursorParams,
   PageCursorResponse,
   type PageParams,
   PageResponse,
+  type ReportPageCursor,
+  type ReportPageCursorParams,
+  ReportPageCursorResponse,
+  type TokenPage,
   type TokenPageParams,
   TokenPageResponse,
 } from './core/pagination';
@@ -68,9 +94,11 @@ import {
   ModelCapabilities,
   ModelInfo,
   ModelInfosPage,
+  ModelLine,
   ModelListParams,
   ModelRetrieveParams,
   Models,
+  ServerToolsCapability,
   ThinkingCapability,
   ThinkingTypes,
 } from './resources/models';
@@ -103,32 +131,92 @@ import {
   BashCodeExecutionToolResultError,
   BashCodeExecutionToolResultErrorCode,
   BashCodeExecutionToolResultErrorParam,
+  BrowserClickTarget,
   BrowserCloseTabConfig,
+  BrowserCloseTabInput,
+  BrowserCloseTabToolUseBlock,
+  BrowserCoordinateTarget,
   BrowserDoubleClickConfig,
+  BrowserDoubleClickInput,
+  BrowserDoubleClickToolUseBlock,
   BrowserFileUploadConfig,
+  BrowserFileUploadInput,
+  BrowserFileUploadToolUseBlock,
   BrowserFindConfig,
+  BrowserFindInput,
+  BrowserFindToolUseBlock,
   BrowserFormInputConfig,
+  BrowserFormInputInput,
+  BrowserFormInputToolUseBlock,
+  BrowserFormInputValue,
   BrowserGetPageTextConfig,
+  BrowserGetPageTextInput,
+  BrowserGetPageTextToolUseBlock,
   BrowserHoldKeyConfig,
+  BrowserHoldKeyInput,
+  BrowserHoldKeyToolUseBlock,
   BrowserHoverConfig,
+  BrowserHoverInput,
+  BrowserHoverToolUseBlock,
   BrowserJavascriptExecConfig,
+  BrowserJavascriptExecInput,
+  BrowserJavascriptExecToolUseBlock,
   BrowserKeyConfig,
+  BrowserKeyInput,
+  BrowserKeyToolUseBlock,
   BrowserLeftClickConfig,
   BrowserLeftClickDragConfig,
+  BrowserLeftClickDragInput,
+  BrowserLeftClickDragToolUseBlock,
+  BrowserLeftClickInput,
+  BrowserLeftClickToolUseBlock,
   BrowserLeftMouseDownConfig,
+  BrowserLeftMouseDownInput,
+  BrowserLeftMouseDownToolUseBlock,
   BrowserLeftMouseUpConfig,
+  BrowserLeftMouseUpInput,
+  BrowserLeftMouseUpToolUseBlock,
   BrowserListTabsConfig,
+  BrowserListTabsInput,
+  BrowserListTabsToolUseBlock,
+  BrowserMemberInput,
+  BrowserMemberName,
   BrowserMiddleClickConfig,
+  BrowserMiddleClickInput,
+  BrowserMiddleClickToolUseBlock,
   BrowserMouseMoveConfig,
+  BrowserMouseMoveInput,
+  BrowserMouseMoveToolUseBlock,
   BrowserNavigateConfig,
+  BrowserNavigateInput,
+  BrowserNavigateToolUseBlock,
   BrowserNewTabConfig,
+  BrowserNewTabInput,
+  BrowserNewTabToolUseBlock,
   BrowserReadConsoleConfig,
+  BrowserReadConsoleInput,
+  BrowserReadConsoleToolUseBlock,
   BrowserReadNetworkConfig,
+  BrowserReadNetworkInput,
+  BrowserReadNetworkToolUseBlock,
   BrowserReadPageConfig,
+  BrowserReadPageFilter,
+  BrowserReadPageInput,
+  BrowserReadPageToolUseBlock,
+  BrowserRefTarget,
   BrowserRightClickConfig,
+  BrowserRightClickInput,
+  BrowserRightClickToolUseBlock,
   BrowserScreenshotConfig,
+  BrowserScreenshotInput,
+  BrowserScreenshotToolUseBlock,
   BrowserScrollConfig,
+  BrowserScrollDirection,
+  BrowserScrollInput,
   BrowserScrollToConfig,
+  BrowserScrollToInput,
+  BrowserScrollToToolUseBlock,
+  BrowserScrollToolUseBlock,
   BrowserStateBlockParam,
   BrowserStateChange,
   BrowserStateChangeDownloadCompleted,
@@ -137,14 +225,32 @@ import {
   BrowserStateChangeTabOpened,
   BrowserStateTabEntry,
   BrowserSwitchTabConfig,
+  BrowserSwitchTabInput,
+  BrowserSwitchTabToolUseBlock,
+  BrowserToolUseBlock,
   BrowserToolset20260801,
   BrowserToolsetConfigs,
   BrowserTripleClickConfig,
+  BrowserTripleClickInput,
+  BrowserTripleClickToolUseBlock,
   BrowserTypeConfig,
+  BrowserTypeInput,
+  BrowserTypeToolUseBlock,
   BrowserWaitConfig,
+  BrowserWaitInput,
+  BrowserWaitToolUseBlock,
   BrowserZoomConfig,
+  BrowserZoomInput,
+  BrowserZoomToolUseBlock,
   CacheControlEphemeral,
   CacheCreation,
+  CacheMissMessagesChanged,
+  CacheMissModelChanged,
+  CacheMissPreviousMessageNotFound,
+  CacheMissReason,
+  CacheMissSystemChanged,
+  CacheMissToolsChanged,
+  CacheMissUnavailable,
   CitationCharLocation,
   CitationCharLocationParam,
   CitationContentBlockLocation,
@@ -158,6 +264,7 @@ import {
   CitationsDelta,
   CitationsSearchResultLocation,
   CitationsWebSearchResultLocation,
+  ClientToolUnion,
   CodeExecutionOutputBlock,
   CodeExecutionOutputBlockParam,
   CodeExecutionResultBlock,
@@ -174,24 +281,62 @@ import {
   CodeExecutionToolResultErrorCode,
   CodeExecutionToolResultErrorParam,
   ComputerCursorPositionConfig,
+  ComputerCursorPositionInput,
+  ComputerCursorPositionToolUseBlock,
   ComputerDoubleClickConfig,
+  ComputerDoubleClickInput,
+  ComputerDoubleClickToolUseBlock,
   ComputerHoldKeyConfig,
+  ComputerHoldKeyInput,
+  ComputerHoldKeyToolUseBlock,
   ComputerKeyConfig,
+  ComputerKeyInput,
+  ComputerKeyToolUseBlock,
   ComputerLeftClickConfig,
   ComputerLeftClickDragConfig,
+  ComputerLeftClickDragInput,
+  ComputerLeftClickDragToolUseBlock,
+  ComputerLeftClickInput,
+  ComputerLeftClickToolUseBlock,
   ComputerLeftMouseDownConfig,
+  ComputerLeftMouseDownInput,
+  ComputerLeftMouseDownToolUseBlock,
   ComputerLeftMouseUpConfig,
+  ComputerLeftMouseUpInput,
+  ComputerLeftMouseUpToolUseBlock,
+  ComputerMemberInput,
+  ComputerMemberName,
   ComputerMiddleClickConfig,
+  ComputerMiddleClickInput,
+  ComputerMiddleClickToolUseBlock,
   ComputerMouseMoveConfig,
+  ComputerMouseMoveInput,
+  ComputerMouseMoveToolUseBlock,
   ComputerRightClickConfig,
+  ComputerRightClickInput,
+  ComputerRightClickToolUseBlock,
   ComputerScreenshotConfig,
+  ComputerScreenshotInput,
+  ComputerScreenshotToolUseBlock,
   ComputerScrollConfig,
+  ComputerScrollDirection,
+  ComputerScrollInput,
+  ComputerScrollToolUseBlock,
+  ComputerToolUseBlock,
   ComputerToolset20260801,
   ComputerToolsetConfigs,
   ComputerTripleClickConfig,
+  ComputerTripleClickInput,
+  ComputerTripleClickToolUseBlock,
   ComputerTypeConfig,
+  ComputerTypeInput,
+  ComputerTypeToolUseBlock,
   ComputerWaitConfig,
+  ComputerWaitInput,
+  ComputerWaitToolUseBlock,
   ComputerZoomConfig,
+  ComputerZoomInput,
+  ComputerZoomToolUseBlock,
   Container,
   ContainerParams,
   ContainerSkill,
@@ -204,6 +349,8 @@ import {
   ContentBlockStopEvent,
   ContentBlockSource,
   ContentBlockSourceContent,
+  Diagnostics,
+  DiagnosticsParam,
   DirectCaller,
   DocumentBlock,
   DocumentBlockParam,
@@ -248,6 +395,57 @@ import {
   RedactedThinkingBlock,
   RedactedThinkingBlockParam,
   RefusalStopDetails,
+  ResponseBrowserCloseTabToolUseBlock,
+  ResponseBrowserDoubleClickToolUseBlock,
+  ResponseBrowserFileUploadToolUseBlock,
+  ResponseBrowserFindToolUseBlock,
+  ResponseBrowserFormInputToolUseBlock,
+  ResponseBrowserGetPageTextToolUseBlock,
+  ResponseBrowserHoldKeyToolUseBlock,
+  ResponseBrowserHoverToolUseBlock,
+  ResponseBrowserJavascriptExecToolUseBlock,
+  ResponseBrowserKeyToolUseBlock,
+  ResponseBrowserLeftClickDragToolUseBlock,
+  ResponseBrowserLeftClickToolUseBlock,
+  ResponseBrowserLeftMouseDownToolUseBlock,
+  ResponseBrowserLeftMouseUpToolUseBlock,
+  ResponseBrowserListTabsToolUseBlock,
+  ResponseBrowserMiddleClickToolUseBlock,
+  ResponseBrowserMouseMoveToolUseBlock,
+  ResponseBrowserNavigateToolUseBlock,
+  ResponseBrowserNewTabToolUseBlock,
+  ResponseBrowserReadConsoleToolUseBlock,
+  ResponseBrowserReadNetworkToolUseBlock,
+  ResponseBrowserReadPageToolUseBlock,
+  ResponseBrowserRightClickToolUseBlock,
+  ResponseBrowserScreenshotToolUseBlock,
+  ResponseBrowserScrollToToolUseBlock,
+  ResponseBrowserScrollToolUseBlock,
+  ResponseBrowserSwitchTabToolUseBlock,
+  ResponseBrowserToolUseBlock,
+  ResponseBrowserTripleClickToolUseBlock,
+  ResponseBrowserTypeToolUseBlock,
+  ResponseBrowserWaitToolUseBlock,
+  ResponseBrowserZoomToolUseBlock,
+  ResponseComputerCursorPositionToolUseBlock,
+  ResponseComputerDoubleClickToolUseBlock,
+  ResponseComputerHoldKeyToolUseBlock,
+  ResponseComputerKeyToolUseBlock,
+  ResponseComputerLeftClickDragToolUseBlock,
+  ResponseComputerLeftClickToolUseBlock,
+  ResponseComputerLeftMouseDownToolUseBlock,
+  ResponseComputerLeftMouseUpToolUseBlock,
+  ResponseComputerMiddleClickToolUseBlock,
+  ResponseComputerMouseMoveToolUseBlock,
+  ResponseComputerRightClickToolUseBlock,
+  ResponseComputerScreenshotToolUseBlock,
+  ResponseComputerScrollToolUseBlock,
+  ResponseComputerToolUseBlock,
+  ResponseComputerTripleClickToolUseBlock,
+  ResponseComputerTypeToolUseBlock,
+  ResponseComputerWaitToolUseBlock,
+  ResponseComputerZoomToolUseBlock,
+  ResponseToolUseBlockUnion,
   SearchResultBlockParam,
   ServerToolCaller,
   ServerToolCaller20260120,
@@ -276,6 +474,7 @@ import {
   ThinkingBlock,
   ThinkingBlockParam,
   ThinkingConfigAdaptive,
+  ThinkingConfigBetweenTools,
   ThinkingConfigDisabled,
   ThinkingConfigEnabled,
   ThinkingConfigParam,
@@ -305,6 +504,8 @@ import {
   ToolUnion,
   ToolUseBlock,
   ToolUseBlockParam,
+  ToolUseCaller,
+  ToolsetToolUseBlock,
   URLImageSource,
   URLPDFSource,
   Usage,
@@ -339,6 +540,7 @@ import {
   WebSearchToolResultError,
   WebSearchToolResultErrorCode,
 } from './resources/messages/messages';
+import { Organization, OrganizationInfo, OrganizationRole } from './resources/organization/organization';
 import {
   DeletedSkill,
   Skill,
@@ -350,6 +552,31 @@ import {
   Skills,
   SkillsPageCursor,
 } from './resources/skills/skills';
+import {
+  DeletedUserProfile,
+  UserProfile,
+  UserProfileAccessType,
+  UserProfileCreateParams,
+  UserProfileCyberProgram,
+  UserProfileCyberRequirements,
+  UserProfileCyberTier,
+  UserProfileDeleteParams,
+  UserProfileEfsFeature,
+  UserProfileEfsProgram,
+  UserProfileExternalUserAccountStatus,
+  UserProfileExternalUserDetails,
+  UserProfileExternalUserDetailsParams,
+  UserProfileExternalUserEntityType,
+  UserProfileListOrder,
+  UserProfileListOrderBy,
+  UserProfileListParams,
+  UserProfileProgramStatus,
+  UserProfilePrograms,
+  UserProfileRetrieveParams,
+  UserProfileUpdateParams,
+  UserProfiles,
+  UserProfilesPageCursor,
+} from './resources/user-profiles/user-profiles';
 import { type Fetch } from './internal/builtin-types';
 import { isRunningInBrowser } from './internal/detect-platform';
 import { HeadersLike, NullableHeaders, buildHeaders } from './internal/headers';
@@ -358,12 +585,15 @@ import { readEnv } from './internal/utils/env';
 import {
   type LogLevel,
   type Logger,
+  debugLogRequestDetails,
   defaultLogLevel,
-  formatRequestDetails,
   loggerFor,
   parseLogLevel,
 } from './internal/utils/log';
 import { isEmptyObj } from './internal/utils/values';
+
+export const HUMAN_PROMPT = '\\n\\nHuman:';
+export const AI_PROMPT = '\\n\\nAssistant:';
 
 /**
  * Shared auth state. A `withOptions()` clone receives the parent's instance
@@ -532,6 +762,28 @@ export interface ClientOptions {
   dangerouslyAllowBrowser?: boolean | undefined;
 
   /**
+   * OpenTelemetry tracing of this client's API calls. Each API call emits a span when
+   * the application has registered a tracer provider with the OpenTelemetry API.
+   *
+   * `false`, short for `{ traces: false }`, disables the spans.
+   * `propagation: false` keeps the spans and sends no trace context with the requests.
+   *
+   * A client without this option reads its environment variables once, when it is constructed:
+   * `ANTHROPIC_OPEN_TELEMETRY` set to `false` disables the spans,
+   * `ANTHROPIC_OPEN_TELEMETRY_PROPAGATION` set to `false` turns `propagation` off, and
+   * `ANTHROPIC_OPEN_TELEMETRY_TRACES_CONTENT_MODE` and
+   * `ANTHROPIC_OPEN_TELEMETRY_TRACES_MAX_CONTENT_BYTES` give `traces.contentMode` and
+   * `traces.maxContentBytes`. A client with this option does not read them: a field that the
+   * option leaves unset has its default.
+   *
+   * A `withOptions()` copy without its own `openTelemetry` option keeps this client's settled one.
+   * A copy with its own option uses that in place of this client's whole option, so it keeps none
+   * of this client's fields. Spread {@link BaseAnthropic.openTelemetry} into the copy's option to
+   * keep them.
+   */
+  openTelemetry?: OpenTelemetryOptions | false | undefined;
+
+  /**
    * Set the log level.
    *
    * Defaults to process.env['ANTHROPIC_LOG'] or 'warn' if it isn't set.
@@ -545,9 +797,6 @@ export interface ClientOptions {
    */
   logger?: Logger | undefined;
 }
-
-export const HUMAN_PROMPT = '\\n\\nHuman:';
-export const AI_PROMPT = '\\n\\nAssistant:';
 
 /**
  * Base class for Anthropic API clients.
@@ -591,7 +840,57 @@ export class BaseAnthropic {
 
   private fetch: Fetch;
   #encoder: Opts.RequestEncoder;
-  protected _options: ClientOptions;
+  #openTelemetry: ResolvedOpenTelemetryOptions;
+
+  /**
+   * The `openTelemetry` option as this client settled it when it was constructed: `propagation` and
+   * each field of `traces` from the option, or else its default. A client constructed without the
+   * option has what the environment variables said. One constructed with `openTelemetry: false` has
+   * `traces.enabled: false` here.
+   *
+   * The value is frozen. It is a valid `openTelemetry` option, so a copy of this client can change
+   * one setting and keep the others:
+   *
+   * ```ts
+   * const { openTelemetry } = client;
+   * client.withOptions({
+   *   openTelemetry: { ...openTelemetry, traces: { ...openTelemetry.traces, contentMode: 'content' } },
+   * });
+   * ```
+   */
+  get openTelemetry(): ResolvedOpenTelemetryOptions {
+    return this.#openTelemetry;
+  }
+
+  /**
+   * The tracer that starts the call spans of this client's API calls, or `undefined` when the
+   * client's spans are disabled.
+   * @internal
+   */
+  _tracer: Tracer | undefined;
+
+  /**
+   * The options this client was constructed with, from which `withOptions()` builds its clone.
+   * @internal
+   */
+  _options: ClientOptions;
+
+  /**
+   * The `gen_ai.provider.name` of this client's spans: the platform that serves its requests.
+   * The clients for third-party platforms override it.
+   * @internal
+   */
+  _genAIProviderName: string = 'anthropic';
+
+  /**
+   * The instrumentation scope of this client's spans: the version of the package that the client
+   * is from, and for the client of another platform the platform's name, which the scope's name
+   * ends with. The clients for other platforms override it. The constructor calls it.
+   * @internal
+   */
+  _instrumentationScope(): { version: string; platform?: string | undefined } {
+    return { version: VERSION };
+  }
 
   /**
    * API Client for interfacing with the Anthropic API.
@@ -658,6 +957,10 @@ export class BaseAnthropic {
       defaultLogLevel;
     this.fetchOptions = options.fetchOptions;
     this.maxRetries = validatePositiveInteger('maxRetries', options.maxRetries ?? 2);
+    const scope = this._instrumentationScope();
+    this.#openTelemetry = resolveOpenTelemetryOptions(options.openTelemetry);
+    options.openTelemetry = this.#openTelemetry;
+    this._tracer = guardTracing(this, () => getTracer(this.#openTelemetry, scope.version, scope.platform));
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
     this.#encoder = Opts.FallbackEncoder;
 
@@ -830,6 +1133,7 @@ export class BaseAnthropic {
       // mutual-exclusion check or precedence over the override.
       ...(overridesStructuredAuth ? { credentials: undefined, config: undefined, profile: undefined } : {}),
       ...options,
+      openTelemetry: options.openTelemetry ?? this.#openTelemetry,
       // Always set __auth so any stale value from ...this._options is
       // overwritten. undefined means "build fresh auth from these options".
       __auth: overridesAuth ? undefined : this._authState,
@@ -1021,8 +1325,11 @@ export class BaseAnthropic {
    *
    * Runs after all middleware (including {@link backendMiddleware}),
    * immediately before each underlying fetch call, so it sees exactly what
-   * goes over the wire. Middleware may replay a request by calling `next()`
-   * more than once, so this hook can run multiple times per attempt:
+   * goes over the wire, except the trace-context headers of a traced call
+   * (`traceparent`, `tracestate`, `baggage`, and any other that the registered
+   * propagator writes): the client sets them again after this hook, so that a
+   * signature does not cover them. Middleware may replay a request by calling
+   * `next()` more than once, so this hook can run multiple times per attempt:
    * overrides must be idempotent and overwrite headers from a previous
    * invocation rather than append to them.
    */
@@ -1046,7 +1353,7 @@ export class BaseAnthropic {
         ?.split(',')
         .map((s) => s.trim());
       if (!existing?.includes(OAUTH_API_BETA_HEADER)) {
-        headers.append('anthropic-beta', OAUTH_API_BETA_HEADER);
+        headers.set('anthropic-beta', [...(existing ?? []), OAUTH_API_BETA_HEADER].join(','));
       }
       request.headers = headers;
     }
@@ -1063,7 +1370,8 @@ export class BaseAnthropic {
    * Running inside the user's middleware means user middleware always observes
    * canonical Anthropic-shaped traffic, and the adaptation re-runs (e.g.
    * re-signs) on every `next()` invocation, covering whatever the middleware
-   * mutated.
+   * mutated. It does not see the trace-context headers of a traced call: see
+   * {@link prepareRequest}.
    *
    * Errors thrown here follow the middleware error policy: they propagate to
    * the caller as-is — no retries, no `APIConnectionError` wrapping — unless
@@ -1110,16 +1418,49 @@ export class BaseAnthropic {
     options: PromiseOrValue<FinalRequestOptions>,
     remainingRetries: number | null = null,
   ): APIPromise<Rsp> {
-    return new APIPromise(this, this.makeRequest(options, remainingRetries, undefined));
+    if (!this._tracer) {
+      return new APIPromise(this, this.makeRequest(options, remainingRetries, undefined));
+    }
+    return new APIPromise(this, this.makeTracedRequest(options, remainingRetries));
+  }
+
+  /**
+   * Makes the request inside the call span that the SDK method started and passed in the options
+   * (`__span`). The span ends here when the call fails, and otherwise when the application has
+   * read the response body: see `APIPromise`.
+   */
+  private async makeTracedRequest(
+    optionsInput: PromiseOrValue<FinalRequestOptions>,
+    retriesRemaining: number | null,
+  ): Promise<APIResponseProps> {
+    const options = await optionsInput;
+    const span = options.__span?.span;
+    if (!span) {
+      return this.makeRequest(options, retriesRemaining, undefined);
+    }
+    try {
+      return await context.with(trace.setSpan(context.active(), span), () =>
+        this.makeRequest(options, retriesRemaining, undefined, span),
+      );
+    } catch (error) {
+      const result: ApiCallResult = { status: 'error', options, error };
+      setAnthropicSpanAttributes(this, span, result);
+      guardTracing(this, () => endApiCallSpan(span, result));
+      throw error;
+    }
   }
 
   private async makeRequest(
     optionsInput: PromiseOrValue<FinalRequestOptions>,
     retriesRemaining: number | null,
     retryOfRequestLogID: string | undefined,
+    span?: Span | undefined,
   ): Promise<APIResponseProps> {
     const options = await optionsInput;
-    const maxRetries = validatePositiveInteger('maxRetries', options.maxRetries ?? this.maxRetries);
+    let maxRetries = validatePositiveInteger('maxRetries', options.maxRetries ?? this.maxRetries);
+    if (this.isStreamBody(options.body)) {
+      maxRetries = 0;
+    }
     if (retriesRemaining == null) {
       retriesRemaining = maxRetries;
       // Top-level call: reset per-request auth flags so a reused options object
@@ -1136,6 +1477,9 @@ export class BaseAnthropic {
     /** Not an API request ID, just for correlating local log entries. */
     const requestLogID = 'log_' + ((Math.random() * (1 << 24)) | 0).toString(16).padStart(6, '0');
     const retryLogStr = retryOfRequestLogID === undefined ? '' : `, retryOf: ${retryOfRequestLogID}`;
+    if (span && this.openTelemetry.propagation) {
+      req.headers = guardTracing(this, () => injectTraceHeaders(span, req.headers)) ?? req.headers;
+    }
     const startTime = Date.now();
 
     if (options.signal?.aborted) {
@@ -1172,43 +1516,42 @@ export class BaseAnthropic {
         this.middleware.length > 0 || !!options.middleware?.length || this.backendMiddleware().length > 0;
       if (hasMiddleware && !isTimeout && !isRetryableError(response)) {
         loggerFor(this).info(`[${requestLogID}] middleware error (not retryable)`);
-        loggerFor(this).debug(
-          `[${requestLogID}] middleware error (not retryable)`,
-          formatRequestDetails({
-            retryOfRequestLogID,
-            url,
-            durationMs: headersTime - startTime,
-            message: response.message,
-          }),
-        );
+        debugLogRequestDetails(loggerFor(this), `[${requestLogID}] middleware error (not retryable)`, {
+          retryOfRequestLogID,
+          url,
+          durationMs: headersTime - startTime,
+          message: response.message,
+        });
         throw response;
       }
       if (retriesRemaining) {
         loggerFor(this).info(
           `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - ${retryMessage}`,
         );
-        loggerFor(this).debug(
+        debugLogRequestDetails(
+          loggerFor(this),
           `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (${retryMessage})`,
-          formatRequestDetails({
+          {
             retryOfRequestLogID,
             url,
             durationMs: headersTime - startTime,
             message: response.message,
-          }),
+          },
         );
-        return this.retryRequest(options, retriesRemaining, retryOfRequestLogID ?? requestLogID);
+        return this.retryRequest(options, retriesRemaining, retryOfRequestLogID ?? requestLogID, span);
       }
       loggerFor(this).info(
         `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} - error; no more retries left`,
       );
-      loggerFor(this).debug(
+      debugLogRequestDetails(
+        loggerFor(this),
         `[${requestLogID}] connection ${isTimeout ? 'timed out' : 'failed'} (error; no more retries left)`,
-        formatRequestDetails({
+        {
           retryOfRequestLogID,
           url,
           durationMs: headersTime - startTime,
           message: response.message,
-        }),
+        },
       );
       if (isTimeout) {
         throw new Errors.APIConnectionTimeoutError();
@@ -1238,20 +1581,18 @@ export class BaseAnthropic {
         await Shims.CancelReadableStream(response.body);
         releaseRequestSignal(controller);
         loggerFor(this).info(`${responseInfo} - ${retryMessage}`);
-        loggerFor(this).debug(
-          `[${requestLogID}] response error (${retryMessage})`,
-          formatRequestDetails({
-            retryOfRequestLogID,
-            url: response.url,
-            status: response.status,
-            headers: response.headers,
-            durationMs: headersTime - startTime,
-          }),
-        );
+        debugLogRequestDetails(loggerFor(this), `[${requestLogID}] response error (${retryMessage})`, {
+          retryOfRequestLogID,
+          url: response.url,
+          status: response.status,
+          headers: response.headers,
+          durationMs: headersTime - startTime,
+        });
         return this.retryRequest(
           options,
           retriesRemaining,
           retryOfRequestLogID ?? requestLogID,
+          span,
           response.headers,
         );
       }
@@ -1264,17 +1605,14 @@ export class BaseAnthropic {
       const errJSON = safeJSON(errText) as any;
       const errMessage = errJSON ? undefined : errText;
 
-      loggerFor(this).debug(
-        `[${requestLogID}] response error (${retryMessage})`,
-        formatRequestDetails({
-          retryOfRequestLogID,
-          url: response.url,
-          status: response.status,
-          headers: response.headers,
-          message: errMessage,
-          durationMs: Date.now() - startTime,
-        }),
-      );
+      debugLogRequestDetails(loggerFor(this), `[${requestLogID}] response error (${retryMessage})`, {
+        retryOfRequestLogID,
+        url: response.url,
+        status: response.status,
+        headers: response.headers,
+        message: errMessage,
+        durationMs: Date.now() - startTime,
+      });
 
       releaseRequestSignal(controller);
       const err = this.makeStatusError(response.status, errJSON, errMessage, response.headers);
@@ -1282,16 +1620,13 @@ export class BaseAnthropic {
     }
 
     loggerFor(this).info(responseInfo);
-    loggerFor(this).debug(
-      `[${requestLogID}] response start`,
-      formatRequestDetails({
-        retryOfRequestLogID,
-        url: response.url,
-        status: response.status,
-        headers: response.headers,
-        durationMs: headersTime - startTime,
-      }),
-    );
+    debugLogRequestDetails(loggerFor(this), `[${requestLogID}] response start`, {
+      retryOfRequestLogID,
+      url: response.url,
+      status: response.status,
+      headers: response.headers,
+      durationMs: headersTime - startTime,
+    });
 
     armAbandonmentBackstop(response.body ?? response, controller);
     return { response, options, controller, requestLogID, retryOfRequestLogID, startTime };
@@ -1317,7 +1652,11 @@ export class BaseAnthropic {
     Page: new (...args: ConstructorParameters<typeof Pagination.AbstractPage>) => PageClass,
     options: PromiseOrValue<FinalRequestOptions>,
   ): Pagination.PagePromise<PageClass, Item> {
-    const request = this.makeRequest(options, null, undefined);
+    if (!this._tracer) {
+      const request = this.makeRequest(options, null, undefined);
+      return new Pagination.PagePromise<PageClass, Item>(this as any as Anthropic, request, Page);
+    }
+    const request = this.makeTracedRequest(options, null);
     return new Pagination.PagePromise<PageClass, Item>(this as any as Anthropic, request, Page);
   }
 
@@ -1373,10 +1712,11 @@ export class BaseAnthropic {
 
     // Prepare the request (auth signing and other `prepareRequest` hooks) as
     // the innermost step, after any middleware — including the backend
-    // middleware, so it sees exactly what goes over the wire. Runs per
-    // inner-fetch invocation, so a request middleware rewrote — or replayed
-    // via a second `next()` call — is prepared fresh each time. Preparation is
-    // outside the timeout timer, matching its pre-middleware behavior.
+    // middleware, so it sees exactly what goes over the wire, except the trace
+    // headers. Runs per inner-fetch invocation, so a request middleware rewrote
+    // — or replayed via a second `next()` call — is prepared fresh each time.
+    // Preparation is outside the timeout timer, matching its pre-middleware
+    // behavior.
     const innerFetch: Fetch =
       requestOptions === undefined ? timedFetch : (
         async (innerUrl, innerInit = {}) => {
@@ -1387,19 +1727,35 @@ export class BaseAnthropic {
           innerInit.headers =
             innerInit.headers instanceof Headers ? innerInit.headers : new Headers(innerInit.headers);
 
+          let traceHeaders: Array<[string, string]> = [];
+          if (requestOptions.__span) {
+            innerInit.headers = new Headers(innerInit.headers);
+            traceHeaders = takeTraceHeaders(innerInit.headers);
+          }
           await this.prepareRequest(innerInit, { url: innerUrlStr, options: requestOptions });
+          if (traceHeaders.length) {
+            innerInit.headers = buildHeaders([innerInit.headers, traceHeaders]).values;
+          }
+          const call = requestOptions.__span;
+          if (call) {
+            guardTracing(this, () =>
+              recordAttempt(
+                call,
+                innerInit.method ?? 'GET',
+                innerUrlStr,
+                this.openTelemetry.traces.contentMode === 'content',
+              ),
+            );
+          }
 
           if (logCtx) {
-            loggerFor(this).debug(
-              `[${logCtx.requestLogID}] sending request`,
-              formatRequestDetails({
-                retryOfRequestLogID: logCtx.retryOfRequestLogID,
-                method: innerInit.method,
-                url: innerUrlStr,
-                options: requestOptions,
-                headers: innerInit.headers,
-              }),
-            );
+            debugLogRequestDetails(loggerFor(this), `[${logCtx.requestLogID}] sending request`, {
+              retryOfRequestLogID: logCtx.retryOfRequestLogID,
+              method: innerInit.method,
+              url: innerUrlStr,
+              options: requestOptions,
+              headers: innerInit.headers,
+            });
           }
 
           return timedFetch(innerUrl, innerInit);
@@ -1407,7 +1763,8 @@ export class BaseAnthropic {
       );
 
     const requestMiddleware = requestOptions?.middleware;
-    const backendMiddleware = this.backendMiddleware();
+    const backendMiddleware =
+      requestOptions?.__span ? this.backendMiddleware().map(withoutTraceHeaders) : this.backendMiddleware();
     const allMiddleware =
       requestMiddleware?.length || backendMiddleware.length ?
         [...this.middleware, ...(requestMiddleware ?? []), ...backendMiddleware]
@@ -1459,6 +1816,7 @@ export class BaseAnthropic {
     options: FinalRequestOptions,
     retriesRemaining: number,
     requestLogID: string,
+    span: Span | undefined,
     responseHeaders?: Headers | undefined,
   ): Promise<APIResponseProps> {
     let timeoutMillis: number | undefined;
@@ -1492,7 +1850,7 @@ export class BaseAnthropic {
     }
     await sleep(timeoutMillis, options.signal ?? undefined);
 
-    return this.makeRequest(options, retriesRemaining - 1, requestLogID);
+    return this.makeRequest(options, retriesRemaining - 1, requestLogID, span);
   }
 
   private calculateDefaultRetryTimeoutMillis(retriesRemaining: number, maxRetries: number): number {
@@ -1546,7 +1904,13 @@ export class BaseAnthropic {
     if ('timeout' in options) validatePositiveInteger('timeout', options.timeout);
     options.timeout = options.timeout ?? this.timeout;
     const { bodyHeaders, body } = this.buildBody({ options });
-    const reqHeaders = await this.buildHeaders({ options: inputOptions, method, bodyHeaders, retryCount });
+    const reqHeaders = await this.buildHeaders({
+      options: inputOptions,
+      method,
+      bodyHeaders,
+      retryCount,
+      timeout: options.timeout,
+    });
 
     const req: FinalizedRequestInit = {
       method,
@@ -1567,18 +1931,20 @@ export class BaseAnthropic {
     method,
     bodyHeaders,
     retryCount,
+    timeout,
   }: {
     options: FinalRequestOptions;
     method: HTTPMethod;
     bodyHeaders: HeadersLike;
     retryCount: number;
+    timeout: number;
   }): Promise<Headers> {
     const headers = buildHeaders([
       {
         Accept: 'application/json',
         'User-Agent': this.getUserAgent(),
         'X-Stainless-Retry-Count': String(retryCount),
-        ...(options.timeout ? { 'X-Stainless-Timeout': String(Math.trunc(options.timeout / 1000)) } : {}),
+        'X-Stainless-Timeout': String(Math.trunc(timeout / 1000)),
         ...getPlatformHeaders(),
         ...(this._options.dangerouslyAllowBrowser ?
           { 'anthropic-dangerous-direct-browser-access': 'true' }
@@ -1628,11 +1994,7 @@ export class BaseAnthropic {
       ((globalThis as any).ReadableStream && body instanceof (globalThis as any).ReadableStream)
     ) {
       return { bodyHeaders: undefined, body: body as BodyInit };
-    } else if (
-      typeof body === 'object' &&
-      (Symbol.asyncIterator in body ||
-        (Symbol.iterator in body && 'next' in body && typeof body.next === 'function'))
-    ) {
+    } else if (this.isStreamBody(body)) {
       return { bodyHeaders: undefined, body: Shims.ReadableStreamFrom(body as AsyncIterable<Uint8Array>) };
     } else if (
       typeof body === 'object' &&
@@ -1647,9 +2009,23 @@ export class BaseAnthropic {
     }
   }
 
+  /**
+   * Whether `body` is sent as a stream, which can be read only once:
+   * a `ReadableStream`, an async iterable or an iterator.
+   */
+  private isStreamBody(body: unknown): boolean {
+    if ((globalThis as any).ReadableStream && body instanceof (globalThis as any).ReadableStream) {
+      return true;
+    }
+    return (
+      typeof body === 'object' &&
+      body !== null &&
+      (Symbol.asyncIterator in body ||
+        (Symbol.iterator in body && 'next' in body && typeof body.next === 'function'))
+    );
+  }
+
   static Anthropic = this;
-  static HUMAN_PROMPT = HUMAN_PROMPT;
-  static AI_PROMPT = AI_PROMPT;
   static DEFAULT_TIMEOUT = 600000; // 10 minutes
 
   static AnthropicError = Errors.AnthropicError;
@@ -1667,6 +2043,9 @@ export class BaseAnthropic {
   static UnprocessableEntityError = Errors.UnprocessableEntityError;
 
   static toFile = Uploads.toFile;
+
+  static HUMAN_PROMPT = HUMAN_PROMPT;
+  static AI_PROMPT = AI_PROMPT;
 }
 
 /**
@@ -1678,6 +2057,8 @@ export class Anthropic extends BaseAnthropic {
   models: API.Models = new API.Models(this);
   files: API.Files = new API.Files(this);
   skills: API.Skills = new API.Skills(this);
+  userProfiles: API.UserProfiles = new API.UserProfiles(this);
+  organization: API.Organization = new API.Organization(this);
   beta: API.Beta = new API.Beta(this);
 }
 
@@ -1686,6 +2067,8 @@ Anthropic.Messages = Messages;
 Anthropic.Models = Models;
 Anthropic.Files = Files;
 Anthropic.Skills = Skills;
+Anthropic.UserProfiles = UserProfiles;
+Anthropic.Organization = Organization;
 Anthropic.Beta = Beta;
 
 export declare namespace Anthropic {
@@ -1694,19 +2077,30 @@ export declare namespace Anthropic {
 
   export type { ApiKeySetter };
 
-  export import Page = Pagination.Page;
-  export { type PageParams as PageParams, type PageResponse as PageResponse };
+  export { type Page as Page, type PageParams as PageParams, type PageResponse as PageResponse };
 
-  export import TokenPage = Pagination.TokenPage;
-  export { type TokenPageParams as TokenPageParams, type TokenPageResponse as TokenPageResponse };
-
-  export import PageCursor = Pagination.PageCursor;
-  export { type PageCursorParams as PageCursorParams, type PageCursorResponse as PageCursorResponse };
-
-  export import BidirectionalPageCursor = Pagination.BidirectionalPageCursor;
   export {
+    type TokenPage as TokenPage,
+    type TokenPageParams as TokenPageParams,
+    type TokenPageResponse as TokenPageResponse,
+  };
+
+  export {
+    type PageCursor as PageCursor,
+    type PageCursorParams as PageCursorParams,
+    type PageCursorResponse as PageCursorResponse,
+  };
+
+  export {
+    type BidirectionalPageCursor as BidirectionalPageCursor,
     type BidirectionalPageCursorParams as BidirectionalPageCursorParams,
     type BidirectionalPageCursorResponse as BidirectionalPageCursorResponse,
+  };
+
+  export {
+    type ReportPageCursor as ReportPageCursor,
+    type ReportPageCursorParams as ReportPageCursorParams,
+    type ReportPageCursorResponse as ReportPageCursorResponse,
   };
 
   export {
@@ -1730,32 +2124,92 @@ export declare namespace Anthropic {
     type BashCodeExecutionToolResultError as BashCodeExecutionToolResultError,
     type BashCodeExecutionToolResultErrorCode as BashCodeExecutionToolResultErrorCode,
     type BashCodeExecutionToolResultErrorParam as BashCodeExecutionToolResultErrorParam,
+    type BrowserClickTarget as BrowserClickTarget,
     type BrowserCloseTabConfig as BrowserCloseTabConfig,
+    type BrowserCloseTabInput as BrowserCloseTabInput,
+    type BrowserCloseTabToolUseBlock as BrowserCloseTabToolUseBlock,
+    type BrowserCoordinateTarget as BrowserCoordinateTarget,
     type BrowserDoubleClickConfig as BrowserDoubleClickConfig,
+    type BrowserDoubleClickInput as BrowserDoubleClickInput,
+    type BrowserDoubleClickToolUseBlock as BrowserDoubleClickToolUseBlock,
     type BrowserFileUploadConfig as BrowserFileUploadConfig,
+    type BrowserFileUploadInput as BrowserFileUploadInput,
+    type BrowserFileUploadToolUseBlock as BrowserFileUploadToolUseBlock,
     type BrowserFindConfig as BrowserFindConfig,
+    type BrowserFindInput as BrowserFindInput,
+    type BrowserFindToolUseBlock as BrowserFindToolUseBlock,
     type BrowserFormInputConfig as BrowserFormInputConfig,
+    type BrowserFormInputInput as BrowserFormInputInput,
+    type BrowserFormInputToolUseBlock as BrowserFormInputToolUseBlock,
+    type BrowserFormInputValue as BrowserFormInputValue,
     type BrowserGetPageTextConfig as BrowserGetPageTextConfig,
+    type BrowserGetPageTextInput as BrowserGetPageTextInput,
+    type BrowserGetPageTextToolUseBlock as BrowserGetPageTextToolUseBlock,
     type BrowserHoldKeyConfig as BrowserHoldKeyConfig,
+    type BrowserHoldKeyInput as BrowserHoldKeyInput,
+    type BrowserHoldKeyToolUseBlock as BrowserHoldKeyToolUseBlock,
     type BrowserHoverConfig as BrowserHoverConfig,
+    type BrowserHoverInput as BrowserHoverInput,
+    type BrowserHoverToolUseBlock as BrowserHoverToolUseBlock,
     type BrowserJavascriptExecConfig as BrowserJavascriptExecConfig,
+    type BrowserJavascriptExecInput as BrowserJavascriptExecInput,
+    type BrowserJavascriptExecToolUseBlock as BrowserJavascriptExecToolUseBlock,
     type BrowserKeyConfig as BrowserKeyConfig,
+    type BrowserKeyInput as BrowserKeyInput,
+    type BrowserKeyToolUseBlock as BrowserKeyToolUseBlock,
     type BrowserLeftClickConfig as BrowserLeftClickConfig,
     type BrowserLeftClickDragConfig as BrowserLeftClickDragConfig,
+    type BrowserLeftClickDragInput as BrowserLeftClickDragInput,
+    type BrowserLeftClickDragToolUseBlock as BrowserLeftClickDragToolUseBlock,
+    type BrowserLeftClickInput as BrowserLeftClickInput,
+    type BrowserLeftClickToolUseBlock as BrowserLeftClickToolUseBlock,
     type BrowserLeftMouseDownConfig as BrowserLeftMouseDownConfig,
+    type BrowserLeftMouseDownInput as BrowserLeftMouseDownInput,
+    type BrowserLeftMouseDownToolUseBlock as BrowserLeftMouseDownToolUseBlock,
     type BrowserLeftMouseUpConfig as BrowserLeftMouseUpConfig,
+    type BrowserLeftMouseUpInput as BrowserLeftMouseUpInput,
+    type BrowserLeftMouseUpToolUseBlock as BrowserLeftMouseUpToolUseBlock,
     type BrowserListTabsConfig as BrowserListTabsConfig,
+    type BrowserListTabsInput as BrowserListTabsInput,
+    type BrowserListTabsToolUseBlock as BrowserListTabsToolUseBlock,
+    type BrowserMemberInput as BrowserMemberInput,
+    type BrowserMemberName as BrowserMemberName,
     type BrowserMiddleClickConfig as BrowserMiddleClickConfig,
+    type BrowserMiddleClickInput as BrowserMiddleClickInput,
+    type BrowserMiddleClickToolUseBlock as BrowserMiddleClickToolUseBlock,
     type BrowserMouseMoveConfig as BrowserMouseMoveConfig,
+    type BrowserMouseMoveInput as BrowserMouseMoveInput,
+    type BrowserMouseMoveToolUseBlock as BrowserMouseMoveToolUseBlock,
     type BrowserNavigateConfig as BrowserNavigateConfig,
+    type BrowserNavigateInput as BrowserNavigateInput,
+    type BrowserNavigateToolUseBlock as BrowserNavigateToolUseBlock,
     type BrowserNewTabConfig as BrowserNewTabConfig,
+    type BrowserNewTabInput as BrowserNewTabInput,
+    type BrowserNewTabToolUseBlock as BrowserNewTabToolUseBlock,
     type BrowserReadConsoleConfig as BrowserReadConsoleConfig,
+    type BrowserReadConsoleInput as BrowserReadConsoleInput,
+    type BrowserReadConsoleToolUseBlock as BrowserReadConsoleToolUseBlock,
     type BrowserReadNetworkConfig as BrowserReadNetworkConfig,
+    type BrowserReadNetworkInput as BrowserReadNetworkInput,
+    type BrowserReadNetworkToolUseBlock as BrowserReadNetworkToolUseBlock,
     type BrowserReadPageConfig as BrowserReadPageConfig,
+    type BrowserReadPageFilter as BrowserReadPageFilter,
+    type BrowserReadPageInput as BrowserReadPageInput,
+    type BrowserReadPageToolUseBlock as BrowserReadPageToolUseBlock,
+    type BrowserRefTarget as BrowserRefTarget,
     type BrowserRightClickConfig as BrowserRightClickConfig,
+    type BrowserRightClickInput as BrowserRightClickInput,
+    type BrowserRightClickToolUseBlock as BrowserRightClickToolUseBlock,
     type BrowserScreenshotConfig as BrowserScreenshotConfig,
+    type BrowserScreenshotInput as BrowserScreenshotInput,
+    type BrowserScreenshotToolUseBlock as BrowserScreenshotToolUseBlock,
     type BrowserScrollConfig as BrowserScrollConfig,
+    type BrowserScrollDirection as BrowserScrollDirection,
+    type BrowserScrollInput as BrowserScrollInput,
     type BrowserScrollToConfig as BrowserScrollToConfig,
+    type BrowserScrollToInput as BrowserScrollToInput,
+    type BrowserScrollToToolUseBlock as BrowserScrollToToolUseBlock,
+    type BrowserScrollToolUseBlock as BrowserScrollToolUseBlock,
     type BrowserStateBlockParam as BrowserStateBlockParam,
     type BrowserStateChange as BrowserStateChange,
     type BrowserStateChangeDownloadCompleted as BrowserStateChangeDownloadCompleted,
@@ -1764,14 +2218,32 @@ export declare namespace Anthropic {
     type BrowserStateChangeTabOpened as BrowserStateChangeTabOpened,
     type BrowserStateTabEntry as BrowserStateTabEntry,
     type BrowserSwitchTabConfig as BrowserSwitchTabConfig,
+    type BrowserSwitchTabInput as BrowserSwitchTabInput,
+    type BrowserSwitchTabToolUseBlock as BrowserSwitchTabToolUseBlock,
+    type BrowserToolUseBlock as BrowserToolUseBlock,
     type BrowserToolset20260801 as BrowserToolset20260801,
     type BrowserToolsetConfigs as BrowserToolsetConfigs,
     type BrowserTripleClickConfig as BrowserTripleClickConfig,
+    type BrowserTripleClickInput as BrowserTripleClickInput,
+    type BrowserTripleClickToolUseBlock as BrowserTripleClickToolUseBlock,
     type BrowserTypeConfig as BrowserTypeConfig,
+    type BrowserTypeInput as BrowserTypeInput,
+    type BrowserTypeToolUseBlock as BrowserTypeToolUseBlock,
     type BrowserWaitConfig as BrowserWaitConfig,
+    type BrowserWaitInput as BrowserWaitInput,
+    type BrowserWaitToolUseBlock as BrowserWaitToolUseBlock,
     type BrowserZoomConfig as BrowserZoomConfig,
+    type BrowserZoomInput as BrowserZoomInput,
+    type BrowserZoomToolUseBlock as BrowserZoomToolUseBlock,
     type CacheControlEphemeral as CacheControlEphemeral,
     type CacheCreation as CacheCreation,
+    type CacheMissMessagesChanged as CacheMissMessagesChanged,
+    type CacheMissModelChanged as CacheMissModelChanged,
+    type CacheMissPreviousMessageNotFound as CacheMissPreviousMessageNotFound,
+    type CacheMissReason as CacheMissReason,
+    type CacheMissSystemChanged as CacheMissSystemChanged,
+    type CacheMissToolsChanged as CacheMissToolsChanged,
+    type CacheMissUnavailable as CacheMissUnavailable,
     type CitationCharLocation as CitationCharLocation,
     type CitationCharLocationParam as CitationCharLocationParam,
     type CitationContentBlockLocation as CitationContentBlockLocation,
@@ -1785,6 +2257,7 @@ export declare namespace Anthropic {
     type CitationsDelta as CitationsDelta,
     type CitationsSearchResultLocation as CitationsSearchResultLocation,
     type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
+    type ClientToolUnion as ClientToolUnion,
     type CodeExecutionOutputBlock as CodeExecutionOutputBlock,
     type CodeExecutionOutputBlockParam as CodeExecutionOutputBlockParam,
     type CodeExecutionResultBlock as CodeExecutionResultBlock,
@@ -1801,24 +2274,62 @@ export declare namespace Anthropic {
     type CodeExecutionToolResultErrorCode as CodeExecutionToolResultErrorCode,
     type CodeExecutionToolResultErrorParam as CodeExecutionToolResultErrorParam,
     type ComputerCursorPositionConfig as ComputerCursorPositionConfig,
+    type ComputerCursorPositionInput as ComputerCursorPositionInput,
+    type ComputerCursorPositionToolUseBlock as ComputerCursorPositionToolUseBlock,
     type ComputerDoubleClickConfig as ComputerDoubleClickConfig,
+    type ComputerDoubleClickInput as ComputerDoubleClickInput,
+    type ComputerDoubleClickToolUseBlock as ComputerDoubleClickToolUseBlock,
     type ComputerHoldKeyConfig as ComputerHoldKeyConfig,
+    type ComputerHoldKeyInput as ComputerHoldKeyInput,
+    type ComputerHoldKeyToolUseBlock as ComputerHoldKeyToolUseBlock,
     type ComputerKeyConfig as ComputerKeyConfig,
+    type ComputerKeyInput as ComputerKeyInput,
+    type ComputerKeyToolUseBlock as ComputerKeyToolUseBlock,
     type ComputerLeftClickConfig as ComputerLeftClickConfig,
     type ComputerLeftClickDragConfig as ComputerLeftClickDragConfig,
+    type ComputerLeftClickDragInput as ComputerLeftClickDragInput,
+    type ComputerLeftClickDragToolUseBlock as ComputerLeftClickDragToolUseBlock,
+    type ComputerLeftClickInput as ComputerLeftClickInput,
+    type ComputerLeftClickToolUseBlock as ComputerLeftClickToolUseBlock,
     type ComputerLeftMouseDownConfig as ComputerLeftMouseDownConfig,
+    type ComputerLeftMouseDownInput as ComputerLeftMouseDownInput,
+    type ComputerLeftMouseDownToolUseBlock as ComputerLeftMouseDownToolUseBlock,
     type ComputerLeftMouseUpConfig as ComputerLeftMouseUpConfig,
+    type ComputerLeftMouseUpInput as ComputerLeftMouseUpInput,
+    type ComputerLeftMouseUpToolUseBlock as ComputerLeftMouseUpToolUseBlock,
+    type ComputerMemberInput as ComputerMemberInput,
+    type ComputerMemberName as ComputerMemberName,
     type ComputerMiddleClickConfig as ComputerMiddleClickConfig,
+    type ComputerMiddleClickInput as ComputerMiddleClickInput,
+    type ComputerMiddleClickToolUseBlock as ComputerMiddleClickToolUseBlock,
     type ComputerMouseMoveConfig as ComputerMouseMoveConfig,
+    type ComputerMouseMoveInput as ComputerMouseMoveInput,
+    type ComputerMouseMoveToolUseBlock as ComputerMouseMoveToolUseBlock,
     type ComputerRightClickConfig as ComputerRightClickConfig,
+    type ComputerRightClickInput as ComputerRightClickInput,
+    type ComputerRightClickToolUseBlock as ComputerRightClickToolUseBlock,
     type ComputerScreenshotConfig as ComputerScreenshotConfig,
+    type ComputerScreenshotInput as ComputerScreenshotInput,
+    type ComputerScreenshotToolUseBlock as ComputerScreenshotToolUseBlock,
     type ComputerScrollConfig as ComputerScrollConfig,
+    type ComputerScrollDirection as ComputerScrollDirection,
+    type ComputerScrollInput as ComputerScrollInput,
+    type ComputerScrollToolUseBlock as ComputerScrollToolUseBlock,
+    type ComputerToolUseBlock as ComputerToolUseBlock,
     type ComputerToolset20260801 as ComputerToolset20260801,
     type ComputerToolsetConfigs as ComputerToolsetConfigs,
     type ComputerTripleClickConfig as ComputerTripleClickConfig,
+    type ComputerTripleClickInput as ComputerTripleClickInput,
+    type ComputerTripleClickToolUseBlock as ComputerTripleClickToolUseBlock,
     type ComputerTypeConfig as ComputerTypeConfig,
+    type ComputerTypeInput as ComputerTypeInput,
+    type ComputerTypeToolUseBlock as ComputerTypeToolUseBlock,
     type ComputerWaitConfig as ComputerWaitConfig,
+    type ComputerWaitInput as ComputerWaitInput,
+    type ComputerWaitToolUseBlock as ComputerWaitToolUseBlock,
     type ComputerZoomConfig as ComputerZoomConfig,
+    type ComputerZoomInput as ComputerZoomInput,
+    type ComputerZoomToolUseBlock as ComputerZoomToolUseBlock,
     type Container as Container,
     type ContainerParams as ContainerParams,
     type ContainerSkill as ContainerSkill,
@@ -1831,6 +2342,8 @@ export declare namespace Anthropic {
     type ContentBlockStopEvent as ContentBlockStopEvent,
     type ContentBlockSource as ContentBlockSource,
     type ContentBlockSourceContent as ContentBlockSourceContent,
+    type Diagnostics as Diagnostics,
+    type DiagnosticsParam as DiagnosticsParam,
     type DirectCaller as DirectCaller,
     type DocumentBlock as DocumentBlock,
     type DocumentBlockParam as DocumentBlockParam,
@@ -1897,6 +2410,7 @@ export declare namespace Anthropic {
     type ThinkingBlock as ThinkingBlock,
     type ThinkingBlockParam as ThinkingBlockParam,
     type ThinkingConfigAdaptive as ThinkingConfigAdaptive,
+    type ThinkingConfigBetweenTools as ThinkingConfigBetweenTools,
     type ThinkingConfigDisabled as ThinkingConfigDisabled,
     type ThinkingConfigEnabled as ThinkingConfigEnabled,
     type ThinkingConfigParam as ThinkingConfigParam,
@@ -1926,6 +2440,8 @@ export declare namespace Anthropic {
     type ToolUnion as ToolUnion,
     type ToolUseBlock as ToolUseBlock,
     type ToolUseBlockParam as ToolUseBlockParam,
+    type ToolUseCaller as ToolUseCaller,
+    type ToolsetToolUseBlock as ToolsetToolUseBlock,
     type URLImageSource as URLImageSource,
     type URLPDFSource as URLPDFSource,
     type Usage as Usage,
@@ -1959,6 +2475,57 @@ export declare namespace Anthropic {
     type WebSearchToolResultBlockParamContent as WebSearchToolResultBlockParamContent,
     type WebSearchToolResultError as WebSearchToolResultError,
     type WebSearchToolResultErrorCode as WebSearchToolResultErrorCode,
+    type ResponseToolUseBlockUnion as ResponseToolUseBlockUnion,
+    type ResponseBrowserToolUseBlock as ResponseBrowserToolUseBlock,
+    type ResponseBrowserCloseTabToolUseBlock as ResponseBrowserCloseTabToolUseBlock,
+    type ResponseBrowserDoubleClickToolUseBlock as ResponseBrowserDoubleClickToolUseBlock,
+    type ResponseBrowserFileUploadToolUseBlock as ResponseBrowserFileUploadToolUseBlock,
+    type ResponseBrowserFindToolUseBlock as ResponseBrowserFindToolUseBlock,
+    type ResponseBrowserFormInputToolUseBlock as ResponseBrowserFormInputToolUseBlock,
+    type ResponseBrowserGetPageTextToolUseBlock as ResponseBrowserGetPageTextToolUseBlock,
+    type ResponseBrowserHoldKeyToolUseBlock as ResponseBrowserHoldKeyToolUseBlock,
+    type ResponseBrowserHoverToolUseBlock as ResponseBrowserHoverToolUseBlock,
+    type ResponseBrowserJavascriptExecToolUseBlock as ResponseBrowserJavascriptExecToolUseBlock,
+    type ResponseBrowserKeyToolUseBlock as ResponseBrowserKeyToolUseBlock,
+    type ResponseBrowserLeftClickDragToolUseBlock as ResponseBrowserLeftClickDragToolUseBlock,
+    type ResponseBrowserLeftClickToolUseBlock as ResponseBrowserLeftClickToolUseBlock,
+    type ResponseBrowserLeftMouseDownToolUseBlock as ResponseBrowserLeftMouseDownToolUseBlock,
+    type ResponseBrowserLeftMouseUpToolUseBlock as ResponseBrowserLeftMouseUpToolUseBlock,
+    type ResponseBrowserListTabsToolUseBlock as ResponseBrowserListTabsToolUseBlock,
+    type ResponseBrowserMiddleClickToolUseBlock as ResponseBrowserMiddleClickToolUseBlock,
+    type ResponseBrowserMouseMoveToolUseBlock as ResponseBrowserMouseMoveToolUseBlock,
+    type ResponseBrowserNavigateToolUseBlock as ResponseBrowserNavigateToolUseBlock,
+    type ResponseBrowserNewTabToolUseBlock as ResponseBrowserNewTabToolUseBlock,
+    type ResponseBrowserReadConsoleToolUseBlock as ResponseBrowserReadConsoleToolUseBlock,
+    type ResponseBrowserReadNetworkToolUseBlock as ResponseBrowserReadNetworkToolUseBlock,
+    type ResponseBrowserReadPageToolUseBlock as ResponseBrowserReadPageToolUseBlock,
+    type ResponseBrowserRightClickToolUseBlock as ResponseBrowserRightClickToolUseBlock,
+    type ResponseBrowserScreenshotToolUseBlock as ResponseBrowserScreenshotToolUseBlock,
+    type ResponseBrowserScrollToToolUseBlock as ResponseBrowserScrollToToolUseBlock,
+    type ResponseBrowserScrollToolUseBlock as ResponseBrowserScrollToolUseBlock,
+    type ResponseBrowserSwitchTabToolUseBlock as ResponseBrowserSwitchTabToolUseBlock,
+    type ResponseBrowserTripleClickToolUseBlock as ResponseBrowserTripleClickToolUseBlock,
+    type ResponseBrowserTypeToolUseBlock as ResponseBrowserTypeToolUseBlock,
+    type ResponseBrowserWaitToolUseBlock as ResponseBrowserWaitToolUseBlock,
+    type ResponseBrowserZoomToolUseBlock as ResponseBrowserZoomToolUseBlock,
+    type ResponseComputerToolUseBlock as ResponseComputerToolUseBlock,
+    type ResponseComputerCursorPositionToolUseBlock as ResponseComputerCursorPositionToolUseBlock,
+    type ResponseComputerDoubleClickToolUseBlock as ResponseComputerDoubleClickToolUseBlock,
+    type ResponseComputerHoldKeyToolUseBlock as ResponseComputerHoldKeyToolUseBlock,
+    type ResponseComputerKeyToolUseBlock as ResponseComputerKeyToolUseBlock,
+    type ResponseComputerLeftClickDragToolUseBlock as ResponseComputerLeftClickDragToolUseBlock,
+    type ResponseComputerLeftClickToolUseBlock as ResponseComputerLeftClickToolUseBlock,
+    type ResponseComputerLeftMouseDownToolUseBlock as ResponseComputerLeftMouseDownToolUseBlock,
+    type ResponseComputerLeftMouseUpToolUseBlock as ResponseComputerLeftMouseUpToolUseBlock,
+    type ResponseComputerMiddleClickToolUseBlock as ResponseComputerMiddleClickToolUseBlock,
+    type ResponseComputerMouseMoveToolUseBlock as ResponseComputerMouseMoveToolUseBlock,
+    type ResponseComputerRightClickToolUseBlock as ResponseComputerRightClickToolUseBlock,
+    type ResponseComputerScreenshotToolUseBlock as ResponseComputerScreenshotToolUseBlock,
+    type ResponseComputerScrollToolUseBlock as ResponseComputerScrollToolUseBlock,
+    type ResponseComputerTripleClickToolUseBlock as ResponseComputerTripleClickToolUseBlock,
+    type ResponseComputerTypeToolUseBlock as ResponseComputerTypeToolUseBlock,
+    type ResponseComputerWaitToolUseBlock as ResponseComputerWaitToolUseBlock,
+    type ResponseComputerZoomToolUseBlock as ResponseComputerZoomToolUseBlock,
     type MessageCreateParams as MessageCreateParams,
     type MessageCreateParamsNonStreaming as MessageCreateParamsNonStreaming,
     type MessageCreateParamsStreaming as MessageCreateParamsStreaming,
@@ -1973,6 +2540,8 @@ export declare namespace Anthropic {
     type EffortCapability as EffortCapability,
     type ModelCapabilities as ModelCapabilities,
     type ModelInfo as ModelInfo,
+    type ModelLine as ModelLine,
+    type ServerToolsCapability as ServerToolsCapability,
     type ThinkingCapability as ThinkingCapability,
     type ThinkingTypes as ThinkingTypes,
     type ModelInfosPage as ModelInfosPage,
@@ -2002,6 +2571,38 @@ export declare namespace Anthropic {
     type SkillRetrieveParams as SkillRetrieveParams,
     type SkillListParams as SkillListParams,
     type SkillDeleteParams as SkillDeleteParams,
+  };
+
+  export {
+    UserProfiles as UserProfiles,
+    type DeletedUserProfile as DeletedUserProfile,
+    type UserProfile as UserProfile,
+    type UserProfileAccessType as UserProfileAccessType,
+    type UserProfileCyberProgram as UserProfileCyberProgram,
+    type UserProfileCyberRequirements as UserProfileCyberRequirements,
+    type UserProfileCyberTier as UserProfileCyberTier,
+    type UserProfileEfsFeature as UserProfileEfsFeature,
+    type UserProfileEfsProgram as UserProfileEfsProgram,
+    type UserProfileExternalUserAccountStatus as UserProfileExternalUserAccountStatus,
+    type UserProfileExternalUserDetails as UserProfileExternalUserDetails,
+    type UserProfileExternalUserDetailsParams as UserProfileExternalUserDetailsParams,
+    type UserProfileExternalUserEntityType as UserProfileExternalUserEntityType,
+    type UserProfileListOrder as UserProfileListOrder,
+    type UserProfileListOrderBy as UserProfileListOrderBy,
+    type UserProfileProgramStatus as UserProfileProgramStatus,
+    type UserProfilePrograms as UserProfilePrograms,
+    type UserProfilesPageCursor as UserProfilesPageCursor,
+    type UserProfileCreateParams as UserProfileCreateParams,
+    type UserProfileRetrieveParams as UserProfileRetrieveParams,
+    type UserProfileUpdateParams as UserProfileUpdateParams,
+    type UserProfileListParams as UserProfileListParams,
+    type UserProfileDeleteParams as UserProfileDeleteParams,
+  };
+
+  export {
+    Organization as Organization,
+    type OrganizationInfo as OrganizationInfo,
+    type OrganizationRole as OrganizationRole,
   };
 
   export {

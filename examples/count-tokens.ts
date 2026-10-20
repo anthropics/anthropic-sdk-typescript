@@ -12,7 +12,7 @@ async function main() {
         content: 'Hey Claude!?',
       },
     ],
-    model: 'claude-sonnet-5',
+    model: 'claude-sonnet-5-5',
   });
   console.dir(result);
 }

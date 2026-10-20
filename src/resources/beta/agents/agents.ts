@@ -7,6 +7,7 @@ import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Agents extends APIResource {
@@ -19,7 +20,7 @@ export class Agents extends APIResource {
    * ```ts
    * const betaManagedAgentsAgent =
    *   await client.beta.agents.create({
-   *     model: 'claude-opus-5',
+   *     model: 'claude-opus-5-5',
    *     name: 'My First Agent',
    *   });
    * ```
@@ -36,6 +37,10 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.agents.create', options, {
+        route: '/v1/agents',
+        createdIDAttribute: 'gen_ai.agent.id',
+      }),
     });
   }
 
@@ -66,6 +71,11 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.agents.retrieve', options, {
+        route: '/v1/agents/{agent_id}',
+        queryParams: ['version'],
+        attributes: { 'gen_ai.agent.id': agentID },
+      }),
     });
   }
 
@@ -97,6 +107,10 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.agents.update', options, {
+        route: '/v1/agents/{agent_id}',
+        attributes: { 'gen_ai.agent.id': agentID },
+      }),
     });
   }
 
@@ -126,6 +140,10 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.agents.list', options, {
+        route: '/v1/agents',
+        queryParams: ['created_at[gte]', 'created_at[lte]', 'include_archived', 'limit', 'page'],
+      }),
     });
   }
 
@@ -155,6 +173,10 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.agents.archive', options, {
+        route: '/v1/agents/{agent_id}/archive',
+        attributes: { 'gen_ai.agent.id': agentID },
+      }),
     });
   }
 }
@@ -181,7 +203,7 @@ export interface BetaManagedAgentsAgent {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the agent was archived. Null if not archived.
    */
   archived_at: string | null;
 
@@ -191,6 +213,12 @@ export interface BetaManagedAgentsAgent {
   created_at: string;
 
   description: string | null;
+
+  /**
+   * Execution principal for runs of this agent. Always present;
+   * `{"type": "service_account"}` when runs carry no customer-named principal.
+   */
+  execution_identity: BetaManagedAgentsExecutionIdentity;
 
   mcp_servers: Array<BetaManagedAgentsMCPServerURLDefinition>;
 
@@ -202,7 +230,7 @@ export interface BetaManagedAgentsAgent {
   model: BetaManagedAgentsModelConfig;
 
   /**
-   * Resolved coordinator topology with a concrete agent roster.
+   * Multiagent orchestration configuration. Null when the agent is single-threaded.
    */
   multiagent: SessionsAPI.BetaManagedAgentsMultiagent | null;
 
@@ -293,7 +321,8 @@ export interface BetaManagedAgentsAgentToolsetDefaultConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Default permission policy for tools. Controls whether tool calls are
+   * auto-approved or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -412,7 +441,7 @@ export interface BetaManagedAgentsAgentToolset20260401Params {
   configs?: Array<BetaManagedAgentsAgentToolConfigParams>;
 
   /**
-   * Default configuration for all tools in a toolset.
+   * Default configuration applied to all tools in this set.
    */
   default_config?: BetaManagedAgentsAgentToolsetDefaultConfigParams | null;
 }
@@ -503,6 +532,31 @@ export interface BetaManagedAgentsAutoPolicy {
 }
 
 /**
+ * An AWS IAM role principal as returned in API responses.
+ */
+export interface BetaManagedAgentsAWSRoleExecutionIdentity {
+  /**
+   * The IAM role's ARN.
+   */
+  role_arn: string;
+
+  type: 'aws_role';
+}
+
+/**
+ * An AWS IAM role principal.
+ */
+export interface BetaManagedAgentsAWSRoleExecutionIdentityParams {
+  /**
+   * The IAM role's ARN, e.g. "arn:aws:iam::123456789012:role/my-agent-runner".
+   * Maximum 2048 characters.
+   */
+  role_arn: string;
+
+  type: 'aws_role';
+}
+
+/**
  * Configuration for the bash tool.
  */
 export interface BetaManagedAgentsBashToolConfig {
@@ -537,7 +591,8 @@ export interface BetaManagedAgentsBashToolConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Controls whether tool calls are auto-approved
+   * or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -619,7 +674,7 @@ export interface BetaManagedAgentsCustomToolParams {
   description: string;
 
   /**
-   * JSON Schema for custom tool input parameters.
+   * JSON Schema defining the expected input parameters for the tool.
    */
   input_schema: BetaManagedAgentsCustomToolInputSchema;
 
@@ -667,7 +722,8 @@ export interface BetaManagedAgentsEditToolConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Controls whether tool calls are auto-approved
+   * or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -714,6 +770,21 @@ export interface BetaManagedAgentsEffortXhigh {
 }
 
 /**
+ * Execution principal for runs of this agent as returned in API responses.
+ */
+export type BetaManagedAgentsExecutionIdentity =
+  | BetaManagedAgentsAWSRoleExecutionIdentity
+  | BetaManagedAgentsServiceAccountExecutionIdentity;
+
+/**
+ * Execution principal for runs of this agent: `service_account` (the default) or
+ * `aws_role`.
+ */
+export type BetaManagedAgentsExecutionIdentityParams =
+  | BetaManagedAgentsAWSRoleExecutionIdentityParams
+  | BetaManagedAgentsServiceAccountExecutionIdentityParams;
+
+/**
  * Configuration for the glob tool.
  */
 export interface BetaManagedAgentsGlobToolConfig {
@@ -748,7 +819,8 @@ export interface BetaManagedAgentsGlobToolConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Controls whether tool calls are auto-approved
+   * or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -794,7 +866,8 @@ export interface BetaManagedAgentsGrepToolConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Controls whether tool calls are auto-approved
+   * or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -848,7 +921,7 @@ export interface BetaManagedAgentsMCPToolConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Overrides the `default_config` setting.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -895,7 +968,7 @@ export interface BetaManagedAgentsMCPToolsetDefaultConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Default permission policy for tools from this server.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -922,7 +995,7 @@ export interface BetaManagedAgentsMCPToolsetParams {
   configs?: Array<BetaManagedAgentsMCPToolConfigParams>;
 
   /**
-   * Default configuration for all tools from an MCP server.
+   * Default configuration for all tools from this server.
    */
   default_config?: BetaManagedAgentsMCPToolsetDefaultConfigParams | null;
 }
@@ -934,6 +1007,9 @@ export interface BetaManagedAgentsMCPToolsetParams {
  * details and options.
  */
 export type BetaManagedAgentsModel =
+  | 'claude-haiku-5-5'
+  | 'claude-sonnet-5-5'
+  | 'claude-opus-5-5'
   | 'claude-fable-5-1'
   | 'claude-sonnet-5'
   | 'claude-fable-5'
@@ -963,8 +1039,9 @@ export interface BetaManagedAgentsModelConfig {
   id: BetaManagedAgentsModel;
 
   /**
-   * How hard Claude works on each turn. Sets `output_config.effort` on every
-   * Messages call the session makes.
+   * How hard Claude works on each inference call. One of `low`, `medium`, `high`,
+   * `xhigh`, `max`. Always present; resolved to the per-model default at save time
+   * when not supplied.
    */
   effort?:
     | BetaManagedAgentsEffortLow
@@ -981,8 +1058,8 @@ export interface BetaManagedAgentsModelConfig {
 
   /**
    * Inference speed mode. `fast` provides significantly faster output token
-   * generation at premium pricing. Not all models support `fast`; invalid
-   * combinations are rejected at create time.
+   * generation at premium pricing. Defaults to `standard`. Not all models support
+   * `fast`; invalid combinations are rejected at create time.
    */
   speed?: 'standard' | 'fast';
 }
@@ -1025,12 +1102,63 @@ export interface BetaManagedAgentsModelConfigParams {
   inference_geo?: string | null;
 
   /**
-   * Inference speed mode. `fast` provides significantly faster output token
-   * generation at premium pricing. Not all models support `fast`; invalid
-   * combinations are rejected at create time.
+   * Inference speed mode. Defaults to `standard`.
    */
   speed?: 'standard' | 'fast' | null;
 }
+
+/**
+ * Whether the session's primary thread can consult an advisor model.
+ */
+export type BetaManagedAgentsMultiagentAdvisor =
+  | BetaManagedAgentsMultiagentAdvisorEnabled
+  | BetaManagedAgentsMultiagentAdvisorDisabled;
+
+/**
+ * The agent has no advisor.
+ */
+export interface BetaManagedAgentsMultiagentAdvisorDisabled {
+  type: 'disabled';
+}
+
+/**
+ * The agent has no advisor.
+ */
+export interface BetaManagedAgentsMultiagentAdvisorDisabledParams {
+  type: 'disabled';
+}
+
+/**
+ * The session's primary thread can consult `model` mid-turn.
+ */
+export interface BetaManagedAgentsMultiagentAdvisorEnabled {
+  /**
+   * The advisor model id.
+   */
+  model: string;
+
+  type: 'enabled';
+}
+
+/**
+ * The session's primary thread can consult `model` mid-turn.
+ */
+export interface BetaManagedAgentsMultiagentAdvisorEnabledParams {
+  /**
+   * A Claude model id. The model must be permitted as an advisor for this agent's
+   * model.
+   */
+  model: string;
+
+  type: 'enabled';
+}
+
+/**
+ * Whether the session's primary thread can consult an advisor model.
+ */
+export type BetaManagedAgentsMultiagentAdvisorParams =
+  | BetaManagedAgentsMultiagentAdvisorEnabledParams
+  | BetaManagedAgentsMultiagentAdvisorDisabledParams;
 
 /**
  * Resolved coordinator topology with a concrete agent roster.
@@ -1064,11 +1192,263 @@ export interface BetaManagedAgentsMultiagentCoordinatorParams {
 }
 
 /**
+ * Whether the agent can define inline agents. The agent defines an inline agent
+ * itself, in a workflow run's plan or when it spawns a session thread, and the
+ * inline agent is not saved.
+ */
+export type BetaManagedAgentsMultiagentInlineAgents =
+  | BetaManagedAgentsMultiagentInlineAgentsEnabled
+  | BetaManagedAgentsMultiagentInlineAgentsDisabled;
+
+/**
+ * The agent cannot define inline agents.
+ */
+export interface BetaManagedAgentsMultiagentInlineAgentsDisabled {
+  type: 'disabled';
+}
+
+/**
+ * The agent cannot define inline agents.
+ */
+export interface BetaManagedAgentsMultiagentInlineAgentsDisabledParams {
+  type: 'disabled';
+}
+
+/**
+ * The agent can define inline agents.
+ */
+export interface BetaManagedAgentsMultiagentInlineAgentsEnabled {
+  type: 'enabled';
+}
+
+/**
+ * The agent can define inline agents.
+ */
+export interface BetaManagedAgentsMultiagentInlineAgentsEnabledParams {
+  type: 'enabled';
+}
+
+/**
+ * Whether the agent can define inline agents. The agent defines an inline agent
+ * itself, in a workflow run's plan or when it spawns a session thread, and the
+ * inline agent is not saved.
+ */
+export type BetaManagedAgentsMultiagentInlineAgentsParams =
+  | BetaManagedAgentsMultiagentInlineAgentsEnabledParams
+  | BetaManagedAgentsMultiagentInlineAgentsDisabledParams;
+
+/**
+ * One agent in a `predefined_agents` list. It is an agent ID string, an `agent`
+ * reference with an optional `version`, or `self` for the agent that owns this
+ * configuration.
+ */
+export type BetaManagedAgentsMultiagentPredefinedAgentParams =
+  | string
+  | SessionsAPI.BetaManagedAgentsAgentParams
+  | BetaManagedAgentsMultiagentSelfParams;
+
+/**
  * Sentinel roster entry meaning "the agent that owns this configuration". Resolved
  * server-side to a concrete agent reference.
  */
 export interface BetaManagedAgentsMultiagentSelfParams {
   type: 'self';
+}
+
+/**
+ * Whether the agent can spawn session threads.
+ */
+export type BetaManagedAgentsMultiagentSubagents =
+  | BetaManagedAgentsMultiagentSubagentsEnabled
+  | BetaManagedAgentsMultiagentSubagentsDisabled;
+
+/**
+ * The agent cannot spawn session threads.
+ */
+export interface BetaManagedAgentsMultiagentSubagentsDisabled {
+  type: 'disabled';
+}
+
+/**
+ * The agent cannot spawn session threads.
+ */
+export interface BetaManagedAgentsMultiagentSubagentsDisabledParams {
+  type: 'disabled';
+}
+
+/**
+ * The agent can spawn session threads.
+ */
+export interface BetaManagedAgentsMultiagentSubagentsEnabled {
+  /**
+   * Whether the agent can define inline agents, which are not saved, when it spawns
+   * session threads.
+   */
+  inline_agents: BetaManagedAgentsMultiagentInlineAgents;
+
+  /**
+   * Predefined agents, which are saved agents that this agent can spawn as session
+   * threads, each resolved to a specific version.
+   */
+  predefined_agents: Array<BetaManagedAgentsAgentReference>;
+
+  type: 'enabled';
+}
+
+/**
+ * The agent can spawn session threads. Each thread runs a predefined agent, which
+ * is a saved agent in `predefined_agents`, or an inline agent, which the agent
+ * defines when it spawns the thread and which is not saved. If `inline_agents` is
+ * disabled, `predefined_agents` must name at least one agent.
+ */
+export interface BetaManagedAgentsMultiagentSubagentsEnabledParams {
+  type: 'enabled';
+
+  /**
+   * Whether the agent can define inline agents when it spawns session threads.
+   * Defaults to enabled.
+   */
+  inline_agents?: BetaManagedAgentsMultiagentInlineAgentsParams | null;
+
+  /**
+   * Predefined agents that this agent can spawn as session threads. At most 20.
+   * Defaults to null. Null and an empty list both mean no predefined agents. This
+   * list is separate from `workflows.predefined_agents`, and an agent in one list is
+   * not added to the other.
+   */
+  predefined_agents?: Array<BetaManagedAgentsMultiagentPredefinedAgentParams> | null;
+}
+
+/**
+ * Whether the agent can spawn session threads.
+ */
+export type BetaManagedAgentsMultiagentSubagentsParams =
+  | BetaManagedAgentsMultiagentSubagentsEnabledParams
+  | BetaManagedAgentsMultiagentSubagentsDisabledParams;
+
+/**
+ * Whether the agent can start workflow runs.
+ */
+export type BetaManagedAgentsMultiagentWorkflows =
+  | BetaManagedAgentsMultiagentWorkflowsEnabled
+  | BetaManagedAgentsMultiagentWorkflowsDisabled;
+
+/**
+ * The agent cannot start workflow runs.
+ */
+export interface BetaManagedAgentsMultiagentWorkflowsDisabled {
+  type: 'disabled';
+}
+
+/**
+ * The agent cannot start workflow runs.
+ */
+export interface BetaManagedAgentsMultiagentWorkflowsDisabledParams {
+  type: 'disabled';
+}
+
+/**
+ * The agent can start workflow runs.
+ */
+export interface BetaManagedAgentsMultiagentWorkflowsEnabled {
+  /**
+   * Whether a run's plan can define inline agents, which are not saved.
+   */
+  inline_agents: BetaManagedAgentsMultiagentInlineAgents;
+
+  /**
+   * Predefined agents, which are saved agents that a run's plan can use, each
+   * resolved to a specific version.
+   */
+  predefined_agents: Array<BetaManagedAgentsAgentReference>;
+
+  type: 'enabled';
+}
+
+/**
+ * The agent can start workflow runs. Each run follows a plan, a program that the
+ * agent writes. A plan can use predefined agents, which are the saved agents in
+ * `predefined_agents`, and inline agents, which it defines itself and which are
+ * not saved. If `inline_agents` is disabled, `predefined_agents` must name at
+ * least one agent.
+ */
+export interface BetaManagedAgentsMultiagentWorkflowsEnabledParams {
+  type: 'enabled';
+
+  /**
+   * Whether a run's plan can define inline agents. Defaults to enabled.
+   */
+  inline_agents?: BetaManagedAgentsMultiagentInlineAgentsParams | null;
+
+  /**
+   * Predefined agents that a run's plan can use. At most 20. Defaults to null. Null
+   * and an empty list both mean no predefined agents. This list is separate from
+   * `subagents.predefined_agents`, and an agent in one list is not added to the
+   * other.
+   */
+  predefined_agents?: Array<BetaManagedAgentsMultiagentPredefinedAgentParams> | null;
+}
+
+/**
+ * Whether the agent can start workflow runs.
+ */
+export type BetaManagedAgentsMultiagentWorkflowsParams =
+  | BetaManagedAgentsMultiagentWorkflowsEnabledParams
+  | BetaManagedAgentsMultiagentWorkflowsDisabledParams;
+
+/**
+ * Resolved multiagent configuration with three members, each enabled or disabled
+ * on its own.
+ */
+export interface BetaManagedAgentsMultiagent20261001 {
+  /**
+   * Whether the session's primary thread can consult an advisor model.
+   */
+  advisor: BetaManagedAgentsMultiagentAdvisor;
+
+  /**
+   * Whether the agent can spawn session threads.
+   */
+  subagents: BetaManagedAgentsMultiagentSubagents;
+
+  type: 'multiagent_20261001';
+
+  /**
+   * Whether the agent can start workflow runs.
+   */
+  workflows: BetaManagedAgentsMultiagentWorkflows;
+}
+
+/**
+ * Multiagent configuration with three members, each enabled or disabled on its
+ * own. On an update, if the agent's stored `multiagent` also has type
+ * `multiagent_20261001`, this configuration is merged into the stored one, level
+ * by level, instead of replacing it. A key that the update omits keeps its stored
+ * value. A key sent as null takes its default, on create as well, so
+ * `"workflows": null` enables workflows. An object sent with a `type` other than
+ * the stored one replaces the stored object, and the keys that it omits take their
+ * defaults. A `predefined_agents` list that is sent replaces the stored list.
+ * Every object that is sent needs its `type`, and an enabled `advisor` needs its
+ * `model`. Other validation applies to the merged result.
+ */
+export interface BetaManagedAgentsMultiagent20261001Params {
+  type: 'multiagent_20261001';
+
+  /**
+   * Whether the session's primary thread can consult an advisor model. Defaults to
+   * disabled.
+   */
+  advisor?: BetaManagedAgentsMultiagentAdvisorParams | null;
+
+  /**
+   * Whether the agent can spawn session threads. Defaults to enabled.
+   */
+  subagents?: BetaManagedAgentsMultiagentSubagentsParams | null;
+
+  /**
+   * Whether the agent can start workflow runs. Defaults to enabled.
+   */
+  workflows?: BetaManagedAgentsMultiagentWorkflowsParams | null;
 }
 
 /**
@@ -1106,7 +1486,8 @@ export interface BetaManagedAgentsReadToolConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Controls whether tool calls are auto-approved
+   * or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -1118,6 +1499,21 @@ export interface BetaManagedAgentsReadToolConfigParams {
 }
 
 /**
+ * The Anthropic-managed service account as returned in API responses.
+ */
+export interface BetaManagedAgentsServiceAccountExecutionIdentity {
+  type: 'service_account';
+}
+
+/**
+ * The Anthropic-managed service account — the default execution principal. Carries
+ * no identifier.
+ */
+export interface BetaManagedAgentsServiceAccountExecutionIdentityParams {
+  type: 'service_account';
+}
+
+/**
  * Resolved `agent` definition for a single `session_thread`. Snapshot of the agent
  * at thread creation time. The multiagent roster is not repeated here; read it
  * from `Session.agent`.
@@ -1126,6 +1522,13 @@ export interface BetaManagedAgentsSessionThreadAgent {
   id: string;
 
   description: string | null;
+
+  /**
+   * Execution principal snapshotted from the agent at session creation. Always
+   * present; `{"type": "service_account"}` when runs carry no customer-named
+   * principal.
+   */
+  execution_identity: BetaManagedAgentsExecutionIdentity;
 
   mcp_servers: Array<BetaManagedAgentsMCPServerURLDefinition>;
 
@@ -1222,6 +1625,12 @@ export interface BetaManagedAgentsWebFetchToolConfig {
 
   type: 'web_fetch';
 
+  /**
+   * Which sources contribute URLs the tool may fetch, always in the object form.
+   * Null when not set, which allows every source.
+   */
+  url_sources: BetaManagedAgentsWebFetchURLSources | null;
+
   allowed_domains?: Array<string>;
 
   blocked_domains?: Array<string>;
@@ -1267,7 +1676,8 @@ export interface BetaManagedAgentsWebFetchToolConfigParams {
   max_content_tokens?: number | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Controls whether tool calls are auto-approved
+   * or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -1276,6 +1686,163 @@ export interface BetaManagedAgentsWebFetchToolConfigParams {
     | null;
 
   type?: 'web_fetch';
+
+  /**
+   * Which sources contribute URLs the tool may fetch. Omit to allow every source.
+   */
+  url_sources?: BetaManagedAgentsWebFetchURLSourcesParams | null;
+}
+
+/**
+ * Every URL from this source may be fetched. This is the default.
+ */
+export interface BetaManagedAgentsWebFetchURLSourceAll {
+  type: 'all';
+}
+
+/**
+ * Every tool's results contribute URLs that may be fetched, except the named
+ * tools' results.
+ */
+export interface BetaManagedAgentsWebFetchURLSourceExcept {
+  /**
+   * The tools whose results do not contribute. Between 1 and 128 entries, each with
+   * a different name. An empty list is rejected; use "all" to leave out no tool's
+   * results.
+   */
+  tools: Array<BetaManagedAgentsWebFetchURLSourceToolReference>;
+
+  type: 'except';
+}
+
+/**
+ * This source contributes no URLs that may be fetched.
+ */
+export interface BetaManagedAgentsWebFetchURLSourceNone {
+  type: 'none';
+}
+
+/**
+ * Only the named tools' results contribute URLs that may be fetched.
+ */
+export interface BetaManagedAgentsWebFetchURLSourceOnly {
+  /**
+   * The tools whose results contribute. Between 1 and 128 entries, each with a
+   * different name. An empty list is rejected; use "none" to allow no tool's
+   * results.
+   */
+  tools: Array<BetaManagedAgentsWebFetchURLSourceToolReference>;
+
+  type: 'only';
+}
+
+/**
+ * String form of a url_sources value that has no field other than its type: "all"
+ * means {"type": "all"} and "none" means {"type": "none"}.
+ */
+export type BetaManagedAgentsWebFetchURLSourceShorthand = 'all' | 'none';
+
+/**
+ * Which tools' results contribute URLs that may be fetched.
+ */
+export type BetaManagedAgentsWebFetchURLSourceToolFilter =
+  | BetaManagedAgentsWebFetchURLSourceAll
+  | BetaManagedAgentsWebFetchURLSourceNone
+  | BetaManagedAgentsWebFetchURLSourceOnly
+  | BetaManagedAgentsWebFetchURLSourceExcept;
+
+/**
+ * Which tools' results contribute URLs that may be fetched. Accepts the string
+ * "all" or "none", or an object whose type is "all", "none", "only" or "except".
+ * Responses use the object form.
+ */
+export type BetaManagedAgentsWebFetchURLSourceToolFilterParams =
+  | BetaManagedAgentsWebFetchURLSourceShorthand
+  | BetaManagedAgentsWebFetchURLSourceToolFilter;
+
+/**
+ * Names one tool in an only or except list.
+ */
+export interface BetaManagedAgentsWebFetchURLSourceToolReference {
+  /**
+   * Name of the tool. Compared exactly, so upper and lower case letters are
+   * different.
+   */
+  name: string;
+
+  /**
+   * Must be "tool_reference".
+   */
+  type: 'tool_reference';
+}
+
+/**
+ * Whether URLs in the text of user messages may be fetched.
+ */
+export type BetaManagedAgentsWebFetchURLSourceUserInput =
+  | BetaManagedAgentsWebFetchURLSourceAll
+  | BetaManagedAgentsWebFetchURLSourceNone;
+
+/**
+ * Whether URLs in the text of user messages may be fetched. Accepts the string
+ * "all" or "none", or the object {"type": "all"} or {"type": "none"}. Responses
+ * use the object form.
+ */
+export type BetaManagedAgentsWebFetchURLSourceUserInputParams =
+  | BetaManagedAgentsWebFetchURLSourceShorthand
+  | BetaManagedAgentsWebFetchURLSourceUserInput;
+
+/**
+ * Which sources contribute URLs the web_fetch tool may fetch. A key that is null
+ * was not set and allows every URL from that source.
+ */
+export interface BetaManagedAgentsWebFetchURLSources {
+  /**
+   * Which custom tools' results contribute URLs that may be fetched. Null when not
+   * set, which allows every custom tool's results.
+   */
+  client_tool_results: BetaManagedAgentsWebFetchURLSourceToolFilter | null;
+
+  /**
+   * Which of the web_search and web_fetch tools' results contribute URLs that may be
+   * fetched. Null when not set, which allows both.
+   */
+  server_tool_results: BetaManagedAgentsWebFetchURLSourceToolFilter | null;
+
+  /**
+   * Whether URLs in the text of user messages may be fetched. Null when not set,
+   * which allows them.
+   */
+  user_input: BetaManagedAgentsWebFetchURLSourceUserInput | null;
+}
+
+/**
+ * Which sources contribute URLs the web_fetch tool may fetch. When web_fetch is
+ * limited to URLs the conversation has already shown the model (in a user message,
+ * a custom tool's result, or an earlier web_search or web_fetch result), each key
+ * narrows one of those sources and defaults to "all". Setting all three keys to
+ * "none" is rejected.
+ */
+export interface BetaManagedAgentsWebFetchURLSourcesParams {
+  /**
+   * Which custom tools' results contribute URLs that may be fetched: "all" (the
+   * default), "none", or an only or except list. Each name in a list must be a
+   * custom tool in the same tools array.
+   */
+  client_tool_results?: BetaManagedAgentsWebFetchURLSourceToolFilterParams | null;
+
+  /**
+   * Which of the web_search and web_fetch tools' results contribute URLs that may be
+   * fetched: "all" (the default), "none", or an only or except list. Each name in a
+   * list must be "web_search" or "web_fetch".
+   */
+  server_tool_results?: BetaManagedAgentsWebFetchURLSourceToolFilterParams | null;
+
+  /**
+   * Whether URLs in the text of user messages may be fetched: "all" (the default) or
+   * "none".
+   */
+  user_input?: BetaManagedAgentsWebFetchURLSourceUserInputParams | null;
 }
 
 /**
@@ -1338,7 +1905,8 @@ export interface BetaManagedAgentsWebSearchToolConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Controls whether tool calls are auto-approved
+   * or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -1389,7 +1957,8 @@ export interface BetaManagedAgentsWriteToolConfigParams {
   enabled?: boolean | null;
 
   /**
-   * Permission policy for tool execution.
+   * Permission policy for this tool. Controls whether tool calls are auto-approved
+   * or require confirmation.
    */
   permission_policy?:
     | BetaManagedAgentsAlwaysAllowPolicy
@@ -1404,7 +1973,7 @@ export interface AgentCreateParams {
   /**
    * Body param: Model identifier. Accepts the
    * [model string](https://platform.claude.com/docs/en/about-claude/models/overview#latest-models-comparison),
-   * e.g. `claude-opus-5`, or a `model_config` object for additional configuration
+   * e.g. `claude-opus-5-5`, or a `model_config` object for additional configuration
    * control
    */
   model: BetaManagedAgentsModel | BetaManagedAgentsModelConfigParams;
@@ -1418,6 +1987,12 @@ export interface AgentCreateParams {
    * Body param: Description of what the agent does.
    */
   description?: string | null;
+
+  /**
+   * Body param: Execution principal for runs of this agent. Omitting it, sending
+   * null, or sending `{"type": "service_account"}` stores the default.
+   */
+  execution_identity?: BetaManagedAgentsExecutionIdentityParams | null;
 
   /**
    * Body param: MCP servers this agent connects to. Maximum 20. Names must be unique
@@ -1434,9 +2009,7 @@ export interface AgentCreateParams {
   metadata?: { [key: string]: string };
 
   /**
-   * Body param: A coordinator topology: the session's primary thread orchestrates
-   * work by spawning session threads, each running an agent drawn from the `agents`
-   * roster.
+   * Body param: Multiagent orchestration configuration.
    */
   multiagent?: SessionsAPI.BetaManagedAgentsMultiagentParams | null;
 
@@ -1451,7 +2024,7 @@ export interface AgentCreateParams {
   system?: string | null;
 
   /**
-   * Body param: Tool configurations available to the agent. Maximum of 128 tools
+   * Body param: Tool configurations available to the agent. Maximum of 256 tools
    * across all toolsets allowed.
    */
   tools?: Array<
@@ -1461,7 +2034,8 @@ export interface AgentCreateParams {
   >;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -1484,7 +2058,8 @@ export interface AgentRetrieveParams {
   version?: number;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -1506,6 +2081,12 @@ export interface AgentUpdateParams {
   description?: string | null;
 
   /**
+   * Body param: Execution principal for runs of this agent. Full replacement. Omit
+   * to preserve; send null or `{"type": "service_account"}` to restore the default.
+   */
+  execution_identity?: BetaManagedAgentsExecutionIdentityParams | null;
+
+  /**
    * Body param: MCP servers. Full replacement. Omit to preserve; send empty array or
    * `null` to clear. Names must be unique. Maximum 20. Every server must be
    * referenced by an `mcp_toolset` in the agent's resulting `tools`; unreferenced
@@ -1524,15 +2105,14 @@ export interface AgentUpdateParams {
   /**
    * Body param: Model identifier. Accepts the
    * [model string](https://platform.claude.com/docs/en/about-claude/models/overview#latest-models-comparison),
-   * e.g. `claude-opus-5`, or a `model_config` object for additional configuration
+   * e.g. `claude-opus-5-5`, or a `model_config` object for additional configuration
    * control. Omit to preserve. Cannot be cleared.
    */
   model?: BetaManagedAgentsModel | BetaManagedAgentsModelConfigParams;
 
   /**
-   * Body param: A coordinator topology: the session's primary thread orchestrates
-   * work by spawning session threads, each running an agent drawn from the `agents`
-   * roster.
+   * Body param: Multiagent orchestration configuration. Full replacement. Omit to
+   * preserve; send null to clear.
    */
   multiagent?: SessionsAPI.BetaManagedAgentsMultiagentParams | null;
 
@@ -1555,7 +2135,7 @@ export interface AgentUpdateParams {
 
   /**
    * Body param: Tool configurations available to the agent. Full replacement. Omit
-   * to preserve; send empty array or null to clear. Maximum of 128 tools across all
+   * to preserve; send empty array or null to clear. Maximum of 256 tools across all
    * toolsets allowed.
    */
   tools?: Array<
@@ -1573,7 +2153,8 @@ export interface AgentUpdateParams {
   version?: number;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -1605,7 +2186,8 @@ export interface AgentListParams extends PageCursorParams {
   include_archived?: boolean;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -1622,7 +2204,8 @@ export interface AgentListParams extends PageCursorParams {
 
 export interface AgentArchiveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `managed-agents-2026-04-01` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -1661,6 +2244,8 @@ export declare namespace Agents {
     type BetaManagedAgentsAnthropicSkill as BetaManagedAgentsAnthropicSkill,
     type BetaManagedAgentsAnthropicSkillParams as BetaManagedAgentsAnthropicSkillParams,
     type BetaManagedAgentsAutoPolicy as BetaManagedAgentsAutoPolicy,
+    type BetaManagedAgentsAWSRoleExecutionIdentity as BetaManagedAgentsAWSRoleExecutionIdentity,
+    type BetaManagedAgentsAWSRoleExecutionIdentityParams as BetaManagedAgentsAWSRoleExecutionIdentityParams,
     type BetaManagedAgentsBashToolConfig as BetaManagedAgentsBashToolConfig,
     type BetaManagedAgentsBashToolConfigParams as BetaManagedAgentsBashToolConfigParams,
     type BetaManagedAgentsCustomSkill as BetaManagedAgentsCustomSkill,
@@ -1675,6 +2260,8 @@ export declare namespace Agents {
     type BetaManagedAgentsEffortMax as BetaManagedAgentsEffortMax,
     type BetaManagedAgentsEffortMedium as BetaManagedAgentsEffortMedium,
     type BetaManagedAgentsEffortXhigh as BetaManagedAgentsEffortXhigh,
+    type BetaManagedAgentsExecutionIdentity as BetaManagedAgentsExecutionIdentity,
+    type BetaManagedAgentsExecutionIdentityParams as BetaManagedAgentsExecutionIdentityParams,
     type BetaManagedAgentsGlobToolConfig as BetaManagedAgentsGlobToolConfig,
     type BetaManagedAgentsGlobToolConfigParams as BetaManagedAgentsGlobToolConfigParams,
     type BetaManagedAgentsGrepToolConfig as BetaManagedAgentsGrepToolConfig,
@@ -1689,17 +2276,58 @@ export declare namespace Agents {
     type BetaManagedAgentsModel as BetaManagedAgentsModel,
     type BetaManagedAgentsModelConfig as BetaManagedAgentsModelConfig,
     type BetaManagedAgentsModelConfigParams as BetaManagedAgentsModelConfigParams,
+    type BetaManagedAgentsMultiagentAdvisor as BetaManagedAgentsMultiagentAdvisor,
+    type BetaManagedAgentsMultiagentAdvisorDisabled as BetaManagedAgentsMultiagentAdvisorDisabled,
+    type BetaManagedAgentsMultiagentAdvisorDisabledParams as BetaManagedAgentsMultiagentAdvisorDisabledParams,
+    type BetaManagedAgentsMultiagentAdvisorEnabled as BetaManagedAgentsMultiagentAdvisorEnabled,
+    type BetaManagedAgentsMultiagentAdvisorEnabledParams as BetaManagedAgentsMultiagentAdvisorEnabledParams,
+    type BetaManagedAgentsMultiagentAdvisorParams as BetaManagedAgentsMultiagentAdvisorParams,
     type BetaManagedAgentsMultiagentCoordinator as BetaManagedAgentsMultiagentCoordinator,
     type BetaManagedAgentsMultiagentCoordinatorParams as BetaManagedAgentsMultiagentCoordinatorParams,
+    type BetaManagedAgentsMultiagentInlineAgents as BetaManagedAgentsMultiagentInlineAgents,
+    type BetaManagedAgentsMultiagentInlineAgentsDisabled as BetaManagedAgentsMultiagentInlineAgentsDisabled,
+    type BetaManagedAgentsMultiagentInlineAgentsDisabledParams as BetaManagedAgentsMultiagentInlineAgentsDisabledParams,
+    type BetaManagedAgentsMultiagentInlineAgentsEnabled as BetaManagedAgentsMultiagentInlineAgentsEnabled,
+    type BetaManagedAgentsMultiagentInlineAgentsEnabledParams as BetaManagedAgentsMultiagentInlineAgentsEnabledParams,
+    type BetaManagedAgentsMultiagentInlineAgentsParams as BetaManagedAgentsMultiagentInlineAgentsParams,
+    type BetaManagedAgentsMultiagentPredefinedAgentParams as BetaManagedAgentsMultiagentPredefinedAgentParams,
     type BetaManagedAgentsMultiagentSelfParams as BetaManagedAgentsMultiagentSelfParams,
+    type BetaManagedAgentsMultiagentSubagents as BetaManagedAgentsMultiagentSubagents,
+    type BetaManagedAgentsMultiagentSubagentsDisabled as BetaManagedAgentsMultiagentSubagentsDisabled,
+    type BetaManagedAgentsMultiagentSubagentsDisabledParams as BetaManagedAgentsMultiagentSubagentsDisabledParams,
+    type BetaManagedAgentsMultiagentSubagentsEnabled as BetaManagedAgentsMultiagentSubagentsEnabled,
+    type BetaManagedAgentsMultiagentSubagentsEnabledParams as BetaManagedAgentsMultiagentSubagentsEnabledParams,
+    type BetaManagedAgentsMultiagentSubagentsParams as BetaManagedAgentsMultiagentSubagentsParams,
+    type BetaManagedAgentsMultiagentWorkflows as BetaManagedAgentsMultiagentWorkflows,
+    type BetaManagedAgentsMultiagentWorkflowsDisabled as BetaManagedAgentsMultiagentWorkflowsDisabled,
+    type BetaManagedAgentsMultiagentWorkflowsDisabledParams as BetaManagedAgentsMultiagentWorkflowsDisabledParams,
+    type BetaManagedAgentsMultiagentWorkflowsEnabled as BetaManagedAgentsMultiagentWorkflowsEnabled,
+    type BetaManagedAgentsMultiagentWorkflowsEnabledParams as BetaManagedAgentsMultiagentWorkflowsEnabledParams,
+    type BetaManagedAgentsMultiagentWorkflowsParams as BetaManagedAgentsMultiagentWorkflowsParams,
+    type BetaManagedAgentsMultiagent20261001 as BetaManagedAgentsMultiagent20261001,
+    type BetaManagedAgentsMultiagent20261001Params as BetaManagedAgentsMultiagent20261001Params,
     type BetaManagedAgentsReadToolConfig as BetaManagedAgentsReadToolConfig,
     type BetaManagedAgentsReadToolConfigParams as BetaManagedAgentsReadToolConfigParams,
+    type BetaManagedAgentsServiceAccountExecutionIdentity as BetaManagedAgentsServiceAccountExecutionIdentity,
+    type BetaManagedAgentsServiceAccountExecutionIdentityParams as BetaManagedAgentsServiceAccountExecutionIdentityParams,
     type BetaManagedAgentsSessionThreadAgent as BetaManagedAgentsSessionThreadAgent,
     type BetaManagedAgentsSkillParams as BetaManagedAgentsSkillParams,
     type BetaManagedAgentsURLMCPServerParams as BetaManagedAgentsURLMCPServerParams,
     type BetaManagedAgentsUserLocation as BetaManagedAgentsUserLocation,
     type BetaManagedAgentsWebFetchToolConfig as BetaManagedAgentsWebFetchToolConfig,
     type BetaManagedAgentsWebFetchToolConfigParams as BetaManagedAgentsWebFetchToolConfigParams,
+    type BetaManagedAgentsWebFetchURLSourceAll as BetaManagedAgentsWebFetchURLSourceAll,
+    type BetaManagedAgentsWebFetchURLSourceExcept as BetaManagedAgentsWebFetchURLSourceExcept,
+    type BetaManagedAgentsWebFetchURLSourceNone as BetaManagedAgentsWebFetchURLSourceNone,
+    type BetaManagedAgentsWebFetchURLSourceOnly as BetaManagedAgentsWebFetchURLSourceOnly,
+    type BetaManagedAgentsWebFetchURLSourceShorthand as BetaManagedAgentsWebFetchURLSourceShorthand,
+    type BetaManagedAgentsWebFetchURLSourceToolFilter as BetaManagedAgentsWebFetchURLSourceToolFilter,
+    type BetaManagedAgentsWebFetchURLSourceToolFilterParams as BetaManagedAgentsWebFetchURLSourceToolFilterParams,
+    type BetaManagedAgentsWebFetchURLSourceToolReference as BetaManagedAgentsWebFetchURLSourceToolReference,
+    type BetaManagedAgentsWebFetchURLSourceUserInput as BetaManagedAgentsWebFetchURLSourceUserInput,
+    type BetaManagedAgentsWebFetchURLSourceUserInputParams as BetaManagedAgentsWebFetchURLSourceUserInputParams,
+    type BetaManagedAgentsWebFetchURLSources as BetaManagedAgentsWebFetchURLSources,
+    type BetaManagedAgentsWebFetchURLSourcesParams as BetaManagedAgentsWebFetchURLSourcesParams,
     type BetaManagedAgentsWebSearchToolConfig as BetaManagedAgentsWebSearchToolConfig,
     type BetaManagedAgentsWebSearchToolConfigParams as BetaManagedAgentsWebSearchToolConfigParams,
     type BetaManagedAgentsWriteToolConfig as BetaManagedAgentsWriteToolConfig,

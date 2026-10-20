@@ -9,6 +9,7 @@
  * real against a fake server; assertions read the server and the disk.
  */
 
+import type { Mock, MockInstance } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
@@ -24,17 +25,19 @@ import { MemoryServer, created, updated, fakeAnthropic } from './fake-anthropic'
 
 // Make `setupSkills` and `MEMORY_FLUSH_TIMEOUT_MS` mockable — worker.ts loads
 // them from this module lazily.
-jest.mock('@anthropic-ai/sdk/tools/agent-toolset/node', () => {
-  const actual = jest.requireActual('@anthropic-ai/sdk/tools/agent-toolset/node');
-  return { __esModule: true, ...actual, setupSkills: jest.fn(actual.setupSkills) };
+vi.mock('@anthropic-ai/sdk/tools/agent-toolset/node', async () => {
+  const actual = await vi.importActual<typeof import('@anthropic-ai/sdk/tools/agent-toolset/node')>(
+    '@anthropic-ai/sdk/tools/agent-toolset/node',
+  );
+  return { ...actual, setupSkills: vi.fn(actual.setupSkills) };
 });
 
 const REAL_MEMORY_FLUSH_TIMEOUT_MS = agentToolset.MEMORY_FLUSH_TIMEOUT_MS;
 let tmp: string;
-let dateNow: jest.SpyInstance<number, []>;
+let dateNow: MockInstance<() => number>;
 beforeEach(() => {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'e2e-memory-'));
-  dateNow = jest.spyOn(Date, 'now');
+  dateNow = vi.spyOn(Date, 'now');
 });
 afterEach(() => {
   dateNow.mockRestore();
@@ -335,7 +338,7 @@ test('worker flushes after a clean final sync that failed', async () => {
   // finish() swallows its own failures, so a clean stream end whose final
   // sync broke would silently lose the last edits — the teardown flush is
   // their second chance.
-  const spy = jest.spyOn(SessionMemoryStores.prototype, 'finish').mockImplementation(async () => {}); // a store-level failure inside the last sync: logged, nothing pushed
+  const spy = vi.spyOn(SessionMemoryStores.prototype, 'finish').mockImplementation(async () => {}); // a store-level failure inside the last sync: logged, nothing pushed
   try {
     const { server, local, run } = fakeSession({
       token: 'tok',
@@ -355,7 +358,7 @@ test('worker flushes after a clean final sync that failed', async () => {
 test('worker flushes and disposes even when skill teardown throws', async () => {
   // A throwing skill cleanup must not skip the flush or leave the folder
   // behind for the next work item to trip over.
-  (agentToolset.setupSkills as jest.Mock).mockImplementationOnce(async () => async () => {
+  (agentToolset.setupSkills as Mock).mockImplementationOnce(async () => async () => {
     throw new Error('teardown burp');
   });
   const { server, local, logs, run } = fakeSession({
@@ -374,7 +377,7 @@ test('worker flushes and disposes even when skill teardown throws', async () => 
 test('worker flush is bounded and teardown still runs', async () => {
   // A flush that hangs is cut off at MEMORY_FLUSH_TIMEOUT_MS and says so; dispose still runs.
   let flushStarted = false;
-  const flushSpy = jest.spyOn(SessionMemoryStores.prototype, 'flushWrites').mockImplementation(async () => {
+  const flushSpy = vi.spyOn(SessionMemoryStores.prototype, 'flushWrites').mockImplementation(async () => {
     flushStarted = true;
     await new Promise<void>((r) => setTimeout(r, 5_000).unref());
   });
@@ -397,7 +400,7 @@ test('worker flush is bounded and teardown still runs', async () => {
 test('worker final sync is bounded and the flush still runs', async () => {
   // A final sync that hangs is cut off at MEMORY_FLUSH_TIMEOUT_MS and says so;
   // the flush after it still uploads the last edit.
-  const finishSpy = jest.spyOn(SessionMemoryStores.prototype, 'finish').mockImplementation(async () => {
+  const finishSpy = vi.spyOn(SessionMemoryStores.prototype, 'finish').mockImplementation(async () => {
     await new Promise<void>((r) => setTimeout(r, 5_000).unref());
   });
   try {
@@ -453,11 +456,11 @@ test('the last sync runs after the skill teardown', async () => {
   // finish() skips the delete waiting window, so it must only run once
   // nothing can still be rewriting files — after the skill teardown.
   const order: string[] = [];
-  (agentToolset.setupSkills as jest.Mock).mockImplementationOnce(async () => async () => {
+  (agentToolset.setupSkills as Mock).mockImplementationOnce(async () => async () => {
     order.push('env_teardown');
   });
   const realFinish = SessionMemoryStores.prototype.finish;
-  const finishSpy = jest.spyOn(SessionMemoryStores.prototype, 'finish').mockImplementation(async function (
+  const finishSpy = vi.spyOn(SessionMemoryStores.prototype, 'finish').mockImplementation(async function (
     this: SessionMemoryStores,
   ) {
     order.push('finish');
@@ -485,7 +488,7 @@ test('the lease is heartbeated until the memory teardown is done', async () => {
   // hold the folder.
   const order: string[] = [];
   const realDispose = SessionMemoryStores.prototype.dispose;
-  const disposeSpy = jest.spyOn(SessionMemoryStores.prototype, 'dispose').mockImplementation(async function (
+  const disposeSpy = vi.spyOn(SessionMemoryStores.prototype, 'dispose').mockImplementation(async function (
     this: SessionMemoryStores,
   ) {
     await realDispose.call(this);

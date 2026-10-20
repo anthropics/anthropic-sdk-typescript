@@ -258,6 +258,70 @@ describe('transformJsonSchema', () => {
 `);
   });
 
+  it('should keep $defs when the root schema is a $ref', () => {
+    const input = {
+      $ref: '#/$defs/Item',
+      $defs: {
+        Item: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              pattern: '^[A-Za-z]+$',
+            },
+          },
+        },
+      },
+    };
+
+    const result = transformJSONSchema(input);
+    expect(result).toEqual({
+      $ref: '#/$defs/Item',
+      $defs: {
+        Item: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: '{pattern: "^[A-Za-z]+$"}',
+            },
+          },
+          additionalProperties: false,
+        },
+      },
+    });
+
+    const diff = detailedDiff(input, result);
+    expect(diff).toMatchInlineSnapshot(`
+{
+  "added": {
+    "$defs": {
+      "Item": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "description": "{pattern: "^[A-Za-z]+$"}",
+          },
+        },
+      },
+    },
+  },
+  "deleted": {
+    "$defs": {
+      "Item": {
+        "properties": {
+          "name": {
+            "pattern": undefined,
+          },
+        },
+      },
+    },
+  },
+  "updated": {},
+}
+`);
+  });
+
   it('should remove additionalProperties: true', () => {
     const input = {
       type: 'object',

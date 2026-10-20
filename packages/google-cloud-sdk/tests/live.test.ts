@@ -18,7 +18,7 @@ const newClient = () =>
   });
 
 live('AnthropicGoogleCloud — live', () => {
-  jest.setTimeout(60_000);
+  vi.setConfig({ testTimeout: 60_000 });
 
   test('non-streaming create', async () => {
     const client = newClient();
@@ -67,5 +67,29 @@ live('AnthropicGoogleCloud — live', () => {
         messages: [{ role: 'user', content: 'hi' }],
       }),
     ).rejects.toBeInstanceOf(APIError);
+  });
+
+  test("an organization route returns the client's own workspace", async (ctx) => {
+    const client = newClient();
+    if (!client.workspaceId) {
+      return ctx.skip('Set ANTHROPIC_GOOGLE_CLOUD_WORKSPACE_ID to run this test');
+    }
+
+    const workspace = await client.organization.workspaces.retrieve(client.workspaceId);
+    expect(workspace.id).toBe(client.workspaceId);
+  });
+
+  test('the Managed Agents routes create, retrieve, list and archive an agent', async () => {
+    const client = newClient();
+    const agent = await client.beta.agents.create({ model: MODEL, name: 'sdk-live-test' });
+
+    let archived;
+    try {
+      expect((await client.beta.agents.retrieve(agent.id)).id).toBe(agent.id);
+      expect((await client.beta.agents.list({ limit: 1 })).data.length).toBeGreaterThan(0);
+    } finally {
+      archived = await client.beta.agents.archive(agent.id);
+    }
+    expect(archived.archived_at).toBeTruthy();
   });
 });

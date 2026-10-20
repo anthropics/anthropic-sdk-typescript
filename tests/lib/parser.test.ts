@@ -302,7 +302,7 @@ describe('Beta Parser', () => {
         output_config: { format: betaZodOutputFormat(z.object({ city: z.string() })) },
       };
 
-      const mockLogger = { warn: jest.fn() };
+      const mockLogger = { warn: vi.fn() };
 
       const parsed = maybeParseBetaMessage(mockMessage, params, { logger: mockLogger as any });
       expect(parsed.parsed_output).toEqual({ city: 'San Francisco' });
@@ -481,6 +481,7 @@ describe('GA Parser', () => {
           citations: null,
         },
       ],
+      diagnostics: null,
       stop_details: null,
       stop_reason: 'end_turn',
       stop_sequence: null,
@@ -494,6 +495,7 @@ describe('GA Parser', () => {
         server_tool_use: null,
         service_tier: null,
         inference_geo: null,
+        speed: null,
       },
       container: null,
     };
@@ -657,6 +659,7 @@ describe('GA Parser', () => {
           citations: null,
         },
       ],
+      diagnostics: null,
       stop_details: null,
       stop_reason: 'end_turn',
       stop_sequence: null,
@@ -670,6 +673,7 @@ describe('GA Parser', () => {
         server_tool_use: null,
         service_tier: null,
         inference_geo: null,
+        speed: null,
       },
       container: null,
     };

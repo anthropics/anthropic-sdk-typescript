@@ -6,7 +6,7 @@
  */
 
 import type { Fetch } from './builtin-types';
-import type { ReadableStream } from './shim-types';
+import type { ReadableStream as ReadableStreamType } from './shim-types';
 
 export function getDefaultFetch(): Fetch {
   if (typeof fetch !== 'undefined') {
@@ -18,9 +18,10 @@ export function getDefaultFetch(): Fetch {
   );
 }
 
+// The runtime's global ReadableStream constructor, not the type imported above as ReadableStreamType.
 type ReadableStreamArgs = ConstructorParameters<typeof ReadableStream>;
 
-export function makeReadableStream(...args: ReadableStreamArgs): ReadableStream {
+export function makeReadableStream(...args: ReadableStreamArgs): ReadableStreamType {
   const ReadableStream = (globalThis as any).ReadableStream;
   if (typeof ReadableStream === 'undefined') {
     // Note: All of the platforms / runtimes we officially support already define
@@ -33,7 +34,7 @@ export function makeReadableStream(...args: ReadableStreamArgs): ReadableStream 
   return new ReadableStream(...args);
 }
 
-export function ReadableStreamFrom<T>(iterable: Iterable<T> | AsyncIterable<T>): ReadableStream<T> {
+export function ReadableStreamFrom<T>(iterable: Iterable<T> | AsyncIterable<T>): ReadableStreamType<T> {
   let iter: AsyncIterator<T> | Iterator<T> =
     Symbol.asyncIterator in iterable ? iterable[Symbol.asyncIterator]() : iterable[Symbol.iterator]();
 
@@ -59,8 +60,8 @@ export function ReadableStreamFrom<T>(iterable: Iterable<T> | AsyncIterable<T>):
  *
  * This polyfill was pulled from https://github.com/MattiasBuelens/web-streams-polyfill/pull/122#issuecomment-1627354490
  */
-export function ReadableStreamToAsyncIterable<T>(stream: any): AsyncIterableIterator<T> {
-  if (stream[Symbol.asyncIterator]) return stream;
+function readableStreamIterator<T>(stream: any): AsyncIterator<T> {
+  if (stream[Symbol.asyncIterator]) return stream[Symbol.asyncIterator]();
 
   const reader = stream.getReader();
   return {
@@ -80,10 +81,32 @@ export function ReadableStreamToAsyncIterable<T>(stream: any): AsyncIterableIter
       await cancelPromise;
       return { done: true, value: undefined };
     },
-    [Symbol.asyncIterator]() {
-      return this;
-    },
   };
+}
+
+// Cancels a stream whose reader was garbage collected before it finished. The reader's lock keeps
+// anything else from reading or cancelling the stream, so it would hold on to its connection.
+const droppedReaders =
+  typeof FinalizationRegistry === 'undefined' ? undefined : (
+    /* @__PURE__ */ new FinalizationRegistry(async (iter: AsyncIterator<unknown>) => {
+      try {
+        await iter.return?.();
+      } catch {
+        // The stream has already failed, e.g. because the request was aborted.
+      }
+    })
+  );
+
+export async function* ReadableStreamToAsyncIterable<T>(stream: any): AsyncIterableIterator<T> {
+  const iter = readableStreamIterator<T>(stream);
+  // Only this generator refers to `reader`, so it's collected once nothing can resume the generator.
+  const reader = {};
+  droppedReaders?.register(reader, iter, reader);
+  try {
+    for await (const chunk of { [Symbol.asyncIterator]: () => iter }) yield chunk;
+  } finally {
+    droppedReaders?.unregister(reader);
+  }
 }
 
 /**

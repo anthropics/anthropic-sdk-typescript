@@ -10,6 +10,7 @@
     },
     "noEmit": false,
     "declaration": true,
+    "stripInternal": true,
     "declarationMap": true,
     "outDir": "dist",
     "pretty": true,

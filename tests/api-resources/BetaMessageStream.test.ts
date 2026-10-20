@@ -1,6 +1,9 @@
 import Anthropic, { APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
 import { AnthropicError } from '@anthropic-ai/sdk/error';
+import { BetaMessageStream } from '@anthropic-ai/sdk/lib/BetaMessageStream';
 import {
+  BetaCompactionBlock,
+  BetaCompactionContentBlockDelta,
   BetaMessage,
   BetaMessageDeltaUsage,
   BetaRawMessageDeltaEvent,
@@ -10,16 +13,17 @@ import * as partialJsonParser from '@anthropic-ai/sdk/_vendor/partial-json-parse
 import { mockFetch } from '../lib/mock-fetch';
 import { loadFixture, parseSSEFixture } from '../lib/sse-helpers';
 
-// The swc-compiled module exports are non-configurable, so `jest.spyOn` can't patch
-// `partialParse`; wrap the real implementation in a `jest.fn` to count calls instead.
-jest.mock('@anthropic-ai/sdk/_vendor/partial-json-parser/parser', () => {
-  const actual = jest.requireActual('@anthropic-ai/sdk/_vendor/partial-json-parser/parser');
-  return { ...actual, partialParse: jest.fn(actual.partialParse) };
+// Wrap the real `partialParse` in a `vi.fn` so tests can count calls.
+vi.mock('@anthropic-ai/sdk/_vendor/partial-json-parser/parser', async () => {
+  const actual = await vi.importActual<typeof import('@anthropic-ai/sdk/_vendor/partial-json-parser/parser')>(
+    '@anthropic-ai/sdk/_vendor/partial-json-parser/parser',
+  );
+  return { ...actual, partialParse: vi.fn(actual.partialParse) };
 });
 
 // tripwire: a new BetaRawMessageDeltaEvent field must be handled in BetaMessageStream#accumulateMessage,
 // then listed here (missing key -> required-property error, extra key -> excess-property error);
-// enforced at compile time by tsc via ./scripts/lint, not by jest
+// enforced at compile time by tsc via ./scripts/lint, not by the test runner
 const _accumulatedDeltaEventKeys: Record<keyof BetaRawMessageDeltaEvent, true> = {
   type: true,
   delta: true,
@@ -129,7 +133,12 @@ const EXPECTED_INCOMPLETE_MESSAGE = {
       name: 'make_file',
       input: {
         filename: 'taxes.txt',
-        lines_of_text: ['# COMPREHENSIVE TAX GUIDE FOR INDIVIDUALS WITH MULTIPLE W-2s'],
+        lines_of_text: [
+          '# COMPREHENSIVE TAX GUIDE FOR INDIVIDUALS WITH MULTIPLE W-2s',
+          '',
+          '## INTRODUCTION',
+          '',
+        ],
       },
     },
   ],
@@ -160,6 +169,8 @@ const EXPECTED_INCOMPLETE_EVENT_TYPES = [
   'message_delta',
   'message_stop',
 ];
+
+const UNKNOWN_EVENT = { type: 'future_event', usage: { output_tokens: 1 } };
 
 function assertBasicResponse(events: BetaRawMessageStreamEvent[], message: BetaMessage) {
   expect(events.map((e) => e.type)).toEqual(EXPECTED_BASIC_EVENT_TYPES);
@@ -282,7 +293,7 @@ describe('BetaMessageStream class', () => {
 
     const stream = anthropic.beta.messages.stream({
       max_tokens: 1024,
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-5-5',
       messages: [{ role: 'user', content: 'Create a tax guide' }],
     });
 
@@ -340,6 +351,49 @@ describe('BetaMessageStream class', () => {
     expect(finalText).toBe('Hello there!');
   });
 
+  it('passes unknown events through with the current snapshot', async () => {
+    const [messageStart, ...rest] = await parseSSEFixture(loadFixture('basic_response.txt'));
+    const early = [UNKNOWN_EVENT, { type: 'content_block_stop', index: 0 }];
+    const lines = [...early, messageStart, UNKNOWN_EVENT, ...rest, UNKNOWN_EVENT].map((event) =>
+      JSON.stringify(event),
+    );
+
+    const stream = BetaMessageStream.fromReadableStream(new Response(lines.join('\n')).body!);
+
+    const events: BetaRawMessageStreamEvent[] = [];
+    const snapshotIDs: string[] = [];
+    stream.on('streamEvent', (event, snapshot) => {
+      events.push(event);
+      snapshotIDs.push(snapshot?.id);
+    });
+    const afterMessageStart: BetaRawMessageStreamEvent[] = [];
+    const loopEnded = new Promise<void>((resolve) =>
+      stream.once('streamEvent', async () => {
+        for await (const event of stream) {
+          afterMessageStart.push(event);
+        }
+        resolve();
+      }),
+    );
+    const iterated: BetaRawMessageStreamEvent[] = [];
+    for await (const event of BetaMessageStream.fromReadableStream(stream.toReadableStream())) {
+      iterated.push(event);
+    }
+
+    expect(await stream.finalMessage()).toMatchObject(EXPECTED_BASIC_MESSAGE);
+    expect(iterated.slice(0, early.length)).toEqual(early);
+    expect(iterated.slice(early.length).map((e) => e.type)).toEqual(events.map((e) => e.type));
+    await loopEnded;
+    expect(afterMessageStart).toEqual(events.slice(1));
+    expect(snapshotIDs).toEqual(events.map(() => EXPECTED_BASIC_MESSAGE.id));
+    expect(events.map((e) => e.type)).toEqual([
+      'message_start',
+      UNKNOWN_EVENT.type,
+      ...EXPECTED_BASIC_EVENT_TYPES.slice(1),
+      UNKNOWN_EVENT.type,
+    ]);
+  });
+
   it('handles tool use response fixture', async () => {
     const { fetch, handleStreamEvents } = mockFetch();
 
@@ -375,7 +429,7 @@ describe('BetaMessageStream class', () => {
   });
 
   it('parses tool input lazily — once per block, not per delta', async () => {
-    const partialParse = jest.mocked(partialJsonParser.partialParse);
+    const partialParse = vi.mocked(partialJsonParser.partialParse);
     partialParse.mockClear();
     const { fetch, handleStreamEvents } = mockFetch();
     const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
@@ -451,7 +505,7 @@ describe('BetaMessageStream class', () => {
     const stream = anthropic.beta.messages.stream(
       {
         max_tokens: 1024,
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-5-5',
         messages: [{ role: 'user', content: 'Say hello there!' }],
       },
       { maxRetries: 0 },
@@ -482,7 +536,7 @@ describe('BetaMessageStream class', () => {
     const stream = anthropic.beta.messages.stream(
       {
         max_tokens: 1024,
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-5-5',
         messages: [{ role: 'user', content: 'Say hello there!' }],
       },
       { maxRetries: 0 },
@@ -593,7 +647,7 @@ describe('BetaMessageStream class', () => {
 
     const stream = anthropic.beta.messages.stream({
       max_tokens: 1024,
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-5-5',
       messages: [{ role: 'user', content: 'Say hello again!' }],
     });
 
@@ -951,5 +1005,104 @@ describe('BetaMessageStream class', () => {
       },
       { type: 'text', text: 'Hello there!' },
     ]);
+  });
+
+  describe('compaction_delta', () => {
+    // Mirrors the wire: the server opens a compaction block with null content, then sends one
+    // compaction_delta carrying the block's final values (`content: null` when compaction failed).
+    function streamCompaction(
+      contentBlock: Partial<BetaCompactionBlock>,
+      deltas: Array<Partial<BetaCompactionContentBlockDelta>>,
+    ) {
+      const { fetch, handleStreamEvents } = mockFetch();
+      const anthropic = new Anthropic({ apiKey: 'test-key', fetch });
+
+      handleStreamEvents([
+        {
+          type: 'message_start',
+          message: {
+            id: 'msg_compaction_01',
+            type: 'message',
+            role: 'assistant',
+            content: [],
+            model: 'claude-opus-4-8',
+            stop_reason: null,
+            stop_sequence: null,
+            usage: { input_tokens: 10, output_tokens: 1 },
+          },
+        },
+        { type: 'content_block_start', index: 0, content_block: contentBlock },
+        ...deltas.map((delta) => ({
+          type: 'content_block_delta',
+          index: 0,
+          delta: { type: 'compaction_delta', ...delta },
+        })),
+        { type: 'content_block_stop', index: 0 },
+        {
+          type: 'message_delta',
+          delta: { stop_reason: 'compaction', stop_sequence: null },
+          usage: { output_tokens: 5 },
+        },
+        { type: 'message_stop' },
+      ]);
+
+      const stream = anthropic.beta.messages.stream({
+        max_tokens: 1024,
+        model: 'claude-opus-4-8',
+        messages: [{ role: 'user', content: 'test' }],
+      });
+      const compactions: string[] = [];
+      stream.on('compaction', (content) => compactions.push(content));
+      return { stream, compactions };
+    }
+
+    it('accumulates the summary and checkpoint', async () => {
+      const { stream, compactions } = streamCompaction(
+        { type: 'compaction', content: null, encrypted_content: null },
+        [{ content: 'Summary of the conversation so far', encrypted_content: 'checkpoint_1' }],
+      );
+
+      const message = await stream.finalMessage();
+
+      expect(message.content).toStrictEqual([
+        {
+          type: 'compaction',
+          content: 'Summary of the conversation so far',
+          encrypted_content: 'checkpoint_1',
+        },
+      ]);
+      expect(compactions).toEqual(['Summary of the conversation so far']);
+    });
+
+    it('keeps a failed compaction null rather than coercing it to "null"', async () => {
+      // encrypted_content is beta-gated, so the server can omit the key entirely
+      const { stream, compactions } = streamCompaction({ type: 'compaction', content: null }, [
+        { content: null },
+      ]);
+
+      const message = await stream.finalMessage();
+
+      // strict: no `encrypted_content: undefined` key is materialized either
+      expect(message.content).toStrictEqual([{ type: 'compaction', content: null }]);
+      expect(compactions).toEqual([]);
+    });
+
+    it('takes the latest delta as the whole value rather than appending', async () => {
+      // not a sequence the server sends today; pins last-write-wins, as in the other SDKs
+      const { stream, compactions } = streamCompaction(
+        { type: 'compaction', content: null, encrypted_content: null },
+        [
+          { content: 'Summary v1', encrypted_content: 'checkpoint_1' },
+          { content: 'Summary v2', encrypted_content: null },
+        ],
+      );
+
+      const message = await stream.finalMessage();
+
+      expect(message.content).toStrictEqual([
+        { type: 'compaction', content: 'Summary v2', encrypted_content: null },
+      ]);
+      expect(compactions).toEqual(['Summary v1', 'Summary v2']);
+    });
   });
 });

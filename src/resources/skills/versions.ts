@@ -4,6 +4,7 @@ import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagin
 import { type Uploadable } from '../../core/uploads';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { startApiCallSpan } from '../../internal/tracing';
 import { multipartFormRequestOptions } from '../../internal/uploads';
 import { path } from '../../internal/utils/path';
 
@@ -31,6 +32,11 @@ export class Versions extends APIResource {
             { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
             options?.headers,
           ]),
+          __span: startApiCallSpan(this._client, 'anthropic.skills.versions.create', options, {
+            route: '/v1/skills/{skill_id}/versions',
+            attributes: { 'anthropic.skill.id': skillID },
+            createdIDAttribute: 'anthropic.skill.version.id',
+          }),
         },
         this._client,
         false,
@@ -61,6 +67,10 @@ export class Versions extends APIResource {
         { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.skills.versions.retrieve', options, {
+        route: '/v1/skills/{skill_id}/versions/{version}',
+        attributes: { 'anthropic.skill.id': skill_id, 'anthropic.skill.version.id': version },
+      }),
     });
   }
 
@@ -90,6 +100,11 @@ export class Versions extends APIResource {
         { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.skills.versions.list', options, {
+        route: '/v1/skills/{skill_id}/versions',
+        queryParams: ['limit', 'page'],
+        attributes: { 'anthropic.skill.id': skillID },
+      }),
     });
   }
 
@@ -116,6 +131,10 @@ export class Versions extends APIResource {
         { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.skills.versions.delete', options, {
+        route: '/v1/skills/{skill_id}/versions/{version}',
+        attributes: { 'anthropic.skill.id': skill_id, 'anthropic.skill.version.id': version },
+      }),
     });
   }
 }

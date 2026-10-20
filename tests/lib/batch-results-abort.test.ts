@@ -1,4 +1,5 @@
 import { getEventListeners } from 'node:events';
+import { vi } from 'vitest';
 import Anthropic from '@anthropic-ai/sdk';
 
 const first = { custom_id: 'first', result: { type: 'canceled' } };
@@ -24,10 +25,10 @@ describe.each([
   });
 
   async function results(tail: string | null, empty = false) {
-    const cancel = jest.fn();
+    const cancel = vi.fn();
     let bodyController: ReadableStreamDefaultController<Uint8Array>;
     let requestSignal: AbortSignal | null | undefined;
-    const fetch = jest.fn(async (input: string | URL | Request, init?: RequestInit) => {
+    const fetch = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
       // The metadata request must have released its own listener before the results request starts.
       expect(listenerCount(caller.signal)).toBe(1);
       expect(init?.method).toBe('GET');
@@ -160,6 +161,24 @@ describe.each([
     errorBody(error);
     await rejected;
     expect(decoder.controller.signal.aborted).toBe(false);
+    expect(listenerCount(caller.signal)).toBe(0);
+  });
+
+  test('rejecting a second iteration keeps the active iteration abortable', async () => {
+    const { decoder, cancel } = await results(null);
+    const iterator = decoder[Symbol.asyncIterator]();
+    expect(await iterator.next()).toEqual({ done: false, value: first });
+    const pending = iterator.next();
+    const rejected = expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+
+    await expect(decoder[Symbol.asyncIterator]().next()).rejects.toBeInstanceOf(Anthropic.AnthropicError);
+    expect(listenerCount(caller.signal)).toBe(1);
+    expect(decoder.controller.signal.aborted).toBe(false);
+    expect(cancel).not.toHaveBeenCalled();
+
+    caller.abort();
+    await rejected;
+    expect(decoder.controller.signal.aborted).toBe(true);
     expect(listenerCount(caller.signal)).toBe(0);
   });
 

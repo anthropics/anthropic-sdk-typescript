@@ -53,24 +53,24 @@ else
 fi
 
 echo "==> Running tests"
-./node_modules/.bin/jest "$@"
+./node_modules/.bin/vitest run "$@"
 
 echo
 echo "==> Running vertex-sdk tests"
-(cd packages/vertex-sdk && ./node_modules/.bin/jest)
+(cd packages/vertex-sdk && ./node_modules/.bin/vitest run)
 
 echo
 echo "==> Running bedrock-sdk tests"
-(cd packages/bedrock-sdk && ./node_modules/.bin/jest)
+(cd packages/bedrock-sdk && ./node_modules/.bin/vitest run)
 
 echo
 echo "==> Running foundry-sdk tests"
-(cd packages/foundry-sdk && ./node_modules/.bin/jest)
+(cd packages/foundry-sdk && ./node_modules/.bin/vitest run)
 
 echo
 echo "==> Running aws-sdk tests"
-(cd packages/aws-sdk && ./node_modules/.bin/jest)
+(cd packages/aws-sdk && ./node_modules/.bin/vitest run)
 
 echo
 echo "==> Running google-cloud-sdk tests"
-(cd packages/google-cloud-sdk && ./node_modules/.bin/jest)
+(cd packages/google-cloud-sdk && ./node_modules/.bin/vitest run)

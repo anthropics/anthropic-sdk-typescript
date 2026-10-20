@@ -1,5 +1,62 @@
 # Changelog
 
+## [0.9.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.8.0...aws-sdk-v0.9.0) (2026-10-20)
+
+### Features
+
+* **aws:** require `@anthropic-ai/sdk` 0.136.0 or later
+* **aws:** throw an `AnthropicError` when `actionURLs` is read on `userProfiles` or `beta.userProfiles`, which the AWS gateway doesn't serve
+
+## [0.8.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.9...aws-sdk-v0.8.0) (2026-10-14)
+
+### Features
+
+* **api:** add execution_identity to Managed Agents agents
+* **client:** add native support for OpenTelemetry tracing
+
+  If your app registers a global tracer provider, the SDK will create spans with it after upgrading, and they'll be exported with the rest of your traces. Requests will also get trace context headers from the global propagator. To disable, pass `openTelemetry: false` to the client or set `ANTHROPIC_OPEN_TELEMETRY=false`. Learn more in the [documentation](https://platform.claude.com/docs/en/manage-claude/opentelemetry/sdk).
+
+
+### Chores
+
+* include the license files in the published packages
+* **internal:** strip `@internal` declarations from published types
+
+## [0.7.9](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.8...aws-sdk-v0.7.9) (2026-10-08)
+
+### Chores
+
+* **ci:** check that pull requests update the changelog
+
+## 0.7.8 (2026-10-07)
+
+Full Changelog: [aws-sdk-v0.7.7...aws-sdk-v0.7.8](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.7...aws-sdk-v0.7.8)
+
+## 0.7.7 (2026-09-30)
+
+Full Changelog: [aws-sdk-v0.7.6...aws-sdk-v0.7.7](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.6...aws-sdk-v0.7.7)
+
+## 0.7.6 (2026-09-30)
+
+Full Changelog: [aws-sdk-v0.7.5...aws-sdk-v0.7.6](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.5...aws-sdk-v0.7.6)
+
+## 0.7.5 (2026-09-28)
+
+Full Changelog: [aws-sdk-v0.7.4...aws-sdk-v0.7.5](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.4...aws-sdk-v0.7.5)
+
+## 0.7.4 (2026-09-22)
+
+Full Changelog: [aws-sdk-v0.7.3...aws-sdk-v0.7.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.3...aws-sdk-v0.7.4)
+
+## 0.7.3 (2026-09-18)
+
+Full Changelog: [aws-sdk-v0.7.2...aws-sdk-v0.7.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.2...aws-sdk-v0.7.3)
+
+### Chores
+
+* **internal:** build the sub-packages with TypeScript 6.0.3 ([8a69ff5](https://github.com/anthropics/anthropic-sdk-typescript/commit/8a69ff594ffeec3f6bd964030086b01ae5354aaf))
+* **internal:** switch unit tests from jest to vitest ([788c9c6](https://github.com/anthropics/anthropic-sdk-typescript/commit/788c9c62ba2bd8180ffc7dcebd1cee14cd692d03))
+
 ## 0.7.2 (2026-09-15)
 
 Full Changelog: [aws-sdk-v0.7.1...aws-sdk-v0.7.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.7.1...aws-sdk-v0.7.2)

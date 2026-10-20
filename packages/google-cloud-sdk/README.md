@@ -39,9 +39,9 @@ See [`examples/`](examples) for runnable basic and streaming examples.
 | ------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `project`     | `ANTHROPIC_GOOGLE_CLOUD_PROJECT`      | GCP project id, used to derive the base URL. When neither is set (and no `baseURL` is given), it is resolved lazily from your Google credentials at or before the first request. |
 | `location`    | `ANTHROPIC_GOOGLE_CLOUD_LOCATION`     | GCP location. Optional — defaults to `global`.                                                                                                                                   |
-| `workspaceId` | `ANTHROPIC_GOOGLE_CLOUD_WORKSPACE_ID` | Required unless `skipAuth` is set with an explicit `baseURL`.                                                                                                                    |
+| `workspaceId` | `ANTHROPIC_GOOGLE_CLOUD_WORKSPACE_ID` | Required when the base URL is derived, except for organization-level routes (`/v1/organizations/*`), which need none.                                                            |
 | `baseURL`     | `ANTHROPIC_GOOGLE_CLOUD_BASE_URL`     | Overrides the base URL derived from `project` + `location` + `workspaceId`.                                                                                                      |
-| `skipAuth`    | —                                     | Skips the bearer token, for gateways that authenticate upstream. A `workspaceId` is still needed unless `baseURL` is explicit.                                                   |
+| `skipAuth`    | —                                     | Skips the bearer token, for gateways that authenticate upstream.                                                                                                                 |
 
 When the project is resolved lazily, await `client.ready` to fail fast on misconfiguration instead of waiting for the first request.
 

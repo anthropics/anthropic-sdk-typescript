@@ -7,9 +7,10 @@ for (const dep in pkgJson.dependencies) {
     // Floor at the base-SDK version this client's internals require: the
     // `_shouldResolveDefaultCredentials()` hook this client overrides so a
     // config/profile `base_url` can't take over the region-derived gateway URL,
-    // and the `protected` `getUserAgent()` this client overrides. Older
-    // in-range versions have neither.
-    pkgJson.dependencies[dep] = '>=0.115.1 <1';
+    // the `protected` `getUserAgent()` this client overrides, and the
+    // `UserProfiles` resource this client constructs. Older versions lack at
+    // least one of these.
+    pkgJson.dependencies[dep] = '>=0.136.0 <1';
   }
 }
 

@@ -11,7 +11,7 @@ const anthropic = new AnthropicBedrock();
 
 async function main() {
   const message = await anthropic.messages.create({
-    model: 'global.anthropic.claude-sonnet-5',
+    model: 'global.anthropic.claude-sonnet-5-5',
     messages: [
       {
         role: 'user',

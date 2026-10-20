@@ -1,5 +1,75 @@
 # Changelog
 
+## [0.36.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.35.0...bedrock-sdk-v0.36.0) (2026-10-20)
+
+### Features
+
+* **bedrock:** send `user_profile_id` in the request body on `AnthropicBedrockMantle` Messages and token counting requests
+* **bedrock:** throw an `AnthropicError` when `userProfiles` or `beta.userProfiles` is read on `AnthropicBedrock`, which doesn't serve user profiles
+
+## [0.35.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.34.4...bedrock-sdk-v0.35.0) (2026-10-14)
+
+### Features
+
+* **api:** add execution_identity to Managed Agents agents
+* **client:** add native support for OpenTelemetry tracing
+
+  If your app registers a global tracer provider, the SDK will create spans with it after upgrading, and they'll be exported with the rest of your traces. Requests will also get trace context headers from the global propagator. To disable, pass `openTelemetry: false` to the client or set `ANTHROPIC_OPEN_TELEMETRY=false`. Learn more in the [documentation](https://platform.claude.com/docs/en/manage-claude/opentelemetry/sdk).
+
+
+### Chores
+
+* include the license files in the published packages
+* **internal:** strip `@internal` declarations from published types
+
+## [0.34.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.34.3...bedrock-sdk-v0.34.4) (2026-10-08)
+
+### Chores
+
+* **ci:** check that pull requests update the changelog
+
+## 0.34.3 (2026-10-07)
+
+Full Changelog: [bedrock-sdk-v0.34.2...bedrock-sdk-v0.34.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.34.2...bedrock-sdk-v0.34.3)
+
+## 0.34.2 (2026-09-30)
+
+Full Changelog: [bedrock-sdk-v0.34.1...bedrock-sdk-v0.34.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.34.1...bedrock-sdk-v0.34.2)
+
+### Chores
+
+* **client:** deprecate sonnet 4.5 ([d72cfaf](https://github.com/anthropics/anthropic-sdk-typescript/commit/d72cfaf6a551c75d54fad0538fb5fd65fb2346d1))
+
+## 0.34.1 (2026-09-30)
+
+Full Changelog: [bedrock-sdk-v0.34.0...bedrock-sdk-v0.34.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.34.0...bedrock-sdk-v0.34.1)
+
+## 0.34.0 (2026-09-28)
+
+Full Changelog: [bedrock-sdk-v0.33.8...bedrock-sdk-v0.34.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.33.8...bedrock-sdk-v0.34.0)
+
+### Features
+
+* **api:** add claude-sonnet-5-5 ([4e77366](https://github.com/anthropics/anthropic-sdk-typescript/commit/4e7736625fd23a5607800e8de4aa3c37daa74a07))
+
+## 0.33.8 (2026-09-22)
+
+Full Changelog: [bedrock-sdk-v0.33.7...bedrock-sdk-v0.33.8](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.33.7...bedrock-sdk-v0.33.8)
+
+## 0.33.7 (2026-09-18)
+
+Full Changelog: [bedrock-sdk-v0.33.6...bedrock-sdk-v0.33.7](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.33.6...bedrock-sdk-v0.33.7)
+
+### Bug Fixes
+
+* **bedrock:** raise APIError for mid-stream exception and error frames ([#622](https://github.com/anthropics/anthropic-sdk-typescript/issues/622)) ([8a14b15](https://github.com/anthropics/anthropic-sdk-typescript/commit/8a14b15cc33c64aeb8a77fefd2594c620c7ecc23))
+
+
+### Chores
+
+* **internal:** build the sub-packages with TypeScript 6.0.3 ([8a69ff5](https://github.com/anthropics/anthropic-sdk-typescript/commit/8a69ff594ffeec3f6bd964030086b01ae5354aaf))
+* **internal:** switch unit tests from jest to vitest ([788c9c6](https://github.com/anthropics/anthropic-sdk-typescript/commit/788c9c62ba2bd8180ffc7dcebd1cee14cd692d03))
+
 ## 0.33.6 (2026-09-15)
 
 Full Changelog: [bedrock-sdk-v0.33.5...bedrock-sdk-v0.33.6](https://github.com/anthropics/anthropic-sdk-typescript/compare/bedrock-sdk-v0.33.5...bedrock-sdk-v0.33.6)

@@ -107,7 +107,7 @@ test('local deletions reach the server unless it changed', async () => {
   // One memory's download write fails, so it is never on disk to begin with —
   // that absence is not a deletion.
   const realPut = LocalFileStore.prototype.put;
-  const flakyPut = jest.spyOn(LocalFileStore.prototype, 'put').mockImplementation(async function (
+  const flakyPut = vi.spyOn(LocalFileStore.prototype, 'put').mockImplementation(async function (
     this: FileStore,
     rel,
     data,
@@ -469,7 +469,7 @@ test('an unwritable mount path fails the download', async () => {
 // worse than no session at all: it would read an empty folder at the path it
 // was told about and write notes where nothing will look for them.
 test.each([['/mnt/../../etc/cron.d'], ['relative/notes'], ['notes'], [null]])(
-  'an unclean mount path fails the download: %p',
+  'an unclean mount path fails the download: %s',
   async (bad: string | null) => {
     const { client, server } = fakeAnthropic({ 'note.md': 'v1' }, { mountPath: bad });
     const wd = path.join(tmp, 'wd');
@@ -638,7 +638,7 @@ test('a failed pull leaves the old file and retries', async () => {
   const { local, server, stores } = await downloaded({ 'f.md': 'v1' });
   server.write('f.md', 'v2 from server');
 
-  const flakyPut = jest.spyOn(LocalFileStore.prototype, 'put').mockImplementation(async () => {
+  const flakyPut = vi.spyOn(LocalFileStore.prototype, 'put').mockImplementation(async () => {
     throw ioError();
   });
   await runSync(stores);
@@ -662,7 +662,7 @@ test('a failed local removal never re-uploads the deleted memory', async () => {
   const { local, server, stores, logs } = await downloaded({ 'f.md': 'v1' });
   server.delete('f.md');
 
-  const flakyRemove = jest.spyOn(LocalFileStore.prototype, 'remove').mockImplementation(async () => {
+  const flakyRemove = vi.spyOn(LocalFileStore.prototype, 'remove').mockImplementation(async () => {
     throw ioError();
   });
   await runSync(stores);

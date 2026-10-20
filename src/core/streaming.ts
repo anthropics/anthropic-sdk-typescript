@@ -1,7 +1,7 @@
 import { AnthropicError } from './error';
 import { type ReadableStream } from '../internal/shim-types';
 import { makeReadableStream } from '../internal/shims';
-import { findDoubleNewlineIndex, LineDecoder } from '../internal/decoders/line';
+import { LineDecoder } from '../internal/decoders/line';
 import { ReadableStreamToAsyncIterable } from '../internal/shims';
 import { isAbortError } from '../internal/errors';
 import { safeJSON } from '../internal/utils/values';
@@ -65,74 +65,11 @@ export class Stream<Item> implements AsyncIterable<Item> {
       let done = false;
       try {
         for await (const sse of _iterSSEMessages(response, controller)) {
-          if (sse.event === 'completion') {
-            try {
-              yield JSON.parse(sse.data) as Item;
-            } catch (e) {
-              logger.error(`Could not parse message into JSON:`, sse.data);
-              logger.error(`From chunk:`, sse.raw);
-              throw e;
-            }
-          }
-
-          if (
-            sse.event === 'message_start' ||
-            sse.event === 'message_delta' ||
-            sse.event === 'message_stop' ||
-            sse.event === 'content_block_start' ||
-            sse.event === 'content_block_delta' ||
-            sse.event === 'content_block_stop' ||
-            sse.event === 'message' ||
-            sse.event === 'user.message' ||
-            sse.event === 'user.interrupt' ||
-            sse.event === 'user.tool_confirmation' ||
-            sse.event === 'user.custom_tool_result' ||
-            sse.event === 'user.tool_result' ||
-            sse.event === 'agent.message' ||
-            sse.event === 'agent.thinking' ||
-            sse.event === 'agent.tool_use' ||
-            sse.event === 'agent.tool_result' ||
-            sse.event === 'agent.mcp_tool_use' ||
-            sse.event === 'agent.mcp_tool_result' ||
-            sse.event === 'agent.custom_tool_use' ||
-            sse.event === 'agent.thread_context_compacted' ||
-            sse.event === 'session.status_running' ||
-            sse.event === 'session.status_idle' ||
-            sse.event === 'session.status_rescheduled' ||
-            sse.event === 'session.status_terminated' ||
-            sse.event === 'session.error' ||
-            sse.event === 'session.deleted' ||
-            sse.event === 'session.updated' ||
-            sse.event === 'span.model_request_start' ||
-            sse.event === 'span.model_request_end' ||
-            sse.event === 'span.outcome_evaluation_start' ||
-            sse.event === 'span.outcome_evaluation_ongoing' ||
-            sse.event === 'span.outcome_evaluation_end' ||
-            sse.event === 'user.define_outcome' ||
-            sse.event === 'agent.thread_message_received' ||
-            sse.event === 'agent.thread_message_sent' ||
-            sse.event === 'agent.session_thread_message_received' ||
-            sse.event === 'agent.session_thread_message_sent' ||
-            sse.event === 'session.thread_created' ||
-            sse.event === 'session.thread_status_created' ||
-            sse.event === 'session.thread_status_running' ||
-            sse.event === 'session.thread_status_idle' ||
-            sse.event === 'session.thread_status_rescheduled' ||
-            sse.event === 'session.thread_status_terminated' ||
-            sse.event === 'event_start' ||
-            sse.event === 'event_delta' ||
-            sse.event === 'system.message'
-          ) {
-            try {
-              yield JSON.parse(sse.data) as Item;
-            } catch (e) {
-              logger.error(`Could not parse message into JSON:`, sse.data);
-              logger.error(`From chunk:`, sse.raw);
-              throw e;
-            }
-          }
-
           if (sse.event === 'ping') {
+            continue;
+          }
+
+          if (sse.event === null) {
             continue;
           }
 
@@ -140,6 +77,16 @@ export class Stream<Item> implements AsyncIterable<Item> {
             const body = safeJSON(sse.data) ?? sse.data;
             const type = body?.error?.type as ErrorType | undefined;
             throw new APIError(undefined, body, undefined, response.headers, type);
+          } else {
+            if (!sse.data) continue;
+
+            try {
+              yield JSON.parse(sse.data) as Item;
+            } catch (e) {
+              logger.error(`Could not parse message into JSON:`, sse.data);
+              logger.error(`From chunk:`, sse.raw);
+              throw e;
+            }
           }
         }
         done = true;
@@ -220,7 +167,7 @@ export class Stream<Item> implements AsyncIterable<Item> {
   tee(): [Stream<Item>, Stream<Item>] {
     const left: Array<Promise<IteratorResult<Item>>> = [];
     const right: Array<Promise<IteratorResult<Item>>> = [];
-    const iterator = this.iterator();
+    const iterator = this[Symbol.asyncIterator]();
 
     const teeIterator = (queue: Array<Promise<IteratorResult<Item>>>): AsyncIterator<Item> => {
       return {
@@ -294,8 +241,8 @@ export async function* _iterSSEMessages(
   const lineDecoder = new LineDecoder();
 
   const iter = ReadableStreamToAsyncIterable<Bytes>(response.body);
-  for await (const sseChunk of iterSSEChunks(iter)) {
-    for (const line of lineDecoder.decode(sseChunk)) {
+  for await (const chunk of iter) {
+    for (const line of lineDecoder.decode(chunk)) {
       const sse = sseDecoder.decode(line);
       if (sse) yield sse;
     }
@@ -304,42 +251,6 @@ export async function* _iterSSEMessages(
   for (const line of lineDecoder.flush()) {
     const sse = sseDecoder.decode(line);
     if (sse) yield sse;
-  }
-}
-
-/**
- * Given an async iterable iterator, iterates over it and yields full
- * SSE chunks, i.e. yields when a double new-line is encountered.
- */
-async function* iterSSEChunks(iterator: AsyncIterableIterator<Bytes>): AsyncGenerator<Uint8Array> {
-  let data = new Uint8Array();
-
-  for await (const chunk of iterator) {
-    if (chunk == null) {
-      continue;
-    }
-
-    const binaryChunk =
-      chunk instanceof ArrayBuffer ? new Uint8Array(chunk)
-      : typeof chunk === 'string' ? encodeUTF8(chunk)
-      : chunk;
-
-    let newData = new Uint8Array(data.length + binaryChunk.length);
-    newData.set(data);
-    newData.set(binaryChunk, data.length);
-    data = newData;
-
-    // Yield views, not copies, so a chunk holding many events is not re-copied
-    // once per event. This relies on newData never being written again.
-    let patternIndex;
-    while ((patternIndex = findDoubleNewlineIndex(data)) !== -1) {
-      yield data.subarray(0, patternIndex);
-      data = data.subarray(patternIndex);
-    }
-  }
-
-  if (data.length > 0) {
-    yield data;
   }
 }
 

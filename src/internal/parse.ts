@@ -1,7 +1,7 @@
 import type { FinalRequestOptions } from './request-options';
 import { Stream } from '../core/streaming';
 import { type BaseAnthropic } from '../client';
-import { formatRequestDetails, loggerFor } from './utils/log';
+import { debugLogRequestDetails, loggerFor } from './utils/log';
 import { releaseRequestSignal } from './request-signal';
 import type { AbstractPage } from '../core/pagination';
 
@@ -63,16 +63,13 @@ export async function defaultParseResponse<T>(
       releaseRequestSignal(props.controller);
     }
   });
-  loggerFor(client).debug(
-    `[${requestLogID}] response parsed`,
-    formatRequestDetails({
-      retryOfRequestLogID,
-      url: response.url,
-      status: response.status,
-      body,
-      durationMs: Date.now() - startTime,
-    }),
-  );
+  debugLogRequestDetails(loggerFor(client), `[${requestLogID}] response parsed`, {
+    retryOfRequestLogID,
+    url: response.url,
+    status: response.status,
+    body,
+    durationMs: Date.now() - startTime,
+  });
   return body;
 }
 

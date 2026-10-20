@@ -1,4 +1,5 @@
 import Anthropic, { APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
+import { MessageStream } from '@anthropic-ai/sdk/lib/MessageStream';
 import {
   Message,
   MessageDeltaUsage,
@@ -9,16 +10,17 @@ import * as partialJsonParser from '@anthropic-ai/sdk/_vendor/partial-json-parse
 import { mockFetch } from '../lib/mock-fetch';
 import { loadFixture, parseSSEFixture } from '../lib/sse-helpers';
 
-// The swc-compiled module exports are non-configurable, so `jest.spyOn` can't patch
-// `partialParse`; wrap the real implementation in a `jest.fn` to count calls instead.
-jest.mock('@anthropic-ai/sdk/_vendor/partial-json-parser/parser', () => {
-  const actual = jest.requireActual('@anthropic-ai/sdk/_vendor/partial-json-parser/parser');
-  return { ...actual, partialParse: jest.fn(actual.partialParse) };
+// Wrap the real `partialParse` in a `vi.fn` so tests can count calls.
+vi.mock('@anthropic-ai/sdk/_vendor/partial-json-parser/parser', async () => {
+  const actual = await vi.importActual<typeof import('@anthropic-ai/sdk/_vendor/partial-json-parser/parser')>(
+    '@anthropic-ai/sdk/_vendor/partial-json-parser/parser',
+  );
+  return { ...actual, partialParse: vi.fn(actual.partialParse) };
 });
 
 // tripwire: a new RawMessageDeltaEvent field must be handled in MessageStream#accumulateMessage,
 // then listed here (missing key -> required-property error, extra key -> excess-property error);
-// enforced at compile time by tsc via ./scripts/lint, not by jest
+// enforced at compile time by tsc via ./scripts/lint, not by the test runner
 const _accumulatedDeltaEventKeys: Record<keyof RawMessageDeltaEvent, true> = {
   type: true,
   delta: true,
@@ -110,6 +112,8 @@ const EXPECTED_TOOL_USE_EVENT_TYPES = [
   'message_stop',
 ];
 
+const UNKNOWN_EVENT = { type: 'future_event', usage: { output_tokens: 1 } };
+
 function assertBasicResponse(events: MessageStreamEvent[], message: Message) {
   expect(events.map((e) => e.type)).toEqual(EXPECTED_BASIC_EVENT_TYPES);
   expect(message).toMatchObject(EXPECTED_BASIC_MESSAGE);
@@ -159,7 +163,7 @@ describe('MessageStream class', () => {
     const stream = anthropic.messages.stream(
       {
         max_tokens: 1024,
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-5-5',
         messages: [{ role: 'user', content: 'Say hello there!' }],
       },
       { maxRetries: 0 },
@@ -184,7 +188,7 @@ describe('MessageStream class', () => {
     const stream = anthropic.messages.stream(
       {
         max_tokens: 1024,
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-5-5',
         messages: [{ role: 'user', content: 'Say hello there!' }],
       },
       { maxRetries: 0 },
@@ -237,6 +241,49 @@ describe('MessageStream class', () => {
     expect(finalText).toBe('Hello there!');
   });
 
+  it('passes unknown events through with the current snapshot', async () => {
+    const [messageStart, ...rest] = await parseSSEFixture(loadFixture('basic_response.txt'));
+    const early = [UNKNOWN_EVENT, { type: 'content_block_stop', index: 0 }];
+    const lines = [...early, messageStart, UNKNOWN_EVENT, ...rest, UNKNOWN_EVENT].map((event) =>
+      JSON.stringify(event),
+    );
+
+    const stream = MessageStream.fromReadableStream(new Response(lines.join('\n')).body!);
+
+    const events: MessageStreamEvent[] = [];
+    const snapshotIDs: string[] = [];
+    stream.on('streamEvent', (event, snapshot) => {
+      events.push(event);
+      snapshotIDs.push(snapshot?.id);
+    });
+    const afterMessageStart: MessageStreamEvent[] = [];
+    const loopEnded = new Promise<void>((resolve) =>
+      stream.once('streamEvent', async () => {
+        for await (const event of stream) {
+          afterMessageStart.push(event);
+        }
+        resolve();
+      }),
+    );
+    const iterated: MessageStreamEvent[] = [];
+    for await (const event of MessageStream.fromReadableStream(stream.toReadableStream())) {
+      iterated.push(event);
+    }
+
+    expect(await stream.finalMessage()).toMatchObject(EXPECTED_BASIC_MESSAGE);
+    expect(iterated.slice(0, early.length)).toEqual(early);
+    expect(iterated.slice(early.length).map((e) => e.type)).toEqual(events.map((e) => e.type));
+    await loopEnded;
+    expect(afterMessageStart).toEqual(events.slice(1));
+    expect(snapshotIDs).toEqual(events.map(() => EXPECTED_BASIC_MESSAGE.id));
+    expect(events.map((e) => e.type)).toEqual([
+      'message_start',
+      UNKNOWN_EVENT.type,
+      ...EXPECTED_BASIC_EVENT_TYPES.slice(1),
+      UNKNOWN_EVENT.type,
+    ]);
+  });
+
   it('handles tool use response fixture', async () => {
     const { fetch, handleStreamEvents } = mockFetch();
 
@@ -266,7 +313,7 @@ describe('MessageStream class', () => {
   });
 
   it('parses tool input lazily — once per block, not per delta', async () => {
-    const partialParse = jest.mocked(partialJsonParser.partialParse);
+    const partialParse = vi.mocked(partialJsonParser.partialParse);
     partialParse.mockClear();
     const { fetch, handleStreamEvents } = mockFetch();
     const anthropic = new Anthropic({ apiKey: '...', fetch });
@@ -294,7 +341,7 @@ describe('MessageStream class', () => {
   });
 
   it('still emits per-delta inputJson snapshots when subscribed', async () => {
-    const partialParse = jest.mocked(partialJsonParser.partialParse);
+    const partialParse = vi.mocked(partialJsonParser.partialParse);
     partialParse.mockClear();
     const { fetch, handleStreamEvents } = mockFetch();
     const anthropic = new Anthropic({ apiKey: '...', fetch });

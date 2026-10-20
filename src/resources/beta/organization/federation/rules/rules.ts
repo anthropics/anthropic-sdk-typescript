@@ -12,6 +12,7 @@ import { APIPromise } from '../../../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../../core/pagination';
 import { buildHeaders } from '../../../../../internal/headers';
 import { RequestOptions } from '../../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../../internal/tracing';
 import { path } from '../../../../../internal/utils/path';
 
 export class Rules extends APIResource {
@@ -62,6 +63,10 @@ export class Rules extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.create', options, {
+        route: '/v1/organizations/federation_rules',
+        createdIDAttribute: 'anthropic.organization.federation_rule.id',
+      }),
     });
   }
 
@@ -93,6 +98,10 @@ export class Rules extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.retrieve', options, {
+        route: '/v1/organizations/federation_rules/{federation_rule_id}',
+        attributes: { 'anthropic.organization.federation_rule.id': federationRuleID },
+      }),
     });
   }
 
@@ -140,6 +149,10 @@ export class Rules extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.update', options, {
+        route: '/v1/organizations/federation_rules/{federation_rule_id}',
+        attributes: { 'anthropic.organization.federation_rule.id': federationRuleID },
+      }),
     });
   }
 
@@ -177,6 +190,10 @@ export class Rules extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.list', options, {
+          route: '/v1/organizations/federation_rules',
+          queryParams: ['include_archived', 'issuer_id', 'limit', 'page'],
+        }),
       },
     );
   }
@@ -216,6 +233,10 @@ export class Rules extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.archive', options, {
+        route: '/v1/organizations/federation_rules/{federation_rule_id}/archive',
+        attributes: { 'anthropic.organization.federation_rule.id': federationRuleID },
+      }),
     });
   }
 }
@@ -305,8 +326,9 @@ export interface BetaFederationRule {
   oauth_scope: string;
 
   /**
-   * Identity that tokens minted via this rule act as. Currently always a
-   * `service_account` target.
+   * What this rule targets. Check `type` before reading the other fields. Tokens
+   * minted via a rule whose target `type` is `service_account` act as that service
+   * account.
    */
   target: BetaServiceAccountTarget;
 
@@ -525,11 +547,8 @@ export interface RuleUpdateParams {
   description?: string | null;
 
   /**
-   * Body param: Does the incoming JWT qualify?
-   *
-   * All populated fields must pass; omitted fields are skipped. At least one of
-   * `subject_prefix` (other than a wildcard-only value like `*`), `claims`, or
-   * `condition` is required; `audience` alone is not sufficient.
+   * Body param: Replaces the entire match object. All populated matcher fields must
+   * pass.
    */
   match?: BetaFederationRuleMatch | null;
 
@@ -547,7 +566,8 @@ export interface RuleUpdateParams {
   oauth_scope?: string | null;
 
   /**
-   * Body param: Bind to a fixed service account by ID.
+   * Body param: Replaces the entire target object. Currently always a
+   * `service_account` target.
    */
   target?: BetaServiceAccountTarget | null;
 

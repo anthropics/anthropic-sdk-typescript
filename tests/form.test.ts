@@ -1,6 +1,9 @@
 import { multipartFormRequestOptions, createForm } from '@anthropic-ai/sdk/internal/uploads';
 import { toFile } from '@anthropic-ai/sdk/core/uploads';
 
+// Shaped like `Bun.file('sub/notes.txt')`: a Blob, not a File, whose name is the path it was opened with.
+const pathBlob = () => Object.assign(new Blob(['abc']), { name: 'sub/notes.txt', lastModified: 0 });
+
 describe('form data validation', () => {
   test('valid values do not error', async () => {
     await multipartFormRequestOptions(
@@ -38,8 +41,21 @@ describe('form data validation', () => {
         stripFilenames,
       );
       const file = form.get('file') as File;
-      expect([file.name, file.type, await file.text()]).toEqual(['unknown_file', 'text/plain', 'abc']);
+      expect([file.name, file.type, await file.text()]).toEqual(['', 'text/plain', 'abc']);
     }
+  });
+
+  test.each([
+    ['no name', () => toFile(Buffer.from('abc')), ''],
+    ['an empty name', () => toFile(Buffer.from('abc'), ''), ''],
+    ['an explicit name', () => toFile(Buffer.from('abc'), 'sub/notes.txt'), 'sub/notes.txt'],
+    ['a File the caller built', async () => new File(['abc'], 'sub/notes.txt'), 'sub/notes.txt'],
+    ['a File, through toFile', () => toFile(new File(['abc'], 'sub/notes.txt')), 'sub/notes.txt'],
+    ['a Blob carrying a path', async () => pathBlob(), 'notes.txt'],
+    ['a Blob carrying a path, through toFile', () => toFile(pathBlob()), 'notes.txt'],
+  ])('file with %s', async (_, file, filename) => {
+    const form = await createForm({ file: await file() }, fetch);
+    expect((form.get('file') as File).name).toEqual(filename);
   });
 
   test('un-awaited toFile is rejected', async () => {

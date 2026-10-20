@@ -20,8 +20,10 @@ import {
 import {
   InternalServerException,
   ModelStreamErrorException,
+  ModelTimeoutException,
   PayloadPart,
   ResponseStream,
+  ServiceUnavailableException,
   ThrottlingException,
   ValidationException,
 } from '@aws-sdk/client-bedrock-runtime';
@@ -62,6 +64,46 @@ const de_ModelStreamErrorExceptionRes = async (
   });
   Object.assign(contents, doc);
   const exception = new ModelStreamErrorException({
+    $metadata: deserializeMetadata(parsedOutput),
+    ...contents,
+  });
+  return __decorateServiceException(exception, parsedOutput.body);
+};
+
+/**
+ * deserializeAws_restJson1ModelTimeoutExceptionRes
+ */
+const de_ModelTimeoutExceptionRes = async (
+  parsedOutput: any,
+  context: __SerdeContext,
+): Promise<ModelTimeoutException> => {
+  const contents: any = map({});
+  const data: any = parsedOutput.body;
+  const doc = take(data, {
+    message: __expectString,
+  });
+  Object.assign(contents, doc);
+  const exception = new ModelTimeoutException({
+    $metadata: deserializeMetadata(parsedOutput),
+    ...contents,
+  });
+  return __decorateServiceException(exception, parsedOutput.body);
+};
+
+/**
+ * deserializeAws_restJson1ServiceUnavailableExceptionRes
+ */
+const de_ServiceUnavailableExceptionRes = async (
+  parsedOutput: any,
+  context: __SerdeContext,
+): Promise<ServiceUnavailableException> => {
+  const contents: any = map({});
+  const data: any = parsedOutput.body;
+  const doc = take(data, {
+    message: __expectString,
+  });
+  Object.assign(contents, doc);
+  const exception = new ServiceUnavailableException({
     $metadata: deserializeMetadata(parsedOutput),
     ...contents,
   });
@@ -147,6 +189,19 @@ export const de_ResponseStream = (
         throttlingException: await de_ThrottlingException_event(event['throttlingException'], context),
       };
     }
+    if (event['modelTimeoutException'] != null) {
+      return {
+        modelTimeoutException: await de_ModelTimeoutException_event(event['modelTimeoutException'], context),
+      };
+    }
+    if (event['serviceUnavailableException'] != null) {
+      return {
+        serviceUnavailableException: await de_ServiceUnavailableException_event(
+          event['serviceUnavailableException'],
+          context,
+        ),
+      };
+    }
     return { $unknown: output };
   });
 };
@@ -170,11 +225,31 @@ const de_ModelStreamErrorException_event = async (
   };
   return de_ModelStreamErrorExceptionRes(parsedOutput, context);
 };
+const de_ModelTimeoutException_event = async (
+  output: any,
+  context: __SerdeContext,
+): Promise<ModelTimeoutException> => {
+  const parsedOutput: any = {
+    ...output,
+    body: await parseBody(output.body, context),
+  };
+  return de_ModelTimeoutExceptionRes(parsedOutput, context);
+};
 const de_PayloadPart_event = async (output: any, context: __SerdeContext): Promise<PayloadPart> => {
   const contents: PayloadPart = {} as any;
   const data: any = await parseBody(output.body, context);
   Object.assign(contents, de_PayloadPart(data, context));
   return contents;
+};
+const de_ServiceUnavailableException_event = async (
+  output: any,
+  context: __SerdeContext,
+): Promise<ServiceUnavailableException> => {
+  const parsedOutput: any = {
+    ...output,
+    body: await parseBody(output.body, context),
+  };
+  return de_ServiceUnavailableExceptionRes(parsedOutput, context);
 };
 const de_ThrottlingException_event = async (
   output: any,

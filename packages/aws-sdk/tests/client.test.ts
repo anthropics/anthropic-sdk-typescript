@@ -1,26 +1,27 @@
+import type { MockedFunction } from 'vitest';
 import { VERSION } from '@anthropic-ai/sdk/version';
 import { AnthropicAws } from '../src';
 import { getAuthHeaders } from '../src/core/auth';
 
-jest.mock('../src/core/auth', () => ({
-  getAuthHeaders: jest.fn().mockResolvedValue({
+vi.mock('../src/core/auth', () => ({
+  getAuthHeaders: vi.fn().mockResolvedValue({
     authorization: 'AWS4-HMAC-SHA256 Credential=mock',
     'x-amz-date': '20260312T000000Z',
   }),
 }));
 
-const mockLoadConfig = jest.fn();
-jest.mock('@smithy/node-config-provider', () => ({
+const mockLoadConfig = vi.fn();
+vi.mock('@smithy/node-config-provider', () => ({
   loadConfig: (...args: unknown[]) => mockLoadConfig(...args),
 }));
-jest.mock('@smithy/config-resolver', () => ({
+vi.mock('@smithy/config-resolver', () => ({
   NODE_REGION_CONFIG_OPTIONS: { __mock: 'options' },
   NODE_REGION_CONFIG_FILE_OPTIONS: { __mock: 'fileOptions' },
 }));
 
-const mockGetAuthHeaders = getAuthHeaders as jest.MockedFunction<typeof getAuthHeaders>;
+const mockGetAuthHeaders = getAuthHeaders as MockedFunction<typeof getAuthHeaders>;
 
-const mockFetch = jest.fn().mockImplementation(() => {
+const mockFetch = vi.fn().mockImplementation(() => {
   return Promise.resolve({
     ok: true,
     status: 200,
@@ -133,7 +134,7 @@ describe('AnthropicAws', () => {
     });
 
     test('creates client with provider chain resolver', () => {
-      const resolver = jest.fn();
+      const resolver = vi.fn();
 
       const client = new AnthropicAws({
         providerChainResolver: resolver,
@@ -268,7 +269,7 @@ describe('AnthropicAws', () => {
     });
 
     test('does not emit unhandledRejection when ready rejects and is not awaited', async () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       process.on('unhandledRejection', handler);
       try {
         new AnthropicAws({ workspaceId: 'ws-test' });
@@ -309,10 +310,10 @@ describe('AnthropicAws', () => {
     // These base-client options are never valid auth for the AWS gateway; a
     // config-supplied base_url must not be able to redirect signed traffic.
     const makeLogger = () => ({
-      error: jest.fn(),
-      warn: jest.fn(),
-      info: jest.fn(),
-      debug: jest.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      info: vi.fn(),
+      debug: vi.fn(),
     });
 
     test.each([
@@ -890,6 +891,126 @@ describe('AnthropicAws', () => {
     test('has models resource', () => {
       const client = new AnthropicAws({ apiKey: 'test-key', awsRegion: 'us-east-1', workspaceId: 'ws-test' });
       expect(client.models).toBeDefined();
+    });
+  });
+
+  describe('user profiles', () => {
+    const profileURL = 'https://aws-external-anthropic.us-west-2.api.aws/v1/user_profiles';
+
+    const requestCases: Array<[string, (client: AnthropicAws) => PromiseLike<unknown>, string, string]> = [
+      ['create', (client) => client.userProfiles.create({}), 'POST', profileURL],
+      ['retrieve', (client) => client.userProfiles.retrieve('uprof_fake'), 'GET', `${profileURL}/uprof_fake`],
+      [
+        'update',
+        (client) => client.userProfiles.update('uprof_fake', { metadata: { key: 'value' } }),
+        'POST',
+        `${profileURL}/uprof_fake`,
+      ],
+      ['list', (client) => client.userProfiles.list(), 'GET', profileURL],
+      ['delete', (client) => client.userProfiles.delete('uprof_fake'), 'DELETE', `${profileURL}/uprof_fake`],
+    ];
+
+    test.each(requestCases)('%s is signed with SigV4', async (_name, send, method, url) => {
+      const client = new AnthropicAws({
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsRegion: 'us-west-2',
+        workspaceId: 'ws-test',
+        maxRetries: 0,
+      });
+
+      await send(client);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [requestURL, requestInit] = mockFetch.mock.calls[0]!;
+      expect(requestURL).toBe(url);
+      expect(requestInit.method.toUpperCase()).toBe(method);
+      expect(mockGetAuthHeaders.mock.calls[0]![1].url).toBe(url);
+
+      const headers = getRequestHeaders();
+      expect(headers.get('authorization')).toBe('AWS4-HMAC-SHA256 Credential=mock');
+      expect(headers.get('anthropic-workspace-id')).toBe('ws-test');
+    });
+
+    test.each(requestCases)('%s sends the API key', async (_name, send, method, url) => {
+      const client = new AnthropicAws({
+        apiKey: 'test-api-key',
+        awsRegion: 'us-west-2',
+        workspaceId: 'ws-test',
+        maxRetries: 0,
+      });
+
+      await send(client);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [requestURL, requestInit] = mockFetch.mock.calls[0]!;
+      expect(requestURL).toBe(url);
+      expect(requestInit.method.toUpperCase()).toBe(method);
+      expect(mockGetAuthHeaders).not.toHaveBeenCalled();
+
+      const headers = getRequestHeaders();
+      expect(headers.get('x-api-key')).toBe('test-api-key');
+      expect(headers.get('anthropic-workspace-id')).toBe('ws-test');
+    });
+
+    const newClient = () =>
+      new AnthropicAws({
+        apiKey: 'test-api-key',
+        awsRegion: 'us-west-2',
+        workspaceId: 'ws-test',
+        maxRetries: 0,
+      });
+
+    test('beta.userProfiles.list goes to the beta path', async () => {
+      await newClient().beta.userProfiles.list();
+
+      expect(mockFetch.mock.calls[0]![0]).toBe(`${profileURL}?beta=true`);
+    });
+
+    const params = {
+      model: 'claude-opus-4-8',
+      max_tokens: 1024,
+      messages: [{ content: 'Test message', role: 'user' as const }],
+    };
+    const countTokensParams = { model: params.model, messages: params.messages };
+
+    test.each<[string, (client: AnthropicAws) => Promise<unknown>]>([
+      ['messages.create', (client) => client.messages.create({ ...params, user_profile_id: 'uprof_fake' })],
+      [
+        'beta.messages.create',
+        (client) => client.beta.messages.create({ ...params, user_profile_id: 'uprof_fake' }),
+      ],
+      [
+        'messages.countTokens',
+        (client) => client.messages.countTokens({ ...countTokensParams, user_profile_id: 'uprof_fake' }),
+      ],
+      [
+        'beta.messages.countTokens',
+        (client) => client.beta.messages.countTokens({ ...countTokensParams, user_profile_id: 'uprof_fake' }),
+      ],
+    ])('%s sends the ID as a header', async (_name, send) => {
+      await send(newClient());
+
+      expect(getRequestHeaders().get('anthropic-user-profile-id')).toBe('uprof_fake');
+      const [, requestInit] = mockFetch.mock.calls[0]!;
+      expect(JSON.parse(requestInit.body).user_profile_id).toBeUndefined();
+    });
+
+    const unavailable = 'User profile action URLs are not available on `AnthropicAws`';
+
+    test('userProfiles.actionURLs throws an explanatory error', () => {
+      expect(() => newClient().userProfiles.actionURLs).toThrow(unavailable);
+    });
+
+    test('beta.userProfiles.actionURLs throws an explanatory error', () => {
+      expect(() => newClient().beta.userProfiles.actionURLs).toThrow(unavailable);
+    });
+
+    test('a clone from withOptions has no action URLs either', () => {
+      const clone = newClient().withOptions({ maxRetries: 1 });
+
+      expect(() => clone.userProfiles.actionURLs).toThrow(unavailable);
+      expect(() => clone.beta.userProfiles.actionURLs).toThrow(unavailable);
     });
   });
 

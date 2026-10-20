@@ -1,5 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+import type { Mock } from 'vitest';
 import { VERSION } from '@anthropic-ai/sdk/version';
 import { AnthropicVertex } from '../src/client';
 import { APIConnectionError } from '../src/core/error';
@@ -9,15 +10,18 @@ import * as path from 'path';
 import { tmpdir } from 'os';
 
 // Mock GoogleAuth to prevent credential loading during tests
-jest.mock('google-auth-library', () => ({
-  GoogleAuth: jest.fn().mockImplementation(() => ({
-    getClient: jest.fn().mockResolvedValue({
-      projectId: 'test-project',
-      getRequestHeaders: jest.fn().mockResolvedValue({
-        authorization: 'Bearer fake-token',
+vi.mock('google-auth-library', () => ({
+  // vitest only allows `new` on mocks implemented with `function`/`class`, not arrow functions
+  GoogleAuth: vi.fn().mockImplementation(function () {
+    return {
+      getClient: vi.fn().mockResolvedValue({
+        projectId: 'test-project',
+        getRequestHeaders: vi.fn().mockResolvedValue({
+          authorization: 'Bearer fake-token',
+        }),
       }),
-    }),
-  })),
+    };
+  }),
 }));
 
 describe('AnthropicVertex', () => {
@@ -96,7 +100,7 @@ describe('AnthropicVertex', () => {
   });
 
   describe('middleware order (Vertex adaptation runs inside user middleware)', () => {
-    const mockFetch = jest.fn().mockImplementation(() => {
+    const mockFetch = vi.fn().mockImplementation(() => {
       return Promise.resolve({
         ok: true,
         status: 200,
@@ -112,7 +116,7 @@ describe('AnthropicVertex', () => {
     });
 
     const createParams = {
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-5-5',
       max_tokens: 1024,
       messages: [{ content: 'Hello', role: 'user' as const }],
     };
@@ -140,7 +144,7 @@ describe('AnthropicVertex', () => {
       expect(observed.body.anthropic_version).toBeUndefined();
       expect(observed.authorization).toBeNull();
 
-      const [wireUrl, wireInit] = mockFetch.mock.calls[0];
+      const [wireUrl, wireInit] = mockFetch.mock.calls[0]!;
       expect(wireUrl).toBe(
         `https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models/${createParams.model}:rawPredict`,
       );
@@ -166,7 +170,7 @@ describe('AnthropicVertex', () => {
 
       await client.messages.create(createParams);
 
-      const [, wireInit] = mockFetch.mock.calls[0];
+      const [, wireInit] = mockFetch.mock.calls[0]!;
       expect(new Headers(wireInit.headers).get('authorization')).toBe('Bearer middleware-token');
     });
 
@@ -187,7 +191,7 @@ describe('AnthropicVertex', () => {
 
       await client.messages.create({ ...createParams, stream: true });
 
-      const [wireUrl, wireInit] = mockFetch.mock.calls[0];
+      const [wireUrl, wireInit] = mockFetch.mock.calls[0]!;
       expect(wireUrl).toBe(
         `https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models/${createParams.model}:streamRawPredict`,
       );
@@ -206,15 +210,84 @@ describe('AnthropicVertex', () => {
         messages: createParams.messages,
       });
 
-      const [wireUrl] = mockFetch.mock.calls[0];
+      const [wireUrl] = mockFetch.mock.calls[0]!;
       expect(wireUrl).toBe(
         'https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models/count-tokens:rawPredict',
       );
     });
   });
 
+  describe('user profiles', () => {
+    const mockFetch = vi.fn().mockImplementation(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers({ 'content-type': 'application/json' }),
+        json: () => Promise.resolve({}),
+        text: () => Promise.resolve('{}'),
+      }),
+    );
+
+    beforeEach(() => {
+      mockFetch.mockClear();
+    });
+
+    const newClient = () =>
+      new AnthropicVertex({ region: 'us-east5', projectId: 'test-project', fetch: mockFetch as any });
+
+    const params = {
+      model: 'claude-sonnet-5-5',
+      max_tokens: 1024,
+      messages: [{ content: 'Hello', role: 'user' as const }],
+    };
+    const countTokensParams = { model: params.model, messages: params.messages };
+    const modelsURL =
+      'https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models';
+
+    test.each<[string, (client: AnthropicVertex) => Promise<unknown>, string]>([
+      [
+        'messages.create',
+        (client) => client.messages.create({ ...params, user_profile_id: 'uprof_fake' }),
+        `${modelsURL}/${params.model}:rawPredict`,
+      ],
+      [
+        'beta.messages.create',
+        (client) => client.beta.messages.create({ ...params, user_profile_id: 'uprof_fake' }),
+        `${modelsURL}/${params.model}:rawPredict`,
+      ],
+      [
+        'messages.countTokens',
+        (client) => client.messages.countTokens({ ...countTokensParams, user_profile_id: 'uprof_fake' }),
+        `${modelsURL}/count-tokens:rawPredict`,
+      ],
+      [
+        'beta.messages.countTokens',
+        (client) => client.beta.messages.countTokens({ ...countTokensParams, user_profile_id: 'uprof_fake' }),
+        `${modelsURL}/count-tokens:rawPredict`,
+      ],
+    ])('%s sends the ID as a header', async (_name, send, url) => {
+      await send(newClient());
+
+      const [wireUrl, wireInit] = mockFetch.mock.calls[0]!;
+      expect(wireUrl).toBe(url);
+      expect(new Headers(wireInit.headers).get('anthropic-user-profile-id')).toBe('uprof_fake');
+      expect(JSON.parse(wireInit.body).user_profile_id).toBeUndefined();
+    });
+
+    const unavailable = 'Managing user profiles is not available on `AnthropicVertex`';
+
+    test('userProfiles throws an explanatory error', () => {
+      expect(() => newClient().userProfiles).toThrow(unavailable);
+    });
+
+    test('beta.userProfiles throws an explanatory error', () => {
+      expect(() => (newClient().beta as any).userProfiles).toThrow(unavailable);
+    });
+  });
+
   describe('ambient first-party credentials never reach Vertex', () => {
-    const mockFetch = jest.fn().mockImplementation(() =>
+    const mockFetch = vi.fn().mockImplementation(() =>
       Promise.resolve({
         ok: true,
         status: 200,
@@ -250,7 +323,7 @@ describe('AnthropicVertex', () => {
     });
 
     const createParams = {
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-5-5',
       max_tokens: 1024,
       messages: [{ content: 'Hello', role: 'user' as const }],
     };
@@ -269,7 +342,7 @@ describe('AnthropicVertex', () => {
 
       await client.messages.create(createParams);
 
-      const [, wireInit] = mockFetch.mock.calls[0];
+      const [, wireInit] = mockFetch.mock.calls[0]!;
       const wireHeaders = new Headers(wireInit.headers);
       expect(wireHeaders.get('x-api-key')).toBeNull();
       expect(wireHeaders.get('authorization')).toBe('Bearer fake-token');
@@ -303,7 +376,7 @@ describe('AnthropicVertex', () => {
       // Exactly the one Vertex request — no token-exchange call — and only
       // the Google credential on the wire.
       expect(mockFetch).toHaveBeenCalledTimes(1);
-      const [wireUrl, wireInit] = mockFetch.mock.calls[0];
+      const [wireUrl, wireInit] = mockFetch.mock.calls[0]!;
       expect(wireUrl).not.toContain('/v1/oauth/token');
       const wireHeaders = new Headers(wireInit.headers);
       expect(wireHeaders.get('x-api-key')).toBeNull();
@@ -332,7 +405,7 @@ describe('AnthropicVertex', () => {
 });
 
 describe('credential resolution retries', () => {
-  const mockFetch = jest.fn().mockImplementation(() =>
+  const mockFetch = vi.fn().mockImplementation(() =>
     Promise.resolve({
       ok: true,
       status: 200,
@@ -355,7 +428,7 @@ describe('credential resolution retries', () => {
 
   const transientFailure = new Error('metadata server unavailable');
 
-  const makeClient = (getRequestHeaders: jest.Mock, maxRetries: number) =>
+  const makeClient = (getRequestHeaders: Mock, maxRetries: number) =>
     new AnthropicVertex({
       region: 'us-central1',
       projectId: 'test-project',
@@ -365,7 +438,7 @@ describe('credential resolution retries', () => {
     });
 
   test('a transient OAuth token failure is retried', async () => {
-    const getRequestHeaders = jest
+    const getRequestHeaders = vi
       .fn()
       .mockRejectedValueOnce(transientFailure)
       .mockResolvedValue({ authorization: 'Bearer fake-token' });
@@ -377,7 +450,7 @@ describe('credential resolution retries', () => {
   });
 
   test('persistent OAuth failures surface as APIConnectionError once retries are exhausted', async () => {
-    const getRequestHeaders = jest.fn().mockRejectedValue(transientFailure);
+    const getRequestHeaders = vi.fn().mockRejectedValue(transientFailure);
 
     await expect(makeClient(getRequestHeaders, 1).messages.create(createParams)).rejects.toThrow(
       APIConnectionError,

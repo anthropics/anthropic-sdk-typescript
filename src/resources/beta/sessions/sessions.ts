@@ -8,6 +8,7 @@ import {
   BetaManagedAgentsAgentAutoEvaluatedPermissionAsk,
   BetaManagedAgentsAgentAutoEvaluatedPermissionDeny,
   BetaManagedAgentsAgentCustomToolUseEvent,
+  BetaManagedAgentsAgentEvaluatedPermission,
   BetaManagedAgentsAgentMCPToolResultEvent,
   BetaManagedAgentsAgentMCPToolUseEvent,
   BetaManagedAgentsAgentMessageEvent,
@@ -34,11 +35,18 @@ import {
   BetaManagedAgentsImageBlock,
   BetaManagedAgentsMCPAuthenticationFailedError,
   BetaManagedAgentsMCPConnectionFailedError,
+  BetaManagedAgentsMaxWorkflowRunsWorkflowRunError,
   BetaManagedAgentsModelOverloadedError,
   BetaManagedAgentsModelRateLimitedError,
   BetaManagedAgentsModelRequestFailedError,
   BetaManagedAgentsPlainTextDocumentSource,
+  BetaManagedAgentsProgramWorkflowRunError,
   BetaManagedAgentsRedactedBlock,
+  BetaManagedAgentsRepositoryAuthenticationError,
+  BetaManagedAgentsRepositoryCheckoutError,
+  BetaManagedAgentsRepositoryCloneError,
+  BetaManagedAgentsRepositoryForbiddenError,
+  BetaManagedAgentsRepositoryNotFoundError,
   BetaManagedAgentsRetryStatusExhausted,
   BetaManagedAgentsRetryStatusRetrying,
   BetaManagedAgentsRetryStatusTerminal,
@@ -51,7 +59,10 @@ import {
   BetaManagedAgentsSessionEndTurn,
   BetaManagedAgentsSessionErrorEvent,
   BetaManagedAgentsSessionEvent,
+  BetaManagedAgentsSessionEventType,
   BetaManagedAgentsSessionEventsPageCursor,
+  BetaManagedAgentsSessionRefusal,
+  BetaManagedAgentsSessionRefusalStopDetails,
   BetaManagedAgentsSessionRequiresAction,
   BetaManagedAgentsSessionRetriesExhausted,
   BetaManagedAgentsSessionStatusIdleEvent,
@@ -75,9 +86,12 @@ import {
   BetaManagedAgentsTextBlock,
   BetaManagedAgentsTextRubric,
   BetaManagedAgentsTextRubricParams,
+  BetaManagedAgentsThreadLimitWorkflowRunError,
+  BetaManagedAgentsTimeoutWorkflowRunError,
   BetaManagedAgentsURLDocumentSource,
   BetaManagedAgentsURLImageSource,
   BetaManagedAgentsUnknownError,
+  BetaManagedAgentsUnknownWorkflowRunError,
   BetaManagedAgentsUserCustomToolResultEvent,
   BetaManagedAgentsUserCustomToolResultEventParams,
   BetaManagedAgentsUserDefineOutcomeEvent,
@@ -89,6 +103,19 @@ import {
   BetaManagedAgentsUserToolConfirmationEvent,
   BetaManagedAgentsUserToolConfirmationEventParams,
   BetaManagedAgentsUserToolResultEventParams,
+  BetaManagedAgentsWorkflowRunCreatedEvent,
+  BetaManagedAgentsWorkflowRunError,
+  BetaManagedAgentsWorkflowRunErrorEvent,
+  BetaManagedAgentsWorkflowRunPhase,
+  BetaManagedAgentsWorkflowRunPhaseEndedEvent,
+  BetaManagedAgentsWorkflowRunPhaseStartedEvent,
+  BetaManagedAgentsWorkflowRunResult,
+  BetaManagedAgentsWorkflowRunResultCompleted,
+  BetaManagedAgentsWorkflowRunResultError,
+  BetaManagedAgentsWorkflowRunResultStopped,
+  BetaManagedAgentsWorkflowRunStatusEndedEvent,
+  BetaManagedAgentsWorkflowRunStatusIdleEvent,
+  BetaManagedAgentsWorkflowRunStatusRunningEvent,
   EventListParams,
   EventSendParams,
   EventStreamParams,
@@ -113,6 +140,7 @@ import {
 } from './resources';
 import * as ThreadsAPI from './threads/threads';
 import {
+  BetaManagedAgentsInlineAgent,
   BetaManagedAgentsSessionThread,
   BetaManagedAgentsSessionThreadStats,
   BetaManagedAgentsSessionThreadStatus,
@@ -132,6 +160,8 @@ import {
 } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
+import { recordSessionsCreateResponse } from '../../../lib/internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Sessions extends APIResource {
@@ -148,22 +178,51 @@ export class Sessions extends APIResource {
    *   await client.beta.sessions.create({
    *     agent: 'agent_011CZkYpogX7uDKUyvBTophP',
    *     environment_id: 'env_011CZkZ9X2dpNyB7HsEFoRfW',
+   *     initial_events: [
+   *       {
+   *         type: 'user.message',
+   *         content: [
+   *           {
+   *             type: 'text',
+   *             text: 'Where is my order #1234?',
+   *           },
+   *         ],
+   *       },
+   *     ],
    *   });
    * ```
    */
   create(params: SessionCreateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsSession> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post('/v1/sessions?beta=true', {
+    const headers = buildHeaders([
+      {
+        'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString(),
+        ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+      },
+      options?.headers,
+    ]);
+    const call = startApiCallSpan(this._client, 'anthropic.sessions.create', options, {
+      route: '/v1/sessions',
+      attributes: {
+        // An `agent` that is no agent is for the API to refuse, not for this line to throw on.
+        'gen_ai.agent.id': typeof body.agent === 'object' ? body.agent?.id : body.agent,
+        'anthropic.session.environment.id': body.environment_id,
+      },
+      createdIDAttribute: 'anthropic.session.id',
+    });
+    const request = this._client.post<BetaManagedAgentsSession>('/v1/sessions?beta=true', {
       body,
       ...options,
-      headers: buildHeaders([
-        {
-          'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString(),
-          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-        },
-        options?.headers,
-      ]),
+      headers,
+      __span: call,
     });
+    // Only a request with a span has a response to record.
+    return call ?
+        request._thenUnwrap((session) => {
+          recordSessionsCreateResponse(this._client, call, session);
+          return session;
+        })
+      : request;
   }
 
   /**
@@ -192,6 +251,10 @@ export class Sessions extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.retrieve', options, {
+        route: '/v1/sessions/{session_id}',
+        attributes: { 'anthropic.session.id': sessionID },
+      }),
     });
   }
 
@@ -222,6 +285,10 @@ export class Sessions extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.update', options, {
+        route: '/v1/sessions/{session_id}',
+        attributes: { 'anthropic.session.id': sessionID },
+      }),
     });
   }
 
@@ -254,6 +321,24 @@ export class Sessions extends APIResource {
           },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.sessions.list', options, {
+          route: '/v1/sessions',
+          queryParams: [
+            'agent_id',
+            'agent_version',
+            'created_at[gt]',
+            'created_at[gte]',
+            'created_at[lt]',
+            'created_at[lte]',
+            'deployment_id',
+            'include_archived',
+            'limit',
+            'memory_store_id',
+            'order',
+            'page',
+            'statuses',
+          ],
+        }),
       },
     );
   }
@@ -284,6 +369,10 @@ export class Sessions extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.delete', options, {
+        route: '/v1/sessions/{session_id}',
+        attributes: { 'anthropic.session.id': sessionID },
+      }),
     });
   }
 
@@ -313,6 +402,10 @@ export class Sessions extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.archive', options, {
+        route: '/v1/sessions/{session_id}/archive',
+        attributes: { 'anthropic.session.id': sessionID },
+      }),
     });
   }
 }
@@ -328,7 +421,7 @@ export type BetaManagedAgentsSessionsBidirectionalPageCursor =
 export interface BetaManagedAgentsAdvisorParams {
   /**
    * A Claude model id. The model must be permitted as an advisor for this agent's
-   * model — see the sessions/threads/advisor spec.
+   * model.
    */
   model: string;
 
@@ -394,7 +487,7 @@ export interface BetaManagedAgentsAgentWithOverridesParams {
   mcp_servers?: Array<AgentsAPI.BetaManagedAgentsURLMCPServerParams>;
 
   /**
-   * Replacement model. Accepts the model string, e.g. `claude-opus-5`, or a
+   * Replacement model. Accepts the model string, e.g. `claude-opus-5-5`, or a
    * `model_config` object. Omit to use the agent's model.
    */
   model?: AgentsAPI.BetaManagedAgentsModel | AgentsAPI.BetaManagedAgentsModelConfigParams;
@@ -442,7 +535,8 @@ export interface BetaManagedAgentsBranchCheckout {
  */
 export interface BetaManagedAgentsBudgetLimit {
   /**
-   * A monetary amount in a specific currency.
+   * Maximum list cost the session may accrue. List price is used regardless of any
+   * negotiated discount, so the cap fires at or before the actual charge.
    */
   max_list_cost: BetaAPI.BetaMonetaryAmount;
 
@@ -484,7 +578,8 @@ export interface BetaManagedAgentsDeletedSession {
 
 export interface BetaManagedAgentsDeltaContent {
   /**
-   * Regular text content.
+   * A partial element of the content array at index, typed like the element itself —
+   * the same shape the buffered agent.message carries in content.
    */
   content: EventsAPI.BetaManagedAgentsTextBlock;
 
@@ -523,9 +618,6 @@ export interface BetaManagedAgentsDeltaEvent {
   type: 'event_delta';
 }
 
-/**
- * EventDeltaType enum
- */
 export type BetaManagedAgentsDeltaType = 'agent.message' | 'agent.thinking';
 
 /**
@@ -586,7 +678,8 @@ export interface BetaManagedAgentsMemoryStoreResourceParam {
   type: 'memory_store';
 
   /**
-   * Access mode for an attached memory store.
+   * Access mode for the mounted store. Defaults to read_write. read_only mounts the
+   * store as a read-only filesystem.
    */
   access?: 'read_write' | 'read_only' | null;
 
@@ -598,35 +691,18 @@ export interface BetaManagedAgentsMemoryStoreResourceParam {
 }
 
 /**
- * Resolved coordinator topology with a concrete agent roster.
+ * Resolved multiagent orchestration configuration as returned in API responses.
  */
-export interface BetaManagedAgentsMultiagent {
-  /**
-   * Agents the coordinator may spawn as session threads, each resolved to a specific
-   * version.
-   */
-  agents: Array<AgentsAPI.BetaManagedAgentsAgentReference | AgentsAPI.BetaManagedAgentsAdvisor>;
-
-  type: 'coordinator';
-}
+export type BetaManagedAgentsMultiagent =
+  | AgentsAPI.BetaManagedAgentsMultiagentCoordinator
+  | AgentsAPI.BetaManagedAgentsMultiagent20261001;
 
 /**
- * A coordinator topology: the session's primary thread orchestrates work by
- * spawning session threads, each running an agent drawn from the `agents` roster.
+ * Multiagent orchestration configuration.
  */
-export interface BetaManagedAgentsMultiagentParams {
-  /**
-   * Agents the coordinator may spawn as session threads. 1–20 entries. Each entry is
-   * an agent ID string, a versioned `{"type":"agent","id","version"}` reference, or
-   * `{"type":"self"}` to allow recursive self-invocation. Entries must reference
-   * distinct agents (after resolving `self` and string forms); at most one `self`.
-   * Referenced agents must exist, must not be archived, and must not themselves have
-   * `multiagent` set (depth limit 1).
-   */
-  agents: Array<BetaManagedAgentsMultiagentRosterEntryParams>;
-
-  type: 'coordinator';
-}
+export type BetaManagedAgentsMultiagentParams =
+  | AgentsAPI.BetaManagedAgentsMultiagentCoordinatorParams
+  | AgentsAPI.BetaManagedAgentsMultiagent20261001Params;
 
 /**
  * An entry in a multiagent roster: an agent ID string, a versioned agent
@@ -643,7 +719,8 @@ export type BetaManagedAgentsMultiagentRosterEntryParams =
  */
 export interface BetaManagedAgentsOutcomeEvaluationResource {
   /**
-   * A timestamp in RFC 3339 format
+   * When the outcome reached a terminal result. Null while
+   * `pending`/`running`/`evaluating`.
    */
   completed_at: string | null;
 
@@ -707,13 +784,12 @@ export interface BetaManagedAgentsSession {
   agent: BetaManagedAgentsSessionAgent;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the session was archived. Null if not archived.
    */
   archived_at: string | null;
 
   /**
-   * A hard spend ceiling. The session stops issuing new model requests once the
-   * tracked list cost reaches `max_list_cost`.
+   * The session's enforced spend ceiling, or null when no budget is set.
    */
   budget: BetaManagedAgentsBudgetLimit | null;
 
@@ -735,12 +811,16 @@ export interface BetaManagedAgentsSession {
   resources: Array<ResourcesAPI.BetaManagedAgentsSessionResource>;
 
   /**
-   * Timing statistics for a session.
+   * Timing statistics for the session.
    */
   stats: BetaManagedAgentsSessionStats;
 
   /**
-   * SessionStatus enum
+   * - `rescheduling` - Transient error occurred, retrying automatically.
+   * - `running` - Agent is actively executing.
+   * - `idle` - Agent is waiting for input, including user messages or tool
+   *   confirmations. Sessions start in idle.
+   * - `terminated` - Session has ended, either due to an error or completion.
    */
   status: 'rescheduling' | 'running' | 'idle' | 'terminated';
 
@@ -754,7 +834,7 @@ export interface BetaManagedAgentsSession {
   updated_at: string;
 
   /**
-   * Cumulative token usage for a session across all turns.
+   * Cumulative token usage for the session.
    */
   usage: BetaManagedAgentsSessionUsage;
 
@@ -780,6 +860,13 @@ export interface BetaManagedAgentsSessionAgent {
 
   description: string | null;
 
+  /**
+   * Execution principal snapshotted from the agent at session creation. Always
+   * present; `{"type": "service_account"}` when runs carry no customer-named
+   * principal.
+   */
+  execution_identity: AgentsAPI.BetaManagedAgentsExecutionIdentity;
+
   mcp_servers: Array<AgentsAPI.BetaManagedAgentsMCPServerURLDefinition>;
 
   /**
@@ -788,10 +875,10 @@ export interface BetaManagedAgentsSessionAgent {
   model: AgentsAPI.BetaManagedAgentsModelConfig;
 
   /**
-   * Resolved coordinator topology with full agent definitions for each roster
-   * member.
+   * Resolved multiagent orchestration configuration. Null when the agent is
+   * single-threaded.
    */
-  multiagent: BetaManagedAgentsSessionMultiagentCoordinator | null;
+  multiagent: BetaManagedAgentsSessionMultiagent | null;
 
   name: string;
 
@@ -834,6 +921,13 @@ export interface BetaManagedAgentsSessionAgentUpdate {
 }
 
 /**
+ * Resolved multiagent orchestration configuration as returned on a `session`.
+ */
+export type BetaManagedAgentsSessionMultiagent =
+  | BetaManagedAgentsSessionMultiagentCoordinator
+  | BetaManagedAgentsSessionMultiagent20261001;
+
+/**
  * Resolved coordinator topology with full agent definitions for each roster
  * member.
  */
@@ -844,6 +938,80 @@ export interface BetaManagedAgentsSessionMultiagentCoordinator {
   agents: Array<AgentsAPI.BetaManagedAgentsSessionThreadAgent | AgentsAPI.BetaManagedAgentsAdvisor>;
 
   type: 'coordinator';
+}
+
+/**
+ * Whether the agent can spawn session threads.
+ */
+export type BetaManagedAgentsSessionMultiagentSubagents =
+  | BetaManagedAgentsSessionMultiagentSubagentsEnabled
+  | AgentsAPI.BetaManagedAgentsMultiagentSubagentsDisabled;
+
+/**
+ * The agent can spawn session threads.
+ */
+export interface BetaManagedAgentsSessionMultiagentSubagentsEnabled {
+  /**
+   * Whether the agent can define inline agents, which are not saved, when it spawns
+   * session threads.
+   */
+  inline_agents: AgentsAPI.BetaManagedAgentsMultiagentInlineAgents;
+
+  /**
+   * Full `agent` definitions of the predefined agents, which are saved agents that
+   * this agent can spawn as session threads.
+   */
+  predefined_agents: Array<AgentsAPI.BetaManagedAgentsSessionThreadAgent>;
+
+  type: 'enabled';
+}
+
+/**
+ * Whether the agent can start workflow runs.
+ */
+export type BetaManagedAgentsSessionMultiagentWorkflows =
+  | BetaManagedAgentsSessionMultiagentWorkflowsEnabled
+  | AgentsAPI.BetaManagedAgentsMultiagentWorkflowsDisabled;
+
+/**
+ * The agent can start workflow runs.
+ */
+export interface BetaManagedAgentsSessionMultiagentWorkflowsEnabled {
+  /**
+   * Whether a run's plan can define inline agents, which are not saved.
+   */
+  inline_agents: AgentsAPI.BetaManagedAgentsMultiagentInlineAgents;
+
+  /**
+   * Full `agent` definitions of the predefined agents, which are saved agents that a
+   * run's plan can use.
+   */
+  predefined_agents: Array<AgentsAPI.BetaManagedAgentsSessionThreadAgent>;
+
+  type: 'enabled';
+}
+
+/**
+ * Resolved multiagent configuration with three members, as copied to the `session`
+ * at creation.
+ */
+export interface BetaManagedAgentsSessionMultiagent20261001 {
+  /**
+   * Whether the session's primary thread can consult an advisor model.
+   */
+  advisor: AgentsAPI.BetaManagedAgentsMultiagentAdvisor;
+
+  /**
+   * Whether the agent can spawn session threads.
+   */
+  subagents: BetaManagedAgentsSessionMultiagentSubagents;
+
+  type: 'multiagent_20261001';
+
+  /**
+   * Whether the agent can start workflow runs.
+   */
+  workflows: BetaManagedAgentsSessionMultiagentWorkflows;
 }
 
 /**
@@ -875,21 +1043,23 @@ export interface BetaManagedAgentsSessionUpdatedEvent {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the update was applied.
    */
   processed_at: string;
 
   type: 'session.updated';
 
   /**
-   * Resolved `agent` definition for a `session`. Snapshot of the `agent` at
-   * `session` creation time.
+   * The session's effective agent configuration after the update. Present only when
+   * the update changed `agent` (tools or mcp_servers); when present it is the full
+   * materialised snapshot, not a diff.
    */
   agent?: BetaManagedAgentsSessionAgent | null;
 
   /**
-   * A hard spend ceiling. The session stops issuing new model requests once the
-   * tracked list cost reaches `max_list_cost`.
+   * The session's budget after the update: the new budget when set or replaced, or
+   * null when the update removed it. Present only when the update changed the
+   * budget.
    */
   budget?: BetaManagedAgentsBudgetLimit | null;
 
@@ -918,7 +1088,7 @@ export interface BetaManagedAgentsSessionUsage {
   active_seconds?: number;
 
   /**
-   * Prompt-cache creation token usage broken down by cache lifetime.
+   * Tokens used to create prompt cache entries, broken down by cache TTL.
    */
   cache_creation?: BetaManagedAgentsCacheCreationUsage;
 
@@ -933,7 +1103,8 @@ export interface BetaManagedAgentsSessionUsage {
   input_tokens?: number;
 
   /**
-   * A monetary amount in a specific currency.
+   * Cumulative list cost of the session across all turns, priced at public list
+   * rates. Absent until cost tracking is available for the session.
    */
   list_cost?: BetaAPI.BetaMonetaryAmount | null;
 
@@ -943,7 +1114,8 @@ export interface BetaManagedAgentsSessionUsage {
   output_tokens?: number;
 
   /**
-   * Cumulative count of server-executed tool invocations, broken down by tool.
+   * Cumulative server-executed tool usage across all turns. Absent until server-tool
+   * tracking is available for the session.
    */
   server_tool_use?: BetaManagedAgentsServerToolUsage | null;
 }
@@ -958,20 +1130,20 @@ export interface BetaManagedAgentsSessionUsageEvent {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when the snapshot was taken.
    */
   processed_at: string;
 
   type: 'session.usage';
 
   /**
-   * Point-in-time snapshot of a session's cumulative usage.
+   * The session's cumulative usage at the snapshot time.
    */
   usage: EventsAPI.BetaManagedAgentsSessionUsageSnapshot;
 
   /**
-   * A hard spend ceiling. The session stops issuing new model requests once the
-   * tracked list cost reaches `max_list_cost`.
+   * The session's configured budget at the snapshot time, or null when the session
+   * has no budget.
    */
   budget?: BetaManagedAgentsBudgetLimit | null;
 }
@@ -1001,7 +1173,7 @@ export type BetaManagedAgentsStartEventPreview =
   | BetaManagedAgentsAgentThinkingPreview;
 
 /**
- * Regular text content.
+ * Content block in a mid-conversation system message. Text-only.
  */
 export interface BetaManagedAgentsSystemContentBlock {
   /**
@@ -1030,7 +1202,7 @@ export interface BetaManagedAgentsSystemMessageEvent {
   type: 'system.message';
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when this system message was processed.
    */
   processed_at?: string | null;
 }
@@ -1072,7 +1244,7 @@ export interface BetaManagedAgentsUserToolResultEvent {
   is_error?: boolean | null;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Timestamp when this result was processed.
    */
   processed_at?: string | null;
 
@@ -1098,8 +1270,10 @@ export interface SessionCreateParams {
   environment_id: string;
 
   /**
-   * Body param: A hard spend ceiling. The session stops issuing new model requests
-   * once the tracked list cost reaches `max_list_cost`.
+   * Body param: Enforced spend ceiling for the session. Omit to create an uncapped
+   * session. Every model the session can run — the agent's model and each callable
+   * agent's model — must have a public list price, or the request is rejected with
+   * reason `model_not_budgetable`.
    */
   budget?: BetaManagedAgentsBudgetLimit;
 
@@ -1141,7 +1315,8 @@ export interface SessionCreateParams {
   vault_ids?: Array<string>;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -1158,7 +1333,8 @@ export interface SessionCreateParams {
 
 export interface SessionRetrieveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `managed-agents-2026-04-01` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -1175,16 +1351,21 @@ export interface SessionRetrieveParams {
 
 export interface SessionUpdateParams {
   /**
-   * Body param: Mid-session agent configuration update. Only `tools` and
-   * `mcp_servers` are updatable. Full replacement: the provided array becomes the
-   * new value. To preserve existing entries, GET the session, modify the array, and
-   * POST it back.
+   * Body param: Agent configuration update. Only `tools` and `mcp_servers` are
+   * updatable mid-session. Only valid for sessions created from an agent or
+   * deployment reference. The session must not be running.
    */
   agent?: BetaManagedAgentsSessionAgentUpdate;
 
   /**
-   * Body param: A hard spend ceiling. The session stops issuing new model requests
-   * once the tracked list cost reaches `max_list_cost`.
+   * Body param: Enforced spend ceiling for the session. Set an object to replace the
+   * budget of a session that was created with one, or `null` to remove it; omit to
+   * preserve. A budget cannot be added to a session created without one (rejected
+   * with reason `budget_create_only`), and a removed budget cannot be re-added.
+   * Allowed in any non-terminated status. Lowering `max_list_cost` to at or below
+   * the session's consumed list cost is rejected with reason `budget_not_raised`,
+   * and every model the session can run must have a public list price or the request
+   * is rejected with reason `model_not_budgetable`.
    */
   budget?: BetaManagedAgentsBudgetLimit | null;
 
@@ -1206,7 +1387,8 @@ export interface SessionUpdateParams {
   vault_ids?: Array<string>;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -1282,7 +1464,8 @@ export interface SessionListParams extends BidirectionalPageCursorParams {
   statuses?: Array<'rescheduling' | 'running' | 'idle' | 'terminated'>;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -1299,7 +1482,8 @@ export interface SessionListParams extends BidirectionalPageCursorParams {
 
 export interface SessionDeleteParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `managed-agents-2026-04-01` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -1316,7 +1500,8 @@ export interface SessionDeleteParams {
 
 export interface SessionArchiveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `managed-agents-2026-04-01` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -1361,7 +1546,13 @@ export declare namespace Sessions {
     type BetaManagedAgentsSession as BetaManagedAgentsSession,
     type BetaManagedAgentsSessionAgent as BetaManagedAgentsSessionAgent,
     type BetaManagedAgentsSessionAgentUpdate as BetaManagedAgentsSessionAgentUpdate,
+    type BetaManagedAgentsSessionMultiagent as BetaManagedAgentsSessionMultiagent,
     type BetaManagedAgentsSessionMultiagentCoordinator as BetaManagedAgentsSessionMultiagentCoordinator,
+    type BetaManagedAgentsSessionMultiagentSubagents as BetaManagedAgentsSessionMultiagentSubagents,
+    type BetaManagedAgentsSessionMultiagentSubagentsEnabled as BetaManagedAgentsSessionMultiagentSubagentsEnabled,
+    type BetaManagedAgentsSessionMultiagentWorkflows as BetaManagedAgentsSessionMultiagentWorkflows,
+    type BetaManagedAgentsSessionMultiagentWorkflowsEnabled as BetaManagedAgentsSessionMultiagentWorkflowsEnabled,
+    type BetaManagedAgentsSessionMultiagent20261001 as BetaManagedAgentsSessionMultiagent20261001,
     type BetaManagedAgentsSessionStats as BetaManagedAgentsSessionStats,
     type BetaManagedAgentsSessionUpdatedEvent as BetaManagedAgentsSessionUpdatedEvent,
     type BetaManagedAgentsSessionUsage as BetaManagedAgentsSessionUsage,
@@ -1387,6 +1578,7 @@ export declare namespace Sessions {
     type BetaManagedAgentsAgentAutoEvaluatedPermissionAsk as BetaManagedAgentsAgentAutoEvaluatedPermissionAsk,
     type BetaManagedAgentsAgentAutoEvaluatedPermissionDeny as BetaManagedAgentsAgentAutoEvaluatedPermissionDeny,
     type BetaManagedAgentsAgentCustomToolUseEvent as BetaManagedAgentsAgentCustomToolUseEvent,
+    type BetaManagedAgentsAgentEvaluatedPermission as BetaManagedAgentsAgentEvaluatedPermission,
     type BetaManagedAgentsAgentMCPToolResultEvent as BetaManagedAgentsAgentMCPToolResultEvent,
     type BetaManagedAgentsAgentMCPToolUseEvent as BetaManagedAgentsAgentMCPToolUseEvent,
     type BetaManagedAgentsAgentMessageEvent as BetaManagedAgentsAgentMessageEvent,
@@ -1411,13 +1603,20 @@ export declare namespace Sessions {
     type BetaManagedAgentsFileRubric as BetaManagedAgentsFileRubric,
     type BetaManagedAgentsFileRubricParams as BetaManagedAgentsFileRubricParams,
     type BetaManagedAgentsImageBlock as BetaManagedAgentsImageBlock,
+    type BetaManagedAgentsMaxWorkflowRunsWorkflowRunError as BetaManagedAgentsMaxWorkflowRunsWorkflowRunError,
     type BetaManagedAgentsMCPAuthenticationFailedError as BetaManagedAgentsMCPAuthenticationFailedError,
     type BetaManagedAgentsMCPConnectionFailedError as BetaManagedAgentsMCPConnectionFailedError,
     type BetaManagedAgentsModelOverloadedError as BetaManagedAgentsModelOverloadedError,
     type BetaManagedAgentsModelRateLimitedError as BetaManagedAgentsModelRateLimitedError,
     type BetaManagedAgentsModelRequestFailedError as BetaManagedAgentsModelRequestFailedError,
     type BetaManagedAgentsPlainTextDocumentSource as BetaManagedAgentsPlainTextDocumentSource,
+    type BetaManagedAgentsProgramWorkflowRunError as BetaManagedAgentsProgramWorkflowRunError,
     type BetaManagedAgentsRedactedBlock as BetaManagedAgentsRedactedBlock,
+    type BetaManagedAgentsRepositoryAuthenticationError as BetaManagedAgentsRepositoryAuthenticationError,
+    type BetaManagedAgentsRepositoryCheckoutError as BetaManagedAgentsRepositoryCheckoutError,
+    type BetaManagedAgentsRepositoryCloneError as BetaManagedAgentsRepositoryCloneError,
+    type BetaManagedAgentsRepositoryForbiddenError as BetaManagedAgentsRepositoryForbiddenError,
+    type BetaManagedAgentsRepositoryNotFoundError as BetaManagedAgentsRepositoryNotFoundError,
     type BetaManagedAgentsRetryStatusExhausted as BetaManagedAgentsRetryStatusExhausted,
     type BetaManagedAgentsRetryStatusRetrying as BetaManagedAgentsRetryStatusRetrying,
     type BetaManagedAgentsRetryStatusTerminal as BetaManagedAgentsRetryStatusTerminal,
@@ -1430,6 +1629,9 @@ export declare namespace Sessions {
     type BetaManagedAgentsSessionEndTurn as BetaManagedAgentsSessionEndTurn,
     type BetaManagedAgentsSessionErrorEvent as BetaManagedAgentsSessionErrorEvent,
     type BetaManagedAgentsSessionEvent as BetaManagedAgentsSessionEvent,
+    type BetaManagedAgentsSessionEventType as BetaManagedAgentsSessionEventType,
+    type BetaManagedAgentsSessionRefusal as BetaManagedAgentsSessionRefusal,
+    type BetaManagedAgentsSessionRefusalStopDetails as BetaManagedAgentsSessionRefusalStopDetails,
     type BetaManagedAgentsSessionRequiresAction as BetaManagedAgentsSessionRequiresAction,
     type BetaManagedAgentsSessionRetriesExhausted as BetaManagedAgentsSessionRetriesExhausted,
     type BetaManagedAgentsSessionStatusIdleEvent as BetaManagedAgentsSessionStatusIdleEvent,
@@ -1453,7 +1655,10 @@ export declare namespace Sessions {
     type BetaManagedAgentsTextBlock as BetaManagedAgentsTextBlock,
     type BetaManagedAgentsTextRubric as BetaManagedAgentsTextRubric,
     type BetaManagedAgentsTextRubricParams as BetaManagedAgentsTextRubricParams,
+    type BetaManagedAgentsThreadLimitWorkflowRunError as BetaManagedAgentsThreadLimitWorkflowRunError,
+    type BetaManagedAgentsTimeoutWorkflowRunError as BetaManagedAgentsTimeoutWorkflowRunError,
     type BetaManagedAgentsUnknownError as BetaManagedAgentsUnknownError,
+    type BetaManagedAgentsUnknownWorkflowRunError as BetaManagedAgentsUnknownWorkflowRunError,
     type BetaManagedAgentsURLDocumentSource as BetaManagedAgentsURLDocumentSource,
     type BetaManagedAgentsURLImageSource as BetaManagedAgentsURLImageSource,
     type BetaManagedAgentsUserCustomToolResultEvent as BetaManagedAgentsUserCustomToolResultEvent,
@@ -1467,6 +1672,19 @@ export declare namespace Sessions {
     type BetaManagedAgentsUserToolConfirmationEvent as BetaManagedAgentsUserToolConfirmationEvent,
     type BetaManagedAgentsUserToolConfirmationEventParams as BetaManagedAgentsUserToolConfirmationEventParams,
     type BetaManagedAgentsUserToolResultEventParams as BetaManagedAgentsUserToolResultEventParams,
+    type BetaManagedAgentsWorkflowRunCreatedEvent as BetaManagedAgentsWorkflowRunCreatedEvent,
+    type BetaManagedAgentsWorkflowRunError as BetaManagedAgentsWorkflowRunError,
+    type BetaManagedAgentsWorkflowRunErrorEvent as BetaManagedAgentsWorkflowRunErrorEvent,
+    type BetaManagedAgentsWorkflowRunPhase as BetaManagedAgentsWorkflowRunPhase,
+    type BetaManagedAgentsWorkflowRunPhaseEndedEvent as BetaManagedAgentsWorkflowRunPhaseEndedEvent,
+    type BetaManagedAgentsWorkflowRunPhaseStartedEvent as BetaManagedAgentsWorkflowRunPhaseStartedEvent,
+    type BetaManagedAgentsWorkflowRunResult as BetaManagedAgentsWorkflowRunResult,
+    type BetaManagedAgentsWorkflowRunResultCompleted as BetaManagedAgentsWorkflowRunResultCompleted,
+    type BetaManagedAgentsWorkflowRunResultError as BetaManagedAgentsWorkflowRunResultError,
+    type BetaManagedAgentsWorkflowRunResultStopped as BetaManagedAgentsWorkflowRunResultStopped,
+    type BetaManagedAgentsWorkflowRunStatusEndedEvent as BetaManagedAgentsWorkflowRunStatusEndedEvent,
+    type BetaManagedAgentsWorkflowRunStatusIdleEvent as BetaManagedAgentsWorkflowRunStatusIdleEvent,
+    type BetaManagedAgentsWorkflowRunStatusRunningEvent as BetaManagedAgentsWorkflowRunStatusRunningEvent,
     type BetaManagedAgentsSessionEventsPageCursor as BetaManagedAgentsSessionEventsPageCursor,
     type EventListParams as EventListParams,
     type EventSendParams as EventSendParams,
@@ -1492,6 +1710,7 @@ export declare namespace Sessions {
 
   export {
     Threads as Threads,
+    type BetaManagedAgentsInlineAgent as BetaManagedAgentsInlineAgent,
     type BetaManagedAgentsSessionThread as BetaManagedAgentsSessionThread,
     type BetaManagedAgentsSessionThreadStats as BetaManagedAgentsSessionThreadStats,
     type BetaManagedAgentsSessionThreadStatus as BetaManagedAgentsSessionThreadStatus,

@@ -6,7 +6,7 @@
     "test": "tsc && vite build && node --test tests/browser.test.mjs"
   },
   "devDependencies": {
-    "playwright-core": "1.57.0",
+    "playwright-core": "1.63.0",
     "typescript": "5.8.3",
     "vite": "8.2.0"
   }

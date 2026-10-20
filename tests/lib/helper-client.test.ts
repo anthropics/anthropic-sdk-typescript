@@ -86,7 +86,7 @@ describe('copyClientForHelper', () => {
     // Building the sub-client must not touch the parent's auth state — a
     // long-lived parent could otherwise be silently re-credentialed every
     // time a runner helper started.
-    const parent = new Anthropic({ apiKey: 'parent-key' });
+    const parent = new Anthropic({ apiKey: 'parent-key', authToken: null });
     copyClientForHelper(parent, { authToken: 'env-key', helper: 'environments-work-poller' });
     expect(parent.apiKey).toBe('parent-key');
     expect(parent.authToken).toBeNull();
@@ -122,6 +122,7 @@ describe('copyClientForHelper — auth state inheritance', () => {
     }[] = [];
     const parent = new Anthropic({
       apiKey: null,
+      authToken: null,
       credentials: async () => ({ token: 'parent-oauth-tok', expiresAt: farFuture() }),
       fetch: async (_url: any, init?: RequestInit) => {
         captured.push({

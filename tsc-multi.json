@@ -3,7 +3,6 @@
     {
       "extname": ".js",
       "module": "commonjs",
-      "moduleResolution": "node10",
       "shareHelpers": "internal/tslib.js",
       "pureClassAssignment": true
     },

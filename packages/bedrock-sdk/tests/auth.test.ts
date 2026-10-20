@@ -4,14 +4,15 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-const mockSign = jest.fn().mockImplementation((request: HttpRequest) => {
+const mockSign = vi.fn().mockImplementation((request: HttpRequest) => {
   return Promise.resolve({ headers: request.headers });
 });
 
-jest.mock('@smithy/signature-v4', () => ({
-  SignatureV4: jest.fn().mockImplementation(() => ({
-    sign: mockSign,
-  })),
+vi.mock('@smithy/signature-v4', () => ({
+  // vitest only allows `new` on mocks implemented with `function`/`class`, not arrow functions
+  SignatureV4: vi.fn().mockImplementation(function () {
+    return { sign: mockSign };
+  }),
 }));
 
 import { getAuthHeaders } from '../src/core/auth';
@@ -27,7 +28,7 @@ describe('default credential chain precedence', () => {
   let awsDir: string;
 
   beforeEach(() => {
-    jest.mocked(SignatureV4).mockClear();
+    vi.mocked(SignatureV4).mockClear();
     awsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bedrock-sdk-auth-'));
     fs.writeFileSync(
       path.join(awsDir, 'credentials'),
@@ -60,7 +61,7 @@ describe('default credential chain precedence', () => {
       awsSessionToken: null,
     });
 
-    expect(jest.mocked(SignatureV4).mock.calls[0]![0].credentials).toMatchObject({
+    expect(vi.mocked(SignatureV4).mock.calls[0]![0].credentials).toMatchObject({
       accessKeyId: 'AKIDENV',
       secretAccessKey: 'env-secret',
       sessionToken: 'env-token',

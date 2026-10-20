@@ -6,6 +6,7 @@ import { AwsCredentialIdentityProvider } from '@smithy/types';
 import assert from 'assert';
 import { APIConnectionError } from './error';
 import { castToError } from '../internal/errors';
+import { traceHeaderNames } from '../internal/trace-headers';
 import { MergedRequestInit } from '../internal/types';
 import { Logger } from '../internal/utils/log';
 
@@ -119,6 +120,6 @@ export const getAuthHeaders = async (req: RequestInit, props: AuthProps): Promis
     body: req.body,
   });
 
-  const signed = await signer.sign(request);
+  const signed = await signer.sign(request, { unsignableHeaders: traceHeaderNames() });
   return signed.headers;
 };

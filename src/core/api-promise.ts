@@ -7,6 +7,9 @@ import {
   defaultParseResponse,
   addResponseIDs,
 } from '../internal/parse';
+import { endApiCallSpan, guardTracing, setCreatedIDAttribute, type ApiCallResult } from '../internal/tracing';
+import { isAsyncIterable } from '../internal/uploads';
+import { endAnthropicApiCallSpanWhenStreamEnds, setAnthropicSpanAttributes } from '../lib/internal/tracing';
 
 /**
  * A subclass of `Promise` providing additional helper methods
@@ -51,7 +54,17 @@ export class APIPromise<T> extends Promise<WithRequestID<T>> {
    * to your `tsconfig.json`.
    */
   asResponse(): Promise<Response> {
-    return this.responsePromise.then((p) => p.response);
+    return this.responsePromise.then((props) => {
+      // A traced API call's span ends with the body. A response read this way, before any parse
+      // of its body has begun, may never be parsed, so its span ends now, without the body.
+      const span = props.options.__span?.span;
+      if (span && !this.parsedPromise) {
+        const result: ApiCallResult = { status: 'success', ...props, data: undefined };
+        setAnthropicSpanAttributes(this.#client, span, result);
+        guardTracing(this.#client, () => endApiCallSpan(span, result));
+      }
+      return props.response;
+    });
   }
 
   /**
@@ -83,11 +96,41 @@ export class APIPromise<T> extends Promise<WithRequestID<T>> {
 
   private parse(): Promise<WithRequestID<T>> {
     if (!this.parsedPromise) {
-      this.parsedPromise = this.responsePromise.then(
-        (data) => this.parseResponse(this.#client, data) as any as Promise<WithRequestID<T>>,
-      );
+      this.parsedPromise = this.responsePromise.then((props) => this.parseResponseTraced(props));
     }
     return this.parsedPromise;
+  }
+
+  /**
+   * Parses the body of an API call. When the call has a span, the span ends with the parse, or,
+   * when the parse returns a streamed body, when the application has read that stream.
+   */
+  private async parseResponseTraced(props: APIResponseProps): Promise<WithRequestID<T>> {
+    const call = props.options.__span;
+    if (!call) {
+      return this.parseResponse(this.#client, props);
+    }
+    const { span } = call;
+    let data: WithRequestID<T>;
+    try {
+      data = await this.parseResponse(this.#client, props);
+    } catch (error) {
+      const result: ApiCallResult = { status: 'error', ...props, error };
+      setAnthropicSpanAttributes(this.#client, span, result);
+      guardTracing(this.#client, () => endApiCallSpan(span, result));
+      throw error;
+    }
+    const result: ApiCallResult = { status: 'success', ...props, data };
+    guardTracing(this.#client, () => setCreatedIDAttribute(call, data));
+    setAnthropicSpanAttributes(this.#client, span, result);
+    if (props.options.stream && isAsyncIterable(data)) {
+      guardTracing(this.#client, () =>
+        endAnthropicApiCallSpanWhenStreamEnds(this.#client, span, data, props),
+      );
+    } else {
+      guardTracing(this.#client, () => endApiCallSpan(span, result));
+    }
+    return data;
   }
 
   override then<TResult1 = WithRequestID<T>, TResult2 = never>(

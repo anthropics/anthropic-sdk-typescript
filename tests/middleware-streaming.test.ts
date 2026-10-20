@@ -31,10 +31,10 @@ const STREAM_A_TOOL = fs.readFileSync(path.join(FIXTURES, 'stream-a-toolrefusal.
 
 // silence the missing-fallbackState warning in tests that fall back without one
 beforeEach(() => {
-  jest.spyOn(console, 'warn').mockImplementation(() => {});
+  vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 afterEach(() => {
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 // --- helpers --------------------------------------------------------------
@@ -265,6 +265,52 @@ describe('betaRefusalFallbackMiddleware (streaming) — shape-B continuation', (
     expect(appended.content[0]).toHaveProperty('signature');
   });
 
+  test('between_tools thinking degrades to disabled on the hop', async () => {
+    const { requests } = await runMiddleware(
+      { fallbacks: FALLBACKS },
+      { ...ORIGINAL_BODY, thinking: { type: 'between_tools' } },
+      [sseResponse(STREAM_A), sseResponse(STREAM_B)],
+    );
+
+    const bodies = requests.map((r) => JSON.parse(r.body as string));
+    expect(bodies.map((b) => b.thinking)).toEqual([{ type: 'between_tools' }, { type: 'disabled' }]);
+  });
+
+  test('between_tools thinking degrades even when the entry sets thinking', async () => {
+    const { requests } = await runMiddleware(
+      { fallbacks: [{ model: FALLBACK_MODEL, thinking: { type: 'between_tools' } }] },
+      { ...ORIGINAL_BODY, thinking: { type: 'between_tools' } },
+      [sseResponse(STREAM_A), sseResponse(STREAM_B)],
+    );
+
+    expect(JSON.parse(requests[1]!.body as string).thinking).toEqual({ type: 'disabled' });
+  });
+
+  test.each<[string, Partial<BetaFallbackParam>, Record<string, unknown>]>([
+    ['a null speed on the entry removes speed from the hop', { speed: null }, {}],
+    [
+      'a speed set on the entry overrides the original on the hop',
+      { speed: 'standard' },
+      { speed: 'standard' },
+    ],
+    ['an entry without speed keeps the original on the hop', {}, { speed: 'fast' }],
+  ])('%s', async (_name, entrySpeed, expectedSpeed) => {
+    const refusedWithoutPrefillClaim = messageStart() + refusalDelta('tok_abc', false);
+
+    const { requests } = await runMiddleware(
+      { fallbacks: [{ model: FALLBACK_MODEL, ...entrySpeed }] },
+      { ...ORIGINAL_BODY, speed: 'fast' },
+      [sseResponse(refusedWithoutPrefillClaim), sseResponse(STREAM_B)],
+    );
+
+    expect(JSON.parse(requests[1]!.body as string)).toEqual({
+      ...ORIGINAL_BODY,
+      ...expectedSpeed,
+      model: FALLBACK_MODEL,
+      fallback_credit_token: { token: 'tok_abc', mode: 'best_effort' },
+    });
+  });
+
   test('appends the fallback-credit beta to both the original and hop requests', async () => {
     // requestA already carries a beta header; the default is appended to it.
     const { requests } = await runMiddleware({ fallbacks: FALLBACKS }, ORIGINAL_BODY, [
@@ -273,8 +319,8 @@ describe('betaRefusalFallbackMiddleware (streaming) — shape-B continuation', (
     ]);
 
     expect(requests.map((r) => r.headers.get('anthropic-beta'))).toEqual([
-      'interleaved-thinking-2025-05-14, fallback-credit-2026-07-01',
-      'interleaved-thinking-2025-05-14, fallback-credit-2026-07-01',
+      'interleaved-thinking-2025-05-14,fallback-credit-2026-07-01',
+      'interleaved-thinking-2025-05-14,fallback-credit-2026-07-01',
     ]);
   });
 
@@ -286,8 +332,8 @@ describe('betaRefusalFallbackMiddleware (streaming) — shape-B continuation', (
     );
 
     expect(requests.map((r) => r.headers.get('anthropic-beta'))).toEqual([
-      'interleaved-thinking-2025-05-14, fallback-credit-2027-01-01',
-      'interleaved-thinking-2025-05-14, fallback-credit-2027-01-01',
+      'interleaved-thinking-2025-05-14,fallback-credit-2027-01-01',
+      'interleaved-thinking-2025-05-14,fallback-credit-2027-01-01',
     ]);
   });
 });
@@ -346,7 +392,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — edge cases', () => {
 
   test('refusal with no credit token passes A through and reports via onError', async () => {
     const noToken = STREAM_A.replace(/"fallback_credit_token":"[^"]*"/, '"fallback_credit_token":null');
-    const onError = jest.fn();
+    const onError = vi.fn();
 
     const { events, requests } = await runMiddleware({ fallbacks: FALLBACKS, onError }, ORIGINAL_BODY, [
       sseResponse(noToken),
@@ -370,7 +416,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — edge cases', () => {
   });
 
   test('a 400 on the prefill form retries the same hop without the partial', async () => {
-    const onError = jest.fn();
+    const onError = vi.fn();
     const { events, requests } = await runMiddleware({ fallbacks: FALLBACKS, onError }, ORIGINAL_BODY, [
       sseResponse(STREAM_A),
       jsonResponse({ type: 'error', error: { type: 'invalid_request_error', message: 'bad prefill' } }, 400),
@@ -398,7 +444,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — edge cases', () => {
   });
 
   test('a failed fallback request synthesizes a refusal close and reports via onError', async () => {
-    const onError = jest.fn();
+    const onError = vi.fn();
     // Give A's refusal a real category/explanation to prove they thread through.
     const refusedA = STREAM_A.replace(
       '"category":null,"explanation":null',
@@ -444,7 +490,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — edge cases', () => {
   });
 
   test('a fallback request that throws synthesizes a refusal close instead of erroring the stream', async () => {
-    const onError = jest.fn();
+    const onError = vi.fn();
     const { events } = await runMiddleware({ fallbacks: FALLBACKS, onError }, ORIGINAL_BODY, [
       sseResponse(STREAM_A),
       new Error('connection reset'),
@@ -467,7 +513,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — edge cases', () => {
   });
 
   test('a non-string request body passes the stream through untouched (splicing needs the JSON body)', async () => {
-    const onError = jest.fn();
+    const onError = vi.fn();
     const resA = sseResponse(STREAM_A);
     const { out, requests } = await runMiddleware(
       {
@@ -605,7 +651,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — edge cases', () => {
       })}\n\n`,
       `event: message_stop\ndata: ${JSON.stringify({ type: 'message_stop' })}\n\n`,
     ].join('');
-    const onError = jest.fn();
+    const onError = vi.fn();
 
     const { events, requests } = await runMiddleware({ fallbacks: FALLBACKS, onError }, ORIGINAL_BODY, [
       sseResponse(normal),
@@ -751,10 +797,10 @@ describe('betaRefusalFallbackMiddleware (streaming) — fallbackState', () => {
     const middleware = betaRefusalFallbackMiddleware(FALLBACKS);
     // an injected logger rather than a console.warn spy: the SDK caches bound
     // console methods across tests, so per-test console spies go stale
-    const warn = jest.fn();
+    const warn = vi.fn();
     const ctx: MiddlewareContext = {
       options: { method: 'post', path: '/v1/messages?beta=true', body: ORIGINAL_BODY, stream: true } as any,
-      logger: { error: jest.fn(), warn, info: jest.fn(), debug: jest.fn() },
+      logger: { error: vi.fn(), warn, info: vi.fn(), debug: vi.fn() },
       parse: async <T>(r: Response): Promise<T> => JSON.parse(await r.clone().text()) as T,
     };
     const requestA: APIRequest = {
@@ -874,7 +920,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — fallback chain', () => {
   });
 
   test('an HTTP-failed hop is skipped; the unredeemed token carries to the next entry', async () => {
-    const onError = jest.fn();
+    const onError = vi.fn();
     const { events, requests } = await runMiddleware(
       { fallbacks: [{ model: FALLBACK_MODEL }, { model: SECOND_MODEL }], onError },
       ORIGINAL_BODY,
@@ -931,7 +977,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — fallback chain', () => {
   });
 
   test('a terminal refusal with no entries left is emitted with the full iteration chain', async () => {
-    const onError = jest.fn();
+    const onError = vi.fn();
     const { events, requests } = await runMiddleware({ fallbacks: FALLBACKS, onError }, ORIGINAL_BODY, [
       sseResponse(STREAM_A),
       sseResponse(hopRefusal),
@@ -950,7 +996,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — fallback chain', () => {
   });
 
   test('a token-less refusal on the final hop is still reported via onError', async () => {
-    const onError = jest.fn();
+    const onError = vi.fn();
     const hopNoToken = [
       messageStart(),
       ev({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } }),
@@ -970,7 +1016,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — fallback chain', () => {
   });
 
   test('an empty chain passes the stream through untouched', async () => {
-    const onError = jest.fn();
+    const onError = vi.fn();
     const resA = sseResponse(STREAM_A);
     const { out, events, requests } = await runMiddleware({ fallbacks: [], onError }, ORIGINAL_BODY, [resA]);
 
@@ -984,7 +1030,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — fallback chain', () => {
   });
 
   test('a hop whose request throws is skipped; the unredeemed token carries to the next entry', async () => {
-    const onError = jest.fn();
+    const onError = vi.fn();
     const { events, requests } = await runMiddleware(
       { fallbacks: [{ model: FALLBACK_MODEL }, { model: SECOND_MODEL }], onError },
       ORIGINAL_BODY,
@@ -1009,6 +1055,144 @@ describe('betaRefusalFallbackMiddleware (streaming) — fallback chain', () => {
       ['message', 'claude-fable-5'],
       ['fallback_message', SECOND_MODEL],
     ]);
+  });
+});
+
+// --- fast hop rejected with a 429 or 529 --------------------------------------
+
+describe('betaRefusalFallbackMiddleware (streaming) — fast hop rejected with a 429 or 529', () => {
+  const FAST_BODY = { ...ORIGINAL_BODY, speed: 'fast' };
+  const HOP_WITHOUT_SPEED = {
+    ...ORIGINAL_BODY,
+    model: FALLBACK_MODEL,
+    fallback_credit_token: { token: 'tok_abc', mode: 'best_effort' },
+  };
+  // no prefill claim, so a 400 on the hop isn't retried without the partial
+  const refusedA = messageStart() + refusalDelta('tok_abc', false);
+  const rejected = (status: number) =>
+    jsonResponse({ type: 'error', error: { type: 'api_error', message: 'rejected' } }, status);
+  const bodiesOf = (requests: APIRequest[]) => requests.map((r) => JSON.parse(r.body as string));
+
+  test.each([429, 529])('a %i is resent once without speed', async (status) => {
+    const onError = vi.fn();
+    const cancel = vi.fn();
+    const { events, requests } = await runMiddleware({ fallbacks: FALLBACKS, onError }, FAST_BODY, [
+      sseResponse(STREAM_A),
+      new Response(new ReadableStream({ cancel }), { status }),
+      sseResponse(STREAM_B),
+    ]);
+
+    expect(requests).toHaveLength(3);
+    const { speed, ...hopWithoutSpeed } = bodiesOf(requests)[1];
+    expect(speed).toBe('fast');
+    expect(hopWithoutSpeed.model).toBe(FALLBACK_MODEL);
+    expect(hopWithoutSpeed.fallback_credit_token.mode).toBe('best_effort');
+    expect(hopWithoutSpeed.messages).toHaveLength(2);
+    expect(bodiesOf(requests)[2]).toEqual(hopWithoutSpeed);
+    expect(cancel).toHaveBeenCalledTimes(1);
+
+    // The recovered hop is not a failure: one boundary, a normal completion.
+    expect(onError).not.toHaveBeenCalled();
+    const boundaries = events.filter(
+      (e) => e.data.type === 'content_block_start' && e.data.content_block.type === 'fallback',
+    );
+    expect(boundaries).toHaveLength(1);
+    expect(events.find((e) => e.data.type === 'message_delta')!.data.delta.stop_reason).toBe('end_turn');
+  });
+
+  test.each<[string, Partial<BetaFallbackParam>, Record<string, unknown>, number]>([
+    ["the entry sets speed: 'fast'", { speed: 'fast' }, { speed: 'fast' }, 429],
+    ['the request has no speed', {}, {}, 429],
+    ['the request is standard speed', {}, { speed: 'standard' }, 529],
+    ['the status is 400', {}, { speed: 'fast' }, 400],
+    ['the status is 500', {}, { speed: 'fast' }, 500],
+  ])('is not resent when %s', async (_name, entrySpeed, requestSpeed, status) => {
+    const onError = vi.fn();
+    const { requests } = await runMiddleware(
+      { fallbacks: [{ model: FALLBACK_MODEL, ...entrySpeed }], onError },
+      { ...ORIGINAL_BODY, ...requestSpeed },
+      [sseResponse(refusedA), rejected(status)],
+    );
+
+    expect(bodiesOf(requests)).toEqual([
+      { ...ORIGINAL_BODY, ...requestSpeed },
+      { ...HOP_WITHOUT_SPEED, ...requestSpeed },
+    ]);
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ kind: 'request_failed', status }));
+  });
+
+  test('a resend that is rejected too fails the hop, and the next entry starts fast again', async () => {
+    const onError = vi.fn();
+    const { events, requests } = await runMiddleware(
+      { fallbacks: [{ model: FALLBACK_MODEL }, { model: SECOND_MODEL }], onError },
+      FAST_BODY,
+      [sseResponse(refusedA), rejected(429), rejected(429), sseResponse(STREAM_B)],
+    );
+
+    expect(bodiesOf(requests)).toEqual([
+      FAST_BODY,
+      { ...HOP_WITHOUT_SPEED, speed: 'fast' },
+      HOP_WITHOUT_SPEED,
+      { ...HOP_WITHOUT_SPEED, speed: 'fast', model: SECOND_MODEL },
+    ]);
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'request_failed', model: FALLBACK_MODEL, status: 429 }),
+    );
+    expect(events.find((e) => e.data.type === 'message_delta')!.data.delta.stop_reason).toBe('end_turn');
+  });
+
+  test.each<[string, number[], Array<{ speed: boolean; prefill: boolean }>]>([
+    [
+      'the retry without the partial stays without speed after a resend',
+      [429, 400],
+      [
+        { speed: true, prefill: true },
+        { speed: false, prefill: true },
+        { speed: false, prefill: false },
+      ],
+    ],
+    [
+      'the retry without the partial is resent without speed when it is the one rejected',
+      [400, 429],
+      [
+        { speed: true, prefill: true },
+        { speed: true, prefill: false },
+        { speed: false, prefill: false },
+      ],
+    ],
+  ])('%s', async (_name, statuses, expected) => {
+    const onError = vi.fn();
+    const { events, requests } = await runMiddleware({ fallbacks: FALLBACKS, onError }, FAST_BODY, [
+      sseResponse(STREAM_A),
+      ...statuses.map(rejected),
+      sseResponse(STREAM_B),
+    ]);
+
+    const hops = bodiesOf(requests).slice(1);
+    expect(hops.map((b) => ({ speed: 'speed' in b, prefill: b.messages.length === 2 }))).toEqual(expected);
+    for (const hop of hops) {
+      expect(hop.model).toBe(FALLBACK_MODEL);
+      expect(hop.fallback_credit_token).toEqual(hops[0].fallback_credit_token);
+    }
+    expect(onError).not.toHaveBeenCalled();
+    expect(events.find((e) => e.data.type === 'message_delta')!.data.delta.stop_reason).toBe('end_turn');
+  });
+
+  test('a request that starts on the pinned entry is resent without speed', async () => {
+    const fallbackState = new BetaFallbackState();
+    fallbackState.index = 0;
+
+    const { events, requests } = await runMiddleware({ fallbacks: FALLBACKS, fallbackState }, FAST_BODY, [
+      rejected(429),
+      sseResponse(STREAM_B),
+    ]);
+
+    expect(bodiesOf(requests)).toEqual([
+      { ...FAST_BODY, model: FALLBACK_MODEL },
+      { ...ORIGINAL_BODY, model: FALLBACK_MODEL },
+    ]);
+    expect(events.find((e) => e.data.type === 'message_delta')!.data.delta.stop_reason).toBe('end_turn');
   });
 });
 
@@ -1076,7 +1260,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — input_transformations', 
   });
 
   test("a degraded chain's surfaced refusal carries the spliced hop's input_transformations", async () => {
-    const onError = jest.fn();
+    const onError = vi.fn();
     // B refuses with a fresh token, then C's request fails with no entries
     // left: B's held refusal is surfaced as the terminal, its list intact.
     const hopRefusing = hopServing({
@@ -1305,6 +1489,73 @@ describe('betaRefusalFallbackMiddleware (streaming) — tool-use refusals', () =
     // The result block keeps its pairing id.
     expect(appended.content[1].tool_use_id).toBe('srvtoolu_fixture_a_0001');
     expect(appended.content[1].type).toBe('web_search_tool_result');
+  });
+
+  test('a compaction block streamed before the refusal is echoed with its summary, not the empty shell', async () => {
+    // Wire shape: the block opens with null content and one compaction_delta carries its final value.
+    const streamA = [
+      messageStart(),
+      ev({ type: 'content_block_start', index: 0, content_block: { type: 'compaction', content: null } }),
+      ev({
+        type: 'content_block_delta',
+        index: 0,
+        delta: { type: 'compaction_delta', content: 'Summary of the conversation so far' },
+      }),
+      ev({ type: 'content_block_stop', index: 0 }),
+      ev({ type: 'content_block_start', index: 1, content_block: { type: 'text', text: '' } }),
+      ev({
+        type: 'content_block_delta',
+        index: 1,
+        delta: { type: 'text_delta', text: 'A solar eclipse is' },
+      }),
+      refusalDelta(),
+      ev({ type: 'message_stop' }),
+    ].join('');
+
+    const { requests } = await runMiddleware({ fallbacks: FALLBACKS }, ORIGINAL_BODY, [
+      sseResponse(streamA),
+      sseResponse(STREAM_B),
+    ]);
+
+    const appended = JSON.parse(requests[1]!.body as string).messages[1];
+    expect(appended.role).toBe('assistant');
+    expect(appended.content).toEqual([
+      { type: 'compaction', content: 'Summary of the conversation so far' },
+      { type: 'text', text: 'A solar eclipse is' },
+    ]);
+  });
+
+  test('a failed compaction block is echoed with its null content', async () => {
+    const streamA = [
+      messageStart(),
+      ev({
+        type: 'content_block_start',
+        index: 0,
+        content_block: { type: 'compaction', content: null, encrypted_content: null },
+      }),
+      ev({
+        type: 'content_block_delta',
+        index: 0,
+        delta: { type: 'compaction_delta', content: null, encrypted_content: null },
+      }),
+      ev({ type: 'content_block_stop', index: 0 }),
+      ev({ type: 'content_block_start', index: 1, content_block: { type: 'text', text: '' } }),
+      ev({
+        type: 'content_block_delta',
+        index: 1,
+        delta: { type: 'text_delta', text: 'A solar eclipse is' },
+      }),
+      refusalDelta(),
+      ev({ type: 'message_stop' }),
+    ].join('');
+
+    const { requests } = await runMiddleware({ fallbacks: FALLBACKS }, ORIGINAL_BODY, [
+      sseResponse(streamA),
+      sseResponse(STREAM_B),
+    ]);
+
+    const appended = JSON.parse(requests[1]!.body as string).messages[1];
+    expect(appended.content[0]).toEqual({ type: 'compaction', content: null, encrypted_content: null });
   });
 
   test('mid-loop refusal ending in thinking is appended as-is when the claim allows it', async () => {

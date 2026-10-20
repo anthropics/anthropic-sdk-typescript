@@ -50,10 +50,31 @@ import {
   InviteListParams,
   Invites,
 } from './invites';
+import * as PluginMarketplacesAPI from './plugin-marketplaces';
+import {
+  BetaPluginMarketplace,
+  BetaPluginMarketplaceValidationPluginError,
+  BetaPluginMarketplaceValidationPluginWarning,
+  BetaPluginMarketplaceValidationPluginWarnings,
+  BetaPluginMarketplaceValidationReport,
+  BetaPluginMarketplacesPageCursor,
+  PluginMarketplaceListParams,
+  PluginMarketplaceRetrieveParams,
+  PluginMarketplaceUpdateParams,
+  PluginMarketplaceValidateArchiveParams,
+  PluginMarketplaceValidateRepositoryParams,
+  PluginMarketplaces,
+} from './plugin-marketplaces';
 import * as RateLimitsAPI from './rate-limits';
 import {
   BetaOrganizationRateLimit,
+  BetaOrganizationRateLimitBatchGroup,
+  BetaOrganizationRateLimitFilesGroup,
+  BetaOrganizationRateLimitModelGroup,
+  BetaOrganizationRateLimitSkillsGroup,
+  BetaOrganizationRateLimitTokenCountGroup,
   BetaOrganizationRateLimitValue,
+  BetaOrganizationRateLimitWebSearchGroup,
   BetaOrganizationRateLimitsPageCursor,
   RateLimitListParams,
   RateLimits,
@@ -67,8 +88,101 @@ import {
   UserUpdateParams,
   Users,
 } from './users';
+import * as AnalyticsAPI from './analytics/analytics';
+import {
+  Analytics,
+  BetaAnalyticsArtifactActivity,
+  BetaAnalyticsChatCoworkUnifiedChatMetrics,
+  BetaAnalyticsChatCoworkUnifiedSessionsMetrics,
+  BetaAnalyticsChatMetrics,
+  BetaAnalyticsClaudeCodeMetrics,
+  BetaAnalyticsClaudeTagCategory,
+  BetaAnalyticsConnectorActivity,
+  BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics,
+  BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics,
+  BetaAnalyticsConnectorChatMetrics,
+  BetaAnalyticsConnectorClaudeCodeMetrics,
+  BetaAnalyticsConnectorCoworkMetrics,
+  BetaAnalyticsConnectorOfficeMetrics,
+  BetaAnalyticsConnectorOfficeProductMetrics,
+  BetaAnalyticsContextWindow,
+  BetaAnalyticsCoreCodeMetrics,
+  BetaAnalyticsCostBucketedResult,
+  BetaAnalyticsCostReportTimeBucket,
+  BetaAnalyticsCostType,
+  BetaAnalyticsCostUsersItem,
+  BetaAnalyticsCoworkMetrics,
+  BetaAnalyticsDesignMetrics,
+  BetaAnalyticsInferenceGeoFilter,
+  BetaAnalyticsLinesOfCode,
+  BetaAnalyticsOfficeMetrics,
+  BetaAnalyticsOfficeProductMetrics,
+  BetaAnalyticsPluginActivity,
+  BetaAnalyticsPluginClaudeCodeMetrics,
+  BetaAnalyticsPluginCoworkMetrics,
+  BetaAnalyticsProductFilter,
+  BetaAnalyticsProjectActivity,
+  BetaAnalyticsScienceMetrics,
+  BetaAnalyticsServerToolUse,
+  BetaAnalyticsSingleDayActivitySummary,
+  BetaAnalyticsSkillActivity,
+  BetaAnalyticsSkillChatCoworkUnifiedChatMetrics,
+  BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics,
+  BetaAnalyticsSkillChatMetrics,
+  BetaAnalyticsSkillClaudeCodeMetrics,
+  BetaAnalyticsSkillCoworkMetrics,
+  BetaAnalyticsSkillOfficeMetrics,
+  BetaAnalyticsSkillOfficeProductMetrics,
+  BetaAnalyticsTokenType,
+  BetaAnalyticsToolActionCounts,
+  BetaAnalyticsToolActions,
+  BetaAnalyticsUsageBucketedResult,
+  BetaAnalyticsUsageReportTimeBucket,
+  BetaAnalyticsUsageUsersItem,
+  BetaAnalyticsUser,
+  BetaAnalyticsUserActivity,
+  BetaAnalyticsUserActor,
+} from './analytics/analytics';
 import * as FederationAPI from './federation/federation';
 import { Federation } from './federation/federation';
+import * as PluginsAPI from './plugins/plugins';
+import {
+  BetaDeletedPlugin,
+  BetaPlugin,
+  BetaPluginAPIActor,
+  BetaPluginComponent,
+  BetaPluginContentScan,
+  BetaPluginOwnerOrganization,
+  BetaPluginOwnerUser,
+  BetaPluginTargetOrganization,
+  BetaPluginTargetOrganizationMember,
+  BetaPluginTargetRBACGroup,
+  BetaPluginUserActor,
+  BetaPluginsPageCursor,
+  PluginCreateParams,
+  PluginDeleteParams,
+  PluginListParams,
+  PluginRetrieveParams,
+  PluginUpdateParams,
+  Plugins,
+} from './plugins/plugins';
+import * as RBACGroupsAPI from './rbac-groups/rbac-groups';
+import {
+  BetaRBACGroup,
+  BetaRBACGroupsPageCursor,
+  RBACGroupCreateParams,
+  RBACGroupDeleteResponse,
+  RBACGroupListParams,
+  RBACGroupUpdateParams,
+  RBACGroups,
+} from './rbac-groups/rbac-groups';
+import * as RBACRolesAPI from './rbac-roles/rbac-roles';
+import {
+  BetaRBACRole,
+  BetaRBACRolesPageCursor,
+  RBACRoleListParams,
+  RBACRoles,
+} from './rbac-roles/rbac-roles';
 import * as ServiceAccountsAPI from './service-accounts/service-accounts';
 import {
   BetaServiceAccount,
@@ -81,6 +195,66 @@ import {
   ServiceAccountUpdateParams,
   ServiceAccounts,
 } from './service-accounts/service-accounts';
+import * as SpendLimitsAPI from './spend-limits/spend-limits';
+import {
+  BetaSpendLimit,
+  BetaSpendLimitOrganizationScope,
+  BetaSpendLimitOrganizationServiceScope,
+  BetaSpendLimitPeriod,
+  BetaSpendLimitRBACGroupScope,
+  BetaSpendLimitScopedAPIKeyActor,
+  BetaSpendLimitSeatTierScope,
+  BetaSpendLimitUsageTierScope,
+  BetaSpendLimitUserActor,
+  BetaSpendLimitUserScope,
+  BetaSpendLimitWorkspaceScope,
+  BetaSpendLimitsPageCursor,
+  BetaSpendSummary,
+  SpendLimitDeleteResponse,
+  SpendLimitListParams,
+  SpendLimitSetParams,
+  SpendLimits,
+} from './spend-limits/spend-limits';
+import * as TelemetryDestinationsAPI from './telemetry-destinations/telemetry-destinations';
+import {
+  BetaDeletedTelemetryDestination,
+  BetaTelemetryDestination,
+  BetaTelemetryDestinationContentMode,
+  BetaTelemetryDestinationDeliveryHealth,
+  BetaTelemetryDestinationDisabledReason,
+  BetaTelemetryDestinationDisabledReasonCaller,
+  BetaTelemetryDestinationDisabledReasonInvalidAddress,
+  BetaTelemetryDestinationDisabledReasonRedirect,
+  BetaTelemetryDestinationDisabledReasonSustainedFailure,
+  BetaTelemetryDestinationState,
+  BetaTelemetryDestinationStateDisabled,
+  BetaTelemetryDestinationStateDisabledParams,
+  BetaTelemetryDestinationStateEnabled,
+  BetaTelemetryDestinationStateEnabledParams,
+  BetaTelemetryDestinationStateParams,
+  BetaTelemetryDestinationTestFailure,
+  BetaTelemetryDestinationTestResponse,
+  BetaTelemetryDestinationTestResult,
+  BetaTelemetryDestinationTestSuccess,
+  BetaTelemetryDestinationTraces,
+  BetaTelemetryDestinationTracesParams,
+  BetaTelemetryDestinationWorkspaces,
+  BetaTelemetryDestinationWorkspacesAll,
+  BetaTelemetryDestinationWorkspacesAllParams,
+  BetaTelemetryDestinationWorkspacesExclude,
+  BetaTelemetryDestinationWorkspacesExcludeParams,
+  BetaTelemetryDestinationWorkspacesInclude,
+  BetaTelemetryDestinationWorkspacesIncludeParams,
+  BetaTelemetryDestinationWorkspacesParams,
+  BetaTelemetryDestinationsPageCursor,
+  TelemetryDestinationCreateParams,
+  TelemetryDestinationDeleteParams,
+  TelemetryDestinationListParams,
+  TelemetryDestinationRetrieveParams,
+  TelemetryDestinationTestParams,
+  TelemetryDestinationUpdateParams,
+  TelemetryDestinations,
+} from './telemetry-destinations/telemetry-destinations';
 import * as WorkspacesAPI from './workspaces/workspaces';
 import {
   BetaAllowedInferenceGeo,
@@ -99,6 +273,7 @@ import {
 } from './workspaces/workspaces';
 import { APIPromise } from '../../../core/api-promise';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 
 export class Organization extends APIResource {
   apiKeys: APIKeysAPI.APIKeys = new APIKeysAPI.APIKeys(this._client);
@@ -112,6 +287,16 @@ export class Organization extends APIResource {
   complianceSettings: ComplianceSettingsAPI.ComplianceSettings = new ComplianceSettingsAPI.ComplianceSettings(
     this._client,
   );
+  analytics: AnalyticsAPI.Analytics = new AnalyticsAPI.Analytics(this._client);
+  spendLimits: SpendLimitsAPI.SpendLimits = new SpendLimitsAPI.SpendLimits(this._client);
+  rbacGroups: RBACGroupsAPI.RBACGroups = new RBACGroupsAPI.RBACGroups(this._client);
+  rbacRoles: RBACRolesAPI.RBACRoles = new RBACRolesAPI.RBACRoles(this._client);
+  plugins: PluginsAPI.Plugins = new PluginsAPI.Plugins(this._client);
+  pluginMarketplaces: PluginMarketplacesAPI.PluginMarketplaces = new PluginMarketplacesAPI.PluginMarketplaces(
+    this._client,
+  );
+  telemetryDestinations: TelemetryDestinationsAPI.TelemetryDestinations =
+    new TelemetryDestinationsAPI.TelemetryDestinations(this._client);
 
   /**
    * Retrieve information about the organization associated with the authenticated
@@ -124,7 +309,12 @@ export class Organization extends APIResource {
    * ```
    */
   retrieve(options?: RequestOptions): APIPromise<BetaOrganization> {
-    return this._client.get('/v1/organizations/me?beta=true', options);
+    return this._client.get('/v1/organizations/me?beta=true', {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.retrieve', options, {
+        route: '/v1/organizations/me',
+      }),
+    });
   }
 }
 
@@ -167,6 +357,13 @@ Organization.Users = Users;
 Organization.Workspaces = Workspaces;
 Organization.RateLimits = RateLimits;
 Organization.ComplianceSettings = ComplianceSettings;
+Organization.Analytics = Analytics;
+Organization.SpendLimits = SpendLimits;
+Organization.RBACGroups = RBACGroups;
+Organization.RBACRoles = RBACRoles;
+Organization.Plugins = Plugins;
+Organization.PluginMarketplaces = PluginMarketplaces;
+Organization.TelemetryDestinations = TelemetryDestinations;
 
 export declare namespace Organization {
   export { type BetaOrganization as BetaOrganization, type BetaOrganizationRole as BetaOrganizationRole };
@@ -252,7 +449,13 @@ export declare namespace Organization {
   export {
     RateLimits as RateLimits,
     type BetaOrganizationRateLimit as BetaOrganizationRateLimit,
+    type BetaOrganizationRateLimitBatchGroup as BetaOrganizationRateLimitBatchGroup,
+    type BetaOrganizationRateLimitFilesGroup as BetaOrganizationRateLimitFilesGroup,
+    type BetaOrganizationRateLimitModelGroup as BetaOrganizationRateLimitModelGroup,
+    type BetaOrganizationRateLimitSkillsGroup as BetaOrganizationRateLimitSkillsGroup,
+    type BetaOrganizationRateLimitTokenCountGroup as BetaOrganizationRateLimitTokenCountGroup,
     type BetaOrganizationRateLimitValue as BetaOrganizationRateLimitValue,
+    type BetaOrganizationRateLimitWebSearchGroup as BetaOrganizationRateLimitWebSearchGroup,
     type BetaOrganizationRateLimitsPageCursor as BetaOrganizationRateLimitsPageCursor,
     type RateLimitListParams as RateLimitListParams,
   };
@@ -267,5 +470,173 @@ export declare namespace Organization {
     type BetaComplianceSettingsStateEnabledParam as BetaComplianceSettingsStateEnabledParam,
     type BetaComplianceSettingsStateParam as BetaComplianceSettingsStateParam,
     type ComplianceSettingUpdateParams as ComplianceSettingUpdateParams,
+  };
+
+  export {
+    Analytics as Analytics,
+    type BetaAnalyticsArtifactActivity as BetaAnalyticsArtifactActivity,
+    type BetaAnalyticsChatCoworkUnifiedChatMetrics as BetaAnalyticsChatCoworkUnifiedChatMetrics,
+    type BetaAnalyticsChatCoworkUnifiedSessionsMetrics as BetaAnalyticsChatCoworkUnifiedSessionsMetrics,
+    type BetaAnalyticsChatMetrics as BetaAnalyticsChatMetrics,
+    type BetaAnalyticsClaudeCodeMetrics as BetaAnalyticsClaudeCodeMetrics,
+    type BetaAnalyticsClaudeTagCategory as BetaAnalyticsClaudeTagCategory,
+    type BetaAnalyticsConnectorActivity as BetaAnalyticsConnectorActivity,
+    type BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics as BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics,
+    type BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics as BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics,
+    type BetaAnalyticsConnectorChatMetrics as BetaAnalyticsConnectorChatMetrics,
+    type BetaAnalyticsConnectorClaudeCodeMetrics as BetaAnalyticsConnectorClaudeCodeMetrics,
+    type BetaAnalyticsConnectorCoworkMetrics as BetaAnalyticsConnectorCoworkMetrics,
+    type BetaAnalyticsConnectorOfficeMetrics as BetaAnalyticsConnectorOfficeMetrics,
+    type BetaAnalyticsConnectorOfficeProductMetrics as BetaAnalyticsConnectorOfficeProductMetrics,
+    type BetaAnalyticsContextWindow as BetaAnalyticsContextWindow,
+    type BetaAnalyticsCoreCodeMetrics as BetaAnalyticsCoreCodeMetrics,
+    type BetaAnalyticsCostBucketedResult as BetaAnalyticsCostBucketedResult,
+    type BetaAnalyticsCostReportTimeBucket as BetaAnalyticsCostReportTimeBucket,
+    type BetaAnalyticsCostType as BetaAnalyticsCostType,
+    type BetaAnalyticsCostUsersItem as BetaAnalyticsCostUsersItem,
+    type BetaAnalyticsCoworkMetrics as BetaAnalyticsCoworkMetrics,
+    type BetaAnalyticsDesignMetrics as BetaAnalyticsDesignMetrics,
+    type BetaAnalyticsInferenceGeoFilter as BetaAnalyticsInferenceGeoFilter,
+    type BetaAnalyticsLinesOfCode as BetaAnalyticsLinesOfCode,
+    type BetaAnalyticsOfficeMetrics as BetaAnalyticsOfficeMetrics,
+    type BetaAnalyticsOfficeProductMetrics as BetaAnalyticsOfficeProductMetrics,
+    type BetaAnalyticsPluginActivity as BetaAnalyticsPluginActivity,
+    type BetaAnalyticsPluginClaudeCodeMetrics as BetaAnalyticsPluginClaudeCodeMetrics,
+    type BetaAnalyticsPluginCoworkMetrics as BetaAnalyticsPluginCoworkMetrics,
+    type BetaAnalyticsProductFilter as BetaAnalyticsProductFilter,
+    type BetaAnalyticsProjectActivity as BetaAnalyticsProjectActivity,
+    type BetaAnalyticsScienceMetrics as BetaAnalyticsScienceMetrics,
+    type BetaAnalyticsServerToolUse as BetaAnalyticsServerToolUse,
+    type BetaAnalyticsSingleDayActivitySummary as BetaAnalyticsSingleDayActivitySummary,
+    type BetaAnalyticsSkillActivity as BetaAnalyticsSkillActivity,
+    type BetaAnalyticsSkillChatCoworkUnifiedChatMetrics as BetaAnalyticsSkillChatCoworkUnifiedChatMetrics,
+    type BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics as BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics,
+    type BetaAnalyticsSkillChatMetrics as BetaAnalyticsSkillChatMetrics,
+    type BetaAnalyticsSkillClaudeCodeMetrics as BetaAnalyticsSkillClaudeCodeMetrics,
+    type BetaAnalyticsSkillCoworkMetrics as BetaAnalyticsSkillCoworkMetrics,
+    type BetaAnalyticsSkillOfficeMetrics as BetaAnalyticsSkillOfficeMetrics,
+    type BetaAnalyticsSkillOfficeProductMetrics as BetaAnalyticsSkillOfficeProductMetrics,
+    type BetaAnalyticsTokenType as BetaAnalyticsTokenType,
+    type BetaAnalyticsToolActionCounts as BetaAnalyticsToolActionCounts,
+    type BetaAnalyticsToolActions as BetaAnalyticsToolActions,
+    type BetaAnalyticsUsageBucketedResult as BetaAnalyticsUsageBucketedResult,
+    type BetaAnalyticsUsageReportTimeBucket as BetaAnalyticsUsageReportTimeBucket,
+    type BetaAnalyticsUsageUsersItem as BetaAnalyticsUsageUsersItem,
+    type BetaAnalyticsUser as BetaAnalyticsUser,
+    type BetaAnalyticsUserActivity as BetaAnalyticsUserActivity,
+    type BetaAnalyticsUserActor as BetaAnalyticsUserActor,
+  };
+
+  export {
+    SpendLimits as SpendLimits,
+    type BetaSpendLimit as BetaSpendLimit,
+    type BetaSpendLimitOrganizationScope as BetaSpendLimitOrganizationScope,
+    type BetaSpendLimitOrganizationServiceScope as BetaSpendLimitOrganizationServiceScope,
+    type BetaSpendLimitPeriod as BetaSpendLimitPeriod,
+    type BetaSpendLimitRBACGroupScope as BetaSpendLimitRBACGroupScope,
+    type BetaSpendLimitScopedAPIKeyActor as BetaSpendLimitScopedAPIKeyActor,
+    type BetaSpendLimitSeatTierScope as BetaSpendLimitSeatTierScope,
+    type BetaSpendLimitUsageTierScope as BetaSpendLimitUsageTierScope,
+    type BetaSpendLimitUserActor as BetaSpendLimitUserActor,
+    type BetaSpendLimitUserScope as BetaSpendLimitUserScope,
+    type BetaSpendLimitWorkspaceScope as BetaSpendLimitWorkspaceScope,
+    type BetaSpendSummary as BetaSpendSummary,
+    type SpendLimitDeleteResponse as SpendLimitDeleteResponse,
+    type BetaSpendLimitsPageCursor as BetaSpendLimitsPageCursor,
+    type SpendLimitListParams as SpendLimitListParams,
+    type SpendLimitSetParams as SpendLimitSetParams,
+  };
+
+  export {
+    RBACGroups as RBACGroups,
+    type BetaRBACGroup as BetaRBACGroup,
+    type RBACGroupDeleteResponse as RBACGroupDeleteResponse,
+    type BetaRBACGroupsPageCursor as BetaRBACGroupsPageCursor,
+    type RBACGroupCreateParams as RBACGroupCreateParams,
+    type RBACGroupUpdateParams as RBACGroupUpdateParams,
+    type RBACGroupListParams as RBACGroupListParams,
+  };
+
+  export {
+    RBACRoles as RBACRoles,
+    type BetaRBACRole as BetaRBACRole,
+    type BetaRBACRolesPageCursor as BetaRBACRolesPageCursor,
+    type RBACRoleListParams as RBACRoleListParams,
+  };
+
+  export {
+    Plugins as Plugins,
+    type BetaDeletedPlugin as BetaDeletedPlugin,
+    type BetaPlugin as BetaPlugin,
+    type BetaPluginAPIActor as BetaPluginAPIActor,
+    type BetaPluginComponent as BetaPluginComponent,
+    type BetaPluginContentScan as BetaPluginContentScan,
+    type BetaPluginOwnerOrganization as BetaPluginOwnerOrganization,
+    type BetaPluginOwnerUser as BetaPluginOwnerUser,
+    type BetaPluginTargetOrganization as BetaPluginTargetOrganization,
+    type BetaPluginTargetOrganizationMember as BetaPluginTargetOrganizationMember,
+    type BetaPluginTargetRBACGroup as BetaPluginTargetRBACGroup,
+    type BetaPluginUserActor as BetaPluginUserActor,
+    type BetaPluginsPageCursor as BetaPluginsPageCursor,
+    type PluginCreateParams as PluginCreateParams,
+    type PluginRetrieveParams as PluginRetrieveParams,
+    type PluginUpdateParams as PluginUpdateParams,
+    type PluginListParams as PluginListParams,
+    type PluginDeleteParams as PluginDeleteParams,
+  };
+
+  export {
+    PluginMarketplaces as PluginMarketplaces,
+    type BetaPluginMarketplace as BetaPluginMarketplace,
+    type BetaPluginMarketplaceValidationPluginError as BetaPluginMarketplaceValidationPluginError,
+    type BetaPluginMarketplaceValidationPluginWarning as BetaPluginMarketplaceValidationPluginWarning,
+    type BetaPluginMarketplaceValidationPluginWarnings as BetaPluginMarketplaceValidationPluginWarnings,
+    type BetaPluginMarketplaceValidationReport as BetaPluginMarketplaceValidationReport,
+    type BetaPluginMarketplacesPageCursor as BetaPluginMarketplacesPageCursor,
+    type PluginMarketplaceRetrieveParams as PluginMarketplaceRetrieveParams,
+    type PluginMarketplaceUpdateParams as PluginMarketplaceUpdateParams,
+    type PluginMarketplaceListParams as PluginMarketplaceListParams,
+    type PluginMarketplaceValidateArchiveParams as PluginMarketplaceValidateArchiveParams,
+    type PluginMarketplaceValidateRepositoryParams as PluginMarketplaceValidateRepositoryParams,
+  };
+
+  export {
+    TelemetryDestinations as TelemetryDestinations,
+    type BetaDeletedTelemetryDestination as BetaDeletedTelemetryDestination,
+    type BetaTelemetryDestination as BetaTelemetryDestination,
+    type BetaTelemetryDestinationContentMode as BetaTelemetryDestinationContentMode,
+    type BetaTelemetryDestinationDeliveryHealth as BetaTelemetryDestinationDeliveryHealth,
+    type BetaTelemetryDestinationDisabledReason as BetaTelemetryDestinationDisabledReason,
+    type BetaTelemetryDestinationDisabledReasonCaller as BetaTelemetryDestinationDisabledReasonCaller,
+    type BetaTelemetryDestinationDisabledReasonInvalidAddress as BetaTelemetryDestinationDisabledReasonInvalidAddress,
+    type BetaTelemetryDestinationDisabledReasonRedirect as BetaTelemetryDestinationDisabledReasonRedirect,
+    type BetaTelemetryDestinationDisabledReasonSustainedFailure as BetaTelemetryDestinationDisabledReasonSustainedFailure,
+    type BetaTelemetryDestinationState as BetaTelemetryDestinationState,
+    type BetaTelemetryDestinationStateDisabled as BetaTelemetryDestinationStateDisabled,
+    type BetaTelemetryDestinationStateDisabledParams as BetaTelemetryDestinationStateDisabledParams,
+    type BetaTelemetryDestinationStateEnabled as BetaTelemetryDestinationStateEnabled,
+    type BetaTelemetryDestinationStateEnabledParams as BetaTelemetryDestinationStateEnabledParams,
+    type BetaTelemetryDestinationStateParams as BetaTelemetryDestinationStateParams,
+    type BetaTelemetryDestinationTestFailure as BetaTelemetryDestinationTestFailure,
+    type BetaTelemetryDestinationTestResponse as BetaTelemetryDestinationTestResponse,
+    type BetaTelemetryDestinationTestResult as BetaTelemetryDestinationTestResult,
+    type BetaTelemetryDestinationTestSuccess as BetaTelemetryDestinationTestSuccess,
+    type BetaTelemetryDestinationTraces as BetaTelemetryDestinationTraces,
+    type BetaTelemetryDestinationTracesParams as BetaTelemetryDestinationTracesParams,
+    type BetaTelemetryDestinationWorkspaces as BetaTelemetryDestinationWorkspaces,
+    type BetaTelemetryDestinationWorkspacesAll as BetaTelemetryDestinationWorkspacesAll,
+    type BetaTelemetryDestinationWorkspacesAllParams as BetaTelemetryDestinationWorkspacesAllParams,
+    type BetaTelemetryDestinationWorkspacesExclude as BetaTelemetryDestinationWorkspacesExclude,
+    type BetaTelemetryDestinationWorkspacesExcludeParams as BetaTelemetryDestinationWorkspacesExcludeParams,
+    type BetaTelemetryDestinationWorkspacesInclude as BetaTelemetryDestinationWorkspacesInclude,
+    type BetaTelemetryDestinationWorkspacesIncludeParams as BetaTelemetryDestinationWorkspacesIncludeParams,
+    type BetaTelemetryDestinationWorkspacesParams as BetaTelemetryDestinationWorkspacesParams,
+    type BetaTelemetryDestinationsPageCursor as BetaTelemetryDestinationsPageCursor,
+    type TelemetryDestinationCreateParams as TelemetryDestinationCreateParams,
+    type TelemetryDestinationRetrieveParams as TelemetryDestinationRetrieveParams,
+    type TelemetryDestinationUpdateParams as TelemetryDestinationUpdateParams,
+    type TelemetryDestinationListParams as TelemetryDestinationListParams,
+    type TelemetryDestinationDeleteParams as TelemetryDestinationDeleteParams,
+    type TelemetryDestinationTestParams as TelemetryDestinationTestParams,
   };
 }

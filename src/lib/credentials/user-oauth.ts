@@ -94,6 +94,7 @@ export function userOAuthProvider(config: UserOAuthConfig): AccessTokenProvider 
     try {
       resp = await config.fetch(url, {
         method: 'POST',
+        redirect: 'manual',
         headers: {
           'Content-Type': 'application/json',
           'anthropic-beta': OAUTH_API_BETA_HEADER,

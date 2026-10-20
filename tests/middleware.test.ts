@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
@@ -10,6 +11,7 @@ import {
 } from '@anthropic-ai/sdk';
 import type { Middleware } from '@anthropic-ai/sdk';
 import { BetaFallbackState, betaRefusalFallbackMiddleware } from '@anthropic-ai/sdk/lib/middleware';
+import type { BetaFallbackParam } from '@anthropic-ai/sdk/resources/beta';
 import { wrapFetchWithMiddleware } from '@anthropic-ai/sdk/core/middleware';
 import { Stream as SSEStream } from '@anthropic-ai/sdk/core/streaming';
 import { WorkloadIdentityError } from '@anthropic-ai/sdk/lib/credentials/types';
@@ -539,8 +541,7 @@ describe('middleware', () => {
   });
 
   test('timeout applies to the underlying fetch, not middleware', async () => {
-    // jest's sandbox realm breaks `DOMException instanceof Error`, so simulate
-    // fetch's abort rejection with a plain Error carrying the AbortError name
+    // the SDK only inspects `name`, so a plain Error stands in for fetch's abort `DOMException`
     const abortError = () => {
       const err = new Error('This operation was aborted');
       err.name = 'AbortError';
@@ -1474,11 +1475,11 @@ describe('middleware', () => {
     });
 
     test("debug-logs 'sending request' once per inner fetch, with the prepared headers", async () => {
-      const debugMock = jest.fn();
+      const debugMock = vi.fn();
       const client = new SigningClient({
         apiKey: 'my-anthropic-api-key',
         logLevel: 'debug',
-        logger: { debug: debugMock, info: jest.fn(), warn: jest.fn(), error: jest.fn() },
+        logger: { debug: debugMock, info: vi.fn(), warn: vi.fn(), error: vi.fn() },
         fetch: async () => jsonResponse(),
         middleware: [
           async (request, next) => {
@@ -1553,8 +1554,8 @@ describe('wrapFetchWithMiddleware', () => {
   });
 
   test('without a client, ctx.logger falls back to console at the default level', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const originalEnv = process.env['ANTHROPIC_LOG'];
     try {
       const middleware: Middleware = async (request, next, ctx) => {
@@ -1822,9 +1823,9 @@ describe('backend middleware', () => {
 });
 
 describe('betaRefusalFallbackMiddleware', () => {
-  let warn: jest.SpyInstance;
+  let warn: MockInstance;
   beforeEach(() => {
-    warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
   afterEach(() => warn.mockRestore());
 
@@ -1944,7 +1945,7 @@ describe('betaRefusalFallbackMiddleware', () => {
   test('warns once when falling back without a fallbackState', async () => {
     // an injected logger rather than the console.warn spy: the SDK caches
     // bound console methods across tests, so per-test console spies go stale
-    const logger = { error: jest.fn(), warn: jest.fn(), info: jest.fn(), debug: jest.fn() };
+    const logger = { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() };
     const responses = [
       refusal('primary-model'),
       message('fallback-model'),
@@ -1965,7 +1966,7 @@ describe('betaRefusalFallbackMiddleware', () => {
   });
 
   test('the missing-fallbackState warning respects the client logLevel', async () => {
-    const logger = { error: jest.fn(), warn: jest.fn(), info: jest.fn(), debug: jest.fn() };
+    const logger = { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() };
     const responses = [refusal('primary-model'), message('fallback-model')];
     const client = new Anthropic({
       apiKey: 'my-anthropic-api-key',
@@ -2143,6 +2144,28 @@ describe('betaRefusalFallbackMiddleware', () => {
     expect(bodies.map((b) => 'speed' in b)).toEqual([true, false, true]);
   });
 
+  test('between_tools thinking degrades to disabled on the hop', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model', 'credit-token'), message('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    await client.beta.messages.create({ ...params, thinking: { type: 'between_tools' } });
+
+    expect(bodies.map((b) => b['thinking'])).toEqual([{ type: 'between_tools' }, { type: 'disabled' }]);
+  });
+
+  test('an entry that sets thinking overrides between_tools', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model', 'credit-token'), message('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model', thinking: { type: 'between_tools' } }]),
+    );
+
+    await client.beta.messages.create({ ...params, thinking: { type: 'between_tools' } });
+
+    expect(bodies[1]!['thinking']).toEqual({ type: 'between_tools' });
+  });
+
   describe('output_config patches one level deep', () => {
     const withConfig = {
       ...params,
@@ -2253,6 +2276,98 @@ describe('betaRefusalFallbackMiddleware', () => {
     expect(bodies).toHaveLength(2);
   });
 
+  describe('a fast hop rejected with a 429 or 529', () => {
+    const rejected = (status: number) =>
+      jsonResponse({ type: 'error', error: { type: 'api_error', message: 'rejected' } }, { status });
+    const fastParams = { ...params, speed: 'fast' as const };
+    const hopWithoutSpeed = {
+      ...params,
+      model: 'fallback-model',
+      fallback_credit_token: { token: 'credit-token', mode: 'best_effort' },
+    };
+
+    test.each([429, 529])('a %i is resent once without speed', async (status) => {
+      const cancel = vi.fn();
+      const { client, bodies } = makeClient(
+        [
+          refusal('primary-model', 'credit-token'),
+          new Response(new ReadableStream({ cancel }), { status }),
+          message('fallback-model'),
+        ],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+      );
+
+      const result = await client.beta.messages.create(fastParams, { maxRetries: 0 });
+      expect(result.model).toEqual('fallback-model');
+      expect(result.stop_reason).toEqual('end_turn');
+      expect(bodies).toEqual([fastParams, { ...hopWithoutSpeed, speed: 'fast' }, hopWithoutSpeed]);
+      expect(cancel).toHaveBeenCalledTimes(1);
+    });
+
+    test.each<[string, Partial<BetaFallbackParam>, { speed?: 'fast' | 'standard' }, number]>([
+      ["the entry sets speed: 'fast'", { speed: 'fast' }, { speed: 'fast' }, 429],
+      ['the request has no speed', {}, {}, 429],
+      ['the request is standard speed', {}, { speed: 'standard' }, 529],
+      ['the status is 400', {}, { speed: 'fast' }, 400],
+      ['the status is 500', {}, { speed: 'fast' }, 500],
+    ])('is not resent when %s', async (_name, entrySpeed, requestSpeed, status) => {
+      const { client, bodies } = makeClient(
+        [refusal('primary-model', 'credit-token'), rejected(status)],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model', ...entrySpeed }]),
+      );
+
+      await expect(
+        client.beta.messages.create({ ...params, ...requestSpeed }, { maxRetries: 0 }),
+      ).rejects.toMatchObject({ status });
+      expect(bodies).toEqual([
+        { ...params, ...requestSpeed },
+        { ...hopWithoutSpeed, ...requestSpeed },
+      ]);
+    });
+
+    test('a resend that is rejected too is returned, not resent again', async () => {
+      const { client, bodies } = makeClient(
+        [refusal('primary-model', 'credit-token'), rejected(429), rejected(429)],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+      );
+
+      const fallbackState = new BetaFallbackState();
+      await expect(
+        client.beta.messages.create(fastParams, { maxRetries: 0, fallbackState }),
+      ).rejects.toMatchObject({ status: 429 });
+      expect(bodies).toEqual([fastParams, { ...hopWithoutSpeed, speed: 'fast' }, hopWithoutSpeed]);
+      expect(fallbackState.index).toEqual(0);
+    });
+
+    test('a request that starts on the pinned entry is resent without speed', async () => {
+      const { client, bodies } = makeClient(
+        [rejected(429), message('fallback-model')],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+      );
+
+      const fallbackState = new BetaFallbackState();
+      fallbackState.index = 0;
+      const result = await client.beta.messages.create(fastParams, { maxRetries: 0, fallbackState });
+      expect(result.model).toEqual('fallback-model');
+      expect(bodies).toEqual([
+        { ...fastParams, model: 'fallback-model' },
+        { ...params, model: 'fallback-model' },
+      ]);
+    });
+
+    test('the original request is not resent', async () => {
+      const { client, bodies } = makeClient(
+        [rejected(429)],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+      );
+
+      await expect(client.beta.messages.create(fastParams, { maxRetries: 0 })).rejects.toMatchObject({
+        status: 429,
+      });
+      expect(bodies).toEqual([fastParams]);
+    });
+  });
+
   describe('beta header', () => {
     const makeHeaderClient = (responses: Response[], middleware: Middleware) => {
       const betaHeaders: (string | null)[] = [];
@@ -2286,7 +2401,7 @@ describe('betaRefusalFallbackMiddleware', () => {
       );
 
       await client.beta.messages.create(params);
-      expect(betaHeaders).toEqual(['fallback-credit-2027-01-01, interleaved-thinking-2025-05-14']);
+      expect(betaHeaders).toEqual(['fallback-credit-2027-01-01,interleaved-thinking-2025-05-14']);
     });
 
     test('betas: [] sends no beta header', async () => {
@@ -2316,7 +2431,7 @@ describe('betaRefusalFallbackMiddleware', () => {
       );
 
       await client.beta.messages.create({ ...params, betas: ['interleaved-thinking-2025-05-14'] });
-      expect(betaHeaders).toEqual(['interleaved-thinking-2025-05-14, fallback-credit-2026-07-01']);
+      expect(betaHeaders).toEqual(['interleaved-thinking-2025-05-14,fallback-credit-2026-07-01']);
     });
   });
 });

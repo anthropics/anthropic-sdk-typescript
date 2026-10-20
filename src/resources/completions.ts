@@ -6,6 +6,7 @@ import { APIPromise } from '../core/api-promise';
 import { Stream } from '../core/streaming';
 import { buildHeaders } from '../internal/headers';
 import { RequestOptions } from '../internal/request-options';
+import { startApiCallSpan } from '../internal/tracing';
 
 export class Completions extends APIResource {
   /**
@@ -18,14 +19,7 @@ export class Completions extends APIResource {
    * [migration guide](https://platform.claude.com/docs/en/build-with-claude/working-with-messages)
    * for guidance in migrating from Text Completions to Messages.
    *
-   * @example
-   * ```ts
-   * const completion = await client.completions.create({
-   *   max_tokens_to_sample: 256,
-   *   model: 'claude-2.1',
-   *   prompt: '\n\nHuman: Hello, world!\n\nAssistant:',
-   * });
-   * ```
+   * @deprecated Use the [Messages API](https://platform.claude.com/docs/en/api/messages/create) instead.
    */
   create(params: CompletionCreateParamsNonStreaming, options?: RequestOptions): APIPromise<Completion>;
   create(params: CompletionCreateParamsStreaming, options?: RequestOptions): APIPromise<Stream<Completion>>;
@@ -50,6 +44,9 @@ export class Completions extends APIResource {
         options?.headers,
       ]),
       stream: params.stream ?? false,
+      __span: startApiCallSpan(this._client, 'anthropic.completions.create', options, {
+        route: '/v1/complete',
+      }),
     }) as APIPromise<Completion> | APIPromise<Stream<Completion>>;
   }
 }
@@ -175,7 +172,8 @@ export interface CompletionCreateParamsBase {
   top_p?: number;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * @deprecated Deprecated. This parameter has no effect on this method and will be
+   * removed in a future release.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
