@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.136.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.136.0...sdk-v0.136.1) (2026-10-20)
+
+### Chores
+
+* **ci:** run the changelog check on a standard runner
+* **tests:** make credential tests independent of the caller's environment
+
 ## [0.136.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.135.0...sdk-v0.136.0) (2026-10-20)
 
 ### Features
@@ -27,7 +34,6 @@
 * **docs:** improve Managed Agents vault and credential descriptions
 * **internal:** bump playwright-core in the browser ecosystem tests
 * **tests:** cover OpenTelemetry failures, propagation and environment variables
-* **tests:** make credential tests independent of the caller's environment
 
 ## [0.135.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.134.0...sdk-v0.135.0) (2026-10-15)
 
