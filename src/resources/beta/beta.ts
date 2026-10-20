@@ -170,6 +170,8 @@ import {
   BetaWebhookSessionThreadIdledEventData,
   BetaWebhookSessionThreadTerminatedEventData,
   BetaWebhookSessionUpdatedEventData,
+  BetaWebhookUserProfileEnforcementActionOpenedEventData,
+  BetaWebhookUserProfileEnforcementActionResolvedEventData,
   BetaWebhookVaultArchivedEventData,
   BetaWebhookVaultCreatedEventData,
   BetaWebhookVaultCredentialArchivedEventData,
@@ -1005,7 +1007,8 @@ export type AnthropicBeta =
   | 'mcp-client-2026-09-15'
   | 'ce-plugins-2026-09-01'
   | 'spend-limit-reads-2026-09-26'
-  | 'telemetry-destinations-2026-08-11';
+  | 'telemetry-destinations-2026-08-11'
+  | 'webhooks-2026-10-07';
 
 export interface BetaAPIError {
   message: string;
@@ -2002,6 +2005,8 @@ export declare namespace Beta {
     type BetaWebhookSessionThreadIdledEventData as BetaWebhookSessionThreadIdledEventData,
     type BetaWebhookSessionThreadTerminatedEventData as BetaWebhookSessionThreadTerminatedEventData,
     type BetaWebhookSessionUpdatedEventData as BetaWebhookSessionUpdatedEventData,
+    type BetaWebhookUserProfileEnforcementActionOpenedEventData as BetaWebhookUserProfileEnforcementActionOpenedEventData,
+    type BetaWebhookUserProfileEnforcementActionResolvedEventData as BetaWebhookUserProfileEnforcementActionResolvedEventData,
     type BetaWebhookVaultArchivedEventData as BetaWebhookVaultArchivedEventData,
     type BetaWebhookVaultCreatedEventData as BetaWebhookVaultCreatedEventData,
     type BetaWebhookVaultCredentialArchivedEventData as BetaWebhookVaultCredentialArchivedEventData,
