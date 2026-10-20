@@ -129,21 +129,6 @@ import {
   ModelRetrieveParams,
   Models,
 } from './models';
-import * as UserProfilesAPI from './user-profiles';
-import {
-  BetaUserProfile,
-  BetaUserProfileEnrollmentURL,
-  BetaUserProfileExternalUserDetails,
-  BetaUserProfileExternalUserDetailsParams,
-  BetaUserProfileTrustGrant,
-  BetaUserProfilesPageCursor,
-  UserProfileCreateEnrollmentURLParams,
-  UserProfileCreateParams,
-  UserProfileListParams,
-  UserProfileRetrieveParams,
-  UserProfileUpdateParams,
-  UserProfiles,
-} from './user-profiles';
 import * as WebhooksAPI from './webhooks';
 import {
   BetaWebhookAgentArchivedEventData,
@@ -918,6 +903,23 @@ import {
   TunnelRotateTokenParams,
   Tunnels,
 } from './tunnels/tunnels';
+import * as UserProfilesAPI from './user-profiles/user-profiles';
+import {
+  BetaDeletedUserProfile,
+  BetaUserProfile,
+  BetaUserProfileEnrollmentURL,
+  BetaUserProfileExternalUserDetails,
+  BetaUserProfileExternalUserDetailsParams,
+  BetaUserProfileTrustGrant,
+  BetaUserProfilesPageCursor,
+  UserProfileCreateEnrollmentURLParams,
+  UserProfileCreateParams,
+  UserProfileDeleteParams,
+  UserProfileListParams,
+  UserProfileRetrieveParams,
+  UserProfileUpdateParams,
+  UserProfiles,
+} from './user-profiles/user-profiles';
 import * as VaultsAPI from './vaults/vaults';
 import {
   BetaManagedAgentsDeletedVault,
@@ -2012,6 +2014,7 @@ export declare namespace Beta {
 
   export {
     UserProfiles as UserProfiles,
+    type BetaDeletedUserProfile as BetaDeletedUserProfile,
     type BetaUserProfile as BetaUserProfile,
     type BetaUserProfileEnrollmentURL as BetaUserProfileEnrollmentURL,
     type BetaUserProfileExternalUserDetails as BetaUserProfileExternalUserDetails,
@@ -2022,6 +2025,7 @@ export declare namespace Beta {
     type UserProfileRetrieveParams as UserProfileRetrieveParams,
     type UserProfileUpdateParams as UserProfileUpdateParams,
     type UserProfileListParams as UserProfileListParams,
+    type UserProfileDeleteParams as UserProfileDeleteParams,
     type UserProfileCreateEnrollmentURLParams as UserProfileCreateEnrollmentURLParams,
   };
 

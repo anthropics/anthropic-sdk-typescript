@@ -4,6 +4,7 @@ import * as Errors from './core/error';
 import { readEnv, loggerFor } from './internal/utils';
 import { Anthropic, APIRequest, ClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
+import * as Resources from '@anthropic-ai/sdk/resources/index';
 import { VERSION } from '@anthropic-ai/sdk/version';
 import { VERSION as PACKAGE_VERSION } from './version';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
@@ -105,6 +106,11 @@ export class AnthropicAws extends Anthropic {
   override _instrumentationScope() {
     return { platform: 'aws', version: PACKAGE_VERSION };
   }
+
+  override userProfiles: WithoutActionURLs<Resources.UserProfiles> = withoutActionURLs(
+    new Resources.UserProfiles(this),
+  );
+  override beta: BetaResource = makeBetaResource(this);
 
   awsRegion: string | undefined;
   awsAccessKey: string | null;
@@ -393,4 +399,27 @@ export class AnthropicAws extends Anthropic {
     // over the wire, so it can't be overridden by other header sources.
     return { ...request, headers: buildHeaders([request.headers, headers]).values };
   }
+}
+
+/**
+ * The AWS gateway serves user profiles but not their action URLs.
+ */
+type WithoutActionURLs<Resource> = Resource & { actionURLs: never };
+
+type BetaResource = Resources.Beta & { userProfiles: WithoutActionURLs<Resources.Beta['userProfiles']> };
+
+function makeBetaResource(client: AnthropicAws): BetaResource {
+  const resource = new Resources.Beta(client);
+  withoutActionURLs(resource.userProfiles);
+  return resource as BetaResource;
+}
+
+function withoutActionURLs<Resource extends object>(resource: Resource): WithoutActionURLs<Resource> {
+  Object.defineProperty(resource, 'actionURLs', {
+    enumerable: false,
+    get() {
+      throw new Errors.AnthropicError('User profile action URLs are not available on `AnthropicAws`.');
+    },
+  });
+  return resource as WithoutActionURLs<Resource>;
 }

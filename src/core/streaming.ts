@@ -65,81 +65,11 @@ export class Stream<Item> implements AsyncIterable<Item> {
       let done = false;
       try {
         for await (const sse of _iterSSEMessages(response, controller)) {
-          if (sse.event === 'completion') {
-            try {
-              yield JSON.parse(sse.data) as Item;
-            } catch (e) {
-              logger.error(`Could not parse message into JSON:`, sse.data);
-              logger.error(`From chunk:`, sse.raw);
-              throw e;
-            }
-          }
-
-          if (
-            sse.event === 'message_start' ||
-            sse.event === 'message_delta' ||
-            sse.event === 'message_stop' ||
-            sse.event === 'content_block_start' ||
-            sse.event === 'content_block_delta' ||
-            sse.event === 'content_block_stop' ||
-            sse.event === 'message' ||
-            sse.event === 'user.message' ||
-            sse.event === 'user.interrupt' ||
-            sse.event === 'user.tool_confirmation' ||
-            sse.event === 'user.custom_tool_result' ||
-            sse.event === 'user.tool_result' ||
-            sse.event === 'agent.message' ||
-            sse.event === 'agent.thinking' ||
-            sse.event === 'agent.tool_use' ||
-            sse.event === 'agent.tool_result' ||
-            sse.event === 'agent.mcp_tool_use' ||
-            sse.event === 'agent.mcp_tool_result' ||
-            sse.event === 'agent.custom_tool_use' ||
-            sse.event === 'agent.thread_context_compacted' ||
-            sse.event === 'session.status_running' ||
-            sse.event === 'session.status_idle' ||
-            sse.event === 'session.status_rescheduled' ||
-            sse.event === 'session.status_terminated' ||
-            sse.event === 'session.error' ||
-            sse.event === 'session.deleted' ||
-            sse.event === 'session.updated' ||
-            sse.event === 'span.model_request_start' ||
-            sse.event === 'span.model_request_end' ||
-            sse.event === 'span.outcome_evaluation_start' ||
-            sse.event === 'span.outcome_evaluation_ongoing' ||
-            sse.event === 'span.outcome_evaluation_end' ||
-            sse.event === 'user.define_outcome' ||
-            sse.event === 'agent.thread_message_received' ||
-            sse.event === 'agent.thread_message_sent' ||
-            sse.event === 'agent.session_thread_message_received' ||
-            sse.event === 'agent.session_thread_message_sent' ||
-            sse.event === 'session.thread_created' ||
-            sse.event === 'session.thread_status_created' ||
-            sse.event === 'session.thread_status_running' ||
-            sse.event === 'session.thread_status_idle' ||
-            sse.event === 'session.thread_status_rescheduled' ||
-            sse.event === 'session.thread_status_terminated' ||
-            sse.event === 'event_start' ||
-            sse.event === 'event_delta' ||
-            sse.event === 'system.message' ||
-            sse.event === 'workflow_run.created' ||
-            sse.event === 'workflow_run.status_running' ||
-            sse.event === 'workflow_run.status_idle' ||
-            sse.event === 'workflow_run.status_ended' ||
-            sse.event === 'workflow_run.error' ||
-            sse.event === 'workflow_run.phase_started' ||
-            sse.event === 'workflow_run.phase_ended'
-          ) {
-            try {
-              yield JSON.parse(sse.data) as Item;
-            } catch (e) {
-              logger.error(`Could not parse message into JSON:`, sse.data);
-              logger.error(`From chunk:`, sse.raw);
-              throw e;
-            }
-          }
-
           if (sse.event === 'ping') {
+            continue;
+          }
+
+          if (sse.event === null) {
             continue;
           }
 
@@ -147,6 +77,16 @@ export class Stream<Item> implements AsyncIterable<Item> {
             const body = safeJSON(sse.data) ?? sse.data;
             const type = body?.error?.type as ErrorType | undefined;
             throw new APIError(undefined, body, undefined, response.headers, type);
+          } else {
+            if (!sse.data) continue;
+
+            try {
+              yield JSON.parse(sse.data) as Item;
+            } catch (e) {
+              logger.error(`Could not parse message into JSON:`, sse.data);
+              logger.error(`From chunk:`, sse.raw);
+              throw e;
+            }
           }
         }
         done = true;

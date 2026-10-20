@@ -139,7 +139,7 @@ These rules don't depend on the language. The SDKs for this API in other languag
 ### Commits and pull requests
 
 - Commit subjects and PR titles follow Conventional Commits (`feat(scope):`, `fix(scope):`, `chore`, `docs`). A `!` or a `BREAKING CHANGE:` footer marks the release as breaking (a major version, or a minor one below 1.0). Only a maintainer adds one.
-- If `.github/workflows/changelog.yml` exists, every PR adds its own line to `CHANGELOG.md` or carries the `skip-changelog` label, and CI fails it otherwise. If it doesn't, release automation writes `CHANGELOG.md` and the version files from those commit subjects, and a manual edit is overwritten or conflicts with the release PR.
+- If `.github/workflows/changelog.yml` exists, every PR adds its own line to `CHANGELOG.md` or carries the `skip-changelog` label, and CI fails it otherwise. A draft needs no line, so add it when you mark the PR ready. If the file doesn't exist, release automation writes `CHANGELOG.md` and the version files from those commit subjects, and a manual edit is overwritten or conflicts with the release PR.
 - Either way, release automation writes the version, so don't edit it by hand.
 - Where release automation writes `CHANGELOG.md`, `release-please-config.json` lists the commit types. `test` and `ci` are hidden, and a subject with no type doesn't reach the changelog.
 - A change users will notice gets a changelog note, even when it fixes a bug, so don't give it a hidden commit type. Rejecting input that used to be accepted is one such change, and so is a different error type.

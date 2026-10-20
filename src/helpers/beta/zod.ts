@@ -3,7 +3,7 @@ import * as z from 'zod/v4';
 import { AnthropicError } from '../../core/error';
 import { AutoParseableBetaOutputFormat } from '../../lib/beta-parser';
 import { BetaRunnableTool, BetaToolRunContext, Promisable } from '../../lib/tools/BetaRunnableTool';
-import { BetaToolResultContentBlockParam } from '../../resources/beta';
+import { BetaTool, BetaToolResultContentBlockParam } from '../../resources/beta';
 /**
  * Creates a JSON schema output format object from the given Zod schema.
  *
@@ -42,38 +42,44 @@ export function betaZodOutputFormat<ZodInput extends z.ZodType>(
  * into the `.toolRunner()` method. The Zod schema will automatically be
  * converted into JSON Schema when passed to the API. The provided function's
  * input arguments will also be validated against the provided schema.
+ *
+ * Every other field of the tool definition, such as `strict` or `cache_control`,
+ * can be passed too and is sent to the API as given.
  */
-export function betaZodTool<InputSchema extends z.ZodType>(options: {
-  name: string;
-  inputSchema: InputSchema;
-  description: string;
-  run: (
-    args: z.infer<InputSchema>,
-    context?: BetaToolRunContext,
-  ) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
-  /**
-   * Optional cleanup hook for tools that hold process-level resources (e.g. a
-   * persistent shell). `client.beta.sessions.events.toolRunner` calls it once
-   * when iteration ends.
-   */
-  close?: () => void | Promise<void>;
-}): BetaRunnableTool<z.infer<InputSchema>> {
-  const jsonSchema = z.toJSONSchema(options.inputSchema, { reused: 'ref' });
+export function betaZodTool<InputSchema extends z.ZodType>(
+  options: {
+    name: string;
+    inputSchema: InputSchema;
+    description: string;
+    run: (
+      args: z.infer<InputSchema>,
+      context?: BetaToolRunContext,
+    ) => Promisable<string | Array<BetaToolResultContentBlockParam>>;
+    /**
+     * Optional cleanup hook for tools that hold process-level resources (e.g. a
+     * persistent shell). `client.beta.sessions.events.toolRunner` calls it once
+     * when iteration ends.
+     */
+    close?: () => void | Promise<void>;
+  } & Omit<BetaTool, 'type' | 'name' | 'description' | 'input_schema'>,
+): BetaRunnableTool<z.infer<InputSchema>> {
+  const { name, inputSchema, description, run, ...extraProps } = options;
+  const jsonSchema = z.toJSONSchema(inputSchema, { reused: 'ref' });
 
   if (jsonSchema.type !== 'object') {
-    throw new Error(`Zod schema for tool "${options.name}" must be an object, but got ${jsonSchema.type}`);
+    throw new Error(`Zod schema for tool "${name}" must be an object, but got ${jsonSchema.type}`);
   }
 
   // TypeScript doesn't narrow the type after the runtime check, so we need to assert it
   const objectSchema = jsonSchema as typeof jsonSchema & { type: 'object' };
 
   return {
+    ...extraProps,
     type: 'custom',
-    name: options.name,
+    name,
     input_schema: objectSchema,
-    description: options.description,
-    run: options.run,
-    parse: (args: unknown) => options.inputSchema.parse(args) as z.infer<InputSchema>,
-    ...(options.close ? { close: options.close } : {}),
+    description,
+    run,
+    parse: (args: unknown) => inputSchema.parse(args) as z.infer<InputSchema>,
   };
 }

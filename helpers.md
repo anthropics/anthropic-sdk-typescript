@@ -470,7 +470,7 @@ import { betaTool } from '@anthropic-ai/sdk/helpers/beta/json-schema';
 
 const calculatorTool = betaTool({
   name: 'calculator',
-  input_schema: {
+  inputSchema: {
     type: 'object',
     properties: {
       operation: { type: 'string', enum: ['add', 'subtract', 'multiply', 'divide'] },
@@ -497,6 +497,23 @@ const calculatorTool = betaTool({
   },
 });
 ```
+
+### Other tool definition fields
+
+`betaZodTool`, `betaStandardSchemaTool` and `betaTool` also accept every other field of the tool definition, named as in the API, and send it as given:
+
+```ts
+const weatherTool = betaZodTool({
+  name: 'get_weather',
+  inputSchema: z.object({ location: z.string() }),
+  description: 'Get the current weather in a given location',
+  strict: true,
+  cache_control: { type: 'ephemeral' },
+  run: async (input) => `The weather in ${input.location} is 72°F`,
+});
+```
+
+`mcpTool`, `mcpTools` and `betaMemoryTool` take the other fields of their tool definition as their last argument.
 
 ### `client.messages.toolRunner(params): BetaToolRunner`
 

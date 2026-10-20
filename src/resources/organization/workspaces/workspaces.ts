@@ -12,9 +12,12 @@ import {
 import * as RateLimitsAPI from './rate-limits';
 import {
   RateLimitListParams,
+  RateLimitUpdateParams,
   RateLimits,
   WorkspaceRateLimit,
   WorkspaceRateLimitOrganizationSource,
+  WorkspaceRateLimitType,
+  WorkspaceRateLimitUpdateValue,
   WorkspaceRateLimitValue,
   WorkspaceRateLimitWorkspaceSource,
   WorkspaceRateLimitsPageCursor,
@@ -438,9 +441,12 @@ export declare namespace Workspaces {
     RateLimits as RateLimits,
     type WorkspaceRateLimit as WorkspaceRateLimit,
     type WorkspaceRateLimitOrganizationSource as WorkspaceRateLimitOrganizationSource,
+    type WorkspaceRateLimitType as WorkspaceRateLimitType,
+    type WorkspaceRateLimitUpdateValue as WorkspaceRateLimitUpdateValue,
     type WorkspaceRateLimitValue as WorkspaceRateLimitValue,
     type WorkspaceRateLimitWorkspaceSource as WorkspaceRateLimitWorkspaceSource,
     type WorkspaceRateLimitsPageCursor as WorkspaceRateLimitsPageCursor,
+    type RateLimitUpdateParams as RateLimitUpdateParams,
     type RateLimitListParams as RateLimitListParams,
   };
 

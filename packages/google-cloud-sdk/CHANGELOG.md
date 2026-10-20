@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.1.0...google-cloud-sdk-v0.2.0) (2026-10-20)
+
+### Features
+
+* **google-cloud:** use the v1 endpoints and add the organization endpoint
+
 ## [0.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.19...google-cloud-sdk-v0.1.0) (2026-10-14)
 
 ### Features

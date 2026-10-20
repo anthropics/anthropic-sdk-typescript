@@ -11,8 +11,11 @@ export {
   RateLimits,
   type BetaWorkspaceRateLimit,
   type BetaWorkspaceRateLimitOrganizationSource,
+  type BetaWorkspaceRateLimitType,
+  type BetaWorkspaceRateLimitUpdateValue,
   type BetaWorkspaceRateLimitValue,
   type BetaWorkspaceRateLimitWorkspaceSource,
+  type RateLimitUpdateParams,
   type RateLimitListParams,
   type BetaWorkspaceRateLimitsPageCursor,
 } from './rate-limits';

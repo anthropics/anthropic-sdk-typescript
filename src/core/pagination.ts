@@ -401,3 +401,68 @@ export class BidirectionalPageCursor<Item>
     };
   }
 }
+
+export interface ReportPageCursorResponse<Item> {
+  data: Array<Item>;
+
+  next_page: string | null;
+
+  has_more: boolean;
+
+  data_refreshed_at: string | null;
+}
+
+export interface ReportPageCursorParams {
+  page?: string | null;
+}
+
+export class ReportPageCursor<Item> extends AbstractPage<Item> implements ReportPageCursorResponse<Item> {
+  data: Array<Item>;
+
+  next_page: string | null;
+
+  has_more: boolean;
+
+  data_refreshed_at: string | null;
+
+  constructor(
+    client: BaseAnthropic,
+    response: Response,
+    body: ReportPageCursorResponse<Item>,
+    options: FinalRequestOptions,
+  ) {
+    super(client, response, body, options);
+
+    this.data = body.data || [];
+    this.next_page = body.next_page || null;
+    this.has_more = body.has_more || false;
+    this.data_refreshed_at = body.data_refreshed_at || null;
+  }
+
+  getPaginatedItems(): Item[] {
+    return this.data ?? [];
+  }
+
+  override hasNextPage(): boolean {
+    if (this.has_more === false) {
+      return false;
+    }
+
+    return this.nextPageRequestOptions() != null;
+  }
+
+  nextPageRequestOptions(): PageRequestOptions | null {
+    const cursor = this.next_page;
+    if (!cursor) {
+      return null;
+    }
+
+    return {
+      ...this.options,
+      query: {
+        ...maybeObj(this.options.query),
+        page: cursor,
+      },
+    };
+  }
+}

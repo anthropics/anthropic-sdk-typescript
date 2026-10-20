@@ -1,7 +1,7 @@
 import { APIResource } from '../../../../core/resource';
 import * as AnalyticsAPI from './analytics';
-import { BetaAnalyticsUsageReportTimeBucketsPageCursor } from './analytics';
-import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
+import { BetaAnalyticsUsageReportTimeBucketsReportPageCursor } from './analytics';
+import { PagePromise, ReportPageCursor, type ReportPageCursorParams } from '../../../../core/pagination';
 import { RequestOptions } from '../../../../internal/request-options';
 import { startApiCallSpan } from '../../../../internal/tracing';
 
@@ -28,12 +28,12 @@ export class UsageReport extends APIResource {
     query: UsageReportListParams,
     options?: RequestOptions,
   ): PagePromise<
-    BetaAnalyticsUsageReportTimeBucketsPageCursor,
+    BetaAnalyticsUsageReportTimeBucketsReportPageCursor,
     AnalyticsAPI.BetaAnalyticsUsageReportTimeBucket
   > {
     return this._client.getAPIList(
       '/v1/organizations/analytics/usage_report?beta=true',
-      PageCursor<AnalyticsAPI.BetaAnalyticsUsageReportTimeBucket>,
+      ReportPageCursor<AnalyticsAPI.BetaAnalyticsUsageReportTimeBucket>,
       {
         query,
         ...options,
@@ -68,7 +68,7 @@ export class UsageReport extends APIResource {
   }
 }
 
-export interface UsageReportListParams extends PageCursorParams {
+export interface UsageReportListParams extends ReportPageCursorParams {
   /**
    * Start of range, inclusive. RFC 3339 tz-aware. Must be within the last 365 days
    * and no earlier than 2026-01-01T00:00:00Z.
@@ -134,6 +134,13 @@ export interface UsageReportListParams extends PageCursorParams {
   inference_geos?: Array<AnalyticsAPI.BetaAnalyticsInferenceGeoFilter> | null;
 
   /**
+   * Maximum number of time buckets per page. Defaults and caps vary by
+   * `bucket_width` (`1d`: default 7, max 31; `1h`: default 24, max 168; `1m`:
+   * default 60, max 256).
+   */
+  limit?: number | null;
+
+  /**
    * Models to include. Defaults to all models. Use `group_by[]=model` to break out
    * per-model values.
    */
@@ -175,4 +182,4 @@ export declare namespace UsageReport {
   export { type UsageReportListParams as UsageReportListParams };
 }
 
-export { type BetaAnalyticsUsageReportTimeBucketsPageCursor };
+export { type BetaAnalyticsUsageReportTimeBucketsReportPageCursor };

@@ -70,10 +70,10 @@ export {
   type BetaAnalyticsPluginActivitiesPageCursor,
   type BetaAnalyticsSkillActivitiesPageCursor,
   type BetaAnalyticsArtifactActivitiesPageCursor,
-  type BetaAnalyticsUsageReportTimeBucketsPageCursor,
-  type BetaAnalyticsUsageUsersItemsPageCursor,
-  type BetaAnalyticsCostReportTimeBucketsPageCursor,
-  type BetaAnalyticsCostUsersItemsPageCursor,
+  type BetaAnalyticsUsageReportTimeBucketsReportPageCursor,
+  type BetaAnalyticsUsageUsersItemsReportPageCursor,
+  type BetaAnalyticsCostReportTimeBucketsReportPageCursor,
+  type BetaAnalyticsCostUsersItemsReportPageCursor,
 } from './analytics/index';
 export {
   ComplianceSettings,
