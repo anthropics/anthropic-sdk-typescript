@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.7.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.6.0...foundry-sdk-v0.7.0) (2026-10-21)
+## [1.0.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.6.0...foundry-sdk-v1.0.0) (2026-10-21)
 
 ### ⚠ BREAKING CHANGES
 

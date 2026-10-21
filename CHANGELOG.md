@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.138.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.137.0...sdk-v0.138.0) (2026-10-21)
+## [1.0.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.137.0...sdk-v1.0.0) (2026-10-21)
 
 ### ⚠ BREAKING CHANGES
 
