@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.0.0...sdk-v1.1.0) (2026-10-21)
+
+### Features
+
+* **api:** add enforcement status, actions and filter to user profiles
+
 ## [1.0.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.137.0...sdk-v1.0.0) (2026-10-21)
 
 ### ⚠ BREAKING CHANGES

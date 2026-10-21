@@ -546,6 +546,12 @@ Types:
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileCyberTier</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEfsFeature</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEfsProgram</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEnforcementAction</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEnforcementActionBan</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEnforcementActionNextStep</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEnforcementActionReason</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEnforcementActionRestriction</a></code>
+- <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileEnforcementStatus</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileExternalUserAccountStatus</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileExternalUserDetails</a></code>
 - <code><a href="./src/resources/user-profiles/user-profiles.ts">UserProfileExternalUserDetailsParams</a></code>
