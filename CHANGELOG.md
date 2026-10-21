@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.1.0...sdk-v1.1.1) (2026-10-21)
+
+### Chores
+
+* **internal:** rename the version manifest to .version-manifest.json
+
 ## [1.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.0.0...sdk-v1.1.0) (2026-10-21)
 
 ### Features
