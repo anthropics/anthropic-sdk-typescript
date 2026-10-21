@@ -797,6 +797,7 @@ import {
 
 const environmentKey = process.env.ANTHROPIC_ENVIRONMENT_KEY!;
 // The environment key authenticates the per-session calls too — scope a client to it.
+// It replaces the client's own credential on the copy.
 const sessionClient = client.withOptions({ authToken: environmentKey });
 
 for await (const work of client.beta.environments.work.poller({

@@ -2,9 +2,14 @@
 
 ## [0.138.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.137.0...sdk-v0.138.0) (2026-10-21)
 
+### ⚠ BREAKING CHANGES
+
+* **api:** add support for new API version 2026-10-21
+
 ### Features
 
 * **api:** add a workspace_id filter and the usage_tier scope type to list spend limits
+* **api:** add support for new API version 2026-10-21
 
 
 ### Chores

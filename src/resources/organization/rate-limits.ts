@@ -48,8 +48,7 @@ export interface OrganizationRateLimit {
   id: string;
 
   /**
-   * The rate-limit group this entry's limits apply to. Its `type` equals
-   * `group_type`.
+   * The rate-limit group this entry's limits apply to.
    */
   group:
     | OrganizationRateLimitModelGroup
@@ -66,7 +65,7 @@ export interface OrganizationRateLimit {
 
   /**
    * Model names this entry's limits apply to, including aliases. `null` when
-   * `group_type` is not `"model_group"`.
+   * `group.type` is not `"model_group"`.
    */
   models: Array<string> | null;
 

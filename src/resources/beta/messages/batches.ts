@@ -774,13 +774,6 @@ export namespace BatchCreateParams {
       system?: string | Array<BetaMessagesAPI.BetaTextBlockParam>;
 
       /**
-       * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
-       * setting temperature. A value of 1.0 will be accepted for backwards
-       * compatibility, all other values will be rejected with a 400 error.
-       */
-      temperature?: number;
-
-      /**
        * Configuration for Claude's thinking.
        *
        * With `{"type": "adaptive"}`, Claude decides when and how much to think. With
@@ -880,19 +873,6 @@ export namespace BatchCreateParams {
        * for more details.
        */
       tools?: Array<BetaMessagesAPI.BetaToolUnion>;
-
-      /**
-       * @deprecated Deprecated. Models released after Claude Opus 4.6 do not accept
-       * top_k; any value will be rejected with a 400 error.
-       */
-      top_k?: number;
-
-      /**
-       * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
-       * setting top_p. A value >= 0.99 will be accepted for backwards compatibility, all
-       * other values will be rejected with a 400 error.
-       */
-      top_p?: number;
     }
   }
 }

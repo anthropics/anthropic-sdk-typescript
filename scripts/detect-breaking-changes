@@ -7,7 +7,6 @@ cd "$(dirname "$0")/.."
 echo "==> Detecting breaking changes"
 
 TEST_PATHS=(
-	tests/api-resources/completions.test.ts
 	tests/api-resources/messages/messages.test.ts
 	tests/api-resources/messages/batches.test.ts
 	tests/api-resources/models.test.ts

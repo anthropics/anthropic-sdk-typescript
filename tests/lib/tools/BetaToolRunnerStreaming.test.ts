@@ -17,6 +17,7 @@ import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableT
 import type { BetaRunnableToolset } from '@anthropic-ai/sdk/lib/tools/BetaRunnableToolset';
 import type {
   BetaMessage,
+  BetaMessageContentParam,
   BetaMessageParam,
   BetaStopReason,
   BetaToolResultBlockParam,
@@ -1635,7 +1636,7 @@ function slowLookup(key: string): Promise<string> {
 
 /** The reply as the caller appends it to the history. The cast is needed until the request and response types agree. */
 function assistantTurn(message: BetaMessage): BetaMessageParam {
-  return { role: message.role, content: message.content as BetaMessageParam['content'] };
+  return { role: message.role, content: message.content as BetaMessageContentParam };
 }
 
 function notFound(id: string): BetaToolResultBlockParam {
@@ -1649,7 +1650,7 @@ function firstReply(timeline: string[]): string[] {
 }
 
 function toolResults(message: BetaMessageParam | null | undefined): BetaToolResultBlockParam[] {
-  if (!message || typeof message.content === 'string') return [];
+  if (message?.role !== 'user' || typeof message.content === 'string') return [];
   return message.content.filter((block): block is BetaToolResultBlockParam => block.type === 'tool_result');
 }
 

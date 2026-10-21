@@ -236,6 +236,12 @@ export class Messages extends APIResource {
   }
 }
 
+export interface AssistantMessageParam {
+  content: MessageContentParam;
+
+  role: 'assistant';
+}
+
 export interface Base64ImageSource {
   data: string;
 
@@ -4792,6 +4798,8 @@ export interface Message {
   usage: Usage;
 }
 
+export type MessageContentParam = string | Array<ContentBlockParam>;
+
 export type MessageCountTokensTool =
   | Tool
   | ToolBash20250124
@@ -4857,11 +4865,7 @@ export interface MessageDeltaUsage {
   server_tool_use: ServerToolUsage | null;
 }
 
-export interface MessageParam {
-  content: string | Array<ContentBlockParam>;
-
-  role: 'user' | 'assistant' | 'system';
-}
+export type MessageParam = UserMessageParam | AssistantMessageParam | SystemMessageParam;
 
 export interface MessageTokensCount {
   /**
@@ -5254,6 +5258,12 @@ export type StopReason =
   | 'pause_turn'
   | 'refusal'
   | 'model_context_window_exceeded';
+
+export interface SystemMessageParam {
+  content: string | Array<TextBlockParam>;
+
+  role: 'system';
+}
 
 export interface TextBlock {
   /**
@@ -6148,6 +6158,12 @@ export interface UserLocation {
    * The [IANA timezone](https://nodatime.org/TimeZones) of the user.
    */
   timezone?: string | null;
+}
+
+export interface UserMessageParam {
+  content: MessageContentParam;
+
+  role: 'user';
 }
 
 export interface WebFetchBlock {
@@ -7320,13 +7336,6 @@ export interface MessageCreateParamsBase {
   system?: string | Array<TextBlockParam>;
 
   /**
-   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
-   * setting temperature. A value of 1.0 will be accepted for backwards
-   * compatibility, all other values will be rejected with a 400 error.
-   */
-  temperature?: number;
-
-  /**
    * Body param: Configuration for Claude's thinking.
    *
    * With `{"type": "adaptive"}`, Claude decides when and how much to think. With
@@ -7426,19 +7435,6 @@ export interface MessageCreateParamsBase {
    * for more details.
    */
   tools?: Array<ToolUnion>;
-
-  /**
-   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not accept
-   * top_k; any value will be rejected with a 400 error.
-   */
-  top_k?: number;
-
-  /**
-   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
-   * setting top_p. A value >= 0.99 will be accepted for backwards compatibility, all
-   * other values will be rejected with a 400 error.
-   */
-  top_p?: number;
 
   /**
    * Header param: The user profile ID to attribute this request to. Use when acting
@@ -7728,6 +7724,7 @@ Messages.Batches = Batches;
 
 export declare namespace Messages {
   export {
+    type AssistantMessageParam as AssistantMessageParam,
     type Base64ImageSource as Base64ImageSource,
     type Base64PDFSource as Base64PDFSource,
     type BashCodeExecutionOutputBlock as BashCodeExecutionOutputBlock,
@@ -7971,6 +7968,7 @@ export declare namespace Messages {
     type JSONOutputFormat as JSONOutputFormat,
     type MemoryTool20250818 as MemoryTool20250818,
     type Message as Message,
+    type MessageContentParam as MessageContentParam,
     type MessageCountTokensTool as MessageCountTokensTool,
     type MessageCreateParamsContainer as MessageCreateParamsContainer,
     type MessageDeltaEvent as MessageDeltaEvent,
@@ -8002,6 +8000,7 @@ export declare namespace Messages {
     type SignatureDelta as SignatureDelta,
     type SkillParams as SkillParams,
     type StopReason as StopReason,
+    type SystemMessageParam as SystemMessageParam,
     type TextBlock as TextBlock,
     type TextBlockParam as TextBlockParam,
     type TextCitation as TextCitation,
@@ -8057,6 +8056,7 @@ export declare namespace Messages {
     type URLPDFSource as URLPDFSource,
     type Usage as Usage,
     type UserLocation as UserLocation,
+    type UserMessageParam as UserMessageParam,
     type WebFetchBlock as WebFetchBlock,
     type WebFetchBlockParam as WebFetchBlockParam,
     type WebFetchTool20250910 as WebFetchTool20250910,

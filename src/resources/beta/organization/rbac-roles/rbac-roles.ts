@@ -92,11 +92,6 @@ export interface BetaRBACRole {
   display_name: string;
 
   /**
-   * @deprecated Use `display_name` instead; `name` always has the same value.
-   */
-  name: string;
-
-  /**
    * Object type.
    *
    * For RBAC Roles, this is always `"rbac_role"`.

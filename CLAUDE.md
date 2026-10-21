@@ -40,6 +40,7 @@ The generator writes the rest of this file. Rules about this repository's hand-w
 - Helpers that make requests accept `requestOptions`, and tag their requests with `helperHeader(...)` from `src/internal/stainless-helper-header.ts`. Those tag values are shared with the other SDKs.
 - A method for a beta API appends that API's beta value to the caller's `betas` and sends the list as `anthropic-beta`. `options.headers` is merged last, so an explicit header from the caller wins. A helper that needs a beta adds it the same way, as `parse` does with `structured-outputs-2025-12-15`. It doesn't ask the caller to add it.
 - A platform client keeps its own state in private fields, and carries that state into copies through its `withOptions` override. A resource the platform doesn't serve is a getter that throws an explanatory error.
+- A platform client rejects a first-party credential option it doesn't authenticate with. Its constructor starts with `rejectUnsupportedCredentials` from `src/internal/utils/values.ts`, and names the ones it accepts, so a new one is rejected until the client opts in. That covers `withOptions` too, because the base `withOptions` runs the constructor again. `AnthropicAws` takes an `authToken`, which the environment helpers pass, and signs instead of sending it. `apiKey: null` never reads the platform's key variable.
 - Hand-written unions that shadow generated ones, such as `BetaClientRunnableToolType`, have to be updated when a tool version ships.
 - Matching the other SDKs also covers `x-stainless-helper` values and model-visible strings.
 - Say in `src/_vendor/<name>/README.md` where vendored code came from and what changed locally.
@@ -47,7 +48,7 @@ The generator writes the rest of this file. Rules about this repository's hand-w
 ### Errors
 
 - Credentials, a workspace ID, or a project that can't be resolved from the options and the environment throw `AnthropicError`, and a failed token exchange throws `WorkloadIdentityError`.
-- The client rejects `profile` together with `credentials` or `config` with a `TypeError`.
+- The client rejects more than one of `apiKey`, `authToken`, `credentials`, `config`, and `profile` with a `TypeError`.
 - The fix that error text names can be the beta string or the replacement option.
 - Throw a typed error for content the SDK can't convert, so the caller can catch it (`UnsupportedMCPValueError`). Don't quietly turn it into text.
 - In middleware, log through `ctx.logger`. A deprecation message starts with `Anthropic:`.

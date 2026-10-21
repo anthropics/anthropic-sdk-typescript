@@ -469,6 +469,12 @@ export interface BetaAllThinkingTurns {
   type: 'all';
 }
 
+export interface BetaAssistantMessageParam {
+  content: BetaMessageContentParam;
+
+  role: 'assistant';
+}
+
 export type BetaMessageStreamParams = MessageCreateParamsBase;
 
 export interface BetaBase64ImageSource {
@@ -6039,6 +6045,8 @@ export interface BetaMessage {
   input_transformations?: Array<BetaInputTransformation> | null;
 }
 
+export type BetaMessageContentParam = string | Array<BetaContentBlockParam>;
+
 export interface BetaMessageDeltaUsage {
   /**
    * The cumulative number of input tokens used to create the cache entry.
@@ -6153,30 +6161,7 @@ export interface BetaMessageIterationUsage {
   type: 'message';
 }
 
-export interface BetaMessageParam {
-  content: string | Array<BetaContentBlockParam>;
-
-  role: 'user' | 'assistant' | 'system';
-
-  /**
-   * How long this system message's text stays in front of the model. `"never"` (the
-   * default) renders it on every request that includes it. `"next_user_message"`
-   * renders it only for the user turn it follows: once a later `role: "user"`
-   * message exists in `messages` the message stays in the array (send it unchanged)
-   * but is no longer shown to the model. Only permitted on `role: "system"`
-   * messages.
-   */
-  clear_at?: 'next_user_message' | 'never' | null;
-
-  /**
-   * Per-message output configuration on a role:"system" input message.
-   *
-   * Fields here apply per-turn; `format` remains top-level only. An empty `{}` is
-   * accepted on a message that carries content; a message with neither content nor
-   * output_config fields is rejected.
-   */
-  output_config?: BetaSystemMessageOutputConfig | null;
-}
+export type BetaMessageParam = BetaUserMessageParam | BetaAssistantMessageParam | BetaSystemMessageParam;
 
 export interface BetaMessageTokensCount {
   /**
@@ -6944,6 +6929,31 @@ export interface BetaSystemMessageOutputConfig {
    * Valid values are `low`, `medium`, `high`, `xhigh`, or `max`.
    */
   effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | null;
+}
+
+export interface BetaSystemMessageParam {
+  role: 'system';
+
+  /**
+   * How long this system message's text stays in front of the model. `"never"` (the
+   * default) renders it on every request that includes it. `"next_user_message"`
+   * renders it only for the user turn it follows: once a later `role: "user"`
+   * message exists in `messages` the message stays in the array (send it unchanged)
+   * but is no longer shown to the model. Only permitted on `role: "system"`
+   * messages.
+   */
+  clear_at?: 'next_user_message' | 'never' | null;
+
+  content?: string | Array<BetaTextBlockParam | BetaRequestToolAdditionBlock | BetaRequestToolRemovalBlock>;
+
+  /**
+   * Per-message output configuration on a role:"system" input message.
+   *
+   * Fields here apply per-turn; `format` remains top-level only. An empty `{}` is
+   * accepted on a message that carries content; a message with neither content nor
+   * output_config fields is rejected.
+   */
+  output_config?: BetaSystemMessageOutputConfig | null;
 }
 
 export interface BetaTextBlock {
@@ -8307,6 +8317,12 @@ export interface BetaUserLocation {
   timezone?: string | null;
 }
 
+export interface BetaUserMessageParam {
+  content: BetaMessageContentParam;
+
+  role: 'user';
+}
+
 export interface BetaWebFetchBlock {
   content: BetaDocumentBlock;
 
@@ -9522,13 +9538,6 @@ export interface MessageCreateParamsBase {
   system?: string | Array<BetaTextBlockParam>;
 
   /**
-   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
-   * setting temperature. A value of 1.0 will be accepted for backwards
-   * compatibility, all other values will be rejected with a 400 error.
-   */
-  temperature?: number;
-
-  /**
    * Body param: Configuration for Claude's thinking.
    *
    * With `{"type": "adaptive"}`, Claude decides when and how much to think. With
@@ -9628,19 +9637,6 @@ export interface MessageCreateParamsBase {
    * for more details.
    */
   tools?: Array<BetaToolUnion>;
-
-  /**
-   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not accept
-   * top_k; any value will be rejected with a 400 error.
-   */
-  top_k?: number;
-
-  /**
-   * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
-   * setting top_p. A value >= 0.99 will be accepted for backwards compatibility, all
-   * other values will be rejected with a 400 error.
-   */
-  top_p?: number;
 
   /**
    * Header param: Optional header to specify the beta version(s) you want to use.
@@ -10019,6 +10015,7 @@ export declare namespace Messages {
     type BetaAdvisorToolResultError as BetaAdvisorToolResultError,
     type BetaAdvisorToolResultErrorParam as BetaAdvisorToolResultErrorParam,
     type BetaAllThinkingTurns as BetaAllThinkingTurns,
+    type BetaAssistantMessageParam as BetaAssistantMessageParam,
     type BetaBase64ImageSource as BetaBase64ImageSource,
     type BetaBase64PDFSource as BetaBase64PDFSource,
     type BetaBashCodeExecutionOutputBlock as BetaBashCodeExecutionOutputBlock,
@@ -10304,6 +10301,7 @@ export declare namespace Messages {
     type BetaMemoryTool20250818StrReplaceCommand as BetaMemoryTool20250818StrReplaceCommand,
     type BetaMemoryTool20250818ViewCommand as BetaMemoryTool20250818ViewCommand,
     type BetaMessage as BetaMessage,
+    type BetaMessageContentParam as BetaMessageContentParam,
     type BetaMessageDeltaUsage as BetaMessageDeltaUsage,
     type BetaMessageIterationUsage as BetaMessageIterationUsage,
     type BetaMessageParam as BetaMessageParam,
@@ -10348,6 +10346,7 @@ export declare namespace Messages {
     type BetaStopReason as BetaStopReason,
     type BetaSummarizeCompaction as BetaSummarizeCompaction,
     type BetaSystemMessageOutputConfig as BetaSystemMessageOutputConfig,
+    type BetaSystemMessageParam as BetaSystemMessageParam,
     type BetaTextBlock as BetaTextBlock,
     type BetaTextBlockParam as BetaTextBlockParam,
     type BetaTextCitation as BetaTextCitation,
@@ -10420,6 +10419,7 @@ export declare namespace Messages {
     type BetaURLPDFSource as BetaURLPDFSource,
     type BetaUsage as BetaUsage,
     type BetaUserLocation as BetaUserLocation,
+    type BetaUserMessageParam as BetaUserMessageParam,
     type BetaWebFetchBlock as BetaWebFetchBlock,
     type BetaWebFetchBlockParam as BetaWebFetchBlockParam,
     type BetaWebFetchTool20250910 as BetaWebFetchTool20250910,
