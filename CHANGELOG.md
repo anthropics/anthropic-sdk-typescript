@@ -7,6 +7,11 @@
 * **ci:** check the changelog of each package a pull request changes
 * **internal:** specify which changelog a pull request updates
 
+
+### Documentation
+
+* **api:** remove outdated system role note from messages description
+
 ## [0.137.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v0.136.0...sdk-v0.137.0) (2026-10-20)
 
 ### Features
