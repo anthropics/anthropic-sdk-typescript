@@ -36,6 +36,7 @@ describe('resource spendLimits', () => {
           limit: 1,
           page: 'page',
           scope_type: ['organization'],
+          workspace_id: 'workspace_id',
           betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },
