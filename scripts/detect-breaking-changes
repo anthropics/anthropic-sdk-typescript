@@ -107,6 +107,7 @@ TEST_PATHS=(
 	tests/api-resources/beta/organization/plugin-marketplaces.test.ts
 	tests/api-resources/beta/organization/telemetry-destinations/telemetry-destinations.test.ts
 	tests/api-resources/beta/organization/telemetry-destinations/workspaces.test.ts
+	tests/api-resources/beta/organization/webhooks.test.ts
 	tests/index.test.ts
 )
 

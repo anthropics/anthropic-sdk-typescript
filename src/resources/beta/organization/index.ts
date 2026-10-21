@@ -254,6 +254,21 @@ export {
   type BetaOrganizationUsersPage,
 } from './users';
 export {
+  Webhooks,
+  type BetaDeletedOrganizationWebhookEndpoint,
+  type BetaNewOrganizationWebhookEndpoint,
+  type BetaOrganizationWebhookEndpoint,
+  type BetaOrganizationWebhookEndpointSigningSecret,
+  type BetaOrganizationWebhookEndpointState,
+  type WebhookCreateParams,
+  type WebhookRetrieveParams,
+  type WebhookUpdateParams,
+  type WebhookListParams,
+  type WebhookDeleteParams,
+  type WebhookRegenerateSigningSecretParams,
+  type BetaOrganizationWebhookEndpointsPage,
+} from './webhooks';
+export {
   Workspaces,
   type BetaAllowedInferenceGeo,
   type BetaDataResidency,

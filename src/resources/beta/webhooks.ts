@@ -310,7 +310,9 @@ export type BetaWebhookEventData =
   | BetaWebhookMemoryStoreCreatedEventData
   | BetaWebhookMemoryStoreArchivedEventData
   | BetaWebhookMemoryStoreDeletedEventData
-  | BetaWebhookSessionBudgetReachedEventData;
+  | BetaWebhookSessionBudgetReachedEventData
+  | BetaWebhookUserProfileEnforcementActionOpenedEventData
+  | BetaWebhookUserProfileEnforcementActionResolvedEventData;
 
 export interface BetaWebhookMemoryStoreArchivedEventData {
   /**
@@ -587,6 +589,38 @@ export interface BetaWebhookSessionUpdatedEventData {
   workspace_id: string;
 }
 
+export interface BetaWebhookUserProfileEnforcementActionOpenedEventData {
+  /**
+   * ID of the user profile the enforcement action is on.
+   */
+  id: string;
+
+  /**
+   * ID (`enac_...`) of the enforcement action that was opened or resolved.
+   */
+  enforcement_action_id: string;
+
+  organization_id: string;
+
+  type: 'user_profile.enforcement_action_opened';
+}
+
+export interface BetaWebhookUserProfileEnforcementActionResolvedEventData {
+  /**
+   * ID of the user profile the enforcement action is on.
+   */
+  id: string;
+
+  /**
+   * ID (`enac_...`) of the enforcement action that was opened or resolved.
+   */
+  enforcement_action_id: string;
+
+  organization_id: string;
+
+  type: 'user_profile.enforcement_action_resolved';
+}
+
 export interface BetaWebhookVaultArchivedEventData {
   /**
    * ID of the vault that triggered the event.
@@ -744,6 +778,8 @@ export declare namespace Webhooks {
     type BetaWebhookSessionThreadIdledEventData as BetaWebhookSessionThreadIdledEventData,
     type BetaWebhookSessionThreadTerminatedEventData as BetaWebhookSessionThreadTerminatedEventData,
     type BetaWebhookSessionUpdatedEventData as BetaWebhookSessionUpdatedEventData,
+    type BetaWebhookUserProfileEnforcementActionOpenedEventData as BetaWebhookUserProfileEnforcementActionOpenedEventData,
+    type BetaWebhookUserProfileEnforcementActionResolvedEventData as BetaWebhookUserProfileEnforcementActionResolvedEventData,
     type BetaWebhookVaultArchivedEventData as BetaWebhookVaultArchivedEventData,
     type BetaWebhookVaultCreatedEventData as BetaWebhookVaultCreatedEventData,
     type BetaWebhookVaultCredentialArchivedEventData as BetaWebhookVaultCredentialArchivedEventData,

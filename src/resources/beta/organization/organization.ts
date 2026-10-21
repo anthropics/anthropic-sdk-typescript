@@ -88,6 +88,22 @@ import {
   UserUpdateParams,
   Users,
 } from './users';
+import * as WebhooksAPI from './webhooks';
+import {
+  BetaDeletedOrganizationWebhookEndpoint,
+  BetaNewOrganizationWebhookEndpoint,
+  BetaOrganizationWebhookEndpoint,
+  BetaOrganizationWebhookEndpointSigningSecret,
+  BetaOrganizationWebhookEndpointState,
+  BetaOrganizationWebhookEndpointsPage,
+  WebhookCreateParams,
+  WebhookDeleteParams,
+  WebhookListParams,
+  WebhookRegenerateSigningSecretParams,
+  WebhookRetrieveParams,
+  WebhookUpdateParams,
+  Webhooks,
+} from './webhooks';
 import * as AnalyticsAPI from './analytics/analytics';
 import {
   Analytics,
@@ -297,6 +313,7 @@ export class Organization extends APIResource {
   );
   telemetryDestinations: TelemetryDestinationsAPI.TelemetryDestinations =
     new TelemetryDestinationsAPI.TelemetryDestinations(this._client);
+  webhooks: WebhooksAPI.Webhooks = new WebhooksAPI.Webhooks(this._client);
 
   /**
    * Retrieve information about the organization associated with the authenticated
@@ -364,6 +381,7 @@ Organization.RBACRoles = RBACRoles;
 Organization.Plugins = Plugins;
 Organization.PluginMarketplaces = PluginMarketplaces;
 Organization.TelemetryDestinations = TelemetryDestinations;
+Organization.Webhooks = Webhooks;
 
 export declare namespace Organization {
   export { type BetaOrganization as BetaOrganization, type BetaOrganizationRole as BetaOrganizationRole };
@@ -638,5 +656,21 @@ export declare namespace Organization {
     type TelemetryDestinationListParams as TelemetryDestinationListParams,
     type TelemetryDestinationDeleteParams as TelemetryDestinationDeleteParams,
     type TelemetryDestinationTestParams as TelemetryDestinationTestParams,
+  };
+
+  export {
+    Webhooks as Webhooks,
+    type BetaDeletedOrganizationWebhookEndpoint as BetaDeletedOrganizationWebhookEndpoint,
+    type BetaNewOrganizationWebhookEndpoint as BetaNewOrganizationWebhookEndpoint,
+    type BetaOrganizationWebhookEndpoint as BetaOrganizationWebhookEndpoint,
+    type BetaOrganizationWebhookEndpointSigningSecret as BetaOrganizationWebhookEndpointSigningSecret,
+    type BetaOrganizationWebhookEndpointState as BetaOrganizationWebhookEndpointState,
+    type BetaOrganizationWebhookEndpointsPage as BetaOrganizationWebhookEndpointsPage,
+    type WebhookCreateParams as WebhookCreateParams,
+    type WebhookRetrieveParams as WebhookRetrieveParams,
+    type WebhookUpdateParams as WebhookUpdateParams,
+    type WebhookListParams as WebhookListParams,
+    type WebhookDeleteParams as WebhookDeleteParams,
+    type WebhookRegenerateSigningSecretParams as WebhookRegenerateSigningSecretParams,
   };
 }
