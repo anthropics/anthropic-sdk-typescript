@@ -21,6 +21,7 @@ Types:
 
 Types:
 
+- <code><a href="./src/resources/messages/messages.ts">AssistantMessageParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Base64ImageSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Base64PDFSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionOutputBlock</a></code>
@@ -264,6 +265,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">JSONOutputFormat</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MemoryTool20250818</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Message</a></code>
+- <code><a href="./src/resources/messages/messages.ts">MessageContentParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageCountTokensTool</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageCreateParamsContainer</a></code>
 - <code><a href="./src/resources/messages/messages.ts">MessageDeltaEvent</a></code>
@@ -295,6 +297,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">SignatureDelta</a></code>
 - <code><a href="./src/resources/messages/messages.ts">SkillParams</a></code>
 - <code><a href="./src/resources/messages/messages.ts">StopReason</a></code>
+- <code><a href="./src/resources/messages/messages.ts">SystemMessageParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextCitation</a></code>
@@ -350,6 +353,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">URLPDFSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Usage</a></code>
 - <code><a href="./src/resources/messages/messages.ts">UserLocation</a></code>
+- <code><a href="./src/resources/messages/messages.ts">UserMessageParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">WebFetchTool20250910</a></code>
@@ -878,6 +882,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorToolResultError</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaAdvisorToolResultErrorParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaAllThinkingTurns</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaAssistantMessageParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64ImageSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBase64PDFSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaBashCodeExecutionOutputBlock</a></code>
@@ -1164,6 +1169,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMemoryTool20250818StrReplaceCommand</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMemoryTool20250818ViewCommand</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessage</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageContentParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageDeltaUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageIterationUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageParam</a></code>
@@ -1208,6 +1214,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaStopReason</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSummarizeCompaction</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaSystemMessageOutputConfig</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaSystemMessageParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTextCitation</a></code>
@@ -1279,6 +1286,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaURLPDFSource</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaUserLocation</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaUserMessageParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchBlock</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchBlockParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaWebFetchTool20250910</a></code>

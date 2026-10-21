@@ -503,6 +503,39 @@ describe('defaultCredentials', () => {
     expect(body.workspace_id).toBe('wrkspc_file');
   });
 
+  it('the federation variables neither read nor write the cache of a leftover default profile', async () => {
+    writeConfig('default', {
+      organization_id: 'org-file',
+      authentication: {
+        type: 'oidc_federation',
+        federation_rule_id: 'fdrl_file',
+        identity_token: { source: 'file', path: path.join(testDir, 'id-token') },
+      },
+    });
+    const cached = { access_token: 'cached-tok', expires_at: NOW_IN_SECONDS + 3600 };
+    writeCredentials('default', cached);
+    process.env['ANTHROPIC_FEDERATION_RULE_ID'] = 'fdrl_env';
+    process.env['ANTHROPIC_ORGANIZATION_ID'] = 'org-env';
+    process.env['ANTHROPIC_IDENTITY_TOKEN'] = 'literal-jwt';
+
+    const mockFetch: Fetch = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ access_token: 'exchanged-tok', expires_in: 3600 }));
+
+    const result = await defaultCredentials({ ...baseOptions, fetch: mockFetch });
+    expect((await result!.provider()).token).toBe('exchanged-tok');
+
+    const body = JSON.parse((mockFetch as Mock).mock.calls[0]![1].body);
+    expect(body).toMatchObject({
+      federation_rule_id: 'fdrl_env',
+      organization_id: 'org-env',
+      assertion: 'literal-jwt',
+    });
+    expect(JSON.parse(fs.readFileSync(path.join(testDir, 'credentials', 'default.json'), 'utf-8'))).toEqual(
+      cached,
+    );
+  });
+
   it('throws clear error for oidc_federation env vars without identity token', async () => {
     delete process.env['ANTHROPIC_CONFIG_DIR'];
     process.env['ANTHROPIC_CONFIG_DIR'] = path.join(testDir, 'nonexistent');

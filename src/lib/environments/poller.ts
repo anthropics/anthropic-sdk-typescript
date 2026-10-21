@@ -113,9 +113,9 @@ export class WorkPoller implements AsyncIterable<BetaSelfHostedWork> {
   readonly workerId: string;
 
   // Sub-client scoped to the environment key. Every poll / ack / stop call
-  // is routed through this so the parent's `X-Api-Key` never lands on the
-  // wire alongside the bearer credential. The helper-telemetry header is
-  // attached as a default on this client; per-call plumbing is unnecessary.
+  // is routed through this so the parent's API key never lands on the
+  // wire. The helper-telemetry header is attached as a default on this
+  // client; per-call plumbing is unnecessary.
   readonly #runnerClient: Anthropic;
   #consumed = false;
   readonly #controller: AbortController;

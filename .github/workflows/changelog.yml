@@ -22,6 +22,26 @@ jobs:
         with:
           fetch-depth: 2
 
+      - name: Check that the pull request changes the CHANGELOG.md of each package it changes
+        run: |
+          missing=""
+          check() {
+            if git diff --quiet HEAD^1 HEAD -- "$1/CHANGELOG.md" &&
+              ! git diff --quiet HEAD^1 HEAD -- "$@" ':(exclude).release-please-manifest.json' ':(exclude)scripts/mock-spec.json.gz'; then
+              missing="$missing $1/CHANGELOG.md"
+            fi
+          }
+          check '.' ':(exclude)packages/vertex-sdk' ':(exclude)packages/bedrock-sdk' ':(exclude)packages/foundry-sdk' ':(exclude)packages/aws-sdk' ':(exclude)packages/google-cloud-sdk'
+          check 'packages/vertex-sdk'
+          check 'packages/bedrock-sdk'
+          check 'packages/foundry-sdk'
+          check 'packages/aws-sdk'
+          check 'packages/google-cloud-sdk'
+          if [ -n "$missing" ]; then
+            echo "::error::This pull request changes packages without a line in their own changelog:$missing. A release leaves out a package whose changelog has no new section. Add your line to each. The skip-changelog label turns this check off for the whole pull request, and a listed package with no new section then waits for a later line."
+            exit 1
+          fi
+
       - name: Check that the pull request changes CHANGELOG.md
         run: |
           changed="$(git diff --name-only HEAD^1 HEAD -- ':(glob)**/CHANGELOG.md')"

@@ -70,13 +70,6 @@ import * as Uploads from './core/uploads';
 import * as API from './resources/index';
 import { APIPromise } from './core/api-promise';
 import {
-  Completion,
-  CompletionCreateParams,
-  CompletionCreateParamsNonStreaming,
-  CompletionCreateParamsStreaming,
-  Completions,
-} from './resources/completions';
-import {
   DeletedFile,
   FileDeleteParams,
   FileDownloadParams,
@@ -120,6 +113,7 @@ import {
   BetaRateLimitError,
 } from './resources/beta/beta';
 import {
+  AssistantMessageParam,
   Base64ImageSource,
   Base64PDFSource,
   BashCodeExecutionOutputBlock,
@@ -364,6 +358,7 @@ import {
   JSONOutputFormat,
   MemoryTool20250818,
   Message,
+  MessageContentParam,
   MessageStreamParams,
   MessageCountTokensParams,
   MessageCountTokensTool,
@@ -455,6 +450,7 @@ import {
   SignatureDelta,
   SkillParams,
   StopReason,
+  SystemMessageParam,
   TextBlock,
   TextBlockParam,
   TextCitation,
@@ -510,6 +506,7 @@ import {
   URLPDFSource,
   Usage,
   UserLocation,
+  UserMessageParam,
   WebFetchBlock,
   WebFetchBlockParam,
   WebFetchTool20250910,
@@ -591,9 +588,7 @@ import {
   parseLogLevel,
 } from './internal/utils/log';
 import { isEmptyObj } from './internal/utils/values';
-
-export const HUMAN_PROMPT = '\\n\\nHuman:';
-export const AI_PROMPT = '\\n\\nAssistant:';
+import { checkNever, CREDENTIAL_OPTIONS, type CredentialOption } from './internal/utils/values';
 
 /**
  * Shared auth state. A `withOptions()` clone receives the parent's instance
@@ -631,12 +626,20 @@ type InternalClientOptions = ClientOptions & {
 
 export type ApiKeySetter = () => Promise<string>;
 
+let warnedOfKeyAndTokenInEnv = false;
+
+type Credential =
+  | { [Name in CredentialOption]: { type: Name; value: NonNullable<ClientOptions[Name]> } }[CredentialOption]
+  | { type: 'defaultChain' };
+
 export interface ClientOptions {
   /**
    * API key used for authentication.
    *
    * - Accepts either a static string or an async function that resolves to a string.
-   * - Defaults to process.env['ANTHROPIC_API_KEY'].
+   * - Sent as `Authorization: Bearer <key>`.
+   * - Mutually exclusive with `authToken`, `credentials`, `config`, and `profile`.
+   * - Defaults to process.env['ANTHROPIC_API_KEY'], which is not read when one of those options is passed.
    * - When a function is provided, it is invoked before each request so you can rotate
    *   or refresh credentials at runtime.
    * - The function must return a non-empty string; otherwise an AnthropicError is thrown.
@@ -647,6 +650,10 @@ export interface ClientOptions {
 
   /**
    * Defaults to process.env['ANTHROPIC_AUTH_TOKEN'].
+   *
+   * The environment variable is not used when `apiKey`, `credentials`,
+   * `config`, or `profile` is passed, or when `ANTHROPIC_API_KEY` is set, which
+   * logs a warning once per process. Mutually exclusive with those options.
    */
   authToken?: string | null | undefined;
 
@@ -654,33 +661,37 @@ export interface ClientOptions {
    * An {@link AccessTokenProvider} for OAuth/workload-identity authentication.
    *
    * When set, the provider is wrapped in a {@link TokenCache} and used for
-   * Bearer token auth on every request. Takes precedence over `authToken`
-   * but not `apiKey`.
+   * Bearer token auth on every request. Mutually exclusive with `apiKey`,
+   * `authToken`, `config`, and `profile`.
    *
-   * If omitted (and no `apiKey` or `authToken` is provided), the client
-   * automatically resolves credentials from config files or environment
-   * variables on the first request.
+   * If none of these options is passed (and neither `ANTHROPIC_API_KEY` nor
+   * `ANTHROPIC_AUTH_TOKEN` is set), the client resolves credentials on the
+   * first request, from the first of these: the profile `ANTHROPIC_PROFILE`
+   * names, which is an error if it does not exist; the workload identity
+   * federation variables; the active profile on disk, which is the one the
+   * `active_config` file names, otherwise `default`.
    */
   credentials?: AccessTokenProvider | null | undefined;
 
   /**
    * An {@link AnthropicConfig} object to resolve credentials from directly,
-   * bypassing config-file and environment-variable lookup. This is the
-   * TypeScript equivalent of Go's `option.WithConfig(cfg)`.
+   * bypassing config-file and environment-variable lookup.
    *
-   * Ignored when `credentials` is set. For `oidc_federation`, the SDK
-   * performs the jwt-bearer exchange in-process; for `user_oauth`,
-   * `authentication.credentials_path` must point at the credentials file.
+   * Mutually exclusive with `apiKey`, `authToken`, `credentials`, and
+   * `profile`. For `oidc_federation`, the SDK performs the jwt-bearer exchange
+   * in-process; for `user_oauth`, `authentication.credentials_path` must point
+   * at the credentials file.
    */
   config?: AnthropicConfig | null | undefined;
 
   /**
    * Name of a profile to load from `<config_dir>/configs/<profile>.json`.
    *
-   * Equivalent to setting the `ANTHROPIC_PROFILE` environment variable, but
-   * scoped to this client instance. As an explicit constructor argument it
-   * takes precedence over `ANTHROPIC_API_KEY` / `ANTHROPIC_AUTH_TOKEN` in the
-   * environment. Mutually exclusive with `credentials` and `config`.
+   * Selects a profile as the `ANTHROPIC_PROFILE` environment variable does, but
+   * for this client instance only. As an explicit constructor argument it takes
+   * precedence over every credential in the environment, so a profile that
+   * does not exist is an error. Mutually exclusive with `apiKey`, `authToken`,
+   * `credentials`, and `config`.
    */
   profile?: string | null | undefined;
 
@@ -840,6 +851,7 @@ export class BaseAnthropic {
 
   private fetch: Fetch;
   #encoder: Opts.RequestEncoder;
+  #apiKeyFunction: ApiKeySetter | null;
   #openTelemetry: ResolvedOpenTelemetryOptions;
 
   /**
@@ -914,20 +926,30 @@ export class BaseAnthropic {
     webhookKey = readEnv('ANTHROPIC_WEBHOOK_SIGNING_KEY') ?? null,
     ...opts
   }: ClientOptions = {}) {
-    // An explicit `profile` is a constructor-level credential choice; when set,
-    // do not let env ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN shadow it.
-    if (apiKey === undefined) {
-      apiKey = opts.profile != null ? null : readEnv('ANTHROPIC_API_KEY') ?? null;
+    const given: ClientOptions = { apiKey, authToken, ...opts };
+    const passed = CREDENTIAL_OPTIONS.filter((name) => given[name] != null);
+    if (passed.length > 1) {
+      const list = (names: readonly string[]) => names.map((name) => `\`${name}\``).join(', ');
+      throw new TypeError(`Pass at most one of ${list(CREDENTIAL_OPTIONS)}. Received ${list(passed)}.`);
     }
-    if (authToken === undefined) {
-      authToken = opts.profile != null ? null : readEnv('ANTHROPIC_AUTH_TOKEN') ?? null;
-    }
-    if (opts.profile != null && (opts.credentials != null || opts.config != null)) {
-      throw new TypeError('Pass at most one of `profile`, `credentials`, or `config`.');
-    }
+    const [passedName] = passed;
+    // A credential passed in code is the client's only one, so the environment
+    // is not read for another. `null` keeps that option's variable unread.
+    const env =
+      passedName != null ? null : (
+        {
+          apiKey: apiKey === undefined ? readEnv('ANTHROPIC_API_KEY') : undefined,
+          authToken: authToken === undefined ? readEnv('ANTHROPIC_AUTH_TOKEN') : undefined,
+        }
+      );
+    const credential: Credential =
+      passedName != null ? ({ type: passedName, value: given[passedName] } as Credential)
+      : env?.apiKey != null ? { type: 'apiKey', value: env.apiKey }
+      : env?.authToken != null ? { type: 'authToken', value: env.authToken }
+      : { type: 'defaultChain' };
     const options: ClientOptions = {
-      apiKey,
-      authToken,
+      apiKey: credential.type === 'apiKey' ? credential.value : null,
+      authToken: credential.type === 'authToken' ? credential.value : null,
       webhookKey,
       ...opts,
       baseURL: baseURL || `https://api.anthropic.com`,
@@ -955,6 +977,12 @@ export class BaseAnthropic {
       parseLogLevel(options.logLevel, 'ClientOptions.logLevel', loggerFor(this)) ??
       parseLogLevel(readEnv('ANTHROPIC_LOG'), "process.env['ANTHROPIC_LOG']", loggerFor(this)) ??
       defaultLogLevel;
+    if (env?.apiKey != null && env.authToken != null && !warnedOfKeyAndTokenInEnv) {
+      warnedOfKeyAndTokenInEnv = true;
+      loggerFor(this).warn(
+        'Anthropic: ANTHROPIC_API_KEY and ANTHROPIC_AUTH_TOKEN are both set. Using ANTHROPIC_API_KEY.',
+      );
+    }
     this.fetchOptions = options.fetchOptions;
     this.maxRetries = validatePositiveInteger('maxRetries', options.maxRetries ?? 2);
     const scope = this._instrumentationScope();
@@ -986,8 +1014,9 @@ export class BaseAnthropic {
     delete (options as InternalClientOptions).__baseURLIsExplicit;
     this._options = options;
 
-    this.apiKey = typeof apiKey === 'string' ? apiKey : null;
-    this.authToken = authToken;
+    this.apiKey = typeof options.apiKey === 'string' ? options.apiKey : null;
+    this.#apiKeyFunction = typeof options.apiKey === 'function' ? options.apiKey : null;
+    this.authToken = options.authToken ?? null;
     this.webhookKey = webhookKey;
 
     if (inherited) {
@@ -998,27 +1027,35 @@ export class BaseAnthropic {
     } else {
       this._authState = { provider: null, tokenCache: null, resolution: null, error: null, extraHeaders: {} };
 
-      // apiKey/authToken win over credentials/config/profile; don't build a
-      // token cache or resolve a config that the request path will then ignore.
-      if (this.apiKey == null && this.authToken == null) {
-        const credentials = options.credentials ?? null;
-        if (credentials) {
-          this._authState.provider = credentials;
-          this._authState.tokenCache = this._makeTokenCache(credentials);
-        } else if (options.config != null) {
-          const result = resolveCredentialsFromConfig(options.config, this._credentialResolverOptions());
+      switch (credential.type) {
+        case 'apiKey':
+        case 'authToken':
+          break;
+        case 'credentials':
+          this._authState.provider = credential.value;
+          this._authState.tokenCache = this._makeTokenCache(credential.value);
+          break;
+        case 'config': {
+          const result = resolveCredentialsFromConfig(credential.value, this._credentialResolverOptions());
           this._authState.provider = result.provider;
           this._authState.tokenCache = this._makeTokenCache(result.provider);
           this._authState.extraHeaders = result.extraHeaders;
           this._applyCredentialBaseURL(result.baseURL);
-        } else if (options.profile != null) {
-          this._authState.resolution = this._resolveDefaultCredentials(options.profile);
-        } else if (this._shouldResolveDefaultCredentials()) {
-          // No explicit auth provided — lazily resolve from the credential
-          // chain on first request. Errors are captured into _auth.error and
-          // surfaced on first use rather than as an unhandled rejection.
-          this._authState.resolution = this._resolveDefaultCredentials();
+          break;
         }
+        case 'profile':
+          this._authState.resolution = this._resolveDefaultCredentials(credential.value);
+          break;
+        case 'defaultChain':
+          if (this._shouldResolveDefaultCredentials()) {
+            // No explicit auth provided — lazily resolve from the credential
+            // chain on first request. Errors are captured into _auth.error and
+            // surfaced on first use rather than as an unhandled rejection.
+            this._authState.resolution = this._resolveDefaultCredentials();
+          }
+          break;
+        default:
+          checkNever(credential);
       }
     }
   }
@@ -1093,14 +1130,22 @@ export class BaseAnthropic {
   /**
    * Create a new client instance re-using the same options given to the
    * current client with optional overriding.
+   *
+   * Passing `apiKey`, `authToken`, `credentials`, `config`, or `profile`
+   * replaces the current client's credential, whatever its kind. With none of
+   * them passed, the new client keeps it. Either way it keeps
+   * `defaultHeaders`, including an `X-Api-Key` or `Authorization` set there.
    */
   withOptions(options: Partial<ClientOptions>): this {
-    // Share the auth state object unless the caller passes any auth-related
-    // key. The `in` check is intentional: even `apiKey: undefined` opts the
-    // clone out of sharing (it gets its own _auth and TokenCache, though it
-    // may still wrap the parent's provider via the credentials spread below).
-    const overridesStructuredAuth = 'credentials' in options || 'config' in options || 'profile' in options;
-    const overridesAuth = 'apiKey' in options || 'authToken' in options || overridesStructuredAuth;
+    // Left in, an `undefined` would overwrite the inherited credential and
+    // send the clone back to the environment.
+    options = { ...options };
+    for (const name of CREDENTIAL_OPTIONS) {
+      if (options[name] === undefined) delete options[name];
+    }
+    // `null` counts here: it clears a credential, so the clone can't share.
+    const overridesAuth = CREDENTIAL_OPTIONS.some((name) => name in options);
+    const replacesCredential = CREDENTIAL_OPTIONS.some((name) => options[name] != null);
     const internal: InternalClientOptions = {
       ...this._options,
       // Only forward baseURL when the caller (or env) explicitly chose it.
@@ -1119,19 +1164,11 @@ export class BaseAnthropic {
       fetch: this.fetch,
       fetchOptions: this.fetchOptions,
       middleware: this.middleware,
-      apiKey: this.apiKey,
+      apiKey: this.apiKey ?? this.#apiKeyFunction,
       authToken: this.authToken,
       webhookKey: this.webhookKey,
-      // credentials: this.credentials is a no-op when __auth is shared (the
-      // ctor takes the inherited path and ignores options.credentials); when
-      // overridesAuth is true via apiKey/authToken only, it lets the clone
-      // build a fresh TokenCache around the parent's provider.
-      credentials: this.credentials,
-      // When the caller passes a structured-credential override, drop inherited
-      // structured-credential options so only `...options` supplies them —
-      // otherwise an inherited `credentials`/`config`/`profile` would trip the
-      // mutual-exclusion check or precedence over the override.
-      ...(overridesStructuredAuth ? { credentials: undefined, config: undefined, profile: undefined } : {}),
+      // Left in, the inherited credential would trip the mutual-exclusion check.
+      ...(replacesCredential ? Object.fromEntries(CREDENTIAL_OPTIONS.map((name) => [name, null])) : {}),
       ...options,
       openTelemetry: options.openTelemetry ?? this.#openTelemetry,
       // Always set __auth so any stale value from ...this._options is
@@ -1198,10 +1235,10 @@ export class BaseAnthropic {
       return; // auth will be injected per-request via authHeaders
     }
 
-    if (this.apiKey && values.get('x-api-key')) {
+    if (this.apiKey && values.get('authorization')) {
       return;
     }
-    if (nulls.has('x-api-key')) {
+    if (nulls.has('authorization')) {
       return;
     }
 
@@ -1213,7 +1250,7 @@ export class BaseAnthropic {
     }
 
     throw new Error(
-      'Could not resolve authentication method. Expected one of apiKey, authToken, credentials, config, or profile to be set. Or for one of the "X-Api-Key" or "Authorization" headers to be explicitly omitted',
+      'Could not resolve authentication method. Expected one of apiKey, authToken, credentials, config, or profile to be set. Or for the "Authorization" header to be explicitly omitted',
     );
   }
 
@@ -1236,20 +1273,36 @@ export class BaseAnthropic {
     if (this._authState.error) {
       return undefined;
     }
+    if (this.#apiKeyFunction && this.apiKey == null) {
+      let apiKey: string;
+      try {
+        apiKey = await this.#apiKeyFunction();
+      } catch (err) {
+        throw new Errors.AnthropicError(`The \`apiKey\` function failed: ${castToError(err).message}`, {
+          cause: err,
+        });
+      }
+      if (!apiKey) {
+        throw new Errors.AnthropicError(
+          `The \`apiKey\` function must return a non-empty string. It returned ${JSON.stringify(apiKey)}.`,
+        );
+      }
+      return buildHeaders([{ Authorization: `Bearer ${apiKey}` }]);
+    }
     // If we have a token cache and no API key is set, use token auth
     if (this._authState.tokenCache && this.apiKey == null) {
       const token = await this._authState.tokenCache.getToken();
       this._authFlags(opts).usedTokenCache = true;
       return buildHeaders([{ Authorization: `Bearer ${token}` }]);
     }
-    return buildHeaders([await this.apiKeyAuth(opts), await this.bearerAuth(opts)]);
+    return buildHeaders([await this.bearerAuth(opts), await this.apiKeyAuth(opts)]);
   }
 
   protected async apiKeyAuth(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
     if (this.apiKey == null) {
       return undefined;
     }
-    return buildHeaders([{ 'X-Api-Key': this.apiKey }]);
+    return buildHeaders([{ Authorization: `Bearer ${this.apiKey}` }]);
   }
 
   protected async bearerAuth(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
@@ -1949,7 +2002,7 @@ export class BaseAnthropic {
         ...(this._options.dangerouslyAllowBrowser ?
           { 'anthropic-dangerous-direct-browser-access': 'true' }
         : undefined),
-        'anthropic-version': '2023-06-01',
+        'anthropic-version': '2026-10-21',
       },
       await this.authHeaders(options),
       this._options.defaultHeaders,
@@ -2043,16 +2096,12 @@ export class BaseAnthropic {
   static UnprocessableEntityError = Errors.UnprocessableEntityError;
 
   static toFile = Uploads.toFile;
-
-  static HUMAN_PROMPT = HUMAN_PROMPT;
-  static AI_PROMPT = AI_PROMPT;
 }
 
 /**
  * API Client for interfacing with the Anthropic API.
  */
 export class Anthropic extends BaseAnthropic {
-  completions: API.Completions = new API.Completions(this);
   messages: API.Messages = new API.Messages(this);
   models: API.Models = new API.Models(this);
   files: API.Files = new API.Files(this);
@@ -2062,7 +2111,6 @@ export class Anthropic extends BaseAnthropic {
   beta: API.Beta = new API.Beta(this);
 }
 
-Anthropic.Completions = Completions;
 Anthropic.Messages = Messages;
 Anthropic.Models = Models;
 Anthropic.Files = Files;
@@ -2104,15 +2152,8 @@ export declare namespace Anthropic {
   };
 
   export {
-    Completions as Completions,
-    type Completion as Completion,
-    type CompletionCreateParams as CompletionCreateParams,
-    type CompletionCreateParamsNonStreaming as CompletionCreateParamsNonStreaming,
-    type CompletionCreateParamsStreaming as CompletionCreateParamsStreaming,
-  };
-
-  export {
     Messages as Messages,
+    type AssistantMessageParam as AssistantMessageParam,
     type Base64ImageSource as Base64ImageSource,
     type Base64PDFSource as Base64PDFSource,
     type BashCodeExecutionOutputBlock as BashCodeExecutionOutputBlock,
@@ -2357,6 +2398,7 @@ export declare namespace Anthropic {
     type JSONOutputFormat as JSONOutputFormat,
     type MemoryTool20250818 as MemoryTool20250818,
     type Message as Message,
+    type MessageContentParam as MessageContentParam,
     type MessageCountTokensTool as MessageCountTokensTool,
     type MessageCreateParamsContainer as MessageCreateParamsContainer,
     type MessageDeltaEvent as MessageDeltaEvent,
@@ -2391,6 +2433,7 @@ export declare namespace Anthropic {
     type SignatureDelta as SignatureDelta,
     type SkillParams as SkillParams,
     type StopReason as StopReason,
+    type SystemMessageParam as SystemMessageParam,
     type TextBlock as TextBlock,
     type TextBlockParam as TextBlockParam,
     type TextCitation as TextCitation,
@@ -2446,6 +2489,7 @@ export declare namespace Anthropic {
     type URLPDFSource as URLPDFSource,
     type Usage as Usage,
     type UserLocation as UserLocation,
+    type UserMessageParam as UserMessageParam,
     type WebFetchBlock as WebFetchBlock,
     type WebFetchBlockParam as WebFetchBlockParam,
     type WebFetchTool20250910 as WebFetchTool20250910,

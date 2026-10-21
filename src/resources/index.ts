@@ -3,6 +3,7 @@ export {
   BROWSER_MEMBER_NAME_VALUES,
   COMPUTER_MEMBER_NAME_VALUES,
   Messages,
+  type AssistantMessageParam,
   type Base64ImageSource,
   type Base64PDFSource,
   type BashCodeExecutionOutputBlock,
@@ -246,6 +247,7 @@ export {
   type JSONOutputFormat,
   type MemoryTool20250818,
   type Message,
+  type MessageContentParam,
   type MessageCountTokensTool,
   type MessageCreateParamsContainer,
   type MessageDeltaEvent,
@@ -278,6 +280,7 @@ export {
   type SignatureDelta,
   type SkillParams,
   type StopReason,
+  type SystemMessageParam,
   type TextBlock,
   type TextBlockParam,
   type TextCitation,
@@ -333,6 +336,7 @@ export {
   type URLPDFSource,
   type Usage,
   type UserLocation,
+  type UserMessageParam,
   type WebFetchBlock,
   type WebFetchBlockParam,
   type WebFetchTool20250910,
@@ -435,13 +439,6 @@ export {
   type BetaPermissionError,
   type BetaRateLimitError,
 } from './beta/beta';
-export {
-  Completions,
-  type Completion,
-  type CompletionCreateParams,
-  type CompletionCreateParamsNonStreaming,
-  type CompletionCreateParamsStreaming,
-} from './completions';
 export {
   Files,
   type DeletedFile,

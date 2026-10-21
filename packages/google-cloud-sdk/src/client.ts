@@ -1,7 +1,13 @@
 import type { NullableHeaders } from './internal/headers';
 import { buildHeaders } from './internal/headers';
 import * as Errors from './core/error';
-import { isAbsoluteURL, readEnv } from './internal/utils';
+import {
+  isAbsoluteURL,
+  readEnv,
+  rejectUnsupportedCredentials,
+  type CredentialOption,
+  type PlatformCredentials,
+} from './internal/utils';
 import { FinalRequestOptions } from './internal/request-options';
 import { Anthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
@@ -32,6 +38,12 @@ const ORGANIZATION_PATH_PREFIX = '/v1/organizations/';
 // bearer to the default API host.
 const UNRESOLVED_BASE_URL = 'https://unresolved.invalid';
 
+const CREDENTIALS: PlatformCredentials = {
+  accepts: [],
+  unsupportedOptionMessage: (option) =>
+    `The \`${option}\` option is not supported by AnthropicGoogleCloud; authentication uses a Google bearer token (\`bearerTokenProvider\`, \`googleAuth\`/\`authClient\`, or Application Default Credentials).`,
+};
+
 const NO_PROJECT_HINT =
   'Set `project` or the `ANTHROPIC_GOOGLE_CLOUD_PROJECT` environment variable (or provide `baseURL`).';
 
@@ -39,11 +51,8 @@ const NO_PROJECT_HINT =
 // Anthropic credential sources (API key, auth token, credential chain)
 // apply here. A runtime guard in the constructor backs this up for
 // untyped callers.
-const UNSUPPORTED_OPTIONS = ['apiKey', 'authToken', 'credentials', 'config', 'profile'] as const;
-
 /** API Client for interfacing with Claude Platform on Google Cloud. */
-export interface GoogleCloudClientOptions
-  extends Omit<CoreClientOptions, (typeof UNSUPPORTED_OPTIONS)[number]> {
+export interface GoogleCloudClientOptions extends Omit<CoreClientOptions, CredentialOption> {
   /**
    * The GCP project id that owns the Claude Platform on Google Cloud resource. Used to derive the base
    * URL when one is not given explicitly.
@@ -146,16 +155,6 @@ export class AnthropicGoogleCloud extends Anthropic {
   #derivedBaseURL: string | undefined;
   #organizationBaseURL = UNRESOLVED_BASE_URL;
 
-  // @ts-expect-error — overriding the base instance property with an accessor (TS2611) is intentional
-  override get completions(): never {
-    throw new Errors.AnthropicError(
-      'The deprecated text Completions API is not available on Claude Platform on Google Cloud',
-    );
-  }
-  // The base constructor assigns `this.completions`; without a setter that
-  // assignment would throw against the getter-only accessor.
-  override set completions(_: unknown) {}
-
   /**
    * API Client for the first-party Anthropic API on Google Cloud.
    *
@@ -189,6 +188,8 @@ export class AnthropicGoogleCloud extends Anthropic {
     skipAuth = false,
     ...opts
   }: GoogleCloudClientOptions = {}) {
+    rejectUnsupportedCredentials(opts, CREDENTIALS);
+
     if (authClient && googleAuth) {
       throw new Errors.AnthropicError(
         'The `authClient` and `googleAuth` arguments are mutually exclusive; only one can be passed at a time.',
@@ -199,18 +200,6 @@ export class AnthropicGoogleCloud extends Anthropic {
       throw new Errors.AnthropicError(
         'The `skipAuth` option is mutually exclusive with `bearerTokenProvider`, `googleAuth`, and `authClient`; `skipAuth` disables authentication entirely.',
       );
-    }
-
-    // Runtime backstop for the type-level Omit: the base client's Anthropic
-    // credential sources must never apply here, and silently ignoring them
-    // would be worse than refusing. `!= null` keeps withOptions() clones
-    // working — they spread `apiKey: null` etc. through the options bag.
-    for (const key of UNSUPPORTED_OPTIONS) {
-      if ((opts as Record<string, unknown>)[key] != null) {
-        throw new Errors.AnthropicError(
-          `The \`${key}\` option is not supported by AnthropicGoogleCloud; authentication uses a Google bearer token (\`bearerTokenProvider\`, \`googleAuth\`/\`authClient\`, or Application Default Credentials).`,
-        );
-      }
     }
 
     // An exported-but-empty env var (or an explicit '') is the unset case.
@@ -427,7 +416,7 @@ export class AnthropicGoogleCloud extends Anthropic {
   }
 
   protected override validateHeaders(): void {
-    // Auth is handled fully in authHeaders(); the base x-api-key validation
+    // Auth is handled fully in authHeaders(); the base API key validation
     // must not run since this client never carries an API key.
     return;
   }

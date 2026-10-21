@@ -92,7 +92,7 @@ export interface MiddlewareContext {
  * Middleware always observes the canonical Anthropic-shaped request — e.g.
  * `POST .../v1/messages` with `model` and `stream` in the JSON body and
  * `anthropic-beta` as a header — with the client's logical credentials
- * (`x-api-key` / `Authorization`) applied. On clients for third-party
+ * (`Authorization`, or `x-api-key` on Foundry) applied. On clients for third-party
  * backends (Bedrock, Vertex, Foundry), the backend adaptation — URL and body
  * rewriting, request signing (e.g. AWS SigV4), and response normalization
  * (e.g. AWS EventStream to SSE) — runs *inside* `next`, so middleware behaves

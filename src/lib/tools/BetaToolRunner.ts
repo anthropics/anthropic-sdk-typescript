@@ -21,6 +21,7 @@ import {
   BetaToolResultBlockParam,
   BetaToolUnion,
   BetaToolUseBlock,
+  BetaUserMessageParam,
   MessageCreateParams,
 } from '../../resources/beta';
 import { BetaMessageStream } from '../BetaMessageStream';
@@ -66,7 +67,7 @@ export class BetaToolRunner<Stream extends boolean> {
   /** The stream of the request in progress, when streaming */
   #stream?: BetaMessageStream | undefined;
   /** Cached tool response to avoid redundant executions */
-  #toolResponse?: Promise<BetaMessageParam | null> | undefined;
+  #toolResponse?: Promise<BetaUserMessageParam | null> | undefined;
   /** Promise resolvers for waiting on completion */
   #completion: {
     promise: Promise<BetaMessage>;
@@ -102,7 +103,6 @@ export class BetaToolRunner<Stream extends boolean> {
     options?: BetaToolRunnerRequestOptions,
   ) {
     rejectCompactionParam(params);
-    rejectCompactionControl(params);
     rejectRunToolsEagerlyWithoutStream(params);
     this.#state = {
       params: {
@@ -414,7 +414,7 @@ export class BetaToolRunner<Stream extends boolean> {
     const available = new Set(this.#runnableTools().keys());
 
     for (const message of [...this.#state.params.messages, this.#pendingToolChangesMessage()]) {
-      if (typeof message.content === 'string') {
+      if (!Array.isArray(message.content)) {
         continue;
       }
       for (const block of message.content) {
@@ -543,7 +543,7 @@ export class BetaToolRunner<Stream extends boolean> {
    * the reply that have started and runs the rest, including the ones `deferToolCall()` is holding, so that no
    * call runs twice.
    *
-   * @returns A promise that resolves to a BetaMessageParam containing tool results, or null if no tools need to be executed
+   * @returns A promise that resolves to a BetaUserMessageParam containing tool results, or null if no tools need to be executed
    *
    * @example
    * const toolResponse = await runner.generateToolResponse();
@@ -875,16 +875,6 @@ function rejectCompactionParam(params: BetaToolRunnerParams): void {
   }
 }
 
-function rejectCompactionControl(params: BetaToolRunnerParams): void {
-  // No longer in the params type, so only untyped callers reach this; forwarding it would be an opaque API 400.
-  if ('compactionControl' in params && params.compactionControl != null) {
-    throw new AnthropicError(
-      '`compactionControl` has been removed from the tool runner. Use server-side compaction instead: ' +
-        'call `runner.compactBeforeNextTurn()` when the conversation should be compacted.',
-    );
-  }
-}
-
 function rejectRunToolsEagerlyWithoutStream(params: BetaToolRunnerParams): void {
   if (params.runToolsEagerly && !params.stream) {
     throw new TypeError(
@@ -943,7 +933,7 @@ function toolDefinition(tool: BetaToolUnion | BetaRunnableTool): BetaToolUnion {
 
 function withToolDefinitions(messages: BetaMessageParam[]): BetaMessageParam[] {
   return messages.map((message) => {
-    if (message.role !== 'system' || typeof message.content === 'string') {
+    if (message.role !== 'system' || !Array.isArray(message.content)) {
       return message;
     }
     const content = message.content.map((block) =>
@@ -964,7 +954,7 @@ async function generateToolResponse(
   calls: Map<string, ToolCallState> | undefined,
   client: Anthropic,
   toolOtelContext: Context | undefined,
-): Promise<BetaMessageParam | null> {
+): Promise<BetaUserMessageParam | null> {
   // Only process if the last message is from the assistant and has tool use blocks
   if (
     !lastMessage ||

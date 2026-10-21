@@ -1014,6 +1014,20 @@ describe('ToolRunner', () => {
       expect(runner.params.messages).toHaveLength(2);
       await expect(runner.runUntilDone()).resolves.toMatchObject({ stop_reason: 'refusal' });
     });
+
+    it('runs tools when the history has a system message without content', async () => {
+      const directive: BetaMessageParam = { role: 'system', output_config: { effort: 'low' } };
+      const { runner, handleAssistantMessage } = setupTest({
+        messages: [{ role: 'user', content: 'What is the weather?' }, directive],
+      });
+
+      handleAssistantMessage(getWeatherToolUse('SF'));
+      handleAssistantMessage(getTextContent());
+      await runner.runUntilDone();
+
+      expect(runner.params.messages[1]).toEqual(directive);
+      expect(runner.params.messages[3]).toEqual({ role: 'user', content: [getWeatherToolResult('SF')] });
+    });
   });
 
   describe('tool_removal / tool_addition via param-mutation APIs', () => {
@@ -2525,13 +2539,6 @@ describe('ToolRunner', () => {
         refusal,
       );
       expect(runner.params).not.toHaveProperty('compaction');
-    });
-
-    it('refuses the removed `compactionControl` option', () => {
-      // @ts-expect-error `compactionControl` is no longer in the runner's params type
-      expect(() => setupTest({ compactionControl: { enabled: true } })).toThrow(
-        '`compactionControl` has been removed from the tool runner',
-      );
     });
 
     it('is refused while context_management has a compaction edit', async () => {

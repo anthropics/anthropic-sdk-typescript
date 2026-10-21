@@ -1033,7 +1033,7 @@ describe('AnthropicGoogleCloud', () => {
   });
 
   describe('no env-credential leak', () => {
-    test('does not send x-api-key even when ANTHROPIC_API_KEY is set', async () => {
+    test('does not send the API key even when ANTHROPIC_API_KEY is set', async () => {
       process.env['ANTHROPIC_API_KEY'] = 'sk-ant-should-not-leak';
 
       const client = new AnthropicGoogleCloud({
@@ -1150,14 +1150,13 @@ describe('AnthropicGoogleCloud', () => {
       ['config', { authentication: { type: 'user_oauth' } }],
       ['profile', 'default'],
     ])('rejects the base `%s` option at runtime', (key, value) => {
-      expect(
-        () =>
-          new AnthropicGoogleCloud({
-            baseURL: 'https://gw.example.com',
-            workspaceId: 'wrkspc_test',
-            [key]: value,
-          } as any),
-      ).toThrow(`The \`${key}\` option is not supported`);
+      const options = { baseURL: 'https://gw.example.com', workspaceId: 'wrkspc_test' };
+      for (const build of [
+        () => new AnthropicGoogleCloud({ ...options, [key]: value } as any),
+        () => new AnthropicGoogleCloud(options).withOptions({ [key]: value } as any),
+      ]) {
+        expect(build).toThrow(`The \`${key}\` option is not supported by AnthropicGoogleCloud`);
+      }
     });
   });
 
@@ -1201,17 +1200,6 @@ describe('AnthropicGoogleCloud', () => {
   });
 
   describe('surface', () => {
-    test('drops the deprecated completions resource', () => {
-      const client = new AnthropicGoogleCloud({
-        baseURL: 'https://gw.example.com',
-        workspaceId: 'wrkspc_test',
-      });
-
-      expect(() => client.completions).toThrow(
-        'The deprecated text Completions API is not available on Claude Platform on Google Cloud',
-      );
-    });
-
     test('keeps messages, models, beta, and batches', () => {
       const client = new AnthropicGoogleCloud({
         baseURL: 'https://gw.example.com',

@@ -41,8 +41,6 @@ describe('OpenTelemetry spans', () => {
     await client.messages.create(
       {
         ...PARAMS,
-        temperature: 0.5,
-        top_k: 4,
         service_tier: 'auto',
         thinking: { type: 'disabled' },
         output_config: { effort: 'low' },
@@ -63,8 +61,6 @@ describe('OpenTelemetry spans', () => {
       'gen_ai.operation.name': 'chat',
       'gen_ai.request.model': 'model-a',
       'gen_ai.request.max_tokens': 100,
-      'gen_ai.request.temperature': 0.5,
-      'gen_ai.request.top_k': 4,
       'gen_ai.request.reasoning.level': 'low',
       'anthropic.request.service_tier': 'auto',
       'anthropic.thinking.type': 'disabled',
@@ -215,10 +211,7 @@ describe('OpenTelemetry spans', () => {
     );
     const conversation = { openTelemetry: { conversationId: 'conv-1' } };
 
-    await client.messages.create(
-      { ...PARAMS, temperature: 0.5, thinking: { type: 'disabled' } },
-      conversation,
-    );
+    await client.messages.create({ ...PARAMS, thinking: { type: 'disabled' } }, conversation);
     await client.beta.messages.create({ ...PARAMS, betas: ['beta-one', 'beta-two'] });
     await client.messages.stream(PARAMS, conversation).finalMessage();
     await client.beta.messages
@@ -246,7 +239,6 @@ describe('OpenTelemetry spans', () => {
         attributes: {
           ...request,
           'gen_ai.conversation.id': 'conv-1',
-          'gen_ai.request.temperature': 0.5,
           'anthropic.thinking.type': 'disabled',
           'anthropic.beta': ['beta-default'],
         },

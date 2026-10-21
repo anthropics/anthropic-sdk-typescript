@@ -114,7 +114,7 @@ describe('instantiate client', () => {
       expect(sending?.[1]).toMatchObject({
         url: new URL('https://api.anthropic.com/foo').toString(),
         options: { method: 'get', path: '/foo' },
-        headers: expect.objectContaining({ 'x-api-key': '***' }),
+        headers: expect.objectContaining({ authorization: '***' }),
       });
       expect(sending?.[1].options).not.toHaveProperty('headers');
       expect(sending?.[1]).not.toHaveProperty('retryOfRequestLogID');

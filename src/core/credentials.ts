@@ -1,3 +1,4 @@
+import { AnthropicError } from './error';
 import { getPlatformHeaders } from '../internal/detect-platform';
 import { readEnv } from '../internal/utils';
 
@@ -88,19 +89,29 @@ function validateProfileName(name: string): void {
 }
 
 /**
- * Loads the Anthropic configuration for the given (or active) profile.
+ * Loads the Anthropic configuration from a profile or the environment.
  *
  * Returns `null` when running in a browser or no configuration can be resolved.
- * Otherwise, returns the configuration based on the config file and environment variables.
  *
- * **Profile resolution** (first match wins):
- *   1. Explicit `profile` argument
- *   2. `ANTHROPIC_PROFILE` environment variable
- *   3. Contents of `<config_dir>/active_config` file
- *   4. `"default"`
+ * **Resolution order** (first match wins):
+ *   1. The profile the `profile` argument names. Nothing below is tried, so
+ *      the result is `null` when that profile does not exist.
+ *   2. The profile the `ANTHROPIC_PROFILE` environment variable names. Nothing
+ *      below is tried, and an {@link AnthropicError} is thrown when that
+ *      profile does not exist.
+ *   3. An `oidc_federation` config synthesized entirely from environment
+ *      variables, when `ANTHROPIC_FEDERATION_RULE_ID`,
+ *      `ANTHROPIC_ORGANIZATION_ID` and one of `ANTHROPIC_IDENTITY_TOKEN_FILE`
+ *      and `ANTHROPIC_IDENTITY_TOKEN` are set. No profile is read.
+ *   4. The active profile: the one the `<config_dir>/active_config` file
+ *      names, otherwise `"default"`.
+ *   5. The config of step 3 without an identity token, when the first two of
+ *      its variables are set. Otherwise the result is `null`.
+ *
+ * `ANTHROPIC_CONFIG_DIR` sets `<config_dir>`. It does not select a profile.
  *
  * **Config resolution:**
- *   - If `<config_dir>/configs/<profile>.json` exists, it is loaded and
+ *   - A profile is loaded from `<config_dir>/configs/<profile>.json`, and
  *     missing fields are filled from environment variables. Values present
  *     in the file take precedence — env vars only fill gaps:
  *       - `ANTHROPIC_BASE_URL` → `base_url`
@@ -110,9 +121,6 @@ function validateProfileName(name: string): void {
  *       - `ANTHROPIC_FEDERATION_RULE_ID` → `authentication.federation_rule_id` (oidc_federation)
  *       - `ANTHROPIC_IDENTITY_TOKEN_FILE` → `authentication.identity_token` (oidc_federation)
  *       - `ANTHROPIC_SERVICE_ACCOUNT_ID` → `authentication.service_account_id` (oidc_federation)
- *   - If no config file exists, an `oidc_federation` config is synthesized
- *     entirely from environment variables when both `ANTHROPIC_FEDERATION_RULE_ID`
- *     and `ANTHROPIC_ORGANIZATION_ID` are set.
  */
 export const loadConfig = async (profile?: string): Promise<AnthropicConfig | null> => {
   return (await loadConfigWithSource(profile))?.config ?? null;
@@ -120,8 +128,8 @@ export const loadConfig = async (profile?: string): Promise<AnthropicConfig | nu
 
 /**
  * Source-tagged result of {@link loadConfigWithSource}. `fromFile` is `true`
- * when `<config_dir>/configs/<profile>.json` exists on disk; `false` when the
- * config was synthesized purely from environment variables.
+ * when the config was loaded from `<config_dir>/configs/<profile>.json`; `false`
+ * when it was synthesized purely from environment variables.
  *
  * The credential chain uses this distinction to decide whether to back the
  * federation exchange with a disk cache: file-backed profiles get a cache at
@@ -140,29 +148,14 @@ export const loadConfigWithSource = async (profile?: string): Promise<LoadedConf
     return null;
   }
 
-  const profileName = profile ?? (await getActiveProfileName());
-  if (profileName === null) {
-    return null;
-  }
-  validateProfileName(profileName);
-
-  const { fs, path } = await import('../internal/node');
-  const configPath = path.join(rootConfigPath, 'configs', `${profileName}.json`);
-  let configRaw: string | null;
-  try {
-    configRaw = await fs.promises.readFile(configPath, 'utf-8');
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException)?.code !== 'ENOENT') {
-      throw new Error(`failed to read config file ${configPath}: ${err}`);
-    }
-    configRaw = null;
-  }
-  if (configRaw === null) {
+  const namedInEnv = profile == null && readEnv('ANTHROPIC_PROFILE') != null;
+  let fromEnv: LoadedConfig | null = null;
+  if (profile == null && !namedInEnv) {
     const organizationId = readEnv('ANTHROPIC_ORGANIZATION_ID');
     const identityTokenFile = readEnv('ANTHROPIC_IDENTITY_TOKEN_FILE');
     const federationRuleId = readEnv('ANTHROPIC_FEDERATION_RULE_ID');
     if (federationRuleId && organizationId) {
-      return {
+      fromEnv = {
         fromFile: false,
         config: {
           organization_id: organizationId,
@@ -181,8 +174,35 @@ export const loadConfigWithSource = async (profile?: string): Promise<LoadedConf
           },
         },
       };
+      if (identityTokenFile || readEnv('ANTHROPIC_IDENTITY_TOKEN')) {
+        return fromEnv;
+      }
     }
+  }
+
+  const profileName = profile ?? (await getActiveProfileName());
+  if (profileName === null) {
     return null;
+  }
+  validateProfileName(profileName);
+
+  const { fs, path } = await import('../internal/node');
+  const configPath = path.join(rootConfigPath, 'configs', `${profileName}.json`);
+  let configRaw: string;
+  try {
+    configRaw = await fs.promises.readFile(configPath, 'utf-8');
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException)?.code !== 'ENOENT') {
+      throw new Error(`failed to read config file ${configPath}: ${err}`);
+    }
+    if (namedInEnv) {
+      throw new AnthropicError(
+        `ANTHROPIC_PROFILE names the profile "${profileName}", but ${configPath} does not exist. ` +
+          'Set ANTHROPIC_PROFILE to a profile that exists, or unset it.',
+        { cause: err },
+      );
+    }
+    return fromEnv;
   }
 
   let config: AnthropicConfig;
@@ -245,8 +265,9 @@ export const loadConfigWithSource = async (profile?: string): Promise<LoadedConf
  *   2. `<config_dir>/credentials/<profile>.json`
  */
 export const loadCredentials = async (): Promise<AnthropicCredentials | null> => {
-  const config = await loadConfig();
-  const credentialsPath = await getCredentialsPath(config);
+  const profile = (await getActiveProfileName()) ?? undefined;
+  const config = await loadConfig(profile);
+  const credentialsPath = await getCredentialsPath(config, profile);
   if (!credentialsPath) {
     return null;
   }

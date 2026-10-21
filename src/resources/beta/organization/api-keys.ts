@@ -137,12 +137,6 @@ export interface BetaAPIKey {
    * For API Keys, this is always `"api_key"`.
    */
   type: 'api_key';
-
-  /**
-   * @deprecated Use `scope` instead. `workspace_id` is `null` both for an API key in
-   * the default Workspace and for a principal-bound API key that has no Workspace.
-   */
-  workspace_id: string | null;
 }
 
 export interface BetaAPIKeyCreatedBy {
@@ -196,9 +190,8 @@ export interface BetaAPIKeyWorkspaceScope {
   type: 'workspace';
 
   /**
-   * ID of the Workspace the API key belongs to. Unlike the deprecated top-level
-   * `workspace_id`, this is the Workspace's real ID even for the organization's
-   * default Workspace.
+   * ID of the Workspace the API key belongs to, including when it is the
+   * organization's default Workspace.
    */
   workspace_id: string;
 }

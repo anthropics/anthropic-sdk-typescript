@@ -600,8 +600,7 @@ export namespace BatchCreateParams {
        *
        * Note that if you want to include a
        * [system prompt](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role),
-       * you can use the top-level `system` parameter — there is no `"system"` role for
-       * input messages in the Messages API.
+       * you can use the top-level `system` parameter.
        *
        * There is a limit of 100,000 messages in a single request.
        */
@@ -775,13 +774,6 @@ export namespace BatchCreateParams {
       system?: string | Array<BetaMessagesAPI.BetaTextBlockParam>;
 
       /**
-       * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
-       * setting temperature. A value of 1.0 will be accepted for backwards
-       * compatibility, all other values will be rejected with a 400 error.
-       */
-      temperature?: number;
-
-      /**
        * Configuration for Claude's thinking.
        *
        * With `{"type": "adaptive"}`, Claude decides when and how much to think. With
@@ -881,19 +873,6 @@ export namespace BatchCreateParams {
        * for more details.
        */
       tools?: Array<BetaMessagesAPI.BetaToolUnion>;
-
-      /**
-       * @deprecated Deprecated. Models released after Claude Opus 4.6 do not accept
-       * top_k; any value will be rejected with a 400 error.
-       */
-      top_k?: number;
-
-      /**
-       * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
-       * setting top_p. A value >= 0.99 will be accepted for backwards compatibility, all
-       * other values will be rejected with a 400 error.
-       */
-      top_p?: number;
     }
   }
 }

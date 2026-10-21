@@ -48,7 +48,7 @@ describe('middleware', () => {
     expect(seenUrl).toEqual('https://api.anthropic.com/foo');
     expect(seenMethod).toEqual('POST');
     expect(seenHeaders).toBeInstanceOf(Headers);
-    expect(seenHeaders!.get('x-api-key')).toEqual('my-anthropic-api-key');
+    expect(seenHeaders!.get('authorization')).toEqual('Bearer my-anthropic-api-key');
     expect(seenOptions).toMatchObject({ path: '/foo', method: 'post', body: { hello: 'world' } });
   });
 
