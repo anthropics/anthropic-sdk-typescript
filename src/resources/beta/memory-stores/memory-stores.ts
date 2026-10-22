@@ -40,6 +40,7 @@ import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class MemoryStores extends APIResource {
@@ -47,7 +48,7 @@ export class MemoryStores extends APIResource {
   memoryVersions: MemoryVersionsAPI.MemoryVersions = new MemoryVersionsAPI.MemoryVersions(this._client);
 
   /**
-   * Create a memory store
+   * Create a Memory Store
    *
    * @example
    * ```ts
@@ -70,11 +71,15 @@ export class MemoryStores extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.create', options, {
+        route: '/v1/memory_stores',
+        createdIDAttribute: 'gen_ai.memory.store.id',
+      }),
     });
   }
 
   /**
-   * Retrieve a memory store
+   * Retrieve a Memory Store
    *
    * @example
    * ```ts
@@ -99,11 +104,15 @@ export class MemoryStores extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.retrieve', options, {
+        route: '/v1/memory_stores/{memory_store_id}',
+        attributes: { 'gen_ai.memory.store.id': memoryStoreID },
+      }),
     });
   }
 
   /**
-   * Update a memory store
+   * Update a Memory Store
    *
    * @example
    * ```ts
@@ -127,11 +136,15 @@ export class MemoryStores extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.update', options, {
+        route: '/v1/memory_stores/{memory_store_id}',
+        attributes: { 'gen_ai.memory.store.id': memoryStoreID },
+      }),
     });
   }
 
   /**
-   * List memory stores
+   * List Memory Stores
    *
    * @example
    * ```ts
@@ -156,11 +169,15 @@ export class MemoryStores extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.list', options, {
+        route: '/v1/memory_stores',
+        queryParams: ['created_at[gte]', 'created_at[lte]', 'include_archived', 'limit', 'page'],
+      }),
     });
   }
 
   /**
-   * Delete a memory store
+   * Delete a Memory Store
    *
    * @example
    * ```ts
@@ -183,11 +200,15 @@ export class MemoryStores extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.delete', options, {
+        route: '/v1/memory_stores/{memory_store_id}',
+        attributes: { 'gen_ai.memory.store.id': memoryStoreID },
+      }),
     });
   }
 
   /**
-   * Archive a memory store
+   * Archive a Memory Store
    *
    * @example
    * ```ts
@@ -210,6 +231,10 @@ export class MemoryStores extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.archive', options, {
+        route: '/v1/memory_stores/{memory_store_id}/archive',
+        attributes: { 'gen_ai.memory.store.id': memoryStoreID },
+      }),
     });
   }
 }
@@ -236,16 +261,44 @@ export interface BetaManagedAgentsDeletedMemoryStore {
  */
 export interface BetaManagedAgentsMemoryStore {
   /**
-   * Unique identifier for the memory store (a `memstore_...` tagged ID). Use this
-   * when attaching the store to a session, or in the `{memory_store_id}` path
-   * parameter of subsequent calls.
+   * The unique ID of the memory store (`memstore_...`). Use it to attach the store
+   * to a session.
    */
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the memory store was archived, in RFC 3339, or `null` if it hasn't been.
+   *
+   * Archiving can't be undone. An archived store can't be attached to new sessions.
+   * You can't create or update its memories or update the store. You can still read
+   * and delete its memories, redact their versions, and delete the store.
+   *
+   * See the
+   * [memory guide](https://platform.claude.com/docs/en/managed-agents/memory#archive-a-store)
+   * to learn more about archiving.
+   */
+  archived_at: string | null;
+
+  /**
+   * When the memory store was created, in RFC 3339.
    */
   created_at: string;
+
+  /**
+   * Free-text description of what the store contains, up to 1,024 characters.
+   * Included in the agent's system prompt when the store is attached, so word it to
+   * be useful to the agent. Empty string when unset.
+   */
+  description: string;
+
+  /**
+   * Key-value pairs for your own use, such as the end user that the store belongs
+   * to.
+   *
+   * A store has at most 16 pairs. Keys are 1 to 64 characters long and values at
+   * most 512 characters. You can't filter lists by metadata.
+   */
+  metadata: { [key: string]: string };
 
   /**
    * Human-readable name for the store. 1–255 characters. The store's mount-path slug
@@ -256,55 +309,49 @@ export interface BetaManagedAgentsMemoryStore {
   type: 'memory_store';
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the memory store was last changed, in RFC 3339.
+   *
+   * Changing its `name`, `description`, or `metadata` updates it. Archiving the
+   * store does too. Changes to the store's memories don't.
    */
   updated_at: string;
-
-  /**
-   * A timestamp in RFC 3339 format
-   */
-  archived_at?: string | null;
-
-  /**
-   * Free-text description of what the store contains, up to 1024 characters.
-   * Included in the agent's system prompt when the store is attached, so word it to
-   * be useful to the agent. Empty string when unset.
-   */
-  description?: string;
-
-  /**
-   * Arbitrary key-value tags for your own bookkeeping (such as the end user a store
-   * belongs to). Up to 16 pairs; keys 1–64 characters; values up to 512 characters.
-   * Returned on retrieve/list but not filterable.
-   */
-  metadata?: { [key: string]: string };
 }
 
 export interface MemoryStoreCreateParams {
   /**
-   * Body param: Human-readable name for the store. Required; 1–255 characters; no
-   * control characters. The mount-path slug under `/mnt/memory/` is derived from
-   * this name (lowercased, non-alphanumeric runs collapsed to a hyphen). Names need
-   * not be unique within a workspace.
+   * Body param: The name of the memory store, 1 to 255 characters long, without
+   * control characters. Names don't have to be unique in a workspace.
+   *
+   * In a session, the store's directory under `/mnt/memory/` is based on this name.
+   * The name is lowercased and every run of characters other than ASCII letters and
+   * digits becomes one hyphen. The session's memory store resource gives the exact
+   * path in `mount_path`.
+   *
+   * See the
+   * [memory guide](https://platform.claude.com/docs/en/managed-agents/memory#how-the-agent-accesses-memory)
+   * to learn more about how agents access memory stores.
    */
   name: string;
 
   /**
-   * Body param: Free-text description of what the store contains, up to 1024
+   * Body param: Free-text description of what the store contains, up to 1,024
    * characters. Included in the agent's system prompt when the store is attached, so
    * word it to be useful to the agent.
    */
   description?: string;
 
   /**
-   * Body param: Arbitrary key-value tags for your own bookkeeping (such as the end
-   * user a store belongs to). Up to 16 pairs; keys 1–64 characters; values up to 512
-   * characters. Not visible to the agent.
+   * Body param: Key-value pairs for your own use, such as the end user that the
+   * store belongs to. The agent doesn't see them.
+   *
+   * A store has at most 16 pairs. Keys are 1 to 64 characters long and values at
+   * most 512 characters.
    */
   metadata?: { [key: string]: string };
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `agent-memory-2026-07-22` or `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -321,7 +368,8 @@ export interface MemoryStoreCreateParams {
 
 export interface MemoryStoreRetrieveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `agent-memory-2026-07-22` or
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -338,27 +386,33 @@ export interface MemoryStoreRetrieveParams {
 
 export interface MemoryStoreUpdateParams {
   /**
-   * Body param: New description for the store, up to 1024 characters. Pass an empty
+   * Body param: New description for the store, up to 1,024 characters. Pass an empty
    * string to clear it.
    */
   description?: string | null;
 
   /**
-   * Body param: Metadata patch. Set a key to a string to upsert it, or to null to
-   * delete it. Omit the field to preserve. The stored bag is limited to 16 keys (up
-   * to 64 chars each) with values up to 512 chars.
+   * Body param: Changes to apply to the memory store's metadata. Keys you leave out
+   * keep their values.
+   *
+   * Set a key to a string to add or replace it, or to `null` to remove it. After the
+   * change, the metadata can hold at most 16 key-value pairs. Keys are 1 to 64
+   * characters long and values at most 512 characters.
    */
   metadata?: { [key: string]: string | null } | null;
 
   /**
-   * Body param: New human-readable name for the store. 1–255 characters; no control
-   * characters. Renaming changes the slug used for the store's `mount_path` in
-   * sessions created after the update.
+   * Body param: The new name of the memory store, 1 to 255 characters long, without
+   * control characters.
+   *
+   * Sessions created after the change use the new name for the store's directory
+   * under `/mnt/memory/`.
    */
   name?: string | null;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `agent-memory-2026-07-22` or `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -375,14 +429,14 @@ export interface MemoryStoreUpdateParams {
 
 export interface MemoryStoreListParams extends PageCursorParams {
   /**
-   * Query param: Return only stores whose `created_at` is at or after this time
-   * (inclusive). Sent on the wire as `created_at[gte]`.
+   * Query param: Return only memory stores created at or after this time
+   * (inclusive).
    */
   'created_at[gte]'?: string;
 
   /**
-   * Query param: Return only stores whose `created_at` is at or before this time
-   * (inclusive). Sent on the wire as `created_at[lte]`.
+   * Query param: Return only memory stores created at or before this time
+   * (inclusive).
    */
   'created_at[lte]'?: string;
 
@@ -393,7 +447,8 @@ export interface MemoryStoreListParams extends PageCursorParams {
   include_archived?: boolean;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `agent-memory-2026-07-22` or `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -410,7 +465,8 @@ export interface MemoryStoreListParams extends PageCursorParams {
 
 export interface MemoryStoreDeleteParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `agent-memory-2026-07-22` or
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -427,7 +483,8 @@ export interface MemoryStoreDeleteParams {
 
 export interface MemoryStoreArchiveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `agent-memory-2026-07-22` or
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

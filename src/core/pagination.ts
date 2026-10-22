@@ -4,6 +4,7 @@ import { defaultParseResponse, WithRequestID } from '../internal/parse';
 import { type BaseAnthropic } from '../client';
 import { APIPromise } from './api-promise';
 import { type APIResponseProps } from '../internal/parse';
+import { startApiCallSpan } from '../internal/tracing';
 import { maybeObj } from '../internal/utils/values';
 
 export type PageRequestOptions = Pick<FinalRequestOptions, 'query' | 'headers' | 'body' | 'path' | 'method'>;
@@ -38,7 +39,25 @@ export abstract class AbstractPage<Item> implements AsyncIterable<Item> {
       );
     }
 
-    return await this.#client.requestAPIList(this.constructor as any, nextOptions);
+    // Each page is its own API call, with its own call span. `nextOptions` copies the previous
+    // page's options, including its `__span`, which has already ended.
+    const span = this.options.__span;
+    return await this.#client.requestAPIList(this.constructor as any, {
+      ...nextOptions,
+      __span:
+        span &&
+        startApiCallSpan(
+          this.#client,
+          span.name,
+          { openTelemetry: this.options.openTelemetry },
+          {
+            route: span.route,
+            queryParams: span.queryParams,
+            contentQueryParams: span.contentQueryParams,
+            attributes: span.attributes,
+          },
+        ),
+    });
   }
 
   async *iterPages(): AsyncGenerator<this> {
@@ -297,6 +316,10 @@ export class PageCursor<Item> extends AbstractPage<Item> implements PageCursorRe
     return this.data ?? [];
   }
 
+  override hasNextPage(): boolean {
+    return this.nextPageRequestOptions() != null;
+  }
+
   nextPageRequestOptions(): PageRequestOptions | null {
     const cursor = this.next_page;
     if (!cursor) {
@@ -355,6 +378,75 @@ export class BidirectionalPageCursor<Item>
 
   getPaginatedItems(): Item[] {
     return this.data ?? [];
+  }
+
+  override hasNextPage(): boolean {
+    return this.nextPageRequestOptions() != null;
+  }
+
+  nextPageRequestOptions(): PageRequestOptions | null {
+    const cursor = this.next_page;
+    if (!cursor) {
+      return null;
+    }
+
+    return {
+      ...this.options,
+      query: {
+        ...maybeObj(this.options.query),
+        page: cursor,
+      },
+    };
+  }
+}
+
+export interface ReportPageCursorResponse<Item> {
+  data: Array<Item>;
+
+  next_page: string | null;
+
+  has_more: boolean;
+
+  data_refreshed_at: string | null;
+}
+
+export interface ReportPageCursorParams {
+  page?: string | null;
+}
+
+export class ReportPageCursor<Item> extends AbstractPage<Item> implements ReportPageCursorResponse<Item> {
+  data: Array<Item>;
+
+  next_page: string | null;
+
+  has_more: boolean;
+
+  data_refreshed_at: string | null;
+
+  constructor(
+    client: BaseAnthropic,
+    response: Response,
+    body: ReportPageCursorResponse<Item>,
+    options: FinalRequestOptions,
+  ) {
+    super(client, response, body, options);
+
+    this.data = body.data || [];
+    this.next_page = body.next_page || null;
+    this.has_more = body.has_more || false;
+    this.data_refreshed_at = body.data_refreshed_at || null;
+  }
+
+  getPaginatedItems(): Item[] {
+    return this.data ?? [];
+  }
+
+  override hasNextPage(): boolean {
+    if (this.has_more === false) {
+      return false;
+    }
+
+    return this.nextPageRequestOptions() != null;
   }
 
   nextPageRequestOptions(): PageRequestOptions | null {

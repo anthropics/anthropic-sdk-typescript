@@ -10,7 +10,7 @@ describe('resource messages', () => {
     const responsePromise = client.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -25,7 +25,7 @@ describe('resource messages', () => {
     const response = await client.messages.create({
       max_tokens: 1024,
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       container: {
         id: 'id',
@@ -37,6 +37,7 @@ describe('resource messages', () => {
           },
         ],
       },
+      diagnostics: { previous_message_id: 'previous_message_id' },
       inference_geo: 'inference_geo',
       metadata: { user_id: '13803d75-b4b5-4c3e-b2a2-6f21399b021b' },
       output_config: {
@@ -47,6 +48,7 @@ describe('resource messages', () => {
         },
       },
       service_tier: 'auto',
+      speed: 'standard',
       stop_sequences: ['string'],
       stream: false,
       system: [
@@ -66,7 +68,6 @@ describe('resource messages', () => {
           ],
         },
       ],
-      temperature: 1,
       thinking: { type: 'adaptive', display: 'summarized' },
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
@@ -87,8 +88,6 @@ describe('resource messages', () => {
           type: 'custom',
         },
       ],
-      top_k: 5,
-      top_p: 0.7,
       user_profile_id: 'anthropic-user-profile-id',
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
     });
@@ -97,7 +96,7 @@ describe('resource messages', () => {
   test('countTokens: only required params', async () => {
     const responsePromise = client.messages.countTokens({
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -111,7 +110,7 @@ describe('resource messages', () => {
   test('countTokens: required and optional params', async () => {
     const response = await client.messages.countTokens({
       messages: [{ content: 'Hello, world', role: 'user' }],
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       output_config: {
         effort: 'low',
@@ -120,6 +119,7 @@ describe('resource messages', () => {
           type: 'json_schema',
         },
       },
+      speed: 'standard',
       system: [
         {
           text: "Today's date is 2024-06-01.",
@@ -204,7 +204,7 @@ describe('create: non-streaming timeout', () => {
 
   // max_tokens large enough that the estimated non-streaming duration exceeds the 10 minute default
   const longParams = {
-    model: 'claude-sonnet-4-5',
+    model: 'claude-sonnet-5-5',
     max_tokens: 128_000,
     messages: [{ role: 'user' as const, content: 'hi' }],
   };

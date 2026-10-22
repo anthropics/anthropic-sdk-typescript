@@ -50,8 +50,7 @@ describe('resource work', () => {
     });
   });
 
-  // buildURL drops path-level query params
-  test.skip('list', async () => {
+  test('list', async () => {
     const responsePromise = client.beta.environments.work.list('env_011CZkZ9X2dpNyB7HsEFoRfW');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -62,8 +61,7 @@ describe('resource work', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params
-  test.skip('list: request options and params are passed correctly', async () => {
+  test('list: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.environments.work.list(
@@ -147,8 +145,7 @@ describe('resource work', () => {
     ).rejects.toThrow(Anthropic.NotFoundError);
   });
 
-  // buildURL drops path-level query params
-  test.skip('stats', async () => {
+  test('stats', async () => {
     const responsePromise = client.beta.environments.work.stats('env_011CZkZ9X2dpNyB7HsEFoRfW');
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -159,8 +156,7 @@ describe('resource work', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // buildURL drops path-level query params
-  test.skip('stats: request options and params are passed correctly', async () => {
+  test('stats: request options and params are passed correctly', async () => {
     // ensure the request options are being passed correctly by passing an invalid HTTP method in order to cause an error
     await expect(
       client.beta.environments.work.stats(

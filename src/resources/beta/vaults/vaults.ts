@@ -51,13 +51,14 @@ import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Vaults extends APIResource {
   credentials: CredentialsAPI.Credentials = new CredentialsAPI.Credentials(this._client);
 
   /**
-   * Create Vault
+   * Create a Vault
    *
    * @example
    * ```ts
@@ -79,11 +80,15 @@ export class Vaults extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.vaults.create', options, {
+        route: '/v1/vaults',
+        createdIDAttribute: 'anthropic.vault.id',
+      }),
     });
   }
 
   /**
-   * Get Vault
+   * Retrieve a Vault
    *
    * @example
    * ```ts
@@ -108,11 +113,15 @@ export class Vaults extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.vaults.retrieve', options, {
+        route: '/v1/vaults/{vault_id}',
+        attributes: { 'anthropic.vault.id': vaultID },
+      }),
     });
   }
 
   /**
-   * Update Vault
+   * Update a Vault
    *
    * @example
    * ```ts
@@ -138,6 +147,10 @@ export class Vaults extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.vaults.update', options, {
+        route: '/v1/vaults/{vault_id}',
+        attributes: { 'anthropic.vault.id': vaultID },
+      }),
     });
   }
 
@@ -167,11 +180,15 @@ export class Vaults extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.vaults.list', options, {
+        route: '/v1/vaults',
+        queryParams: ['include_archived', 'limit', 'page'],
+      }),
     });
   }
 
   /**
-   * Delete Vault
+   * Delete a Vault
    *
    * @example
    * ```ts
@@ -196,11 +213,15 @@ export class Vaults extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.vaults.delete', options, {
+        route: '/v1/vaults/{vault_id}',
+        attributes: { 'anthropic.vault.id': vaultID },
+      }),
     });
   }
 
   /**
-   * Archive Vault
+   * Archive a Vault
    *
    * @example
    * ```ts
@@ -225,6 +246,10 @@ export class Vaults extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.vaults.archive', options, {
+        route: '/v1/vaults/{vault_id}/archive',
+        attributes: { 'anthropic.vault.id': vaultID },
+      }),
     });
   }
 }
@@ -236,7 +261,7 @@ export type BetaManagedAgentsVaultsPageCursor = PageCursor<BetaManagedAgentsVaul
  */
 export interface BetaManagedAgentsDeletedVault {
   /**
-   * Unique identifier of the deleted vault.
+   * The unique ID of the deleted vault (`vlt_...`).
    */
   id: string;
 
@@ -248,12 +273,12 @@ export interface BetaManagedAgentsDeletedVault {
  */
 export interface BetaManagedAgentsVault {
   /**
-   * Unique identifier for the vault.
+   * The unique ID of the vault (`vlt_...`).
    */
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the vault was archived. Null if not archived.
    */
   archived_at: string | null;
 
@@ -293,7 +318,8 @@ export interface VaultCreateParams {
   metadata?: { [key: string]: string };
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -310,7 +336,8 @@ export interface VaultCreateParams {
 
 export interface VaultRetrieveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `managed-agents-2026-04-01` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -338,7 +365,8 @@ export interface VaultUpdateParams {
   metadata?: { [key: string]: string | null } | null;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -355,12 +383,14 @@ export interface VaultUpdateParams {
 
 export interface VaultListParams extends PageCursorParams {
   /**
-   * Query param: Whether to include archived vaults in the results.
+   * Query param: Whether to include archived vaults in the results. Defaults to
+   * `false`.
    */
   include_archived?: boolean;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -377,7 +407,8 @@ export interface VaultListParams extends PageCursorParams {
 
 export interface VaultDeleteParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `managed-agents-2026-04-01` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -394,7 +425,8 @@ export interface VaultDeleteParams {
 
 export interface VaultArchiveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `managed-agents-2026-04-01` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

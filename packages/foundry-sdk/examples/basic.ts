@@ -8,7 +8,7 @@ const anthropic = new AnthropicFoundry({});
 
 async function main() {
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-5',
+    model: 'claude-sonnet-5-5',
     messages: [
       {
         role: 'user',

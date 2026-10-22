@@ -1,5 +1,6 @@
 import Anthropic, { APIConnectionError, APIUserAbortError } from '@anthropic-ai/sdk';
 import { AnthropicError } from '@anthropic-ai/sdk/error';
+import { BetaMessageStream } from '@anthropic-ai/sdk/lib/BetaMessageStream';
 import {
   BetaCompactionBlock,
   BetaCompactionContentBlockDelta,
@@ -132,7 +133,12 @@ const EXPECTED_INCOMPLETE_MESSAGE = {
       name: 'make_file',
       input: {
         filename: 'taxes.txt',
-        lines_of_text: ['# COMPREHENSIVE TAX GUIDE FOR INDIVIDUALS WITH MULTIPLE W-2s'],
+        lines_of_text: [
+          '# COMPREHENSIVE TAX GUIDE FOR INDIVIDUALS WITH MULTIPLE W-2s',
+          '',
+          '## INTRODUCTION',
+          '',
+        ],
       },
     },
   ],
@@ -163,6 +169,8 @@ const EXPECTED_INCOMPLETE_EVENT_TYPES = [
   'message_delta',
   'message_stop',
 ];
+
+const UNKNOWN_EVENT = { type: 'future_event', usage: { output_tokens: 1 } };
 
 function assertBasicResponse(events: BetaRawMessageStreamEvent[], message: BetaMessage) {
   expect(events.map((e) => e.type)).toEqual(EXPECTED_BASIC_EVENT_TYPES);
@@ -285,7 +293,7 @@ describe('BetaMessageStream class', () => {
 
     const stream = anthropic.beta.messages.stream({
       max_tokens: 1024,
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-5-5',
       messages: [{ role: 'user', content: 'Create a tax guide' }],
     });
 
@@ -341,6 +349,49 @@ describe('BetaMessageStream class', () => {
 
     assertBasicResponse(events, finalMessage);
     expect(finalText).toBe('Hello there!');
+  });
+
+  it('passes unknown events through with the current snapshot', async () => {
+    const [messageStart, ...rest] = await parseSSEFixture(loadFixture('basic_response.txt'));
+    const early = [UNKNOWN_EVENT, { type: 'content_block_stop', index: 0 }];
+    const lines = [...early, messageStart, UNKNOWN_EVENT, ...rest, UNKNOWN_EVENT].map((event) =>
+      JSON.stringify(event),
+    );
+
+    const stream = BetaMessageStream.fromReadableStream(new Response(lines.join('\n')).body!);
+
+    const events: BetaRawMessageStreamEvent[] = [];
+    const snapshotIDs: string[] = [];
+    stream.on('streamEvent', (event, snapshot) => {
+      events.push(event);
+      snapshotIDs.push(snapshot?.id);
+    });
+    const afterMessageStart: BetaRawMessageStreamEvent[] = [];
+    const loopEnded = new Promise<void>((resolve) =>
+      stream.once('streamEvent', async () => {
+        for await (const event of stream) {
+          afterMessageStart.push(event);
+        }
+        resolve();
+      }),
+    );
+    const iterated: BetaRawMessageStreamEvent[] = [];
+    for await (const event of BetaMessageStream.fromReadableStream(stream.toReadableStream())) {
+      iterated.push(event);
+    }
+
+    expect(await stream.finalMessage()).toMatchObject(EXPECTED_BASIC_MESSAGE);
+    expect(iterated.slice(0, early.length)).toEqual(early);
+    expect(iterated.slice(early.length).map((e) => e.type)).toEqual(events.map((e) => e.type));
+    await loopEnded;
+    expect(afterMessageStart).toEqual(events.slice(1));
+    expect(snapshotIDs).toEqual(events.map(() => EXPECTED_BASIC_MESSAGE.id));
+    expect(events.map((e) => e.type)).toEqual([
+      'message_start',
+      UNKNOWN_EVENT.type,
+      ...EXPECTED_BASIC_EVENT_TYPES.slice(1),
+      UNKNOWN_EVENT.type,
+    ]);
   });
 
   it('handles tool use response fixture', async () => {
@@ -454,7 +505,7 @@ describe('BetaMessageStream class', () => {
     const stream = anthropic.beta.messages.stream(
       {
         max_tokens: 1024,
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-5-5',
         messages: [{ role: 'user', content: 'Say hello there!' }],
       },
       { maxRetries: 0 },
@@ -485,7 +536,7 @@ describe('BetaMessageStream class', () => {
     const stream = anthropic.beta.messages.stream(
       {
         max_tokens: 1024,
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-5-5',
         messages: [{ role: 'user', content: 'Say hello there!' }],
       },
       { maxRetries: 0 },
@@ -596,7 +647,7 @@ describe('BetaMessageStream class', () => {
 
     const stream = anthropic.beta.messages.stream({
       max_tokens: 1024,
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-5-5',
       messages: [{ role: 'user', content: 'Say hello again!' }],
     });
 

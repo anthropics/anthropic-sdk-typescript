@@ -5,6 +5,7 @@ import { APIPromise } from '../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagination';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
+import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
 
 export class DeploymentRuns extends APIResource {
@@ -34,6 +35,10 @@ export class DeploymentRuns extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.deployment_runs.retrieve', options, {
+        route: '/v1/deployment_runs/{deployment_run_id}',
+        attributes: { 'anthropic.deployment_run.id': deploymentRunID },
+      }),
     });
   }
 
@@ -66,6 +71,20 @@ export class DeploymentRuns extends APIResource {
           },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.deployment_runs.list', options, {
+          route: '/v1/deployment_runs',
+          queryParams: [
+            'created_at[gt]',
+            'created_at[gte]',
+            'created_at[lt]',
+            'created_at[lte]',
+            'deployment_id',
+            'has_error',
+            'limit',
+            'page',
+            'trigger_type',
+          ],
+        }),
       },
     );
   }
@@ -96,12 +115,13 @@ export interface BetaManagedAgentsDeploymentRun {
   id: string;
 
   /**
-   * A resolved agent reference with a concrete version.
+   * Snapshot of the agent at fire time. Always fully resolved — deployments pin
+   * agent + version.
    */
   agent: AgentsAPI.BetaManagedAgentsAgentReference;
 
   /**
-   * A timestamp in RFC 3339 format
+   * Time this run record was persisted.
    */
   created_at: string;
 
@@ -111,8 +131,8 @@ export interface BetaManagedAgentsDeploymentRun {
   deployment_id: string;
 
   /**
-   * Why the run failed to create a session. The type identifies the failure; message
-   * is human-readable detail.
+   * Populated on creation failure. Null on success. Exactly one of `session_id` or
+   * `error` is non-null.
    */
   error:
     | BetaManagedAgentsEnvironmentArchivedRunError
@@ -140,7 +160,7 @@ export interface BetaManagedAgentsDeploymentRun {
   session_id: string | null;
 
   /**
-   * Describes what triggered a deployment run, with trigger-specific metadata.
+   * What triggered this run and trigger-specific metadata.
    */
   trigger_context: BetaManagedAgentsTriggerContext;
 
@@ -233,7 +253,9 @@ export interface BetaManagedAgentsOrganizationDisabledRunError {
  */
 export interface BetaManagedAgentsScheduleTriggerContext {
   /**
-   * A timestamp in RFC 3339 format
+   * The UTC instant at which the cron expression matched in the configured timezone,
+   * before jitter is applied. At most one run is recorded per (`deployment_id`,
+   * `scheduled_at`) pair.
    */
   scheduled_at: string;
 
@@ -369,7 +391,8 @@ export interface BetaManagedAgentsWorkspaceArchivedRunError {
 
 export interface DeploymentRunRetrieveParams {
   /**
-   * Optional header to specify the beta version(s) you want to use.
+   * This endpoint is in beta: requests must send `managed-agents-2026-04-01` in this
+   * header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -424,7 +447,8 @@ export interface DeploymentRunListParams extends PageCursorParams {
   trigger_type?: BetaManagedAgentsTriggerType;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

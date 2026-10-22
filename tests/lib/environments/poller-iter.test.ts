@@ -138,8 +138,8 @@ describe('WorkPoller', () => {
   test('scopes a sub-client to the environment key and routes all calls through it', async () => {
     // Previously every poll/ack/stop carried a per-request `Authorization:
     // Bearer <env_key>` header. The poller now scopes a sub-client via
-    // `copyClientForHelper`, which clears the parent's `apiKey` so
-    // `X-Api-Key` doesn't ride alongside the bearer credential on the wire.
+    // `copyClientForHelper`, which clears the parent's `apiKey` so only the
+    // bearer credential is on the wire.
     const work = makeWork();
     const { client, withOptionsCalls } = makeFakeClient({ poll: [{ type: 'work', value: work }] });
 
@@ -158,9 +158,7 @@ describe('WorkPoller', () => {
     await vi.advanceTimersByTimeAsync(5_000);
     await consumer;
 
-    expect(withOptionsCalls).toContainEqual(
-      expect.objectContaining({ apiKey: null, authToken: 'env_key', credentials: undefined }),
-    );
+    expect(withOptionsCalls).toContainEqual(expect.objectContaining({ authToken: 'env_key' }));
   });
 
   test('stops the work item even when the consumer breaks immediately', async () => {

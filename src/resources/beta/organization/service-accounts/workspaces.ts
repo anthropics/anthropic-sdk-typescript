@@ -7,6 +7,7 @@ import { APIPromise } from '../../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class Workspaces extends APIResource {
@@ -59,6 +60,16 @@ export class Workspaces extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.service_accounts.workspaces.list',
+          options,
+          {
+            route: '/v1/organizations/service_accounts/{service_account_id}/workspaces',
+            queryParams: ['limit', 'page'],
+            attributes: { 'anthropic.organization.service_account.id': serviceAccountID },
+          },
+        ),
       },
     );
   }
@@ -104,6 +115,17 @@ export class Workspaces extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.service_accounts.workspaces.add',
+          options,
+          {
+            route: '/v1/organizations/service_accounts/{service_account_id}/workspaces',
+            attributes: { 'anthropic.organization.service_account.id': serviceAccountID },
+            createdIDAttribute: 'anthropic.organization.service_account.workspace.id',
+            createdIDField: 'workspace_id',
+          },
+        ),
       },
     );
   }
@@ -147,6 +169,18 @@ export class Workspaces extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __span: startApiCallSpan(
+          this._client,
+          'anthropic.organization.service_accounts.workspaces.remove',
+          options,
+          {
+            route: '/v1/organizations/service_accounts/{service_account_id}/workspaces/{workspace_id}',
+            attributes: {
+              'anthropic.organization.service_account.id': service_account_id,
+              'anthropic.organization.service_account.workspace.id': workspaceID,
+            },
+          },
+        ),
       },
     );
   }

@@ -120,7 +120,7 @@ async function main() {
     //    locally, posts the result back, and yields one `DispatchedToolCall` per
     //    completed call. `tools` is the standard set bound to `ctx` plus our
     //    custom tool. The runner stops on its own once the session goes idle
-    //    (`maxIdleMs` after an `end_turn`); the timeout signal is just a hard
+    //    (`maxIdleMs` after its turn ends); the timeout signal is just a hard
     //    cap for the demo. `toolRunner` does NOT touch any work-item lease.
     console.log('\n--- tool calls ---');
     for await (const call of client.beta.sessions.events.toolRunner(session.id, {
@@ -158,15 +158,9 @@ async function observeAsSelfHostedWorker(): Promise<void> {
   const environmentKey = requireEnv('ANTHROPIC_ENVIRONMENT_KEY');
 
   // Every per-session call (the `toolRunner` event stream, the lease heartbeat,
-  // the force-stop) authenticates with the environment key. `apiKey: null`
-  // clears the parent client's `X-Api-Key` — without it, both `X-Api-Key`
-  // AND `Authorization: Bearer …` would land on the wire and the server
-  // rejects the dual auth on the events stream with 401.
-  const sessionClient = client.withOptions({
-    apiKey: null,
-    authToken: environmentKey,
-    credentials: undefined,
-  });
+  // the force-stop) authenticates with the environment key, which replaces
+  // the parent client's credential on this copy.
+  const sessionClient = client.withOptions({ authToken: environmentKey });
 
   // The work poller claims items and yields them; it ack's each one and posts
   // `work.stop` after the loop body returns.

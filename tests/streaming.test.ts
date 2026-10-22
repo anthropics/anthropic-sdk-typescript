@@ -248,6 +248,34 @@ describe('streaming decoding', () => {
   });
 });
 
+test('skips events without data', async () => {
+  async function* body(): AsyncGenerator<Buffer> {
+    yield Buffer.from('event: foo\n');
+    yield Buffer.from('data: {"foo":true}\n');
+    yield Buffer.from('\n');
+    yield Buffer.from('event: foo\n');
+    yield Buffer.from('\n');
+    yield Buffer.from('event: foo\n');
+    yield Buffer.from('data:\n');
+    yield Buffer.from('\n');
+    yield Buffer.from('event: foo\n');
+    yield Buffer.from('data: {"bar":false}\n');
+    yield Buffer.from('\n');
+  }
+
+  const stream = Stream.fromSSEResponse(
+    new Response(await ReadableStreamFrom(body())),
+    new AbortController(),
+  );
+
+  const events: unknown[] = [];
+  for await (const event of stream) {
+    events.push(event);
+  }
+
+  expect(events).toEqual([{ foo: true }, { bar: false }]);
+});
+
 test('error handling', async () => {
   async function* body(): AsyncGenerator<Buffer> {
     yield Buffer.from('event: error\n');
@@ -311,4 +339,30 @@ test('error event exposes error type', async () => {
       expect(err.type).toBe('overloaded_error');
     }
   }
+});
+
+test('breaking out of both tee branches leaves the request open and the branches readable', async () => {
+  async function* body(): AsyncGenerator<Buffer> {
+    yield Buffer.from('event: completion\ndata: {"n":1}\n\n');
+    yield Buffer.from('event: completion\ndata: {"n":2}\n\n');
+  }
+
+  const controller = new AbortController();
+  const [left, right] = Stream.fromSSEResponse<{ n: number }>(
+    new Response(await ReadableStreamFrom(body())),
+    controller,
+  ).tee();
+  for await (const _item of left) {
+    break;
+  }
+  for await (const _item of right) {
+    break;
+  }
+  expect(controller.signal.aborted).toBe(false);
+
+  const rest: Array<{ n: number }> = [];
+  for await (const item of left) {
+    rest.push(item);
+  }
+  expect(rest).toEqual([{ n: 2 }]);
 });

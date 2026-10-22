@@ -86,9 +86,9 @@ async function main() {
         break;
 
       case 'session.status_idle':
-        if (ev.stop_reason.type === 'end_turn') {
-          stream.controller.abort();
-        }
+        // The session is no longer doing work (whatever the stop reason) and the
+        // stream stays open, so stop reading.
+        stream.controller.abort();
         break;
 
       case 'session.error':

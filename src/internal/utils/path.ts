@@ -45,6 +45,13 @@ export const createPathTagFunction = (pathEncoder = encodeURIPath) =>
             .slice(8, -1)} is not a valid path parameter`,
         });
       }
+      if (!postPath && encoded === '') {
+        invalidSegments.push({
+          start: previousValue.length + currentValue.length,
+          length: 0,
+          error: 'Value "" can\'t be safely passed as a path parameter',
+        });
+      }
       return previousValue + currentValue + (index === params.length ? '' : encoded);
     }, '');
 
@@ -64,13 +71,13 @@ export const createPathTagFunction = (pathEncoder = encodeURIPath) =>
     invalidSegments.sort((a, b) => a.start - b.start);
 
     if (invalidSegments.length > 0) {
-      let lastEnd = 0;
-      const underline = invalidSegments.reduce((acc, segment) => {
-        const spaces = ' '.repeat(segment.start - lastEnd);
-        const arrows = '^'.repeat(segment.length);
-        lastEnd = segment.start + segment.length;
-        return acc + spaces + arrows;
-      }, '');
+      const marks: string[] = [];
+      for (const segment of invalidSegments) {
+        for (let i = segment.start; i < segment.start + Math.max(1, segment.length); i++) {
+          marks[i] = '^';
+        }
+      }
+      const underline = Array.from(marks, (mark) => mark ?? ' ').join('');
 
       throw new AnthropicError(
         `Path parameters result in path with invalid segments:\n${invalidSegments
@@ -83,6 +90,6 @@ export const createPathTagFunction = (pathEncoder = encodeURIPath) =>
   };
 
 /**
- * URI-encodes path params and ensures no unsafe /./ or /../ path segments are introduced.
+ * URI-encodes path params and ensures that none before any ? or # is empty and none introduces an unsafe /./ or /../ path segment.
  */
 export const path = /* @__PURE__ */ createPathTagFunction(encodeURIPath);

@@ -2,6 +2,7 @@ import { type RequestOptions } from './request-options';
 import type { FilePropertyBag, Fetch } from './builtin-types';
 import type { BaseAnthropic } from '../client';
 import { ReadableStreamFrom } from './shims';
+import { endApiCallSpan, guardTracing } from './tracing';
 
 export type BlobPart = string | ArrayBuffer | ArrayBufferView | Blob | DataView;
 type FsReadStream = AsyncIterable<Uint8Array> & { path: string | { toString(): string } };
@@ -46,7 +47,7 @@ export function makeFile(
   options?: FilePropertyBag,
 ): File {
   checkFileSupport();
-  return new File(fileBits as any, fileName ?? 'unknown_file', options);
+  return new File(fileBits as any, fileName ?? '', options);
 }
 
 export function getName(value: any, stripPath: boolean): string | undefined {
@@ -85,7 +86,18 @@ export const multipartFormRequestOptions = async (
   fetch: BaseAnthropic | Fetch,
   stripFilenames: boolean = true,
 ): Promise<RequestOptions> => {
-  return { ...opts, body: await createForm(opts.body, fetch, stripFilenames) };
+  try {
+    return { ...opts, body: await createForm(opts.body, fetch, stripFilenames) };
+  } catch (error) {
+    // The client, which ends the call span of a failed call, never gets these options.
+    const span = opts.__span?.span;
+    if (span) {
+      guardTracing(typeof fetch === 'function' ? undefined : fetch, () =>
+        endApiCallSpan(span, { status: 'error', options: opts, error }),
+      );
+    }
+    throw error;
+  }
 };
 
 const supportsFormDataMap = /* @__PURE__ */ new WeakMap<Fetch, Promise<boolean>>();
@@ -184,7 +196,10 @@ const addFormValue = async (
       makeFile([await new Response(ReadableStreamFrom(value)).blob()], getName(value, stripFilenames)),
     );
   } else if (value instanceof Blob) {
-    form.append(key, makeFile([value], getName(value, stripFilenames) || undefined, { type: value.type }));
+    // A File's name is one the caller chose, so it is sent as is; any other Blob's name is a path.
+    const isFile = typeof File !== 'undefined' && value instanceof File;
+    const name = isFile ? value.name : getName(value, stripFilenames);
+    form.append(key, makeFile([value], name, { type: value.type }));
   } else if (Array.isArray(value)) {
     await Promise.all(value.map((entry) => addFormValue(form, key + '[]', entry, stripFilenames)));
   } else if (typeof (value as any).then === 'function') {

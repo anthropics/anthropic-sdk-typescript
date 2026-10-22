@@ -24,6 +24,7 @@ import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Environments extends APIResource {
@@ -52,6 +53,10 @@ export class Environments extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.environments.create', options, {
+        route: '/v1/environments',
+        createdIDAttribute: 'anthropic.environment.id',
+      }),
     });
   }
 
@@ -81,6 +86,10 @@ export class Environments extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.environments.retrieve', options, {
+        route: '/v1/environments/{environment_id}',
+        attributes: { 'anthropic.environment.id': environmentID },
+      }),
     });
   }
 
@@ -111,6 +120,10 @@ export class Environments extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.environments.update', options, {
+        route: '/v1/environments/{environment_id}',
+        attributes: { 'anthropic.environment.id': environmentID },
+      }),
     });
   }
 
@@ -140,6 +153,10 @@ export class Environments extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.environments.list', options, {
+        route: '/v1/environments',
+        queryParams: ['include_archived', 'limit', 'page'],
+      }),
     });
   }
 
@@ -169,6 +186,10 @@ export class Environments extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.environments.delete', options, {
+        route: '/v1/environments/{environment_id}',
+        attributes: { 'anthropic.environment.id': environmentID },
+      }),
     });
   }
 
@@ -199,6 +220,10 @@ export class Environments extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.environments.archive', options, {
+        route: '/v1/environments/{environment_id}/archive',
+        attributes: { 'anthropic.environment.id': environmentID },
+      }),
     });
   }
 }
@@ -242,14 +267,9 @@ export interface BetaCloudConfigParams {
   networking?: BetaUnrestrictedNetwork | BetaLimitedNetworkParams | null;
 
   /**
-   * Specify packages (and optionally their versions) available in this environment.
-   *
-   * When versioning, use the version semantics relevant for the package manager,
-   * e.g. for `pip` use `package==1.0.0`. You are responsible for validating the
-   * package and version exist. Unversioned installs the latest.
-   *
-   * Under `limited` networking, requires `networking.allow_package_managers` to be
-   * `true`.
+   * Package manager configuration. Under `limited` networking, requires
+   * `networking.allow_package_managers` to be `true`. Omit on update to preserve the
+   * existing value.
    */
   packages?: BetaPackagesParams | null;
 }

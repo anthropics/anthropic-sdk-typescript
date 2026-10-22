@@ -1,13 +1,13 @@
 {
   "name": "@anthropic-ai/foundry-sdk",
-  "version": "0.4.8",
+  "version": "1.0.0",
   "description": "The official TypeScript library for the Anthropic Foundry API",
   "author": "Anthropic <support@anthropic.com>",
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
   "type": "module",
   "repository": "github:anthropics/anthropic-sdk-typescript",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "private": false,
   "publishConfig": {
     "access": "public"
@@ -23,7 +23,8 @@
     "fix": "eslint --fix --ext ts,js ."
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "workspace:*"
+    "@anthropic-ai/sdk": "workspace:*",
+    "@opentelemetry/api": "^1.4.1"
   },
   "devDependencies": {
     "@types/node": "^20.17.6",

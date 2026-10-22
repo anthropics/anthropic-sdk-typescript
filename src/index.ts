@@ -2,20 +2,12 @@ export { Anthropic as default } from './client';
 
 export { type Uploadable, toFile } from './core/uploads';
 export { APIPromise } from './core/api-promise';
-export { type Middleware, type MiddlewareContext, type MiddlewareNext } from './core/middleware';
+export { BaseAnthropic, Anthropic, type ClientOptions } from './client';
 export {
-  betaRefusalFallbackMiddleware,
-  BetaFallbackState,
-  type BetaRefusalFallbackError,
-  type BetaRefusalFallbackOptions,
-} from './lib/middleware';
-export {
-  BaseAnthropic,
-  Anthropic,
-  type APIRequest,
-  type ClientOptions,
-  HUMAN_PROMPT,
-  AI_PROMPT,
+  type OpenTelemetryOptions,
+  type OpenTelemetryRequestOptions,
+  type OpenTelemetryTracesOptions,
+  type ResolvedOpenTelemetryOptions,
 } from './client';
 export { PagePromise } from './core/pagination';
 export {
@@ -34,6 +26,15 @@ export {
   PermissionDeniedError,
   UnprocessableEntityError,
 } from './core/error';
+
+export { type APIRequest } from './client';
+export { type Middleware, type MiddlewareContext, type MiddlewareNext } from './core/middleware';
+export {
+  betaRefusalFallbackMiddleware,
+  BetaFallbackState,
+  type BetaRefusalFallbackError,
+  type BetaRefusalFallbackOptions,
+} from './lib/middleware';
 
 export type {
   AutoParseableOutputFormat,

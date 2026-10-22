@@ -2,6 +2,7 @@ import { APIResource } from '../../../core/resource';
 import { APIPromise } from '../../../core/api-promise';
 import { Page, type PageParams, PagePromise } from '../../../core/pagination';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class APIKeys extends APIResource {
@@ -17,7 +18,13 @@ export class APIKeys extends APIResource {
    * ```
    */
   retrieve(apiKeyID: string, options?: RequestOptions): APIPromise<BetaAPIKey> {
-    return this._client.get(path`/v1/organizations/api_keys/${apiKeyID}?beta=true`, options);
+    return this._client.get(path`/v1/organizations/api_keys/${apiKeyID}?beta=true`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.api_keys.retrieve', options, {
+        route: '/v1/organizations/api_keys/{api_key_id}',
+        attributes: { 'anthropic.organization.api_key.id': apiKeyID },
+      }),
+    });
   }
 
   /**
@@ -32,7 +39,14 @@ export class APIKeys extends APIResource {
    * ```
    */
   update(apiKeyID: string, body: APIKeyUpdateParams, options?: RequestOptions): APIPromise<BetaAPIKey> {
-    return this._client.post(path`/v1/organizations/api_keys/${apiKeyID}?beta=true`, { body, ...options });
+    return this._client.post(path`/v1/organizations/api_keys/${apiKeyID}?beta=true`, {
+      body,
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.api_keys.update', options, {
+        route: '/v1/organizations/api_keys/{api_key_id}',
+        attributes: { 'anthropic.organization.api_key.id': apiKeyID },
+      }),
+    });
   }
 
   /**
@@ -53,6 +67,10 @@ export class APIKeys extends APIResource {
     return this._client.getAPIList('/v1/organizations/api_keys?beta=true', Page<BetaAPIKey>, {
       query,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.api_keys.list', options, {
+        route: '/v1/organizations/api_keys',
+        queryParams: ['after_id', 'before_id', 'created_by_user_id', 'limit', 'status', 'workspace_id'],
+      }),
     });
   }
 }
@@ -119,12 +137,6 @@ export interface BetaAPIKey {
    * For API Keys, this is always `"api_key"`.
    */
   type: 'api_key';
-
-  /**
-   * @deprecated Use `scope` instead. `workspace_id` is `null` both for an API key in
-   * the default Workspace and for a principal-bound API key that has no Workspace.
-   */
-  workspace_id: string | null;
 }
 
 export interface BetaAPIKeyCreatedBy {
@@ -178,9 +190,8 @@ export interface BetaAPIKeyWorkspaceScope {
   type: 'workspace';
 
   /**
-   * ID of the Workspace the API key belongs to. Unlike the deprecated top-level
-   * `workspace_id`, this is the Workspace's real ID even for the organization's
-   * default Workspace.
+   * ID of the Workspace the API key belongs to, including when it is the
+   * organization's default Workspace.
    */
   workspace_id: string;
 }

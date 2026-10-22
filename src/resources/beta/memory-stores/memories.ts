@@ -4,11 +4,12 @@ import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Memories extends APIResource {
   /**
-   * Create a memory
+   * Create a Memory
    *
    * @example
    * ```ts
@@ -36,11 +37,17 @@ export class Memories extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memories.create', options, {
+        route: '/v1/memory_stores/{memory_store_id}/memories',
+        queryParams: ['view'],
+        attributes: { 'gen_ai.memory.store.id': memoryStoreID },
+        createdIDAttribute: 'gen_ai.memory.record.id',
+      }),
     });
   }
 
   /**
-   * Retrieve a memory
+   * Retrieve a Memory
    *
    * @example
    * ```ts
@@ -67,11 +74,16 @@ export class Memories extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memories.retrieve', options, {
+        route: '/v1/memory_stores/{memory_store_id}/memories/{memory_id}',
+        queryParams: ['view'],
+        attributes: { 'gen_ai.memory.store.id': memory_store_id, 'gen_ai.memory.record.id': memoryID },
+      }),
     });
   }
 
   /**
-   * Update a memory
+   * Update a Memory
    *
    * @example
    * ```ts
@@ -99,11 +111,16 @@ export class Memories extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memories.update', options, {
+        route: '/v1/memory_stores/{memory_store_id}/memories/{memory_id}',
+        queryParams: ['view'],
+        attributes: { 'gen_ai.memory.store.id': memory_store_id, 'gen_ai.memory.record.id': memoryID },
+      }),
     });
   }
 
   /**
-   * List memories
+   * List Memories
    *
    * @example
    * ```ts
@@ -134,12 +151,18 @@ export class Memories extends APIResource {
           },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memories.list', options, {
+          route: '/v1/memory_stores/{memory_store_id}/memories',
+          queryParams: ['depth', 'limit', 'page', 'path_prefix', 'view'],
+          contentQueryParams: ['page'],
+          attributes: { 'gen_ai.memory.store.id': memoryStoreID },
+        }),
       },
     );
   }
 
   /**
-   * Delete a memory
+   * Delete a Memory
    *
    * @example
    * ```ts
@@ -166,6 +189,11 @@ export class Memories extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memories.delete', options, {
+        route: '/v1/memory_stores/{memory_store_id}/memories/{memory_id}',
+        queryParams: ['expected_content_sha256'],
+        attributes: { 'gen_ai.memory.store.id': memory_store_id, 'gen_ai.memory.record.id': memoryID },
+      }),
     });
   }
 }
@@ -179,12 +207,12 @@ export interface BetaManagedAgentsConflictError {
 }
 
 /**
- * Optimistic-concurrency precondition: the update applies only if the memory's
- * stored `content_sha256` equals the supplied value. On mismatch, the request
- * returns `memory_precondition_failed_error` (HTTP 409); re-read the memory and
- * retry against the fresh state. If the precondition fails but the stored state
- * already exactly matches the requested `content` and `path`, the server returns
- * 200 instead of 409.
+ * A precondition that applies an update only if the memory's current content has
+ * the hash in `content_sha256`.
+ *
+ * If the hashes differ, the request fails with HTTP status 409. Retrieve the
+ * memory and retry. If the memory already has exactly the requested `content` and
+ * `path`, the request succeeds even though the hashes differ.
  */
 export interface BetaManagedAgentsContentSha256Precondition {
   type: 'content_sha256';
@@ -199,12 +227,19 @@ export interface BetaManagedAgentsContentSha256Precondition {
 }
 
 /**
- * Tombstone returned by
- * [Delete a memory](/en/api/beta/memory_stores/memories/delete). Deleting a memory
- * does not erase its version history: its versions remain listable via
- * [List memory versions](/en/api/beta/memory_stores/memory_versions/list) while
- * they are retained (each version is kept for at least the version retention
- * period after it was written, unless the store itself is deleted).
+ * The confirmation that
+ * [Delete a Memory](https://platform.claude.com/docs/en/api/beta/memory_stores/memories/delete)
+ * returns.
+ *
+ * Deleting a memory doesn't delete its versions.
+ * [List Memory Versions](https://platform.claude.com/docs/en/api/beta/memory_stores/memory_versions/list)
+ * returns them while they are retained: each version is kept for at least the
+ * version retention period after it was written, unless the store itself is
+ * deleted.
+ *
+ * See the
+ * [memory guide](https://platform.claude.com/docs/en/managed-agents/memory#audit-memory-changes)
+ * to learn more about how long versions are kept.
  */
 export interface BetaManagedAgentsDeletedMemory {
   /**
@@ -230,17 +265,23 @@ export type BetaManagedAgentsError =
   | BetaManagedAgentsConflictError;
 
 /**
- * A `memory` object: a single text document at a hierarchical path inside a memory
- * store. The `content` field is populated when `view=full` and `null` when
- * `view=basic`; the `content_size_bytes` and `content_sha256` fields are always
- * populated so sync clients can diff without fetching content. Memories are
- * addressed by their `mem_...` ID; the path is the create key and can be changed
- * via update.
+ * A text document at a path inside a memory store.
+ *
+ * `content` is `null` when the response uses `view=basic`. `content_size_bytes`
+ * and `content_sha256` are always set, so you can detect changes without fetching
+ * the content. To retrieve, update, or delete a memory, pass its ID, which stays
+ * the same when its path changes.
+ *
+ * See the
+ * [memory guide](https://platform.claude.com/docs/en/managed-agents/memory#view-and-edit-memories)
+ * to learn more about working with memories.
  */
 export interface BetaManagedAgentsMemory {
   /**
-   * Unique identifier for this memory (a `mem_...` value). Stable across renames;
-   * use this ID, not the path, to read, update, or delete the memory.
+   * The unique ID of the memory (`mem_...`). It stays the same when the memory's
+   * path changes.
+   *
+   * To retrieve, update, or delete the memory, pass this ID.
    */
   id: string;
 
@@ -253,13 +294,13 @@ export interface BetaManagedAgentsMemory {
   content_sha256: string;
 
   /**
-   * Size of `content` in bytes (the UTF-8 plaintext length). Always populated,
-   * regardless of `view`.
+   * The size of the memory's `content` in UTF-8 bytes. It is set regardless of
+   * `view`.
    */
   content_size_bytes: number;
 
   /**
-   * A timestamp in RFC 3339 format
+   * When this memory was created, in RFC 3339 format.
    */
   created_at: string;
 
@@ -269,11 +310,15 @@ export interface BetaManagedAgentsMemory {
   memory_store_id: string;
 
   /**
-   * ID of the `memory_version` representing this memory's current content (a
-   * `memver_...` value). This is the authoritative head pointer; `memory_version`
-   * objects do not carry an `is_latest` flag, so compare against this field instead.
-   * Enumerate the history via
-   * [List memory versions](/en/api/beta/memory_stores/memory_versions/list).
+   * The ID of the memory version that holds the memory's current content
+   * (`memver_...`).
+   *
+   * Memory versions don't have a flag that marks the latest one. Compare their IDs
+   * with this field instead.
+   *
+   * See the
+   * [memory guide](https://platform.claude.com/docs/en/managed-agents/memory#audit-memory-changes)
+   * to learn more about memory versions.
    */
   memory_version_id: string;
 
@@ -287,47 +332,91 @@ export interface BetaManagedAgentsMemory {
   type: 'memory';
 
   /**
-   * A timestamp in RFC 3339 format
+   * When the memory was last changed, in RFC 3339.
+   *
+   * To find out who made the change, look at `created_by` on the memory version that
+   * `memory_version_id` references.
    */
   updated_at: string;
 
   /**
-   * The memory's UTF-8 text content. Populated when `view=full`; `null` when
-   * `view=basic`. Maximum 100 kB (102,400 bytes).
+   * The memory's UTF-8 text content, or `null` when the response uses `view=basic`.
+   *
+   * The maximum size is 100 kB (102,400 bytes).
    */
   content?: string | null;
 }
 
 /**
- * One item in a [List memories](/en/api/beta/memory_stores/memories/list)
- * response: either a `memory` object or, when `depth` is set, a `memory_prefix`
- * rollup marker.
+ * One item in a
+ * [List Memories](https://platform.claude.com/docs/en/api/beta/memory_stores/memories/list)
+ * response: a `memory`, or a `memory_prefix` marker when `depth` is `1`.
  */
 export type BetaManagedAgentsMemoryListItem = BetaManagedAgentsMemory | BetaManagedAgentsMemoryPrefix;
 
+/**
+ * The error returned with HTTP status 409 when you create or rename a memory and
+ * the path you give is already used by another memory or overlaps another memory's
+ * path.
+ *
+ * Two paths overlap when one is an ancestor of the other, such as `/notes` and
+ * `/notes/todo.md`. To free the path, rename or delete the memory that
+ * `conflicting_memory_id` references, then retry. To change that memory instead of
+ * creating a new one, update it.
+ */
 export interface BetaManagedAgentsMemoryPathConflictError {
   type: 'memory_path_conflict_error';
 
+  /**
+   * The ID of the memory that blocked the write (`mem_...`), or an empty string if
+   * that memory can't be identified.
+   *
+   * Retry the request when it is empty.
+   */
   conflicting_memory_id?: string;
 
+  /**
+   * The path that blocked the write: the requested path, or the path of a memory
+   * that is an ancestor or descendant of it.
+   */
   conflicting_path?: string;
 
-  message?: string;
-}
-
-export interface BetaManagedAgentsMemoryPreconditionFailedError {
-  type: 'memory_precondition_failed_error';
-
+  /**
+   * A human-readable explanation of the conflict. To handle the error in code, use
+   * `conflicting_path` and `conflicting_memory_id` instead.
+   */
   message?: string;
 }
 
 /**
- * A rolled-up directory marker returned by
- * [List memories](/en/api/beta/memory_stores/memories/list) when `depth` is set.
- * Indicates that one or more memories exist deeper than the requested depth under
- * this prefix. This is a list-time rollup, not a stored resource; it has no ID and
- * no lifecycle. Each prefix counts toward the page `limit` and interleaves with
- * `memory` items in path order.
+ * The error returned with HTTP status 409 when a request's precondition doesn't
+ * hold for the memory's current state, such as `precondition` on an update or
+ * `expected_content_sha256` on a delete.
+ *
+ * The error doesn't include the memory's current state. Retrieve the memory to see
+ * its current content and `content_sha256` before you retry.
+ *
+ * See the
+ * [memory guide](https://platform.claude.com/docs/en/managed-agents/memory#safe-content-edits-optimistic-concurrency)
+ * to learn more about safe content edits with content hash preconditions.
+ */
+export interface BetaManagedAgentsMemoryPreconditionFailedError {
+  type: 'memory_precondition_failed_error';
+
+  /**
+   * A human-readable explanation of why the precondition failed.
+   */
+  message?: string;
+}
+
+/**
+ * A directory marker that
+ * [List Memories](https://platform.claude.com/docs/en/api/beta/memory_stores/memories/list)
+ * returns instead of the memories below the requested `depth`.
+ *
+ * It stands for one or more memories whose paths start with `path`. It isn't a
+ * stored object and doesn't have an ID. Each marker counts toward the page
+ * `limit`.
  */
 export interface BetaManagedAgentsMemoryPrefix {
   /**
@@ -341,11 +430,11 @@ export interface BetaManagedAgentsMemoryPrefix {
 }
 
 /**
- * Selects which projection of a `memory` or `memory_version` the server returns.
- * `basic` returns the object with `content` set to `null`; `full` populates
- * `content`. When omitted, the default is endpoint-specific: retrieve operations
- * default to `full`; list, create, and update operations default to `basic`.
- * Listing with `view=full` caps `limit` at 20.
+ * Whether a `memory` or `memory_version` in the response includes its `content`.
+ * Defaults to `full` on retrieve operations and to `basic` on list, create, and
+ * update operations.
+ *
+ * With `full`, list operations return at most 20 items per page.
  *
  * - `basic` - Return the object with `content` set to `null`. The
  *   `content_size_bytes` and `content_sha256` fields remain populated, so sync
@@ -356,12 +445,11 @@ export interface BetaManagedAgentsMemoryPrefix {
 export type BetaManagedAgentsMemoryView = 'basic' | 'full';
 
 /**
- * Optimistic-concurrency precondition: the update applies only if the memory's
- * stored `content_sha256` equals the supplied value. On mismatch, the request
- * returns `memory_precondition_failed_error` (HTTP 409); re-read the memory and
- * retry against the fresh state. If the precondition fails but the stored state
- * already exactly matches the requested `content` and `path`, the server returns
- * 200 instead of 409.
+ * Optional condition that must hold for an update to apply. When omitted, the
+ * update is unconditional. Asserts the current state of the memory being updated.
+ * When an update changes `path`, the precondition still refers to the memory's
+ * current content, not the destination path. Currently the only supported variant
+ * is `content_sha256`.
  */
 export interface BetaManagedAgentsPrecondition {
   type: 'content_sha256';
@@ -377,27 +465,36 @@ export interface BetaManagedAgentsPrecondition {
 
 export interface MemoryCreateParams {
   /**
-   * Body param: UTF-8 text content for the new memory. Maximum 100 kB (102,400
-   * bytes). Required; pass `""` explicitly to create an empty memory.
+   * Body param: The UTF-8 text content of the new memory. Pass `""` to create an
+   * empty memory.
+   *
+   * The maximum size is 100 kB (102,400 bytes).
    */
   content: string | null;
 
   /**
-   * Body param: Hierarchical path for the new memory, e.g. `/projects/foo/notes.md`.
-   * Must start with `/`, contain at least one non-empty segment, and be at most
-   * 1,024 bytes. Must not contain empty segments, `.` or `..` segments, control or
-   * format characters, or the Unicode line and paragraph separators (U+2028,
-   * U+2029), and must be NFC-normalized. Paths are case-sensitive.
+   * Body param: The path of the new memory, such as `/projects/foo/notes.md`. Paths
+   * are case-sensitive.
+   *
+   * A path starts with `/` and has 1 to 20 segments. A segment can't be empty and
+   * can't be `.` or `..`. A path can't contain control characters, format
+   * characters, or the line and paragraph separators U+2028 and U+2029. It must be
+   * in Unicode Normalization Form C and at most 1,024 bytes long.
    */
   path: string;
 
   /**
-   * Query param: Query parameter for view
+   * Query param: Whether a `memory` or `memory_version` in the response includes its
+   * `content`. Defaults to `full` on retrieve operations and to `basic` on list,
+   * create, and update operations.
+   *
+   * With `full`, list operations return at most 20 items per page.
    */
   view?: BetaManagedAgentsMemoryView;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `agent-memory-2026-07-22` or `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -414,17 +511,22 @@ export interface MemoryCreateParams {
 
 export interface MemoryRetrieveParams {
   /**
-   * Path param: Path parameter memory_store_id
+   * Path param: The ID of the memory store that holds the memory (`memstore_...`).
    */
   memory_store_id: string;
 
   /**
-   * Query param: Query parameter for view
+   * Query param: Whether a `memory` or `memory_version` in the response includes its
+   * `content`. Defaults to `full` on retrieve operations and to `basic` on list,
+   * create, and update operations.
+   *
+   * With `full`, list operations return at most 20 items per page.
    */
   view?: BetaManagedAgentsMemoryView;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `agent-memory-2026-07-22` or `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -441,12 +543,16 @@ export interface MemoryRetrieveParams {
 
 export interface MemoryUpdateParams {
   /**
-   * Path param: Path parameter memory_store_id
+   * Path param: The ID of the memory store that holds the memory (`memstore_...`).
    */
   memory_store_id: string;
 
   /**
-   * Query param: Query parameter for view
+   * Query param: Whether a `memory` or `memory_version` in the response includes its
+   * `content`. Defaults to `full` on retrieve operations and to `basic` on list,
+   * create, and update operations.
+   *
+   * With `full`, list operations return at most 20 items per page.
    */
   view?: BetaManagedAgentsMemoryView;
 
@@ -457,27 +563,28 @@ export interface MemoryUpdateParams {
   content?: string | null;
 
   /**
-   * Body param: New path for the memory (a rename). Must start with `/`, contain at
-   * least one non-empty segment, and be at most 1,024 bytes. Must not contain empty
-   * segments, `.` or `..` segments, control or format characters, or the Unicode
-   * line and paragraph separators (U+2028, U+2029), and must be NFC-normalized.
-   * Paths are case-sensitive. The memory's `id` is preserved across renames. Omit to
-   * leave the path unchanged.
+   * Body param: The new path of the memory, which renames it. Omit it to keep the
+   * current path.
+   *
+   * The memory keeps its `id`. A path starts with `/` and has 1 to 20 segments. A
+   * segment can't be empty and can't be `.` or `..`. A path can't contain control
+   * characters, format characters, or the line and paragraph separators U+2028 and
+   * U+2029. It must be in Unicode Normalization Form C and at most 1,024 bytes long.
+   * Paths are case-sensitive.
    */
   path?: string | null;
 
   /**
-   * Body param: Optimistic-concurrency precondition: the update applies only if the
-   * memory's stored `content_sha256` equals the supplied value. On mismatch, the
-   * request returns `memory_precondition_failed_error` (HTTP 409); re-read the
-   * memory and retry against the fresh state. If the precondition fails but the
-   * stored state already exactly matches the requested `content` and `path`, the
-   * server returns 200 instead of 409.
+   * Body param: The condition that the memory must meet for the update to apply.
+   * Omit it to update unconditionally.
+   *
+   * If the condition fails, the request fails with HTTP status 409.
    */
   precondition?: BetaManagedAgentsPrecondition;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `agent-memory-2026-07-22` or `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -494,29 +601,36 @@ export interface MemoryUpdateParams {
 
 export interface MemoryListParams extends PageCursorParams {
   /**
-   * Query param: `0` (or omitted) returns all descendants below `path_prefix`
-   * (recursive). `1` returns immediate children only; deeper entries roll up as
-   * `memory_prefix` items. `depth=1` behaves like `ls`; omitting `depth` behaves
-   * like `find`.
+   * Query param: How far below `path_prefix` to list. Defaults to `0`, which lists
+   * every memory below the prefix.
+   *
+   * Pass `1` to list only the direct children. Deeper memories are then grouped into
+   * `memory_prefix` items.
    */
   depth?: number;
 
   /**
-   * Query param: Optional path prefix filter. Must end with `/` (segment-aligned),
-   * e.g., `/notes/`. This value appears in request URLs. Do not include secrets or
+   * Query param: Return only memories whose path starts with this prefix, such as
+   * `/notes/`. This value appears in request URLs. Do not include secrets or
    * personally identifiable information.
+   *
+   * Omit it to list the whole store. The prefix must end with `/` and matches whole
+   * segments, so `/notes/` matches `/notes/todo.md` but not
+   * `/notes-archive/todo.md`.
    */
   path_prefix?: string;
 
   /**
-   * Query param: Which projection of each `memory` to return. Defaults to `basic`
-   * (content omitted). `full` populates `content` on each item and caps `limit` at
-   * 20; use this as the bulk-read path for export and sync.
+   * Query param: Whether each memory in the response includes `content`. Defaults to
+   * `basic`, which sets it to `null`.
+   *
+   * With `full`, a page holds at most 20 items.
    */
   view?: BetaManagedAgentsMemoryView;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `agent-memory-2026-07-22` or `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -533,17 +647,23 @@ export interface MemoryListParams extends PageCursorParams {
 
 export interface MemoryDeleteParams {
   /**
-   * Path param: Path parameter memory_store_id
+   * Path param: The ID of the memory store that holds the memory (`memstore_...`).
    */
   memory_store_id: string;
 
   /**
-   * Query param: Query parameter for expected_content_sha256
+   * Query param: Delete the memory only if its current `content_sha256` equals this
+   * value, given as 64 lowercase hexadecimal characters. Omit it to delete
+   * unconditionally.
+   *
+   * If the hashes differ, the request fails with HTTP status 409 and nothing is
+   * deleted.
    */
   expected_content_sha256?: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `agent-memory-2026-07-22` or `managed-agents-2026-04-01` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

@@ -5,6 +5,7 @@ import { Stream } from '../core/streaming';
 import type { Middleware } from '../core/middleware';
 import type { HTTPMethod, MergedRequestInit } from './types';
 import { type HeadersLike } from './headers';
+import type { ApiCallSpan, OpenTelemetryRequestOptions } from './tracing';
 
 export type FinalRequestOptions = RequestOptions & { method: HTTPMethod; path: string };
 
@@ -127,6 +128,17 @@ export interface RequestOptions {
    */
   defaultBaseURL?: string | undefined;
 
+  /**
+   * OpenTelemetry settings for the call span of the API call made with these options.
+   */
+  openTelemetry?: OpenTelemetryRequestOptions | undefined;
+
+  /**
+   * The call span of the API call made with these options. Set by the SDK method that makes the
+   * API call, or by the helper that calls that method; not a public option.
+   * @internal
+   */
+  __span?: ApiCallSpan | undefined;
   __binaryResponse?: boolean | undefined;
   __streamClass?: typeof Stream;
 }

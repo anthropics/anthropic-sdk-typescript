@@ -66,14 +66,17 @@ export function resolveCredentialsFromConfig(
  *
  * Resolution order:
  *
- *   1. Config file for the active profile (or the explicit `profile` argument)
- *      → dispatch on `authentication.type` (`oidc_federation`, `user_oauth`)
+ *   1. Config file for the profile `ANTHROPIC_PROFILE` names
+ *      → dispatch on `authentication.type` (`oidc_federation`, `user_oauth`).
+ *      A missing file throws
  *   2. Environment variables `ANTHROPIC_FEDERATION_RULE_ID` +
  *      `ANTHROPIC_ORGANIZATION_ID` (+ identity token) → OIDC federation
- *   3. Nothing matches → `null`
+ *   3. Config file for the active profile (the one `active_config` names,
+ *      otherwise `default`) → dispatch on `authentication.type`
+ *   4. Nothing matches → `null`
  *
  * Passing `profile` selects `<config_dir>/configs/<profile>.json` directly,
- * skipping `ANTHROPIC_PROFILE` / `active_config` resolution.
+ * skipping steps 1 to 3.
  */
 export async function defaultCredentials(
   options: ResolverOptions,
@@ -90,11 +93,11 @@ export async function defaultCredentials(
   // so callers that retain a reference to the loaded config don't observe the
   // patched-in default.
   //
-  // Env-only credentials (no profile file on disk) skip the disk cache —
-  // matching the other SDKs. A disk cache keyed by profile path would
-  // re-serve a stale token after a change to ANTHROPIC_WORKSPACE_ID (or
-  // ANTHROPIC_ORGANIZATION_ID / ANTHROPIC_FEDERATION_RULE_ID) until the
-  // cached token expired, so the env-only chain stays in-memory only.
+  // Env-only credentials (no profile file was read) skip the disk cache. A
+  // disk cache keyed by profile path would re-serve a stale token after a
+  // change to ANTHROPIC_WORKSPACE_ID (or ANTHROPIC_ORGANIZATION_ID /
+  // ANTHROPIC_FEDERATION_RULE_ID) until the cached token expired, so the
+  // env-only chain stays in-memory only.
   const withPath: AnthropicConfig =
     config.authentication.credentials_path || !fromFile ?
       config

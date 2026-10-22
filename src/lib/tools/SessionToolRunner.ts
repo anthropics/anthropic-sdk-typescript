@@ -1,3 +1,4 @@
+import { context, type Context } from '@opentelemetry/api';
 import { AnthropicError } from '../../core/error';
 import type { Anthropic } from '../../client';
 import type {
@@ -19,6 +20,7 @@ import { helperHeader } from '../../internal/stainless-helper-header';
 import type { RequestOptions } from '../../internal/request-options';
 import { runRunnableTool, toolName, type BetaRunnableTool } from './BetaRunnableTool';
 import type { BetaToolRunnerRequestOptions } from './BetaToolRunner';
+import { withToolUseSpan } from '../internal/tracing';
 
 /** Beta header for the managed-agents API. */
 export const MANAGED_AGENTS_BETA = 'managed-agents-2026-04-01';
@@ -70,11 +72,11 @@ export interface SessionToolRunnerOptions {
    */
   tools: Array<BetaRunnableTool>;
   /**
-   * Once the session goes idle with `stop_reason.type === "end_turn"`, the
-   * runner keeps running for this many milliseconds before stopping; any new
-   * event resets the countdown and it re-arms on the next `end_turn` idle. The
-   * countdown is deferred while a confirmation-gated call is held or still
-   * dispatching, and starts fresh once the last one resolves.
+   * Once the session goes idle with any `stop_reason.type` but
+   * `"requires_action"`, the runner keeps running for this many milliseconds before
+   * stopping; any new event resets the countdown and it re-arms on the next such
+   * idle. The countdown is deferred while a confirmation-gated call is held or
+   * still dispatching, and starts fresh once the last one resolves.
    * Defaults to {@link DEFAULT_MAX_IDLE_MS} (60s). `0` (or negative) disables
    * it — the runner then only stops on session termination or the consumer
    * breaking out / aborting.
@@ -157,16 +159,22 @@ export interface DispatchedToolCall {
   readonly confirmation: 'allow' | 'deny' | undefined;
 }
 
-/** Returns true if `ev` is a `session.status_idle` with `stop_reason` `end_turn`. */
-function isEndTurnIdle(ev: { type?: string; stop_reason?: { type?: string } }): boolean {
-  return ev.type === 'session.status_idle' && ev.stop_reason?.type === 'end_turn';
+/**
+ * Whether `ev` is a `session.status_idle` whose turn is over. Only
+ * `requires_action` leaves the turn open: the session resumes once a client
+ * resolves the events it names. Every other stop reason ends the turn, including
+ * one newer than this SDK's types.
+ */
+function endsTurn(ev: { type?: string; stop_reason?: { type?: string } }): boolean {
+  if (ev.type !== 'session.status_idle') return false;
+  return ev.stop_reason?.type !== 'requires_action';
 }
 
 /**
  * The `maxIdleMs` stop-countdown, including its deferral. {@link noteEvent}
- * arms on `session.status_idle` with `stop_reason: end_turn` and disarms on
- * anything else. Gated tool work registered via {@link block} — a call held for
- * user confirmation, or a user-approved call still dispatching — keeps
+ * arms on an idle that ends the turn and disarms on anything else. Gated tool
+ * work registered via {@link block} — a call held for user confirmation, or a
+ * user-approved call still dispatching — keeps
  * {@link arm} pending until {@link unblock} retires the last blocker, at which
  * point the countdown starts. Event-driven — there is no polling watchdog.
  */
@@ -185,7 +193,7 @@ class IdleClock {
   }
 
   /**
-   * Arm on `status_idle{end_turn}`; disarm otherwise. `user.tool_confirmation`
+   * Arm on an idle that ends the turn; disarm otherwise. `user.tool_confirmation`
    * is neutral: it signals neither agent activity nor an idle, and its effect
    * on the clock flows through {@link block} / {@link unblock} instead —
    * disarming here would discard the pending arm the verdict is about to
@@ -193,7 +201,7 @@ class IdleClock {
    */
   noteEvent(ev: { type: string; stop_reason?: { type?: string } }): void {
     if (ev.type === 'user.tool_confirmation') return;
-    if (isEndTurnIdle(ev)) this.arm();
+    if (endsTurn(ev)) this.arm();
     else this.disarm();
   }
 
@@ -268,17 +276,17 @@ class IdleClock {
  * executed and posts nothing (the denial resolves the call server-side), but is
  * still yielded (`confirmation="deny"`, `posted=false`, `result=undefined`) so
  * the consumer can observe it. A held call — and a user-approved one still
- * dispatching — defers the `maxIdleMs` countdown, so an `end_turn` idle
- * observed in the meantime cannot stop the runner: it waits until the verdict
- * arrives, the session terminates, or the abort signal fires — pass
+ * dispatching — defers the `maxIdleMs` countdown, so an idle observed in the
+ * meantime cannot stop the runner: it waits until the verdict arrives, the
+ * session terminates, or the abort signal fires — pass
  * `AbortSignal.timeout(...)` for a wall-clock bound.
  *
  * Iteration ends when the session terminates (`session.status_terminated` /
  * `session.deleted`), when the consumer `break`s out of the loop or aborts the
- * supplied signal, or — once the session has gone idle with
- * `stop_reason.type === "end_turn"` — when `maxIdleMs` elapses with no new
- * event (any new event resets that countdown; it re-arms on the next `end_turn`
- * idle; `maxIdleMs <= 0` disables it). The `finally` branch drains any in-flight
+ * supplied signal, or — once the session has gone idle with any `stop_reason.type`
+ * but `"requires_action"` — when `maxIdleMs` elapses with no new event (any
+ * new event resets that countdown; it re-arms on the next such idle;
+ * `maxIdleMs <= 0` disables it). The `finally` branch drains any in-flight
  * tool calls and runs each tool's `close()` cleanup hook. It does *not* touch
  * the work-item lease — wrap it in an `EnvironmentWorker` if you need
  * heartbeating / force-stop.
@@ -322,6 +330,15 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
   #sendRetryWindowMs = SEND_RETRY_WINDOW_MS;
   #onIdle: (() => void) | null = null;
   readonly #idleClock: IdleClock;
+  /** The OpenTelemetry `Context` that was active where the loop started, the parent of each tool span. */
+  #otelContext: Context | undefined;
+  /**
+   * The ID of the Session's primary thread, whose tool call events have no thread ID. It is the thread
+   * of the Session's first thread status event: a child thread starts after the primary thread has.
+   */
+  #primaryThreadId: string | undefined;
+  /** Whether the last read of the history succeeded, so that the stream's events continue it. */
+  #historyRead = false;
 
   constructor(sessionId: string, opts: SessionToolRunnerOptions) {
     this.client = opts.client;
@@ -334,7 +351,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
     this.#detachExternal = linkAbort(opts.signal, this.#controller);
     this.#requestOpts = opts.requestOptions;
     this.#idleClock = new IdleClock(this.maxIdleMs, () => {
-      this.#logger.info('session idle after end_turn; stopping', {
+      this.#logger.info('session idle after its turn ended; stopping', {
         component: 'session-tool-runner',
         session_id: this.sessionId,
         max_idle_ms: this.maxIdleMs,
@@ -367,6 +384,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
       throw new AnthropicError('Cannot iterate over a consumed SessionToolRunner');
     }
     this.#consumed = true;
+    this.#otelContext = this.client._tracer ? context.active() : undefined;
     this.#logger.info('session tool runner starting', {
       component: 'session-tool-runner',
       session_id: this.sessionId,
@@ -489,7 +507,8 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
   async #reconcile(): Promise<void> {
     const ctrl = this.#controller;
     const pending: DispatchedToolUseEvent[] = [];
-    let lastWasEndTurn = false;
+    let lastEndedTurn = false;
+    this.#historyRead = false;
     try {
       for await (const ev of this.client.beta.sessions.events.list(
         this.sessionId,
@@ -497,7 +516,9 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
         this.#requestOptions(),
       )) {
         this.#ingestHistory(ev, pending);
-        lastWasEndTurn = isEndTurnIdle(ev);
+        // Neutral here as in `IdleClock.noteEvent`: a verdict is neither agent
+        // activity nor an idle.
+        if (ev.type !== 'user.tool_confirmation') lastEndedTurn = endsTurn(ev);
       }
     } catch (e) {
       // An abort throws to unwind the caller; a real list failure is
@@ -511,6 +532,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
       for (const ev of pending) this.#seen.delete(ev.id);
       return;
     }
+    this.#historyRead = true;
     const unanswered = pending.filter((ev) => !this.#answered.has(ev.id));
     // Disarm before routing: `#execute` runs inline here, so a timer left armed
     // from before the reconnect could fire over an in-flight tool.
@@ -525,19 +547,21 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
     }
     // Routing resolves denied calls in place (marking them answered) and holds
     // ask-gated calls for their `user.tool_confirmation`. If the most recent
-    // event in history is an `end_turn` idle and no tool work is outstanding,
+    // event in history ends the turn and no tool work is outstanding,
     // the session is done — arm the idle clock so the runner stops even if that
-    // `end_turn` arrived during a disconnect. A held call is not outstanding
+    // idle arrived during a disconnect. A held call is not outstanding
     // here: it blocks the clock, so this arm stays pending until the verdict
     // (and, for an allow, the dispatch it releases) resolves it.
     const outstanding = unanswered.filter(
       (ev) => !this.#answered.has(ev.id) && !this.#awaitingConfirmation.has(ev.id),
     );
-    if (lastWasEndTurn && outstanding.length === 0) this.#idleClock.arm();
+    if (lastEndedTurn && outstanding.length === 0) this.#idleClock.arm();
     else this.#idleClock.disarm();
   }
 
   #ingestHistory(ev: BetaManagedAgentsSessionEvent, pending: DispatchedToolUseEvent[]): void {
+    // The history starts with the Session's first event.
+    this.#notePrimaryThread(ev);
     if (ev.type === 'agent.tool_use' || ev.type === 'agent.custom_tool_use') {
       // Mark the event seen so a replay on the live stream is not dispatched
       // twice, but decide whether it still needs executing from `answered`, not
@@ -558,9 +582,24 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
     }
   }
 
+  /** Takes the primary thread's ID from `ev` when it is the Session's first thread status event. */
+  #notePrimaryThread(ev: BetaManagedAgentsSessionEvent | BetaManagedAgentsStreamSessionEvents): void {
+    // Only the spans have a use for it.
+    if (!this.client._tracer || this.#primaryThreadId !== undefined) return;
+    switch (ev.type) {
+      case 'session.thread_status_running':
+      case 'session.thread_status_idle':
+      case 'session.thread_status_rescheduled':
+      case 'session.thread_status_terminated':
+        this.#primaryThreadId = ev.session_thread_id;
+    }
+  }
+
   /** Returns true when the runner should exit. */
   async #handleStreamEvent(ev: BetaManagedAgentsStreamSessionEvents): Promise<boolean> {
     this.#idleClock.noteEvent(ev);
+    // Without the history, the stream may have begun after the Session's first thread status event.
+    if (this.#historyRead) this.#notePrimaryThread(ev);
     switch (ev.type) {
       case 'agent.tool_use':
       case 'agent.custom_tool_use':
@@ -727,6 +766,9 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
           tool: ev.name,
           tool_use_id: ev.id,
         });
+        // The approval kept the idle countdown pending on this call. Drop it
+        // instead of starting it: the owner still has to answer.
+        if (confirmation === 'allow') this.#idleClock.disarm();
         this.#surfaceCall({
           event: ev,
           toolUseId: ev.id,
@@ -737,8 +779,12 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
         });
         return;
       }
-      let content: string | Array<BetaToolResultContentBlockParam>;
+      let content: SessionContentBlock[];
       let isError: boolean;
+      // The default is the Session thread ID, which is the conversation ID of the platform's spans.
+      // Only a child thread's call event has it, so a call without one is the primary thread's.
+      const conversationId =
+        this.#requestOpts?.openTelemetry?.conversationId ?? (ev.session_thread_id || this.#primaryThreadId);
       // Per-tool controller: aborts on the runner's own signal *or* the
       // per-tool timeout, so an in-flight tool stops promptly when the runner
       // is aborted instead of running until the timeout.
@@ -749,12 +795,30 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
         // Pass the source `agent.tool_use` / `agent.custom_tool_use` event
         // straight through as the run context's `toolUse` — it is a union
         // member of `BetaToolUse`, no Messages-block adapter needed.
-        const outcome = await runRunnableTool(tool, ev.input, {
-          toolUse: ev,
-          toolUseBlock: ev,
-          signal: toolCtrl.signal,
+        const spanOptions = {
+          signal: this.#controller.signal,
+          conversationId,
+          sessionID: this.sessionId,
+          parentContext: this.#otelContext,
+        };
+        const outcome = await withToolUseSpan(this.client, tool, ev, spanOptions, async () => {
+          const toolOutcome = await runRunnableTool(tool, ev.input, {
+            toolUse: ev,
+            toolUseBlock: ev,
+            signal: toolCtrl.signal,
+          });
+          const sent = toSessionContent(toolOutcome.content);
+          // A span keeps a text block whole, so it gets a block that is sent as its JSON as the block itself.
+          const recorded =
+            !this.client._tracer ?
+              sent
+            : sent.map((block, i) => {
+                const original = typeof toolOutcome.content === 'string' ? undefined : toolOutcome.content[i];
+                return original && original.type !== 'text' && block.type === 'text' ? original : block;
+              });
+          return { sent, content: recorded, isError: toolOutcome.isError };
         });
-        content = outcome.content;
+        content = outcome.sent;
         isError = outcome.isError;
       } finally {
         clearTimeout(timer);
@@ -764,8 +828,8 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
       // `user.tool_result` for an `agent.tool_use`, a `user.custom_tool_result`
       // for an `agent.custom_tool_use`. Posting the wrong one leaves the call
       // unanswered and the session stuck.
-      const result = buildResultEvent(ev, isError, toSessionContent(content));
-      const posted = await this.#sendResult(result, ev.id);
+      const result = buildResultEvent(ev, isError, content);
+      const posted = await this.#sendResult(result, ev.id, conversationId);
       this.#surfaceCall({
         event: ev,
         result,
@@ -781,7 +845,11 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
     }
   }
 
-  async #sendResult(result: DispatchedToolResultParams, toolUseId: string): Promise<boolean> {
+  async #sendResult(
+    result: DispatchedToolResultParams,
+    toolUseId: string,
+    conversationId: string | undefined,
+  ): Promise<boolean> {
     const ctrl = this.#controller;
     const start = Date.now();
     let lastErr: unknown;
@@ -795,7 +863,7 @@ export class SessionToolRunner implements AsyncIterable<DispatchedToolCall> {
         await this.client.beta.sessions.events.send(
           this.sessionId,
           { events: [result] },
-          this.#requestOptions(),
+          { ...this.#requestOptions(), openTelemetry: { conversationId } },
         );
         this.#answered.add(toolUseId);
         return true;

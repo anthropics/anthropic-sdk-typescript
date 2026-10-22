@@ -4,6 +4,7 @@ import { APIPromise } from '../../../core/api-promise';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Certificates extends APIResource {
@@ -42,6 +43,11 @@ export class Certificates extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.tunnels.certificates.create', options, {
+        route: '/v1/tunnels/{tunnel_id}/certificates',
+        attributes: { 'anthropic.tunnel.id': tunnelID },
+        createdIDAttribute: 'anthropic.tunnel.certificate.id',
+      }),
     });
   }
 
@@ -77,6 +83,10 @@ export class Certificates extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.tunnels.certificates.retrieve', options, {
+        route: '/v1/tunnels/{tunnel_id}/certificates/{certificate_id}',
+        attributes: { 'anthropic.tunnel.id': tunnel_id, 'anthropic.tunnel.certificate.id': certificateID },
+      }),
     });
   }
 
@@ -118,6 +128,11 @@ export class Certificates extends APIResource {
           },
           options?.headers,
         ]),
+        __span: startApiCallSpan(this._client, 'anthropic.tunnels.certificates.list', options, {
+          route: '/v1/tunnels/{tunnel_id}/certificates',
+          queryParams: ['include_archived', 'limit', 'page'],
+          attributes: { 'anthropic.tunnel.id': tunnelID },
+        }),
       },
     );
   }
@@ -157,6 +172,10 @@ export class Certificates extends APIResource {
         },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.tunnels.certificates.archive', options, {
+        route: '/v1/tunnels/{tunnel_id}/certificates/{certificate_id}/archive',
+        attributes: { 'anthropic.tunnel.id': tunnel_id, 'anthropic.tunnel.certificate.id': certificateID },
+      }),
     });
   }
 }
@@ -173,17 +192,19 @@ export interface BetaTunnelCertificate {
   id: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * RFC 3339 datetime string indicating when the certificate was archived. Null if
+   * it is still in the trusted set.
    */
   archived_at: string | null;
 
   /**
-   * A timestamp in RFC 3339 format
+   * RFC 3339 datetime string indicating when the certificate was registered.
    */
   created_at: string;
 
   /**
-   * A timestamp in RFC 3339 format
+   * RFC 3339 datetime string indicating when the certificate expires, or `null` if
+   * it does not expire.
    */
   expires_at: string | null;
 
@@ -208,7 +229,8 @@ export interface CertificateCreateParams {
   ca_certificate_pem: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `mcp-tunnels-2026-06-22` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -230,7 +252,8 @@ export interface CertificateRetrieveParams {
   tunnel_id: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `mcp-tunnels-2026-06-22` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -253,7 +276,8 @@ export interface CertificateListParams extends PageCursorParams {
   include_archived?: boolean;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `mcp-tunnels-2026-06-22` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 
@@ -275,7 +299,8 @@ export interface CertificateArchiveParams {
   tunnel_id: string;
 
   /**
-   * Header param: Optional header to specify the beta version(s) you want to use.
+   * Header param: This endpoint is in beta: requests must send
+   * `mcp-tunnels-2026-06-22` in this header.
    */
   betas?: Array<BetaAPI.AnthropicBeta>;
 

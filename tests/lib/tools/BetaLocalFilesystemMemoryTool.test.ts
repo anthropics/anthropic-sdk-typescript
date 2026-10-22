@@ -212,6 +212,26 @@ describe('BetaLocalFilesystemMemoryTool', () => {
       });
     });
 
+    it('should write $ sequences in new_str literally', async () => {
+      await tool.create({
+        command: 'create',
+        file_text: 'Line 1\nOld Text\nLine 3',
+        path: '/memories/replace_test.txt',
+      });
+
+      await tool.str_replace({
+        command: 'str_replace',
+        path: '/memories/replace_test.txt',
+        old_str: 'Old Text',
+        new_str: "$$x^2$$ $& $` $'",
+      });
+
+      const dirSnapshot = await getDirectorySnapshot(tempDir);
+      expect(dirSnapshot).toEqual({
+        'memories/replace_test.txt': "Line 1\n$$x^2$$ $& $` $'\nLine 3",
+      });
+    });
+
     it('should throw error when string not found', async () => {
       await tool.create({
         command: 'create',

@@ -1,5 +1,62 @@
 # Changelog
 
+## [1.0.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.2.0...google-cloud-sdk-v1.0.0) (2026-10-21)
+
+### ⚠ BREAKING CHANGES
+
+* **api:** add support for new API version 2026-10-21
+
+### Features
+
+* **api:** add support for new API version 2026-10-21
+
+## [0.2.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.1.0...google-cloud-sdk-v0.2.0) (2026-10-20)
+
+### Features
+
+* **google-cloud:** use the v1 endpoints and add the organization endpoint
+
+## [0.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.19...google-cloud-sdk-v0.1.0) (2026-10-14)
+
+### Features
+
+* **api:** add execution_identity to Managed Agents agents
+* **client:** add native support for OpenTelemetry tracing
+
+  If your app registers a global tracer provider, the SDK will create spans with it after upgrading, and they'll be exported with the rest of your traces. Requests will also get trace context headers from the global propagator. To disable, pass `openTelemetry: false` to the client or set `ANTHROPIC_OPEN_TELEMETRY=false`. Learn more in the [documentation](https://platform.claude.com/docs/en/manage-claude/opentelemetry/sdk).
+
+
+### Chores
+
+* include the license files in the published packages
+* **internal:** strip `@internal` declarations from published types
+
+## [0.0.19](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.18...google-cloud-sdk-v0.0.19) (2026-10-08)
+
+### Chores
+
+* **ci:** check that pull requests update the changelog
+
+## 0.0.18 (2026-10-07)
+
+Full Changelog: [google-cloud-sdk-v0.0.17...google-cloud-sdk-v0.0.18](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.17...google-cloud-sdk-v0.0.18)
+
+## 0.0.17 (2026-09-30)
+
+Full Changelog: [google-cloud-sdk-v0.0.16...google-cloud-sdk-v0.0.17](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.16...google-cloud-sdk-v0.0.17)
+
+## 0.0.16 (2026-09-30)
+
+Full Changelog: [google-cloud-sdk-v0.0.15...google-cloud-sdk-v0.0.16](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.15...google-cloud-sdk-v0.0.16)
+
+## 0.0.15 (2026-09-28)
+
+Full Changelog: [google-cloud-sdk-v0.0.14...google-cloud-sdk-v0.0.15](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.14...google-cloud-sdk-v0.0.15)
+
+## 0.0.14 (2026-09-22)
+
+Full Changelog: [google-cloud-sdk-v0.0.13...google-cloud-sdk-v0.0.14](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.13...google-cloud-sdk-v0.0.14)
+
 ## 0.0.13 (2026-09-18)
 
 Full Changelog: [google-cloud-sdk-v0.0.12...google-cloud-sdk-v0.0.13](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.0.12...google-cloud-sdk-v0.0.13)

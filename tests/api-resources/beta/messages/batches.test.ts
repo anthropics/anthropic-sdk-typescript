@@ -15,7 +15,7 @@ describe('resource batches', () => {
           params: {
             max_tokens: 1024,
             messages: [{ content: 'Hello, world', role: 'user' }],
-            model: 'claude-opus-5',
+            model: 'claude-opus-5-5',
           },
         },
       ],
@@ -36,15 +36,8 @@ describe('resource batches', () => {
           custom_id: 'my-custom-id-1',
           params: {
             max_tokens: 1024,
-            messages: [
-              {
-                content: 'Hello, world',
-                role: 'user',
-                clear_at: 'next_user_message',
-                output_config: { effort: 'low' },
-              },
-            ],
-            model: 'claude-opus-5',
+            messages: [{ content: 'Hello, world', role: 'user' }],
+            model: 'claude-opus-5-5',
             cache_control: { type: 'ephemeral', ttl: '5m' },
             compaction: { type: 'summarize', instructions: 'instructions' },
             container: {
@@ -120,7 +113,6 @@ describe('resource batches', () => {
                 ],
               },
             ],
-            temperature: 1,
             thinking: {
               type: 'adaptive',
               block_binding: { prefix_mismatch_behavior: 'error' },
@@ -145,8 +137,6 @@ describe('resource batches', () => {
                 type: 'custom',
               },
             ],
-            top_k: 5,
-            top_p: 0.7,
           },
         },
       ],

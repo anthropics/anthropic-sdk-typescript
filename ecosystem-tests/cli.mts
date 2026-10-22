@@ -68,8 +68,11 @@ function parseArgs(argv: string[]) {
     keep: false,
     jobs: 1,
     nodeVersions: undefined as number[] | undefined,
+    only: undefined as 'node' | 'non-node' | undefined,
   };
   const majors = (list: string | undefined) => (list ?? '').split(',').filter(Boolean).map(Number);
+  const onlyKind = (kind: string | undefined) =>
+    kind === 'node' || kind === 'non-node' ? kind : fail('--only takes node or non-node');
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]!;
     if (arg === '--skip-build') args.skipBuild = true;
@@ -81,9 +84,11 @@ function parseArgs(argv: string[]) {
     else if (arg === '--node-versions') args.nodeVersions = majors(argv[++i]);
     else if (arg.startsWith('--node-versions='))
       args.nodeVersions = majors(arg.slice('--node-versions='.length));
+    else if (arg === '--only') args.only = onlyKind(argv[++i]);
+    else if (arg.startsWith('--only=')) args.only = onlyKind(arg.slice('--only='.length));
     else if (arg === '--help' || arg === '-h') {
       console.log(
-        "usage: pnpm test:ecosystem [project | 'glob-*' ...] [--list] [--skip-build] [--skip-pack] [--keep] [--jobs N] [--node-versions 20,22,24]",
+        "usage: pnpm test:ecosystem [project | 'glob-*' ...] [--list] [--skip-build] [--skip-pack] [--keep] [--jobs N] [--node-versions 20,22,24] [--only node|non-node]",
       );
       process.exit(0);
     } else if (arg.startsWith('-')) fail(`unknown flag ${arg}`);
@@ -371,7 +376,10 @@ async function runProject(
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const all = discoverProjects();
-  const selected = select(args.patterns, [...all.keys()]);
+  const selected = select(args.patterns, [...all.keys()]).filter(
+    (name) => !args.only || !!all.get(name)!.perNodeVersion === (args.only === 'node'),
+  );
+  if (args.only && !selected.length) fail(`--only ${args.only} leaves no project to run. Try --list`);
 
   if (args.list) {
     for (const name of selected) {

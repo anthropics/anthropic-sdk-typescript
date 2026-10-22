@@ -13,9 +13,14 @@ import {
 import * as RateLimitsAPI from './rate-limits';
 import {
   BetaWorkspaceRateLimit,
+  BetaWorkspaceRateLimitOrganizationSource,
+  BetaWorkspaceRateLimitType,
+  BetaWorkspaceRateLimitUpdateValue,
   BetaWorkspaceRateLimitValue,
+  BetaWorkspaceRateLimitWorkspaceSource,
   BetaWorkspaceRateLimitsPageCursor,
   RateLimitListParams,
+  RateLimitUpdateParams,
   RateLimits,
 } from './rate-limits';
 import * as ServiceAccountsAPI from './service-accounts';
@@ -32,6 +37,7 @@ import { APIPromise } from '../../../../core/api-promise';
 import { Page, type PageParams, PagePromise } from '../../../../core/pagination';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
+import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
 
 export class Workspaces extends APIResource {
@@ -59,6 +65,10 @@ export class Workspaces extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.create', options, {
+        route: '/v1/organizations/workspaces',
+        createdIDAttribute: 'anthropic.organization.workspace.id',
+      }),
     });
   }
 
@@ -74,7 +84,13 @@ export class Workspaces extends APIResource {
    * ```
    */
   retrieve(workspaceID: string, options?: RequestOptions): APIPromise<BetaWorkspace> {
-    return this._client.get(path`/v1/organizations/workspaces/${workspaceID}?beta=true`, options);
+    return this._client.get(path`/v1/organizations/workspaces/${workspaceID}?beta=true`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.retrieve', options, {
+        route: '/v1/organizations/workspaces/{workspace_id}',
+        attributes: { 'anthropic.organization.workspace.id': workspaceID },
+      }),
+    });
   }
 
   /**
@@ -96,6 +112,10 @@ export class Workspaces extends APIResource {
     return this._client.post(path`/v1/organizations/workspaces/${workspaceID}?beta=true`, {
       body,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.update', options, {
+        route: '/v1/organizations/workspaces/{workspace_id}',
+        attributes: { 'anthropic.organization.workspace.id': workspaceID },
+      }),
     });
   }
 
@@ -117,6 +137,10 @@ export class Workspaces extends APIResource {
     return this._client.getAPIList('/v1/organizations/workspaces?beta=true', Page<BetaWorkspace>, {
       query,
       ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.list', options, {
+        route: '/v1/organizations/workspaces',
+        queryParams: ['after_id', 'before_id', 'include_archived', 'include_default', 'limit'],
+      }),
     });
   }
 
@@ -132,7 +156,13 @@ export class Workspaces extends APIResource {
    * ```
    */
   archive(workspaceID: string, options?: RequestOptions): APIPromise<BetaWorkspace> {
-    return this._client.post(path`/v1/organizations/workspaces/${workspaceID}/archive?beta=true`, options);
+    return this._client.post(path`/v1/organizations/workspaces/${workspaceID}/archive?beta=true`, {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.archive', options, {
+        route: '/v1/organizations/workspaces/{workspace_id}/archive',
+        attributes: { 'anthropic.organization.workspace.id': workspaceID },
+      }),
+    });
   }
 }
 
@@ -396,6 +426,11 @@ export interface WorkspaceListParams extends PageParams {
    * Whether to include Workspaces that have been archived in the response
    */
   include_archived?: boolean;
+
+  /**
+   * Whether to include the organization's default Workspace in the response
+   */
+  include_default?: boolean;
 }
 
 Workspaces.RateLimits = RateLimits;
@@ -421,8 +456,13 @@ export declare namespace Workspaces {
   export {
     RateLimits as RateLimits,
     type BetaWorkspaceRateLimit as BetaWorkspaceRateLimit,
+    type BetaWorkspaceRateLimitOrganizationSource as BetaWorkspaceRateLimitOrganizationSource,
+    type BetaWorkspaceRateLimitType as BetaWorkspaceRateLimitType,
+    type BetaWorkspaceRateLimitUpdateValue as BetaWorkspaceRateLimitUpdateValue,
     type BetaWorkspaceRateLimitValue as BetaWorkspaceRateLimitValue,
+    type BetaWorkspaceRateLimitWorkspaceSource as BetaWorkspaceRateLimitWorkspaceSource,
     type BetaWorkspaceRateLimitsPageCursor as BetaWorkspaceRateLimitsPageCursor,
+    type RateLimitUpdateParams as RateLimitUpdateParams,
     type RateLimitListParams as RateLimitListParams,
   };
 

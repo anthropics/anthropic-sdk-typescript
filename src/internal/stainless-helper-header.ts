@@ -25,7 +25,9 @@ export const STAINLESS_HELPER_METHOD_HEADER = 'x-stainless-helper-method';
 export type StainlessHelperHeaderValue =
   | 'BetaToolRunner'
   | 'betaZodTool'
+  | 'browser-toolset'
   | 'compaction'
+  | 'computer-toolset'
   | 'environments-work-poller'
   | 'environments-worker'
   | 'fallback-refusal-middleware'
@@ -58,7 +60,8 @@ export function wasCreatedByStainlessHelper(value: unknown): value is StainlessH
 }
 
 /**
- * Collects helper names from tools and messages arrays.
+ * Collects helper names from tools and messages arrays, including tools that a
+ * `tool_addition` block in a message defines by value.
  * Returns a deduplicated array of helper names found.
  */
 export function collectStainlessHelpers(
@@ -88,6 +91,11 @@ export function collectStainlessHelpers(
         for (const block of content) {
           if (wasCreatedByStainlessHelper(block)) {
             helpers.add(block[SDK_HELPER_SYMBOL]);
+          }
+
+          const definition = (block as { tool?: { definition?: unknown } | null } | null)?.tool?.definition;
+          if (wasCreatedByStainlessHelper(definition)) {
+            helpers.add(definition[SDK_HELPER_SYMBOL]);
           }
         }
       }

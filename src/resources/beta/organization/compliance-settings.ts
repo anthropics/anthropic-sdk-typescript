@@ -1,6 +1,7 @@
 import { APIResource } from '../../../core/resource';
 import { APIPromise } from '../../../core/api-promise';
 import { RequestOptions } from '../../../internal/request-options';
+import { startApiCallSpan } from '../../../internal/tracing';
 
 export class ComplianceSettings extends APIResource {
   /**
@@ -18,7 +19,12 @@ export class ComplianceSettings extends APIResource {
    * ```
    */
   retrieve(options?: RequestOptions): APIPromise<BetaComplianceSettings> {
-    return this._client.get('/v1/organizations/compliance_settings?beta=true', options);
+    return this._client.get('/v1/organizations/compliance_settings?beta=true', {
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.compliance_settings.retrieve', options, {
+        route: '/v1/organizations/compliance_settings',
+      }),
+    });
   }
 
   /**
@@ -45,7 +51,13 @@ export class ComplianceSettings extends APIResource {
    * ```
    */
   update(body: ComplianceSettingUpdateParams, options?: RequestOptions): APIPromise<BetaComplianceSettings> {
-    return this._client.post('/v1/organizations/compliance_settings?beta=true', { body, ...options });
+    return this._client.post('/v1/organizations/compliance_settings?beta=true', {
+      body,
+      ...options,
+      __span: startApiCallSpan(this._client, 'anthropic.organization.compliance_settings.update', options, {
+        route: '/v1/organizations/compliance_settings',
+      }),
+    });
   }
 }
 

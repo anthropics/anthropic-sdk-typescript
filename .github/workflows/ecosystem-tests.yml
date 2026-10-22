@@ -27,9 +27,20 @@ permissions:
 jobs:
   ecosystem:
     timeout-minutes: 30
-    name: ecosystem
-    runs-on: 'ubuntu-latest'
+    name: ecosystem (${{ matrix.shard }})
+    runs-on: ${{ github.repository == 'anthropics/anthropic-sdk-typescript' && 'ubuntu-latest' || 'ubuntu-latest-4-core' }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: node 20
+            node: '20'
+          - shard: node 22
+            node: '22'
+          - shard: node 24
+            node: '24'
+          - shard: non-node
     env:
       COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
       BUN_VERSION: 1.3.13
@@ -39,16 +50,12 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      # --node-versions finds 20 and 24 in the tool cache; 22, set up last, runs the build and the runner
-      - name: Set up Node 20
+      # --node-versions finds this major in the tool cache; 22, set up last, runs the build and the runner
+      - name: Set up Node ${{ matrix.node }}
+        if: matrix.node && matrix.node != '22'
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: '20'
-
-      - name: Set up Node 24
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: '24'
+          node-version: ${{ matrix.node }}
 
       - name: Set up Node 22
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -63,6 +70,7 @@ jobs:
         run: corepack enable yarn
 
       - name: Set up Bun
+        if: ${{ !matrix.node }}
         run: |
           curl -fsSL -o "$RUNNER_TEMP/bun.zip" "https://github.com/oven-sh/bun/releases/download/bun-v${BUN_VERSION}/bun-linux-x64.zip"
           echo "$BUN_SHA256  $RUNNER_TEMP/bun.zip" | sha256sum -c -
@@ -71,6 +79,7 @@ jobs:
           "$RUNNER_TEMP/bun-linux-x64/bun" --version
 
       - name: Set up Deno
+        if: ${{ !matrix.node }}
         run: |
           curl -fsSL -o "$RUNNER_TEMP/deno.zip" "https://dl.deno.land/release/${DENO_VERSION}/deno-x86_64-unknown-linux-gnu.zip"
           echo "$DENO_SHA256  $RUNNER_TEMP/deno.zip" | sha256sum -c -
@@ -80,6 +89,7 @@ jobs:
           "$HOME/.deno/bin/deno" --version
 
       - name: Install Chromium
+        if: ${{ !matrix.node }}
         working-directory: ecosystem-tests/browser-vite
         run: npm ci --ignore-scripts --no-audit --no-fund && npx playwright-core install --with-deps chromium
 
@@ -87,4 +97,4 @@ jobs:
         run: ./scripts/bootstrap
 
       - name: Run ecosystem tests
-        run: pnpm test:ecosystem --skip-build --jobs 3 --node-versions 20,22,24
+        run: pnpm test:ecosystem --skip-build --jobs 3 ${{ matrix.node && format('--only node --node-versions {0}', matrix.node) || '--only non-node' }}

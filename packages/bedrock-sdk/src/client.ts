@@ -1,13 +1,20 @@
 import { APIRequest, BaseAnthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
 import { VERSION } from '@anthropic-ai/sdk/version';
+import { VERSION as PACKAGE_VERSION } from './version';
 import { AwsCredentialIdentityProvider } from '@smithy/types';
 import { getAuthHeaders } from './core/auth';
+import * as Errors from './core/error';
 import { eventStreamToSSEResponse } from './core/streaming';
 import type { Middleware } from './core/middleware';
 import { readEnv } from './internal/utils/env';
 import { FinalRequestOptions } from './internal/request-options';
-import { isObj, safeJSON } from './internal/utils/values';
+import {
+  isObj,
+  rejectUnsupportedCredentials,
+  safeJSON,
+  type PlatformCredentials,
+} from './internal/utils/values';
 import type { NullableHeaders } from './internal/headers';
 import { buildHeaders } from './internal/headers';
 import { path } from './internal/utils/path';
@@ -15,14 +22,20 @@ import { loggerFor } from './internal/utils/log';
 
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 
-const DEFAULT_VERSION = 'bedrock-2023-05-31';
-const MODEL_ENDPOINTS = new Set<string>(['/v1/complete', '/v1/messages', '/v1/messages?beta=true']);
+const MODEL_ENDPOINTS = new Set<string>(['/v1/messages', '/v1/messages?beta=true']);
+
+const CREDENTIALS: PlatformCredentials = {
+  accepts: ['apiKey'],
+  unsupportedOptionMessage: (option) =>
+    `The \`${option}\` option is not supported by AnthropicBedrock; authentication uses a Bedrock API key (\`apiKey\`) or AWS credentials (SigV4).`,
+};
 
 export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
   /**
-   * Defaults to process.env['AWS_BEARER_TOKEN_BEDROCK'].
+   * Defaults to process.env['AWS_BEARER_TOKEN_BEDROCK']. `null` skips the
+   * variable, so the client signs with AWS credentials.
    */
-  apiKey?: string | undefined;
+  apiKey?: string | null | undefined;
 
   awsSecretKey?: string | null | undefined;
   awsAccessKey?: string | null | undefined;
@@ -64,6 +77,14 @@ type SecretOnly = {
 
 /** API Client for interfacing with the Anthropic Bedrock API. */
 export class AnthropicBedrock extends BaseAnthropic {
+  /** @internal */
+  override _genAIProviderName = 'aws.bedrock';
+
+  /** @internal */
+  override _instrumentationScope() {
+    return { platform: 'bedrock', version: PACKAGE_VERSION };
+  }
+
   awsSecretKey: string | null;
   awsAccessKey: string | null;
   awsRegion: string;
@@ -92,7 +113,8 @@ export class AnthropicBedrock extends BaseAnthropic {
    * Auth is resolved by precedence: `apiKey` constructor arg >
    * `AWS_BEARER_TOKEN_BEDROCK` env var > explicit AWS credentials >
    * `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` env vars > default AWS
-   * credential chain.
+   * credential chain. The `authToken`, `credentials`, `config`, and `profile`
+   * options throw an `AnthropicError`.
    *
    * @param {string | null | undefined} [opts.awsSecretKey]
    * @param {string | null | undefined} [opts.awsAccessKey]
@@ -112,18 +134,26 @@ export class AnthropicBedrock extends BaseAnthropic {
   constructor({
     awsRegion = readEnv('AWS_REGION') ?? 'us-east-1',
     baseURL = readEnv('ANTHROPIC_BEDROCK_BASE_URL') ?? `https://bedrock-runtime.${awsRegion}.amazonaws.com`,
-    apiKey = readEnv('AWS_BEARER_TOKEN_BEDROCK'),
+    apiKey,
     awsSecretKey = null,
     awsAccessKey = null,
     awsSessionToken = null,
     providerChainResolver = null,
     ...opts
   }: ClientOptions = {}) {
+    rejectUnsupportedCredentials(opts, CREDENTIALS);
+
+    // `null` clears the key, as in `withOptions({ apiKey: null })`, and a copy of
+    // a client that signs passes it too. Neither may go back to the environment.
+    if (apiKey === undefined) {
+      apiKey = readEnv('AWS_BEARER_TOKEN_BEDROCK');
+    }
+
     // `?? null` / `null`, not `undefined`: `undefined` makes the base client
-    // fall back to the ANTHROPIC_AUTH_TOKEN / ANTHROPIC_API_KEY env vars,
-    // which are not auth sources for Bedrock — the token would suppress SigV4
-    // signing, and the key would be folded into the SigV4-signed request.
-    super({ baseURL, authToken: apiKey ?? null, apiKey: null, ...opts });
+    // fall back to the ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN env vars,
+    // which are not auth sources for Bedrock — the key would suppress SigV4
+    // signing, and the token would be folded into the SigV4-signed request.
+    super({ baseURL, ...opts, apiKey: apiKey ?? null, authToken: null });
 
     const hasAccess = awsAccessKey != null;
     const hasSecret = awsSecretKey != null;
@@ -143,8 +173,38 @@ export class AnthropicBedrock extends BaseAnthropic {
   }
 
   messages: MessagesResource = makeMessagesResource(this);
-  completions: Resources.Completions = new Resources.Completions(this);
   beta: BetaResource = makeBetaResource(this);
+
+  /** Amazon Bedrock does not serve user profiles, so reading this throws. */
+  get userProfiles(): never {
+    return throwUserProfilesUnavailable();
+  }
+
+  /**
+   * Create a new client instance re-using the same options given to the
+   * current client, including the AWS ones, with optional overriding.
+   */
+  override withOptions(options: Partial<ClientOptions>): this {
+    // AWS credentials are replaced as a whole, so that new keys are never
+    // signed with the old session token.
+    const replacesAWSCredentials =
+      options.awsAccessKey != null ||
+      options.awsSecretKey != null ||
+      options.awsSessionToken != null ||
+      options.providerChainResolver != null;
+    return super.withOptions({
+      awsRegion: this.awsRegion,
+      ...(replacesAWSCredentials ?
+        {}
+      : {
+          awsAccessKey: this.awsAccessKey,
+          awsSecretKey: this.awsSecretKey,
+          awsSessionToken: this.awsSessionToken,
+          providerChainResolver: this.providerChainResolver,
+        }),
+      ...options,
+    });
+  }
 
   protected override validateHeaders() {
     // auth validation is handled in the backend middleware since it needs to be async
@@ -185,6 +245,9 @@ export class AnthropicBedrock extends BaseAnthropic {
   async #adaptRequest(request: APIRequest, options: FinalRequestOptions | undefined): Promise<APIRequest> {
     const url = new URL(request.url);
     const headers = new Headers(request.headers);
+    // Bedrock takes the API version from the body.
+    const version = headers.get('anthropic-version');
+    headers.delete('anthropic-version');
 
     let parsedBody: Record<string, unknown> | undefined;
     if (typeof request.body === 'string') {
@@ -193,8 +256,8 @@ export class AnthropicBedrock extends BaseAnthropic {
     }
 
     if (parsedBody) {
-      if (!parsedBody['anthropic_version']) {
-        parsedBody['anthropic_version'] = DEFAULT_VERSION;
+      if (version && !parsedBody['anthropic_version']) {
+        parsedBody['anthropic_version'] = version;
       }
 
       const betas = headers.get('anthropic-beta');
@@ -235,7 +298,7 @@ export class AnthropicBedrock extends BaseAnthropic {
       adapted.body = JSON.stringify(parsedBody);
     }
 
-    if (!this.skipAuth && !this.authToken) {
+    if (!this.skipAuth && !this.apiKey) {
       const regionName = this.awsRegion;
       if (!regionName) {
         throw new Error(
@@ -298,9 +361,9 @@ function makeMessagesResource(client: AnthropicBedrock): MessagesResource {
 }
 
 /**
- * The Bedrock API does not currently support prompt caching, token counting or the Batch API.
+ * The Bedrock API does not currently support prompt caching, token counting, the Batch API or user profiles.
  */
-type BetaResource = Omit<Resources.Beta, 'promptCaching' | 'messages'> & {
+type BetaResource = Omit<Resources.Beta, 'promptCaching' | 'messages' | 'userProfiles'> & {
   messages: Omit<Resources.Beta['messages'], 'batches' | 'countTokens'>;
 };
 
@@ -316,5 +379,13 @@ function makeBetaResource(client: AnthropicBedrock): BetaResource {
   // @ts-expect-error we're deleting non-optional properties
   delete resource.messages.countTokens;
 
+  Object.defineProperty(resource, 'userProfiles', { enumerable: false, get: throwUserProfilesUnavailable });
+
   return resource;
+}
+
+function throwUserProfilesUnavailable(): never {
+  throw new Errors.AnthropicError(
+    'User profiles are not available on `AnthropicBedrock`. Use `AnthropicAws` from `@anthropic-ai/aws-sdk` to manage them.',
+  );
 }

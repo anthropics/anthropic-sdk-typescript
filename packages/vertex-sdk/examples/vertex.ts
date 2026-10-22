@@ -14,7 +14,7 @@ async function main() {
         content: 'Hello!',
       },
     ],
-    model: 'claude-sonnet-5',
+    model: 'claude-sonnet-5-5',
     max_tokens: 300,
   });
   console.log(JSON.stringify(result, null, 2));

@@ -47,6 +47,7 @@ describe('oidcFederationProvider', () => {
     const [url, init] = (mockFetch as Mock).mock.calls[0]!;
     expect(url).toBe('https://api.anthropic.com/v1/oauth/token');
     expect(init.method).toBe('POST');
+    expect(init.redirect).toBe('manual');
     expect(init.headers['anthropic-beta']).toBe(`${OAUTH_API_BETA_HEADER},${FEDERATION_BETA_HEADER}`);
     expect(init.headers['User-Agent']).toMatch(/^anthropic-sdk-typescript\//);
 

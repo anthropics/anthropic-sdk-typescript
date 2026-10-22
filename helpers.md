@@ -31,6 +31,10 @@ The first event that is fired when the connection with the Anthropic API is esta
 The event fired when a stream event is received from the API. Not fired when it is not streaming. The snapshot
 returns an accumulated `Message` which is progressively built-up over events.
 
+An event of a type this SDK version doesn't know is passed through as received, with the snapshot unchanged.
+It isn't fired for anything that arrives before `message_start`, because there is no snapshot yet. `for await` and
+`.toReadableStream()` do yield those events.
+
 #### `.on('text', (textDelta: string, textSnapshot: string) => …)`
 
 The event fired when a text delta is sent by the API. The second parameter returns a `textSnapshot`.
@@ -117,7 +121,7 @@ const NumbersResponse = z.object({
 });
 
 const message = await client.messages.parse({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
   output_config: {
@@ -147,7 +151,7 @@ const NumbersResponse = toStandardJsonSchema(
 );
 
 const message = await client.beta.messages.parse({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
   output_config: {
@@ -177,7 +181,7 @@ const NumbersResponse = {
 } as const;
 
 const message = await client.messages.parse({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1024,
   messages: [{ role: 'user', content: 'What are the first 3 prime numbers?' }],
   output_config: {
@@ -236,7 +240,7 @@ const weatherTool = betaZodTool({
 });
 
 const finalMessage = await anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   messages: [{ role: 'user', content: 'What is the weather in San Francisco?' }],
   tools: [weatherTool],
@@ -252,7 +256,7 @@ When you need to process intermediate messages or control the conversation flow,
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   messages: [{ role: 'user', content: 'What is the weather in San Francisco?' }],
   tools: [weatherTool],
@@ -274,7 +278,7 @@ example.
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   messages: [{ role: 'user', content: 'What is the weather in San Francisco?' }],
   tools: [calculatorTool],
@@ -295,6 +299,38 @@ console.log(await runner);
 See [`examples/tools-helpers-advanced-streaming.ts`](examples/tools-helpers-advanced-streaming.ts) for a more
 in-depth example.
 
+##### Running tools while the reply streams
+
+By default, the runner runs a reply's tools after your loop body for that reply ends. With `runToolsEagerly: true` and `stream: true`, each tool starts as soon as the model finishes writing its call. A toolset's call starts early too when the toolset's earlier calls have ended, and otherwise waits for the reply. Its `confirm` is still asked before each call runs. To hold a call until your loop body ends, pass it to `runner.deferToolCall()` when you see it. It won't have started yet. `runner.deferredToolCalls` lists the held calls without waiting, so read it after the stream ends.
+
+```ts
+const runner = anthropic.beta.messages.toolRunner({
+  model: 'claude-sonnet-5',
+  max_tokens: 1000,
+  messages: [{ role: 'user', content: 'Clean up the log files in /tmp/demo.' }],
+  tools: [listFiles, deleteFile],
+  stream: true,
+  runToolsEagerly: true,
+});
+
+for await (const messageStream of runner) {
+  for await (const event of messageStream) {
+    if (
+      event.type === 'content_block_start' &&
+      event.content_block.type === 'tool_use' &&
+      event.content_block.name === 'delete_file'
+    ) {
+      runner.deferToolCall(event.content_block);
+    }
+  }
+
+  const held = runner.deferredToolCalls;
+  if (held.length > 0 && !(await confirm(held))) break;
+}
+```
+
+Here, `break` means the held call never runs. A tool that has started runs to the end, even if the reply is cut short or you replace the history. The model then never gets its result and may ask for the same call again. So defer calls that aren't safe to run twice. See [`examples/tools-helpers-deferred-streaming.ts`](examples/tools-helpers-deferred-streaming.ts).
+
 #### Cancellation
 
 The `BetaToolRunner` supports cancellation via `AbortSignal`. The signal is passed to both API calls and tool `run` methods via the `BetaToolRunContext`.
@@ -304,7 +340,7 @@ const controller = new AbortController();
 
 const runner = anthropic.beta.messages.toolRunner(
   {
-    model: 'claude-sonnet-5',
+    model: 'claude-sonnet-5-5',
     max_tokens: 1000,
     messages: [{ role: 'user', content: 'Do a long task' }],
     tools: [
@@ -343,7 +379,7 @@ With the `compact-2026-09-04` beta you decide when a conversation is compacted: 
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   betas: ['compact-2026-09-04'],
   messages: [{ role: 'user', content: 'Find every page that mentions rate limits.' }],
@@ -359,7 +395,7 @@ for await (const message of runner) {
 
 The call only schedules the compaction. Once the current turn has finished, including any tool calls, the runner requests a summary, replaces its message history with the compaction response the API returns, and carries on. A turn that was paused (`pause_turn`) is resumed and finished first. If the current turn is the last one, the runner compacts and then stops. If you call it before iterating, the compaction is the first request.
 
-The compaction response is yielded like any other message and doesn't count towards `max_iterations`. It has `stop_reason: 'compaction'`, the summary is in the `content` of its first content block, and its `usage.input_tokens` is the size of the history that was just summarized. Calling `compactBeforeNextTurn()` while handling that message does nothing, so a threshold like the one above doesn't compact twice.
+The compaction response is yielded like any other message and doesn't count towards `max_iterations`. It has `stop_reason: 'compaction'`, the summary is in the `content` of its first content block, and its top-level `usage.input_tokens` and `usage.output_tokens` are 0: what the compaction cost is in `usage.iterations`. Calling `compactBeforeNextTurn()` while handling that message does nothing, so a threshold like the one above doesn't compact twice.
 
 `compactBeforeNextTurn()` takes the same config as the `compaction` param of `messages.create()`, for example to give your own summarization instructions:
 
@@ -371,7 +407,7 @@ A few things to know:
 
 - Calling it again before the compaction runs replaces the pending one.
 - The runner doesn't add the beta for you, so pass `betas: ['compact-2026-09-04']`.
-- `context_management` is left out of the compaction request, because the API doesn't accept the two together, and is sent again afterwards. `compactBeforeNextTurn()` throws if `context_management` has a `compact_*` edit, and so does adding one with `setMessagesParams()` while a compaction is scheduled.
+- A compaction request returns only the compaction block, never a reply, so the API doesn't accept `compaction` together with `context_management` or with the params that only shape a reply: `stop_sequences`, a `tool_choice` that forces a tool (`any` or `tool`), and `output_config.format` (or the deprecated `output_format`), including the `output_config.format` of any entry in `fallbacks`. The runner leaves these out of the compaction request and sends them again afterwards. `compactBeforeNextTurn()` throws if `context_management` has a `compact_*` edit, and so does adding one with `setMessagesParams()` while a compaction is scheduled.
 - While you're handling the compaction response, `pushMessages()` and replacing `messages` with `setMessagesParams()` throw, because the compaction response is about to replace the messages. Other params can still be changed.
 - If the API returns no summary, the runner logs a warning and keeps the history as it is.
 - If the run ends on a turn that was cut short with tool calls that never ran (`stop_reason: 'max_tokens'`, for example), the pending compaction is skipped with a warning. It is also skipped if `max_iterations` ends the run after a turn with tool calls, or you `break` out of the loop.
@@ -434,7 +470,7 @@ import { betaTool } from '@anthropic-ai/sdk/helpers/beta/json-schema';
 
 const calculatorTool = betaTool({
   name: 'calculator',
-  input_schema: {
+  inputSchema: {
     type: 'object',
     properties: {
       operation: { type: 'string', enum: ['add', 'subtract', 'multiply', 'divide'] },
@@ -461,6 +497,23 @@ const calculatorTool = betaTool({
   },
 });
 ```
+
+### Other tool definition fields
+
+`betaZodTool`, `betaStandardSchemaTool` and `betaTool` also accept every other field of the tool definition, named as in the API, and send it as given:
+
+```ts
+const weatherTool = betaZodTool({
+  name: 'get_weather',
+  inputSchema: z.object({ location: z.string() }),
+  description: 'Get the current weather in a given location',
+  strict: true,
+  cache_control: { type: 'ephemeral' },
+  run: async (input) => `The weather in ${input.location} is 72°F`,
+});
+```
+
+`mcpTool`, `mcpTools` and `betaMemoryTool` take the other fields of their tool definition as their last argument.
 
 ### `client.messages.toolRunner(params): BetaToolRunner`
 
@@ -542,6 +595,52 @@ Schedules a compaction of the conversation for when the current turn has finishe
 runner.compactBeforeNextTurn();
 ```
 
+#### `BetaToolRunner.addTools()` and `BetaToolRunner.removeTools()`
+
+Changing `tools` in the middle of a conversation misses the prompt cache for everything sent so far. With the `inline-tools-2026-09-15` beta a tool change is sent as a message instead, and these two methods do that for you. `tools` is sent exactly as you first passed it on every request.
+
+```ts
+const runner = anthropic.beta.messages.toolRunner({
+  model: 'claude-sonnet-5-5',
+  max_tokens: 1000,
+  betas: ['inline-tools-2026-09-15'],
+  messages: [{ role: 'user', content: 'How many orders shipped late last week?' }],
+  tools: [readFileTool],
+});
+
+for await (const message of runner) {
+  if (database.justConnected()) {
+    runner.addTools(queryDatabaseTool);
+  }
+  if (database.justDisconnected()) {
+    runner.removeTools(queryDatabaseTool); // or by name: 'query_database'
+  }
+}
+```
+
+`addTools()` takes runnable tools and raw tool definitions, as `tools` does, but not a runnable toolset or a raw definition of a toolset the runner has. The whole definition is sent to the model either way.
+
+- A runnable tool can be called from the request that carries its definition. If a runnable tool of the same name is already there, the new one replaces it straight away: a call the model has already made in the message you're handling runs the new one.
+- A raw definition is sent as given and is never run by the tool runner, which also stops running a tool of the same name. That is what you want for server tools, such as `{ type: 'web_search_20250305', name: 'web_search' }`, which the API runs. A call to a raw client tool gets the same "not found" error result as when it is passed in `tools`.
+- An `mcp_toolset` definition also needs its server in `mcp_servers`, which `addTools()` doesn't change.
+
+`removeTools()` takes the tools themselves or their names.
+
+- The tool stops being run straight away. If the model has already called it in the message you're handling, that call gets the same "not found" error result as a call to an unknown tool, and the tool isn't run. Calls that have already started still finish.
+- The tool stays removed whatever happens to the message history later. To bring it back, pass it to `addTools()` again.
+- Removing a server tool only tells the model.
+
+A few things to know:
+
+- Changes made while you're handling a message are sent together as one `role: "system"` message, in the order you made them, right after that turn's tool results. Changes made before iterating follow the initial messages.
+- After a paused turn (`pause_turn`) the turn is sent back as it came, and the changes go out with the request after that.
+- Changes still waiting when the run ends are never sent.
+- In the rare case where a compaction response comes back without `tool_changes` even though the messages it summarized added or removed tools, the model goes back to the tools in `tools`, and the runner doesn't detect it. Call `addTools()` / `removeTools()` again after that compaction if you need the change restored.
+- The runner doesn't add the beta for you, so pass `betas: ['inline-tools-2026-09-15']`.
+- Changing `tools` with `setMessagesParams()` still works, but misses the prompt cache and does not undo what these methods did.
+- Use either these methods or `tool_addition` / `tool_removal` blocks you append yourself for a given tool, not both.
+- Runnable toolsets, such as a browser or computer toolset, can't be added or removed this way: change them with `setMessagesParams()`, or build a new runner.
+
 #### `BetaToolRunner.setRequestOptions()`
 
 Updates the request options (e.g., headers, abort signal) for future API calls and tool executions.
@@ -582,7 +681,7 @@ console.log('Message count:', runner.params.messages.length);
 
 ### `ToolError`
 
-When a tool encounters an error, you can throw a `ToolError` to return structured content blocks as the error result instead of just a string message. The ToolRunner will catch this error and send the content back to the model with `is_error: true`.
+When a tool encounters an error, you can throw a `ToolError` to return structured content blocks as the error result instead of just a string message. The ToolRunner will catch this error and send the content back to the model with `is_error: true`. From a browser or computer toolset, only a `ToolError`'s text blocks are sent.
 
 ```ts
 import { ToolError } from '@anthropic-ai/sdk/resources/beta/messages';
@@ -620,6 +719,14 @@ See the following example files for more usage patterns:
 - [`examples/tools-helpers-standard-schema.ts`](examples/tools-helpers-standard-schema.ts) - Standard Schema (Valibot) tools
 - [`examples/tools-helpers-json-schema.ts`](examples/tools-helpers-json-schema.ts) - JSON Schema tools
 - [`examples/tools.ts`](examples/tools.ts) - Basic tool usage
+
+## Browser toolset
+
+The browser toolset has its own guide, [browser-toolset.md](browser-toolset.md): subclassing `BetaAbstractBrowserToolset20260801` to drive a real browser, its options, policies and result types, and how to run one safely.
+
+## Computer toolset
+
+The computer toolset has its own guide, [computer-toolset.md](computer-toolset.md): subclassing `BetaAbstractComputerToolset20260801` to drive a desktop, its options and result types, the coordinate and image rules, and how to run one safely.
 
 # Self-Hosted Environment Runner
 
@@ -690,6 +797,7 @@ import {
 
 const environmentKey = process.env.ANTHROPIC_ENVIRONMENT_KEY!;
 // The environment key authenticates the per-session calls too — scope a client to it.
+// It replaces the client's own credential on the copy.
 const sessionClient = client.withOptions({ authToken: environmentKey });
 
 for await (const work of client.beta.environments.work.poller({

@@ -1,5 +1,70 @@
 # Changelog
 
+## [1.0.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.22.0...vertex-sdk-v1.0.0) (2026-10-21)
+
+### ⚠ BREAKING CHANGES
+
+* **api:** add support for new API version 2026-10-21
+
+### Features
+
+* **api:** add support for new API version 2026-10-21
+
+## [0.22.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.21.0...vertex-sdk-v0.22.0) (2026-10-20)
+
+### Features
+
+* **vertex:** throw an `AnthropicError` when `userProfiles` or `beta.userProfiles` is read on `AnthropicVertex`, which doesn't serve the user profile endpoints
+
+## [0.21.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.20.4...vertex-sdk-v0.21.0) (2026-10-14)
+
+### Features
+
+* **api:** add execution_identity to Managed Agents agents
+* **client:** add native support for OpenTelemetry tracing
+
+  If your app registers a global tracer provider, the SDK will create spans with it after upgrading, and they'll be exported with the rest of your traces. Requests will also get trace context headers from the global propagator. To disable, pass `openTelemetry: false` to the client or set `ANTHROPIC_OPEN_TELEMETRY=false`. Learn more in the [documentation](https://platform.claude.com/docs/en/manage-claude/opentelemetry/sdk).
+
+
+### Chores
+
+* include the license files in the published packages
+* **internal:** strip `@internal` declarations from published types
+
+## [0.20.4](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.20.3...vertex-sdk-v0.20.4) (2026-10-08)
+
+### Chores
+
+* **ci:** check that pull requests update the changelog
+
+## 0.20.3 (2026-10-07)
+
+Full Changelog: [vertex-sdk-v0.20.2...vertex-sdk-v0.20.3](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.20.2...vertex-sdk-v0.20.3)
+
+## 0.20.2 (2026-09-30)
+
+Full Changelog: [vertex-sdk-v0.20.1...vertex-sdk-v0.20.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.20.1...vertex-sdk-v0.20.2)
+
+### Chores
+
+* **client:** deprecate sonnet 4.5 ([d72cfaf](https://github.com/anthropics/anthropic-sdk-typescript/commit/d72cfaf6a551c75d54fad0538fb5fd65fb2346d1))
+
+## 0.20.1 (2026-09-30)
+
+Full Changelog: [vertex-sdk-v0.20.0...vertex-sdk-v0.20.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.20.0...vertex-sdk-v0.20.1)
+
+## 0.20.0 (2026-09-28)
+
+Full Changelog: [vertex-sdk-v0.19.11...vertex-sdk-v0.20.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.19.11...vertex-sdk-v0.20.0)
+
+### Features
+
+* **api:** add claude-sonnet-5-5 ([4e77366](https://github.com/anthropics/anthropic-sdk-typescript/commit/4e7736625fd23a5607800e8de4aa3c37daa74a07))
+
+## 0.19.11 (2026-09-22)
+
+Full Changelog: [vertex-sdk-v0.19.10...vertex-sdk-v0.19.11](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.19.10...vertex-sdk-v0.19.11)
+
 ## 0.19.10 (2026-09-18)
 
 Full Changelog: [vertex-sdk-v0.19.9...vertex-sdk-v0.19.10](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.19.9...vertex-sdk-v0.19.10)

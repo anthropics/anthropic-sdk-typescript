@@ -1,20 +1,31 @@
 import { APIRequest, BaseAnthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
 import { VERSION } from '@anthropic-ai/sdk/version';
+import { VERSION as PACKAGE_VERSION } from './version';
 import { GoogleAuth, AuthClient } from 'google-auth-library';
-import { APIConnectionError } from './core/error';
+import { AnthropicError, APIConnectionError } from './core/error';
 import type { Middleware } from './core/middleware';
 import { castToError } from './internal/errors';
 import { readEnv } from './internal/utils/env';
 import { FinalRequestOptions } from './internal/request-options';
-import { isObj, safeJSON } from './internal/utils/values';
+import {
+  isObj,
+  rejectUnsupportedCredentials,
+  safeJSON,
+  type PlatformCredentials,
+} from './internal/utils/values';
 import type { NullableHeaders } from './internal/headers';
 import { buildHeaders } from './internal/headers';
 
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 
-const DEFAULT_VERSION = 'vertex-2023-10-16';
 const MODEL_ENDPOINTS = new Set<string>(['/v1/messages', '/v1/messages?beta=true']);
+
+const CREDENTIALS: PlatformCredentials = {
+  accepts: [],
+  unsupportedOptionMessage: (option) =>
+    `The \`${option}\` option is not supported by AnthropicVertex; authentication uses Google credentials (\`googleAuth\`, \`authClient\`, or Application Default Credentials).`,
+};
 
 export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
   region?: string | null | undefined;
@@ -54,6 +65,14 @@ export type ClientOptions = Omit<CoreClientOptions, 'apiKey' | 'authToken'> & {
 };
 
 export class AnthropicVertex extends BaseAnthropic {
+  /** @internal */
+  override _genAIProviderName = 'gcp.vertex_ai';
+
+  /** @internal */
+  override _instrumentationScope() {
+    return { platform: 'vertex', version: PACKAGE_VERSION };
+  }
+
   region: string;
   projectId: string | null;
   accessToken: string | null;
@@ -63,6 +82,9 @@ export class AnthropicVertex extends BaseAnthropic {
 
   /**
    * API Client for interfacing with the Anthropic Vertex API.
+   *
+   * The `apiKey`, `authToken`, `credentials`, `config`, and `profile`
+   * options throw an `AnthropicError`.
    *
    * @param {string | null} opts.accessToken
    * @param {string | null} opts.projectId
@@ -84,6 +106,8 @@ export class AnthropicVertex extends BaseAnthropic {
     projectId = readEnv('ANTHROPIC_VERTEX_PROJECT_ID') ?? null,
     ...opts
   }: ClientOptions = {}) {
+    rejectUnsupportedCredentials(opts, CREDENTIALS);
+
     if (!region) {
       throw new Error(
         'No region was given. The client should be instantiated with the `region` option or the `CLOUD_ML_REGION` environment variable should be set.',
@@ -137,6 +161,26 @@ export class AnthropicVertex extends BaseAnthropic {
   messages: MessagesResource = makeMessagesResource(this);
   beta: BetaResource = makeBetaResource(this);
 
+  /** Vertex AI does not serve the user profile endpoints, so reading this throws. */
+  get userProfiles(): never {
+    return throwUserProfilesUnavailable();
+  }
+
+  /**
+   * Create a new client instance re-using the same options given to the
+   * current client, including `region` and `projectId`, with optional overriding.
+   */
+  override withOptions(options: Partial<ClientOptions>): this {
+    return super.withOptions({
+      region: this.region,
+      projectId: this.projectId,
+      // The constructor takes only one of the two, so the one given here replaces the other.
+      ...(options.authClient ? { googleAuth: null } : {}),
+      ...(options.googleAuth ? { authClient: null } : {}),
+      ...options,
+    });
+  }
+
   protected override validateHeaders() {
     // auth validation is handled in the backend middleware since it needs to be async
   }
@@ -148,7 +192,7 @@ export class AnthropicVertex extends BaseAnthropic {
   }
 
   // Google OAuth is applied in the backend middleware; no first-party
-  // X-Api-Key / Authorization header may reach the Vertex endpoint.
+  // Authorization header may reach the Vertex endpoint.
   protected override async authHeaders(): Promise<NullableHeaders | undefined> {
     return undefined;
   }
@@ -195,8 +239,9 @@ export class AnthropicVertex extends BaseAnthropic {
       if (isObj(parsed)) parsedBody = parsed;
     }
 
-    if (parsedBody && !parsedBody['anthropic_version']) {
-      parsedBody['anthropic_version'] = DEFAULT_VERSION;
+    const version = request.headers.get('anthropic-version');
+    if (parsedBody && version && !parsedBody['anthropic_version']) {
+      parsedBody['anthropic_version'] = version;
     }
 
     if (options && MODEL_ENDPOINTS.has(options.path) && options.method === 'post') {
@@ -252,8 +297,9 @@ export class AnthropicVertex extends BaseAnthropic {
       ...request,
       url: url.toString(),
       // Request/middleware-set headers win over the OAuth headers, preserving
-      // the ability to override `Authorization` explicitly.
-      headers: buildHeaders([googleAuthHeaders, request.headers]).values,
+      // the ability to override `Authorization` explicitly. Vertex takes the
+      // API version from the body.
+      headers: buildHeaders([googleAuthHeaders, request.headers, { 'anthropic-version': null }]).values,
     } as APIRequest;
     if (parsedBody) {
       adapted.body = JSON.stringify(parsedBody);
@@ -277,9 +323,9 @@ function makeMessagesResource(client: AnthropicVertex): MessagesResource {
 }
 
 /**
- * The Vertex API does not currently support the Batch API.
+ * The Vertex API does not currently support the Batch API or the user profile endpoints.
  */
-type BetaResource = Omit<Resources.Beta, 'messages'> & {
+type BetaResource = Omit<Resources.Beta, 'messages' | 'userProfiles'> & {
   messages: Omit<Resources.Beta['messages'], 'batches'>;
 };
 
@@ -289,5 +335,13 @@ function makeBetaResource(client: AnthropicVertex): BetaResource {
   // @ts-expect-error we're deleting non-optional properties
   delete resource.messages.batches;
 
+  Object.defineProperty(resource, 'userProfiles', { enumerable: false, get: throwUserProfilesUnavailable });
+
   return resource;
+}
+
+function throwUserProfilesUnavailable(): never {
+  throw new AnthropicError(
+    'Managing user profiles is not available on `AnthropicVertex`. To send a profile ID with a request, pass `user_profile_id` to `messages.create`.',
+  );
 }

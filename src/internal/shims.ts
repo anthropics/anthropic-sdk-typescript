@@ -60,8 +60,8 @@ export function ReadableStreamFrom<T>(iterable: Iterable<T> | AsyncIterable<T>):
  *
  * This polyfill was pulled from https://github.com/MattiasBuelens/web-streams-polyfill/pull/122#issuecomment-1627354490
  */
-export function ReadableStreamToAsyncIterable<T>(stream: any): AsyncIterableIterator<T> {
-  if (stream[Symbol.asyncIterator]) return stream;
+function readableStreamIterator<T>(stream: any): AsyncIterator<T> {
+  if (stream[Symbol.asyncIterator]) return stream[Symbol.asyncIterator]();
 
   const reader = stream.getReader();
   return {
@@ -81,10 +81,32 @@ export function ReadableStreamToAsyncIterable<T>(stream: any): AsyncIterableIter
       await cancelPromise;
       return { done: true, value: undefined };
     },
-    [Symbol.asyncIterator]() {
-      return this;
-    },
   };
+}
+
+// Cancels a stream whose reader was garbage collected before it finished. The reader's lock keeps
+// anything else from reading or cancelling the stream, so it would hold on to its connection.
+const droppedReaders =
+  typeof FinalizationRegistry === 'undefined' ? undefined : (
+    /* @__PURE__ */ new FinalizationRegistry(async (iter: AsyncIterator<unknown>) => {
+      try {
+        await iter.return?.();
+      } catch {
+        // The stream has already failed, e.g. because the request was aborted.
+      }
+    })
+  );
+
+export async function* ReadableStreamToAsyncIterable<T>(stream: any): AsyncIterableIterator<T> {
+  const iter = readableStreamIterator<T>(stream);
+  // Only this generator refers to `reader`, so it's collected once nothing can resume the generator.
+  const reader = {};
+  droppedReaders?.register(reader, iter, reader);
+  try {
+    for await (const chunk of { [Symbol.asyncIterator]: () => iter }) yield chunk;
+  } finally {
+    droppedReaders?.unregister(reader);
+  }
 }
 
 /**

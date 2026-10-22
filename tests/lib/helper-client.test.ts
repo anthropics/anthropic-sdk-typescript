@@ -1,7 +1,7 @@
 // Direct unit tests for `copyClientForHelper`.
 //
 // These verify the load-bearing invariants of the util — auth replaced,
-// parent's `X-Api-Key` cleared on the sub-client, helper telemetry header set,
+// parent's API key cleared on the sub-client, helper telemetry header set,
 // parent not mutated — without re-exercising `withOptions`'s own inheritance
 // contract (which is the SDK's job to keep working).
 
@@ -48,11 +48,8 @@ describe('copyClientForHelper', () => {
     expect(scoped.authToken).toBe('env-key');
   });
 
-  test("clears the parent's X-Api-Key on the sub-client", () => {
-    // Without `apiKey: null` in the override, `withOptions` would inherit the
-    // parent's apiKey and the sub-client would emit *both* `X-Api-Key` *and*
-    // `Authorization: Bearer …` on every request — exactly the situation
-    // this util exists to prevent.
+  test("clears the parent's API key on the sub-client", () => {
+    // The helper's credential replaces the parent's: a client holds only one.
     const parent = new Anthropic({ apiKey: 'parent-key' });
     const scoped = copyClientForHelper(parent, { authToken: 'env-key', helper: 'environments-work-poller' });
     expect(scoped.apiKey).toBeNull();
@@ -86,7 +83,7 @@ describe('copyClientForHelper', () => {
     // Building the sub-client must not touch the parent's auth state — a
     // long-lived parent could otherwise be silently re-credentialed every
     // time a runner helper started.
-    const parent = new Anthropic({ apiKey: 'parent-key' });
+    const parent = new Anthropic({ apiKey: 'parent-key', authToken: null });
     copyClientForHelper(parent, { authToken: 'env-key', helper: 'environments-work-poller' });
     expect(parent.apiKey).toBe('parent-key');
     expect(parent.authToken).toBeNull();
@@ -122,6 +119,7 @@ describe('copyClientForHelper — auth state inheritance', () => {
     }[] = [];
     const parent = new Anthropic({
       apiKey: null,
+      authToken: null,
       credentials: async () => ({ token: 'parent-oauth-tok', expiresAt: farFuture() }),
       fetch: async (_url: any, init?: RequestInit) => {
         captured.push({
@@ -162,6 +160,42 @@ describe('copyClientForHelper — auth state inheritance', () => {
     expect(captured[1]!.workspace).toBe('ws-tenant-42');
     expect(captured[1]!.helper).toBe('environments-work-poller');
     expect(captured[1]!.apiKey).toBeNull();
+  });
+
+  test.each([
+    {
+      name: 'hand-set X-Api-Key and omitted Authorization',
+      options: { apiKey: 'parent-key', defaultHeaders: { 'X-Api-Key': 'parent-key', Authorization: null } },
+      parentSends: { auth: null, apiKey: 'parent-key' },
+    },
+    {
+      name: 'hand-set Authorization',
+      options: { apiKey: null, defaultHeaders: { Authorization: 'Bearer parent-key' } },
+      parentSends: { auth: 'Bearer parent-key', apiKey: null },
+    },
+  ])("drops the parent's $name", async ({ options, parentSends }) => {
+    const captured: { auth: string | null; apiKey: string | null }[] = [];
+    const parent = new Anthropic({
+      ...options,
+      fetch: async (_url: any, init?: RequestInit) => {
+        captured.push({ auth: getHeader(init, 'authorization'), apiKey: getHeader(init, 'x-api-key') });
+        return jsonResponse(VALID_MSG_RESPONSE);
+      },
+    });
+    const helper = copyClientForHelper(parent, {
+      authToken: 'env-scoped-bearer',
+      helper: 'environments-work-poller',
+    });
+
+    for (const client of [helper, parent]) {
+      await client.messages.create({
+        model: 'claude-opus-4-8',
+        max_tokens: 1,
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+    }
+
+    expect(captured).toEqual([{ auth: 'Bearer env-scoped-bearer', apiKey: null }, parentSends]);
   });
 
   test('inherits resolved baseURL from parent', async () => {
