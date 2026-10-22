@@ -5,6 +5,7 @@
 ### Chores
 
 * **docs:** clarify plugin served_version_pinned and updated_at
+* **docs:** rate limit model lists vary by organization and workspace
 * **internal:** rename the version manifest to .version-manifest.json
 
 ## [1.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.0.0...sdk-v1.1.0) (2026-10-21)
