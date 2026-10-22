@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v1.0.0...vertex-sdk-v1.1.0) (2026-10-22)
+
+### Features
+
+* **api:** add support for message threads
+
 ## [1.0.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v0.22.0...vertex-sdk-v1.0.0) (2026-10-21)
 
 ### ⚠ BREAKING CHANGES

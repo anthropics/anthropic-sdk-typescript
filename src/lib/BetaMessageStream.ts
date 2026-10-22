@@ -21,6 +21,7 @@ import {
 } from '../resources/beta/messages/messages';
 import { Stream } from '../streaming';
 import { maybeParseBetaMessage, type ParsedBetaMessage } from './beta-parser';
+import type { APIPromise } from '../core/api-promise';
 import { startMessagesStreamSpan } from './internal/beta-messages-request';
 import { recordStreamedMessageContent } from './internal/tracing';
 import type { MessagesCreateSpan } from './internal/tracing/types';
@@ -51,6 +52,12 @@ type MessageStreamEventListeners<Event extends keyof MessageStreamEvents> = {
 }[];
 
 export type TracksToolInput = BetaToolUseBlock | BetaServerToolUseBlock | BetaMCPToolUseBlock;
+
+/** Sends one streaming `create()` request: `messages.create` itself, or a wrapper that decides the body. */
+export type CreateStreamingMessage = (
+  body: MessageCreateParamsStreaming,
+  options?: RequestOptions,
+) => APIPromise<Stream<BetaMessageStreamEvent>>;
 
 function tracksToolInput(content: BetaContentBlock): content is TracksToolInput {
   return content.type === 'tool_use' || content.type === 'server_tool_use' || content.type === 'mcp_tool_use';
@@ -86,6 +93,8 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
   // Both are set only for a stream that an SDK method created.
   #client: BaseAnthropic | undefined;
   #span: MessagesCreateSpan | undefined;
+  // The body of the request that `#span` is the span of, when that is not `#params`.
+  #spanBody: MessageCreateParamsBase | undefined;
 
   constructor(
     params: MessageCreateParamsBase | null,
@@ -196,12 +205,39 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
     runner.#params = { ...params, stream: true };
     runner._run(() =>
       runner._createMessage(
-        messages,
+        (body, options) => messages.create(body, options),
         { ...params, stream: true },
         { ...options, headers: { ...options?.headers, [STAINLESS_HELPER_METHOD_HEADER]: 'stream' } },
       ),
     );
     return runner;
+  }
+
+  /**
+   * @internal Sends the request with `create`, as `createMessage()` does with `messages.create()`. `onRequestEnd` is
+   * called once the request has ended, whether or not it failed, before the final events fire.
+   */
+  _start(
+    create: CreateStreamingMessage,
+    params: MessageCreateParamsBase,
+    options: RequestOptions,
+    onRequestEnd: () => void,
+  ): void {
+    for (const message of params.messages) {
+      this._addMessageParam(message);
+    }
+    // `create` makes its own `messages.create()` call for each attempt, with a body of its own. A span started here
+    // would never reach that request or end, so the stream records on the span of the attempt that got a response.
+    const client = this.#client;
+    this.#client = undefined;
+    const send: CreateStreamingMessage = (body, options) =>
+      create(body, options)._thenUnwrap((stream, { options: sent }) => {
+        this.#client = client;
+        this.#span = sent.__span;
+        this.#spanBody = sent.body as MessageCreateParamsBase;
+        return stream;
+      });
+    this._run(() => this._createMessage(send, { ...params, stream: true }, options).finally(onRequestEnd));
   }
 
   protected _run(executor: () => Promise<any>) {
@@ -223,7 +259,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
   }
 
   protected async _createMessage(
-    messages: BetaMessages,
+    create: CreateStreamingMessage,
     params: MessageCreateParams,
     options?: RequestOptions,
   ): Promise<void> {
@@ -240,12 +276,10 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
       // `create()` below gets it in its options, so it uses this span instead of starting its own.
       this.#span =
         options?.__span ?? (this.#client && startMessagesStreamSpan(this.#client, params, options));
-      const { response, data: stream } = await messages
-        .create(
-          { ...params, stream: true },
-          { ...options, __span: this.#span, signal: this.controller.signal },
-        )
-        .withResponse();
+      const { response, data: stream } = await create(
+        { ...params, stream: true },
+        { ...options, __span: this.#span, signal: this.controller.signal },
+      ).withResponse();
       try {
         this._connected(response);
       } catch (error) {
@@ -567,7 +601,12 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
       }
       case 'message_stop': {
         if (this.#client && this.#span && this.#params) {
-          recordStreamedMessageContent(this.#client, this.#span, this.#params, messageSnapshot);
+          recordStreamedMessageContent(
+            this.#client,
+            this.#span,
+            this.#spanBody ?? this.#params,
+            messageSnapshot,
+          );
         }
         // Assertion needed until the generated request and response types of `tool_listing` agree.
         this._addMessageParam(messageSnapshot as BetaMessageParam);
@@ -584,7 +623,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
       case 'message_start': {
         this.#currentMessageSnapshot = messageSnapshot;
         if (this.#span && this.#params) {
-          this.#span.streamed = { body: this.#params, message: messageSnapshot };
+          this.#span.streamed = { body: this.#spanBody ?? this.#params, message: messageSnapshot };
         }
         break;
       }

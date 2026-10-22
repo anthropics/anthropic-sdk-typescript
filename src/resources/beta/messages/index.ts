@@ -302,6 +302,7 @@ export {
   type BetaMessageDeltaUsage,
   type BetaMessageIterationUsage,
   type BetaMessageParam,
+  type BetaMessageThreadParam,
   type BetaMessageTokensCount,
   type BetaMetadata,
   type BetaOutputConfig,
@@ -372,6 +373,8 @@ export {
   type BetaThinkingMismatchAllowedInputTransformation,
   type BetaThinkingPrefixMismatchBehavior,
   type BetaThinkingTurns,
+  type BetaThreadContinueParams,
+  type BetaThreadCreateParams,
   type BetaTokenTaskBudget,
   type BetaTool,
   type BetaToolBash20241022,
@@ -507,6 +510,14 @@ export {
   type BetaToolResultContentBlockParam,
 } from './messages';
 export { BetaToolRunner, type BetaToolRunnerParams, ToolError } from './messages';
+export {
+  BetaMessageThread,
+  type BetaMessageThreadCreateParams,
+  type BetaMessageThreadRequestOptions,
+  type BetaMessageThreadSendParams,
+  type BetaMessageThreadToolRunnerParams,
+  type UnsupportedRequestBehavior,
+} from './messages';
 export {
   Batches,
   type BetaDeletedMessageBatch,

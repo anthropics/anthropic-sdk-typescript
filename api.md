@@ -1179,6 +1179,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageDeltaUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageIterationUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageThreadParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageTokensCount</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMetadata</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaOutputConfig</a></code>
@@ -1249,6 +1250,8 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingMismatchAllowedInputTransformation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingPrefixMismatchBehavior</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingTurns</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThreadContinueParams</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThreadCreateParams</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTokenTaskBudget</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTool</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolBash20241022</a></code>

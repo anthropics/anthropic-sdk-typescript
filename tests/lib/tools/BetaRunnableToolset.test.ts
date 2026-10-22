@@ -558,7 +558,7 @@ describe('BetaRunnableToolset', () => {
     it('setMessagesParams can swap the toolset: the new one is sent, and its calls run on it', async () => {
       const { toolset, calls } = echoBrowserToolset();
       const other = echoBrowserToolset();
-      const { runner, respondWith, requests } = setupRunner([toolset]);
+      const { runner, respondWith, requests } = setupRunner([toolset], { thread: false });
       respondWith(toolUse('navigate', { url: 'a' }, 'toolu_1'));
       respondWith(
         toolUse('navigate', { url: 'b' }, 'toolu_2'),
@@ -570,7 +570,11 @@ describe('BetaRunnableToolset', () => {
         turns += 1;
         await runner.generateToolResponse();
         if (turns === 1) {
-          runner.setMessagesParams((p) => ({ ...p, tools: [other.toolset, customNavigate] }));
+          runner.setMessagesParams((p) => ({
+            ...p,
+            messages: p.messages.slice(0, -1),
+            tools: [other.toolset, customNavigate],
+          }));
         }
       }
       expect(requests.map(({ body }) => body.tools.length)).toEqual([1, 2, 2]);

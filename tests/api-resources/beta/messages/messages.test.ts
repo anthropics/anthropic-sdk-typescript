@@ -102,6 +102,7 @@ describe('resource messages', () => {
         block_binding: { prefix_mismatch_behavior: 'error' },
         display: 'summarized',
       },
+      thread: { type: 'create' },
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
         {

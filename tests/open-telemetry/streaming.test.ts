@@ -889,4 +889,67 @@ describe('OpenTelemetry spans', () => {
     expect(span.status.code).toBe(SpanStatusCode.OK);
     expect(span.attributes['anthropic.message.stop_reason']).toBe('end_turn');
   });
+
+  describe('the stream of a message thread', () => {
+    const contentOf = (name: string) =>
+      spans('anthropic.messages.create').map((span) => JSON.parse(String(span.attributes[name] ?? null)));
+    const roles = (messages: Array<{ role: string }>) => messages.map((message) => message.role);
+
+    test('a turn that is sent again has a span for each request, and the reply on the last', async () => {
+      const unsupported = {
+        type: 'error',
+        error: {
+          type: 'invalid_request_error',
+          message: 'This request cannot be used with `thread`.',
+          details: { error_code: 'thread_unsupported_request', unsupported: ['example'] },
+        },
+      };
+      const { client } = makeClient([json(unsupported, 400), sse(STREAM_EVENTS)], {
+        openTelemetry: { traces: { contentMode: 'content' } },
+      });
+      const thread = client.beta.messages.thread({
+        ...PARAMS,
+        unsupportedRequestBehavior: 'continue_unthreaded',
+      });
+
+      await thread.stream().finalMessage();
+
+      expect(spans('anthropic.messages.create').map((span) => span.attributes['error.type'])).toEqual([
+        'invalid_request_error',
+        undefined,
+      ]);
+      expect(contentOf('gen_ai.output.messages')).toEqual([
+        null,
+        [{ role: 'assistant', parts: [{ type: 'text', content: 'hello' }] }],
+      ]);
+      expect([...openSpans.values()]).toEqual([]);
+    });
+
+    test('content over the size limit still describes the messages a `continue` sent', async () => {
+      const { client, requests } = makeClient([sse(STREAM_EVENTS), sse(STREAM_EVENTS)], {
+        openTelemetry: { traces: { contentMode: 'content', maxContentBytes: 150 } },
+      });
+      const thread = client.beta.messages.thread(PARAMS);
+
+      await thread.stream().finalMessage();
+      await thread.stream({ role: 'user', content: 'And then?' }).finalMessage();
+
+      expect(requests[1]!.body.thread).toEqual({ type: 'continue', previous_message_id: 'msg_1' });
+      expect(contentOf('gen_ai.input.messages').map(roles)).toEqual([['user'], ['user']]);
+      expect(contentOf('gen_ai.output.messages').map(roles)).toEqual([['assistant'], ['assistant']]);
+    });
+
+    test('a listener that throws fails the span', async () => {
+      const { client } = makeClient([sse(STREAM_EVENTS)]);
+
+      const stream = client.beta.messages.thread(PARAMS).stream();
+      stream.on('text', () => {
+        throw new Error('listener failed');
+      });
+      await expect(stream.finalMessage()).rejects.toThrow('listener failed');
+
+      await vi.waitFor(() => expect([...openSpans.values()]).toEqual([]));
+      expect(onlySpan('anthropic.messages.create').attributes['error.type']).toBe('client_error');
+    });
+  });
 });

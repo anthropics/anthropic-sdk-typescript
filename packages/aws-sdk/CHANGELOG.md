@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v1.0.0...aws-sdk-v1.1.0) (2026-10-22)
+
+### Features
+
+* **api:** add support for message threads
+
 ## [1.0.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.9.0...aws-sdk-v1.0.0) (2026-10-21)
 
 ### ⚠ BREAKING CHANGES

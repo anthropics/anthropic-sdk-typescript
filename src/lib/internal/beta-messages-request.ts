@@ -61,12 +61,7 @@ export function transformOutputFormat<T extends MessageCreateParams | MessageCou
     return params;
   }
 
-  if (params.output_config?.format) {
-    throw new AnthropicError(
-      'Both output_format and output_config.format were provided. ' +
-        'Please use only output_config.format (output_format is deprecated).',
-    );
-  }
+  assertOneOutputFormat(params);
 
   const { output_format, ...rest } = params;
 
@@ -77,4 +72,17 @@ export function transformOutputFormat<T extends MessageCreateParams | MessageCou
       format: output_format,
     },
   } as T;
+}
+
+/** Reject params that pass both `output_format` and `output_config.format`. */
+export function assertOneOutputFormat(params: {
+  output_format?: unknown;
+  output_config?: { format?: unknown } | null | undefined;
+}): void {
+  if (params.output_format && params.output_config?.format) {
+    throw new AnthropicError(
+      'Both output_format and output_config.format were provided. ' +
+        'Please use only output_config.format (output_format is deprecated).',
+    );
+  }
 }

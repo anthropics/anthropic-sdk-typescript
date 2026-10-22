@@ -1359,6 +1359,13 @@ export class BaseAnthropic {
     return url.toString();
   }
 
+  /**
+   * Whether this client talks to a surface that holds message threads. `client.beta.messages.thread()` throws where
+   * this is false, and `client.beta.messages.toolRunner()` sends the full history every turn.
+   * @internal
+   */
+  _supportsMessageThreads: boolean = false;
+
   _calculateNonstreamingTimeout(maxTokens: number): number {
     const defaultTimeout = 10 * 60;
     const expectedTimeout = (60 * 60 * maxTokens) / 128_000;
@@ -2108,6 +2115,9 @@ export class BaseAnthropic {
  * API Client for interfacing with the Anthropic API.
  */
 export class Anthropic extends BaseAnthropic {
+  /** @internal */
+  override _supportsMessageThreads: boolean = true;
+
   messages: API.Messages = new API.Messages(this);
   models: API.Models = new API.Models(this);
   files: API.Files = new API.Files(this);

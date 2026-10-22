@@ -690,7 +690,7 @@ describe('deferToolCall()', () => {
   });
 
   it('keeps a held call from running when the caller takes over the reply', async () => {
-    // After pushMessages() the runner sends the caller's history, not this reply's results.
+    // The reply is in the history as soon as it arrives, so the caller takes over by replacing it.
     const { runner, timeline, requests } = setup([reply(call('a'), call('b')), done()]);
 
     let replies = 0;
@@ -699,7 +699,12 @@ describe('deferToolCall()', () => {
         if (block.type === 'tool_use') runner.deferToolCall(block);
       });
       await stream.finalMessage();
-      if (replies++ === 0) runner.pushMessages({ role: 'user', content: 'Never mind.' });
+      if (replies++ === 0) {
+        runner.setMessagesParams((params) => ({
+          ...params,
+          messages: [...params.messages.slice(0, -1), { role: 'user', content: 'Never mind.' }],
+        }));
+      }
     }
 
     expect(timeline).toEqual(['request 2']);
@@ -712,7 +717,9 @@ describe('deferToolCall()', () => {
   it('lets a tool change the params from run() without the runner dropping the reply', async () => {
     // A call that starts while the caller is still handling the reply changes the params before the runner
     // has appended the reply, which the runner takes for the caller taking over the history.
+    // `thread: false` so the follow-up carries the full history rather than a thread delta
     const test = setup([reply(call('a')), done()], {
+      thread: false,
       lookup: async (key) => {
         test.runner.setMessagesParams((params) => ({ ...params, max_tokens: 2048 }));
         return `value of ${key}`;
@@ -1385,11 +1392,15 @@ describe('a toolset call', () => {
       { extraTools: (timeline) => [slowBrowserToolset(timeline)] },
     );
 
+    // The reply is in the history as soon as it arrives, so the caller takes over by replacing it.
     let first = true;
     for await (const stream of runner) {
       await stream.finalMessage();
       if (first) {
-        runner.pushMessages({ role: 'user', content: 'Never mind.' });
+        runner.setMessagesParams((params) => ({
+          ...params,
+          messages: [...params.messages.slice(0, -1), { role: 'user', content: 'Never mind.' }],
+        }));
         timeline.push('caller takes over');
         // navigate ends while the loop body is still running.
         await new Promise((resolve) => setTimeout(resolve, 50));
@@ -1815,6 +1826,7 @@ type Options = {
   /** Tools that go into the request after `lookup`. */
   extraTools?: (timeline: string[]) => Array<BetaRunnableTool<any> | BetaRunnableToolset>;
   messages?: BetaMessageParam[];
+  thread?: false;
 };
 
 /**
@@ -1879,6 +1891,7 @@ function fixture(replies: CannedReply[], stream: boolean, options: Options) {
     max_tokens: 1024,
     messages: options.messages ?? [{ role: 'user' as const, content: 'Look these up.' }],
     tools: [lookup, ...(options.extraTools?.(timeline) ?? [])],
+    ...(options.thread === false && { thread: options.thread }),
   };
   const requestOptions = options.signal ? { signal: options.signal } : undefined;
   const labelOf = eventLabeler();
