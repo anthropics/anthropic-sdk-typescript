@@ -28,11 +28,12 @@ export class Skills extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaAnalyticsSkillActivitiesPageCursor, AnalyticsAPI.BetaAnalyticsSkillActivity> {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/skills?beta=true',
+      '/v1/organizations/analytics/skills',
       PageCursor<AnalyticsAPI.BetaAnalyticsSkillActivity>,
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.analytics.skills.list', options, {
           route: '/v1/organizations/analytics/skills',
           queryParams: [

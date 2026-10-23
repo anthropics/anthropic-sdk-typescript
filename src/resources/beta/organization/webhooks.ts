@@ -41,13 +41,14 @@ export class Webhooks extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaNewOrganizationWebhookEndpoint> {
     const { betas, ...body } = params;
-    return this._client.post('/v1/organizations/webhooks?beta=true', {
+    return this._client.post('/v1/organizations/webhooks', {
       body,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'webhooks-2026-10-07'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.webhooks.create', options, {
         route: '/v1/organizations/webhooks',
         createdIDAttribute: 'anthropic.organization.webhook.id',
@@ -79,12 +80,13 @@ export class Webhooks extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaOrganizationWebhookEndpoint> {
     const { betas } = params ?? {};
-    return this._client.get(path`/v1/organizations/webhooks/${webhookEndpointID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/webhooks/${webhookEndpointID}`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'webhooks-2026-10-07'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.webhooks.retrieve', options, {
         route: '/v1/organizations/webhooks/{webhook_endpoint_id}',
         attributes: { 'anthropic.organization.webhook.id': webhookEndpointID },
@@ -116,13 +118,14 @@ export class Webhooks extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaOrganizationWebhookEndpoint> {
     const { betas, ...body } = params;
-    return this._client.post(path`/v1/organizations/webhooks/${webhookEndpointID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/webhooks/${webhookEndpointID}`, {
       body,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'webhooks-2026-10-07'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.webhooks.update', options, {
         route: '/v1/organizations/webhooks/{webhook_endpoint_id}',
         attributes: { 'anthropic.organization.webhook.id': webhookEndpointID },
@@ -157,22 +160,19 @@ export class Webhooks extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaOrganizationWebhookEndpointsPage, BetaOrganizationWebhookEndpoint> {
     const { betas, ...query } = params ?? {};
-    return this._client.getAPIList(
-      '/v1/organizations/webhooks?beta=true',
-      Page<BetaOrganizationWebhookEndpoint>,
-      {
-        query,
-        ...options,
-        headers: buildHeaders([
-          { 'anthropic-beta': [...(betas ?? []), 'webhooks-2026-10-07'].toString() },
-          options?.headers,
-        ]),
-        __span: startApiCallSpan(this._client, 'anthropic.organization.webhooks.list', options, {
-          route: '/v1/organizations/webhooks',
-          queryParams: ['after_id', 'before_id', 'limit', 'order'],
-        }),
-      },
-    );
+    return this._client.getAPIList('/v1/organizations/webhooks', Page<BetaOrganizationWebhookEndpoint>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'webhooks-2026-10-07'].toString() },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.webhooks.list', options, {
+        route: '/v1/organizations/webhooks',
+        queryParams: ['after_id', 'before_id', 'limit', 'order'],
+      }),
+    });
   }
 
   /**
@@ -199,12 +199,13 @@ export class Webhooks extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedOrganizationWebhookEndpoint> {
     const { betas } = params ?? {};
-    return this._client.delete(path`/v1/organizations/webhooks/${webhookEndpointID}?beta=true`, {
+    return this._client.delete(path`/v1/organizations/webhooks/${webhookEndpointID}`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'webhooks-2026-10-07'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.webhooks.delete', options, {
         route: '/v1/organizations/webhooks/{webhook_endpoint_id}',
         attributes: { 'anthropic.organization.webhook.id': webhookEndpointID },
@@ -238,13 +239,14 @@ export class Webhooks extends APIResource {
   ): APIPromise<BetaOrganizationWebhookEndpointSigningSecret> {
     const { betas } = params ?? {};
     return this._client.post(
-      path`/v1/organizations/webhooks/${webhookEndpointID}/regenerate_signing_secret?beta=true`,
+      path`/v1/organizations/webhooks/${webhookEndpointID}/regenerate_signing_secret`,
       {
         ...options,
         headers: buildHeaders([
           { 'anthropic-beta': [...(betas ?? []), 'webhooks-2026-10-07'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.webhooks.regenerate_signing_secret',

@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.3.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.2.0...sdk-v1.3.0) (2026-10-23)
+
+### Features
+
+* **api:** add Claude Tag endpoints for Claude Enterprise organizations
+
+
+### Bug Fixes
+
+* **client:** link the long-request error messages to the SDK documentation
+
+
+### Chores
+
+* **client:** stop sending query params hardcoded in endpoint paths
+* **docs:** improve the descriptions of the code execution tool and its encrypted results
+* **docs:** reword work queue, skill and external key descriptions
+* **docs:** update descriptions of the per-user usage and cost reports
+* **internal:** carry endpoint path query params to the request layer
+* **internal:** check the repository by owner and public name in workflows
+* **internal:** read the beta route qualifier instead of the beta=true query
+* **internal:** remove preview build upload from CI
+* **internal:** stop expecting the beta query param in tests
+
+
+### Documentation
+
+* update the README and the example request
+
 ## [1.2.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.1.0...sdk-v1.2.0) (2026-10-23)
 
 ### Features

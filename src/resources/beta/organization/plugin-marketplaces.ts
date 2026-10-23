@@ -39,13 +39,14 @@ export class PluginMarketplaces extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaPluginMarketplace> {
     const { betas, ...query } = params ?? {};
-    return this._client.get(path`/v1/organizations/plugin_marketplaces/${marketplaceID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/plugin_marketplaces/${marketplaceID}`, {
       query,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.plugin_marketplaces.retrieve', options, {
         route: '/v1/organizations/plugin_marketplaces/{marketplace_id}',
         queryParams: ['organization_id'],
@@ -86,13 +87,14 @@ export class PluginMarketplaces extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaPluginMarketplace> {
     const { betas, ...body } = params;
-    return this._client.post(path`/v1/organizations/plugin_marketplaces/${marketplaceID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/plugin_marketplaces/${marketplaceID}`, {
       body,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.plugin_marketplaces.update', options, {
         route: '/v1/organizations/plugin_marketplaces/{marketplace_id}',
         attributes: { 'anthropic.organization.plugin_marketplace.id': marketplaceID },
@@ -135,7 +137,7 @@ export class PluginMarketplaces extends APIResource {
   ): PagePromise<BetaPluginMarketplacesPageCursor, BetaPluginMarketplace> {
     const { betas, ...query } = params ?? {};
     return this._client.getAPIList(
-      '/v1/organizations/plugin_marketplaces?beta=true',
+      '/v1/organizations/plugin_marketplaces',
       PageCursor<BetaPluginMarketplace>,
       {
         query,
@@ -144,6 +146,7 @@ export class PluginMarketplaces extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.plugin_marketplaces.list', options, {
           route: '/v1/organizations/plugin_marketplaces',
           queryParams: ['limit', 'organization_id', 'owner_type', 'page', 'source'],
@@ -199,7 +202,7 @@ export class PluginMarketplaces extends APIResource {
   ): APIPromise<BetaPluginMarketplaceValidationReport> {
     const { betas, ...body } = params;
     return this._client.post(
-      '/v1/organizations/plugin_marketplaces/validate_archive?beta=true',
+      '/v1/organizations/plugin_marketplaces/validate_archive',
       multipartFormRequestOptions(
         {
           body,
@@ -208,6 +211,7 @@ export class PluginMarketplaces extends APIResource {
             { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
             options?.headers,
           ]),
+          __qualifiers: { beta: 'true' },
           __span: startApiCallSpan(
             this._client,
             'anthropic.organization.plugin_marketplaces.validate_archive',
@@ -269,13 +273,14 @@ export class PluginMarketplaces extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaPluginMarketplaceValidationReport> {
     const { betas, ...body } = params;
-    return this._client.post('/v1/organizations/plugin_marketplaces/validate_repository?beta=true', {
+    return this._client.post('/v1/organizations/plugin_marketplaces/validate_repository', {
       body,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(
         this._client,
         'anthropic.organization.plugin_marketplaces.validate_repository',

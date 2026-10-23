@@ -37,7 +37,7 @@ export class Skills extends APIResource {
   create(params: SkillCreateParams, options?: RequestOptions): APIPromise<BetaSkill> {
     const { betas, workspace_id, ...body } = params;
     return this._client.post(
-      '/v1/skills?beta=true',
+      '/v1/skills',
       multipartFormRequestOptions(
         {
           body,
@@ -49,6 +49,7 @@ export class Skills extends APIResource {
             },
             options?.headers,
           ]),
+          __qualifiers: { beta: 'true' },
           __span: startApiCallSpan(this._client, 'anthropic.skills.create', options, {
             route: '/v1/skills',
             createdIDAttribute: 'anthropic.skill.id',
@@ -76,7 +77,7 @@ export class Skills extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaSkill> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/skills/${skillID}?beta=true`, {
+    return this._client.get(path`/v1/skills/${skillID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -85,6 +86,7 @@ export class Skills extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.skills.retrieve', options, {
         route: '/v1/skills/{skill_id}',
         attributes: { 'anthropic.skill.id': skillID },
@@ -108,7 +110,7 @@ export class Skills extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaSkillsPageCursor, BetaSkill> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/skills?beta=true', PageCursor<BetaSkill>, {
+    return this._client.getAPIList('/v1/skills', PageCursor<BetaSkill>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -118,6 +120,7 @@ export class Skills extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.skills.list', options, {
         route: '/v1/skills',
         queryParams: ['limit', 'page', 'source'],
@@ -141,7 +144,7 @@ export class Skills extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedSkill> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.delete(path`/v1/skills/${skillID}?beta=true`, {
+    return this._client.delete(path`/v1/skills/${skillID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -150,6 +153,7 @@ export class Skills extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.skills.delete', options, {
         route: '/v1/skills/{skill_id}',
         attributes: { 'anthropic.skill.id': skillID },

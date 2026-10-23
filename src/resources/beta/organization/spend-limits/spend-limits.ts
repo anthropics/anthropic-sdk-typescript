@@ -38,8 +38,9 @@ export class SpendLimits extends APIResource {
    * ```
    */
   retrieve(spendLimitID: string, options?: RequestOptions): APIPromise<BetaSpendLimit> {
-    return this._client.get(path`/v1/organizations/spend_limits/${spendLimitID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/spend_limits/${spendLimitID}`, {
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.spend_limits.retrieve', options, {
         route: '/v1/organizations/spend_limits/{spend_limit_id}',
         attributes: { 'anthropic.organization.spend_limit.id': spendLimitID },
@@ -70,13 +71,14 @@ export class SpendLimits extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaSpendLimitsPageCursor, BetaSpendLimit> {
     const { betas, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/organizations/spend_limits?beta=true', PageCursor<BetaSpendLimit>, {
+    return this._client.getAPIList('/v1/organizations/spend_limits', PageCursor<BetaSpendLimit>, {
       query,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'spend-limit-reads-2026-09-26'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.spend_limits.list', options, {
         route: '/v1/organizations/spend_limits',
         queryParams: ['limit', 'page', 'scope_type', 'workspace_id'],
@@ -103,8 +105,9 @@ export class SpendLimits extends APIResource {
    * ```
    */
   delete(spendLimitID: string, options?: RequestOptions): APIPromise<SpendLimitDeleteResponse> {
-    return this._client.delete(path`/v1/organizations/spend_limits/${spendLimitID}?beta=true`, {
+    return this._client.delete(path`/v1/organizations/spend_limits/${spendLimitID}`, {
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.spend_limits.delete', options, {
         route: '/v1/organizations/spend_limits/{spend_limit_id}',
         attributes: { 'anthropic.organization.spend_limit.id': spendLimitID },
@@ -136,13 +139,14 @@ export class SpendLimits extends APIResource {
    */
   set(params: SpendLimitSetParams, options?: RequestOptions): APIPromise<BetaSpendLimit> {
     const { betas, ...body } = params;
-    return this._client.post('/v1/organizations/spend_limits?beta=true', {
+    return this._client.post('/v1/organizations/spend_limits', {
       body,
       ...options,
       headers: buildHeaders([
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.spend_limits.set', options, {
         route: '/v1/organizations/spend_limits',
         createdIDAttribute: 'anthropic.organization.spend_limit.id',

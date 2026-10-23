@@ -37,7 +37,7 @@ export class Tunnels extends APIResource {
    */
   create(params: TunnelCreateParams, options?: RequestOptions): APIPromise<BetaTunnel> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post('/v1/tunnels?beta=true', {
+    return this._client.post('/v1/tunnels', {
       body,
       ...options,
       headers: buildHeaders([
@@ -47,6 +47,7 @@ export class Tunnels extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.tunnels.create', options, {
         route: '/v1/tunnels',
         createdIDAttribute: 'anthropic.tunnel.id',
@@ -75,7 +76,7 @@ export class Tunnels extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaTunnel> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/tunnels/${tunnelID}?beta=true`, {
+    return this._client.get(path`/v1/tunnels/${tunnelID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -84,6 +85,7 @@ export class Tunnels extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.tunnels.retrieve', options, {
         route: '/v1/tunnels/{tunnel_id}',
         attributes: { 'anthropic.tunnel.id': tunnelID },
@@ -113,7 +115,7 @@ export class Tunnels extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaTunnelsPageCursor, BetaTunnel> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/tunnels?beta=true', PageCursor<BetaTunnel>, {
+    return this._client.getAPIList('/v1/tunnels', PageCursor<BetaTunnel>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -123,6 +125,7 @@ export class Tunnels extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.tunnels.list', options, {
         route: '/v1/tunnels',
         queryParams: ['include_archived', 'limit', 'page'],
@@ -154,7 +157,7 @@ export class Tunnels extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaTunnel> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/tunnels/${tunnelID}/archive?beta=true`, {
+    return this._client.post(path`/v1/tunnels/${tunnelID}/archive`, {
       ...options,
       headers: buildHeaders([
         {
@@ -163,6 +166,7 @@ export class Tunnels extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.tunnels.archive', options, {
         route: '/v1/tunnels/{tunnel_id}/archive',
         attributes: { 'anthropic.tunnel.id': tunnelID },
@@ -193,7 +197,7 @@ export class Tunnels extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaTunnelToken> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/tunnels/${tunnelID}/reveal_token?beta=true`, {
+    return this._client.post(path`/v1/tunnels/${tunnelID}/reveal_token`, {
       ...options,
       headers: buildHeaders([
         {
@@ -202,6 +206,7 @@ export class Tunnels extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.tunnels.reveal_token', options, {
         route: '/v1/tunnels/{tunnel_id}/reveal_token',
         attributes: { 'anthropic.tunnel.id': tunnelID },
@@ -231,7 +236,7 @@ export class Tunnels extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaTunnelToken> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/tunnels/${tunnelID}/rotate_token?beta=true`, {
+    return this._client.post(path`/v1/tunnels/${tunnelID}/rotate_token`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -241,6 +246,7 @@ export class Tunnels extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.tunnels.rotate_token', options, {
         route: '/v1/tunnels/{tunnel_id}/rotate_token',
         attributes: { 'anthropic.tunnel.id': tunnelID },

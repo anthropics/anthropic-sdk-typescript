@@ -177,6 +177,27 @@ import {
   BetaAnalyticsUserActivity,
   BetaAnalyticsUserActor,
 } from './analytics/analytics';
+import * as ClaudeTagAPI from './claude-tag/claude-tag';
+import {
+  BetaClaudeTagDefaultSettingSource,
+  BetaClaudeTagGuestPolicy,
+  BetaClaudeTagGuestPolicyAllow,
+  BetaClaudeTagGuestPolicyChannelOnly,
+  BetaClaudeTagGuestPolicyRestrict,
+  BetaClaudeTagSettingSource,
+  BetaClaudeTagSettingSources,
+  BetaClaudeTagSettings,
+  BetaClaudeTagSettingsCreate,
+  BetaClaudeTagSettingsUpdate,
+  BetaClaudeTagSlackChannelIdentifiers,
+  BetaClaudeTagSlackChannelSettingSource,
+  BetaClaudeTagSlackDefaultSettingSource,
+  BetaClaudeTagSlackGridChannelSettingSource,
+  BetaClaudeTagSlackParentChannelSettingSource,
+  BetaClaudeTagSlackWorkspaceIdentifiers,
+  BetaClaudeTagSlackWorkspaceSettingSource,
+  ClaudeTag,
+} from './claude-tag/claude-tag';
 import * as FederationAPI from './federation/federation';
 import { Federation } from './federation/federation';
 import * as PluginsAPI from './plugins/plugins';
@@ -332,6 +353,7 @@ export class Organization extends APIResource {
   telemetryDestinations: TelemetryDestinationsAPI.TelemetryDestinations =
     new TelemetryDestinationsAPI.TelemetryDestinations(this._client);
   webhooks: WebhooksAPI.Webhooks = new WebhooksAPI.Webhooks(this._client);
+  claudeTag: ClaudeTagAPI.ClaudeTag = new ClaudeTagAPI.ClaudeTag(this._client);
 
   /**
    * Retrieve information about the organization associated with the authenticated
@@ -344,8 +366,9 @@ export class Organization extends APIResource {
    * ```
    */
   retrieve(options?: RequestOptions): APIPromise<BetaOrganization> {
-    return this._client.get('/v1/organizations/me?beta=true', {
+    return this._client.get('/v1/organizations/me', {
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.retrieve', options, {
         route: '/v1/organizations/me',
       }),
@@ -400,6 +423,7 @@ Organization.Plugins = Plugins;
 Organization.PluginMarketplaces = PluginMarketplaces;
 Organization.TelemetryDestinations = TelemetryDestinations;
 Organization.Webhooks = Webhooks;
+Organization.ClaudeTag = ClaudeTag;
 
 export declare namespace Organization {
   export { type BetaOrganization as BetaOrganization, type BetaOrganizationRole as BetaOrganizationRole };
@@ -708,5 +732,26 @@ export declare namespace Organization {
     type WebhookListParams as WebhookListParams,
     type WebhookDeleteParams as WebhookDeleteParams,
     type WebhookRegenerateSigningSecretParams as WebhookRegenerateSigningSecretParams,
+  };
+
+  export {
+    ClaudeTag as ClaudeTag,
+    type BetaClaudeTagDefaultSettingSource as BetaClaudeTagDefaultSettingSource,
+    type BetaClaudeTagGuestPolicy as BetaClaudeTagGuestPolicy,
+    type BetaClaudeTagGuestPolicyAllow as BetaClaudeTagGuestPolicyAllow,
+    type BetaClaudeTagGuestPolicyChannelOnly as BetaClaudeTagGuestPolicyChannelOnly,
+    type BetaClaudeTagGuestPolicyRestrict as BetaClaudeTagGuestPolicyRestrict,
+    type BetaClaudeTagSettingSource as BetaClaudeTagSettingSource,
+    type BetaClaudeTagSettingSources as BetaClaudeTagSettingSources,
+    type BetaClaudeTagSettings as BetaClaudeTagSettings,
+    type BetaClaudeTagSettingsCreate as BetaClaudeTagSettingsCreate,
+    type BetaClaudeTagSettingsUpdate as BetaClaudeTagSettingsUpdate,
+    type BetaClaudeTagSlackChannelIdentifiers as BetaClaudeTagSlackChannelIdentifiers,
+    type BetaClaudeTagSlackChannelSettingSource as BetaClaudeTagSlackChannelSettingSource,
+    type BetaClaudeTagSlackDefaultSettingSource as BetaClaudeTagSlackDefaultSettingSource,
+    type BetaClaudeTagSlackGridChannelSettingSource as BetaClaudeTagSlackGridChannelSettingSource,
+    type BetaClaudeTagSlackParentChannelSettingSource as BetaClaudeTagSlackParentChannelSettingSource,
+    type BetaClaudeTagSlackWorkspaceIdentifiers as BetaClaudeTagSlackWorkspaceIdentifiers,
+    type BetaClaudeTagSlackWorkspaceSettingSource as BetaClaudeTagSlackWorkspaceSettingSource,
   };
 }

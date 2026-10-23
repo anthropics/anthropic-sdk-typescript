@@ -622,10 +622,111 @@ describe('AnthropicGoogleCloud', () => {
 
       await client.beta.organization.workspaces.list();
 
-      expect(requestedURLs()).toEqual([`${ORGANIZATION_BASE_URL}/v1/organizations/workspaces?beta=true`]);
+      expect(requestedURLs()).toEqual([`${ORGANIZATION_BASE_URL}/v1/organizations/workspaces`]);
       const headers = getRequestHeaders();
       expect(headers.get('authorization')).toBe('Bearer my-google-token');
       expect(headers.get('anthropic-workspace-id')).toBeNull();
+    });
+
+    const PROFILES_URL = `${ORGANIZATION_BASE_URL}/v1/user_profiles`;
+
+    const userProfileCases: Array<
+      [string, (client: AnthropicGoogleCloud) => PromiseLike<unknown>, string, string]
+    > = [
+      ['create', (client) => client.userProfiles.create({}), 'POST', PROFILES_URL],
+      [
+        'retrieve',
+        (client) => client.userProfiles.retrieve('uprof_fake'),
+        'GET',
+        `${PROFILES_URL}/uprof_fake`,
+      ],
+      [
+        'update',
+        (client) => client.userProfiles.update('uprof_fake', { metadata: { key: 'value' } }),
+        'POST',
+        `${PROFILES_URL}/uprof_fake`,
+      ],
+      ['list', (client) => client.userProfiles.list(), 'GET', PROFILES_URL],
+      [
+        'list with a query',
+        (client) => client.userProfiles.list({ limit: 1 }),
+        'GET',
+        `${PROFILES_URL}?limit=1`,
+      ],
+      [
+        'delete',
+        (client) => client.userProfiles.delete('uprof_fake'),
+        'DELETE',
+        `${PROFILES_URL}/uprof_fake`,
+      ],
+      ['beta list', (client) => client.beta.userProfiles.list(), 'GET', PROFILES_URL],
+      [
+        'beta retrieve',
+        (client) => client.beta.userProfiles.retrieve('uprof_fake'),
+        'GET',
+        `${PROFILES_URL}/uprof_fake`,
+      ],
+      [
+        'actionURLs create',
+        (client) =>
+          client.userProfiles.actionURLs.create('uprof_fake', { action: { type: 'enroll_end_user' } }),
+        'POST',
+        `${PROFILES_URL}/uprof_fake/action_urls`,
+      ],
+      [
+        'beta actionURLs create',
+        (client) =>
+          client.beta.userProfiles.actionURLs.create('uprof_fake', { action: { type: 'enroll_end_user' } }),
+        'POST',
+        `${PROFILES_URL}/uprof_fake/action_urls`,
+      ],
+      [
+        'beta createEnrollmentURL',
+        (client) => client.beta.userProfiles.createEnrollmentURL('uprof_fake'),
+        'POST',
+        `${PROFILES_URL}/uprof_fake/enrollment_url`,
+      ],
+    ];
+
+    describe.each([
+      ['with a workspace ID', 'wrkspc_test'],
+      ['without a workspace ID', undefined],
+    ])('user profile routes %s', (_, workspaceId) => {
+      test.each(userProfileCases)('%s goes to the organization base', async (_name, send, method, url) => {
+        const client = new AnthropicGoogleCloud({
+          project: 'my-project',
+          location: 'us-central1',
+          workspaceId,
+          bearerTokenProvider: async () => 'my-google-token',
+          maxRetries: 0,
+        });
+
+        await send(client);
+
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+        const [requestURL, requestInit] = mockFetch.mock.calls[0]!;
+        expect(requestURL).toBe(url);
+        expect(requestInit.method.toUpperCase()).toBe(method);
+        const headers = getRequestHeaders();
+        expect(headers.get('authorization')).toBe('Bearer my-google-token');
+        expect(headers.get('anthropic-workspace-id')).toBeNull();
+      });
+    });
+
+    test('a path that only starts like a user profile route keeps the workspace base', async () => {
+      const client = new AnthropicGoogleCloud({
+        project: 'my-project',
+        location: 'us-central1',
+        workspaceId: 'wrkspc_test',
+        bearerTokenProvider: async () => 'my-google-token',
+        maxRetries: 0,
+      });
+
+      await client.get('/v1/user_profiles_export');
+
+      expect(requestedURLs()).toEqual([
+        'https://claude.googleapis.com/v1/projects/my-project/locations/us-central1/workspaces/wrkspc_test/invoke/v1/user_profiles_export',
+      ]);
     });
 
     test('every other route keeps the workspace base', async () => {
@@ -661,7 +762,7 @@ describe('AnthropicGoogleCloud', () => {
 
       await client.beta.organization.workspaces.list();
 
-      expect(requestedURLs()).toEqual([`${ORGANIZATION_BASE_URL}/v1/organizations/workspaces?beta=true`]);
+      expect(requestedURLs()).toEqual([`${ORGANIZATION_BASE_URL}/v1/organizations/workspaces`]);
     });
 
     test.each([
@@ -708,10 +809,12 @@ describe('AnthropicGoogleCloud', () => {
       const client = makeClient();
 
       await client.beta.organization.workspaces.list();
+      await client.userProfiles.list();
       await makeRequest(client);
 
       expect(requestedURLs()).toEqual([
-        'https://gw.example.com/v1/organizations/workspaces?beta=true',
+        'https://gw.example.com/v1/organizations/workspaces',
+        'https://gw.example.com/v1/user_profiles',
         'https://gw.example.com/v1/messages',
       ]);
     });
@@ -736,7 +839,7 @@ describe('AnthropicGoogleCloud', () => {
           await client.beta.organization.workspaces.list();
 
           expect(client.project).toBe('my-project');
-          expect(requestedURLs()).toEqual([`${ORGANIZATION_BASE_URL}/v1/organizations/workspaces?beta=true`]);
+          expect(requestedURLs()).toEqual([`${ORGANIZATION_BASE_URL}/v1/organizations/workspaces`]);
           expect(getRequestHeaders().get('authorization')).toBe('Bearer adc-token');
         },
       );
@@ -770,7 +873,7 @@ describe('AnthropicGoogleCloud', () => {
         await makeRequest(client);
 
         expect(requestedURLs()).toEqual([
-          'https://gw.example.com/v1/organizations/workspaces?beta=true',
+          'https://gw.example.com/v1/organizations/workspaces',
           'https://gw.example.com/v1/messages',
         ]);
       });
@@ -791,7 +894,7 @@ describe('AnthropicGoogleCloud', () => {
         await makeRequest(clone);
 
         expect(requestedURLs()).toEqual([
-          'https://claude.googleapis.com/v1/projects/my-project/locations/europe-west4/claudeOrganization/invoke/v1/organizations/workspaces?beta=true',
+          'https://claude.googleapis.com/v1/projects/my-project/locations/europe-west4/claudeOrganization/invoke/v1/organizations/workspaces',
           'https://claude.googleapis.com/v1/projects/my-project/locations/europe-west4/workspaces/wrkspc_test/invoke/v1/messages',
         ]);
         expect(getRequestHeaders().get('authorization')).toBe('Bearer my-google-token');
@@ -808,7 +911,7 @@ describe('AnthropicGoogleCloud', () => {
         const clone = client.withOptions({ timeout: 1234 });
         await clone.beta.organization.workspaces.list();
 
-        expect(requestedURLs()).toEqual([`${ORGANIZATION_BASE_URL}/v1/organizations/workspaces?beta=true`]);
+        expect(requestedURLs()).toEqual([`${ORGANIZATION_BASE_URL}/v1/organizations/workspaces`]);
         await expect(makeRequest(clone)).rejects.toThrow('No workspace ID found');
         expect(mockFetch).toHaveBeenCalledTimes(1);
       });
@@ -848,7 +951,7 @@ describe('AnthropicGoogleCloud', () => {
           await makeRequest(clone);
 
           expect(requestedURLs()).toEqual([
-            'https://gw.example.com/v1/organizations/workspaces?beta=true',
+            'https://gw.example.com/v1/organizations/workspaces',
             'https://gw.example.com/v1/messages',
           ]);
         }

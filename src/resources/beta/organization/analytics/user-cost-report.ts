@@ -12,9 +12,9 @@ export class UserCostReport extends APIResource {
    * Returns cost per user, ranked by spend; `group_by[]` or `bucket_width` splits a
    * user across several rows. Use this to see which users account for the most cost.
    * Only cost attributed to a user account is included; cost with no user attributed
-   * to it, such as requests attributed only to an API key, is left out. Available to
-   * organizations on a Claude Enterprise plan. Requires an API key with the
-   * `read:analytics` scope.
+   * to it, such as Code Review usage and Claude Tag usage in Slack channels, is left
+   * out. Available to organizations on a Claude Enterprise plan. Requires an API key
+   * with the `read:analytics` scope.
    *
    * This endpoint is one of the legacy Claude Enterprise usage and cost reports. For
    * new integrations, use
@@ -38,11 +38,12 @@ export class UserCostReport extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaAnalyticsCostUsersItemsReportPageCursor, AnalyticsAPI.BetaAnalyticsCostUsersItem> {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/user_cost_report?beta=true',
+      '/v1/organizations/analytics/user_cost_report',
       ReportPageCursor<AnalyticsAPI.BetaAnalyticsCostUsersItem>,
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.analytics.user_cost_report.list',

@@ -94,6 +94,26 @@ export {
   type BetaAnalyticsCostUsersItemsReportPageCursor,
 } from './analytics/index';
 export {
+  ClaudeTag,
+  type BetaClaudeTagDefaultSettingSource,
+  type BetaClaudeTagGuestPolicy,
+  type BetaClaudeTagGuestPolicyAllow,
+  type BetaClaudeTagGuestPolicyChannelOnly,
+  type BetaClaudeTagGuestPolicyRestrict,
+  type BetaClaudeTagSettingSource,
+  type BetaClaudeTagSettingSources,
+  type BetaClaudeTagSettings,
+  type BetaClaudeTagSettingsCreate,
+  type BetaClaudeTagSettingsUpdate,
+  type BetaClaudeTagSlackChannelIdentifiers,
+  type BetaClaudeTagSlackChannelSettingSource,
+  type BetaClaudeTagSlackDefaultSettingSource,
+  type BetaClaudeTagSlackGridChannelSettingSource,
+  type BetaClaudeTagSlackParentChannelSettingSource,
+  type BetaClaudeTagSlackWorkspaceIdentifiers,
+  type BetaClaudeTagSlackWorkspaceSettingSource,
+} from './claude-tag/index';
+export {
   ComplianceSettings,
   type BetaComplianceSettings,
   type BetaComplianceSettingsState,

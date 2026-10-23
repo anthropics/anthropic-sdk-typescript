@@ -43,7 +43,7 @@ export class Batches extends APIResource {
    */
   create(params: BatchCreateParams, options?: RequestOptions): APIPromise<BetaMessageBatch> {
     const { betas, user_profile_id, workspace_id, ...body } = params;
-    return this._client.post('/v1/messages/batches?beta=true', {
+    return this._client.post('/v1/messages/batches', {
       body,
       ...options,
       headers: buildHeaders([
@@ -54,6 +54,7 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.messages.batches.create', options, {
         route: '/v1/messages/batches',
         // A request without `requests` is for the API to refuse, not for this line to throw on.
@@ -85,7 +86,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaMessageBatch> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/messages/batches/${messageBatchID}?beta=true`, {
+    return this._client.get(path`/v1/messages/batches/${messageBatchID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -94,6 +95,7 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.messages.batches.retrieve', options, {
         route: '/v1/messages/batches/{message_batch_id}',
         attributes: { 'anthropic.message.batch.id': messageBatchID },
@@ -121,7 +123,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaMessageBatchesPage, BetaMessageBatch> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/messages/batches?beta=true', Page<BetaMessageBatch>, {
+    return this._client.getAPIList('/v1/messages/batches', Page<BetaMessageBatch>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -131,6 +133,7 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.messages.batches.list', options, {
         route: '/v1/messages/batches',
         queryParams: ['after_id', 'before_id', 'limit'],
@@ -161,7 +164,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedMessageBatch> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.delete(path`/v1/messages/batches/${messageBatchID}?beta=true`, {
+    return this._client.delete(path`/v1/messages/batches/${messageBatchID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -170,6 +173,7 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.messages.batches.delete', options, {
         route: '/v1/messages/batches/{message_batch_id}',
         attributes: { 'anthropic.message.batch.id': messageBatchID },
@@ -205,7 +209,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaMessageBatch> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel?beta=true`, {
+    return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel`, {
       ...options,
       headers: buildHeaders([
         {
@@ -214,6 +218,7 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.messages.batches.cancel', options, {
         route: '/v1/messages/batches/{message_batch_id}/cancel',
         attributes: { 'anthropic.message.batch.id': messageBatchID },
@@ -266,6 +271,7 @@ export class Batches extends APIResource {
           options?.headers,
         ]),
         stream: true,
+        __qualifiers: { beta: 'true' },
         __binaryResponse: true,
         __span: startApiCallSpan(this._client, 'anthropic.messages.batches.results', options, {
           route: '/v1/messages/batches/{message_batch_id}/results',

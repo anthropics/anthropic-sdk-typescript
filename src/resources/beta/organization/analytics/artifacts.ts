@@ -29,11 +29,12 @@ export class Artifacts extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaAnalyticsArtifactActivitiesPageCursor, AnalyticsAPI.BetaAnalyticsArtifactActivity> {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/artifacts?beta=true',
+      '/v1/organizations/analytics/artifacts',
       PageCursor<AnalyticsAPI.BetaAnalyticsArtifactActivity>,
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.analytics.artifacts.list', options, {
           route: '/v1/organizations/analytics/artifacts',
           queryParams: ['date', 'filter', 'group_by', 'limit', 'page'],

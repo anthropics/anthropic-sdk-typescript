@@ -39,7 +39,7 @@ export class Work extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaSelfHostedWork> {
     const { environment_id, betas, workspace_id } = params;
-    return this._client.get(path`/v1/environments/${environment_id}/work/${workID}?beta=true`, {
+    return this._client.get(path`/v1/environments/${environment_id}/work/${workID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -48,6 +48,7 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.work.retrieve', options, {
         route: '/v1/environments/{environment_id}/work/{work_id}',
         attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
@@ -74,7 +75,7 @@ export class Work extends APIResource {
    */
   update(workID: string, params: WorkUpdateParams, options?: RequestOptions): APIPromise<BetaSelfHostedWork> {
     const { environment_id, betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/environments/${environment_id}/work/${workID}?beta=true`, {
+    return this._client.post(path`/v1/environments/${environment_id}/work/${workID}`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -84,6 +85,7 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.work.update', options, {
         route: '/v1/environments/{environment_id}/work/{work_id}',
         attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
@@ -116,7 +118,7 @@ export class Work extends APIResource {
   ): PagePromise<BetaSelfHostedWorksPageCursor, BetaSelfHostedWork> {
     const { betas, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/environments/${environmentID}/work?beta=true`,
+      path`/v1/environments/${environmentID}/work`,
       PageCursor<BetaSelfHostedWork>,
       {
         query,
@@ -125,6 +127,7 @@ export class Work extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.environments.work.list', options, {
           route: '/v1/environments/{environment_id}/work',
           queryParams: ['limit', 'page'],
@@ -153,12 +156,13 @@ export class Work extends APIResource {
    */
   ack(workID: string, params: WorkAckParams, options?: RequestOptions): APIPromise<BetaSelfHostedWork> {
     const { environment_id, betas } = params;
-    return this._client.post(path`/v1/environments/${environment_id}/work/${workID}/ack?beta=true`, {
+    return this._client.post(path`/v1/environments/${environment_id}/work/${workID}/ack`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.work.ack', options, {
         route: '/v1/environments/{environment_id}/work/{work_id}/ack',
         attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
@@ -188,13 +192,14 @@ export class Work extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaSelfHostedWorkHeartbeatResponse> {
     const { environment_id, desired_ttl_seconds, expected_last_heartbeat, betas } = params;
-    return this._client.post(path`/v1/environments/${environment_id}/work/${workID}/heartbeat?beta=true`, {
+    return this._client.post(path`/v1/environments/${environment_id}/work/${workID}/heartbeat`, {
       query: { desired_ttl_seconds, expected_last_heartbeat },
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.work.heartbeat', options, {
         route: '/v1/environments/{environment_id}/work/{work_id}/heartbeat',
         queryParams: ['desired_ttl_seconds', 'expected_last_heartbeat'],
@@ -225,7 +230,7 @@ export class Work extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaSelfHostedWork | null> {
     const { betas, 'Anthropic-Worker-ID': anthropicWorkerID, ...query } = params ?? {};
-    return this._client.get(path`/v1/environments/${environmentID}/work/poll?beta=true`, {
+    return this._client.get(path`/v1/environments/${environmentID}/work/poll`, {
       query,
       ...options,
       headers: buildHeaders([
@@ -235,6 +240,7 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.work.poll', options, {
         route: '/v1/environments/{environment_id}/work/poll',
         queryParams: ['block_ms', 'reclaim_older_than_ms'],
@@ -260,7 +266,7 @@ export class Work extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaSelfHostedWorkQueueStats> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/environments/${environmentID}/work/stats?beta=true`, {
+    return this._client.get(path`/v1/environments/${environmentID}/work/stats`, {
       ...options,
       headers: buildHeaders([
         {
@@ -269,6 +275,7 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.work.stats', options, {
         route: '/v1/environments/{environment_id}/work/stats',
         attributes: { 'anthropic.environment.id': environmentID },
@@ -294,7 +301,7 @@ export class Work extends APIResource {
    */
   stop(workID: string, params: WorkStopParams, options?: RequestOptions): APIPromise<BetaSelfHostedWork> {
     const { environment_id, betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/environments/${environment_id}/work/${workID}/stop?beta=true`, {
+    return this._client.post(path`/v1/environments/${environment_id}/work/${workID}/stop`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -304,6 +311,7 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.work.stop', options, {
         route: '/v1/environments/{environment_id}/work/{work_id}/stop',
         attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
@@ -461,7 +469,8 @@ export interface BetaSelfHostedWork {
  */
 export interface BetaSelfHostedWorkHeartbeatResponse {
   /**
-   * RFC 3339 timestamp of the actual heartbeat from DB
+   * RFC 3339 timestamp of the most recent heartbeat recorded for this work item, or
+   * an empty string if none has been recorded
    */
   last_heartbeat: string;
 
@@ -503,12 +512,10 @@ export interface BetaSelfHostedWorkListResponse {
 
 /**
  * Statistics about the work queue for an environment.
- *
- * Uses Redis Stream consumer group metrics for O(1) queries.
  */
 export interface BetaSelfHostedWorkQueueStats {
   /**
-   * Number of work items waiting to be picked up (lag from consumer group)
+   * Number of work items waiting to be picked up
    */
   depth: number;
 

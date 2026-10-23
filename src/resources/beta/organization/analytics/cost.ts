@@ -33,7 +33,7 @@ export class Cost extends APIResource {
   ): PagePromise<BetaAnalyticsCostItemsReportPageCursor, BetaAnalyticsCostItem> {
     const { betas, ...query } = params;
     return this._client.getAPIList(
-      '/v1/organizations/analytics/cost?beta=true',
+      '/v1/organizations/analytics/cost',
       ReportPageCursor<BetaAnalyticsCostItem>,
       {
         query,
@@ -42,6 +42,7 @@ export class Cost extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'analytics-usage-cost-2026-08-24'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.analytics.cost.list', options, {
           route: '/v1/organizations/analytics/cost',
           queryParams: [

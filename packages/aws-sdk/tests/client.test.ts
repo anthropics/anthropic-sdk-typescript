@@ -947,10 +947,10 @@ describe('AnthropicAws', () => {
         maxRetries: 0,
       });
 
-    test('beta.userProfiles.list goes to the beta path', async () => {
+    test('beta.userProfiles.list goes to the same path', async () => {
       await newClient().beta.userProfiles.list();
 
-      expect(mockFetch.mock.calls[0]![0]).toBe(`${profileURL}?beta=true`);
+      expect(mockFetch.mock.calls[0]![0]).toBe(profileURL);
     });
 
     const params = {

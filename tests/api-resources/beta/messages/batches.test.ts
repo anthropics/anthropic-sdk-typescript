@@ -4,6 +4,7 @@ import { mockFetch } from '../../../lib/mock-fetch';
 const client = new Anthropic({
   apiKey: 'my-anthropic-api-key',
   baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
+  defaultQuery: { beta: 'true' },
 });
 
 describe('resource batches', () => {

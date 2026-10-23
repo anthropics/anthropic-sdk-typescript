@@ -210,10 +210,11 @@ export class Sessions extends APIResource {
       },
       createdIDAttribute: 'anthropic.session.id',
     });
-    const request = this._client.post<BetaManagedAgentsSession>('/v1/sessions?beta=true', {
+    const request = this._client.post<BetaManagedAgentsSession>('/v1/sessions', {
       body,
       ...options,
       headers,
+      __qualifiers: { beta: 'true' },
       __span: call,
     });
     // Only a request with a span has a response to record.
@@ -242,7 +243,7 @@ export class Sessions extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsSession> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/sessions/${sessionID}?beta=true`, {
+    return this._client.get(path`/v1/sessions/${sessionID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -251,6 +252,7 @@ export class Sessions extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.retrieve', options, {
         route: '/v1/sessions/{session_id}',
         attributes: { 'anthropic.session.id': sessionID },
@@ -275,7 +277,7 @@ export class Sessions extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsSession> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/sessions/${sessionID}?beta=true`, {
+    return this._client.post(path`/v1/sessions/${sessionID}`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -285,6 +287,7 @@ export class Sessions extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.update', options, {
         route: '/v1/sessions/{session_id}',
         attributes: { 'anthropic.session.id': sessionID },
@@ -308,39 +311,36 @@ export class Sessions extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaManagedAgentsSessionsBidirectionalPageCursor, BetaManagedAgentsSession> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList(
-      '/v1/sessions?beta=true',
-      BidirectionalPageCursor<BetaManagedAgentsSession>,
-      {
-        query,
-        ...options,
-        headers: buildHeaders([
-          {
-            'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString(),
-            ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-          },
-          options?.headers,
-        ]),
-        __span: startApiCallSpan(this._client, 'anthropic.sessions.list', options, {
-          route: '/v1/sessions',
-          queryParams: [
-            'agent_id',
-            'agent_version',
-            'created_at[gt]',
-            'created_at[gte]',
-            'created_at[lt]',
-            'created_at[lte]',
-            'deployment_id',
-            'include_archived',
-            'limit',
-            'memory_store_id',
-            'order',
-            'page',
-            'statuses',
-          ],
-        }),
-      },
-    );
+    return this._client.getAPIList('/v1/sessions', BidirectionalPageCursor<BetaManagedAgentsSession>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        {
+          'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.list', options, {
+        route: '/v1/sessions',
+        queryParams: [
+          'agent_id',
+          'agent_version',
+          'created_at[gt]',
+          'created_at[gte]',
+          'created_at[lt]',
+          'created_at[lte]',
+          'deployment_id',
+          'include_archived',
+          'limit',
+          'memory_store_id',
+          'order',
+          'page',
+          'statuses',
+        ],
+      }),
+    });
   }
 
   /**
@@ -360,7 +360,7 @@ export class Sessions extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeletedSession> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.delete(path`/v1/sessions/${sessionID}?beta=true`, {
+    return this._client.delete(path`/v1/sessions/${sessionID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -369,6 +369,7 @@ export class Sessions extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.delete', options, {
         route: '/v1/sessions/{session_id}',
         attributes: { 'anthropic.session.id': sessionID },
@@ -393,7 +394,7 @@ export class Sessions extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsSession> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/sessions/${sessionID}/archive?beta=true`, {
+    return this._client.post(path`/v1/sessions/${sessionID}/archive`, {
       ...options,
       headers: buildHeaders([
         {
@@ -402,6 +403,7 @@ export class Sessions extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.archive', options, {
         route: '/v1/sessions/{session_id}/archive',
         attributes: { 'anthropic.session.id': sessionID },

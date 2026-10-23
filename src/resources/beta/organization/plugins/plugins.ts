@@ -86,7 +86,7 @@ export class Plugins extends APIResource {
   create(params: PluginCreateParams, options?: RequestOptions): APIPromise<BetaPlugin> {
     const { betas, ...body } = params;
     return this._client.post(
-      '/v1/organizations/plugins?beta=true',
+      '/v1/organizations/plugins',
       multipartFormRequestOptions(
         {
           body,
@@ -95,6 +95,7 @@ export class Plugins extends APIResource {
             { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
             options?.headers,
           ]),
+          __qualifiers: { beta: 'true' },
           __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.create', options, {
             route: '/v1/organizations/plugins',
             createdIDAttribute: 'anthropic.organization.plugin.id',
@@ -133,13 +134,14 @@ export class Plugins extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaPlugin> {
     const { betas, ...query } = params ?? {};
-    return this._client.get(path`/v1/organizations/plugins/${pluginID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/plugins/${pluginID}`, {
       query,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.retrieve', options, {
         route: '/v1/organizations/plugins/{plugin_id}',
         queryParams: ['organization_id'],
@@ -198,13 +200,14 @@ export class Plugins extends APIResource {
    */
   update(pluginID: string, params: PluginUpdateParams, options?: RequestOptions): APIPromise<BetaPlugin> {
     const { betas, ...body } = params;
-    return this._client.post(path`/v1/organizations/plugins/${pluginID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/plugins/${pluginID}`, {
       body,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.update', options, {
         route: '/v1/organizations/plugins/{plugin_id}',
         attributes: { 'anthropic.organization.plugin.id': pluginID },
@@ -246,13 +249,14 @@ export class Plugins extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaPluginsPageCursor, BetaPlugin> {
     const { betas, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/organizations/plugins?beta=true', PageCursor<BetaPlugin>, {
+    return this._client.getAPIList('/v1/organizations/plugins', PageCursor<BetaPlugin>, {
       query,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.list', options, {
         route: '/v1/organizations/plugins',
         queryParams: [
@@ -308,12 +312,13 @@ export class Plugins extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedPlugin> {
     const { betas } = params ?? {};
-    return this._client.delete(path`/v1/organizations/plugins/${pluginID}?beta=true`, {
+    return this._client.delete(path`/v1/organizations/plugins/${pluginID}`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.delete', options, {
         route: '/v1/organizations/plugins/{plugin_id}',
         attributes: { 'anthropic.organization.plugin.id': pluginID },

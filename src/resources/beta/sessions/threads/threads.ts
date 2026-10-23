@@ -33,7 +33,7 @@ export class Threads extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsSessionThread> {
     const { session_id, betas, workspace_id } = params;
-    return this._client.get(path`/v1/sessions/${session_id}/threads/${threadID}?beta=true`, {
+    return this._client.get(path`/v1/sessions/${session_id}/threads/${threadID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -42,6 +42,7 @@ export class Threads extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.retrieve', options, {
         route: '/v1/sessions/{session_id}/threads/{thread_id}',
         attributes: { 'anthropic.session.id': session_id, 'anthropic.session.thread.id': threadID },
@@ -69,7 +70,7 @@ export class Threads extends APIResource {
   ): PagePromise<BetaManagedAgentsSessionThreadsPageCursor, BetaManagedAgentsSessionThread> {
     const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/sessions/${sessionID}/threads?beta=true`,
+      path`/v1/sessions/${sessionID}/threads`,
       PageCursor<BetaManagedAgentsSessionThread>,
       {
         query,
@@ -81,6 +82,7 @@ export class Threads extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.list', options, {
           route: '/v1/sessions/{session_id}/threads',
           queryParams: ['limit', 'page', 'statuses'],
@@ -108,7 +110,7 @@ export class Threads extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsSessionThread> {
     const { session_id, betas, workspace_id } = params;
-    return this._client.post(path`/v1/sessions/${session_id}/threads/${threadID}/archive?beta=true`, {
+    return this._client.post(path`/v1/sessions/${session_id}/threads/${threadID}/archive`, {
       ...options,
       headers: buildHeaders([
         {
@@ -117,6 +119,7 @@ export class Threads extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.archive', options, {
         route: '/v1/sessions/{session_id}/threads/{thread_id}/archive',
         attributes: { 'anthropic.session.id': session_id, 'anthropic.session.thread.id': threadID },

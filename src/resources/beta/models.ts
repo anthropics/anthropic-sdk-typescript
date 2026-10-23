@@ -27,7 +27,7 @@ export class Models extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaModelInfo> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/models/${modelID}?beta=true`, {
+    return this._client.get(path`/v1/models/${modelID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -36,6 +36,7 @@ export class Models extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.models.retrieve', options, {
         route: '/v1/models/{model_id}',
         attributes: { 'anthropic.model.id': modelID },
@@ -62,7 +63,7 @@ export class Models extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaModelInfosPage, BetaModelInfo> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/models?beta=true', Page<BetaModelInfo>, {
+    return this._client.getAPIList('/v1/models', Page<BetaModelInfo>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -72,6 +73,7 @@ export class Models extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.models.list', options, {
         route: '/v1/models',
         queryParams: ['after_id', 'before_id', 'lifecycle', 'limit'],

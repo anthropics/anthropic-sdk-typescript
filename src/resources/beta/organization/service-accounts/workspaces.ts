@@ -51,7 +51,7 @@ export class Workspaces extends APIResource {
   > {
     const { betas, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/organizations/service_accounts/${serviceAccountID}/workspaces?beta=true`,
+      path`/v1/organizations/service_accounts/${serviceAccountID}/workspaces`,
       PageCursor<ServiceAccountsAPI.BetaServiceAccountWorkspaceMember>,
       {
         query,
@@ -60,6 +60,7 @@ export class Workspaces extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.service_accounts.workspaces.list',
@@ -106,28 +107,26 @@ export class Workspaces extends APIResource {
     options?: RequestOptions,
   ): APIPromise<ServiceAccountsAPI.BetaServiceAccountWorkspaceMember> {
     const { betas, ...body } = params;
-    return this._client.post(
-      path`/v1/organizations/service_accounts/${serviceAccountID}/workspaces?beta=true`,
-      {
-        body,
-        ...options,
-        headers: buildHeaders([
-          { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
-          options?.headers,
-        ]),
-        __span: startApiCallSpan(
-          this._client,
-          'anthropic.organization.service_accounts.workspaces.add',
-          options,
-          {
-            route: '/v1/organizations/service_accounts/{service_account_id}/workspaces',
-            attributes: { 'anthropic.organization.service_account.id': serviceAccountID },
-            createdIDAttribute: 'anthropic.organization.service_account.workspace.id',
-            createdIDField: 'workspace_id',
-          },
-        ),
-      },
-    );
+    return this._client.post(path`/v1/organizations/service_accounts/${serviceAccountID}/workspaces`, {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(
+        this._client,
+        'anthropic.organization.service_accounts.workspaces.add',
+        options,
+        {
+          route: '/v1/organizations/service_accounts/{service_account_id}/workspaces',
+          attributes: { 'anthropic.organization.service_account.id': serviceAccountID },
+          createdIDAttribute: 'anthropic.organization.service_account.workspace.id',
+          createdIDField: 'workspace_id',
+        },
+      ),
+    });
   }
 
   /**
@@ -162,13 +161,14 @@ export class Workspaces extends APIResource {
   ): APIPromise<WorkspaceRemoveResponse> {
     const { service_account_id, betas } = params;
     return this._client.delete(
-      path`/v1/organizations/service_accounts/${service_account_id}/workspaces/${workspaceID}?beta=true`,
+      path`/v1/organizations/service_accounts/${service_account_id}/workspaces/${workspaceID}`,
       {
         ...options,
         headers: buildHeaders([
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.service_accounts.workspaces.remove',

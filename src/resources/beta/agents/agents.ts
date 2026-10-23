@@ -27,7 +27,7 @@ export class Agents extends APIResource {
    */
   create(params: AgentCreateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsAgent> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post('/v1/agents?beta=true', {
+    return this._client.post('/v1/agents', {
       body,
       ...options,
       headers: buildHeaders([
@@ -37,6 +37,7 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.agents.create', options, {
         route: '/v1/agents',
         createdIDAttribute: 'gen_ai.agent.id',
@@ -61,7 +62,7 @@ export class Agents extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsAgent> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.get(path`/v1/agents/${agentID}?beta=true`, {
+    return this._client.get(path`/v1/agents/${agentID}`, {
       query,
       ...options,
       headers: buildHeaders([
@@ -71,6 +72,7 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.agents.retrieve', options, {
         route: '/v1/agents/{agent_id}',
         queryParams: ['version'],
@@ -97,7 +99,7 @@ export class Agents extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsAgent> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/agents/${agentID}?beta=true`, {
+    return this._client.post(path`/v1/agents/${agentID}`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -107,6 +109,7 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.agents.update', options, {
         route: '/v1/agents/{agent_id}',
         attributes: { 'gen_ai.agent.id': agentID },
@@ -130,7 +133,7 @@ export class Agents extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaManagedAgentsAgentsPageCursor, BetaManagedAgentsAgent> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/agents?beta=true', PageCursor<BetaManagedAgentsAgent>, {
+    return this._client.getAPIList('/v1/agents', PageCursor<BetaManagedAgentsAgent>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -140,6 +143,7 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.agents.list', options, {
         route: '/v1/agents',
         queryParams: ['created_at[gte]', 'created_at[lte]', 'include_archived', 'limit', 'page'],
@@ -164,7 +168,7 @@ export class Agents extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsAgent> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/agents/${agentID}/archive?beta=true`, {
+    return this._client.post(path`/v1/agents/${agentID}/archive`, {
       ...options,
       headers: buildHeaders([
         {
@@ -173,6 +177,7 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.agents.archive', options, {
         route: '/v1/agents/{agent_id}/archive',
         attributes: { 'gen_ai.agent.id': agentID },

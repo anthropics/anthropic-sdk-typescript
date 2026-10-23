@@ -31,7 +31,7 @@ const deriveBaseURL = (project: string, location: string, workspaceId: string): 
 const deriveOrganizationBaseURL = (project: string, location: string): string =>
   `${deriveLocationURL(project, location)}/claudeOrganization/invoke`;
 
-const ORGANIZATION_PATH_PREFIX = '/v1/organizations/';
+const ORGANIZATION_PATH = /^\/v1\/(?:organizations\/|user_profiles(?:[/?]|$))/;
 
 // A reserved, guaranteed-unroutable host (RFC 2606): a request that slips
 // past the gates while no base URL is derived can never carry the Google
@@ -51,11 +51,12 @@ const NO_PROJECT_HINT =
 // Anthropic credential sources (API key, auth token, credential chain)
 // apply here. A runtime guard in the constructor backs this up for
 // untyped callers.
-/** API Client for interfacing with Claude Platform on Google Cloud. */
+/** API Client for interfacing with Claude Models on Google Cloud (Anthropic managed). */
 export interface GoogleCloudClientOptions extends Omit<CoreClientOptions, CredentialOption> {
   /**
-   * The GCP project id that owns the Claude Platform on Google Cloud resource. Used to derive the base
-   * URL when one is not given explicitly.
+   * The GCP project id that owns the Claude Models on Google Cloud (Anthropic
+   * managed) resource. Used to derive the base URL when one is not given
+   * explicitly.
    *
    * When neither this nor its env-var defaults are set (and no `baseURL` is
    * given), the project is resolved lazily from Google credentials (the ADC
@@ -68,9 +69,9 @@ export interface GoogleCloudClientOptions extends Omit<CoreClientOptions, Creden
   project?: string | undefined;
 
   /**
-   * The GCP location of the Claude Platform on Google Cloud resource.
-   * Optional — defaults to `global`, which is the region the gateway should
-   * normally be addressed through.
+   * The GCP location of the Claude Models on Google Cloud (Anthropic managed)
+   * resource. Optional — defaults to `global`, which is the region the gateway
+   * should normally be addressed through.
    *
    * @default process.env['ANTHROPIC_GOOGLE_CLOUD_LOCATION'] ?? 'global'
    */
@@ -78,7 +79,8 @@ export interface GoogleCloudClientOptions extends Omit<CoreClientOptions, Creden
 
   /**
    * The Anthropic workspace ID. Required when the base URL is derived, except
-   * for organization-level routes (`/v1/organizations/*`).
+   * for organization-level routes (`/v1/organizations/*` and the
+   * `/v1/user_profiles` routes).
    *
    * @default process.env['ANTHROPIC_GOOGLE_CLOUD_WORKSPACE_ID']
    */
@@ -119,8 +121,8 @@ export interface GoogleCloudClientOptions extends Omit<CoreClientOptions, Creden
 }
 
 /**
- * API Client for the first-party Anthropic API served through Google Cloud
- * (Claude Platform on Google Cloud).
+ * API Client for Claude Models on Google Cloud (Anthropic managed): the
+ * first-party Anthropic API served through Google Cloud.
  *
  * Unlike `AnthropicVertex` (the `:rawPredict` publisher-model client), this
  * exposes the full first-party surface with no URL or body rewriting — the
@@ -361,7 +363,7 @@ export class AnthropicGoogleCloud extends Anthropic {
       return super.buildURL(path, query, defaultBaseURL);
     }
 
-    if (path.startsWith(ORGANIZATION_PATH_PREFIX)) {
+    if (ORGANIZATION_PATH.test(path)) {
       return super.buildURL(this.#organizationBaseURL + path, query, defaultBaseURL);
     }
 

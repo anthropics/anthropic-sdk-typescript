@@ -33,7 +33,7 @@ export class Credentials extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsCredential> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/vaults/${vaultID}/credentials?beta=true`, {
+    return this._client.post(path`/v1/vaults/${vaultID}/credentials`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -43,6 +43,7 @@ export class Credentials extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.vaults.credentials.create', options, {
         route: '/v1/vaults/{vault_id}/credentials',
         attributes: { 'anthropic.vault.id': vaultID },
@@ -69,7 +70,7 @@ export class Credentials extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsCredential> {
     const { vault_id, betas, workspace_id } = params;
-    return this._client.get(path`/v1/vaults/${vault_id}/credentials/${credentialID}?beta=true`, {
+    return this._client.get(path`/v1/vaults/${vault_id}/credentials/${credentialID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -78,6 +79,7 @@ export class Credentials extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.vaults.credentials.retrieve', options, {
         route: '/v1/vaults/{vault_id}/credentials/{credential_id}',
         attributes: { 'anthropic.vault.id': vault_id, 'anthropic.vault.credential.id': credentialID },
@@ -103,7 +105,7 @@ export class Credentials extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsCredential> {
     const { vault_id, betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/vaults/${vault_id}/credentials/${credentialID}?beta=true`, {
+    return this._client.post(path`/v1/vaults/${vault_id}/credentials/${credentialID}`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -113,6 +115,7 @@ export class Credentials extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.vaults.credentials.update', options, {
         route: '/v1/vaults/{vault_id}/credentials/{credential_id}',
         attributes: { 'anthropic.vault.id': vault_id, 'anthropic.vault.credential.id': credentialID },
@@ -140,7 +143,7 @@ export class Credentials extends APIResource {
   ): PagePromise<BetaManagedAgentsCredentialsPageCursor, BetaManagedAgentsCredential> {
     const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/vaults/${vaultID}/credentials?beta=true`,
+      path`/v1/vaults/${vaultID}/credentials`,
       PageCursor<BetaManagedAgentsCredential>,
       {
         query,
@@ -152,6 +155,7 @@ export class Credentials extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.vaults.credentials.list', options, {
           route: '/v1/vaults/{vault_id}/credentials',
           queryParams: ['include_archived', 'limit', 'page'],
@@ -179,7 +183,7 @@ export class Credentials extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeletedCredential> {
     const { vault_id, betas, workspace_id } = params;
-    return this._client.delete(path`/v1/vaults/${vault_id}/credentials/${credentialID}?beta=true`, {
+    return this._client.delete(path`/v1/vaults/${vault_id}/credentials/${credentialID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -188,6 +192,7 @@ export class Credentials extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.vaults.credentials.delete', options, {
         route: '/v1/vaults/{vault_id}/credentials/{credential_id}',
         attributes: { 'anthropic.vault.id': vault_id, 'anthropic.vault.credential.id': credentialID },
@@ -213,7 +218,7 @@ export class Credentials extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsCredential> {
     const { vault_id, betas, workspace_id } = params;
-    return this._client.post(path`/v1/vaults/${vault_id}/credentials/${credentialID}/archive?beta=true`, {
+    return this._client.post(path`/v1/vaults/${vault_id}/credentials/${credentialID}/archive`, {
       ...options,
       headers: buildHeaders([
         {
@@ -222,6 +227,7 @@ export class Credentials extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.vaults.credentials.archive', options, {
         route: '/v1/vaults/{vault_id}/credentials/{credential_id}/archive',
         attributes: { 'anthropic.vault.id': vault_id, 'anthropic.vault.credential.id': credentialID },
@@ -247,23 +253,21 @@ export class Credentials extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsCredentialValidation> {
     const { vault_id, betas, workspace_id } = params;
-    return this._client.post(
-      path`/v1/vaults/${vault_id}/credentials/${credentialID}/mcp_oauth_validate?beta=true`,
-      {
-        ...options,
-        headers: buildHeaders([
-          {
-            'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString(),
-            ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-          },
-          options?.headers,
-        ]),
-        __span: startApiCallSpan(this._client, 'anthropic.vaults.credentials.mcp_oauth_validate', options, {
-          route: '/v1/vaults/{vault_id}/credentials/{credential_id}/mcp_oauth_validate',
-          attributes: { 'anthropic.vault.id': vault_id, 'anthropic.vault.credential.id': credentialID },
-        }),
-      },
-    );
+    return this._client.post(path`/v1/vaults/${vault_id}/credentials/${credentialID}/mcp_oauth_validate`, {
+      ...options,
+      headers: buildHeaders([
+        {
+          'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.vaults.credentials.mcp_oauth_validate', options, {
+        route: '/v1/vaults/{vault_id}/credentials/{credential_id}/mcp_oauth_validate',
+        attributes: { 'anthropic.vault.id': vault_id, 'anthropic.vault.credential.id': credentialID },
+      }),
+    });
   }
 }
 

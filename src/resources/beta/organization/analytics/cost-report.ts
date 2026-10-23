@@ -39,11 +39,12 @@ export class CostReport extends APIResource {
     AnalyticsAPI.BetaAnalyticsCostReportTimeBucket
   > {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/cost_report?beta=true',
+      '/v1/organizations/analytics/cost_report',
       ReportPageCursor<AnalyticsAPI.BetaAnalyticsCostReportTimeBucket>,
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.analytics.cost_report.list', options, {
           route: '/v1/organizations/analytics/cost_report',
           queryParams: [
