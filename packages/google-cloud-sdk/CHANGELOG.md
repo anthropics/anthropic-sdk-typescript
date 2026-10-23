@@ -5,6 +5,7 @@
 ### Documentation
 
 * **google-cloud:** update the product name in the package description
+* **google-cloud:** update the product name
 
 ## [1.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v1.0.0...google-cloud-sdk-v1.1.0) (2026-10-22)
 
