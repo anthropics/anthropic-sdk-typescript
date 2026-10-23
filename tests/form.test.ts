@@ -58,6 +58,15 @@ describe('form data validation', () => {
     expect((form.get('file') as File).name).toEqual(filename);
   });
 
+  test('a Response is named after its URL path, not the whole URL', async () => {
+    const response = new Response('abc', { headers: { 'Content-Type': 'application/pdf' } });
+    Object.defineProperty(response, 'url', { value: 'https://example.com/dir/report.pdf?token=secret' });
+
+    const form = await createForm({ file: response }, fetch);
+    const file = form.get('file') as File;
+    expect([file.name, file.type, await file.text()]).toEqual(['report.pdf', 'application/pdf', 'abc']);
+  });
+
   test('un-awaited toFile is rejected', async () => {
     await expect(() =>
       multipartFormRequestOptions({ body: { file: toFile(Buffer.from('abc')) } }, fetch),
