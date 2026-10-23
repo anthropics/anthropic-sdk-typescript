@@ -1,5 +1,6 @@
 import { AnthropicError } from '../../core/error';
 import { ReadableStreamToAsyncIterable } from '../shims';
+import { releaseRequestSignal } from '../request-signal';
 import { LineDecoder, type Bytes } from './line';
 
 export class JSONLDecoder<T> {
@@ -22,15 +23,19 @@ export class JSONLDecoder<T> {
     // Lets the iterator be collected with this generator, even if the decoder is still held.
     this.iterator = undefined;
 
-    const lineDecoder = new LineDecoder();
-    for await (const chunk of iterator) {
-      for (const line of lineDecoder.decode(chunk)) {
+    try {
+      const lineDecoder = new LineDecoder();
+      for await (const chunk of iterator) {
+        for (const line of lineDecoder.decode(chunk)) {
+          yield JSON.parse(line) as T;
+        }
+      }
+
+      for (const line of lineDecoder.flush()) {
         yield JSON.parse(line) as T;
       }
-    }
-
-    for (const line of lineDecoder.flush()) {
-      yield JSON.parse(line) as T;
+    } finally {
+      releaseRequestSignal(this.controller);
     }
   }
 
