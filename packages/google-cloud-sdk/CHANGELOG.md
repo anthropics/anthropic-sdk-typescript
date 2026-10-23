@@ -7,6 +7,11 @@
 * **google-cloud:** send user profile routes to the organization endpoint
 
 
+### Chores
+
+* **internal:** stop expecting the beta query param in tests
+
+
 ### Documentation
 
 * **google-cloud:** update the product name in the package description

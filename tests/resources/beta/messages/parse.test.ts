@@ -57,7 +57,7 @@ describe('Messages.parse()', () => {
     });
 
     expect(mockPost).toHaveBeenCalledWith(
-      '/v1/messages?beta=true',
+      '/v1/messages',
       expect.objectContaining({
         body: expect.objectContaining({
           model: 'claude-3-5-sonnet-latest',
@@ -189,7 +189,7 @@ describe('Messages.parse()', () => {
 
     // Verify output_format is NOT in the request body
     expect(mockPost).toHaveBeenCalledWith(
-      '/v1/messages?beta=true',
+      '/v1/messages',
       expect.objectContaining({
         body: expect.not.objectContaining({
           output_format: expect.anything(),
@@ -199,7 +199,7 @@ describe('Messages.parse()', () => {
 
     // Verify it was transformed to output_config.format
     expect(mockPost).toHaveBeenCalledWith(
-      '/v1/messages?beta=true',
+      '/v1/messages',
       expect.objectContaining({
         body: expect.objectContaining({
           output_config: {
