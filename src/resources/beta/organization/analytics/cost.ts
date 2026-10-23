@@ -21,7 +21,7 @@ export class Cost extends APIResource {
    * ```ts
    * // Automatically fetches more pages as needed.
    * for await (const betaAnalyticsCostItem of client.beta.organization.analytics.cost.list(
-   *   { starting_at: '2019-12-27T18:11:19.117Z' },
+   *   { starting_at: '2026-09-01T00:00:00Z' },
    * )) {
    *   // ...
    * }
@@ -247,10 +247,7 @@ export interface BetaAnalyticsCostGroup {
   /**
    * Workspace the usage occurred in, as a tagged workspace ID, including the
    * organization's default workspace. Populated only when `workspace_id` is in
-   * `group_by[]`; null for Claude Enterprise usage. Usage a linked platform made on
-   * this organization's account is in none of its workspaces and carries the
-   * placeholder workspace ID `wrkspc_011111111111111111111111`, which
-   * `workspace_ids[]` also accepts.
+   * `group_by[]`; null for Claude Enterprise usage.
    */
   workspace_id: string | null;
 }
@@ -409,8 +406,9 @@ export interface CostListParams extends ReportPageCursorParams {
   deployment_ids?: Array<string> | null;
 
   /**
-   * Query param: End of range, exclusive. When omitted, defaults to the earlier of
-   * now and `starting_at` + 31 days. The range may span at most 31 days.
+   * Query param: End of range, exclusive. Required when `time_bucket_width` is set.
+   * Without `time_bucket_width`, defaults to the earlier of now and `starting_at` +
+   * 31 days. The range may span at most 31 days.
    */
   ending_at?: string | null;
 

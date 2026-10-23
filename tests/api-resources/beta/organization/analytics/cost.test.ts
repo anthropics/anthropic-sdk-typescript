@@ -8,7 +8,7 @@ const client = new Anthropic({
 describe('resource cost', () => {
   test('list: only required params', async () => {
     const responsePromise = client.beta.organization.analytics.cost.list({
-      starting_at: '2019-12-27T18:11:19.117Z',
+      starting_at: '2026-09-01T00:00:00Z',
     });
     const rawResponse = await responsePromise.asResponse();
     expect(rawResponse).toBeInstanceOf(Response);
@@ -21,7 +21,7 @@ describe('resource cost', () => {
 
   test('list: required and optional params', async () => {
     const response = await client.beta.organization.analytics.cost.list({
-      starting_at: '2019-12-27T18:11:19.117Z',
+      starting_at: '2026-09-01T00:00:00Z',
       actor_ids: ['user_01WCz1FkmYMm4gnmykNKUu3Q'],
       actor_types: ['service_account_actor'],
       agent_ids: ['agent_01VHd3EAGJ6PLkP9LM7DDu3f'],
@@ -30,7 +30,7 @@ describe('resource cost', () => {
       claude_tag_user_ids: ['U0123ABCDEF'],
       context_windows: ['0-200k'],
       deployment_ids: ['depl_01JFC6ihzZHtAuyHsaENdJhY'],
-      ending_at: '2019-12-27T18:11:19.117Z',
+      ending_at: '2026-10-01T00:00:00Z',
       environment_ids: ['env_017oTjuGedHtjhJauVC5xGJD'],
       exclude_deleted_users: true,
       group_by: ['actor'],
