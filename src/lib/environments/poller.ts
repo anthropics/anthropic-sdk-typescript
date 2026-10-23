@@ -315,10 +315,9 @@ class IdleLog {
 }
 
 function defaultWorkerId(): string {
-  // The API documents the worker id as a *unique* identifier for Redis consumer
-  // groups, so the fallback must be unique even when several pollers share a
-  // host. Prefix with the hostname when one is exposed for readability, but rely
-  // on the uuid for uniqueness.
+  // The worker id must be unique, so the fallback must be unique even when
+  // several pollers share a host. Prefix with the hostname when one is exposed
+  // for readability, but rely on the uuid for uniqueness.
   const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
   const host = env?.['HOSTNAME'];
   return host ? `${host}-${uuid4()}` : uuid4();
