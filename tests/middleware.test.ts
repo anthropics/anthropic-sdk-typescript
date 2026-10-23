@@ -2062,12 +2062,32 @@ describe('betaRefusalFallbackMiddleware', () => {
       betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
     );
 
-    // client.messages posts to /v1/messages (no ?beta=true); the refusal must
-    // pass through untouched rather than walk the fallback chain.
+    // client.messages sets no beta qualifier; the refusal must pass through
+    // untouched rather than walk the fallback chain.
     const result = await client.messages.create(params);
     expect(result.stop_reason).toEqual('refusal');
     expect(bodies).toHaveLength(1);
     expect(bodies[0]!['fallback_credit_token']).toBeUndefined();
+  });
+
+  test('handles a request that has the beta qualifier', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model', 'credit-token'), message('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    await client.post('/v1/messages', { body: params, __qualifiers: { beta: 'true' } });
+    expect(bodies.map((b) => b['model'])).toEqual(['primary-model', 'fallback-model']);
+  });
+
+  test('ignores a request that has beta=true in its path and no qualifier', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model', 'credit-token'), message('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    await client.post('/v1/messages?beta=true', { body: params });
+    expect(bodies).toEqual([params]);
   });
 
   test('walks each hop through the chain until a model accepts', async () => {

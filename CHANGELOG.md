@@ -5,6 +5,7 @@
 ### Chores
 
 * **internal:** carry endpoint path query params to the request layer
+* **internal:** read the beta route qualifier instead of the beta=true query
 
 ## [1.2.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.1.0...sdk-v1.2.0) (2026-10-23)
 

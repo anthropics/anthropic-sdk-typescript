@@ -206,15 +206,14 @@ export function betaRefusalFallbackMiddleware(
   let warnedMissingState = false;
 
   return async (request, next, ctx) => {
-    // This middleware only applies to the beta messages API
-    // (`client.beta.messages`, which posts to `/v1/messages?beta=true`).
+    // This middleware only applies to the beta messages API (`client.beta.messages`).
     // An empty chain also disables this middleware.
-    const [path, query] = (ctx.options?.path ?? '').split('?');
+    const [path] = (ctx.options?.path ?? '').split('?');
     if (
       fallbacks.length === 0 ||
       ctx.options?.method !== 'post' ||
       path !== '/v1/messages' ||
-      new URLSearchParams(query).get('beta') !== 'true' ||
+      ctx.options.__qualifiers?.['beta'] !== 'true' ||
       typeof ctx.options.body !== 'object' ||
       ctx.options.body == null
     ) {
