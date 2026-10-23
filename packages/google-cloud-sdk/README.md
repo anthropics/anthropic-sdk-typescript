@@ -39,7 +39,7 @@ See [`examples/`](examples) for runnable basic and streaming examples.
 | ------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `project`     | `ANTHROPIC_GOOGLE_CLOUD_PROJECT`      | GCP project id, used to derive the base URL. When neither is set (and no `baseURL` is given), it is resolved lazily from your Google credentials at or before the first request. |
 | `location`    | `ANTHROPIC_GOOGLE_CLOUD_LOCATION`     | GCP location. Optional — defaults to `global`.                                                                                                                                   |
-| `workspaceId` | `ANTHROPIC_GOOGLE_CLOUD_WORKSPACE_ID` | Required when the base URL is derived, except for organization-level routes (`/v1/organizations/*`), which need none.                                                            |
+| `workspaceId` | `ANTHROPIC_GOOGLE_CLOUD_WORKSPACE_ID` | Required when the base URL is derived, except for organization-level routes (`/v1/organizations/*` and the `/v1/user_profiles` routes), which need none.                         |
 | `baseURL`     | `ANTHROPIC_GOOGLE_CLOUD_BASE_URL`     | Overrides the base URL derived from `project` + `location` + `workspaceId`.                                                                                                      |
 | `skipAuth`    | —                                     | Skips the bearer token, for gateways that authenticate upstream.                                                                                                                 |
 

@@ -31,7 +31,7 @@ const deriveBaseURL = (project: string, location: string, workspaceId: string): 
 const deriveOrganizationBaseURL = (project: string, location: string): string =>
   `${deriveLocationURL(project, location)}/claudeOrganization/invoke`;
 
-const ORGANIZATION_PATH_PREFIX = '/v1/organizations/';
+const ORGANIZATION_PATH = /^\/v1\/(?:organizations\/|user_profiles(?:[/?]|$))/;
 
 // A reserved, guaranteed-unroutable host (RFC 2606): a request that slips
 // past the gates while no base URL is derived can never carry the Google
@@ -78,7 +78,8 @@ export interface GoogleCloudClientOptions extends Omit<CoreClientOptions, Creden
 
   /**
    * The Anthropic workspace ID. Required when the base URL is derived, except
-   * for organization-level routes (`/v1/organizations/*`).
+   * for organization-level routes (`/v1/organizations/*` and the
+   * `/v1/user_profiles` routes).
    *
    * @default process.env['ANTHROPIC_GOOGLE_CLOUD_WORKSPACE_ID']
    */
@@ -361,7 +362,7 @@ export class AnthropicGoogleCloud extends Anthropic {
       return super.buildURL(path, query, defaultBaseURL);
     }
 
-    if (path.startsWith(ORGANIZATION_PATH_PREFIX)) {
+    if (ORGANIZATION_PATH.test(path)) {
       return super.buildURL(this.#organizationBaseURL + path, query, defaultBaseURL);
     }
 
