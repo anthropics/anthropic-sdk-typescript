@@ -2,6 +2,11 @@
 
 ## [1.2.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.2.0...sdk-v1.2.1) (2026-10-23)
 
+### Bug Fixes
+
+* **client:** link the long-request error messages to the SDK documentation
+
+
 ### Chores
 
 * **docs:** reword work queue, skill and external key descriptions
