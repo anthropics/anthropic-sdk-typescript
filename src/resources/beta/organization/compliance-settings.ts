@@ -19,7 +19,7 @@ export class ComplianceSettings extends APIResource {
    * ```
    */
   retrieve(options?: RequestOptions): APIPromise<BetaComplianceSettings> {
-    return this._client.get('/v1/organizations/compliance_settings?beta=true', {
+    return this._client.get('/v1/organizations/compliance_settings', {
       ...options,
       __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.compliance_settings.retrieve', options, {
@@ -52,7 +52,7 @@ export class ComplianceSettings extends APIResource {
    * ```
    */
   update(body: ComplianceSettingUpdateParams, options?: RequestOptions): APIPromise<BetaComplianceSettings> {
-    return this._client.post('/v1/organizations/compliance_settings?beta=true', {
+    return this._client.post('/v1/organizations/compliance_settings', {
       body,
       ...options,
       __qualifiers: { beta: 'true' },

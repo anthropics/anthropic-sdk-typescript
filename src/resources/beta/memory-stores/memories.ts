@@ -26,7 +26,7 @@ export class Memories extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsMemory> {
     const { view, betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/memory_stores/${memoryStoreID}/memories?beta=true`, {
+    return this._client.post(path`/v1/memory_stores/${memoryStoreID}/memories`, {
       query: { view },
       body,
       ...options,
@@ -65,7 +65,7 @@ export class Memories extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsMemory> {
     const { memory_store_id, betas, workspace_id, ...query } = params;
-    return this._client.get(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}?beta=true`, {
+    return this._client.get(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}`, {
       query,
       ...options,
       headers: buildHeaders([
@@ -102,7 +102,7 @@ export class Memories extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsMemory> {
     const { memory_store_id, view, betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}?beta=true`, {
+    return this._client.post(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}`, {
       query: { view },
       body,
       ...options,
@@ -142,7 +142,7 @@ export class Memories extends APIResource {
   ): PagePromise<BetaManagedAgentsMemoryListItemsPageCursor, BetaManagedAgentsMemoryListItem> {
     const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/memory_stores/${memoryStoreID}/memories?beta=true`,
+      path`/v1/memory_stores/${memoryStoreID}/memories`,
       PageCursor<BetaManagedAgentsMemoryListItem>,
       {
         query,
@@ -183,7 +183,7 @@ export class Memories extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeletedMemory> {
     const { memory_store_id, expected_content_sha256, betas, workspace_id } = params;
-    return this._client.delete(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}?beta=true`, {
+    return this._client.delete(path`/v1/memory_stores/${memory_store_id}/memories/${memoryID}`, {
       query: { expected_content_sha256 },
       ...options,
       headers: buildHeaders([

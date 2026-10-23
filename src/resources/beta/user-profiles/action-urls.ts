@@ -25,7 +25,7 @@ export class ActionURLs extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaUserProfileActionURL> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/user_profiles/${userProfileID}/action_urls?beta=true`, {
+    return this._client.post(path`/v1/user_profiles/${userProfileID}/action_urls`, {
       body,
       ...options,
       headers: buildHeaders([

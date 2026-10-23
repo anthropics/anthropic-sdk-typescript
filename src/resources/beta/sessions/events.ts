@@ -35,7 +35,7 @@ export class Events extends APIResource {
   ): PagePromise<BetaManagedAgentsSessionEventsPageCursor, BetaManagedAgentsSessionEvent> {
     const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/sessions/${sessionID}/events?beta=true`,
+      path`/v1/sessions/${sessionID}/events`,
       PageCursor<BetaManagedAgentsSessionEvent>,
       {
         query,
@@ -96,7 +96,7 @@ export class Events extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsSendSessionEvents> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/sessions/${sessionID}/events?beta=true`, {
+    return this._client.post(path`/v1/sessions/${sessionID}/events`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -133,7 +133,7 @@ export class Events extends APIResource {
     options?: RequestOptions,
   ): APIPromise<Stream<BetaManagedAgentsStreamSessionEvents>> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.get(path`/v1/sessions/${sessionID}/events/stream?beta=true`, {
+    return this._client.get(path`/v1/sessions/${sessionID}/events/stream`, {
       query,
       ...options,
       headers: buildHeaders([

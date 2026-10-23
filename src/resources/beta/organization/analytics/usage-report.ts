@@ -39,7 +39,7 @@ export class UsageReport extends APIResource {
     AnalyticsAPI.BetaAnalyticsUsageReportTimeBucket
   > {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/usage_report?beta=true',
+      '/v1/organizations/analytics/usage_report',
       ReportPageCursor<AnalyticsAPI.BetaAnalyticsUsageReportTimeBucket>,
       {
         query,

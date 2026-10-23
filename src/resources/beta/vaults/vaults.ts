@@ -70,7 +70,7 @@ export class Vaults extends APIResource {
    */
   create(params: VaultCreateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsVault> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post('/v1/vaults?beta=true', {
+    return this._client.post('/v1/vaults', {
       body,
       ...options,
       headers: buildHeaders([
@@ -105,7 +105,7 @@ export class Vaults extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsVault> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/vaults/${vaultID}?beta=true`, {
+    return this._client.get(path`/v1/vaults/${vaultID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -139,7 +139,7 @@ export class Vaults extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsVault> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/vaults/${vaultID}?beta=true`, {
+    return this._client.post(path`/v1/vaults/${vaultID}`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -173,7 +173,7 @@ export class Vaults extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaManagedAgentsVaultsPageCursor, BetaManagedAgentsVault> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/vaults?beta=true', PageCursor<BetaManagedAgentsVault>, {
+    return this._client.getAPIList('/v1/vaults', PageCursor<BetaManagedAgentsVault>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -208,7 +208,7 @@ export class Vaults extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeletedVault> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.delete(path`/v1/vaults/${vaultID}?beta=true`, {
+    return this._client.delete(path`/v1/vaults/${vaultID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -242,7 +242,7 @@ export class Vaults extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsVault> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/vaults/${vaultID}/archive?beta=true`, {
+    return this._client.post(path`/v1/vaults/${vaultID}/archive`, {
       ...options,
       headers: buildHeaders([
         {

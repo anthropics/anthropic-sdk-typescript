@@ -26,19 +26,15 @@ export class RateLimits extends APIResource {
     query: RateLimitListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaOrganizationRateLimitsPageCursor, BetaOrganizationRateLimit> {
-    return this._client.getAPIList(
-      '/v1/organizations/rate_limits?beta=true',
-      PageCursor<BetaOrganizationRateLimit>,
-      {
-        query,
-        ...options,
-        __qualifiers: { beta: 'true' },
-        __span: startApiCallSpan(this._client, 'anthropic.organization.rate_limits.list', options, {
-          route: '/v1/organizations/rate_limits',
-          queryParams: ['group_type', 'limit', 'model', 'page'],
-        }),
-      },
-    );
+    return this._client.getAPIList('/v1/organizations/rate_limits', PageCursor<BetaOrganizationRateLimit>, {
+      query,
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.rate_limits.list', options, {
+        route: '/v1/organizations/rate_limits',
+        queryParams: ['group_type', 'limit', 'model', 'page'],
+      }),
+    });
   }
 }
 

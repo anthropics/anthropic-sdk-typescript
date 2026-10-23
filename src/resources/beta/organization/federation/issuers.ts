@@ -37,7 +37,7 @@ export class Issuers extends APIResource {
    */
   create(params: IssuerCreateParams, options?: RequestOptions): APIPromise<BetaFederationIssuer> {
     const { betas, ...body } = params;
-    return this._client.post('/v1/organizations/federation_issuers?beta=true', {
+    return this._client.post('/v1/organizations/federation_issuers', {
       body,
       ...options,
       headers: buildHeaders([
@@ -74,7 +74,7 @@ export class Issuers extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaFederationIssuer> {
     const { betas } = params ?? {};
-    return this._client.get(path`/v1/organizations/federation_issuers/${federationIssuerID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/federation_issuers/${federationIssuerID}`, {
       ...options,
       headers: buildHeaders([
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
@@ -116,7 +116,7 @@ export class Issuers extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaFederationIssuer> {
     const { betas, ...body } = params;
-    return this._client.post(path`/v1/organizations/federation_issuers/${federationIssuerID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/federation_issuers/${federationIssuerID}`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -154,23 +154,19 @@ export class Issuers extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaFederationIssuersPageCursor, BetaFederationIssuer> {
     const { betas, ...query } = params ?? {};
-    return this._client.getAPIList(
-      '/v1/organizations/federation_issuers?beta=true',
-      PageCursor<BetaFederationIssuer>,
-      {
-        query,
-        ...options,
-        headers: buildHeaders([
-          { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
-          options?.headers,
-        ]),
-        __qualifiers: { beta: 'true' },
-        __span: startApiCallSpan(this._client, 'anthropic.organization.federation.issuers.list', options, {
-          route: '/v1/organizations/federation_issuers',
-          queryParams: ['include_archived', 'limit', 'page'],
-        }),
-      },
-    );
+    return this._client.getAPIList('/v1/organizations/federation_issuers', PageCursor<BetaFederationIssuer>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.issuers.list', options, {
+        route: '/v1/organizations/federation_issuers',
+        queryParams: ['include_archived', 'limit', 'page'],
+      }),
+    });
   }
 
   /**
@@ -200,21 +196,18 @@ export class Issuers extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaFederationIssuer> {
     const { betas } = params ?? {};
-    return this._client.post(
-      path`/v1/organizations/federation_issuers/${federationIssuerID}/archive?beta=true`,
-      {
-        ...options,
-        headers: buildHeaders([
-          { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
-          options?.headers,
-        ]),
-        __qualifiers: { beta: 'true' },
-        __span: startApiCallSpan(this._client, 'anthropic.organization.federation.issuers.archive', options, {
-          route: '/v1/organizations/federation_issuers/{federation_issuer_id}/archive',
-          attributes: { 'anthropic.organization.federation_issuer.id': federationIssuerID },
-        }),
-      },
-    );
+    return this._client.post(path`/v1/organizations/federation_issuers/${federationIssuerID}/archive`, {
+      ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.federation.issuers.archive', options, {
+        route: '/v1/organizations/federation_issuers/{federation_issuer_id}/archive',
+        attributes: { 'anthropic.organization.federation_issuer.id': federationIssuerID },
+      }),
+    });
   }
 }
 

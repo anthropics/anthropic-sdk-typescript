@@ -58,7 +58,7 @@ export class Workspaces extends APIResource {
    */
   create(params: WorkspaceCreateParams, options?: RequestOptions): APIPromise<BetaWorkspace> {
     const { betas, ...body } = params;
-    return this._client.post('/v1/organizations/workspaces?beta=true', {
+    return this._client.post('/v1/organizations/workspaces', {
       body,
       ...options,
       headers: buildHeaders([
@@ -85,7 +85,7 @@ export class Workspaces extends APIResource {
    * ```
    */
   retrieve(workspaceID: string, options?: RequestOptions): APIPromise<BetaWorkspace> {
-    return this._client.get(path`/v1/organizations/workspaces/${workspaceID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/workspaces/${workspaceID}`, {
       ...options,
       __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.retrieve', options, {
@@ -111,7 +111,7 @@ export class Workspaces extends APIResource {
     body: WorkspaceUpdateParams,
     options?: RequestOptions,
   ): APIPromise<BetaWorkspace> {
-    return this._client.post(path`/v1/organizations/workspaces/${workspaceID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/workspaces/${workspaceID}`, {
       body,
       ...options,
       __qualifiers: { beta: 'true' },
@@ -137,7 +137,7 @@ export class Workspaces extends APIResource {
     query: WorkspaceListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaWorkspacesPage, BetaWorkspace> {
-    return this._client.getAPIList('/v1/organizations/workspaces?beta=true', Page<BetaWorkspace>, {
+    return this._client.getAPIList('/v1/organizations/workspaces', Page<BetaWorkspace>, {
       query,
       ...options,
       __qualifiers: { beta: 'true' },
@@ -160,7 +160,7 @@ export class Workspaces extends APIResource {
    * ```
    */
   archive(workspaceID: string, options?: RequestOptions): APIPromise<BetaWorkspace> {
-    return this._client.post(path`/v1/organizations/workspaces/${workspaceID}/archive?beta=true`, {
+    return this._client.post(path`/v1/organizations/workspaces/${workspaceID}/archive`, {
       ...options,
       __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.archive', options, {

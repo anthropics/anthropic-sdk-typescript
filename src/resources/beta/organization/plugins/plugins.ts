@@ -86,7 +86,7 @@ export class Plugins extends APIResource {
   create(params: PluginCreateParams, options?: RequestOptions): APIPromise<BetaPlugin> {
     const { betas, ...body } = params;
     return this._client.post(
-      '/v1/organizations/plugins?beta=true',
+      '/v1/organizations/plugins',
       multipartFormRequestOptions(
         {
           body,
@@ -134,7 +134,7 @@ export class Plugins extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaPlugin> {
     const { betas, ...query } = params ?? {};
-    return this._client.get(path`/v1/organizations/plugins/${pluginID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/plugins/${pluginID}`, {
       query,
       ...options,
       headers: buildHeaders([
@@ -200,7 +200,7 @@ export class Plugins extends APIResource {
    */
   update(pluginID: string, params: PluginUpdateParams, options?: RequestOptions): APIPromise<BetaPlugin> {
     const { betas, ...body } = params;
-    return this._client.post(path`/v1/organizations/plugins/${pluginID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/plugins/${pluginID}`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -249,7 +249,7 @@ export class Plugins extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaPluginsPageCursor, BetaPlugin> {
     const { betas, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/organizations/plugins?beta=true', PageCursor<BetaPlugin>, {
+    return this._client.getAPIList('/v1/organizations/plugins', PageCursor<BetaPlugin>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -312,7 +312,7 @@ export class Plugins extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedPlugin> {
     const { betas } = params ?? {};
-    return this._client.delete(path`/v1/organizations/plugins/${pluginID}?beta=true`, {
+    return this._client.delete(path`/v1/organizations/plugins/${pluginID}`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },

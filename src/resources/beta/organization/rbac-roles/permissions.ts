@@ -26,7 +26,7 @@ export class Permissions extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaRBACRolePermissionsPageCursor, BetaRBACRolePermission> {
     return this._client.getAPIList(
-      path`/v1/organizations/rbac_roles/${rbacRoleID}/permissions?beta=true`,
+      path`/v1/organizations/rbac_roles/${rbacRoleID}/permissions`,
       PageCursor<BetaRBACRolePermission>,
       {
         query,

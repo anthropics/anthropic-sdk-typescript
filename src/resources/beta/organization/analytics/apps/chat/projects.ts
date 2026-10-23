@@ -28,7 +28,7 @@ export class Projects extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaAnalyticsProjectActivitiesPageCursor, AnalyticsAPI.BetaAnalyticsProjectActivity> {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/apps/chat/projects?beta=true',
+      '/v1/organizations/analytics/apps/chat/projects',
       PageCursor<AnalyticsAPI.BetaAnalyticsProjectActivity>,
       {
         query,

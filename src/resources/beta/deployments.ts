@@ -38,7 +38,7 @@ export class Deployments extends APIResource {
    */
   create(params: DeploymentCreateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsDeployment> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post('/v1/deployments?beta=true', {
+    return this._client.post('/v1/deployments', {
       body,
       ...options,
       headers: buildHeaders([
@@ -73,7 +73,7 @@ export class Deployments extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeployment> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/deployments/${deploymentID}?beta=true`, {
+    return this._client.get(path`/v1/deployments/${deploymentID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -107,7 +107,7 @@ export class Deployments extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeployment> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/deployments/${deploymentID}?beta=true`, {
+    return this._client.post(path`/v1/deployments/${deploymentID}`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -141,7 +141,7 @@ export class Deployments extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaManagedAgentsDeploymentsPageCursor, BetaManagedAgentsDeployment> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/deployments?beta=true', PageCursor<BetaManagedAgentsDeployment>, {
+    return this._client.getAPIList('/v1/deployments', PageCursor<BetaManagedAgentsDeployment>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -184,7 +184,7 @@ export class Deployments extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeployment> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/deployments/${deploymentID}/archive?beta=true`, {
+    return this._client.post(path`/v1/deployments/${deploymentID}/archive`, {
       ...options,
       headers: buildHeaders([
         {
@@ -218,7 +218,7 @@ export class Deployments extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeployment> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/deployments/${deploymentID}/pause?beta=true`, {
+    return this._client.post(path`/v1/deployments/${deploymentID}/pause`, {
       ...options,
       headers: buildHeaders([
         {
@@ -252,7 +252,7 @@ export class Deployments extends APIResource {
     options?: RequestOptions,
   ): APIPromise<DeploymentRunsAPI.BetaManagedAgentsDeploymentRun> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/deployments/${deploymentID}/run?beta=true`, {
+    return this._client.post(path`/v1/deployments/${deploymentID}/run`, {
       ...options,
       headers: buildHeaders([
         {
@@ -286,7 +286,7 @@ export class Deployments extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeployment> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/deployments/${deploymentID}/unpause?beta=true`, {
+    return this._client.post(path`/v1/deployments/${deploymentID}/unpause`, {
       ...options,
       headers: buildHeaders([
         {

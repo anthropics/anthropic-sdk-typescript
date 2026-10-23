@@ -28,7 +28,7 @@ export class Versions extends APIResource {
   ): APIPromise<BetaSkillVersion> {
     const { betas, workspace_id, ...body } = params;
     return this._client.post(
-      path`/v1/skills/${skillID}/versions?beta=true`,
+      path`/v1/skills/${skillID}/versions`,
       multipartFormRequestOptions(
         {
           body,
@@ -70,7 +70,7 @@ export class Versions extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaSkillVersion> {
     const { skill_id, betas, workspace_id } = params;
-    return this._client.get(path`/v1/skills/${skill_id}/versions/${version}?beta=true`, {
+    return this._client.get(path`/v1/skills/${skill_id}/versions/${version}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -106,27 +106,23 @@ export class Versions extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaSkillVersionsPageCursor, BetaSkillVersion> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList(
-      path`/v1/skills/${skillID}/versions?beta=true`,
-      PageCursor<BetaSkillVersion>,
-      {
-        query,
-        ...options,
-        headers: buildHeaders([
-          {
-            ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
-            ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-          },
-          options?.headers,
-        ]),
-        __qualifiers: { beta: 'true' },
-        __span: startApiCallSpan(this._client, 'anthropic.skills.versions.list', options, {
-          route: '/v1/skills/{skill_id}/versions',
-          queryParams: ['limit', 'page'],
-          attributes: { 'anthropic.skill.id': skillID },
-        }),
-      },
-    );
+    return this._client.getAPIList(path`/v1/skills/${skillID}/versions`, PageCursor<BetaSkillVersion>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        {
+          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.skills.versions.list', options, {
+        route: '/v1/skills/{skill_id}/versions',
+        queryParams: ['limit', 'page'],
+        attributes: { 'anthropic.skill.id': skillID },
+      }),
+    });
   }
 
   /**
@@ -146,7 +142,7 @@ export class Versions extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedSkillVersion> {
     const { skill_id, betas, workspace_id } = params;
-    return this._client.delete(path`/v1/skills/${skill_id}/versions/${version}?beta=true`, {
+    return this._client.delete(path`/v1/skills/${skill_id}/versions/${version}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -179,7 +175,7 @@ export class Versions extends APIResource {
    */
   download(version: string, params: VersionDownloadParams, options?: RequestOptions): APIPromise<Response> {
     const { skill_id, betas, workspace_id } = params;
-    return this._client.get(path`/v1/skills/${skill_id}/versions/${version}/content?beta=true`, {
+    return this._client.get(path`/v1/skills/${skill_id}/versions/${version}/content`, {
       ...options,
       headers: buildHeaders([
         {

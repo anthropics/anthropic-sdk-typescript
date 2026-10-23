@@ -31,7 +31,7 @@ export class Dreams extends APIResource {
    */
   create(params: DreamCreateParams, options?: RequestOptions): APIPromise<BetaDream> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post('/v1/dreams?beta=true', {
+    return this._client.post('/v1/dreams', {
       body,
       ...options,
       headers: buildHeaders([
@@ -71,7 +71,7 @@ export class Dreams extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDream> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/dreams/${dreamID}?beta=true`, {
+    return this._client.get(path`/v1/dreams/${dreamID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -110,7 +110,7 @@ export class Dreams extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaDreamsPageCursor, BetaDream> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/dreams?beta=true', PageCursor<BetaDream>, {
+    return this._client.getAPIList('/v1/dreams', PageCursor<BetaDream>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -153,7 +153,7 @@ export class Dreams extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDream> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/dreams/${dreamID}/archive?beta=true`, {
+    return this._client.post(path`/v1/dreams/${dreamID}/archive`, {
       ...options,
       headers: buildHeaders([
         {
@@ -195,7 +195,7 @@ export class Dreams extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDream> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/dreams/${dreamID}/cancel?beta=true`, {
+    return this._client.post(path`/v1/dreams/${dreamID}/cancel`, {
       ...options,
       headers: buildHeaders([
         {

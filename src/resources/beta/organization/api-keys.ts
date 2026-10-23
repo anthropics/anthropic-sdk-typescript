@@ -18,7 +18,7 @@ export class APIKeys extends APIResource {
    * ```
    */
   retrieve(apiKeyID: string, options?: RequestOptions): APIPromise<BetaAPIKey> {
-    return this._client.get(path`/v1/organizations/api_keys/${apiKeyID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/api_keys/${apiKeyID}`, {
       ...options,
       __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.api_keys.retrieve', options, {
@@ -40,7 +40,7 @@ export class APIKeys extends APIResource {
    * ```
    */
   update(apiKeyID: string, body: APIKeyUpdateParams, options?: RequestOptions): APIPromise<BetaAPIKey> {
-    return this._client.post(path`/v1/organizations/api_keys/${apiKeyID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/api_keys/${apiKeyID}`, {
       body,
       ...options,
       __qualifiers: { beta: 'true' },
@@ -66,7 +66,7 @@ export class APIKeys extends APIResource {
     query: APIKeyListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaAPIKeysPage, BetaAPIKey> {
-    return this._client.getAPIList('/v1/organizations/api_keys?beta=true', Page<BetaAPIKey>, {
+    return this._client.getAPIList('/v1/organizations/api_keys', Page<BetaAPIKey>, {
       query,
       ...options,
       __qualifiers: { beta: 'true' },

@@ -28,7 +28,7 @@ export class Users extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaAnalyticsUserActivitiesPageCursor, AnalyticsAPI.BetaAnalyticsUserActivity> {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/users?beta=true',
+      '/v1/organizations/analytics/users',
       PageCursor<AnalyticsAPI.BetaAnalyticsUserActivity>,
       {
         query,

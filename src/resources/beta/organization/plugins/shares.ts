@@ -46,7 +46,7 @@ export class Shares extends APIResource {
   ): PagePromise<BetaPluginSharesPageCursor, BetaPluginShare> {
     const { betas, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/organizations/plugins/${pluginID}/shares?beta=true`,
+      path`/v1/organizations/plugins/${pluginID}/shares`,
       PageCursor<BetaPluginShare>,
       {
         query,

@@ -28,7 +28,7 @@ export class Skills extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaAnalyticsSkillActivitiesPageCursor, AnalyticsAPI.BetaAnalyticsSkillActivity> {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/skills?beta=true',
+      '/v1/organizations/analytics/skills',
       PageCursor<AnalyticsAPI.BetaAnalyticsSkillActivity>,
       {
         query,

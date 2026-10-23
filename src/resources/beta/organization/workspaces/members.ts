@@ -26,7 +26,7 @@ export class Members extends APIResource {
     options?: RequestOptions,
   ): APIPromise<WorkspacesAPI.BetaWorkspaceMember> {
     const { workspace_id } = params;
-    return this._client.get(path`/v1/organizations/workspaces/${workspace_id}/members/${userID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/workspaces/${workspace_id}/members/${userID}`, {
       ...options,
       __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.members.retrieve', options, {
@@ -60,7 +60,7 @@ export class Members extends APIResource {
     options?: RequestOptions,
   ): APIPromise<WorkspacesAPI.BetaWorkspaceMember> {
     const { workspace_id, ...body } = params;
-    return this._client.post(path`/v1/organizations/workspaces/${workspace_id}/members/${userID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/workspaces/${workspace_id}/members/${userID}`, {
       body,
       ...options,
       __qualifiers: { beta: 'true' },
@@ -93,7 +93,7 @@ export class Members extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaWorkspaceMembersPage, WorkspacesAPI.BetaWorkspaceMember> {
     return this._client.getAPIList(
-      path`/v1/organizations/workspaces/${workspaceID}/members?beta=true`,
+      path`/v1/organizations/workspaces/${workspaceID}/members`,
       Page<WorkspacesAPI.BetaWorkspaceMember>,
       {
         query,
@@ -128,7 +128,7 @@ export class Members extends APIResource {
     body: MemberAddParams,
     options?: RequestOptions,
   ): APIPromise<WorkspacesAPI.BetaWorkspaceMember> {
-    return this._client.post(path`/v1/organizations/workspaces/${workspaceID}/members?beta=true`, {
+    return this._client.post(path`/v1/organizations/workspaces/${workspaceID}/members`, {
       body,
       ...options,
       __qualifiers: { beta: 'true' },
@@ -159,20 +159,17 @@ export class Members extends APIResource {
     options?: RequestOptions,
   ): APIPromise<MemberRemoveResponse> {
     const { workspace_id } = params;
-    return this._client.delete(
-      path`/v1/organizations/workspaces/${workspace_id}/members/${userID}?beta=true`,
-      {
-        ...options,
-        __qualifiers: { beta: 'true' },
-        __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.members.remove', options, {
-          route: '/v1/organizations/workspaces/{workspace_id}/members/{user_id}',
-          attributes: {
-            'anthropic.organization.workspace.id': workspace_id,
-            'anthropic.organization.workspace.member.id': userID,
-          },
-        }),
-      },
-    );
+    return this._client.delete(path`/v1/organizations/workspaces/${workspace_id}/members/${userID}`, {
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.members.remove', options, {
+        route: '/v1/organizations/workspaces/{workspace_id}/members/{user_id}',
+        attributes: {
+          'anthropic.organization.workspace.id': workspace_id,
+          'anthropic.organization.workspace.member.id': userID,
+        },
+      }),
+    });
   }
 }
 

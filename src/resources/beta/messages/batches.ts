@@ -43,7 +43,7 @@ export class Batches extends APIResource {
    */
   create(params: BatchCreateParams, options?: RequestOptions): APIPromise<BetaMessageBatch> {
     const { betas, user_profile_id, workspace_id, ...body } = params;
-    return this._client.post('/v1/messages/batches?beta=true', {
+    return this._client.post('/v1/messages/batches', {
       body,
       ...options,
       headers: buildHeaders([
@@ -86,7 +86,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaMessageBatch> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/messages/batches/${messageBatchID}?beta=true`, {
+    return this._client.get(path`/v1/messages/batches/${messageBatchID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -123,7 +123,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaMessageBatchesPage, BetaMessageBatch> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/messages/batches?beta=true', Page<BetaMessageBatch>, {
+    return this._client.getAPIList('/v1/messages/batches', Page<BetaMessageBatch>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -164,7 +164,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedMessageBatch> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.delete(path`/v1/messages/batches/${messageBatchID}?beta=true`, {
+    return this._client.delete(path`/v1/messages/batches/${messageBatchID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -209,7 +209,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaMessageBatch> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel?beta=true`, {
+    return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel`, {
       ...options,
       headers: buildHeaders([
         {

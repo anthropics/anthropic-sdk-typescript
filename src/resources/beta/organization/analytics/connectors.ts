@@ -30,7 +30,7 @@ export class Connectors extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaAnalyticsConnectorActivitiesPageCursor, AnalyticsAPI.BetaAnalyticsConnectorActivity> {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/connectors?beta=true',
+      '/v1/organizations/analytics/connectors',
       PageCursor<AnalyticsAPI.BetaAnalyticsConnectorActivity>,
       {
         query,

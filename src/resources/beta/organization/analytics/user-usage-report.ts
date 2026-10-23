@@ -12,9 +12,9 @@ export class UserUsageReport extends APIResource {
    * Returns usage per user, ranked by the chosen token metric; `group_by[]` or
    * `bucket_width` splits a user across several rows. Use this to see which users
    * consume the most tokens. Only usage attributed to a user account is included;
-   * usage with no user attributed to it, such as requests attributed only to an API
-   * key, is left out. Available to organizations on a Claude Enterprise plan.
-   * Requires an API key with the `read:analytics` scope.
+   * usage with no user attributed to it, such as Code Review usage and Claude Tag
+   * usage in Slack channels, is left out. Available to organizations on a Claude
+   * Enterprise plan. Requires an API key with the `read:analytics` scope.
    *
    * This endpoint is one of the legacy Claude Enterprise usage and cost reports. For
    * new integrations, use
@@ -38,7 +38,7 @@ export class UserUsageReport extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaAnalyticsUsageUsersItemsReportPageCursor, AnalyticsAPI.BetaAnalyticsUsageUsersItem> {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/user_usage_report?beta=true',
+      '/v1/organizations/analytics/user_usage_report',
       ReportPageCursor<AnalyticsAPI.BetaAnalyticsUsageUsersItem>,
       {
         query,

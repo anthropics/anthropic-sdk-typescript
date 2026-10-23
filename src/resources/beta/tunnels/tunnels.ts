@@ -37,7 +37,7 @@ export class Tunnels extends APIResource {
    */
   create(params: TunnelCreateParams, options?: RequestOptions): APIPromise<BetaTunnel> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post('/v1/tunnels?beta=true', {
+    return this._client.post('/v1/tunnels', {
       body,
       ...options,
       headers: buildHeaders([
@@ -76,7 +76,7 @@ export class Tunnels extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaTunnel> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/tunnels/${tunnelID}?beta=true`, {
+    return this._client.get(path`/v1/tunnels/${tunnelID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -115,7 +115,7 @@ export class Tunnels extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaTunnelsPageCursor, BetaTunnel> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/tunnels?beta=true', PageCursor<BetaTunnel>, {
+    return this._client.getAPIList('/v1/tunnels', PageCursor<BetaTunnel>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -157,7 +157,7 @@ export class Tunnels extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaTunnel> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/tunnels/${tunnelID}/archive?beta=true`, {
+    return this._client.post(path`/v1/tunnels/${tunnelID}/archive`, {
       ...options,
       headers: buildHeaders([
         {
@@ -197,7 +197,7 @@ export class Tunnels extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaTunnelToken> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/tunnels/${tunnelID}/reveal_token?beta=true`, {
+    return this._client.post(path`/v1/tunnels/${tunnelID}/reveal_token`, {
       ...options,
       headers: buildHeaders([
         {
@@ -236,7 +236,7 @@ export class Tunnels extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaTunnelToken> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/tunnels/${tunnelID}/rotate_token?beta=true`, {
+    return this._client.post(path`/v1/tunnels/${tunnelID}/rotate_token`, {
       body,
       ...options,
       headers: buildHeaders([

@@ -29,7 +29,7 @@ export class Artifacts extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaAnalyticsArtifactActivitiesPageCursor, AnalyticsAPI.BetaAnalyticsArtifactActivity> {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/artifacts?beta=true',
+      '/v1/organizations/analytics/artifacts',
       PageCursor<AnalyticsAPI.BetaAnalyticsArtifactActivity>,
       {
         query,

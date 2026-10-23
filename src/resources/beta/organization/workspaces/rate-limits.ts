@@ -37,26 +37,23 @@ export class RateLimits extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaWorkspaceRateLimit> {
     const { workspace_id, ...body } = params;
-    return this._client.post(
-      path`/v1/organizations/workspaces/${workspace_id}/rate_limits/${rateLimitID}?beta=true`,
-      {
-        body,
-        ...options,
-        __qualifiers: { beta: 'true' },
-        __span: startApiCallSpan(
-          this._client,
-          'anthropic.organization.workspaces.rate_limits.update',
-          options,
-          {
-            route: '/v1/organizations/workspaces/{workspace_id}/rate_limits/{rate_limit_id}',
-            attributes: {
-              'anthropic.organization.workspace.id': workspace_id,
-              'anthropic.organization.workspace.rate_limit.id': rateLimitID,
-            },
+    return this._client.post(path`/v1/organizations/workspaces/${workspace_id}/rate_limits/${rateLimitID}`, {
+      body,
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(
+        this._client,
+        'anthropic.organization.workspaces.rate_limits.update',
+        options,
+        {
+          route: '/v1/organizations/workspaces/{workspace_id}/rate_limits/{rate_limit_id}',
+          attributes: {
+            'anthropic.organization.workspace.id': workspace_id,
+            'anthropic.organization.workspace.rate_limit.id': rateLimitID,
           },
-        ),
-      },
-    );
+        },
+      ),
+    });
   }
 
   /**
@@ -87,7 +84,7 @@ export class RateLimits extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaWorkspaceRateLimitsPageCursor, BetaWorkspaceRateLimit> {
     return this._client.getAPIList(
-      path`/v1/organizations/workspaces/${workspaceID}/rate_limits?beta=true`,
+      path`/v1/organizations/workspaces/${workspaceID}/rate_limits`,
       PageCursor<BetaWorkspaceRateLimit>,
       {
         query,

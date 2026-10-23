@@ -37,7 +37,7 @@ export class Summaries extends APIResource {
     AnalyticsAPI.BetaAnalyticsSingleDayActivitySummary
   > {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/summaries?beta=true',
+      '/v1/organizations/analytics/summaries',
       PageCursor<AnalyticsAPI.BetaAnalyticsSingleDayActivitySummary>,
       {
         query,

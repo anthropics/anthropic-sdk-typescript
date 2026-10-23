@@ -147,7 +147,7 @@ export class Messages extends APIResource {
         messagesCreateSpanSettings(this._client, body, headers),
       );
     recordMessagesCreateRequest(this._client, call, body);
-    const request = this._client.post<BetaMessage | Stream<unknown>>('/v1/messages?beta=true', {
+    const request = this._client.post<BetaMessage | Stream<unknown>>('/v1/messages', {
       body,
       timeout: timeout ?? 600000,
       ...options,
@@ -246,7 +246,7 @@ export class Messages extends APIResource {
       route: '/v1/messages/count_tokens',
       attributes: { [ATTR_GEN_AI_REQUEST_MODEL]: body.model },
     });
-    const request = this._client.post<BetaMessageTokensCount>('/v1/messages/count_tokens?beta=true', {
+    const request = this._client.post<BetaMessageTokensCount>('/v1/messages/count_tokens', {
       body,
       ...options,
       __qualifiers: { beta: 'true' },

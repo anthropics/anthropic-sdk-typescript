@@ -35,7 +35,7 @@ export class Workspaces extends APIResource {
   ): PagePromise<BetaTelemetryDestinationWorkspacesPageCursor, BetaTelemetryDestinationWorkspace> {
     const { betas, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/organizations/telemetry_destinations/${destinationID}/workspaces?beta=true`,
+      path`/v1/organizations/telemetry_destinations/${destinationID}/workspaces`,
       PageCursor<BetaTelemetryDestinationWorkspace>,
       {
         query,
@@ -91,7 +91,7 @@ export class Workspaces extends APIResource {
   ): APIPromise<BetaTelemetryDestinationWorkspace> {
     const { destination_id, betas } = params;
     return this._client.post(
-      path`/v1/organizations/telemetry_destinations/${destination_id}/workspaces/${workspaceID}?beta=true`,
+      path`/v1/organizations/telemetry_destinations/${destination_id}/workspaces/${workspaceID}`,
       {
         ...options,
         headers: buildHeaders([
@@ -144,7 +144,7 @@ export class Workspaces extends APIResource {
   ): APIPromise<BetaDeletedTelemetryDestinationWorkspace> {
     const { destination_id, betas } = params;
     return this._client.delete(
-      path`/v1/organizations/telemetry_destinations/${destination_id}/workspaces/${workspaceID}?beta=true`,
+      path`/v1/organizations/telemetry_destinations/${destination_id}/workspaces/${workspaceID}`,
       {
         ...options,
         headers: buildHeaders([

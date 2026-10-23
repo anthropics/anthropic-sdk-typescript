@@ -344,7 +344,7 @@ export class Organization extends APIResource {
    * ```
    */
   retrieve(options?: RequestOptions): APIPromise<BetaOrganization> {
-    return this._client.get('/v1/organizations/me?beta=true', {
+    return this._client.get('/v1/organizations/me', {
       ...options,
       __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.retrieve', options, {

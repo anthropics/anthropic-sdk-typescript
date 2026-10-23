@@ -33,7 +33,7 @@ export class Plugins extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaAnalyticsPluginActivitiesPageCursor, AnalyticsAPI.BetaAnalyticsPluginActivity> {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/plugins?beta=true',
+      '/v1/organizations/analytics/plugins',
       PageCursor<AnalyticsAPI.BetaAnalyticsPluginActivity>,
       {
         query,

@@ -41,7 +41,7 @@ export class ServiceAccounts extends APIResource {
   ): APIPromise<ServiceAccountsAPI.BetaServiceAccountWorkspaceMember> {
     const { workspace_id, betas } = params;
     return this._client.get(
-      path`/v1/organizations/workspaces/${workspace_id}/service_accounts/${serviceAccountID}?beta=true`,
+      path`/v1/organizations/workspaces/${workspace_id}/service_accounts/${serviceAccountID}`,
       {
         ...options,
         headers: buildHeaders([
@@ -98,7 +98,7 @@ export class ServiceAccounts extends APIResource {
   ): APIPromise<ServiceAccountsAPI.BetaServiceAccountWorkspaceMember> {
     const { workspace_id, betas, ...body } = params;
     return this._client.post(
-      path`/v1/organizations/workspaces/${workspace_id}/service_accounts/${serviceAccountID}?beta=true`,
+      path`/v1/organizations/workspaces/${workspace_id}/service_accounts/${serviceAccountID}`,
       {
         body,
         ...options,
@@ -157,7 +157,7 @@ export class ServiceAccounts extends APIResource {
   > {
     const { betas, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/organizations/workspaces/${workspaceID}/service_accounts?beta=true`,
+      path`/v1/organizations/workspaces/${workspaceID}/service_accounts`,
       PageCursor<ServiceAccountsAPI.BetaServiceAccountWorkspaceMember>,
       {
         query,
@@ -215,7 +215,7 @@ export class ServiceAccounts extends APIResource {
     options?: RequestOptions,
   ): APIPromise<ServiceAccountsAPI.BetaServiceAccountWorkspaceMember> {
     const { betas, ...body } = params;
-    return this._client.post(path`/v1/organizations/workspaces/${workspaceID}/service_accounts?beta=true`, {
+    return this._client.post(path`/v1/organizations/workspaces/${workspaceID}/service_accounts`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -267,7 +267,7 @@ export class ServiceAccounts extends APIResource {
   ): APIPromise<ServiceAccountRemoveResponse> {
     const { workspace_id, betas } = params;
     return this._client.delete(
-      path`/v1/organizations/workspaces/${workspace_id}/service_accounts/${serviceAccountID}?beta=true`,
+      path`/v1/organizations/workspaces/${workspace_id}/service_accounts/${serviceAccountID}`,
       {
         ...options,
         headers: buildHeaders([

@@ -35,7 +35,7 @@ export class Usage extends APIResource {
   ): PagePromise<BetaAnalyticsUsageItemsReportPageCursor, BetaAnalyticsUsageItem> {
     const { betas, ...query } = params;
     return this._client.getAPIList(
-      '/v1/organizations/analytics/usage?beta=true',
+      '/v1/organizations/analytics/usage',
       ReportPageCursor<BetaAnalyticsUsageItem>,
       {
         query,

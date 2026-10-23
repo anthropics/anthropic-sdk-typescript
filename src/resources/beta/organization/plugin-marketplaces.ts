@@ -39,7 +39,7 @@ export class PluginMarketplaces extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaPluginMarketplace> {
     const { betas, ...query } = params ?? {};
-    return this._client.get(path`/v1/organizations/plugin_marketplaces/${marketplaceID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/plugin_marketplaces/${marketplaceID}`, {
       query,
       ...options,
       headers: buildHeaders([
@@ -87,7 +87,7 @@ export class PluginMarketplaces extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaPluginMarketplace> {
     const { betas, ...body } = params;
-    return this._client.post(path`/v1/organizations/plugin_marketplaces/${marketplaceID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/plugin_marketplaces/${marketplaceID}`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -137,7 +137,7 @@ export class PluginMarketplaces extends APIResource {
   ): PagePromise<BetaPluginMarketplacesPageCursor, BetaPluginMarketplace> {
     const { betas, ...query } = params ?? {};
     return this._client.getAPIList(
-      '/v1/organizations/plugin_marketplaces?beta=true',
+      '/v1/organizations/plugin_marketplaces',
       PageCursor<BetaPluginMarketplace>,
       {
         query,
@@ -202,7 +202,7 @@ export class PluginMarketplaces extends APIResource {
   ): APIPromise<BetaPluginMarketplaceValidationReport> {
     const { betas, ...body } = params;
     return this._client.post(
-      '/v1/organizations/plugin_marketplaces/validate_archive?beta=true',
+      '/v1/organizations/plugin_marketplaces/validate_archive',
       multipartFormRequestOptions(
         {
           body,
@@ -273,7 +273,7 @@ export class PluginMarketplaces extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaPluginMarketplaceValidationReport> {
     const { betas, ...body } = params;
-    return this._client.post('/v1/organizations/plugin_marketplaces/validate_repository?beta=true', {
+    return this._client.post('/v1/organizations/plugin_marketplaces/validate_repository', {
       body,
       ...options,
       headers: buildHeaders([

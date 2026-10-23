@@ -27,7 +27,7 @@ export class Files extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaFileMetadataPageCursor, BetaFileMetadata> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/files?beta=true', PageCursor<BetaFileMetadata>, {
+    return this._client.getAPIList('/v1/files', PageCursor<BetaFileMetadata>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -61,7 +61,7 @@ export class Files extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedFile> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.delete(path`/v1/files/${fileID}?beta=true`, {
+    return this._client.delete(path`/v1/files/${fileID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -97,7 +97,7 @@ export class Files extends APIResource {
     options?: RequestOptions,
   ): APIPromise<Response> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/files/${fileID}/content?beta=true`, {
+    return this._client.get(path`/v1/files/${fileID}/content`, {
       ...options,
       headers: buildHeaders([
         {
@@ -131,7 +131,7 @@ export class Files extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaFileMetadata> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/files/${fileID}?beta=true`, {
+    return this._client.get(path`/v1/files/${fileID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -161,7 +161,7 @@ export class Files extends APIResource {
   upload(params: FileUploadParams, options?: RequestOptions): APIPromise<BetaFileMetadata> {
     const { betas, workspace_id, ...body } = params;
     return this._client.post(
-      '/v1/files?beta=true',
+      '/v1/files',
       multipartFormRequestOptions(
         {
           body,

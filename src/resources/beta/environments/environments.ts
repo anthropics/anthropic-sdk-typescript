@@ -43,7 +43,7 @@ export class Environments extends APIResource {
    */
   create(params: EnvironmentCreateParams, options?: RequestOptions): APIPromise<BetaEnvironment> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post('/v1/environments?beta=true', {
+    return this._client.post('/v1/environments', {
       body,
       ...options,
       headers: buildHeaders([
@@ -78,7 +78,7 @@ export class Environments extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaEnvironment> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/environments/${environmentID}?beta=true`, {
+    return this._client.get(path`/v1/environments/${environmentID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -112,7 +112,7 @@ export class Environments extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaEnvironment> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/environments/${environmentID}?beta=true`, {
+    return this._client.post(path`/v1/environments/${environmentID}`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -146,7 +146,7 @@ export class Environments extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaEnvironmentsPageCursor, BetaEnvironment> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/environments?beta=true', PageCursor<BetaEnvironment>, {
+    return this._client.getAPIList('/v1/environments', PageCursor<BetaEnvironment>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -181,7 +181,7 @@ export class Environments extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaEnvironmentDeleteResponse> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.delete(path`/v1/environments/${environmentID}?beta=true`, {
+    return this._client.delete(path`/v1/environments/${environmentID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -216,7 +216,7 @@ export class Environments extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaEnvironment> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/environments/${environmentID}/archive?beta=true`, {
+    return this._client.post(path`/v1/environments/${environmentID}/archive`, {
       ...options,
       headers: buildHeaders([
         {

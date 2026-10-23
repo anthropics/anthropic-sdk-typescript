@@ -28,7 +28,7 @@ export class UserProfiles extends APIResource {
    */
   create(params: UserProfileCreateParams, options?: RequestOptions): APIPromise<BetaUserProfile> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post('/v1/user_profiles?beta=true', {
+    return this._client.post('/v1/user_profiles', {
       body,
       ...options,
       headers: buildHeaders([
@@ -63,7 +63,7 @@ export class UserProfiles extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaUserProfile> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/user_profiles/${userProfileID}?beta=true`, {
+    return this._client.get(path`/v1/user_profiles/${userProfileID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -97,7 +97,7 @@ export class UserProfiles extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaUserProfile> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/user_profiles/${userProfileID}?beta=true`, {
+    return this._client.post(path`/v1/user_profiles/${userProfileID}`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -131,7 +131,7 @@ export class UserProfiles extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaUserProfilesPageCursor, BetaUserProfile> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/user_profiles?beta=true', PageCursor<BetaUserProfile>, {
+    return this._client.getAPIList('/v1/user_profiles', PageCursor<BetaUserProfile>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -166,7 +166,7 @@ export class UserProfiles extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedUserProfile> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.delete(path`/v1/user_profiles/${userProfileID}?beta=true`, {
+    return this._client.delete(path`/v1/user_profiles/${userProfileID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -200,7 +200,7 @@ export class UserProfiles extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaUserProfileEnrollmentURL> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/user_profiles/${userProfileID}/enrollment_url?beta=true`, {
+    return this._client.post(path`/v1/user_profiles/${userProfileID}/enrollment_url`, {
       ...options,
       headers: buildHeaders([
         {

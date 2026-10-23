@@ -33,7 +33,7 @@ export class Cost extends APIResource {
   ): PagePromise<BetaAnalyticsCostItemsReportPageCursor, BetaAnalyticsCostItem> {
     const { betas, ...query } = params;
     return this._client.getAPIList(
-      '/v1/organizations/analytics/cost?beta=true',
+      '/v1/organizations/analytics/cost',
       ReportPageCursor<BetaAnalyticsCostItem>,
       {
         query,

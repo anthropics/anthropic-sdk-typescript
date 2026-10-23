@@ -29,7 +29,7 @@ export class Versions extends APIResource {
   ): PagePromise<BetaManagedAgentsAgentsPageCursor, AgentsAPI.BetaManagedAgentsAgent> {
     const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/agents/${agentID}/versions?beta=true`,
+      path`/v1/agents/${agentID}/versions`,
       PageCursor<AgentsAPI.BetaManagedAgentsAgent>,
       {
         query,
