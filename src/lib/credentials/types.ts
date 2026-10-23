@@ -104,15 +104,20 @@ export async function parseTokenResponse(
       requestId,
     );
   }
-  if (!data.access_token) {
+  if (
+    typeof data !== 'object' ||
+    data === null ||
+    typeof data.access_token !== 'string' ||
+    data.access_token === ''
+  ) {
     throw new WorkloadIdentityError(
-      `Token endpoint response missing access_token: ${JSON.stringify(redactSensitive(data))}`,
+      `Token endpoint response missing or invalid access_token: ${JSON.stringify(redactSensitive(data))}`,
       resp.status,
       redactSensitive(data),
       requestId,
     );
   }
-  if (data.token_type && data.token_type.toLowerCase() !== 'bearer') {
+  if (data.token_type && (typeof data.token_type !== 'string' || data.token_type.toLowerCase() !== 'bearer')) {
     throw new WorkloadIdentityError(
       `Token endpoint response: unsupported token_type "${data.token_type}" (want Bearer)`,
       resp.status,
