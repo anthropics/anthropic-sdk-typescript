@@ -2,6 +2,11 @@
 
 ## [1.1.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v1.1.0...google-cloud-sdk-v1.1.1) (2026-10-23)
 
+### Bug Fixes
+
+* **google-cloud:** send user profile routes to the organization endpoint
+
+
 ### Documentation
 
 * **google-cloud:** update the product name in the package description
@@ -12,10 +17,6 @@
 ### Features
 
 * **api:** add support for message threads
-
-### Bug Fixes
-
-* **google-cloud:** send user profile routes to the organization endpoint
 
 ## [1.0.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v0.2.0...google-cloud-sdk-v1.0.0) (2026-10-21)
 
