@@ -49,6 +49,7 @@ export class Skills extends APIResource {
             },
             options?.headers,
           ]),
+          __qualifiers: { beta: 'true' },
           __span: startApiCallSpan(this._client, 'anthropic.skills.create', options, {
             route: '/v1/skills',
             createdIDAttribute: 'anthropic.skill.id',
@@ -85,6 +86,7 @@ export class Skills extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.skills.retrieve', options, {
         route: '/v1/skills/{skill_id}',
         attributes: { 'anthropic.skill.id': skillID },
@@ -118,6 +120,7 @@ export class Skills extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.skills.list', options, {
         route: '/v1/skills',
         queryParams: ['limit', 'page', 'source'],
@@ -150,6 +153,7 @@ export class Skills extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.skills.delete', options, {
         route: '/v1/skills/{skill_id}',
         attributes: { 'anthropic.skill.id': skillID },

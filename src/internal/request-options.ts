@@ -140,6 +140,13 @@ export interface RequestOptions {
    */
   __span?: ApiCallSpan | undefined;
   __binaryResponse?: boolean | undefined;
+
+  /**
+   * The query pairs that tell the operation apart from the others with its path in the OpenAPI
+   * document. Set by the SDK method that makes the API call; not a public option.
+   * @internal
+   */
+  __qualifiers?: Record<string, string> | undefined;
   __streamClass?: typeof Stream;
 }
 

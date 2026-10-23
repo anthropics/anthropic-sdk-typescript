@@ -80,6 +80,7 @@ export class Vaults extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.vaults.create', options, {
         route: '/v1/vaults',
         createdIDAttribute: 'anthropic.vault.id',
@@ -113,6 +114,7 @@ export class Vaults extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.vaults.retrieve', options, {
         route: '/v1/vaults/{vault_id}',
         attributes: { 'anthropic.vault.id': vaultID },
@@ -147,6 +149,7 @@ export class Vaults extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.vaults.update', options, {
         route: '/v1/vaults/{vault_id}',
         attributes: { 'anthropic.vault.id': vaultID },
@@ -180,6 +183,7 @@ export class Vaults extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.vaults.list', options, {
         route: '/v1/vaults',
         queryParams: ['include_archived', 'limit', 'page'],
@@ -213,6 +217,7 @@ export class Vaults extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.vaults.delete', options, {
         route: '/v1/vaults/{vault_id}',
         attributes: { 'anthropic.vault.id': vaultID },
@@ -246,6 +251,7 @@ export class Vaults extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.vaults.archive', options, {
         route: '/v1/vaults/{vault_id}/archive',
         attributes: { 'anthropic.vault.id': vaultID },

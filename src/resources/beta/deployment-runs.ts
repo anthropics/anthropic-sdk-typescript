@@ -35,6 +35,7 @@ export class DeploymentRuns extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.deployment_runs.retrieve', options, {
         route: '/v1/deployment_runs/{deployment_run_id}',
         attributes: { 'anthropic.deployment_run.id': deploymentRunID },
@@ -71,6 +72,7 @@ export class DeploymentRuns extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.deployment_runs.list', options, {
           route: '/v1/deployment_runs',
           queryParams: [

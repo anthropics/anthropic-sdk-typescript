@@ -68,6 +68,7 @@ export class Versions extends APIResource {
             { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
             options?.headers,
           ]),
+          __qualifiers: { beta: 'true' },
           __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.versions.create', options, {
             route: '/v1/organizations/plugins/{plugin_id}/versions',
             attributes: { 'anthropic.organization.plugin.id': pluginID },
@@ -115,6 +116,7 @@ export class Versions extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.versions.retrieve', options, {
         route: '/v1/organizations/plugins/{plugin_id}/versions/{version}',
         queryParams: ['organization_id'],
@@ -169,6 +171,7 @@ export class Versions extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.versions.list', options, {
           route: '/v1/organizations/plugins/{plugin_id}/versions',
           queryParams: ['limit', 'organization_id', 'page'],
@@ -234,6 +237,7 @@ export class Versions extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __binaryResponse: true,
         __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.versions.download', options, {
           route: '/v1/organizations/plugins/{plugin_id}/versions/{version}/content',

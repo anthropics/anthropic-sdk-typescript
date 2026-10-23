@@ -53,6 +53,7 @@ export class Environments extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.create', options, {
         route: '/v1/environments',
         createdIDAttribute: 'anthropic.environment.id',
@@ -86,6 +87,7 @@ export class Environments extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.retrieve', options, {
         route: '/v1/environments/{environment_id}',
         attributes: { 'anthropic.environment.id': environmentID },
@@ -120,6 +122,7 @@ export class Environments extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.update', options, {
         route: '/v1/environments/{environment_id}',
         attributes: { 'anthropic.environment.id': environmentID },
@@ -153,6 +156,7 @@ export class Environments extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.list', options, {
         route: '/v1/environments',
         queryParams: ['include_archived', 'limit', 'page'],
@@ -186,6 +190,7 @@ export class Environments extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.delete', options, {
         route: '/v1/environments/{environment_id}',
         attributes: { 'anthropic.environment.id': environmentID },
@@ -220,6 +225,7 @@ export class Environments extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.archive', options, {
         route: '/v1/environments/{environment_id}/archive',
         attributes: { 'anthropic.environment.id': environmentID },

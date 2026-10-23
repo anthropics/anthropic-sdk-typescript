@@ -42,6 +42,7 @@ export class Summaries extends APIResource {
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.analytics.summaries.list', options, {
           route: '/v1/organizations/analytics/summaries',
           queryParams: ['ending_date', 'filter', 'limit', 'page', 'starting_date'],

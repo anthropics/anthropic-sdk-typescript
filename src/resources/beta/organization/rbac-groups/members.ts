@@ -32,6 +32,7 @@ export class Members extends APIResource {
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.members.list', options, {
           route: '/v1/organizations/rbac_groups/{rbac_group_id}/members',
           queryParams: ['limit', 'page'],
@@ -61,6 +62,7 @@ export class Members extends APIResource {
     return this._client.post(path`/v1/organizations/rbac_groups/${rbacGroupID}/members?beta=true`, {
       body,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.members.add', options, {
         route: '/v1/organizations/rbac_groups/{rbac_group_id}/members',
         attributes: { 'anthropic.organization.rbac_group.id': rbacGroupID },
@@ -96,6 +98,7 @@ export class Members extends APIResource {
       path`/v1/organizations/rbac_groups/${rbac_group_id}/members/${userID}?beta=true`,
       {
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.members.remove', options, {
           route: '/v1/organizations/rbac_groups/{rbac_group_id}/members/{user_id}',
           attributes: {

@@ -48,6 +48,7 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.work.retrieve', options, {
         route: '/v1/environments/{environment_id}/work/{work_id}',
         attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
@@ -84,6 +85,7 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.work.update', options, {
         route: '/v1/environments/{environment_id}/work/{work_id}',
         attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
@@ -125,6 +127,7 @@ export class Work extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.environments.work.list', options, {
           route: '/v1/environments/{environment_id}/work',
           queryParams: ['limit', 'page'],
@@ -159,6 +162,7 @@ export class Work extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.work.ack', options, {
         route: '/v1/environments/{environment_id}/work/{work_id}/ack',
         attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },
@@ -195,6 +199,7 @@ export class Work extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.work.heartbeat', options, {
         route: '/v1/environments/{environment_id}/work/{work_id}/heartbeat',
         queryParams: ['desired_ttl_seconds', 'expected_last_heartbeat'],
@@ -235,6 +240,7 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.work.poll', options, {
         route: '/v1/environments/{environment_id}/work/poll',
         queryParams: ['block_ms', 'reclaim_older_than_ms'],
@@ -269,6 +275,7 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.work.stats', options, {
         route: '/v1/environments/{environment_id}/work/stats',
         attributes: { 'anthropic.environment.id': environmentID },
@@ -304,6 +311,7 @@ export class Work extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.environments.work.stop', options, {
         route: '/v1/environments/{environment_id}/work/{work_id}/stop',
         attributes: { 'anthropic.environment.id': environment_id, 'anthropic.environment.work.id': workID },

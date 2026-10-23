@@ -151,6 +151,7 @@ export class Messages extends APIResource {
       body,
       timeout: timeout ?? 600000,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: call,
       headers,
       stream: modifiedParams.stream ?? false,
@@ -248,6 +249,7 @@ export class Messages extends APIResource {
     const request = this._client.post<BetaMessageTokensCount>('/v1/messages/count_tokens?beta=true', {
       body,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: call,
       headers,
     });

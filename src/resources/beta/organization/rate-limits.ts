@@ -32,6 +32,7 @@ export class RateLimits extends APIResource {
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.rate_limits.list', options, {
           route: '/v1/organizations/rate_limits',
           queryParams: ['group_type', 'limit', 'model', 'page'],

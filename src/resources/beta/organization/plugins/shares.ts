@@ -55,6 +55,7 @@ export class Shares extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.plugins.shares.list', options, {
           route: '/v1/organizations/plugins/{plugin_id}/shares',
           queryParams: ['limit', 'organization_id', 'page', 'target_type'],

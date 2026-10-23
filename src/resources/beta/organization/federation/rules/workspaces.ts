@@ -50,6 +50,7 @@ export class Workspaces extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.federation.rules.workspaces.list',
@@ -104,6 +105,7 @@ export class Workspaces extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.federation.rules.workspaces.add',
@@ -154,6 +156,7 @@ export class Workspaces extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.federation.rules.workspaces.remove',

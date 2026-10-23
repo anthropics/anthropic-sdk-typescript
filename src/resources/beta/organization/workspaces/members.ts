@@ -28,6 +28,7 @@ export class Members extends APIResource {
     const { workspace_id } = params;
     return this._client.get(path`/v1/organizations/workspaces/${workspace_id}/members/${userID}?beta=true`, {
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.members.retrieve', options, {
         route: '/v1/organizations/workspaces/{workspace_id}/members/{user_id}',
         attributes: {
@@ -62,6 +63,7 @@ export class Members extends APIResource {
     return this._client.post(path`/v1/organizations/workspaces/${workspace_id}/members/${userID}?beta=true`, {
       body,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.members.update', options, {
         route: '/v1/organizations/workspaces/{workspace_id}/members/{user_id}',
         attributes: {
@@ -96,6 +98,7 @@ export class Members extends APIResource {
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.members.list', options, {
           route: '/v1/organizations/workspaces/{workspace_id}/members',
           queryParams: ['after_id', 'before_id', 'limit'],
@@ -128,6 +131,7 @@ export class Members extends APIResource {
     return this._client.post(path`/v1/organizations/workspaces/${workspaceID}/members?beta=true`, {
       body,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.members.add', options, {
         route: '/v1/organizations/workspaces/{workspace_id}/members',
         attributes: { 'anthropic.organization.workspace.id': workspaceID },
@@ -159,6 +163,7 @@ export class Members extends APIResource {
       path`/v1/organizations/workspaces/${workspace_id}/members/${userID}?beta=true`,
       {
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.members.remove', options, {
           route: '/v1/organizations/workspaces/{workspace_id}/members/{user_id}',
           attributes: {

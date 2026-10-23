@@ -41,6 +41,7 @@ export class Versions extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.agents.versions.list', options, {
           route: '/v1/agents/{agent_id}/versions',
           queryParams: ['limit', 'page'],

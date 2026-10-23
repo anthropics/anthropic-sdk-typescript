@@ -29,6 +29,7 @@ export class IncreaseRequests extends APIResource {
       path`/v1/organizations/spend_limit_increase_requests/${spendLimitIncreaseRequestID}?beta=true`,
       {
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.spend_limits.increase_requests.retrieve',
@@ -68,6 +69,7 @@ export class IncreaseRequests extends APIResource {
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.spend_limits.increase_requests.list',
@@ -107,6 +109,7 @@ export class IncreaseRequests extends APIResource {
       {
         body,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.spend_limits.increase_requests.approve',
@@ -147,6 +150,7 @@ export class IncreaseRequests extends APIResource {
       {
         body,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.spend_limits.increase_requests.deny',

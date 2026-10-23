@@ -40,6 +40,7 @@ export class Versions extends APIResource {
             },
             options?.headers,
           ]),
+          __qualifiers: { beta: 'true' },
           __span: startApiCallSpan(this._client, 'anthropic.skills.versions.create', options, {
             route: '/v1/skills/{skill_id}/versions',
             attributes: { 'anthropic.skill.id': skillID },
@@ -78,6 +79,7 @@ export class Versions extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.skills.versions.retrieve', options, {
         route: '/v1/skills/{skill_id}/versions/{version}',
         attributes: { 'anthropic.skill.id': skill_id, 'anthropic.skill.version.id': version },
@@ -117,6 +119,7 @@ export class Versions extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.skills.versions.list', options, {
           route: '/v1/skills/{skill_id}/versions',
           queryParams: ['limit', 'page'],
@@ -152,6 +155,7 @@ export class Versions extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.skills.versions.delete', options, {
         route: '/v1/skills/{skill_id}/versions/{version}',
         attributes: { 'anthropic.skill.id': skill_id, 'anthropic.skill.version.id': version },
@@ -185,6 +189,7 @@ export class Versions extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __binaryResponse: true,
       __span: startApiCallSpan(this._client, 'anthropic.skills.versions.download', options, {
         route: '/v1/skills/{skill_id}/versions/{version}/content',

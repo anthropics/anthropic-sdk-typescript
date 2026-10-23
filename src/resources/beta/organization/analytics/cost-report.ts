@@ -44,6 +44,7 @@ export class CostReport extends APIResource {
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.analytics.cost_report.list', options, {
           route: '/v1/organizations/analytics/cost_report',
           queryParams: [

@@ -36,6 +36,7 @@ export class Resources extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.resources.retrieve', options, {
         route: '/v1/sessions/{session_id}/resources/{resource_id}',
         attributes: { 'anthropic.session.id': session_id, 'anthropic.session.resource.id': resourceID },
@@ -74,6 +75,7 @@ export class Resources extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.resources.update', options, {
         route: '/v1/sessions/{session_id}/resources/{resource_id}',
         attributes: { 'anthropic.session.id': session_id, 'anthropic.session.resource.id': resourceID },
@@ -113,6 +115,7 @@ export class Resources extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.sessions.resources.list', options, {
           route: '/v1/sessions/{session_id}/resources',
           queryParams: ['limit', 'page'],
@@ -149,6 +152,7 @@ export class Resources extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.resources.delete', options, {
         route: '/v1/sessions/{session_id}/resources/{resource_id}',
         attributes: { 'anthropic.session.id': session_id, 'anthropic.session.resource.id': resourceID },
@@ -187,6 +191,7 @@ export class Resources extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.resources.add', options, {
         route: '/v1/sessions/{session_id}/resources',
         attributes: { 'anthropic.session.id': sessionID },

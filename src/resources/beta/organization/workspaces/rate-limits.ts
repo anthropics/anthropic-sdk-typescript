@@ -42,6 +42,7 @@ export class RateLimits extends APIResource {
       {
         body,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.workspaces.rate_limits.update',
@@ -91,6 +92,7 @@ export class RateLimits extends APIResource {
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.workspaces.rate_limits.list',

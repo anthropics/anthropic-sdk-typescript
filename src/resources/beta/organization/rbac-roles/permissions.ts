@@ -31,6 +31,7 @@ export class Permissions extends APIResource {
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.rbac_roles.permissions.list',

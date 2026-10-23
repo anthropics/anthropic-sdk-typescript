@@ -43,6 +43,7 @@ export class UserUsageReport extends APIResource {
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.analytics.user_usage_report.list',

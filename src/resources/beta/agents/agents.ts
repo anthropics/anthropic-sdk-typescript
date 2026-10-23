@@ -37,6 +37,7 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.agents.create', options, {
         route: '/v1/agents',
         createdIDAttribute: 'gen_ai.agent.id',
@@ -71,6 +72,7 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.agents.retrieve', options, {
         route: '/v1/agents/{agent_id}',
         queryParams: ['version'],
@@ -107,6 +109,7 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.agents.update', options, {
         route: '/v1/agents/{agent_id}',
         attributes: { 'gen_ai.agent.id': agentID },
@@ -140,6 +143,7 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.agents.list', options, {
         route: '/v1/agents',
         queryParams: ['created_at[gte]', 'created_at[lte]', 'include_archived', 'limit', 'page'],
@@ -173,6 +177,7 @@ export class Agents extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.agents.archive', options, {
         route: '/v1/agents/{agent_id}/archive',
         attributes: { 'gen_ai.agent.id': agentID },

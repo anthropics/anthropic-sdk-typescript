@@ -214,6 +214,7 @@ export class Sessions extends APIResource {
       body,
       ...options,
       headers,
+      __qualifiers: { beta: 'true' },
       __span: call,
     });
     // Only a request with a span has a response to record.
@@ -251,6 +252,7 @@ export class Sessions extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.retrieve', options, {
         route: '/v1/sessions/{session_id}',
         attributes: { 'anthropic.session.id': sessionID },
@@ -285,6 +287,7 @@ export class Sessions extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.update', options, {
         route: '/v1/sessions/{session_id}',
         attributes: { 'anthropic.session.id': sessionID },
@@ -321,6 +324,7 @@ export class Sessions extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.sessions.list', options, {
           route: '/v1/sessions',
           queryParams: [
@@ -369,6 +373,7 @@ export class Sessions extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.delete', options, {
         route: '/v1/sessions/{session_id}',
         attributes: { 'anthropic.session.id': sessionID },
@@ -402,6 +407,7 @@ export class Sessions extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.archive', options, {
         route: '/v1/sessions/{session_id}/archive',
         attributes: { 'anthropic.session.id': sessionID },

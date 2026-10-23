@@ -48,6 +48,7 @@ export class ServiceAccounts extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.workspaces.service_accounts.retrieve',
@@ -105,6 +106,7 @@ export class ServiceAccounts extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.workspaces.service_accounts.update',
@@ -164,6 +166,7 @@ export class ServiceAccounts extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.workspaces.service_accounts.list',
@@ -219,6 +222,7 @@ export class ServiceAccounts extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(
         this._client,
         'anthropic.organization.workspaces.service_accounts.add',
@@ -270,6 +274,7 @@ export class ServiceAccounts extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.workspaces.service_accounts.remove',

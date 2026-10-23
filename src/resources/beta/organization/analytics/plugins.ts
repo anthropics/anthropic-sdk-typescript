@@ -38,6 +38,7 @@ export class Plugins extends APIResource {
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.analytics.plugins.list', options, {
           route: '/v1/organizations/analytics/plugins',
           queryParams: [

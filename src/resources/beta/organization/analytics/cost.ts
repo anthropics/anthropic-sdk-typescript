@@ -42,6 +42,7 @@ export class Cost extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'analytics-usage-cost-2026-08-24'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.analytics.cost.list', options, {
           route: '/v1/organizations/analytics/cost',
           queryParams: [

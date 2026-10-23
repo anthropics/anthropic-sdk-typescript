@@ -46,6 +46,7 @@ export class Events extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.events.list', options, {
           route: '/v1/sessions/{session_id}/threads/{thread_id}/events',
           queryParams: ['limit', 'page'],
@@ -87,6 +88,7 @@ export class Events extends APIResource {
         options?.headers,
       ]),
       stream: true,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.events.stream', options, {
         route: '/v1/sessions/{session_id}/threads/{thread_id}/stream',
         queryParams: ['event_deltas'],

@@ -39,6 +39,7 @@ export class MemoryVersions extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memory_versions.retrieve', options, {
           route: '/v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}',
           queryParams: ['view'],
@@ -83,6 +84,7 @@ export class MemoryVersions extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memory_versions.list', options, {
           route: '/v1/memory_stores/{memory_store_id}/memory_versions',
           queryParams: [
@@ -132,6 +134,7 @@ export class MemoryVersions extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memory_versions.redact', options, {
           route: '/v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}/redact',
           attributes: {

@@ -44,6 +44,7 @@ export class Workspaces extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'telemetry-destinations-2026-08-11'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.telemetry_destinations.workspaces.list',
@@ -97,6 +98,7 @@ export class Workspaces extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'telemetry-destinations-2026-08-11'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.telemetry_destinations.workspaces.add',
@@ -149,6 +151,7 @@ export class Workspaces extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'telemetry-destinations-2026-08-11'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.telemetry_destinations.workspaces.remove',

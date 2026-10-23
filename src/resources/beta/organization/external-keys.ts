@@ -25,6 +25,7 @@ export class ExternalKeys extends APIResource {
     return this._client.post('/v1/organizations/external_keys?beta=true', {
       body,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.create', options, {
         route: '/v1/organizations/external_keys',
         createdIDAttribute: 'anthropic.organization.external_key.id',
@@ -46,6 +47,7 @@ export class ExternalKeys extends APIResource {
   retrieve(externalKeyID: string, options?: RequestOptions): APIPromise<BetaExternalKey> {
     return this._client.get(path`/v1/organizations/external_keys/${externalKeyID}?beta=true`, {
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.retrieve', options, {
         route: '/v1/organizations/external_keys/{external_key_id}',
         attributes: { 'anthropic.organization.external_key.id': externalKeyID },
@@ -76,6 +78,7 @@ export class ExternalKeys extends APIResource {
     return this._client.post(path`/v1/organizations/external_keys/${externalKeyID}?beta=true`, {
       body,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.update', options, {
         route: '/v1/organizations/external_keys/{external_key_id}',
         attributes: { 'anthropic.organization.external_key.id': externalKeyID },
@@ -104,6 +107,7 @@ export class ExternalKeys extends APIResource {
     return this._client.getAPIList('/v1/organizations/external_keys?beta=true', PageCursor<BetaExternalKey>, {
       query,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.list', options, {
         route: '/v1/organizations/external_keys',
         queryParams: ['limit', 'page'],
@@ -127,6 +131,7 @@ export class ExternalKeys extends APIResource {
   delete(externalKeyID: string, options?: RequestOptions): APIPromise<ExternalKeyDeleteResponse> {
     return this._client.delete(path`/v1/organizations/external_keys/${externalKeyID}?beta=true`, {
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.delete', options, {
         route: '/v1/organizations/external_keys/{external_key_id}',
         attributes: { 'anthropic.organization.external_key.id': externalKeyID },
@@ -153,6 +158,7 @@ export class ExternalKeys extends APIResource {
   validate(externalKeyID: string, options?: RequestOptions): APIPromise<ExternalKeyValidateResponse> {
     return this._client.post(path`/v1/organizations/external_keys/${externalKeyID}/validate?beta=true`, {
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.external_keys.validate', options, {
         route: '/v1/organizations/external_keys/{external_key_id}/validate',
         attributes: { 'anthropic.organization.external_key.id': externalKeyID },

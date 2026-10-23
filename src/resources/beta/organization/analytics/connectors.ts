@@ -35,6 +35,7 @@ export class Connectors extends APIResource {
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.analytics.connectors.list', options, {
           route: '/v1/organizations/analytics/connectors',
           queryParams: [

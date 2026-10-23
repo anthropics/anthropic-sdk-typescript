@@ -54,6 +54,7 @@ export class InstallationSettings extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.plugins.installation_settings.list',
@@ -120,6 +121,7 @@ export class InstallationSettings extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.plugins.installation_settings.remove',
@@ -187,6 +189,7 @@ export class InstallationSettings extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.plugins.installation_settings.set',

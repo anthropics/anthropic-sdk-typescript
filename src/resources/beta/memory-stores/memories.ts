@@ -37,6 +37,7 @@ export class Memories extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memories.create', options, {
         route: '/v1/memory_stores/{memory_store_id}/memories',
         queryParams: ['view'],
@@ -74,6 +75,7 @@ export class Memories extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memories.retrieve', options, {
         route: '/v1/memory_stores/{memory_store_id}/memories/{memory_id}',
         queryParams: ['view'],
@@ -111,6 +113,7 @@ export class Memories extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memories.update', options, {
         route: '/v1/memory_stores/{memory_store_id}/memories/{memory_id}',
         queryParams: ['view'],
@@ -151,6 +154,7 @@ export class Memories extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memories.list', options, {
           route: '/v1/memory_stores/{memory_store_id}/memories',
           queryParams: ['depth', 'limit', 'page', 'path_prefix', 'view'],
@@ -189,6 +193,7 @@ export class Memories extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memories.delete', options, {
         route: '/v1/memory_stores/{memory_store_id}/memories/{memory_id}',
         queryParams: ['expected_content_sha256'],

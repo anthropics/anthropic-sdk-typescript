@@ -53,6 +53,7 @@ export class TelemetryDestinations extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'telemetry-destinations-2026-08-11'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(
         this._client,
         'anthropic.organization.telemetry_destinations.create',
@@ -92,6 +93,7 @@ export class TelemetryDestinations extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'telemetry-destinations-2026-08-11'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(
         this._client,
         'anthropic.organization.telemetry_destinations.retrieve',
@@ -142,6 +144,7 @@ export class TelemetryDestinations extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'telemetry-destinations-2026-08-11'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(
         this._client,
         'anthropic.organization.telemetry_destinations.update',
@@ -185,6 +188,7 @@ export class TelemetryDestinations extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'telemetry-destinations-2026-08-11'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.telemetry_destinations.list',
@@ -229,6 +233,7 @@ export class TelemetryDestinations extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'telemetry-destinations-2026-08-11'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(
         this._client,
         'anthropic.organization.telemetry_destinations.delete',
@@ -271,6 +276,7 @@ export class TelemetryDestinations extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'telemetry-destinations-2026-08-11'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.telemetry_destinations.test', options, {
         route: '/v1/organizations/telemetry_destinations/{destination_id}/test',
         attributes: { 'anthropic.organization.telemetry_destination.id': destinationID },

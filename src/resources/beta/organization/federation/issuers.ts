@@ -44,6 +44,7 @@ export class Issuers extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.federation.issuers.create', options, {
         route: '/v1/organizations/federation_issuers',
         createdIDAttribute: 'anthropic.organization.federation_issuer.id',
@@ -79,6 +80,7 @@ export class Issuers extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.federation.issuers.retrieve', options, {
         route: '/v1/organizations/federation_issuers/{federation_issuer_id}',
         attributes: { 'anthropic.organization.federation_issuer.id': federationIssuerID },
@@ -121,6 +123,7 @@ export class Issuers extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.federation.issuers.update', options, {
         route: '/v1/organizations/federation_issuers/{federation_issuer_id}',
         attributes: { 'anthropic.organization.federation_issuer.id': federationIssuerID },
@@ -161,6 +164,7 @@ export class Issuers extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.federation.issuers.list', options, {
           route: '/v1/organizations/federation_issuers',
           queryParams: ['include_archived', 'limit', 'page'],
@@ -204,6 +208,7 @@ export class Issuers extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.federation.issuers.archive', options, {
           route: '/v1/organizations/federation_issuers/{federation_issuer_id}/archive',
           attributes: { 'anthropic.organization.federation_issuer.id': federationIssuerID },

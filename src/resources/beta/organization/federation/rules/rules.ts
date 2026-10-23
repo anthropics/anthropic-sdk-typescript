@@ -63,6 +63,7 @@ export class Rules extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.create', options, {
         route: '/v1/organizations/federation_rules',
         createdIDAttribute: 'anthropic.organization.federation_rule.id',
@@ -98,6 +99,7 @@ export class Rules extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.retrieve', options, {
         route: '/v1/organizations/federation_rules/{federation_rule_id}',
         attributes: { 'anthropic.organization.federation_rule.id': federationRuleID },
@@ -149,6 +151,7 @@ export class Rules extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.update', options, {
         route: '/v1/organizations/federation_rules/{federation_rule_id}',
         attributes: { 'anthropic.organization.federation_rule.id': federationRuleID },
@@ -190,6 +193,7 @@ export class Rules extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.list', options, {
           route: '/v1/organizations/federation_rules',
           queryParams: ['include_archived', 'issuer_id', 'limit', 'page'],
@@ -233,6 +237,7 @@ export class Rules extends APIResource {
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.federation.rules.archive', options, {
         route: '/v1/organizations/federation_rules/{federation_rule_id}/archive',
         attributes: { 'anthropic.organization.federation_rule.id': federationRuleID },

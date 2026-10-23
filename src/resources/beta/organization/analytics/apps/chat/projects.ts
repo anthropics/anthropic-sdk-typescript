@@ -33,6 +33,7 @@ export class Projects extends APIResource {
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.analytics.apps.chat.projects.list',

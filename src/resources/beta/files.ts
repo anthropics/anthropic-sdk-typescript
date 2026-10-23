@@ -37,6 +37,7 @@ export class Files extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.files.list', options, {
         route: '/v1/files',
         queryParams: ['ids', 'limit', 'page', 'scope_id'],
@@ -69,6 +70,7 @@ export class Files extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.files.delete', options, {
         route: '/v1/files/{file_id}',
         attributes: { 'anthropic.file.id': fileID },
@@ -105,6 +107,7 @@ export class Files extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __binaryResponse: true,
       __span: startApiCallSpan(this._client, 'anthropic.files.download', options, {
         route: '/v1/files/{file_id}/content',
@@ -137,6 +140,7 @@ export class Files extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.files.retrieve_metadata', options, {
         route: '/v1/files/{file_id}',
         attributes: { 'anthropic.file.id': fileID },
@@ -170,6 +174,7 @@ export class Files extends APIResource {
             stainlessHelperHeaderFromFile(body.file),
             options?.headers,
           ]),
+          __qualifiers: { beta: 'true' },
           __span: startApiCallSpan(this._client, 'anthropic.files.upload', options, {
             route: '/v1/files',
             createdIDAttribute: 'anthropic.file.id',

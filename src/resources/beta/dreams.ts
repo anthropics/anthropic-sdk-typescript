@@ -41,6 +41,7 @@ export class Dreams extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.dreams.create', options, {
         route: '/v1/dreams',
         createdIDAttribute: 'anthropic.dream.id',
@@ -79,6 +80,7 @@ export class Dreams extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.dreams.retrieve', options, {
         route: '/v1/dreams/{dream_id}',
         attributes: { 'anthropic.dream.id': dreamID },
@@ -118,6 +120,7 @@ export class Dreams extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.dreams.list', options, {
         route: '/v1/dreams',
         queryParams: ['created_at[gt]', 'created_at[lt]', 'include_archived', 'limit', 'page', 'statuses'],
@@ -159,6 +162,7 @@ export class Dreams extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.dreams.archive', options, {
         route: '/v1/dreams/{dream_id}/archive',
         attributes: { 'anthropic.dream.id': dreamID },
@@ -200,6 +204,7 @@ export class Dreams extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.dreams.cancel', options, {
         route: '/v1/dreams/{dream_id}/cancel',
         attributes: { 'anthropic.dream.id': dreamID },

@@ -47,6 +47,7 @@ export class Events extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.sessions.events.list', options, {
           route: '/v1/sessions/{session_id}/events',
           queryParams: [
@@ -105,6 +106,7 @@ export class Events extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.events.send', options, {
         route: '/v1/sessions/{session_id}/events',
         attributes: { 'anthropic.session.id': sessionID },
@@ -142,6 +144,7 @@ export class Events extends APIResource {
         options?.headers,
       ]),
       stream: true,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.events.stream', options, {
         route: '/v1/sessions/{session_id}/events/stream',
         queryParams: ['event_deltas'],

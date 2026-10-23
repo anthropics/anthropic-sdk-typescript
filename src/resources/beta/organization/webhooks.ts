@@ -48,6 +48,7 @@ export class Webhooks extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'webhooks-2026-10-07'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.webhooks.create', options, {
         route: '/v1/organizations/webhooks',
         createdIDAttribute: 'anthropic.organization.webhook.id',
@@ -85,6 +86,7 @@ export class Webhooks extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'webhooks-2026-10-07'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.webhooks.retrieve', options, {
         route: '/v1/organizations/webhooks/{webhook_endpoint_id}',
         attributes: { 'anthropic.organization.webhook.id': webhookEndpointID },
@@ -123,6 +125,7 @@ export class Webhooks extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'webhooks-2026-10-07'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.webhooks.update', options, {
         route: '/v1/organizations/webhooks/{webhook_endpoint_id}',
         attributes: { 'anthropic.organization.webhook.id': webhookEndpointID },
@@ -167,6 +170,7 @@ export class Webhooks extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'webhooks-2026-10-07'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.webhooks.list', options, {
           route: '/v1/organizations/webhooks',
           queryParams: ['after_id', 'before_id', 'limit', 'order'],
@@ -205,6 +209,7 @@ export class Webhooks extends APIResource {
         { 'anthropic-beta': [...(betas ?? []), 'webhooks-2026-10-07'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.webhooks.delete', options, {
         route: '/v1/organizations/webhooks/{webhook_endpoint_id}',
         attributes: { 'anthropic.organization.webhook.id': webhookEndpointID },
@@ -245,6 +250,7 @@ export class Webhooks extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'webhooks-2026-10-07'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.webhooks.regenerate_signing_secret',

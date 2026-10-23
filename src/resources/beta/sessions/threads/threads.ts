@@ -42,6 +42,7 @@ export class Threads extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.retrieve', options, {
         route: '/v1/sessions/{session_id}/threads/{thread_id}',
         attributes: { 'anthropic.session.id': session_id, 'anthropic.session.thread.id': threadID },
@@ -81,6 +82,7 @@ export class Threads extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.list', options, {
           route: '/v1/sessions/{session_id}/threads',
           queryParams: ['limit', 'page', 'statuses'],
@@ -117,6 +119,7 @@ export class Threads extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.archive', options, {
         route: '/v1/sessions/{session_id}/threads/{thread_id}/archive',
         attributes: { 'anthropic.session.id': session_id, 'anthropic.session.thread.id': threadID },

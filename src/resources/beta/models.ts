@@ -36,6 +36,7 @@ export class Models extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.models.retrieve', options, {
         route: '/v1/models/{model_id}',
         attributes: { 'anthropic.model.id': modelID },
@@ -72,6 +73,7 @@ export class Models extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.models.list', options, {
         route: '/v1/models',
         queryParams: ['after_id', 'before_id', 'lifecycle', 'limit'],

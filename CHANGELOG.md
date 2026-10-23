@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.2.0...sdk-v1.2.1) (2026-10-23)
+
+### Chores
+
+* **internal:** carry endpoint path query params to the request layer
+
 ## [1.2.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.1.0...sdk-v1.2.0) (2026-10-23)
 
 ### Features
