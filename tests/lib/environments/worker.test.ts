@@ -562,9 +562,8 @@ describe('EnvironmentWorker', () => {
   });
 
   test('handleItem runs keyless when the work secret carries a sessions token', async () => {
-    // A host that receives only the per-item secret (the Kubernetes sandbox
-    // hands the pod nothing else) runs the item on the sessions token alone —
-    // it never holds the environment key.
+    // A host that receives only the per-item secret runs the item on the
+    // sessions token alone — it never holds the environment key.
     const secret = encodeSecret({ sessions_token: 'sessions-token-keyless' });
     const { client, calls } = makeFake({ sessionStream: [TERMINATED] });
 
