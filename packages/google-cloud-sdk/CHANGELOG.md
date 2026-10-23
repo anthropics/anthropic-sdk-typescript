@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v1.1.0...google-cloud-sdk-v1.1.1) (2026-10-23)
+
+### Documentation
+
+* **google-cloud:** update the product name in the package description
+
 ## [1.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v1.0.0...google-cloud-sdk-v1.1.0) (2026-10-22)
 
 ### Features
