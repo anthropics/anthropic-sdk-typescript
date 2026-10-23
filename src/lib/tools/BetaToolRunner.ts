@@ -76,6 +76,11 @@ export class BetaToolRunner<Stream extends boolean> {
   #options: BetaToolRunnerRequestOptions;
   /** The helper telemetry header of every turn: the runner's tag and the tags of its tools and messages */
   #helperHeader: HeadersLike;
+  /**
+   * `params.messages` while the caller handles a reply: the messages that were sent and what the caller has made of them
+   * since, without the reply. The thread takes them after the loop body if the caller changed anything.
+   */
+  #messagesWithoutReply?: BetaMessageParam[] | undefined;
   /** Promise for the last message received from the assistant */
   #message?: Promise<BetaMessage> | undefined;
   /** The stream of the request in progress, when streaming */
@@ -135,6 +140,12 @@ export class BetaToolRunner<Stream extends boolean> {
 
     const { tools, messages } = thread._state.params;
     const collected = collectStainlessHelpers(tools, messages);
+    if (!('_state' in clientOrThread)) {
+      // A copy, so that a message the caller edits later goes out as it was given. It comes after the helper marks are
+      // collected, because it drops symbol-keyed properties. Not structuredClone(): it throws on a function, and a
+      // runnable tool written by value into a `tool_addition` block has `run`.
+      thread._state.setMessages(JSON.parse(JSON.stringify(withToolDefinitions(messages))));
+    }
     this.#options = { ...options };
     this.#helperHeader = buildHeaders([
       helperHeader('BetaToolRunner'),
@@ -196,12 +207,12 @@ export class BetaToolRunner<Stream extends boolean> {
           this.#iterationCount++;
           this.#message = undefined;
 
-          // `#send()` rewrites runnable tools in `tool_addition` blocks to hold only their API fields, so the copy that is
-          // compared with the history after the turn is rewritten the same way.
-          const sentMessages = withToolDefinitions(this.#thread.messages);
           yield* this.#send(this.#thread);
+          const callerMessages = this.#messagesWithoutReply!;
+          this.#messagesWithoutReply = undefined;
 
           const next = await this.#withToolRunnerSpan(async () => {
+            let toAnswer: BetaMessageParam | undefined;
             if (!this.#mutated) {
               const message = await this.#message!;
               const nextStep = determineNextStepFromStopReason(message.stop_reason);
@@ -213,17 +224,18 @@ export class BetaToolRunner<Stream extends boolean> {
               if (nextStep === 'resume') {
                 return 'continue';
               }
+              toAnswer = lastAssistantMessage(this.#thread.messages);
             } else {
-              // The thread applies a change made during the turn once the turn has ended.
-              const message = await this.#message!;
-              // The caller may have taken over the history, so the reply counts only if it still follows what was sent.
-              const history = this.#thread.messages;
-              const sentAndReply = [...sentMessages, { role: message.role, content: message.content }];
-              const replyKept = sameMessages(history.slice(0, sentAndReply.length), sentAndReply);
-              this.#lastStopReason = replyKept ? message.stop_reason : null;
+              // The caller has taken over the history, so the last response no longer says how it ends.
+              this.#lastStopReason = null;
+              // The thread takes a new history once the turn has ended.
+              this.#stream?.abort();
+              // Checked first, because a history without the reply starts a new thread, which would take the change.
+              this.#thread._state.checkNextTurn(turnParams(this.#thread));
+              this.#thread._state.setMessages(callerMessages);
+              toAnswer = callerMessages.at(-1);
             }
 
-            const toAnswer = lastAssistantMessage(this.#thread.messages);
             // No tool runs for a turn the thread refuses.
             if (hasToolUse(toAnswer)) this.#thread._state.checkNextTurn(turnParams(this.#thread));
             const toolMessage = await this.#generateToolResponse(
@@ -240,7 +252,7 @@ export class BetaToolRunner<Stream extends boolean> {
                 toolMessage,
                 ...history.slice(answered),
               ]);
-            } else if (!this.#thread._state.hasTurnToSend) {
+            } else if (!this.#mutated && !this.#thread._state.hasTurnToSend) {
               return 'stop';
             }
             return 'continue';
@@ -267,6 +279,7 @@ export class BetaToolRunner<Stream extends boolean> {
         guardTracing(this.#thread._client, () => setErrorStatus(toolRunnerSpan, error));
       }
       this.#consumed = false;
+      this.#messagesWithoutReply = undefined;
       // Silence unhandled promise errors
       this.#completion.promise.catch(() => {});
       this.#completion.reject(error);
@@ -303,6 +316,7 @@ export class BetaToolRunner<Stream extends boolean> {
         : thread.stream(undefined, turnParams(thread), this.#turnOptions(thread)),
       );
       if (tools) thread.update({ tools });
+      if (thread === this.#thread) this.#messagesWithoutReply = thread.messages;
       this.#message = this.#stream.finalMessage();
       // Make sure that this promise doesn't throw before we get the option to do something about it.
       // Error will be caught when we call await this.#message ultimately
@@ -313,6 +327,7 @@ export class BetaToolRunner<Stream extends boolean> {
         thread.send(undefined, turnParams(thread), this.#turnOptions(thread)),
       );
       if (tools) thread.update({ tools });
+      if (thread === this.#thread) this.#messagesWithoutReply = thread.messages;
       yield this.#message as any;
     }
   }
@@ -518,6 +533,10 @@ export class BetaToolRunner<Stream extends boolean> {
    * rest. `system` and `tools` cannot change on a message thread: use {@link addTools} and {@link removeTools}, or create
    * the runner with `thread: false`.
    *
+   * While you handle a reply, `params.messages` doesn't hold it yet. After a call in the loop body the runner doesn't
+   * add the reply or its tool results: the next request goes out with your params, and the runner runs tool calls only
+   * if your `messages` end in an assistant message that makes them.
+   *
    * @param paramsOrMutator - Either new parameters or a function to mutate existing parameters
    *
    * @example
@@ -552,7 +571,12 @@ export class BetaToolRunner<Stream extends boolean> {
     const { settings, threadParams } = splitToolRunnerParams(params);
     rejectRunToolsEagerlyWithoutStream(settings);
     this.#settings = definedEntries(settings);
-    this.#thread._state.setParams(threadParams);
+    if (this.#messagesWithoutReply) {
+      this.#messagesWithoutReply = threadParams.messages;
+      this.#thread._state.setParams({ ...threadParams, messages: this.#thread.messages });
+    } else {
+      this.#thread._state.setParams(threadParams);
+    }
     this.#mutated = true;
     // Invalidate cached tool response since parameters changed
     this.#toolResponse = undefined;
@@ -758,7 +782,11 @@ export class BetaToolRunner<Stream extends boolean> {
   get params(): Readonly<BetaToolRunnerParams> {
     // `tools` is left out when the thread has none: an empty list is another value of `tools` than none, so
     // writing these params back would change the `tools` of the thread.
-    return { ...this.#thread._state.params, ...this.#settings } as BetaToolRunnerParams;
+    return {
+      ...this.#thread._state.params,
+      ...(this.#messagesWithoutReply && { messages: [...this.#messagesWithoutReply] }),
+      ...this.#settings,
+    } as BetaToolRunnerParams;
   }
 
   /**
@@ -779,13 +807,10 @@ export class BetaToolRunner<Stream extends boolean> {
    * );
    */
   pushMessages(...messages: BetaMessageParam[]) {
-    if (this.#compaction.status === 'in_flight' && messages.length > 0) {
-      throw new AnthropicError(MESSAGES_CHANGED_WHILE_COMPACTING);
-    }
-    this.#thread.append(...messages);
-    this.#mutated = true;
-    // Invalidate cached tool response since the history changed
-    this.#toolResponse = undefined;
+    this.setMessagesParams((params) => ({
+      ...params,
+      messages: [...params.messages, ...messages],
+    }));
   }
 
   /**

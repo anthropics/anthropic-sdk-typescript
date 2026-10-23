@@ -233,7 +233,7 @@ describe('client.beta.messages.toolRunner() threading', () => {
 
       runner.setMessagesParams((params) => ({
         ...params,
-        messages: [...history, toParam(reply), user('C')],
+        messages: [...history, toParam(reply), toolResult('toolu_a'), user('C')],
       }));
       await drain(iterator);
 
@@ -255,7 +255,7 @@ describe('client.beta.messages.toolRunner() threading', () => {
 
     runner.setMessagesParams((params) => ({
       ...params,
-      messages: [WEATHER_QUESTION, edited, ...params.messages.slice(2)],
+      messages: [WEATHER_QUESTION, edited, toolUse('toolu_a')],
     }));
     await drain(iterator);
 
@@ -283,7 +283,7 @@ describe('client.beta.messages.toolRunner() threading', () => {
 
       runner.setMessagesParams((params) => ({
         ...params,
-        messages: [WEATHER_QUESTION, edited, reply, user('C')],
+        messages: [WEATHER_QUESTION, edited, reply],
       }));
       await drain(iterator);
 
@@ -294,7 +294,6 @@ describe('client.beta.messages.toolRunner() threading', () => {
         edited,
         toolUse('toolu_a'),
         toolResult('toolu_a'),
-        user('C'),
       ]);
       expect(runner.params.messages[2]).toEqual(toolUse('toolu_a'));
     },
@@ -311,7 +310,7 @@ describe('client.beta.messages.toolRunner() threading', () => {
 
     runner.setMessagesParams((params) => ({
       ...params,
-      messages: [WEATHER_QUESTION, same, ...params.messages.slice(2)],
+      messages: [WEATHER_QUESTION, same, toolUse('toolu_a')],
     }));
     await drain(iterator);
 

@@ -8,6 +8,12 @@
 * **api:** add usage and cost reports by dimension, mark older reports legacy
 
 
+### Bug Fixes
+
+* **tools:** copy the messages a tool runner is created with again
+* **tools:** restore what the tool runner does after setMessagesParams() or pushMessages() in the loop body
+
+
 ### Chores
 
 * **docs:** clarify plugin content scan and validation descriptions

@@ -277,8 +277,7 @@ export class Messages extends APIResource {
    * `toolRunner()` on the thread itself.
    */
   toolRunner(body: BetaToolRunnerParams, options?: BetaToolRunnerRequestOptions): BetaToolRunner<boolean> {
-    const { thread, settings } = this._toolRunnerThread(body);
-    return new BetaToolRunner(thread, settings, options);
+    return new BetaToolRunner(this._client as Anthropic, body, options);
   }
 
   /** @internal The thread that a tool runner with the params `body` runs over, and the runner's own settings. */

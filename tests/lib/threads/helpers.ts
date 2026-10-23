@@ -2,6 +2,7 @@ import type { Mock } from 'vitest';
 import Anthropic from '@anthropic-ai/sdk';
 import type { Fetch, RequestInit } from '@anthropic-ai/sdk/internal/builtin-types';
 import type { AutoParseableBetaOutputFormat } from '@anthropic-ai/sdk/lib/beta-parser';
+import type { BetaMessageStream } from '@anthropic-ai/sdk/lib/BetaMessageStream';
 import type {
   BetaMessageThread,
   BetaMessageThreadCreateParams,
@@ -399,6 +400,12 @@ export const RESPONSE_KINDS: Array<[string, ResponderFactory, boolean]> = [
   ['non-streaming', message, false],
   ['streaming', streamed, true],
 ];
+
+/** Advance a runner's iterator by one turn and wait for the whole reply, which a streaming runner yields early. */
+export async function nextReply(iterator: AsyncIterator<BetaMessage | BetaMessageStream>): Promise<void> {
+  const { value } = await iterator.next();
+  if ('finalMessage' in value) await value.finalMessage();
+}
 
 /** Drive a runner's iterator, already started with `next()`, to the end. */
 export async function drain(iterator: AsyncIterator<unknown>): Promise<void> {

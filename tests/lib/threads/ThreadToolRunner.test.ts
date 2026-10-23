@@ -24,6 +24,7 @@ import {
   makeThread,
   message,
   mockAPI,
+  nextReply,
   roles,
   serverError,
   streamed,
@@ -151,22 +152,22 @@ describe('BetaToolRunner over a thread', () => {
   );
 
   test.each(RESPONSE_KINDS)(
-    'runner stopped at its limit does the same after setMessagesParams during the tool turn (%s)',
+    "runner stopped at its limit after setMessagesParams during the tool turn leaves the caller's history on the thread (%s)",
     async (_kind, respond, stream) => {
       api.queue(respond('msg_a', '', { toolUseId: 'toolu_a', container: 'container_a' }), message('msg_b'));
       const thread = makeThread(api, { tools: [weatherTool] });
       thread.append(WEATHER_QUESTION);
       const runner = thread.toolRunner({ stream, max_iterations: 1 });
 
-      for await (const _reply of runner) {
+      for await (const reply of runner) {
+        if ('finalMessage' in reply) await reply.finalMessage();
         runner.setMessagesParams((params) => ({ ...params, max_tokens: 512 }));
       }
       await thread.send(user('Thanks'));
 
       expect(api.bodies()[1]).toMatchObject({
-        thread: continueFrom('msg_a'),
-        messages: [toolResult('toolu_a'), user('Thanks')],
-        container: 'container_a',
+        thread: CREATE,
+        messages: [WEATHER_QUESTION, user('Thanks')],
         max_tokens: 512,
       });
     },
@@ -275,21 +276,21 @@ describe('BetaToolRunner over a thread', () => {
     expect(final.id).toBe('msg_b');
   });
 
-  test('streaming runner setMessagesParams appends after the in-flight turn', async () => {
+  test('streaming runner setMessagesParams that appends to the history drops the reply', async () => {
     api.queue(streamed('msg_a', '', { toolUseId: 'toolu_a' }), streamed('msg_b', 'Sunny.'));
     const thread = makeThread(api, { tools: [weatherTool] });
     thread.append(WEATHER_QUESTION);
     const runner = thread.toolRunner({ stream: true });
 
     const iterator = runner[Symbol.asyncIterator]();
-    await iterator.next();
+    await nextReply(iterator);
     runner.setMessagesParams((params) => ({ ...params, messages: [...params.messages, user('One word.')] }));
     await drain(iterator);
 
-    const continued = api.bodies()[1]!;
-    expect(continued['thread']).toEqual(continueFrom('msg_a'));
-    expect(continued['messages']).toEqual([toolResult('toolu_a'), user('One word.')]);
-    expect(roles(thread.messages)).toEqual(['user', 'assistant', 'user', 'user', 'assistant']);
+    const replaced = api.bodies()[1]!;
+    expect(replaced['thread']).toEqual(CREATE);
+    expect(replaced['messages']).toEqual([WEATHER_QUESTION, user('One word.')]);
+    expect(roles(thread.messages)).toEqual(['user', 'user', 'assistant']);
     expect(thread.previousMessageId).toBe('msg_b');
   });
 
@@ -302,7 +303,7 @@ describe('BetaToolRunner over a thread', () => {
       const runner = thread.toolRunner({ stream });
 
       const iterator = runner[Symbol.asyncIterator]();
-      await iterator.next();
+      await nextReply(iterator);
       runner.setMessagesParams((params) => ({
         ...params,
         messages: [user('Start over: Oakland?'), toolUse('toolu_a')],
@@ -322,7 +323,7 @@ describe('BetaToolRunner over a thread', () => {
   );
 
   test.each(RESPONSE_KINDS)(
-    'runner sends tool results ahead of messages pushed mid-loop (%s)',
+    'runner sends tool results ahead of messages appended to the thread mid-loop (%s)',
     async (_kind, respond, stream) => {
       api.queue(respond('msg_a', '', { toolUseId: 'toolu_a' }), respond('msg_b', 'Sunny.'));
       const thread = makeThread(api, { tools: [weatherTool] });
@@ -331,7 +332,7 @@ describe('BetaToolRunner over a thread', () => {
 
       const iterator = runner[Symbol.asyncIterator]();
       await iterator.next();
-      runner.pushMessages(user('In one word.'));
+      thread.append(user('In one word.'));
       await drain(iterator);
 
       const continued = api.bodies()[1]!;
@@ -430,7 +431,7 @@ describe('BetaToolRunner over a thread', () => {
       const runner = makeRunner(api, { system: 'Be brief.', tools: [{ ...weatherTool, run }], stream });
 
       const iterator = runner[Symbol.asyncIterator]();
-      await iterator.next();
+      await nextReply(iterator);
       runner.setMessagesParams((params) => ({ ...params, system: 'Be very brief.' }));
       await expect(drain(iterator)).rejects.toThrow('Cannot change `system` on a thread');
 
@@ -685,22 +686,26 @@ describe('BetaToolRunner over a thread', () => {
     expect(thread.previousMessageId).toBe(final.id);
   });
 
-  test('streaming runner whose turn ends early after a push rejects instead of answering the partial reply', async () => {
-    api.queue(stalledToolUse('msg_a', 'Let me check.', { toolUseId: 'toolu_a' }));
+  test('streaming runner whose turn ends early after a push drops the partial reply', async () => {
+    api.queue(
+      stalledToolUse('msg_a', 'Let me check.', { toolUseId: 'toolu_a' }),
+      streamed('msg_b', 'Sunny.'),
+    );
     const thread = makeThread(api, { tools: [weatherTool] });
     thread.append(WEATHER_QUESTION);
     const runner = thread.toolRunner({ stream: true });
 
-    const run = (async () => {
-      for await (const stream of runner) {
-        runner.pushMessages(user('In Celsius, please.'));
-        stream.on('inputJson', () => stream.abort());
-      }
-    })();
+    const iterator = runner[Symbol.asyncIterator]();
+    const { value: stream } = await iterator.next();
+    runner.pushMessages(user('In Celsius, please.'));
+    await new Promise<void>((resolve) => stream.once('inputJson', () => resolve(stream.abort())));
+    await drain(iterator);
 
-    await expect(run).rejects.toThrow(APIUserAbortError);
-    expect(api.bodies()).toHaveLength(1);
-    expect(roles(thread.messages)).toEqual(['user', 'assistant', 'user']);
+    expect(api.bodies().map((body) => [body['thread'], body['messages']])).toEqual([
+      [CREATE, [WEATHER_QUESTION]],
+      [CREATE, [WEATHER_QUESTION, user('In Celsius, please.')]],
+    ]);
+    expect(roles(thread.messages)).toEqual(['user', 'user', 'assistant']);
   });
 
   test('runner started on a thread whose stream ended early sends that turn again', async () => {
@@ -720,6 +725,33 @@ describe('BetaToolRunner over a thread', () => {
     ]);
     expect(roles(thread.messages)).toEqual(['user', 'assistant', 'user', 'assistant']);
     expect(thread.previousMessageId).toBe(final.id);
+  });
+
+  test('a message pushed while that turn is sent again follows what was sent, without the partial reply', async () => {
+    api.queue(
+      message('msg_a'),
+      stalledText('msg_b', 'one two three', { deltas: 1 }),
+      message('msg_c'),
+      message('msg_d'),
+    );
+    const thread = makeThread(api, { tools: [weatherTool] });
+    await thread.send(user('Hello'));
+    const stream = thread.stream(user('Count'));
+    stream.once('text', () => stream.abort());
+    await stream.done().catch(() => {});
+    const runner = thread.toolRunner();
+
+    const iterator = runner[Symbol.asyncIterator]();
+    await iterator.next();
+    runner.pushMessages(user('Slowly.'));
+    await drain(iterator);
+
+    expect(api.bodies()[3]!['messages']).toEqual([
+      user('Hello'),
+      assistant('Hi!'),
+      user('Count'),
+      user('Slowly.'),
+    ]);
   });
 
   test('runner sends a message appended to the thread during a yield', async () => {
@@ -749,10 +781,10 @@ describe('BetaToolRunner over a thread', () => {
     const push: WhilePaused = (runner) => runner.pushMessages(ADDED);
     const setLongerMessages: WhilePaused = (runner) =>
       runner.setMessagesParams((params) => ({ ...params, messages: [...params.messages, ADDED] }));
-    const pushWhileOthersWait: WhilePaused = (runner) => {
+    const appendWhileOthersWait: WhilePaused = (runner, thread) => {
       runner.compactBeforeNextTurn();
       runner.addTools(tidesTool);
-      runner.pushMessages(ADDED);
+      thread.append(ADDED);
     };
 
     /** Runs a runner whose first reply, `msg_a`, is paused, and calls `whilePaused` once that reply has arrived. */
@@ -775,9 +807,7 @@ describe('BetaToolRunner over a thread', () => {
 
     test.each([
       ['thread.append()', append],
-      ['pushMessages()', push],
-      ['setMessagesParams()', setLongerMessages],
-      ['pushMessages() while a compaction and a tool change wait', pushWhileOthersWait],
+      ['thread.append() while a compaction and a tool change wait', appendWhileOthersWait],
     ])('a message added with %s goes out with the request that resumes the turn', async (_, add) => {
       const unexecuted = apiError(
         400,
@@ -793,7 +823,19 @@ describe('BetaToolRunner over a thread', () => {
       ]);
     });
 
-    test('a changed param adds no request after a final resumed reply', async () => {
+    test.each([
+      ['pushMessages()', push],
+      ['setMessagesParams()', setLongerMessages],
+    ])('a message added with %s takes the place of the paused reply', async (_, add) => {
+      await run([respond('msg_b', 'Sunny.')], add);
+
+      expect(sent()).toEqual([
+        [CREATE, [WEATHER_QUESTION]],
+        [CREATE, [WEATHER_QUESTION, ADDED]],
+      ]);
+    });
+
+    test('a changed param drops the paused reply and sends the turn again', async () => {
       const { final } = await run([respond('msg_b', 'Sunny.')], (runner) =>
         runner.setMessagesParams((params) => ({ ...params, max_tokens: 200 })),
       );
@@ -801,7 +843,7 @@ describe('BetaToolRunner over a thread', () => {
       expect(final.id).toBe('msg_b');
       expect(sent()).toEqual([
         [CREATE, [WEATHER_QUESTION]],
-        [continueFrom('msg_a'), []],
+        [CREATE, [WEATHER_QUESTION]],
       ]);
     });
 
@@ -829,7 +871,10 @@ describe('BetaToolRunner over a thread', () => {
 
     const iterator = runner[Symbol.asyncIterator]();
     await iterator.next();
-    runner.setMessagesParams((params) => ({ ...params, messages: params.messages.slice(2) }));
+    runner.setMessagesParams((params) => ({
+      ...params,
+      messages: [...params.messages.slice(2), toolUse('toolu_b')],
+    }));
     await drain(iterator);
 
     const trimmed = api.bodies()[2]!;
@@ -848,7 +893,7 @@ describe('BetaToolRunner over a thread', () => {
     const { value: stream } = await iterator.next();
     runner.setMessagesParams((params) => ({ ...params, messages: [user('Start over: Oakland?')] }));
     runner.pushMessages(user('Also Berkeley.'));
-    const messagesDuringTheTurn = thread.messages;
+    const messagesDuringTheTurn = runner.params.messages;
     await stream.finalMessage();
     await drain(iterator);
 
@@ -861,25 +906,28 @@ describe('BetaToolRunner over a thread', () => {
   });
 
   test.each(RESPONSE_KINDS)(
-    'runner ends after a params-only change on a final reply (%s)',
+    'runner sends the turn again after a params-only change on a final reply (%s)',
     async (_kind, respond, stream) => {
-      api.queue(respond('msg_a', 'Sunny.'));
+      api.queue(respond('msg_a', 'Sunny.'), respond('msg_b', 'Sunny.'));
       const thread = makeThread(api, { tools: [weatherTool] });
       thread.append(WEATHER_QUESTION);
       const runner = thread.toolRunner({ stream });
 
       const iterator = runner[Symbol.asyncIterator]();
-      await iterator.next();
+      await nextReply(iterator);
       runner.setMessagesParams((params) => ({ ...params, max_tokens: 100 }));
       await drain(iterator);
 
-      expect(api.requests).toHaveLength(1);
-      expect((await runner.done()).id).toBe('msg_a');
-      expect(thread.previousMessageId).toBe('msg_a');
+      expect(api.bodies().map((body) => [body['thread'], body['messages'], body['max_tokens']])).toEqual([
+        [CREATE, [WEATHER_QUESTION], MAX_TOKENS],
+        [CREATE, [WEATHER_QUESTION], 100],
+      ]);
+      expect((await runner.done()).id).toBe('msg_b');
+      expect(thread.previousMessageId).toBe('msg_b');
     },
   );
 
-  test('runner sends a message pushed during a final reply as another turn', async () => {
+  test('runner sends a message pushed during a final reply in place of the reply', async () => {
     api.queue(message('msg_a', 'Sunny.'), message('msg_b', 'You are welcome.'));
     const thread = makeThread(api, { tools: [weatherTool] });
     thread.append(WEATHER_QUESTION);
@@ -890,10 +938,10 @@ describe('BetaToolRunner over a thread', () => {
     runner.pushMessages(user('Thanks!'));
     await drain(iterator);
 
-    const [, continued] = api.bodies();
-    expect([continued!['thread'], continued!['messages']]).toEqual([
-      continueFrom('msg_a'),
-      [user('Thanks!')],
+    const [, replaced] = api.bodies();
+    expect([replaced!['thread'], replaced!['messages']]).toEqual([
+      CREATE,
+      [WEATHER_QUESTION, user('Thanks!')],
     ]);
     expect((await runner.done()).id).toBe('msg_b');
   });

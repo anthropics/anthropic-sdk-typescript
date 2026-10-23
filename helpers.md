@@ -584,6 +584,7 @@ Updates the conversation parameters. Can accept new parameters or a mutator func
 // Direct parameter update
 runner.setMessagesParams({
   ...runner.params,
+  model: 'claude-haiku-4-5',
   max_tokens: 500,
 });
 
@@ -651,7 +652,7 @@ for await (const message of runner) {
 
 A few things to know:
 
-- Changes made while you're handling a message are sent together as one `role: "system"` message, in the order you made them, after that turn's tool results and any message you added while handling it. Changes made before iterating follow the initial messages.
+- Changes made while you're handling a message are sent together as one `role: "system"` message, in the order you made them, right after that turn's tool results. Changes made before iterating follow the initial messages.
 - After a paused turn (`pause_turn`) the turn is sent back as it came, and the changes go out with the request after that.
 - Changes still waiting when the run ends are never sent.
 - In the rare case where a compaction response comes back without `tool_changes` even though the messages it summarized added or removed tools, the model goes back to the tools in `tools`, and the runner doesn't detect it. Call `addTools()` / `removeTools()` again after that compaction if you need the change restored.
@@ -691,7 +692,7 @@ for await (const message of runner) {
 
 #### `BetaToolRunner.params`
 
-Read-only access to the current conversation parameters. `messages` includes each reply as soon as it resolves.
+Read-only access to the current conversation parameters.
 
 ```ts
 console.log('Current model:', runner.params.model);

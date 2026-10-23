@@ -515,7 +515,7 @@ describe('ToolRunner', () => {
       // Second message should be assistant with tool uses
       // Third message should be user with both tool results
       const messages = runner.params.messages;
-      expect(messages).toHaveLength(4); // user message, assistant with tools, user with results, final reply
+      expect(messages).toHaveLength(3); // user message, assistant with tools, user with results
       expect(messages[1]).toMatchObject({
         role: 'assistant',
         content: [getWeatherToolUse('NYC'), getCalculatorToolUse(2, 3, 'add')],
@@ -599,8 +599,7 @@ describe('ToolRunner', () => {
       });
 
       expect(run).not.toHaveBeenCalled();
-      // user, system removal, assistant tool_use, user tool_result, final reply
-      expect(runner.params.messages).toHaveLength(5);
+      expect(runner.params.messages).toHaveLength(4); // user, system removal, assistant tool_use, user tool_result
       expect(runner.params.messages[3]).toEqual({
         role: 'user',
         content: [
@@ -646,7 +645,7 @@ describe('ToolRunner', () => {
       await expectEvent(iterator);
 
       expect(run).toHaveBeenCalledWith({ location: 'SF' }, expect.anything());
-      expect(runner.params.messages.at(-2)).toMatchObject({
+      expect(runner.params.messages.at(-1)).toMatchObject({
         role: 'user',
         content: [getWeatherToolResult('SF')],
       });
@@ -793,7 +792,7 @@ describe('ToolRunner', () => {
       });
 
       // Check that the tool error was properly added to the messages
-      expect(runner.params.messages).toHaveLength(4);
+      expect(runner.params.messages).toHaveLength(3);
       expect(runner.params.messages[2]).toMatchObject({
         role: 'user',
         content: [
@@ -855,7 +854,7 @@ describe('ToolRunner', () => {
       });
 
       // Check that the ToolError content was properly added to the messages
-      expect(runner.params.messages).toHaveLength(4);
+      expect(runner.params.messages).toHaveLength(3);
       expect(runner.params.messages[2]).toMatchObject({
         role: 'user',
         content: [
@@ -1078,8 +1077,8 @@ describe('ToolRunner', () => {
       });
 
       expect(run).not.toHaveBeenCalled();
-      // user, assistant text, system removal, user, assistant tool_use, user tool_result, final reply
-      expect(runner.params.messages).toHaveLength(7);
+      // user, assistant text, system removal, user, assistant tool_use, user tool_result
+      expect(runner.params.messages).toHaveLength(6);
       expect(runner.params.messages[5]).toEqual({ role: 'user', content: [notFoundResult] });
 
       await expectDone(iterator);
@@ -1105,11 +1104,11 @@ describe('ToolRunner', () => {
         toolUseTurn = message;
       });
 
-      // Withdraw the tool while suspended at the yield by inserting the removal before the assistant
-      // turn, which is already in the history, so the runner appends the tool_result once it resumes.
+      // Withdraw the tool while suspended at the yield, keeping the assistant turn in history
+      // so the runner appends the tool_result once it resumes.
       runner.setMessagesParams((params) => ({
         ...params,
-        messages: [...params.messages.slice(0, -1), removeWeatherTool, assistantTurn(toolUseTurn.content)],
+        messages: [...params.messages, removeWeatherTool, assistantTurn(toolUseTurn.content)],
       }));
 
       const toolResponse = await runner.generateToolResponse();
@@ -1122,8 +1121,8 @@ describe('ToolRunner', () => {
       });
 
       expect(run).not.toHaveBeenCalled();
-      // user, system removal, assistant tool_use, user tool_result, final reply
-      expect(runner.params.messages).toHaveLength(5);
+      // user, system removal, assistant tool_use, user tool_result
+      expect(runner.params.messages).toHaveLength(4);
       expect(runner.params.messages[3]).toEqual({ role: 'user', content: [notFoundResult] });
 
       await expectDone(iterator);
@@ -1155,9 +1154,8 @@ describe('ToolRunner', () => {
       await expectEvent(iterator);
 
       expect(run).toHaveBeenCalledWith({ location: 'SF' }, expect.anything());
-      // user, system removal, assistant text, system addition, user, assistant tool_use, user tool_result,
-      // final reply
-      expect(runner.params.messages).toHaveLength(8);
+      // user, system removal, assistant text, system addition, user, assistant tool_use, user tool_result
+      expect(runner.params.messages).toHaveLength(7);
       expect(runner.params.messages[6]).toMatchObject({
         role: 'user',
         content: [getWeatherToolResult('SF')],
@@ -1492,7 +1490,7 @@ describe('ToolRunner', () => {
     );
 
     it.each([false, true])(
-      'holds them too when a param, but not the history, was changed during the paused turn (stream=%s)',
+      'sends them with the turn that goes out again when a param was changed during the paused turn (stream=%s)',
       async (stream) => {
         const { runner, handleRequest } =
           stream ? setupTest({ stream: true, thread: false }) : setupTest({ thread: false });
@@ -1501,15 +1499,17 @@ describe('ToolRunner', () => {
 
         reply(handleRequest, bodies, pausedTurn, stream);
         reply(handleRequest, bodies, assistantMessage('end_turn', getTextContent()), stream);
-        await runTurns(runner, (turn) => {
-          if (turn === 0) {
+        let turn = 0;
+        for await (const item of runner) {
+          if ('finalMessage' in item) await item.finalMessage();
+          if (turn++ === 0) {
             runner.addTools(lookupTool);
             runner.setMessagesParams((params) => ({ ...params, max_tokens: 200 }));
           }
-        });
+        }
 
         expect(bodies[1]!['max_tokens']).toBe(200);
-        expect(sent(bodies[1])).toEqual([firstMessage, { role: 'assistant', content: pausedTurn.content }]);
+        expect(sent(bodies[1])).toEqual([firstMessage, toolChanges(addition(lookupDefinition))]);
       },
     );
 
@@ -1732,10 +1732,10 @@ describe('ToolRunner', () => {
         content: [getWeatherToolResult('Paris')],
       });
 
-      // Update params to replace the reply with a custom tool_use block
+      // Update params to append a custom tool_use block to messages
       runner.setMessagesParams((params) => ({
         ...params,
-        messages: [...params.messages.slice(0, -1), assistantTurn([getWeatherToolUse('London', 'tool_2')])],
+        messages: [...params.messages, assistantTurn([getWeatherToolUse('London', 'tool_2')])],
       }));
 
       // Assistant provides final response incorporating both tool results
@@ -1745,8 +1745,8 @@ describe('ToolRunner', () => {
       });
 
       // Verify the messages were properly appended
-      // The messages array should have: initial user message + custom assistant + its tool_result + final reply
-      expect(runner.params.messages).toHaveLength(4);
+      // The messages array should have: initial user message + custom assistant + custom tool_use
+      expect(runner.params.messages).toHaveLength(3);
       expect(runner.params.messages[1]).toMatchObject({
         role: 'assistant',
         content: [getWeatherToolUse('London', 'tool_2')],
@@ -2740,9 +2740,9 @@ describe('ToolRunner', () => {
       // When we call generateToolResponse, assert that we respond with the tool result.
       const toolResponse = await runner.generateToolResponse();
       expect(toolResponse).toMatchObject({ role: 'user', content: [getWeatherToolResult('Miami')] });
-      // The assistant message is part of the history as soon as it arrives; the tool result is
-      // added after the yield completes
-      expect(runner.params.messages.length).toBe(2);
+      // At this point we should still only have the initial user message
+      // The assistant message gets added after the yield completes
+      expect(runner.params.messages.length).toBe(1);
 
       // Ending the tool loop with an assistant message should work as expected.
       handleAssistantMessage(getTextContent());

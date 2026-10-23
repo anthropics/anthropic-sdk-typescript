@@ -689,30 +689,28 @@ describe('deferToolCall()', () => {
     expect(timeline).toEqual(['lookup(b) STARTS', 'generateToolResponse()', 'lookup(a) STARTS']);
   });
 
-  it('keeps a held call from running when the caller takes over the reply', async () => {
-    // The reply is in the history as soon as it arrives, so the caller takes over by replacing it.
-    const { runner, timeline, requests } = setup([reply(call('a'), call('b')), done()]);
+  it.each<Options>([{}, { thread: false }])(
+    'keeps a held call from running when the caller takes over the reply (%o)',
+    async (mode) => {
+      // After pushMessages() the runner sends the caller's history, not this reply's results.
+      const { runner, timeline, requests } = setup([reply(call('a'), call('b')), done()], mode);
 
-    let replies = 0;
-    for await (const stream of runner) {
-      stream.on('contentBlock', (block) => {
-        if (block.type === 'tool_use') runner.deferToolCall(block);
-      });
-      await stream.finalMessage();
-      if (replies++ === 0) {
-        runner.setMessagesParams((params) => ({
-          ...params,
-          messages: [...params.messages.slice(0, -1), { role: 'user', content: 'Never mind.' }],
-        }));
+      let replies = 0;
+      for await (const stream of runner) {
+        stream.on('contentBlock', (block) => {
+          if (block.type === 'tool_use') runner.deferToolCall(block);
+        });
+        await stream.finalMessage();
+        if (replies++ === 0) runner.pushMessages({ role: 'user', content: 'Never mind.' });
       }
-    }
 
-    expect(timeline).toEqual(['request 2']);
-    expect(requests[1]!.body.messages).toEqual([
-      { role: 'user', content: 'Look these up.' },
-      { role: 'user', content: 'Never mind.' },
-    ]);
-  });
+      expect(timeline).toEqual(['request 2']);
+      expect(requests[1]!.body.messages).toEqual([
+        { role: 'user', content: 'Look these up.' },
+        { role: 'user', content: 'Never mind.' },
+      ]);
+    },
+  );
 
   it('lets a tool change the params from run() without the runner dropping the reply', async () => {
     // A call that starts while the caller is still handling the reply changes the params before the runner
@@ -1386,34 +1384,33 @@ describe('a toolset call', () => {
     ]);
   });
 
-  it("doesn't start once the caller has taken over the history, when it was waiting for the toolset's earlier call", async () => {
-    const { runner, timeline } = setup(
-      [reply(toolsetCall('a', 'navigate'), toolsetCall('b', 'screenshot')), done()],
-      { extraTools: (timeline) => [slowBrowserToolset(timeline)] },
-    );
+  it.each<Options>([{}, { thread: false }])(
+    "doesn't start once the caller has taken over the history, when it was waiting for the toolset's earlier call (%o)",
+    async (mode) => {
+      const { runner, timeline } = setup(
+        [reply(toolsetCall('a', 'navigate'), toolsetCall('b', 'screenshot')), done()],
+        { ...mode, extraTools: (timeline) => [slowBrowserToolset(timeline)] },
+      );
 
-    // The reply is in the history as soon as it arrives, so the caller takes over by replacing it.
-    let first = true;
-    for await (const stream of runner) {
-      await stream.finalMessage();
-      if (first) {
-        runner.setMessagesParams((params) => ({
-          ...params,
-          messages: [...params.messages.slice(0, -1), { role: 'user', content: 'Never mind.' }],
-        }));
-        timeline.push('caller takes over');
-        // navigate ends while the loop body is still running.
-        await new Promise((resolve) => setTimeout(resolve, 50));
+      let first = true;
+      for await (const stream of runner) {
+        await stream.finalMessage();
+        if (first) {
+          runner.pushMessages({ role: 'user', content: 'Never mind.' });
+          timeline.push('caller takes over');
+          // navigate ends while the loop body is still running.
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        first = false;
       }
-      first = false;
-    }
 
-    expect(firstReply(timeline)).toEqual([
-      'toolset navigate STARTS',
-      'caller takes over',
-      'toolset navigate ENDS',
-    ]);
-  });
+      expect(firstReply(timeline)).toEqual([
+        'toolset navigate STARTS',
+        'caller takes over',
+        'toolset navigate ENDS',
+      ]);
+    },
+  );
 
   it('runs in a turn the caller pushed, after a call of the streamed reply failed', async () => {
     const { runner, timeline } = setup([reply(toolsetCall('a', 'navigate')), done()], {
