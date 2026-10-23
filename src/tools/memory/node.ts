@@ -377,6 +377,10 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
     const oldFullPath = await this.validatePath(command.old_path);
     const newFullPath = await this.validatePath(command.new_path);
 
+    if (oldFullPath === path.resolve(this.memoryRoot)) {
+      throw new Error('Cannot rename the /memories directory itself');
+    }
+
     // POSIX rename() silently overwrites existing files without error,
     // so we can't catch this atomically. Best-effort check to warn user.
     if (await exists(newFullPath)) {
