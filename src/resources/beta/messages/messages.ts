@@ -6926,7 +6926,7 @@ export interface BetaSignatureDelta {
 }
 
 /**
- * Specification for a skill to be loaded in a container (request model).
+ * Specification for a skill to be loaded in a container.
  */
 export interface BetaSkillParams {
   /**

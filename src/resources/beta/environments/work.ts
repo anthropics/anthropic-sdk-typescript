@@ -469,7 +469,8 @@ export interface BetaSelfHostedWork {
  */
 export interface BetaSelfHostedWorkHeartbeatResponse {
   /**
-   * RFC 3339 timestamp of the actual heartbeat from DB
+   * RFC 3339 timestamp of the most recent heartbeat recorded for this work item, or
+   * an empty string if none has been recorded
    */
   last_heartbeat: string;
 
@@ -511,12 +512,10 @@ export interface BetaSelfHostedWorkListResponse {
 
 /**
  * Statistics about the work queue for an environment.
- *
- * Uses Redis Stream consumer group metrics for O(1) queries.
  */
 export interface BetaSelfHostedWorkQueueStats {
   /**
-   * Number of work items waiting to be picked up (lag from consumer group)
+   * Number of work items waiting to be picked up
    */
   depth: number;
 

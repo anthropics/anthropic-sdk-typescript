@@ -279,8 +279,8 @@ export interface BetaExternalKey {
   display_name: string | null;
 
   /**
-   * Data residency geo. Selects which regional validator handles this key's
-   * encrypt/decrypt roundtrips.
+   * Data residency geo. Selects the region that handles this key's encrypt/decrypt
+   * roundtrips.
    */
   geo: string;
 
