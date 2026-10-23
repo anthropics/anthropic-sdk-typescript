@@ -1,6 +1,11 @@
 # Changelog
 
-## [1.2.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.2.0...sdk-v1.2.1) (2026-10-23)
+## [1.3.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.2.0...sdk-v1.3.0) (2026-10-23)
+
+### Features
+
+* **api:** add Claude Tag endpoints for Claude Enterprise organizations
+
 
 ### Bug Fixes
 

@@ -2878,3 +2878,82 @@ Methods:
 - <code title="get /v1/organizations/webhooks">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">list</a>({ ...params }) -> BetaOrganizationWebhookEndpointsPage</code>
 - <code title="delete /v1/organizations/webhooks/{webhook_endpoint_id}">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">delete</a>(webhookEndpointID, { ...params }) -> BetaDeletedOrganizationWebhookEndpoint</code>
 - <code title="post /v1/organizations/webhooks/{webhook_endpoint_id}/regenerate_signing_secret">client.beta.organization.webhooks.<a href="./src/resources/beta/organization/webhooks.ts">regenerateSigningSecret</a>(webhookEndpointID, { ...params }) -> BetaOrganizationWebhookEndpointSigningSecret</code>
+
+### ClaudeTag
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagDefaultSettingSource</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicy</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicyAllow</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicyChannelOnly</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicyRestrict</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSettingSource</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSettingSources</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSettings</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSettingsCreate</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSettingsUpdate</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackChannelIdentifiers</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackChannelSettingSource</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackDefaultSettingSource</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackGridChannelSettingSource</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackParentChannelSettingSource</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackWorkspaceIdentifiers</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackWorkspaceSettingSource</a></code>
+
+#### SlackChannels
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/claude-tag/slack-channels.ts">BetaClaudeTagDeletedSlackChannel</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/slack-channels.ts">BetaClaudeTagSlackChannel</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/claude_tag/slack_channels">client.beta.organization.claudeTag.slackChannels.<a href="./src/resources/beta/organization/claude-tag/slack-channels.ts">create</a>({ ...params }) -> BetaClaudeTagSlackChannel</code>
+- <code title="get /v1/organizations/claude_tag/slack_channels/{id}">client.beta.organization.claudeTag.slackChannels.<a href="./src/resources/beta/organization/claude-tag/slack-channels.ts">retrieve</a>(id, { ...params }) -> BetaClaudeTagSlackChannel</code>
+- <code title="post /v1/organizations/claude_tag/slack_channels/{id}">client.beta.organization.claudeTag.slackChannels.<a href="./src/resources/beta/organization/claude-tag/slack-channels.ts">update</a>(id, { ...params }) -> BetaClaudeTagSlackChannel</code>
+- <code title="get /v1/organizations/claude_tag/slack_channels">client.beta.organization.claudeTag.slackChannels.<a href="./src/resources/beta/organization/claude-tag/slack-channels.ts">list</a>({ ...params }) -> BetaClaudeTagSlackChannelsPageCursor</code>
+- <code title="delete /v1/organizations/claude_tag/slack_channels/{id}">client.beta.organization.claudeTag.slackChannels.<a href="./src/resources/beta/organization/claude-tag/slack-channels.ts">delete</a>(id, { ...params }) -> BetaClaudeTagDeletedSlackChannel</code>
+
+#### SlackWorkspaces
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/claude-tag/slack-workspaces.ts">BetaClaudeTagSlackWorkspace</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/claude_tag/slack_workspaces/{id}">client.beta.organization.claudeTag.slackWorkspaces.<a href="./src/resources/beta/organization/claude-tag/slack-workspaces.ts">retrieve</a>(id, { ...params }) -> BetaClaudeTagSlackWorkspace</code>
+- <code title="post /v1/organizations/claude_tag/slack_workspaces/{id}">client.beta.organization.claudeTag.slackWorkspaces.<a href="./src/resources/beta/organization/claude-tag/slack-workspaces.ts">update</a>(id, { ...params }) -> BetaClaudeTagSlackWorkspace</code>
+- <code title="get /v1/organizations/claude_tag/slack_workspaces">client.beta.organization.claudeTag.slackWorkspaces.<a href="./src/resources/beta/organization/claude-tag/slack-workspaces.ts">list</a>({ ...params }) -> BetaClaudeTagSlackWorkspacesPageCursor</code>
+
+#### Bundles
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/claude-tag/bundles/bundles.ts">BetaClaudeTagBundle</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/claude_tag/bundles/{bundle_id}">client.beta.organization.claudeTag.bundles.<a href="./src/resources/beta/organization/claude-tag/bundles/bundles.ts">retrieve</a>(bundleID, { ...params }) -> BetaClaudeTagBundle</code>
+- <code title="get /v1/organizations/claude_tag/bundles">client.beta.organization.claudeTag.bundles.<a href="./src/resources/beta/organization/claude-tag/bundles/bundles.ts">list</a>({ ...params }) -> BetaClaudeTagBundlesPageCursor</code>
+
+##### Targets
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">BetaClaudeTagBundleTarget</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">BetaClaudeTagBundleTargetCreate</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">BetaClaudeTagDeletedBundleTarget</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">BetaClaudeTagSlackChannelBundleTarget</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">BetaClaudeTagSlackChannelBundleTargetCreate</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">BetaClaudeTagSlackWorkspaceBundleTarget</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">BetaClaudeTagSlackWorkspaceBundleTargetCreate</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/claude_tag/bundles/{bundle_id}/targets">client.beta.organization.claudeTag.bundles.targets.<a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">create</a>(bundleID, { ...params }) -> BetaClaudeTagBundleTarget</code>
+- <code title="get /v1/organizations/claude_tag/bundles/{bundle_id}/targets/{target_id}">client.beta.organization.claudeTag.bundles.targets.<a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">retrieve</a>(targetID, { ...params }) -> BetaClaudeTagBundleTarget</code>
+- <code title="get /v1/organizations/claude_tag/bundles/{bundle_id}/targets">client.beta.organization.claudeTag.bundles.targets.<a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">list</a>(bundleID, { ...params }) -> BetaClaudeTagBundleTargetsPageCursor</code>
+- <code title="delete /v1/organizations/claude_tag/bundles/{bundle_id}/targets/{target_id}">client.beta.organization.claudeTag.bundles.targets.<a href="./src/resources/beta/organization/claude-tag/bundles/targets.ts">delete</a>(targetID, { ...params }) -> BetaClaudeTagDeletedBundleTarget</code>
