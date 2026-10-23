@@ -164,9 +164,9 @@ export class PluginMarketplaces extends APIResource {
    * part, with some files left out. An archive that cannot be read as a marketplace
    * is reported, not refused: the response is a report with `valid: false`. Plugin
    * sources outside the marketplace are fetched anonymously from GitHub, so a
-   * private one is reported as not found; a source on any other host is not fetched
-   * here, and the report notes that it will be checked when the marketplace actually
-   * synchronizes.
+   * private one is reported as not found or as needing a GitHub sign-in; a source on
+   * any other host is not fetched here, and the report notes that it will be checked
+   * when the marketplace actually synchronizes.
    *
    * Nothing is recorded on the Compliance API activity feed.
    *
@@ -232,9 +232,9 @@ export class PluginMarketplaces extends APIResource {
    * part, with some files left out. A repository that is missing, private, or has no
    * such branch or commit is reported, not refused: the response is a report with
    * `valid: false`. Plugin sources outside the marketplace are fetched anonymously
-   * from GitHub, so a private one is reported as not found; a source on any other
-   * host is not fetched here, and the report notes that it will be checked when the
-   * marketplace actually synchronizes.
+   * from GitHub, so a private one is reported as not found or as needing a GitHub
+   * sign-in; a source on any other host is not fetched here, and the report notes
+   * that it will be checked when the marketplace actually synchronizes.
    *
    * Nothing is recorded on the Compliance API activity feed.
    *

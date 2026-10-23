@@ -1179,6 +1179,7 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageDeltaUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageIterationUsage</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageParam</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageThreadParam</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMessageTokensCount</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaMetadata</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaOutputConfig</a></code>
@@ -1249,6 +1250,8 @@ Types:
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingMismatchAllowedInputTransformation</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingPrefixMismatchBehavior</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaThinkingTurns</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThreadContinueParams</a></code>
+- <code><a href="./src/resources/beta/messages/messages.ts">BetaThreadCreateParams</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTokenTaskBudget</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaTool</a></code>
 - <code><a href="./src/resources/beta/messages/messages.ts">BetaToolBash20241022</a></code>
@@ -2455,6 +2458,9 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsActor</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsActorType</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsAPIActor</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsArtifactActivity</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsChatCoworkUnifiedChatMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsChatCoworkUnifiedSessionsMetrics</a></code>
@@ -2477,6 +2483,13 @@ Types:
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsCostUsersItem</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsCoworkMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsDesignMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsFederatedActor</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsFederatedActorAWSProvider</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsFederatedActorAzureProvider</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsFederatedActorGCPProvider</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsFederatedActorOIDCProvider</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsFederatedActorProvider</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsGroupedCostType</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsInferenceGeoFilter</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsLinesOfCode</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsOfficeMetrics</a></code>
@@ -2486,8 +2499,11 @@ Types:
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsPluginCoworkMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsProductFilter</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsProjectActivity</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsReportUserActor</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsScienceMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsServerToolUse</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsServiceAccountActor</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsServiceTier</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSingleDayActivitySummary</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillActivity</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillChatCoworkUnifiedChatMetrics</a></code>
@@ -2497,10 +2513,15 @@ Types:
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillCoworkMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillOfficeMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSkillOfficeProductMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsSpeed</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsTimeBucketWidth</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsTokenType</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsToolActionCounts</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsToolActions</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageBucketedResult</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageCostInferenceGeo</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageCostProductFilter</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageCostSortOrder</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageReportTimeBucket</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUsageUsersItem</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsUser</a></code>
@@ -2552,6 +2573,34 @@ Methods:
 Methods:
 
 - <code title="get /v1/organizations/analytics/artifacts?beta=true">client.beta.organization.analytics.artifacts.<a href="./src/resources/beta/organization/analytics/artifacts.ts">list</a>({ ...params }) -> BetaAnalyticsArtifactActivitiesPageCursor</code>
+
+#### Usage
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/analytics/usage.ts">BetaAnalyticsUsageGroup</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/usage.ts">BetaAnalyticsUsageGroupBy</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/usage.ts">BetaAnalyticsUsageItem</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/usage.ts">BetaAnalyticsUsageMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/usage.ts">BetaAnalyticsUsageOrderBy</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/usage?beta=true">client.beta.organization.analytics.usage.<a href="./src/resources/beta/organization/analytics/usage.ts">list</a>({ ...params }) -> BetaAnalyticsUsageItemsReportPageCursor</code>
+
+#### Cost
+
+Types:
+
+- <code><a href="./src/resources/beta/organization/analytics/cost.ts">BetaAnalyticsCostGroup</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/cost.ts">BetaAnalyticsCostGroupBy</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/cost.ts">BetaAnalyticsCostItem</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/cost.ts">BetaAnalyticsCostMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/cost.ts">BetaAnalyticsCostOrderBy</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/cost?beta=true">client.beta.organization.analytics.cost.<a href="./src/resources/beta/organization/analytics/cost.ts">list</a>({ ...params }) -> BetaAnalyticsCostItemsReportPageCursor</code>
 
 #### UsageReport
 

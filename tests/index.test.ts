@@ -776,7 +776,7 @@ describe('retries', () => {
       }),
     ).toEqual({ a: 1 });
 
-    expect(capturedRequest!.headers as Headers).not.toHaveProperty('x-stainless-retry-count');
+    expect((capturedRequest!.headers as Headers).has('x-stainless-retry-count')).toBe(false);
   });
 
   test('overwrite retry count header', async () => {

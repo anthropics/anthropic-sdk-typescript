@@ -20,7 +20,19 @@ import {
   type ParsedBetaMessage,
 } from '../../../lib/beta-parser';
 import { BetaMessageStream } from '../../../lib/BetaMessageStream';
-import { messagesCreateHeaders, transformOutputFormat } from '../../../lib/internal/beta-messages-request';
+import {
+  assertOneOutputFormat,
+  messagesCreateHeaders,
+  transformOutputFormat,
+} from '../../../lib/internal/beta-messages-request';
+import {
+  BetaMessageThread,
+  type BetaMessageThreadCreateParams,
+  type BetaMessageThreadRequestOptions,
+} from '../../../lib/threads/BetaMessageThread';
+import { ThreadState } from '../../../lib/internal/threads/ThreadState';
+import { splitToolRunnerParams } from '../../../lib/internal/threads/tool-runner-params';
+import { loggerFor } from '../../../internal/utils/log';
 import {
   BetaToolRunner,
   BetaToolRunnerParams,
@@ -257,8 +269,46 @@ export class Messages extends APIResource {
     options?: BetaToolRunnerRequestOptions,
   ): BetaToolRunner<true>;
   toolRunner(body: BetaToolRunnerParams, options?: BetaToolRunnerRequestOptions): BetaToolRunner<boolean>;
+  /**
+   * Run the tools the model calls until it stops asking for them, yielding each assistant message.
+   *
+   * On a client with message threads the loop runs over one, so each turn sends only new messages. Pass
+   * `thread: false` to send the full history every turn. To run the loop over an existing thread, call
+   * `toolRunner()` on the thread itself.
+   */
   toolRunner(body: BetaToolRunnerParams, options?: BetaToolRunnerRequestOptions): BetaToolRunner<boolean> {
     return new BetaToolRunner(this._client as Anthropic, body, options);
+  }
+
+  /** @internal The thread that a tool runner with the params `body` runs over, and the runner's own settings. */
+  _toolRunnerThread(body: BetaToolRunnerParams) {
+    assertOneOutputFormat(body);
+    const { settings, thread, threadParams } = splitToolRunnerParams(body);
+    const state = new ThreadState({
+      params: { ...threadParams, unsupportedRequestBehavior: 'continue_unthreaded' },
+      options: {},
+      threading: thread !== false && this._client._supportsMessageThreads,
+      logger: loggerFor(this._client),
+    });
+    return { thread: BetaMessageThread._fromState<any>(this._client as Anthropic, state), settings };
+  }
+
+  /**
+   * Start a message thread: a conversation the server holds between turns, so each request sends only the new
+   * messages. Takes the params of `create()` except `thread`, with `messages` optional, and sends nothing.
+   *
+   * @example
+   * ```ts
+   * const thread = client.beta.messages.thread({ model: 'claude-opus-5', max_tokens: 1024 });
+   * const first = await thread.send({ role: 'user', content: 'Hello, Claude' });
+   * const second = await thread.send({ role: 'user', content: 'How are you?' });
+   * ```
+   */
+  thread<Params extends BetaMessageThreadCreateParams>(
+    params: Params,
+    options?: BetaMessageThreadRequestOptions,
+  ): BetaMessageThread<ExtractParsedContentFromBetaParams<Params>> {
+    return new BetaMessageThread(this._client as Anthropic, params, options);
   }
 }
 
@@ -6163,6 +6213,15 @@ export interface BetaMessageIterationUsage {
 
 export type BetaMessageParam = BetaUserMessageParam | BetaAssistantMessageParam | BetaSystemMessageParam;
 
+/**
+ * Server-held conversation state (a Thread). `{"type": "create"}` asks the server
+ * to hold this conversation's state under the response's `id`;
+ * `{"type": "continue", "previous_message_id": ...}` resumes from a previous
+ * response so only the new turn's messages are sent. The response shape is
+ * unchanged.
+ */
+export type BetaMessageThreadParam = BetaThreadCreateParams | BetaThreadContinueParams;
+
 export interface BetaMessageTokensCount {
   /**
    * Information about context management applied to the message.
@@ -7365,6 +7424,25 @@ export interface BetaThinkingTurns {
   type: 'thinking_turns';
 
   value: number;
+}
+
+/**
+ * Resume from the response named by `previous_message_id`.
+ */
+export interface BetaThreadContinueParams {
+  /**
+   * The `id` of the previous response in this Thread.
+   */
+  previous_message_id: string;
+
+  type: 'continue';
+}
+
+/**
+ * Start holding conversation state under this response's `id`.
+ */
+export interface BetaThreadCreateParams {
+  type: 'create';
 }
 
 /**
@@ -9552,6 +9630,15 @@ export interface MessageCreateParamsBase {
   thinking?: BetaThinkingConfigParam;
 
   /**
+   * Body param: Server-held conversation state (a Thread). `{"type": "create"}` asks
+   * the server to hold this conversation's state under the response's `id`;
+   * `{"type": "continue", "previous_message_id": ...}` resumes from a previous
+   * response so only the new turn's messages are sent. The response shape is
+   * unchanged.
+   */
+  thread?: BetaMessageThreadParam | null;
+
+  /**
    * Body param: How the model should use the provided tools. The model can use a
    * specific tool, any available tool, decide by itself, or not use tools at all.
    */
@@ -9995,6 +10082,14 @@ export interface MessageCountTokensParams {
 }
 
 export { BetaToolRunner, type BetaToolRunnerParams } from '../../../lib/tools/BetaToolRunner';
+export {
+  BetaMessageThread,
+  type BetaMessageThreadCreateParams,
+  type BetaMessageThreadRequestOptions,
+  type BetaMessageThreadSendParams,
+  type BetaMessageThreadToolRunnerParams,
+  type UnsupportedRequestBehavior,
+} from '../../../lib/threads/BetaMessageThread';
 export { ToolError } from '../../../lib/tools/ToolError';
 
 Messages.Batches = Batches;
@@ -10305,6 +10400,7 @@ export declare namespace Messages {
     type BetaMessageDeltaUsage as BetaMessageDeltaUsage,
     type BetaMessageIterationUsage as BetaMessageIterationUsage,
     type BetaMessageParam as BetaMessageParam,
+    type BetaMessageThreadParam as BetaMessageThreadParam,
     type BetaMessageTokensCount as BetaMessageTokensCount,
     type BetaMetadata as BetaMetadata,
     type BetaOutputConfig as BetaOutputConfig,
@@ -10375,6 +10471,8 @@ export declare namespace Messages {
     type BetaThinkingMismatchAllowedInputTransformation as BetaThinkingMismatchAllowedInputTransformation,
     type BetaThinkingPrefixMismatchBehavior as BetaThinkingPrefixMismatchBehavior,
     type BetaThinkingTurns as BetaThinkingTurns,
+    type BetaThreadContinueParams as BetaThreadContinueParams,
+    type BetaThreadCreateParams as BetaThreadCreateParams,
     type BetaTokenTaskBudget as BetaTokenTaskBudget,
     type BetaTool as BetaTool,
     type BetaToolBash20241022 as BetaToolBash20241022,

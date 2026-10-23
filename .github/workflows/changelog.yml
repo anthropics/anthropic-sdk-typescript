@@ -27,7 +27,7 @@ jobs:
           missing=""
           check() {
             if git diff --quiet HEAD^1 HEAD -- "$1/CHANGELOG.md" &&
-              ! git diff --quiet HEAD^1 HEAD -- "$@" ':(exclude).release-please-manifest.json' ':(exclude)scripts/mock-spec.json.gz'; then
+              ! git diff --quiet HEAD^1 HEAD -- "$@" ':(exclude).version-manifest.json' ':(exclude)scripts/mock-spec.json.gz'; then
               missing="$missing $1/CHANGELOG.md"
             fi
           }

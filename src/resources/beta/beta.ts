@@ -637,6 +637,7 @@ import {
   BetaMessageDeltaUsage,
   BetaMessageIterationUsage,
   BetaMessageParam,
+  BetaMessageThreadParam,
   BetaMessageTokensCount,
   BetaMetadata,
   BetaOutputConfig,
@@ -758,6 +759,8 @@ import {
   BetaThinkingMismatchAllowedInputTransformation,
   BetaThinkingPrefixMismatchBehavior,
   BetaThinkingTurns,
+  BetaThreadContinueParams,
+  BetaThreadCreateParams,
   BetaTokenTaskBudget,
   BetaTool,
   BetaToolBash20241022,
@@ -1012,7 +1015,9 @@ export type AnthropicBeta =
   | 'ce-plugins-2026-09-01'
   | 'spend-limit-reads-2026-09-26'
   | 'telemetry-destinations-2026-08-11'
-  | 'webhooks-2026-10-07';
+  | 'webhooks-2026-10-07'
+  | 'message-threads-2026-08-12'
+  | 'analytics-usage-cost-2026-08-24';
 
 export interface BetaAPIError {
   message: string;
@@ -1463,6 +1468,7 @@ export declare namespace Beta {
     type BetaMessageDeltaUsage as BetaMessageDeltaUsage,
     type BetaMessageIterationUsage as BetaMessageIterationUsage,
     type BetaMessageParam as BetaMessageParam,
+    type BetaMessageThreadParam as BetaMessageThreadParam,
     type BetaMessageTokensCount as BetaMessageTokensCount,
     type BetaMetadata as BetaMetadata,
     type BetaOutputConfig as BetaOutputConfig,
@@ -1533,6 +1539,8 @@ export declare namespace Beta {
     type BetaThinkingMismatchAllowedInputTransformation as BetaThinkingMismatchAllowedInputTransformation,
     type BetaThinkingPrefixMismatchBehavior as BetaThinkingPrefixMismatchBehavior,
     type BetaThinkingTurns as BetaThinkingTurns,
+    type BetaThreadContinueParams as BetaThreadContinueParams,
+    type BetaThreadCreateParams as BetaThreadCreateParams,
     type BetaTokenTaskBudget as BetaTokenTaskBudget,
     type BetaTool as BetaTool,
     type BetaToolBash20241022 as BetaToolBash20241022,

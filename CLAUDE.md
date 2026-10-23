@@ -142,7 +142,7 @@ These rules don't depend on the language. The SDKs for this API in other languag
 - Commit subjects and PR titles follow Conventional Commits (`feat(scope):`, `fix(scope):`, `chore`, `docs`). A `!` or a `BREAKING CHANGE:` footer marks the release as breaking (a major version, or a minor one below 1.0). Only a maintainer adds one.
 - If `.github/workflows/changelog.yml` exists, every PR adds its own line to `CHANGELOG.md` or carries the `skip-changelog` label, and CI fails it otherwise. A draft needs no line, so add it when you mark the PR ready. If the file doesn't exist, release automation writes `CHANGELOG.md` and the version files from those commit subjects, and a manual edit is overwritten or conflicts with the release PR.
 - Either way, release automation writes the version, so don't edit it by hand.
-- Where PRs add the lines and `.release-please-manifest.json` lists several packages, each package has its own `CHANGELOG.md`, and a PR's line goes in the changelog of every package it changes. A release leaves out a package whose changelog has no section for a version higher than the one the manifest lists for it, so a change merged with `skip-changelog` ships only once another change has added a line for that package.
+- Where PRs add the lines and `.version-manifest.json` lists several packages, each package has its own `CHANGELOG.md`, and a PR's line goes in the changelog of every package it changes. A release leaves out a package whose changelog has no section for a version higher than the one the manifest lists for it, so a change merged with `skip-changelog` ships only once another change has added a line for that package.
 - Where release automation writes `CHANGELOG.md`, `release-please-config.json` lists the commit types. `test` and `ci` are hidden, and a subject with no type doesn't reach the changelog.
 - A change users will notice gets a changelog note, even when it fixes a bug, so don't give it a hidden commit type. Rejecting input that used to be accepted is one such change, and so is a different error type.
 - Make one logical change per PR. Unrelated fixes, formatting churn, and incidental lockfile changes go elsewhere. Split a large feature into stacked PRs.
@@ -228,7 +228,7 @@ These rules are about the design of a client library. They don't depend on the l
 - Setup instructions live in [CONTRIBUTING.md](CONTRIBUTING.md).
 - `src/lib/` and `examples/` are hand-written. The generator never touches them. The generator's own files have custom code mixed in, including `src/client.ts` and files under `src/core/`, `src/internal/`, and `src/resources/`.
 - A wrong return type in `api.md` is a generator regression.
-- The version lives in `package.json`, `src/version.ts`, and `.release-please-manifest.json`.
+- The version lives in `package.json`, `src/version.ts`, and `.version-manifest.json`.
 
 ### Build, test, lint
 
