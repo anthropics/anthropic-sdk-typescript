@@ -5,6 +5,17 @@ import * as ArtifactsAPI from './artifacts';
 import { ArtifactListParams, Artifacts } from './artifacts';
 import * as ConnectorsAPI from './connectors';
 import { ConnectorListParams, Connectors } from './connectors';
+import * as CostAPI from './cost';
+import {
+  BetaAnalyticsCostGroup,
+  BetaAnalyticsCostGroupBy,
+  BetaAnalyticsCostItem,
+  BetaAnalyticsCostItemsReportPageCursor,
+  BetaAnalyticsCostMetrics,
+  BetaAnalyticsCostOrderBy,
+  Cost,
+  CostListParams,
+} from './cost';
 import * as CostReportAPI from './cost-report';
 import { CostReport, CostReportListParams } from './cost-report';
 import * as PluginsAPI from './plugins';
@@ -13,6 +24,17 @@ import * as SkillsAPI from './skills';
 import { SkillListParams, Skills } from './skills';
 import * as SummariesAPI from './summaries';
 import { Summaries, SummaryListParams } from './summaries';
+import * as UsageAPI from './usage';
+import {
+  BetaAnalyticsUsageGroup,
+  BetaAnalyticsUsageGroupBy,
+  BetaAnalyticsUsageItem,
+  BetaAnalyticsUsageItemsReportPageCursor,
+  BetaAnalyticsUsageMetrics,
+  BetaAnalyticsUsageOrderBy,
+  Usage,
+  UsageListParams,
+} from './usage';
 import * as UsageReportAPI from './usage-report';
 import { UsageReport, UsageReportListParams } from './usage-report';
 import * as UserCostReportAPI from './user-cost-report';
@@ -33,6 +55,8 @@ export class Analytics extends APIResource {
   plugins: PluginsAPI.Plugins = new PluginsAPI.Plugins(this._client);
   skills: SkillsAPI.Skills = new SkillsAPI.Skills(this._client);
   artifacts: ArtifactsAPI.Artifacts = new ArtifactsAPI.Artifacts(this._client);
+  usage: UsageAPI.Usage = new UsageAPI.Usage(this._client);
+  cost: CostAPI.Cost = new CostAPI.Cost(this._client);
   usageReport: UsageReportAPI.UsageReport = new UsageReportAPI.UsageReport(this._client);
   userUsageReport: UserUsageReportAPI.UserUsageReport = new UserUsageReportAPI.UserUsageReport(this._client);
   costReport: CostReportAPI.CostReport = new CostReportAPI.CostReport(this._client);
@@ -63,6 +87,26 @@ export type BetaAnalyticsCostReportTimeBucketsReportPageCursor =
   ReportPageCursor<BetaAnalyticsCostReportTimeBucket>;
 
 export type BetaAnalyticsCostUsersItemsReportPageCursor = ReportPageCursor<BetaAnalyticsCostUsersItem>;
+
+export type BetaAnalyticsActor =
+  | BetaAnalyticsReportUserActor
+  | BetaAnalyticsServiceAccountActor
+  | BetaAnalyticsFederatedActor
+  | BetaAnalyticsAPIActor;
+
+/**
+ * Kind of identity a row's usage is attributed to.
+ */
+export type BetaAnalyticsActorType = 'api_actor' | 'federated_actor' | 'service_account_actor' | 'user_actor';
+
+export interface BetaAnalyticsAPIActor {
+  /**
+   * Tagged API key ID.
+   */
+  api_key_id: string;
+
+  type: 'api_actor';
+}
 
 /**
  * Artifact-creation activity for one (`artifact_type`, `is_shared`) bucket on a
@@ -1216,6 +1260,72 @@ export interface BetaAnalyticsDesignMetrics {
   message_count: number;
 }
 
+export interface BetaAnalyticsFederatedActor {
+  /**
+   * The trusted provider that asserted the caller's identity.
+   */
+  provider: BetaAnalyticsFederatedActorProvider;
+
+  /**
+   * The provider's identifier for the caller: on `aws`, the IAM principal ARN (one
+   * role is one actor across its sessions); on `gcp`, the caller's IAM principal
+   * identifier as Google Cloud reports it, such as `serviceAccount:<email>`,
+   * `user:<email>`, or a `principal://...` URI.
+   */
+  subject: string | null;
+
+  type: 'federated_actor';
+}
+
+export interface BetaAnalyticsFederatedActorAWSProvider {
+  /**
+   * The AWS account the organization is bound to.
+   */
+  account_id: string;
+
+  /**
+   * The AWS-signed ARN of the IAM principal that made the requests.
+   */
+  signed_principal: string;
+
+  type: 'aws';
+}
+
+export interface BetaAnalyticsFederatedActorAzureProvider {
+  /**
+   * The Azure subscription the organization is bound to.
+   */
+  subscription_id: string;
+
+  type: 'azure';
+}
+
+export interface BetaAnalyticsFederatedActorGCPProvider {
+  /**
+   * The Google Cloud project the organization is bound to.
+   */
+  project_number: string;
+
+  type: 'gcp';
+}
+
+export interface BetaAnalyticsFederatedActorOIDCProvider {
+  /**
+   * The federation issuer's URL.
+   */
+  issuer: string | null;
+
+  type: 'oidc';
+}
+
+export type BetaAnalyticsFederatedActorProvider =
+  | BetaAnalyticsFederatedActorAWSProvider
+  | BetaAnalyticsFederatedActorAzureProvider
+  | BetaAnalyticsFederatedActorGCPProvider
+  | BetaAnalyticsFederatedActorOIDCProvider;
+
+export type BetaAnalyticsGroupedCostType = 'code_execution' | 'session_usage' | 'tokens' | 'web_search';
+
 export type BetaAnalyticsInferenceGeoFilter = 'global' | 'not_available' | 'us';
 
 /**
@@ -1532,6 +1642,42 @@ export interface BetaAnalyticsProjectActivity {
   user_id?: string | null;
 }
 
+export interface BetaAnalyticsReportUserActor {
+  /**
+   * True when the account has been deleted, or when the user is no longer a member
+   * of the organization or its associated organizations (for example, their
+   * membership was removed or they were deprovisioned via your identity provider).
+   * `email_address` stays populated for removed users and is null when the account
+   * has been deleted. `name` follows the rules described on that field. The
+   * `user_id` is still populated for reconciliation.
+   */
+  deleted: boolean;
+
+  /**
+   * The user's current email address, including for users who are no longer members
+   * of the organization. Null when the account has been deleted and for
+   * system-minted service accounts.
+   */
+  email_address: string | null;
+
+  /**
+   * The user's current full name. Null when the user has not set one.
+   * `"Deleted User"` when the account has been deleted, or when the user is no
+   * longer a member and the organization hides removed users' names.
+   */
+  name: string | null;
+
+  /**
+   * Actor type. Always `"user_actor"`.
+   */
+  type: 'user_actor';
+
+  /**
+   * Tagged user ID.
+   */
+  user_id: string;
+}
+
 /**
  * Claude Science activity metrics for a single user on a given day.
  */
@@ -1571,6 +1717,23 @@ export interface BetaAnalyticsServerToolUse {
    */
   web_search_requests: number;
 }
+
+export interface BetaAnalyticsServiceAccountActor {
+  /**
+   * Tagged service account ID.
+   */
+  service_account_id: string;
+
+  type: 'service_account_actor';
+}
+
+export type BetaAnalyticsServiceTier =
+  | 'batch'
+  | 'flex'
+  | 'flex_discount'
+  | 'priority'
+  | 'priority_on_demand'
+  | 'standard';
 
 /**
  * Per-day entry in the /summaries response.
@@ -2131,6 +2294,10 @@ export interface BetaAnalyticsSkillOfficeProductMetrics {
   distinct_session_skill_used_count: number | null;
 }
 
+export type BetaAnalyticsSpeed = 'fast' | 'standard';
+
+export type BetaAnalyticsTimeBucketWidth = '1d' | '1h' | '1m';
+
 export type BetaAnalyticsTokenType =
   | 'cache_creation.ephemeral_1h_input_tokens'
   | 'cache_creation.ephemeral_5m_input_tokens'
@@ -2296,6 +2463,31 @@ export interface BetaAnalyticsUsageBucketedResult {
    */
   uncached_input_tokens: number;
 }
+
+export type BetaAnalyticsUsageCostInferenceGeo = 'global' | 'us';
+
+/**
+ * Publicly documented product surfaces. `claude_tag` is Claude Tag, the Claude
+ * product in Slack. `chat_cowork_unified` is Chat and Cowork unified, Cowork's
+ * features inside claude.ai chat: chat and Cowork usage by a member who has it
+ * turned on is reported under this value instead of `chat` or `cowork`. It is
+ * accepted as a filter only on deployments that offer Chat and Cowork unified.
+ */
+export type BetaAnalyticsUsageCostProductFilter =
+  | 'chat'
+  | 'chat_cowork_unified'
+  | 'claude_code'
+  | 'claude_console'
+  | 'claude_design'
+  | 'claude_in_chrome'
+  | 'claude_tag'
+  | 'cowork'
+  | 'managed_agents_api'
+  | 'message_batches_api'
+  | 'messages_api'
+  | 'office_agent';
+
+export type BetaAnalyticsUsageCostSortOrder = 'asc' | 'desc';
 
 export interface BetaAnalyticsUsageReportTimeBucket {
   /**
@@ -2637,6 +2829,8 @@ Analytics.Connectors = Connectors;
 Analytics.Plugins = Plugins;
 Analytics.Skills = Skills;
 Analytics.Artifacts = Artifacts;
+Analytics.Usage = Usage;
+Analytics.Cost = Cost;
 Analytics.UsageReport = UsageReport;
 Analytics.UserUsageReport = UserUsageReport;
 Analytics.CostReport = CostReport;
@@ -2644,6 +2838,9 @@ Analytics.UserCostReport = UserCostReport;
 
 export declare namespace Analytics {
   export {
+    type BetaAnalyticsActor as BetaAnalyticsActor,
+    type BetaAnalyticsActorType as BetaAnalyticsActorType,
+    type BetaAnalyticsAPIActor as BetaAnalyticsAPIActor,
     type BetaAnalyticsArtifactActivity as BetaAnalyticsArtifactActivity,
     type BetaAnalyticsChatCoworkUnifiedChatMetrics as BetaAnalyticsChatCoworkUnifiedChatMetrics,
     type BetaAnalyticsChatCoworkUnifiedSessionsMetrics as BetaAnalyticsChatCoworkUnifiedSessionsMetrics,
@@ -2666,6 +2863,13 @@ export declare namespace Analytics {
     type BetaAnalyticsCostUsersItem as BetaAnalyticsCostUsersItem,
     type BetaAnalyticsCoworkMetrics as BetaAnalyticsCoworkMetrics,
     type BetaAnalyticsDesignMetrics as BetaAnalyticsDesignMetrics,
+    type BetaAnalyticsFederatedActor as BetaAnalyticsFederatedActor,
+    type BetaAnalyticsFederatedActorAWSProvider as BetaAnalyticsFederatedActorAWSProvider,
+    type BetaAnalyticsFederatedActorAzureProvider as BetaAnalyticsFederatedActorAzureProvider,
+    type BetaAnalyticsFederatedActorGCPProvider as BetaAnalyticsFederatedActorGCPProvider,
+    type BetaAnalyticsFederatedActorOIDCProvider as BetaAnalyticsFederatedActorOIDCProvider,
+    type BetaAnalyticsFederatedActorProvider as BetaAnalyticsFederatedActorProvider,
+    type BetaAnalyticsGroupedCostType as BetaAnalyticsGroupedCostType,
     type BetaAnalyticsInferenceGeoFilter as BetaAnalyticsInferenceGeoFilter,
     type BetaAnalyticsLinesOfCode as BetaAnalyticsLinesOfCode,
     type BetaAnalyticsOfficeMetrics as BetaAnalyticsOfficeMetrics,
@@ -2675,8 +2879,11 @@ export declare namespace Analytics {
     type BetaAnalyticsPluginCoworkMetrics as BetaAnalyticsPluginCoworkMetrics,
     type BetaAnalyticsProductFilter as BetaAnalyticsProductFilter,
     type BetaAnalyticsProjectActivity as BetaAnalyticsProjectActivity,
+    type BetaAnalyticsReportUserActor as BetaAnalyticsReportUserActor,
     type BetaAnalyticsScienceMetrics as BetaAnalyticsScienceMetrics,
     type BetaAnalyticsServerToolUse as BetaAnalyticsServerToolUse,
+    type BetaAnalyticsServiceAccountActor as BetaAnalyticsServiceAccountActor,
+    type BetaAnalyticsServiceTier as BetaAnalyticsServiceTier,
     type BetaAnalyticsSingleDayActivitySummary as BetaAnalyticsSingleDayActivitySummary,
     type BetaAnalyticsSkillActivity as BetaAnalyticsSkillActivity,
     type BetaAnalyticsSkillChatCoworkUnifiedChatMetrics as BetaAnalyticsSkillChatCoworkUnifiedChatMetrics,
@@ -2686,10 +2893,15 @@ export declare namespace Analytics {
     type BetaAnalyticsSkillCoworkMetrics as BetaAnalyticsSkillCoworkMetrics,
     type BetaAnalyticsSkillOfficeMetrics as BetaAnalyticsSkillOfficeMetrics,
     type BetaAnalyticsSkillOfficeProductMetrics as BetaAnalyticsSkillOfficeProductMetrics,
+    type BetaAnalyticsSpeed as BetaAnalyticsSpeed,
+    type BetaAnalyticsTimeBucketWidth as BetaAnalyticsTimeBucketWidth,
     type BetaAnalyticsTokenType as BetaAnalyticsTokenType,
     type BetaAnalyticsToolActionCounts as BetaAnalyticsToolActionCounts,
     type BetaAnalyticsToolActions as BetaAnalyticsToolActions,
     type BetaAnalyticsUsageBucketedResult as BetaAnalyticsUsageBucketedResult,
+    type BetaAnalyticsUsageCostInferenceGeo as BetaAnalyticsUsageCostInferenceGeo,
+    type BetaAnalyticsUsageCostProductFilter as BetaAnalyticsUsageCostProductFilter,
+    type BetaAnalyticsUsageCostSortOrder as BetaAnalyticsUsageCostSortOrder,
     type BetaAnalyticsUsageReportTimeBucket as BetaAnalyticsUsageReportTimeBucket,
     type BetaAnalyticsUsageUsersItem as BetaAnalyticsUsageUsersItem,
     type BetaAnalyticsUser as BetaAnalyticsUser,
@@ -2710,6 +2922,28 @@ export declare namespace Analytics {
   export { Skills as Skills, type SkillListParams as SkillListParams };
 
   export { Artifacts as Artifacts, type ArtifactListParams as ArtifactListParams };
+
+  export {
+    Usage as Usage,
+    type BetaAnalyticsUsageGroup as BetaAnalyticsUsageGroup,
+    type BetaAnalyticsUsageGroupBy as BetaAnalyticsUsageGroupBy,
+    type BetaAnalyticsUsageItem as BetaAnalyticsUsageItem,
+    type BetaAnalyticsUsageMetrics as BetaAnalyticsUsageMetrics,
+    type BetaAnalyticsUsageOrderBy as BetaAnalyticsUsageOrderBy,
+    type BetaAnalyticsUsageItemsReportPageCursor as BetaAnalyticsUsageItemsReportPageCursor,
+    type UsageListParams as UsageListParams,
+  };
+
+  export {
+    Cost as Cost,
+    type BetaAnalyticsCostGroup as BetaAnalyticsCostGroup,
+    type BetaAnalyticsCostGroupBy as BetaAnalyticsCostGroupBy,
+    type BetaAnalyticsCostItem as BetaAnalyticsCostItem,
+    type BetaAnalyticsCostMetrics as BetaAnalyticsCostMetrics,
+    type BetaAnalyticsCostOrderBy as BetaAnalyticsCostOrderBy,
+    type BetaAnalyticsCostItemsReportPageCursor as BetaAnalyticsCostItemsReportPageCursor,
+    type CostListParams as CostListParams,
+  };
 
   export { UsageReport as UsageReport, type UsageReportListParams as UsageReportListParams };
 

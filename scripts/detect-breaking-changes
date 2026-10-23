@@ -88,6 +88,8 @@ TEST_PATHS=(
 	tests/api-resources/beta/organization/analytics/plugins.test.ts
 	tests/api-resources/beta/organization/analytics/skills.test.ts
 	tests/api-resources/beta/organization/analytics/artifacts.test.ts
+	tests/api-resources/beta/organization/analytics/usage.test.ts
+	tests/api-resources/beta/organization/analytics/cost.test.ts
 	tests/api-resources/beta/organization/analytics/usage-report.test.ts
 	tests/api-resources/beta/organization/analytics/user-usage-report.test.ts
 	tests/api-resources/beta/organization/analytics/cost-report.test.ts

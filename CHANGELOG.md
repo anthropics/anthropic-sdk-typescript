@@ -5,6 +5,7 @@
 ### Features
 
 * **api:** add support for message threads
+* **api:** add usage and cost reports by dimension, mark older reports legacy
 
 
 ### Chores
