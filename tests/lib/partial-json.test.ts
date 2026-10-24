@@ -204,4 +204,20 @@ describe('partialParse', () => {
     expect(partialParse(`{"a": "\\\\\\"", "b": 2}`)).toEqual({ a: '\\"', b: 2 });
     expect(partialParse(`{"a": "unterminated`)).toEqual({});
   });
+
+  test('a backslash that does not start a JSON escape is kept as a literal', () => {
+    expect(partialParse(String.raw`{"ns": "use App\Http\Middleware"}`)).toEqual({
+      ns: 'use App\\Http\\Middleware',
+    });
+    expect(partialParse(String.raw`{"p": "C:\users\local"}`)).toEqual({ p: 'C:\\users\\local' });
+    expect(partialParse(String.raw`{"p": "\u12", "q": "\u00zz"}`)).toEqual({ p: '\\u12', q: '\\u00zz' });
+    expect(partialParse(String.raw`{"re": "\d+\.\w"}`)).toEqual({ re: '\\d+\\.\\w' });
+  });
+
+  test('valid escapes next to a stray backslash are left alone', () => {
+    expect(partialParse(String.raw`{"a": "App\\Http"}`)).toEqual({ a: 'App\\Http' });
+    expect(partialParse(String.raw`{"a": "a\\\Http"}`)).toEqual({ a: 'a\\\\Http' });
+    expect(partialParse(String.raw`{"a": "line\nbreak \u0041 \H"}`)).toEqual({ a: 'line\nbreak A \\H' });
+    expect(partialParse(String.raw`{"a": "x\Hy", "b": "unterminated \H`)).toEqual({ a: 'x\\Hy' });
+  });
 });
