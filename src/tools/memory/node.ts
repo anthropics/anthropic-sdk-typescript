@@ -357,7 +357,7 @@ export class BetaLocalFilesystemMemoryTool implements MemoryToolHandlers {
   async delete(command: BetaMemoryTool20250818DeleteCommand): Promise<string> {
     const fullPath = await this.validatePath(command.path);
 
-    if (command.path === '/memories') {
+    if (fullPath === this.memoryRoot) {
       throw new Error('Cannot delete the /memories directory itself');
     }
 
