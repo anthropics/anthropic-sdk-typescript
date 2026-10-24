@@ -296,7 +296,7 @@ test('error handling', async () => {
   ).rejects;
 
   await err.toMatchInlineSnapshot(
-    `[Error: {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}]`,
+    `[InternalServerError: 529 {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}]`,
   );
   await err.toBeInstanceOf(APIError);
 });
