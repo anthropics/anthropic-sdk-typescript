@@ -163,7 +163,7 @@ describe('betaAgentToolset20260401', () => {
 });
 
 describe('resolvePath', () => {
-  const root = '/tmp/work';
+  const root = fs.existsSync('/tmp') ? path.join(fs.realpathSync('/tmp'), 'work') : '/tmp/work';
   const cases: { description: string; env: AgentToolContext; p: string; want?: string; wantErr?: RegExp }[] =
     [
       {
