@@ -25,6 +25,55 @@ export function transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
   return _transformJSONSchema(workingCopy);
 }
 
+const LOCAL_DEF_REF = /^#\/\$defs\/([^/]+)$/;
+
+/**
+ * Resolves local `#/$defs/<name>` references inline and drops `$defs` once every
+ * reference to it has been resolved. The API rejects `$defs` alongside `anyOf`
+ * (`400 output_config.format.schema: For 'anyOf', '$defs' is not supported`), and
+ * zod ≥ 4.6 emits exactly that shape for described unions when `toJSONSchema` is
+ * called with `{ reused: 'ref' }`.
+ *
+ * References that cannot be inlined (recursive definitions, or refs to names that
+ * don't exist in `$defs`) are left untouched, along with any `$defs` they need.
+ */
+export function inlineLocalDefs(jsonSchema: JSONSchema): JSONSchema {
+  const defs = jsonSchema['$defs'];
+  if (!defs || typeof defs !== 'object' || Array.isArray(defs)) {
+    return jsonSchema;
+  }
+  const defNames = new Set(Object.keys(defs));
+
+  const resolve = (node: unknown, expanding: string[]): unknown => {
+    if (Array.isArray(node)) {
+      return node.map((item) => resolve(item, expanding));
+    }
+    if (node !== null && typeof node === 'object') {
+      const obj = node as Record<string, any>;
+      const ref = obj['$ref'];
+      if (typeof ref === 'string') {
+        const match = LOCAL_DEF_REF.exec(ref);
+        const defName = match?.[1];
+        if (defName !== undefined && defNames.has(defName) && !expanding.includes(defName)) {
+          return resolve(deepClone((defs as Record<string, any>)[defName]), [...expanding, defName]);
+        }
+      }
+      const out: Record<string, any> = {};
+      for (const [key, value] of Object.entries(obj)) {
+        out[key] = key === '$defs' ? value : resolve(value, expanding);
+      }
+      return out;
+    }
+    return node;
+  };
+
+  const resolved = resolve(deepClone(jsonSchema), []) as Record<string, any>;
+  if (!JSON.stringify(resolved).includes('#/$defs/')) {
+    delete resolved['$defs'];
+  }
+  return resolved;
+}
+
 function _transformJSONSchema(jsonSchema: JSONSchema): JSONSchema {
   const strictSchema: JSONSchema = {};
 
