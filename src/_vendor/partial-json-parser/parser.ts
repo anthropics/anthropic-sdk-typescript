@@ -5,6 +5,12 @@ type Token = {
   unterminated?: boolean;
 };
 
+// JSON only knows \" \\ \/ \b \f \n \r \t and \uXXXX. Models sometimes emit a lone backslash
+// anyway (`App\Http`, `C:\users`), so any backslash that doesn't start one of those is
+// escaped and kept as a literal. Valid pairs are matched whole so `\\H` stays as it is.
+const repairEscapes = (value: string): string =>
+  value.replace(/\\(?:u[0-9a-fA-F]{4}|["\\/bfnrt])|\\/g, (match) => (match.length > 1 ? match : '\\\\'));
+
 const tokenize = (input: string): Token[] => {
     let current = 0;
     let tokens: Token[] = [];
@@ -280,7 +286,7 @@ const tokenize = (input: string): Token[] => {
     tokens.map((token) => {
       switch (token.type) {
         case 'string':
-          output += '"' + token.value + '"';
+          output += '"' + repairEscapes(token.value) + '"';
           break;
         default:
           output += token.value;
