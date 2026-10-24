@@ -122,9 +122,13 @@ export class APIConnectionError extends APIError<undefined, undefined, undefined
   }
 }
 
+/**
+ * Thrown when a request times out, or its connection fails with an error that looks like a timeout, before a
+ * response arrives. `cause` is the error the request failed with.
+ */
 export class APIConnectionTimeoutError extends APIConnectionError {
-  constructor({ message }: { message?: string } = {}) {
-    super({ message: message ?? 'Request timed out.' });
+  constructor({ message, cause }: { message?: string; cause?: Error | undefined } = {}) {
+    super({ message: message ?? 'Request timed out.', cause });
   }
 }
 
