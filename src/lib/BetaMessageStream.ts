@@ -852,6 +852,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
       reject: (error: unknown) => void;
     }[] = [];
     let done = false;
+    let error: AnthropicError | undefined;
 
     this.on('_rawEvent', (event) => {
       const reader = readQueue.shift();
@@ -872,6 +873,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
 
     this.on('abort', (err) => {
       done = true;
+      error = err;
       for (const reader of readQueue) {
         reader.reject(err);
       }
@@ -880,6 +882,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
 
     this.on('error', (err) => {
       done = true;
+      error = err;
       for (const reader of readQueue) {
         reader.reject(err);
       }
@@ -889,6 +892,7 @@ export class BetaMessageStream<ParsedT = null> implements AsyncIterable<BetaMess
     return {
       next: async (): Promise<IteratorResult<BetaMessageStreamEvent>> => {
         if (!pushQueue.length) {
+          if (error) throw error;
           if (done) {
             return { value: undefined, done: true };
           }
