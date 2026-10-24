@@ -77,8 +77,21 @@ export class AnthropicVertex extends BaseAnthropic {
   projectId: string | null;
   accessToken: string | null;
 
-  private _auth?: GoogleAuth;
-  private _authClientPromise: Promise<AuthClient>;
+  private _auth?: GoogleAuth | undefined;
+  private _authClientPromise?: Promise<AuthClient> | undefined;
+
+  private _getAuthClient(): Promise<AuthClient> {
+    if (this._authClientPromise) {
+      return this._authClientPromise;
+    }
+    if (!this._auth) {
+      return Promise.reject(new Error('GoogleAuth not initialized'));
+    }
+    return (this._authClientPromise = this._auth.getClient().catch((err) => {
+      this._authClientPromise = undefined;
+      throw err;
+    }));
+  }
 
   /**
    * API Client for interfacing with the Anthropic Vertex API.
@@ -154,7 +167,6 @@ export class AnthropicVertex extends BaseAnthropic {
     } else {
       this._auth =
         opts.googleAuth ?? new GoogleAuth({ scopes: 'https://www.googleapis.com/auth/cloud-platform' });
-      this._authClientPromise = this._auth.getClient();
     }
   }
 
@@ -215,7 +227,7 @@ export class AnthropicVertex extends BaseAnthropic {
     let authClient: AuthClient;
     let googleAuthHeaders: Awaited<ReturnType<AuthClient['getRequestHeaders']>>;
     try {
-      authClient = await this._authClientPromise;
+      authClient = await this._getAuthClient();
       googleAuthHeaders = await authClient.getRequestHeaders();
     } catch (err) {
       // OAuth token acquisition is network-bound (metadata server, token
