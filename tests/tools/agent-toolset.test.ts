@@ -25,7 +25,7 @@ function tmpdir(): string {
 const testPosix = process.platform === 'win32' ? test.skip : test;
 const describePosix = process.platform === 'win32' ? describe.skip : describe;
 
-// F1 / PATH-13: a cycle of symlinks (which `realpath` cannot resolve) must be
+// A cycle of symlinks (which `realpath` cannot resolve) must be
 // rejected at resolve time — never spin, never fall back to the unresolved
 // path, and never let a lexical `..` after the loop reach an outside file.
 describePosix('canonicalize symlink-loop bound', () => {
@@ -790,7 +790,7 @@ describe('search tools (glob/grep)', () => {
     }
   });
 
-  // F2 / GLOB-07: a pattern that *names* a symlinked directory makes fs.glob
+  // A pattern that *names* a symlinked directory makes fs.glob
   // descend through it and report entries with the raw parent path
   // (`workdir/link_out/secret.ts`), which a lexical isWithin check would pass.
   // The post-filter must check the *resolved* path instead. Recursive `**`
