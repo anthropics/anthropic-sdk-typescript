@@ -1,6 +1,11 @@
 # Changelog
 
-## [1.3.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.3.0...sdk-v1.3.1) (2026-10-24)
+## [1.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.3.0...sdk-v1.4.0) (2026-10-26)
+
+### Features
+
+* **api:** add user_profile_id to External Keys and Workspaces
+
 
 ### Chores
 
