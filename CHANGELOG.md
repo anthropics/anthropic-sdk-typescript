@@ -13,6 +13,7 @@
 * **ci:** remove unused build upload steps
 * **docs:** clarify what disabling the Compliance API stops
 * **docs:** update example user ID in Admin API examples
+* **internal:** type-check the published declarations of every subpackage
 
 ### Documentation
 

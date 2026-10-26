@@ -5,7 +5,8 @@ rm -rf dist; mkdir dist
 
 # Copy src to dist/src and build from dist/src into dist, so that
 # the source map for index.js.map will refer to ./src/index.ts etc
-cp -rp src README.md dist
+# -L: GNU cp would copy a symlink under src as a link, which no longer resolves from dist/src
+cp -rpL src README.md dist
 if [ -d "../../.github" ]; then
   mkdir -p dist/.github
   cp -p ../../.github/logo.svg dist/.github/ 2>/dev/null || true

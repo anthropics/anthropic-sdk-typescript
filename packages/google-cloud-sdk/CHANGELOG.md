@@ -1,6 +1,11 @@
 # Changelog
 
-## [1.1.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v1.1.1...google-cloud-sdk-v1.1.2) (2026-10-24)
+## [1.1.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/google-cloud-sdk-v1.1.1...google-cloud-sdk-v1.1.2) (2026-10-26)
+
+### Chores
+
+* **internal:** type-check the published declarations of every subpackage
+
 
 ### Documentation
 
