@@ -9,6 +9,7 @@
 
 ### Chores
 
+* **ci:** install only the headless Chromium shell in the browser ecosystem tests
 * **ci:** remove unused build upload steps
 * **docs:** clarify what disabling the Compliance API stops
 
