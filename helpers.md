@@ -224,7 +224,7 @@ A message thread (beta) keeps the conversation on the server, so each request se
 
 ```ts
 const thread = client.beta.messages.thread({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1024,
   system: 'You are a support agent for Acme.',
 });
@@ -324,7 +324,7 @@ By default, the runner runs a reply's tools after your loop body for that reply 
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   messages: [{ role: 'user', content: 'Clean up the log files in /tmp/demo.' }],
   tools: [listFiles, deleteFile],
@@ -584,7 +584,7 @@ Updates the conversation parameters. Can accept new parameters or a mutator func
 // Direct parameter update
 runner.setMessagesParams({
   ...runner.params,
-  model: 'claude-haiku-4-5',
+  model: 'claude-haiku-5-5',
   max_tokens: 500,
 });
 

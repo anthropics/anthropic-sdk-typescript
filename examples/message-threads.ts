@@ -14,7 +14,7 @@ const lookupOrder = betaTool({
 
 async function main() {
   const thread = client.beta.messages.thread({
-    model: 'claude-sonnet-5',
+    model: 'claude-sonnet-5-5',
     max_tokens: 1024,
     system: 'You are a support agent for Acme. Keep replies short.',
     tools: [lookupOrder],
@@ -64,7 +64,7 @@ async function main() {
 
   // `model`, `system`, `tools`, ... are fixed for a thread's lifetime; start a new one from the history to change them.
   const escalation = client.beta.messages.thread({
-    model: 'claude-sonnet-5',
+    model: 'claude-sonnet-5-5',
     max_tokens: 1024,
     system: 'You are a senior support agent for Acme. Decide whether to refund, and say why in one sentence.',
     tools: [lookupOrder],
