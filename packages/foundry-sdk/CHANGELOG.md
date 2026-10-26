@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v1.1.0...foundry-sdk-v1.1.1) (2026-10-26)
+
+### Bug Fixes
+
+* **foundry:** make client.d.ts type-check with skipLibCheck off
+
 ## [1.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v1.0.0...foundry-sdk-v1.1.0) (2026-10-22)
 
 ### Features

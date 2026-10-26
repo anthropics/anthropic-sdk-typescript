@@ -46,13 +46,13 @@ export class AnthropicFoundry extends Anthropic {
 
   resource: string | null = null;
 
-  // @ts-expect-error are using a different Messages type that omits batches
+  /** @ts-ignore are using a different Messages type that omits batches */
   override messages: MessagesResource = makeMessagesResource(this);
 
-  // @ts-expect-error are using a different Beta type that omits batches
+  /** @ts-ignore are using a different Beta type that omits batches */
   override beta: BetaResource = makeBetaResource(this);
 
-  // @ts-expect-error Anthropic Foundry does not support models endpoint
+  /** @ts-ignore Anthropic Foundry does not support models endpoint */
   override models = undefined;
   /**
    * API Client for interfacing with the Anthropic Foundry API.
