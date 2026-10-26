@@ -54,7 +54,7 @@ export class Members extends APIResource {
    * const betaRBACGroupMember =
    *   await client.beta.organization.rbacGroups.members.add(
    *     'rbac_group_id',
-   *     { user_id: 'user_01WCz1FkmYMm4gnmykNKUu3Q' },
+   *     { user_id: 'user_01WxYzAbCdEfGhJkMnPqRsTu' },
    *   );
    * ```
    */

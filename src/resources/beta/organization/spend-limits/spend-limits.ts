@@ -132,7 +132,7 @@ export class SpendLimits extends APIResource {
    *     amount: '50000',
    *     scope: {
    *       type: 'user',
-   *       user_id: 'user_01WCz1FkmYMm4gnmykNKUu3Q',
+   *       user_id: 'user_01WxYzAbCdEfGhJkMnPqRsTu',
    *     },
    *   });
    * ```
