@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.3.0...sdk-v1.4.0) (2026-10-26)
+## [1.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.3.0...sdk-v1.4.0) (2026-10-27)
 
 ### Features
 
@@ -17,6 +17,7 @@
 
 ### Documentation
 
+* add a description to the AnthropicBeta type
 * **examples:** use current model IDs
 
 ## [1.3.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.2.0...sdk-v1.3.0) (2026-10-23)
