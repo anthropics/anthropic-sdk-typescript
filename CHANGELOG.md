@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.3.0...sdk-v1.4.0) (2026-10-27)
+## [1.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.3.0...sdk-v1.4.0) (2026-10-28)
 
 ### Features
 
@@ -12,6 +12,7 @@
 * **ci:** install only the headless Chromium shell in the browser ecosystem tests
 * **ci:** remove unused build upload steps
 * **docs:** clarify what disabling the Compliance API stops
+* **docs:** clarify what the capability_access_all role action grants
 * **docs:** update example user ID in Admin API examples
 * **internal:** type-check the published declarations of every subpackage
 
