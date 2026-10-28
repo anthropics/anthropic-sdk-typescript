@@ -25,7 +25,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "workspace:*",
     "@opentelemetry/api": "^1.4.1",
-    "google-auth-library": "^10.2.0"
+    "google-auth-library": "^11.3.1"
   },
   "devDependencies": {
     "@types/node": "^20.17.6",
