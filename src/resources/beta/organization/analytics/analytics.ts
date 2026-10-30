@@ -1426,6 +1426,14 @@ export interface BetaAnalyticsOfficeProductMetrics {
 }
 
 /**
+ * Sort direction: `asc` or `desc`. Defaults to `asc` for the endpoint's sort
+ * column and to `desc` when `order_by` names a metric (a top-N ranking). Applies
+ * to `order_by`, or to the endpoint's default sort field when `order_by` is
+ * omitted.
+ */
+export type BetaAnalyticsOrder = 'asc' | 'desc';
+
+/**
  * Per-plugin install + invocation activity for a given day.
  *
  * With `group_by[]=user_id` / `rbac_group_id` / `product` (`cowork`, `claude_code`
@@ -2892,6 +2900,7 @@ export declare namespace Analytics {
     type BetaAnalyticsLinesOfCode as BetaAnalyticsLinesOfCode,
     type BetaAnalyticsOfficeMetrics as BetaAnalyticsOfficeMetrics,
     type BetaAnalyticsOfficeProductMetrics as BetaAnalyticsOfficeProductMetrics,
+    type BetaAnalyticsOrder as BetaAnalyticsOrder,
     type BetaAnalyticsPluginActivity as BetaAnalyticsPluginActivity,
     type BetaAnalyticsPluginClaudeCodeMetrics as BetaAnalyticsPluginClaudeCodeMetrics,
     type BetaAnalyticsPluginCoworkMetrics as BetaAnalyticsPluginCoworkMetrics,

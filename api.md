@@ -2496,6 +2496,7 @@ Types:
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsLinesOfCode</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsOfficeMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsOfficeProductMetrics</a></code>
+- <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsOrder</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsPluginActivity</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsPluginClaudeCodeMetrics</a></code>
 - <code><a href="./src/resources/beta/organization/analytics/analytics.ts">BetaAnalyticsPluginCoworkMetrics</a></code>
@@ -2668,6 +2669,8 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">BetaSpendLimitIncreaseRequest</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">BetaSpendLimitIncreaseRequestActor</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">BetaSpendLimitIncreaseRequestResolvedBy</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">BetaSpendLimitIncreaseRequestStatus</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/increase-requests.ts">IncreaseRequestApproveResponse</a></code>
 

@@ -50,6 +50,7 @@ export {
   type BetaAnalyticsLinesOfCode,
   type BetaAnalyticsOfficeMetrics,
   type BetaAnalyticsOfficeProductMetrics,
+  type BetaAnalyticsOrder,
   type BetaAnalyticsPluginActivity,
   type BetaAnalyticsPluginClaudeCodeMetrics,
   type BetaAnalyticsPluginCoworkMetrics,

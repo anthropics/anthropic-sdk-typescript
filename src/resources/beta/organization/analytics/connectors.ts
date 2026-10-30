@@ -111,7 +111,7 @@ export interface ConnectorListParams extends PageCursorParams {
    * to `order_by`, or to the endpoint's default sort field when `order_by` is
    * omitted.
    */
-  order?: 'asc' | 'desc' | null;
+  order?: AnalyticsAPI.BetaAnalyticsOrder | null;
 
   /**
    * Sort field. Restricted to the endpoint's sort column plus its rankable metrics
