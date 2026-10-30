@@ -521,6 +521,20 @@ export interface BetaAnalyticsConnectorActivity {
   claude_code_metrics: BetaAnalyticsConnectorClaudeCodeMetrics;
 
   /**
+   * Human-readable display name for rows whose `connector_name` is an opaque
+   * connector id rather than a readable name, resolved at request time from the
+   * organization's connectors (including connectors that have since been removed).
+   * `connector_name` remains the row's stable key for sorting and pagination, and
+   * `filter[]=connector_name:{value}` also matches these rows by display name.
+   * Display names are not unique, and the same connector's claude.ai usage can
+   * appear under a separate row with a readable `connector_name`. Null when
+   * `connector_name` is already a readable name, when the id cannot be resolved to
+   * one of the organization's connectors, or when display-name resolution is not
+   * enabled for this organization.
+   */
+  connector_display_name: string | null;
+
+  /**
    * Name of the connector. Some rows carry an opaque connector id here instead of a
    * readable name; `connector_display_name` holds the resolved name for those rows.
    */
@@ -539,42 +553,13 @@ export interface BetaAnalyticsConnectorActivity {
   distinct_user_count: number;
 
   /**
-   * Office Agent activity metrics for a single connector on a given day, broken out
-   * by Office product.
-   */
-  office_metrics: BetaAnalyticsConnectorOfficeMetrics;
-
-  /**
-   * Connector use recorded while members had Chat and Cowork unified (Cowork's
-   * features inside claude.ai chat) turned on, split into chat conversations and
-   * Cowork sessions. A count is null in date-range mode where it cannot be computed.
-   * Omitted from the response on deployments that do not offer Chat and Cowork
-   * unified.
-   */
-  chat_cowork_unified_metrics?: BetaAnalyticsConnectorActivity.ChatCoworkUnifiedMetrics | null;
-
-  /**
-   * Human-readable display name for rows whose `connector_name` is an opaque
-   * connector id rather than a readable name, resolved at request time from the
-   * organization's connectors (including connectors that have since been removed).
-   * `connector_name` remains the row's stable key for sorting and pagination, and
-   * `filter[]=connector_name:{value}` also matches these rows by display name.
-   * Display names are not unique, and the same connector's claude.ai usage can
-   * appear under a separate row with a readable `connector_name`. Null when
-   * `connector_name` is already a readable name, when the id cannot be resolved to
-   * one of the organization's connectors, or when display-name resolution is not
-   * enabled for this organization.
-   */
-  connector_display_name?: string | null;
-
-  /**
    * Number of distinct users whose use of this connector on the requested day ran on
    * their own individual credential, connected through their own consent flow.
    * Companion bucket to `managed_auth_distinct_user_count`, which carries the
    * measurement, attribution, and null rules. Users whose requests used no stored
    * credential count in neither bucket.
    */
-  individual_auth_distinct_user_count?: number | null;
+  individual_auth_distinct_user_count: number | null;
 
   /**
    * Number of distinct users whose use of this connector on the requested day ran on
@@ -599,7 +584,58 @@ export interface BetaAnalyticsConnectorActivity {
    * starting earlier reports every managed-auth field as null, never a
    * partial-window value.
    */
-  managed_auth_distinct_user_count?: number | null;
+  managed_auth_distinct_user_count: number | null;
+
+  /**
+   * Office Agent activity metrics for a single connector on a given day, broken out
+   * by Office product.
+   */
+  office_metrics: BetaAnalyticsConnectorOfficeMetrics;
+
+  /**
+   * Number of connector tool calls on the requested day whose trusted read-only
+   * annotation marked them read-only. Call count, not distinct users. Every call
+   * recorded on a classified surface lands in exactly one of `read_call_count`,
+   * `write_call_count`, or `unclassified_call_count`, so the three sum to the day's
+   * classified calls. Classification is forward-only per surface: claude.ai from
+   * 2026-06-01, Claude Code from 2026-05-30, Claude in Office from 2026-05-29,
+   * Cowork from 2026-06-02 (Cowork clients predating annotation forwarding land in
+   * `unclassified_call_count`). Null, never 0, when the value cannot be stated: the
+   * read/write split is not enabled for this organization, or the day predates
+   * 2026-05-29. For a date-range total, sum the per-day values, but treat a window
+   * that extends before 2026-05-29 as null rather than summing only its covered days
+   * — date-range rollup mode (`starting_date`/`ending_date`) applies both rules
+   * server-side.
+   */
+  read_call_count: number | null;
+
+  /**
+   * Number of connector tool calls on the requested day with no trusted read-only
+   * annotation — the annotation is optional in the MCP spec and is discarded when
+   * connector access controls are active, so unclassified calls are common. This
+   * field shows how much of the day's classified activity the read/write split
+   * actually covers. Call count, not distinct users. One of the three
+   * call-classification buckets; see `read_call_count` for the per-surface
+   * data-start dates, null conditions, and date-range guidance.
+   */
+  unclassified_call_count: number | null;
+
+  /**
+   * Number of connector tool calls on the requested day whose trusted read-only
+   * annotation marked them not read-only. Call count, not distinct users. One of the
+   * three call-classification buckets; see `read_call_count` for the per-surface
+   * data-start dates, null conditions, and date-range guidance.
+   */
+  write_call_count: number | null;
+
+  /**
+   * Connector use recorded while members had Chat and Cowork unified (Cowork's
+   * features inside claude.ai chat) turned on, split into chat conversations and
+   * Cowork sessions. A count is null in date-range mode where it cannot be computed.
+   * Omitted from the response on deployments that do not offer Chat and Cowork
+   * unified.
+   */
+  chat_cowork_unified_metrics?: BetaAnalyticsConnectorActivity.ChatCoworkUnifiedMetrics | null;
 
   /**
    * Product that produced this row's activity: one of `chat`, `claude_code`,
@@ -629,46 +665,10 @@ export interface BetaAnalyticsConnectorActivity {
   rbac_group_name?: string | null;
 
   /**
-   * Number of connector tool calls on the requested day whose trusted read-only
-   * annotation marked them read-only. Call count, not distinct users. Every call
-   * recorded on a classified surface lands in exactly one of `read_call_count`,
-   * `write_call_count`, or `unclassified_call_count`, so the three sum to the day's
-   * classified calls. Classification is forward-only per surface: claude.ai from
-   * 2026-06-01, Claude Code from 2026-05-30, Claude in Office from 2026-05-29,
-   * Cowork from 2026-06-02 (Cowork clients predating annotation forwarding land in
-   * `unclassified_call_count`). Null, never 0, when the value cannot be stated: the
-   * read/write split is not enabled for this organization, or the day predates
-   * 2026-05-29. For a date-range total, sum the per-day values, but treat a window
-   * that extends before 2026-05-29 as null rather than summing only its covered days
-   * — date-range rollup mode (`starting_date`/`ending_date`) applies both rules
-   * server-side.
-   */
-  read_call_count?: number | null;
-
-  /**
-   * Number of connector tool calls on the requested day with no trusted read-only
-   * annotation — the annotation is optional in the MCP spec and is discarded when
-   * connector access controls are active, so unclassified calls are common. This
-   * field shows how much of the day's classified activity the read/write split
-   * actually covers. Call count, not distinct users. One of the three
-   * call-classification buckets; see `read_call_count` for the per-surface
-   * data-start dates, null conditions, and date-range guidance.
-   */
-  unclassified_call_count?: number | null;
-
-  /**
    * Tagged user identifier (e.g. `user_...`). Present only when the request grouped
    * by `user_id`.
    */
   user_id?: string | null;
-
-  /**
-   * Number of connector tool calls on the requested day whose trusted read-only
-   * annotation marked them not read-only. Call count, not distinct users. One of the
-   * three call-classification buckets; see `read_call_count` for the per-surface
-   * data-start dates, null conditions, and date-range guidance.
-   */
-  write_call_count?: number | null;
 }
 
 export namespace BetaAnalyticsConnectorActivity {
@@ -1162,6 +1162,14 @@ export interface BetaAnalyticsCoworkMetrics {
   distinct_connectors_used_count: number | null;
 
   /**
+   * Number of distinct plugins used in Cowork sessions. Null while Cowork plugin-use
+   * metrics are not enabled for this organization. Approximate (HLL, typical error
+   * <2%) in date-range mode. Null on aggregated rows where a distinct count cannot
+   * be computed.
+   */
+  distinct_plugins_used_count: number | null;
+
+  /**
    * Number of distinct Cowork sessions. Approximate (HLL, typical error <2%) in
    * date-range mode. Null on aggregated rows where a distinct count cannot be
    * computed.
@@ -1176,53 +1184,40 @@ export interface BetaAnalyticsCoworkMetrics {
   distinct_skills_used_count: number | null;
 
   /**
-   * Number of messages sent in Cowork sessions
-   */
-  message_count: number;
-
-  /**
-   * Total number of skill invocations in Cowork sessions
-   */
-  skills_used_count: number;
-
-  /**
-   * Number of distinct plugins used in Cowork sessions. Null while Cowork plugin-use
-   * metrics are not enabled for this organization. Approximate (HLL, typical error
-   * <2%) in date-range mode. Null on aggregated rows where a distinct count cannot
-   * be computed.
-   */
-  distinct_plugins_used_count?: number | null;
-
-  /**
    * Number of successful Edit tool calls in Cowork sessions. Null while the
    * file-edit metrics are not enabled for this organization.
    */
-  edit_tool_count?: number | null;
+  edit_tool_count: number | null;
 
   /**
    * Number of successful file-edit tool calls (Edit, MultiEdit, Write, NotebookEdit)
    * in Cowork sessions. Null, never 0, while the file-edit metrics are not enabled
    * for this organization.
    */
-  file_edit_count?: number | null;
+  file_edit_count: number | null;
+
+  /**
+   * Number of messages sent in Cowork sessions
+   */
+  message_count: number;
 
   /**
    * Number of successful MultiEdit tool calls in Cowork sessions. Null while the
    * file-edit metrics are not enabled for this organization.
    */
-  multi_edit_tool_count?: number | null;
+  multi_edit_tool_count: number | null;
 
   /**
    * Number of successful NotebookEdit tool calls in Cowork sessions. Null while the
    * file-edit metrics are not enabled for this organization.
    */
-  notebook_edit_tool_count?: number | null;
+  notebook_edit_tool_count: number | null;
 
   /**
    * Total number of plugin invocations in Cowork sessions. Null while Cowork
    * plugin-use metrics are not enabled for this organization.
    */
-  plugins_used_count?: number | null;
+  plugins_used_count: number | null;
 
   /**
    * Number of distinct Cowork sessions with at least one successful file-edit tool
@@ -1230,13 +1225,18 @@ export interface BetaAnalyticsCoworkMetrics {
    * Approximate (HLL, typical error <2%) in date-range mode. Null on aggregated rows
    * where a distinct count cannot be computed.
    */
-  sessions_with_file_edits_count?: number | null;
+  sessions_with_file_edits_count: number | null;
+
+  /**
+   * Total number of skill invocations in Cowork sessions
+   */
+  skills_used_count: number;
 
   /**
    * Number of successful Write tool calls in Cowork sessions. Null while the
    * file-edit metrics are not enabled for this organization.
    */
-  write_tool_count?: number | null;
+  write_tool_count: number | null;
 }
 
 /**
@@ -1465,6 +1465,13 @@ export interface BetaAnalyticsPluginActivity {
   invocation_count: number;
 
   /**
+   * Stable plugin identifier when available (e.g. `serena@claude-plugins-official`).
+   * Null for third-party Claude Code plugins (redacted at the source) and Cowork
+   * slash commands that carry only a hashed id.
+   */
+  plugin_id: string | null;
+
+  /**
    * Name of the plugin
    */
   plugin_name: string;
@@ -1476,13 +1483,6 @@ export interface BetaAnalyticsPluginActivity {
    * Chat and Cowork unified.
    */
   chat_cowork_unified_metrics?: BetaAnalyticsPluginActivity.ChatCoworkUnifiedMetrics | null;
-
-  /**
-   * Stable plugin identifier when available (e.g. `serena@claude-plugins-official`).
-   * Null for third-party Claude Code plugins (redacted at the source) and Cowork
-   * slash commands that carry only a hashed id.
-   */
-  plugin_id?: string | null;
 
   /**
    * Product that produced this row's activity: one of `chat`, `claude_code`,
@@ -1584,6 +1584,24 @@ export type BetaAnalyticsProductFilter =
  */
 export interface BetaAnalyticsProjectActivity {
   /**
+   * Project creation timestamp in RFC 3339 format. Null if the project was deleted
+   * before attribution was recorded.
+   */
+  created_at: string | null;
+
+  /**
+   * User who created the project. Null if the project was deleted before attribution
+   * was recorded, or if the creator's account no longer exists.
+   */
+  created_by: BetaAnalyticsUser | null;
+
+  /**
+   * Number of distinct conversations in the project. Null on aggregated rows where a
+   * distinct count cannot be computed.
+   */
+  distinct_conversation_count: number | null;
+
+  /**
    * Number of distinct users who used the project on the requested day, or, in
    * date-range mode, over the requested window — recomputed as an exact distinct
    * count over the window's per-member daily rows, never a sum of per-day values.
@@ -1604,38 +1622,6 @@ export interface BetaAnalyticsProjectActivity {
    * Name of the project
    */
   project_name: string;
-
-  /**
-   * Project creation timestamp in RFC 3339 format. Null if the project was deleted
-   * before attribution was recorded.
-   */
-  created_at?: string | null;
-
-  /**
-   * User who created the project. Null if the project was deleted before attribution
-   * was recorded, or if the creator's account no longer exists.
-   */
-  created_by?: BetaAnalyticsUser | null;
-
-  /**
-   * Number of distinct conversations in the project. Null on aggregated rows where a
-   * distinct count cannot be computed.
-   */
-  distinct_conversation_count?: number | null;
-
-  /**
-   * Product that produced this row's activity: one of `chat`, `claude_code`,
-   * `cowork`, `office_agent`, or `chat_cowork_unified` (Chat and Cowork unified).
-   * These are the canonical Cost & Usage product names; an `office_agent` row's
-   * per-surface breakdown is in its `office_metrics`. On `/plugins` only `cowork`,
-   * `claude_code` and `chat_cowork_unified` occur (the only surfaces with plugin
-   * attribution); on `/artifacts` only `chat`, `claude_code`, `cowork` and
-   * `chat_cowork_unified` occur (the surfaces that create artifacts);
-   * `/apps/chat/projects` does not support the product dimension (a `product` entry
-   * in `group_by[]` or `filter[]` there is rejected). Present only when the request
-   * grouped by `product`.
-   */
-  product?: string | null;
 
   /**
    * Tagged RBAC group identifier (`rbac_group_...`), matching the spend-limits API
@@ -1974,44 +1960,6 @@ export interface BetaAnalyticsSingleDayActivitySummary {
  */
 export interface BetaAnalyticsSkillActivity {
   /**
-   * Claude.ai activity metrics for a single skill on a given day.
-   */
-  chat_metrics: BetaAnalyticsSkillChatMetrics;
-
-  /**
-   * Claude Code activity metrics for a single skill on a given day.
-   */
-  claude_code_metrics: BetaAnalyticsSkillClaudeCodeMetrics;
-
-  /**
-   * Cowork activity metrics for a single skill on a given day.
-   */
-  cowork_metrics: BetaAnalyticsSkillCoworkMetrics;
-
-  /**
-   * Number of distinct users who used the skill on the requested day, or, in
-   * date-range mode, over the requested window — recomputed as an exact distinct
-   * count over the window's per-member daily rows, never a sum of per-day values. A
-   * skill counts as used only when it is explicitly activated — the model (or the
-   * user, via the skill's slash command) invokes it, reading its instructions into
-   * context as part of that activation. Skills that are merely installed or listed
-   * as available, or whose content reaches the context without an activation
-   * (preloaded, hook-injected, or read as a plain file), are not counted.
-   */
-  distinct_user_count: number;
-
-  /**
-   * Office Agent activity metrics for a single skill on a given day, broken out by
-   * Office product.
-   */
-  office_metrics: BetaAnalyticsSkillOfficeMetrics;
-
-  /**
-   * Name of the skill
-   */
-  skill_name: string;
-
-  /**
    * List-price (rate-card) value of the member requests attributed to this skill, as
    * a decimal string in the minor unit of `currency` (cents for USD), from Claude
    * Code, Cowork, and Office Agent request-level attribution — the value of requests
@@ -2032,23 +1980,41 @@ export interface BetaAnalyticsSkillActivity {
    * attributed to a member–skill pair with no counted usage on that day is excluded
    * from those cuts.
    */
-  attributed_list_price?: string | null;
+  attributed_list_price: string | null;
 
   /**
-   * Skill use recorded while members had Chat and Cowork unified (Cowork's features
-   * inside claude.ai chat) turned on, split into chat conversations and Cowork
-   * sessions. A count is null in date-range mode where it cannot be computed.
-   * Omitted from the response on deployments that do not offer Chat and Cowork
-   * unified.
+   * Claude.ai activity metrics for a single skill on a given day.
    */
-  chat_cowork_unified_metrics?: BetaAnalyticsSkillActivity.ChatCoworkUnifiedMetrics | null;
+  chat_metrics: BetaAnalyticsSkillChatMetrics;
+
+  /**
+   * Claude Code activity metrics for a single skill on a given day.
+   */
+  claude_code_metrics: BetaAnalyticsSkillClaudeCodeMetrics;
+
+  /**
+   * Cowork activity metrics for a single skill on a given day.
+   */
+  cowork_metrics: BetaAnalyticsSkillCoworkMetrics;
 
   /**
    * Currency for this row's monetary fields (`estimated_overage_spend` and
    * `attributed_list_price`), as an uppercase ISO-4217 code. Always "USD" when
    * either amount is populated; null whenever both amounts are null.
    */
-  currency?: string | null;
+  currency: string | null;
+
+  /**
+   * Number of distinct users who used the skill on the requested day, or, in
+   * date-range mode, over the requested window — recomputed as an exact distinct
+   * count over the window's per-member daily rows, never a sum of per-day values. A
+   * skill counts as used only when it is explicitly activated — the model (or the
+   * user, via the skill's slash command) invokes it, reading its instructions into
+   * context as part of that activation. Skills that are merely installed or listed
+   * as available, or whose content reaches the context without an activation
+   * (preloaded, hook-injected, or read as a plain file), are not counted.
+   */
+  distinct_user_count: number;
 
   /**
    * Distinct accounts that enabled this skill on the requested day (claude.ai only —
@@ -2060,7 +2026,7 @@ export interface BetaAnalyticsSkillActivity {
    * on more than one day, so it is also null in date-range rollup mode
    * (`starting_date`/`ending_date`).
    */
-  enable_count?: number | null;
+  enable_count: number | null;
 
   /**
    * Estimated overage spend attributed to this skill, as a decimal string in the
@@ -2087,7 +2053,7 @@ export interface BetaAnalyticsSkillActivity {
    * attributed to a member–skill pair with no counted usage on that day is excluded
    * from those cuts.
    */
-  estimated_overage_spend?: string | null;
+  estimated_overage_spend: string | null;
 
   /**
    * Total number of times this skill was invoked on the requested day (the skill
@@ -2102,7 +2068,53 @@ export interface BetaAnalyticsSkillActivity {
    * window — date-range rollup mode (`starting_date`/`ending_date`) returns this sum
    * directly.
    */
-  invocation_count?: number | null;
+  invocation_count: number | null;
+
+  /**
+   * Office Agent activity metrics for a single skill on a given day, broken out by
+   * Office product.
+   */
+  office_metrics: BetaAnalyticsSkillOfficeMetrics;
+
+  /**
+   * Skill share status (claude.ai only): one of `private`, `organization`, or
+   * `public`. Null for skills used only in Claude Code or Office (no per-skill
+   * share-status concept) and when share-status reporting is not yet available for
+   * the organization. Filterable via `filter[]=share_status:{value}`.
+   */
+  share_status: 'organization' | 'private' | 'public' | null;
+
+  /**
+   * Human-readable display name for rows whose `skill_name` is an opaque skill id
+   * (user/organization skill types and plugin-delivered skills, whose user-defined
+   * names usage reports generally withhold). Organization-shared skills and skills
+   * delivered by the organization's own plugins (its plugin marketplaces and its
+   * library) resolve; plugin skill names are shown without their 'plugin:' prefix.
+   * The literal 'unknown' bucket row gets a fixed 'Unknown skill' label. For a
+   * member's own skill (private or personal-plugin) it is null, except when the
+   * skill's owner used it from Claude Code or Cowork in the requested period: then
+   * it shows the name that client reported at the time. Apart from that, the names
+   * of members' own skills are not disclosed to analytics-key holders. Also null for
+   * Anthropic-provided plugin skills (not resolved), for an organization skill or
+   * plugin whose name can no longer be found (for example, one since deleted), when
+   * `skill_name` is already a display name, or when display-name resolution is not
+   * enabled for this organization.
+   */
+  skill_display_name: string | null;
+
+  /**
+   * Name of the skill
+   */
+  skill_name: string;
+
+  /**
+   * Skill use recorded while members had Chat and Cowork unified (Cowork's features
+   * inside claude.ai chat) turned on, split into chat conversations and Cowork
+   * sessions. A count is null in date-range mode where it cannot be computed.
+   * Omitted from the response on deployments that do not offer Chat and Cowork
+   * unified.
+   */
+  chat_cowork_unified_metrics?: BetaAnalyticsSkillActivity.ChatCoworkUnifiedMetrics | null;
 
   /**
    * Product that produced this row's activity: one of `chat`, `claude_code`,
@@ -2130,32 +2142,6 @@ export interface BetaAnalyticsSkillActivity {
    * resolved; `rbac_group_id` remains the stable key.
    */
   rbac_group_name?: string | null;
-
-  /**
-   * Skill share status (claude.ai only): one of `private`, `organization`, or
-   * `public`. Null for skills used only in Claude Code or Office (no per-skill
-   * share-status concept) and when share-status reporting is not yet available for
-   * the organization. Filterable via `filter[]=share_status:{value}`.
-   */
-  share_status?: 'organization' | 'private' | 'public' | null;
-
-  /**
-   * Human-readable display name for rows whose `skill_name` is an opaque skill id
-   * (user/organization skill types and plugin-delivered skills, whose user-defined
-   * names usage reports generally withhold). Organization-shared skills and skills
-   * delivered by the organization's own plugins (its plugin marketplaces and its
-   * library) resolve; plugin skill names are shown without their 'plugin:' prefix.
-   * The literal 'unknown' bucket row gets a fixed 'Unknown skill' label. For a
-   * member's own skill (private or personal-plugin) it is null, except when the
-   * skill's owner used it from Claude Code or Cowork in the requested period: then
-   * it shows the name that client reported at the time. Apart from that, the names
-   * of members' own skills are not disclosed to analytics-key holders. Also null for
-   * Anthropic-provided plugin skills (not resolved), for an organization skill or
-   * plugin whose name can no longer be found (for example, one since deleted), when
-   * `skill_name` is already a display name, or when display-name resolution is not
-   * enabled for this organization.
-   */
-  skill_display_name?: string | null;
 
   /**
    * Tagged user identifier (e.g. `user_...`). Present only when the request grouped
@@ -2721,6 +2707,14 @@ export interface BetaAnalyticsUserActivity {
   design_metrics: BetaAnalyticsDesignMetrics;
 
   /**
+   * Number of distinct active users represented by this row. Only set for grouped
+   * rollups (`group_by[]`); null for per-user rows. In date-range mode, recomputed
+   * as an exact distinct count of the group's active members over the requested
+   * window, never a sum of per-day values.
+   */
+  distinct_user_count: number | null;
+
+  /**
    * Office Agent activity metrics for a single user on a given day, broken out by
    * Office product.
    */
@@ -2730,6 +2724,11 @@ export interface BetaAnalyticsUserActivity {
    * Claude Science activity metrics for a single user on a given day.
    */
   science_metrics: BetaAnalyticsScienceMetrics;
+
+  /**
+   * The user this row describes. Null on rows aggregated across users.
+   */
+  user: BetaAnalyticsUser | null;
 
   /**
    * Number of web searches performed
@@ -2743,14 +2742,6 @@ export interface BetaAnalyticsUserActivity {
    * not offer Chat and Cowork unified.
    */
   chat_cowork_unified_metrics?: BetaAnalyticsUserActivity.ChatCoworkUnifiedMetrics | null;
-
-  /**
-   * Number of distinct active users represented by this row. Only set for grouped
-   * rollups (`group_by[]`); null for per-user rows. In date-range mode, recomputed
-   * as an exact distinct count of the group's active members over the requested
-   * window, never a sum of per-day values.
-   */
-  distinct_user_count?: number | null;
 
   /**
    * Most recent UTC day (YYYY-MM-DD) on which the user had any counted activity,
@@ -2778,11 +2769,6 @@ export interface BetaAnalyticsUserActivity {
    * resolved; `rbac_group_id` remains the stable key.
    */
   rbac_group_name?: string | null;
-
-  /**
-   * The user this row describes. Null on rows aggregated across users.
-   */
-  user?: BetaAnalyticsUser | null;
 }
 
 export namespace BetaAnalyticsUserActivity {
