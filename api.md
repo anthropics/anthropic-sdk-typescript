@@ -1854,6 +1854,7 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsBase64DocumentSource</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsBase64ImageSource</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsBillingError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsCompactionLimitReachedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsCredentialHostUnreachableError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsDocumentBlock</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsEventParams</a></code>
@@ -1916,6 +1917,7 @@ Types:
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTextRubricParams</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsThreadLimitWorkflowRunError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsTimeoutWorkflowRunError</a></code>
+- <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsToolUseLimitReachedError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUnknownError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsUnknownWorkflowRunError</a></code>
 - <code><a href="./src/resources/beta/sessions/events.ts">BetaManagedAgentsURLDocumentSource</a></code>
