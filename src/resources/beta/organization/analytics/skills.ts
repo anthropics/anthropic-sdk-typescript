@@ -99,7 +99,7 @@ export interface SkillListParams extends PageCursorParams {
    * day, so grouped rows are not an exclusive partition and can sum above org-level
    * totals. At most 100 entries.
    */
-  group_by?: Array<'product' | 'rbac_group_id' | 'user_id'> | null;
+  group_by?: Array<AnalyticsAPI.BetaAnalyticsSkillGroupBy> | null;
 
   /**
    * Sort direction: `asc` or `desc`. Defaults to `asc` for the endpoint's sort

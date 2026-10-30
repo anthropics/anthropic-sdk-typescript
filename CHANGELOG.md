@@ -1,9 +1,10 @@
 # Changelog
 
-## [1.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.3.0...sdk-v1.4.0) (2026-10-28)
+## [1.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.3.0...sdk-v1.4.0) (2026-10-30)
 
 ### Features
 
+* **api:** add types for analytics group_by and spend limit period filters
 * **api:** add user_profile_id to External Keys and Workspaces
 
 

@@ -188,6 +188,11 @@ export interface BetaAnalyticsArtifactActivity {
 }
 
 /**
+ * A dimension to group artifact activity by.
+ */
+export type BetaAnalyticsArtifactGroupBy = 'product' | 'rbac_group_id' | 'user_id';
+
+/**
  * Chat activity recorded while members had Chat and Cowork unified turned on.
  */
 export interface BetaAnalyticsChatCoworkUnifiedChatMetrics {
@@ -752,6 +757,11 @@ export interface BetaAnalyticsConnectorCoworkMetrics {
    */
   distinct_session_connector_used_count: number | null;
 }
+
+/**
+ * A dimension to group connector activity by.
+ */
+export type BetaAnalyticsConnectorGroupBy = 'product' | 'rbac_group_id' | 'user_id';
 
 /**
  * Office Agent activity metrics for a single connector on a given day, broken out
@@ -1548,6 +1558,11 @@ export interface BetaAnalyticsPluginCoworkMetrics {
 }
 
 /**
+ * A dimension to group plugin activity by.
+ */
+export type BetaAnalyticsPluginGroupBy = 'product' | 'rbac_group_id' | 'user_id';
+
+/**
  * Publicly documented product surfaces. `claude-tag` is Claude Tag, the Claude
  * product in Slack. `chat_cowork_unified` is Chat and Cowork unified, Cowork's
  * features inside claude.ai chat: chat and Cowork usage by a member who has it
@@ -1641,6 +1656,11 @@ export interface BetaAnalyticsProjectActivity {
    */
   user_id?: string | null;
 }
+
+/**
+ * A dimension to group chat project activity by.
+ */
+export type BetaAnalyticsProjectGroupBy = 'rbac_group_id' | 'user_id';
 
 export interface BetaAnalyticsReportUserActor {
   /**
@@ -2247,6 +2267,11 @@ export interface BetaAnalyticsSkillCoworkMetrics {
 }
 
 /**
+ * A dimension to group skill activity by.
+ */
+export type BetaAnalyticsSkillGroupBy = 'product' | 'rbac_group_id' | 'user_id';
+
+/**
  * Office Agent activity metrics for a single skill on a given day, broken out by
  * Office product.
  */
@@ -2822,6 +2847,11 @@ export interface BetaAnalyticsUserActor {
   user_id: string;
 }
 
+/**
+ * A dimension to group user activity by.
+ */
+export type BetaAnalyticsUserGroupBy = 'rbac_group_id';
+
 Analytics.Summaries = Summaries;
 Analytics.Users = Users;
 Analytics.Apps = Apps;
@@ -2842,6 +2872,7 @@ export declare namespace Analytics {
     type BetaAnalyticsActorType as BetaAnalyticsActorType,
     type BetaAnalyticsAPIActor as BetaAnalyticsAPIActor,
     type BetaAnalyticsArtifactActivity as BetaAnalyticsArtifactActivity,
+    type BetaAnalyticsArtifactGroupBy as BetaAnalyticsArtifactGroupBy,
     type BetaAnalyticsChatCoworkUnifiedChatMetrics as BetaAnalyticsChatCoworkUnifiedChatMetrics,
     type BetaAnalyticsChatCoworkUnifiedSessionsMetrics as BetaAnalyticsChatCoworkUnifiedSessionsMetrics,
     type BetaAnalyticsChatMetrics as BetaAnalyticsChatMetrics,
@@ -2853,6 +2884,7 @@ export declare namespace Analytics {
     type BetaAnalyticsConnectorChatMetrics as BetaAnalyticsConnectorChatMetrics,
     type BetaAnalyticsConnectorClaudeCodeMetrics as BetaAnalyticsConnectorClaudeCodeMetrics,
     type BetaAnalyticsConnectorCoworkMetrics as BetaAnalyticsConnectorCoworkMetrics,
+    type BetaAnalyticsConnectorGroupBy as BetaAnalyticsConnectorGroupBy,
     type BetaAnalyticsConnectorOfficeMetrics as BetaAnalyticsConnectorOfficeMetrics,
     type BetaAnalyticsConnectorOfficeProductMetrics as BetaAnalyticsConnectorOfficeProductMetrics,
     type BetaAnalyticsContextWindow as BetaAnalyticsContextWindow,
@@ -2877,8 +2909,10 @@ export declare namespace Analytics {
     type BetaAnalyticsPluginActivity as BetaAnalyticsPluginActivity,
     type BetaAnalyticsPluginClaudeCodeMetrics as BetaAnalyticsPluginClaudeCodeMetrics,
     type BetaAnalyticsPluginCoworkMetrics as BetaAnalyticsPluginCoworkMetrics,
+    type BetaAnalyticsPluginGroupBy as BetaAnalyticsPluginGroupBy,
     type BetaAnalyticsProductFilter as BetaAnalyticsProductFilter,
     type BetaAnalyticsProjectActivity as BetaAnalyticsProjectActivity,
+    type BetaAnalyticsProjectGroupBy as BetaAnalyticsProjectGroupBy,
     type BetaAnalyticsReportUserActor as BetaAnalyticsReportUserActor,
     type BetaAnalyticsScienceMetrics as BetaAnalyticsScienceMetrics,
     type BetaAnalyticsServerToolUse as BetaAnalyticsServerToolUse,
@@ -2891,6 +2925,7 @@ export declare namespace Analytics {
     type BetaAnalyticsSkillChatMetrics as BetaAnalyticsSkillChatMetrics,
     type BetaAnalyticsSkillClaudeCodeMetrics as BetaAnalyticsSkillClaudeCodeMetrics,
     type BetaAnalyticsSkillCoworkMetrics as BetaAnalyticsSkillCoworkMetrics,
+    type BetaAnalyticsSkillGroupBy as BetaAnalyticsSkillGroupBy,
     type BetaAnalyticsSkillOfficeMetrics as BetaAnalyticsSkillOfficeMetrics,
     type BetaAnalyticsSkillOfficeProductMetrics as BetaAnalyticsSkillOfficeProductMetrics,
     type BetaAnalyticsSpeed as BetaAnalyticsSpeed,
@@ -2907,6 +2942,7 @@ export declare namespace Analytics {
     type BetaAnalyticsUser as BetaAnalyticsUser,
     type BetaAnalyticsUserActivity as BetaAnalyticsUserActivity,
     type BetaAnalyticsUserActor as BetaAnalyticsUserActor,
+    type BetaAnalyticsUserGroupBy as BetaAnalyticsUserGroupBy,
   };
 
   export { Summaries as Summaries, type SummaryListParams as SummaryListParams };
