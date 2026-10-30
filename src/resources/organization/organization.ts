@@ -73,8 +73,72 @@ import {
   UserUpdateParams,
   Users,
 } from './users';
+import * as AnalyticsAPI from './analytics/analytics';
+import {
+  Analytics,
+  AnalyticsArtifactActivity,
+  AnalyticsArtifactGroupBy,
+  AnalyticsChatCoworkUnifiedChatMetrics,
+  AnalyticsChatCoworkUnifiedMetrics,
+  AnalyticsChatCoworkUnifiedSessionsMetrics,
+  AnalyticsChatMetrics,
+  AnalyticsClaudeCodeMetrics,
+  AnalyticsConnectorActivity,
+  AnalyticsConnectorChatCoworkUnifiedChatMetrics,
+  AnalyticsConnectorChatCoworkUnifiedMetrics,
+  AnalyticsConnectorChatCoworkUnifiedSessionsMetrics,
+  AnalyticsConnectorChatMetrics,
+  AnalyticsConnectorClaudeCodeMetrics,
+  AnalyticsConnectorCoworkMetrics,
+  AnalyticsConnectorGroupBy,
+  AnalyticsConnectorOfficeMetrics,
+  AnalyticsConnectorOfficeProductMetrics,
+  AnalyticsCoreCodeMetrics,
+  AnalyticsCoworkMetrics,
+  AnalyticsDesignMetrics,
+  AnalyticsLinesOfCode,
+  AnalyticsOfficeMetrics,
+  AnalyticsOfficeProductMetrics,
+  AnalyticsOrder,
+  AnalyticsPluginActivity,
+  AnalyticsPluginChatCoworkUnifiedMetrics,
+  AnalyticsPluginClaudeCodeMetrics,
+  AnalyticsPluginCoworkMetrics,
+  AnalyticsPluginGroupBy,
+  AnalyticsProjectActivity,
+  AnalyticsProjectGroupBy,
+  AnalyticsScienceMetrics,
+  AnalyticsSingleDayActivitySummary,
+  AnalyticsSkillActivity,
+  AnalyticsSkillChatCoworkUnifiedChatMetrics,
+  AnalyticsSkillChatCoworkUnifiedMetrics,
+  AnalyticsSkillChatCoworkUnifiedSessionsMetrics,
+  AnalyticsSkillChatMetrics,
+  AnalyticsSkillClaudeCodeMetrics,
+  AnalyticsSkillCoworkMetrics,
+  AnalyticsSkillGroupBy,
+  AnalyticsSkillOfficeMetrics,
+  AnalyticsSkillOfficeProductMetrics,
+  AnalyticsToolActionCounts,
+  AnalyticsToolActions,
+  AnalyticsUser,
+  AnalyticsUserActivity,
+  AnalyticsUserGroupBy,
+} from './analytics/analytics';
 import * as FederationAPI from './federation/federation';
 import { Federation } from './federation/federation';
+import * as RBACGroupsAPI from './rbac-groups/rbac-groups';
+import {
+  DeletedRBACGroup,
+  RBACGroup,
+  RBACGroupCreateParams,
+  RBACGroupListParams,
+  RBACGroupUpdateParams,
+  RBACGroups,
+  RBACGroupsPageCursor,
+} from './rbac-groups/rbac-groups';
+import * as RBACRolesAPI from './rbac-roles/rbac-roles';
+import { RBACRole, RBACRoleListParams, RBACRoles, RBACRolesPageCursor } from './rbac-roles/rbac-roles';
 import * as ServiceAccountsAPI from './service-accounts/service-accounts';
 import {
   ServiceAccount,
@@ -85,6 +149,22 @@ import {
   ServiceAccounts,
   ServiceAccountsPageCursor,
 } from './service-accounts/service-accounts';
+import * as SpendLimitsAPI from './spend-limits/spend-limits';
+import {
+  SpendLimit,
+  SpendLimitOrganizationScope,
+  SpendLimitOrganizationServiceScope,
+  SpendLimitPeriod,
+  SpendLimitRBACGroupScope,
+  SpendLimitScopedAPIKeyActor,
+  SpendLimitSeatTierScope,
+  SpendLimitUsageTierScope,
+  SpendLimitUserActor,
+  SpendLimitUserScope,
+  SpendLimitWorkspaceScope,
+  SpendLimits,
+  SpendSummary,
+} from './spend-limits/spend-limits';
 import * as WorkspacesAPI from './workspaces/workspaces';
 import {
   AllowedInferenceGeo,
@@ -117,6 +197,10 @@ export class Organization extends APIResource {
   complianceSettings: ComplianceSettingsAPI.ComplianceSettings = new ComplianceSettingsAPI.ComplianceSettings(
     this._client,
   );
+  analytics: AnalyticsAPI.Analytics = new AnalyticsAPI.Analytics(this._client);
+  spendLimits: SpendLimitsAPI.SpendLimits = new SpendLimitsAPI.SpendLimits(this._client);
+  rbacGroups: RBACGroupsAPI.RBACGroups = new RBACGroupsAPI.RBACGroups(this._client);
+  rbacRoles: RBACRolesAPI.RBACRoles = new RBACRolesAPI.RBACRoles(this._client);
 
   /**
    * Retrieve information about the organization associated with the authenticated
@@ -177,6 +261,10 @@ Organization.Users = Users;
 Organization.Workspaces = Workspaces;
 Organization.RateLimits = RateLimits;
 Organization.ComplianceSettings = ComplianceSettings;
+Organization.Analytics = Analytics;
+Organization.SpendLimits = SpendLimits;
+Organization.RBACGroups = RBACGroups;
+Organization.RBACRoles = RBACRoles;
 
 export declare namespace Organization {
   export { type OrganizationInfo as OrganizationInfo, type OrganizationRole as OrganizationRole };
@@ -281,5 +369,90 @@ export declare namespace Organization {
     type ComplianceSettingsStateParam as ComplianceSettingsStateParam,
     type OrganizationComplianceSettings as OrganizationComplianceSettings,
     type ComplianceSettingUpdateParams as ComplianceSettingUpdateParams,
+  };
+
+  export {
+    Analytics as Analytics,
+    type AnalyticsArtifactActivity as AnalyticsArtifactActivity,
+    type AnalyticsArtifactGroupBy as AnalyticsArtifactGroupBy,
+    type AnalyticsChatCoworkUnifiedChatMetrics as AnalyticsChatCoworkUnifiedChatMetrics,
+    type AnalyticsChatCoworkUnifiedMetrics as AnalyticsChatCoworkUnifiedMetrics,
+    type AnalyticsChatCoworkUnifiedSessionsMetrics as AnalyticsChatCoworkUnifiedSessionsMetrics,
+    type AnalyticsChatMetrics as AnalyticsChatMetrics,
+    type AnalyticsClaudeCodeMetrics as AnalyticsClaudeCodeMetrics,
+    type AnalyticsConnectorActivity as AnalyticsConnectorActivity,
+    type AnalyticsConnectorChatCoworkUnifiedChatMetrics as AnalyticsConnectorChatCoworkUnifiedChatMetrics,
+    type AnalyticsConnectorChatCoworkUnifiedMetrics as AnalyticsConnectorChatCoworkUnifiedMetrics,
+    type AnalyticsConnectorChatCoworkUnifiedSessionsMetrics as AnalyticsConnectorChatCoworkUnifiedSessionsMetrics,
+    type AnalyticsConnectorChatMetrics as AnalyticsConnectorChatMetrics,
+    type AnalyticsConnectorClaudeCodeMetrics as AnalyticsConnectorClaudeCodeMetrics,
+    type AnalyticsConnectorCoworkMetrics as AnalyticsConnectorCoworkMetrics,
+    type AnalyticsConnectorGroupBy as AnalyticsConnectorGroupBy,
+    type AnalyticsConnectorOfficeMetrics as AnalyticsConnectorOfficeMetrics,
+    type AnalyticsConnectorOfficeProductMetrics as AnalyticsConnectorOfficeProductMetrics,
+    type AnalyticsCoreCodeMetrics as AnalyticsCoreCodeMetrics,
+    type AnalyticsCoworkMetrics as AnalyticsCoworkMetrics,
+    type AnalyticsDesignMetrics as AnalyticsDesignMetrics,
+    type AnalyticsLinesOfCode as AnalyticsLinesOfCode,
+    type AnalyticsOfficeMetrics as AnalyticsOfficeMetrics,
+    type AnalyticsOfficeProductMetrics as AnalyticsOfficeProductMetrics,
+    type AnalyticsOrder as AnalyticsOrder,
+    type AnalyticsPluginActivity as AnalyticsPluginActivity,
+    type AnalyticsPluginChatCoworkUnifiedMetrics as AnalyticsPluginChatCoworkUnifiedMetrics,
+    type AnalyticsPluginClaudeCodeMetrics as AnalyticsPluginClaudeCodeMetrics,
+    type AnalyticsPluginCoworkMetrics as AnalyticsPluginCoworkMetrics,
+    type AnalyticsPluginGroupBy as AnalyticsPluginGroupBy,
+    type AnalyticsProjectActivity as AnalyticsProjectActivity,
+    type AnalyticsProjectGroupBy as AnalyticsProjectGroupBy,
+    type AnalyticsScienceMetrics as AnalyticsScienceMetrics,
+    type AnalyticsSingleDayActivitySummary as AnalyticsSingleDayActivitySummary,
+    type AnalyticsSkillActivity as AnalyticsSkillActivity,
+    type AnalyticsSkillChatCoworkUnifiedChatMetrics as AnalyticsSkillChatCoworkUnifiedChatMetrics,
+    type AnalyticsSkillChatCoworkUnifiedMetrics as AnalyticsSkillChatCoworkUnifiedMetrics,
+    type AnalyticsSkillChatCoworkUnifiedSessionsMetrics as AnalyticsSkillChatCoworkUnifiedSessionsMetrics,
+    type AnalyticsSkillChatMetrics as AnalyticsSkillChatMetrics,
+    type AnalyticsSkillClaudeCodeMetrics as AnalyticsSkillClaudeCodeMetrics,
+    type AnalyticsSkillCoworkMetrics as AnalyticsSkillCoworkMetrics,
+    type AnalyticsSkillGroupBy as AnalyticsSkillGroupBy,
+    type AnalyticsSkillOfficeMetrics as AnalyticsSkillOfficeMetrics,
+    type AnalyticsSkillOfficeProductMetrics as AnalyticsSkillOfficeProductMetrics,
+    type AnalyticsToolActionCounts as AnalyticsToolActionCounts,
+    type AnalyticsToolActions as AnalyticsToolActions,
+    type AnalyticsUser as AnalyticsUser,
+    type AnalyticsUserActivity as AnalyticsUserActivity,
+    type AnalyticsUserGroupBy as AnalyticsUserGroupBy,
+  };
+
+  export {
+    SpendLimits as SpendLimits,
+    type SpendLimit as SpendLimit,
+    type SpendLimitOrganizationScope as SpendLimitOrganizationScope,
+    type SpendLimitOrganizationServiceScope as SpendLimitOrganizationServiceScope,
+    type SpendLimitPeriod as SpendLimitPeriod,
+    type SpendLimitRBACGroupScope as SpendLimitRBACGroupScope,
+    type SpendLimitScopedAPIKeyActor as SpendLimitScopedAPIKeyActor,
+    type SpendLimitSeatTierScope as SpendLimitSeatTierScope,
+    type SpendLimitUsageTierScope as SpendLimitUsageTierScope,
+    type SpendLimitUserActor as SpendLimitUserActor,
+    type SpendLimitUserScope as SpendLimitUserScope,
+    type SpendLimitWorkspaceScope as SpendLimitWorkspaceScope,
+    type SpendSummary as SpendSummary,
+  };
+
+  export {
+    RBACGroups as RBACGroups,
+    type DeletedRBACGroup as DeletedRBACGroup,
+    type RBACGroup as RBACGroup,
+    type RBACGroupsPageCursor as RBACGroupsPageCursor,
+    type RBACGroupCreateParams as RBACGroupCreateParams,
+    type RBACGroupUpdateParams as RBACGroupUpdateParams,
+    type RBACGroupListParams as RBACGroupListParams,
+  };
+
+  export {
+    RBACRoles as RBACRoles,
+    type RBACRole as RBACRole,
+    type RBACRolesPageCursor as RBACRolesPageCursor,
+    type RBACRoleListParams as RBACRoleListParams,
   };
 }

@@ -834,6 +834,199 @@ Methods:
 - <code title="get /v1/organizations/compliance_settings">client.organization.complianceSettings.<a href="./src/resources/organization/compliance-settings.ts">retrieve</a>() -> OrganizationComplianceSettings</code>
 - <code title="post /v1/organizations/compliance_settings">client.organization.complianceSettings.<a href="./src/resources/organization/compliance-settings.ts">update</a>({ ...params }) -> OrganizationComplianceSettings</code>
 
+## Analytics
+
+Types:
+
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsArtifactActivity</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsArtifactGroupBy</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsChatCoworkUnifiedChatMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsChatCoworkUnifiedMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsChatCoworkUnifiedSessionsMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsChatMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsClaudeCodeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorActivity</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorChatCoworkUnifiedChatMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorChatCoworkUnifiedMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorChatCoworkUnifiedSessionsMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorChatMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorClaudeCodeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorCoworkMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorGroupBy</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorOfficeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsConnectorOfficeProductMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsCoreCodeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsCoworkMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsDesignMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsLinesOfCode</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsOfficeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsOfficeProductMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsOrder</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsPluginActivity</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsPluginChatCoworkUnifiedMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsPluginClaudeCodeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsPluginCoworkMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsPluginGroupBy</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsProjectActivity</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsProjectGroupBy</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsScienceMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSingleDayActivitySummary</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillActivity</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillChatCoworkUnifiedChatMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillChatCoworkUnifiedMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillChatCoworkUnifiedSessionsMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillChatMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillClaudeCodeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillCoworkMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillGroupBy</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillOfficeMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsSkillOfficeProductMetrics</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsToolActionCounts</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsToolActions</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsUser</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsUserActivity</a></code>
+- <code><a href="./src/resources/organization/analytics/analytics.ts">AnalyticsUserGroupBy</a></code>
+
+### Summaries
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/summaries">client.organization.analytics.summaries.<a href="./src/resources/organization/analytics/summaries.ts">list</a>({ ...params }) -> AnalyticsSingleDayActivitySummariesPageCursor</code>
+
+### Users
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/users">client.organization.analytics.users.<a href="./src/resources/organization/analytics/users.ts">list</a>({ ...params }) -> AnalyticsUserActivitiesPageCursor</code>
+
+### Apps
+
+#### Chat
+
+##### Projects
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/apps/chat/projects">client.organization.analytics.apps.chat.projects.<a href="./src/resources/organization/analytics/apps/chat/projects.ts">list</a>({ ...params }) -> AnalyticsProjectActivitiesPageCursor</code>
+
+### Connectors
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/connectors">client.organization.analytics.connectors.<a href="./src/resources/organization/analytics/connectors.ts">list</a>({ ...params }) -> AnalyticsConnectorActivitiesPageCursor</code>
+
+### Plugins
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/plugins">client.organization.analytics.plugins.<a href="./src/resources/organization/analytics/plugins.ts">list</a>({ ...params }) -> AnalyticsPluginActivitiesPageCursor</code>
+
+### Skills
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/skills">client.organization.analytics.skills.<a href="./src/resources/organization/analytics/skills.ts">list</a>({ ...params }) -> AnalyticsSkillActivitiesPageCursor</code>
+
+### Artifacts
+
+Methods:
+
+- <code title="get /v1/organizations/analytics/artifacts">client.organization.analytics.artifacts.<a href="./src/resources/organization/analytics/artifacts.ts">list</a>({ ...params }) -> AnalyticsArtifactActivitiesPageCursor</code>
+
+## SpendLimits
+
+Types:
+
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimit</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitOrganizationScope</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitOrganizationServiceScope</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitPeriod</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitRBACGroupScope</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitScopedAPIKeyActor</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitSeatTierScope</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitUsageTierScope</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitUserActor</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitUserScope</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendLimitWorkspaceScope</a></code>
+- <code><a href="./src/resources/organization/spend-limits/spend-limits.ts">SpendSummary</a></code>
+
+### Effective
+
+Methods:
+
+- <code title="get /v1/organizations/spend_limits/effective">client.organization.spendLimits.effective.<a href="./src/resources/organization/spend-limits/effective.ts">list</a>({ ...params }) -> SpendSummariesPageCursor</code>
+
+### IncreaseRequests
+
+Types:
+
+- <code><a href="./src/resources/organization/spend-limits/increase-requests.ts">SpendLimitIncreaseRequest</a></code>
+- <code><a href="./src/resources/organization/spend-limits/increase-requests.ts">SpendLimitIncreaseRequestActor</a></code>
+- <code><a href="./src/resources/organization/spend-limits/increase-requests.ts">SpendLimitIncreaseRequestResolvedBy</a></code>
+- <code><a href="./src/resources/organization/spend-limits/increase-requests.ts">SpendLimitIncreaseRequestStatus</a></code>
+- <code><a href="./src/resources/organization/spend-limits/increase-requests.ts">IncreaseRequestApproveResponse</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}">client.organization.spendLimits.increaseRequests.<a href="./src/resources/organization/spend-limits/increase-requests.ts">retrieve</a>(spendLimitIncreaseRequestID) -> SpendLimitIncreaseRequest</code>
+- <code title="get /v1/organizations/spend_limit_increase_requests">client.organization.spendLimits.increaseRequests.<a href="./src/resources/organization/spend-limits/increase-requests.ts">list</a>({ ...params }) -> SpendLimitIncreaseRequestsPageCursor</code>
+- <code title="post /v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}/approve">client.organization.spendLimits.increaseRequests.<a href="./src/resources/organization/spend-limits/increase-requests.ts">approve</a>(spendLimitIncreaseRequestID, { ...params }) -> IncreaseRequestApproveResponse</code>
+- <code title="post /v1/organizations/spend_limit_increase_requests/{spend_limit_increase_request_id}/deny">client.organization.spendLimits.increaseRequests.<a href="./src/resources/organization/spend-limits/increase-requests.ts">deny</a>(spendLimitIncreaseRequestID, { ...params }) -> SpendLimitIncreaseRequest</code>
+
+## RBACGroups
+
+Types:
+
+- <code><a href="./src/resources/organization/rbac-groups/rbac-groups.ts">DeletedRBACGroup</a></code>
+- <code><a href="./src/resources/organization/rbac-groups/rbac-groups.ts">RBACGroup</a></code>
+
+Methods:
+
+- <code title="post /v1/organizations/rbac_groups">client.organization.rbacGroups.<a href="./src/resources/organization/rbac-groups/rbac-groups.ts">create</a>({ ...params }) -> RBACGroup</code>
+- <code title="get /v1/organizations/rbac_groups/{rbac_group_id}">client.organization.rbacGroups.<a href="./src/resources/organization/rbac-groups/rbac-groups.ts">retrieve</a>(rbacGroupID) -> RBACGroup</code>
+- <code title="post /v1/organizations/rbac_groups/{rbac_group_id}">client.organization.rbacGroups.<a href="./src/resources/organization/rbac-groups/rbac-groups.ts">update</a>(rbacGroupID, { ...params }) -> RBACGroup</code>
+- <code title="get /v1/organizations/rbac_groups">client.organization.rbacGroups.<a href="./src/resources/organization/rbac-groups/rbac-groups.ts">list</a>({ ...params }) -> RBACGroupsPageCursor</code>
+- <code title="delete /v1/organizations/rbac_groups/{rbac_group_id}">client.organization.rbacGroups.<a href="./src/resources/organization/rbac-groups/rbac-groups.ts">delete</a>(rbacGroupID) -> DeletedRBACGroup</code>
+
+### Members
+
+Types:
+
+- <code><a href="./src/resources/organization/rbac-groups/members.ts">DeletedRBACGroupMember</a></code>
+- <code><a href="./src/resources/organization/rbac-groups/members.ts">RBACGroupMember</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/rbac_groups/{rbac_group_id}/members">client.organization.rbacGroups.members.<a href="./src/resources/organization/rbac-groups/members.ts">list</a>(rbacGroupID, { ...params }) -> RBACGroupMembersPageCursor</code>
+- <code title="post /v1/organizations/rbac_groups/{rbac_group_id}/members">client.organization.rbacGroups.members.<a href="./src/resources/organization/rbac-groups/members.ts">add</a>(rbacGroupID, { ...params }) -> RBACGroupMember</code>
+- <code title="delete /v1/organizations/rbac_groups/{rbac_group_id}/members/{user_id}">client.organization.rbacGroups.members.<a href="./src/resources/organization/rbac-groups/members.ts">remove</a>(userID, { ...params }) -> DeletedRBACGroupMember</code>
+
+## RBACRoles
+
+Types:
+
+- <code><a href="./src/resources/organization/rbac-roles/rbac-roles.ts">RBACRole</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/rbac_roles/{rbac_role_id}">client.organization.rbacRoles.<a href="./src/resources/organization/rbac-roles/rbac-roles.ts">retrieve</a>(rbacRoleID) -> RBACRole</code>
+- <code title="get /v1/organizations/rbac_roles">client.organization.rbacRoles.<a href="./src/resources/organization/rbac-roles/rbac-roles.ts">list</a>({ ...params }) -> RBACRolesPageCursor</code>
+
+### Permissions
+
+Types:
+
+- <code><a href="./src/resources/organization/rbac-roles/permissions.ts">RBACAllConnectorsPermissionResource</a></code>
+- <code><a href="./src/resources/organization/rbac-roles/permissions.ts">RBACConnectorPermissionResource</a></code>
+- <code><a href="./src/resources/organization/rbac-roles/permissions.ts">RBACConnectorScopePermissionResource</a></code>
+- <code><a href="./src/resources/organization/rbac-roles/permissions.ts">RBACConnectorToolPermissionResource</a></code>
+- <code><a href="./src/resources/organization/rbac-roles/permissions.ts">RBACOrganizationPermissionResource</a></code>
+- <code><a href="./src/resources/organization/rbac-roles/permissions.ts">RBACRolePermission</a></code>
+
+Methods:
+
+- <code title="get /v1/organizations/rbac_roles/{rbac_role_id}/permissions">client.organization.rbacRoles.permissions.<a href="./src/resources/organization/rbac-roles/permissions.ts">list</a>(rbacRoleID, { ...params }) -> RBACRolePermissionsPageCursor</code>
+
 # Beta
 
 Types:
