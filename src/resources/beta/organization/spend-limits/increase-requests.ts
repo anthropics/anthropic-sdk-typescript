@@ -236,7 +236,7 @@ export interface IncreaseRequestApproveResponse {
   /**
    * A configured spend limit: a cap on metered spend for one scope and period.
    */
-  spend_limit: SpendLimitsAPI.BetaSpendLimit;
+  spend_limit: SpendLimitsAPI.BetaSpendLimit | null;
 
   /**
    * Per-member effective-limit report row (`GET /spend_limits/effective`).
