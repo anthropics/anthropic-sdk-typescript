@@ -419,7 +419,7 @@ export interface BetaDreamModelConfigParam {
    * The ID can be 1 to 256 characters long.
    *
    * The
-   * [limits table in the Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#limits)
+   * [Availability section of the Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#feature-availability)
    * lists the supported models.
    */
   id: string;
@@ -457,10 +457,6 @@ export interface BetaDreamSessionsInput {
    *
    * Give 1 to 100 IDs, with no duplicates. Each session must be in the same
    * workspace as the dream. Responses list the IDs in sorted order.
-   *
-   * The
-   * [limits table in the Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#limits)
-   * lists all the limits on a dream.
    */
   session_ids: Array<string>;
 
@@ -618,7 +614,7 @@ export interface DreamCreateParams {
    * In the object form, `speed` can only be `standard`.
    *
    * The
-   * [limits table in the Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#limits)
+   * [Availability section of the Dreams guide](https://platform.claude.com/docs/en/managed-agents/dreams#feature-availability)
    * lists the supported models.
    */
   model: string | BetaDreamModelConfigParam;
