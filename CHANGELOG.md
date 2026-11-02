@@ -5,6 +5,7 @@
 ### Chores
 
 * **api:** update example values for pattern-constrained string fields
+* **docs:** clarify some API field descriptions
 
 
 ### Documentation
