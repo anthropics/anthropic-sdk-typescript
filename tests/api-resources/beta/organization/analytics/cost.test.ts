@@ -23,7 +23,7 @@ describe('resource cost', () => {
   test('list: required and optional params', async () => {
     const response = await client.beta.organization.analytics.cost.list({
       starting_at: '2026-09-01T00:00:00Z',
-      actor_ids: ['user_01WCz1FkmYMm4gnmykNKUu3Q'],
+      actor_ids: ['user_01WxYzAbCdEfGhJkMnPqRsTu'],
       actor_types: ['service_account_actor'],
       agent_ids: ['agent_01VHd3EAGJ6PLkP9LM7DDu3f'],
       api_key_ids: ['apikey_01Rj2N8SVvo6BePZj99NhmiT'],

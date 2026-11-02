@@ -75,7 +75,7 @@ describe('resource members', () => {
 
   test('add: only required params', async () => {
     const responsePromise = client.beta.organization.workspaces.members.add('workspace_id', {
-      user_id: 'user_01WCz1FkmYMm4gnmykNKUu3Q',
+      user_id: 'user_01WxYzAbCdEfGhJkMnPqRsTu',
       workspace_role: 'workspace_admin',
     });
     const rawResponse = await responsePromise.asResponse();
@@ -89,7 +89,7 @@ describe('resource members', () => {
 
   test('add: required and optional params', async () => {
     const response = await client.beta.organization.workspaces.members.add('workspace_id', {
-      user_id: 'user_01WCz1FkmYMm4gnmykNKUu3Q',
+      user_id: 'user_01WxYzAbCdEfGhJkMnPqRsTu',
       workspace_role: 'workspace_admin',
     });
   });

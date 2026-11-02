@@ -71,7 +71,7 @@ async function main() {
   //    tool, then a session and the initial prompt.
   const agent = await client.beta.agents.create({
     name: 'observe-tool-calls-example',
-    model: 'claude-haiku-4-5',
+    model: 'claude-haiku-5-5',
     system: 'You are running in a sandbox. Use the available tools to answer.',
     tools: [
       { type: 'agent_toolset_20260401' },
@@ -204,7 +204,7 @@ async function observeAsSelfHostedWorker(): Promise<void> {
  * {@link observeAsSelfHostedWorker}. Beats on a fixed 30s interval; the first
  * beat uses the `NO_HEARTBEAT` sentinel, each later one echoes the server's
  * previous `last_heartbeat`. Returns (letting the shared controller abort the
- * `toolRunner` loop) as soon as the control plane reports the work is
+ * `toolRunner` loop) as soon as the API reports the work is
  * stopping/stopped or the lease was not extended.
  */
 async function heartbeatLease(

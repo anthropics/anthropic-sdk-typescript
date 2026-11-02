@@ -28,6 +28,7 @@ describe('resource workspaces', () => {
       display_color: '#6C5BB9',
       external_key_id: 'ekey_01SDCCSbTxrXDpWc1phhtcfK',
       tags: { env: 'prod', team: 'platform' },
+      user_profile_id: 'uprof_01SDCCSbTxrXDpWc1phhtcfK',
     });
   });
 

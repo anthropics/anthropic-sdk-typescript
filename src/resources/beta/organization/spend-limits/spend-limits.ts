@@ -5,6 +5,8 @@ import { Effective, EffectiveListParams } from './effective';
 import * as IncreaseRequestsAPI from './increase-requests';
 import {
   BetaSpendLimitIncreaseRequest,
+  BetaSpendLimitIncreaseRequestActor,
+  BetaSpendLimitIncreaseRequestResolvedBy,
   BetaSpendLimitIncreaseRequestStatus,
   BetaSpendLimitIncreaseRequestsPageCursor,
   IncreaseRequestApproveParams,
@@ -132,7 +134,7 @@ export class SpendLimits extends APIResource {
    *     amount: '50000',
    *     scope: {
    *       type: 'user',
-   *       user_id: 'user_01WCz1FkmYMm4gnmykNKUu3Q',
+   *       user_id: 'user_01WxYzAbCdEfGhJkMnPqRsTu',
    *     },
    *   });
    * ```
@@ -473,6 +475,8 @@ export declare namespace SpendLimits {
   export {
     IncreaseRequests as IncreaseRequests,
     type BetaSpendLimitIncreaseRequest as BetaSpendLimitIncreaseRequest,
+    type BetaSpendLimitIncreaseRequestActor as BetaSpendLimitIncreaseRequestActor,
+    type BetaSpendLimitIncreaseRequestResolvedBy as BetaSpendLimitIncreaseRequestResolvedBy,
     type BetaSpendLimitIncreaseRequestStatus as BetaSpendLimitIncreaseRequestStatus,
     type IncreaseRequestApproveResponse as IncreaseRequestApproveResponse,
     type BetaSpendLimitIncreaseRequestsPageCursor as BetaSpendLimitIncreaseRequestsPageCursor,

@@ -1,8 +1,8 @@
 /**
  * Self-hosted environment runner helpers.
  *
- * - {@link WorkPoller} (`client.beta.environments.work.poller`) — control-plane
- *   only: claims work items and yields each one.
+ * - {@link WorkPoller} (`client.beta.environments.work.poller`) — polling only:
+ *   claims work items and yields each one.
  * - {@link SessionToolRunner} (`client.beta.sessions.events.toolRunner`) — the
  *   sessions-side counterpart to `client.beta.messages.toolRunner`: dispatches
  *   local tools against a session's `agent.tool_use` events.

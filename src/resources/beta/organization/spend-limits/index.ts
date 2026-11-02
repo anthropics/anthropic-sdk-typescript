@@ -2,6 +2,8 @@ export { Effective, type EffectiveListParams } from './effective';
 export {
   IncreaseRequests,
   type BetaSpendLimitIncreaseRequest,
+  type BetaSpendLimitIncreaseRequestActor,
+  type BetaSpendLimitIncreaseRequestResolvedBy,
   type BetaSpendLimitIncreaseRequestStatus,
   type IncreaseRequestApproveResponse,
   type IncreaseRequestListParams,
