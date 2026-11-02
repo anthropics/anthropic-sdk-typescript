@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.3.0...sdk-v1.4.0) (2026-10-30)
+## [1.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.3.0...sdk-v1.4.0) (2026-11-02)
 
 ### Features
 
@@ -21,6 +21,7 @@
 
 * **ci:** install only the headless Chromium shell in the browser ecosystem tests
 * **ci:** remove unused build upload steps
+* **docs:** clarify the Slack channel id description
 * **docs:** clarify what disabling the Compliance API stops
 * **docs:** clarify what the capability_access_all role action grants
 * **docs:** link Dreams model fields to the supported models section
