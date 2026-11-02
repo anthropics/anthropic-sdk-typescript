@@ -1,5 +1,4 @@
 import { APIResource } from '../core/resource';
-import * as BetaAPI from './beta/beta';
 import { APIPromise } from '../core/api-promise';
 import { Page, type PageParams, PagePromise } from '../core/pagination';
 import { buildHeaders } from '../internal/headers';
@@ -24,14 +23,11 @@ export class Models extends APIResource {
     params: ModelRetrieveParams | null | undefined = {},
     options?: RequestOptions,
   ): APIPromise<ModelInfo> {
-    const { betas, workspace_id } = params ?? {};
+    const { workspace_id } = params ?? {};
     return this._client.get(path`/v1/models/${modelID}`, {
       ...options,
       headers: buildHeaders([
-        {
-          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
-          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-        },
+        { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
       __span: startApiCallSpan(this._client, 'anthropic.models.retrieve', options, {
@@ -59,15 +55,12 @@ export class Models extends APIResource {
     params: ModelListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<ModelInfosPage, ModelInfo> {
-    const { betas, workspace_id, ...query } = params ?? {};
+    const { workspace_id, ...query } = params ?? {};
     return this._client.getAPIList('/v1/models', Page<ModelInfo>, {
       query,
       ...options,
       headers: buildHeaders([
-        {
-          ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined),
-          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-        },
+        { ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined) },
         options?.headers,
       ]),
       __span: startApiCallSpan(this._client, 'anthropic.models.list', options, {
@@ -370,13 +363,6 @@ export interface ThinkingTypes {
 
 export interface ModelRetrieveParams {
   /**
-   * @deprecated Deprecated. This parameter will be removed from this method in a
-   * future release. To use beta features, call the beta models methods
-   * (`client.beta.models`) instead.
-   */
-  betas?: Array<BetaAPI.AnthropicBeta>;
-
-  /**
    * Optional header to select the Workspace for this request. The value is a
    * Workspace ID (for example, `wrkspc_011CZkZaBF1tNoB5wlCeusgy`).
    *
@@ -395,13 +381,6 @@ export interface ModelListParams extends PageParams {
    * `retired` is requested explicitly.
    */
   lifecycle?: Array<'active' | 'deprecated' | 'retired'>;
-
-  /**
-   * @deprecated Deprecated. This parameter will be removed from this method in a
-   * future release. To use beta features, call the beta models methods
-   * (`client.beta.models`) instead.
-   */
-  betas?: Array<BetaAPI.AnthropicBeta>;
 
   /**
    * Header param: Optional header to select the Workspace for this request. The

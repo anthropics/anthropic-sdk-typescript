@@ -1932,9 +1932,9 @@ describe('OpenTelemetry spans', () => {
       // The runner learns the ID from the events that it reads anyway: it opens the stream, reads the
       // history and sends the result, and makes no other request.
       expect(requests.map((request) => [request.url, request.body])).toEqual([
-        [`${EVENTS_URL}/stream?beta=true`, undefined],
-        [`${EVENTS_URL}?beta=true&limit=1000`, undefined],
-        [`${EVENTS_URL}?beta=true`, result('sevt_1')],
+        [`${EVENTS_URL}/stream`, undefined],
+        [`${EVENTS_URL}?limit=1000`, undefined],
+        [EVENTS_URL, result('sevt_1')],
       ]);
     });
 

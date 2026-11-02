@@ -67,8 +67,7 @@ export {
 const BASH_OUTPUT_LIMIT = 100 * 1024;
 const BASH_DEFAULT_TIMEOUT_MS = 120_000;
 // Default size cap for the read/edit tools (both load the whole file into
-// memory) when AgentToolContext.maxFileBytes is unset. The reject-vs-truncate
-// behaviour remains a separate question pending CMA validation.
+// memory) when AgentToolContext.maxFileBytes is unset.
 const DEFAULT_MAX_FILE_BYTES = 256 * 1024;
 const READ_STREAM_CHUNK_BYTES = 64 * 1024;
 const NEWLINE = Buffer.from('\n');

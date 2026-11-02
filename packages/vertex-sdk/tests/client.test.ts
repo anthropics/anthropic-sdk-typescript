@@ -2,6 +2,7 @@
 
 import type { Mock } from 'vitest';
 import { VERSION } from '@anthropic-ai/sdk/version';
+import { copyClientForHelper } from '@anthropic-ai/sdk/lib/helper-client';
 import { AnthropicVertex } from '../src/client';
 import { APIConnectionError } from '../src/core/error';
 import * as fs from 'fs';
@@ -122,7 +123,8 @@ describe('AnthropicVertex', () => {
     };
 
     test('middleware observes the canonical request without Google credentials; the wire receives the Vertex shape', async () => {
-      const observed: { url?: string; body?: any; authorization?: string | null } = {};
+      const observed: { url?: string; body?: any; authorization?: string | null; version?: string | null } =
+        {};
       const client = new AnthropicVertex({
         region: 'us-east5',
         projectId: 'test-project',
@@ -132,6 +134,7 @@ describe('AnthropicVertex', () => {
             observed.url = request.url;
             observed.body = JSON.parse(request.body as string);
             observed.authorization = request.headers.get('authorization');
+            observed.version = request.headers.get('anthropic-version');
             return next(request);
           },
         ],
@@ -150,9 +153,29 @@ describe('AnthropicVertex', () => {
       );
       const wireHeaders = new Headers(wireInit.headers);
       expect(wireHeaders.get('authorization')).toBe('Bearer fake-token');
+      expect(wireHeaders.has('anthropic-version')).toBe(false);
       const wireBody = JSON.parse(wireInit.body);
       expect(wireBody.model).toBeUndefined();
-      expect(wireBody.anthropic_version).toBe('vertex-2023-10-16');
+      expect(wireBody.anthropic_version).toBe(observed.version);
+    });
+
+    test.each([
+      { name: 'a header the caller set', headers: { 'anthropic-version': '2030-01-01' }, sent: '2030-01-01' },
+      { name: 'a header the caller removed', headers: { 'anthropic-version': null }, sent: undefined },
+      { name: 'a body value the caller set', body: { anthropic_version: '2030-01-02' }, sent: '2030-01-02' },
+    ])('$name sends $sent in the body', async ({ headers, body, sent }) => {
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        fetch: mockFetch as any,
+        defaultHeaders: headers,
+      });
+
+      await client.messages.create({ ...createParams, ...body });
+
+      const [, wireInit] = mockFetch.mock.calls[0]!;
+      expect(new Headers(wireInit.headers).has('anthropic-version')).toBe(false);
+      expect(JSON.parse(wireInit.body).anthropic_version).toBe(sent);
     });
 
     test('an Authorization header set by middleware wins over the Google credentials', async () => {
@@ -383,6 +406,87 @@ describe('AnthropicVertex', () => {
       expect(wireHeaders.get('authorization')).toBe('Bearer fake-token');
       expect(wireHeaders.get('anthropic-organization-id')).toBeNull();
     });
+  });
+
+  describe.each<[string, (extra: object) => AnthropicVertex]>([
+    [
+      'the constructor',
+      (extra) => new AnthropicVertex({ region: 'us-east5', projectId: 'test-project', ...extra }),
+    ],
+    [
+      'withOptions',
+      (extra) => new AnthropicVertex({ region: 'us-east5', projectId: 'test-project' }).withOptions(extra),
+    ],
+  ])('%s', (_where, build) => {
+    test.each<[string, object]>([
+      ['apiKey', { apiKey: 'first-party-key' }],
+      ['authToken', { authToken: 'first-party-token' }],
+      ['credentials', { credentials: async () => ({ token: 'first-party-token', expiresAt: null }) }],
+      ['config', { config: { authentication: { type: 'user_oauth' } } }],
+      ['profile', { profile: 'my-profile' }],
+    ])('rejects `%s`', (name, extra) => {
+      expect(() => build(extra)).toThrow(
+        `The \`${name}\` option is not supported by AnthropicVertex; authentication uses ` +
+          'Google credentials (`googleAuth`, `authClient`, or Application Default Credentials).',
+      );
+    });
+  });
+
+  test('a copy keeps the region and project of its parent', async () => {
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValue(new Response('{}', { headers: { 'content-type': 'application/json' } }));
+    const client = new AnthropicVertex({ region: 'us-east5', projectId: 'my-project', fetch: mockFetch });
+
+    await client.withOptions({ timeout: 1234 }).messages.create({
+      model: 'claude-sonnet-5-5',
+      max_tokens: 1024,
+      messages: [{ content: 'Hello', role: 'user' }],
+    });
+
+    expect(mockFetch.mock.calls[0]![0]).toBe(
+      'https://us-east5-aiplatform.googleapis.com/v1/projects/my-project/locations/us-east5/publishers/anthropic/models/claude-sonnet-5-5:rawPredict',
+    );
+  });
+
+  test.each<[string, string]>([
+    ['googleAuth', 'authClient'],
+    ['authClient', 'googleAuth'],
+  ])('a copy of a client built with `%s` can be given `%s`', async (parentOption, copyOption) => {
+    const mockFetch = vi
+      .fn()
+      .mockImplementation(
+        async () => new Response('{}', { headers: { 'content-type': 'application/json' } }),
+      );
+    const authClient = (token: string) => ({
+      projectId: 'my-project',
+      getRequestHeaders: async () => ({ authorization: `Bearer ${token}` }),
+    });
+    const credential = (option: string, token: string) => ({
+      [option]: option === 'authClient' ? authClient(token) : { getClient: async () => authClient(token) },
+    });
+    const client = new AnthropicVertex({
+      region: 'us-east5',
+      fetch: mockFetch,
+      ...credential(parentOption, 'parent-token'),
+    });
+
+    await client.withOptions(credential(copyOption, 'copy-token')).messages.create({
+      model: 'claude-sonnet-5-5',
+      max_tokens: 1024,
+      messages: [{ content: 'Hello', role: 'user' }],
+    });
+
+    expect(new Headers(mockFetch.mock.calls[0]![1].headers).get('authorization')).toBe('Bearer copy-token');
+  });
+
+  test('a helper sub-client is refused rather than sent out with the Google credentials', () => {
+    const client = new AnthropicVertex({ region: 'us-east5', projectId: 'test-project' });
+
+    expect(() =>
+      // @ts-expect-error the helpers take an `Anthropic` client
+      copyClientForHelper(client, { authToken: 'environment-key', helper: 'environments-work-poller' }),
+    ).toThrow('The `authToken` option is not supported by AnthropicVertex');
   });
 
   test('user agent is a hardcoded string', async () => {

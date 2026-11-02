@@ -37,11 +37,12 @@ export class Summaries extends APIResource {
     AnalyticsAPI.BetaAnalyticsSingleDayActivitySummary
   > {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/summaries?beta=true',
+      '/v1/organizations/analytics/summaries',
       PageCursor<AnalyticsAPI.BetaAnalyticsSingleDayActivitySummary>,
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.analytics.summaries.list', options, {
           route: '/v1/organizations/analytics/summaries',
           queryParams: ['ending_date', 'filter', 'limit', 'page', 'starting_date'],

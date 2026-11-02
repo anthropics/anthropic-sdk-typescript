@@ -124,7 +124,7 @@ export class UserProfiles extends APIResource {
       ]),
       __span: startApiCallSpan(this._client, 'anthropic.user_profiles.list', options, {
         route: '/v1/user_profiles',
-        queryParams: ['limit', 'order', 'order_by', 'page'],
+        queryParams: ['enforcement_status', 'limit', 'order', 'order_by', 'page'],
       }),
     });
   }
@@ -198,6 +198,24 @@ export interface UserProfile {
    * When this user profile was created, in RFC 3339 format.
    */
   created_at: string;
+
+  /**
+   * The enforcement actions open on this profile; empty when none is open. Absent
+   * under the `user-profiles-2026-09-04` and earlier beta headers.
+   */
+  enforcement_actions: Array<UserProfileEnforcementAction>;
+
+  /**
+   * Anthropic's enforcement status of this profile, from its open enforcement
+   * actions and any identity check under review, by the first rule that applies:
+   * `banned` while any open action is a `ban`; `pending` while a restriction that an
+   * identity check can clear is open, the end user has submitted that check,
+   * Anthropic's review of it has not ended, and no open action's `reason` is
+   * `account_compromise`; `restricted` while any action is open; `unrestricted`
+   * while none is. Absent under the `user-profiles-2026-09-04` and earlier beta
+   * headers.
+   */
+  enforcement_status: UserProfileEnforcementStatus;
 
   /**
    * Details about the entity this profile represents, as the platform states them;
@@ -365,6 +383,116 @@ export interface UserProfileEfsProgram {
    */
   status: UserProfileProgramStatus;
 }
+
+/**
+ * A limit Anthropic has placed on the entity this profile represents and not yet
+ * resolved, discriminated by `type`: `restriction` or `ban`. More types may be
+ * added; read a `type` you do not recognize as `restriction`.
+ */
+export type UserProfileEnforcementAction =
+  | UserProfileEnforcementActionRestriction
+  | UserProfileEnforcementActionBan;
+
+/**
+ * Anthropic has stopped serving the end user where the ban applies and does not
+ * plan to serve them there again.
+ */
+export interface UserProfileEnforcementActionBan {
+  /**
+   * The action's ID (`enac_...`), stable while the action is open.
+   */
+  id: string;
+
+  /**
+   * Always `null`: the end user cannot clear a ban.
+   */
+  action: UserProfileEnforcementActionNextStep | null;
+
+  /**
+   * Always `null`: a ban has no end date.
+   */
+  expires_at: string | null;
+
+  /**
+   * When Anthropic opened the action, in RFC 3339 format.
+   */
+  opened_at: string;
+
+  /**
+   * Why Anthropic placed the limit: `unsupported_region`, `fraud_or_abuse`,
+   * `high_harm`, `usage_policy_violation`, `account_compromise` or `unspecified`.
+   */
+  reason: UserProfileEnforcementActionReason;
+
+  type: 'ban';
+}
+
+/**
+ * The next step on this enforcement action: `verify` means the end user can clear
+ * the action by passing an identity check. More values may be added; read a value
+ * you do not recognize as `null`.
+ */
+export type UserProfileEnforcementActionNextStep = 'verify';
+
+/**
+ * Why Anthropic placed this enforcement action: `unsupported_region`,
+ * `fraud_or_abuse`, `high_harm`, `usage_policy_violation`, `account_compromise` or
+ * `unspecified`. More values may be added; read a value you do not recognize as
+ * `unspecified`.
+ */
+export type UserProfileEnforcementActionReason =
+  | 'unsupported_region'
+  | 'fraud_or_abuse'
+  | 'high_harm'
+  | 'usage_policy_violation'
+  | 'account_compromise'
+  | 'unspecified';
+
+/**
+ * Anthropic has limited how it serves the end user until the action is resolved.
+ * The end user may still be served in part.
+ */
+export interface UserProfileEnforcementActionRestriction {
+  /**
+   * The action's ID (`enac_...`), stable while the action is open.
+   */
+  id: string;
+
+  /**
+   * The next step on the action: `verify` or `null`. `verify`: the end user can
+   * clear it now by passing an identity check. `null`: there is nothing the end user
+   * can do now to clear it, including while Anthropic reviews an identity check the
+   * end user submitted.
+   */
+  action: UserProfileEnforcementActionNextStep | null;
+
+  /**
+   * When the action ends on its own, in RFC 3339 format; it stops showing once this
+   * time has passed. `null` when it has no end date, and always `null` when `reason`
+   * is `account_compromise`.
+   */
+  expires_at: string | null;
+
+  /**
+   * When Anthropic opened the action, in RFC 3339 format.
+   */
+  opened_at: string;
+
+  /**
+   * Why Anthropic placed the limit: `unsupported_region`, `fraud_or_abuse`,
+   * `high_harm`, `usage_policy_violation`, `account_compromise` or `unspecified`.
+   */
+  reason: UserProfileEnforcementActionReason;
+
+  type: 'restriction';
+}
+
+/**
+ * Anthropic's enforcement status of this profile: `unrestricted`, `pending`,
+ * `restricted` or `banned`. More values may be added; read a value you do not
+ * recognize as `restricted`.
+ */
+export type UserProfileEnforcementStatus = 'unrestricted' | 'pending' | 'restricted' | 'banned';
 
 /**
  * The status of the entity's account on the platform, as the platform states it:
@@ -646,6 +774,19 @@ export interface UserProfileUpdateParams {
 
 export interface UserProfileListParams extends PageCursorParams {
   /**
+   * Query param: Return only the user profiles whose `enforcement_status` is one of
+   * these values: `unrestricted`, `pending`, `restricted` or `banned`. Repeat the
+   * parameter to match any of several. With it set, a page may hold fewer than
+   * `limit` profiles, or none, and still carry a `next_page`: the service examines a
+   * bounded number of profiles per request, and only a null `next_page` means the
+   * listing is complete. Rejected with `invalid_request_error` under the
+   * `user-profiles-2026-09-04` and earlier beta headers. Fails with
+   * `overloaded_error` when a profile's enforcement actions cannot be read for the
+   * moment.
+   */
+  enforcement_status?: Array<UserProfileEnforcementStatus>;
+
+  /**
    * Query param: The sort direction, applied to the field that `order_by` selects.
    * Defaults to `desc`.
    */
@@ -692,6 +833,12 @@ export declare namespace UserProfiles {
     type UserProfileCyberTier as UserProfileCyberTier,
     type UserProfileEfsFeature as UserProfileEfsFeature,
     type UserProfileEfsProgram as UserProfileEfsProgram,
+    type UserProfileEnforcementAction as UserProfileEnforcementAction,
+    type UserProfileEnforcementActionBan as UserProfileEnforcementActionBan,
+    type UserProfileEnforcementActionNextStep as UserProfileEnforcementActionNextStep,
+    type UserProfileEnforcementActionReason as UserProfileEnforcementActionReason,
+    type UserProfileEnforcementActionRestriction as UserProfileEnforcementActionRestriction,
+    type UserProfileEnforcementStatus as UserProfileEnforcementStatus,
     type UserProfileExternalUserAccountStatus as UserProfileExternalUserAccountStatus,
     type UserProfileExternalUserDetails as UserProfileExternalUserDetails,
     type UserProfileExternalUserDetailsParams as UserProfileExternalUserDetailsParams,

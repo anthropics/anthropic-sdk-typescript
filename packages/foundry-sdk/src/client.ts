@@ -1,12 +1,18 @@
 import type { NullableHeaders } from './internal/headers';
 import { buildHeaders } from './internal/headers';
 import * as Errors from './core/error';
-import { readEnv } from './internal/utils';
+import { readEnv, rejectUnsupportedCredentials, type PlatformCredentials } from './internal/utils';
 import { Anthropic, ClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 import * as Resources from '@anthropic-ai/sdk/resources/index';
 import { VERSION } from '@anthropic-ai/sdk/version';
 import { VERSION as PACKAGE_VERSION } from './version';
+
+const CREDENTIALS: PlatformCredentials = {
+  accepts: ['apiKey'],
+  unsupportedOptionMessage: (option) =>
+    `The \`${option}\` option is not supported by AnthropicFoundry; authentication uses a Foundry API key (\`apiKey\`) or a Microsoft Entra token (\`azureADTokenProvider\`).`,
+};
 
 /** API Client for interfacing with the Anthropic Foundry API. */
 export interface FoundryClientOptions extends ClientOptions {
@@ -14,8 +20,10 @@ export interface FoundryClientOptions extends ClientOptions {
    * The name of your Foundry resource.
    *
    * For example, `https://{resource}.services.ai.azure.com/anthropic/v1/messages`.
+   *
+   * Defaults to process.env['ANTHROPIC_FOUNDRY_RESOURCE']. `null` skips the variable.
    */
-  resource?: string | undefined;
+  resource?: string | null | undefined;
 
   /**
    * Defaults to process.env['ANTHROPIC_FOUNDRY_API_KEY'].
@@ -49,6 +57,9 @@ export class AnthropicFoundry extends Anthropic {
   /**
    * API Client for interfacing with the Anthropic Foundry API.
    *
+   * The `authToken`, `credentials`, `config`, and `profile` options throw an
+   * `AnthropicError`.
+   *
    * @param {string | undefined} [opts.resource=process.env['ANTHROPIC_FOUNDRY_RESOURCE'] ?? undefined] - Your Foundry resource name
    * @param {string | undefined} [opts.apiKey=process.env['ANTHROPIC_FOUNDRY_API_KEY'] ?? undefined]
    * @param {string | null | undefined} [opts.organization=process.env['ANTHROPIC_ORG_ID'] ?? null]
@@ -69,6 +80,8 @@ export class AnthropicFoundry extends Anthropic {
     dangerouslyAllowBrowser,
     ...opts
   }: FoundryClientOptions = {}) {
+    rejectUnsupportedCredentials(opts, CREDENTIALS);
+
     if (typeof azureADTokenProvider === 'function') {
       dangerouslyAllowBrowser = true;
     }
@@ -105,6 +118,24 @@ export class AnthropicFoundry extends Anthropic {
       ...opts,
       ...(dangerouslyAllowBrowser !== undefined ? { dangerouslyAllowBrowser } : {}),
     });
+
+    this.resource = resource ?? null;
+  }
+
+  /**
+   * Create a new client instance re-using the same options given to the
+   * current client, including `resource`, with optional overriding.
+   */
+  override withOptions(options: Partial<FoundryClientOptions>): this {
+    // The constructor takes a resource or a base URL, never both, so the one given
+    // here replaces this client's. `null` skips the other's environment variable.
+    const resource = options.resource ?? (options.baseURL ? null : this.resource);
+    const merged: Partial<FoundryClientOptions> = {
+      ...(resource ? { baseURL: null } : {}),
+      ...options,
+      resource,
+    };
+    return super.withOptions(merged);
   }
 
   protected override async authHeaders(): Promise<NullableHeaders | undefined> {

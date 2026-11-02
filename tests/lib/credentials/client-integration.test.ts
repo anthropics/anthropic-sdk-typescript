@@ -2,7 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import Anthropic from '@anthropic-ai/sdk';
+import type { MockInstance } from 'vitest';
+import Anthropic, { type ClientOptions } from '@anthropic-ai/sdk';
 import type { AccessToken } from '@anthropic-ai/sdk/lib/credentials/types';
 import { OAUTH_API_BETA_HEADER } from '@anthropic-ai/sdk/lib/credentials/types';
 
@@ -73,6 +74,39 @@ describe('client credentials integration', () => {
     fs.rmSync(testDir, { recursive: true });
   });
 
+  function writeProfile(name: string, opts: { base_url?: string } = {}) {
+    fs.mkdirSync(path.join(testDir, 'configs'), { recursive: true });
+    fs.mkdirSync(path.join(testDir, 'credentials'), { recursive: true });
+    fs.writeFileSync(
+      path.join(testDir, 'configs', `${name}.json`),
+      JSON.stringify({ ...opts, authentication: { type: 'user_oauth' } }),
+    );
+    fs.writeFileSync(
+      path.join(testDir, 'credentials', `${name}.json`),
+      JSON.stringify({ access_token: `${name}-tok`, expires_at: farFuture() }),
+      { mode: 0o600 },
+    );
+  }
+
+  async function sentHeaders(makeClient: (opts: ClientOptions) => Anthropic): Promise<Headers> {
+    let headers: Headers | undefined;
+    const client = makeClient({
+      fetch: async (url, init) => {
+        if ((typeof url === 'string' ? url : url.toString()).includes('/v1/oauth/token')) {
+          return jsonResponse({ access_token: 'federated-tok', expires_in: 3600 });
+        }
+        headers = new Headers(init?.headers);
+        return jsonResponse(VALID_MSG_RESPONSE);
+      },
+    });
+    await client.messages.create({
+      model: 'claude-opus-4-8',
+      max_tokens: 1,
+      messages: [{ role: 'user', content: 'hi' }],
+    });
+    return headers!;
+  }
+
   it('ANTHROPIC_API_KEY env var shadows a profile-configured federation config', async () => {
     process.env['ANTHROPIC_CONFIG_DIR'] = testDir;
     process.env['ANTHROPIC_API_KEY'] = 'sk-env-key';
@@ -99,8 +133,8 @@ describe('client credentials integration', () => {
           exchanged = true;
           return jsonResponse({ access_token: 'should-not-happen', expires_in: 3600 });
         }
-        expect(getHeader(init, 'x-api-key')).toBe('sk-env-key');
-        expect(getHeader(init, 'authorization')).toBeNull();
+        expect(getHeader(init, 'authorization')).toBe('Bearer sk-env-key');
+        expect(getHeader(init, 'x-api-key')).toBeNull();
         return jsonResponse(VALID_MSG_RESPONSE);
       },
     });
@@ -112,50 +146,6 @@ describe('client credentials integration', () => {
     });
     expect(exchanged).toBe(false);
     expect(client.credentials).toBeNull(); // lazy resolution never started
-  });
-
-  it('apiKey takes precedence over config; config is not resolved', async () => {
-    // user_oauth without credentials_path would throw if resolved.
-    const client = new Anthropic({
-      apiKey: 'sk-test',
-      config: { workspace_id: 'ws-ignored', authentication: { type: 'user_oauth' } },
-      fetch: async (_url, init) => {
-        expect(getHeader(init, 'x-api-key')).toBe('sk-test');
-        expect(getHeader(init, 'anthropic-workspace-id')).toBeNull();
-        expect(getHeader(init, 'anthropic-beta')).toBeNull();
-        return jsonResponse(VALID_MSG_RESPONSE);
-      },
-    });
-
-    expect(client.credentials).toBeNull();
-    await client.messages.create({
-      model: 'claude-opus-4-8',
-      max_tokens: 1,
-      messages: [{ role: 'user', content: 'hi' }],
-    });
-  });
-
-  it('apiKey takes precedence over credentials', async () => {
-    let providerCalled = false;
-    const client = new Anthropic({
-      apiKey: 'sk-test',
-      credentials: async () => {
-        providerCalled = true;
-        return { token: 'should-not-be-used', expiresAt: null };
-      },
-      fetch: async (_url, init) => {
-        expect(getHeader(init, 'x-api-key')).toBe('sk-test');
-        expect(getHeader(init, 'authorization')).toBeNull();
-        return jsonResponse(VALID_MSG_RESPONSE);
-      },
-    });
-
-    await client.messages.create({
-      model: 'claude-opus-4-8',
-      max_tokens: 1,
-      messages: [{ role: 'user', content: 'hi' }],
-    });
-    expect(providerCalled).toBe(false);
   });
 
   it('uses explicit credentials provider for bearer auth', async () => {
@@ -276,15 +266,14 @@ describe('client credentials integration', () => {
   });
 
   it('does not refresh on 401 when apiKey was used', async () => {
-    let providerCalls = 0;
+    let fetchCalls = 0;
     const client = new Anthropic({
       apiKey: 'sk-test',
       maxRetries: 1,
-      credentials: async () => {
-        providerCalls++;
-        return { token: 'unused', expiresAt: farFuture() };
+      fetch: async () => {
+        fetchCalls++;
+        return jsonResponse({ error: { type: 'authentication_error', message: 'nope' } }, 401);
       },
-      fetch: async () => jsonResponse({ error: { type: 'authentication_error', message: 'nope' } }, 401),
     });
 
     await expect(
@@ -294,7 +283,7 @@ describe('client credentials integration', () => {
         messages: [{ role: 'user', content: 'hi' }],
       }),
     ).rejects.toThrow();
-    expect(providerCalls).toBe(0);
+    expect(fetchCalls).toBe(1);
   });
 
   it('surfaces lazy credential resolution errors on first request without unhandled rejection', async () => {
@@ -384,27 +373,6 @@ describe('client credentials integration', () => {
       messages: [{ role: 'user', content: 'hi' }],
     });
     expect(exchanged).toBe(true);
-  });
-
-  it('explicit credentials option takes precedence over config option', async () => {
-    const client = new Anthropic({
-      apiKey: null,
-      credentials: async () => ({ token: 'from-provider', expiresAt: farFuture() }),
-      config: {
-        organization_id: 'ignored',
-        authentication: { type: 'oidc_federation', federation_rule_id: 'ignored' },
-      },
-      fetch: async (_url, init) => {
-        expect(getHeader(init, 'authorization')).toBe('Bearer from-provider');
-        return jsonResponse(VALID_MSG_RESPONSE);
-      },
-    });
-
-    await client.messages.create({
-      model: 'claude-opus-4-8',
-      max_tokens: 1,
-      messages: [{ role: 'user', content: 'hi' }],
-    });
   });
 
   it('throws descriptive error when config option is incomplete', () => {
@@ -564,7 +532,7 @@ describe('client credentials integration', () => {
     expect(seenWs).toEqual(['ws-profile', 'ws-request']);
   });
 
-  it('pins withOptions({apiKey: undefined}) and ({credentials: null}) override semantics', async () => {
+  it('pins withOptions({apiKey: null}) and ({credentials: null}) override semantics', async () => {
     process.env['ANTHROPIC_CONFIG_DIR'] = path.join(testDir, 'empty');
     fs.mkdirSync(path.join(testDir, 'empty'), { recursive: true });
 
@@ -578,12 +546,11 @@ describe('client credentials integration', () => {
       },
     });
 
-    // apiKey: undefined → overridesAuth=true (key is present), so the clone
-    // builds a fresh _auth with its OWN TokenCache wrapping the inherited
-    // provider (passed via the credentials: this.credentials spread). The
-    // clone authenticates with the same token but does not share the parent's
-    // cache.
-    const reset1 = parent.withOptions({ apiKey: undefined });
+    // apiKey: null → overridesAuth=true (key is present), so the clone builds
+    // a fresh _auth with its OWN TokenCache wrapping the inherited provider.
+    // The clone authenticates with the same token but does not share the
+    // parent's cache.
+    const reset1 = parent.withOptions({ apiKey: null });
     await reset1.messages.create({
       model: 'claude-opus-4-8',
       max_tokens: 1,
@@ -641,7 +608,7 @@ describe('client credentials integration', () => {
   it('nested withOptions: auth override on second hop is honored', async () => {
     const seenAuths: string[] = [];
     const fetchImpl = async (_url: any, init?: RequestInit): Promise<Response> => {
-      seenAuths.push(getHeader(init, 'authorization') ?? `apikey:${getHeader(init, 'x-api-key')}`);
+      seenAuths.push(getHeader(init, 'authorization') ?? '');
       return jsonResponse(VALID_MSG_RESPONSE);
     };
 
@@ -662,7 +629,7 @@ describe('client credentials integration', () => {
       });
     }
 
-    expect(seenAuths).toEqual(['Bearer A', 'Bearer A', 'Bearer C', 'apikey:sk-d']);
+    expect(seenAuths).toEqual(['Bearer A', 'Bearer A', 'Bearer C', 'Bearer sk-d']);
   });
 
   it('401-refresh-once flag resets between top-level requests sharing options object', async () => {
@@ -719,21 +686,162 @@ describe('client credentials integration', () => {
     expect(copied.credentials).toBe(provider);
   });
 
-  describe('profile option', () => {
-    function writeProfile(name: string, opts: { base_url?: string } = {}) {
-      fs.mkdirSync(path.join(testDir, 'configs'), { recursive: true });
-      fs.mkdirSync(path.join(testDir, 'credentials'), { recursive: true });
-      fs.writeFileSync(
-        path.join(testDir, 'configs', `${name}.json`),
-        JSON.stringify({ ...opts, authentication: { type: 'user_oauth' } }),
+  describe('apiKey and authToken share the Authorization header', () => {
+    beforeEach(() => {
+      process.env['ANTHROPIC_CONFIG_DIR'] = path.join(testDir, 'empty');
+    });
+
+    it.each<{
+      name: string;
+      env?: Record<string, string>;
+      options?: ClientOptions;
+      copy?: ClientOptions;
+      sent: string;
+    }>([
+      { name: 'apiKey', options: { apiKey: 'sk-key' }, sent: 'sk-key' },
+      { name: 'ANTHROPIC_API_KEY', env: { ANTHROPIC_API_KEY: 'sk-env-key' }, sent: 'sk-env-key' },
+      {
+        name: 'authToken beats ANTHROPIC_API_KEY',
+        env: { ANTHROPIC_API_KEY: 'sk-env-key' },
+        options: { authToken: 'tok' },
+        sent: 'tok',
+      },
+      {
+        name: 'apiKey beats ANTHROPIC_AUTH_TOKEN',
+        env: { ANTHROPIC_AUTH_TOKEN: 'env-tok' },
+        options: { apiKey: 'sk-key' },
+        sent: 'sk-key',
+      },
+      {
+        name: "withOptions({authToken}) replaces the parent's ANTHROPIC_API_KEY",
+        env: { ANTHROPIC_API_KEY: 'sk-env-key' },
+        copy: { authToken: 'tok' },
+        sent: 'tok',
+      },
+      {
+        name: 'ANTHROPIC_API_KEY beats ANTHROPIC_AUTH_TOKEN',
+        env: { ANTHROPIC_API_KEY: 'sk-env-key', ANTHROPIC_AUTH_TOKEN: 'env-tok' },
+        sent: 'sk-env-key',
+      },
+    ])('$name', async ({ env, options, copy, sent }) => {
+      Object.assign(process.env, env);
+      const headers = await sentHeaders((opts) => {
+        const client = new Anthropic({ ...opts, ...options });
+        return copy ? client.withOptions(copy) : client;
+      });
+      expect(headers.get('authorization')).toBe(`Bearer ${sent}`);
+      expect(headers.get('x-api-key')).toBeNull();
+    });
+
+    it('does not read the environment for the other credential', () => {
+      process.env['ANTHROPIC_API_KEY'] = 'sk-env-key';
+      process.env['ANTHROPIC_AUTH_TOKEN'] = 'env-tok';
+      expect(new Anthropic({ authToken: 'tok' }).apiKey).toBeNull();
+      expect(new Anthropic({ apiKey: 'sk-key' }).authToken).toBeNull();
+    });
+
+    it.each<ClientOptions>([{ apiKey: 'sk-key' }, {}])(
+      'a hand-set X-Api-Key replaces Authorization (options %o)',
+      async (options) => {
+        process.env['ANTHROPIC_API_KEY'] = 'sk-env-key';
+        const headers = await sentHeaders(
+          (opts) =>
+            new Anthropic({
+              ...opts,
+              ...options,
+              defaultHeaders: { 'X-Api-Key': 'sk-key', Authorization: null },
+            }),
+        );
+        expect(headers.get('x-api-key')).toBe('sk-key');
+        expect(headers.get('authorization')).toBeNull();
+      },
+    );
+
+    it('a client with no credential needs Authorization: null', async () => {
+      const headers = await sentHeaders(
+        (opts) => new Anthropic({ ...opts, defaultHeaders: { Authorization: null } }),
       );
-      fs.writeFileSync(
-        path.join(testDir, 'credentials', `${name}.json`),
-        JSON.stringify({ access_token: `${name}-tok`, expires_at: farFuture() }),
-        { mode: 0o600 },
+      expect(headers.get('authorization')).toBeNull();
+      await expect(
+        sentHeaders((opts) => new Anthropic({ ...opts, defaultHeaders: { 'X-Api-Key': null } })),
+      ).rejects.toThrow('Could not resolve authentication method');
+    });
+
+    it('a hand-set X-Api-Key goes out next to authToken', async () => {
+      const headers = await sentHeaders(
+        (opts) => new Anthropic({ ...opts, authToken: 'tok', defaultHeaders: { 'X-Api-Key': 'sk-key' } }),
       );
+      expect(headers.get('x-api-key')).toBe('sk-key');
+      expect(headers.get('authorization')).toBe('Bearer tok');
+    });
+  });
+
+  describe('apiKey as a function', () => {
+    beforeEach(() => {
+      process.env['ANTHROPIC_CONFIG_DIR'] = path.join(testDir, 'empty');
+    });
+
+    function keysSent(options: ClientOptions): { client: Anthropic; sent: (string | null)[] } {
+      const sent: (string | null)[] = [];
+      const statuses = [500, 200, 200];
+      const client = new Anthropic({
+        ...options,
+        fetch: async (_url, init) => {
+          sent.push(new Headers(init?.headers).get('authorization'));
+          return jsonResponse(VALID_MSG_RESPONSE, statuses[sent.length - 1]);
+        },
+      });
+      return { client, sent };
     }
 
+    const create = (client: Anthropic) =>
+      client.messages.create({
+        model: 'claude-opus-4-8',
+        max_tokens: 1,
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+
+    it('is called before each request, retries included', async () => {
+      let calls = 0;
+      const { client, sent } = keysSent({ apiKey: async () => `sk-key-${++calls}`, maxRetries: 1 });
+      await create(client);
+      await create(client);
+      expect(sent).toEqual(['Bearer sk-key-1', 'Bearer sk-key-2', 'Bearer sk-key-3']);
+      expect(client.apiKey).toBeNull();
+    });
+
+    it('is kept by a copy, and replaced by a credential passed to withOptions', async () => {
+      const { client, sent } = keysSent({ apiKey: async () => 'sk-key', maxRetries: 0 });
+      await expect(create(client)).rejects.toThrow(Anthropic.InternalServerError);
+      await create(client.withOptions({ timeout: 1000 }));
+      await create(client.withOptions({ authToken: 'tok' }));
+      expect(sent).toEqual(['Bearer sk-key', 'Bearer sk-key', 'Bearer tok']);
+    });
+
+    it('wraps what the function throws', async () => {
+      const cause = new Error('vault is sealed');
+      const { client, sent } = keysSent({
+        apiKey: async () => {
+          throw cause;
+        },
+      });
+      const error = await create(client).catch((err) => err);
+      expect(error).toBeInstanceOf(Anthropic.AnthropicError);
+      expect(error.message).toBe('The `apiKey` function failed: vault is sealed');
+      expect(error.cause).toBe(cause);
+      expect(sent).toEqual([]);
+    });
+
+    it('rejects an empty key', async () => {
+      const { client, sent } = keysSent({ apiKey: async () => '' });
+      const error = await create(client).catch((err) => err);
+      expect(error).toBeInstanceOf(Anthropic.AnthropicError);
+      expect(error.message).toBe('The `apiKey` function must return a non-empty string. It returned "".');
+      expect(sent).toEqual([]);
+    });
+  });
+
+  describe('profile option', () => {
     beforeEach(() => {
       process.env['ANTHROPIC_CONFIG_DIR'] = testDir;
     });
@@ -793,26 +901,6 @@ describe('client credentials integration', () => {
       });
     });
 
-    it('throws when combined with credentials', () => {
-      expect(
-        () =>
-          new Anthropic({
-            profile: 'staging',
-            credentials: async () => ({ token: 'x', expiresAt: null }),
-          }),
-      ).toThrow(/Pass at most one of `profile`, `credentials`, or `config`/);
-    });
-
-    it('throws when combined with config', () => {
-      expect(
-        () =>
-          new Anthropic({
-            profile: 'staging',
-            config: { authentication: { type: 'user_oauth', credentials_path: '/dev/null' } },
-          }),
-      ).toThrow(/Pass at most one of `profile`, `credentials`, or `config`/);
-    });
-
     it('surfaces a clear error when the named profile does not exist', async () => {
       const client = new Anthropic({
         profile: 'nope',
@@ -825,6 +913,15 @@ describe('client credentials integration', () => {
           messages: [{ role: 'user', content: 'hi' }],
         }),
       ).rejects.toThrow(/Profile "nope" could not be resolved/);
+    });
+
+    it('does not fall back to the federation variables when the named profile does not exist', async () => {
+      process.env['ANTHROPIC_FEDERATION_RULE_ID'] = 'fdrl_01abc';
+      process.env['ANTHROPIC_ORGANIZATION_ID'] = 'org-123';
+      process.env['ANTHROPIC_IDENTITY_TOKEN'] = 'my-jwt';
+      await expect(sentHeaders((opts) => new Anthropic({ ...opts, profile: 'nope' }))).rejects.toThrow(
+        /Profile "nope" could not be resolved/,
+      );
     });
 
     it('withOptions({profile}) on a profile-based parent switches profile', async () => {
@@ -846,6 +943,196 @@ describe('client credentials integration', () => {
         max_tokens: 1,
         messages: [{ role: 'user', content: 'hi' }],
       });
+    });
+  });
+
+  describe('one credential per client', () => {
+    const names = ['apiKey', 'authToken', 'credentials', 'config', 'profile'] as const;
+    type Name = (typeof names)[number];
+
+    const sent: Record<Name, string> = {
+      apiKey: 'sk-key',
+      authToken: 'tok',
+      credentials: 'provider-tok',
+      config: 'config-tok',
+      profile: 'staging-tok',
+    };
+    let passed: Record<Name, ClientOptions>;
+
+    const environment: { sent: string; set: () => void }[] = [
+      { sent: 'sk-env-key', set: () => (process.env['ANTHROPIC_API_KEY'] = 'sk-env-key') },
+      { sent: 'env-tok', set: () => (process.env['ANTHROPIC_AUTH_TOKEN'] = 'env-tok') },
+      {
+        sent: 'from-env-tok',
+        set: () => {
+          process.env['ANTHROPIC_PROFILE'] = 'from-env';
+          writeProfile('from-env');
+        },
+      },
+      {
+        sent: 'federated-tok',
+        set: () => {
+          process.env['ANTHROPIC_FEDERATION_RULE_ID'] = 'fdrl_01abc';
+          process.env['ANTHROPIC_ORGANIZATION_ID'] = 'org-123';
+          process.env['ANTHROPIC_IDENTITY_TOKEN'] = 'my-jwt';
+        },
+      },
+      { sent: 'default-tok', set: () => writeProfile('default') },
+    ];
+
+    beforeEach(() => {
+      process.env['ANTHROPIC_CONFIG_DIR'] = testDir;
+      writeProfile('staging');
+      const credentialsPath = path.join(testDir, 'config-credentials.json');
+      fs.writeFileSync(
+        credentialsPath,
+        JSON.stringify({ access_token: 'config-tok', expires_at: farFuture() }),
+        { mode: 0o600 },
+      );
+      passed = {
+        apiKey: { apiKey: 'sk-key' },
+        authToken: { authToken: 'tok' },
+        credentials: { credentials: async () => ({ token: 'provider-tok', expiresAt: farFuture() }) },
+        config: { config: { authentication: { type: 'user_oauth', credentials_path: credentialsPath } } },
+        profile: { profile: 'staging' },
+      };
+    });
+
+    it.each(names.flatMap((a, i) => names.slice(i + 1).map((b) => [a, b] as const)))(
+      'rejects %s together with %s',
+      (a, b) => {
+        const both = { ...passed[a], ...passed[b] };
+        for (const construct of [
+          () => new Anthropic(both),
+          () => new Anthropic({ apiKey: 'parent-key' }).withOptions(both),
+        ]) {
+          expect(construct).toThrow(TypeError);
+          expect(construct).toThrow(
+            'Pass at most one of `apiKey`, `authToken`, `credentials`, `config`, `profile`. ' +
+              `Received \`${a}\`, \`${b}\`.`,
+          );
+        }
+      },
+    );
+
+    it.each(names)('%s does not read the environment', async (name) => {
+      for (const source of environment) source.set();
+      const headers = await sentHeaders((opts) => new Anthropic({ ...opts, ...passed[name] }));
+      expect(headers.get('authorization')).toBe(`Bearer ${sent[name]}`);
+    });
+
+    it.each(environment.map((source, i) => ({ sent: source.sent, sources: environment.slice(i) })))(
+      'with no credential passed, the environment supplies $sent first',
+      async ({ sent, sources }) => {
+        for (const source of sources) source.set();
+        const headers = await sentHeaders((opts) => new Anthropic(opts));
+        expect(headers.get('authorization')).toBe(`Bearer ${sent}`);
+      },
+    );
+
+    it('an ANTHROPIC_PROFILE that names a missing profile fails the first request', async () => {
+      for (const source of environment.slice(3)) source.set();
+      process.env['ANTHROPIC_PROFILE'] = 'nope';
+      const client = new Anthropic({ fetch: async () => jsonResponse(VALID_MSG_RESPONSE) });
+
+      const request = client.messages.create({
+        model: 'claude-opus-4-8',
+        max_tokens: 1,
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+      await expect(request).rejects.toThrow(Anthropic.AnthropicError);
+      await expect(request).rejects.toThrow('ANTHROPIC_PROFILE names the profile "nope"');
+    });
+
+    it.each(
+      names.flatMap((parent) =>
+        names.filter((copy) => copy !== parent).map((copy) => [copy, parent] as const),
+      ),
+    )('withOptions({%s}) replaces the %s of the client it copies', async (copy, parent) => {
+      const headers = await sentHeaders((opts) =>
+        new Anthropic({ ...opts, ...passed[parent] }).withOptions(passed[copy]),
+      );
+      expect(headers.get('authorization')).toBe(`Bearer ${sent[copy]}`);
+    });
+
+    it.each(names)('a copy that is passed no credential keeps %s', async (name) => {
+      for (const source of environment) source.set();
+      let parent: Anthropic;
+      await sentHeaders((opts) => (parent = new Anthropic({ ...opts, ...passed[name] })));
+      for (const none of [
+        {},
+        Object.fromEntries(names.map((other) => [other, undefined])),
+        Object.fromEntries(names.filter((other) => other !== name).map((other) => [other, null])),
+      ]) {
+        const headers = await sentHeaders((opts) => parent.withOptions({ ...opts, ...none }));
+        expect(headers.get('authorization')).toBe(`Bearer ${sent[name]}`);
+      }
+    });
+
+    it('copies a client that found both ANTHROPIC_API_KEY and ANTHROPIC_AUTH_TOKEN', async () => {
+      process.env['ANTHROPIC_API_KEY'] = 'sk-env-key';
+      process.env['ANTHROPIC_AUTH_TOKEN'] = 'env-tok';
+      expect(new Anthropic().authToken).toBeNull();
+      const headers = await sentHeaders((opts) => new Anthropic().withOptions(opts));
+      expect(headers.get('authorization')).toBe('Bearer sk-env-key');
+    });
+  });
+
+  describe('warning about ANTHROPIC_API_KEY next to ANTHROPIC_AUTH_TOKEN', () => {
+    const both = { ANTHROPIC_API_KEY: 'sk-env-key', ANTHROPIC_AUTH_TOKEN: 'env-tok' };
+    let FreshAnthropic: typeof Anthropic;
+    let warn: MockInstance<typeof console.warn>;
+
+    beforeEach(async () => {
+      process.env['ANTHROPIC_CONFIG_DIR'] = path.join(testDir, 'empty');
+      warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.resetModules();
+      FreshAnthropic = (await import('@anthropic-ai/sdk')).default;
+    });
+
+    afterEach(() => {
+      warn.mockRestore();
+      vi.resetModules();
+    });
+
+    it('warns once per process and sends the key', async () => {
+      Object.assign(process.env, both);
+      const headers = await sentHeaders((opts) => new FreshAnthropic(opts));
+      expect(headers.get('authorization')).toBe('Bearer sk-env-key');
+      expect(warn.mock.calls).toEqual([
+        ['Anthropic: ANTHROPIC_API_KEY and ANTHROPIC_AUTH_TOKEN are both set. Using ANTHROPIC_API_KEY.'],
+      ]);
+
+      new FreshAnthropic().withOptions({ maxRetries: 0 });
+      expect(warn).toHaveBeenCalledTimes(1);
+    });
+
+    it("goes to the client's logger", () => {
+      Object.assign(process.env, both);
+      const logger = { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() };
+      new FreshAnthropic({ logger });
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it.each<{ name: string; env: Record<string, string>; options?: ClientOptions }>([
+      { name: 'only ANTHROPIC_API_KEY', env: { ANTHROPIC_API_KEY: 'sk-env-key' } },
+      { name: 'only ANTHROPIC_AUTH_TOKEN', env: { ANTHROPIC_AUTH_TOKEN: 'env-tok' } },
+      { name: 'an empty ANTHROPIC_API_KEY', env: { ...both, ANTHROPIC_API_KEY: '' } },
+      { name: 'an empty ANTHROPIC_AUTH_TOKEN', env: { ...both, ANTHROPIC_AUTH_TOKEN: '' } },
+      { name: 'apiKey passed', env: both, options: { apiKey: 'sk-key' } },
+      { name: 'authToken passed', env: both, options: { authToken: 'tok' } },
+      {
+        name: 'credentials passed',
+        env: both,
+        options: { credentials: async () => ({ token: 'provider-tok', expiresAt: farFuture() }) },
+      },
+      { name: 'apiKey: null', env: both, options: { apiKey: null } },
+      { name: 'authToken: null', env: both, options: { authToken: null } },
+    ])('does not warn with $name', ({ env, options }) => {
+      Object.assign(process.env, env);
+      new FreshAnthropic(options);
+      expect(warn).not.toHaveBeenCalled();
     });
   });
 

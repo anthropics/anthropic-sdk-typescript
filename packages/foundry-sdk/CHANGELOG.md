@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v1.0.0...foundry-sdk-v1.1.0) (2026-10-22)
+
+### Features
+
+* **api:** add support for message threads
+
+## [1.0.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.6.0...foundry-sdk-v1.0.0) (2026-10-21)
+
+### ⚠ BREAKING CHANGES
+
+* **api:** add support for new API version 2026-10-21
+
+### Features
+
+* **api:** add support for new API version 2026-10-21
+
 ## [0.6.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/foundry-sdk-v0.5.4...foundry-sdk-v0.6.0) (2026-10-14)
 
 ### Features

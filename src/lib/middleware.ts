@@ -40,12 +40,12 @@ const DEFAULT_BETAS: readonly AnthropicBeta[] = ['fallback-credit-2026-07-01'];
  * server-side fallback beta, which belongs to the caller-owned server-side
  * `fallbacks` feature — this middleware never sends it, so a request
  * replaying them would 400. A turn the strip leaves empty is dropped whole;
- * a turn that was already empty is kept — it may carry other payload (e.g. a
- * directive-only system message's `output_config`).
+ * a turn that was already empty is kept. System messages can't hold `fallback`
+ * blocks, so they go through unchanged.
  */
 function stripFallbackBlocks(body: MessageCreateParams): MessageCreateParams {
   const messages = body.messages.flatMap((message) => {
-    if (!Array.isArray(message.content)) return [message];
+    if (message.role === 'system' || !Array.isArray(message.content)) return [message];
     const content = message.content.filter((block) => block.type !== 'fallback');
     if (content.length === message.content.length) return [message];
     return content.length > 0 ? [{ ...message, content }] : [];
@@ -206,15 +206,14 @@ export function betaRefusalFallbackMiddleware(
   let warnedMissingState = false;
 
   return async (request, next, ctx) => {
-    // This middleware only applies to the beta messages API
-    // (`client.beta.messages`, which posts to `/v1/messages?beta=true`).
+    // This middleware only applies to the beta messages API (`client.beta.messages`).
     // An empty chain also disables this middleware.
-    const [path, query] = (ctx.options?.path ?? '').split('?');
+    const [path] = (ctx.options?.path ?? '').split('?');
     if (
       fallbacks.length === 0 ||
       ctx.options?.method !== 'post' ||
       path !== '/v1/messages' ||
-      new URLSearchParams(query).get('beta') !== 'true' ||
+      ctx.options.__qualifiers?.['beta'] !== 'true' ||
       typeof ctx.options.body !== 'object' ||
       ctx.options.body == null
     ) {

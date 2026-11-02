@@ -26,18 +26,15 @@ export class RateLimits extends APIResource {
     query: RateLimitListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaOrganizationRateLimitsPageCursor, BetaOrganizationRateLimit> {
-    return this._client.getAPIList(
-      '/v1/organizations/rate_limits?beta=true',
-      PageCursor<BetaOrganizationRateLimit>,
-      {
-        query,
-        ...options,
-        __span: startApiCallSpan(this._client, 'anthropic.organization.rate_limits.list', options, {
-          route: '/v1/organizations/rate_limits',
-          queryParams: ['group_type', 'limit', 'model', 'page'],
-        }),
-      },
-    );
+    return this._client.getAPIList('/v1/organizations/rate_limits', PageCursor<BetaOrganizationRateLimit>, {
+      query,
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.rate_limits.list', options, {
+        route: '/v1/organizations/rate_limits',
+        queryParams: ['group_type', 'limit', 'model', 'page'],
+      }),
+    });
   }
 }
 
@@ -52,8 +49,7 @@ export interface BetaOrganizationRateLimit {
   id: string;
 
   /**
-   * The rate-limit group this entry's limits apply to. Its `type` equals
-   * `group_type`.
+   * The rate-limit group this entry's limits apply to.
    */
   group:
     | BetaOrganizationRateLimitModelGroup
@@ -64,19 +60,14 @@ export interface BetaOrganizationRateLimit {
     | BetaOrganizationRateLimitWebSearchGroup;
 
   /**
-   * @deprecated Use `group.type` instead. `group_type` is still returned and always
-   * equals `group.type`.
-   */
-  group_type: 'batch' | 'files' | 'model_group' | 'skills' | 'token_count' | 'web_search';
-
-  /**
    * The limiter values that apply to this group.
    */
   limits: Array<BetaOrganizationRateLimitValue>;
 
   /**
    * Model names this entry's limits apply to, including aliases. `null` when
-   * `group_type` is not `"model_group"`.
+   * `group.type` is not `"model_group"`. The list covers the models your
+   * organization has access to, so it can differ between organizations.
    */
   models: Array<string> | null;
 

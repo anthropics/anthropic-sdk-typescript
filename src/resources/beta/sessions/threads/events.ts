@@ -34,7 +34,7 @@ export class Events extends APIResource {
   ): PagePromise<BetaManagedAgentsSessionEventsPageCursor, EventsAPI.BetaManagedAgentsSessionEvent> {
     const { session_id, betas, workspace_id, ...query } = params;
     return this._client.getAPIList(
-      path`/v1/sessions/${session_id}/threads/${threadID}/events?beta=true`,
+      path`/v1/sessions/${session_id}/threads/${threadID}/events`,
       PageCursor<EventsAPI.BetaManagedAgentsSessionEvent>,
       {
         query,
@@ -46,6 +46,7 @@ export class Events extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.events.list', options, {
           route: '/v1/sessions/{session_id}/threads/{thread_id}/events',
           queryParams: ['limit', 'page'],
@@ -76,7 +77,7 @@ export class Events extends APIResource {
     options?: RequestOptions,
   ): APIPromise<Stream<ThreadsAPI.BetaManagedAgentsStreamSessionThreadEvents>> {
     const { session_id, betas, workspace_id, ...query } = params;
-    return this._client.get(path`/v1/sessions/${session_id}/threads/${threadID}/stream?beta=true`, {
+    return this._client.get(path`/v1/sessions/${session_id}/threads/${threadID}/stream`, {
       query,
       ...options,
       headers: buildHeaders([
@@ -87,6 +88,7 @@ export class Events extends APIResource {
         options?.headers,
       ]),
       stream: true,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.threads.events.stream', options, {
         route: '/v1/sessions/{session_id}/threads/{thread_id}/stream',
         queryParams: ['event_deltas'],

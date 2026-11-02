@@ -10,22 +10,26 @@ import {
 } from '../resources/beta/messages/messages';
 import type { Simplify } from './internal/types';
 
-type AutoParseableBetaOutputConfig = Omit<BetaOutputConfig, 'format'> & {
+export type AutoParseableBetaOutputConfig = Omit<BetaOutputConfig, 'format'> & {
   format?: BetaJSONOutputFormat | AutoParseableBetaOutputFormat<any> | null;
 };
 
+/** The `output_format` / `output_config` request fields, widened to accept auto-parseable formats. */
+export type AutoParseableBetaOutputParams = {
+  /**
+   * @deprecated Use `output_config.format` instead. This parameter will be removed in a future
+   *   release.
+   */
+  output_format?: BetaJSONOutputFormat | AutoParseableBetaOutputFormat<any> | null;
+  output_config?: AutoParseableBetaOutputConfig | null;
+};
+
 export type BetaParseableMessageCreateParams = Simplify<
-  Omit<MessageCreateParams, 'output_format' | 'output_config'> & {
-    /**
-     * @deprecated Use `output_config.format` instead. This parameter will be removed in a future
-     *   release.
-     */
-    output_format?: BetaJSONOutputFormat | AutoParseableBetaOutputFormat<any> | null;
-    output_config?: AutoParseableBetaOutputConfig | null;
-  }
+  Omit<MessageCreateParams, 'output_format' | 'output_config'> & AutoParseableBetaOutputParams
 >;
 
-export type ExtractParsedContentFromBetaParams<Params extends BetaParseableMessageCreateParams> =
+/** The type an auto-parseable `output_format` / `output_config.format` in `Params` parses replies into. */
+export type ExtractParsedContentFromBetaParams<Params extends AutoParseableBetaOutputParams> =
   Params['output_format'] extends AutoParseableBetaOutputFormat<infer P> ? P
   : Params['output_config'] extends { format: AutoParseableBetaOutputFormat<infer P> } ? P
   : null;

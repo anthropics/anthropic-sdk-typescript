@@ -558,7 +558,7 @@ describe('BetaRunnableToolset', () => {
     it('setMessagesParams can swap the toolset: the new one is sent, and its calls run on it', async () => {
       const { toolset, calls } = echoBrowserToolset();
       const other = echoBrowserToolset();
-      const { runner, respondWith, requests } = setupRunner([toolset]);
+      const { runner, respondWith, requests } = setupRunner([toolset], { thread: false });
       respondWith(toolUse('navigate', { url: 'a' }, 'toolu_1'));
       respondWith(
         toolUse('navigate', { url: 'b' }, 'toolu_2'),

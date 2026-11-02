@@ -26,9 +26,10 @@ export class IncreaseRequests extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaSpendLimitIncreaseRequest> {
     return this._client.get(
-      path`/v1/organizations/spend_limit_increase_requests/${spendLimitIncreaseRequestID}?beta=true`,
+      path`/v1/organizations/spend_limit_increase_requests/${spendLimitIncreaseRequestID}`,
       {
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.spend_limits.increase_requests.retrieve',
@@ -63,11 +64,12 @@ export class IncreaseRequests extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaSpendLimitIncreaseRequestsPageCursor, BetaSpendLimitIncreaseRequest> {
     return this._client.getAPIList(
-      '/v1/organizations/spend_limit_increase_requests?beta=true',
+      '/v1/organizations/spend_limit_increase_requests',
       PageCursor<BetaSpendLimitIncreaseRequest>,
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.spend_limits.increase_requests.list',
@@ -103,10 +105,11 @@ export class IncreaseRequests extends APIResource {
     options?: RequestOptions,
   ): APIPromise<IncreaseRequestApproveResponse> {
     return this._client.post(
-      path`/v1/organizations/spend_limit_increase_requests/${spendLimitIncreaseRequestID}/approve?beta=true`,
+      path`/v1/organizations/spend_limit_increase_requests/${spendLimitIncreaseRequestID}/approve`,
       {
         body,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.spend_limits.increase_requests.approve',
@@ -143,10 +146,11 @@ export class IncreaseRequests extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaSpendLimitIncreaseRequest> {
     return this._client.post(
-      path`/v1/organizations/spend_limit_increase_requests/${spendLimitIncreaseRequestID}/deny?beta=true`,
+      path`/v1/organizations/spend_limit_increase_requests/${spendLimitIncreaseRequestID}/deny`,
       {
         body,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.spend_limits.increase_requests.deny',

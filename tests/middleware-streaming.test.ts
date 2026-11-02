@@ -16,6 +16,7 @@ const FIXTURES = path.resolve(__dirname, 'fixtures/fable-fallback');
 const FALLBACK_MODEL = 'claude-opus-4-8';
 const SECOND_MODEL = 'claude-sonnet-4-6';
 const FALLBACKS = [{ model: FALLBACK_MODEL }];
+const BETA_MESSAGES = { method: 'post', path: '/v1/messages?beta=true', __qualifiers: { beta: 'true' } };
 
 // Wire-shaped synthetic capture — the primary refuses after a thinking +
 // partial-text block and mints a credit token; the fallback then completes
@@ -117,8 +118,7 @@ async function runMiddleware(
   };
   const ctx: MiddlewareContext = {
     options: {
-      method: 'post',
-      path: '/v1/messages?beta=true',
+      ...BETA_MESSAGES,
       body: originalBody,
       stream,
       fallbackState: opts.fallbackState,
@@ -604,7 +604,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — edge cases', () => {
       `event: message_stop\ndata: ${JSON.stringify({ type: 'message_stop' })}\n\n`;
 
     const ctx: MiddlewareContext = {
-      options: { method: 'post', path: '/v1/messages?beta=true', body: ORIGINAL_BODY, stream: true } as any,
+      options: { ...BETA_MESSAGES, body: ORIGINAL_BODY, stream: true } as any,
       logger: defaultLogger(),
       parse: async <T>(r: Response): Promise<T> => JSON.parse(await r.clone().text()) as T,
     };
@@ -800,7 +800,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — fallbackState', () => {
     // console methods across tests, so per-test console spies go stale
     const warn = vi.fn();
     const ctx: MiddlewareContext = {
-      options: { method: 'post', path: '/v1/messages?beta=true', body: ORIGINAL_BODY, stream: true } as any,
+      options: { ...BETA_MESSAGES, body: ORIGINAL_BODY, stream: true } as any,
       logger: { error: vi.fn(), warn, info: vi.fn(), debug: vi.fn() },
       parse: async <T>(r: Response): Promise<T> => JSON.parse(await r.clone().text()) as T,
     };
@@ -1319,7 +1319,7 @@ describe('betaRefusalFallbackMiddleware (streaming) — cancellation', () => {
       });
     };
     const ctx: MiddlewareContext = {
-      options: { method: 'post', path: '/v1/messages?beta=true', body: ORIGINAL_BODY, stream: true } as any,
+      options: { ...BETA_MESSAGES, body: ORIGINAL_BODY, stream: true } as any,
       logger: defaultLogger(),
       parse: async <T>(r: Response): Promise<T> => JSON.parse(await r.clone().text()) as T,
     };

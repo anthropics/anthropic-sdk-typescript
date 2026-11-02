@@ -45,7 +45,7 @@ export class InstallationSettings extends APIResource {
   ): PagePromise<BetaPluginInstallationSettingsPageCursor, BetaPluginInstallationSetting> {
     const { betas, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/organizations/plugins/${pluginID}/installation_settings?beta=true`,
+      path`/v1/organizations/plugins/${pluginID}/installation_settings`,
       PageCursor<BetaPluginInstallationSetting>,
       {
         query,
@@ -54,6 +54,7 @@ export class InstallationSettings extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.plugins.installation_settings.list',
@@ -112,28 +113,26 @@ export class InstallationSettings extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedPluginInstallationSetting> {
     const { plugin_id, betas } = params;
-    return this._client.delete(
-      path`/v1/organizations/plugins/${plugin_id}/installation_settings/${target}?beta=true`,
-      {
-        ...options,
-        headers: buildHeaders([
-          { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
-          options?.headers,
-        ]),
-        __span: startApiCallSpan(
-          this._client,
-          'anthropic.organization.plugins.installation_settings.remove',
-          options,
-          {
-            route: '/v1/organizations/plugins/{plugin_id}/installation_settings/{target}',
-            attributes: {
-              'anthropic.organization.plugin.id': plugin_id,
-              'anthropic.organization.plugin.installation_setting.id': target,
-            },
+    return this._client.delete(path`/v1/organizations/plugins/${plugin_id}/installation_settings/${target}`, {
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(
+        this._client,
+        'anthropic.organization.plugins.installation_settings.remove',
+        options,
+        {
+          route: '/v1/organizations/plugins/{plugin_id}/installation_settings/{target}',
+          attributes: {
+            'anthropic.organization.plugin.id': plugin_id,
+            'anthropic.organization.plugin.installation_setting.id': target,
           },
-        ),
-      },
-    );
+        },
+      ),
+    });
   }
 
   /**
@@ -178,29 +177,27 @@ export class InstallationSettings extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaPluginInstallationSetting> {
     const { plugin_id, betas, ...body } = params;
-    return this._client.post(
-      path`/v1/organizations/plugins/${plugin_id}/installation_settings/${target}?beta=true`,
-      {
-        body,
-        ...options,
-        headers: buildHeaders([
-          { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
-          options?.headers,
-        ]),
-        __span: startApiCallSpan(
-          this._client,
-          'anthropic.organization.plugins.installation_settings.set',
-          options,
-          {
-            route: '/v1/organizations/plugins/{plugin_id}/installation_settings/{target}',
-            attributes: {
-              'anthropic.organization.plugin.id': plugin_id,
-              'anthropic.organization.plugin.installation_setting.id': target,
-            },
+    return this._client.post(path`/v1/organizations/plugins/${plugin_id}/installation_settings/${target}`, {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { 'anthropic-beta': [...(betas ?? []), 'ce-plugins-2026-09-01'].toString() },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(
+        this._client,
+        'anthropic.organization.plugins.installation_settings.set',
+        options,
+        {
+          route: '/v1/organizations/plugins/{plugin_id}/installation_settings/{target}',
+          attributes: {
+            'anthropic.organization.plugin.id': plugin_id,
+            'anthropic.organization.plugin.installation_setting.id': target,
           },
-        ),
-      },
-    );
+        },
+      ),
+    });
   }
 }
 

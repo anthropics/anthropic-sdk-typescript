@@ -1,5 +1,8 @@
 export {
   Analytics,
+  type BetaAnalyticsActor,
+  type BetaAnalyticsActorType,
+  type BetaAnalyticsAPIActor,
   type BetaAnalyticsArtifactActivity,
   type BetaAnalyticsChatCoworkUnifiedChatMetrics,
   type BetaAnalyticsChatCoworkUnifiedSessionsMetrics,
@@ -22,6 +25,13 @@ export {
   type BetaAnalyticsCostUsersItem,
   type BetaAnalyticsCoworkMetrics,
   type BetaAnalyticsDesignMetrics,
+  type BetaAnalyticsFederatedActor,
+  type BetaAnalyticsFederatedActorAWSProvider,
+  type BetaAnalyticsFederatedActorAzureProvider,
+  type BetaAnalyticsFederatedActorGCPProvider,
+  type BetaAnalyticsFederatedActorOIDCProvider,
+  type BetaAnalyticsFederatedActorProvider,
+  type BetaAnalyticsGroupedCostType,
   type BetaAnalyticsInferenceGeoFilter,
   type BetaAnalyticsLinesOfCode,
   type BetaAnalyticsOfficeMetrics,
@@ -31,8 +41,11 @@ export {
   type BetaAnalyticsPluginCoworkMetrics,
   type BetaAnalyticsProductFilter,
   type BetaAnalyticsProjectActivity,
+  type BetaAnalyticsReportUserActor,
   type BetaAnalyticsScienceMetrics,
   type BetaAnalyticsServerToolUse,
+  type BetaAnalyticsServiceAccountActor,
+  type BetaAnalyticsServiceTier,
   type BetaAnalyticsSingleDayActivitySummary,
   type BetaAnalyticsSkillActivity,
   type BetaAnalyticsSkillChatCoworkUnifiedChatMetrics,
@@ -42,10 +55,15 @@ export {
   type BetaAnalyticsSkillCoworkMetrics,
   type BetaAnalyticsSkillOfficeMetrics,
   type BetaAnalyticsSkillOfficeProductMetrics,
+  type BetaAnalyticsSpeed,
+  type BetaAnalyticsTimeBucketWidth,
   type BetaAnalyticsTokenType,
   type BetaAnalyticsToolActionCounts,
   type BetaAnalyticsToolActions,
   type BetaAnalyticsUsageBucketedResult,
+  type BetaAnalyticsUsageCostInferenceGeo,
+  type BetaAnalyticsUsageCostProductFilter,
+  type BetaAnalyticsUsageCostSortOrder,
   type BetaAnalyticsUsageReportTimeBucket,
   type BetaAnalyticsUsageUsersItem,
   type BetaAnalyticsUser,
@@ -66,10 +84,30 @@ export {
 export { Apps } from './apps/index';
 export { Artifacts, type ArtifactListParams } from './artifacts';
 export { Connectors, type ConnectorListParams } from './connectors';
+export {
+  Cost,
+  type BetaAnalyticsCostGroup,
+  type BetaAnalyticsCostGroupBy,
+  type BetaAnalyticsCostItem,
+  type BetaAnalyticsCostMetrics,
+  type BetaAnalyticsCostOrderBy,
+  type CostListParams,
+  type BetaAnalyticsCostItemsReportPageCursor,
+} from './cost';
 export { CostReport, type CostReportListParams } from './cost-report';
 export { Plugins, type PluginListParams } from './plugins';
 export { Skills, type SkillListParams } from './skills';
 export { Summaries, type SummaryListParams } from './summaries';
+export {
+  Usage,
+  type BetaAnalyticsUsageGroup,
+  type BetaAnalyticsUsageGroupBy,
+  type BetaAnalyticsUsageItem,
+  type BetaAnalyticsUsageMetrics,
+  type BetaAnalyticsUsageOrderBy,
+  type UsageListParams,
+  type BetaAnalyticsUsageItemsReportPageCursor,
+} from './usage';
 export { UsageReport, type UsageReportListParams } from './usage-report';
 export { UserCostReport, type UserCostReportListParams } from './user-cost-report';
 export { UserUsageReport, type UserUsageReportListParams } from './user-usage-report';

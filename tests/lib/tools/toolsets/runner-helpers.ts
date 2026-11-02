@@ -40,7 +40,7 @@ export function assistantMessage(...content: BetaContentBlock[]): BetaMessage {
  */
 export function setupRunner(
   tools: Anthropic.Beta.Messages.BetaToolRunnerParams['tools'],
-  options: { messages?: BetaMessageParam[]; signal?: AbortSignal } = {},
+  options: { messages?: BetaMessageParam[]; signal?: AbortSignal; thread?: false } = {},
 ) {
   const { handleRequest, fetch } = mockFetch();
   const requests: Array<{ body: any; headers: Headers }> = [];
@@ -59,6 +59,7 @@ export function setupRunner(
       max_tokens: 1000,
       messages: options.messages ?? [{ role: 'user', content: 'Open example.com' }],
       tools,
+      ...(options.thread === false && { thread: options.thread }),
     },
     options.signal ? { signal: options.signal } : undefined,
   );

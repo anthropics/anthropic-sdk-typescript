@@ -10,7 +10,6 @@ import { AnthropicError } from '../../core/error';
 import {
   BETA_CLIENT_TOOL_UNION_KEYS,
   BetaCompactionConfig,
-  BetaContentBlock,
   BetaContentBlockParam,
   BetaMessage,
   BetaMessageParam,
@@ -21,14 +20,16 @@ import {
   BetaToolResultBlockParam,
   BetaToolUnion,
   BetaToolUseBlock,
+  BetaUserMessageParam,
   MessageCreateParams,
 } from '../../resources/beta';
+import type { MessageCreateParamsBase } from '../../resources/beta/messages/messages';
 import { BetaMessageStream } from '../BetaMessageStream';
 import { BetaToolRunnerStream } from '../internal/BetaToolRunnerStream';
 import { guardTracing, setErrorStatus } from '../../internal/tracing';
 import { startToolRunnerSpan, withToolUseSpan } from '../internal/tracing';
 import { RequestOptions } from '../../internal/request-options';
-import { buildHeaders } from '../../internal/headers';
+import { type HeadersLike, buildHeaders } from '../../internal/headers';
 import { promiseWithResolvers } from '../../internal/utils/promise';
 import { checkNever } from '../../internal/utils/values';
 import { loggerFor } from '../../internal/utils/log';
@@ -39,6 +40,15 @@ import {
   STAINLESS_HELPER_HEADER,
   wasCreatedByStainlessHelper,
 } from '../../internal/stainless-helper-header';
+import type { BetaMessageThread } from '../threads/BetaMessageThread';
+import {
+  type ThreadState,
+  definedEntries,
+  isUnfinishedStopReason,
+  sameMessage,
+} from '../internal/threads/ThreadState';
+import { splitToolRunnerParams } from '../internal/threads/tool-runner-params';
+import type { BetaMessageThreadSendParams } from '../threads/params';
 import type { Simplify } from '../internal/types';
 
 const USE_A_NEW_RUNNER =
@@ -50,23 +60,33 @@ const REMOVE_WITH_A_NEW_RUNNER =
  * A ToolRunner handles the automatic conversation loop between the assistant and tools.
  *
  * A ToolRunner is an async iterable that yields either BetaMessage or BetaMessageStream objects
- * depending on the streaming configuration. With `runToolsEagerly` it starts each tool call while the
- * reply is still streaming, unless `deferToolCall()` holds the call.
+ * depending on the streaming configuration. It runs over a `BetaMessageThread`, which holds the
+ * conversation and sends each turn. With `runToolsEagerly` it starts each tool call while the reply is
+ * still streaming, unless `deferToolCall()` holds the call.
  */
 export class BetaToolRunner<Stream extends boolean> {
   /** Whether the async iterator has been consumed */
   #consumed = false;
   /** Whether parameters have been mutated since the last API call */
   #mutated = false;
-  /** Current state containing the request parameters */
-  #state: { params: BetaToolRunnerParams };
+  /** The thread that holds the conversation and sends each turn */
+  #thread: BetaMessageThread<any>;
+  /** The runner's own settings; every other param is the thread's */
+  #settings: BetaToolRunnerSettings;
   #options: BetaToolRunnerRequestOptions;
+  /** The helper telemetry header of every turn: the runner's tag and the tags of its tools and messages */
+  #helperHeader: HeadersLike;
+  /**
+   * `params.messages` while the caller handles a reply: the messages that were sent and what the caller has made of them
+   * since, without the reply. The thread takes them after the loop body if the caller changed anything.
+   */
+  #messagesWithoutReply?: BetaMessageParam[] | undefined;
   /** Promise for the last message received from the assistant */
   #message?: Promise<BetaMessage> | undefined;
   /** The stream of the request in progress, when streaming */
   #stream?: BetaMessageStream | undefined;
   /** Cached tool response to avoid redundant executions */
-  #toolResponse?: Promise<BetaMessageParam | null> | undefined;
+  #toolResponse?: Promise<BetaUserMessageParam | null> | undefined;
   /** Promise resolvers for waiting on completion */
   #completion: {
     promise: Promise<BetaMessage>;
@@ -96,37 +116,41 @@ export class BetaToolRunner<Stream extends boolean> {
   /** Changes queued by `addTools()` / `removeTools()`, in call order, for the next request */
   #pendingToolChanges: PendingToolChange[] = [];
 
+  /** Run the loop on `client` with `params`, the same as `client.beta.messages.toolRunner(params, options)`. */
+  constructor(client: Anthropic, params: BetaToolRunnerParams, options?: BetaToolRunnerRequestOptions);
+  /** Run the loop over `thread` with the runner's own `settings`, like `thread.toolRunner(settings, options)`. */
   constructor(
-    private client: Anthropic,
-    params: BetaToolRunnerParams,
+    thread: BetaMessageThread<any>,
+    settings: BetaToolRunnerSettings,
+    options?: BetaToolRunnerRequestOptions,
+  );
+  constructor(
+    clientOrThread: Anthropic | BetaMessageThread<any>,
+    paramsOrSettings: BetaToolRunnerParams | BetaToolRunnerSettings,
     options?: BetaToolRunnerRequestOptions,
   ) {
-    rejectCompactionParam(params);
-    rejectCompactionControl(params);
-    rejectRunToolsEagerlyWithoutStream(params);
-    this.#state = {
-      params: {
-        // You can't clone the entire params since there are functions as handlers.
-        // You also don't really need to clone params.messages, but it probably will prevent a foot gun
-        // somewhere.
-        ...params,
-        // Not structuredClone(): it throws on a function, and a runnable tool written by value into a
-        // `tool_addition` block has `run`. A JSON copy is the messages as they are sent, which drops it.
-        messages: JSON.parse(JSON.stringify(withToolDefinitions(params.messages))),
-      },
-    };
+    const { thread, settings } =
+      '_state' in clientOrThread ?
+        { thread: clientOrThread, settings: paramsOrSettings }
+      : clientOrThread.beta.messages._toolRunnerThread(paramsOrSettings as BetaToolRunnerParams);
+    rejectCompactionParam(thread._state.params);
+    rejectRunToolsEagerlyWithoutStream(settings);
+    this.#thread = thread;
+    this.#settings = definedEntries(settings);
 
-    // Cloning drops symbol-keyed properties, so collect helper marks from the original params here: the
-    // create()-side collector won't find them on the cloned messages, nor on a toolset's serialized entry.
-    const collected = collectStainlessHelpers(params.tools, params.messages);
-    this.#options = {
-      ...options,
-      headers: buildHeaders([
-        helperHeader('BetaToolRunner'),
-        collected.length ? { [STAINLESS_HELPER_HEADER]: collected.join(', ') } : undefined,
-        options?.headers,
-      ]),
-    };
+    const { tools, messages } = thread._state.params;
+    const collected = collectStainlessHelpers(tools, messages);
+    if (!('_state' in clientOrThread)) {
+      // A copy, so that a message the caller edits later goes out as it was given. It comes after the helper marks are
+      // collected, because it drops symbol-keyed properties. Not structuredClone(): it throws on a function, and a
+      // runnable tool written by value into a `tool_addition` block has `run`.
+      thread._state.setMessages(JSON.parse(JSON.stringify(withToolDefinitions(messages))));
+    }
+    this.#options = { ...options };
+    this.#helperHeader = buildHeaders([
+      helperHeader('BetaToolRunner'),
+      collected.length ? { [STAINLESS_HELPER_HEADER]: collected.join(', ') } : undefined,
+    ]);
     this.#completion = promiseWithResolvers();
   }
 
@@ -155,18 +179,15 @@ export class BetaToolRunner<Stream extends boolean> {
     this.#mutated = true;
     this.#toolResponse = undefined;
 
-    const toolRunnerSpan = guardTracing(this.client, () =>
-      startToolRunnerSpan(this.client, this.#state.params, this.#options.openTelemetry?.conversationId),
+    const toolRunnerSpan = guardTracing(this.#thread._client, () =>
+      startToolRunnerSpan(this.#thread._client, this.params, this.#options.openTelemetry?.conversationId),
     );
     this.#toolRunnerOtelContext = toolRunnerSpan && trace.setSpan(context.active(), toolRunnerSpan);
 
     try {
       while (true) {
         try {
-          if (
-            this.#state.params.max_iterations &&
-            this.#iterationCount >= this.#state.params.max_iterations
-          ) {
+          if (this.#settings.max_iterations && this.#iterationCount >= this.#settings.max_iterations) {
             break;
           }
 
@@ -186,50 +207,52 @@ export class BetaToolRunner<Stream extends boolean> {
           this.#iterationCount++;
           this.#message = undefined;
 
-          const { max_iterations, runToolsEagerly, ...params } = this.#state.params;
-
-          yield* this.#send(params);
+          yield* this.#send(this.#thread);
+          const callerMessages = this.#messagesWithoutReply!;
+          this.#messagesWithoutReply = undefined;
 
           const next = await this.#withToolRunnerSpan(async () => {
+            let toAnswer: BetaMessageParam | undefined;
             if (!this.#mutated) {
               const message = await this.#message!;
               const nextStep = determineNextStepFromStopReason(message.stop_reason);
               this.#lastStopReason = message.stop_reason;
-              this.#state.params.messages.push({
-                role: message.role,
-                content: asContentParam(message.content),
-              });
-
-              // Container-bound server tools reject a follow-up request that omits the container the
-              // previous turn ran in, so carry its id forward unless the caller pinned one themselves.
-              const { container } = this.#state.params;
-              if (message.container) {
-                if (container == null) {
-                  this.#state.params.container = message.container.id;
-                } else if (typeof container === 'object' && container.id == null) {
-                  this.#state.params.container = { ...container, id: message.container.id };
-                }
-              }
-
               if (nextStep === 'stop') {
                 return 'stop';
               }
+              // On "resume" there is nothing to push: the thread already holds the unfinished reply.
               if (nextStep === 'resume') {
                 return 'continue';
               }
+              toAnswer = lastAssistantMessage(this.#thread.messages);
             } else {
               // The caller has taken over the history, so the last response no longer says how it ends.
               this.#lastStopReason = null;
+              // The thread takes a new history once the turn has ended.
+              this.#stream?.abort();
+              // Checked first, because a history without the reply starts a new thread, which would take the change.
+              this.#thread._state.checkNextTurn(turnParams(this.#thread));
+              this.#thread._state.setMessages(callerMessages);
+              toAnswer = callerMessages.at(-1);
             }
 
+            // No tool runs for a turn the thread refuses.
+            if (hasToolUse(toAnswer)) this.#thread._state.checkNextTurn(turnParams(this.#thread));
             const toolMessage = await this.#generateToolResponse(
-              this.#state.params.messages.at(-1)!,
+              toAnswer,
               this.#options.signal,
               this.#toolRunnerOtelContext,
             );
             if (toolMessage) {
-              this.#state.params.messages.push(toolMessage);
-            } else if (!this.#mutated) {
+              // The API takes tool results only right after the calls they answer, ahead of what the caller added since.
+              const history = this.#thread.messages;
+              const answered = history.map((message) => message.role).lastIndexOf('assistant') + 1;
+              this.#thread._state.setMessages([
+                ...history.slice(0, answered),
+                toolMessage,
+                ...history.slice(answered),
+              ]);
+            } else if (!this.#mutated && !this.#thread._state.hasTurnToSend) {
               return 'stop';
             }
             return 'continue';
@@ -250,12 +273,13 @@ export class BetaToolRunner<Stream extends boolean> {
       }
 
       this.#completion.resolve(await this.#message);
-      guardTracing(this.client, () => toolRunnerSpan?.setStatus({ code: SpanStatusCode.OK }));
+      guardTracing(this.#thread._client, () => toolRunnerSpan?.setStatus({ code: SpanStatusCode.OK }));
     } catch (error) {
       if (toolRunnerSpan) {
-        guardTracing(this.client, () => setErrorStatus(toolRunnerSpan, error));
+        guardTracing(this.#thread._client, () => setErrorStatus(toolRunnerSpan, error));
       }
       this.#consumed = false;
+      this.#messagesWithoutReply = undefined;
       // Silence unhandled promise errors
       this.#completion.promise.catch(() => {});
       this.#completion.reject(error);
@@ -263,30 +287,36 @@ export class BetaToolRunner<Stream extends boolean> {
       throw error;
     } finally {
       // Ends with no status when the application closed the iterator: a cancellation.
-      guardTracing(this.client, () => toolRunnerSpan?.end());
+      guardTracing(this.#thread._client, () => toolRunnerSpan?.end());
       this.#toolRunnerOtelContext = undefined;
     }
   }
 
   /**
-   * Sends one request and yields its message, or its stream when streaming. `#message` and `#stream` are set
+   * Sends the next turn of `thread` and yields its message, or its stream when streaming. `#message` and `#stream` are set
    * before the yield, so they are there while the caller handles the item; the loop aborts the stream at the
    * end of the iteration.
    */
-  async *#send(params: MessageCreateParams): AsyncGenerator<BetaToolRunnerItem<Stream>, void, undefined> {
+  async *#send(thread: BetaMessageThread<any>): AsyncGenerator<BetaToolRunnerItem<Stream>, void, undefined> {
     await this.#startedCallsSettled();
     this.#calls = undefined;
-    params = this.#withToolRunnerSpan(() => ({
-      ...params,
-      ...(params.tools && { tools: params.tools.map(toolDefinition) }),
-      messages: withToolDefinitions(params.messages),
-    }));
-    if (params.stream) {
+    // A turn can't override the history, so a `tool_addition` block holding a runnable tool is rewritten in the thread's
+    // history to hold only the tool's API fields.
+    const messages = thread.messages;
+    if (messages.some(addsRunnableTool)) {
+      this.#withToolRunnerSpan(() => thread._state.setMessages(withToolDefinitions(messages)));
+    }
+    // A thread takes the `tools` of the turn that creates it as its own unless they are set during the turn, so the
+    // runnable tools are set again.
+    const { tools } = thread._state.params;
+    if (this.#settings.stream) {
       this.#stream = this.#withToolRunnerSpan(() =>
-        this.#state.params.runToolsEagerly ?
-          this.#streamThatStartsTools(params)
-        : this.client.beta.messages.stream({ ...params }, this.#options),
+        this.#settings.runToolsEagerly ?
+          this.#streamThatStartsTools(thread)
+        : thread.stream(undefined, turnParams(thread), this.#turnOptions(thread)),
       );
+      if (tools) thread.update({ tools });
+      if (thread === this.#thread) this.#messagesWithoutReply = thread.messages;
       this.#message = this.#stream.finalMessage();
       // Make sure that this promise doesn't throw before we get the option to do something about it.
       // Error will be caught when we call await this.#message ultimately
@@ -294,20 +324,31 @@ export class BetaToolRunner<Stream extends boolean> {
       yield this.#stream as any;
     } else {
       this.#message = this.#withToolRunnerSpan(() =>
-        this.client.beta.messages.create({ ...params, stream: false }, this.#options),
+        thread.send(undefined, turnParams(thread), this.#turnOptions(thread)),
       );
+      if (tools) thread.update({ tools });
+      if (thread === this.#thread) this.#messagesWithoutReply = thread.messages;
       yield this.#message as any;
     }
   }
 
-  /** Sends the request as a stream that starts each tool call while the reply streams. See `runToolsEagerly`. */
-  #streamThatStartsTools(params: MessageCreateParams): BetaToolRunnerStream {
+  /**
+   * The request options of a turn of `thread`. A turn's `headers` replace the thread's, so the helper header is added to
+   * whichever of the two the turn goes out with.
+   */
+  #turnOptions(thread: BetaMessageThread<any>): BetaToolRunnerRequestOptions {
+    const { headers = thread._state.options.headers } = this.#options;
+    return { ...this.#options, headers: buildHeaders([this.#helperHeader, headers]) };
+  }
+
+  /** Sends the turn as a stream that starts each tool call while the reply streams. See `runToolsEagerly`. */
+  #streamThatStartsTools(thread: BetaMessageThread<any>): BetaToolRunnerStream {
     const calls = new Map<string, ToolCallState>();
     this.#calls = calls;
     // A toolset runs its calls one at a time, in the model's order. So a toolset's call starts here only while the
     // toolset is idle, and once one of its calls waits for the reply or fails, its later calls wait for the reply too.
     const toolsets = new Map<string, 'running' | 'waiting'>();
-    return BetaToolRunnerStream.start(this.client, params, this.#options, (toolUse) => {
+    const onToolCall = (toolUse: BetaToolUseBlock) => {
       // Held, or started by `generateToolResponse()` before a reader that is behind got to the call.
       const known = calls.has(toolUse.id);
       // A call named after a toolset is a toolset call with malformed actions, which `generateToolResponse()` answers.
@@ -320,11 +361,11 @@ export class BetaToolRunner<Stream extends boolean> {
         }
         toolsets.set(family, 'running');
         const result = runToolsetCall(
-          this.#state.params,
+          this.#toolsetParams(),
           family,
           toolUse,
           this.#options,
-          this.client,
+          this.#thread._client,
           this.#toolRunnerOtelContext,
         );
         calls.set(toolUse.id, { status: 'started', result });
@@ -346,13 +387,20 @@ export class BetaToolRunner<Stream extends boolean> {
         this.#availableToolNames(),
         toolUse,
         this.#options,
-        this.client,
+        this.#thread._client,
         this.#toolRunnerOtelContext,
       );
       // Marks a rejection as handled until the results are collected.
       result.catch(() => {});
       calls.set(toolUse.id, { status: 'started', result });
-    });
+    };
+    const stream = new BetaToolRunnerStream(
+      thread._state.params as MessageCreateParamsBase,
+      onToolCall,
+      thread._client,
+    );
+    thread._stream(stream, undefined, turnParams(thread), this.#turnOptions(thread));
+    return stream;
   }
 
   /** Waits for the calls of the last streamed reply that have started, whether or not their results were sent. */
@@ -364,34 +412,53 @@ export class BetaToolRunner<Stream extends boolean> {
   async *#compact(
     compaction: BetaCompactionConfig,
   ): AsyncGenerator<BetaToolRunnerItem<Stream>, void, undefined> {
-    rejectCompactionEdit(this.#state.params);
-    const { max_iterations, runToolsEagerly, ...requestParams } = this.#state.params;
-    const params = withoutCompactionIncompatibleParams(requestParams);
+    rejectCompactionEdit(this.params);
     this.#compaction = { status: 'in_flight' };
     this.#toolResponse = undefined;
     const lastMessage = this.#message;
+    const thread = this.#compactionThread(compaction);
+    const summarized = this.#thread.messages.length;
 
     try {
-      yield* this.#send({ ...params, compaction });
+      yield* this.#send(thread);
       const message = await this.#message!;
       if (message.content.some((block) => block.type === 'compaction' && block.content)) {
         this.#recordRemovalsFromHistory();
         // The response has to be sent back as it came, first, replacing the messages it summarizes.
-        this.#state.params.messages = [{ role: message.role, content: message.content }];
+        const response: BetaMessageParam = { role: message.role, content: message.content };
+        // Appending a reply the thread already holds is a no-op, so a copy the caller appended is left out.
+        const appended = this.#thread.messages.slice(summarized).filter((m) => !sameMessage(m, response));
+        this.#thread._state.setMessages([response, ...appended]);
       } else {
-        loggerFor(this.client).warn('Compaction produced no summary; keeping the conversation as it is.');
+        loggerFor(this.#thread._client).warn(
+          'Compaction produced no summary; keeping the conversation as it is.',
+        );
         // If the run ends here, `done()` resolves to the last real message rather than this response.
         this.#message = lastMessage;
       }
     } finally {
       this.#compaction = { status: 'idle' };
+      // The request after a compaction the server could not thread goes without a thread from the start.
+      if (!thread._state.threading) this.#thread._state.stopThreading();
     }
+  }
+
+  /**
+   * The thread the compaction request goes out on: the whole conversation and the thread's fields and request
+   * options, with `compaction` added and what `withoutCompactionIncompatibleParams()` removes left out. It is a
+   * thread of its own because a turn on the runner's thread can't leave a field out.
+   */
+  #compactionThread(compaction: BetaCompactionConfig): BetaMessageThread<any> {
+    const { messages, ...fields } = withoutCompactionIncompatibleParams(this.#thread._state.params);
+    const thread = this.#thread.fork();
+    thread._state = this.#thread._state.fork({ ...fields, compaction });
+    return thread;
   }
 
   /** The tools the runner runs, by name: the runnable tools in `params.tools` with the overrides applied */
   #runnableTools(): Map<string, BetaRunnableTool<any>> {
     const runnable = new Map<string, BetaRunnableTool<any>>();
-    for (const tool of this.#state.params.tools) {
+    for (const tool of this.#thread._state.params.tools ?? []) {
       if ('run' in tool && 'name' in tool) {
         runnable.set(tool.name, tool);
       }
@@ -413,8 +480,8 @@ export class BetaToolRunner<Stream extends boolean> {
   #availableToolNames(): Set<string> {
     const available = new Set(this.#runnableTools().keys());
 
-    for (const message of [...this.#state.params.messages, this.#pendingToolChangesMessage()]) {
-      if (typeof message.content === 'string') {
+    for (const message of [...this.params.messages, this.#pendingToolChangesMessage()]) {
+      if (!Array.isArray(message.content)) {
         continue;
       }
       for (const block of message.content) {
@@ -445,11 +512,10 @@ export class BetaToolRunner<Stream extends boolean> {
     if (this.#compaction.status !== 'scheduled') {
       return;
     }
-    const lastContent = this.#state.params.messages.at(-1)?.content;
-    if (Array.isArray(lastContent) && lastContent.some((block) => block.type === 'tool_use')) {
+    if (hasToolUse(this.#thread.messages.at(-1))) {
       // A turn that was cut short can end with tool calls that are never run, and the API can't
       // compact a conversation whose last turn has an unanswered tool call.
-      loggerFor(this.client).warn(
+      loggerFor(this.#thread._client).warn(
         'The pending compaction was skipped because the last turn ended with tool calls that were not run. ' +
           'Call `compactBeforeNextTurn()` again if you continue the conversation.',
       );
@@ -463,12 +529,20 @@ export class BetaToolRunner<Stream extends boolean> {
    * Update the parameters for the next API call. This invalidates any cached tool responses. With
    * `runToolsEagerly`, a tool call of the reply that has started doesn't run again.
    *
+   * The new params replace the current ones, so a param they leave out is gone: start from `runner.params` to keep the
+   * rest. `system` and `tools` cannot change on a message thread: use {@link addTools} and {@link removeTools}, or create
+   * the runner with `thread: false`.
+   *
+   * While you handle a reply, `params.messages` doesn't hold it yet. After a call in the loop body the runner doesn't
+   * add the reply or its tool results: the next request goes out with your params, and the runner runs tool calls only
+   * if your `messages` end in an assistant message that makes them.
+   *
    * @param paramsOrMutator - Either new parameters or a function to mutate existing parameters
    *
    * @example
    * // Direct parameter update
    * runner.setMessagesParams({
-   *   model: 'claude-haiku-4-5',
+   *   ...runner.params,
    *   max_tokens: 500,
    * });
    *
@@ -484,20 +558,25 @@ export class BetaToolRunner<Stream extends boolean> {
   setMessagesParams(
     paramsOrMutator: BetaToolRunnerParams | ((prevParams: BetaToolRunnerParams) => BetaToolRunnerParams),
   ) {
-    const params =
-      typeof paramsOrMutator === 'function' ? paramsOrMutator(this.#state.params) : paramsOrMutator;
+    const params = typeof paramsOrMutator === 'function' ? paramsOrMutator(this.params) : paramsOrMutator;
     rejectCompactionParam(params);
-    rejectRunToolsEagerlyWithoutStream(params);
     if (this.#compaction.status !== 'idle') {
       rejectCompactionEdit(params);
     }
-    if (this.#compaction.status === 'in_flight' && params.messages !== this.#state.params.messages) {
-      throw new AnthropicError(
-        "Message params can't be changed while the conversation is being compacted, because the compaction " +
-          'response is about to replace them. Change them after this iteration instead.',
-      );
+    // `params` holds a new `messages` array on every read, so an unchanged history is told by value.
+    if (this.#compaction.status === 'in_flight' && !sameMessages(params.messages, this.#thread.messages)) {
+      throw new AnthropicError(MESSAGES_CHANGED_WHILE_COMPACTING);
     }
-    this.#state.params = params;
+    // `thread` only chooses threading when the runner is created, so a later `false` is ignored.
+    const { settings, threadParams } = splitToolRunnerParams(params);
+    rejectRunToolsEagerlyWithoutStream(settings);
+    this.#settings = definedEntries(settings);
+    if (this.#messagesWithoutReply) {
+      this.#messagesWithoutReply = threadParams.messages;
+      this.#thread._state.setParams({ ...threadParams, messages: this.#thread.messages });
+    } else {
+      this.#thread._state.setParams(threadParams);
+    }
     this.#mutated = true;
     // Invalidate cached tool response since parameters changed
     this.#toolResponse = undefined;
@@ -543,7 +622,7 @@ export class BetaToolRunner<Stream extends boolean> {
    * the reply that have started and runs the rest, including the ones `deferToolCall()` is holding, so that no
    * call runs twice.
    *
-   * @returns A promise that resolves to a BetaMessageParam containing tool results, or null if no tools need to be executed
+   * @returns A promise that resolves to a BetaUserMessageParam containing tool results, or null if no tools need to be executed
    *
    * @example
    * const toolResponse = await runner.generateToolResponse();
@@ -554,8 +633,8 @@ export class BetaToolRunner<Stream extends boolean> {
   async generateToolResponse(signal: AbortSignal | null | undefined = this.#options.signal) {
     // Read before the first `await`: a context manager that does not follow promises has lost the
     // caller's context after it. Only a tool span has a use for it.
-    const callerOtelContext = this.client._tracer ? context.active() : undefined;
-    const message = (await this.#message) ?? this.params.messages.at(-1);
+    const callerOtelContext = this.#thread._client._tracer ? context.active() : undefined;
+    const message = (await this.#message) ?? this.#thread.messages.at(-1);
     if (!message) {
       return null;
     }
@@ -563,7 +642,7 @@ export class BetaToolRunner<Stream extends boolean> {
   }
 
   async #generateToolResponse(
-    lastMessage: BetaMessage | BetaMessageParam,
+    lastMessage: BetaMessage | BetaMessageParam | undefined,
     signal: AbortSignal | null | undefined,
     toolOtelContext: Context | undefined,
   ) {
@@ -571,13 +650,13 @@ export class BetaToolRunner<Stream extends boolean> {
       return this.#toolResponse;
     }
     this.#toolResponse = generateToolResponse(
-      this.#state.params,
+      this.#toolsetParams(),
       this.#runnableTools(),
       this.#availableToolNames(),
       lastMessage,
       { ...this.#options, signal },
       this.#calls,
-      this.client,
+      this.#thread._client,
       toolOtelContext,
     );
     return this.#toolResponse;
@@ -701,7 +780,13 @@ export class BetaToolRunner<Stream extends boolean> {
    * console.log('Message count:', currentParams.messages.length);
    */
   get params(): Readonly<BetaToolRunnerParams> {
-    return this.#state.params as Readonly<BetaToolRunnerParams>;
+    // `tools` is left out when the thread has none: an empty list is another value of `tools` than none, so
+    // writing these params back would change the `tools` of the thread.
+    return {
+      ...this.#thread._state.params,
+      ...(this.#messagesWithoutReply && { messages: [...this.#messagesWithoutReply] }),
+      ...this.#settings,
+    } as BetaToolRunnerParams;
   }
 
   /**
@@ -746,7 +831,7 @@ export class BetaToolRunner<Stream extends boolean> {
     if (this.#compaction.status === 'in_flight') {
       return;
     }
-    rejectCompactionEdit(this.#state.params);
+    rejectCompactionEdit(this.params);
     this.#compaction = { status: 'scheduled', config: compaction ?? { type: 'summarize' } };
   }
 
@@ -826,7 +911,15 @@ export class BetaToolRunner<Stream extends boolean> {
   }
 
   #toolsetFamilies(): Set<string> {
-    return new Set(this.#state.params.tools.filter(isRunnableToolset).map(toolsetFamily));
+    return new Set(this.#toolsetParams().tools.filter(isRunnableToolset).map(toolsetFamily));
+  }
+
+  /**
+   * The runner's params with the thread's current tools as `tools` (an empty list when it has none), because the
+   * toolset code reads `params.tools` without a guard.
+   */
+  #toolsetParams(): BetaToolRunnerParams {
+    return { ...this.params, tools: this.#thread._state.params.tools ?? [] };
   }
 
   #flushPendingToolChanges() {
@@ -834,9 +927,8 @@ export class BetaToolRunner<Stream extends boolean> {
     if (this.#lastStopReason === 'pause_turn' || this.#pendingToolChanges.length === 0) {
       return;
     }
-    // Not pushMessages(): that marks the params as changed by the caller, and the runner would then
-    // leave this turn's assistant message and tool results for the caller to append.
-    this.#state.params.messages.push(this.#pendingToolChangesMessage());
+    // Staged on the thread directly: this runner's pushMessages() is the caller's, and marks the params as changed by them.
+    this.#thread.append(this.#pendingToolChangesMessage());
     this.#pendingToolChanges = [];
   }
 
@@ -866,7 +958,15 @@ export class BetaToolRunner<Stream extends boolean> {
   }
 }
 
-function rejectCompactionParam(params: BetaToolRunnerParams): void {
+const MESSAGES_CHANGED_WHILE_COMPACTING =
+  "Message params can't be changed while the conversation is being compacted, because the compaction " +
+  'response is about to replace them. Change them after this iteration instead.';
+
+function sameMessages(a: BetaMessageParam[], b: BetaMessageParam[]): boolean {
+  return a.length === b.length && a.every((message, i) => sameMessage(message, b[i]!));
+}
+
+function rejectCompactionParam(params: object): void {
   if ('compaction' in params && params.compaction != null) {
     throw new AnthropicError(
       '`compaction` cannot be set on a tool runner: every request in the loop would compact again. ' +
@@ -875,18 +975,8 @@ function rejectCompactionParam(params: BetaToolRunnerParams): void {
   }
 }
 
-function rejectCompactionControl(params: BetaToolRunnerParams): void {
-  // No longer in the params type, so only untyped callers reach this; forwarding it would be an opaque API 400.
-  if ('compactionControl' in params && params.compactionControl != null) {
-    throw new AnthropicError(
-      '`compactionControl` has been removed from the tool runner. Use server-side compaction instead: ' +
-        'call `runner.compactBeforeNextTurn()` when the conversation should be compacted.',
-    );
-  }
-}
-
-function rejectRunToolsEagerlyWithoutStream(params: BetaToolRunnerParams): void {
-  if (params.runToolsEagerly && !params.stream) {
+function rejectRunToolsEagerlyWithoutStream(settings: BetaToolRunnerSettings): void {
+  if (settings.runToolsEagerly && !settings.stream) {
     throw new TypeError(
       "`runToolsEagerly: true` needs `stream: true` in the tool runner's params, because a reply that " +
         "isn't streamed arrives whole.",
@@ -941,9 +1031,19 @@ function toolDefinition(tool: BetaToolUnion | BetaRunnableTool): BetaToolUnion {
   } as BetaToolUnion;
 }
 
+/**
+ * What every turn of `thread` overrides: `tools` with only each runnable tool's API fields (see `toolDefinition()`), not
+ * its functions or other properties such as a class's own state. The thread's own `tools` keeps the runnable tools,
+ * which the loop calls.
+ */
+function turnParams(thread: BetaMessageThread<any>): BetaMessageThreadSendParams {
+  const { tools } = thread._state.params;
+  return tools ? { tools: tools.map(toolDefinition) } : {};
+}
+
 function withToolDefinitions(messages: BetaMessageParam[]): BetaMessageParam[] {
   return messages.map((message) => {
-    if (message.role !== 'system' || typeof message.content === 'string') {
+    if (message.role !== 'system' || !Array.isArray(message.content)) {
       return message;
     }
     const content = message.content.map((block) =>
@@ -955,16 +1055,33 @@ function withToolDefinitions(messages: BetaMessageParam[]): BetaMessageParam[] {
   });
 }
 
+/**
+ * Whether `message` has a `tool_addition` block holding a runnable tool: the only kind of block
+ * `withToolDefinitions()` changes.
+ */
+function addsRunnableTool(message: BetaMessageParam): boolean {
+  return (
+    message.role === 'system' &&
+    Array.isArray(message.content) &&
+    message.content.some(
+      (block) =>
+        block.type === 'tool_addition' &&
+        block.tool.type === 'tool_definition' &&
+        'run' in block.tool.definition,
+    )
+  );
+}
+
 async function generateToolResponse(
   params: BetaToolRunnerParams,
   runnable: ReadonlyMap<string, BetaRunnableTool<any>>,
   available: ReadonlySet<string>,
-  lastMessage: BetaMessage | BetaMessageParam,
+  lastMessage: BetaMessage | BetaMessageParam | undefined,
   requestOptions: BetaToolRunnerRequestOptions | undefined,
   calls: Map<string, ToolCallState> | undefined,
   client: Anthropic,
   toolOtelContext: Context | undefined,
-): Promise<BetaMessageParam | null> {
+): Promise<BetaUserMessageParam | null> {
   // Only process if the last message is from the assistant and has tool use blocks
   if (
     !lastMessage ||
@@ -1112,13 +1229,24 @@ async function runToolCall(
   };
 }
 
-/**
- * Response content is sent back as request content unchanged. The generated request type of the
- * `tool_listing` block is narrower than its response type, so this needs an assertion until the
- * two agree.
- */
-function asContentParam(content: BetaContentBlock[]): BetaContentBlockParam[] {
-  return content as BetaContentBlockParam[];
+/** The assistant turn the loop answers next: the last one in the history, unless `tool_result`s already follow it. */
+function lastAssistantMessage(messages: BetaMessageParam[]): BetaMessageParam | undefined {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const message = messages[i]!;
+    if (message.role === 'assistant') return message;
+    if (
+      message.role === 'user' &&
+      Array.isArray(message.content) &&
+      message.content.some((block) => block.type === 'tool_result')
+    ) {
+      return undefined;
+    }
+  }
+  return undefined;
+}
+
+function hasToolUse(message: BetaMessageParam | undefined): boolean {
+  return Array.isArray(message?.content) && message.content.some((block) => block.type === 'tool_use');
 }
 
 type PendingToolChange =
@@ -1223,14 +1351,10 @@ type NextStep = 'run_tools' | 'resume' | 'stop';
  */
 function determineNextStepFromStopReason(stopReason: BetaStopReason | null): NextStep {
   if (stopReason === null) return 'stop';
+  if (isUnfinishedStopReason(stopReason)) return 'resume';
   switch (stopReason) {
     case 'tool_use':
       return 'run_tools';
-    case 'pause_turn':
-    // pause_after_compaction hands the turn back before the model answers; sending it back
-    // unchanged continues it.
-    case 'compaction':
-      return 'resume';
     case 'end_turn':
     case 'stop_sequence':
     case 'max_tokens':
@@ -1245,37 +1369,49 @@ function determineNextStepFromStopReason(stopReason: BetaStopReason | null): Nex
   }
 }
 
+/** The runner's own settings: whether to stream each turn and when to stop. */
+export type BetaToolRunnerSettings = {
+  /** Whether each turn streams (the runner yields `BetaMessageStream`s) instead of resolving to a `BetaMessage`. */
+  stream?: boolean | undefined;
+  /**
+   * Maximum number of iterations (API requests) to make in the tool execution loop.
+   * Each iteration consists of: assistant response → tool execution → tool results.
+   * When exceeded, the loop will terminate even if tools are still being requested.
+   */
+  max_iterations?: number | undefined;
+  /**
+   * Run each tool as soon as its call is complete, before the reply finishes, instead of once you are done
+   * with the reply. This is optimistic: if the reply is interrupted or changes course, the tool may have
+   * already run, so use `deferToolCall()` to hold the calls that aren't safe to run twice. Requires
+   * `stream: true`.
+   *
+   * A toolset's call, such as a browser or computer action, starts early too when the toolset's earlier calls
+   * have ended. Otherwise it waits for the reply, and so do the toolset's later calls. A toolset's `confirm` is
+   * still asked before each call runs, so it may be asked while the reply streams.
+   *
+   * This will be the default in a future version.
+   *
+   * @default false
+   */
+  runToolsEagerly?: boolean | undefined;
+};
+
 /**
- * Parameters for creating a ToolRunner, extending MessageCreateParams with runnable tools.
+ * Parameters for creating a ToolRunner, extending MessageCreateParams with runnable tools and the runner's settings.
  *
  * `compaction` is left out because every request in the loop would compact again; call
  * `BetaToolRunner.compactBeforeNextTurn()` instead.
  */
 export type BetaToolRunnerParams = Simplify<
-  Omit<MessageCreateParams, 'tools' | 'compaction'> & {
-    tools: (BetaToolUnion | BetaRunnableTool<any> | BetaRunnableToolset)[];
-    /**
-     * Maximum number of iterations (API requests) to make in the tool execution loop.
-     * Each iteration consists of: assistant response → tool execution → tool results.
-     * When exceeded, the loop will terminate even if tools are still being requested.
-     */
-    max_iterations?: number;
-    /**
-     * Run each tool as soon as its call is complete, before the reply finishes, instead of once you are done
-     * with the reply. This is optimistic: if the reply is interrupted or changes course, the tool may have
-     * already run, so use `deferToolCall()` to hold the calls that aren't safe to run twice. Requires
-     * `stream: true`.
-     *
-     * A toolset's call, such as a browser or computer action, starts early too when the toolset's earlier calls
-     * have ended. Otherwise it waits for the reply, and so do the toolset's later calls. A toolset's `confirm` is
-     * still asked before each call runs, so it may be asked while the reply streams.
-     *
-     * This will be the default in a future version.
-     *
-     * @default false
-     */
-    runToolsEagerly?: boolean;
-  }
+  Omit<MessageCreateParams, 'tools' | 'thread' | 'compaction'> &
+    Omit<BetaToolRunnerSettings, 'stream'> & {
+      tools: (BetaToolUnion | BetaRunnableTool<any> | BetaRunnableToolset)[];
+      /**
+       * The loop runs over a message thread by default, sending only new messages each turn. `false` sends the full
+       * history every turn.
+       */
+      thread?: false;
+    }
 >;
 
 export type BetaToolRunnerRequestOptions = Pick<
@@ -1283,7 +1419,7 @@ export type BetaToolRunnerRequestOptions = Pick<
   'headers' | 'signal' | 'fallbackState' | 'openTelemetry'
 >;
 
-type ToolRunnerRequestParams = Omit<BetaToolRunnerParams, 'max_iterations' | 'runToolsEagerly'>;
+type ToolRunnerRequestParams = ThreadState['params'];
 
 type ToolCallState = { status: 'held' } | { status: 'started'; result: Promise<BetaToolResultBlockParam> };
 

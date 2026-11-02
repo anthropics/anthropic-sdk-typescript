@@ -124,6 +124,8 @@ describe('toolRunner integration tests', () => {
     const tool = createTestTool();
 
     const runner = client.beta.messages.toolRunner({
+      // The recorded fixtures predate message threads, so send the full history each turn as they did
+      thread: false,
       model: 'claude-opus-4-8',
       max_tokens: 1000,
       max_iterations: 5, // High limit, should stop before reaching it
@@ -165,6 +167,8 @@ describe('toolRunner integration tests', () => {
       const tool = createCounterTool();
 
       const runner = client.beta.messages.toolRunner({
+        // The recorded fixtures predate message threads, so send the full history each turn as they did
+        thread: false,
         model: 'claude-opus-4-8',
         max_tokens: 1000,
         max_iterations: 2,
@@ -208,6 +212,8 @@ describe('toolRunner integration tests', () => {
       const tool = createTestTool({ inputSchema: z.object({ input: z.string() }) });
 
       const runner = client.beta.messages.toolRunner({
+        // The recorded fixtures predate message threads, so send the full history each turn as they did
+        thread: false,
         model: 'claude-opus-4-8',
         max_tokens: 1000,
         messages: [
@@ -231,6 +237,8 @@ describe('toolRunner integration tests', () => {
       const tool = createTestTool();
 
       const runner = client.beta.messages.toolRunner({
+        // The recorded fixtures predate message threads, so send the full history each turn as they did
+        thread: false,
         model: 'claude-opus-4-8',
         max_tokens: 1000,
         messages: [{ role: 'user', content: 'Hello' }],

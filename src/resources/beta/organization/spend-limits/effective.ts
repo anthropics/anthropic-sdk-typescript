@@ -27,11 +27,12 @@ export class Effective extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaSpendSummariesPageCursor, SpendLimitsAPI.BetaSpendSummary> {
     return this._client.getAPIList(
-      '/v1/organizations/spend_limits/effective?beta=true',
+      '/v1/organizations/spend_limits/effective',
       PageCursor<SpendLimitsAPI.BetaSpendSummary>,
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.spend_limits.effective.list',

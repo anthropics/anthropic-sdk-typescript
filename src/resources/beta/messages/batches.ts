@@ -43,7 +43,7 @@ export class Batches extends APIResource {
    */
   create(params: BatchCreateParams, options?: RequestOptions): APIPromise<BetaMessageBatch> {
     const { betas, user_profile_id, workspace_id, ...body } = params;
-    return this._client.post('/v1/messages/batches?beta=true', {
+    return this._client.post('/v1/messages/batches', {
       body,
       ...options,
       headers: buildHeaders([
@@ -54,6 +54,7 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.messages.batches.create', options, {
         route: '/v1/messages/batches',
         // A request without `requests` is for the API to refuse, not for this line to throw on.
@@ -85,7 +86,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaMessageBatch> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/messages/batches/${messageBatchID}?beta=true`, {
+    return this._client.get(path`/v1/messages/batches/${messageBatchID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -94,6 +95,7 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.messages.batches.retrieve', options, {
         route: '/v1/messages/batches/{message_batch_id}',
         attributes: { 'anthropic.message.batch.id': messageBatchID },
@@ -121,7 +123,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaMessageBatchesPage, BetaMessageBatch> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/messages/batches?beta=true', Page<BetaMessageBatch>, {
+    return this._client.getAPIList('/v1/messages/batches', Page<BetaMessageBatch>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -131,6 +133,7 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.messages.batches.list', options, {
         route: '/v1/messages/batches',
         queryParams: ['after_id', 'before_id', 'limit'],
@@ -161,7 +164,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedMessageBatch> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.delete(path`/v1/messages/batches/${messageBatchID}?beta=true`, {
+    return this._client.delete(path`/v1/messages/batches/${messageBatchID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -170,6 +173,7 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.messages.batches.delete', options, {
         route: '/v1/messages/batches/{message_batch_id}',
         attributes: { 'anthropic.message.batch.id': messageBatchID },
@@ -205,7 +209,7 @@ export class Batches extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaMessageBatch> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel?beta=true`, {
+    return this._client.post(path`/v1/messages/batches/${messageBatchID}/cancel`, {
       ...options,
       headers: buildHeaders([
         {
@@ -214,6 +218,7 @@ export class Batches extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.messages.batches.cancel', options, {
         route: '/v1/messages/batches/{message_batch_id}/cancel',
         attributes: { 'anthropic.message.batch.id': messageBatchID },
@@ -266,6 +271,7 @@ export class Batches extends APIResource {
           options?.headers,
         ]),
         stream: true,
+        __qualifiers: { beta: 'true' },
         __binaryResponse: true,
         __span: startApiCallSpan(this._client, 'anthropic.messages.batches.results', options, {
           route: '/v1/messages/batches/{message_batch_id}/results',
@@ -600,8 +606,7 @@ export namespace BatchCreateParams {
        *
        * Note that if you want to include a
        * [system prompt](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#give-claude-a-role),
-       * you can use the top-level `system` parameter — there is no `"system"` role for
-       * input messages in the Messages API.
+       * you can use the top-level `system` parameter.
        *
        * There is a limit of 100,000 messages in a single request.
        */
@@ -775,13 +780,6 @@ export namespace BatchCreateParams {
       system?: string | Array<BetaMessagesAPI.BetaTextBlockParam>;
 
       /**
-       * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
-       * setting temperature. A value of 1.0 will be accepted for backwards
-       * compatibility, all other values will be rejected with a 400 error.
-       */
-      temperature?: number;
-
-      /**
        * Configuration for Claude's thinking.
        *
        * With `{"type": "adaptive"}`, Claude decides when and how much to think. With
@@ -794,6 +792,15 @@ export namespace BatchCreateParams {
        * for each model's behavior.
        */
       thinking?: BetaMessagesAPI.BetaThinkingConfigParam;
+
+      /**
+       * Server-held conversation state (a Thread). `{"type": "create"}` asks the server
+       * to hold this conversation's state under the response's `id`;
+       * `{"type": "continue", "previous_message_id": ...}` resumes from a previous
+       * response so only the new turn's messages are sent. The response shape is
+       * unchanged.
+       */
+      thread?: BetaMessagesAPI.BetaMessageThreadParam | null;
 
       /**
        * How the model should use the provided tools. The model can use a specific tool,
@@ -881,19 +888,6 @@ export namespace BatchCreateParams {
        * for more details.
        */
       tools?: Array<BetaMessagesAPI.BetaToolUnion>;
-
-      /**
-       * @deprecated Deprecated. Models released after Claude Opus 4.6 do not accept
-       * top_k; any value will be rejected with a 400 error.
-       */
-      top_k?: number;
-
-      /**
-       * @deprecated Deprecated. Models released after Claude Opus 4.6 do not support
-       * setting top_p. A value >= 0.99 will be accepted for backwards compatibility, all
-       * other values will be rejected with a 400 error.
-       */
-      top_p?: number;
     }
   }
 }

@@ -26,7 +26,7 @@ export class DeploymentRuns extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsDeploymentRun> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/deployment_runs/${deploymentRunID}?beta=true`, {
+    return this._client.get(path`/v1/deployment_runs/${deploymentRunID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -35,6 +35,7 @@ export class DeploymentRuns extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.deployment_runs.retrieve', options, {
         route: '/v1/deployment_runs/{deployment_run_id}',
         attributes: { 'anthropic.deployment_run.id': deploymentRunID },
@@ -58,35 +59,32 @@ export class DeploymentRuns extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaManagedAgentsDeploymentRunsPageCursor, BetaManagedAgentsDeploymentRun> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList(
-      '/v1/deployment_runs?beta=true',
-      PageCursor<BetaManagedAgentsDeploymentRun>,
-      {
-        query,
-        ...options,
-        headers: buildHeaders([
-          {
-            'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString(),
-            ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-          },
-          options?.headers,
-        ]),
-        __span: startApiCallSpan(this._client, 'anthropic.deployment_runs.list', options, {
-          route: '/v1/deployment_runs',
-          queryParams: [
-            'created_at[gt]',
-            'created_at[gte]',
-            'created_at[lt]',
-            'created_at[lte]',
-            'deployment_id',
-            'has_error',
-            'limit',
-            'page',
-            'trigger_type',
-          ],
-        }),
-      },
-    );
+    return this._client.getAPIList('/v1/deployment_runs', PageCursor<BetaManagedAgentsDeploymentRun>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        {
+          'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.deployment_runs.list', options, {
+        route: '/v1/deployment_runs',
+        queryParams: [
+          'created_at[gt]',
+          'created_at[gte]',
+          'created_at[lt]',
+          'created_at[lte]',
+          'deployment_id',
+          'has_error',
+          'limit',
+          'page',
+          'trigger_type',
+        ],
+      }),
+    });
   }
 }
 

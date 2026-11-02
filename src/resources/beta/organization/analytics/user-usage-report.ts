@@ -7,14 +7,21 @@ import { startApiCallSpan } from '../../../../internal/tracing';
 
 export class UserUsageReport extends APIResource {
   /**
-   * Get per-user token usage across a date range.
+   * [Legacy] Get per-user token usage across a date range.
    *
-   * Returns one row per user, ranked by the chosen token metric. Use this to see
-   * which users consume the most tokens. Only usage attributable to a seat user is
-   * included; for organization-wide totals including direct API-key and automation
-   * traffic, use the bucketed `/v1/organizations/analytics/usage_report` endpoint.
-   * Available to organizations on a Claude Enterprise plan. Requires an API key with
-   * the `read:analytics` scope.
+   * Returns usage per user, ranked by the chosen token metric; `group_by[]` or
+   * `bucket_width` splits a user across several rows. Use this to see which users
+   * consume the most tokens. Only usage attributed to a user account is included;
+   * usage with no user attributed to it, such as Code Review usage and Claude Tag
+   * usage in Slack channels, is left out. Available to organizations on a Claude
+   * Enterprise plan. Requires an API key with the `read:analytics` scope.
+   *
+   * This endpoint is one of the legacy Claude Enterprise usage and cost reports. For
+   * new integrations, use
+   * [`GET /v1/organizations/analytics/usage`](/docs/en/api/beta/organization/analytics/usage/list)
+   * in the Usage and Cost Analytics API instead. To move an existing integration,
+   * see
+   * [Migrate from the Claude Enterprise usage and cost reports](/docs/en/manage-claude/usage-cost-analytics-api#migrate-from-enterprise-analytics-reports).
    *
    * @example
    * ```ts
@@ -31,11 +38,12 @@ export class UserUsageReport extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaAnalyticsUsageUsersItemsReportPageCursor, AnalyticsAPI.BetaAnalyticsUsageUsersItem> {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/user_usage_report?beta=true',
+      '/v1/organizations/analytics/user_usage_report',
       ReportPageCursor<AnalyticsAPI.BetaAnalyticsUsageUsersItem>,
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.analytics.user_usage_report.list',

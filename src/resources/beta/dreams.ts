@@ -31,7 +31,7 @@ export class Dreams extends APIResource {
    */
   create(params: DreamCreateParams, options?: RequestOptions): APIPromise<BetaDream> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post('/v1/dreams?beta=true', {
+    return this._client.post('/v1/dreams', {
       body,
       ...options,
       headers: buildHeaders([
@@ -41,6 +41,7 @@ export class Dreams extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.dreams.create', options, {
         route: '/v1/dreams',
         createdIDAttribute: 'anthropic.dream.id',
@@ -70,7 +71,7 @@ export class Dreams extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDream> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/dreams/${dreamID}?beta=true`, {
+    return this._client.get(path`/v1/dreams/${dreamID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -79,6 +80,7 @@ export class Dreams extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.dreams.retrieve', options, {
         route: '/v1/dreams/{dream_id}',
         attributes: { 'anthropic.dream.id': dreamID },
@@ -108,7 +110,7 @@ export class Dreams extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaDreamsPageCursor, BetaDream> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/dreams?beta=true', PageCursor<BetaDream>, {
+    return this._client.getAPIList('/v1/dreams', PageCursor<BetaDream>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -118,6 +120,7 @@ export class Dreams extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.dreams.list', options, {
         route: '/v1/dreams',
         queryParams: ['created_at[gt]', 'created_at[lt]', 'include_archived', 'limit', 'page', 'statuses'],
@@ -150,7 +153,7 @@ export class Dreams extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDream> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/dreams/${dreamID}/archive?beta=true`, {
+    return this._client.post(path`/v1/dreams/${dreamID}/archive`, {
       ...options,
       headers: buildHeaders([
         {
@@ -159,6 +162,7 @@ export class Dreams extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.dreams.archive', options, {
         route: '/v1/dreams/{dream_id}/archive',
         attributes: { 'anthropic.dream.id': dreamID },
@@ -191,7 +195,7 @@ export class Dreams extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDream> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/dreams/${dreamID}/cancel?beta=true`, {
+    return this._client.post(path`/v1/dreams/${dreamID}/cancel`, {
       ...options,
       headers: buildHeaders([
         {
@@ -200,6 +204,7 @@ export class Dreams extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.dreams.cancel', options, {
         route: '/v1/dreams/{dream_id}/cancel',
         attributes: { 'anthropic.dream.id': dreamID },

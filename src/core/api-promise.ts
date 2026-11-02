@@ -36,6 +36,11 @@ export class APIPromise<T> extends Promise<WithRequestID<T>> {
     this.#client = client;
   }
 
+  /** @internal The unparsed response with its request metadata, for helpers that build one request on another. */
+  _responseProps(): Promise<APIResponseProps> {
+    return this.responsePromise;
+  }
+
   _thenUnwrap<U>(transform: (data: T, props: APIResponseProps) => U): APIPromise<U> {
     return new APIPromise(this.#client, this.responsePromise, async (client, props) =>
       addResponseIDs(transform(await this.parseResponse(client, props), props), props.response),

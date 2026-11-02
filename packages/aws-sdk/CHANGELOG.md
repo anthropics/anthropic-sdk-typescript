@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.1.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v1.1.0...aws-sdk-v1.1.1) (2026-10-23)
+
+### Chores
+
+* **internal:** stop expecting the beta query param in tests
+
+## [1.1.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v1.0.0...aws-sdk-v1.1.0) (2026-10-22)
+
+### Features
+
+* **api:** add support for message threads
+
+## [1.0.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.9.0...aws-sdk-v1.0.0) (2026-10-21)
+
+### ⚠ BREAKING CHANGES
+
+* **api:** add support for new API version 2026-10-21
+
+### Features
+
+* **api:** add support for new API version 2026-10-21
+
 ## [0.9.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/aws-sdk-v0.8.0...aws-sdk-v0.9.0) (2026-10-20)
 
 ### Features

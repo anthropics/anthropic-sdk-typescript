@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 const client = new Anthropic({
   apiKey: 'my-anthropic-api-key',
   baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
+  defaultQuery: { beta: 'true' },
 });
 
 describe('resource spendLimits', () => {
@@ -36,6 +37,7 @@ describe('resource spendLimits', () => {
           limit: 1,
           page: 'page',
           scope_type: ['organization'],
+          workspace_id: 'workspace_id',
           betas: ['message-batches-2024-09-24'],
         },
         { path: '/_stainless_unknown_path' },

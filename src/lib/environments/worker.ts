@@ -438,9 +438,8 @@ export class EnvironmentWorker {
     // lease heartbeat, the skill download, and the work force-stop —
     // authenticates with the per-item credential. Scope a client to it once and
     // thread that through. `copyClientForHelper` also clears the parent's
-    // `apiKey`, so the sub-client emits *only* the bearer credential on the
-    // wire (a plain `withOptions({authToken})` would leave `X-Api-Key` set as
-    // well).
+    // `apiKey`, so the sub-client emits *only* the per-item credential on the
+    // wire.
     const sessionClient = copyClientForHelper(this.client, {
       authToken: itemCredential,
       helper: 'environments-worker',

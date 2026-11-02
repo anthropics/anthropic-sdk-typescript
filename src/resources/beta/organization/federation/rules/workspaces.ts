@@ -41,7 +41,7 @@ export class Workspaces extends APIResource {
   ): PagePromise<BetaFederationRuleWorkspacesPageCursor, RulesAPI.BetaFederationRuleWorkspace> {
     const { betas, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/organizations/federation_rules/${federationRuleID}/workspaces?beta=true`,
+      path`/v1/organizations/federation_rules/${federationRuleID}/workspaces`,
       PageCursor<RulesAPI.BetaFederationRuleWorkspace>,
       {
         query,
@@ -50,6 +50,7 @@ export class Workspaces extends APIResource {
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.federation.rules.workspaces.list',
@@ -95,28 +96,26 @@ export class Workspaces extends APIResource {
     options?: RequestOptions,
   ): APIPromise<RulesAPI.BetaFederationRuleWorkspace> {
     const { betas, ...body } = params;
-    return this._client.post(
-      path`/v1/organizations/federation_rules/${federationRuleID}/workspaces?beta=true`,
-      {
-        body,
-        ...options,
-        headers: buildHeaders([
-          { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
-          options?.headers,
-        ]),
-        __span: startApiCallSpan(
-          this._client,
-          'anthropic.organization.federation.rules.workspaces.add',
-          options,
-          {
-            route: '/v1/organizations/federation_rules/{federation_rule_id}/workspaces',
-            attributes: { 'anthropic.organization.federation_rule.id': federationRuleID },
-            createdIDAttribute: 'anthropic.organization.federation_rule.workspace.id',
-            createdIDField: 'workspace_id',
-          },
-        ),
-      },
-    );
+    return this._client.post(path`/v1/organizations/federation_rules/${federationRuleID}/workspaces`, {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(
+        this._client,
+        'anthropic.organization.federation.rules.workspaces.add',
+        options,
+        {
+          route: '/v1/organizations/federation_rules/{federation_rule_id}/workspaces',
+          attributes: { 'anthropic.organization.federation_rule.id': federationRuleID },
+          createdIDAttribute: 'anthropic.organization.federation_rule.workspace.id',
+          createdIDField: 'workspace_id',
+        },
+      ),
+    });
   }
 
   /**
@@ -147,13 +146,14 @@ export class Workspaces extends APIResource {
   ): APIPromise<WorkspaceRemoveResponse> {
     const { federation_rule_id, betas } = params;
     return this._client.delete(
-      path`/v1/organizations/federation_rules/${federation_rule_id}/workspaces/${workspaceID}?beta=true`,
+      path`/v1/organizations/federation_rules/${federation_rule_id}/workspaces/${workspaceID}`,
       {
         ...options,
         headers: buildHeaders([
           { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.federation.rules.workspaces.remove',

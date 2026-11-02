@@ -29,7 +29,7 @@ export class Versions extends APIResource {
   ): PagePromise<BetaManagedAgentsAgentsPageCursor, AgentsAPI.BetaManagedAgentsAgent> {
     const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/agents/${agentID}/versions?beta=true`,
+      path`/v1/agents/${agentID}/versions`,
       PageCursor<AgentsAPI.BetaManagedAgentsAgent>,
       {
         query,
@@ -41,6 +41,7 @@ export class Versions extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.agents.versions.list', options, {
           route: '/v1/agents/{agent_id}/versions',
           queryParams: ['limit', 'page'],

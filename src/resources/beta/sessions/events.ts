@@ -35,7 +35,7 @@ export class Events extends APIResource {
   ): PagePromise<BetaManagedAgentsSessionEventsPageCursor, BetaManagedAgentsSessionEvent> {
     const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/sessions/${sessionID}/events?beta=true`,
+      path`/v1/sessions/${sessionID}/events`,
       PageCursor<BetaManagedAgentsSessionEvent>,
       {
         query,
@@ -47,6 +47,7 @@ export class Events extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.sessions.events.list', options, {
           route: '/v1/sessions/{session_id}/events',
           queryParams: [
@@ -95,7 +96,7 @@ export class Events extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsSendSessionEvents> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/sessions/${sessionID}/events?beta=true`, {
+    return this._client.post(path`/v1/sessions/${sessionID}/events`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -105,6 +106,7 @@ export class Events extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.events.send', options, {
         route: '/v1/sessions/{session_id}/events',
         attributes: { 'anthropic.session.id': sessionID },
@@ -131,7 +133,7 @@ export class Events extends APIResource {
     options?: RequestOptions,
   ): APIPromise<Stream<BetaManagedAgentsStreamSessionEvents>> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.get(path`/v1/sessions/${sessionID}/events/stream?beta=true`, {
+    return this._client.get(path`/v1/sessions/${sessionID}/events/stream`, {
       query,
       ...options,
       headers: buildHeaders([
@@ -142,6 +144,7 @@ export class Events extends APIResource {
         options?.headers,
       ]),
       stream: true,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.sessions.events.stream', options, {
         route: '/v1/sessions/{session_id}/events/stream',
         queryParams: ['event_deltas'],

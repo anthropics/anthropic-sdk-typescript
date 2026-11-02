@@ -28,7 +28,7 @@ export class UserProfiles extends APIResource {
    */
   create(params: UserProfileCreateParams, options?: RequestOptions): APIPromise<BetaUserProfile> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post('/v1/user_profiles?beta=true', {
+    return this._client.post('/v1/user_profiles', {
       body,
       ...options,
       headers: buildHeaders([
@@ -38,6 +38,7 @@ export class UserProfiles extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.user_profiles.create', options, {
         route: '/v1/user_profiles',
         createdIDAttribute: 'anthropic.user_profile.id',
@@ -62,7 +63,7 @@ export class UserProfiles extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaUserProfile> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.get(path`/v1/user_profiles/${userProfileID}?beta=true`, {
+    return this._client.get(path`/v1/user_profiles/${userProfileID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -71,6 +72,7 @@ export class UserProfiles extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.user_profiles.retrieve', options, {
         route: '/v1/user_profiles/{user_profile_id}',
         attributes: { 'anthropic.user_profile.id': userProfileID },
@@ -95,7 +97,7 @@ export class UserProfiles extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaUserProfile> {
     const { betas, workspace_id, ...body } = params;
-    return this._client.post(path`/v1/user_profiles/${userProfileID}?beta=true`, {
+    return this._client.post(path`/v1/user_profiles/${userProfileID}`, {
       body,
       ...options,
       headers: buildHeaders([
@@ -105,6 +107,7 @@ export class UserProfiles extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.user_profiles.update', options, {
         route: '/v1/user_profiles/{user_profile_id}',
         attributes: { 'anthropic.user_profile.id': userProfileID },
@@ -128,7 +131,7 @@ export class UserProfiles extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaUserProfilesPageCursor, BetaUserProfile> {
     const { betas, workspace_id, ...query } = params ?? {};
-    return this._client.getAPIList('/v1/user_profiles?beta=true', PageCursor<BetaUserProfile>, {
+    return this._client.getAPIList('/v1/user_profiles', PageCursor<BetaUserProfile>, {
       query,
       ...options,
       headers: buildHeaders([
@@ -138,6 +141,7 @@ export class UserProfiles extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.user_profiles.list', options, {
         route: '/v1/user_profiles',
         queryParams: ['limit', 'order', 'order_by', 'page'],
@@ -162,7 +166,7 @@ export class UserProfiles extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedUserProfile> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.delete(path`/v1/user_profiles/${userProfileID}?beta=true`, {
+    return this._client.delete(path`/v1/user_profiles/${userProfileID}`, {
       ...options,
       headers: buildHeaders([
         {
@@ -171,6 +175,7 @@ export class UserProfiles extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.user_profiles.delete', options, {
         route: '/v1/user_profiles/{user_profile_id}',
         attributes: { 'anthropic.user_profile.id': userProfileID },
@@ -195,7 +200,7 @@ export class UserProfiles extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaUserProfileEnrollmentURL> {
     const { betas, workspace_id } = params ?? {};
-    return this._client.post(path`/v1/user_profiles/${userProfileID}/enrollment_url?beta=true`, {
+    return this._client.post(path`/v1/user_profiles/${userProfileID}/enrollment_url`, {
       ...options,
       headers: buildHeaders([
         {
@@ -204,6 +209,7 @@ export class UserProfiles extends APIResource {
         },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.user_profiles.create_enrollment_url', options, {
         route: '/v1/user_profiles/{user_profile_id}/enrollment_url',
         attributes: { 'anthropic.user_profile.id': userProfileID },

@@ -114,7 +114,7 @@ describe('instantiate client', () => {
       expect(sending?.[1]).toMatchObject({
         url: new URL('https://api.anthropic.com/foo').toString(),
         options: { method: 'get', path: '/foo' },
-        headers: expect.objectContaining({ 'x-api-key': '***' }),
+        headers: expect.objectContaining({ authorization: '***' }),
       });
       expect(sending?.[1].options).not.toHaveProperty('headers');
       expect(sending?.[1]).not.toHaveProperty('retryOfRequestLogID');
@@ -684,6 +684,30 @@ describe('retries', () => {
     expect(count).toEqual(3);
   });
 
+  test('every attempt has the qualifiers', async () => {
+    const debugMock = vi.fn();
+    let count = 0;
+    const testFetch = async (): Promise<Response> =>
+      count++ === 0 ?
+        new Response(undefined, { status: 429, headers: { 'Retry-After-Ms': '1' } })
+      : new Response(JSON.stringify({ a: 1 }), { headers: { 'Content-Type': 'application/json' } });
+    const client = new Anthropic({
+      logger: { debug: debugMock, info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+      logLevel: 'debug',
+      apiKey: 'my-anthropic-api-key',
+      fetch: testFetch,
+      maxRetries: 1,
+    });
+
+    await client.get('/foo', { __qualifiers: { variant: 'b' } });
+
+    const sent = debugMock.mock.calls.filter(([message]) => message.endsWith('sending request'));
+    expect(sent.map(([, details]) => details.options.__qualifiers)).toEqual([
+      { variant: 'b' },
+      { variant: 'b' },
+    ]);
+  });
+
   test('retry count header', async () => {
     let count = 0;
     let capturedRequest: RequestInit | undefined;
@@ -776,7 +800,7 @@ describe('retries', () => {
       }),
     ).toEqual({ a: 1 });
 
-    expect(capturedRequest!.headers as Headers).not.toHaveProperty('x-stainless-retry-count');
+    expect((capturedRequest!.headers as Headers).has('x-stainless-retry-count')).toBe(false);
   });
 
   test('overwrite retry count header', async () => {

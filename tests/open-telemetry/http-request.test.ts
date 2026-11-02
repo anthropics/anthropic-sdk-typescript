@@ -42,7 +42,6 @@ describe('OpenTelemetry spans', () => {
         'url.path': '/prefix/v1/messages',
         'url.full': 'https://api.example.com/prefix/v1/messages',
       });
-      // `beta=true` is not a parameter of the endpoint, so the span has no query.
       expect(httpAttributes(onlySpan('anthropic.files.retrieve_metadata').attributes)).toEqual({
         'http.request.method': 'GET',
         'http.route': '/v1/files/{file_id}',
@@ -126,7 +125,7 @@ describe('OpenTelemetry spans', () => {
           client.beta.files.list({ limit: 2, ids: ['file 1', 'file&2'], scope_id: 'a/b' }),
         );
 
-        expect(recorded.sent).toBe('?beta=true&limit=2&ids%5B%5D=file%201&ids%5B%5D=file%262&scope_id=a%2Fb');
+        expect(recorded.sent).toBe('?limit=2&ids%5B%5D=file%201&ids%5B%5D=file%262&scope_id=a%2Fb');
         expect(recorded.query).toBe('limit=2&ids%5B%5D=file%201&ids%5B%5D=file%262&scope_id=a%2Fb');
         expect(recorded.full).toBe(`http://localhost:4010/v1/files?${recorded.query}`);
       });

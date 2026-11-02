@@ -27,28 +27,26 @@ export class MemoryVersions extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaManagedAgentsMemoryVersion> {
     const { memory_store_id, betas, workspace_id, ...query } = params;
-    return this._client.get(
-      path`/v1/memory_stores/${memory_store_id}/memory_versions/${memoryVersionID}?beta=true`,
-      {
-        query,
-        ...options,
-        headers: buildHeaders([
-          {
-            'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString(),
-            ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-          },
-          options?.headers,
-        ]),
-        __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memory_versions.retrieve', options, {
-          route: '/v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}',
-          queryParams: ['view'],
-          attributes: {
-            'gen_ai.memory.store.id': memory_store_id,
-            'anthropic.memory_store.memory_version.id': memoryVersionID,
-          },
-        }),
-      },
-    );
+    return this._client.get(path`/v1/memory_stores/${memory_store_id}/memory_versions/${memoryVersionID}`, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        {
+          'anthropic-beta': [...(betas ?? []), 'agent-memory-2026-07-22'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memory_versions.retrieve', options, {
+        route: '/v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}',
+        queryParams: ['view'],
+        attributes: {
+          'gen_ai.memory.store.id': memory_store_id,
+          'anthropic.memory_store.memory_version.id': memoryVersionID,
+        },
+      }),
+    });
   }
 
   /**
@@ -71,7 +69,7 @@ export class MemoryVersions extends APIResource {
   ): PagePromise<BetaManagedAgentsMemoryVersionsPageCursor, BetaManagedAgentsMemoryVersion> {
     const { betas, workspace_id, ...query } = params ?? {};
     return this._client.getAPIList(
-      path`/v1/memory_stores/${memoryStoreID}/memory_versions?beta=true`,
+      path`/v1/memory_stores/${memoryStoreID}/memory_versions`,
       PageCursor<BetaManagedAgentsMemoryVersion>,
       {
         query,
@@ -83,6 +81,7 @@ export class MemoryVersions extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memory_versions.list', options, {
           route: '/v1/memory_stores/{memory_store_id}/memory_versions',
           queryParams: [
@@ -122,7 +121,7 @@ export class MemoryVersions extends APIResource {
   ): APIPromise<BetaManagedAgentsMemoryVersion> {
     const { memory_store_id, betas, workspace_id } = params;
     return this._client.post(
-      path`/v1/memory_stores/${memory_store_id}/memory_versions/${memoryVersionID}/redact?beta=true`,
+      path`/v1/memory_stores/${memory_store_id}/memory_versions/${memoryVersionID}/redact`,
       {
         ...options,
         headers: buildHeaders([
@@ -132,6 +131,7 @@ export class MemoryVersions extends APIResource {
           },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.memory_stores.memory_versions.redact', options, {
           route: '/v1/memory_stores/{memory_store_id}/memory_versions/{memory_version_id}/redact',
           attributes: {

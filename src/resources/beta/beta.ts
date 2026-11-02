@@ -348,6 +348,7 @@ import {
   BetaAdvisorToolResultError,
   BetaAdvisorToolResultErrorParam,
   BetaAllThinkingTurns,
+  BetaAssistantMessageParam,
   BetaBase64ImageSource,
   BetaBase64PDFBlock,
   BetaBase64PDFSource,
@@ -632,9 +633,11 @@ import {
   BetaMemoryTool20250818StrReplaceCommand,
   BetaMemoryTool20250818ViewCommand,
   BetaMessage,
+  BetaMessageContentParam,
   BetaMessageDeltaUsage,
   BetaMessageIterationUsage,
   BetaMessageParam,
+  BetaMessageThreadParam,
   BetaMessageTokensCount,
   BetaMetadata,
   BetaOutputConfig,
@@ -727,6 +730,7 @@ import {
   BetaStopReason,
   BetaSummarizeCompaction,
   BetaSystemMessageOutputConfig,
+  BetaSystemMessageParam,
   BetaTextBlock,
   BetaTextBlockParam,
   BetaTextCitation,
@@ -755,6 +759,8 @@ import {
   BetaThinkingMismatchAllowedInputTransformation,
   BetaThinkingPrefixMismatchBehavior,
   BetaThinkingTurns,
+  BetaThreadContinueParams,
+  BetaThreadCreateParams,
   BetaTokenTaskBudget,
   BetaTool,
   BetaToolBash20241022,
@@ -790,6 +796,7 @@ import {
   BetaURLPDFSource,
   BetaUsage,
   BetaUserLocation,
+  BetaUserMessageParam,
   BetaWebFetchBlock,
   BetaWebFetchBlockParam,
   BetaWebFetchTool20250910,
@@ -1008,7 +1015,10 @@ export type AnthropicBeta =
   | 'ce-plugins-2026-09-01'
   | 'spend-limit-reads-2026-09-26'
   | 'telemetry-destinations-2026-08-11'
-  | 'webhooks-2026-10-07';
+  | 'webhooks-2026-10-07'
+  | 'message-threads-2026-08-12'
+  | 'analytics-usage-cost-2026-08-24'
+  | 'experimental-claude-tag-2026-10-21';
 
 export interface BetaAPIError {
   message: string;
@@ -1169,6 +1179,7 @@ export declare namespace Beta {
     type BetaAdvisorToolResultError as BetaAdvisorToolResultError,
     type BetaAdvisorToolResultErrorParam as BetaAdvisorToolResultErrorParam,
     type BetaAllThinkingTurns as BetaAllThinkingTurns,
+    type BetaAssistantMessageParam as BetaAssistantMessageParam,
     type BetaBase64ImageSource as BetaBase64ImageSource,
     type BetaBase64PDFSource as BetaBase64PDFSource,
     type BetaBashCodeExecutionOutputBlock as BetaBashCodeExecutionOutputBlock,
@@ -1454,9 +1465,11 @@ export declare namespace Beta {
     type BetaMemoryTool20250818StrReplaceCommand as BetaMemoryTool20250818StrReplaceCommand,
     type BetaMemoryTool20250818ViewCommand as BetaMemoryTool20250818ViewCommand,
     type BetaMessage as BetaMessage,
+    type BetaMessageContentParam as BetaMessageContentParam,
     type BetaMessageDeltaUsage as BetaMessageDeltaUsage,
     type BetaMessageIterationUsage as BetaMessageIterationUsage,
     type BetaMessageParam as BetaMessageParam,
+    type BetaMessageThreadParam as BetaMessageThreadParam,
     type BetaMessageTokensCount as BetaMessageTokensCount,
     type BetaMetadata as BetaMetadata,
     type BetaOutputConfig as BetaOutputConfig,
@@ -1498,6 +1511,7 @@ export declare namespace Beta {
     type BetaStopReason as BetaStopReason,
     type BetaSummarizeCompaction as BetaSummarizeCompaction,
     type BetaSystemMessageOutputConfig as BetaSystemMessageOutputConfig,
+    type BetaSystemMessageParam as BetaSystemMessageParam,
     type BetaTextBlock as BetaTextBlock,
     type BetaTextBlockParam as BetaTextBlockParam,
     type BetaTextCitation as BetaTextCitation,
@@ -1526,6 +1540,8 @@ export declare namespace Beta {
     type BetaThinkingMismatchAllowedInputTransformation as BetaThinkingMismatchAllowedInputTransformation,
     type BetaThinkingPrefixMismatchBehavior as BetaThinkingPrefixMismatchBehavior,
     type BetaThinkingTurns as BetaThinkingTurns,
+    type BetaThreadContinueParams as BetaThreadContinueParams,
+    type BetaThreadCreateParams as BetaThreadCreateParams,
     type BetaTokenTaskBudget as BetaTokenTaskBudget,
     type BetaTool as BetaTool,
     type BetaToolBash20241022 as BetaToolBash20241022,
@@ -1561,6 +1577,7 @@ export declare namespace Beta {
     type BetaURLPDFSource as BetaURLPDFSource,
     type BetaUsage as BetaUsage,
     type BetaUserLocation as BetaUserLocation,
+    type BetaUserMessageParam as BetaUserMessageParam,
     type BetaWebFetchBlock as BetaWebFetchBlock,
     type BetaWebFetchBlockParam as BetaWebFetchBlockParam,
     type BetaWebFetchTool20250910 as BetaWebFetchTool20250910,

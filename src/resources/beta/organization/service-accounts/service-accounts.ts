@@ -44,13 +44,14 @@ export class ServiceAccounts extends APIResource {
    */
   create(params: ServiceAccountCreateParams, options?: RequestOptions): APIPromise<BetaServiceAccount> {
     const { betas, ...body } = params;
-    return this._client.post('/v1/organizations/service_accounts?beta=true', {
+    return this._client.post('/v1/organizations/service_accounts', {
       body,
       ...options,
       headers: buildHeaders([
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.service_accounts.create', options, {
         route: '/v1/organizations/service_accounts',
         createdIDAttribute: 'anthropic.organization.service_account.id',
@@ -80,12 +81,13 @@ export class ServiceAccounts extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaServiceAccount> {
     const { betas } = params ?? {};
-    return this._client.get(path`/v1/organizations/service_accounts/${serviceAccountID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/service_accounts/${serviceAccountID}`, {
       ...options,
       headers: buildHeaders([
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.service_accounts.retrieve', options, {
         route: '/v1/organizations/service_accounts/{service_account_id}',
         attributes: { 'anthropic.organization.service_account.id': serviceAccountID },
@@ -120,13 +122,14 @@ export class ServiceAccounts extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaServiceAccount> {
     const { betas, ...body } = params;
-    return this._client.post(path`/v1/organizations/service_accounts/${serviceAccountID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/service_accounts/${serviceAccountID}`, {
       body,
       ...options,
       headers: buildHeaders([
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.service_accounts.update', options, {
         route: '/v1/organizations/service_accounts/{service_account_id}',
         attributes: { 'anthropic.organization.service_account.id': serviceAccountID },
@@ -159,22 +162,19 @@ export class ServiceAccounts extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaServiceAccountsPageCursor, BetaServiceAccount> {
     const { betas, ...query } = params ?? {};
-    return this._client.getAPIList(
-      '/v1/organizations/service_accounts?beta=true',
-      PageCursor<BetaServiceAccount>,
-      {
-        query,
-        ...options,
-        headers: buildHeaders([
-          { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
-          options?.headers,
-        ]),
-        __span: startApiCallSpan(this._client, 'anthropic.organization.service_accounts.list', options, {
-          route: '/v1/organizations/service_accounts',
-          queryParams: ['include_archived', 'limit', 'page'],
-        }),
-      },
-    );
+    return this._client.getAPIList('/v1/organizations/service_accounts', PageCursor<BetaServiceAccount>, {
+      query,
+      ...options,
+      headers: buildHeaders([
+        { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
+        options?.headers,
+      ]),
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.service_accounts.list', options, {
+        route: '/v1/organizations/service_accounts',
+        queryParams: ['include_archived', 'limit', 'page'],
+      }),
+    });
   }
 
   /**
@@ -204,12 +204,13 @@ export class ServiceAccounts extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaServiceAccount> {
     const { betas } = params ?? {};
-    return this._client.post(path`/v1/organizations/service_accounts/${serviceAccountID}/archive?beta=true`, {
+    return this._client.post(path`/v1/organizations/service_accounts/${serviceAccountID}/archive`, {
       ...options,
       headers: buildHeaders([
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.service_accounts.archive', options, {
         route: '/v1/organizations/service_accounts/{service_account_id}/archive',
         attributes: { 'anthropic.organization.service_account.id': serviceAccountID },

@@ -66,6 +66,7 @@ describe('resource userProfiles', () => {
     await expect(
       client.userProfiles.list(
         {
+          enforcement_status: ['unrestricted'],
           limit: 0,
           order: 'asc',
           order_by: 'created_at',

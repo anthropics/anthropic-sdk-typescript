@@ -34,8 +34,9 @@ export class RBACRoles extends APIResource {
    * ```
    */
   retrieve(rbacRoleID: string, options?: RequestOptions): APIPromise<BetaRBACRole> {
-    return this._client.get(path`/v1/organizations/rbac_roles/${rbacRoleID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/rbac_roles/${rbacRoleID}`, {
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_roles.retrieve', options, {
         route: '/v1/organizations/rbac_roles/{rbac_role_id}',
         attributes: { 'anthropic.organization.rbac_role.id': rbacRoleID },
@@ -60,9 +61,10 @@ export class RBACRoles extends APIResource {
     query: RBACRoleListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaRBACRolesPageCursor, BetaRBACRole> {
-    return this._client.getAPIList('/v1/organizations/rbac_roles?beta=true', PageCursor<BetaRBACRole>, {
+    return this._client.getAPIList('/v1/organizations/rbac_roles', PageCursor<BetaRBACRole>, {
       query,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_roles.list', options, {
         route: '/v1/organizations/rbac_roles',
         queryParams: ['limit', 'page'],
@@ -90,11 +92,6 @@ export interface BetaRBACRole {
    * lasting reference to a role, store its `id`.
    */
   display_name: string;
-
-  /**
-   * @deprecated Use `display_name` instead; `name` always has the same value.
-   */
-  name: string;
 
   /**
    * Object type.

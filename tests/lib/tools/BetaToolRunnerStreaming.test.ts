@@ -17,6 +17,7 @@ import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableT
 import type { BetaRunnableToolset } from '@anthropic-ai/sdk/lib/tools/BetaRunnableToolset';
 import type {
   BetaMessage,
+  BetaMessageContentParam,
   BetaMessageParam,
   BetaStopReason,
   BetaToolResultBlockParam,
@@ -688,30 +689,35 @@ describe('deferToolCall()', () => {
     expect(timeline).toEqual(['lookup(b) STARTS', 'generateToolResponse()', 'lookup(a) STARTS']);
   });
 
-  it('keeps a held call from running when the caller takes over the reply', async () => {
-    // After pushMessages() the runner sends the caller's history, not this reply's results.
-    const { runner, timeline, requests } = setup([reply(call('a'), call('b')), done()]);
+  it.each<Options>([{}, { thread: false }])(
+    'keeps a held call from running when the caller takes over the reply (%o)',
+    async (mode) => {
+      // After pushMessages() the runner sends the caller's history, not this reply's results.
+      const { runner, timeline, requests } = setup([reply(call('a'), call('b')), done()], mode);
 
-    let replies = 0;
-    for await (const stream of runner) {
-      stream.on('contentBlock', (block) => {
-        if (block.type === 'tool_use') runner.deferToolCall(block);
-      });
-      await stream.finalMessage();
-      if (replies++ === 0) runner.pushMessages({ role: 'user', content: 'Never mind.' });
-    }
+      let replies = 0;
+      for await (const stream of runner) {
+        stream.on('contentBlock', (block) => {
+          if (block.type === 'tool_use') runner.deferToolCall(block);
+        });
+        await stream.finalMessage();
+        if (replies++ === 0) runner.pushMessages({ role: 'user', content: 'Never mind.' });
+      }
 
-    expect(timeline).toEqual(['request 2']);
-    expect(requests[1]!.body.messages).toEqual([
-      { role: 'user', content: 'Look these up.' },
-      { role: 'user', content: 'Never mind.' },
-    ]);
-  });
+      expect(timeline).toEqual(['request 2']);
+      expect(requests[1]!.body.messages).toEqual([
+        { role: 'user', content: 'Look these up.' },
+        { role: 'user', content: 'Never mind.' },
+      ]);
+    },
+  );
 
   it('lets a tool change the params from run() without the runner dropping the reply', async () => {
     // A call that starts while the caller is still handling the reply changes the params before the runner
     // has appended the reply, which the runner takes for the caller taking over the history.
+    // `thread: false` so the follow-up carries the full history rather than a thread delta
     const test = setup([reply(call('a')), done()], {
+      thread: false,
       lookup: async (key) => {
         test.runner.setMessagesParams((params) => ({ ...params, max_tokens: 2048 }));
         return `value of ${key}`;
@@ -1378,30 +1384,33 @@ describe('a toolset call', () => {
     ]);
   });
 
-  it("doesn't start once the caller has taken over the history, when it was waiting for the toolset's earlier call", async () => {
-    const { runner, timeline } = setup(
-      [reply(toolsetCall('a', 'navigate'), toolsetCall('b', 'screenshot')), done()],
-      { extraTools: (timeline) => [slowBrowserToolset(timeline)] },
-    );
+  it.each<Options>([{}, { thread: false }])(
+    "doesn't start once the caller has taken over the history, when it was waiting for the toolset's earlier call (%o)",
+    async (mode) => {
+      const { runner, timeline } = setup(
+        [reply(toolsetCall('a', 'navigate'), toolsetCall('b', 'screenshot')), done()],
+        { ...mode, extraTools: (timeline) => [slowBrowserToolset(timeline)] },
+      );
 
-    let first = true;
-    for await (const stream of runner) {
-      await stream.finalMessage();
-      if (first) {
-        runner.pushMessages({ role: 'user', content: 'Never mind.' });
-        timeline.push('caller takes over');
-        // navigate ends while the loop body is still running.
-        await new Promise((resolve) => setTimeout(resolve, 50));
+      let first = true;
+      for await (const stream of runner) {
+        await stream.finalMessage();
+        if (first) {
+          runner.pushMessages({ role: 'user', content: 'Never mind.' });
+          timeline.push('caller takes over');
+          // navigate ends while the loop body is still running.
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        first = false;
       }
-      first = false;
-    }
 
-    expect(firstReply(timeline)).toEqual([
-      'toolset navigate STARTS',
-      'caller takes over',
-      'toolset navigate ENDS',
-    ]);
-  });
+      expect(firstReply(timeline)).toEqual([
+        'toolset navigate STARTS',
+        'caller takes over',
+        'toolset navigate ENDS',
+      ]);
+    },
+  );
 
   it('runs in a turn the caller pushed, after a call of the streamed reply failed', async () => {
     const { runner, timeline } = setup([reply(toolsetCall('a', 'navigate')), done()], {
@@ -1635,7 +1644,7 @@ function slowLookup(key: string): Promise<string> {
 
 /** The reply as the caller appends it to the history. The cast is needed until the request and response types agree. */
 function assistantTurn(message: BetaMessage): BetaMessageParam {
-  return { role: message.role, content: message.content as BetaMessageParam['content'] };
+  return { role: message.role, content: message.content as BetaMessageContentParam };
 }
 
 function notFound(id: string): BetaToolResultBlockParam {
@@ -1649,7 +1658,7 @@ function firstReply(timeline: string[]): string[] {
 }
 
 function toolResults(message: BetaMessageParam | null | undefined): BetaToolResultBlockParam[] {
-  if (!message || typeof message.content === 'string') return [];
+  if (message?.role !== 'user' || typeof message.content === 'string') return [];
   return message.content.filter((block): block is BetaToolResultBlockParam => block.type === 'tool_result');
 }
 
@@ -1814,6 +1823,7 @@ type Options = {
   /** Tools that go into the request after `lookup`. */
   extraTools?: (timeline: string[]) => Array<BetaRunnableTool<any> | BetaRunnableToolset>;
   messages?: BetaMessageParam[];
+  thread?: false;
 };
 
 /**
@@ -1878,6 +1888,7 @@ function fixture(replies: CannedReply[], stream: boolean, options: Options) {
     max_tokens: 1024,
     messages: options.messages ?? [{ role: 'user' as const, content: 'Look these up.' }],
     tools: [lookup, ...(options.extraTools?.(timeline) ?? [])],
+    ...(options.thread === false && { thread: options.thread }),
   };
   const requestOptions = options.signal ? { signal: options.signal } : undefined;
   const labelOf = eventLabeler();

@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 const client = new Anthropic({
   apiKey: 'my-anthropic-api-key',
   baseURL: process.env['TEST_API_BASE_URL'] ?? 'http://127.0.0.1:4010',
+  defaultQuery: { beta: 'true' },
 });
 
 describe('resource messages', () => {
@@ -24,14 +25,7 @@ describe('resource messages', () => {
   test('create: required and optional params', async () => {
     const response = await client.beta.messages.create({
       max_tokens: 1024,
-      messages: [
-        {
-          content: 'Hello, world',
-          role: 'user',
-          clear_at: 'next_user_message',
-          output_config: { effort: 'low' },
-        },
-      ],
+      messages: [{ content: 'Hello, world', role: 'user' }],
       model: 'claude-opus-5-5',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       compaction: { type: 'summarize', instructions: 'instructions' },
@@ -104,12 +98,12 @@ describe('resource messages', () => {
           ],
         },
       ],
-      temperature: 1,
       thinking: {
         type: 'adaptive',
         block_binding: { prefix_mismatch_behavior: 'error' },
         display: 'summarized',
       },
+      thread: { type: 'create' },
       tool_choice: { type: 'auto', disable_parallel_tool_use: true },
       tools: [
         {
@@ -129,8 +123,6 @@ describe('resource messages', () => {
           type: 'custom',
         },
       ],
-      top_k: 5,
-      top_p: 0.7,
       betas: ['message-batches-2024-09-24'],
       user_profile_id: 'anthropic-user-profile-id',
       workspace_id: 'wrkspc_011CZkZaBF1tNoB5wlCeusgy',
@@ -153,14 +145,7 @@ describe('resource messages', () => {
 
   test('countTokens: required and optional params', async () => {
     const response = await client.beta.messages.countTokens({
-      messages: [
-        {
-          content: 'Hello, world',
-          role: 'user',
-          clear_at: 'next_user_message',
-          output_config: { effort: 'low' },
-        },
-      ],
+      messages: [{ content: 'Hello, world', role: 'user' }],
       model: 'claude-opus-5-5',
       cache_control: { type: 'ephemeral', ttl: '5m' },
       compaction: { type: 'summarize', instructions: 'instructions' },

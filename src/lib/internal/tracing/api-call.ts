@@ -21,9 +21,6 @@ import {
   ATTR_GEN_AI_REQUEST_MODEL,
   ATTR_GEN_AI_REQUEST_REASONING_LEVEL,
   ATTR_GEN_AI_REQUEST_STREAM,
-  ATTR_GEN_AI_REQUEST_TEMPERATURE,
-  ATTR_GEN_AI_REQUEST_TOP_K,
-  ATTR_GEN_AI_REQUEST_TOP_P,
   GEN_AI_OPERATION_NAME_VALUE_CHAT,
   GEN_AI_OUTPUT_TYPE_VALUE_JSON,
   RESPONSE_HEADER_ATTRIBUTES,
@@ -77,15 +74,6 @@ export function messagesCreateSpanSettings(
       attributes[ATTR_ANTHROPIC_BETA] = betas;
     }
     attributes[ATTR_GEN_AI_REQUEST_MAX_TOKENS] = body.max_tokens;
-    if (body.temperature != null) {
-      attributes[ATTR_GEN_AI_REQUEST_TEMPERATURE] = body.temperature;
-    }
-    if (body.top_p != null) {
-      attributes[ATTR_GEN_AI_REQUEST_TOP_P] = body.top_p;
-    }
-    if (body.top_k != null) {
-      attributes[ATTR_GEN_AI_REQUEST_TOP_K] = body.top_k;
-    }
     if (body.stream === true) {
       attributes[ATTR_GEN_AI_REQUEST_STREAM] = true;
     }

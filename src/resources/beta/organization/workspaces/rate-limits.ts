@@ -37,25 +37,23 @@ export class RateLimits extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaWorkspaceRateLimit> {
     const { workspace_id, ...body } = params;
-    return this._client.post(
-      path`/v1/organizations/workspaces/${workspace_id}/rate_limits/${rateLimitID}?beta=true`,
-      {
-        body,
-        ...options,
-        __span: startApiCallSpan(
-          this._client,
-          'anthropic.organization.workspaces.rate_limits.update',
-          options,
-          {
-            route: '/v1/organizations/workspaces/{workspace_id}/rate_limits/{rate_limit_id}',
-            attributes: {
-              'anthropic.organization.workspace.id': workspace_id,
-              'anthropic.organization.workspace.rate_limit.id': rateLimitID,
-            },
+    return this._client.post(path`/v1/organizations/workspaces/${workspace_id}/rate_limits/${rateLimitID}`, {
+      body,
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(
+        this._client,
+        'anthropic.organization.workspaces.rate_limits.update',
+        options,
+        {
+          route: '/v1/organizations/workspaces/{workspace_id}/rate_limits/{rate_limit_id}',
+          attributes: {
+            'anthropic.organization.workspace.id': workspace_id,
+            'anthropic.organization.workspace.rate_limit.id': rateLimitID,
           },
-        ),
-      },
-    );
+        },
+      ),
+    });
   }
 
   /**
@@ -86,11 +84,12 @@ export class RateLimits extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaWorkspaceRateLimitsPageCursor, BetaWorkspaceRateLimit> {
     return this._client.getAPIList(
-      path`/v1/organizations/workspaces/${workspaceID}/rate_limits?beta=true`,
+      path`/v1/organizations/workspaces/${workspaceID}/rate_limits`,
       PageCursor<BetaWorkspaceRateLimit>,
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.workspaces.rate_limits.list',
@@ -110,8 +109,7 @@ export type BetaWorkspaceRateLimitsPageCursor = PageCursor<BetaWorkspaceRateLimi
 
 export interface BetaWorkspaceRateLimit {
   /**
-   * The rate-limit group this entry's limits apply to. Its `type` equals
-   * `group_type`.
+   * The rate-limit group this entry's limits apply to.
    */
   group:
     | RateLimitsAPI.BetaOrganizationRateLimitModelGroup
@@ -120,12 +118,6 @@ export interface BetaWorkspaceRateLimit {
     | RateLimitsAPI.BetaOrganizationRateLimitFilesGroup
     | RateLimitsAPI.BetaOrganizationRateLimitSkillsGroup
     | RateLimitsAPI.BetaOrganizationRateLimitWebSearchGroup;
-
-  /**
-   * @deprecated Use `group.type` instead. `group_type` is still returned and always
-   * equals `group.type`.
-   */
-  group_type: 'batch' | 'files' | 'model_group' | 'skills' | 'token_count' | 'web_search';
 
   /**
    * The workspace's limiter values for this group. By default only the limiter types
@@ -137,7 +129,8 @@ export interface BetaWorkspaceRateLimit {
 
   /**
    * Model names this entry's limits apply to, including aliases. `null` when
-   * `group_type` is not `"model_group"`.
+   * `group.type` is not `"model_group"`. The list covers the models this workspace
+   * has access to, so it can differ between workspaces.
    */
   models: Array<string> | null;
 

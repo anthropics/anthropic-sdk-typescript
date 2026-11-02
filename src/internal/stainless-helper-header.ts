@@ -36,6 +36,7 @@ export type StainlessHelperHeaderValue =
   | 'mcpResourceToContent'
   | 'mcpResourceToFile'
   | 'mcpTool'
+  | 'message-thread'
   | 'session-tool-runner';
 
 /**

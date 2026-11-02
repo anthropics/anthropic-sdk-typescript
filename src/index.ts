@@ -27,7 +27,7 @@ export {
   UnprocessableEntityError,
 } from './core/error';
 
-export { type APIRequest, HUMAN_PROMPT, AI_PROMPT } from './client';
+export { type APIRequest } from './client';
 export { type Middleware, type MiddlewareContext, type MiddlewareNext } from './core/middleware';
 export {
   betaRefusalFallbackMiddleware,

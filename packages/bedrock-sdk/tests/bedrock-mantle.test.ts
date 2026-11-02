@@ -1,5 +1,6 @@
 import type { MockedFunction } from 'vitest';
 import { VERSION } from '@anthropic-ai/sdk/version';
+import { copyClientForHelper } from '@anthropic-ai/sdk/lib/helper-client';
 import { AnthropicBedrockMantle } from '../src';
 import { getAuthHeaders } from '../src/core/aws-auth';
 import * as fs from 'fs';
@@ -191,6 +192,114 @@ describe('AnthropicBedrockMantle', () => {
       expect(headers.get('x-api-key')).toBeNull();
     });
 
+    describe.each<[string, (extra: object) => AnthropicBedrockMantle]>([
+      ['the constructor', (extra) => new AnthropicBedrockMantle({ awsRegion: 'us-east-1', ...extra })],
+      ['withOptions', (extra) => new AnthropicBedrockMantle({ awsRegion: 'us-east-1' }).withOptions(extra)],
+    ])('%s', (_where, build) => {
+      test.each<[string, object]>([
+        ['authToken', { authToken: 'first-party-token' }],
+        ['credentials', { credentials: async () => ({ token: 'first-party-token', expiresAt: null }) }],
+        ['config', { config: { authentication: { type: 'user_oauth' } } }],
+        ['profile', { profile: 'my-profile' }],
+      ])('rejects `%s`', (name, extra) => {
+        process.env['AWS_BEARER_TOKEN_BEDROCK'] = 'env-bearer-token';
+        expect(() => build(extra)).toThrow(
+          `The \`${name}\` option is not supported by AnthropicBedrockMantle; ` +
+            'authentication uses a Bedrock API key (`apiKey`) or AWS credentials (SigV4).',
+        );
+      });
+    });
+
+    test('a copy that clears the apiKey signs instead of reading AWS_BEARER_TOKEN_BEDROCK', async () => {
+      process.env['AWS_BEARER_TOKEN_BEDROCK'] = 'env-bearer-token';
+      process.env['AWS_REGION'] = 'us-east-1';
+      const client = new AnthropicBedrockMantle({ apiKey: 'test-bearer-token' });
+
+      await makeRequest(client.withOptions({ apiKey: null }));
+
+      const [, requestInit] = mockFetch.mock.calls[0]!;
+      const headers = new Headers(requestInit.headers as HeadersInit);
+      expect(headers.get('authorization')).toBe('AWS4-HMAC-SHA256 Credential=mock');
+    });
+
+    test('a copy signs with the region, AWS credentials and resolver of its parent', async () => {
+      process.env['AWS_REGION'] = 'us-east-1';
+      const providerChainResolver = vi.fn();
+      const client = new AnthropicBedrockMantle({
+        awsRegion: 'eu-west-1',
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsSessionToken: 'my-session-token',
+        awsProfile: 'my-profile',
+        providerChainResolver,
+      });
+
+      await makeRequest(client.withOptions({ timeout: 1234 }));
+
+      expect(mockGetAuthHeaders).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          regionName: 'eu-west-1',
+          awsAccessKey: 'my-access-key',
+          awsSecretAccessKey: 'my-secret-key',
+          awsSessionToken: 'my-session-token',
+          awsProfile: 'my-profile',
+          providerChainResolver,
+        }),
+      );
+    });
+
+    const otherResolver = vi.fn();
+
+    test.each<[string, object]>([
+      ['keys', { awsAccessKey: 'other-access-key', awsSecretAccessKey: 'other-secret-key' }],
+      ['a profile', { awsProfile: 'other-profile' }],
+      ['a resolver', { providerChainResolver: otherResolver }],
+    ])('a copy given %s uses none of the AWS credentials of its parent', async (_what, extra) => {
+      const client = new AnthropicBedrockMantle({
+        awsRegion: 'eu-west-1',
+        awsAccessKey: 'my-access-key',
+        awsSecretAccessKey: 'my-secret-key',
+        awsSessionToken: 'my-session-token',
+        awsProfile: 'my-profile',
+        providerChainResolver: vi.fn(),
+      });
+
+      await makeRequest(client.withOptions(extra));
+
+      expect(mockGetAuthHeaders).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          regionName: 'eu-west-1',
+          awsAccessKey: null,
+          awsSecretAccessKey: null,
+          awsSessionToken: null,
+          awsProfile: null,
+          providerChainResolver: null,
+          ...extra,
+        }),
+      );
+    });
+
+    test('a copy of a client that skips auth skips it too', async () => {
+      const client = new AnthropicBedrockMantle({ awsRegion: 'us-east-1', skipAuth: true });
+
+      await makeRequest(client.withOptions({ timeout: 1234 }));
+
+      expect(getRequestHeaders().get('authorization')).toBeNull();
+      expect(mockGetAuthHeaders).not.toHaveBeenCalled();
+    });
+
+    test('a helper sub-client is refused rather than sent out with the bearer token', () => {
+      const client = new AnthropicBedrockMantle({ apiKey: 'test-bearer-token', awsRegion: 'us-east-1' });
+
+      expect(() =>
+        // @ts-expect-error the helpers take an `Anthropic` client
+        copyClientForHelper(client, { authToken: 'environment-key', helper: 'environments-work-poller' }),
+      ).toThrow('The `authToken` option is not supported by AnthropicBedrockMantle');
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
     test('does not send Authorization: Bearer header when using SigV4', async () => {
       const client = new AnthropicBedrockMantle({
         awsAccessKey: 'my-access-key',
@@ -349,15 +458,6 @@ describe('AnthropicBedrockMantle', () => {
   });
 
   describe('endpoint restrictions', () => {
-    test('completions resource is not available', () => {
-      const client = new AnthropicBedrockMantle({
-        apiKey: 'test-key',
-        baseURL: 'https://example.com',
-      });
-
-      expect((client as any).completions).toBeUndefined();
-    });
-
     test('models resource is not available', () => {
       const client = new AnthropicBedrockMantle({
         apiKey: 'test-key',

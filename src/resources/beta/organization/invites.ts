@@ -25,9 +25,10 @@ export class Invites extends APIResource {
    * ```
    */
   create(body: InviteCreateParams, options?: RequestOptions): APIPromise<BetaOrganizationInvite> {
-    return this._client.post('/v1/organizations/invites?beta=true', {
+    return this._client.post('/v1/organizations/invites', {
       body,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.invites.create', options, {
         route: '/v1/organizations/invites',
         createdIDAttribute: 'anthropic.organization.invite.id',
@@ -47,8 +48,9 @@ export class Invites extends APIResource {
    * ```
    */
   retrieve(inviteID: string, options?: RequestOptions): APIPromise<BetaOrganizationInvite> {
-    return this._client.get(path`/v1/organizations/invites/${inviteID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/invites/${inviteID}`, {
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.invites.retrieve', options, {
         route: '/v1/organizations/invites/{invite_id}',
         attributes: { 'anthropic.organization.invite.id': inviteID },
@@ -71,9 +73,10 @@ export class Invites extends APIResource {
     query: InviteListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaOrganizationInvitesPage, BetaOrganizationInvite> {
-    return this._client.getAPIList('/v1/organizations/invites?beta=true', Page<BetaOrganizationInvite>, {
+    return this._client.getAPIList('/v1/organizations/invites', Page<BetaOrganizationInvite>, {
       query,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.invites.list', options, {
         route: '/v1/organizations/invites',
         queryParams: ['after_id', 'before_id', 'email', 'limit', 'roles', 'statuses'],
@@ -93,8 +96,9 @@ export class Invites extends APIResource {
    * ```
    */
   delete(inviteID: string, options?: RequestOptions): APIPromise<InviteDeleteResponse> {
-    return this._client.delete(path`/v1/organizations/invites/${inviteID}?beta=true`, {
+    return this._client.delete(path`/v1/organizations/invites/${inviteID}`, {
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.invites.delete', options, {
         route: '/v1/organizations/invites/{invite_id}',
         attributes: { 'anthropic.organization.invite.id': inviteID },

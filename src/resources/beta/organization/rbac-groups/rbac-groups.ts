@@ -33,9 +33,10 @@ export class RBACGroups extends APIResource {
    * ```
    */
   create(body: RBACGroupCreateParams, options?: RequestOptions): APIPromise<BetaRBACGroup> {
-    return this._client.post('/v1/organizations/rbac_groups?beta=true', {
+    return this._client.post('/v1/organizations/rbac_groups', {
       body,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.create', options, {
         route: '/v1/organizations/rbac_groups',
         createdIDAttribute: 'anthropic.organization.rbac_group.id',
@@ -57,8 +58,9 @@ export class RBACGroups extends APIResource {
    * ```
    */
   retrieve(rbacGroupID: string, options?: RequestOptions): APIPromise<BetaRBACGroup> {
-    return this._client.get(path`/v1/organizations/rbac_groups/${rbacGroupID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/rbac_groups/${rbacGroupID}`, {
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.retrieve', options, {
         route: '/v1/organizations/rbac_groups/{rbac_group_id}',
         attributes: { 'anthropic.organization.rbac_group.id': rbacGroupID },
@@ -86,9 +88,10 @@ export class RBACGroups extends APIResource {
     body: RBACGroupUpdateParams,
     options?: RequestOptions,
   ): APIPromise<BetaRBACGroup> {
-    return this._client.post(path`/v1/organizations/rbac_groups/${rbacGroupID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/rbac_groups/${rbacGroupID}`, {
       body,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.update', options, {
         route: '/v1/organizations/rbac_groups/{rbac_group_id}',
         attributes: { 'anthropic.organization.rbac_group.id': rbacGroupID },
@@ -113,9 +116,10 @@ export class RBACGroups extends APIResource {
     query: RBACGroupListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaRBACGroupsPageCursor, BetaRBACGroup> {
-    return this._client.getAPIList('/v1/organizations/rbac_groups?beta=true', PageCursor<BetaRBACGroup>, {
+    return this._client.getAPIList('/v1/organizations/rbac_groups', PageCursor<BetaRBACGroup>, {
       query,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.list', options, {
         route: '/v1/organizations/rbac_groups',
         queryParams: ['limit', 'page'],
@@ -139,8 +143,9 @@ export class RBACGroups extends APIResource {
    * ```
    */
   delete(rbacGroupID: string, options?: RequestOptions): APIPromise<RBACGroupDeleteResponse> {
-    return this._client.delete(path`/v1/organizations/rbac_groups/${rbacGroupID}?beta=true`, {
+    return this._client.delete(path`/v1/organizations/rbac_groups/${rbacGroupID}`, {
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.delete', options, {
         route: '/v1/organizations/rbac_groups/{rbac_group_id}',
         attributes: { 'anthropic.organization.rbac_group.id': rbacGroupID },

@@ -80,7 +80,6 @@ describe('resource batches', () => {
                 ],
               },
             ],
-            temperature: 1,
             thinking: { type: 'adaptive', display: 'summarized' },
             tool_choice: { type: 'auto', disable_parallel_tool_use: true },
             tools: [
@@ -101,8 +100,6 @@ describe('resource batches', () => {
                 type: 'custom',
               },
             ],
-            top_k: 5,
-            top_p: 0.7,
           },
         },
       ],

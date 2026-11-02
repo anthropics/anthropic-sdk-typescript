@@ -30,11 +30,12 @@ export class Connectors extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaAnalyticsConnectorActivitiesPageCursor, AnalyticsAPI.BetaAnalyticsConnectorActivity> {
     return this._client.getAPIList(
-      '/v1/organizations/analytics/connectors?beta=true',
+      '/v1/organizations/analytics/connectors',
       PageCursor<AnalyticsAPI.BetaAnalyticsConnectorActivity>,
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.analytics.connectors.list', options, {
           route: '/v1/organizations/analytics/connectors',
           queryParams: [

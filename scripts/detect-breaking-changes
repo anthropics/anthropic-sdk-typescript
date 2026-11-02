@@ -7,7 +7,6 @@ cd "$(dirname "$0")/.."
 echo "==> Detecting breaking changes"
 
 TEST_PATHS=(
-	tests/api-resources/completions.test.ts
 	tests/api-resources/messages/messages.test.ts
 	tests/api-resources/messages/batches.test.ts
 	tests/api-resources/models.test.ts
@@ -89,6 +88,8 @@ TEST_PATHS=(
 	tests/api-resources/beta/organization/analytics/plugins.test.ts
 	tests/api-resources/beta/organization/analytics/skills.test.ts
 	tests/api-resources/beta/organization/analytics/artifacts.test.ts
+	tests/api-resources/beta/organization/analytics/usage.test.ts
+	tests/api-resources/beta/organization/analytics/cost.test.ts
 	tests/api-resources/beta/organization/analytics/usage-report.test.ts
 	tests/api-resources/beta/organization/analytics/user-usage-report.test.ts
 	tests/api-resources/beta/organization/analytics/cost-report.test.ts
@@ -108,6 +109,11 @@ TEST_PATHS=(
 	tests/api-resources/beta/organization/telemetry-destinations/telemetry-destinations.test.ts
 	tests/api-resources/beta/organization/telemetry-destinations/workspaces.test.ts
 	tests/api-resources/beta/organization/webhooks.test.ts
+	tests/api-resources/beta/organization/claude-tag/claude-tag.test.ts
+	tests/api-resources/beta/organization/claude-tag/slack-channels.test.ts
+	tests/api-resources/beta/organization/claude-tag/slack-workspaces.test.ts
+	tests/api-resources/beta/organization/claude-tag/bundles/bundles.test.ts
+	tests/api-resources/beta/organization/claude-tag/bundles/targets.test.ts
 	tests/index.test.ts
 )
 

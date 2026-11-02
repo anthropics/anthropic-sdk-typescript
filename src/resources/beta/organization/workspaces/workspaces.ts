@@ -58,13 +58,14 @@ export class Workspaces extends APIResource {
    */
   create(params: WorkspaceCreateParams, options?: RequestOptions): APIPromise<BetaWorkspace> {
     const { betas, ...body } = params;
-    return this._client.post('/v1/organizations/workspaces?beta=true', {
+    return this._client.post('/v1/organizations/workspaces', {
       body,
       ...options,
       headers: buildHeaders([
         { ...(betas?.toString() != null ? { 'anthropic-beta': betas?.toString() } : undefined) },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.create', options, {
         route: '/v1/organizations/workspaces',
         createdIDAttribute: 'anthropic.organization.workspace.id',
@@ -84,8 +85,9 @@ export class Workspaces extends APIResource {
    * ```
    */
   retrieve(workspaceID: string, options?: RequestOptions): APIPromise<BetaWorkspace> {
-    return this._client.get(path`/v1/organizations/workspaces/${workspaceID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/workspaces/${workspaceID}`, {
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.retrieve', options, {
         route: '/v1/organizations/workspaces/{workspace_id}',
         attributes: { 'anthropic.organization.workspace.id': workspaceID },
@@ -109,9 +111,10 @@ export class Workspaces extends APIResource {
     body: WorkspaceUpdateParams,
     options?: RequestOptions,
   ): APIPromise<BetaWorkspace> {
-    return this._client.post(path`/v1/organizations/workspaces/${workspaceID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/workspaces/${workspaceID}`, {
       body,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.update', options, {
         route: '/v1/organizations/workspaces/{workspace_id}',
         attributes: { 'anthropic.organization.workspace.id': workspaceID },
@@ -134,9 +137,10 @@ export class Workspaces extends APIResource {
     query: WorkspaceListParams | null | undefined = {},
     options?: RequestOptions,
   ): PagePromise<BetaWorkspacesPage, BetaWorkspace> {
-    return this._client.getAPIList('/v1/organizations/workspaces?beta=true', Page<BetaWorkspace>, {
+    return this._client.getAPIList('/v1/organizations/workspaces', Page<BetaWorkspace>, {
       query,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.list', options, {
         route: '/v1/organizations/workspaces',
         queryParams: ['after_id', 'before_id', 'include_archived', 'include_default', 'limit'],
@@ -156,8 +160,9 @@ export class Workspaces extends APIResource {
    * ```
    */
   archive(workspaceID: string, options?: RequestOptions): APIPromise<BetaWorkspace> {
-    return this._client.post(path`/v1/organizations/workspaces/${workspaceID}/archive?beta=true`, {
+    return this._client.post(path`/v1/organizations/workspaces/${workspaceID}/archive`, {
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.archive', options, {
         route: '/v1/organizations/workspaces/{workspace_id}/archive',
         attributes: { 'anthropic.organization.workspace.id': workspaceID },

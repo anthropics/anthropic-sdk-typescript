@@ -11,7 +11,12 @@ import { getAuthHeaders } from './core/aws-auth';
 import type { Middleware } from './core/middleware';
 import { FinalRequestOptions } from './internal/request-options';
 import { loggerFor } from './internal/utils/log';
-import { isObj, safeJSON } from './internal/utils/values';
+import {
+  isObj,
+  rejectUnsupportedCredentials,
+  safeJSON,
+  type PlatformCredentials,
+} from './internal/utils/values';
 
 const DEFAULT_SERVICE_NAME = 'bedrock-mantle';
 const USER_PROFILE_ID_HEADER = 'anthropic-user-profile-id';
@@ -21,6 +26,12 @@ const USER_PROFILE_ID_BODY_ENDPOINTS = new Set<string>([
   '/v1/messages/count_tokens',
   '/v1/messages/count_tokens?beta=true',
 ]);
+
+const CREDENTIALS: PlatformCredentials = {
+  accepts: ['apiKey'],
+  unsupportedOptionMessage: (option) =>
+    `The \`${option}\` option is not supported by AnthropicBedrockMantle; authentication uses a Bedrock API key (\`apiKey\`) or AWS credentials (SigV4).`,
+};
 
 export interface BedrockMantleClientOptions extends ClientOptions {
   /**
@@ -36,9 +47,10 @@ export interface BedrockMantleClientOptions extends ClientOptions {
    * Takes precedence over AWS credential options. If neither `apiKey` nor
    * AWS credentials are provided, falls back to the `AWS_BEARER_TOKEN_BEDROCK`
    * environment variable, then to `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`
-   * from the environment, then to the default AWS credential chain.
+   * from the environment, then to the default AWS credential chain. `null`
+   * skips `AWS_BEARER_TOKEN_BEDROCK`.
    */
-  apiKey?: string | undefined;
+  apiKey?: string | null | undefined;
 
   /**
    * AWS access key ID for SigV4 authentication.
@@ -120,7 +132,8 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
    * Auth is resolved by precedence: `apiKey` constructor arg > explicit AWS
    * credentials > `awsProfile` > `AWS_BEARER_TOKEN_BEDROCK` env var >
    * `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` env vars > default AWS
-   * credential chain.
+   * credential chain. The `authToken`, `credentials`, `config`, and `profile`
+   * options throw an `AnthropicError`.
    *
    * @param {string | undefined} [opts.apiKey] - API key for Bearer token authentication.
    * @param {string | null | undefined} [opts.awsAccessKey] - AWS access key ID for SigV4 authentication.
@@ -151,6 +164,8 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
     skipAuth = false,
     ...opts
   }: BedrockMantleClientOptions = {}) {
+    rejectUnsupportedCredentials(opts, CREDENTIALS);
+
     // Region resolution: arg > AWS_REGION env > AWS_DEFAULT_REGION env
     const resolvedRegion = awsRegion ?? readEnv('AWS_REGION') ?? readEnv('AWS_DEFAULT_REGION');
 
@@ -169,7 +184,8 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
     // 1. apiKey constructor arg
     // 2. awsAccessKey/awsSecretAccessKey constructor args (SigV4)
     // 3. awsProfile constructor arg (SigV4)
-    // 4. AWS_BEARER_TOKEN_BEDROCK env var
+    // 4. AWS_BEARER_TOKEN_BEDROCK env var, unless `apiKey` is `null`: that clears
+    //    the key, as in `withOptions({ apiKey: null })`
     // 5. Default AWS credential chain (SigV4)
     const hasExplicitApiKey = apiKey != null;
     const hasPartialAwsCreds = (awsAccessKey != null) !== (awsSecretAccessKey != null);
@@ -184,7 +200,7 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
     let resolvedApiKey: string | undefined;
     if (hasExplicitApiKey) {
       resolvedApiKey = apiKey;
-    } else if (!hasExplicitAwsCreds && !hasAwsProfile) {
+    } else if (apiKey === undefined && !hasExplicitAwsCreds && !hasAwsProfile) {
       resolvedApiKey = readEnv('AWS_BEARER_TOKEN_BEDROCK') ?? undefined;
     }
 
@@ -203,6 +219,35 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
     this.providerChainResolver = providerChainResolver;
     this.skipAuth = skipAuth;
     this._useSigV4 = resolvedApiKey == null;
+  }
+
+  /**
+   * Create a new client instance re-using the same options given to the
+   * current client, including the AWS ones, with optional overriding.
+   */
+  override withOptions(options: Partial<BedrockMantleClientOptions>): this {
+    // AWS credentials are replaced as a whole, so that new keys are never
+    // signed with the old session token.
+    const replacesAWSCredentials =
+      options.awsAccessKey != null ||
+      options.awsSecretAccessKey != null ||
+      options.awsSessionToken != null ||
+      options.awsProfile != null ||
+      options.providerChainResolver != null;
+    return super.withOptions({
+      awsRegion: this.awsRegion,
+      skipAuth: this.skipAuth,
+      ...(replacesAWSCredentials ?
+        {}
+      : {
+          awsAccessKey: this.awsAccessKey,
+          awsSecretAccessKey: this.awsSecretAccessKey,
+          awsSessionToken: this.awsSessionToken,
+          awsProfile: this.awsProfile ?? undefined,
+          providerChainResolver: this.providerChainResolver,
+        }),
+      ...options,
+    });
   }
 
   protected override async authHeaders(opts: FinalRequestOptions): Promise<NullableHeaders | undefined> {
@@ -295,7 +340,7 @@ export class AnthropicBedrockMantle extends BaseAnthropic {
 }
 
 /**
- * Bedrock Mantle does not support completions, models, or non-messages beta resources.
+ * Bedrock Mantle does not support models or non-messages beta resources.
  */
 type MantleBetaResource = Pick<Resources.Beta, 'messages'>;
 

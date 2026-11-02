@@ -1,0 +1,46 @@
+export {
+  Bundles,
+  type BetaClaudeTagBundle,
+  type BundleRetrieveParams,
+  type BundleListParams,
+  type BetaClaudeTagBundlesPageCursor,
+} from './bundles/index';
+export {
+  ClaudeTag,
+  type BetaClaudeTagDefaultSettingSource,
+  type BetaClaudeTagGuestPolicy,
+  type BetaClaudeTagGuestPolicyAllow,
+  type BetaClaudeTagGuestPolicyChannelOnly,
+  type BetaClaudeTagGuestPolicyRestrict,
+  type BetaClaudeTagSettingSource,
+  type BetaClaudeTagSettingSources,
+  type BetaClaudeTagSettings,
+  type BetaClaudeTagSettingsCreate,
+  type BetaClaudeTagSettingsUpdate,
+  type BetaClaudeTagSlackChannelIdentifiers,
+  type BetaClaudeTagSlackChannelSettingSource,
+  type BetaClaudeTagSlackDefaultSettingSource,
+  type BetaClaudeTagSlackGridChannelSettingSource,
+  type BetaClaudeTagSlackParentChannelSettingSource,
+  type BetaClaudeTagSlackWorkspaceIdentifiers,
+  type BetaClaudeTagSlackWorkspaceSettingSource,
+} from './claude-tag';
+export {
+  SlackChannels,
+  type BetaClaudeTagDeletedSlackChannel,
+  type BetaClaudeTagSlackChannel,
+  type SlackChannelCreateParams,
+  type SlackChannelRetrieveParams,
+  type SlackChannelUpdateParams,
+  type SlackChannelListParams,
+  type SlackChannelDeleteParams,
+  type BetaClaudeTagSlackChannelsPageCursor,
+} from './slack-channels';
+export {
+  SlackWorkspaces,
+  type BetaClaudeTagSlackWorkspace,
+  type SlackWorkspaceRetrieveParams,
+  type SlackWorkspaceUpdateParams,
+  type SlackWorkspaceListParams,
+  type BetaClaudeTagSlackWorkspacesPageCursor,
+} from './slack-workspaces';

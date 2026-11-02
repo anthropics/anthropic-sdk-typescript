@@ -46,13 +46,14 @@ export class TelemetryDestinations extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaTelemetryDestination> {
     const { betas, ...body } = params;
-    return this._client.post('/v1/organizations/telemetry_destinations?beta=true', {
+    return this._client.post('/v1/organizations/telemetry_destinations', {
       body,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'telemetry-destinations-2026-08-11'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(
         this._client,
         'anthropic.organization.telemetry_destinations.create',
@@ -86,12 +87,13 @@ export class TelemetryDestinations extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaTelemetryDestination> {
     const { betas } = params ?? {};
-    return this._client.get(path`/v1/organizations/telemetry_destinations/${destinationID}?beta=true`, {
+    return this._client.get(path`/v1/organizations/telemetry_destinations/${destinationID}`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'telemetry-destinations-2026-08-11'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(
         this._client,
         'anthropic.organization.telemetry_destinations.retrieve',
@@ -135,13 +137,14 @@ export class TelemetryDestinations extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaTelemetryDestination> {
     const { betas, ...body } = params;
-    return this._client.post(path`/v1/organizations/telemetry_destinations/${destinationID}?beta=true`, {
+    return this._client.post(path`/v1/organizations/telemetry_destinations/${destinationID}`, {
       body,
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'telemetry-destinations-2026-08-11'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(
         this._client,
         'anthropic.organization.telemetry_destinations.update',
@@ -176,7 +179,7 @@ export class TelemetryDestinations extends APIResource {
   ): PagePromise<BetaTelemetryDestinationsPageCursor, BetaTelemetryDestination> {
     const { betas, ...query } = params ?? {};
     return this._client.getAPIList(
-      '/v1/organizations/telemetry_destinations?beta=true',
+      '/v1/organizations/telemetry_destinations',
       PageCursor<BetaTelemetryDestination>,
       {
         query,
@@ -185,6 +188,7 @@ export class TelemetryDestinations extends APIResource {
           { 'anthropic-beta': [...(betas ?? []), 'telemetry-destinations-2026-08-11'].toString() },
           options?.headers,
         ]),
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(
           this._client,
           'anthropic.organization.telemetry_destinations.list',
@@ -223,12 +227,13 @@ export class TelemetryDestinations extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaDeletedTelemetryDestination> {
     const { betas } = params ?? {};
-    return this._client.delete(path`/v1/organizations/telemetry_destinations/${destinationID}?beta=true`, {
+    return this._client.delete(path`/v1/organizations/telemetry_destinations/${destinationID}`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'telemetry-destinations-2026-08-11'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(
         this._client,
         'anthropic.organization.telemetry_destinations.delete',
@@ -265,12 +270,13 @@ export class TelemetryDestinations extends APIResource {
     options?: RequestOptions,
   ): APIPromise<BetaTelemetryDestinationTestResponse> {
     const { betas } = params ?? {};
-    return this._client.post(path`/v1/organizations/telemetry_destinations/${destinationID}/test?beta=true`, {
+    return this._client.post(path`/v1/organizations/telemetry_destinations/${destinationID}/test`, {
       ...options,
       headers: buildHeaders([
         { 'anthropic-beta': [...(betas ?? []), 'telemetry-destinations-2026-08-11'].toString() },
         options?.headers,
       ]),
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.telemetry_destinations.test', options, {
         route: '/v1/organizations/telemetry_destinations/{destination_id}/test',
         attributes: { 'anthropic.organization.telemetry_destination.id': destinationID },

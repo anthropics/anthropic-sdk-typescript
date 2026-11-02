@@ -27,11 +27,12 @@ export class Members extends APIResource {
     options?: RequestOptions,
   ): PagePromise<BetaRBACGroupMembersPageCursor, BetaRBACGroupMember> {
     return this._client.getAPIList(
-      path`/v1/organizations/rbac_groups/${rbacGroupID}/members?beta=true`,
+      path`/v1/organizations/rbac_groups/${rbacGroupID}/members`,
       PageCursor<BetaRBACGroupMember>,
       {
         query,
         ...options,
+        __qualifiers: { beta: 'true' },
         __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.members.list', options, {
           route: '/v1/organizations/rbac_groups/{rbac_group_id}/members',
           queryParams: ['limit', 'page'],
@@ -58,9 +59,10 @@ export class Members extends APIResource {
    * ```
    */
   add(rbacGroupID: string, body: MemberAddParams, options?: RequestOptions): APIPromise<BetaRBACGroupMember> {
-    return this._client.post(path`/v1/organizations/rbac_groups/${rbacGroupID}/members?beta=true`, {
+    return this._client.post(path`/v1/organizations/rbac_groups/${rbacGroupID}/members`, {
       body,
       ...options,
+      __qualifiers: { beta: 'true' },
       __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.members.add', options, {
         route: '/v1/organizations/rbac_groups/{rbac_group_id}/members',
         attributes: { 'anthropic.organization.rbac_group.id': rbacGroupID },
@@ -92,19 +94,17 @@ export class Members extends APIResource {
     options?: RequestOptions,
   ): APIPromise<MemberRemoveResponse> {
     const { rbac_group_id } = params;
-    return this._client.delete(
-      path`/v1/organizations/rbac_groups/${rbac_group_id}/members/${userID}?beta=true`,
-      {
-        ...options,
-        __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.members.remove', options, {
-          route: '/v1/organizations/rbac_groups/{rbac_group_id}/members/{user_id}',
-          attributes: {
-            'anthropic.organization.rbac_group.id': rbac_group_id,
-            'anthropic.organization.rbac_group.member.id': userID,
-          },
-        }),
-      },
-    );
+    return this._client.delete(path`/v1/organizations/rbac_groups/${rbac_group_id}/members/${userID}`, {
+      ...options,
+      __qualifiers: { beta: 'true' },
+      __span: startApiCallSpan(this._client, 'anthropic.organization.rbac_groups.members.remove', options, {
+        route: '/v1/organizations/rbac_groups/{rbac_group_id}/members/{user_id}',
+        attributes: {
+          'anthropic.organization.rbac_group.id': rbac_group_id,
+          'anthropic.organization.rbac_group.member.id': userID,
+        },
+      }),
+    });
   }
 }
 

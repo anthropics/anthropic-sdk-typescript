@@ -1,6 +1,4 @@
 import type { Anthropic } from '../../client';
-import { STAINLESS_HELPER_METHOD_HEADER } from '../../internal/stainless-helper-header';
-import { type RequestOptions } from '../../internal/request-options';
 import type {
   BetaMessage,
   BetaRawMessageStreamEvent,
@@ -40,27 +38,6 @@ export class BetaToolRunnerStream extends BetaMessageStream {
   /** The `tool_use` blocks that have finished streaming, in the model's order */
   get toolCalls(): readonly BetaToolUseBlock[] {
     return this.#toolCalls;
-  }
-
-  /** Sends the request as `client.beta.messages.stream()` does. */
-  static start(
-    client: Anthropic,
-    params: MessageCreateParamsBase,
-    options: RequestOptions | undefined,
-    onToolCall: (toolUse: BetaToolUseBlock) => void,
-  ): BetaToolRunnerStream {
-    const stream = new BetaToolRunnerStream({ ...params, stream: true }, onToolCall, client);
-    for (const message of params.messages) {
-      stream._addMessageParam(message);
-    }
-    stream._run(() =>
-      stream._createMessage(
-        client.beta.messages,
-        { ...params, stream: true },
-        { ...options, headers: { ...options?.headers, [STAINLESS_HELPER_METHOD_HEADER]: 'stream' } },
-      ),
-    );
-    return stream;
   }
 
   protected override _deliverEvent(event: BetaRawMessageStreamEvent, snapshot: BetaMessage | undefined) {
