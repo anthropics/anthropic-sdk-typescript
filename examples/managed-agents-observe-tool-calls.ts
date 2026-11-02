@@ -204,7 +204,7 @@ async function observeAsSelfHostedWorker(): Promise<void> {
  * {@link observeAsSelfHostedWorker}. Beats on a fixed 30s interval; the first
  * beat uses the `NO_HEARTBEAT` sentinel, each later one echoes the server's
  * previous `last_heartbeat`. Returns (letting the shared controller abort the
- * `toolRunner` loop) as soon as the control plane reports the work is
+ * `toolRunner` loop) as soon as the API reports the work is
  * stopping/stopped or the lease was not extended.
  */
 async function heartbeatLease(
