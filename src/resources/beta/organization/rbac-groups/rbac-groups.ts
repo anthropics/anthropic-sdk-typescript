@@ -80,6 +80,7 @@ export class RBACGroups extends APIResource {
    * const betaRBACGroup =
    *   await client.beta.organization.rbacGroups.update(
    *     'rbac_group_id',
+   *     {},
    *   );
    * ```
    */

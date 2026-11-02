@@ -128,6 +128,7 @@ export class TelemetryDestinations extends APIResource {
    * const betaTelemetryDestination =
    *   await client.beta.organization.telemetryDestinations.update(
    *     'destination_id',
+   *     {},
    *   );
    * ```
    */

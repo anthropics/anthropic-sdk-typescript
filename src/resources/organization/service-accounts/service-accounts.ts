@@ -95,6 +95,7 @@ export class ServiceAccounts extends APIResource {
    * const serviceAccount =
    *   await client.organization.serviceAccounts.update(
    *     'service_account_id',
+   *     {},
    *   );
    * ```
    */

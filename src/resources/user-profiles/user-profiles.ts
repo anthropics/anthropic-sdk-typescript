@@ -21,7 +21,7 @@ export class UserProfiles extends APIResource {
    *
    * @example
    * ```ts
-   * const userProfile = await client.userProfiles.create();
+   * const userProfile = await client.userProfiles.create({});
    * ```
    */
   create(params: UserProfileCreateParams, options?: RequestOptions): APIPromise<UserProfile> {
@@ -76,6 +76,7 @@ export class UserProfiles extends APIResource {
    * ```ts
    * const userProfile = await client.userProfiles.update(
    *   'uprof_011CZkZCu8hGbp5mYRQgUmz9',
+   *   {},
    * );
    * ```
    */

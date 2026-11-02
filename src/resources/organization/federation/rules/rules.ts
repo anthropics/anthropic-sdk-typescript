@@ -117,6 +117,7 @@ export class Rules extends APIResource {
    * const federationRule =
    *   await client.organization.federation.rules.update(
    *     'federation_rule_id',
+   *     {},
    *   );
    * ```
    */

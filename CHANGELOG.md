@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.4.0...sdk-v1.4.1) (2026-11-02)
+
+### Documentation
+
+* **api:** show each field's own description for `speed`
+* fix examples that leave out a required params argument
+
 ## [1.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.3.0...sdk-v1.4.0) (2026-11-02)
 
 ### Features
@@ -34,7 +41,6 @@
 ### Documentation
 
 * add a description to the AnthropicBeta type
-* **api:** show each field's own description for `speed`
 * **examples:** keep the message threads example valid on Sonnet 5.5
 * **examples:** use current model IDs
 * **readme:** point to the docs site for documentation

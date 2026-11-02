@@ -113,6 +113,7 @@ export class ServiceAccounts extends APIResource {
    * const betaServiceAccount =
    *   await client.beta.organization.serviceAccounts.update(
    *     'service_account_id',
+   *     {},
    *   );
    * ```
    */

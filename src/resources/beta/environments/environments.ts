@@ -103,6 +103,7 @@ export class Environments extends APIResource {
    * const betaEnvironment =
    *   await client.beta.environments.update(
    *     'env_011CZkZ9X2dpNyB7HsEFoRfW',
+   *     {},
    *   );
    * ```
    */

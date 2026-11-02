@@ -33,6 +33,7 @@ export class APIKeys extends APIResource {
    * ```ts
    * const apiKey = await client.organization.apiKeys.update(
    *   'api_key_id',
+   *   {},
    * );
    * ```
    */

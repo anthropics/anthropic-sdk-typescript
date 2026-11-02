@@ -89,6 +89,7 @@ export class Issuers extends APIResource {
    * const federationIssuer =
    *   await client.organization.federation.issuers.update(
    *     'federation_issuer_id',
+   *     {},
    *   );
    * ```
    */

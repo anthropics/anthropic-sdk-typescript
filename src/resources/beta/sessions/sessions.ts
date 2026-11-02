@@ -270,6 +270,7 @@ export class Sessions extends APIResource {
    * const betaManagedAgentsSession =
    *   await client.beta.sessions.update(
    *     'sesn_011CZkZAtmR3yMPDzynEDxu7',
+   *     {},
    *   );
    * ```
    */

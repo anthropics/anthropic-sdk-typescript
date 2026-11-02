@@ -36,6 +36,7 @@ export class APIKeys extends APIResource {
    * const betaAPIKey =
    *   await client.beta.organization.apiKeys.update(
    *     'api_key_id',
+   *     {},
    *   );
    * ```
    */

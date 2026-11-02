@@ -103,6 +103,7 @@ export class Workspaces extends APIResource {
    * const betaWorkspace =
    *   await client.beta.organization.workspaces.update(
    *     'workspace_id',
+   *     {},
    *   );
    * ```
    */

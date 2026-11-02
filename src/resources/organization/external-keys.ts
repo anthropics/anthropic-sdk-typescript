@@ -65,6 +65,7 @@ export class ExternalKeys extends APIResource {
    * const externalKey =
    *   await client.organization.externalKeys.update(
    *     'external_key_id',
+   *     {},
    *   );
    * ```
    */

@@ -98,6 +98,7 @@ export class Deployments extends APIResource {
    * const betaManagedAgentsDeployment =
    *   await client.beta.deployments.update(
    *     'depl_011CZkZcDH3vPqd7xnEfwTai',
+   *     {},
    *   );
    * ```
    */

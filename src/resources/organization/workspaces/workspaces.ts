@@ -94,6 +94,7 @@ export class Workspaces extends APIResource {
    * const workspace =
    *   await client.organization.workspaces.update(
    *     'workspace_id',
+   *     {},
    *   );
    * ```
    */
