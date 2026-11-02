@@ -1,7 +1,7 @@
 export {
   Members,
+  type BetaDeletedRBACGroupMember,
   type BetaRBACGroupMember,
-  type MemberRemoveResponse,
   type MemberListParams,
   type MemberAddParams,
   type MemberRemoveParams,
@@ -9,8 +9,8 @@ export {
 } from './members';
 export {
   RBACGroups,
+  type BetaDeletedRBACGroup,
   type BetaRBACGroup,
-  type RBACGroupDeleteResponse,
   type RBACGroupCreateParams,
   type RBACGroupUpdateParams,
   type RBACGroupListParams,

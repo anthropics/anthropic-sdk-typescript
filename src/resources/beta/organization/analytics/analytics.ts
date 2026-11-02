@@ -1,5 +1,4 @@
 import { APIResource } from '../../../../core/resource';
-import * as AnalyticsAPI from './analytics';
 import * as MessagesAPI from '../../messages/messages';
 import * as ArtifactsAPI from './artifacts';
 import { ArtifactListParams, Artifacts } from './artifacts';
@@ -283,6 +282,23 @@ export interface BetaAnalyticsChatCoworkUnifiedChatMetrics {
    * while members had Chat and Cowork unified turned on.
    */
   thinking_message_count: number;
+}
+
+/**
+ * Activity in Chat and Cowork unified for one user on one day: `chat` holds chat
+ * activity and `sessions` holds Cowork session activity.
+ */
+export interface BetaAnalyticsChatCoworkUnifiedMetrics {
+  /**
+   * Chat activity recorded while members had Chat and Cowork unified turned on.
+   */
+  chat: BetaAnalyticsChatCoworkUnifiedChatMetrics;
+
+  /**
+   * Cowork session activity recorded while members had Chat and Cowork unified
+   * turned on.
+   */
+  sessions: BetaAnalyticsChatCoworkUnifiedSessionsMetrics;
 }
 
 /**
@@ -635,7 +651,7 @@ export interface BetaAnalyticsConnectorActivity {
    * Omitted from the response on deployments that do not offer Chat and Cowork
    * unified.
    */
-  chat_cowork_unified_metrics?: BetaAnalyticsConnectorActivity.ChatCoworkUnifiedMetrics | null;
+  chat_cowork_unified_metrics?: BetaAnalyticsConnectorChatCoworkUnifiedMetrics | null;
 
   /**
    * Product that produced this row's activity: one of `chat`, `claude_code`,
@@ -671,29 +687,6 @@ export interface BetaAnalyticsConnectorActivity {
   user_id?: string | null;
 }
 
-export namespace BetaAnalyticsConnectorActivity {
-  /**
-   * Connector use recorded while members had Chat and Cowork unified (Cowork's
-   * features inside claude.ai chat) turned on, split into chat conversations and
-   * Cowork sessions. A count is null in date-range mode where it cannot be computed.
-   * Omitted from the response on deployments that do not offer Chat and Cowork
-   * unified.
-   */
-  export interface ChatCoworkUnifiedMetrics {
-    /**
-     * A connector's use in chat conversations recorded while members had Chat and
-     * Cowork unified turned on.
-     */
-    chat: AnalyticsAPI.BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics;
-
-    /**
-     * A connector's use in Cowork sessions recorded while members had Chat and Cowork
-     * unified turned on.
-     */
-    sessions: AnalyticsAPI.BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics;
-  }
-}
-
 /**
  * A connector's use in chat conversations recorded while members had Chat and
  * Cowork unified turned on.
@@ -706,6 +699,24 @@ export interface BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics {
    * where a distinct count cannot be computed.
    */
   distinct_conversation_connector_used_count: number | null;
+}
+
+/**
+ * A connector's use in Chat and Cowork unified on one day: `chat` holds its use in
+ * chat conversations and `sessions` its use in Cowork sessions.
+ */
+export interface BetaAnalyticsConnectorChatCoworkUnifiedMetrics {
+  /**
+   * A connector's use in chat conversations recorded while members had Chat and
+   * Cowork unified turned on.
+   */
+  chat: BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics;
+
+  /**
+   * A connector's use in Cowork sessions recorded while members had Chat and Cowork
+   * unified turned on.
+   */
+  sessions: BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics;
 }
 
 /**
@@ -1490,7 +1501,7 @@ export interface BetaAnalyticsPluginActivity {
    * cannot be computed. Omitted from the response on deployments that do not offer
    * Chat and Cowork unified.
    */
-  chat_cowork_unified_metrics?: BetaAnalyticsPluginActivity.ChatCoworkUnifiedMetrics | null;
+  chat_cowork_unified_metrics?: BetaAnalyticsPluginChatCoworkUnifiedMetrics | null;
 
   /**
    * Product that produced this row's activity: one of `chat`, `claude_code`,
@@ -1526,21 +1537,17 @@ export interface BetaAnalyticsPluginActivity {
   user_id?: string | null;
 }
 
-export namespace BetaAnalyticsPluginActivity {
+/**
+ * A plugin's use in Cowork sessions recorded while members had Chat and Cowork
+ * unified turned on.
+ */
+export interface BetaAnalyticsPluginChatCoworkUnifiedMetrics {
   /**
-   * Plugin use recorded while members had Chat and Cowork unified (Cowork's features
-   * inside claude.ai chat) turned on. A count is null in date-range mode where it
-   * cannot be computed. Omitted from the response on deployments that do not offer
-   * Chat and Cowork unified.
+   * Same measure as `cowork_metrics.distinct_session_plugin_used_count`, for
+   * activity recorded while members had Chat and Cowork unified turned on. Null on
+   * aggregated rows where a distinct count cannot be computed.
    */
-  export interface ChatCoworkUnifiedMetrics {
-    /**
-     * Same measure as `cowork_metrics.distinct_session_plugin_used_count`, for
-     * activity recorded while members had Chat and Cowork unified turned on. Null on
-     * aggregated rows where a distinct count cannot be computed.
-     */
-    distinct_session_plugin_used_count: number | null;
-  }
+  distinct_session_plugin_used_count: number | null;
 }
 
 /**
@@ -2122,7 +2129,7 @@ export interface BetaAnalyticsSkillActivity {
    * Omitted from the response on deployments that do not offer Chat and Cowork
    * unified.
    */
-  chat_cowork_unified_metrics?: BetaAnalyticsSkillActivity.ChatCoworkUnifiedMetrics | null;
+  chat_cowork_unified_metrics?: BetaAnalyticsSkillChatCoworkUnifiedMetrics | null;
 
   /**
    * Product that produced this row's activity: one of `chat`, `claude_code`,
@@ -2158,29 +2165,6 @@ export interface BetaAnalyticsSkillActivity {
   user_id?: string | null;
 }
 
-export namespace BetaAnalyticsSkillActivity {
-  /**
-   * Skill use recorded while members had Chat and Cowork unified (Cowork's features
-   * inside claude.ai chat) turned on, split into chat conversations and Cowork
-   * sessions. A count is null in date-range mode where it cannot be computed.
-   * Omitted from the response on deployments that do not offer Chat and Cowork
-   * unified.
-   */
-  export interface ChatCoworkUnifiedMetrics {
-    /**
-     * A skill's use in chat conversations recorded while members had Chat and Cowork
-     * unified turned on.
-     */
-    chat: AnalyticsAPI.BetaAnalyticsSkillChatCoworkUnifiedChatMetrics;
-
-    /**
-     * A skill's use in Cowork sessions recorded while members had Chat and Cowork
-     * unified turned on.
-     */
-    sessions: AnalyticsAPI.BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics;
-  }
-}
-
 /**
  * A skill's use in chat conversations recorded while members had Chat and Cowork
  * unified turned on.
@@ -2193,6 +2177,24 @@ export interface BetaAnalyticsSkillChatCoworkUnifiedChatMetrics {
    * where a distinct count cannot be computed.
    */
   distinct_conversation_skill_used_count: number | null;
+}
+
+/**
+ * A skill's use in Chat and Cowork unified on one day: `chat` holds its use in
+ * chat conversations and `sessions` its use in Cowork sessions.
+ */
+export interface BetaAnalyticsSkillChatCoworkUnifiedMetrics {
+  /**
+   * A skill's use in chat conversations recorded while members had Chat and Cowork
+   * unified turned on.
+   */
+  chat: BetaAnalyticsSkillChatCoworkUnifiedChatMetrics;
+
+  /**
+   * A skill's use in Cowork sessions recorded while members had Chat and Cowork
+   * unified turned on.
+   */
+  sessions: BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics;
 }
 
 /**
@@ -2749,7 +2751,7 @@ export interface BetaAnalyticsUserActivity {
    * `sessions` (Cowork activity). Omitted from the response on deployments that do
    * not offer Chat and Cowork unified.
    */
-  chat_cowork_unified_metrics?: BetaAnalyticsUserActivity.ChatCoworkUnifiedMetrics | null;
+  chat_cowork_unified_metrics?: BetaAnalyticsChatCoworkUnifiedMetrics | null;
 
   /**
    * Most recent UTC day (YYYY-MM-DD) on which the user had any counted activity,
@@ -2777,27 +2779,6 @@ export interface BetaAnalyticsUserActivity {
    * resolved; `rbac_group_id` remains the stable key.
    */
   rbac_group_name?: string | null;
-}
-
-export namespace BetaAnalyticsUserActivity {
-  /**
-   * Activity recorded while the member had Chat and Cowork unified (Cowork's
-   * features inside claude.ai chat) turned on, split into `chat` (chat activity) and
-   * `sessions` (Cowork activity). Omitted from the response on deployments that do
-   * not offer Chat and Cowork unified.
-   */
-  export interface ChatCoworkUnifiedMetrics {
-    /**
-     * Chat activity recorded while members had Chat and Cowork unified turned on.
-     */
-    chat: AnalyticsAPI.BetaAnalyticsChatCoworkUnifiedChatMetrics;
-
-    /**
-     * Cowork session activity recorded while members had Chat and Cowork unified
-     * turned on.
-     */
-    sessions: AnalyticsAPI.BetaAnalyticsChatCoworkUnifiedSessionsMetrics;
-  }
 }
 
 export interface BetaAnalyticsUserActor {
@@ -2868,12 +2849,14 @@ export declare namespace Analytics {
     type BetaAnalyticsArtifactActivity as BetaAnalyticsArtifactActivity,
     type BetaAnalyticsArtifactGroupBy as BetaAnalyticsArtifactGroupBy,
     type BetaAnalyticsChatCoworkUnifiedChatMetrics as BetaAnalyticsChatCoworkUnifiedChatMetrics,
+    type BetaAnalyticsChatCoworkUnifiedMetrics as BetaAnalyticsChatCoworkUnifiedMetrics,
     type BetaAnalyticsChatCoworkUnifiedSessionsMetrics as BetaAnalyticsChatCoworkUnifiedSessionsMetrics,
     type BetaAnalyticsChatMetrics as BetaAnalyticsChatMetrics,
     type BetaAnalyticsClaudeCodeMetrics as BetaAnalyticsClaudeCodeMetrics,
     type BetaAnalyticsClaudeTagCategory as BetaAnalyticsClaudeTagCategory,
     type BetaAnalyticsConnectorActivity as BetaAnalyticsConnectorActivity,
     type BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics as BetaAnalyticsConnectorChatCoworkUnifiedChatMetrics,
+    type BetaAnalyticsConnectorChatCoworkUnifiedMetrics as BetaAnalyticsConnectorChatCoworkUnifiedMetrics,
     type BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics as BetaAnalyticsConnectorChatCoworkUnifiedSessionsMetrics,
     type BetaAnalyticsConnectorChatMetrics as BetaAnalyticsConnectorChatMetrics,
     type BetaAnalyticsConnectorClaudeCodeMetrics as BetaAnalyticsConnectorClaudeCodeMetrics,
@@ -2902,6 +2885,7 @@ export declare namespace Analytics {
     type BetaAnalyticsOfficeProductMetrics as BetaAnalyticsOfficeProductMetrics,
     type BetaAnalyticsOrder as BetaAnalyticsOrder,
     type BetaAnalyticsPluginActivity as BetaAnalyticsPluginActivity,
+    type BetaAnalyticsPluginChatCoworkUnifiedMetrics as BetaAnalyticsPluginChatCoworkUnifiedMetrics,
     type BetaAnalyticsPluginClaudeCodeMetrics as BetaAnalyticsPluginClaudeCodeMetrics,
     type BetaAnalyticsPluginCoworkMetrics as BetaAnalyticsPluginCoworkMetrics,
     type BetaAnalyticsPluginGroupBy as BetaAnalyticsPluginGroupBy,
@@ -2916,6 +2900,7 @@ export declare namespace Analytics {
     type BetaAnalyticsSingleDayActivitySummary as BetaAnalyticsSingleDayActivitySummary,
     type BetaAnalyticsSkillActivity as BetaAnalyticsSkillActivity,
     type BetaAnalyticsSkillChatCoworkUnifiedChatMetrics as BetaAnalyticsSkillChatCoworkUnifiedChatMetrics,
+    type BetaAnalyticsSkillChatCoworkUnifiedMetrics as BetaAnalyticsSkillChatCoworkUnifiedMetrics,
     type BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics as BetaAnalyticsSkillChatCoworkUnifiedSessionsMetrics,
     type BetaAnalyticsSkillChatMetrics as BetaAnalyticsSkillChatMetrics,
     type BetaAnalyticsSkillClaudeCodeMetrics as BetaAnalyticsSkillClaudeCodeMetrics,

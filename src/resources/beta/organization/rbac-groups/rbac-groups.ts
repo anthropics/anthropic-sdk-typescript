@@ -1,12 +1,12 @@
 import { APIResource } from '../../../../core/resource';
 import * as MembersAPI from './members';
 import {
+  BetaDeletedRBACGroupMember,
   BetaRBACGroupMember,
   BetaRBACGroupMembersPageCursor,
   MemberAddParams,
   MemberListParams,
   MemberRemoveParams,
-  MemberRemoveResponse,
   Members,
 } from './members';
 import { APIPromise } from '../../../../core/api-promise';
@@ -136,13 +136,13 @@ export class RBACGroups extends APIResource {
    *
    * @example
    * ```ts
-   * const rbacGroup =
+   * const betaDeletedRBACGroup =
    *   await client.beta.organization.rbacGroups.delete(
    *     'rbac_group_id',
    *   );
    * ```
    */
-  delete(rbacGroupID: string, options?: RequestOptions): APIPromise<RBACGroupDeleteResponse> {
+  delete(rbacGroupID: string, options?: RequestOptions): APIPromise<BetaDeletedRBACGroup> {
     return this._client.delete(path`/v1/organizations/rbac_groups/${rbacGroupID}`, {
       ...options,
       __qualifiers: { beta: 'true' },
@@ -155,6 +155,20 @@ export class RBACGroups extends APIResource {
 }
 
 export type BetaRBACGroupsPageCursor = PageCursor<BetaRBACGroup>;
+
+export interface BetaDeletedRBACGroup {
+  /**
+   * ID of the RBAC Group.
+   */
+  id: string;
+
+  /**
+   * Deleted object type.
+   *
+   * For RBAC Groups, this is always `"rbac_group_deleted"`.
+   */
+  type: 'rbac_group_deleted';
+}
 
 export interface BetaRBACGroup {
   /**
@@ -199,20 +213,6 @@ export interface BetaRBACGroup {
   updated_at: string;
 }
 
-export interface RBACGroupDeleteResponse {
-  /**
-   * ID of the RBAC Group.
-   */
-  id: string;
-
-  /**
-   * Deleted object type.
-   *
-   * For RBAC Groups, this is always `"rbac_group_deleted"`.
-   */
-  type: 'rbac_group_deleted';
-}
-
 export interface RBACGroupCreateParams {
   /**
    * Name of the RBAC Group. Not uniqueness-enforced.
@@ -233,8 +233,8 @@ RBACGroups.Members = Members;
 
 export declare namespace RBACGroups {
   export {
+    type BetaDeletedRBACGroup as BetaDeletedRBACGroup,
     type BetaRBACGroup as BetaRBACGroup,
-    type RBACGroupDeleteResponse as RBACGroupDeleteResponse,
     type BetaRBACGroupsPageCursor as BetaRBACGroupsPageCursor,
     type RBACGroupCreateParams as RBACGroupCreateParams,
     type RBACGroupUpdateParams as RBACGroupUpdateParams,
@@ -243,8 +243,8 @@ export declare namespace RBACGroups {
 
   export {
     Members as Members,
+    type BetaDeletedRBACGroupMember as BetaDeletedRBACGroupMember,
     type BetaRBACGroupMember as BetaRBACGroupMember,
-    type MemberRemoveResponse as MemberRemoveResponse,
     type BetaRBACGroupMembersPageCursor as BetaRBACGroupMembersPageCursor,
     type MemberListParams as MemberListParams,
     type MemberAddParams as MemberAddParams,
