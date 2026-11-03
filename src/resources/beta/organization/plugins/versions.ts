@@ -278,7 +278,9 @@ export interface BetaPluginVersion {
   created_by: PluginsAPI.BetaPluginUserActor | PluginsAPI.BetaPluginAPIActor | null;
 
   /**
-   * The manifest's description; null when it declares none.
+   * The manifest's description; null when it declares none. If that description is
+   * the first 500 characters of exactly one distinct skill `description` in
+   * `components`, that skill `description` is returned instead.
    */
   description: string | null;
 
