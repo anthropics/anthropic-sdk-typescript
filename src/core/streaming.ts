@@ -15,6 +15,24 @@ import { releaseRequestSignal } from '../internal/request-signal';
 
 type Bytes = string | ArrayBuffer | Uint8Array | null | undefined;
 
+/**
+ * The HTTP status the API lists for each error type, so an error event that
+ * arrives mid-stream maps to the same `APIError` subclass the equivalent
+ * non-streaming response would have produced. Callers that retry or fail
+ * over on `error.status` or `instanceof` then see in-stream errors too.
+ */
+const STATUS_BY_ERROR_TYPE: Partial<Record<ErrorType, number>> = {
+  invalid_request_error: 400,
+  authentication_error: 401,
+  billing_error: 402,
+  permission_error: 403,
+  not_found_error: 404,
+  rate_limit_error: 429,
+  api_error: 500,
+  timeout_error: 504,
+  overloaded_error: 529,
+};
+
 export type ServerSentEvent = {
   event: string | null;
   data: string;
@@ -76,6 +94,10 @@ export class Stream<Item> implements AsyncIterable<Item> {
           if (sse.event === 'error') {
             const body = safeJSON(sse.data) ?? sse.data;
             const type = body?.error?.type as ErrorType | undefined;
+            const status = type ? STATUS_BY_ERROR_TYPE[type] : undefined;
+            if (status !== undefined) {
+              throw APIError.generate(status, body, undefined, response.headers);
+            }
             throw new APIError(undefined, body, undefined, response.headers, type);
           } else {
             if (!sse.data) continue;
