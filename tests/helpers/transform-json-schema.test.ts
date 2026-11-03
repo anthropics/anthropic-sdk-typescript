@@ -544,4 +544,46 @@ describe('transformJsonSchema', () => {
 }
 `);
   });
+
+  it('should drop $schema without adding it to description', () => {
+    const input = {
+      $schema: 'https://json-schema.org/draft/2020-12/schema',
+      type: 'object',
+      properties: {
+        name: {
+          type: 'string',
+        },
+      },
+    };
+
+    const result = transformJSONSchema(input);
+    expect(result['description']).toBeUndefined();
+    expect(result['$schema']).toBeUndefined();
+    expect(result).toEqual({
+      type: 'object',
+      properties: {
+        name: {
+          type: 'string',
+        },
+      },
+      additionalProperties: false,
+    });
+  });
+
+  it('should drop $schema while preserving existing description', () => {
+    const input = {
+      $schema: 'https://json-schema.org/draft/2020-12/schema',
+      description: 'A person entity',
+      type: 'object',
+      properties: {
+        name: {
+          type: 'string',
+        },
+      },
+    };
+
+    const result = transformJSONSchema(input);
+    expect(result['description']).toBe('A person entity');
+    expect(result['$schema']).toBeUndefined();
+  });
 });

@@ -20,6 +20,22 @@ describe('GA json-schema helpers', () => {
       expect(typeof format.parse).toBe('function');
     });
 
+    it('does not include $schema in output format schema description', () => {
+      const schema = {
+        $schema: 'http://json-schema.org/draft-07/schema#',
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+        },
+      } as const;
+
+      const format = jsonSchemaOutputFormat(schema);
+      const jsonSchema = format.schema as any;
+
+      expect(jsonSchema.description).toBeUndefined();
+      expect(jsonSchema.$schema).toBeUndefined();
+    });
+
     it('parses valid JSON correctly', () => {
       const schema = {
         type: 'object',
