@@ -1,4 +1,5 @@
 CHANGELOG.md
+.changelog
 /ecosystem-tests/*/**
 /node_modules
 /deno
