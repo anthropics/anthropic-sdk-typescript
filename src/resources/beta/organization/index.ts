@@ -126,7 +126,6 @@ export {
   type BetaClaudeTagSlackWorkspaceSettingSource,
   type BetaClaudeTagWritesNotEnabledErrorDetails,
   type BetaComplianceConfigurationRestrictedErrorDetails,
-  type BetaEnvironmentNotFoundErrorDetails,
   type BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails,
   type BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails,
   type BetaSlackChannelSetUpSettingsConflictErrorDetails,
@@ -173,7 +172,6 @@ export {
   type BetaBillingFrozenErrorDetails,
   type BetaOrganization,
   type BetaOrganizationRole,
-  type BetaUnsupportedCharsetErrorDetails,
 } from './organization';
 export {
   PluginMarketplaces,

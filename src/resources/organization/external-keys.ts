@@ -294,6 +294,14 @@ export interface ExternalKeyAttachedAttachment {
 }
 
 /**
+ * The external key changed while the request was validating it. Send the request
+ * again.
+ */
+export interface ExternalKeyChangedErrorDetails {
+  error_code: 'external_key_changed';
+}
+
+/**
  * The External Key can't be deleted or reconfigured while the organization's
  * Workspace Policy lists it as an allowed key.
  */
@@ -395,6 +403,7 @@ export declare namespace ExternalKeys {
     type AzureExternalKeyConfigParam as AzureExternalKeyConfigParam,
     type ExternalKey as ExternalKey,
     type ExternalKeyAttachedAttachment as ExternalKeyAttachedAttachment,
+    type ExternalKeyChangedErrorDetails as ExternalKeyChangedErrorDetails,
     type ExternalKeyInWorkspacePolicyErrorDetails as ExternalKeyInWorkspacePolicyErrorDetails,
     type ExternalKeyUnattachedAttachment as ExternalKeyUnattachedAttachment,
     type GCPExternalKeyConfig as GCPExternalKeyConfig,

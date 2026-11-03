@@ -1,13 +1,17 @@
 import * as FilesAPI from './files';
+import * as BetaAPI from './beta/beta';
 import * as MessagesAPI from './messages/messages';
 import * as APIKeysAPI from './organization/api-keys';
 import * as ExternalKeysAPI from './organization/external-keys';
 import * as InvitesAPI from './organization/invites';
 import * as OrganizationAPI from './organization/organization';
 import * as UsersAPI from './organization/users';
+import * as SkillsAPI from './skills/skills';
+import * as UserProfilesAPI from './user-profiles/user-profiles';
 import * as EnvironmentsAPI from './beta/environments/environments';
 import * as WorkAPI from './beta/environments/work';
 import * as BetaOrganizationAPI from './beta/organization/organization';
+import * as RBACGroupsAPI from './organization/rbac-groups/rbac-groups';
 import * as WorkspacesAPI from './organization/workspaces/workspaces';
 import * as ClaudeTagAPI from './beta/organization/claude-tag/claude-tag';
 import * as PluginsAPI from './beta/organization/plugins/plugins';
@@ -37,6 +41,14 @@ export interface BillingError {
  */
 export interface ClaudeCodeKeyCreatorNotMemberErrorDetails {
   error_code: 'claude_code_key_creator_not_member';
+}
+
+/**
+ * The request comes from a Claude Code version older than the minimum that the
+ * requested model or the organization requires. Update Claude Code, then retry.
+ */
+export interface ClaudeCodeVersionTooOldErrorDetails {
+  error_code: 'claude_code_version_too_old';
 }
 
 /**
@@ -82,7 +94,7 @@ export interface EnforcedSpendLimitReachedErrorDetails {
 export type ErrorDetails =
   | MessagesAPI.AvailableToolsLimitExceededErrorDetails
   | ClaudeCodeKeyCreatorNotMemberErrorDetails
-  | MessagesAPI.ClaudeCodeVersionTooOldErrorDetails
+  | ClaudeCodeVersionTooOldErrorDetails
   | CmekKeyDisabledErrorDetails
   | CmekKeyNetworkBlockedErrorDetails
   | MessagesAPI.CompactionBlockAmbiguousErrorDetails
@@ -103,7 +115,7 @@ export type ErrorDetails =
   | MessagesAPI.ToolNameConflictErrorDetails
   | MessagesAPI.ToolReferenceUnresolvedErrorDetails
   | MessagesAPI.ThreadNotFoundErrorDetails
-  | MessagesAPI.SkillReadBlockedUndecryptableErrorDetails
+  | SkillsAPI.SkillReadBlockedUndecryptableErrorDetails
   | RequestBodyTooLargeAfterDecodingErrorDetails
   | EnforcedSpendLimitReachedErrorDetails
   | CmekKeyUnreachableErrorDetails
@@ -114,22 +126,22 @@ export type ErrorDetails =
   | CmekContextUnavailableErrorDetails
   | APIKeysAPI.OrgAPIKeyLimitExceededErrorDetails
   | APIKeysAPI.WorkspaceAPIKeyLimitExceededErrorDetails
-  | OrganizationAPI.UserProfileNotFoundErrorDetails
+  | UserProfilesAPI.UserProfileNotFoundErrorDetails
   | ExternalKeysAPI.ExternalKeyInWorkspacePolicyErrorDetails
   | InvitesAPI.AlreadyMemberErrorDetails
   | InvitesAPI.CannotInviteEmailsWithUnverifiedDomainsErrorDetails
   | InvitesAPI.EmailDomainNotAllowedErrorDetails
   | InvitesAPI.InviteAlreadyExistsErrorDetails
-  | InvitesAPI.OrgMemberLimitExceededErrorDetails
-  | OrganizationAPI.RBACGroupGrantsOwnerAccessErrorDetails
-  | OrganizationAPI.RBACGroupOwnerAccessUnconfirmedErrorDetails
+  | OrganizationAPI.OrgMemberLimitExceededErrorDetails
+  | RBACGroupsAPI.RBACGroupGrantsOwnerAccessErrorDetails
+  | RBACGroupsAPI.RBACGroupOwnerAccessUnconfirmedErrorDetails
   | UsersAPI.CannotRemoveLastMemberErrorDetails
   | OrganizationAPI.ConcurrentMembershipChangeErrorDetails
   | WorkspacesAPI.KeyProfileMismatchErrorDetails
   | WorkspacesAPI.WorkspacePolicyViolationErrorDetails
-  | WorkspacesAPI.ExternalKeyChangedErrorDetails
+  | ExternalKeysAPI.ExternalKeyChangedErrorDetails
   | WorkspacesAPI.WorkspaceMemberLimitExceededErrorDetails
-  | OrganizationAPI.OrganizationTypeNotSupportedErrorDetails
+  | OrganizationTypeNotSupportedErrorDetails
   | EnvironmentsAPI.BetaEnvironmentCreateDisabledErrorDetails
   | EnvironmentsAPI.BetaEnvironmentArchivedErrorDetails
   | EnvironmentsAPI.BetaInvalidConfigTypeChangeErrorDetails
@@ -138,7 +150,7 @@ export type ErrorDetails =
   | EnvironmentsAPI.BetaInvalidMetadataErrorDetails
   | BetaOrganizationAPI.BetaBillingFrozenErrorDetails
   | SpendLimitsAPI.BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails
-  | BetaOrganizationAPI.BetaUnsupportedCharsetErrorDetails
+  | BetaAPI.BetaUnsupportedCharsetErrorDetails
   | PluginsAPI.BetaPluginNameTakenErrorDetails
   | PluginsAPI.BetaSkillNameTakenErrorDetails
   | PluginsAPI.BetaRegistrationPendingErrorDetails
@@ -149,7 +161,7 @@ export type ErrorDetails =
   | ClaudeTagAPI.BetaClaudeTagWritesNotEnabledErrorDetails
   | ClaudeTagAPI.BetaComplianceConfigurationRestrictedErrorDetails
   | ClaudeTagAPI.BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails
-  | ClaudeTagAPI.BetaEnvironmentNotFoundErrorDetails
+  | EnvironmentsAPI.BetaEnvironmentNotFoundErrorDetails
   | ClaudeTagAPI.BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails
   | ClaudeTagAPI.BetaSlackChannelSetUpSettingsConflictErrorDetails;
 
@@ -213,6 +225,14 @@ export interface OrganizationOnHoldErrorDetails {
   error_code: 'organization_on_hold';
 
   appeal_url?: string | null;
+}
+
+/**
+ * The endpoint does not support the organization's type. Each endpoint's
+ * description says which organization types it supports.
+ */
+export interface OrganizationTypeNotSupportedErrorDetails {
+  error_code: 'organization_type_not_supported';
 }
 
 export interface OverloadedError {

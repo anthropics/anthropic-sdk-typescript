@@ -3020,14 +3020,6 @@ export interface CitationsWebSearchResultLocation {
 }
 
 /**
- * The request comes from a Claude Code version older than the minimum that the
- * requested model or the organization requires. Update Claude Code, then retry.
- */
-export interface ClaudeCodeVersionTooOldErrorDetails {
-  error_code: 'claude_code_version_too_old';
-}
-
-/**
  * A tool that the client executes: the caller runs each `tool_use` request for it
  * and returns the output in a `tool_result` block.
  */
@@ -5350,14 +5342,6 @@ export interface SkillParams {
    * Skill version or 'latest' for most recent version
    */
   version?: string;
-}
-
-/**
- * A custom skill the request names is stored under an encryption key state the
- * workspace cannot currently decrypt.
- */
-export interface SkillReadBlockedUndecryptableErrorDetails {
-  error_code: 'skill_read_blocked_undecryptable';
 }
 
 export type StopReason =
@@ -8057,7 +8041,6 @@ export declare namespace Messages {
     type CitationsDelta as CitationsDelta,
     type CitationsSearchResultLocation as CitationsSearchResultLocation,
     type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
-    type ClaudeCodeVersionTooOldErrorDetails as ClaudeCodeVersionTooOldErrorDetails,
     type ClientToolUnion as ClientToolUnion,
     type CodeExecutionOutputBlock as CodeExecutionOutputBlock,
     type CodeExecutionOutputBlockParam as CodeExecutionOutputBlockParam,
@@ -8197,7 +8180,6 @@ export declare namespace Messages {
     type ServerToolUseBlockParam as ServerToolUseBlockParam,
     type SignatureDelta as SignatureDelta,
     type SkillParams as SkillParams,
-    type SkillReadBlockedUndecryptableErrorDetails as SkillReadBlockedUndecryptableErrorDetails,
     type StopReason as StopReason,
     type SystemMessageParam as SystemMessageParam,
     type TextBlock as TextBlock,

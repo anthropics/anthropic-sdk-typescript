@@ -134,14 +134,6 @@ export interface InviteAlreadyExistsErrorDetails {
   error_code: 'invite_already_exists';
 }
 
-/**
- * The organization has reached the member limit that Anthropic set for it. Pending
- * invites count toward the limit.
- */
-export interface OrgMemberLimitExceededErrorDetails {
-  error_code: 'org_member_limit_exceeded';
-}
-
 export interface OrganizationInvite {
   /**
    * ID of the Invite.
@@ -262,7 +254,6 @@ export declare namespace Invites {
     type CannotInviteEmailsWithUnverifiedDomainsErrorDetails as CannotInviteEmailsWithUnverifiedDomainsErrorDetails,
     type EmailDomainNotAllowedErrorDetails as EmailDomainNotAllowedErrorDetails,
     type InviteAlreadyExistsErrorDetails as InviteAlreadyExistsErrorDetails,
-    type OrgMemberLimitExceededErrorDetails as OrgMemberLimitExceededErrorDetails,
     type OrganizationInvite as OrganizationInvite,
     type InviteDeleteResponse as InviteDeleteResponse,
     type OrganizationInvitesPage as OrganizationInvitesPage,

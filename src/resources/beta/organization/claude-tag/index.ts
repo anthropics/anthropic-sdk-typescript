@@ -27,7 +27,6 @@ export {
   type BetaClaudeTagSlackWorkspaceSettingSource,
   type BetaClaudeTagWritesNotEnabledErrorDetails,
   type BetaComplianceConfigurationRestrictedErrorDetails,
-  type BetaEnvironmentNotFoundErrorDetails,
   type BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails,
   type BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails,
   type BetaSlackChannelSetUpSettingsConflictErrorDetails,

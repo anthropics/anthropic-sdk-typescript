@@ -6,6 +6,7 @@ export {
   type BetaEnvironmentArchivedErrorDetails,
   type BetaEnvironmentCreateDisabledErrorDetails,
   type BetaEnvironmentDeleteResponse,
+  type BetaEnvironmentNotFoundErrorDetails,
   type BetaEnvironmentUpdateDisabledErrorDetails,
   type BetaInvalidConfigTypeChangeErrorDetails,
   type BetaInvalidMetadataErrorDetails,

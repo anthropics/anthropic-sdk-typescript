@@ -340,13 +340,6 @@ export interface BetaComplianceConfigurationRestrictedErrorDetails {
 }
 
 /**
- * `settings.environment_id` names no Environment within the organization's reach.
- */
-export interface BetaEnvironmentNotFoundErrorDetails {
-  error_code: 'environment_not_found';
-}
-
-/**
  * The credential is not a scoped API key that is bound at the organization level.
  */
 export interface BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails {
@@ -425,7 +418,6 @@ export declare namespace ClaudeTag {
     type BetaClaudeTagSlackWorkspaceSettingSource as BetaClaudeTagSlackWorkspaceSettingSource,
     type BetaClaudeTagWritesNotEnabledErrorDetails as BetaClaudeTagWritesNotEnabledErrorDetails,
     type BetaComplianceConfigurationRestrictedErrorDetails as BetaComplianceConfigurationRestrictedErrorDetails,
-    type BetaEnvironmentNotFoundErrorDetails as BetaEnvironmentNotFoundErrorDetails,
     type BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails as BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails,
     type BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails as BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails,
     type BetaSlackChannelSetUpSettingsConflictErrorDetails as BetaSlackChannelSetUpSettingsConflictErrorDetails,

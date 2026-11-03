@@ -638,6 +638,15 @@ export type UserProfileListOrder = 'asc' | 'desc';
 export type UserProfileListOrderBy = 'created_at' | 'name';
 
 /**
+ * The request depends on a user profile that does not exist in the organization or
+ * is no longer active. The request either names this user profile by ID, or names
+ * a resource, such as an External Key, that is bound to it.
+ */
+export interface UserProfileNotFoundErrorDetails {
+  error_code: 'user_profile_not_found';
+}
+
+/**
  * A user profile's status in a program. Each program's `status` field says what
  * the values mean there.
  *
@@ -846,6 +855,7 @@ export declare namespace UserProfiles {
     type UserProfileExternalUserEntityType as UserProfileExternalUserEntityType,
     type UserProfileListOrder as UserProfileListOrder,
     type UserProfileListOrderBy as UserProfileListOrderBy,
+    type UserProfileNotFoundErrorDetails as UserProfileNotFoundErrorDetails,
     type UserProfileProgramStatus as UserProfileProgramStatus,
     type UserProfilePrograms as UserProfilePrograms,
     type UserProfilesPageCursor as UserProfilesPageCursor,

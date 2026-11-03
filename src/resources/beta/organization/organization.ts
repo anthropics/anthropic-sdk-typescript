@@ -210,7 +210,6 @@ import {
   BetaClaudeTagSlackWorkspaceSettingSource,
   BetaClaudeTagWritesNotEnabledErrorDetails,
   BetaComplianceConfigurationRestrictedErrorDetails,
-  BetaEnvironmentNotFoundErrorDetails,
   BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails,
   BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails,
   BetaSlackChannelSetUpSettingsConflictErrorDetails,
@@ -439,14 +438,6 @@ export type BetaOrganizationRole =
   | 'primary_owner'
   | 'user';
 
-/**
- * The request's `Content-Type` header names a charset other than UTF-8, ISO-8859-1
- * or US-ASCII. Send the request with no charset, or with one of these.
- */
-export interface BetaUnsupportedCharsetErrorDetails {
-  error_code: 'unsupported_charset';
-}
-
 Organization.APIKeys = APIKeys;
 Organization.ExternalKeys = ExternalKeys;
 Organization.Federation = Federation;
@@ -471,7 +462,6 @@ export declare namespace Organization {
     type BetaBillingFrozenErrorDetails as BetaBillingFrozenErrorDetails,
     type BetaOrganization as BetaOrganization,
     type BetaOrganizationRole as BetaOrganizationRole,
-    type BetaUnsupportedCharsetErrorDetails as BetaUnsupportedCharsetErrorDetails,
   };
 
   export {
@@ -819,7 +809,6 @@ export declare namespace Organization {
     type BetaClaudeTagSlackWorkspaceSettingSource as BetaClaudeTagSlackWorkspaceSettingSource,
     type BetaClaudeTagWritesNotEnabledErrorDetails as BetaClaudeTagWritesNotEnabledErrorDetails,
     type BetaComplianceConfigurationRestrictedErrorDetails as BetaComplianceConfigurationRestrictedErrorDetails,
-    type BetaEnvironmentNotFoundErrorDetails as BetaEnvironmentNotFoundErrorDetails,
     type BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails as BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails,
     type BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails as BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails,
     type BetaSlackChannelSetUpSettingsConflictErrorDetails as BetaSlackChannelSetUpSettingsConflictErrorDetails,

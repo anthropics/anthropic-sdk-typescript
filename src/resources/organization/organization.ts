@@ -33,6 +33,7 @@ import {
   AzureExternalKeyConfigParam,
   ExternalKey,
   ExternalKeyAttachedAttachment,
+  ExternalKeyChangedErrorDetails,
   ExternalKeyCreateParams,
   ExternalKeyDeleteResponse,
   ExternalKeyInWorkspacePolicyErrorDetails,
@@ -54,7 +55,6 @@ import {
   InviteDeleteResponse,
   InviteListParams,
   Invites,
-  OrgMemberLimitExceededErrorDetails,
   OrganizationInvite,
   OrganizationInvitesPage,
 } from './invites';
@@ -141,7 +141,9 @@ import {
   DeletedRBACGroup,
   RBACGroup,
   RBACGroupCreateParams,
+  RBACGroupGrantsOwnerAccessErrorDetails,
   RBACGroupListParams,
+  RBACGroupOwnerAccessUnconfirmedErrorDetails,
   RBACGroupUpdateParams,
   RBACGroups,
   RBACGroupsPageCursor,
@@ -180,7 +182,6 @@ import {
   DataResidency,
   DataResidencyCreateConfig,
   DataResidencyUpdateConfig,
-  ExternalKeyChangedErrorDetails,
   KeyProfileMismatchErrorDetails,
   NoBillingWorkspaceRole,
   Workspace,
@@ -244,6 +245,14 @@ export interface ConcurrentMembershipChangeErrorDetails {
   error_code: 'concurrent_membership_change';
 }
 
+/**
+ * The organization has reached the member limit that Anthropic set for it. Pending
+ * invites count toward the limit.
+ */
+export interface OrgMemberLimitExceededErrorDetails {
+  error_code: 'org_member_limit_exceeded';
+}
+
 export interface OrganizationInfo {
   /**
    * ID of the Organization.
@@ -274,43 +283,6 @@ export type OrganizationRole =
   | 'primary_owner'
   | 'user';
 
-/**
- * The endpoint does not support the organization's type. Each endpoint's
- * description says which organization types it supports.
- */
-export interface OrganizationTypeNotSupportedErrorDetails {
-  error_code: 'organization_type_not_supported';
-}
-
-/**
- * A role attached to an RBAC Group in the request grants owner access, so this API
- * does not add members to that group (directly or through an invite), remove its
- * members, or delete it. Make the change in the organization's admin settings in
- * Claude.
- */
-export interface RBACGroupGrantsOwnerAccessErrorDetails {
-  error_code: 'rbac_group_grants_owner_access';
-}
-
-/**
- * The API could not finish checking whether an RBAC Group in the request grants
- * owner access (the check reached a fixed limit), so it made no change. Retrying
- * the same request will not help. Make the change in the organization's admin
- * settings in Claude.
- */
-export interface RBACGroupOwnerAccessUnconfirmedErrorDetails {
-  error_code: 'rbac_group_owner_access_unconfirmed';
-}
-
-/**
- * The request depends on a user profile that does not exist in the organization or
- * is no longer active. The request either names this user profile by ID, or names
- * a resource, such as an External Key, that is bound to it.
- */
-export interface UserProfileNotFoundErrorDetails {
-  error_code: 'user_profile_not_found';
-}
-
 Organization.APIKeys = APIKeys;
 Organization.ExternalKeys = ExternalKeys;
 Organization.Federation = Federation;
@@ -328,12 +300,9 @@ Organization.RBACRoles = RBACRoles;
 export declare namespace Organization {
   export {
     type ConcurrentMembershipChangeErrorDetails as ConcurrentMembershipChangeErrorDetails,
+    type OrgMemberLimitExceededErrorDetails as OrgMemberLimitExceededErrorDetails,
     type OrganizationInfo as OrganizationInfo,
     type OrganizationRole as OrganizationRole,
-    type OrganizationTypeNotSupportedErrorDetails as OrganizationTypeNotSupportedErrorDetails,
-    type RBACGroupGrantsOwnerAccessErrorDetails as RBACGroupGrantsOwnerAccessErrorDetails,
-    type RBACGroupOwnerAccessUnconfirmedErrorDetails as RBACGroupOwnerAccessUnconfirmedErrorDetails,
-    type UserProfileNotFoundErrorDetails as UserProfileNotFoundErrorDetails,
   };
 
   export {
@@ -358,6 +327,7 @@ export declare namespace Organization {
     type AzureExternalKeyConfigParam as AzureExternalKeyConfigParam,
     type ExternalKey as ExternalKey,
     type ExternalKeyAttachedAttachment as ExternalKeyAttachedAttachment,
+    type ExternalKeyChangedErrorDetails as ExternalKeyChangedErrorDetails,
     type ExternalKeyInWorkspacePolicyErrorDetails as ExternalKeyInWorkspacePolicyErrorDetails,
     type ExternalKeyUnattachedAttachment as ExternalKeyUnattachedAttachment,
     type GCPExternalKeyConfig as GCPExternalKeyConfig,
@@ -377,7 +347,6 @@ export declare namespace Organization {
     type CannotInviteEmailsWithUnverifiedDomainsErrorDetails as CannotInviteEmailsWithUnverifiedDomainsErrorDetails,
     type EmailDomainNotAllowedErrorDetails as EmailDomainNotAllowedErrorDetails,
     type InviteAlreadyExistsErrorDetails as InviteAlreadyExistsErrorDetails,
-    type OrgMemberLimitExceededErrorDetails as OrgMemberLimitExceededErrorDetails,
     type OrganizationInvite as OrganizationInvite,
     type InviteDeleteResponse as InviteDeleteResponse,
     type OrganizationInvitesPage as OrganizationInvitesPage,
@@ -411,7 +380,6 @@ export declare namespace Organization {
     type DataResidency as DataResidency,
     type DataResidencyCreateConfig as DataResidencyCreateConfig,
     type DataResidencyUpdateConfig as DataResidencyUpdateConfig,
-    type ExternalKeyChangedErrorDetails as ExternalKeyChangedErrorDetails,
     type KeyProfileMismatchErrorDetails as KeyProfileMismatchErrorDetails,
     type NoBillingWorkspaceRole as NoBillingWorkspaceRole,
     type Workspace as Workspace,
@@ -524,6 +492,8 @@ export declare namespace Organization {
     RBACGroups as RBACGroups,
     type DeletedRBACGroup as DeletedRBACGroup,
     type RBACGroup as RBACGroup,
+    type RBACGroupGrantsOwnerAccessErrorDetails as RBACGroupGrantsOwnerAccessErrorDetails,
+    type RBACGroupOwnerAccessUnconfirmedErrorDetails as RBACGroupOwnerAccessUnconfirmedErrorDetails,
     type RBACGroupsPageCursor as RBACGroupsPageCursor,
     type RBACGroupCreateParams as RBACGroupCreateParams,
     type RBACGroupUpdateParams as RBACGroupUpdateParams,

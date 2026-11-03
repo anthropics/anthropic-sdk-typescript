@@ -34,7 +34,6 @@ export {
   type DataResidency,
   type DataResidencyCreateConfig,
   type DataResidencyUpdateConfig,
-  type ExternalKeyChangedErrorDetails,
   type KeyProfileMismatchErrorDetails,
   type NoBillingWorkspaceRole,
   type Workspace,

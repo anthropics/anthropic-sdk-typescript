@@ -149,7 +149,6 @@ export {
   type CitationsDelta,
   type CitationsSearchResultLocation,
   type CitationsWebSearchResultLocation,
-  type ClaudeCodeVersionTooOldErrorDetails,
   type ClientToolUnion,
   type CodeExecutionOutputBlock,
   type CodeExecutionOutputBlockParam,
@@ -290,7 +289,6 @@ export {
   type ServerToolUseBlockParam,
   type SignatureDelta,
   type SkillParams,
-  type SkillReadBlockedUndecryptableErrorDetails,
   type StopReason,
   type SystemMessageParam,
   type TextBlock,
@@ -458,6 +456,7 @@ export {
   type BetaOverloadedError,
   type BetaPermissionError,
   type BetaRateLimitError,
+  type BetaUnsupportedCharsetErrorDetails,
 } from './beta/beta';
 export {
   Files,
@@ -491,17 +490,15 @@ export {
 export {
   Organization,
   type ConcurrentMembershipChangeErrorDetails,
+  type OrgMemberLimitExceededErrorDetails,
   type OrganizationInfo,
   type OrganizationRole,
-  type OrganizationTypeNotSupportedErrorDetails,
-  type RBACGroupGrantsOwnerAccessErrorDetails,
-  type RBACGroupOwnerAccessUnconfirmedErrorDetails,
-  type UserProfileNotFoundErrorDetails,
 } from './organization/organization';
 export {
   Skills,
   type DeletedSkill,
   type Skill,
+  type SkillReadBlockedUndecryptableErrorDetails,
   type SkillSource,
   type SkillCreateParams,
   type SkillRetrieveParams,
@@ -531,6 +528,7 @@ export {
   type UserProfileExternalUserEntityType,
   type UserProfileListOrder,
   type UserProfileListOrderBy,
+  type UserProfileNotFoundErrorDetails,
   type UserProfileProgramStatus,
   type UserProfilePrograms,
   type UserProfileCreateParams,

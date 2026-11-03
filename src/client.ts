@@ -114,6 +114,7 @@ import {
   BetaOverloadedError,
   BetaPermissionError,
   BetaRateLimitError,
+  BetaUnsupportedCharsetErrorDetails,
 } from './resources/beta/beta';
 import {
   AssistantMessageParam,
@@ -262,7 +263,6 @@ import {
   CitationsDelta,
   CitationsSearchResultLocation,
   CitationsWebSearchResultLocation,
-  ClaudeCodeVersionTooOldErrorDetails,
   ClientToolUnion,
   CodeExecutionOutputBlock,
   CodeExecutionOutputBlockParam,
@@ -463,7 +463,6 @@ import {
   ServerToolUseBlockParam,
   SignatureDelta,
   SkillParams,
-  SkillReadBlockedUndecryptableErrorDetails,
   StopReason,
   SystemMessageParam,
   TextBlock,
@@ -562,13 +561,10 @@ import {
 } from './resources/messages/messages';
 import {
   ConcurrentMembershipChangeErrorDetails,
+  OrgMemberLimitExceededErrorDetails,
   Organization,
   OrganizationInfo,
   OrganizationRole,
-  OrganizationTypeNotSupportedErrorDetails,
-  RBACGroupGrantsOwnerAccessErrorDetails,
-  RBACGroupOwnerAccessUnconfirmedErrorDetails,
-  UserProfileNotFoundErrorDetails,
 } from './resources/organization/organization';
 import {
   DeletedSkill,
@@ -576,6 +572,7 @@ import {
   SkillCreateParams,
   SkillDeleteParams,
   SkillListParams,
+  SkillReadBlockedUndecryptableErrorDetails,
   SkillRetrieveParams,
   SkillSource,
   Skills,
@@ -605,6 +602,7 @@ import {
   UserProfileListOrder,
   UserProfileListOrderBy,
   UserProfileListParams,
+  UserProfileNotFoundErrorDetails,
   UserProfileProgramStatus,
   UserProfilePrograms,
   UserProfileRetrieveParams,
@@ -2347,7 +2345,6 @@ export declare namespace Anthropic {
     type CitationsDelta as CitationsDelta,
     type CitationsSearchResultLocation as CitationsSearchResultLocation,
     type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
-    type ClaudeCodeVersionTooOldErrorDetails as ClaudeCodeVersionTooOldErrorDetails,
     type ClientToolUnion as ClientToolUnion,
     type CodeExecutionOutputBlock as CodeExecutionOutputBlock,
     type CodeExecutionOutputBlockParam as CodeExecutionOutputBlockParam,
@@ -2491,7 +2488,6 @@ export declare namespace Anthropic {
     type ServerToolUseBlockParam as ServerToolUseBlockParam,
     type SignatureDelta as SignatureDelta,
     type SkillParams as SkillParams,
-    type SkillReadBlockedUndecryptableErrorDetails as SkillReadBlockedUndecryptableErrorDetails,
     type StopReason as StopReason,
     type SystemMessageParam as SystemMessageParam,
     type TextBlock as TextBlock,
@@ -2680,6 +2676,7 @@ export declare namespace Anthropic {
     Skills as Skills,
     type DeletedSkill as DeletedSkill,
     type Skill as Skill,
+    type SkillReadBlockedUndecryptableErrorDetails as SkillReadBlockedUndecryptableErrorDetails,
     type SkillSource as SkillSource,
     type SkillsPageCursor as SkillsPageCursor,
     type SkillCreateParams as SkillCreateParams,
@@ -2710,6 +2707,7 @@ export declare namespace Anthropic {
     type UserProfileExternalUserEntityType as UserProfileExternalUserEntityType,
     type UserProfileListOrder as UserProfileListOrder,
     type UserProfileListOrderBy as UserProfileListOrderBy,
+    type UserProfileNotFoundErrorDetails as UserProfileNotFoundErrorDetails,
     type UserProfileProgramStatus as UserProfileProgramStatus,
     type UserProfilePrograms as UserProfilePrograms,
     type UserProfilesPageCursor as UserProfilesPageCursor,
@@ -2723,12 +2721,9 @@ export declare namespace Anthropic {
   export {
     Organization as Organization,
     type ConcurrentMembershipChangeErrorDetails as ConcurrentMembershipChangeErrorDetails,
+    type OrgMemberLimitExceededErrorDetails as OrgMemberLimitExceededErrorDetails,
     type OrganizationInfo as OrganizationInfo,
     type OrganizationRole as OrganizationRole,
-    type OrganizationTypeNotSupportedErrorDetails as OrganizationTypeNotSupportedErrorDetails,
-    type RBACGroupGrantsOwnerAccessErrorDetails as RBACGroupGrantsOwnerAccessErrorDetails,
-    type RBACGroupOwnerAccessUnconfirmedErrorDetails as RBACGroupOwnerAccessUnconfirmedErrorDetails,
-    type UserProfileNotFoundErrorDetails as UserProfileNotFoundErrorDetails,
   };
 
   export {
@@ -2747,12 +2742,14 @@ export declare namespace Anthropic {
     type BetaOverloadedError as BetaOverloadedError,
     type BetaPermissionError as BetaPermissionError,
     type BetaRateLimitError as BetaRateLimitError,
+    type BetaUnsupportedCharsetErrorDetails as BetaUnsupportedCharsetErrorDetails,
   };
 
   export type APIErrorObject = API.APIErrorObject;
   export type AuthenticationError = API.AuthenticationError;
   export type BillingError = API.BillingError;
   export type ClaudeCodeKeyCreatorNotMemberErrorDetails = API.ClaudeCodeKeyCreatorNotMemberErrorDetails;
+  export type ClaudeCodeVersionTooOldErrorDetails = API.ClaudeCodeVersionTooOldErrorDetails;
   export type CmekContextUnavailableErrorDetails = API.CmekContextUnavailableErrorDetails;
   export type CmekKeyDisabledErrorDetails = API.CmekKeyDisabledErrorDetails;
   export type CmekKeyNetworkBlockedErrorDetails = API.CmekKeyNetworkBlockedErrorDetails;
@@ -2766,6 +2763,7 @@ export declare namespace Anthropic {
   export type InvalidRequestError = API.InvalidRequestError;
   export type NotFoundError = API.NotFoundError;
   export type OrganizationOnHoldErrorDetails = API.OrganizationOnHoldErrorDetails;
+  export type OrganizationTypeNotSupportedErrorDetails = API.OrganizationTypeNotSupportedErrorDetails;
   export type OverloadedError = API.OverloadedError;
   export type PermissionError = API.PermissionError;
   export type RateLimitError = API.RateLimitError;

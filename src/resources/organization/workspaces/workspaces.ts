@@ -216,14 +216,6 @@ export interface DataResidencyUpdateConfig {
 }
 
 /**
- * The external key changed while the request was validating it. Send the request
- * again.
- */
-export interface ExternalKeyChangedErrorDetails {
-  error_code: 'external_key_changed';
-}
-
-/**
  * The External Key is bound to a user profile, and the Workspace does not have
  * that user profile. A Workspace can use only a key bound to its own user profile
  * or a key that isn't bound to one.
@@ -499,7 +491,6 @@ export declare namespace Workspaces {
     type DataResidency as DataResidency,
     type DataResidencyCreateConfig as DataResidencyCreateConfig,
     type DataResidencyUpdateConfig as DataResidencyUpdateConfig,
-    type ExternalKeyChangedErrorDetails as ExternalKeyChangedErrorDetails,
     type KeyProfileMismatchErrorDetails as KeyProfileMismatchErrorDetails,
     type NoBillingWorkspaceRole as NoBillingWorkspaceRole,
     type Workspace as Workspace,

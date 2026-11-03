@@ -209,6 +209,14 @@ export interface Skill {
   updated_at: string;
 }
 
+/**
+ * A custom skill the request names is stored under an encryption key state the
+ * workspace cannot currently decrypt.
+ */
+export interface SkillReadBlockedUndecryptableErrorDetails {
+  error_code: 'skill_read_blocked_undecryptable';
+}
+
 export interface SkillSource {
   /**
    * Where the Skill comes from.
@@ -302,6 +310,7 @@ export declare namespace Skills {
   export {
     type DeletedSkill as DeletedSkill,
     type Skill as Skill,
+    type SkillReadBlockedUndecryptableErrorDetails as SkillReadBlockedUndecryptableErrorDetails,
     type SkillSource as SkillSource,
     type SkillsPageCursor as SkillsPageCursor,
     type SkillCreateParams as SkillCreateParams,

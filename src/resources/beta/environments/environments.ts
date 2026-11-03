@@ -370,6 +370,13 @@ export interface BetaEnvironmentDeleteResponse {
 }
 
 /**
+ * `settings.environment_id` names no Environment within the organization's reach.
+ */
+export interface BetaEnvironmentNotFoundErrorDetails {
+  error_code: 'environment_not_found';
+}
+
+/**
  * Anthropic has turned off updating environments for this organization. Existing
  * environments still work as they are.
  */
@@ -741,6 +748,7 @@ export declare namespace Environments {
     type BetaEnvironmentArchivedErrorDetails as BetaEnvironmentArchivedErrorDetails,
     type BetaEnvironmentCreateDisabledErrorDetails as BetaEnvironmentCreateDisabledErrorDetails,
     type BetaEnvironmentDeleteResponse as BetaEnvironmentDeleteResponse,
+    type BetaEnvironmentNotFoundErrorDetails as BetaEnvironmentNotFoundErrorDetails,
     type BetaEnvironmentUpdateDisabledErrorDetails as BetaEnvironmentUpdateDisabledErrorDetails,
     type BetaInvalidConfigTypeChangeErrorDetails as BetaInvalidConfigTypeChangeErrorDetails,
     type BetaInvalidMetadataErrorDetails as BetaInvalidMetadataErrorDetails,

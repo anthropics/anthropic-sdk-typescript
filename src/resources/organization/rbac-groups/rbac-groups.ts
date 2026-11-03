@@ -205,6 +205,26 @@ export interface RBACGroup {
   updated_at: string;
 }
 
+/**
+ * A role attached to an RBAC Group in the request grants owner access, so this API
+ * does not add members to that group (directly or through an invite), remove its
+ * members, or delete it. Make the change in the organization's admin settings in
+ * Claude.
+ */
+export interface RBACGroupGrantsOwnerAccessErrorDetails {
+  error_code: 'rbac_group_grants_owner_access';
+}
+
+/**
+ * The API could not finish checking whether an RBAC Group in the request grants
+ * owner access (the check reached a fixed limit), so it made no change. Retrying
+ * the same request will not help. Make the change in the organization's admin
+ * settings in Claude.
+ */
+export interface RBACGroupOwnerAccessUnconfirmedErrorDetails {
+  error_code: 'rbac_group_owner_access_unconfirmed';
+}
+
 export interface RBACGroupCreateParams {
   /**
    * Name of the RBAC Group. Not uniqueness-enforced.
@@ -227,6 +247,8 @@ export declare namespace RBACGroups {
   export {
     type DeletedRBACGroup as DeletedRBACGroup,
     type RBACGroup as RBACGroup,
+    type RBACGroupGrantsOwnerAccessErrorDetails as RBACGroupGrantsOwnerAccessErrorDetails,
+    type RBACGroupOwnerAccessUnconfirmedErrorDetails as RBACGroupOwnerAccessUnconfirmedErrorDetails,
     type RBACGroupsPageCursor as RBACGroupsPageCursor,
     type RBACGroupCreateParams as RBACGroupCreateParams,
     type RBACGroupUpdateParams as RBACGroupUpdateParams,

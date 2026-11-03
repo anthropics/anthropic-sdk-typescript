@@ -641,6 +641,7 @@ export {
   type BetaOverloadedError,
   type BetaPermissionError,
   type BetaRateLimitError,
+  type BetaUnsupportedCharsetErrorDetails,
 } from './beta';
 export {
   DeploymentRuns,
@@ -747,6 +748,7 @@ export {
   type BetaEnvironmentArchivedErrorDetails,
   type BetaEnvironmentCreateDisabledErrorDetails,
   type BetaEnvironmentDeleteResponse,
+  type BetaEnvironmentNotFoundErrorDetails,
   type BetaEnvironmentUpdateDisabledErrorDetails,
   type BetaInvalidConfigTypeChangeErrorDetails,
   type BetaInvalidMetadataErrorDetails,
@@ -810,7 +812,6 @@ export {
   type BetaBillingFrozenErrorDetails,
   type BetaOrganization,
   type BetaOrganizationRole,
-  type BetaUnsupportedCharsetErrorDetails,
 } from './organization/index';
 export {
   Sessions,

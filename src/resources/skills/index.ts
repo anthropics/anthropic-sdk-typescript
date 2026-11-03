@@ -2,6 +2,7 @@ export {
   Skills,
   type DeletedSkill,
   type Skill,
+  type SkillReadBlockedUndecryptableErrorDetails,
   type SkillSource,
   type SkillCreateParams,
   type SkillRetrieveParams,

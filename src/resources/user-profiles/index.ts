@@ -26,6 +26,7 @@ export {
   type UserProfileExternalUserEntityType,
   type UserProfileListOrder,
   type UserProfileListOrderBy,
+  type UserProfileNotFoundErrorDetails,
   type UserProfileProgramStatus,
   type UserProfilePrograms,
   type UserProfileCreateParams,

@@ -308,6 +308,7 @@ import {
   BetaEnvironmentArchivedErrorDetails,
   BetaEnvironmentCreateDisabledErrorDetails,
   BetaEnvironmentDeleteResponse,
+  BetaEnvironmentNotFoundErrorDetails,
   BetaEnvironmentUpdateDisabledErrorDetails,
   BetaEnvironmentsPageCursor,
   BetaInvalidConfigTypeChangeErrorDetails,
@@ -844,7 +845,6 @@ import {
   BetaBillingFrozenErrorDetails,
   BetaOrganization,
   BetaOrganizationRole,
-  BetaUnsupportedCharsetErrorDetails,
   Organization,
 } from './organization/organization';
 import * as SessionsAPI from './sessions/sessions';
@@ -1131,6 +1131,14 @@ export interface BetaRateLimitError {
   type: 'rate_limit_error';
 }
 
+/**
+ * The request's `Content-Type` header names a charset other than UTF-8, ISO-8859-1
+ * or US-ASCII. Send the request with no charset, or with one of these.
+ */
+export interface BetaUnsupportedCharsetErrorDetails {
+  error_code: 'unsupported_charset';
+}
+
 Beta.Models = Models;
 Beta.Messages = Messages;
 Beta.Agents = Agents;
@@ -1164,6 +1172,7 @@ export declare namespace Beta {
     type BetaOverloadedError as BetaOverloadedError,
     type BetaPermissionError as BetaPermissionError,
     type BetaRateLimitError as BetaRateLimitError,
+    type BetaUnsupportedCharsetErrorDetails as BetaUnsupportedCharsetErrorDetails,
   };
 
   export {
@@ -1808,6 +1817,7 @@ export declare namespace Beta {
     type BetaEnvironmentArchivedErrorDetails as BetaEnvironmentArchivedErrorDetails,
     type BetaEnvironmentCreateDisabledErrorDetails as BetaEnvironmentCreateDisabledErrorDetails,
     type BetaEnvironmentDeleteResponse as BetaEnvironmentDeleteResponse,
+    type BetaEnvironmentNotFoundErrorDetails as BetaEnvironmentNotFoundErrorDetails,
     type BetaEnvironmentUpdateDisabledErrorDetails as BetaEnvironmentUpdateDisabledErrorDetails,
     type BetaInvalidConfigTypeChangeErrorDetails as BetaInvalidConfigTypeChangeErrorDetails,
     type BetaInvalidMetadataErrorDetails as BetaInvalidMetadataErrorDetails,
@@ -2117,6 +2127,5 @@ export declare namespace Beta {
     type BetaBillingFrozenErrorDetails as BetaBillingFrozenErrorDetails,
     type BetaOrganization as BetaOrganization,
     type BetaOrganizationRole as BetaOrganizationRole,
-    type BetaUnsupportedCharsetErrorDetails as BetaUnsupportedCharsetErrorDetails,
   };
 }
