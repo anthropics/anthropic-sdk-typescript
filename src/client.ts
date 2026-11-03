@@ -1694,7 +1694,7 @@ export class BaseAnthropic {
       durationMs: headersTime - startTime,
     });
 
-    armAbandonmentBackstop(response.body ?? response, controller);
+    armAbandonmentBackstop(response, controller);
     return { response, options, controller, requestLogID, retryOfRequestLogID, startTime };
   }
 

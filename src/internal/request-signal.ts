@@ -14,6 +14,9 @@
  */
 const cleanups = new WeakMap<AbortController, () => void>();
 
+// One per request, shared by its registered targets.
+type Abandonment = { controller: AbortController; remaining: number };
+
 // Backstop for requests that never reach an explicit release point: a caller
 // that partially iterates a stream (or receives a raw binary Response) and
 // drops the reference never completes, errors, or cancels it, so the only
@@ -23,15 +26,15 @@ const cleanups = new WeakMap<AbortController, () => void>();
 // not reference the response, or it could never be collected. Typed
 // structurally because the compiler lib is es2020.
 type AbandonmentRegistry = {
-  register(target: object, heldValue: AbortController, token: object): void;
+  register(target: object, heldValue: Abandonment, token: object): void;
   unregister(token: object): void;
 };
 
 const registry: AbandonmentRegistry | null =
   typeof (globalThis as any).FinalizationRegistry === 'function' ?
-    new (globalThis as any).FinalizationRegistry((controller: AbortController) =>
-      releaseRequestSignal(controller),
-    )
+    new (globalThis as any).FinalizationRegistry((abandonment: Abandonment) => {
+      if (--abandonment.remaining === 0) releaseRequestSignal(abandonment.controller);
+    })
   : null;
 
 // Module-scope factory so the cleanup closure captures exactly the signal and
@@ -50,12 +53,17 @@ export function registerRequestSignalCleanup(
   cleanups.set(controller, makeCleanup(signal, listener));
 }
 
-// The registered target is the response BODY, not the Response: a caller can
-// keep a reader on the body and drop the Response wrapper (`.asResponse()`),
-// and the listener must survive for as long as anything can still read - the
-// body is what a live read keeps alive.
-export function armAbandonmentBackstop(body: object, controller: AbortController): void {
-  if (cleanups.has(controller)) registry?.register(body, controller, controller);
+// Both the Response and its body are registered, and the listener is released
+// only once both are collected. A caller can keep a reader on the body and drop
+// the Response wrapper (`.asResponse()`), so the body alone keeps it armed. A
+// caller can also hold the Response with its body unread, and some runtimes
+// (Cloudflare workerd) let the body's JS wrapper be collected while the
+// Response is alive, so the Response alone keeps it armed too.
+export function armAbandonmentBackstop(response: Response, controller: AbortController): void {
+  if (!registry || !cleanups.has(controller)) return;
+  const targets: object[] = response.body ? [response.body, response] : [response];
+  const abandonment: Abandonment = { controller, remaining: targets.length };
+  for (const target of targets) registry.register(target, abandonment, controller);
 }
 
 export function releaseRequestSignal(controller: AbortController): void {
