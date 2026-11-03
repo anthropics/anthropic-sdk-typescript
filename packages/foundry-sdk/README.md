@@ -1,4 +1,4 @@
-# <img src=".github/logo.svg" alt="" width="32"> Claude SDK for Microsoft Foundry
+# <img src=".github/logo.svg" alt="" width="32"> Anthropic SDK for Microsoft Foundry
 
 [![NPM version](https://img.shields.io/npm/v/@anthropic-ai/foundry-sdk.svg?color=blue)](https://npmjs.org/package/@anthropic-ai/foundry-sdk)
 
