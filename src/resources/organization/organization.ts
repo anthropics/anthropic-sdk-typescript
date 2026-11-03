@@ -11,6 +11,8 @@ import {
   APIKeyWorkspaceScope,
   APIKeys,
   APIKeysPage,
+  OrgAPIKeyLimitExceededErrorDetails,
+  WorkspaceAPIKeyLimitExceededErrorDetails,
 } from './api-keys';
 import * as ComplianceSettingsAPI from './compliance-settings';
 import {
@@ -33,6 +35,7 @@ import {
   ExternalKeyAttachedAttachment,
   ExternalKeyCreateParams,
   ExternalKeyDeleteResponse,
+  ExternalKeyInWorkspacePolicyErrorDetails,
   ExternalKeyListParams,
   ExternalKeyUnattachedAttachment,
   ExternalKeyUpdateParams,
@@ -43,10 +46,15 @@ import {
 } from './external-keys';
 import * as InvitesAPI from './invites';
 import {
+  AlreadyMemberErrorDetails,
+  CannotInviteEmailsWithUnverifiedDomainsErrorDetails,
+  EmailDomainNotAllowedErrorDetails,
+  InviteAlreadyExistsErrorDetails,
   InviteCreateParams,
   InviteDeleteResponse,
   InviteListParams,
   Invites,
+  OrgMemberLimitExceededErrorDetails,
   OrganizationInvite,
   OrganizationInvitesPage,
 } from './invites';
@@ -66,6 +74,7 @@ import {
 } from './rate-limits';
 import * as UsersAPI from './users';
 import {
+  CannotRemoveLastMemberErrorDetails,
   OrganizationUser,
   OrganizationUsersPage,
   UserListParams,
@@ -171,11 +180,16 @@ import {
   DataResidency,
   DataResidencyCreateConfig,
   DataResidencyUpdateConfig,
+  ExternalKeyChangedErrorDetails,
+  KeyProfileMismatchErrorDetails,
   NoBillingWorkspaceRole,
   Workspace,
   WorkspaceCreateParams,
   WorkspaceListParams,
   WorkspaceMember,
+  WorkspaceMemberLimitExceededErrorDetails,
+  WorkspacePolicyField,
+  WorkspacePolicyViolationErrorDetails,
   WorkspaceRole,
   WorkspaceUpdateParams,
   Workspaces,
@@ -222,6 +236,14 @@ export class Organization extends APIResource {
   }
 }
 
+/**
+ * Another change to the organization's members is in progress. Retry the request
+ * once it completes.
+ */
+export interface ConcurrentMembershipChangeErrorDetails {
+  error_code: 'concurrent_membership_change';
+}
+
 export interface OrganizationInfo {
   /**
    * ID of the Organization.
@@ -252,6 +274,43 @@ export type OrganizationRole =
   | 'primary_owner'
   | 'user';
 
+/**
+ * The endpoint does not support the organization's type. Each endpoint's
+ * description says which organization types it supports.
+ */
+export interface OrganizationTypeNotSupportedErrorDetails {
+  error_code: 'organization_type_not_supported';
+}
+
+/**
+ * A role attached to an RBAC Group in the request grants owner access, so this API
+ * does not add members to that group (directly or through an invite), remove its
+ * members, or delete it. Make the change in the organization's admin settings in
+ * Claude.
+ */
+export interface RBACGroupGrantsOwnerAccessErrorDetails {
+  error_code: 'rbac_group_grants_owner_access';
+}
+
+/**
+ * The API could not finish checking whether an RBAC Group in the request grants
+ * owner access (the check reached a fixed limit), so it made no change. Retrying
+ * the same request will not help. Make the change in the organization's admin
+ * settings in Claude.
+ */
+export interface RBACGroupOwnerAccessUnconfirmedErrorDetails {
+  error_code: 'rbac_group_owner_access_unconfirmed';
+}
+
+/**
+ * The request depends on a user profile that does not exist in the organization or
+ * is no longer active. The request either names this user profile by ID, or names
+ * a resource, such as an External Key, that is bound to it.
+ */
+export interface UserProfileNotFoundErrorDetails {
+  error_code: 'user_profile_not_found';
+}
+
 Organization.APIKeys = APIKeys;
 Organization.ExternalKeys = ExternalKeys;
 Organization.Federation = Federation;
@@ -267,7 +326,15 @@ Organization.RBACGroups = RBACGroups;
 Organization.RBACRoles = RBACRoles;
 
 export declare namespace Organization {
-  export { type OrganizationInfo as OrganizationInfo, type OrganizationRole as OrganizationRole };
+  export {
+    type ConcurrentMembershipChangeErrorDetails as ConcurrentMembershipChangeErrorDetails,
+    type OrganizationInfo as OrganizationInfo,
+    type OrganizationRole as OrganizationRole,
+    type OrganizationTypeNotSupportedErrorDetails as OrganizationTypeNotSupportedErrorDetails,
+    type RBACGroupGrantsOwnerAccessErrorDetails as RBACGroupGrantsOwnerAccessErrorDetails,
+    type RBACGroupOwnerAccessUnconfirmedErrorDetails as RBACGroupOwnerAccessUnconfirmedErrorDetails,
+    type UserProfileNotFoundErrorDetails as UserProfileNotFoundErrorDetails,
+  };
 
   export {
     APIKeys as APIKeys,
@@ -277,6 +344,8 @@ export declare namespace Organization {
     type APIKeyServiceAccountActor as APIKeyServiceAccountActor,
     type APIKeyUserActor as APIKeyUserActor,
     type APIKeyWorkspaceScope as APIKeyWorkspaceScope,
+    type OrgAPIKeyLimitExceededErrorDetails as OrgAPIKeyLimitExceededErrorDetails,
+    type WorkspaceAPIKeyLimitExceededErrorDetails as WorkspaceAPIKeyLimitExceededErrorDetails,
     type APIKeysPage as APIKeysPage,
     type APIKeyUpdateParams as APIKeyUpdateParams,
     type APIKeyListParams as APIKeyListParams,
@@ -289,6 +358,7 @@ export declare namespace Organization {
     type AzureExternalKeyConfigParam as AzureExternalKeyConfigParam,
     type ExternalKey as ExternalKey,
     type ExternalKeyAttachedAttachment as ExternalKeyAttachedAttachment,
+    type ExternalKeyInWorkspacePolicyErrorDetails as ExternalKeyInWorkspacePolicyErrorDetails,
     type ExternalKeyUnattachedAttachment as ExternalKeyUnattachedAttachment,
     type GCPExternalKeyConfig as GCPExternalKeyConfig,
     type ExternalKeyDeleteResponse as ExternalKeyDeleteResponse,
@@ -303,6 +373,11 @@ export declare namespace Organization {
 
   export {
     Invites as Invites,
+    type AlreadyMemberErrorDetails as AlreadyMemberErrorDetails,
+    type CannotInviteEmailsWithUnverifiedDomainsErrorDetails as CannotInviteEmailsWithUnverifiedDomainsErrorDetails,
+    type EmailDomainNotAllowedErrorDetails as EmailDomainNotAllowedErrorDetails,
+    type InviteAlreadyExistsErrorDetails as InviteAlreadyExistsErrorDetails,
+    type OrgMemberLimitExceededErrorDetails as OrgMemberLimitExceededErrorDetails,
     type OrganizationInvite as OrganizationInvite,
     type InviteDeleteResponse as InviteDeleteResponse,
     type OrganizationInvitesPage as OrganizationInvitesPage,
@@ -322,6 +397,7 @@ export declare namespace Organization {
 
   export {
     Users as Users,
+    type CannotRemoveLastMemberErrorDetails as CannotRemoveLastMemberErrorDetails,
     type OrganizationUser as OrganizationUser,
     type UserRemoveResponse as UserRemoveResponse,
     type OrganizationUsersPage as OrganizationUsersPage,
@@ -335,9 +411,14 @@ export declare namespace Organization {
     type DataResidency as DataResidency,
     type DataResidencyCreateConfig as DataResidencyCreateConfig,
     type DataResidencyUpdateConfig as DataResidencyUpdateConfig,
+    type ExternalKeyChangedErrorDetails as ExternalKeyChangedErrorDetails,
+    type KeyProfileMismatchErrorDetails as KeyProfileMismatchErrorDetails,
     type NoBillingWorkspaceRole as NoBillingWorkspaceRole,
     type Workspace as Workspace,
     type WorkspaceMember as WorkspaceMember,
+    type WorkspaceMemberLimitExceededErrorDetails as WorkspaceMemberLimitExceededErrorDetails,
+    type WorkspacePolicyField as WorkspacePolicyField,
+    type WorkspacePolicyViolationErrorDetails as WorkspacePolicyViolationErrorDetails,
     type WorkspaceRole as WorkspaceRole,
     type WorkspacesPage as WorkspacesPage,
     type WorkspaceCreateParams as WorkspaceCreateParams,

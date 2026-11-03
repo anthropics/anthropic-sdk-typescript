@@ -102,6 +102,46 @@ export class Invites extends APIResource {
 
 export type OrganizationInvitesPage = Page<OrganizationInvite>;
 
+/**
+ * The email address already belongs to a user in the organization. The message
+ * names the user.
+ */
+export interface AlreadyMemberErrorDetails {
+  error_code: 'already_member';
+}
+
+/**
+ * The email address's domain is not one of the verified domains of the
+ * organization's parent organization.
+ */
+export interface CannotInviteEmailsWithUnverifiedDomainsErrorDetails {
+  error_code: 'cannot_invite_emails_with_unverified_domains';
+}
+
+/**
+ * The organization restricts invites to an allowed list of email domains, and the
+ * list is empty or does not include the email address's domain.
+ */
+export interface EmailDomainNotAllowedErrorDetails {
+  error_code: 'email_domain_not_allowed';
+}
+
+/**
+ * A pending invite already exists for the email address. The message names the
+ * invite.
+ */
+export interface InviteAlreadyExistsErrorDetails {
+  error_code: 'invite_already_exists';
+}
+
+/**
+ * The organization has reached the member limit that Anthropic set for it. Pending
+ * invites count toward the limit.
+ */
+export interface OrgMemberLimitExceededErrorDetails {
+  error_code: 'org_member_limit_exceeded';
+}
+
 export interface OrganizationInvite {
   /**
    * ID of the Invite.
@@ -218,6 +258,11 @@ export interface InviteListParams extends PageParams {
 
 export declare namespace Invites {
   export {
+    type AlreadyMemberErrorDetails as AlreadyMemberErrorDetails,
+    type CannotInviteEmailsWithUnverifiedDomainsErrorDetails as CannotInviteEmailsWithUnverifiedDomainsErrorDetails,
+    type EmailDomainNotAllowedErrorDetails as EmailDomainNotAllowedErrorDetails,
+    type InviteAlreadyExistsErrorDetails as InviteAlreadyExistsErrorDetails,
+    type OrgMemberLimitExceededErrorDetails as OrgMemberLimitExceededErrorDetails,
     type OrganizationInvite as OrganizationInvite,
     type InviteDeleteResponse as InviteDeleteResponse,
     type OrganizationInvitesPage as OrganizationInvitesPage,

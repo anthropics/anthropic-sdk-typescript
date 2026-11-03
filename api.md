@@ -7,21 +7,33 @@ Types:
 - <code><a href="./src/resources/shared.ts">APIErrorObject</a></code>
 - <code><a href="./src/resources/shared.ts">AuthenticationError</a></code>
 - <code><a href="./src/resources/shared.ts">BillingError</a></code>
+- <code><a href="./src/resources/shared.ts">ClaudeCodeKeyCreatorNotMemberErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">CmekContextUnavailableErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">CmekKeyDisabledErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">CmekKeyNetworkBlockedErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">CmekKeyUnreachableErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">EnforcedSpendLimitReachedErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">ErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorObject</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorResponse</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorType</a></code>
 - <code><a href="./src/resources/shared.ts">GatewayTimeoutError</a></code>
 - <code><a href="./src/resources/shared.ts">InvalidRequestError</a></code>
 - <code><a href="./src/resources/shared.ts">NotFoundError</a></code>
+- <code><a href="./src/resources/shared.ts">OrganizationOnHoldErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">OverloadedError</a></code>
 - <code><a href="./src/resources/shared.ts">PermissionError</a></code>
 - <code><a href="./src/resources/shared.ts">RateLimitError</a></code>
+- <code><a href="./src/resources/shared.ts">RequestBodyEncodingInvalidErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">RequestBodyEncodingUnsupportedErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">RequestBodyTooLargeAfterDecodingErrorDetails</a></code>
 
 # Messages
 
 Types:
 
 - <code><a href="./src/resources/messages/messages.ts">AssistantMessageParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">AvailableToolsLimitExceededErrorDetails</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Base64ImageSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Base64PDFSource</a></code>
 - <code><a href="./src/resources/messages/messages.ts">BashCodeExecutionOutputBlock</a></code>
@@ -166,6 +178,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">CitationsDelta</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationsSearchResultLocation</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CitationsWebSearchResultLocation</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ClaudeCodeVersionTooOldErrorDetails</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ClientToolUnion</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionOutputBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionOutputBlockParam</a></code>
@@ -182,6 +195,15 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultError</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultErrorCode</a></code>
 - <code><a href="./src/resources/messages/messages.ts">CodeExecutionToolResultErrorParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionBlockAmbiguousErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionBlockMisplacedErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionContentMismatchErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionIncompleteTurnErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionNothingToSummarizeErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionSignatureInvalidErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionTooManyToolReferencesErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionToolChangesMismatchErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">CompactionUnavailableErrorDetails</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerCursorPositionConfig</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerCursorPositionInput</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ComputerCursorPositionToolUseBlock</a></code>
@@ -296,6 +318,7 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">ServerToolUseBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">SignatureDelta</a></code>
 - <code><a href="./src/resources/messages/messages.ts">SkillParams</a></code>
+- <code><a href="./src/resources/messages/messages.ts">SkillReadBlockedUndecryptableErrorDetails</a></code>
 - <code><a href="./src/resources/messages/messages.ts">StopReason</a></code>
 - <code><a href="./src/resources/messages/messages.ts">SystemMessageParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">TextBlock</a></code>
@@ -322,6 +345,12 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">ThinkingConfigEnabled</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingConfigParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ThinkingDelta</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThreadAlreadyContinuedErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThreadContinueInFlightErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThreadFingerprintMismatchErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThreadNotFoundErrorDetails</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThreadUnsupportedFeatureName</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ThreadUnsupportedRequestErrorDetails</a></code>
 - <code><a href="./src/resources/messages/messages.ts">Tool</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolBash20250124</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolChoice</a></code>
@@ -329,8 +358,10 @@ Types:
 - <code><a href="./src/resources/messages/messages.ts">ToolChoiceAuto</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolChoiceNone</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolChoiceTool</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolNameConflictErrorDetails</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolReferenceBlock</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolReferenceBlockParam</a></code>
+- <code><a href="./src/resources/messages/messages.ts">ToolReferenceUnresolvedErrorDetails</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolResultBlockParam</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolSearchToolBm25_20251119</a></code>
 - <code><a href="./src/resources/messages/messages.ts">ToolSearchToolRegex20251119</a></code>
@@ -495,7 +526,10 @@ Methods:
 Types:
 
 - <code><a href="./src/resources/files.ts">DeletedFile</a></code>
+- <code><a href="./src/resources/files.ts">FileExpiredErrorDetails</a></code>
 - <code><a href="./src/resources/files.ts">FileMetadata</a></code>
+- <code><a href="./src/resources/files.ts">FileNotDownloadableErrorDetails</a></code>
+- <code><a href="./src/resources/files.ts">StorageQuotaExceededErrorDetails</a></code>
 
 Methods:
 
@@ -584,8 +618,13 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/organization/organization.ts">ConcurrentMembershipChangeErrorDetails</a></code>
 - <code><a href="./src/resources/organization/organization.ts">OrganizationInfo</a></code>
 - <code><a href="./src/resources/organization/organization.ts">OrganizationRole</a></code>
+- <code><a href="./src/resources/organization/organization.ts">OrganizationTypeNotSupportedErrorDetails</a></code>
+- <code><a href="./src/resources/organization/organization.ts">RBACGroupGrantsOwnerAccessErrorDetails</a></code>
+- <code><a href="./src/resources/organization/organization.ts">RBACGroupOwnerAccessUnconfirmedErrorDetails</a></code>
+- <code><a href="./src/resources/organization/organization.ts">UserProfileNotFoundErrorDetails</a></code>
 
 Methods:
 
@@ -601,6 +640,8 @@ Types:
 - <code><a href="./src/resources/organization/api-keys.ts">APIKeyServiceAccountActor</a></code>
 - <code><a href="./src/resources/organization/api-keys.ts">APIKeyUserActor</a></code>
 - <code><a href="./src/resources/organization/api-keys.ts">APIKeyWorkspaceScope</a></code>
+- <code><a href="./src/resources/organization/api-keys.ts">OrgAPIKeyLimitExceededErrorDetails</a></code>
+- <code><a href="./src/resources/organization/api-keys.ts">WorkspaceAPIKeyLimitExceededErrorDetails</a></code>
 
 Methods:
 
@@ -617,6 +658,7 @@ Types:
 - <code><a href="./src/resources/organization/external-keys.ts">AzureExternalKeyConfigParam</a></code>
 - <code><a href="./src/resources/organization/external-keys.ts">ExternalKey</a></code>
 - <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyAttachedAttachment</a></code>
+- <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyInWorkspacePolicyErrorDetails</a></code>
 - <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyUnattachedAttachment</a></code>
 - <code><a href="./src/resources/organization/external-keys.ts">GCPExternalKeyConfig</a></code>
 - <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyDeleteResponse</a></code>
@@ -684,6 +726,11 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/organization/invites.ts">AlreadyMemberErrorDetails</a></code>
+- <code><a href="./src/resources/organization/invites.ts">CannotInviteEmailsWithUnverifiedDomainsErrorDetails</a></code>
+- <code><a href="./src/resources/organization/invites.ts">EmailDomainNotAllowedErrorDetails</a></code>
+- <code><a href="./src/resources/organization/invites.ts">InviteAlreadyExistsErrorDetails</a></code>
+- <code><a href="./src/resources/organization/invites.ts">OrgMemberLimitExceededErrorDetails</a></code>
 - <code><a href="./src/resources/organization/invites.ts">OrganizationInvite</a></code>
 - <code><a href="./src/resources/organization/invites.ts">InviteDeleteResponse</a></code>
 
@@ -725,6 +772,7 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/organization/users.ts">CannotRemoveLastMemberErrorDetails</a></code>
 - <code><a href="./src/resources/organization/users.ts">OrganizationUser</a></code>
 - <code><a href="./src/resources/organization/users.ts">UserRemoveResponse</a></code>
 
@@ -743,9 +791,14 @@ Types:
 - <code><a href="./src/resources/organization/workspaces/workspaces.ts">DataResidency</a></code>
 - <code><a href="./src/resources/organization/workspaces/workspaces.ts">DataResidencyCreateConfig</a></code>
 - <code><a href="./src/resources/organization/workspaces/workspaces.ts">DataResidencyUpdateConfig</a></code>
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">ExternalKeyChangedErrorDetails</a></code>
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">KeyProfileMismatchErrorDetails</a></code>
 - <code><a href="./src/resources/organization/workspaces/workspaces.ts">NoBillingWorkspaceRole</a></code>
 - <code><a href="./src/resources/organization/workspaces/workspaces.ts">Workspace</a></code>
 - <code><a href="./src/resources/organization/workspaces/workspaces.ts">WorkspaceMember</a></code>
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">WorkspaceMemberLimitExceededErrorDetails</a></code>
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">WorkspacePolicyField</a></code>
+- <code><a href="./src/resources/organization/workspaces/workspaces.ts">WorkspacePolicyViolationErrorDetails</a></code>
 - <code><a href="./src/resources/organization/workspaces/workspaces.ts">WorkspaceRole</a></code>
 
 Methods:
@@ -1733,7 +1786,12 @@ Types:
 - <code><a href="./src/resources/beta/environments/environments.ts">BetaCloudConfig</a></code>
 - <code><a href="./src/resources/beta/environments/environments.ts">BetaCloudConfigParams</a></code>
 - <code><a href="./src/resources/beta/environments/environments.ts">BetaEnvironment</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaEnvironmentArchivedErrorDetails</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaEnvironmentCreateDisabledErrorDetails</a></code>
 - <code><a href="./src/resources/beta/environments/environments.ts">BetaEnvironmentDeleteResponse</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaEnvironmentUpdateDisabledErrorDetails</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaInvalidConfigTypeChangeErrorDetails</a></code>
+- <code><a href="./src/resources/beta/environments/environments.ts">BetaInvalidMetadataErrorDetails</a></code>
 - <code><a href="./src/resources/beta/environments/environments.ts">BetaLimitedNetwork</a></code>
 - <code><a href="./src/resources/beta/environments/environments.ts">BetaLimitedNetworkParams</a></code>
 - <code><a href="./src/resources/beta/environments/environments.ts">BetaPackages</a></code>
@@ -1755,6 +1813,7 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/beta/environments/work.ts">BetaHeartbeatPreconditionFailedErrorDetails</a></code>
 - <code><a href="./src/resources/beta/environments/work.ts">BetaSelfHostedWork</a></code>
 - <code><a href="./src/resources/beta/environments/work.ts">BetaSelfHostedWorkHeartbeatResponse</a></code>
 - <code><a href="./src/resources/beta/environments/work.ts">BetaSelfHostedWorkListResponse</a></code>
@@ -1762,6 +1821,7 @@ Types:
 - <code><a href="./src/resources/beta/environments/work.ts">BetaSelfHostedWorkStopRequest</a></code>
 - <code><a href="./src/resources/beta/environments/work.ts">BetaSelfHostedWorkUpdateRequest</a></code>
 - <code><a href="./src/resources/beta/environments/work.ts">BetaSessionWorkData</a></code>
+- <code><a href="./src/resources/beta/environments/work.ts">BetaWorkLeaseState</a></code>
 
 Methods:
 
@@ -2399,8 +2459,10 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/beta/organization/organization.ts">BetaBillingFrozenErrorDetails</a></code>
 - <code><a href="./src/resources/beta/organization/organization.ts">BetaOrganization</a></code>
 - <code><a href="./src/resources/beta/organization/organization.ts">BetaOrganizationRole</a></code>
+- <code><a href="./src/resources/beta/organization/organization.ts">BetaUnsupportedCharsetErrorDetails</a></code>
 
 Methods:
 
@@ -2847,6 +2909,7 @@ Types:
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitUserActor</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitUserScope</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitWorkspaceScope</a></code>
+- <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">BetaSpendSummary</a></code>
 - <code><a href="./src/resources/beta/organization/spend-limits/spend-limits.ts">SpendLimitDeleteResponse</a></code>
 
@@ -2943,12 +3006,17 @@ Types:
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginAPIActor</a></code>
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginComponent</a></code>
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginContentScan</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginNameTakenErrorDetails</a></code>
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginOwnerOrganization</a></code>
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginOwnerUser</a></code>
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginTargetOrganization</a></code>
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginTargetOrganizationMember</a></code>
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginTargetRBACGroup</a></code>
 - <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaPluginUserActor</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaRegistrationPendingErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaScanFailedErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaScanPendingErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/plugins/plugins.ts">BetaSkillNameTakenErrorDetails</a></code>
 
 Methods:
 
@@ -3091,6 +3159,7 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaAPIKeyScopeMissingErrorDetails</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagDefaultSettingSource</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicy</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagGuestPolicyAllow</a></code>
@@ -3108,6 +3177,13 @@ Types:
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackParentChannelSettingSource</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackWorkspaceIdentifiers</a></code>
 - <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagSlackWorkspaceSettingSource</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaClaudeTagWritesNotEnabledErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaComplianceConfigurationRestrictedErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaEnvironmentNotFoundErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaSlackChannelSetUpSettingsConflictErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/claude-tag/claude-tag.ts">BetaSlackChannelSetUpSettingsRefusedErrorDetails</a></code>
 
 #### SlackChannels
 

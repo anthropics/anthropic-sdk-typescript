@@ -6,6 +6,8 @@ export {
   type APIKeyServiceAccountActor,
   type APIKeyUserActor,
   type APIKeyWorkspaceScope,
+  type OrgAPIKeyLimitExceededErrorDetails,
+  type WorkspaceAPIKeyLimitExceededErrorDetails,
   type APIKeyUpdateParams,
   type APIKeyListParams,
   type APIKeysPage,
@@ -86,6 +88,7 @@ export {
   type AzureExternalKeyConfigParam,
   type ExternalKey,
   type ExternalKeyAttachedAttachment,
+  type ExternalKeyInWorkspacePolicyErrorDetails,
   type ExternalKeyUnattachedAttachment,
   type GCPExternalKeyConfig,
   type ExternalKeyDeleteResponse,
@@ -98,13 +101,27 @@ export {
 export { Federation } from './federation/index';
 export {
   Invites,
+  type AlreadyMemberErrorDetails,
+  type CannotInviteEmailsWithUnverifiedDomainsErrorDetails,
+  type EmailDomainNotAllowedErrorDetails,
+  type InviteAlreadyExistsErrorDetails,
+  type OrgMemberLimitExceededErrorDetails,
   type OrganizationInvite,
   type InviteDeleteResponse,
   type InviteCreateParams,
   type InviteListParams,
   type OrganizationInvitesPage,
 } from './invites';
-export { Organization, type OrganizationInfo, type OrganizationRole } from './organization';
+export {
+  Organization,
+  type ConcurrentMembershipChangeErrorDetails,
+  type OrganizationInfo,
+  type OrganizationRole,
+  type OrganizationTypeNotSupportedErrorDetails,
+  type RBACGroupGrantsOwnerAccessErrorDetails,
+  type RBACGroupOwnerAccessUnconfirmedErrorDetails,
+  type UserProfileNotFoundErrorDetails,
+} from './organization';
 export {
   RBACGroups,
   type DeletedRBACGroup,
@@ -161,6 +178,7 @@ export {
 } from './spend-limits/index';
 export {
   Users,
+  type CannotRemoveLastMemberErrorDetails,
   type OrganizationUser,
   type UserRemoveResponse,
   type UserUpdateParams,
@@ -173,9 +191,14 @@ export {
   type DataResidency,
   type DataResidencyCreateConfig,
   type DataResidencyUpdateConfig,
+  type ExternalKeyChangedErrorDetails,
+  type KeyProfileMismatchErrorDetails,
   type NoBillingWorkspaceRole,
   type Workspace,
   type WorkspaceMember,
+  type WorkspaceMemberLimitExceededErrorDetails,
+  type WorkspacePolicyField,
+  type WorkspacePolicyViolationErrorDetails,
   type WorkspaceRole,
   type WorkspaceCreateParams,
   type WorkspaceUpdateParams,

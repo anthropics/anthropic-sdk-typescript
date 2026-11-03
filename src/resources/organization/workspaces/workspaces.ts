@@ -215,6 +215,23 @@ export interface DataResidencyUpdateConfig {
   default_inference_geo?: 'global' | 'us' | null;
 }
 
+/**
+ * The external key changed while the request was validating it. Send the request
+ * again.
+ */
+export interface ExternalKeyChangedErrorDetails {
+  error_code: 'external_key_changed';
+}
+
+/**
+ * The External Key is bound to a user profile, and the Workspace does not have
+ * that user profile. A Workspace can use only a key bound to its own user profile
+ * or a key that isn't bound to one.
+ */
+export interface KeyProfileMismatchErrorDetails {
+  error_code: 'key_profile_mismatch';
+}
+
 export type NoBillingWorkspaceRole =
   | 'workspace_admin'
   | 'workspace_developer'
@@ -326,6 +343,29 @@ export interface WorkspaceMember {
    * Role of the Workspace Member.
    */
   workspace_role: WorkspaceRole;
+}
+
+/**
+ * The workspace has reached the member limit that Anthropic set for it.
+ */
+export interface WorkspaceMemberLimitExceededErrorDetails {
+  error_code: 'workspace_member_limit_exceeded';
+}
+
+export type WorkspacePolicyField = 'external_key_id';
+
+/**
+ * The request breaks the organization's Workspace Policy. The message says which
+ * rule it broke; an organization admin can see and change the policy in the
+ * Console.
+ */
+export interface WorkspacePolicyViolationErrorDetails {
+  error_code: 'workspace_policy_violation';
+
+  /**
+   * The request field the broken rule applies to.
+   */
+  field: WorkspacePolicyField;
 }
 
 export type WorkspaceRole =
@@ -452,9 +492,14 @@ export declare namespace Workspaces {
     type DataResidency as DataResidency,
     type DataResidencyCreateConfig as DataResidencyCreateConfig,
     type DataResidencyUpdateConfig as DataResidencyUpdateConfig,
+    type ExternalKeyChangedErrorDetails as ExternalKeyChangedErrorDetails,
+    type KeyProfileMismatchErrorDetails as KeyProfileMismatchErrorDetails,
     type NoBillingWorkspaceRole as NoBillingWorkspaceRole,
     type Workspace as Workspace,
     type WorkspaceMember as WorkspaceMember,
+    type WorkspaceMemberLimitExceededErrorDetails as WorkspaceMemberLimitExceededErrorDetails,
+    type WorkspacePolicyField as WorkspacePolicyField,
+    type WorkspacePolicyViolationErrorDetails as WorkspacePolicyViolationErrorDetails,
     type WorkspaceRole as WorkspaceRole,
     type WorkspacesPage as WorkspacesPage,
     type WorkspaceCreateParams as WorkspaceCreateParams,

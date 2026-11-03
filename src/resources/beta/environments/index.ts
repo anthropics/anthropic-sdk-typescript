@@ -3,7 +3,12 @@ export {
   type BetaCloudConfig,
   type BetaCloudConfigParams,
   type BetaEnvironment,
+  type BetaEnvironmentArchivedErrorDetails,
+  type BetaEnvironmentCreateDisabledErrorDetails,
   type BetaEnvironmentDeleteResponse,
+  type BetaEnvironmentUpdateDisabledErrorDetails,
+  type BetaInvalidConfigTypeChangeErrorDetails,
+  type BetaInvalidMetadataErrorDetails,
   type BetaLimitedNetwork,
   type BetaLimitedNetworkParams,
   type BetaPackages,
@@ -21,6 +26,7 @@ export {
 } from './environments';
 export {
   Work,
+  type BetaHeartbeatPreconditionFailedErrorDetails,
   type BetaSelfHostedWork,
   type BetaSelfHostedWorkHeartbeatResponse,
   type BetaSelfHostedWorkListResponse,
@@ -28,6 +34,7 @@ export {
   type BetaSelfHostedWorkStopRequest,
   type BetaSelfHostedWorkUpdateRequest,
   type BetaSessionWorkData,
+  type BetaWorkLeaseState,
   type WorkRetrieveParams,
   type WorkUpdateParams,
   type WorkListParams,

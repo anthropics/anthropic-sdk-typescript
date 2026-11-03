@@ -305,8 +305,13 @@ import {
   BetaCloudConfig,
   BetaCloudConfigParams,
   BetaEnvironment,
+  BetaEnvironmentArchivedErrorDetails,
+  BetaEnvironmentCreateDisabledErrorDetails,
   BetaEnvironmentDeleteResponse,
+  BetaEnvironmentUpdateDisabledErrorDetails,
   BetaEnvironmentsPageCursor,
+  BetaInvalidConfigTypeChangeErrorDetails,
+  BetaInvalidMetadataErrorDetails,
   BetaLimitedNetwork,
   BetaLimitedNetworkParams,
   BetaPackages,
@@ -835,7 +840,13 @@ import {
   BetaMCPToolDefaultConfig,
 } from './messages/messages';
 import * as OrganizationAPI from './organization/organization';
-import { BetaOrganization, BetaOrganizationRole, Organization } from './organization/organization';
+import {
+  BetaBillingFrozenErrorDetails,
+  BetaOrganization,
+  BetaOrganizationRole,
+  BetaUnsupportedCharsetErrorDetails,
+  Organization,
+} from './organization/organization';
 import * as SessionsAPI from './sessions/sessions';
 import {
   BetaManagedAgentsAdvisorParams,
@@ -1794,7 +1805,12 @@ export declare namespace Beta {
     type BetaCloudConfig as BetaCloudConfig,
     type BetaCloudConfigParams as BetaCloudConfigParams,
     type BetaEnvironment as BetaEnvironment,
+    type BetaEnvironmentArchivedErrorDetails as BetaEnvironmentArchivedErrorDetails,
+    type BetaEnvironmentCreateDisabledErrorDetails as BetaEnvironmentCreateDisabledErrorDetails,
     type BetaEnvironmentDeleteResponse as BetaEnvironmentDeleteResponse,
+    type BetaEnvironmentUpdateDisabledErrorDetails as BetaEnvironmentUpdateDisabledErrorDetails,
+    type BetaInvalidConfigTypeChangeErrorDetails as BetaInvalidConfigTypeChangeErrorDetails,
+    type BetaInvalidMetadataErrorDetails as BetaInvalidMetadataErrorDetails,
     type BetaLimitedNetwork as BetaLimitedNetwork,
     type BetaLimitedNetworkParams as BetaLimitedNetworkParams,
     type BetaPackages as BetaPackages,
@@ -2098,7 +2114,9 @@ export declare namespace Beta {
 
   export {
     Organization as Organization,
+    type BetaBillingFrozenErrorDetails as BetaBillingFrozenErrorDetails,
     type BetaOrganization as BetaOrganization,
     type BetaOrganizationRole as BetaOrganizationRole,
+    type BetaUnsupportedCharsetErrorDetails as BetaUnsupportedCharsetErrorDetails,
   };
 }

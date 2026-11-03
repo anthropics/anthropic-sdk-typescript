@@ -106,6 +106,7 @@ export {
 } from './analytics/index';
 export {
   ClaudeTag,
+  type BetaAPIKeyScopeMissingErrorDetails,
   type BetaClaudeTagDefaultSettingSource,
   type BetaClaudeTagGuestPolicy,
   type BetaClaudeTagGuestPolicyAllow,
@@ -123,6 +124,13 @@ export {
   type BetaClaudeTagSlackParentChannelSettingSource,
   type BetaClaudeTagSlackWorkspaceIdentifiers,
   type BetaClaudeTagSlackWorkspaceSettingSource,
+  type BetaClaudeTagWritesNotEnabledErrorDetails,
+  type BetaComplianceConfigurationRestrictedErrorDetails,
+  type BetaEnvironmentNotFoundErrorDetails,
+  type BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails,
+  type BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails,
+  type BetaSlackChannelSetUpSettingsConflictErrorDetails,
+  type BetaSlackChannelSetUpSettingsRefusedErrorDetails,
 } from './claude-tag/index';
 export {
   ComplianceSettings,
@@ -160,7 +168,13 @@ export {
   type InviteListParams,
   type BetaOrganizationInvitesPage,
 } from './invites';
-export { Organization, type BetaOrganization, type BetaOrganizationRole } from './organization';
+export {
+  Organization,
+  type BetaBillingFrozenErrorDetails,
+  type BetaOrganization,
+  type BetaOrganizationRole,
+  type BetaUnsupportedCharsetErrorDetails,
+} from './organization';
 export {
   PluginMarketplaces,
   type BetaPluginMarketplace,
@@ -182,12 +196,17 @@ export {
   type BetaPluginAPIActor,
   type BetaPluginComponent,
   type BetaPluginContentScan,
+  type BetaPluginNameTakenErrorDetails,
   type BetaPluginOwnerOrganization,
   type BetaPluginOwnerUser,
   type BetaPluginTargetOrganization,
   type BetaPluginTargetOrganizationMember,
   type BetaPluginTargetRBACGroup,
   type BetaPluginUserActor,
+  type BetaRegistrationPendingErrorDetails,
+  type BetaScanFailedErrorDetails,
+  type BetaScanPendingErrorDetails,
+  type BetaSkillNameTakenErrorDetails,
   type PluginCreateParams,
   type PluginRetrieveParams,
   type PluginUpdateParams,
@@ -248,6 +267,7 @@ export {
   type BetaSpendLimitUserActor,
   type BetaSpendLimitUserScope,
   type BetaSpendLimitWorkspaceScope,
+  type BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails,
   type BetaSpendSummary,
   type SpendLimitDeleteResponse,
   type SpendLimitListParams,

@@ -195,6 +195,20 @@ export interface APIKeyWorkspaceScope {
   workspace_id: string;
 }
 
+/**
+ * The organization has reached its limit of active API keys.
+ */
+export interface OrgAPIKeyLimitExceededErrorDetails {
+  error_code: 'org_api_key_limit_exceeded';
+}
+
+/**
+ * The workspace has reached its limit of active API keys.
+ */
+export interface WorkspaceAPIKeyLimitExceededErrorDetails {
+  error_code: 'workspace_api_key_limit_exceeded';
+}
+
 export interface APIKeyUpdateParams {
   /**
    * Name of the API key.
@@ -232,6 +246,8 @@ export declare namespace APIKeys {
     type APIKeyServiceAccountActor as APIKeyServiceAccountActor,
     type APIKeyUserActor as APIKeyUserActor,
     type APIKeyWorkspaceScope as APIKeyWorkspaceScope,
+    type OrgAPIKeyLimitExceededErrorDetails as OrgAPIKeyLimitExceededErrorDetails,
+    type WorkspaceAPIKeyLimitExceededErrorDetails as WorkspaceAPIKeyLimitExceededErrorDetails,
     type APIKeysPage as APIKeysPage,
     type APIKeyUpdateParams as APIKeyUpdateParams,
     type APIKeyListParams as APIKeyListParams,

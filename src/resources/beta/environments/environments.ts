@@ -2,6 +2,7 @@ import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
 import * as WorkAPI from './work';
 import {
+  BetaHeartbeatPreconditionFailedErrorDetails,
   BetaSelfHostedWork,
   BetaSelfHostedWorkHeartbeatResponse,
   BetaSelfHostedWorkListResponse,
@@ -10,6 +11,7 @@ import {
   BetaSelfHostedWorkUpdateRequest,
   BetaSelfHostedWorksPageCursor,
   BetaSessionWorkData,
+  BetaWorkLeaseState,
   Work,
   WorkAckParams,
   WorkHeartbeatParams,
@@ -338,6 +340,21 @@ export interface BetaEnvironment {
 }
 
 /**
+ * The environment is archived, so it cannot be updated.
+ */
+export interface BetaEnvironmentArchivedErrorDetails {
+  error_code: 'environment_archived';
+}
+
+/**
+ * Anthropic has turned off creating environments for this organization. Existing
+ * environments still work.
+ */
+export interface BetaEnvironmentCreateDisabledErrorDetails {
+  error_code: 'environment_create_disabled';
+}
+
+/**
  * Response after deleting an environment.
  */
 export interface BetaEnvironmentDeleteResponse {
@@ -350,6 +367,30 @@ export interface BetaEnvironmentDeleteResponse {
    * The type of response
    */
   type: 'environment_deleted';
+}
+
+/**
+ * Anthropic has turned off updating environments for this organization. Existing
+ * environments still work as they are.
+ */
+export interface BetaEnvironmentUpdateDisabledErrorDetails {
+  error_code: 'environment_update_disabled';
+}
+
+/**
+ * `config.type` differs from the environment's stored type, which cannot change
+ * after creation.
+ */
+export interface BetaInvalidConfigTypeChangeErrorDetails {
+  error_code: 'invalid_config_type_change';
+}
+
+/**
+ * `metadata` has too many keys, a key or value that is too long, or a reserved
+ * key. The message names each problem.
+ */
+export interface BetaInvalidMetadataErrorDetails {
+  error_code: 'invalid_metadata';
 }
 
 /**
@@ -697,7 +738,12 @@ export declare namespace Environments {
     type BetaCloudConfig as BetaCloudConfig,
     type BetaCloudConfigParams as BetaCloudConfigParams,
     type BetaEnvironment as BetaEnvironment,
+    type BetaEnvironmentArchivedErrorDetails as BetaEnvironmentArchivedErrorDetails,
+    type BetaEnvironmentCreateDisabledErrorDetails as BetaEnvironmentCreateDisabledErrorDetails,
     type BetaEnvironmentDeleteResponse as BetaEnvironmentDeleteResponse,
+    type BetaEnvironmentUpdateDisabledErrorDetails as BetaEnvironmentUpdateDisabledErrorDetails,
+    type BetaInvalidConfigTypeChangeErrorDetails as BetaInvalidConfigTypeChangeErrorDetails,
+    type BetaInvalidMetadataErrorDetails as BetaInvalidMetadataErrorDetails,
     type BetaLimitedNetwork as BetaLimitedNetwork,
     type BetaLimitedNetworkParams as BetaLimitedNetworkParams,
     type BetaPackages as BetaPackages,
@@ -716,6 +762,7 @@ export declare namespace Environments {
 
   export {
     Work as Work,
+    type BetaHeartbeatPreconditionFailedErrorDetails as BetaHeartbeatPreconditionFailedErrorDetails,
     type BetaSelfHostedWork as BetaSelfHostedWork,
     type BetaSelfHostedWorkHeartbeatResponse as BetaSelfHostedWorkHeartbeatResponse,
     type BetaSelfHostedWorkListResponse as BetaSelfHostedWorkListResponse,
@@ -723,6 +770,7 @@ export declare namespace Environments {
     type BetaSelfHostedWorkStopRequest as BetaSelfHostedWorkStopRequest,
     type BetaSelfHostedWorkUpdateRequest as BetaSelfHostedWorkUpdateRequest,
     type BetaSessionWorkData as BetaSessionWorkData,
+    type BetaWorkLeaseState as BetaWorkLeaseState,
     type BetaSelfHostedWorksPageCursor as BetaSelfHostedWorksPageCursor,
     type WorkRetrieveParams as WorkRetrieveParams,
     type WorkUpdateParams as WorkUpdateParams,

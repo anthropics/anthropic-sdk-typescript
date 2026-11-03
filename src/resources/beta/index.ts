@@ -744,7 +744,12 @@ export {
   type BetaCloudConfig,
   type BetaCloudConfigParams,
   type BetaEnvironment,
+  type BetaEnvironmentArchivedErrorDetails,
+  type BetaEnvironmentCreateDisabledErrorDetails,
   type BetaEnvironmentDeleteResponse,
+  type BetaEnvironmentUpdateDisabledErrorDetails,
+  type BetaInvalidConfigTypeChangeErrorDetails,
+  type BetaInvalidMetadataErrorDetails,
   type BetaLimitedNetwork,
   type BetaLimitedNetworkParams,
   type BetaPackages,
@@ -800,7 +805,13 @@ export {
   type ModelListParams,
   type BetaModelInfosPage,
 } from './models';
-export { Organization, type BetaOrganization, type BetaOrganizationRole } from './organization/index';
+export {
+  Organization,
+  type BetaBillingFrozenErrorDetails,
+  type BetaOrganization,
+  type BetaOrganizationRole,
+  type BetaUnsupportedCharsetErrorDetails,
+} from './organization/index';
 export {
   Sessions,
   type BetaManagedAgentsAdvisorParams,

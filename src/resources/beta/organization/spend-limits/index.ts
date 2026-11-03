@@ -24,6 +24,7 @@ export {
   type BetaSpendLimitUserActor,
   type BetaSpendLimitUserScope,
   type BetaSpendLimitWorkspaceScope,
+  type BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails,
   type BetaSpendSummary,
   type SpendLimitDeleteResponse,
   type SpendLimitListParams,

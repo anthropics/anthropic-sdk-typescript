@@ -390,6 +390,19 @@ export interface BetaHealthCheckWorkData {
 }
 
 /**
+ * `expected_last_heartbeat` does not match the stored heartbeat, so another worker
+ * may hold the lease.
+ */
+export interface BetaHeartbeatPreconditionFailedErrorDetails {
+  /**
+   * The lease as the server holds it.
+   */
+  current_state: BetaWorkLeaseState;
+
+  error_code: 'heartbeat_precondition_failed';
+}
+
+/**
  * Work resource representing a unit of work in a self-hosted environment.
  *
  * Work items are queued when sessions are created or when long-dormant sessions
@@ -579,6 +592,31 @@ export interface BetaSessionWorkData {
    * Type of work data
    */
   type: 'session';
+}
+
+/**
+ * A work item's lease as the server holds it.
+ */
+export interface BetaWorkLeaseState {
+  /**
+   * RFC 3339 timestamp of the stored heartbeat, or null if there has been none
+   */
+  last_heartbeat: string | null;
+
+  /**
+   * Always false: a refused heartbeat does not extend the lease
+   */
+  lease_extended: boolean;
+
+  /**
+   * Current state of the work item
+   */
+  state: 'queued' | 'starting' | 'active' | 'stopping' | 'stopped';
+
+  /**
+   * TTL of the lease
+   */
+  ttl_seconds: number;
 }
 
 /**
@@ -777,6 +815,7 @@ export declare namespace Work {
 
   export {
     type BetaHealthCheckWorkData as BetaHealthCheckWorkData,
+    type BetaHeartbeatPreconditionFailedErrorDetails as BetaHeartbeatPreconditionFailedErrorDetails,
     type BetaSelfHostedWork as BetaSelfHostedWork,
     type BetaSelfHostedWorkHeartbeatResponse as BetaSelfHostedWorkHeartbeatResponse,
     type BetaSelfHostedWorkListResponse as BetaSelfHostedWorkListResponse,
@@ -784,6 +823,7 @@ export declare namespace Work {
     type BetaSelfHostedWorkStopRequest as BetaSelfHostedWorkStopRequest,
     type BetaSelfHostedWorkUpdateRequest as BetaSelfHostedWorkUpdateRequest,
     type BetaSessionWorkData as BetaSessionWorkData,
+    type BetaWorkLeaseState as BetaWorkLeaseState,
     type BetaWorkSecret as BetaWorkSecret,
     type BetaSelfHostedWorksPageCursor as BetaSelfHostedWorksPageCursor,
     type WorkRetrieveParams as WorkRetrieveParams,

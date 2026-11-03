@@ -335,6 +335,14 @@ export interface BetaSpendLimitWorkspaceScope {
 }
 
 /**
+ * The organization cannot retrieve, set or delete spend limits with an Admin API
+ * credential.
+ */
+export interface BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails {
+  error_code: 'spend_limits_admin_api_writes_not_enabled';
+}
+
+/**
  * Per-member effective-limit report row (`GET /spend_limits/effective`).
  */
 export interface BetaSpendSummary {
@@ -463,6 +471,7 @@ export declare namespace SpendLimits {
     type BetaSpendLimitUserActor as BetaSpendLimitUserActor,
     type BetaSpendLimitUserScope as BetaSpendLimitUserScope,
     type BetaSpendLimitWorkspaceScope as BetaSpendLimitWorkspaceScope,
+    type BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails as BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails,
     type BetaSpendSummary as BetaSpendSummary,
     type SpendLimitDeleteResponse as SpendLimitDeleteResponse,
     type BetaSpendLimitsPageCursor as BetaSpendLimitsPageCursor,

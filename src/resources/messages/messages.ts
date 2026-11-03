@@ -242,6 +242,14 @@ export interface AssistantMessageParam {
   role: 'assistant';
 }
 
+/**
+ * The tools available after a message exceed a limit on their number or their
+ * size.
+ */
+export interface AvailableToolsLimitExceededErrorDetails {
+  error_code: 'available_tools_limit_exceeded';
+}
+
 export interface Base64ImageSource {
   data: string;
 
@@ -3012,6 +3020,14 @@ export interface CitationsWebSearchResultLocation {
 }
 
 /**
+ * The request comes from a Claude Code version older than the minimum that the
+ * requested model or the organization requires. Update Claude Code, then retry.
+ */
+export interface ClaudeCodeVersionTooOldErrorDetails {
+  error_code: 'claude_code_version_too_old';
+}
+
+/**
  * A tool that the client executes: the caller runs each `tool_use` request for it
  * and returns the output in a `tool_result` block.
  */
@@ -3247,6 +3263,75 @@ export interface CodeExecutionToolResultErrorParam {
   error_code: CodeExecutionToolResultErrorCode;
 
   type: 'code_execution_tool_result_error';
+}
+
+/**
+ * `messages` holds more than one `compaction` block with content. Send only the
+ * block the conversation returned last.
+ */
+export interface CompactionBlockAmbiguousErrorDetails {
+  error_code: 'compaction_block_ambiguous';
+}
+
+/**
+ * The `compaction` block is not the first block of the conversation, or is in a
+ * `system` message.
+ */
+export interface CompactionBlockMisplacedErrorDetails {
+  error_code: 'compaction_block_misplaced';
+}
+
+/**
+ * The `compaction` block's `content` differs from the text its `signature`
+ * recorded.
+ */
+export interface CompactionContentMismatchErrorDetails {
+  error_code: 'compaction_content_mismatch';
+}
+
+/**
+ * The compaction request ends on an `assistant` turn that is not finished.
+ */
+export interface CompactionIncompleteTurnErrorDetails {
+  error_code: 'compaction_incomplete_turn';
+}
+
+/**
+ * `messages` holds no `user` or `assistant` content to summarize or adopt.
+ */
+export interface CompactionNothingToSummarizeErrorDetails {
+  error_code: 'compaction_nothing_to_summarize';
+}
+
+/**
+ * The `compaction` block's `signature` does not verify.
+ */
+export interface CompactionSignatureInvalidErrorDetails {
+  error_code: 'compaction_signature_invalid';
+}
+
+/**
+ * The conversation references more distinct tools than a `compaction` block can
+ * record.
+ */
+export interface CompactionTooManyToolReferencesErrorDetails {
+  error_code: 'compaction_too_many_tool_references';
+}
+
+/**
+ * The `compaction` block's `tool_changes` differs from what was returned with the
+ * block.
+ */
+export interface CompactionToolChangesMismatchErrorDetails {
+  error_code: 'compaction_tool_changes_mismatch';
+}
+
+/**
+ * The compaction could not be completed for a transient server reason. Retry the
+ * request.
+ */
+export interface CompactionUnavailableErrorDetails {
+  error_code: 'compaction_unavailable';
 }
 
 /**
@@ -5267,6 +5352,14 @@ export interface SkillParams {
   version?: string;
 }
 
+/**
+ * A custom skill the request names is stored under an encryption key state the
+ * workspace cannot currently decrypt.
+ */
+export interface SkillReadBlockedUndecryptableErrorDetails {
+  error_code: 'skill_read_blocked_undecryptable';
+}
+
 export type StopReason =
   | 'end_turn'
   | 'max_tokens'
@@ -5567,6 +5660,67 @@ export interface ThinkingDelta {
   type: 'thinking_delta';
 }
 
+/**
+ * The response that `previous_message_id` names has already been continued, and
+ * each response can be continued only once. Continue from the Thread's most recent
+ * response `id`.
+ */
+export interface ThreadAlreadyContinuedErrorDetails {
+  error_code: 'thread_already_continued';
+}
+
+/**
+ * Another request is still continuing from the same `previous_message_id`. Wait
+ * for it to complete and continue from its response `id`, or replay the full
+ * conversation with `thread: {"type": "create"}`.
+ */
+export interface ThreadContinueInFlightErrorDetails {
+  error_code: 'thread_continue_in_flight';
+}
+
+/**
+ * A field that must stay the same across a Thread's turns differs from the value
+ * stored with the Thread; the message names each such field. Send the stored
+ * values, or replay the full conversation with `thread: {"type": "create"}` to
+ * change them.
+ */
+export interface ThreadFingerprintMismatchErrorDetails {
+  error_code: 'thread_fingerprint_mismatch';
+}
+
+/**
+ * No usable Thread state was found for `previous_message_id`. Replay the full
+ * conversation with `thread: {"type": "create"}` to start a new Thread.
+ */
+export interface ThreadNotFoundErrorDetails {
+  error_code: 'thread_not_found';
+}
+
+export type ThreadUnsupportedFeatureName =
+  | 'cache_control'
+  | 'context_management'
+  | 'fallbacks'
+  | 'hipaa'
+  | 'inference_hooks'
+  | 'thinking'
+  | 'zdr';
+
+/**
+ * The request combines `thread` with a request field or an organization setting
+ * that Threads do not support; `unsupported`, when present, names it. Send the
+ * full conversation without `thread`, or change that field.
+ */
+export interface ThreadUnsupportedRequestErrorDetails {
+  error_code: 'thread_unsupported_request';
+
+  /**
+   * Each entry names a request field or an organization setting that Threads do not
+   * support. On a value you do not recognize, send the full conversation without
+   * `thread`.
+   */
+  unsupported?: Array<ThreadUnsupportedFeatureName> | null;
+}
+
 export interface Tool {
   /**
    * [JSON schema](https://json-schema.org/draft/2020-12) for this tool's input.
@@ -5741,6 +5895,14 @@ export interface ToolChoiceTool {
   disable_parallel_tool_use?: boolean;
 }
 
+/**
+ * A tool made available in `messages` takes a name that an available tool of
+ * another kind, or of another MCP server, already holds.
+ */
+export interface ToolNameConflictErrorDetails {
+  error_code: 'tool_name_conflict';
+}
+
 export interface ToolReferenceBlock {
   tool_name: string;
 
@@ -5759,6 +5921,14 @@ export interface ToolReferenceBlockParam {
    * Create a cache control breakpoint at this content block.
    */
   cache_control?: CacheControlEphemeral | null;
+}
+
+/**
+ * A tool change or MCP tool listing references a tool or MCP server that is not
+ * defined at that position in the conversation.
+ */
+export interface ToolReferenceUnresolvedErrorDetails {
+  error_code: 'tool_reference_unresolved';
 }
 
 export interface ToolResultBlockParam {
@@ -7742,6 +7912,7 @@ Messages.Batches = Batches;
 export declare namespace Messages {
   export {
     type AssistantMessageParam as AssistantMessageParam,
+    type AvailableToolsLimitExceededErrorDetails as AvailableToolsLimitExceededErrorDetails,
     type Base64ImageSource as Base64ImageSource,
     type Base64PDFSource as Base64PDFSource,
     type BashCodeExecutionOutputBlock as BashCodeExecutionOutputBlock,
@@ -7886,6 +8057,7 @@ export declare namespace Messages {
     type CitationsDelta as CitationsDelta,
     type CitationsSearchResultLocation as CitationsSearchResultLocation,
     type CitationsWebSearchResultLocation as CitationsWebSearchResultLocation,
+    type ClaudeCodeVersionTooOldErrorDetails as ClaudeCodeVersionTooOldErrorDetails,
     type ClientToolUnion as ClientToolUnion,
     type CodeExecutionOutputBlock as CodeExecutionOutputBlock,
     type CodeExecutionOutputBlockParam as CodeExecutionOutputBlockParam,
@@ -7902,6 +8074,15 @@ export declare namespace Messages {
     type CodeExecutionToolResultError as CodeExecutionToolResultError,
     type CodeExecutionToolResultErrorCode as CodeExecutionToolResultErrorCode,
     type CodeExecutionToolResultErrorParam as CodeExecutionToolResultErrorParam,
+    type CompactionBlockAmbiguousErrorDetails as CompactionBlockAmbiguousErrorDetails,
+    type CompactionBlockMisplacedErrorDetails as CompactionBlockMisplacedErrorDetails,
+    type CompactionContentMismatchErrorDetails as CompactionContentMismatchErrorDetails,
+    type CompactionIncompleteTurnErrorDetails as CompactionIncompleteTurnErrorDetails,
+    type CompactionNothingToSummarizeErrorDetails as CompactionNothingToSummarizeErrorDetails,
+    type CompactionSignatureInvalidErrorDetails as CompactionSignatureInvalidErrorDetails,
+    type CompactionTooManyToolReferencesErrorDetails as CompactionTooManyToolReferencesErrorDetails,
+    type CompactionToolChangesMismatchErrorDetails as CompactionToolChangesMismatchErrorDetails,
+    type CompactionUnavailableErrorDetails as CompactionUnavailableErrorDetails,
     type ComputerCursorPositionConfig as ComputerCursorPositionConfig,
     type ComputerCursorPositionInput as ComputerCursorPositionInput,
     type ComputerCursorPositionToolUseBlock as ComputerCursorPositionToolUseBlock,
@@ -8016,6 +8197,7 @@ export declare namespace Messages {
     type ServerToolUseBlockParam as ServerToolUseBlockParam,
     type SignatureDelta as SignatureDelta,
     type SkillParams as SkillParams,
+    type SkillReadBlockedUndecryptableErrorDetails as SkillReadBlockedUndecryptableErrorDetails,
     type StopReason as StopReason,
     type SystemMessageParam as SystemMessageParam,
     type TextBlock as TextBlock,
@@ -8042,6 +8224,12 @@ export declare namespace Messages {
     type ThinkingConfigEnabled as ThinkingConfigEnabled,
     type ThinkingConfigParam as ThinkingConfigParam,
     type ThinkingDelta as ThinkingDelta,
+    type ThreadAlreadyContinuedErrorDetails as ThreadAlreadyContinuedErrorDetails,
+    type ThreadContinueInFlightErrorDetails as ThreadContinueInFlightErrorDetails,
+    type ThreadFingerprintMismatchErrorDetails as ThreadFingerprintMismatchErrorDetails,
+    type ThreadNotFoundErrorDetails as ThreadNotFoundErrorDetails,
+    type ThreadUnsupportedFeatureName as ThreadUnsupportedFeatureName,
+    type ThreadUnsupportedRequestErrorDetails as ThreadUnsupportedRequestErrorDetails,
     type Tool as Tool,
     type ToolBash20250124 as ToolBash20250124,
     type ToolChoice as ToolChoice,
@@ -8049,8 +8237,10 @@ export declare namespace Messages {
     type ToolChoiceAuto as ToolChoiceAuto,
     type ToolChoiceNone as ToolChoiceNone,
     type ToolChoiceTool as ToolChoiceTool,
+    type ToolNameConflictErrorDetails as ToolNameConflictErrorDetails,
     type ToolReferenceBlock as ToolReferenceBlock,
     type ToolReferenceBlockParam as ToolReferenceBlockParam,
+    type ToolReferenceUnresolvedErrorDetails as ToolReferenceUnresolvedErrorDetails,
     type ToolResultBlockParam as ToolResultBlockParam,
     type ToolSearchToolBm25_20251119 as ToolSearchToolBm25_20251119,
     type ToolSearchToolRegex20251119 as ToolSearchToolRegex20251119,

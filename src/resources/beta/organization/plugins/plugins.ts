@@ -525,6 +525,16 @@ export interface BetaPluginContentScan {
   status: 'completed' | 'errored' | 'processing';
 }
 
+/**
+ * The marketplace already holds this name. `plugin_id` is the Plugin that holds
+ * it, and can be absent.
+ */
+export interface BetaPluginNameTakenErrorDetails {
+  error_code: 'plugin_name_taken';
+
+  plugin_id?: string | null;
+}
+
 export interface BetaPluginOwnerOrganization {
   /**
    * The Plugin lives in a plugin marketplace the organization owns.
@@ -591,6 +601,48 @@ export interface BetaPluginUserActor {
    * The member's User ID.
    */
   user_id: string;
+}
+
+/**
+ * The Plugin version was stored but is not yet usable in claude.ai. `plugin_id`
+ * and `plugin_version_id` identify what was stored.
+ */
+export interface BetaRegistrationPendingErrorDetails {
+  error_code: 'registration_pending';
+
+  plugin_id: string;
+
+  plugin_version_id: string;
+}
+
+/**
+ * The content scan of the version in `plugin_version_id` failed, errored or
+ * reached no verdict, so the version cannot be served.
+ */
+export interface BetaScanFailedErrorDetails {
+  error_code: 'scan_failed';
+
+  plugin_version_id: string;
+}
+
+/**
+ * The content scan of the version in `plugin_version_id` is still running. Retry
+ * once the scan finishes.
+ */
+export interface BetaScanPendingErrorDetails {
+  error_code: 'scan_pending';
+
+  plugin_version_id: string;
+}
+
+/**
+ * One of the Plugin's skills has the name of an organization skill. `skill_name`
+ * is that name.
+ */
+export interface BetaSkillNameTakenErrorDetails {
+  error_code: 'skill_name_taken';
+
+  skill_name: string;
 }
 
 export interface PluginCreateParams {
@@ -734,12 +786,17 @@ export declare namespace Plugins {
     type BetaPluginAPIActor as BetaPluginAPIActor,
     type BetaPluginComponent as BetaPluginComponent,
     type BetaPluginContentScan as BetaPluginContentScan,
+    type BetaPluginNameTakenErrorDetails as BetaPluginNameTakenErrorDetails,
     type BetaPluginOwnerOrganization as BetaPluginOwnerOrganization,
     type BetaPluginOwnerUser as BetaPluginOwnerUser,
     type BetaPluginTargetOrganization as BetaPluginTargetOrganization,
     type BetaPluginTargetOrganizationMember as BetaPluginTargetOrganizationMember,
     type BetaPluginTargetRBACGroup as BetaPluginTargetRBACGroup,
     type BetaPluginUserActor as BetaPluginUserActor,
+    type BetaRegistrationPendingErrorDetails as BetaRegistrationPendingErrorDetails,
+    type BetaScanFailedErrorDetails as BetaScanFailedErrorDetails,
+    type BetaScanPendingErrorDetails as BetaScanPendingErrorDetails,
+    type BetaSkillNameTakenErrorDetails as BetaSkillNameTakenErrorDetails,
     type BetaPluginsPageCursor as BetaPluginsPageCursor,
     type PluginCreateParams as PluginCreateParams,
     type PluginRetrieveParams as PluginRetrieveParams,

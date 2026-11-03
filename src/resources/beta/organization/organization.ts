@@ -190,6 +190,7 @@ import {
 } from './analytics/analytics';
 import * as ClaudeTagAPI from './claude-tag/claude-tag';
 import {
+  BetaAPIKeyScopeMissingErrorDetails,
   BetaClaudeTagDefaultSettingSource,
   BetaClaudeTagGuestPolicy,
   BetaClaudeTagGuestPolicyAllow,
@@ -207,6 +208,13 @@ import {
   BetaClaudeTagSlackParentChannelSettingSource,
   BetaClaudeTagSlackWorkspaceIdentifiers,
   BetaClaudeTagSlackWorkspaceSettingSource,
+  BetaClaudeTagWritesNotEnabledErrorDetails,
+  BetaComplianceConfigurationRestrictedErrorDetails,
+  BetaEnvironmentNotFoundErrorDetails,
+  BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails,
+  BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails,
+  BetaSlackChannelSetUpSettingsConflictErrorDetails,
+  BetaSlackChannelSetUpSettingsRefusedErrorDetails,
   ClaudeTag,
 } from './claude-tag/claude-tag';
 import * as FederationAPI from './federation/federation';
@@ -218,6 +226,7 @@ import {
   BetaPluginAPIActor,
   BetaPluginComponent,
   BetaPluginContentScan,
+  BetaPluginNameTakenErrorDetails,
   BetaPluginOwnerOrganization,
   BetaPluginOwnerUser,
   BetaPluginTargetOrganization,
@@ -225,6 +234,10 @@ import {
   BetaPluginTargetRBACGroup,
   BetaPluginUserActor,
   BetaPluginsPageCursor,
+  BetaRegistrationPendingErrorDetails,
+  BetaScanFailedErrorDetails,
+  BetaScanPendingErrorDetails,
+  BetaSkillNameTakenErrorDetails,
   PluginCreateParams,
   PluginDeleteParams,
   PluginListParams,
@@ -274,6 +287,7 @@ import {
   BetaSpendLimitUserActor,
   BetaSpendLimitUserScope,
   BetaSpendLimitWorkspaceScope,
+  BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails,
   BetaSpendLimitsPageCursor,
   BetaSpendSummary,
   SpendLimitDeleteResponse,
@@ -387,6 +401,14 @@ export class Organization extends APIResource {
   }
 }
 
+/**
+ * Anthropic has temporarily disabled billing changes for the user account the
+ * credential belongs to. Contact support.
+ */
+export interface BetaBillingFrozenErrorDetails {
+  error_code: 'billing_frozen';
+}
+
 export interface BetaOrganization {
   /**
    * ID of the Organization.
@@ -417,6 +439,14 @@ export type BetaOrganizationRole =
   | 'primary_owner'
   | 'user';
 
+/**
+ * The request's `Content-Type` header names a charset other than UTF-8, ISO-8859-1
+ * or US-ASCII. Send the request with no charset, or with one of these.
+ */
+export interface BetaUnsupportedCharsetErrorDetails {
+  error_code: 'unsupported_charset';
+}
+
 Organization.APIKeys = APIKeys;
 Organization.ExternalKeys = ExternalKeys;
 Organization.Federation = Federation;
@@ -437,7 +467,12 @@ Organization.Webhooks = Webhooks;
 Organization.ClaudeTag = ClaudeTag;
 
 export declare namespace Organization {
-  export { type BetaOrganization as BetaOrganization, type BetaOrganizationRole as BetaOrganizationRole };
+  export {
+    type BetaBillingFrozenErrorDetails as BetaBillingFrozenErrorDetails,
+    type BetaOrganization as BetaOrganization,
+    type BetaOrganizationRole as BetaOrganizationRole,
+    type BetaUnsupportedCharsetErrorDetails as BetaUnsupportedCharsetErrorDetails,
+  };
 
   export {
     APIKeys as APIKeys,
@@ -640,6 +675,7 @@ export declare namespace Organization {
     type BetaSpendLimitUserActor as BetaSpendLimitUserActor,
     type BetaSpendLimitUserScope as BetaSpendLimitUserScope,
     type BetaSpendLimitWorkspaceScope as BetaSpendLimitWorkspaceScope,
+    type BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails as BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails,
     type BetaSpendSummary as BetaSpendSummary,
     type SpendLimitDeleteResponse as SpendLimitDeleteResponse,
     type BetaSpendLimitsPageCursor as BetaSpendLimitsPageCursor,
@@ -671,12 +707,17 @@ export declare namespace Organization {
     type BetaPluginAPIActor as BetaPluginAPIActor,
     type BetaPluginComponent as BetaPluginComponent,
     type BetaPluginContentScan as BetaPluginContentScan,
+    type BetaPluginNameTakenErrorDetails as BetaPluginNameTakenErrorDetails,
     type BetaPluginOwnerOrganization as BetaPluginOwnerOrganization,
     type BetaPluginOwnerUser as BetaPluginOwnerUser,
     type BetaPluginTargetOrganization as BetaPluginTargetOrganization,
     type BetaPluginTargetOrganizationMember as BetaPluginTargetOrganizationMember,
     type BetaPluginTargetRBACGroup as BetaPluginTargetRBACGroup,
     type BetaPluginUserActor as BetaPluginUserActor,
+    type BetaRegistrationPendingErrorDetails as BetaRegistrationPendingErrorDetails,
+    type BetaScanFailedErrorDetails as BetaScanFailedErrorDetails,
+    type BetaScanPendingErrorDetails as BetaScanPendingErrorDetails,
+    type BetaSkillNameTakenErrorDetails as BetaSkillNameTakenErrorDetails,
     type BetaPluginsPageCursor as BetaPluginsPageCursor,
     type PluginCreateParams as PluginCreateParams,
     type PluginRetrieveParams as PluginRetrieveParams,
@@ -758,6 +799,7 @@ export declare namespace Organization {
 
   export {
     ClaudeTag as ClaudeTag,
+    type BetaAPIKeyScopeMissingErrorDetails as BetaAPIKeyScopeMissingErrorDetails,
     type BetaClaudeTagDefaultSettingSource as BetaClaudeTagDefaultSettingSource,
     type BetaClaudeTagGuestPolicy as BetaClaudeTagGuestPolicy,
     type BetaClaudeTagGuestPolicyAllow as BetaClaudeTagGuestPolicyAllow,
@@ -775,5 +817,12 @@ export declare namespace Organization {
     type BetaClaudeTagSlackParentChannelSettingSource as BetaClaudeTagSlackParentChannelSettingSource,
     type BetaClaudeTagSlackWorkspaceIdentifiers as BetaClaudeTagSlackWorkspaceIdentifiers,
     type BetaClaudeTagSlackWorkspaceSettingSource as BetaClaudeTagSlackWorkspaceSettingSource,
+    type BetaClaudeTagWritesNotEnabledErrorDetails as BetaClaudeTagWritesNotEnabledErrorDetails,
+    type BetaComplianceConfigurationRestrictedErrorDetails as BetaComplianceConfigurationRestrictedErrorDetails,
+    type BetaEnvironmentNotFoundErrorDetails as BetaEnvironmentNotFoundErrorDetails,
+    type BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails as BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails,
+    type BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails as BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails,
+    type BetaSlackChannelSetUpSettingsConflictErrorDetails as BetaSlackChannelSetUpSettingsConflictErrorDetails,
+    type BetaSlackChannelSetUpSettingsRefusedErrorDetails as BetaSlackChannelSetUpSettingsRefusedErrorDetails,
   };
 }

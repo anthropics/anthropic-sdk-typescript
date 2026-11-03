@@ -7,6 +7,7 @@ export {
 } from './bundles/index';
 export {
   ClaudeTag,
+  type BetaAPIKeyScopeMissingErrorDetails,
   type BetaClaudeTagDefaultSettingSource,
   type BetaClaudeTagGuestPolicy,
   type BetaClaudeTagGuestPolicyAllow,
@@ -24,6 +25,13 @@ export {
   type BetaClaudeTagSlackParentChannelSettingSource,
   type BetaClaudeTagSlackWorkspaceIdentifiers,
   type BetaClaudeTagSlackWorkspaceSettingSource,
+  type BetaClaudeTagWritesNotEnabledErrorDetails,
+  type BetaComplianceConfigurationRestrictedErrorDetails,
+  type BetaEnvironmentNotFoundErrorDetails,
+  type BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails,
+  type BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails,
+  type BetaSlackChannelSetUpSettingsConflictErrorDetails,
+  type BetaSlackChannelSetUpSettingsRefusedErrorDetails,
 } from './claude-tag';
 export {
   SlackChannels,

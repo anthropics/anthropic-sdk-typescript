@@ -1,6 +1,11 @@
 # Changelog
 
-## [1.4.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.4.0...sdk-v1.4.1) (2026-11-03)
+## [1.5.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.4.0...sdk-v1.5.0) (2026-11-03)
+
+### Features
+
+* **api:** add error details types and new error type values
+
 
 ### Performance Improvements
 

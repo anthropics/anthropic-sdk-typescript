@@ -96,6 +96,14 @@ export class Users extends APIResource {
 
 export type OrganizationUsersPage = Page<OrganizationUser>;
 
+/**
+ * The user is the organization's only member. Add another member before removing
+ * this one.
+ */
+export interface CannotRemoveLastMemberErrorDetails {
+  error_code: 'cannot_remove_last_member';
+}
+
 export interface OrganizationUser {
   /**
    * ID of the User.
@@ -177,6 +185,7 @@ export interface UserListParams extends PageParams {
 
 export declare namespace Users {
   export {
+    type CannotRemoveLastMemberErrorDetails as CannotRemoveLastMemberErrorDetails,
     type OrganizationUser as OrganizationUser,
     type UserRemoveResponse as UserRemoveResponse,
     type OrganizationUsersPage as OrganizationUsersPage,
