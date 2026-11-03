@@ -79,7 +79,7 @@ export interface ArtifactListParams extends PageCursorParams {
    * any point during the requested UTC day, so grouped rows are not an exclusive
    * partition. At most 100 entries.
    */
-  group_by?: Array<'product' | 'rbac_group_id' | 'user_id'> | null;
+  group_by?: Array<AnalyticsAPI.BetaAnalyticsArtifactGroupBy> | null;
 }
 
 export declare namespace Artifacts {

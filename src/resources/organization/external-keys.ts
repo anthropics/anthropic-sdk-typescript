@@ -165,9 +165,9 @@ export type ExternalKeysPageCursor = PageCursor<ExternalKey>;
 
 export interface AWSExternalKeyConfig {
   /**
-   * Full ARN of the AWS KMS key. On Claude Platform on AWS the key must be a
-   * single-Region key in your organization's own AWS account; cross-account keys,
-   * multi-Region keys, and alias ARNs are rejected.
+   * Full ARN of the AWS KMS key. On Claude Platform on AWS, alias ARNs are rejected,
+   * and your organization's own key must be a single-Region key in your
+   * organization's AWS account.
    */
   kms_arn: string;
 
@@ -245,8 +245,8 @@ export interface AzureExternalKeyConfigParam {
  */
 export interface ExternalKey {
   /**
-   * Identifier of the external key config. A tagged ID prefixed `ekey_`, or — for
-   * organizations on the Claude Platform on AWS — the AWS KMS key ARN.
+   * Identifier of the external key config: a tagged ID prefixed `ekey_`, or, on
+   * Claude Platform on AWS, an AWS KMS key's ARN.
    */
   id: string;
 
@@ -279,6 +279,14 @@ export interface ExternalKey {
   type: 'external_key';
 
   updated_at: string;
+
+  /**
+   * ID of the user profile the key is bound to, or null if the key is not bound to
+   * one. A key bound to a user profile can only be attached to a Workspace that has
+   * the same user profile. A key that isn't bound can be attached to a Workspace
+   * whatever its user profile.
+   */
+  user_profile_id: string | null;
 }
 
 export interface ExternalKeyAttachedAttachment {
@@ -343,6 +351,14 @@ export interface ExternalKeyCreateParams {
    * Data residency geo. Only `us` is supported.
    */
   geo?: 'us';
+
+  /**
+   * ID of a user profile to bind the key to. Omit this field for a key that isn't
+   * bound to a user profile. Such a key can be attached to a Workspace whatever its
+   * user profile. The binding cannot be changed later. A key bound to a user profile
+   * can only be attached to a Workspace that has the same user profile.
+   */
+  user_profile_id?: string | null;
 }
 
 export interface ExternalKeyUpdateParams {

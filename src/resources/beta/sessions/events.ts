@@ -680,6 +680,29 @@ export interface BetaManagedAgentsBillingError {
 }
 
 /**
+ * The turn stopped because the context was compacted the maximum number of times
+ * in a row without the model producing a message or a tool call, not because a
+ * request failed. The thread goes idle with `stop_reason: retries_exhausted` (a
+ * child thread then terminates); the next `user.message` starts a new turn.
+ */
+export interface BetaManagedAgentsCompactionLimitReachedError {
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * What the client should do next.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'compaction_limit_reached_error';
+}
+
+/**
  * An `environment_variable` credential's `auth.networking.allowed_hosts` includes
  * a host the environment's network policy does not permit.
  */
@@ -1255,6 +1278,8 @@ export interface BetaManagedAgentsSessionErrorEvent {
     | BetaManagedAgentsMCPAuthenticationFailedError
     | BetaManagedAgentsBillingError
     | BetaManagedAgentsCredentialHostUnreachableError
+    | BetaManagedAgentsToolUseLimitReachedError
+    | BetaManagedAgentsCompactionLimitReachedError
     | BetaManagedAgentsRepositoryAuthenticationError
     | BetaManagedAgentsRepositoryForbiddenError
     | BetaManagedAgentsRepositoryNotFoundError
@@ -2022,6 +2047,30 @@ export interface BetaManagedAgentsTimeoutWorkflowRunError {
   message: string;
 
   type: 'timeout_error';
+}
+
+/**
+ * The turn stopped because the agent loop reached its limit on tool-use rounds
+ * (one model response that calls tools, plus running those tools, is one round),
+ * not because a request failed. The thread goes idle with
+ * `stop_reason: retries_exhausted` (a child thread then terminates); the next
+ * `user.message` starts a new turn.
+ */
+export interface BetaManagedAgentsToolUseLimitReachedError {
+  /**
+   * Human-readable error description.
+   */
+  message: string;
+
+  /**
+   * What the client should do next.
+   */
+  retry_status:
+    | BetaManagedAgentsRetryStatusRetrying
+    | BetaManagedAgentsRetryStatusExhausted
+    | BetaManagedAgentsRetryStatusTerminal;
+
+  type: 'tool_use_limit_reached_error';
 }
 
 /**
@@ -2829,6 +2878,7 @@ export declare namespace Events {
     type BetaManagedAgentsBase64DocumentSource as BetaManagedAgentsBase64DocumentSource,
     type BetaManagedAgentsBase64ImageSource as BetaManagedAgentsBase64ImageSource,
     type BetaManagedAgentsBillingError as BetaManagedAgentsBillingError,
+    type BetaManagedAgentsCompactionLimitReachedError as BetaManagedAgentsCompactionLimitReachedError,
     type BetaManagedAgentsCredentialHostUnreachableError as BetaManagedAgentsCredentialHostUnreachableError,
     type BetaManagedAgentsDocumentBlock as BetaManagedAgentsDocumentBlock,
     type BetaManagedAgentsEventParams as BetaManagedAgentsEventParams,
@@ -2891,6 +2941,7 @@ export declare namespace Events {
     type BetaManagedAgentsTextRubricParams as BetaManagedAgentsTextRubricParams,
     type BetaManagedAgentsThreadLimitWorkflowRunError as BetaManagedAgentsThreadLimitWorkflowRunError,
     type BetaManagedAgentsTimeoutWorkflowRunError as BetaManagedAgentsTimeoutWorkflowRunError,
+    type BetaManagedAgentsToolUseLimitReachedError as BetaManagedAgentsToolUseLimitReachedError,
     type BetaManagedAgentsUnknownError as BetaManagedAgentsUnknownError,
     type BetaManagedAgentsUnknownWorkflowRunError as BetaManagedAgentsUnknownWorkflowRunError,
     type BetaManagedAgentsURLDocumentSource as BetaManagedAgentsURLDocumentSource,

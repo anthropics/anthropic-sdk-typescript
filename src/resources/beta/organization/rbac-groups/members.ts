@@ -54,7 +54,7 @@ export class Members extends APIResource {
    * const betaRBACGroupMember =
    *   await client.beta.organization.rbacGroups.members.add(
    *     'rbac_group_id',
-   *     { user_id: 'user_01WCz1FkmYMm4gnmykNKUu3Q' },
+   *     { user_id: 'user_01WxYzAbCdEfGhJkMnPqRsTu' },
    *   );
    * ```
    */
@@ -81,7 +81,7 @@ export class Members extends APIResource {
    *
    * @example
    * ```ts
-   * const member =
+   * const betaDeletedRBACGroupMember =
    *   await client.beta.organization.rbacGroups.members.remove(
    *     'user_id',
    *     { rbac_group_id: 'rbac_group_id' },
@@ -92,7 +92,7 @@ export class Members extends APIResource {
     userID: string,
     params: MemberRemoveParams,
     options?: RequestOptions,
-  ): APIPromise<MemberRemoveResponse> {
+  ): APIPromise<BetaDeletedRBACGroupMember> {
     const { rbac_group_id } = params;
     return this._client.delete(path`/v1/organizations/rbac_groups/${rbac_group_id}/members/${userID}`, {
       ...options,
@@ -109,6 +109,24 @@ export class Members extends APIResource {
 }
 
 export type BetaRBACGroupMembersPageCursor = PageCursor<BetaRBACGroupMember>;
+
+export interface BetaDeletedRBACGroupMember {
+  /**
+   * ID of the RBAC Group.
+   */
+  rbac_group_id: string;
+
+  /**
+   * Deleted object type. For RBAC Group Members, this is always
+   * `"rbac_group_member_deleted"`.
+   */
+  type: 'rbac_group_member_deleted';
+
+  /**
+   * ID of the User.
+   */
+  user_id: string;
+}
 
 export interface BetaRBACGroupMember {
   /**
@@ -139,24 +157,6 @@ export interface BetaRBACGroupMember {
   user_id: string;
 }
 
-export interface MemberRemoveResponse {
-  /**
-   * ID of the RBAC Group.
-   */
-  rbac_group_id: string;
-
-  /**
-   * Deleted object type. For RBAC Group Members, this is always
-   * `"rbac_group_member_deleted"`.
-   */
-  type: 'rbac_group_member_deleted';
-
-  /**
-   * ID of the User.
-   */
-  user_id: string;
-}
-
 export interface MemberListParams extends PageCursorParams {}
 
 export interface MemberAddParams {
@@ -175,8 +175,8 @@ export interface MemberRemoveParams {
 
 export declare namespace Members {
   export {
+    type BetaDeletedRBACGroupMember as BetaDeletedRBACGroupMember,
     type BetaRBACGroupMember as BetaRBACGroupMember,
-    type MemberRemoveResponse as MemberRemoveResponse,
     type BetaRBACGroupMembersPageCursor as BetaRBACGroupMembersPageCursor,
     type MemberListParams as MemberListParams,
     type MemberAddParams as MemberAddParams,

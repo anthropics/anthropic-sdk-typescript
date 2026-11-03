@@ -5,7 +5,7 @@ import type { BetaRunnableTool } from '@anthropic-ai/sdk/lib/tools/BetaRunnableT
 import { APIError } from '@anthropic-ai/sdk/core/error';
 
 /**
- * Build a work-item `secret` the way the control plane does: URL-safe base64
+ * Build a work-item `secret` the way the API does: URL-safe base64
  * of a JSON payload, without padding.
  */
 function encodeSecret(payload: Record<string, unknown>): string {
@@ -17,7 +17,7 @@ function loggedText(calls: WorkerCalls): string {
 }
 
 /**
- * The 412 the control plane answers a heartbeat with once the item's lease was
+ * The 412 the API answers a heartbeat with once the item's lease was
  * cleared (re-queued) or is held by another worker.
  */
 function leaseLostError(): APIError {
@@ -64,7 +64,7 @@ interface WorkerCalls {
   send: AnyEvent[][];
   retrieve: number;
   withOptions: Array<Record<string, unknown>>;
-  // The `options` (last) argument captured per control-plane / session method.
+  // The `options` (last) argument captured per work-item / session method.
   opts: Record<string, unknown[]>;
   // `[level, line]` for everything the worker logged; `line` is the message and
   // structured args flattened, so tests can assert on wording per level and on
@@ -742,7 +742,7 @@ describe('EnvironmentWorker', () => {
       expect(logText).not.toContain('work item failed');
     });
 
-    test('a control-plane stop still force-stops the item', async () => {
+    test('a heartbeat stop still force-stops the item', async () => {
       // A heartbeat reporting `state === "stopped"` ends the run and the item is
       // still force-stopped on the way out — only a *lost* lease skips that.
       const { calls } = await runOneSession(

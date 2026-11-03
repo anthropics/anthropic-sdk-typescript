@@ -224,7 +224,7 @@ A message thread (beta) keeps the conversation on the server, so each request se
 
 ```ts
 const thread = client.beta.messages.thread({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1024,
   system: 'You are a support agent for Acme.',
 });
@@ -324,7 +324,7 @@ By default, the runner runs a reply's tools after your loop body for that reply 
 
 ```ts
 const runner = anthropic.beta.messages.toolRunner({
-  model: 'claude-sonnet-5',
+  model: 'claude-sonnet-5-5',
   max_tokens: 1000,
   messages: [{ role: 'user', content: 'Clean up the log files in /tmp/demo.' }],
   tools: [listFiles, deleteFile],
@@ -584,7 +584,7 @@ Updates the conversation parameters. Can accept new parameters or a mutator func
 // Direct parameter update
 runner.setMessagesParams({
   ...runner.params,
-  model: 'claude-haiku-4-5',
+  model: 'claude-haiku-5-5',
   max_tokens: 500,
 });
 
@@ -753,7 +753,7 @@ The computer toolset has its own guide, [computer-toolset.md](computer-toolset.m
 The SDK exposes a few building blocks for serving managed-agents sessions from a self-hosted environment:
 
 - `client.beta.environments.work.worker({ ... })` (returns an `EnvironmentWorker`, also exported from `@anthropic-ai/sdk/helpers/beta/environments`) — the full worker: polls for work, and for each claimed session sets up the workdir + downloads the agent's skills, runs the local tools against the session's `agent.tool_use` events while heartbeating the work-item lease, force-stops the work on exit, cleans up the downloaded skills, and loops. `worker.handleItem(...)` runs that same per-item flow for a single work item you've already claimed; with no arguments it reads the work id / environment id / session id from `ANTHROPIC_WORK_ID` / `ANTHROPIC_ENVIRONMENT_ID` / `ANTHROPIC_SESSION_ID` (the env vars `ant worker poll --on-work` sets) and the environment key from `ANTHROPIC_ENVIRONMENT_KEY`. `environmentId` / `environmentKey` are only needed by `run()`'s poll loop — `handleItem()` works without them. Composed from the two pieces below.
-- `client.beta.environments.work.poller(...)` — control-plane only (a `WorkPoller`): claims work items from an environment, ack's each one before yielding it, and posts `stop` automatically when the consumer's loop body returns or the iteration ends.
+- `client.beta.environments.work.poller(...)` — polling only (a `WorkPoller`): claims work items from an environment, ack's each one before yielding it, and posts `stop` automatically when the consumer's loop body returns or the iteration ends.
 - `client.beta.sessions.events.toolRunner(...)` — the sessions-side counterpart to `client.beta.messages.toolRunner` (a `SessionToolRunner`): for each `agent.tool_use` event the agent emits during a session, runs the matching tool from your registry, posts the result back, and yields a `DispatchedToolCall` so you can observe what happened. Internally drives event-stream reconnect and result posting; it does not touch the work-item lease.
 
 The tool implementations themselves live in a separate Node-only module — `@anthropic-ai/sdk/tools/agent-toolset/node` — alongside `@anthropic-ai/sdk/tools/memory/node`. `betaAgentToolset20260401(ctx)` returns the standard `agent_toolset_20260401` set (`bash`, `read`, `write`, `edit`, `glob`, `grep`) as `BetaRunnableTool` objects, the same shape `client.beta.messages.toolRunner` accepts. The individual factories — `betaBashTool`, `betaReadTool`, `betaWriteTool`, `betaEditTool`, `betaGlobTool`, `betaGrepTool` — are exported too.

@@ -103,7 +103,7 @@ export interface ConnectorListParams extends PageCursorParams {
    * day, so grouped rows are not an exclusive partition and can sum above org-level
    * totals. At most 100 entries.
    */
-  group_by?: Array<'product' | 'rbac_group_id' | 'user_id'> | null;
+  group_by?: Array<AnalyticsAPI.BetaAnalyticsConnectorGroupBy> | null;
 
   /**
    * Sort direction: `asc` or `desc`. Defaults to `asc` for the endpoint's sort
@@ -111,7 +111,7 @@ export interface ConnectorListParams extends PageCursorParams {
    * to `order_by`, or to the endpoint's default sort field when `order_by` is
    * omitted.
    */
-  order?: 'asc' | 'desc' | null;
+  order?: AnalyticsAPI.BetaAnalyticsOrder | null;
 
   /**
    * Sort field. Restricted to the endpoint's sort column plus its rankable metrics
