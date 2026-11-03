@@ -535,6 +535,50 @@ describe('request building', () => {
       expect(req.headers.get('x-baz')).toEqual(null);
     });
   });
+
+  describe('timeout', () => {
+    const client = new Anthropic({ apiKey: 'my-anthropic-api-key', timeout: 5000 });
+
+    test('handles undefined', async () => {
+      const { timeout } = await client.buildRequest({ path: '/foo', method: 'get', timeout: undefined });
+      expect(timeout).toEqual(5000);
+    });
+
+    test('is used when given', async () => {
+      const { timeout } = await client.buildRequest({ path: '/foo', method: 'get', timeout: 7000 });
+      expect(timeout).toEqual(7000);
+    });
+
+    test('rejects invalid values', async () => {
+      await expect(client.buildRequest({ path: '/foo', method: 'get', timeout: 1.5 })).rejects.toThrow(
+        'timeout must be an integer',
+      );
+      await expect(
+        client.buildRequest({ path: '/foo', method: 'get', timeout: null as unknown as number }),
+      ).rejects.toThrow('timeout must be an integer');
+      await expect(client.buildRequest({ path: '/foo', method: 'get', timeout: -1 })).rejects.toThrow(
+        'timeout must be a positive integer',
+      );
+    });
+
+    test('an undefined timeout is accepted by resource methods', async () => {
+      const testFetch = async (): Promise<Response> =>
+        new Response(JSON.stringify({ id: 'msg_abc' }), {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      const fetchClient = new Anthropic({ apiKey: 'my-anthropic-api-key', fetch: testFetch });
+
+      const message = await fetchClient.messages.create(
+        {
+          model: 'claude-sonnet-4-5-20250929',
+          max_tokens: 1024,
+          messages: [{ role: 'user', content: 'Hello' }],
+        },
+        { timeout: undefined },
+      );
+      expect(message.id).toEqual('msg_abc');
+    });
+  });
 });
 
 describe('default encoder', () => {
