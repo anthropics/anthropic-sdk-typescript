@@ -1,6 +1,11 @@
 # Changelog
 
-## [1.4.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.4.0...sdk-v1.4.1) (2026-11-02)
+## [1.4.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.4.0...sdk-v1.4.1) (2026-11-03)
+
+### Performance Improvements
+
+* **streaming:** decode server-sent events once per chunk
+
 
 ### Chores
 
