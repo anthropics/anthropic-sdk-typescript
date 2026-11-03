@@ -1,8 +1,8 @@
-# <img src=".github/logo.svg" alt="" width="32"> Claude SDK for TypeScript
+# <img src=".github/logo.svg" alt="" width="32"> Anthropic SDK for TypeScript
 
 [![NPM version](https://img.shields.io/npm/v/@anthropic-ai/sdk.svg)](https://npmjs.org/package/@anthropic-ai/sdk)
 
-The Claude SDK for TypeScript provides access to the [Claude API](https://docs.anthropic.com/en/api/) from server-side TypeScript or JavaScript applications.
+The Anthropic SDK for TypeScript provides access to the [Claude API](https://docs.anthropic.com/en/api/) from server-side TypeScript or JavaScript applications.
 
 ## Documentation
 

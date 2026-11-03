@@ -129,7 +129,7 @@ export class Workspaces extends APIResource {
       ...options,
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.list', options, {
         route: '/v1/organizations/workspaces',
-        queryParams: ['after_id', 'before_id', 'include_archived', 'include_default', 'limit'],
+        queryParams: ['after_id', 'before_id', 'ids', 'include_archived', 'include_default', 'limit'],
       }),
     });
   }
@@ -471,6 +471,13 @@ export interface WorkspaceUpdateParams {
 }
 
 export interface WorkspaceListParams extends PageParams {
+  /**
+   * Only the Workspaces with these IDs, at most 100. `include_archived` and
+   * `include_default` still apply, and IDs of Workspaces the caller can't list are
+   * left out.
+   */
+  ids?: Array<string>;
+
   /**
    * Whether to include Workspaces that have been archived in the response
    */
