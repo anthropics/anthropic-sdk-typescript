@@ -35,11 +35,8 @@ export class Work extends APIResource {
    *
    * Retrieve detailed information about a specific work item.
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -80,13 +77,9 @@ export class Work extends APIResource {
    *
    * Update work item metadata with merge semantics.
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {BetaInvalidMetadataError} `metadata` has too many keys, a key or value that is too long, or a reserved
-   * key. The message names each problem.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {BetaInvalidMetadataError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -202,8 +195,7 @@ export class Work extends APIResource {
    *
    * Record a heartbeat for a work item to maintain the lease.
    *
-   * @throws {BetaHeartbeatPreconditionFailedError} `expected_last_heartbeat` does not match the stored heartbeat, so another worker
-   * may hold the lease.
+   * @throws {BetaHeartbeatPreconditionFailedError}
    *
    * @example
    * ```ts
@@ -279,11 +271,8 @@ export class Work extends APIResource {
   /**
    * Get statistics about the work queue for an environment.
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -324,11 +313,8 @@ export class Work extends APIResource {
    *
    * Stop a work item, initiating graceful or forced shutdown.
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts

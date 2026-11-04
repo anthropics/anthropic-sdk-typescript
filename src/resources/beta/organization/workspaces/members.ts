@@ -42,7 +42,7 @@ export class Members extends APIResource {
   /**
    * Update Workspace Member
    *
-   * @throws {WorkspaceMemberLimitExceededError} The workspace has reached the member limit that Anthropic set for it.
+   * @throws {WorkspaceMemberLimitExceededError}
    *
    * @example
    * ```ts
@@ -113,7 +113,7 @@ export class Members extends APIResource {
   /**
    * Create Workspace Member
    *
-   * @throws {WorkspaceMemberLimitExceededError} The workspace has reached the member limit that Anthropic set for it.
+   * @throws {WorkspaceMemberLimitExceededError}
    *
    * @example
    * ```ts

@@ -89,13 +89,9 @@ export class Environments extends APIResource {
   /**
    * Create a new environment with the specified configuration.
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
-   * @throws {BetaEnvironmentCreateDisabledError} Anthropic has turned off creating environments for this organization. Existing
-   * environments still work.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {BetaEnvironmentCreateDisabledError}
    *
    * @example
    * ```ts
@@ -128,11 +124,8 @@ export class Environments extends APIResource {
   /**
    * Retrieve a specific environment by ID.
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -168,16 +161,11 @@ export class Environments extends APIResource {
   /**
    * Update an existing environment's configuration.
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {BetaEnvironmentArchivedError} The environment is archived, so it cannot be updated.
-   * @throws {BetaInvalidConfigTypeChangeError} `config.type` differs from the environment's stored type, which cannot change
-   * after creation.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
-   * @throws {BetaEnvironmentUpdateDisabledError} Anthropic has turned off updating environments for this organization. Existing
-   * environments still work as they are.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {BetaEnvironmentArchivedError}
+   * @throws {BetaInvalidConfigTypeChangeError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {BetaEnvironmentUpdateDisabledError}
    *
    * @example
    * ```ts
@@ -215,11 +203,8 @@ export class Environments extends APIResource {
   /**
    * List environments with pagination support.
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -255,11 +240,8 @@ export class Environments extends APIResource {
   /**
    * Delete an environment by ID. Returns a confirmation of the deletion.
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -296,11 +278,8 @@ export class Environments extends APIResource {
    * Archive an environment by ID. Archived environments cannot be used to create new
    * sessions.
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts

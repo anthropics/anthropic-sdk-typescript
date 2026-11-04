@@ -188,8 +188,7 @@ export class PluginMarketplaces extends APIResource {
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
    *
-   * @throws {BetaUnsupportedCharsetError} The request's `Content-Type` header names a charset other than UTF-8, ISO-8859-1
-   * or US-ASCII. Send the request with no charset, or with one of these.
+   * @throws {BetaUnsupportedCharsetError}
    *
    * @example
    * ```ts

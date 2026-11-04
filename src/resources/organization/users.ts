@@ -86,10 +86,8 @@ export class Users extends APIResource {
   /**
    * Remove a member from the organization.
    *
-   * @throws {CannotRemoveLastMemberError} The user is the organization's only member. Add another member before removing
-   * this one.
-   * @throws {ConcurrentMembershipChangeError} Another change to the organization's members is in progress. Retry the request
-   * once it completes.
+   * @throws {CannotRemoveLastMemberError}
+   * @throws {ConcurrentMembershipChangeError}
    *
    * @example
    * ```ts

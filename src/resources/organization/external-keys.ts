@@ -28,9 +28,7 @@ export class ExternalKeys extends APIResource {
   /**
    * Create an external key config owned by the caller's organization.
    *
-   * @throws {UserProfileNotFoundError} The request depends on a user profile that does not exist in the organization or
-   * is no longer active. The request either names this user profile by ID, or names
-   * a resource, such as an External Key, that is bound to it.
+   * @throws {UserProfileNotFoundError}
    *
    * @example
    * ```ts
@@ -83,8 +81,7 @@ export class ExternalKeys extends APIResource {
    * once any workspace references this config, because previously encrypted data
    * requires the original key identity to decrypt.
    *
-   * @throws {ExternalKeyInWorkspacePolicyError} The External Key can't be deleted or reconfigured while the organization's
-   * Workspace Policy lists it as an allowed key.
+   * @throws {ExternalKeyInWorkspacePolicyError}
    *
    * @example
    * ```ts
@@ -143,8 +140,7 @@ export class ExternalKeys extends APIResource {
    *
    * The request is rejected if any workspace still references this config.
    *
-   * @throws {ExternalKeyInWorkspacePolicyError} The External Key can't be deleted or reconfigured while the organization's
-   * Workspace Policy lists it as an allowed key.
+   * @throws {ExternalKeyInWorkspacePolicyError}
    *
    * @example
    * ```ts

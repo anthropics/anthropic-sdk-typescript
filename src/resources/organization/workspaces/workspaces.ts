@@ -75,17 +75,10 @@ export class Workspaces extends APIResource {
   /**
    * Create Workspace
    *
-   * @throws {KeyProfileMismatchError} The External Key is bound to a user profile, and the Workspace does not have
-   * that user profile. A Workspace can use only a key bound to its own user profile
-   * or a key that isn't bound to one.
-   * @throws {UserProfileNotFoundError} The request depends on a user profile that does not exist in the organization or
-   * is no longer active. The request either names this user profile by ID, or names
-   * a resource, such as an External Key, that is bound to it.
-   * @throws {WorkspacePolicyViolationError} The request breaks the organization's Workspace Policy. The message says which
-   * rule it broke; an organization admin can see and change the policy in the
-   * Console.
-   * @throws {ExternalKeyChangedError} The external key changed while the request was validating it. Send the request
-   * again.
+   * @throws {KeyProfileMismatchError}
+   * @throws {UserProfileNotFoundError}
+   * @throws {WorkspacePolicyViolationError}
+   * @throws {ExternalKeyChangedError}
    *
    * @example
    * ```ts
@@ -130,17 +123,10 @@ export class Workspaces extends APIResource {
   /**
    * Update Workspace
    *
-   * @throws {KeyProfileMismatchError} The External Key is bound to a user profile, and the Workspace does not have
-   * that user profile. A Workspace can use only a key bound to its own user profile
-   * or a key that isn't bound to one.
-   * @throws {UserProfileNotFoundError} The request depends on a user profile that does not exist in the organization or
-   * is no longer active. The request either names this user profile by ID, or names
-   * a resource, such as an External Key, that is bound to it.
-   * @throws {WorkspacePolicyViolationError} The request breaks the organization's Workspace Policy. The message says which
-   * rule it broke; an organization admin can see and change the policy in the
-   * Console.
-   * @throws {ExternalKeyChangedError} The external key changed while the request was validating it. Send the request
-   * again.
+   * @throws {KeyProfileMismatchError}
+   * @throws {UserProfileNotFoundError}
+   * @throws {WorkspacePolicyViolationError}
+   * @throws {ExternalKeyChangedError}
    *
    * @example
    * ```ts
