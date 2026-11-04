@@ -22,8 +22,8 @@ export class Versions extends APIResource {
    * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
    * organization disabled for any other reason, such as billing, does not get this
    * code. `appeal_url`, when present, is where the organization can appeal.
-   * @throws {CMEKContextUnavailableError} The request's workspace encryption context could not be resolved, so the request
-   * was refused. Retry in a few minutes.
+   * @throws {CMEKContextUnavailableError} The workspace's encryption settings could not be read, so the request was
+   * refused. Retry in a few minutes.
    *
    * @example
    * ```ts

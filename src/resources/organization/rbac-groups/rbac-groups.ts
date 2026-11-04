@@ -29,9 +29,8 @@ export class RBACGroupGrantsOwnerAccessError extends BadRequestError {
 
 /**
  * The API could not finish checking whether an RBAC Group in the request grants
- * owner access (the check reached a fixed limit), so it made no change. Retrying
- * the same request will not help. Make the change in the organization's admin
- * settings in Claude.
+ * owner access, so it made no change. Retrying the same request will not help.
+ * Make the change in the organization's admin settings in Claude.
  */
 export class RBACGroupOwnerAccessUnconfirmedError extends BadRequestError {
   declare readonly errorCode: 'rbac_group_owner_access_unconfirmed';
@@ -155,9 +154,8 @@ export class RBACGroups extends APIResource {
    * members, or delete it. Make the change in the organization's admin settings in
    * Claude.
    * @throws {RBACGroupOwnerAccessUnconfirmedError} The API could not finish checking whether an RBAC Group in the request grants
-   * owner access (the check reached a fixed limit), so it made no change. Retrying
-   * the same request will not help. Make the change in the organization's admin
-   * settings in Claude.
+   * owner access, so it made no change. Retrying the same request will not help.
+   * Make the change in the organization's admin settings in Claude.
    *
    * @example
    * ```ts
@@ -249,9 +247,8 @@ export interface RBACGroupGrantsOwnerAccessErrorDetails {
 
 /**
  * The API could not finish checking whether an RBAC Group in the request grants
- * owner access (the check reached a fixed limit), so it made no change. Retrying
- * the same request will not help. Make the change in the organization's admin
- * settings in Claude.
+ * owner access, so it made no change. Retrying the same request will not help.
+ * Make the change in the organization's admin settings in Claude.
  */
 export interface RBACGroupOwnerAccessUnconfirmedErrorDetails {
   error_code: 'rbac_group_owner_access_unconfirmed';

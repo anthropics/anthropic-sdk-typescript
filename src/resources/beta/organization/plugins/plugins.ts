@@ -33,8 +33,8 @@ import { multipartFormRequestOptions } from '../../../../internal/uploads';
 import { path } from '../../../../internal/utils/path';
 
 /**
- * The content scan of the version in `plugin_version_id` failed, errored or
- * reached no verdict, so the version cannot be served.
+ * The version in `plugin_version_id` did not pass its content scan, so it cannot
+ * be served.
  */
 export class BetaScanFailedError extends BadRequestError {
   declare readonly errorCode: 'scan_failed';
@@ -249,8 +249,8 @@ export class Plugins extends APIResource {
    * Re-enable the key, then retry.
    * @throws {CMEKKeyNetworkBlockedError} The key management service's network access controls blocked the request to the
    * workspace's customer-managed encryption key. The key itself may be healthy.
-   * @throws {BetaScanFailedError} The content scan of the version in `plugin_version_id` failed, errored or
-   * reached no verdict, so the version cannot be served.
+   * @throws {BetaScanFailedError} The version in `plugin_version_id` did not pass its content scan, so it cannot
+   * be served.
    * @throws {BetaScanPendingError} The content scan of the version in `plugin_version_id` is still running. Retry
    * once the scan finishes.
    * @throws {BetaSkillNameTakenError} One of the Plugin's skills has the name of an organization skill. `skill_name`
@@ -692,8 +692,8 @@ export interface BetaRegistrationPendingErrorDetails {
 }
 
 /**
- * The content scan of the version in `plugin_version_id` failed, errored or
- * reached no verdict, so the version cannot be served.
+ * The version in `plugin_version_id` did not pass its content scan, so it cannot
+ * be served.
  */
 export interface BetaScanFailedErrorDetails {
   error_code: 'scan_failed';

@@ -111,8 +111,8 @@ export class EnforcedSpendLimitReachedError extends ErrorsRateLimitError {
 }
 
 /**
- * The request's workspace encryption context could not be resolved, so the request
- * was refused. Retry in a few minutes.
+ * The workspace's encryption settings could not be read, so the request was
+ * refused. Retry in a few minutes.
  */
 export class CMEKContextUnavailableError extends ServiceUnavailableError {
   declare readonly errorCode: 'cmek_context_unavailable';
@@ -164,8 +164,8 @@ export interface ClaudeCodeVersionTooOldErrorDetails {
 }
 
 /**
- * The request's workspace encryption context could not be resolved, so the request
- * was refused. Retry in a few minutes.
+ * The workspace's encryption settings could not be read, so the request was
+ * refused. Retry in a few minutes.
  */
 export interface CMEKContextUnavailableErrorDetails {
   error_code: 'cmek_context_unavailable';
