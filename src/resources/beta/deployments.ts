@@ -320,7 +320,7 @@ export interface BetaManagedAgentsAgentArchivedDeploymentPausedReasonError {
 export interface BetaManagedAgentsCronSchedule {
   /**
    * 5-field POSIX cron expression: minute hour day-of-month month day-of-week (e.g.,
-   * "0 9 \* \* 1-5" for weekdays at 9am). Day-of-week is 0-7 where 0 and 7 both mean
+   * "0 9 * * 1-5" for weekdays at 9am). Day-of-week is 0-7 where 0 and 7 both mean
    * Sunday. Extended cron syntax - seconds or year fields, and the special
    * characters L, W, #, and ? - is not supported, nor are predefined shortcuts
    * (@daily).
@@ -357,7 +357,7 @@ export interface BetaManagedAgentsCronSchedule {
 export interface BetaManagedAgentsCronScheduleParams {
   /**
    * 5-field POSIX cron expression: minute hour day-of-month month day-of-week (e.g.,
-   * "0 9 \* \* 1-5" for weekdays at 9am). Day-of-week is 0-7 where 0 and 7 both mean
+   * "0 9 * * 1-5" for weekdays at 9am). Day-of-week is 0-7 where 0 and 7 both mean
    * Sunday. Extended cron syntax - seconds or year fields, and the special
    * characters L, W, #, and ? - is not supported, nor are predefined shortcuts
    * (@daily).
@@ -676,8 +676,8 @@ export interface BetaManagedAgentsMemoryStoreArchivedDeploymentPausedReasonError
  */
 export interface BetaManagedAgentsMemoryStoreResourceConfig {
   /**
-   * The memory store ID (memstore\_...). Must belong to the caller's organization
-   * and workspace.
+   * The memory store ID (memstore_...). Must belong to the caller's organization and
+   * workspace.
    */
   memory_store_id: string;
 
@@ -710,7 +710,7 @@ export interface BetaManagedAgentsOrganizationDisabledDeploymentPausedReasonErro
 export interface BetaManagedAgentsSchedule {
   /**
    * 5-field POSIX cron expression: minute hour day-of-month month day-of-week (e.g.,
-   * "0 9 \* \* 1-5" for weekdays at 9am). Day-of-week is 0-7 where 0 and 7 both mean
+   * "0 9 * * 1-5" for weekdays at 9am). Day-of-week is 0-7 where 0 and 7 both mean
    * Sunday. Extended cron syntax - seconds or year fields, and the special
    * characters L, W, #, and ? - is not supported, nor are predefined shortcuts
    * (@daily).
@@ -746,7 +746,7 @@ export interface BetaManagedAgentsSchedule {
 export interface BetaManagedAgentsScheduleParams {
   /**
    * 5-field POSIX cron expression: minute hour day-of-month month day-of-week (e.g.,
-   * "0 9 \* \* 1-5" for weekdays at 9am). Day-of-week is 0-7 where 0 and 7 both mean
+   * "0 9 * * 1-5" for weekdays at 9am). Day-of-week is 0-7 where 0 and 7 both mean
    * Sunday. Extended cron syntax - seconds or year fields, and the special
    * characters L, W, #, and ? - is not supported, nor are predefined shortcuts
    * (@daily).

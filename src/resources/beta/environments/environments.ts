@@ -385,7 +385,7 @@ export interface BetaCloudConfigParams {
  */
 export interface BetaEnvironment {
   /**
-   * Environment identifier (e.g., 'env\_...')
+   * Environment identifier (e.g., 'env_...')
    */
   id: string;
 

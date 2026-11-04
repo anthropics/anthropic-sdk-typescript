@@ -675,8 +675,8 @@ export interface BetaManagedAgentsGitHubRepositoryResourceParams {
  */
 export interface BetaManagedAgentsMemoryStoreResourceParam {
   /**
-   * The memory store ID (memstore\_...). Must belong to the caller's organization
-   * and workspace.
+   * The memory store ID (memstore_...). Must belong to the caller's organization and
+   * workspace.
    */
   memory_store_id: string;
 
@@ -747,7 +747,7 @@ export interface BetaManagedAgentsOutcomeEvaluationResource {
   iteration: number;
 
   /**
-   * Server-generated outc\_ ID for this outcome.
+   * Server-generated outc_ ID for this outcome.
    */
   outcome_id: string;
 

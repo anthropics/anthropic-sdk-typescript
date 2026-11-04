@@ -450,7 +450,7 @@ export interface BetaHeartbeatPreconditionFailedErrorDetails {
  */
 export interface BetaSelfHostedWork {
   /**
-   * Work identifier (e.g., 'work\_...')
+   * Work identifier (e.g., 'work_...')
    */
   id: string;
 
@@ -623,7 +623,7 @@ export interface BetaSelfHostedWorkUpdateRequest {
  */
 export interface BetaSessionWorkData {
   /**
-   * Session identifier (e.g., 'session\_...')
+   * Session identifier (e.g., 'session_...')
    */
   id: string;
 
