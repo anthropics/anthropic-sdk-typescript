@@ -130,6 +130,7 @@ export class Vaults extends APIResource {
    * const betaManagedAgentsVault =
    *   await client.beta.vaults.update(
    *     'vlt_011CZkZDLs7fYzm1hXNPeRjv',
+   *     {},
    *   );
    * ```
    */

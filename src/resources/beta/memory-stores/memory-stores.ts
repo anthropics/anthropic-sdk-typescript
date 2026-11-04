@@ -119,7 +119,10 @@ export class MemoryStores extends APIResource {
    * @example
    * ```ts
    * const betaManagedAgentsMemoryStore =
-   *   await client.beta.memoryStores.update('memory_store_id');
+   *   await client.beta.memoryStores.update(
+   *     'memory_store_id',
+   *     {},
+   *   );
    * ```
    */
   update(

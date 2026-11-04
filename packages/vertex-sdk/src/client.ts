@@ -16,6 +16,7 @@ import {
 } from './internal/utils/values';
 import type { NullableHeaders } from './internal/headers';
 import { buildHeaders } from './internal/headers';
+import { path } from './internal/utils/path';
 
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 
@@ -268,7 +269,9 @@ export class AnthropicVertex extends BaseAnthropic {
         const specifier = stream ? 'streamRawPredict' : 'rawPredict';
 
         const prefix = url.pathname.slice(0, url.pathname.length - canonicalPath.length);
-        url.pathname = `${prefix}/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/${model}:${specifier}`;
+        url.pathname =
+          prefix +
+          path`/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/${model}:${specifier}`;
         // The canonical `?beta=true` marker has no meaning on Vertex.
         url.searchParams.delete('beta');
       }
@@ -288,7 +291,9 @@ export class AnthropicVertex extends BaseAnthropic {
         }
 
         const prefix = url.pathname.slice(0, url.pathname.length - canonicalPath.length);
-        url.pathname = `${prefix}/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/count-tokens:rawPredict`;
+        url.pathname =
+          prefix +
+          path`/projects/${this.projectId}/locations/${this.region}/publishers/anthropic/models/count-tokens:rawPredict`;
         url.searchParams.delete('beta');
       }
     }

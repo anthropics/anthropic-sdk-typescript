@@ -9,6 +9,7 @@ import {
   type PlatformCredentials,
 } from './internal/utils';
 import { FinalRequestOptions } from './internal/request-options';
+import { path } from './internal/utils/path';
 import { Anthropic, ClientOptions as CoreClientOptions } from '@anthropic-ai/sdk/client';
 export { BaseAnthropic } from '@anthropic-ai/sdk/client';
 import { VERSION } from '@anthropic-ai/sdk/version';
@@ -21,11 +22,11 @@ const DEFAULT_SCOPE = 'https://www.googleapis.com/auth/cloud-platform';
 const DEFAULT_LOCATION = 'global';
 
 const deriveLocationURL = (project: string, location: string): string =>
-  `https://claude.googleapis.com/v1/projects/${project}/locations/${location}`;
+  'https://claude.googleapis.com' + path`/v1/projects/${project}/locations/${location}`;
 
 // The gateway base URL; `baseURL` remains the override hatch.
 const deriveBaseURL = (project: string, location: string, workspaceId: string): string =>
-  `${deriveLocationURL(project, location)}/workspaces/${workspaceId}/invoke`;
+  deriveLocationURL(project, location) + path`/workspaces/${workspaceId}/invoke`;
 
 // Organization-level routes are served from a base with no workspace in it.
 const deriveOrganizationBaseURL = (project: string, location: string): string =>

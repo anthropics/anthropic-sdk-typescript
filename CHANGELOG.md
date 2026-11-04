@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.5.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.4.0...sdk-v1.5.0) (2026-11-03)
+
+### Features
+
+* **api:** add error details types and new error type values
+
+
+### Performance Improvements
+
+* **streaming:** decode server-sent events once per chunk
+
+
+### Chores
+
+* **api:** update example values for pattern-constrained string fields
+* **docs:** clarify some API field descriptions
+* **docs:** update the telemetry destination headers description
+
+
+### Documentation
+
+* **api:** show each field's own description for `speed`
+* fix examples that leave out a required params argument
+
 ## [1.4.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.3.0...sdk-v1.4.0) (2026-11-02)
 
 ### Features

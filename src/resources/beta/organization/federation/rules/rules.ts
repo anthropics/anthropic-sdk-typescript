@@ -135,6 +135,7 @@ export class Rules extends APIResource {
    * const betaFederationRule =
    *   await client.beta.organization.federation.rules.update(
    *     'federation_rule_id',
+   *     {},
    *   );
    * ```
    */

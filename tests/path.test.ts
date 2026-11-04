@@ -1,4 +1,4 @@
-import { createPathTagFunction, encodeURIPath } from '@anthropic-ai/sdk/internal/utils/path';
+import { createPathTagFunction, encodeURIPath, path } from '@anthropic-ai/sdk/internal/utils/path';
 import { inspect } from 'node:util';
 import { runInNewContext } from 'node:vm';
 
@@ -103,6 +103,18 @@ describe('path template tag function', () => {
         'Value of type Object is not a valid path parameter\n' +
         '/../[object Object]\n' +
         ' ^^ ^^^^^^^^^^^^^^',
+    );
+    expect(() => rawPath`/a/${'%2e%2e;x'}/b`).toThrow(
+      'Path parameters result in path with invalid segments:\n' +
+        'Value "%2e%2e;x" can\'t be safely passed as a path parameter\n' +
+        '/a/%2e%2e;x/b\n' +
+        '   ^^^^^^^^',
+    );
+    expect(() => rawPath`/a/${';x'}/b`).toThrow(
+      'Path parameters result in path with invalid segments:\n' +
+        'Value ";x" can\'t be safely passed as a path parameter\n' +
+        '/a/;x/b\n' +
+        '   ^^',
     );
 
     // Valid values
@@ -561,6 +573,20 @@ describe('path template tag function', () => {
         },
       },
     });
+  });
+
+  test.each(['..;x', '.;x', '..;', ';x', ';'])('rejects %j', (param) => {
+    expect(() => path`/path_params/${param}`).toThrow(
+      `Value "${param}" can't be safely passed as a path parameter`,
+    );
+  });
+
+  test.each([
+    ['a;b', '/path_params/a;b'],
+    ['...;x', '/path_params/...;x'],
+    ['a;', '/path_params/a;'],
+  ])('accepts %j', (param, expected) => {
+    expect(path`/path_params/${param}`).toBe(expected);
   });
 });
 

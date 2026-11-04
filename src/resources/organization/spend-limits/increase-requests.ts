@@ -134,6 +134,7 @@ export class IncreaseRequests extends APIResource {
    * const spendLimitIncreaseRequest =
    *   await client.organization.spendLimits.increaseRequests.deny(
    *     'spend_limit_increase_request_id',
+   *     {},
    *   );
    * ```
    */

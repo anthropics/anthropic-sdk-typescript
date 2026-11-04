@@ -85,6 +85,63 @@ export class Messages extends APIResource {
    * Learn more about the Messages API in our
    * [user guide](https://platform.claude.com/docs/en/get-started)
    *
+   * @throws {AvailableToolsLimitExceededError} The tools available after a message exceed a limit on their number or their
+   * size.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
+   * no longer a member of the organization or of that workspace.
+   * @throws {ClaudeCodeVersionTooOldError} The request comes from a Claude Code version older than the minimum that the
+   * requested model or the organization requires. Update Claude Code, then retry.
+   * @throws {CMEKKeyDisabledError} The workspace's customer-managed encryption key is disabled or revoked.
+   * Re-enable the key, then retry.
+   * @throws {CMEKKeyNetworkBlockedError} The key management service's network access controls blocked the request to the
+   * workspace's customer-managed encryption key. The key itself may be healthy.
+   * @throws {CompactionBlockAmbiguousError} `messages` holds more than one `compaction` block with content. Send only the
+   * block the conversation returned last.
+   * @throws {CompactionBlockMisplacedError} The `compaction` block is not the first block of the conversation, or is in a
+   * `system` message.
+   * @throws {CompactionContentMismatchError} The `compaction` block's `content` differs from the text its `signature`
+   * recorded.
+   * @throws {CompactionIncompleteTurnError} The compaction request ends on an `assistant` turn that is not finished.
+   * @throws {CompactionNothingToSummarizeError} `messages` holds no `user` or `assistant` content to summarize or adopt.
+   * @throws {CompactionSignatureInvalidError} The `compaction` block's `signature` does not verify.
+   * @throws {CompactionTooManyToolReferencesError} The conversation references more distinct tools than a `compaction` block can
+   * record.
+   * @throws {CompactionToolChangesMismatchError} The `compaction` block's `tool_changes` differs from what was returned with the
+   * block.
+   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
+   * organization disabled for any other reason, such as billing, does not get this
+   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {RequestBodyEncodingInvalidError} The request body is not valid for its `Content-Encoding`.
+   * @throws {RequestBodyEncodingUnsupportedError} The request's `Content-Encoding` is not supported.
+   * @throws {ThreadAlreadyContinuedError} The response that `previous_message_id` names has already been continued, and
+   * each response can be continued only once. Continue from the Thread's most recent
+   * response `id`.
+   * @throws {ThreadContinueInFlightError} Another request is still continuing from the same `previous_message_id`. Wait
+   * for it to complete and continue from its response `id`, or replay the full
+   * conversation with `thread: {"type": "create"}`.
+   * @throws {ThreadFingerprintMismatchError} A field that must stay the same across a Thread's turns differs from the value
+   * stored with the Thread; the message names each such field. Send the stored
+   * values, or replay the full conversation with `thread: {"type": "create"}` to
+   * change them.
+   * @throws {ThreadUnsupportedRequestError} The request combines `thread` with a request field or an organization setting
+   * that Threads do not support; `unsupported`, when present, names it. Send the
+   * full conversation without `thread`, or change that field.
+   * @throws {ToolNameConflictError} A tool made available in `messages` takes a name that an available tool of
+   * another kind, or of another MCP server, already holds.
+   * @throws {ToolReferenceUnresolvedError} A tool change or MCP tool listing references a tool or MCP server that is not
+   * defined at that position in the conversation.
+   * @throws {ThreadNotFoundError} No usable Thread state was found for `previous_message_id`. Replay the full
+   * conversation with `thread: {"type": "create"}` to start a new Thread.
+   * @throws {SkillReadBlockedUndecryptableError} A custom skill the request names is stored under an encryption key state the
+   * workspace cannot currently decrypt.
+   * @throws {RequestBodyTooLargeAfterDecodingError} The compressed request body exceeds the request size limit once decoded.
+   * @throws {EnforcedSpendLimitReachedError} The organization has crossed the monthly API usage threshold of its API tier.
+   * @throws {CMEKKeyUnreachableError} The workspace's customer-managed encryption key could not be reached. Retry the
+   * request; if this continues, check that the key is available in your key
+   * management service, or contact Anthropic support.
+   * @throws {CompactionUnavailableError} The compaction could not be completed for a transient server reason. Retry the
+   * request.
+   *
    * @example
    * ```ts
    * const betaMessage = await client.beta.messages.create({
@@ -216,6 +273,34 @@ export class Messages extends APIResource {
    *
    * Learn more about token counting in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/token-counting)
+   *
+   * @throws {AvailableToolsLimitExceededError} The tools available after a message exceed a limit on their number or their
+   * size.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
+   * no longer a member of the organization or of that workspace.
+   * @throws {CompactionBlockAmbiguousError} `messages` holds more than one `compaction` block with content. Send only the
+   * block the conversation returned last.
+   * @throws {CompactionBlockMisplacedError} The `compaction` block is not the first block of the conversation, or is in a
+   * `system` message.
+   * @throws {CompactionContentMismatchError} The `compaction` block's `content` differs from the text its `signature`
+   * recorded.
+   * @throws {CompactionNothingToSummarizeError} `messages` holds no `user` or `assistant` content to summarize or adopt.
+   * @throws {CompactionSignatureInvalidError} The `compaction` block's `signature` does not verify.
+   * @throws {CompactionToolChangesMismatchError} The `compaction` block's `tool_changes` differs from what was returned with the
+   * block.
+   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
+   * organization disabled for any other reason, such as billing, does not get this
+   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {RequestBodyEncodingInvalidError} The request body is not valid for its `Content-Encoding`.
+   * @throws {RequestBodyEncodingUnsupportedError} The request's `Content-Encoding` is not supported.
+   * @throws {ToolNameConflictError} A tool made available in `messages` takes a name that an available tool of
+   * another kind, or of another MCP server, already holds.
+   * @throws {ToolReferenceUnresolvedError} A tool change or MCP tool listing references a tool or MCP server that is not
+   * defined at that position in the conversation.
+   * @throws {RequestBodyTooLargeAfterDecodingError} The compressed request body exceeds the request size limit once decoded.
+   * @throws {EnforcedSpendLimitReachedError} The organization has crossed the monthly API usage threshold of its API tier.
+   * @throws {CompactionUnavailableError} The compaction could not be completed for a transient server reason. Retry the
+   * request.
    *
    * @example
    * ```ts
@@ -450,9 +535,9 @@ export interface BetaAdvisorTool20260301 {
    * hits this cap, the returned advisor_result or advisor_redacted_result block
    * carries stop_reason='max_tokens', and a truncation note is appended to the
    * advice text the worker model sees (inside the encrypted blob in redacted mode).
-   * When set, the server also emits a remaining-tokens budget block in the advisor's
-   * prompt so the advisor self-shapes toward the cap. When omitted, the advisor
-   * model's default output cap applies and no budget block is emitted.
+   * When set, the API also passes the advisor its remaining-token budget, so the
+   * advisor shapes its output toward the cap. When omitted, the advisor model's
+   * default output cap applies and the API doesn't pass a budget.
    */
   max_tokens?: number | null;
 
@@ -5196,13 +5281,21 @@ export interface BetaFallbackBlock {
  * Accepted in `messages[].content` and not rendered into the prompt; not validated
  * against the request's `fallbacks` chain or top-level `model`.
  *
- * Echo the assistant turn back verbatim, including this block in its original
- * position. The block marks the boundary between content produced before and after
- * a fallback hop, and the server relies on that boundary to validate the turn:
- * when thinking runs flank the boundary, omitting the block merges them into one
- * span the server cannot validate (the request is rejected), and moving it into
- * the middle of a single run is likewise rejected; between non-thinking blocks the
- * block's placement has no validation effect.
+ * When you send the assistant turn back, keep this block in its original position.
+ * The block marks the boundary between content produced before and after a
+ * fallback hop, and the server relies on that boundary to validate the turn: when
+ * thinking runs flank the boundary, omitting the block merges them into one span
+ * the server cannot validate (the request is rejected), and moving it into the
+ * middle of a single run is likewise rejected; between non-thinking blocks the
+ * block's placement has no effect on thinking validation.
+ *
+ * Some blocks from before the turn's final `fallback` block must be left out when
+ * you send the turn back, and no `tool_result` is sent for a `tool_use` block you
+ * left out.
+ *
+ * See the
+ * [refusals and fallback guide](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback#continuing-the-conversation)
+ * to learn which blocks to keep.
  */
 export interface BetaFallbackBlockParam {
   /**
@@ -6292,10 +6385,10 @@ export interface BetaOutputTokensDetails {
    * thinking-block delimiter tokens.
    *
    * Reflects the raw reasoning the model produced, not the (possibly shorter)
-   * summarized thinking text returned in the response body. Computed by
-   * re-tokenizing the raw reasoning text, so it may differ from the model's exact
-   * generation count by a small number of tokens. Always ≤ `output_tokens`;
-   * `output_tokens - thinking_tokens` approximates the non-reasoning output.
+   * summarized thinking text returned in the response body. It may differ from the
+   * model's exact generation count by a small number of tokens. Always ≤
+   * `output_tokens`; `output_tokens - thinking_tokens` approximates the
+   * non-reasoning output.
    */
   thinking_tokens: number;
 }

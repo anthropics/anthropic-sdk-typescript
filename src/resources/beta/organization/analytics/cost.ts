@@ -123,9 +123,7 @@ export interface BetaAnalyticsCostGroup {
    * addressed), `scheduled` (a scheduled routine ran), `monitoring` (Claude watching
    * a channel it was asked to monitor), or `dm` (direct messages with Claude).
    * Populated only when `claude_tag_category` is in `group_by[]`; null for usage
-   * that is not Claude Tag. Direct-message usage is billed to the individual user
-   * and is reported under that user's product, not under `claude_tag`. New
-   * categories may be added over time.
+   * that is not Claude Tag. New categories may be added over time.
    */
   claude_tag_category: AnalyticsAPI.BetaAnalyticsClaudeTagCategory | null;
 
@@ -189,8 +187,8 @@ export interface BetaAnalyticsCostGroup {
    * `chat_cowork_unified` is Chat and Cowork unified, Cowork's features inside
    * claude.ai chat: chat and Cowork usage by a member who has it turned on is
    * reported under this value instead of `chat` or `cowork`. It is accepted as a
-   * filter only on deployments that offer Chat and Cowork unified. Some unattributed
-   * usage is reported as "other".
+   * filter only where Chat and Cowork unified is available. Some unattributed usage
+   * is reported as "other".
    */
   product: string | null;
 
@@ -222,8 +220,9 @@ export interface BetaAnalyticsCostGroup {
 
   /**
    * Slack channel the usage originated from. Populated only when `slack_channel_id`
-   * is in `group_by[]`; null for usage outside Slack (and for rows recorded before
-   * channel attribution was enabled).
+   * is in `group_by[]`; null for usage outside Slack, for some Claude Tag usage that
+   * has no channel recorded, and for usage recorded before channel attribution was
+   * enabled.
    */
   slack_channel_id: string | null;
 
@@ -361,7 +360,7 @@ export interface CostListParams extends ReportPageCursorParams {
   /**
    * Query param: Filter to usage incurred by sessions of specific Claude Managed
    * Agents agents. Use `group_by[]=agent_id` to break out per-agent values. Claude
-   * Developer Platform organizations only.
+   * Platform organizations only.
    */
   agent_ids?: Array<string> | null;
 
@@ -370,17 +369,14 @@ export interface CostListParams extends ReportPageCursorParams {
    * key ID (`apikey_...`), whichever identity the usage is attributed to. Include an
    * empty entry (`api_key_ids[]=`) to also match usage that no API key
    * authenticated. Use `group_by[]=api_key_id` to break out per-key values; usage
-   * without a key has a null `api_key_id`. Claude Developer Platform organizations
-   * only.
+   * without a key has a null `api_key_id`. Claude Platform organizations only.
    */
   api_key_ids?: Array<string> | null;
 
   /**
    * Query param: Filter to Claude Tag (Claude in Slack) usage in specific spend
-   * categories. Usage with no category never matches. `dm` usage is reported under
-   * the user's product rather than `claude_tag`, so combining this filter with
-   * `products[]=claude_tag` excludes it. Use `group_by[]=claude_tag_category` to
-   * break out per-category values.
+   * categories. Usage with no category never matches. Use
+   * `group_by[]=claude_tag_category` to break out per-category values.
    */
   claude_tag_categories?: Array<AnalyticsAPI.BetaAnalyticsClaudeTagCategory> | null;
 
@@ -402,7 +398,7 @@ export interface CostListParams extends ReportPageCursorParams {
   /**
    * Query param: Filter to usage incurred by Claude Managed Agents sessions that
    * specific deployments started. Use `group_by[]=deployment_id` to break out
-   * per-deployment values. Claude Developer Platform organizations only.
+   * per-deployment values. Claude Platform organizations only.
    */
   deployment_ids?: Array<string> | null;
 
@@ -416,7 +412,7 @@ export interface CostListParams extends ReportPageCursorParams {
   /**
    * Query param: Filter to usage incurred by Claude Managed Agents sessions that ran
    * in specific environments. Use `group_by[]=environment_id` to break out
-   * per-environment values. Claude Developer Platform organizations only.
+   * per-environment values. Claude Platform organizations only.
    */
   environment_ids?: Array<string> | null;
 
@@ -492,15 +488,15 @@ export interface CostListParams extends ReportPageCursorParams {
 
   /**
    * Query param: Filter to specific service tiers. Use `group_by[]=service_tier` to
-   * break out per-tier values. Claude Developer Platform organizations only; matches
-   * nothing for a Claude Enterprise organization.
+   * break out per-tier values. Claude Platform organizations only; matches nothing
+   * for a Claude Enterprise organization.
    */
   service_tiers?: Array<AnalyticsAPI.BetaAnalyticsServiceTier> | null;
 
   /**
    * Query param: Filter to usage incurred by specific Claude Managed Agents
    * sessions, by tagged session ID (`sesn_...`). Use `group_by[]=session_id` to
-   * break out per-session values. Claude Developer Platform organizations only.
+   * break out per-session values. Claude Platform organizations only.
    */
   session_ids?: Array<string> | null;
 
@@ -530,15 +526,15 @@ export interface CostListParams extends ReportPageCursorParams {
   /**
    * Query param: Filter to usage attributed to specific user profiles, by tagged
    * user profile ID (`uprof_...`). Use `group_by[]=user_profile_id` to break out
-   * per-profile values. Claude Developer Platform organizations only.
+   * per-profile values. Claude Platform organizations only.
    */
   user_profile_ids?: Array<string> | null;
 
   /**
    * Query param: Filter to usage in specific workspaces, by tagged workspace ID
    * (`wrkspc_...`). Use `group_by[]=workspace_id` to break out per-workspace values.
-   * Claude Developer Platform organizations only; matches nothing for a Claude
-   * Enterprise organization.
+   * Claude Platform organizations only; matches nothing for a Claude Enterprise
+   * organization.
    */
   workspace_ids?: Array<string> | null;
 

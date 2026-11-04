@@ -13,6 +13,18 @@ export class Versions extends APIResource {
   /**
    * Create Skill Version
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
+   * no longer a member of the organization or of that workspace.
+   * @throws {CMEKKeyDisabledError} The workspace's customer-managed encryption key is disabled or revoked.
+   * Re-enable the key, then retry.
+   * @throws {CMEKKeyNetworkBlockedError} The key management service's network access controls blocked the request to the
+   * workspace's customer-managed encryption key. The key itself may be healthy.
+   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
+   * organization disabled for any other reason, such as billing, does not get this
+   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {CMEKContextUnavailableError} The workspace's encryption settings could not be read, so the request was
+   * refused. Retry in a few minutes.
+   *
    * @example
    * ```ts
    * const betaSkillVersion =
@@ -56,6 +68,12 @@ export class Versions extends APIResource {
   /**
    * Get Skill Version
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
+   * no longer a member of the organization or of that workspace.
+   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
+   * organization disabled for any other reason, such as billing, does not get this
+   * code. `appeal_url`, when present, is where the organization can appeal.
+   *
    * @example
    * ```ts
    * const betaSkillVersion =
@@ -89,6 +107,12 @@ export class Versions extends APIResource {
 
   /**
    * List Skill Versions
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
+   * no longer a member of the organization or of that workspace.
+   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
+   * organization disabled for any other reason, such as billing, does not get this
+   * code. `appeal_url`, when present, is where the organization can appeal.
    *
    * @example
    * ```ts
@@ -127,6 +151,12 @@ export class Versions extends APIResource {
 
   /**
    * Delete Skill Version
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
+   * no longer a member of the organization or of that workspace.
+   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
+   * organization disabled for any other reason, such as billing, does not get this
+   * code. `appeal_url`, when present, is where the organization can appeal.
    *
    * @example
    * ```ts

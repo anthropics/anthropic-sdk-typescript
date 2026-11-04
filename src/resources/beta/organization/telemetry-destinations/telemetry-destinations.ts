@@ -128,6 +128,7 @@ export class TelemetryDestinations extends APIResource {
    * const betaTelemetryDestination =
    *   await client.beta.organization.telemetryDestinations.update(
    *     'destination_id',
+   *     {},
    *   );
    * ```
    */
@@ -821,8 +822,7 @@ export interface TelemetryDestinationCreateParams {
    * Body param: Request headers that the API sends with every delivery, typically
    * your collector's authentication header (for example `authorization`).
    *
-   * The API stores the values encrypted and never returns them. Reads show only
-   * `header_names`.
+   * The API never returns the values. Reads show only `header_names`.
    *
    * At most 20 headers. Names are at most 128 characters. Two names can't differ
    * only in case. Values are printable ASCII, at most 4,096 characters, and can't

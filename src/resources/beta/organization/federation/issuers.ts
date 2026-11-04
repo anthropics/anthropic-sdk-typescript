@@ -107,6 +107,7 @@ export class Issuers extends APIResource {
    * const betaFederationIssuer =
    *   await client.beta.organization.federation.issuers.update(
    *     'federation_issuer_id',
+   *     {},
    *   );
    * ```
    */

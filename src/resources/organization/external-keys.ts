@@ -1,13 +1,36 @@
 import { APIResource } from '../../core/resource';
 import { APIPromise } from '../../core/api-promise';
+import { BadRequestError, ConflictError } from '../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagination';
 import { RequestOptions } from '../../internal/request-options';
 import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
 
+/**
+ * The External Key can't be deleted or reconfigured while the organization's
+ * Workspace Policy lists it as an allowed key.
+ */
+export class ExternalKeyInWorkspacePolicyError extends BadRequestError {
+  declare readonly errorCode: 'external_key_in_workspace_policy';
+  declare readonly details: ExternalKeyInWorkspacePolicyErrorDetails;
+}
+
+/**
+ * The external key changed while the request was validating it. Send the request
+ * again.
+ */
+export class ExternalKeyChangedError extends ConflictError {
+  declare readonly errorCode: 'external_key_changed';
+  declare readonly details: ExternalKeyChangedErrorDetails;
+}
+
 export class ExternalKeys extends APIResource {
   /**
    * Create an external key config owned by the caller's organization.
+   *
+   * @throws {UserProfileNotFoundError} The request depends on a user profile that does not exist in the organization or
+   * is no longer active. The request either names this user profile by ID, or names
+   * a resource, such as an External Key, that is bound to it.
    *
    * @example
    * ```ts
@@ -60,11 +83,15 @@ export class ExternalKeys extends APIResource {
    * once any workspace references this config, because previously encrypted data
    * requires the original key identity to decrypt.
    *
+   * @throws {ExternalKeyInWorkspacePolicyError} The External Key can't be deleted or reconfigured while the organization's
+   * Workspace Policy lists it as an allowed key.
+   *
    * @example
    * ```ts
    * const externalKey =
    *   await client.organization.externalKeys.update(
    *     'external_key_id',
+   *     {},
    *   );
    * ```
    */
@@ -115,6 +142,9 @@ export class ExternalKeys extends APIResource {
    * Delete an external key config.
    *
    * The request is rejected if any workspace still references this config.
+   *
+   * @throws {ExternalKeyInWorkspacePolicyError} The External Key can't be deleted or reconfigured while the organization's
+   * Workspace Policy lists it as an allowed key.
    *
    * @example
    * ```ts
@@ -266,8 +296,7 @@ export interface ExternalKey {
   display_name: string | null;
 
   /**
-   * Data residency geo. Selects the region that handles this key's encrypt/decrypt
-   * roundtrips.
+   * Data residency geo. Selects the region this key is used in.
    */
   geo: string;
 
@@ -291,6 +320,22 @@ export interface ExternalKey {
 
 export interface ExternalKeyAttachedAttachment {
   type: 'attached';
+}
+
+/**
+ * The external key changed while the request was validating it. Send the request
+ * again.
+ */
+export interface ExternalKeyChangedErrorDetails {
+  error_code: 'external_key_changed';
+}
+
+/**
+ * The External Key can't be deleted or reconfigured while the organization's
+ * Workspace Policy lists it as an allowed key.
+ */
+export interface ExternalKeyInWorkspacePolicyErrorDetails {
+  error_code: 'external_key_in_workspace_policy';
 }
 
 export interface ExternalKeyUnattachedAttachment {
@@ -380,13 +425,20 @@ export interface ExternalKeyUpdateParams {
 
 export interface ExternalKeyListParams extends PageCursorParams {}
 
+ExternalKeys.ExternalKeyInWorkspacePolicyError = ExternalKeyInWorkspacePolicyError;
+ExternalKeys.ExternalKeyChangedError = ExternalKeyChangedError;
+
 export declare namespace ExternalKeys {
   export {
+    ExternalKeyInWorkspacePolicyError as ExternalKeyInWorkspacePolicyError,
+    ExternalKeyChangedError as ExternalKeyChangedError,
     type AWSExternalKeyConfig as AWSExternalKeyConfig,
     type AzureExternalKeyConfig as AzureExternalKeyConfig,
     type AzureExternalKeyConfigParam as AzureExternalKeyConfigParam,
     type ExternalKey as ExternalKey,
     type ExternalKeyAttachedAttachment as ExternalKeyAttachedAttachment,
+    type ExternalKeyChangedErrorDetails as ExternalKeyChangedErrorDetails,
+    type ExternalKeyInWorkspacePolicyErrorDetails as ExternalKeyInWorkspacePolicyErrorDetails,
     type ExternalKeyUnattachedAttachment as ExternalKeyUnattachedAttachment,
     type GCPExternalKeyConfig as GCPExternalKeyConfig,
     type ExternalKeyDeleteResponse as ExternalKeyDeleteResponse,

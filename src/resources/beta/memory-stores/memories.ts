@@ -16,7 +16,7 @@ export class Memories extends APIResource {
    * const betaManagedAgentsMemory =
    *   await client.beta.memoryStores.memories.create(
    *     'memory_store_id',
-   *     { content: 'content', path: 'xx' },
+   *     { content: 'content', path: '/P' },
    *   );
    * ```
    */

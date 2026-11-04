@@ -1,4 +1,4 @@
-# <img src=".github/logo.svg" alt="" width="32"> Claude SDK for AWS Bedrock
+# <img src=".github/logo.svg" alt="" width="32"> Anthropic SDK for AWS Bedrock
 
 [![NPM version](https://img.shields.io/npm/v/@anthropic-ai/bedrock-sdk.svg?color=blue)](https://npmjs.org/package/@anthropic-ai/bedrock-sdk)
 
@@ -66,7 +66,7 @@ const client = new AnthropicBedrock({
 });
 ```
 
-For more details on how to use the SDK, see the [README.md for the main Claude SDK](https://github.com/anthropics/anthropic-sdk-typescript/tree/main#readme) which this library extends.
+For more details on how to use the SDK, see the [README.md for the main Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript/tree/main#readme) which this library extends.
 
 ## Requirements
 

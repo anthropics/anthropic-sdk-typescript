@@ -7,11 +7,22 @@ import {
   UserProfileEnrollEndUserAction,
 } from './action-urls';
 import { APIPromise } from '../../core/api-promise';
+import { BadRequestError } from '../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagination';
 import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
 import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
+
+/**
+ * The request depends on a user profile that does not exist in the organization or
+ * is no longer active. The request either names this user profile by ID, or names
+ * a resource, such as an External Key, that is bound to it.
+ */
+export class UserProfileNotFoundError extends BadRequestError {
+  declare readonly errorCode: 'user_profile_not_found';
+  declare readonly details: UserProfileNotFoundErrorDetails;
+}
 
 export class UserProfiles extends APIResource {
   actionURLs: ActionURLsAPI.ActionURLs = new ActionURLsAPI.ActionURLs(this._client);
@@ -21,7 +32,7 @@ export class UserProfiles extends APIResource {
    *
    * @example
    * ```ts
-   * const userProfile = await client.userProfiles.create();
+   * const userProfile = await client.userProfiles.create({});
    * ```
    */
   create(params: UserProfileCreateParams, options?: RequestOptions): APIPromise<UserProfile> {
@@ -76,6 +87,7 @@ export class UserProfiles extends APIResource {
    * ```ts
    * const userProfile = await client.userProfiles.update(
    *   'uprof_011CZkZCu8hGbp5mYRQgUmz9',
+   *   {},
    * );
    * ```
    */
@@ -637,6 +649,15 @@ export type UserProfileListOrder = 'asc' | 'desc';
 export type UserProfileListOrderBy = 'created_at' | 'name';
 
 /**
+ * The request depends on a user profile that does not exist in the organization or
+ * is no longer active. The request either names this user profile by ID, or names
+ * a resource, such as an External Key, that is bound to it.
+ */
+export interface UserProfileNotFoundErrorDetails {
+  error_code: 'user_profile_not_found';
+}
+
+/**
  * A user profile's status in a program. Each program's `status` field says what
  * the values mean there.
  *
@@ -821,10 +842,12 @@ export interface UserProfileDeleteParams {
   workspace_id?: string;
 }
 
+UserProfiles.UserProfileNotFoundError = UserProfileNotFoundError;
 UserProfiles.ActionURLs = ActionURLs;
 
 export declare namespace UserProfiles {
   export {
+    UserProfileNotFoundError as UserProfileNotFoundError,
     type DeletedUserProfile as DeletedUserProfile,
     type UserProfile as UserProfile,
     type UserProfileAccessType as UserProfileAccessType,
@@ -845,6 +868,7 @@ export declare namespace UserProfiles {
     type UserProfileExternalUserEntityType as UserProfileExternalUserEntityType,
     type UserProfileListOrder as UserProfileListOrder,
     type UserProfileListOrderBy as UserProfileListOrderBy,
+    type UserProfileNotFoundErrorDetails as UserProfileNotFoundErrorDetails,
     type UserProfileProgramStatus as UserProfileProgramStatus,
     type UserProfilePrograms as UserProfilePrograms,
     type UserProfilesPageCursor as UserProfilesPageCursor,

@@ -190,6 +190,8 @@ import {
 } from './analytics/analytics';
 import * as ClaudeTagAPI from './claude-tag/claude-tag';
 import {
+  BetaAPIKeyScopeMissingError,
+  BetaAPIKeyScopeMissingErrorDetails,
   BetaClaudeTagDefaultSettingSource,
   BetaClaudeTagGuestPolicy,
   BetaClaudeTagGuestPolicyAllow,
@@ -207,6 +209,18 @@ import {
   BetaClaudeTagSlackParentChannelSettingSource,
   BetaClaudeTagSlackWorkspaceIdentifiers,
   BetaClaudeTagSlackWorkspaceSettingSource,
+  BetaClaudeTagWritesNotEnabledError,
+  BetaClaudeTagWritesNotEnabledErrorDetails,
+  BetaComplianceConfigurationRestrictedError,
+  BetaComplianceConfigurationRestrictedErrorDetails,
+  BetaOrganizationLevelScopedAPIKeyRequiredError,
+  BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails,
+  BetaSlackChannelSetUpEnvironmentNotFoundError,
+  BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails,
+  BetaSlackChannelSetUpSettingsConflictError,
+  BetaSlackChannelSetUpSettingsConflictErrorDetails,
+  BetaSlackChannelSetUpSettingsRefusedError,
+  BetaSlackChannelSetUpSettingsRefusedErrorDetails,
   ClaudeTag,
 } from './claude-tag/claude-tag';
 import * as FederationAPI from './federation/federation';
@@ -218,6 +232,8 @@ import {
   BetaPluginAPIActor,
   BetaPluginComponent,
   BetaPluginContentScan,
+  BetaPluginNameTakenError,
+  BetaPluginNameTakenErrorDetails,
   BetaPluginOwnerOrganization,
   BetaPluginOwnerUser,
   BetaPluginTargetOrganization,
@@ -225,6 +241,14 @@ import {
   BetaPluginTargetRBACGroup,
   BetaPluginUserActor,
   BetaPluginsPageCursor,
+  BetaRegistrationPendingError,
+  BetaRegistrationPendingErrorDetails,
+  BetaScanFailedError,
+  BetaScanFailedErrorDetails,
+  BetaScanPendingError,
+  BetaScanPendingErrorDetails,
+  BetaSkillNameTakenError,
+  BetaSkillNameTakenErrorDetails,
   PluginCreateParams,
   PluginDeleteParams,
   PluginListParams,
@@ -274,6 +298,8 @@ import {
   BetaSpendLimitUserActor,
   BetaSpendLimitUserScope,
   BetaSpendLimitWorkspaceScope,
+  BetaSpendLimitsAdminAPIWritesNotEnabledError,
+  BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails,
   BetaSpendLimitsPageCursor,
   BetaSpendSummary,
   SpendLimitDeleteResponse,
@@ -338,8 +364,18 @@ import {
   Workspaces,
 } from './workspaces/workspaces';
 import { APIPromise } from '../../../core/api-promise';
+import { PermissionDeniedError } from '../../../core/error';
 import { RequestOptions } from '../../../internal/request-options';
 import { startApiCallSpan } from '../../../internal/tracing';
+
+/**
+ * Anthropic has temporarily disabled billing changes for the user account the
+ * credential belongs to. Contact support.
+ */
+export class BetaBillingFrozenError extends PermissionDeniedError {
+  declare readonly errorCode: 'billing_frozen';
+  declare readonly details: BetaBillingFrozenErrorDetails;
+}
 
 export class Organization extends APIResource {
   apiKeys: APIKeysAPI.APIKeys = new APIKeysAPI.APIKeys(this._client);
@@ -387,6 +423,14 @@ export class Organization extends APIResource {
   }
 }
 
+/**
+ * Anthropic has temporarily disabled billing changes for the user account the
+ * credential belongs to. Contact support.
+ */
+export interface BetaBillingFrozenErrorDetails {
+  error_code: 'billing_frozen';
+}
+
 export interface BetaOrganization {
   /**
    * ID of the Organization.
@@ -417,6 +461,7 @@ export type BetaOrganizationRole =
   | 'primary_owner'
   | 'user';
 
+Organization.BetaBillingFrozenError = BetaBillingFrozenError;
 Organization.APIKeys = APIKeys;
 Organization.ExternalKeys = ExternalKeys;
 Organization.Federation = Federation;
@@ -428,16 +473,34 @@ Organization.RateLimits = RateLimits;
 Organization.ComplianceSettings = ComplianceSettings;
 Organization.Analytics = Analytics;
 Organization.SpendLimits = SpendLimits;
+Organization.BetaSpendLimitsAdminAPIWritesNotEnabledError = BetaSpendLimitsAdminAPIWritesNotEnabledError;
 Organization.RBACGroups = RBACGroups;
 Organization.RBACRoles = RBACRoles;
 Organization.Plugins = Plugins;
+Organization.BetaScanFailedError = BetaScanFailedError;
+Organization.BetaPluginNameTakenError = BetaPluginNameTakenError;
+Organization.BetaScanPendingError = BetaScanPendingError;
+Organization.BetaSkillNameTakenError = BetaSkillNameTakenError;
+Organization.BetaRegistrationPendingError = BetaRegistrationPendingError;
 Organization.PluginMarketplaces = PluginMarketplaces;
 Organization.TelemetryDestinations = TelemetryDestinations;
 Organization.Webhooks = Webhooks;
 Organization.ClaudeTag = ClaudeTag;
+Organization.BetaSlackChannelSetUpSettingsRefusedError = BetaSlackChannelSetUpSettingsRefusedError;
+Organization.BetaAPIKeyScopeMissingError = BetaAPIKeyScopeMissingError;
+Organization.BetaClaudeTagWritesNotEnabledError = BetaClaudeTagWritesNotEnabledError;
+Organization.BetaComplianceConfigurationRestrictedError = BetaComplianceConfigurationRestrictedError;
+Organization.BetaOrganizationLevelScopedAPIKeyRequiredError = BetaOrganizationLevelScopedAPIKeyRequiredError;
+Organization.BetaSlackChannelSetUpEnvironmentNotFoundError = BetaSlackChannelSetUpEnvironmentNotFoundError;
+Organization.BetaSlackChannelSetUpSettingsConflictError = BetaSlackChannelSetUpSettingsConflictError;
 
 export declare namespace Organization {
-  export { type BetaOrganization as BetaOrganization, type BetaOrganizationRole as BetaOrganizationRole };
+  export {
+    BetaBillingFrozenError as BetaBillingFrozenError,
+    type BetaBillingFrozenErrorDetails as BetaBillingFrozenErrorDetails,
+    type BetaOrganization as BetaOrganization,
+    type BetaOrganizationRole as BetaOrganizationRole,
+  };
 
   export {
     APIKeys as APIKeys,
@@ -629,6 +692,7 @@ export declare namespace Organization {
 
   export {
     SpendLimits as SpendLimits,
+    BetaSpendLimitsAdminAPIWritesNotEnabledError as BetaSpendLimitsAdminAPIWritesNotEnabledError,
     type BetaSpendLimit as BetaSpendLimit,
     type BetaSpendLimitOrganizationScope as BetaSpendLimitOrganizationScope,
     type BetaSpendLimitOrganizationServiceScope as BetaSpendLimitOrganizationServiceScope,
@@ -640,6 +704,7 @@ export declare namespace Organization {
     type BetaSpendLimitUserActor as BetaSpendLimitUserActor,
     type BetaSpendLimitUserScope as BetaSpendLimitUserScope,
     type BetaSpendLimitWorkspaceScope as BetaSpendLimitWorkspaceScope,
+    type BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails as BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails,
     type BetaSpendSummary as BetaSpendSummary,
     type SpendLimitDeleteResponse as SpendLimitDeleteResponse,
     type BetaSpendLimitsPageCursor as BetaSpendLimitsPageCursor,
@@ -666,17 +731,27 @@ export declare namespace Organization {
 
   export {
     Plugins as Plugins,
+    BetaScanFailedError as BetaScanFailedError,
+    BetaPluginNameTakenError as BetaPluginNameTakenError,
+    BetaScanPendingError as BetaScanPendingError,
+    BetaSkillNameTakenError as BetaSkillNameTakenError,
+    BetaRegistrationPendingError as BetaRegistrationPendingError,
     type BetaDeletedPlugin as BetaDeletedPlugin,
     type BetaPlugin as BetaPlugin,
     type BetaPluginAPIActor as BetaPluginAPIActor,
     type BetaPluginComponent as BetaPluginComponent,
     type BetaPluginContentScan as BetaPluginContentScan,
+    type BetaPluginNameTakenErrorDetails as BetaPluginNameTakenErrorDetails,
     type BetaPluginOwnerOrganization as BetaPluginOwnerOrganization,
     type BetaPluginOwnerUser as BetaPluginOwnerUser,
     type BetaPluginTargetOrganization as BetaPluginTargetOrganization,
     type BetaPluginTargetOrganizationMember as BetaPluginTargetOrganizationMember,
     type BetaPluginTargetRBACGroup as BetaPluginTargetRBACGroup,
     type BetaPluginUserActor as BetaPluginUserActor,
+    type BetaRegistrationPendingErrorDetails as BetaRegistrationPendingErrorDetails,
+    type BetaScanFailedErrorDetails as BetaScanFailedErrorDetails,
+    type BetaScanPendingErrorDetails as BetaScanPendingErrorDetails,
+    type BetaSkillNameTakenErrorDetails as BetaSkillNameTakenErrorDetails,
     type BetaPluginsPageCursor as BetaPluginsPageCursor,
     type PluginCreateParams as PluginCreateParams,
     type PluginRetrieveParams as PluginRetrieveParams,
@@ -758,6 +833,14 @@ export declare namespace Organization {
 
   export {
     ClaudeTag as ClaudeTag,
+    BetaSlackChannelSetUpSettingsRefusedError as BetaSlackChannelSetUpSettingsRefusedError,
+    BetaAPIKeyScopeMissingError as BetaAPIKeyScopeMissingError,
+    BetaClaudeTagWritesNotEnabledError as BetaClaudeTagWritesNotEnabledError,
+    BetaComplianceConfigurationRestrictedError as BetaComplianceConfigurationRestrictedError,
+    BetaOrganizationLevelScopedAPIKeyRequiredError as BetaOrganizationLevelScopedAPIKeyRequiredError,
+    BetaSlackChannelSetUpEnvironmentNotFoundError as BetaSlackChannelSetUpEnvironmentNotFoundError,
+    BetaSlackChannelSetUpSettingsConflictError as BetaSlackChannelSetUpSettingsConflictError,
+    type BetaAPIKeyScopeMissingErrorDetails as BetaAPIKeyScopeMissingErrorDetails,
     type BetaClaudeTagDefaultSettingSource as BetaClaudeTagDefaultSettingSource,
     type BetaClaudeTagGuestPolicy as BetaClaudeTagGuestPolicy,
     type BetaClaudeTagGuestPolicyAllow as BetaClaudeTagGuestPolicyAllow,
@@ -775,5 +858,11 @@ export declare namespace Organization {
     type BetaClaudeTagSlackParentChannelSettingSource as BetaClaudeTagSlackParentChannelSettingSource,
     type BetaClaudeTagSlackWorkspaceIdentifiers as BetaClaudeTagSlackWorkspaceIdentifiers,
     type BetaClaudeTagSlackWorkspaceSettingSource as BetaClaudeTagSlackWorkspaceSettingSource,
+    type BetaClaudeTagWritesNotEnabledErrorDetails as BetaClaudeTagWritesNotEnabledErrorDetails,
+    type BetaComplianceConfigurationRestrictedErrorDetails as BetaComplianceConfigurationRestrictedErrorDetails,
+    type BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails as BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails,
+    type BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails as BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails,
+    type BetaSlackChannelSetUpSettingsConflictErrorDetails as BetaSlackChannelSetUpSettingsConflictErrorDetails,
+    type BetaSlackChannelSetUpSettingsRefusedErrorDetails as BetaSlackChannelSetUpSettingsRefusedErrorDetails,
   };
 }

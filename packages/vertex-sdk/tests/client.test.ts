@@ -121,6 +121,7 @@ describe('AnthropicVertex', () => {
       max_tokens: 1024,
       messages: [{ content: 'Hello', role: 'user' as const }],
     };
+    const countTokensParams = { model: createParams.model, messages: createParams.messages };
 
     test('middleware observes the canonical request without Google credentials; the wire receives the Vertex shape', async () => {
       const observed: { url?: string; body?: any; authorization?: string | null; version?: string | null } =
@@ -221,6 +222,39 @@ describe('AnthropicVertex', () => {
       expect(JSON.parse(wireInit.body).stream).toBe(true);
     });
 
+    test.each([
+      { model: 'claude-sonnet-4-5@20250929', stream: false, sent: 'claude-sonnet-4-5@20250929:rawPredict' },
+      { model: '../../x', stream: false, sent: '..%2F..%2Fx:rawPredict' },
+      { model: '../../x', stream: true, sent: '..%2F..%2Fx:streamRawPredict' },
+    ])('model $model is sent as $sent', async ({ model, stream, sent }) => {
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        fetch: mockFetch as any,
+      });
+
+      await client.messages.create({ ...createParams, model, stream });
+
+      const [wireUrl] = mockFetch.mock.calls[0]!;
+      expect(wireUrl).toBe(
+        `https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models/${sent}`,
+      );
+    });
+
+    test('an empty model throws before any request is sent', async () => {
+      const client = new AnthropicVertex({
+        region: 'us-east5',
+        projectId: 'test-project',
+        fetch: mockFetch as any,
+      });
+
+      await expect(client.messages.create({ ...createParams, model: '' })).rejects.toThrow(
+        'Value "" can\'t be safely passed as a path parameter',
+      );
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
     test('rewrites count_tokens requests to the count-tokens endpoint', async () => {
       const client = new AnthropicVertex({
         region: 'us-east5',
@@ -238,6 +272,50 @@ describe('AnthropicVertex', () => {
         'https://us-east5-aiplatform.googleapis.com/v1/projects/test-project/locations/us-east5/publishers/anthropic/models/count-tokens:rawPredict',
       );
     });
+
+    test.each([
+      { name: 'the usual project ID and region', sent: 'projects/test-project/locations/us-east5' },
+      { name: 'a "/" in the project ID', projectId: 'a/b', sent: 'projects/a%2Fb/locations/us-east5' },
+      { name: 'a "/" in the region', region: 'a/b', sent: 'projects/test-project/locations/a%2Fb' },
+    ])('$name is sent as $sent', async ({ projectId = 'test-project', region = 'us-east5', sent }) => {
+      const client = new AnthropicVertex({
+        region,
+        projectId,
+        // The default host is built from the region.
+        baseURL: 'https://vertex.test/v1',
+        fetch: mockFetch as any,
+      });
+
+      await client.messages.create(createParams);
+      await client.messages.countTokens(countTokensParams);
+
+      const modelsURL = `https://vertex.test/v1/${sent}/publishers/anthropic/models`;
+      expect(mockFetch.mock.calls.map(([wireUrl]) => wireUrl)).toEqual([
+        `${modelsURL}/${createParams.model}:rawPredict`,
+        `${modelsURL}/count-tokens:rawPredict`,
+      ]);
+    });
+
+    test.each([
+      { name: 'project ID', projectId: '..' },
+      { name: 'region', region: '..' },
+    ])(
+      'a $name of ".." throws before any request is sent',
+      async ({ projectId = 'test-project', region = 'us-east5' }) => {
+        const client = new AnthropicVertex({
+          region,
+          projectId,
+          baseURL: 'https://vertex.test/v1',
+          fetch: mockFetch as any,
+        });
+
+        const message = 'Value ".." can\'t be safely passed as a path parameter';
+        await expect(client.messages.create(createParams)).rejects.toThrow(message);
+        await expect(client.messages.countTokens(countTokensParams)).rejects.toThrow(message);
+
+        expect(mockFetch).not.toHaveBeenCalled();
+      },
+    );
   });
 
   describe('user profiles', () => {

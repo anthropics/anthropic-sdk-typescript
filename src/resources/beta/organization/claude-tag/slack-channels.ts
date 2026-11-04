@@ -21,6 +21,21 @@ export class SlackChannels extends APIResource {
    * stays set up with every setting unset, and the error's
    * `details.slack_channel_id` holds the channel's identifier.
    *
+   * @throws {BetaSlackChannelSetUpSettingsRefusedError} The request set the channel up, and `settings` was then refused. The channel
+   * stays set up with every setting unset.
+   * @throws {BetaAPIKeyScopeMissingError} The API key lacks the scope the request needs: `read:claude_tag` for a read,
+   * `write:claude_tag` for a change.
+   * @throws {BetaClaudeTagWritesNotEnabledError} Changes through the Claude Tag API are not enabled for the organization.
+   * @throws {BetaComplianceConfigurationRestrictedError} The organization's compliance configuration does not let Claude Tag store
+   * anything new.
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError} The credential is not a scoped API key that is bound at the organization level.
+   * @throws {BetaEnvironmentNotFoundError} `settings.environment_id` names no Environment within the organization's reach.
+   * @throws {BetaSlackChannelSetUpEnvironmentNotFoundError} `settings.environment_id` names no Environment within the organization's reach,
+   * and the request had set the channel up by then. The channel stays set up with
+   * every setting unset.
+   * @throws {BetaSlackChannelSetUpSettingsConflictError} The request set the channel up, and something else then changed the channel or
+   * removed it. Nothing of `settings` was stored.
+   *
    * @example
    * ```ts
    * const betaClaudeTagSlackChannel =
@@ -60,6 +75,13 @@ export class SlackChannels extends APIResource {
    * not be read. Either way `sources` names the settings level each value comes
    * from, so a caller tells the channel's own value from an inherited one by its
    * source, not by whether it is null.
+   *
+   * @throws {BetaAPIKeyScopeMissingError} The API key lacks the scope the request needs: `read:claude_tag` for a read,
+   * `write:claude_tag` for a change.
+   * @throws {BetaClaudeTagWritesNotEnabledError} Changes through the Claude Tag API are not enabled for the organization.
+   * @throws {BetaComplianceConfigurationRestrictedError} The organization's compliance configuration does not let Claude Tag store
+   * anything new.
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError} The credential is not a scoped API key that is bound at the organization level.
    *
    * @example
    * ```ts
@@ -101,6 +123,19 @@ export class SlackChannels extends APIResource {
    * left out is unchanged, and a setting sent as null is cleared, so the channel
    * inherits it. If any value is refused, no setting in the request is stored. A
    * group direct message takes no settings and returns 400.
+   *
+   * @throws {BetaAPIKeyScopeMissingError} The API key lacks the scope the request needs: `read:claude_tag` for a read,
+   * `write:claude_tag` for a change.
+   * @throws {BetaClaudeTagWritesNotEnabledError} Changes through the Claude Tag API are not enabled for the organization.
+   * @throws {BetaComplianceConfigurationRestrictedError} The organization's compliance configuration does not let Claude Tag store
+   * anything new.
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError} The credential is not a scoped API key that is bound at the organization level.
+   * @throws {BetaEnvironmentNotFoundError} `settings.environment_id` names no Environment within the organization's reach.
+   * @throws {BetaSlackChannelSetUpEnvironmentNotFoundError} `settings.environment_id` names no Environment within the organization's reach,
+   * and the request had set the channel up by then. The channel stays set up with
+   * every setting unset.
+   * @throws {BetaSlackChannelSetUpSettingsConflictError} The request set the channel up, and something else then changed the channel or
+   * removed it. Nothing of `settings` was stored.
    *
    * @example
    * ```ts
@@ -148,6 +183,13 @@ export class SlackChannels extends APIResource {
    * applies in it, and the request fails with 503 rather than resolve against a
    * settings level that could not be read. A `page` cursor resumes only a request
    * with the same `include_inherited`.
+   *
+   * @throws {BetaAPIKeyScopeMissingError} The API key lacks the scope the request needs: `read:claude_tag` for a read,
+   * `write:claude_tag` for a change.
+   * @throws {BetaClaudeTagWritesNotEnabledError} Changes through the Claude Tag API are not enabled for the organization.
+   * @throws {BetaComplianceConfigurationRestrictedError} The organization's compliance configuration does not let Claude Tag store
+   * anything new.
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError} The credential is not a scoped API key that is bound at the organization level.
    *
    * @example
    * ```ts
@@ -203,6 +245,15 @@ export class SlackChannels extends APIResource {
    * anew with a new identifier. The identifier returns 404 as soon as the request
    * returns, so a repeated removal returns 404. A group direct message returns 400,
    * and so does a channel that holds configuration this API does not manage.
+   *
+   * @throws {BetaAPIKeyScopeMissingError} The API key lacks the scope the request needs: `read:claude_tag` for a read,
+   * `write:claude_tag` for a change.
+   * @throws {BetaClaudeTagWritesNotEnabledError} Changes through the Claude Tag API are not enabled for the organization.
+   * @throws {BetaComplianceConfigurationRestrictedError} The organization's compliance configuration does not let Claude Tag store
+   * anything new.
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError} The credential is not a scoped API key that is bound at the organization level.
+   * @throws {BetaSlackChannelSetUpSettingsConflictError} The request set the channel up, and something else then changed the channel or
+   * removed it. Nothing of `settings` was stored.
    *
    * @example
    * ```ts

@@ -1,4 +1,4 @@
-# Claude SDK for Claude Models on Google Cloud (Anthropic managed)
+# Anthropic SDK for Claude Models on Google Cloud (Anthropic managed)
 
 [![NPM version](https://img.shields.io/npm/v/@anthropic-ai/google-cloud-sdk.svg?color=blue)](https://npmjs.org/package/@anthropic-ai/google-cloud-sdk)
 
