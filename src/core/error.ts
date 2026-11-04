@@ -43,12 +43,13 @@ export class APIError<
     this.requestID = headers?.get('request-id');
     this.workspaceID = headers?.get('anthropic-workspace-id');
     this.error = error;
-    const body = error as Record<string, any> | undefined;
-    this.apiMessage = body?.['error']?.['message'] ?? null;
-    this.type = type ?? body?.['error']?.['type'] ?? null;
-    const errorCode = body?.['error']?.['details']?.['error_code'];
+    const body = (error ?? {}) as any;
+    this.apiMessage = body.error?.message ?? null;
+    this.type = type ?? body.error?.type ?? null;
+
+    const errorCode = body.error?.details?.error_code;
     this.errorCode = typeof errorCode === 'string' ? errorCode : null;
-    this.details = body?.['error']?.['details'] ?? null;
+    this.details = body.error?.details ?? null;
   }
 
   private static makeMessage(status: number | undefined, error: any, message: string | undefined) {
@@ -84,7 +85,7 @@ export class APIError<
 
     const error = errorResponse as Record<string, any>;
 
-    const errorClass = statusErrorClasses.get(status);
+    const errorClass = STATUS_ERROR_CLASSES.get(status);
     if (errorClass) {
       return new errorClass(status, error, message, headers);
     }
@@ -175,7 +176,7 @@ export class OverloadedError extends InternalServerError {
   declare readonly status: 529;
 }
 
-const statusErrorClasses = /* @__PURE__ */ new Map<number, typeof APIError<number, Headers>>([
+const STATUS_ERROR_CLASSES = /* @__PURE__ */ new Map<number, typeof APIError<number, Headers>>([
   [400, BadRequestError],
   [401, AuthenticationError],
   [403, PermissionDeniedError],

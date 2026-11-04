@@ -33,7 +33,7 @@ export type {
 import { stringifyQuery } from './internal/utils/query';
 import { context, trace, type Span, type Tracer } from '@opentelemetry/api';
 import { VERSION } from './version';
-import { errorCodeClasses } from './core/error-classes';
+import { ERROR_CODE_CLASSES } from './core/error-classes';
 import * as Errors from './core/error';
 import type { AccessTokenProvider } from './lib/credentials/types';
 import { OAUTH_API_BETA_HEADER } from './lib/credentials/types';
@@ -1402,10 +1402,10 @@ export class BaseAnthropic {
     message: string | undefined,
     headers: Headers,
   ): Errors.APIError {
-    const body = error as Record<string, any> | undefined;
-    const errorCode = body?.['error']?.['details']?.['error_code'];
+    const body = (error ?? {}) as any;
+    const errorCode = body.error?.details?.error_code;
     const errorClass =
-      typeof errorCode === 'string' ? errorCodeClasses.get(`${status} ${errorCode}`) : undefined;
+      typeof errorCode === 'string' ? ERROR_CODE_CLASSES.get(`${status} ${errorCode}`) : undefined;
     if (errorClass) {
       return new errorClass(status, error, message, headers);
     }

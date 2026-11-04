@@ -93,7 +93,7 @@ import {
 import { BetaSpendLimitsAdminAPIWritesNotEnabledError } from '../resources/beta/organization/spend-limits/spend-limits';
 
 /** @internal */
-export const errorCodeClasses = /* @__PURE__ */ new Map<string, typeof APIError<number, Headers>>([
+export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIError<number, Headers>>([
   ['400 already_member', AlreadyMemberError],
   ['400 available_tools_limit_exceeded', AvailableToolsLimitExceededError],
   ['400 cannot_invite_emails_with_unverified_domains', CannotInviteEmailsWithUnverifiedDomainsError],
