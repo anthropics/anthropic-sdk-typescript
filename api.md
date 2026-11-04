@@ -9,10 +9,10 @@ Types:
 - <code><a href="./src/resources/shared.ts">BillingError</a></code>
 - <code><a href="./src/resources/shared.ts">ClaudeCodeKeyCreatorNotMemberErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">ClaudeCodeVersionTooOldErrorDetails</a></code>
-- <code><a href="./src/resources/shared.ts">CmekContextUnavailableErrorDetails</a></code>
-- <code><a href="./src/resources/shared.ts">CmekKeyDisabledErrorDetails</a></code>
-- <code><a href="./src/resources/shared.ts">CmekKeyNetworkBlockedErrorDetails</a></code>
-- <code><a href="./src/resources/shared.ts">CmekKeyUnreachableErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">CMEKContextUnavailableErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">CMEKKeyDisabledErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">CMEKKeyNetworkBlockedErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">CMEKKeyUnreachableErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">EnforcedSpendLimitReachedErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">ErrorObject</a></code>

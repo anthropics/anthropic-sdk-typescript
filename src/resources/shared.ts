@@ -55,7 +55,7 @@ export interface ClaudeCodeVersionTooOldErrorDetails {
  * The request's workspace encryption context could not be resolved, so the request
  * was refused. Retry in a few minutes.
  */
-export interface CmekContextUnavailableErrorDetails {
+export interface CMEKContextUnavailableErrorDetails {
   error_code: 'cmek_context_unavailable';
 }
 
@@ -63,7 +63,7 @@ export interface CmekContextUnavailableErrorDetails {
  * The workspace's customer-managed encryption key is disabled or revoked.
  * Re-enable the key, then retry.
  */
-export interface CmekKeyDisabledErrorDetails {
+export interface CMEKKeyDisabledErrorDetails {
   error_code: 'cmek_key_disabled';
 }
 
@@ -71,7 +71,7 @@ export interface CmekKeyDisabledErrorDetails {
  * The key management service's network access controls blocked the request to the
  * workspace's customer-managed encryption key. The key itself may be healthy.
  */
-export interface CmekKeyNetworkBlockedErrorDetails {
+export interface CMEKKeyNetworkBlockedErrorDetails {
   error_code: 'cmek_key_network_blocked';
 }
 
@@ -80,7 +80,7 @@ export interface CmekKeyNetworkBlockedErrorDetails {
  * request; if this continues, check that the key is available in your key
  * management service, or contact Anthropic support.
  */
-export interface CmekKeyUnreachableErrorDetails {
+export interface CMEKKeyUnreachableErrorDetails {
   error_code: 'cmek_key_unreachable';
 }
 
@@ -95,8 +95,8 @@ export type ErrorDetails =
   | MessagesAPI.AvailableToolsLimitExceededErrorDetails
   | ClaudeCodeKeyCreatorNotMemberErrorDetails
   | ClaudeCodeVersionTooOldErrorDetails
-  | CmekKeyDisabledErrorDetails
-  | CmekKeyNetworkBlockedErrorDetails
+  | CMEKKeyDisabledErrorDetails
+  | CMEKKeyNetworkBlockedErrorDetails
   | MessagesAPI.CompactionBlockAmbiguousErrorDetails
   | MessagesAPI.CompactionBlockMisplacedErrorDetails
   | MessagesAPI.CompactionContentMismatchErrorDetails
@@ -118,12 +118,12 @@ export type ErrorDetails =
   | SkillsAPI.SkillReadBlockedUndecryptableErrorDetails
   | RequestBodyTooLargeAfterDecodingErrorDetails
   | EnforcedSpendLimitReachedErrorDetails
-  | CmekKeyUnreachableErrorDetails
+  | CMEKKeyUnreachableErrorDetails
   | MessagesAPI.CompactionUnavailableErrorDetails
   | FilesAPI.StorageQuotaExceededErrorDetails
   | FilesAPI.FileNotDownloadableErrorDetails
   | FilesAPI.FileExpiredErrorDetails
-  | CmekContextUnavailableErrorDetails
+  | CMEKContextUnavailableErrorDetails
   | APIKeysAPI.OrgAPIKeyLimitExceededErrorDetails
   | APIKeysAPI.WorkspaceAPIKeyLimitExceededErrorDetails
   | UserProfilesAPI.UserProfileNotFoundErrorDetails

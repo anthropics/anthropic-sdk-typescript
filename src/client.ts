@@ -2750,10 +2750,10 @@ export declare namespace Anthropic {
   export type BillingError = API.BillingError;
   export type ClaudeCodeKeyCreatorNotMemberErrorDetails = API.ClaudeCodeKeyCreatorNotMemberErrorDetails;
   export type ClaudeCodeVersionTooOldErrorDetails = API.ClaudeCodeVersionTooOldErrorDetails;
-  export type CmekContextUnavailableErrorDetails = API.CmekContextUnavailableErrorDetails;
-  export type CmekKeyDisabledErrorDetails = API.CmekKeyDisabledErrorDetails;
-  export type CmekKeyNetworkBlockedErrorDetails = API.CmekKeyNetworkBlockedErrorDetails;
-  export type CmekKeyUnreachableErrorDetails = API.CmekKeyUnreachableErrorDetails;
+  export type CMEKContextUnavailableErrorDetails = API.CMEKContextUnavailableErrorDetails;
+  export type CMEKKeyDisabledErrorDetails = API.CMEKKeyDisabledErrorDetails;
+  export type CMEKKeyNetworkBlockedErrorDetails = API.CMEKKeyNetworkBlockedErrorDetails;
+  export type CMEKKeyUnreachableErrorDetails = API.CMEKKeyUnreachableErrorDetails;
   export type EnforcedSpendLimitReachedErrorDetails = API.EnforcedSpendLimitReachedErrorDetails;
   export type ErrorDetails = API.ErrorDetails;
   export type ErrorObject = API.ErrorObject;
