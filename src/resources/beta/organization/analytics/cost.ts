@@ -361,7 +361,7 @@ export interface CostListParams extends ReportPageCursorParams {
   /**
    * Query param: Filter to usage incurred by sessions of specific Claude Managed
    * Agents agents. Use `group_by[]=agent_id` to break out per-agent values. Claude
-   * Developer Platform organizations only.
+   * Platform organizations only.
    */
   agent_ids?: Array<string> | null;
 
@@ -370,8 +370,7 @@ export interface CostListParams extends ReportPageCursorParams {
    * key ID (`apikey_...`), whichever identity the usage is attributed to. Include an
    * empty entry (`api_key_ids[]=`) to also match usage that no API key
    * authenticated. Use `group_by[]=api_key_id` to break out per-key values; usage
-   * without a key has a null `api_key_id`. Claude Developer Platform organizations
-   * only.
+   * without a key has a null `api_key_id`. Claude Platform organizations only.
    */
   api_key_ids?: Array<string> | null;
 
@@ -402,7 +401,7 @@ export interface CostListParams extends ReportPageCursorParams {
   /**
    * Query param: Filter to usage incurred by Claude Managed Agents sessions that
    * specific deployments started. Use `group_by[]=deployment_id` to break out
-   * per-deployment values. Claude Developer Platform organizations only.
+   * per-deployment values. Claude Platform organizations only.
    */
   deployment_ids?: Array<string> | null;
 
@@ -416,7 +415,7 @@ export interface CostListParams extends ReportPageCursorParams {
   /**
    * Query param: Filter to usage incurred by Claude Managed Agents sessions that ran
    * in specific environments. Use `group_by[]=environment_id` to break out
-   * per-environment values. Claude Developer Platform organizations only.
+   * per-environment values. Claude Platform organizations only.
    */
   environment_ids?: Array<string> | null;
 
@@ -492,15 +491,15 @@ export interface CostListParams extends ReportPageCursorParams {
 
   /**
    * Query param: Filter to specific service tiers. Use `group_by[]=service_tier` to
-   * break out per-tier values. Claude Developer Platform organizations only; matches
-   * nothing for a Claude Enterprise organization.
+   * break out per-tier values. Claude Platform organizations only; matches nothing
+   * for a Claude Enterprise organization.
    */
   service_tiers?: Array<AnalyticsAPI.BetaAnalyticsServiceTier> | null;
 
   /**
    * Query param: Filter to usage incurred by specific Claude Managed Agents
    * sessions, by tagged session ID (`sesn_...`). Use `group_by[]=session_id` to
-   * break out per-session values. Claude Developer Platform organizations only.
+   * break out per-session values. Claude Platform organizations only.
    */
   session_ids?: Array<string> | null;
 
@@ -530,15 +529,15 @@ export interface CostListParams extends ReportPageCursorParams {
   /**
    * Query param: Filter to usage attributed to specific user profiles, by tagged
    * user profile ID (`uprof_...`). Use `group_by[]=user_profile_id` to break out
-   * per-profile values. Claude Developer Platform organizations only.
+   * per-profile values. Claude Platform organizations only.
    */
   user_profile_ids?: Array<string> | null;
 
   /**
    * Query param: Filter to usage in specific workspaces, by tagged workspace ID
    * (`wrkspc_...`). Use `group_by[]=workspace_id` to break out per-workspace values.
-   * Claude Developer Platform organizations only; matches nothing for a Claude
-   * Enterprise organization.
+   * Claude Platform organizations only; matches nothing for a Claude Enterprise
+   * organization.
    */
   workspace_ids?: Array<string> | null;
 
