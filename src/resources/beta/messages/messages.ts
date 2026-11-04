@@ -9,11 +9,9 @@ import { RequestOptions } from '../../../internal/request-options';
 import { startApiCallSpan } from '../../../internal/tracing';
 import {
   messagesCreateSpanSettings,
-  recordCountTokensResponse,
   recordMessagesCreateRequest,
   recordMessagesCreateResponse,
 } from '../../../lib/internal/tracing';
-import { ATTR_GEN_AI_REQUEST_MODEL } from '../../../lib/internal/tracing/attributes';
 import {
   parseBetaMessage,
   type ExtractParsedContentFromBetaParams,
@@ -193,7 +191,14 @@ export class Messages extends APIResource {
       timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
     }
 
-    const headers = messagesCreateHeaders(modifiedParams, options);
+    const request = {
+      body,
+      timeout: timeout ?? 600000,
+      ...options,
+      headers: messagesCreateHeaders(modifiedParams, options),
+      stream: modifiedParams.stream ?? false,
+      __qualifiers: { beta: 'true' },
+    };
     // A client whose spans are disabled computes nothing for one, and returns its request as it is.
     const call =
       this._client._tracer &&
@@ -201,25 +206,20 @@ export class Messages extends APIResource {
         this._client,
         'anthropic.messages.create',
         options,
-        messagesCreateSpanSettings(this._client, body, headers),
+        messagesCreateSpanSettings(this._client, request),
       );
     recordMessagesCreateRequest(this._client, call, body);
-    const request = this._client.post<BetaMessage | Stream<unknown>>('/v1/messages', {
-      body,
-      timeout: timeout ?? 600000,
-      ...options,
-      __qualifiers: { beta: 'true' },
+    const promise = this._client.post<BetaMessage | Stream<unknown>>('/v1/messages', {
+      ...request,
       __span: call,
-      headers,
-      stream: modifiedParams.stream ?? false,
     });
     return (
       call ?
-        request._thenUnwrap((data) => {
+        promise._thenUnwrap((data) => {
           recordMessagesCreateResponse(this._client, call, body, data);
           return data;
         })
-      : request) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
+      : promise) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
   }
 
   /**
@@ -319,32 +319,26 @@ export class Messages extends APIResource {
     const modifiedParams = transformOutputFormat(params);
 
     const { betas, user_profile_id, workspace_id, ...body } = modifiedParams;
-    const headers = buildHeaders([
-      {
-        'anthropic-beta': [...(betas ?? []), 'token-counting-2024-11-01'].toString(),
-        ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
-        ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-      },
-      options?.headers,
-    ]);
-    const call = startApiCallSpan(this._client, 'anthropic.messages.count_tokens', options, {
-      route: '/v1/messages/count_tokens',
-      attributes: { [ATTR_GEN_AI_REQUEST_MODEL]: body.model },
-    });
-    const request = this._client.post<BetaMessageTokensCount>('/v1/messages/count_tokens', {
+    const request = {
       body,
       ...options,
+      headers: buildHeaders([
+        {
+          'anthropic-beta': [...(betas ?? []), 'token-counting-2024-11-01'].toString(),
+          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
+        options?.headers,
+      ]),
       __qualifiers: { beta: 'true' },
-      __span: call,
-      headers,
+    };
+    return this._client.post('/v1/messages/count_tokens', {
+      ...request,
+      __span: startApiCallSpan(this._client, 'anthropic.messages.count_tokens', options, {
+        route: '/v1/messages/count_tokens',
+        request,
+      }),
     });
-    // Only a request with a span has a response to record.
-    return call ?
-        request._thenUnwrap((count) => {
-          recordCountTokensResponse(this._client, call, count);
-          return count;
-        })
-      : request;
   }
 
   toolRunner(

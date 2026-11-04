@@ -26,6 +26,7 @@ import {
   SpanKind,
   SpanStatusCode,
   type Attributes,
+  type AttributeValue,
   type Span,
   type Tracer,
   type TracerProvider,
@@ -253,7 +254,7 @@ export function guardTracing<Result>(
  * The call span of an API call, with its name and start time, which a `Span` does not expose. It
  * travels in the call's request options, as `__span`.
  */
-export interface ApiCallSpan extends ApiCallSpanSettings {
+export interface ApiCallSpan extends Omit<ApiCallSpanSettings, 'request'> {
   span: Span;
   /** The span's name, which says which SDK method makes the API call. */
   name: string;
@@ -305,6 +306,13 @@ export interface ApiCallSpanSettings {
    * the response to adding a member has the member's `user_id`, and no `id`.
    */
   createdIDField?: string | undefined;
+  /**
+   * The options that the method makes its request with. The span starts with the attributes that
+   * {@link SPAN_ATTRIBUTES} gives its name from them: from the request's body, from its headers
+   * and from whether it asks for a stream. The call span does not keep them: it can outlive the
+   * request by far, as the span of a stream does.
+   */
+  request?: RequestOptions | undefined;
 }
 
 /**
@@ -351,6 +359,7 @@ export function startApiCallSpan(
         ...serverAttributes(client.baseURL),
         ...(conversationId != null ? { [ATTR_GEN_AI_CONVERSATION_ID]: conversationId } : undefined),
         ...(settings?.route != null ? { [ATTR_HTTP_ROUTE]: settings.route } : undefined),
+        ...requestAttributes(client, name, settings?.request),
         ...settings?.attributes,
       },
     });
@@ -362,7 +371,8 @@ export function startApiCallSpan(
     ) {
       return undefined;
     }
-    return { ...settings, span, name, startTime };
+    const { request: _, ...kept } = settings ?? {};
+    return { ...kept, span, name, startTime };
   });
 }
 
@@ -379,6 +389,199 @@ export function setCreatedIDAttribute(call: ApiCallSpan, data: unknown): void {
   if (typeof id === 'string') {
     call.span.setAttribute(call.createdIDAttribute, id);
   }
+}
+
+/**
+ * The type of an attribute's value, as the API's description has the property or the header that
+ * the attribute comes from. `unknown` is for a source that it has with several types.
+ */
+export type AttributeType =
+  | 'string'
+  | 'integer'
+  | 'number'
+  | 'boolean'
+  | 'unknown'
+  | { readonly array: 'string' | 'integer' | 'number' | 'boolean' };
+
+/**
+ * The attributes of the call spans with one name that come from the API call itself.
+ */
+export interface SpanAttributes {
+  /** Attributes with a fixed value. */
+  readonly constants?: Attributes;
+  /** Attributes from the request's body, each with the path of its property and its type. */
+  readonly request?: ReadonlyArray<
+    readonly [attribute: string, path: readonly string[], type: AttributeType]
+  >;
+  /** Attributes from the request's headers, each with the header's name and its type. */
+  readonly requestHeaders?: ReadonlyArray<readonly [attribute: string, header: string, type: AttributeType]>;
+  /** The attribute that is `true` on the span of a call that asks for a stream. */
+  readonly stream?: string;
+  /** Attributes from the parsed body of the response, each with the path of its property and its type. */
+  readonly response?: ReadonlyArray<
+    readonly [attribute: string, path: readonly string[], type: AttributeType]
+  >;
+}
+
+/**
+ * The attributes of the call spans, by span name.
+ */
+export const SPAN_ATTRIBUTES: { readonly [spanName: string]: SpanAttributes } = {
+  'anthropic.messages.create': {
+    constants: { 'gen_ai.operation.name': 'chat' },
+    request: [
+      ['gen_ai.request.model', ['model'], 'string'],
+      ['gen_ai.request.max_tokens', ['max_tokens'], 'integer'],
+      ['gen_ai.request.reasoning.level', ['output_config', 'effort'], 'string'],
+      ['anthropic.request.service_tier', ['service_tier'], 'string'],
+      ['anthropic.thinking.type', ['thinking', 'type'], 'string'],
+      ['anthropic.thinking.budget_tokens', ['thinking', 'budget_tokens'], 'integer'],
+    ],
+    requestHeaders: [['anthropic.beta', 'anthropic-beta', { array: 'string' }]],
+    stream: 'gen_ai.request.stream',
+    response: [
+      ['gen_ai.response.id', ['id'], 'string'],
+      ['gen_ai.response.model', ['model'], 'string'],
+      ['gen_ai.usage.cache_write.input_tokens', ['usage', 'cache_creation_input_tokens'], 'integer'],
+      ['gen_ai.usage.cache_read.input_tokens', ['usage', 'cache_read_input_tokens'], 'integer'],
+      [
+        'anthropic.usage.cache_creation.ephemeral_5m_input_tokens',
+        ['usage', 'cache_creation', 'ephemeral_5m_input_tokens'],
+        'integer',
+      ],
+      [
+        'anthropic.usage.cache_creation.ephemeral_1h_input_tokens',
+        ['usage', 'cache_creation', 'ephemeral_1h_input_tokens'],
+        'integer',
+      ],
+      ['anthropic.response.service_tier', ['usage', 'service_tier'], 'string'],
+      ['gen_ai.usage.output_tokens', ['usage', 'output_tokens'], 'integer'],
+      [
+        'gen_ai.usage.reasoning.output_tokens',
+        ['usage', 'output_tokens_details', 'thinking_tokens'],
+        'integer',
+      ],
+      ['anthropic.message.stop_reason', ['stop_reason'], 'string'],
+    ],
+  },
+  'anthropic.messages.count_tokens': {
+    request: [['gen_ai.request.model', ['model'], 'string']],
+    response: [['anthropic.message.count_tokens.input_tokens', ['input_tokens'], 'integer']],
+  },
+  'anthropic.sessions.create': {
+    request: [['anthropic.session.environment.id', ['environment_id'], 'string']],
+    response: [
+      ['gen_ai.agent.name', ['agent', 'name'], 'string'],
+      ['gen_ai.request.model', ['agent', 'model', 'id'], 'string'],
+    ],
+  },
+};
+
+/**
+ * The attributes that the call span named `name` starts with, from {@link SPAN_ATTRIBUTES}: its
+ * constants and, from `request`, the options of the call's request, what the body, the headers
+ * and the stream flag give. The headers are the client's default headers and then the request's,
+ * as the client sends them. A property or a header that the request lacks, or whose value is not of
+ * the attribute's type, gives nothing. Neither does a read that throws ({@link guardTracing}): a
+ * property of the body costs the span its own attribute, and the headers cost it theirs.
+ */
+function requestAttributes(
+  client: BaseAnthropic,
+  name: string,
+  request: RequestOptions | undefined,
+): Attributes {
+  const table = SPAN_ATTRIBUTES[name];
+  if (!table) {
+    return {};
+  }
+  const attributes: Attributes = { ...table.constants };
+  for (const [attribute, path, type] of table.request ?? []) {
+    const value = guardTracing(client, () => attributeValue(dig(request?.body, path), type));
+    if (value !== undefined) {
+      attributes[attribute] = value;
+    }
+  }
+  const { requestHeaders } = table;
+  if (requestHeaders) {
+    guardTracing(client, () => {
+      // `_options` is private to the client.
+      const headers = buildHeaders([client['_options'].defaultHeaders, request?.headers]).values;
+      for (const [attribute, header, type] of requestHeaders) {
+        const value = headerValue(headers.get(header), type);
+        if (value !== undefined) {
+          attributes[attribute] = value;
+        }
+      }
+    });
+  }
+  if (table.stream !== undefined && request?.stream) {
+    attributes[table.stream] = true;
+  }
+  return attributes;
+}
+
+/**
+ * Sets on `span`, a call span named `name`, the attributes that {@link SPAN_ATTRIBUTES} gives it
+ * from `data`, the parsed body of the call's response. A property that `data` lacks, or whose
+ * value is not of the attribute's type, sets nothing. This never throws, so that the caller goes on
+ * to end the span: what one attribute throws costs the span that attribute alone.
+ */
+export function setResponseAttributes(span: Span, name: string, data: unknown): void {
+  for (const [attribute, path, type] of SPAN_ATTRIBUTES[name]?.response ?? []) {
+    try {
+      const value = attributeValue(dig(data, path), type);
+      if (value !== undefined) {
+        span.setAttribute(attribute, value);
+      }
+    } catch {}
+  }
+}
+
+/** The value at `path` under `data`, or `undefined` when a step of the path is not an object. */
+function dig(data: unknown, path: readonly string[]): unknown {
+  let value = data;
+  for (const name of path) {
+    if (typeof value !== 'object' || value === null) {
+      return undefined;
+    }
+    value = (value as Record<string, unknown>)[name];
+  }
+  return value;
+}
+
+/** `value` as the value of an attribute of `type`, or `undefined` when it is of another type. */
+function attributeValue(value: unknown, type: AttributeType): AttributeValue | undefined {
+  if (typeof type === 'object') {
+    return Array.isArray(value) && value.every((item) => attributeValue(item, type.array) !== undefined) ?
+        [...value]
+      : undefined;
+  }
+  switch (typeof value) {
+    case 'string':
+      return type === 'string' || type === 'unknown' ? value : undefined;
+    case 'boolean':
+      return type === 'boolean' || type === 'unknown' ? value : undefined;
+    case 'number':
+      return type === 'integer' || type === 'number' || type === 'unknown' ? value : undefined;
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * `value`, a header's value, as the value of an attribute of `type`: the items of its
+ * comma-separated list for an array, and the value as it is otherwise. `undefined` for a header
+ * that is absent or lists nothing.
+ */
+function headerValue(value: string | null, type: AttributeType): AttributeValue | undefined {
+  const items = (value ?? '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+  if (value == null || items.length === 0) {
+    return undefined;
+  }
+  return typeof type === 'object' ? items : value;
 }
 
 /**
@@ -521,22 +724,40 @@ export type ApiCallResult =
  * streamed body that the application has yet to read ends through
  * {@link endApiCallSpanWhenStreamEnds} instead.
  *
- * Does nothing to a span that is not recording, such as one that already ended.
+ * The span also gets the attributes that come from the response's headers
+ * ({@link setResponseHeaderAttributes}).
+ *
+ * The span of a call that succeeded also gets the attributes that come from the parsed body of
+ * its response ({@link setResponseAttributes}).
+ *
+ * The span ends even when one of these steps throws. Does nothing to a span that is not recording,
+ * such as one that already ended.
  */
 export function endApiCallSpan(span: Span, result: ApiCallResult): void {
   if (!span.isRecording()) {
     return;
   }
-  setResponseStatusCode(span, result);
-  switch (result.status) {
-    case 'success':
-      span.setStatus({ code: SpanStatusCode.OK });
-      break;
-    case 'error':
-      setErrorStatus(span, result.error);
-      break;
+  try {
+    setResponseStatusCode(span, result);
+    setResponseHeaderAttributes(
+      span,
+      result.response ??
+        (result.status === 'error' && result.error instanceof APIError ? result.error : undefined),
+    );
+    switch (result.status) {
+      case 'success':
+        if (result.options.__span) {
+          setResponseAttributes(span, result.options.__span.name, result.data);
+        }
+        span.setStatus({ code: SpanStatusCode.OK });
+        break;
+      case 'error':
+        setErrorStatus(span, result.error);
+        break;
+    }
+  } finally {
+    span.end();
   }
-  span.end();
 }
 
 /** How the application's read of a streamed body ended. */
@@ -631,6 +852,7 @@ export function endApiCallSpanWhenStreamEnds(
 ): void {
   if (!span.isRecording()) return;
   span.setAttribute(ATTR_HTTP_RESPONSE_STATUS_CODE, props.response.status);
+  setResponseHeaderAttributes(span, props.response);
   const isSSE = stream instanceof Stream;
   observeStream(stream, props.controller.signal, {
     onEnd(end) {
@@ -653,6 +875,43 @@ function setResponseStatusCode(span: Span, result: ApiCallResult): void {
     (result.status === 'error' && result.error instanceof APIError ? result.error.status : undefined);
   if (status !== undefined) {
     span.setAttribute(ATTR_HTTP_RESPONSE_STATUS_CODE, status);
+  }
+}
+
+/**
+ * The attributes that every call span gets from a header of the response, each with the header's
+ * name.
+ */
+const RESPONSE_HEADER_ATTRIBUTES: ReadonlyArray<readonly [attribute: string, header: string]> = [
+  ['anthropic.request.id', 'request-id'],
+  ['anthropic.organization.id', 'anthropic-organization-id'],
+  ['anthropic.workspace.id', 'anthropic-workspace-id'],
+];
+
+/**
+ * Sets on `span`, the call span of an API call, the attributes that come from the headers of
+ * `response`, the call's response or the error made from it
+ * ({@link RESPONSE_HEADER_ATTRIBUTES}). A header that is absent or empty sets nothing. This never
+ * throws, so that the caller goes on to end the span: headers that throw when read set nothing,
+ * and what one attribute throws costs the span that attribute alone.
+ */
+export function setResponseHeaderAttributes(
+  span: Span,
+  response: { readonly headers: Headers | undefined } | undefined,
+): void {
+  let headers: Headers | undefined;
+  try {
+    headers = response?.headers;
+  } catch {
+    return;
+  }
+  for (const [attribute, header] of RESPONSE_HEADER_ATTRIBUTES) {
+    try {
+      const value = headers?.get(header);
+      if (value) {
+        span.setAttribute(attribute, value);
+      }
+    } catch {}
   }
 }
 

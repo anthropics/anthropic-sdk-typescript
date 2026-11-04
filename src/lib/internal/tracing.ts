@@ -1,10 +1,8 @@
 export {
   messagesCreateSpanSettings,
-  recordCountTokensResponse,
   recordMessagesCreateRequest,
   recordMessagesCreateResponse,
-  recordSessionsCreateResponse,
-  setAnthropicSpanAttributes,
+  sessionsCreateSpanAttributes,
 } from './tracing/api-call';
 export { takeTraceHeaders, withoutTraceHeaders } from './tracing/headers';
 export { endAnthropicApiCallSpanWhenStreamEnds, recordStreamedMessageContent } from './tracing/streaming';

@@ -46,7 +46,7 @@ export function startMessagesStreamSpan(
     client,
     'anthropic.messages.create',
     options,
-    messagesCreateSpanSettings(client, { ...transformOutputFormat(body), stream: true }, headers),
+    messagesCreateSpanSettings(client, { body: transformOutputFormat(body), headers, stream: true }),
   );
 }
 

@@ -163,7 +163,7 @@ import {
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
 import { startApiCallSpan } from '../../../internal/tracing';
-import { recordSessionsCreateResponse } from '../../../lib/internal/tracing';
+import { sessionsCreateSpanAttributes } from '../../../lib/internal/tracing';
 import { path } from '../../../internal/utils/path';
 
 export class Sessions extends APIResource {
@@ -196,36 +196,27 @@ export class Sessions extends APIResource {
    */
   create(params: SessionCreateParams, options?: RequestOptions): APIPromise<BetaManagedAgentsSession> {
     const { betas, workspace_id, ...body } = params;
-    const headers = buildHeaders([
-      {
-        'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString(),
-        ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-      },
-      options?.headers,
-    ]);
-    const call = startApiCallSpan(this._client, 'anthropic.sessions.create', options, {
-      route: '/v1/sessions',
-      attributes: {
-        // An `agent` that is no agent is for the API to refuse, not for this line to throw on.
-        'gen_ai.agent.id': typeof body.agent === 'object' ? body.agent?.id : body.agent,
-        'anthropic.session.environment.id': body.environment_id,
-      },
-      createdIDAttribute: 'anthropic.session.id',
-    });
-    const request = this._client.post<BetaManagedAgentsSession>('/v1/sessions', {
+    const request = {
       body,
       ...options,
-      headers,
+      headers: buildHeaders([
+        {
+          'anthropic-beta': [...(betas ?? []), 'managed-agents-2026-04-01'].toString(),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
+        options?.headers,
+      ]),
       __qualifiers: { beta: 'true' },
-      __span: call,
+    };
+    return this._client.post('/v1/sessions', {
+      ...request,
+      __span: startApiCallSpan(this._client, 'anthropic.sessions.create', options, {
+        route: '/v1/sessions',
+        attributes: sessionsCreateSpanAttributes(body),
+        createdIDAttribute: 'anthropic.session.id',
+        request,
+      }),
     });
-    // Only a request with a span has a response to record.
-    return call ?
-        request._thenUnwrap((session) => {
-          recordSessionsCreateResponse(this._client, call, session);
-          return session;
-        })
-      : request;
   }
 
   /**

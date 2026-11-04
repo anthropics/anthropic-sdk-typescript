@@ -38,7 +38,7 @@ import * as Errors from './core/error';
 import type { AccessTokenProvider } from './lib/credentials/types';
 import { OAUTH_API_BETA_HEADER } from './lib/credentials/types';
 import { TokenCache } from './lib/credentials/token-cache';
-import { setAnthropicSpanAttributes, takeTraceHeaders, withoutTraceHeaders } from './lib/internal/tracing';
+import { takeTraceHeaders, withoutTraceHeaders } from './lib/internal/tracing';
 import { defaultCredentials, resolveCredentialsFromConfig } from './lib/credentials/credential-chain';
 import type { AnthropicConfig } from './core/credentials';
 import {
@@ -1588,7 +1588,6 @@ export class BaseAnthropic {
       );
     } catch (error) {
       const result: ApiCallResult = { status: 'error', options, error };
-      setAnthropicSpanAttributes(this, span, result);
       guardTracing(this, () => endApiCallSpan(span, result));
       throw error;
     }

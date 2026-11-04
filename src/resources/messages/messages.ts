@@ -6,11 +6,9 @@ import { RequestOptions } from '../../internal/request-options';
 import { startApiCallSpan } from '../../internal/tracing';
 import {
   messagesCreateSpanSettings,
-  recordCountTokensResponse,
   recordMessagesCreateRequest,
   recordMessagesCreateResponse,
 } from '../../lib/internal/tracing';
-import { ATTR_GEN_AI_REQUEST_MODEL } from '../../lib/internal/tracing/attributes';
 import { messagesCreateHeaders } from '../../lib/internal/messages-request';
 import { MessageStream } from '../../lib/MessageStream';
 import {
@@ -315,7 +313,13 @@ export class Messages extends APIResource {
       timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
     }
 
-    const headers = messagesCreateHeaders(params, options);
+    const request = {
+      body,
+      timeout: timeout ?? 600000,
+      ...options,
+      headers: messagesCreateHeaders(params, options),
+      stream: params.stream ?? false,
+    };
     // A client whose spans are disabled computes nothing for one, and returns its request as it is.
     const call =
       this._client._tracer &&
@@ -323,24 +327,20 @@ export class Messages extends APIResource {
         this._client,
         'anthropic.messages.create',
         options,
-        messagesCreateSpanSettings(this._client, body, headers),
+        messagesCreateSpanSettings(this._client, request),
       );
     recordMessagesCreateRequest(this._client, call, body);
-    const request = this._client.post<Message | Stream<unknown>>('/v1/messages', {
-      body,
-      timeout: timeout ?? 600000,
-      ...options,
+    const promise = this._client.post<Message | Stream<unknown>>('/v1/messages', {
+      ...request,
       __span: call,
-      headers,
-      stream: params.stream ?? false,
     });
     return (
       call ?
-        request._thenUnwrap((data) => {
+        promise._thenUnwrap((data) => {
           recordMessagesCreateResponse(this._client, call, body, data);
           return data;
         })
-      : request) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
+      : promise) as APIPromise<Message> | APIPromise<Stream<RawMessageStreamEvent>>;
   }
 
   /**
@@ -450,30 +450,24 @@ export class Messages extends APIResource {
    */
   countTokens(params: MessageCountTokensParams, options?: RequestOptions): APIPromise<MessageTokensCount> {
     const { user_profile_id, workspace_id, ...body } = params;
-    const headers = buildHeaders([
-      {
-        ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
-        ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-      },
-      options?.headers,
-    ]);
-    const call = startApiCallSpan(this._client, 'anthropic.messages.count_tokens', options, {
-      route: '/v1/messages/count_tokens',
-      attributes: { [ATTR_GEN_AI_REQUEST_MODEL]: body.model },
-    });
-    const request = this._client.post<MessageTokensCount>('/v1/messages/count_tokens', {
+    const request = {
       body,
       ...options,
-      __span: call,
-      headers,
+      headers: buildHeaders([
+        {
+          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
+        options?.headers,
+      ]),
+    };
+    return this._client.post('/v1/messages/count_tokens', {
+      ...request,
+      __span: startApiCallSpan(this._client, 'anthropic.messages.count_tokens', options, {
+        route: '/v1/messages/count_tokens',
+        request,
+      }),
     });
-    // Only a request with a span has a response to record.
-    return call ?
-        request._thenUnwrap((count) => {
-          recordCountTokensResponse(this._client, call, count);
-          return count;
-        })
-      : request;
   }
 }
 
