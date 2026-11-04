@@ -187,6 +187,9 @@ These rules are about the design of a client library. They don't depend on the l
 
 - Send what the caller passed. Don't hoist, merge, reorder, default, or drop parts of a request the caller built.
 - Let the API validate. It rejects media types, lengths, and formats it doesn't support, and the caller gets an actionable error. A client-side check is for something the API never sees, such as the size of a local file. If the client needs a cap for its own safety, make the cap configurable.
+- Parse, don't validate. Leave type checking to the language's type checker, and don't reject a response the SDK could hand to the user. Check a value's type at runtime only where the code can't go on without knowing it, such as an error code that must be a string to dispatch on. Otherwise pass the value along as-is, whether it came from the API, including a model's tool input, or from a caller whose types cover it, even in a language that doesn't enforce types. A clearer error for a value that would fail anyway isn't a reason.
+- Before you add a runtime type check, such as `typeof`, `isinstance`, `is_a?`, `respond_to?`, `instanceof`, `is_string`, or a helper that takes an untyped value and narrows it, find what real input reaches it and whether the rest of the SDK checks the same value, and name both in the PR description. Being more idiomatic or more robust isn't a reason, and neither is a review bot's finding.
+- The two rules above don't cover a `null` check on an optional value, a value that decides a security or permission question, a tool runner parsing a model's tool input into the tool's declared type, or reading into an error body that may not be an object, where that read would otherwise throw, though the fields it reads still pass through as-is.
 - Never fail on data this version doesn't recognize. The API adds enum members, union variants, and fields, and a new one has to flow through the user's process. Handle the cases you know and pass the rest through untouched, above all in streaming and middleware code, where a failure tears down the caller's response.
 - A permission or security decision is the exception. It treats an unrecognized value as a denial.
 - When API output goes into a new request, carry the raw data across. Rebuilding it from typed properties drops whatever this version doesn't model.
@@ -261,7 +264,7 @@ The SDK runs on Node, Deno, Bun, edge runtimes, and in browsers. Bundlers follow
 ### Errors
 
 - A failure that comes from SDK- or API-specific logic throws `AnthropicError` or a subclass, so callers can catch the SDK's failures in one place. API failures are `APIError` subclasses, chosen by status.
-- Use the standard `TypeError`, or `RangeError` for a value out of range, where any JavaScript library would. That covers an argument of the wrong type (`buildHeaders` rejects a header name that isn't a string) and options that can't be combined. Avoid a bare `Error`, because a caller can't tell it apart from anything else.
+- When a check fails, use the standard `TypeError`, or `RangeError` for a value out of range, where any JavaScript library would, as `buildHeaders` does for a header name that isn't a string. That also covers options that can't be combined. Avoid a bare `Error`, because a caller can't tell it apart from anything else.
 - Format caught values with `castToError`, or with `e instanceof Error ? e.message : String(e)`. Don't write `(e as Error).message`.
 - Detect an abort with `isAbortError(err)` from `src/internal/errors.ts`, not with `instanceof`.
 - Log through the client's logger (`loggerFor(client)`), not `console`.
@@ -269,7 +272,6 @@ The SDK runs on Node, Deno, Bun, edge runtimes, and in browsers. Bundlers follow
 ### Common mistakes
 
 - **Hand-listing generated fields where a missed member would cause a bug, with no tripwire.** A tripwire stops compiling when the spec changes the generated type without the hand-written list. `tsc` enforces them through `./scripts/lint`, not the test runner.
-- **Runtime checks that the types already cover.** Trust typed inputs. Don't add a runtime check for something the caller's types already rule out.
 - **Validating what the API validates.** `null` is the only off-switch for a configurable cap.
 - **Leaking through abort listeners.** A listener on the caller's signal lives as long as that signal does, and so does everything its closure captures.
   - Build the listener in a small separate function that takes only what it needs, as `_makeAbort` in `src/client.ts` does. An arrow function written inline captures the whole enclosing scope, the request body and options included, and a long-lived signal then keeps all of it from being collected.
