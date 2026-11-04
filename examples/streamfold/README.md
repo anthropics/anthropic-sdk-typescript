@@ -16,7 +16,7 @@ ANTHROPIC_API_KEY=... node examples/streamfold/preview.ts
 ```
 
 Use Node.js 22.18 or newer. In your own application, install `@anthropic-ai/sdk`,
-`zod`, and `streamfold`, then copy `preview.ts`. Streamfold is only a development
+`zod`, and `streamfold@0.1.18`, then copy `preview.ts`. Streamfold is only a development
 dependency of this repository; the SDK does not require it for other features.
 The sample's forecast is illustrative model output, not live weather data.
 
