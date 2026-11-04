@@ -1,11 +1,11 @@
 export {
-  Bundles,
-  type BetaClaudeTagBundle,
-  type BundleRetrieveParams,
-  type BundleListParams,
-  type BetaClaudeTagBundlesPageCursor,
-} from './bundles/index';
-export {
+  BetaSlackChannelSetUpSettingsRefusedError,
+  BetaAPIKeyScopeMissingError,
+  BetaClaudeTagWritesNotEnabledError,
+  BetaComplianceConfigurationRestrictedError,
+  BetaOrganizationLevelScopedAPIKeyRequiredError,
+  BetaSlackChannelSetUpEnvironmentNotFoundError,
+  BetaSlackChannelSetUpSettingsConflictError,
   ClaudeTag,
   type BetaAPIKeyScopeMissingErrorDetails,
   type BetaClaudeTagDefaultSettingSource,
@@ -32,6 +32,13 @@ export {
   type BetaSlackChannelSetUpSettingsConflictErrorDetails,
   type BetaSlackChannelSetUpSettingsRefusedErrorDetails,
 } from './claude-tag';
+export {
+  Bundles,
+  type BetaClaudeTagBundle,
+  type BundleRetrieveParams,
+  type BundleListParams,
+  type BetaClaudeTagBundlesPageCursor,
+} from './bundles/index';
 export {
   SlackChannels,
   type BetaClaudeTagDeletedSlackChannel,

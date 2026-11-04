@@ -2,6 +2,23 @@ export * from './shared';
 export {
   BROWSER_MEMBER_NAME_VALUES,
   COMPUTER_MEMBER_NAME_VALUES,
+  AvailableToolsLimitExceededError,
+  CompactionBlockAmbiguousError,
+  CompactionBlockMisplacedError,
+  CompactionContentMismatchError,
+  CompactionIncompleteTurnError,
+  CompactionNothingToSummarizeError,
+  CompactionSignatureInvalidError,
+  CompactionTooManyToolReferencesError,
+  CompactionToolChangesMismatchError,
+  ThreadAlreadyContinuedError,
+  ThreadContinueInFlightError,
+  ThreadFingerprintMismatchError,
+  ThreadUnsupportedRequestError,
+  ToolNameConflictError,
+  ToolReferenceUnresolvedError,
+  ThreadNotFoundError,
+  CompactionUnavailableError,
   Messages,
   type AssistantMessageParam,
   type AvailableToolsLimitExceededErrorDetails,
@@ -441,6 +458,7 @@ export {
   type MessageCountTokensParams,
 } from './messages/messages';
 export {
+  BetaUnsupportedCharsetError,
   Beta,
   type AnthropicBeta,
   type BetaAPIError,
@@ -459,6 +477,9 @@ export {
   type BetaUnsupportedCharsetErrorDetails,
 } from './beta/beta';
 export {
+  FileNotDownloadableError,
+  StorageQuotaExceededError,
+  FileExpiredError,
   Files,
   type DeletedFile,
   type FileExpiredErrorDetails,
@@ -488,6 +509,8 @@ export {
   type ModelInfosPage,
 } from './models';
 export {
+  OrgMemberLimitExceededError,
+  ConcurrentMembershipChangeError,
   Organization,
   type ConcurrentMembershipChangeErrorDetails,
   type OrgMemberLimitExceededErrorDetails,
@@ -495,6 +518,7 @@ export {
   type OrganizationRole,
 } from './organization/organization';
 export {
+  SkillReadBlockedUndecryptableError,
   Skills,
   type DeletedSkill,
   type Skill,
@@ -507,6 +531,7 @@ export {
   type SkillsPageCursor,
 } from './skills/skills';
 export {
+  UserProfileNotFoundError,
   UserProfiles,
   type DeletedUserProfile,
   type UserProfile,

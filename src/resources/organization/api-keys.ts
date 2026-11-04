@@ -1,9 +1,26 @@
 import { APIResource } from '../../core/resource';
 import { APIPromise } from '../../core/api-promise';
+import { BadRequestError } from '../../core/error';
 import { Page, type PageParams, PagePromise } from '../../core/pagination';
 import { RequestOptions } from '../../internal/request-options';
 import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
+
+/**
+ * The organization has reached its limit of active API keys.
+ */
+export class OrgAPIKeyLimitExceededError extends BadRequestError {
+  declare readonly errorCode: 'org_api_key_limit_exceeded';
+  declare readonly details: OrgAPIKeyLimitExceededErrorDetails;
+}
+
+/**
+ * The workspace has reached its limit of active API keys.
+ */
+export class WorkspaceAPIKeyLimitExceededError extends BadRequestError {
+  declare readonly errorCode: 'workspace_api_key_limit_exceeded';
+  declare readonly details: WorkspaceAPIKeyLimitExceededErrorDetails;
+}
 
 export class APIKeys extends APIResource {
   /**
@@ -28,6 +45,9 @@ export class APIKeys extends APIResource {
 
   /**
    * Update API Key
+   *
+   * @throws {OrgAPIKeyLimitExceededError} The organization has reached its limit of active API keys.
+   * @throws {WorkspaceAPIKeyLimitExceededError} The workspace has reached its limit of active API keys.
    *
    * @example
    * ```ts
@@ -238,8 +258,13 @@ export interface APIKeyListParams extends PageParams {
   workspace_id?: string | null;
 }
 
+APIKeys.OrgAPIKeyLimitExceededError = OrgAPIKeyLimitExceededError;
+APIKeys.WorkspaceAPIKeyLimitExceededError = WorkspaceAPIKeyLimitExceededError;
+
 export declare namespace APIKeys {
   export {
+    OrgAPIKeyLimitExceededError as OrgAPIKeyLimitExceededError,
+    WorkspaceAPIKeyLimitExceededError as WorkspaceAPIKeyLimitExceededError,
     type APIKey as APIKey,
     type APIKeyCreatedBy as APIKeyCreatedBy,
     type APIKeyOrganizationScope as APIKeyOrganizationScope,

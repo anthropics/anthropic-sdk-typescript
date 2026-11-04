@@ -1,10 +1,47 @@
 import { APIResource } from '../../core/resource';
 import * as OrganizationAPI from './organization';
 import { APIPromise } from '../../core/api-promise';
+import { BadRequestError } from '../../core/error';
 import { Page, type PageParams, PagePromise } from '../../core/pagination';
 import { RequestOptions } from '../../internal/request-options';
 import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
+
+/**
+ * The email address already belongs to a user in the organization. The message
+ * names the user.
+ */
+export class AlreadyMemberError extends BadRequestError {
+  declare readonly errorCode: 'already_member';
+  declare readonly details: AlreadyMemberErrorDetails;
+}
+
+/**
+ * The email address's domain is not one of the verified domains of the
+ * organization's parent organization.
+ */
+export class CannotInviteEmailsWithUnverifiedDomainsError extends BadRequestError {
+  declare readonly errorCode: 'cannot_invite_emails_with_unverified_domains';
+  declare readonly details: CannotInviteEmailsWithUnverifiedDomainsErrorDetails;
+}
+
+/**
+ * The organization restricts invites to an allowed list of email domains, and the
+ * list is empty or does not include the email address's domain.
+ */
+export class EmailDomainNotAllowedError extends BadRequestError {
+  declare readonly errorCode: 'email_domain_not_allowed';
+  declare readonly details: EmailDomainNotAllowedErrorDetails;
+}
+
+/**
+ * A pending invite already exists for the email address. The message names the
+ * invite.
+ */
+export class InviteAlreadyExistsError extends BadRequestError {
+  declare readonly errorCode: 'invite_already_exists';
+  declare readonly details: InviteAlreadyExistsErrorDetails;
+}
 
 export class Invites extends APIResource {
   /**
@@ -14,6 +51,25 @@ export class Invites extends APIResource {
    * automatically consumes a seat from the lowest tier with availability; there is
    * no seat-tier parameter. When no seat is free the request fails with a 400 error
    * rather than purchasing a seat.
+   *
+   * @throws {AlreadyMemberError} The email address already belongs to a user in the organization. The message
+   * names the user.
+   * @throws {CannotInviteEmailsWithUnverifiedDomainsError} The email address's domain is not one of the verified domains of the
+   * organization's parent organization.
+   * @throws {EmailDomainNotAllowedError} The organization restricts invites to an allowed list of email domains, and the
+   * list is empty or does not include the email address's domain.
+   * @throws {InviteAlreadyExistsError} A pending invite already exists for the email address. The message names the
+   * invite.
+   * @throws {OrgMemberLimitExceededError} The organization has reached the member limit that Anthropic set for it. Pending
+   * invites count toward the limit.
+   * @throws {RBACGroupGrantsOwnerAccessError} A role attached to an RBAC Group in the request grants owner access, so this API
+   * does not add members to that group (directly or through an invite), remove its
+   * members, or delete it. Make the change in the organization's admin settings in
+   * Claude.
+   * @throws {RBACGroupOwnerAccessUnconfirmedError} The API could not finish checking whether an RBAC Group in the request grants
+   * owner access (the check reached a fixed limit), so it made no change. Retrying
+   * the same request will not help. Make the change in the organization's admin
+   * settings in Claude.
    *
    * @example
    * ```ts
@@ -248,8 +304,17 @@ export interface InviteListParams extends PageParams {
   statuses?: Array<'accepted' | 'expired' | 'pending'>;
 }
 
+Invites.AlreadyMemberError = AlreadyMemberError;
+Invites.CannotInviteEmailsWithUnverifiedDomainsError = CannotInviteEmailsWithUnverifiedDomainsError;
+Invites.EmailDomainNotAllowedError = EmailDomainNotAllowedError;
+Invites.InviteAlreadyExistsError = InviteAlreadyExistsError;
+
 export declare namespace Invites {
   export {
+    AlreadyMemberError as AlreadyMemberError,
+    CannotInviteEmailsWithUnverifiedDomainsError as CannotInviteEmailsWithUnverifiedDomainsError,
+    EmailDomainNotAllowedError as EmailDomainNotAllowedError,
+    InviteAlreadyExistsError as InviteAlreadyExistsError,
     type AlreadyMemberErrorDetails as AlreadyMemberErrorDetails,
     type CannotInviteEmailsWithUnverifiedDomainsErrorDetails as CannotInviteEmailsWithUnverifiedDomainsErrorDetails,
     type EmailDomainNotAllowedErrorDetails as EmailDomainNotAllowedErrorDetails,

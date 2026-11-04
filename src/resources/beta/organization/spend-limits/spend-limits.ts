@@ -16,11 +16,21 @@ import {
   IncreaseRequests,
 } from './increase-requests';
 import { APIPromise } from '../../../../core/api-promise';
+import { PermissionDeniedError } from '../../../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { buildHeaders } from '../../../../internal/headers';
 import { RequestOptions } from '../../../../internal/request-options';
 import { startApiCallSpan } from '../../../../internal/tracing';
 import { path } from '../../../../internal/utils/path';
+
+/**
+ * The organization cannot retrieve, set or delete spend limits with an Admin API
+ * credential.
+ */
+export class BetaSpendLimitsAdminAPIWritesNotEnabledError extends PermissionDeniedError {
+  declare readonly errorCode: 'spend_limits_admin_api_writes_not_enabled';
+  declare readonly details: BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails;
+}
 
 export class SpendLimits extends APIResource {
   effective: EffectiveAPI.Effective = new EffectiveAPI.Effective(this._client);
@@ -30,6 +40,9 @@ export class SpendLimits extends APIResource {
 
   /**
    * Retrieve a spend limit by ID.
+   *
+   * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError} The organization cannot retrieve, set or delete spend limits with an Admin API
+   * credential.
    *
    * @example
    * ```ts
@@ -59,6 +72,9 @@ export class SpendLimits extends APIResource {
    * limits are grouped by scope type, in the order `organization`, `seat_tier`,
    * `rbac_group`, `organization_service`, `user`; within a type they come in a fixed
    * order that is not creation order.
+   *
+   * @throws {OrganizationTypeNotSupportedError} The endpoint does not support the organization's type. Each endpoint's
+   * description says which organization types it supports.
    *
    * @example
    * ```ts
@@ -98,6 +114,11 @@ export class SpendLimits extends APIResource {
    * `usage_tier` limit. Deleting organization and workspace limits through the API
    * is in an early access preview.
    *
+   * @throws {BetaBillingFrozenError} Anthropic has temporarily disabled billing changes for the user account the
+   * credential belongs to. Contact support.
+   * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError} The organization cannot retrieve, set or delete spend limits with an Admin API
+   * credential.
+   *
    * @example
    * ```ts
    * const spendLimit =
@@ -126,6 +147,11 @@ export class SpendLimits extends APIResource {
    * Console organization sets `organization` and `workspace` limits, which are
    * monthly and always carry an amount. Setting those limits is in an early access
    * preview. To request access, contact your Anthropic account team.
+   *
+   * @throws {BetaBillingFrozenError} Anthropic has temporarily disabled billing changes for the user account the
+   * credential belongs to. Contact support.
+   * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError} The organization cannot retrieve, set or delete spend limits with an Admin API
+   * credential.
    *
    * @example
    * ```ts
@@ -455,11 +481,13 @@ export interface SpendLimitSetParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
+SpendLimits.BetaSpendLimitsAdminAPIWritesNotEnabledError = BetaSpendLimitsAdminAPIWritesNotEnabledError;
 SpendLimits.Effective = Effective;
 SpendLimits.IncreaseRequests = IncreaseRequests;
 
 export declare namespace SpendLimits {
   export {
+    BetaSpendLimitsAdminAPIWritesNotEnabledError as BetaSpendLimitsAdminAPIWritesNotEnabledError,
     type BetaSpendLimit as BetaSpendLimit,
     type BetaSpendLimitOrganizationScope as BetaSpendLimitOrganizationScope,
     type BetaSpendLimitOrganizationServiceScope as BetaSpendLimitOrganizationServiceScope,

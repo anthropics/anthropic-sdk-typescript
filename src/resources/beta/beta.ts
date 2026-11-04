@@ -305,13 +305,19 @@ import {
   BetaCloudConfig,
   BetaCloudConfigParams,
   BetaEnvironment,
+  BetaEnvironmentArchivedError,
   BetaEnvironmentArchivedErrorDetails,
+  BetaEnvironmentCreateDisabledError,
   BetaEnvironmentCreateDisabledErrorDetails,
   BetaEnvironmentDeleteResponse,
+  BetaEnvironmentNotFoundError,
   BetaEnvironmentNotFoundErrorDetails,
+  BetaEnvironmentUpdateDisabledError,
   BetaEnvironmentUpdateDisabledErrorDetails,
   BetaEnvironmentsPageCursor,
+  BetaInvalidConfigTypeChangeError,
   BetaInvalidConfigTypeChangeErrorDetails,
+  BetaInvalidMetadataError,
   BetaInvalidMetadataErrorDetails,
   BetaLimitedNetwork,
   BetaLimitedNetworkParams,
@@ -842,6 +848,7 @@ import {
 } from './messages/messages';
 import * as OrganizationAPI from './organization/organization';
 import {
+  BetaBillingFrozenError,
   BetaBillingFrozenErrorDetails,
   BetaOrganization,
   BetaOrganizationRole,
@@ -953,6 +960,16 @@ import {
   VaultUpdateParams,
   Vaults,
 } from './vaults/vaults';
+import { BadRequestError } from '../../core/error';
+
+/**
+ * The request's `Content-Type` header names a charset other than UTF-8, ISO-8859-1
+ * or US-ASCII. Send the request with no charset, or with one of these.
+ */
+export class BetaUnsupportedCharsetError extends BadRequestError {
+  declare readonly errorCode: 'unsupported_charset';
+  declare readonly details: BetaUnsupportedCharsetErrorDetails;
+}
 
 export class Beta extends APIResource {
   models: ModelsAPI.Models = new ModelsAPI.Models(this._client);
@@ -1139,10 +1156,17 @@ export interface BetaUnsupportedCharsetErrorDetails {
   error_code: 'unsupported_charset';
 }
 
+Beta.BetaUnsupportedCharsetError = BetaUnsupportedCharsetError;
 Beta.Models = Models;
 Beta.Messages = Messages;
 Beta.Agents = Agents;
 Beta.Environments = Environments;
+Beta.BetaEnvironmentArchivedError = BetaEnvironmentArchivedError;
+Beta.BetaInvalidConfigTypeChangeError = BetaInvalidConfigTypeChangeError;
+Beta.BetaInvalidMetadataError = BetaInvalidMetadataError;
+Beta.BetaEnvironmentCreateDisabledError = BetaEnvironmentCreateDisabledError;
+Beta.BetaEnvironmentUpdateDisabledError = BetaEnvironmentUpdateDisabledError;
+Beta.BetaEnvironmentNotFoundError = BetaEnvironmentNotFoundError;
 Beta.Sessions = Sessions;
 Beta.Deployments = Deployments;
 Beta.DeploymentRuns = DeploymentRuns;
@@ -1155,9 +1179,11 @@ Beta.UserProfiles = UserProfiles;
 Beta.Dreams = Dreams;
 Beta.Tunnels = Tunnels;
 Beta.Organization = Organization;
+Beta.BetaBillingFrozenError = BetaBillingFrozenError;
 
 export declare namespace Beta {
   export {
+    BetaUnsupportedCharsetError as BetaUnsupportedCharsetError,
     type AnthropicBeta as AnthropicBeta,
     type BetaAPIError as BetaAPIError,
     type BetaAuthenticationError as BetaAuthenticationError,
@@ -1811,6 +1837,12 @@ export declare namespace Beta {
 
   export {
     Environments as Environments,
+    BetaEnvironmentArchivedError as BetaEnvironmentArchivedError,
+    BetaInvalidConfigTypeChangeError as BetaInvalidConfigTypeChangeError,
+    BetaInvalidMetadataError as BetaInvalidMetadataError,
+    BetaEnvironmentCreateDisabledError as BetaEnvironmentCreateDisabledError,
+    BetaEnvironmentUpdateDisabledError as BetaEnvironmentUpdateDisabledError,
+    BetaEnvironmentNotFoundError as BetaEnvironmentNotFoundError,
     type BetaCloudConfig as BetaCloudConfig,
     type BetaCloudConfigParams as BetaCloudConfigParams,
     type BetaEnvironment as BetaEnvironment,
@@ -2124,6 +2156,7 @@ export declare namespace Beta {
 
   export {
     Organization as Organization,
+    BetaBillingFrozenError as BetaBillingFrozenError,
     type BetaBillingFrozenErrorDetails as BetaBillingFrozenErrorDetails,
     type BetaOrganization as BetaOrganization,
     type BetaOrganizationRole as BetaOrganizationRole,

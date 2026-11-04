@@ -1,13 +1,9 @@
 export {
-  InstallationSettings,
-  type BetaDeletedPluginInstallationSetting,
-  type BetaPluginInstallationSetting,
-  type InstallationSettingListParams,
-  type InstallationSettingRemoveParams,
-  type InstallationSettingSetParams,
-  type BetaPluginInstallationSettingsPageCursor,
-} from './installation-settings';
-export {
+  BetaScanFailedError,
+  BetaPluginNameTakenError,
+  BetaScanPendingError,
+  BetaSkillNameTakenError,
+  BetaRegistrationPendingError,
   Plugins,
   type BetaDeletedPlugin,
   type BetaPlugin,
@@ -32,6 +28,15 @@ export {
   type PluginDeleteParams,
   type BetaPluginsPageCursor,
 } from './plugins';
+export {
+  InstallationSettings,
+  type BetaDeletedPluginInstallationSetting,
+  type BetaPluginInstallationSetting,
+  type InstallationSettingListParams,
+  type InstallationSettingRemoveParams,
+  type InstallationSettingSetParams,
+  type BetaPluginInstallationSettingsPageCursor,
+} from './installation-settings';
 export {
   Shares,
   type BetaPluginShare,

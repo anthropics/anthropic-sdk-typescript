@@ -1,4 +1,10 @@
 export {
+  BetaEnvironmentArchivedError,
+  BetaInvalidConfigTypeChangeError,
+  BetaInvalidMetadataError,
+  BetaEnvironmentCreateDisabledError,
+  BetaEnvironmentUpdateDisabledError,
+  BetaEnvironmentNotFoundError,
   Environments,
   type BetaCloudConfig,
   type BetaCloudConfigParams,
@@ -26,6 +32,7 @@ export {
   type BetaEnvironmentsPageCursor,
 } from './environments';
 export {
+  BetaHeartbeatPreconditionFailedError,
   Work,
   type BetaHeartbeatPreconditionFailedErrorDetails,
   type BetaSelfHostedWork,

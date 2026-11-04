@@ -1,4 +1,5 @@
 export {
+  SkillReadBlockedUndecryptableError,
   Skills,
   type DeletedSkill,
   type Skill,

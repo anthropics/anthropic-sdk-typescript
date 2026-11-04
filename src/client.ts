@@ -33,6 +33,7 @@ export type {
 import { stringifyQuery } from './internal/utils/query';
 import { context, trace, type Span, type Tracer } from '@opentelemetry/api';
 import { VERSION } from './version';
+import { errorCodeClasses } from './core/error-classes';
 import * as Errors from './core/error';
 import type { AccessTokenProvider } from './lib/credentials/types';
 import { OAUTH_API_BETA_HEADER } from './lib/credentials/types';
@@ -73,14 +74,17 @@ import {
   DeletedFile,
   FileDeleteParams,
   FileDownloadParams,
+  FileExpiredError,
   FileExpiredErrorDetails,
   FileListParams,
   FileMetadata,
   FileMetadataPageCursor,
+  FileNotDownloadableError,
   FileNotDownloadableErrorDetails,
   FileRetrieveMetadataParams,
   FileUploadParams,
   Files,
+  StorageQuotaExceededError,
   StorageQuotaExceededErrorDetails,
 } from './resources/files';
 import {
@@ -99,6 +103,20 @@ import {
   ThinkingTypes,
 } from './resources/models';
 import {
+  CMEKContextUnavailableError,
+  CMEKKeyDisabledError,
+  CMEKKeyNetworkBlockedError,
+  CMEKKeyUnreachableError,
+  ClaudeCodeKeyCreatorNotMemberError,
+  ClaudeCodeVersionTooOldError,
+  EnforcedSpendLimitReachedError,
+  OrganizationOnHoldError,
+  OrganizationTypeNotSupportedError,
+  RequestBodyEncodingInvalidError,
+  RequestBodyEncodingUnsupportedError,
+  RequestBodyTooLargeAfterDecodingError,
+} from './resources/shared';
+import {
   AnthropicBeta,
   Beta,
   BetaAPIError,
@@ -114,10 +132,12 @@ import {
   BetaOverloadedError,
   BetaPermissionError,
   BetaRateLimitError,
+  BetaUnsupportedCharsetError,
   BetaUnsupportedCharsetErrorDetails,
 } from './resources/beta/beta';
 import {
   AssistantMessageParam,
+  AvailableToolsLimitExceededError,
   AvailableToolsLimitExceededErrorDetails,
   Base64ImageSource,
   Base64PDFSource,
@@ -279,14 +299,23 @@ import {
   CodeExecutionToolResultError,
   CodeExecutionToolResultErrorCode,
   CodeExecutionToolResultErrorParam,
+  CompactionBlockAmbiguousError,
   CompactionBlockAmbiguousErrorDetails,
+  CompactionBlockMisplacedError,
   CompactionBlockMisplacedErrorDetails,
+  CompactionContentMismatchError,
   CompactionContentMismatchErrorDetails,
+  CompactionIncompleteTurnError,
   CompactionIncompleteTurnErrorDetails,
+  CompactionNothingToSummarizeError,
   CompactionNothingToSummarizeErrorDetails,
+  CompactionSignatureInvalidError,
   CompactionSignatureInvalidErrorDetails,
+  CompactionTooManyToolReferencesError,
   CompactionTooManyToolReferencesErrorDetails,
+  CompactionToolChangesMismatchError,
   CompactionToolChangesMismatchErrorDetails,
+  CompactionUnavailableError,
   CompactionUnavailableErrorDetails,
   ComputerCursorPositionConfig,
   ComputerCursorPositionInput,
@@ -489,11 +518,16 @@ import {
   ThinkingConfigEnabled,
   ThinkingConfigParam,
   ThinkingDelta,
+  ThreadAlreadyContinuedError,
   ThreadAlreadyContinuedErrorDetails,
+  ThreadContinueInFlightError,
   ThreadContinueInFlightErrorDetails,
+  ThreadFingerprintMismatchError,
   ThreadFingerprintMismatchErrorDetails,
+  ThreadNotFoundError,
   ThreadNotFoundErrorDetails,
   ThreadUnsupportedFeatureName,
+  ThreadUnsupportedRequestError,
   ThreadUnsupportedRequestErrorDetails,
   Tool,
   ToolBash20250124,
@@ -502,9 +536,11 @@ import {
   ToolChoiceAuto,
   ToolChoiceNone,
   ToolChoiceTool,
+  ToolNameConflictError,
   ToolNameConflictErrorDetails,
   ToolReferenceBlock,
   ToolReferenceBlockParam,
+  ToolReferenceUnresolvedError,
   ToolReferenceUnresolvedErrorDetails,
   ToolResultBlockParam,
   ToolSearchToolBm25_20251119,
@@ -560,7 +596,9 @@ import {
   WebSearchToolResultErrorCode,
 } from './resources/messages/messages';
 import {
+  ConcurrentMembershipChangeError,
   ConcurrentMembershipChangeErrorDetails,
+  OrgMemberLimitExceededError,
   OrgMemberLimitExceededErrorDetails,
   Organization,
   OrganizationInfo,
@@ -572,6 +610,7 @@ import {
   SkillCreateParams,
   SkillDeleteParams,
   SkillListParams,
+  SkillReadBlockedUndecryptableError,
   SkillReadBlockedUndecryptableErrorDetails,
   SkillRetrieveParams,
   SkillSource,
@@ -602,6 +641,7 @@ import {
   UserProfileListOrder,
   UserProfileListOrderBy,
   UserProfileListParams,
+  UserProfileNotFoundError,
   UserProfileNotFoundErrorDetails,
   UserProfileProgramStatus,
   UserProfilePrograms,
@@ -1362,6 +1402,14 @@ export class BaseAnthropic {
     message: string | undefined,
     headers: Headers,
   ): Errors.APIError {
+    const body = error as Record<string, any> | undefined;
+    const errorCode = body?.['error']?.['details']?.['error_code'];
+    const errorClass =
+      typeof errorCode === 'string' ? errorCodeClasses.get(`${status} ${errorCode}`) : undefined;
+    if (errorClass) {
+      return new errorClass(status, error, message, headers);
+    }
+
     return Errors.APIError.generate(status, error, message, headers);
   }
 
@@ -2133,10 +2181,19 @@ export class BaseAnthropic {
   static ConflictError = Errors.ConflictError;
   static RateLimitError = Errors.RateLimitError;
   static BadRequestError = Errors.BadRequestError;
+  static OverloadedError = Errors.OverloadedError;
   static AuthenticationError = Errors.AuthenticationError;
+  static RequestTimeoutError = Errors.RequestTimeoutError;
   static InternalServerError = Errors.InternalServerError;
+  static NotImplementedError = Errors.NotImplementedError;
+  static GatewayTimeoutError = Errors.GatewayTimeoutError;
+  static ContentTooLargeError = Errors.ContentTooLargeError;
   static PermissionDeniedError = Errors.PermissionDeniedError;
+  static PreconditionFailedError = Errors.PreconditionFailedError;
+  static ServiceUnavailableError = Errors.ServiceUnavailableError;
   static UnprocessableEntityError = Errors.UnprocessableEntityError;
+  static ClientClosedRequestError = Errors.ClientClosedRequestError;
+  static RequestHeaderFieldsTooLargeError = Errors.RequestHeaderFieldsTooLargeError;
 
   static toFile = Uploads.toFile;
 }
@@ -2158,12 +2215,49 @@ export class Anthropic extends BaseAnthropic {
 }
 
 Anthropic.Messages = Messages;
+Anthropic.AvailableToolsLimitExceededError = AvailableToolsLimitExceededError;
+Anthropic.CompactionBlockAmbiguousError = CompactionBlockAmbiguousError;
+Anthropic.CompactionBlockMisplacedError = CompactionBlockMisplacedError;
+Anthropic.CompactionContentMismatchError = CompactionContentMismatchError;
+Anthropic.CompactionIncompleteTurnError = CompactionIncompleteTurnError;
+Anthropic.CompactionNothingToSummarizeError = CompactionNothingToSummarizeError;
+Anthropic.CompactionSignatureInvalidError = CompactionSignatureInvalidError;
+Anthropic.CompactionTooManyToolReferencesError = CompactionTooManyToolReferencesError;
+Anthropic.CompactionToolChangesMismatchError = CompactionToolChangesMismatchError;
+Anthropic.ThreadAlreadyContinuedError = ThreadAlreadyContinuedError;
+Anthropic.ThreadContinueInFlightError = ThreadContinueInFlightError;
+Anthropic.ThreadFingerprintMismatchError = ThreadFingerprintMismatchError;
+Anthropic.ThreadUnsupportedRequestError = ThreadUnsupportedRequestError;
+Anthropic.ToolNameConflictError = ToolNameConflictError;
+Anthropic.ToolReferenceUnresolvedError = ToolReferenceUnresolvedError;
+Anthropic.ThreadNotFoundError = ThreadNotFoundError;
+Anthropic.CompactionUnavailableError = CompactionUnavailableError;
 Anthropic.Models = Models;
 Anthropic.Files = Files;
+Anthropic.FileNotDownloadableError = FileNotDownloadableError;
+Anthropic.StorageQuotaExceededError = StorageQuotaExceededError;
+Anthropic.FileExpiredError = FileExpiredError;
 Anthropic.Skills = Skills;
+Anthropic.SkillReadBlockedUndecryptableError = SkillReadBlockedUndecryptableError;
 Anthropic.UserProfiles = UserProfiles;
+Anthropic.UserProfileNotFoundError = UserProfileNotFoundError;
 Anthropic.Organization = Organization;
+Anthropic.OrgMemberLimitExceededError = OrgMemberLimitExceededError;
+Anthropic.ConcurrentMembershipChangeError = ConcurrentMembershipChangeError;
 Anthropic.Beta = Beta;
+Anthropic.BetaUnsupportedCharsetError = BetaUnsupportedCharsetError;
+Anthropic.ClaudeCodeKeyCreatorNotMemberError = ClaudeCodeKeyCreatorNotMemberError;
+Anthropic.ClaudeCodeVersionTooOldError = ClaudeCodeVersionTooOldError;
+Anthropic.CMEKKeyDisabledError = CMEKKeyDisabledError;
+Anthropic.CMEKKeyNetworkBlockedError = CMEKKeyNetworkBlockedError;
+Anthropic.OrganizationOnHoldError = OrganizationOnHoldError;
+Anthropic.OrganizationTypeNotSupportedError = OrganizationTypeNotSupportedError;
+Anthropic.RequestBodyEncodingInvalidError = RequestBodyEncodingInvalidError;
+Anthropic.RequestBodyEncodingUnsupportedError = RequestBodyEncodingUnsupportedError;
+Anthropic.RequestBodyTooLargeAfterDecodingError = RequestBodyTooLargeAfterDecodingError;
+Anthropic.EnforcedSpendLimitReachedError = EnforcedSpendLimitReachedError;
+Anthropic.CMEKContextUnavailableError = CMEKContextUnavailableError;
+Anthropic.CMEKKeyUnreachableError = CMEKKeyUnreachableError;
 
 export declare namespace Anthropic {
   export type RequestOptions = Opts.RequestOptions;
@@ -2199,6 +2293,23 @@ export declare namespace Anthropic {
 
   export {
     Messages as Messages,
+    AvailableToolsLimitExceededError as AvailableToolsLimitExceededError,
+    CompactionBlockAmbiguousError as CompactionBlockAmbiguousError,
+    CompactionBlockMisplacedError as CompactionBlockMisplacedError,
+    CompactionContentMismatchError as CompactionContentMismatchError,
+    CompactionIncompleteTurnError as CompactionIncompleteTurnError,
+    CompactionNothingToSummarizeError as CompactionNothingToSummarizeError,
+    CompactionSignatureInvalidError as CompactionSignatureInvalidError,
+    CompactionTooManyToolReferencesError as CompactionTooManyToolReferencesError,
+    CompactionToolChangesMismatchError as CompactionToolChangesMismatchError,
+    ThreadAlreadyContinuedError as ThreadAlreadyContinuedError,
+    ThreadContinueInFlightError as ThreadContinueInFlightError,
+    ThreadFingerprintMismatchError as ThreadFingerprintMismatchError,
+    ThreadUnsupportedRequestError as ThreadUnsupportedRequestError,
+    ToolNameConflictError as ToolNameConflictError,
+    ToolReferenceUnresolvedError as ToolReferenceUnresolvedError,
+    ThreadNotFoundError as ThreadNotFoundError,
+    CompactionUnavailableError as CompactionUnavailableError,
     type AssistantMessageParam as AssistantMessageParam,
     type AvailableToolsLimitExceededErrorDetails as AvailableToolsLimitExceededErrorDetails,
     type Base64ImageSource as Base64ImageSource,
@@ -2659,6 +2770,9 @@ export declare namespace Anthropic {
 
   export {
     Files as Files,
+    FileNotDownloadableError as FileNotDownloadableError,
+    StorageQuotaExceededError as StorageQuotaExceededError,
+    FileExpiredError as FileExpiredError,
     type DeletedFile as DeletedFile,
     type FileExpiredErrorDetails as FileExpiredErrorDetails,
     type FileMetadata as FileMetadata,
@@ -2674,6 +2788,7 @@ export declare namespace Anthropic {
 
   export {
     Skills as Skills,
+    SkillReadBlockedUndecryptableError as SkillReadBlockedUndecryptableError,
     type DeletedSkill as DeletedSkill,
     type Skill as Skill,
     type SkillReadBlockedUndecryptableErrorDetails as SkillReadBlockedUndecryptableErrorDetails,
@@ -2687,6 +2802,7 @@ export declare namespace Anthropic {
 
   export {
     UserProfiles as UserProfiles,
+    UserProfileNotFoundError as UserProfileNotFoundError,
     type DeletedUserProfile as DeletedUserProfile,
     type UserProfile as UserProfile,
     type UserProfileAccessType as UserProfileAccessType,
@@ -2720,6 +2836,8 @@ export declare namespace Anthropic {
 
   export {
     Organization as Organization,
+    OrgMemberLimitExceededError as OrgMemberLimitExceededError,
+    ConcurrentMembershipChangeError as ConcurrentMembershipChangeError,
     type ConcurrentMembershipChangeErrorDetails as ConcurrentMembershipChangeErrorDetails,
     type OrgMemberLimitExceededErrorDetails as OrgMemberLimitExceededErrorDetails,
     type OrganizationInfo as OrganizationInfo,
@@ -2728,6 +2846,7 @@ export declare namespace Anthropic {
 
   export {
     Beta as Beta,
+    BetaUnsupportedCharsetError as BetaUnsupportedCharsetError,
     type AnthropicBeta as AnthropicBeta,
     type BetaAPIError as BetaAPIError,
     type BetaAuthenticationError as BetaAuthenticationError,
@@ -2743,6 +2862,21 @@ export declare namespace Anthropic {
     type BetaPermissionError as BetaPermissionError,
     type BetaRateLimitError as BetaRateLimitError,
     type BetaUnsupportedCharsetErrorDetails as BetaUnsupportedCharsetErrorDetails,
+  };
+
+  export {
+    ClaudeCodeKeyCreatorNotMemberError as ClaudeCodeKeyCreatorNotMemberError,
+    ClaudeCodeVersionTooOldError as ClaudeCodeVersionTooOldError,
+    CMEKKeyDisabledError as CMEKKeyDisabledError,
+    CMEKKeyNetworkBlockedError as CMEKKeyNetworkBlockedError,
+    OrganizationOnHoldError as OrganizationOnHoldError,
+    OrganizationTypeNotSupportedError as OrganizationTypeNotSupportedError,
+    RequestBodyEncodingInvalidError as RequestBodyEncodingInvalidError,
+    RequestBodyEncodingUnsupportedError as RequestBodyEncodingUnsupportedError,
+    RequestBodyTooLargeAfterDecodingError as RequestBodyTooLargeAfterDecodingError,
+    EnforcedSpendLimitReachedError as EnforcedSpendLimitReachedError,
+    CMEKContextUnavailableError as CMEKContextUnavailableError,
+    CMEKKeyUnreachableError as CMEKKeyUnreachableError,
   };
 
   export type APIErrorObject = API.APIErrorObject;

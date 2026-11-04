@@ -8,6 +8,8 @@ export {
   type RBACGroupMembersPageCursor,
 } from './members';
 export {
+  RBACGroupGrantsOwnerAccessError,
+  RBACGroupOwnerAccessUnconfirmedError,
   RBACGroups,
   type DeletedRBACGroup,
   type RBACGroup,

@@ -16,6 +16,118 @@ import * as WorkspacesAPI from './organization/workspaces/workspaces';
 import * as ClaudeTagAPI from './beta/organization/claude-tag/claude-tag';
 import * as PluginsAPI from './beta/organization/plugins/plugins';
 import * as SpendLimitsAPI from './beta/organization/spend-limits/spend-limits';
+import {
+  BadRequestError,
+  ContentTooLargeError,
+  RateLimitError as ErrorsRateLimitError,
+  ServiceUnavailableError,
+} from '../core/error';
+
+/**
+ * The API key belongs to the Claude Code workspace, and the user who created it is
+ * no longer a member of the organization or of that workspace.
+ */
+export class ClaudeCodeKeyCreatorNotMemberError extends BadRequestError {
+  declare readonly errorCode: 'claude_code_key_creator_not_member';
+  declare readonly details: ClaudeCodeKeyCreatorNotMemberErrorDetails;
+}
+
+/**
+ * The request comes from a Claude Code version older than the minimum that the
+ * requested model or the organization requires. Update Claude Code, then retry.
+ */
+export class ClaudeCodeVersionTooOldError extends BadRequestError {
+  declare readonly errorCode: 'claude_code_version_too_old';
+  declare readonly details: ClaudeCodeVersionTooOldErrorDetails;
+}
+
+/**
+ * The workspace's customer-managed encryption key is disabled or revoked.
+ * Re-enable the key, then retry.
+ */
+export class CMEKKeyDisabledError extends BadRequestError {
+  declare readonly errorCode: 'cmek_key_disabled';
+  declare readonly details: CMEKKeyDisabledErrorDetails;
+}
+
+/**
+ * The key management service's network access controls blocked the request to the
+ * workspace's customer-managed encryption key. The key itself may be healthy.
+ */
+export class CMEKKeyNetworkBlockedError extends BadRequestError {
+  declare readonly errorCode: 'cmek_key_network_blocked';
+  declare readonly details: CMEKKeyNetworkBlockedErrorDetails;
+}
+
+/**
+ * Anthropic has disabled the organization for trust and safety reasons. An
+ * organization disabled for any other reason, such as billing, does not get this
+ * code. `appeal_url`, when present, is where the organization can appeal.
+ */
+export class OrganizationOnHoldError extends BadRequestError {
+  declare readonly errorCode: 'organization_on_hold';
+  declare readonly details: OrganizationOnHoldErrorDetails;
+}
+
+/**
+ * The endpoint does not support the organization's type. Each endpoint's
+ * description says which organization types it supports.
+ */
+export class OrganizationTypeNotSupportedError extends BadRequestError {
+  declare readonly errorCode: 'organization_type_not_supported';
+  declare readonly details: OrganizationTypeNotSupportedErrorDetails;
+}
+
+/**
+ * The request body is not valid for its `Content-Encoding`.
+ */
+export class RequestBodyEncodingInvalidError extends BadRequestError {
+  declare readonly errorCode: 'request_body_encoding_invalid';
+  declare readonly details: RequestBodyEncodingInvalidErrorDetails;
+}
+
+/**
+ * The request's `Content-Encoding` is not supported.
+ */
+export class RequestBodyEncodingUnsupportedError extends BadRequestError {
+  declare readonly errorCode: 'request_body_encoding_unsupported';
+  declare readonly details: RequestBodyEncodingUnsupportedErrorDetails;
+}
+
+/**
+ * The compressed request body exceeds the request size limit once decoded.
+ */
+export class RequestBodyTooLargeAfterDecodingError extends ContentTooLargeError {
+  declare readonly errorCode: 'request_body_too_large_after_decoding';
+  declare readonly details: RequestBodyTooLargeAfterDecodingErrorDetails;
+}
+
+/**
+ * The organization has crossed the monthly API usage threshold of its API tier.
+ */
+export class EnforcedSpendLimitReachedError extends ErrorsRateLimitError {
+  declare readonly errorCode: 'enforced_spend_limit_reached';
+  declare readonly details: EnforcedSpendLimitReachedErrorDetails;
+}
+
+/**
+ * The request's workspace encryption context could not be resolved, so the request
+ * was refused. Retry in a few minutes.
+ */
+export class CMEKContextUnavailableError extends ServiceUnavailableError {
+  declare readonly errorCode: 'cmek_context_unavailable';
+  declare readonly details: CMEKContextUnavailableErrorDetails;
+}
+
+/**
+ * The workspace's customer-managed encryption key could not be reached. Retry the
+ * request; if this continues, check that the key is available in your key
+ * management service, or contact Anthropic support.
+ */
+export class CMEKKeyUnreachableError extends ServiceUnavailableError {
+  declare readonly errorCode: 'cmek_key_unreachable';
+  declare readonly details: CMEKKeyUnreachableErrorDetails;
+}
 
 export interface APIErrorObject {
   message: string;

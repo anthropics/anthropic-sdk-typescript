@@ -1,13 +1,36 @@
 import { APIResource } from '../../core/resource';
 import { APIPromise } from '../../core/api-promise';
+import { BadRequestError, ConflictError } from '../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagination';
 import { RequestOptions } from '../../internal/request-options';
 import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
 
+/**
+ * The External Key can't be deleted or reconfigured while the organization's
+ * Workspace Policy lists it as an allowed key.
+ */
+export class ExternalKeyInWorkspacePolicyError extends BadRequestError {
+  declare readonly errorCode: 'external_key_in_workspace_policy';
+  declare readonly details: ExternalKeyInWorkspacePolicyErrorDetails;
+}
+
+/**
+ * The external key changed while the request was validating it. Send the request
+ * again.
+ */
+export class ExternalKeyChangedError extends ConflictError {
+  declare readonly errorCode: 'external_key_changed';
+  declare readonly details: ExternalKeyChangedErrorDetails;
+}
+
 export class ExternalKeys extends APIResource {
   /**
    * Create an external key config owned by the caller's organization.
+   *
+   * @throws {UserProfileNotFoundError} The request depends on a user profile that does not exist in the organization or
+   * is no longer active. The request either names this user profile by ID, or names
+   * a resource, such as an External Key, that is bound to it.
    *
    * @example
    * ```ts
@@ -59,6 +82,9 @@ export class ExternalKeys extends APIResource {
    * `display_name` is always editable. `geo` and `provider_config` cannot be changed
    * once any workspace references this config, because previously encrypted data
    * requires the original key identity to decrypt.
+   *
+   * @throws {ExternalKeyInWorkspacePolicyError} The External Key can't be deleted or reconfigured while the organization's
+   * Workspace Policy lists it as an allowed key.
    *
    * @example
    * ```ts
@@ -116,6 +142,9 @@ export class ExternalKeys extends APIResource {
    * Delete an external key config.
    *
    * The request is rejected if any workspace still references this config.
+   *
+   * @throws {ExternalKeyInWorkspacePolicyError} The External Key can't be deleted or reconfigured while the organization's
+   * Workspace Policy lists it as an allowed key.
    *
    * @example
    * ```ts
@@ -396,8 +425,13 @@ export interface ExternalKeyUpdateParams {
 
 export interface ExternalKeyListParams extends PageCursorParams {}
 
+ExternalKeys.ExternalKeyInWorkspacePolicyError = ExternalKeyInWorkspacePolicyError;
+ExternalKeys.ExternalKeyChangedError = ExternalKeyChangedError;
+
 export declare namespace ExternalKeys {
   export {
+    ExternalKeyInWorkspacePolicyError as ExternalKeyInWorkspacePolicyError,
+    ExternalKeyChangedError as ExternalKeyChangedError,
     type AWSExternalKeyConfig as AWSExternalKeyConfig,
     type AzureExternalKeyConfig as AzureExternalKeyConfig,
     type AzureExternalKeyConfigParam as AzureExternalKeyConfigParam,

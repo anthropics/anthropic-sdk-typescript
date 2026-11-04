@@ -11,6 +11,7 @@ import {
   Versions,
 } from './versions';
 import { APIPromise } from '../../core/api-promise';
+import { ConflictError } from '../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../core/pagination';
 import { type Uploadable } from '../../core/uploads';
 import { buildHeaders } from '../../internal/headers';
@@ -19,11 +20,32 @@ import { startApiCallSpan } from '../../internal/tracing';
 import { multipartFormRequestOptions } from '../../internal/uploads';
 import { path } from '../../internal/utils/path';
 
+/**
+ * A custom skill the request names is stored under an encryption key state the
+ * workspace cannot currently decrypt.
+ */
+export class SkillReadBlockedUndecryptableError extends ConflictError {
+  declare readonly errorCode: 'skill_read_blocked_undecryptable';
+  declare readonly details: SkillReadBlockedUndecryptableErrorDetails;
+}
+
 export class Skills extends APIResource {
   versions: VersionsAPI.Versions = new VersionsAPI.Versions(this._client);
 
   /**
    * Create Skill
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
+   * no longer a member of the organization or of that workspace.
+   * @throws {CMEKKeyDisabledError} The workspace's customer-managed encryption key is disabled or revoked.
+   * Re-enable the key, then retry.
+   * @throws {CMEKKeyNetworkBlockedError} The key management service's network access controls blocked the request to the
+   * workspace's customer-managed encryption key. The key itself may be healthy.
+   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
+   * organization disabled for any other reason, such as billing, does not get this
+   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {CMEKContextUnavailableError} The request's workspace encryption context could not be resolved, so the request
+   * was refused. Retry in a few minutes.
    *
    * @example
    * ```ts
@@ -58,6 +80,12 @@ export class Skills extends APIResource {
   /**
    * Get Skill
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
+   * no longer a member of the organization or of that workspace.
+   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
+   * organization disabled for any other reason, such as billing, does not get this
+   * code. `appeal_url`, when present, is where the organization can appeal.
+   *
    * @example
    * ```ts
    * const skill = await client.skills.retrieve('skill_id');
@@ -84,6 +112,12 @@ export class Skills extends APIResource {
 
   /**
    * List Skills
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
+   * no longer a member of the organization or of that workspace.
+   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
+   * organization disabled for any other reason, such as billing, does not get this
+   * code. `appeal_url`, when present, is where the organization can appeal.
    *
    * @example
    * ```ts
@@ -114,6 +148,12 @@ export class Skills extends APIResource {
 
   /**
    * Delete Skill
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
+   * no longer a member of the organization or of that workspace.
+   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
+   * organization disabled for any other reason, such as billing, does not get this
+   * code. `appeal_url`, when present, is where the organization can appeal.
    *
    * @example
    * ```ts
@@ -304,10 +344,12 @@ export interface SkillDeleteParams {
   workspace_id?: string;
 }
 
+Skills.SkillReadBlockedUndecryptableError = SkillReadBlockedUndecryptableError;
 Skills.Versions = Versions;
 
 export declare namespace Skills {
   export {
+    SkillReadBlockedUndecryptableError as SkillReadBlockedUndecryptableError,
     type DeletedSkill as DeletedSkill,
     type Skill as Skill,
     type SkillReadBlockedUndecryptableErrorDetails as SkillReadBlockedUndecryptableErrorDetails,

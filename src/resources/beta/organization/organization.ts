@@ -190,6 +190,7 @@ import {
 } from './analytics/analytics';
 import * as ClaudeTagAPI from './claude-tag/claude-tag';
 import {
+  BetaAPIKeyScopeMissingError,
   BetaAPIKeyScopeMissingErrorDetails,
   BetaClaudeTagDefaultSettingSource,
   BetaClaudeTagGuestPolicy,
@@ -208,11 +209,17 @@ import {
   BetaClaudeTagSlackParentChannelSettingSource,
   BetaClaudeTagSlackWorkspaceIdentifiers,
   BetaClaudeTagSlackWorkspaceSettingSource,
+  BetaClaudeTagWritesNotEnabledError,
   BetaClaudeTagWritesNotEnabledErrorDetails,
+  BetaComplianceConfigurationRestrictedError,
   BetaComplianceConfigurationRestrictedErrorDetails,
+  BetaOrganizationLevelScopedAPIKeyRequiredError,
   BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails,
+  BetaSlackChannelSetUpEnvironmentNotFoundError,
   BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails,
+  BetaSlackChannelSetUpSettingsConflictError,
   BetaSlackChannelSetUpSettingsConflictErrorDetails,
+  BetaSlackChannelSetUpSettingsRefusedError,
   BetaSlackChannelSetUpSettingsRefusedErrorDetails,
   ClaudeTag,
 } from './claude-tag/claude-tag';
@@ -225,6 +232,7 @@ import {
   BetaPluginAPIActor,
   BetaPluginComponent,
   BetaPluginContentScan,
+  BetaPluginNameTakenError,
   BetaPluginNameTakenErrorDetails,
   BetaPluginOwnerOrganization,
   BetaPluginOwnerUser,
@@ -233,9 +241,13 @@ import {
   BetaPluginTargetRBACGroup,
   BetaPluginUserActor,
   BetaPluginsPageCursor,
+  BetaRegistrationPendingError,
   BetaRegistrationPendingErrorDetails,
+  BetaScanFailedError,
   BetaScanFailedErrorDetails,
+  BetaScanPendingError,
   BetaScanPendingErrorDetails,
+  BetaSkillNameTakenError,
   BetaSkillNameTakenErrorDetails,
   PluginCreateParams,
   PluginDeleteParams,
@@ -286,6 +298,7 @@ import {
   BetaSpendLimitUserActor,
   BetaSpendLimitUserScope,
   BetaSpendLimitWorkspaceScope,
+  BetaSpendLimitsAdminAPIWritesNotEnabledError,
   BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails,
   BetaSpendLimitsPageCursor,
   BetaSpendSummary,
@@ -351,8 +364,18 @@ import {
   Workspaces,
 } from './workspaces/workspaces';
 import { APIPromise } from '../../../core/api-promise';
+import { PermissionDeniedError } from '../../../core/error';
 import { RequestOptions } from '../../../internal/request-options';
 import { startApiCallSpan } from '../../../internal/tracing';
+
+/**
+ * Anthropic has temporarily disabled billing changes for the user account the
+ * credential belongs to. Contact support.
+ */
+export class BetaBillingFrozenError extends PermissionDeniedError {
+  declare readonly errorCode: 'billing_frozen';
+  declare readonly details: BetaBillingFrozenErrorDetails;
+}
 
 export class Organization extends APIResource {
   apiKeys: APIKeysAPI.APIKeys = new APIKeysAPI.APIKeys(this._client);
@@ -438,6 +461,7 @@ export type BetaOrganizationRole =
   | 'primary_owner'
   | 'user';
 
+Organization.BetaBillingFrozenError = BetaBillingFrozenError;
 Organization.APIKeys = APIKeys;
 Organization.ExternalKeys = ExternalKeys;
 Organization.Federation = Federation;
@@ -449,16 +473,30 @@ Organization.RateLimits = RateLimits;
 Organization.ComplianceSettings = ComplianceSettings;
 Organization.Analytics = Analytics;
 Organization.SpendLimits = SpendLimits;
+Organization.BetaSpendLimitsAdminAPIWritesNotEnabledError = BetaSpendLimitsAdminAPIWritesNotEnabledError;
 Organization.RBACGroups = RBACGroups;
 Organization.RBACRoles = RBACRoles;
 Organization.Plugins = Plugins;
+Organization.BetaScanFailedError = BetaScanFailedError;
+Organization.BetaPluginNameTakenError = BetaPluginNameTakenError;
+Organization.BetaScanPendingError = BetaScanPendingError;
+Organization.BetaSkillNameTakenError = BetaSkillNameTakenError;
+Organization.BetaRegistrationPendingError = BetaRegistrationPendingError;
 Organization.PluginMarketplaces = PluginMarketplaces;
 Organization.TelemetryDestinations = TelemetryDestinations;
 Organization.Webhooks = Webhooks;
 Organization.ClaudeTag = ClaudeTag;
+Organization.BetaSlackChannelSetUpSettingsRefusedError = BetaSlackChannelSetUpSettingsRefusedError;
+Organization.BetaAPIKeyScopeMissingError = BetaAPIKeyScopeMissingError;
+Organization.BetaClaudeTagWritesNotEnabledError = BetaClaudeTagWritesNotEnabledError;
+Organization.BetaComplianceConfigurationRestrictedError = BetaComplianceConfigurationRestrictedError;
+Organization.BetaOrganizationLevelScopedAPIKeyRequiredError = BetaOrganizationLevelScopedAPIKeyRequiredError;
+Organization.BetaSlackChannelSetUpEnvironmentNotFoundError = BetaSlackChannelSetUpEnvironmentNotFoundError;
+Organization.BetaSlackChannelSetUpSettingsConflictError = BetaSlackChannelSetUpSettingsConflictError;
 
 export declare namespace Organization {
   export {
+    BetaBillingFrozenError as BetaBillingFrozenError,
     type BetaBillingFrozenErrorDetails as BetaBillingFrozenErrorDetails,
     type BetaOrganization as BetaOrganization,
     type BetaOrganizationRole as BetaOrganizationRole,
@@ -654,6 +692,7 @@ export declare namespace Organization {
 
   export {
     SpendLimits as SpendLimits,
+    BetaSpendLimitsAdminAPIWritesNotEnabledError as BetaSpendLimitsAdminAPIWritesNotEnabledError,
     type BetaSpendLimit as BetaSpendLimit,
     type BetaSpendLimitOrganizationScope as BetaSpendLimitOrganizationScope,
     type BetaSpendLimitOrganizationServiceScope as BetaSpendLimitOrganizationServiceScope,
@@ -692,6 +731,11 @@ export declare namespace Organization {
 
   export {
     Plugins as Plugins,
+    BetaScanFailedError as BetaScanFailedError,
+    BetaPluginNameTakenError as BetaPluginNameTakenError,
+    BetaScanPendingError as BetaScanPendingError,
+    BetaSkillNameTakenError as BetaSkillNameTakenError,
+    BetaRegistrationPendingError as BetaRegistrationPendingError,
     type BetaDeletedPlugin as BetaDeletedPlugin,
     type BetaPlugin as BetaPlugin,
     type BetaPluginAPIActor as BetaPluginAPIActor,
@@ -789,6 +833,13 @@ export declare namespace Organization {
 
   export {
     ClaudeTag as ClaudeTag,
+    BetaSlackChannelSetUpSettingsRefusedError as BetaSlackChannelSetUpSettingsRefusedError,
+    BetaAPIKeyScopeMissingError as BetaAPIKeyScopeMissingError,
+    BetaClaudeTagWritesNotEnabledError as BetaClaudeTagWritesNotEnabledError,
+    BetaComplianceConfigurationRestrictedError as BetaComplianceConfigurationRestrictedError,
+    BetaOrganizationLevelScopedAPIKeyRequiredError as BetaOrganizationLevelScopedAPIKeyRequiredError,
+    BetaSlackChannelSetUpEnvironmentNotFoundError as BetaSlackChannelSetUpEnvironmentNotFoundError,
+    BetaSlackChannelSetUpSettingsConflictError as BetaSlackChannelSetUpSettingsConflictError,
     type BetaAPIKeyScopeMissingErrorDetails as BetaAPIKeyScopeMissingErrorDetails,
     type BetaClaudeTagDefaultSettingSource as BetaClaudeTagDefaultSettingSource,
     type BetaClaudeTagGuestPolicy as BetaClaudeTagGuestPolicy,

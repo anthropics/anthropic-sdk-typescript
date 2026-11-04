@@ -15,6 +15,13 @@ export class Targets extends APIResource {
    * Bundle Target. The channel or workspace must be set up: attaching never sets a
    * channel up. A group direct message takes no Bundle and returns 400.
    *
+   * @throws {BetaAPIKeyScopeMissingError} The API key lacks the scope the request needs: `read:claude_tag` for a read,
+   * `write:claude_tag` for a change.
+   * @throws {BetaClaudeTagWritesNotEnabledError} Changes through the Claude Tag API are not enabled for the organization.
+   * @throws {BetaComplianceConfigurationRestrictedError} The organization's compliance configuration does not let Claude Tag store
+   * anything new.
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError} The credential is not a scoped API key that is bound at the organization level.
+   *
    * @example
    * ```ts
    * const betaClaudeTagBundleTarget =
@@ -59,6 +66,13 @@ export class Targets extends APIResource {
    * Get one Bundle Target. Returns 404 when `target_id` is the identifier of another
    * Bundle's Bundle Target, or the Bundle Target was detached.
    *
+   * @throws {BetaAPIKeyScopeMissingError} The API key lacks the scope the request needs: `read:claude_tag` for a read,
+   * `write:claude_tag` for a change.
+   * @throws {BetaClaudeTagWritesNotEnabledError} Changes through the Claude Tag API are not enabled for the organization.
+   * @throws {BetaComplianceConfigurationRestrictedError} The organization's compliance configuration does not let Claude Tag store
+   * anything new.
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError} The credential is not a scoped API key that is bound at the organization level.
+   *
    * @example
    * ```ts
    * const betaClaudeTagBundleTarget =
@@ -100,6 +114,13 @@ export class Targets extends APIResource {
    * List the Slack channels and Slack workspaces a Bundle is attached to, newest
    * first by `created_at`. Only channels and workspaces the organization owns are
    * listed; a Bundle that is attached to anything else has no Bundle Target for it.
+   *
+   * @throws {BetaAPIKeyScopeMissingError} The API key lacks the scope the request needs: `read:claude_tag` for a read,
+   * `write:claude_tag` for a change.
+   * @throws {BetaClaudeTagWritesNotEnabledError} Changes through the Claude Tag API are not enabled for the organization.
+   * @throws {BetaComplianceConfigurationRestrictedError} The organization's compliance configuration does not let Claude Tag store
+   * anything new.
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError} The credential is not a scoped API key that is bound at the organization level.
    *
    * @example
    * ```ts
@@ -145,6 +166,13 @@ export class Targets extends APIResource {
   /**
    * Detach a Bundle from a Slack channel or a Slack workspace. A repeated detach
    * returns 404.
+   *
+   * @throws {BetaAPIKeyScopeMissingError} The API key lacks the scope the request needs: `read:claude_tag` for a read,
+   * `write:claude_tag` for a change.
+   * @throws {BetaClaudeTagWritesNotEnabledError} Changes through the Claude Tag API are not enabled for the organization.
+   * @throws {BetaComplianceConfigurationRestrictedError} The organization's compliance configuration does not let Claude Tag store
+   * anything new.
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError} The credential is not a scoped API key that is bound at the organization level.
    *
    * @example
    * ```ts

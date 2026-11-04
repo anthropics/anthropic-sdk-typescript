@@ -23,6 +23,7 @@ import {
   Versions,
 } from './versions';
 import { APIPromise } from '../../../../core/api-promise';
+import { BadRequestError, ConflictError, ServiceUnavailableError } from '../../../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../../core/pagination';
 import { type Uploadable } from '../../../../core/uploads';
 import { buildHeaders } from '../../../../internal/headers';
@@ -30,6 +31,51 @@ import { RequestOptions } from '../../../../internal/request-options';
 import { startApiCallSpan } from '../../../../internal/tracing';
 import { multipartFormRequestOptions } from '../../../../internal/uploads';
 import { path } from '../../../../internal/utils/path';
+
+/**
+ * The content scan of the version in `plugin_version_id` failed, errored or
+ * reached no verdict, so the version cannot be served.
+ */
+export class BetaScanFailedError extends BadRequestError {
+  declare readonly errorCode: 'scan_failed';
+  declare readonly details: BetaScanFailedErrorDetails;
+}
+
+/**
+ * The marketplace already holds this name. `plugin_id` is the Plugin that holds
+ * it, and can be absent.
+ */
+export class BetaPluginNameTakenError extends ConflictError {
+  declare readonly errorCode: 'plugin_name_taken';
+  declare readonly details: BetaPluginNameTakenErrorDetails;
+}
+
+/**
+ * The content scan of the version in `plugin_version_id` is still running. Retry
+ * once the scan finishes.
+ */
+export class BetaScanPendingError extends ConflictError {
+  declare readonly errorCode: 'scan_pending';
+  declare readonly details: BetaScanPendingErrorDetails;
+}
+
+/**
+ * One of the Plugin's skills has the name of an organization skill. `skill_name`
+ * is that name.
+ */
+export class BetaSkillNameTakenError extends ConflictError {
+  declare readonly errorCode: 'skill_name_taken';
+  declare readonly details: BetaSkillNameTakenErrorDetails;
+}
+
+/**
+ * The Plugin version was stored but is not yet usable in claude.ai. `plugin_id`
+ * and `plugin_version_id` identify what was stored.
+ */
+export class BetaRegistrationPendingError extends ServiceUnavailableError {
+  declare readonly errorCode: 'registration_pending';
+  declare readonly details: BetaRegistrationPendingErrorDetails;
+}
 
 export class Plugins extends APIResource {
   versions: VersionsAPI.Versions = new VersionsAPI.Versions(this._client);
@@ -74,6 +120,19 @@ export class Plugins extends APIResource {
    * available to Claude Enterprise organizations only. It is not available to Claude
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
+   *
+   * @throws {CMEKKeyDisabledError} The workspace's customer-managed encryption key is disabled or revoked.
+   * Re-enable the key, then retry.
+   * @throws {CMEKKeyNetworkBlockedError} The key management service's network access controls blocked the request to the
+   * workspace's customer-managed encryption key. The key itself may be healthy.
+   * @throws {BetaUnsupportedCharsetError} The request's `Content-Type` header names a charset other than UTF-8, ISO-8859-1
+   * or US-ASCII. Send the request with no charset, or with one of these.
+   * @throws {BetaPluginNameTakenError} The marketplace already holds this name. `plugin_id` is the Plugin that holds
+   * it, and can be absent.
+   * @throws {BetaSkillNameTakenError} One of the Plugin's skills has the name of an organization skill. `skill_name`
+   * is that name.
+   * @throws {BetaRegistrationPendingError} The Plugin version was stored but is not yet usable in claude.ai. `plugin_id`
+   * and `plugin_version_id` identify what was stored.
    *
    * @example
    * ```ts
@@ -186,6 +245,17 @@ export class Plugins extends APIResource {
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
    *
+   * @throws {CMEKKeyDisabledError} The workspace's customer-managed encryption key is disabled or revoked.
+   * Re-enable the key, then retry.
+   * @throws {CMEKKeyNetworkBlockedError} The key management service's network access controls blocked the request to the
+   * workspace's customer-managed encryption key. The key itself may be healthy.
+   * @throws {BetaScanFailedError} The content scan of the version in `plugin_version_id` failed, errored or
+   * reached no verdict, so the version cannot be served.
+   * @throws {BetaScanPendingError} The content scan of the version in `plugin_version_id` is still running. Retry
+   * once the scan finishes.
+   * @throws {BetaSkillNameTakenError} One of the Plugin's skills has the name of an organization skill. `skill_name`
+   * is that name.
+   *
    * @example
    * ```ts
    * const betaPlugin =
@@ -297,6 +367,9 @@ export class Plugins extends APIResource {
    * available to Claude Enterprise organizations only. It is not available to Claude
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
+   *
+   * @throws {CMEKKeyDisabledError} The workspace's customer-managed encryption key is disabled or revoked.
+   * Re-enable the key, then retry.
    *
    * @example
    * ```ts
@@ -776,12 +849,22 @@ export interface PluginDeleteParams {
   betas?: Array<BetaAPI.AnthropicBeta>;
 }
 
+Plugins.BetaScanFailedError = BetaScanFailedError;
+Plugins.BetaPluginNameTakenError = BetaPluginNameTakenError;
+Plugins.BetaScanPendingError = BetaScanPendingError;
+Plugins.BetaSkillNameTakenError = BetaSkillNameTakenError;
+Plugins.BetaRegistrationPendingError = BetaRegistrationPendingError;
 Plugins.Versions = Versions;
 Plugins.InstallationSettings = InstallationSettings;
 Plugins.Shares = Shares;
 
 export declare namespace Plugins {
   export {
+    BetaScanFailedError as BetaScanFailedError,
+    BetaPluginNameTakenError as BetaPluginNameTakenError,
+    BetaScanPendingError as BetaScanPendingError,
+    BetaSkillNameTakenError as BetaSkillNameTakenError,
+    BetaRegistrationPendingError as BetaRegistrationPendingError,
     type BetaDeletedPlugin as BetaDeletedPlugin,
     type BetaPlugin as BetaPlugin,
     type BetaPluginAPIActor as BetaPluginAPIActor,

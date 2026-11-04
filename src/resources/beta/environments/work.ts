@@ -2,6 +2,7 @@ import type { Anthropic } from '../../../client';
 import { APIResource } from '../../../core/resource';
 import * as BetaAPI from '../beta';
 import { APIPromise } from '../../../core/api-promise';
+import { PreconditionFailedError } from '../../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { buildHeaders } from '../../../internal/headers';
 import { RequestOptions } from '../../../internal/request-options';
@@ -16,6 +17,15 @@ import {
   type EnvironmentWorkerOptions as RunnerEnvironmentWorkerOptions,
 } from '../../../lib/environments/worker';
 
+/**
+ * `expected_last_heartbeat` does not match the stored heartbeat, so another worker
+ * may hold the lease.
+ */
+export class BetaHeartbeatPreconditionFailedError extends PreconditionFailedError {
+  declare readonly errorCode: 'heartbeat_precondition_failed';
+  declare readonly details: BetaHeartbeatPreconditionFailedErrorDetails;
+}
+
 export class Work extends APIResource {
   /**
    * Note: these endpoints are called automatically by the pre-built environment
@@ -24,6 +34,12 @@ export class Work extends APIResource {
    * invoke them directly.
    *
    * Retrieve detailed information about a specific work item.
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
+   * no longer a member of the organization or of that workspace.
+   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
+   * organization disabled for any other reason, such as billing, does not get this
+   * code. `appeal_url`, when present, is where the organization can appeal.
    *
    * @example
    * ```ts
@@ -63,6 +79,14 @@ export class Work extends APIResource {
    * invoke them directly.
    *
    * Update work item metadata with merge semantics.
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
+   * no longer a member of the organization or of that workspace.
+   * @throws {BetaInvalidMetadataError} `metadata` has too many keys, a key or value that is too long, or a reserved
+   * key. The message names each problem.
+   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
+   * organization disabled for any other reason, such as billing, does not get this
+   * code. `appeal_url`, when present, is where the organization can appeal.
    *
    * @example
    * ```ts
@@ -178,6 +202,9 @@ export class Work extends APIResource {
    *
    * Record a heartbeat for a work item to maintain the lease.
    *
+   * @throws {BetaHeartbeatPreconditionFailedError} `expected_last_heartbeat` does not match the stored heartbeat, so another worker
+   * may hold the lease.
+   *
    * @example
    * ```ts
    * const betaSelfHostedWorkHeartbeatResponse =
@@ -252,6 +279,12 @@ export class Work extends APIResource {
   /**
    * Get statistics about the work queue for an environment.
    *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
+   * no longer a member of the organization or of that workspace.
+   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
+   * organization disabled for any other reason, such as billing, does not get this
+   * code. `appeal_url`, when present, is where the organization can appeal.
+   *
    * @example
    * ```ts
    * const betaSelfHostedWorkQueueStats =
@@ -290,6 +323,12 @@ export class Work extends APIResource {
    * invoke them directly.
    *
    * Stop a work item, initiating graceful or forced shutdown.
+   *
+   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
+   * no longer a member of the organization or of that workspace.
+   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
+   * organization disabled for any other reason, such as billing, does not get this
+   * code. `appeal_url`, when present, is where the organization can appeal.
    *
    * @example
    * ```ts
@@ -807,6 +846,7 @@ export interface WorkStopParams {
 export { WorkPoller, type WorkPollerOptions } from '../../../lib/environments/poller';
 export { EnvironmentWorker, type EnvironmentWorkerOptions } from '../../../lib/environments/worker';
 
+Work.BetaHeartbeatPreconditionFailedError = BetaHeartbeatPreconditionFailedError;
 Work.WorkPoller = WorkPoller;
 Work.EnvironmentWorker = EnvironmentWorker;
 
@@ -814,6 +854,7 @@ export declare namespace Work {
   export { WorkPoller, EnvironmentWorker };
 
   export {
+    BetaHeartbeatPreconditionFailedError as BetaHeartbeatPreconditionFailedError,
     type BetaHealthCheckWorkData as BetaHealthCheckWorkData,
     type BetaHeartbeatPreconditionFailedErrorDetails as BetaHeartbeatPreconditionFailedErrorDetails,
     type BetaSelfHostedWork as BetaSelfHostedWork,

@@ -39,9 +39,165 @@ import {
   MessageBatchSucceededResult,
   MessageBatchesPage,
 } from './batches';
+import { BadRequestError, NotFoundError, OverloadedError } from '../../core/error';
 import * as MessagesAPI from './messages';
 
 import { MODEL_NONSTREAMING_TOKENS } from '../../internal/constants';
+
+/**
+ * The tools available after a message exceed a limit on their number or their
+ * size.
+ */
+export class AvailableToolsLimitExceededError extends BadRequestError {
+  declare readonly errorCode: 'available_tools_limit_exceeded';
+  declare readonly details: AvailableToolsLimitExceededErrorDetails;
+}
+
+/**
+ * `messages` holds more than one `compaction` block with content. Send only the
+ * block the conversation returned last.
+ */
+export class CompactionBlockAmbiguousError extends BadRequestError {
+  declare readonly errorCode: 'compaction_block_ambiguous';
+  declare readonly details: CompactionBlockAmbiguousErrorDetails;
+}
+
+/**
+ * The `compaction` block is not the first block of the conversation, or is in a
+ * `system` message.
+ */
+export class CompactionBlockMisplacedError extends BadRequestError {
+  declare readonly errorCode: 'compaction_block_misplaced';
+  declare readonly details: CompactionBlockMisplacedErrorDetails;
+}
+
+/**
+ * The `compaction` block's `content` differs from the text its `signature`
+ * recorded.
+ */
+export class CompactionContentMismatchError extends BadRequestError {
+  declare readonly errorCode: 'compaction_content_mismatch';
+  declare readonly details: CompactionContentMismatchErrorDetails;
+}
+
+/**
+ * The compaction request ends on an `assistant` turn that is not finished.
+ */
+export class CompactionIncompleteTurnError extends BadRequestError {
+  declare readonly errorCode: 'compaction_incomplete_turn';
+  declare readonly details: CompactionIncompleteTurnErrorDetails;
+}
+
+/**
+ * `messages` holds no `user` or `assistant` content to summarize or adopt.
+ */
+export class CompactionNothingToSummarizeError extends BadRequestError {
+  declare readonly errorCode: 'compaction_nothing_to_summarize';
+  declare readonly details: CompactionNothingToSummarizeErrorDetails;
+}
+
+/**
+ * The `compaction` block's `signature` does not verify.
+ */
+export class CompactionSignatureInvalidError extends BadRequestError {
+  declare readonly errorCode: 'compaction_signature_invalid';
+  declare readonly details: CompactionSignatureInvalidErrorDetails;
+}
+
+/**
+ * The conversation references more distinct tools than a `compaction` block can
+ * record.
+ */
+export class CompactionTooManyToolReferencesError extends BadRequestError {
+  declare readonly errorCode: 'compaction_too_many_tool_references';
+  declare readonly details: CompactionTooManyToolReferencesErrorDetails;
+}
+
+/**
+ * The `compaction` block's `tool_changes` differs from what was returned with the
+ * block.
+ */
+export class CompactionToolChangesMismatchError extends BadRequestError {
+  declare readonly errorCode: 'compaction_tool_changes_mismatch';
+  declare readonly details: CompactionToolChangesMismatchErrorDetails;
+}
+
+/**
+ * The response that `previous_message_id` names has already been continued, and
+ * each response can be continued only once. Continue from the Thread's most recent
+ * response `id`.
+ */
+export class ThreadAlreadyContinuedError extends BadRequestError {
+  declare readonly errorCode: 'thread_already_continued';
+  declare readonly details: ThreadAlreadyContinuedErrorDetails;
+}
+
+/**
+ * Another request is still continuing from the same `previous_message_id`. Wait
+ * for it to complete and continue from its response `id`, or replay the full
+ * conversation with `thread: {"type": "create"}`.
+ */
+export class ThreadContinueInFlightError extends BadRequestError {
+  declare readonly errorCode: 'thread_continue_in_flight';
+  declare readonly details: ThreadContinueInFlightErrorDetails;
+}
+
+/**
+ * A field that must stay the same across a Thread's turns differs from the value
+ * stored with the Thread; the message names each such field. Send the stored
+ * values, or replay the full conversation with `thread: {"type": "create"}` to
+ * change them.
+ */
+export class ThreadFingerprintMismatchError extends BadRequestError {
+  declare readonly errorCode: 'thread_fingerprint_mismatch';
+  declare readonly details: ThreadFingerprintMismatchErrorDetails;
+}
+
+/**
+ * The request combines `thread` with a request field or an organization setting
+ * that Threads do not support; `unsupported`, when present, names it. Send the
+ * full conversation without `thread`, or change that field.
+ */
+export class ThreadUnsupportedRequestError extends BadRequestError {
+  declare readonly errorCode: 'thread_unsupported_request';
+  declare readonly details: ThreadUnsupportedRequestErrorDetails;
+}
+
+/**
+ * A tool made available in `messages` takes a name that an available tool of
+ * another kind, or of another MCP server, already holds.
+ */
+export class ToolNameConflictError extends BadRequestError {
+  declare readonly errorCode: 'tool_name_conflict';
+  declare readonly details: ToolNameConflictErrorDetails;
+}
+
+/**
+ * A tool change or MCP tool listing references a tool or MCP server that is not
+ * defined at that position in the conversation.
+ */
+export class ToolReferenceUnresolvedError extends BadRequestError {
+  declare readonly errorCode: 'tool_reference_unresolved';
+  declare readonly details: ToolReferenceUnresolvedErrorDetails;
+}
+
+/**
+ * No usable Thread state was found for `previous_message_id`. Replay the full
+ * conversation with `thread: {"type": "create"}` to start a new Thread.
+ */
+export class ThreadNotFoundError extends NotFoundError {
+  declare readonly errorCode: 'thread_not_found';
+  declare readonly details: ThreadNotFoundErrorDetails;
+}
+
+/**
+ * The compaction could not be completed for a transient server reason. Retry the
+ * request.
+ */
+export class CompactionUnavailableError extends OverloadedError {
+  declare readonly errorCode: 'compaction_unavailable';
+  declare readonly details: CompactionUnavailableErrorDetails;
+}
 
 export class Messages extends APIResource {
   batches: BatchesAPI.Batches = new BatchesAPI.Batches(this._client);
@@ -55,6 +211,63 @@ export class Messages extends APIResource {
    *
    * Learn more about the Messages API in our
    * [user guide](https://platform.claude.com/docs/en/get-started)
+   *
+   * @throws {AvailableToolsLimitExceededError} The tools available after a message exceed a limit on their number or their
+   * size.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
+   * no longer a member of the organization or of that workspace.
+   * @throws {ClaudeCodeVersionTooOldError} The request comes from a Claude Code version older than the minimum that the
+   * requested model or the organization requires. Update Claude Code, then retry.
+   * @throws {CMEKKeyDisabledError} The workspace's customer-managed encryption key is disabled or revoked.
+   * Re-enable the key, then retry.
+   * @throws {CMEKKeyNetworkBlockedError} The key management service's network access controls blocked the request to the
+   * workspace's customer-managed encryption key. The key itself may be healthy.
+   * @throws {CompactionBlockAmbiguousError} `messages` holds more than one `compaction` block with content. Send only the
+   * block the conversation returned last.
+   * @throws {CompactionBlockMisplacedError} The `compaction` block is not the first block of the conversation, or is in a
+   * `system` message.
+   * @throws {CompactionContentMismatchError} The `compaction` block's `content` differs from the text its `signature`
+   * recorded.
+   * @throws {CompactionIncompleteTurnError} The compaction request ends on an `assistant` turn that is not finished.
+   * @throws {CompactionNothingToSummarizeError} `messages` holds no `user` or `assistant` content to summarize or adopt.
+   * @throws {CompactionSignatureInvalidError} The `compaction` block's `signature` does not verify.
+   * @throws {CompactionTooManyToolReferencesError} The conversation references more distinct tools than a `compaction` block can
+   * record.
+   * @throws {CompactionToolChangesMismatchError} The `compaction` block's `tool_changes` differs from what was returned with the
+   * block.
+   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
+   * organization disabled for any other reason, such as billing, does not get this
+   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {RequestBodyEncodingInvalidError} The request body is not valid for its `Content-Encoding`.
+   * @throws {RequestBodyEncodingUnsupportedError} The request's `Content-Encoding` is not supported.
+   * @throws {ThreadAlreadyContinuedError} The response that `previous_message_id` names has already been continued, and
+   * each response can be continued only once. Continue from the Thread's most recent
+   * response `id`.
+   * @throws {ThreadContinueInFlightError} Another request is still continuing from the same `previous_message_id`. Wait
+   * for it to complete and continue from its response `id`, or replay the full
+   * conversation with `thread: {"type": "create"}`.
+   * @throws {ThreadFingerprintMismatchError} A field that must stay the same across a Thread's turns differs from the value
+   * stored with the Thread; the message names each such field. Send the stored
+   * values, or replay the full conversation with `thread: {"type": "create"}` to
+   * change them.
+   * @throws {ThreadUnsupportedRequestError} The request combines `thread` with a request field or an organization setting
+   * that Threads do not support; `unsupported`, when present, names it. Send the
+   * full conversation without `thread`, or change that field.
+   * @throws {ToolNameConflictError} A tool made available in `messages` takes a name that an available tool of
+   * another kind, or of another MCP server, already holds.
+   * @throws {ToolReferenceUnresolvedError} A tool change or MCP tool listing references a tool or MCP server that is not
+   * defined at that position in the conversation.
+   * @throws {ThreadNotFoundError} No usable Thread state was found for `previous_message_id`. Replay the full
+   * conversation with `thread: {"type": "create"}` to start a new Thread.
+   * @throws {SkillReadBlockedUndecryptableError} A custom skill the request names is stored under an encryption key state the
+   * workspace cannot currently decrypt.
+   * @throws {RequestBodyTooLargeAfterDecodingError} The compressed request body exceeds the request size limit once decoded.
+   * @throws {EnforcedSpendLimitReachedError} The organization has crossed the monthly API usage threshold of its API tier.
+   * @throws {CMEKKeyUnreachableError} The workspace's customer-managed encryption key could not be reached. Retry the
+   * request; if this continues, check that the key is available in your key
+   * management service, or contact Anthropic support.
+   * @throws {CompactionUnavailableError} The compaction could not be completed for a transient server reason. Retry the
+   * request.
    *
    * @example
    * ```ts
@@ -197,6 +410,34 @@ export class Messages extends APIResource {
    *
    * Learn more about token counting in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/token-counting)
+   *
+   * @throws {AvailableToolsLimitExceededError} The tools available after a message exceed a limit on their number or their
+   * size.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
+   * no longer a member of the organization or of that workspace.
+   * @throws {CompactionBlockAmbiguousError} `messages` holds more than one `compaction` block with content. Send only the
+   * block the conversation returned last.
+   * @throws {CompactionBlockMisplacedError} The `compaction` block is not the first block of the conversation, or is in a
+   * `system` message.
+   * @throws {CompactionContentMismatchError} The `compaction` block's `content` differs from the text its `signature`
+   * recorded.
+   * @throws {CompactionNothingToSummarizeError} `messages` holds no `user` or `assistant` content to summarize or adopt.
+   * @throws {CompactionSignatureInvalidError} The `compaction` block's `signature` does not verify.
+   * @throws {CompactionToolChangesMismatchError} The `compaction` block's `tool_changes` differs from what was returned with the
+   * block.
+   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
+   * organization disabled for any other reason, such as billing, does not get this
+   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {RequestBodyEncodingInvalidError} The request body is not valid for its `Content-Encoding`.
+   * @throws {RequestBodyEncodingUnsupportedError} The request's `Content-Encoding` is not supported.
+   * @throws {ToolNameConflictError} A tool made available in `messages` takes a name that an available tool of
+   * another kind, or of another MCP server, already holds.
+   * @throws {ToolReferenceUnresolvedError} A tool change or MCP tool listing references a tool or MCP server that is not
+   * defined at that position in the conversation.
+   * @throws {RequestBodyTooLargeAfterDecodingError} The compressed request body exceeds the request size limit once decoded.
+   * @throws {EnforcedSpendLimitReachedError} The organization has crossed the monthly API usage threshold of its API tier.
+   * @throws {CompactionUnavailableError} The compaction could not be completed for a transient server reason. Retry the
+   * request.
    *
    * @example
    * ```ts
@@ -7891,10 +8132,44 @@ export interface MessageCountTokensParams {
   workspace_id?: string;
 }
 
+Messages.AvailableToolsLimitExceededError = AvailableToolsLimitExceededError;
+Messages.CompactionBlockAmbiguousError = CompactionBlockAmbiguousError;
+Messages.CompactionBlockMisplacedError = CompactionBlockMisplacedError;
+Messages.CompactionContentMismatchError = CompactionContentMismatchError;
+Messages.CompactionIncompleteTurnError = CompactionIncompleteTurnError;
+Messages.CompactionNothingToSummarizeError = CompactionNothingToSummarizeError;
+Messages.CompactionSignatureInvalidError = CompactionSignatureInvalidError;
+Messages.CompactionTooManyToolReferencesError = CompactionTooManyToolReferencesError;
+Messages.CompactionToolChangesMismatchError = CompactionToolChangesMismatchError;
+Messages.ThreadAlreadyContinuedError = ThreadAlreadyContinuedError;
+Messages.ThreadContinueInFlightError = ThreadContinueInFlightError;
+Messages.ThreadFingerprintMismatchError = ThreadFingerprintMismatchError;
+Messages.ThreadUnsupportedRequestError = ThreadUnsupportedRequestError;
+Messages.ToolNameConflictError = ToolNameConflictError;
+Messages.ToolReferenceUnresolvedError = ToolReferenceUnresolvedError;
+Messages.ThreadNotFoundError = ThreadNotFoundError;
+Messages.CompactionUnavailableError = CompactionUnavailableError;
 Messages.Batches = Batches;
 
 export declare namespace Messages {
   export {
+    AvailableToolsLimitExceededError as AvailableToolsLimitExceededError,
+    CompactionBlockAmbiguousError as CompactionBlockAmbiguousError,
+    CompactionBlockMisplacedError as CompactionBlockMisplacedError,
+    CompactionContentMismatchError as CompactionContentMismatchError,
+    CompactionIncompleteTurnError as CompactionIncompleteTurnError,
+    CompactionNothingToSummarizeError as CompactionNothingToSummarizeError,
+    CompactionSignatureInvalidError as CompactionSignatureInvalidError,
+    CompactionTooManyToolReferencesError as CompactionTooManyToolReferencesError,
+    CompactionToolChangesMismatchError as CompactionToolChangesMismatchError,
+    ThreadAlreadyContinuedError as ThreadAlreadyContinuedError,
+    ThreadContinueInFlightError as ThreadContinueInFlightError,
+    ThreadFingerprintMismatchError as ThreadFingerprintMismatchError,
+    ThreadUnsupportedRequestError as ThreadUnsupportedRequestError,
+    ToolNameConflictError as ToolNameConflictError,
+    ToolReferenceUnresolvedError as ToolReferenceUnresolvedError,
+    ThreadNotFoundError as ThreadNotFoundError,
+    CompactionUnavailableError as CompactionUnavailableError,
     type AssistantMessageParam as AssistantMessageParam,
     type AvailableToolsLimitExceededErrorDetails as AvailableToolsLimitExceededErrorDetails,
     type Base64ImageSource as Base64ImageSource,
