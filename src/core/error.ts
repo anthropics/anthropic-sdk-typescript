@@ -18,16 +18,35 @@ export class APIError<
   readonly requestID: string | null | undefined;
   readonly workspaceID: string | null | undefined;
 
-  /** `error.message` from the response body, if present. */
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   *
+   * `error.message` from the response body, if present.
+   */
   readonly apiMessage: string | null;
 
-  /** `error.type` from the response body, if present. */
+  /**
+   * The broad category of the error.
+   *
+   * `error.type` from the response body, if present.
+   */
   readonly type: Shared.ErrorType | null;
 
-  /** `error.details.error_code` from the response body, if present and a string. */
+  /**
+   * A stable code that names the cause.
+   *
+   * `error.details.error_code` from the response body, if present and a string.
+   */
   readonly errorCode: string | null;
 
-  /** `error.details` from the response body, if present. */
+  /**
+   * Machine-readable detail about the cause of the error. `error_code` names the
+   * cause; branch on it rather than on `message`. Absent when the error has no code.
+   * Treat an unrecognized `error_code` as the bare `type`.
+   *
+   * `error.details` from the response body, if present.
+   */
   readonly details: Shared.ErrorDetails | null;
 
   constructor(
