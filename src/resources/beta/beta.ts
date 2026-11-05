@@ -1055,20 +1055,41 @@ export type AnthropicBeta =
   | 'experimental-claude-tag-2026-10-21';
 
 export interface BetaAPIError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'api_error';
 }
 
 export interface BetaAuthenticationError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'authentication_error';
 }
 
 export interface BetaBillingError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'billing_error';
 }
 
@@ -1094,14 +1115,28 @@ export interface BetaErrorResponse {
 }
 
 export interface BetaGatewayTimeoutError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'timeout_error';
 }
 
 export interface BetaInvalidRequestError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'invalid_request_error';
 }
 
@@ -1125,26 +1160,54 @@ export interface BetaMonetaryAmount {
 }
 
 export interface BetaNotFoundError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'not_found_error';
 }
 
 export interface BetaOverloadedError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'overloaded_error';
 }
 
 export interface BetaPermissionError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'permission_error';
 }
 
 export interface BetaRateLimitError {
+  /**
+   * A human-readable explanation of the error. Its wording can change, so don't
+   * match on it.
+   */
   message: string;
 
+  /**
+   * The broad category of the error.
+   */
   type: 'rate_limit_error';
 }
 
