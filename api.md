@@ -661,6 +661,8 @@ Types:
 - <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyChangedErrorDetails</a></code>
 - <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyInWorkspacePolicyErrorDetails</a></code>
 - <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyUnattachedAttachment</a></code>
+- <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyValidationFailedErrorDetails</a></code>
+- <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyValidationTimedOutErrorDetails</a></code>
 - <code><a href="./src/resources/organization/external-keys.ts">GCPExternalKeyConfig</a></code>
 - <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyDeleteResponse</a></code>
 - <code><a href="./src/resources/organization/external-keys.ts">ExternalKeyValidateResponse</a></code>

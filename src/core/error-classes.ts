@@ -42,6 +42,8 @@ import {
 import {
   ExternalKeyChangedError,
   ExternalKeyInWorkspacePolicyError,
+  ExternalKeyValidationFailedError,
+  ExternalKeyValidationTimedOutError,
 } from '../resources/organization/external-keys';
 import {
   AlreadyMemberError,
@@ -114,6 +116,8 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['400 email_domain_not_allowed', EmailDomainNotAllowedError],
   ['400 environment_archived', BetaEnvironmentArchivedError],
   ['400 external_key_in_workspace_policy', ExternalKeyInWorkspacePolicyError],
+  ['400 external_key_validation_failed', ExternalKeyValidationFailedError],
+  ['400 external_key_validation_timed_out', ExternalKeyValidationTimedOutError],
   ['400 file_not_downloadable', FileNotDownloadableError],
   ['400 invalid_config_type_change', BetaInvalidConfigTypeChangeError],
   ['400 invalid_metadata', BetaInvalidMetadataError],

@@ -319,6 +319,8 @@ export type ErrorDetails =
   | RBACGroupsAPI.RBACGroupOwnerAccessUnconfirmedErrorDetails
   | UsersAPI.CannotRemoveLastMemberErrorDetails
   | OrganizationAPI.ConcurrentMembershipChangeErrorDetails
+  | ExternalKeysAPI.ExternalKeyValidationFailedErrorDetails
+  | ExternalKeysAPI.ExternalKeyValidationTimedOutErrorDetails
   | WorkspacesAPI.KeyProfileMismatchErrorDetails
   | WorkspacesAPI.WorkspacePolicyViolationErrorDetails
   | ExternalKeysAPI.ExternalKeyChangedErrorDetails

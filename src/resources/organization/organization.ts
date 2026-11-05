@@ -45,6 +45,10 @@ import {
   ExternalKeyUnattachedAttachment,
   ExternalKeyUpdateParams,
   ExternalKeyValidateResponse,
+  ExternalKeyValidationFailedError,
+  ExternalKeyValidationFailedErrorDetails,
+  ExternalKeyValidationTimedOutError,
+  ExternalKeyValidationTimedOutErrorDetails,
   ExternalKeys,
   ExternalKeysPageCursor,
   GCPExternalKeyConfig,
@@ -329,6 +333,8 @@ Organization.OrgAPIKeyLimitExceededError = OrgAPIKeyLimitExceededError;
 Organization.WorkspaceAPIKeyLimitExceededError = WorkspaceAPIKeyLimitExceededError;
 Organization.ExternalKeys = ExternalKeys;
 Organization.ExternalKeyInWorkspacePolicyError = ExternalKeyInWorkspacePolicyError;
+Organization.ExternalKeyValidationFailedError = ExternalKeyValidationFailedError;
+Organization.ExternalKeyValidationTimedOutError = ExternalKeyValidationTimedOutError;
 Organization.ExternalKeyChangedError = ExternalKeyChangedError;
 Organization.Federation = Federation;
 Organization.Invites = Invites;
@@ -382,6 +388,8 @@ export declare namespace Organization {
   export {
     ExternalKeys as ExternalKeys,
     ExternalKeyInWorkspacePolicyError as ExternalKeyInWorkspacePolicyError,
+    ExternalKeyValidationFailedError as ExternalKeyValidationFailedError,
+    ExternalKeyValidationTimedOutError as ExternalKeyValidationTimedOutError,
     ExternalKeyChangedError as ExternalKeyChangedError,
     type AWSExternalKeyConfig as AWSExternalKeyConfig,
     type AzureExternalKeyConfig as AzureExternalKeyConfig,
@@ -391,6 +399,8 @@ export declare namespace Organization {
     type ExternalKeyChangedErrorDetails as ExternalKeyChangedErrorDetails,
     type ExternalKeyInWorkspacePolicyErrorDetails as ExternalKeyInWorkspacePolicyErrorDetails,
     type ExternalKeyUnattachedAttachment as ExternalKeyUnattachedAttachment,
+    type ExternalKeyValidationFailedErrorDetails as ExternalKeyValidationFailedErrorDetails,
+    type ExternalKeyValidationTimedOutErrorDetails as ExternalKeyValidationTimedOutErrorDetails,
     type GCPExternalKeyConfig as GCPExternalKeyConfig,
     type ExternalKeyDeleteResponse as ExternalKeyDeleteResponse,
     type ExternalKeyValidateResponse as ExternalKeyValidateResponse,

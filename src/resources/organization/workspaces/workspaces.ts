@@ -84,6 +84,8 @@ export class Workspaces extends APIResource {
   /**
    * Create Workspace
    *
+   * @throws {ExternalKeyValidationFailedError}
+   * @throws {ExternalKeyValidationTimedOutError}
    * @throws {KeyProfileMismatchError}
    * @throws {UserProfileNotFoundError}
    * @throws {WorkspacePolicyViolationError}
@@ -132,6 +134,8 @@ export class Workspaces extends APIResource {
   /**
    * Update Workspace
    *
+   * @throws {ExternalKeyValidationFailedError}
+   * @throws {ExternalKeyValidationTimedOutError}
    * @throws {KeyProfileMismatchError}
    * @throws {UserProfileNotFoundError}
    * @throws {WorkspacePolicyViolationError}

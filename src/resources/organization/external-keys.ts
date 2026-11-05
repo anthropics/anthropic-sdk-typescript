@@ -19,6 +19,30 @@ export class ExternalKeyInWorkspacePolicyError extends BadRequestError {
 }
 
 /**
+ * The External Key failed Anthropic's validation, so the request was refused. The
+ * message gives the reason, if there is one.
+ */
+export class ExternalKeyValidationFailedError extends BadRequestError {
+  declare readonly errorCode: 'external_key_validation_failed';
+  declare readonly details: ExternalKeyValidationFailedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ExternalKeyValidationFailedError';
+}
+
+/**
+ * Anthropic's validation of the External Key did not finish in time, so the
+ * request was refused. Wait a moment, then send the request again.
+ */
+export class ExternalKeyValidationTimedOutError extends BadRequestError {
+  declare readonly errorCode: 'external_key_validation_timed_out';
+  declare readonly details: ExternalKeyValidationTimedOutErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ExternalKeyValidationTimedOutError';
+}
+
+/**
  * The external key changed while the request was validating it. Send the request
  * again.
  */
@@ -344,6 +368,22 @@ export interface ExternalKeyUnattachedAttachment {
   type: 'unattached';
 }
 
+/**
+ * The External Key failed Anthropic's validation, so the request was refused. The
+ * message gives the reason, if there is one.
+ */
+export interface ExternalKeyValidationFailedErrorDetails {
+  error_code: 'external_key_validation_failed';
+}
+
+/**
+ * Anthropic's validation of the External Key did not finish in time, so the
+ * request was refused. Wait a moment, then send the request again.
+ */
+export interface ExternalKeyValidationTimedOutErrorDetails {
+  error_code: 'external_key_validation_timed_out';
+}
+
 export interface GCPExternalKeyConfig {
   /**
    * Full resource name of the Cloud KMS key.
@@ -428,11 +468,15 @@ export interface ExternalKeyUpdateParams {
 export interface ExternalKeyListParams extends PageCursorParams {}
 
 ExternalKeys.ExternalKeyInWorkspacePolicyError = ExternalKeyInWorkspacePolicyError;
+ExternalKeys.ExternalKeyValidationFailedError = ExternalKeyValidationFailedError;
+ExternalKeys.ExternalKeyValidationTimedOutError = ExternalKeyValidationTimedOutError;
 ExternalKeys.ExternalKeyChangedError = ExternalKeyChangedError;
 
 export declare namespace ExternalKeys {
   export {
     ExternalKeyInWorkspacePolicyError as ExternalKeyInWorkspacePolicyError,
+    ExternalKeyValidationFailedError as ExternalKeyValidationFailedError,
+    ExternalKeyValidationTimedOutError as ExternalKeyValidationTimedOutError,
     ExternalKeyChangedError as ExternalKeyChangedError,
     type AWSExternalKeyConfig as AWSExternalKeyConfig,
     type AzureExternalKeyConfig as AzureExternalKeyConfig,
@@ -442,6 +486,8 @@ export declare namespace ExternalKeys {
     type ExternalKeyChangedErrorDetails as ExternalKeyChangedErrorDetails,
     type ExternalKeyInWorkspacePolicyErrorDetails as ExternalKeyInWorkspacePolicyErrorDetails,
     type ExternalKeyUnattachedAttachment as ExternalKeyUnattachedAttachment,
+    type ExternalKeyValidationFailedErrorDetails as ExternalKeyValidationFailedErrorDetails,
+    type ExternalKeyValidationTimedOutErrorDetails as ExternalKeyValidationTimedOutErrorDetails,
     type GCPExternalKeyConfig as GCPExternalKeyConfig,
     type ExternalKeyDeleteResponse as ExternalKeyDeleteResponse,
     type ExternalKeyValidateResponse as ExternalKeyValidateResponse,
