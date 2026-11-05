@@ -286,9 +286,11 @@ export class WorkloadIdentityError extends AnthropicError {
     requestId: string | null = null,
   ) {
     super(message);
-    this.name = 'WorkloadIdentityError';
     this.statusCode = statusCode;
     this.body = body;
     this.requestId = requestId;
   }
+
+  /** @internal */
+  static override readonly _errorName: string = 'WorkloadIdentityError';
 }

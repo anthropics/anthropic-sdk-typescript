@@ -46,11 +46,13 @@ export const MARKER_PATH = '.anthropic-memory-store';
 export class SessionMemoryError extends AnthropicError {
   constructor(message: string, cause?: unknown) {
     super(message);
-    this.name = 'SessionMemoryError';
     // in some environments the 'cause' property is already declared
     // @ts-ignore
     if (cause !== undefined) this.cause = cause;
   }
+
+  /** @internal */
+  static override readonly _errorName: string = 'SessionMemoryError';
 }
 
 export class SessionMemoryStores {
@@ -117,9 +119,11 @@ export class BashTimeoutError extends AnthropicError {
 
   constructor(timeoutMs: number) {
     super(`bash command timed out after ${timeoutMs}ms`);
-    this.name = 'BashTimeoutError';
     this.timeoutMs = timeoutMs;
   }
+
+  /** @internal */
+  static override readonly _errorName: string = 'BashTimeoutError';
 }
 
 export class BashSession {

@@ -84,9 +84,11 @@ export class BashTimeoutError extends AnthropicError {
 
   constructor(timeoutMs: number) {
     super(`bash command timed out after ${timeoutMs}ms`);
-    this.name = 'BashTimeoutError';
     this.timeoutMs = timeoutMs;
   }
+
+  /** @internal */
+  static override readonly _errorName: string = 'BashTimeoutError';
 }
 
 const ANSI_RE = /\x1b\[[0-9;?]*[ -/]*[@-~]/g;
