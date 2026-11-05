@@ -8,7 +8,14 @@ import { APIUserAbortError } from '../../../core/error';
 import { type BetaToolRunContext } from '../../tools/BetaRunnableTool';
 import { ToolError } from '../../tools/ToolError';
 import { ToolsetContractError, ToolsetUsageError } from './errors';
-import { errorText, errorTextContent, thrownErrorText, wellFormed } from './sanitize';
+import {
+  EMPTY_ERROR_TEXT,
+  errorText,
+  errorTextContent,
+  isEmptyErrorContent,
+  thrownErrorText,
+  wellFormed,
+} from './sanitize';
 import { toolsetFamily, type ToolsetFamily } from './family';
 import type { BetaRunnableToolset, BetaToolsetContent } from '../../tools/BetaRunnableToolset';
 
@@ -40,12 +47,12 @@ export function toolsetResultBlock(
   content: string | BetaToolsetContent,
   isError = false,
 ): BetaToolResultBlockParam {
-  if (isError && (content === '' || (Array.isArray(content) && content.length === 0))) {
+  if (isError && isEmptyErrorContent(content)) {
     // Deliberate: an empty ToolError (`throw new ToolError('')`, or one whose non-text blocks were dropped) would be
     // an is_error result with empty content, which the API rejects with a 400, ending the whole run over a refusal
     // the model could have recovered from. The model still learns the call failed, and the developer loses nothing
     // they wrote.
-    content = 'The tool call failed with an empty error message.';
+    content = EMPTY_ERROR_TEXT;
   }
 
   return {
