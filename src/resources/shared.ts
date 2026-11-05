@@ -11,6 +11,7 @@ import * as UserProfilesAPI from './user-profiles/user-profiles';
 import * as EnvironmentsAPI from './beta/environments/environments';
 import * as WorkAPI from './beta/environments/work';
 import * as BetaOrganizationAPI from './beta/organization/organization';
+import * as OrganizationUsersAPI from './beta/organization/users';
 import * as RBACGroupsAPI from './organization/rbac-groups/rbac-groups';
 import * as WorkspacesAPI from './organization/workspaces/workspaces';
 import * as ClaudeTagAPI from './beta/organization/claude-tag/claude-tag';
@@ -332,6 +333,13 @@ export type ErrorDetails =
   | EnvironmentsAPI.BetaEnvironmentUpdateDisabledErrorDetails
   | WorkAPI.BetaHeartbeatPreconditionFailedErrorDetails
   | EnvironmentsAPI.BetaInvalidMetadataErrorDetails
+  | OrganizationUsersAPI.BetaCannotSignOutPrimaryOwnerErrorDetails
+  | OrganizationUsersAPI.BetaCannotSignOutSelfErrorDetails
+  | BetaAPI.BetaOrganizationNotEnrolledInBetaErrorDetails
+  | OrganizationUsersAPI.BetaCannotSignOutManagedMemberErrorDetails
+  | OrganizationUsersAPI.BetaCannotSignOutMembershipAdminErrorDetails
+  | OrganizationUsersAPI.BetaCannotSignOutOwnerErrorDetails
+  | OrganizationUsersAPI.BetaCannotSignOutPrivilegedMemberErrorDetails
   | BetaOrganizationAPI.BetaBillingFrozenErrorDetails
   | SpendLimitsAPI.BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails
   | BetaAPI.BetaUnsupportedCharsetErrorDetails

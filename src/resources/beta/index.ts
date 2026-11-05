@@ -666,6 +666,7 @@ export {
   type BetaEnvironmentsPageCursor,
 } from './environments/index';
 export {
+  BetaOrganizationNotEnrolledInBetaError,
   BetaUnsupportedCharsetError,
   Beta,
   type AnthropicBeta,
@@ -679,6 +680,7 @@ export {
   type BetaInvalidRequestError,
   type BetaMonetaryAmount,
   type BetaNotFoundError,
+  type BetaOrganizationNotEnrolledInBetaErrorDetails,
   type BetaOverloadedError,
   type BetaPermissionError,
   type BetaRateLimitError,

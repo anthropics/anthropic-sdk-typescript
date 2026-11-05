@@ -81,10 +81,23 @@ import {
 } from './rate-limits';
 import * as UsersAPI from './users';
 import {
+  BetaCannotSignOutManagedMemberError,
+  BetaCannotSignOutManagedMemberErrorDetails,
+  BetaCannotSignOutMembershipAdminError,
+  BetaCannotSignOutMembershipAdminErrorDetails,
+  BetaCannotSignOutOwnerError,
+  BetaCannotSignOutOwnerErrorDetails,
+  BetaCannotSignOutPrimaryOwnerError,
+  BetaCannotSignOutPrimaryOwnerErrorDetails,
+  BetaCannotSignOutPrivilegedMemberError,
+  BetaCannotSignOutPrivilegedMemberErrorDetails,
+  BetaCannotSignOutSelfError,
+  BetaCannotSignOutSelfErrorDetails,
   BetaOrganizationUser,
   BetaOrganizationUsersPage,
   UserListParams,
   UserRemoveResponse,
+  UserSignOutParams,
   UserUpdateParams,
   Users,
 } from './users';
@@ -471,6 +484,12 @@ Organization.Federation = Federation;
 Organization.Invites = Invites;
 Organization.ServiceAccounts = ServiceAccounts;
 Organization.Users = Users;
+Organization.BetaCannotSignOutPrimaryOwnerError = BetaCannotSignOutPrimaryOwnerError;
+Organization.BetaCannotSignOutSelfError = BetaCannotSignOutSelfError;
+Organization.BetaCannotSignOutManagedMemberError = BetaCannotSignOutManagedMemberError;
+Organization.BetaCannotSignOutMembershipAdminError = BetaCannotSignOutMembershipAdminError;
+Organization.BetaCannotSignOutOwnerError = BetaCannotSignOutOwnerError;
+Organization.BetaCannotSignOutPrivilegedMemberError = BetaCannotSignOutPrivilegedMemberError;
 Organization.Workspaces = Workspaces;
 Organization.RateLimits = RateLimits;
 Organization.ComplianceSettings = ComplianceSettings;
@@ -560,11 +579,24 @@ export declare namespace Organization {
 
   export {
     Users as Users,
+    BetaCannotSignOutPrimaryOwnerError as BetaCannotSignOutPrimaryOwnerError,
+    BetaCannotSignOutSelfError as BetaCannotSignOutSelfError,
+    BetaCannotSignOutManagedMemberError as BetaCannotSignOutManagedMemberError,
+    BetaCannotSignOutMembershipAdminError as BetaCannotSignOutMembershipAdminError,
+    BetaCannotSignOutOwnerError as BetaCannotSignOutOwnerError,
+    BetaCannotSignOutPrivilegedMemberError as BetaCannotSignOutPrivilegedMemberError,
+    type BetaCannotSignOutManagedMemberErrorDetails as BetaCannotSignOutManagedMemberErrorDetails,
+    type BetaCannotSignOutMembershipAdminErrorDetails as BetaCannotSignOutMembershipAdminErrorDetails,
+    type BetaCannotSignOutOwnerErrorDetails as BetaCannotSignOutOwnerErrorDetails,
+    type BetaCannotSignOutPrimaryOwnerErrorDetails as BetaCannotSignOutPrimaryOwnerErrorDetails,
+    type BetaCannotSignOutPrivilegedMemberErrorDetails as BetaCannotSignOutPrivilegedMemberErrorDetails,
+    type BetaCannotSignOutSelfErrorDetails as BetaCannotSignOutSelfErrorDetails,
     type BetaOrganizationUser as BetaOrganizationUser,
     type UserRemoveResponse as UserRemoveResponse,
     type BetaOrganizationUsersPage as BetaOrganizationUsersPage,
     type UserUpdateParams as UserUpdateParams,
     type UserListParams as UserListParams,
+    type UserSignOutParams as UserSignOutParams,
   };
 
   export {

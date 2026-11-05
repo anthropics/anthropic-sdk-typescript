@@ -1098,6 +1098,7 @@ Types:
 - <code><a href="./src/resources/beta/beta.ts">BetaInvalidRequestError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaMonetaryAmount</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaNotFoundError</a></code>
+- <code><a href="./src/resources/beta/beta.ts">BetaOrganizationNotEnrolledInBetaErrorDetails</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaOverloadedError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaPermissionError</a></code>
 - <code><a href="./src/resources/beta/beta.ts">BetaRateLimitError</a></code>
@@ -2606,6 +2607,12 @@ Methods:
 
 Types:
 
+- <code><a href="./src/resources/beta/organization/users.ts">BetaCannotSignOutManagedMemberErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/users.ts">BetaCannotSignOutMembershipAdminErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/users.ts">BetaCannotSignOutOwnerErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/users.ts">BetaCannotSignOutPrimaryOwnerErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/users.ts">BetaCannotSignOutPrivilegedMemberErrorDetails</a></code>
+- <code><a href="./src/resources/beta/organization/users.ts">BetaCannotSignOutSelfErrorDetails</a></code>
 - <code><a href="./src/resources/beta/organization/users.ts">BetaOrganizationUser</a></code>
 - <code><a href="./src/resources/beta/organization/users.ts">UserRemoveResponse</a></code>
 
@@ -2615,6 +2622,7 @@ Methods:
 - <code title="post /v1/organizations/users/{user_id}">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">update</a>(userID, { ...params }) -> BetaOrganizationUser</code>
 - <code title="get /v1/organizations/users">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">list</a>({ ...params }) -> BetaOrganizationUsersPage</code>
 - <code title="delete /v1/organizations/users/{user_id}">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">remove</a>(userID) -> UserRemoveResponse</code>
+- <code title="post /v1/organizations/users/{user_id}/sign_out">client.beta.organization.users.<a href="./src/resources/beta/organization/users.ts">signOut</a>(userID, { ...params }) -> BetaOrganizationUser</code>
 
 ### Workspaces
 

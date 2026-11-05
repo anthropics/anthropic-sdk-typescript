@@ -130,6 +130,8 @@ import {
   BetaInvalidRequestError,
   BetaMonetaryAmount,
   BetaNotFoundError,
+  BetaOrganizationNotEnrolledInBetaError,
+  BetaOrganizationNotEnrolledInBetaErrorDetails,
   BetaOverloadedError,
   BetaPermissionError,
   BetaRateLimitError,
@@ -2245,6 +2247,7 @@ Anthropic.Organization = Organization;
 Anthropic.OrgMemberLimitExceededError = OrgMemberLimitExceededError;
 Anthropic.ConcurrentMembershipChangeError = ConcurrentMembershipChangeError;
 Anthropic.Beta = Beta;
+Anthropic.BetaOrganizationNotEnrolledInBetaError = BetaOrganizationNotEnrolledInBetaError;
 Anthropic.BetaUnsupportedCharsetError = BetaUnsupportedCharsetError;
 Anthropic.ClaudeCodeKeyCreatorNotMemberError = ClaudeCodeKeyCreatorNotMemberError;
 Anthropic.ClaudeCodeVersionTooOldError = ClaudeCodeVersionTooOldError;
@@ -2847,6 +2850,7 @@ export declare namespace Anthropic {
 
   export {
     Beta as Beta,
+    BetaOrganizationNotEnrolledInBetaError as BetaOrganizationNotEnrolledInBetaError,
     BetaUnsupportedCharsetError as BetaUnsupportedCharsetError,
     type AnthropicBeta as AnthropicBeta,
     type BetaAPIError as BetaAPIError,
@@ -2859,6 +2863,7 @@ export declare namespace Anthropic {
     type BetaInvalidRequestError as BetaInvalidRequestError,
     type BetaMonetaryAmount as BetaMonetaryAmount,
     type BetaNotFoundError as BetaNotFoundError,
+    type BetaOrganizationNotEnrolledInBetaErrorDetails as BetaOrganizationNotEnrolledInBetaErrorDetails,
     type BetaOverloadedError as BetaOverloadedError,
     type BetaPermissionError as BetaPermissionError,
     type BetaRateLimitError as BetaRateLimitError,

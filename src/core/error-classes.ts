@@ -15,7 +15,7 @@ import {
   RequestBodyEncodingUnsupportedError,
   RequestBodyTooLargeAfterDecodingError,
 } from '../resources/shared';
-import { BetaUnsupportedCharsetError } from '../resources/beta/beta';
+import { BetaOrganizationNotEnrolledInBetaError, BetaUnsupportedCharsetError } from '../resources/beta/beta';
 import {
   AvailableToolsLimitExceededError,
   CompactionBlockAmbiguousError,
@@ -69,6 +69,14 @@ import {
 import { BetaHeartbeatPreconditionFailedError } from '../resources/beta/environments/work';
 import { BetaBillingFrozenError } from '../resources/beta/organization/organization';
 import {
+  BetaCannotSignOutManagedMemberError,
+  BetaCannotSignOutMembershipAdminError,
+  BetaCannotSignOutOwnerError,
+  BetaCannotSignOutPrimaryOwnerError,
+  BetaCannotSignOutPrivilegedMemberError,
+  BetaCannotSignOutSelfError,
+} from '../resources/beta/organization/users';
+import {
   RBACGroupGrantsOwnerAccessError,
   RBACGroupOwnerAccessUnconfirmedError,
 } from '../resources/organization/rbac-groups/rbac-groups';
@@ -101,6 +109,8 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['400 available_tools_limit_exceeded', AvailableToolsLimitExceededError],
   ['400 cannot_invite_emails_with_unverified_domains', CannotInviteEmailsWithUnverifiedDomainsError],
   ['400 cannot_remove_last_member', CannotRemoveLastMemberError],
+  ['400 cannot_sign_out_primary_owner', BetaCannotSignOutPrimaryOwnerError],
+  ['400 cannot_sign_out_self', BetaCannotSignOutSelfError],
   ['400 claude_code_key_creator_not_member', ClaudeCodeKeyCreatorNotMemberError],
   ['400 claude_code_version_too_old', ClaudeCodeVersionTooOldError],
   ['400 cmek_key_disabled', CMEKKeyDisabledError],
@@ -125,6 +135,7 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['400 key_profile_mismatch', KeyProfileMismatchError],
   ['400 org_api_key_limit_exceeded', OrgAPIKeyLimitExceededError],
   ['400 org_member_limit_exceeded', OrgMemberLimitExceededError],
+  ['400 organization_not_enrolled_in_beta', BetaOrganizationNotEnrolledInBetaError],
   ['400 organization_on_hold', OrganizationOnHoldError],
   ['400 organization_type_not_supported', OrganizationTypeNotSupportedError],
   ['400 rbac_group_grants_owner_access', RBACGroupGrantsOwnerAccessError],
@@ -147,6 +158,10 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['400 workspace_policy_violation', WorkspacePolicyViolationError],
   ['403 api_key_scope_missing', BetaAPIKeyScopeMissingError],
   ['403 billing_frozen', BetaBillingFrozenError],
+  ['403 cannot_sign_out_managed_member', BetaCannotSignOutManagedMemberError],
+  ['403 cannot_sign_out_membership_admin', BetaCannotSignOutMembershipAdminError],
+  ['403 cannot_sign_out_owner', BetaCannotSignOutOwnerError],
+  ['403 cannot_sign_out_privileged_member', BetaCannotSignOutPrivilegedMemberError],
   ['403 claude_tag_writes_not_enabled', BetaClaudeTagWritesNotEnabledError],
   ['403 compliance_configuration_restricted', BetaComplianceConfigurationRestrictedError],
   ['403 environment_create_disabled', BetaEnvironmentCreateDisabledError],
