@@ -30,6 +30,13 @@ export class Bundles extends APIResource {
    * Get one Bundle. What the Bundle grants (connectors, repositories and
    * credentials) is never returned.
    *
+   * @throws {BetaAPIKeyScopeMissingError} The API key lacks the scope the request needs: `read:claude_tag` for a read,
+   * `write:claude_tag` for a change.
+   * @throws {BetaClaudeTagWritesNotEnabledError} Changes through the Claude Tag API are not enabled for the organization.
+   * @throws {BetaComplianceConfigurationRestrictedError} The organization's compliance configuration does not let Claude Tag store
+   * anything new.
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError} The credential is not a scoped API key that is bound at the organization level.
+   *
    * @example
    * ```ts
    * const betaClaudeTagBundle =
@@ -61,6 +68,13 @@ export class Bundles extends APIResource {
   /**
    * List the organization's Bundles, newest first by `created_at`. A Bundle that
    * Claude Tag manages for itself is not listed.
+   *
+   * @throws {BetaAPIKeyScopeMissingError} The API key lacks the scope the request needs: `read:claude_tag` for a read,
+   * `write:claude_tag` for a change.
+   * @throws {BetaClaudeTagWritesNotEnabledError} Changes through the Claude Tag API are not enabled for the organization.
+   * @throws {BetaComplianceConfigurationRestrictedError} The organization's compliance configuration does not let Claude Tag store
+   * anything new.
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError} The credential is not a scoped API key that is bound at the organization level.
    *
    * @example
    * ```ts

@@ -32,6 +32,7 @@ async function getDirectorySnapshot(basePath: string): Promise<Record<string, st
 }
 
 describe('BetaLocalFilesystemMemoryTool', () => {
+  const rootPaths = ['/memories', '/memories/', '/memories/.', '/memories/sub/..'];
   let tempDir: string;
   let tool: BetaLocalFilesystemMemoryTool;
 
@@ -422,13 +423,14 @@ describe('BetaLocalFilesystemMemoryTool', () => {
       ).rejects.toThrow('The path /memories/nonexistent.txt does not exist');
     });
 
-    it('should not allow deleting /memories directory', async () => {
+    it.each(rootPaths)('should not allow deleting %s', async (rootPath) => {
       await expect(
         tool.delete({
           command: 'delete',
-          path: '/memories',
+          path: rootPath,
         }),
       ).rejects.toThrow('Cannot delete the /memories directory itself');
+      expect(await fs.readdir(path.join(tempDir, 'memories'))).toEqual([]);
     });
   });
 
@@ -505,6 +507,18 @@ describe('BetaLocalFilesystemMemoryTool', () => {
           new_path: '/memories/file2.txt',
         }),
       ).rejects.toThrow('The destination /memories/file2.txt already exists');
+    });
+
+    it.each(rootPaths)('should not allow renaming %s', async (oldPath) => {
+      const rename = tool.rename({
+        command: 'rename',
+        old_path: oldPath,
+        new_path: '/memories/nested/renamed',
+      });
+
+      await expect(rename).rejects.toThrow('Cannot rename the /memories directory itself');
+      await expect(rename).rejects.not.toThrow(tempDir);
+      expect(await fs.readdir(path.join(tempDir, 'memories'))).toEqual([]);
     });
   });
 

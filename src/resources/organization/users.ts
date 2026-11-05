@@ -1,10 +1,20 @@
 import { APIResource } from '../../core/resource';
 import * as OrganizationAPI from './organization';
 import { APIPromise } from '../../core/api-promise';
+import { BadRequestError } from '../../core/error';
 import { Page, type PageParams, PagePromise } from '../../core/pagination';
 import { RequestOptions } from '../../internal/request-options';
 import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
+
+/**
+ * The user is the organization's only member. Add another member before removing
+ * this one.
+ */
+export class CannotRemoveLastMemberError extends BadRequestError {
+  declare readonly errorCode: 'cannot_remove_last_member';
+  declare readonly details: CannotRemoveLastMemberErrorDetails;
+}
 
 export class Users extends APIResource {
   /**
@@ -76,6 +86,11 @@ export class Users extends APIResource {
   /**
    * Remove a member from the organization.
    *
+   * @throws {CannotRemoveLastMemberError} The user is the organization's only member. Add another member before removing
+   * this one.
+   * @throws {ConcurrentMembershipChangeError} Another change to the organization's members is in progress. Retry the request
+   * once it completes.
+   *
    * @example
    * ```ts
    * const user = await client.organization.users.remove(
@@ -95,6 +110,14 @@ export class Users extends APIResource {
 }
 
 export type OrganizationUsersPage = Page<OrganizationUser>;
+
+/**
+ * The user is the organization's only member. Add another member before removing
+ * this one.
+ */
+export interface CannotRemoveLastMemberErrorDetails {
+  error_code: 'cannot_remove_last_member';
+}
 
 export interface OrganizationUser {
   /**
@@ -175,8 +198,12 @@ export interface UserListParams extends PageParams {
   roles?: Array<string>;
 }
 
+Users.CannotRemoveLastMemberError = CannotRemoveLastMemberError;
+
 export declare namespace Users {
   export {
+    CannotRemoveLastMemberError as CannotRemoveLastMemberError,
+    type CannotRemoveLastMemberErrorDetails as CannotRemoveLastMemberErrorDetails,
     type OrganizationUser as OrganizationUser,
     type UserRemoveResponse as UserRemoveResponse,
     type OrganizationUsersPage as OrganizationUsersPage,

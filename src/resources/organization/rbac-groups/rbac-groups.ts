@@ -10,10 +10,32 @@ import {
   RBACGroupMembersPageCursor,
 } from './members';
 import { APIPromise } from '../../../core/api-promise';
+import { BadRequestError } from '../../../core/error';
 import { PageCursor, type PageCursorParams, PagePromise } from '../../../core/pagination';
 import { RequestOptions } from '../../../internal/request-options';
 import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
+
+/**
+ * A role attached to an RBAC Group in the request grants owner access, so this API
+ * does not add members to that group (directly or through an invite), remove its
+ * members, or delete it. Make the change in the organization's admin settings in
+ * Claude.
+ */
+export class RBACGroupGrantsOwnerAccessError extends BadRequestError {
+  declare readonly errorCode: 'rbac_group_grants_owner_access';
+  declare readonly details: RBACGroupGrantsOwnerAccessErrorDetails;
+}
+
+/**
+ * The API could not finish checking whether an RBAC Group in the request grants
+ * owner access, so it made no change. Retrying the same request will not help.
+ * Make the change in the organization's admin settings in Claude.
+ */
+export class RBACGroupOwnerAccessUnconfirmedError extends BadRequestError {
+  declare readonly errorCode: 'rbac_group_owner_access_unconfirmed';
+  declare readonly details: RBACGroupOwnerAccessUnconfirmedErrorDetails;
+}
 
 export class RBACGroups extends APIResource {
   members: MembersAPI.Members = new MembersAPI.Members(this._client);
@@ -78,6 +100,7 @@ export class RBACGroups extends APIResource {
    * const rbacGroup =
    *   await client.organization.rbacGroups.update(
    *     'rbac_group_id',
+   *     {},
    *   );
    * ```
    */
@@ -125,6 +148,14 @@ export class RBACGroups extends APIResource {
    * SCIM provisioning.
    *
    * The RBAC Groups API is available to Claude Enterprise organizations only.
+   *
+   * @throws {RBACGroupGrantsOwnerAccessError} A role attached to an RBAC Group in the request grants owner access, so this API
+   * does not add members to that group (directly or through an invite), remove its
+   * members, or delete it. Make the change in the organization's admin settings in
+   * Claude.
+   * @throws {RBACGroupOwnerAccessUnconfirmedError} The API could not finish checking whether an RBAC Group in the request grants
+   * owner access, so it made no change. Retrying the same request will not help.
+   * Make the change in the organization's admin settings in Claude.
    *
    * @example
    * ```ts
@@ -204,6 +235,25 @@ export interface RBACGroup {
   updated_at: string;
 }
 
+/**
+ * A role attached to an RBAC Group in the request grants owner access, so this API
+ * does not add members to that group (directly or through an invite), remove its
+ * members, or delete it. Make the change in the organization's admin settings in
+ * Claude.
+ */
+export interface RBACGroupGrantsOwnerAccessErrorDetails {
+  error_code: 'rbac_group_grants_owner_access';
+}
+
+/**
+ * The API could not finish checking whether an RBAC Group in the request grants
+ * owner access, so it made no change. Retrying the same request will not help.
+ * Make the change in the organization's admin settings in Claude.
+ */
+export interface RBACGroupOwnerAccessUnconfirmedErrorDetails {
+  error_code: 'rbac_group_owner_access_unconfirmed';
+}
+
 export interface RBACGroupCreateParams {
   /**
    * Name of the RBAC Group. Not uniqueness-enforced.
@@ -220,12 +270,18 @@ export interface RBACGroupUpdateParams {
 
 export interface RBACGroupListParams extends PageCursorParams {}
 
+RBACGroups.RBACGroupGrantsOwnerAccessError = RBACGroupGrantsOwnerAccessError;
+RBACGroups.RBACGroupOwnerAccessUnconfirmedError = RBACGroupOwnerAccessUnconfirmedError;
 RBACGroups.Members = Members;
 
 export declare namespace RBACGroups {
   export {
+    RBACGroupGrantsOwnerAccessError as RBACGroupGrantsOwnerAccessError,
+    RBACGroupOwnerAccessUnconfirmedError as RBACGroupOwnerAccessUnconfirmedError,
     type DeletedRBACGroup as DeletedRBACGroup,
     type RBACGroup as RBACGroup,
+    type RBACGroupGrantsOwnerAccessErrorDetails as RBACGroupGrantsOwnerAccessErrorDetails,
+    type RBACGroupOwnerAccessUnconfirmedErrorDetails as RBACGroupOwnerAccessUnconfirmedErrorDetails,
     type RBACGroupsPageCursor as RBACGroupsPageCursor,
     type RBACGroupCreateParams as RBACGroupCreateParams,
     type RBACGroupUpdateParams as RBACGroupUpdateParams,

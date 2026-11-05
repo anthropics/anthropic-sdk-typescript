@@ -28,11 +28,82 @@ import {
   BundleRetrieveParams,
   Bundles,
 } from './bundles/bundles';
+import { BadRequestError, ConflictError, NotFoundError, PermissionDeniedError } from '../../../../core/error';
+
+/**
+ * The request set the channel up, and `settings` was then refused. The channel
+ * stays set up with every setting unset.
+ */
+export class BetaSlackChannelSetUpSettingsRefusedError extends BadRequestError {
+  declare readonly errorCode: 'slack_channel_set_up_settings_refused';
+  declare readonly details: BetaSlackChannelSetUpSettingsRefusedErrorDetails;
+}
+
+/**
+ * The API key lacks the scope the request needs: `read:claude_tag` for a read,
+ * `write:claude_tag` for a change.
+ */
+export class BetaAPIKeyScopeMissingError extends PermissionDeniedError {
+  declare readonly errorCode: 'api_key_scope_missing';
+  declare readonly details: BetaAPIKeyScopeMissingErrorDetails;
+}
+
+/**
+ * Changes through the Claude Tag API are not enabled for the organization.
+ */
+export class BetaClaudeTagWritesNotEnabledError extends PermissionDeniedError {
+  declare readonly errorCode: 'claude_tag_writes_not_enabled';
+  declare readonly details: BetaClaudeTagWritesNotEnabledErrorDetails;
+}
+
+/**
+ * The organization's compliance configuration does not let Claude Tag store
+ * anything new.
+ */
+export class BetaComplianceConfigurationRestrictedError extends PermissionDeniedError {
+  declare readonly errorCode: 'compliance_configuration_restricted';
+  declare readonly details: BetaComplianceConfigurationRestrictedErrorDetails;
+}
+
+/**
+ * The credential is not a scoped API key that is bound at the organization level.
+ */
+export class BetaOrganizationLevelScopedAPIKeyRequiredError extends PermissionDeniedError {
+  declare readonly errorCode: 'organization_level_scoped_api_key_required';
+  declare readonly details: BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails;
+}
+
+/**
+ * `settings.environment_id` names no Environment within the organization's reach,
+ * and the request had set the channel up by then. The channel stays set up with
+ * every setting unset.
+ */
+export class BetaSlackChannelSetUpEnvironmentNotFoundError extends NotFoundError {
+  declare readonly errorCode: 'slack_channel_set_up_environment_not_found';
+  declare readonly details: BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails;
+}
+
+/**
+ * The request set the channel up, and something else then changed the channel or
+ * removed it. Nothing of `settings` was stored.
+ */
+export class BetaSlackChannelSetUpSettingsConflictError extends ConflictError {
+  declare readonly errorCode: 'slack_channel_set_up_settings_conflict';
+  declare readonly details: BetaSlackChannelSetUpSettingsConflictErrorDetails;
+}
 
 export class ClaudeTag extends APIResource {
   slackChannels: SlackChannelsAPI.SlackChannels = new SlackChannelsAPI.SlackChannels(this._client);
   slackWorkspaces: SlackWorkspacesAPI.SlackWorkspaces = new SlackWorkspacesAPI.SlackWorkspaces(this._client);
   bundles: BundlesAPI.Bundles = new BundlesAPI.Bundles(this._client);
+}
+
+/**
+ * The API key lacks the scope the request needs: `read:claude_tag` for a read,
+ * `write:claude_tag` for a change.
+ */
+export interface BetaAPIKeyScopeMissingErrorDetails {
+  error_code: 'api_key_scope_missing';
 }
 
 /**
@@ -316,12 +387,95 @@ export interface BetaClaudeTagSlackWorkspaceSettingSource {
   type: 'slack_workspace';
 }
 
+/**
+ * Changes through the Claude Tag API are not enabled for the organization.
+ */
+export interface BetaClaudeTagWritesNotEnabledErrorDetails {
+  error_code: 'claude_tag_writes_not_enabled';
+}
+
+/**
+ * The organization's compliance configuration does not let Claude Tag store
+ * anything new.
+ */
+export interface BetaComplianceConfigurationRestrictedErrorDetails {
+  error_code: 'compliance_configuration_restricted';
+}
+
+/**
+ * The credential is not a scoped API key that is bound at the organization level.
+ */
+export interface BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails {
+  error_code: 'organization_level_scoped_api_key_required';
+}
+
+/**
+ * `settings.environment_id` names no Environment within the organization's reach,
+ * and the request had set the channel up by then. The channel stays set up with
+ * every setting unset.
+ */
+export interface BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails {
+  error_code: 'slack_channel_set_up_environment_not_found';
+
+  /**
+   * The identifier of the channel the request set up, starting with `slch_`.
+   */
+  slack_channel_id: string;
+}
+
+/**
+ * The request set the channel up, and something else then changed the channel or
+ * removed it. Nothing of `settings` was stored.
+ */
+export interface BetaSlackChannelSetUpSettingsConflictErrorDetails {
+  /**
+   * A stable code that names the cause.
+   */
+  error_code: 'slack_channel_set_up_settings_conflict';
+
+  /**
+   * The identifier of the channel the request set up, starting with `slch_`.
+   */
+  slack_channel_id: string;
+}
+
+/**
+ * The request set the channel up, and `settings` was then refused. The channel
+ * stays set up with every setting unset.
+ */
+export interface BetaSlackChannelSetUpSettingsRefusedErrorDetails {
+  /**
+   * A stable code that names the cause.
+   */
+  error_code: 'slack_channel_set_up_settings_refused';
+
+  /**
+   * The identifier of the channel the request set up, starting with `slch_`.
+   */
+  slack_channel_id: string;
+}
+
+ClaudeTag.BetaSlackChannelSetUpSettingsRefusedError = BetaSlackChannelSetUpSettingsRefusedError;
+ClaudeTag.BetaAPIKeyScopeMissingError = BetaAPIKeyScopeMissingError;
+ClaudeTag.BetaClaudeTagWritesNotEnabledError = BetaClaudeTagWritesNotEnabledError;
+ClaudeTag.BetaComplianceConfigurationRestrictedError = BetaComplianceConfigurationRestrictedError;
+ClaudeTag.BetaOrganizationLevelScopedAPIKeyRequiredError = BetaOrganizationLevelScopedAPIKeyRequiredError;
+ClaudeTag.BetaSlackChannelSetUpEnvironmentNotFoundError = BetaSlackChannelSetUpEnvironmentNotFoundError;
+ClaudeTag.BetaSlackChannelSetUpSettingsConflictError = BetaSlackChannelSetUpSettingsConflictError;
 ClaudeTag.SlackChannels = SlackChannels;
 ClaudeTag.SlackWorkspaces = SlackWorkspaces;
 ClaudeTag.Bundles = Bundles;
 
 export declare namespace ClaudeTag {
   export {
+    BetaSlackChannelSetUpSettingsRefusedError as BetaSlackChannelSetUpSettingsRefusedError,
+    BetaAPIKeyScopeMissingError as BetaAPIKeyScopeMissingError,
+    BetaClaudeTagWritesNotEnabledError as BetaClaudeTagWritesNotEnabledError,
+    BetaComplianceConfigurationRestrictedError as BetaComplianceConfigurationRestrictedError,
+    BetaOrganizationLevelScopedAPIKeyRequiredError as BetaOrganizationLevelScopedAPIKeyRequiredError,
+    BetaSlackChannelSetUpEnvironmentNotFoundError as BetaSlackChannelSetUpEnvironmentNotFoundError,
+    BetaSlackChannelSetUpSettingsConflictError as BetaSlackChannelSetUpSettingsConflictError,
+    type BetaAPIKeyScopeMissingErrorDetails as BetaAPIKeyScopeMissingErrorDetails,
     type BetaClaudeTagDefaultSettingSource as BetaClaudeTagDefaultSettingSource,
     type BetaClaudeTagGuestPolicy as BetaClaudeTagGuestPolicy,
     type BetaClaudeTagGuestPolicyAllow as BetaClaudeTagGuestPolicyAllow,
@@ -339,6 +493,12 @@ export declare namespace ClaudeTag {
     type BetaClaudeTagSlackParentChannelSettingSource as BetaClaudeTagSlackParentChannelSettingSource,
     type BetaClaudeTagSlackWorkspaceIdentifiers as BetaClaudeTagSlackWorkspaceIdentifiers,
     type BetaClaudeTagSlackWorkspaceSettingSource as BetaClaudeTagSlackWorkspaceSettingSource,
+    type BetaClaudeTagWritesNotEnabledErrorDetails as BetaClaudeTagWritesNotEnabledErrorDetails,
+    type BetaComplianceConfigurationRestrictedErrorDetails as BetaComplianceConfigurationRestrictedErrorDetails,
+    type BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails as BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails,
+    type BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails as BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails,
+    type BetaSlackChannelSetUpSettingsConflictErrorDetails as BetaSlackChannelSetUpSettingsConflictErrorDetails,
+    type BetaSlackChannelSetUpSettingsRefusedErrorDetails as BetaSlackChannelSetUpSettingsRefusedErrorDetails,
   };
 
   export {

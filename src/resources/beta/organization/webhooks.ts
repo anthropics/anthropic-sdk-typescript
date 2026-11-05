@@ -109,6 +109,7 @@ export class Webhooks extends APIResource {
    * const betaOrganizationWebhookEndpoint =
    *   await client.beta.organization.webhooks.update(
    *     'webhook_endpoint_id',
+   *     {},
    *   );
    * ```
    */

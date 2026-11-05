@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.2](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v1.1.1...vertex-sdk-v1.1.2) (2026-11-02)
+
+### Bug Fixes
+
+* **vertex:** percent-encode the project ID, region and model in the request path, so a `/` in the model can't move the request outside `/publishers/anthropic/models/`, and throw an `AnthropicError` for an empty `model` or a project ID or region of `.` or `..`
+
 ## [1.1.1](https://github.com/anthropics/anthropic-sdk-typescript/compare/vertex-sdk-v1.1.0...vertex-sdk-v1.1.1) (2026-10-26)
 
 ### Chores

@@ -65,8 +65,8 @@ export interface ArtifactListParams extends PageCursorParams {
    * bare group UUID, and matches users who held the group at any point during each
    * covered UTC day (time-of-usage attribution); `user_id` takes a tagged user id
    * (`user_...`), as emitted in responses. An unsupported dimension returns 400. At
-   * most 100 entries. `chat_cowork_unified` is accepted as a `product` value only on
-   * deployments that offer Chat and Cowork unified.
+   * most 100 entries. `chat_cowork_unified` is accepted as a `product` value only
+   * where Chat and Cowork unified is available.
    */
   filter?: Array<string> | null;
 

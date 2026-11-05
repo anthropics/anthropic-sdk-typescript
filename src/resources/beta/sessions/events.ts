@@ -1574,7 +1574,7 @@ export interface BetaManagedAgentsSessionThreadStatusIdleEvent {
   processed_at: string;
 
   /**
-   * Public sthr\_ ID of the thread that went idle.
+   * Public sthr_ ID of the thread that went idle.
    */
   session_thread_id: string;
 
@@ -1616,7 +1616,7 @@ export interface BetaManagedAgentsSessionThreadStatusRescheduledEvent {
   processed_at: string;
 
   /**
-   * Public sthr\_ ID of the thread that is retrying.
+   * Public sthr_ ID of the thread that is retrying.
    */
   session_thread_id: string;
 
@@ -1644,7 +1644,7 @@ export interface BetaManagedAgentsSessionThreadStatusRunningEvent {
   processed_at: string;
 
   /**
-   * Public sthr\_ ID of the thread that started running.
+   * Public sthr_ ID of the thread that started running.
    */
   session_thread_id: string;
 
@@ -1672,7 +1672,7 @@ export interface BetaManagedAgentsSessionThreadStatusTerminatedEvent {
   processed_at: string;
 
   /**
-   * Public sthr\_ ID of the thread that terminated.
+   * Public sthr_ ID of the thread that terminated.
    */
   session_thread_id: string;
 

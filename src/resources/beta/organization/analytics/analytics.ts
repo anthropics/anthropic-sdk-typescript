@@ -648,8 +648,7 @@ export interface BetaAnalyticsConnectorActivity {
    * Connector use recorded while members had Chat and Cowork unified (Cowork's
    * features inside claude.ai chat) turned on, split into chat conversations and
    * Cowork sessions. A count is null in date-range mode where it cannot be computed.
-   * Omitted from the response on deployments that do not offer Chat and Cowork
-   * unified.
+   * Omitted from the response where Chat and Cowork unified is not available.
    */
   chat_cowork_unified_metrics?: BetaAnalyticsConnectorChatCoworkUnifiedMetrics | null;
 
@@ -867,9 +866,7 @@ export interface BetaAnalyticsCostBucketedResult {
    * addressed), `scheduled` (a scheduled routine ran), `monitoring` (Claude watching
    * a channel it was asked to monitor), or `dm` (direct messages with Claude).
    * Populated only when `claude_tag_category` is in `group_by[]`; null for usage
-   * that is not Claude Tag. Direct-message usage is billed to the individual user
-   * and is reported under that user's product, not under `claude-tag`. New
-   * categories may be added over time.
+   * that is not Claude Tag. New categories may be added over time.
    */
   claude_tag_category: BetaAnalyticsClaudeTagCategory | null;
 
@@ -931,8 +928,8 @@ export interface BetaAnalyticsCostBucketedResult {
    * `chat_cowork_unified` is Chat and Cowork unified, Cowork's features inside
    * claude.ai chat: chat and Cowork usage by a member who has it turned on is
    * reported under this value instead of `chat` or `cowork`. It is accepted as a
-   * filter only on deployments that offer Chat and Cowork unified. Some unattributed
-   * usage is reported as "other".
+   * filter only where Chat and Cowork unified is available. Some unattributed usage
+   * is reported as "other".
    */
   product: string | null;
 
@@ -960,8 +957,9 @@ export interface BetaAnalyticsCostBucketedResult {
 
   /**
    * Slack channel the usage originated from. Populated only when `slack_channel_id`
-   * is in `group_by[]`; null for usage outside Slack (and for rows recorded before
-   * channel attribution was enabled).
+   * is in `group_by[]`; null for usage outside Slack, for some Claude Tag usage that
+   * has no channel recorded, and for usage recorded before channel attribution was
+   * enabled.
    */
   slack_channel_id: string | null;
 
@@ -1015,9 +1013,7 @@ export interface BetaAnalyticsCostUsersItem {
    * addressed), `scheduled` (a scheduled routine ran), `monitoring` (Claude watching
    * a channel it was asked to monitor), or `dm` (direct messages with Claude).
    * Populated only when `claude_tag_category` is in `group_by[]`; null for usage
-   * that is not Claude Tag. Direct-message usage is billed to the individual user
-   * and is reported under that user's product, not under `claude-tag`. New
-   * categories may be added over time.
+   * that is not Claude Tag. New categories may be added over time.
    */
   claude_tag_category: BetaAnalyticsClaudeTagCategory | null;
 
@@ -1084,8 +1080,8 @@ export interface BetaAnalyticsCostUsersItem {
    * `chat_cowork_unified` is Chat and Cowork unified, Cowork's features inside
    * claude.ai chat: chat and Cowork usage by a member who has it turned on is
    * reported under this value instead of `chat` or `cowork`. It is accepted as a
-   * filter only on deployments that offer Chat and Cowork unified. Some unattributed
-   * usage is reported as "other".
+   * filter only where Chat and Cowork unified is available. Some unattributed usage
+   * is reported as "other".
    */
   product: string | null;
 
@@ -1113,8 +1109,9 @@ export interface BetaAnalyticsCostUsersItem {
 
   /**
    * Slack channel the usage originated from. Populated only when `slack_channel_id`
-   * is in `group_by[]`; null for usage outside Slack (and for rows recorded before
-   * channel attribution was enabled).
+   * is in `group_by[]`; null for usage outside Slack, for some Claude Tag usage that
+   * has no channel recorded, and for usage recorded before channel attribution was
+   * enabled.
    */
   slack_channel_id: string | null;
 
@@ -1498,8 +1495,8 @@ export interface BetaAnalyticsPluginActivity {
   /**
    * Plugin use recorded while members had Chat and Cowork unified (Cowork's features
    * inside claude.ai chat) turned on. A count is null in date-range mode where it
-   * cannot be computed. Omitted from the response on deployments that do not offer
-   * Chat and Cowork unified.
+   * cannot be computed. Omitted from the response where Chat and Cowork unified is
+   * not available.
    */
   chat_cowork_unified_metrics?: BetaAnalyticsPluginChatCoworkUnifiedMetrics | null;
 
@@ -1582,7 +1579,7 @@ export type BetaAnalyticsPluginGroupBy = 'product' | 'rbac_group_id' | 'user_id'
  * product in Slack. `chat_cowork_unified` is Chat and Cowork unified, Cowork's
  * features inside claude.ai chat: chat and Cowork usage by a member who has it
  * turned on is reported under this value instead of `chat` or `cowork`. It is
- * accepted as a filter only on deployments that offer Chat and Cowork unified.
+ * accepted as a filter only where Chat and Cowork unified is available.
  */
 export type BetaAnalyticsProductFilter =
   | 'chat'
@@ -1837,22 +1834,21 @@ export interface BetaAnalyticsSingleDayActivitySummary {
 
   /**
    * Number of users with activity in Chat and Cowork unified on the requested day.
-   * Omitted from the response on deployments that do not offer Chat and Cowork
-   * unified.
+   * Omitted from the response where Chat and Cowork unified is not available.
    */
   chat_cowork_unified_daily_active_user_count?: number | null;
 
   /**
    * Number of users with activity in Chat and Cowork unified in the 28-day rolling
    * window (30 days when the request filters by `rbac_group_id`). Omitted from the
-   * response on deployments that do not offer Chat and Cowork unified.
+   * response where Chat and Cowork unified is not available.
    */
   chat_cowork_unified_monthly_active_user_count?: number | null;
 
   /**
    * Number of users with activity in Chat and Cowork unified in the 7-day rolling
-   * window. Omitted from the response on deployments that do not offer Chat and
-   * Cowork unified.
+   * window. Omitted from the response where Chat and Cowork unified is not
+   * available.
    */
   chat_cowork_unified_weekly_active_user_count?: number | null;
 
@@ -2126,8 +2122,7 @@ export interface BetaAnalyticsSkillActivity {
    * Skill use recorded while members had Chat and Cowork unified (Cowork's features
    * inside claude.ai chat) turned on, split into chat conversations and Cowork
    * sessions. A count is null in date-range mode where it cannot be computed.
-   * Omitted from the response on deployments that do not offer Chat and Cowork
-   * unified.
+   * Omitted from the response where Chat and Cowork unified is not available.
    */
   chat_cowork_unified_metrics?: BetaAnalyticsSkillChatCoworkUnifiedMetrics | null;
 
@@ -2383,9 +2378,7 @@ export interface BetaAnalyticsUsageBucketedResult {
    * addressed), `scheduled` (a scheduled routine ran), `monitoring` (Claude watching
    * a channel it was asked to monitor), or `dm` (direct messages with Claude).
    * Populated only when `claude_tag_category` is in `group_by[]`; null for usage
-   * that is not Claude Tag. Direct-message usage is billed to the individual user
-   * and is reported under that user's product, not under `claude-tag`. New
-   * categories may be added over time.
+   * that is not Claude Tag. New categories may be added over time.
    */
   claude_tag_category: BetaAnalyticsClaudeTagCategory | null;
 
@@ -2436,8 +2429,8 @@ export interface BetaAnalyticsUsageBucketedResult {
    * `chat_cowork_unified` is Chat and Cowork unified, Cowork's features inside
    * claude.ai chat: chat and Cowork usage by a member who has it turned on is
    * reported under this value instead of `chat` or `cowork`. It is accepted as a
-   * filter only on deployments that offer Chat and Cowork unified. Some unattributed
-   * usage is reported as "other".
+   * filter only where Chat and Cowork unified is available. Some unattributed usage
+   * is reported as "other".
    */
   product: string | null;
 
@@ -2468,8 +2461,9 @@ export interface BetaAnalyticsUsageBucketedResult {
 
   /**
    * Slack channel the usage originated from. Populated only when `slack_channel_id`
-   * is in `group_by[]`; null for usage outside Slack (and for rows recorded before
-   * channel attribution was enabled).
+   * is in `group_by[]`; null for usage outside Slack, for some Claude Tag usage that
+   * has no channel recorded, and for usage recorded before channel attribution was
+   * enabled.
    */
   slack_channel_id: string | null;
 
@@ -2492,7 +2486,7 @@ export type BetaAnalyticsUsageCostInferenceGeo = 'global' | 'us';
  * product in Slack. `chat_cowork_unified` is Chat and Cowork unified, Cowork's
  * features inside claude.ai chat: chat and Cowork usage by a member who has it
  * turned on is reported under this value instead of `chat` or `cowork`. It is
- * accepted as a filter only on deployments that offer Chat and Cowork unified.
+ * accepted as a filter only where Chat and Cowork unified is available.
  */
 export type BetaAnalyticsUsageCostProductFilter =
   | 'chat'
@@ -2551,9 +2545,7 @@ export interface BetaAnalyticsUsageUsersItem {
    * addressed), `scheduled` (a scheduled routine ran), `monitoring` (Claude watching
    * a channel it was asked to monitor), or `dm` (direct messages with Claude).
    * Populated only when `claude_tag_category` is in `group_by[]`; null for usage
-   * that is not Claude Tag. Direct-message usage is billed to the individual user
-   * and is reported under that user's product, not under `claude-tag`. New
-   * categories may be added over time.
+   * that is not Claude Tag. New categories may be added over time.
    */
   claude_tag_category: BetaAnalyticsClaudeTagCategory | null;
 
@@ -2610,8 +2602,8 @@ export interface BetaAnalyticsUsageUsersItem {
    * `chat_cowork_unified` is Chat and Cowork unified, Cowork's features inside
    * claude.ai chat: chat and Cowork usage by a member who has it turned on is
    * reported under this value instead of `chat` or `cowork`. It is accepted as a
-   * filter only on deployments that offer Chat and Cowork unified. Some unattributed
-   * usage is reported as "other".
+   * filter only where Chat and Cowork unified is available. Some unattributed usage
+   * is reported as "other".
    */
   product: string | null;
 
@@ -2642,8 +2634,9 @@ export interface BetaAnalyticsUsageUsersItem {
 
   /**
    * Slack channel the usage originated from. Populated only when `slack_channel_id`
-   * is in `group_by[]`; null for usage outside Slack (and for rows recorded before
-   * channel attribution was enabled).
+   * is in `group_by[]`; null for usage outside Slack, for some Claude Tag usage that
+   * has no channel recorded, and for usage recorded before channel attribution was
+   * enabled.
    */
   slack_channel_id: string | null;
 
@@ -2748,8 +2741,8 @@ export interface BetaAnalyticsUserActivity {
   /**
    * Activity recorded while the member had Chat and Cowork unified (Cowork's
    * features inside claude.ai chat) turned on, split into `chat` (chat activity) and
-   * `sessions` (Cowork activity). Omitted from the response on deployments that do
-   * not offer Chat and Cowork unified.
+   * `sessions` (Cowork activity). Omitted from the response where Chat and Cowork
+   * unified is not available.
    */
   chat_cowork_unified_metrics?: BetaAnalyticsChatCoworkUnifiedMetrics | null;
 
@@ -2806,8 +2799,7 @@ export interface BetaAnalyticsUserActor {
    * no longer a member of the organization or its associated organizations and the
    * organization has chosen to hide the names of removed users. Otherwise, the name
    * stays populated for removed users. Rows for system-minted service accounts
-   * render the service name (for example, `"Claude Security"` for usage by
-   * Anthropic's security-patching service) or null.
+   * render the service name (for example, `"Claude Security"`) or null.
    */
   name: string | null;
 

@@ -1,9 +1,26 @@
 import { APIResource } from '../../core/resource';
 import { APIPromise } from '../../core/api-promise';
+import { BadRequestError } from '../../core/error';
 import { Page, type PageParams, PagePromise } from '../../core/pagination';
 import { RequestOptions } from '../../internal/request-options';
 import { startApiCallSpan } from '../../internal/tracing';
 import { path } from '../../internal/utils/path';
+
+/**
+ * The organization has reached its limit of active API keys.
+ */
+export class OrgAPIKeyLimitExceededError extends BadRequestError {
+  declare readonly errorCode: 'org_api_key_limit_exceeded';
+  declare readonly details: OrgAPIKeyLimitExceededErrorDetails;
+}
+
+/**
+ * The workspace has reached its limit of active API keys.
+ */
+export class WorkspaceAPIKeyLimitExceededError extends BadRequestError {
+  declare readonly errorCode: 'workspace_api_key_limit_exceeded';
+  declare readonly details: WorkspaceAPIKeyLimitExceededErrorDetails;
+}
 
 export class APIKeys extends APIResource {
   /**
@@ -29,10 +46,14 @@ export class APIKeys extends APIResource {
   /**
    * Update API Key
    *
+   * @throws {OrgAPIKeyLimitExceededError} The organization has reached its limit of active API keys.
+   * @throws {WorkspaceAPIKeyLimitExceededError} The workspace has reached its limit of active API keys.
+   *
    * @example
    * ```ts
    * const apiKey = await client.organization.apiKeys.update(
    *   'api_key_id',
+   *   {},
    * );
    * ```
    */
@@ -194,6 +215,20 @@ export interface APIKeyWorkspaceScope {
   workspace_id: string;
 }
 
+/**
+ * The organization has reached its limit of active API keys.
+ */
+export interface OrgAPIKeyLimitExceededErrorDetails {
+  error_code: 'org_api_key_limit_exceeded';
+}
+
+/**
+ * The workspace has reached its limit of active API keys.
+ */
+export interface WorkspaceAPIKeyLimitExceededErrorDetails {
+  error_code: 'workspace_api_key_limit_exceeded';
+}
+
 export interface APIKeyUpdateParams {
   /**
    * Name of the API key.
@@ -223,14 +258,21 @@ export interface APIKeyListParams extends PageParams {
   workspace_id?: string | null;
 }
 
+APIKeys.OrgAPIKeyLimitExceededError = OrgAPIKeyLimitExceededError;
+APIKeys.WorkspaceAPIKeyLimitExceededError = WorkspaceAPIKeyLimitExceededError;
+
 export declare namespace APIKeys {
   export {
+    OrgAPIKeyLimitExceededError as OrgAPIKeyLimitExceededError,
+    WorkspaceAPIKeyLimitExceededError as WorkspaceAPIKeyLimitExceededError,
     type APIKey as APIKey,
     type APIKeyCreatedBy as APIKeyCreatedBy,
     type APIKeyOrganizationScope as APIKeyOrganizationScope,
     type APIKeyServiceAccountActor as APIKeyServiceAccountActor,
     type APIKeyUserActor as APIKeyUserActor,
     type APIKeyWorkspaceScope as APIKeyWorkspaceScope,
+    type OrgAPIKeyLimitExceededErrorDetails as OrgAPIKeyLimitExceededErrorDetails,
+    type WorkspaceAPIKeyLimitExceededErrorDetails as WorkspaceAPIKeyLimitExceededErrorDetails,
     type APIKeysPage as APIKeysPage,
     type APIKeyUpdateParams as APIKeyUpdateParams,
     type APIKeyListParams as APIKeyListParams,

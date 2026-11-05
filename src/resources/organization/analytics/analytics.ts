@@ -578,8 +578,7 @@ export interface AnalyticsConnectorActivity {
    * Connector use recorded while members had Chat and Cowork unified (Cowork's
    * features inside claude.ai chat) turned on, split into chat conversations and
    * Cowork sessions. A count is null in date-range mode where it cannot be computed.
-   * Omitted from the response on deployments that do not offer Chat and Cowork
-   * unified.
+   * Omitted from the response where Chat and Cowork unified is not available.
    */
   chat_cowork_unified_metrics?: AnalyticsConnectorChatCoworkUnifiedMetrics | null;
 
@@ -1076,8 +1075,8 @@ export interface AnalyticsPluginActivity {
   /**
    * Plugin use recorded while members had Chat and Cowork unified (Cowork's features
    * inside claude.ai chat) turned on. A count is null in date-range mode where it
-   * cannot be computed. Omitted from the response on deployments that do not offer
-   * Chat and Cowork unified.
+   * cannot be computed. Omitted from the response where Chat and Cowork unified is
+   * not available.
    */
   chat_cowork_unified_metrics?: AnalyticsPluginChatCoworkUnifiedMetrics | null;
 
@@ -1338,22 +1337,21 @@ export interface AnalyticsSingleDayActivitySummary {
 
   /**
    * Number of users with activity in Chat and Cowork unified on the requested day.
-   * Omitted from the response on deployments that do not offer Chat and Cowork
-   * unified.
+   * Omitted from the response where Chat and Cowork unified is not available.
    */
   chat_cowork_unified_daily_active_user_count?: number | null;
 
   /**
    * Number of users with activity in Chat and Cowork unified in the 28-day rolling
    * window (30 days when the request filters by `rbac_group_id`). Omitted from the
-   * response on deployments that do not offer Chat and Cowork unified.
+   * response where Chat and Cowork unified is not available.
    */
   chat_cowork_unified_monthly_active_user_count?: number | null;
 
   /**
    * Number of users with activity in Chat and Cowork unified in the 7-day rolling
-   * window. Omitted from the response on deployments that do not offer Chat and
-   * Cowork unified.
+   * window. Omitted from the response where Chat and Cowork unified is not
+   * available.
    */
   chat_cowork_unified_weekly_active_user_count?: number | null;
 
@@ -1627,8 +1625,7 @@ export interface AnalyticsSkillActivity {
    * Skill use recorded while members had Chat and Cowork unified (Cowork's features
    * inside claude.ai chat) turned on, split into chat conversations and Cowork
    * sessions. A count is null in date-range mode where it cannot be computed.
-   * Omitted from the response on deployments that do not offer Chat and Cowork
-   * unified.
+   * Omitted from the response where Chat and Cowork unified is not available.
    */
   chat_cowork_unified_metrics?: AnalyticsSkillChatCoworkUnifiedMetrics | null;
 
@@ -1932,8 +1929,8 @@ export interface AnalyticsUserActivity {
   /**
    * Activity recorded while the member had Chat and Cowork unified (Cowork's
    * features inside claude.ai chat) turned on, split into `chat` (chat activity) and
-   * `sessions` (Cowork activity). Omitted from the response on deployments that do
-   * not offer Chat and Cowork unified.
+   * `sessions` (Cowork activity). Omitted from the response where Chat and Cowork
+   * unified is not available.
    */
   chat_cowork_unified_metrics?: AnalyticsChatCoworkUnifiedMetrics | null;
 

@@ -626,6 +626,47 @@ export {
   type BetaToolResultContentBlockParam,
 } from './messages/index';
 export {
+  BetaBillingFrozenError,
+  Organization,
+  type BetaBillingFrozenErrorDetails,
+  type BetaOrganization,
+  type BetaOrganizationRole,
+} from './organization/index';
+export {
+  BetaEnvironmentArchivedError,
+  BetaInvalidConfigTypeChangeError,
+  BetaInvalidMetadataError,
+  BetaEnvironmentCreateDisabledError,
+  BetaEnvironmentUpdateDisabledError,
+  BetaEnvironmentNotFoundError,
+  Environments,
+  type BetaCloudConfig,
+  type BetaCloudConfigParams,
+  type BetaEnvironment,
+  type BetaEnvironmentArchivedErrorDetails,
+  type BetaEnvironmentCreateDisabledErrorDetails,
+  type BetaEnvironmentDeleteResponse,
+  type BetaEnvironmentNotFoundErrorDetails,
+  type BetaEnvironmentUpdateDisabledErrorDetails,
+  type BetaInvalidConfigTypeChangeErrorDetails,
+  type BetaInvalidMetadataErrorDetails,
+  type BetaLimitedNetwork,
+  type BetaLimitedNetworkParams,
+  type BetaPackages,
+  type BetaPackagesParams,
+  type BetaSelfHostedConfig,
+  type BetaSelfHostedConfigParams,
+  type BetaUnrestrictedNetwork,
+  type EnvironmentCreateParams,
+  type EnvironmentRetrieveParams,
+  type EnvironmentUpdateParams,
+  type EnvironmentListParams,
+  type EnvironmentDeleteParams,
+  type EnvironmentArchiveParams,
+  type BetaEnvironmentsPageCursor,
+} from './environments/index';
+export {
+  BetaUnsupportedCharsetError,
   Beta,
   type AnthropicBeta,
   type BetaAPIError,
@@ -641,6 +682,7 @@ export {
   type BetaOverloadedError,
   type BetaPermissionError,
   type BetaRateLimitError,
+  type BetaUnsupportedCharsetErrorDetails,
 } from './beta';
 export {
   DeploymentRuns,
@@ -740,27 +782,6 @@ export {
   type BetaDreamsPageCursor,
 } from './dreams';
 export {
-  Environments,
-  type BetaCloudConfig,
-  type BetaCloudConfigParams,
-  type BetaEnvironment,
-  type BetaEnvironmentDeleteResponse,
-  type BetaLimitedNetwork,
-  type BetaLimitedNetworkParams,
-  type BetaPackages,
-  type BetaPackagesParams,
-  type BetaSelfHostedConfig,
-  type BetaSelfHostedConfigParams,
-  type BetaUnrestrictedNetwork,
-  type EnvironmentCreateParams,
-  type EnvironmentRetrieveParams,
-  type EnvironmentUpdateParams,
-  type EnvironmentListParams,
-  type EnvironmentDeleteParams,
-  type EnvironmentArchiveParams,
-  type BetaEnvironmentsPageCursor,
-} from './environments/index';
-export {
   Files,
   type BetaDeletedFile,
   type BetaFileMetadata,
@@ -800,7 +821,6 @@ export {
   type ModelListParams,
   type BetaModelInfosPage,
 } from './models';
-export { Organization, type BetaOrganization, type BetaOrganizationRole } from './organization/index';
 export {
   Sessions,
   type BetaManagedAgentsAdvisorParams,

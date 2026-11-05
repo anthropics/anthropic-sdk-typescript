@@ -43,6 +43,17 @@ export class Versions extends APIResource {
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
    *
+   * @throws {CMEKKeyDisabledError} The workspace's customer-managed encryption key is disabled or revoked.
+   * Re-enable the key, then retry.
+   * @throws {CMEKKeyNetworkBlockedError} The key management service's network access controls blocked the request to the
+   * workspace's customer-managed encryption key. The key itself may be healthy.
+   * @throws {BetaUnsupportedCharsetError} The request's `Content-Type` header names a charset other than UTF-8, ISO-8859-1
+   * or US-ASCII. Send the request with no charset, or with one of these.
+   * @throws {BetaSkillNameTakenError} One of the Plugin's skills has the name of an organization skill. `skill_name`
+   * is that name.
+   * @throws {BetaRegistrationPendingError} The Plugin version was stored but is not yet usable in claude.ai. `plugin_id`
+   * and `plugin_version_id` identify what was stored.
+   *
    * @example
    * ```ts
    * const betaPluginVersion =
@@ -211,6 +222,11 @@ export class Versions extends APIResource {
    * Platform (Claude Console) organizations, or to organizations with HIPAA
    * readiness enabled.
    *
+   * @throws {CMEKKeyDisabledError} The workspace's customer-managed encryption key is disabled or revoked.
+   * Re-enable the key, then retry.
+   * @throws {CMEKKeyNetworkBlockedError} The key management service's network access controls blocked the request to the
+   * workspace's customer-managed encryption key. The key itself may be healthy.
+   *
    * @example
    * ```ts
    * const response =
@@ -278,7 +294,12 @@ export interface BetaPluginVersion {
   created_by: PluginsAPI.BetaPluginUserActor | PluginsAPI.BetaPluginAPIActor | null;
 
   /**
-   * The manifest's description; null when it declares none.
+   * The manifest's description; null when it declares none. The value can be longer
+   * than 500 characters, the limit on `description` in an uploaded manifest. A
+   * description that the manifest takes from a `SKILL.md` is cut to its first 500
+   * characters. So if the manifest's description is the first 500 characters of
+   * exactly one distinct skill `description` in `components`, that skill
+   * `description` is returned instead.
    */
   description: string | null;
 

@@ -32,7 +32,7 @@ export class Tunnels extends APIResource {
    *
    * @example
    * ```ts
-   * const betaTunnel = await client.beta.tunnels.create();
+   * const betaTunnel = await client.beta.tunnels.create({});
    * ```
    */
   create(params: TunnelCreateParams, options?: RequestOptions): APIPromise<BetaTunnel> {
@@ -227,7 +227,7 @@ export class Tunnels extends APIResource {
    * @example
    * ```ts
    * const betaTunnelToken =
-   *   await client.beta.tunnels.rotateToken('tunnel_id');
+   *   await client.beta.tunnels.rotateToken('tunnel_id', {});
    * ```
    */
   rotateToken(

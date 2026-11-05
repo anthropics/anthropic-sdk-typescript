@@ -18,6 +18,13 @@ export class SlackWorkspaces extends APIResource {
    * level that could not be read. Either way `sources` names the settings level each
    * value comes from.
    *
+   * @throws {BetaAPIKeyScopeMissingError} The API key lacks the scope the request needs: `read:claude_tag` for a read,
+   * `write:claude_tag` for a change.
+   * @throws {BetaClaudeTagWritesNotEnabledError} Changes through the Claude Tag API are not enabled for the organization.
+   * @throws {BetaComplianceConfigurationRestrictedError} The organization's compliance configuration does not let Claude Tag store
+   * anything new.
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError} The credential is not a scoped API key that is bound at the organization level.
+   *
    * @example
    * ```ts
    * const betaClaudeTagSlackWorkspace =
@@ -57,6 +64,19 @@ export class SlackWorkspaces extends APIResource {
    * Change the settings a Slack workspace stores. The update is partial: a setting
    * left out is unchanged, and a setting sent as null is cleared, so the workspace
    * inherits it. If any value is refused, no setting in the request is stored.
+   *
+   * @throws {BetaAPIKeyScopeMissingError} The API key lacks the scope the request needs: `read:claude_tag` for a read,
+   * `write:claude_tag` for a change.
+   * @throws {BetaClaudeTagWritesNotEnabledError} Changes through the Claude Tag API are not enabled for the organization.
+   * @throws {BetaComplianceConfigurationRestrictedError} The organization's compliance configuration does not let Claude Tag store
+   * anything new.
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError} The credential is not a scoped API key that is bound at the organization level.
+   * @throws {BetaEnvironmentNotFoundError} `settings.environment_id` names no Environment within the organization's reach.
+   * @throws {BetaSlackChannelSetUpEnvironmentNotFoundError} `settings.environment_id` names no Environment within the organization's reach,
+   * and the request had set the channel up by then. The channel stays set up with
+   * every setting unset.
+   * @throws {BetaSlackChannelSetUpSettingsConflictError} The request set the channel up, and something else then changed the channel or
+   * removed it. Nothing of `settings` was stored.
    *
    * @example
    * ```ts
@@ -102,6 +122,13 @@ export class SlackWorkspaces extends APIResource {
    * `settings` holds what applies in it, and the request fails with 503 rather than
    * resolve against a settings level that could not be read. A `page` cursor resumes
    * only a request with the same `include_inherited`.
+   *
+   * @throws {BetaAPIKeyScopeMissingError} The API key lacks the scope the request needs: `read:claude_tag` for a read,
+   * `write:claude_tag` for a change.
+   * @throws {BetaClaudeTagWritesNotEnabledError} Changes through the Claude Tag API are not enabled for the organization.
+   * @throws {BetaComplianceConfigurationRestrictedError} The organization's compliance configuration does not let Claude Tag store
+   * anything new.
+   * @throws {BetaOrganizationLevelScopedAPIKeyRequiredError} The credential is not a scoped API key that is bound at the organization level.
    *
    * @example
    * ```ts

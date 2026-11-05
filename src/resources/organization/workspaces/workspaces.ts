@@ -33,10 +33,39 @@ import {
   ServiceAccounts,
 } from './service-accounts';
 import { APIPromise } from '../../../core/api-promise';
+import { BadRequestError } from '../../../core/error';
 import { Page, type PageParams, PagePromise } from '../../../core/pagination';
 import { RequestOptions } from '../../../internal/request-options';
 import { startApiCallSpan } from '../../../internal/tracing';
 import { path } from '../../../internal/utils/path';
+
+/**
+ * The External Key is bound to a user profile, and the Workspace does not have
+ * that user profile. A Workspace can use only a key bound to its own user profile
+ * or a key that isn't bound to one.
+ */
+export class KeyProfileMismatchError extends BadRequestError {
+  declare readonly errorCode: 'key_profile_mismatch';
+  declare readonly details: KeyProfileMismatchErrorDetails;
+}
+
+/**
+ * The workspace has reached the member limit that Anthropic set for it.
+ */
+export class WorkspaceMemberLimitExceededError extends BadRequestError {
+  declare readonly errorCode: 'workspace_member_limit_exceeded';
+  declare readonly details: WorkspaceMemberLimitExceededErrorDetails;
+}
+
+/**
+ * The request breaks the organization's Workspace Policy. The message says which
+ * rule it broke; an organization admin can see and change the policy in the
+ * Console.
+ */
+export class WorkspacePolicyViolationError extends BadRequestError {
+  declare readonly errorCode: 'workspace_policy_violation';
+  declare readonly details: WorkspacePolicyViolationErrorDetails;
+}
 
 export class Workspaces extends APIResource {
   rateLimits: RateLimitsAPI.RateLimits = new RateLimitsAPI.RateLimits(this._client);
@@ -45,6 +74,18 @@ export class Workspaces extends APIResource {
 
   /**
    * Create Workspace
+   *
+   * @throws {KeyProfileMismatchError} The External Key is bound to a user profile, and the Workspace does not have
+   * that user profile. A Workspace can use only a key bound to its own user profile
+   * or a key that isn't bound to one.
+   * @throws {UserProfileNotFoundError} The request depends on a user profile that does not exist in the organization or
+   * is no longer active. The request either names this user profile by ID, or names
+   * a resource, such as an External Key, that is bound to it.
+   * @throws {WorkspacePolicyViolationError} The request breaks the organization's Workspace Policy. The message says which
+   * rule it broke; an organization admin can see and change the policy in the
+   * Console.
+   * @throws {ExternalKeyChangedError} The external key changed while the request was validating it. Send the request
+   * again.
    *
    * @example
    * ```ts
@@ -89,11 +130,24 @@ export class Workspaces extends APIResource {
   /**
    * Update Workspace
    *
+   * @throws {KeyProfileMismatchError} The External Key is bound to a user profile, and the Workspace does not have
+   * that user profile. A Workspace can use only a key bound to its own user profile
+   * or a key that isn't bound to one.
+   * @throws {UserProfileNotFoundError} The request depends on a user profile that does not exist in the organization or
+   * is no longer active. The request either names this user profile by ID, or names
+   * a resource, such as an External Key, that is bound to it.
+   * @throws {WorkspacePolicyViolationError} The request breaks the organization's Workspace Policy. The message says which
+   * rule it broke; an organization admin can see and change the policy in the
+   * Console.
+   * @throws {ExternalKeyChangedError} The external key changed while the request was validating it. Send the request
+   * again.
+   *
    * @example
    * ```ts
    * const workspace =
    *   await client.organization.workspaces.update(
    *     'workspace_id',
+   *     {},
    *   );
    * ```
    */
@@ -128,7 +182,7 @@ export class Workspaces extends APIResource {
       ...options,
       __span: startApiCallSpan(this._client, 'anthropic.organization.workspaces.list', options, {
         route: '/v1/organizations/workspaces',
-        queryParams: ['after_id', 'before_id', 'include_archived', 'include_default', 'limit'],
+        queryParams: ['after_id', 'before_id', 'ids', 'include_archived', 'include_default', 'limit'],
       }),
     });
   }
@@ -212,6 +266,15 @@ export interface DataResidencyUpdateConfig {
    * of `allowed_inference_geos` unless `allowed_inference_geos` is `"unrestricted"`.
    */
   default_inference_geo?: 'global' | 'us' | null;
+}
+
+/**
+ * The External Key is bound to a user profile, and the Workspace does not have
+ * that user profile. A Workspace can use only a key bound to its own user profile
+ * or a key that isn't bound to one.
+ */
+export interface KeyProfileMismatchErrorDetails {
+  error_code: 'key_profile_mismatch';
 }
 
 export type NoBillingWorkspaceRole =
@@ -327,6 +390,29 @@ export interface WorkspaceMember {
   workspace_role: WorkspaceRole;
 }
 
+/**
+ * The workspace has reached the member limit that Anthropic set for it.
+ */
+export interface WorkspaceMemberLimitExceededErrorDetails {
+  error_code: 'workspace_member_limit_exceeded';
+}
+
+export type WorkspacePolicyField = 'external_key_id';
+
+/**
+ * The request breaks the organization's Workspace Policy. The message says which
+ * rule it broke; an organization admin can see and change the policy in the
+ * Console.
+ */
+export interface WorkspacePolicyViolationErrorDetails {
+  error_code: 'workspace_policy_violation';
+
+  /**
+   * The request field the broken rule applies to.
+   */
+  field: WorkspacePolicyField;
+}
+
 export type WorkspaceRole =
   | 'workspace_admin'
   | 'workspace_billing'
@@ -431,6 +517,13 @@ export interface WorkspaceUpdateParams {
 
 export interface WorkspaceListParams extends PageParams {
   /**
+   * Only the Workspaces with these IDs, at most 100. `include_archived` and
+   * `include_default` still apply, and IDs of Workspaces the caller can't list are
+   * left out.
+   */
+  ids?: Array<string>;
+
+  /**
    * Whether to include Workspaces that have been archived in the response
    */
   include_archived?: boolean;
@@ -441,19 +534,29 @@ export interface WorkspaceListParams extends PageParams {
   include_default?: boolean;
 }
 
+Workspaces.KeyProfileMismatchError = KeyProfileMismatchError;
+Workspaces.WorkspaceMemberLimitExceededError = WorkspaceMemberLimitExceededError;
+Workspaces.WorkspacePolicyViolationError = WorkspacePolicyViolationError;
 Workspaces.RateLimits = RateLimits;
 Workspaces.Members = Members;
 Workspaces.ServiceAccounts = ServiceAccounts;
 
 export declare namespace Workspaces {
   export {
+    KeyProfileMismatchError as KeyProfileMismatchError,
+    WorkspaceMemberLimitExceededError as WorkspaceMemberLimitExceededError,
+    WorkspacePolicyViolationError as WorkspacePolicyViolationError,
     type AllowedInferenceGeo as AllowedInferenceGeo,
     type DataResidency as DataResidency,
     type DataResidencyCreateConfig as DataResidencyCreateConfig,
     type DataResidencyUpdateConfig as DataResidencyUpdateConfig,
+    type KeyProfileMismatchErrorDetails as KeyProfileMismatchErrorDetails,
     type NoBillingWorkspaceRole as NoBillingWorkspaceRole,
     type Workspace as Workspace,
     type WorkspaceMember as WorkspaceMember,
+    type WorkspaceMemberLimitExceededErrorDetails as WorkspaceMemberLimitExceededErrorDetails,
+    type WorkspacePolicyField as WorkspacePolicyField,
+    type WorkspacePolicyViolationErrorDetails as WorkspacePolicyViolationErrorDetails,
     type WorkspaceRole as WorkspaceRole,
     type WorkspacesPage as WorkspacesPage,
     type WorkspaceCreateParams as WorkspaceCreateParams,

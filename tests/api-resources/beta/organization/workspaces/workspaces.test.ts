@@ -74,6 +74,7 @@ describe('resource workspaces', () => {
         {
           after_id: 'after_id',
           before_id: 'before_id',
+          ids: ['string'],
           include_archived: true,
           include_default: true,
           limit: 1,
