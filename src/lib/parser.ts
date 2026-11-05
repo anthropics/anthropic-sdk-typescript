@@ -118,6 +118,12 @@ function parseOutputFormat<Params extends ParseableMessageCreateParams>(
 
     return JSON.parse(content);
   } catch (error) {
-    throw new AnthropicError(`Failed to parse structured output: ${error}`);
+    if (error instanceof AnthropicError) {
+      throw error;
+    }
+    throw new AnthropicError(
+      `Failed to parse structured output: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
+    );
   }
 }

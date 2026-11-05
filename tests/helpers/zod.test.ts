@@ -1,4 +1,5 @@
 import { z } from 'zod/v4';
+import { AnthropicError } from '../../src/core/error';
 import { betaZodOutputFormat } from '../../src/helpers/beta/zod';
 import { zodOutputFormat } from '../../src/helpers/zod';
 
@@ -250,6 +251,24 @@ describe('beta zod helpers', () => {
 
       expect(() => format.parse('invalid json')).toThrow();
       expect(() => format.parse('{"incomplete": ')).toThrow();
+    });
+
+    it('throws a readable AnthropicError for invalid JSON and for schema mismatches', () => {
+      const format = betaZodOutputFormat(z.object({ name: z.string(), age: z.number() }));
+
+      expect(() => format.parse('{"incomplete": ')).toThrow(AnthropicError);
+      expect(() => format.parse('{"incomplete": ')).toThrow(/Failed to parse structured output as JSON/);
+
+      let thrown: any;
+      try {
+        format.parse('{"name": 1}');
+      } catch (error) {
+        thrown = error;
+      }
+      expect(thrown).toBeInstanceOf(AnthropicError);
+      expect(thrown.message).not.toContain('[object Object]');
+      expect(thrown.message).toContain('name: ');
+      expect(thrown.message).toContain('age: ');
     });
   });
 });
