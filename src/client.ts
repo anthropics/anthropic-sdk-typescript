@@ -112,6 +112,7 @@ import {
   EnforcedSpendLimitReachedError,
   OrganizationOnHoldError,
   OrganizationTypeNotSupportedError,
+  RampLimitExceededError,
   RequestBodyEncodingInvalidError,
   RequestBodyEncodingUnsupportedError,
   RequestBodyTooLargeAfterDecodingError,
@@ -2255,6 +2256,7 @@ Anthropic.RequestBodyEncodingInvalidError = RequestBodyEncodingInvalidError;
 Anthropic.RequestBodyEncodingUnsupportedError = RequestBodyEncodingUnsupportedError;
 Anthropic.RequestBodyTooLargeAfterDecodingError = RequestBodyTooLargeAfterDecodingError;
 Anthropic.EnforcedSpendLimitReachedError = EnforcedSpendLimitReachedError;
+Anthropic.RampLimitExceededError = RampLimitExceededError;
 Anthropic.CMEKContextUnavailableError = CMEKContextUnavailableError;
 Anthropic.CMEKKeyUnreachableError = CMEKKeyUnreachableError;
 
@@ -2874,6 +2876,7 @@ export declare namespace Anthropic {
     RequestBodyEncodingUnsupportedError as RequestBodyEncodingUnsupportedError,
     RequestBodyTooLargeAfterDecodingError as RequestBodyTooLargeAfterDecodingError,
     EnforcedSpendLimitReachedError as EnforcedSpendLimitReachedError,
+    RampLimitExceededError as RampLimitExceededError,
     CMEKContextUnavailableError as CMEKContextUnavailableError,
     CMEKKeyUnreachableError as CMEKKeyUnreachableError,
   };
@@ -2899,6 +2902,7 @@ export declare namespace Anthropic {
   export type OrganizationTypeNotSupportedErrorDetails = API.OrganizationTypeNotSupportedErrorDetails;
   export type OverloadedError = API.OverloadedError;
   export type PermissionError = API.PermissionError;
+  export type RampLimitExceededErrorDetails = API.RampLimitExceededErrorDetails;
   export type RateLimitError = API.RateLimitError;
   export type RequestBodyEncodingInvalidErrorDetails = API.RequestBodyEncodingInvalidErrorDetails;
   export type RequestBodyEncodingUnsupportedErrorDetails = API.RequestBodyEncodingUnsupportedErrorDetails;

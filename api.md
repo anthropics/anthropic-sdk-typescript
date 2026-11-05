@@ -25,6 +25,7 @@ Types:
 - <code><a href="./src/resources/shared.ts">OrganizationTypeNotSupportedErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">OverloadedError</a></code>
 - <code><a href="./src/resources/shared.ts">PermissionError</a></code>
+- <code><a href="./src/resources/shared.ts">RampLimitExceededErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">RateLimitError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingInvalidErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingUnsupportedErrorDetails</a></code>

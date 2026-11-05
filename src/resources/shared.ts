@@ -111,6 +111,15 @@ export class EnforcedSpendLimitReachedError extends ErrorsRateLimitError {
 }
 
 /**
+ * The request would exceed a ramp limit, which caps how fast usage can grow. Retry
+ * after the time in the `retry-after` header.
+ */
+export class RampLimitExceededError extends ErrorsRateLimitError {
+  declare readonly errorCode: 'ramp_limit_exceeded';
+  declare readonly details: RampLimitExceededErrorDetails;
+}
+
+/**
  * The workspace's encryption settings could not be read, so the request was
  * refused. Retry in a few minutes.
  */
@@ -230,6 +239,7 @@ export type ErrorDetails =
   | SkillsAPI.SkillReadBlockedUndecryptableErrorDetails
   | RequestBodyTooLargeAfterDecodingErrorDetails
   | EnforcedSpendLimitReachedErrorDetails
+  | RampLimitExceededErrorDetails
   | CMEKKeyUnreachableErrorDetails
   | MessagesAPI.CompactionUnavailableErrorDetails
   | FilesAPI.StorageQuotaExceededErrorDetails
@@ -357,6 +367,14 @@ export interface PermissionError {
   message: string;
 
   type: 'permission_error';
+}
+
+/**
+ * The request would exceed a ramp limit, which caps how fast usage can grow. Retry
+ * after the time in the `retry-after` header.
+ */
+export interface RampLimitExceededErrorDetails {
+  error_code: 'ramp_limit_exceeded';
 }
 
 export interface RateLimitError {
