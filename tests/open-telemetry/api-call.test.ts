@@ -808,6 +808,92 @@ describe('OpenTelemetry spans', () => {
     ]);
   });
 
+  describe('a field of the request that throws when the span reads it costs that attribute alone', () => {
+    /** `object`, whose `key` throws on its first read, which is the span's. */
+    const throwsOnce = <T extends object>(object: T, key: keyof T): T => {
+      const value = object[key];
+      let reads = 0;
+      return Object.defineProperty(object, key, {
+        get() {
+          if (reads++ === 0) {
+            throw new Error('unreadable');
+          }
+          return value;
+        },
+      });
+    };
+
+    describe.each(['messages', 'beta.messages'] as const)('%s.create', (resource) => {
+      test.each([
+        [
+          'output_config.format',
+          () => ({ output_config: throwsOnce({ format: null }, 'format') }),
+          'gen_ai.output.type',
+        ],
+        [
+          'output_config.format.type',
+          () => ({
+            output_config: { format: throwsOnce({ type: 'json_schema' as const, schema: {} }, 'type') },
+          }),
+          'gen_ai.output.type',
+        ],
+        [
+          'output_config.effort',
+          () => ({ output_config: throwsOnce({ effort: 'low' as const }, 'effort') }),
+          'gen_ai.request.reasoning.level',
+        ],
+        [
+          'thinking.type',
+          () => ({ thinking: throwsOnce({ type: 'disabled' as const }, 'type') }),
+          'anthropic.thinking.type',
+        ],
+      ])('%s', async (_, fields, attribute) => {
+        const debug = vi.fn();
+        const { client, requests } = makeClient([json(MESSAGE)], {
+          logger: { debug, info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+          logLevel: 'debug',
+        });
+        const params = { ...PARAMS, service_tier: 'auto' as const, ...fields() };
+
+        const message =
+          resource === 'messages' ?
+            await client.messages.create(params)
+          : await client.beta.messages.create(params);
+
+        expect(message.id).toBe('msg_1');
+        expect(requests).toHaveLength(1);
+        const span = onlySpan('anthropic.messages.create');
+        expect(span.attributes).toMatchObject({
+          'gen_ai.operation.name': 'chat',
+          'gen_ai.request.model': 'model-a',
+          'gen_ai.request.max_tokens': 100,
+          'anthropic.request.service_tier': 'auto',
+          'gen_ai.response.id': 'msg_1',
+        });
+        expect(span.attributes).not.toHaveProperty(attribute);
+        expect(debug).toHaveBeenCalledWith(
+          'could not record telemetry',
+          expect.objectContaining({ message: 'unreadable' }),
+        );
+      });
+    });
+
+    test('beta.sessions.create: agent.id', async () => {
+      const { client, requests } = makeClient([json({ id: 'sesn_1', type: 'session' })]);
+
+      const session = await client.beta.sessions.create({
+        agent: throwsOnce({ id: 'agent_1', type: 'agent' as const }, 'id'),
+        environment_id: 'env_1',
+      });
+
+      expect(session.id).toBe('sesn_1');
+      expect(requests[0]!.body.agent).toEqual({ id: 'agent_1', type: 'agent' });
+      const span = onlySpan('anthropic.sessions.create');
+      expect(span.attributes['anthropic.session.environment.id']).toBe('env_1');
+      expect(span.attributes).not.toHaveProperty('gen_ai.agent.id');
+    });
+  });
+
   test('one span covers every attempt', async () => {
     const { client, requests } = makeClient(
       [json({ type: 'error', error: { type: 'api_error' } }, 500, { 'retry-after-ms': '0' }), json(MESSAGE)],

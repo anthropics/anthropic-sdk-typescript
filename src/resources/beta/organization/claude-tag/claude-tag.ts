@@ -37,6 +37,9 @@ import { BadRequestError, ConflictError, NotFoundError, PermissionDeniedError } 
 export class BetaSlackChannelSetUpSettingsRefusedError extends BadRequestError {
   declare readonly errorCode: 'slack_channel_set_up_settings_refused';
   declare readonly details: BetaSlackChannelSetUpSettingsRefusedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaSlackChannelSetUpSettingsRefusedError';
 }
 
 /**
@@ -46,6 +49,9 @@ export class BetaSlackChannelSetUpSettingsRefusedError extends BadRequestError {
 export class BetaAPIKeyScopeMissingError extends PermissionDeniedError {
   declare readonly errorCode: 'api_key_scope_missing';
   declare readonly details: BetaAPIKeyScopeMissingErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaAPIKeyScopeMissingError';
 }
 
 /**
@@ -54,6 +60,9 @@ export class BetaAPIKeyScopeMissingError extends PermissionDeniedError {
 export class BetaClaudeTagWritesNotEnabledError extends PermissionDeniedError {
   declare readonly errorCode: 'claude_tag_writes_not_enabled';
   declare readonly details: BetaClaudeTagWritesNotEnabledErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaClaudeTagWritesNotEnabledError';
 }
 
 /**
@@ -63,6 +72,9 @@ export class BetaClaudeTagWritesNotEnabledError extends PermissionDeniedError {
 export class BetaComplianceConfigurationRestrictedError extends PermissionDeniedError {
   declare readonly errorCode: 'compliance_configuration_restricted';
   declare readonly details: BetaComplianceConfigurationRestrictedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaComplianceConfigurationRestrictedError';
 }
 
 /**
@@ -71,6 +83,9 @@ export class BetaComplianceConfigurationRestrictedError extends PermissionDenied
 export class BetaOrganizationLevelScopedAPIKeyRequiredError extends PermissionDeniedError {
   declare readonly errorCode: 'organization_level_scoped_api_key_required';
   declare readonly details: BetaOrganizationLevelScopedAPIKeyRequiredErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaOrganizationLevelScopedAPIKeyRequiredError';
 }
 
 /**
@@ -81,6 +96,9 @@ export class BetaOrganizationLevelScopedAPIKeyRequiredError extends PermissionDe
 export class BetaSlackChannelSetUpEnvironmentNotFoundError extends NotFoundError {
   declare readonly errorCode: 'slack_channel_set_up_environment_not_found';
   declare readonly details: BetaSlackChannelSetUpEnvironmentNotFoundErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaSlackChannelSetUpEnvironmentNotFoundError';
 }
 
 /**
@@ -90,6 +108,9 @@ export class BetaSlackChannelSetUpEnvironmentNotFoundError extends NotFoundError
 export class BetaSlackChannelSetUpSettingsConflictError extends ConflictError {
   declare readonly errorCode: 'slack_channel_set_up_settings_conflict';
   declare readonly details: BetaSlackChannelSetUpSettingsConflictErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaSlackChannelSetUpSettingsConflictError';
 }
 
 export class ClaudeTag extends APIResource {

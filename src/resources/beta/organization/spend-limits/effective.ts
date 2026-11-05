@@ -14,8 +14,7 @@ export class Effective extends APIResource {
    * member's periods never split across pages. Supported for Claude Enterprise
    * organizations only, not for Claude Console organizations.
    *
-   * @throws {OrganizationTypeNotSupportedError} The endpoint does not support the organization's type. Each endpoint's
-   * description says which organization types it supports.
+   * @throws {OrganizationTypeNotSupportedError}
    *
    * @example
    * ```ts

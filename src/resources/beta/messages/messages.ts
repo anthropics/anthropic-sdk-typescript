@@ -9,11 +9,9 @@ import { RequestOptions } from '../../../internal/request-options';
 import { startApiCallSpan } from '../../../internal/tracing';
 import {
   messagesCreateSpanSettings,
-  recordCountTokensResponse,
   recordMessagesCreateRequest,
   recordMessagesCreateResponse,
 } from '../../../lib/internal/tracing';
-import { ATTR_GEN_AI_REQUEST_MODEL } from '../../../lib/internal/tracing/attributes';
 import {
   parseBetaMessage,
   type ExtractParsedContentFromBetaParams,
@@ -85,62 +83,35 @@ export class Messages extends APIResource {
    * Learn more about the Messages API in our
    * [user guide](https://platform.claude.com/docs/en/get-started)
    *
-   * @throws {AvailableToolsLimitExceededError} The tools available after a message exceed a limit on their number or their
-   * size.
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {ClaudeCodeVersionTooOldError} The request comes from a Claude Code version older than the minimum that the
-   * requested model or the organization requires. Update Claude Code, then retry.
-   * @throws {CMEKKeyDisabledError} The workspace's customer-managed encryption key is disabled or revoked.
-   * Re-enable the key, then retry.
-   * @throws {CMEKKeyNetworkBlockedError} The key management service's network access controls blocked the request to the
-   * workspace's customer-managed encryption key. The key itself may be healthy.
-   * @throws {CompactionBlockAmbiguousError} `messages` holds more than one `compaction` block with content. Send only the
-   * block the conversation returned last.
-   * @throws {CompactionBlockMisplacedError} The `compaction` block is not the first block of the conversation, or is in a
-   * `system` message.
-   * @throws {CompactionContentMismatchError} The `compaction` block's `content` differs from the text its `signature`
-   * recorded.
-   * @throws {CompactionIncompleteTurnError} The compaction request ends on an `assistant` turn that is not finished.
-   * @throws {CompactionNothingToSummarizeError} `messages` holds no `user` or `assistant` content to summarize or adopt.
-   * @throws {CompactionSignatureInvalidError} The `compaction` block's `signature` does not verify.
-   * @throws {CompactionTooManyToolReferencesError} The conversation references more distinct tools than a `compaction` block can
-   * record.
-   * @throws {CompactionToolChangesMismatchError} The `compaction` block's `tool_changes` differs from what was returned with the
-   * block.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
-   * @throws {RequestBodyEncodingInvalidError} The request body is not valid for its `Content-Encoding`.
-   * @throws {RequestBodyEncodingUnsupportedError} The request's `Content-Encoding` is not supported.
-   * @throws {ThreadAlreadyContinuedError} The response that `previous_message_id` names has already been continued, and
-   * each response can be continued only once. Continue from the Thread's most recent
-   * response `id`.
-   * @throws {ThreadContinueInFlightError} Another request is still continuing from the same `previous_message_id`. Wait
-   * for it to complete and continue from its response `id`, or replay the full
-   * conversation with `thread: {"type": "create"}`.
-   * @throws {ThreadFingerprintMismatchError} A field that must stay the same across a Thread's turns differs from the value
-   * stored with the Thread; the message names each such field. Send the stored
-   * values, or replay the full conversation with `thread: {"type": "create"}` to
-   * change them.
-   * @throws {ThreadUnsupportedRequestError} The request combines `thread` with a request field or an organization setting
-   * that Threads do not support; `unsupported`, when present, names it. Send the
-   * full conversation without `thread`, or change that field.
-   * @throws {ToolNameConflictError} A tool made available in `messages` takes a name that an available tool of
-   * another kind, or of another MCP server, already holds.
-   * @throws {ToolReferenceUnresolvedError} A tool change or MCP tool listing references a tool or MCP server that is not
-   * defined at that position in the conversation.
-   * @throws {ThreadNotFoundError} No usable Thread state was found for `previous_message_id`. Replay the full
-   * conversation with `thread: {"type": "create"}` to start a new Thread.
-   * @throws {SkillReadBlockedUndecryptableError} A custom skill the request names is stored under an encryption key state the
-   * workspace cannot currently decrypt.
-   * @throws {RequestBodyTooLargeAfterDecodingError} The compressed request body exceeds the request size limit once decoded.
-   * @throws {EnforcedSpendLimitReachedError} The organization has crossed the monthly API usage threshold of its API tier.
-   * @throws {CMEKKeyUnreachableError} The workspace's customer-managed encryption key could not be reached. Retry the
-   * request; if this continues, check that the key is available in your key
-   * management service, or contact Anthropic support.
-   * @throws {CompactionUnavailableError} The compaction could not be completed for a transient server reason. Retry the
-   * request.
+   * @throws {AvailableToolsLimitExceededError}
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {ClaudeCodeVersionTooOldError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {CMEKKeyNetworkBlockedError}
+   * @throws {CompactionBlockAmbiguousError}
+   * @throws {CompactionBlockMisplacedError}
+   * @throws {CompactionContentMismatchError}
+   * @throws {CompactionIncompleteTurnError}
+   * @throws {CompactionNothingToSummarizeError}
+   * @throws {CompactionSignatureInvalidError}
+   * @throws {CompactionTooManyToolReferencesError}
+   * @throws {CompactionToolChangesMismatchError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {RequestBodyEncodingInvalidError}
+   * @throws {RequestBodyEncodingUnsupportedError}
+   * @throws {ThreadAlreadyContinuedError}
+   * @throws {ThreadContinueInFlightError}
+   * @throws {ThreadFingerprintMismatchError}
+   * @throws {ThreadUnsupportedRequestError}
+   * @throws {ToolNameConflictError}
+   * @throws {ToolReferenceUnresolvedError}
+   * @throws {ThreadNotFoundError}
+   * @throws {SkillReadBlockedUndecryptableError}
+   * @throws {RequestBodyTooLargeAfterDecodingError}
+   * @throws {EnforcedSpendLimitReachedError}
+   * @throws {RampLimitExceededError}
+   * @throws {CMEKKeyUnreachableError}
+   * @throws {CompactionUnavailableError}
    *
    * @example
    * ```ts
@@ -193,7 +164,14 @@ export class Messages extends APIResource {
       timeout = this._client.calculateNonstreamingTimeout(body.max_tokens, maxNonstreamingTokens);
     }
 
-    const headers = messagesCreateHeaders(modifiedParams, options);
+    const request = {
+      body,
+      timeout: timeout ?? 600000,
+      ...options,
+      headers: messagesCreateHeaders(modifiedParams, options),
+      stream: modifiedParams.stream ?? false,
+      __qualifiers: { beta: 'true' },
+    };
     // A client whose spans are disabled computes nothing for one, and returns its request as it is.
     const call =
       this._client._tracer &&
@@ -201,25 +179,20 @@ export class Messages extends APIResource {
         this._client,
         'anthropic.messages.create',
         options,
-        messagesCreateSpanSettings(this._client, body, headers),
+        messagesCreateSpanSettings(this._client, request),
       );
     recordMessagesCreateRequest(this._client, call, body);
-    const request = this._client.post<BetaMessage | Stream<unknown>>('/v1/messages', {
-      body,
-      timeout: timeout ?? 600000,
-      ...options,
-      __qualifiers: { beta: 'true' },
+    const promise = this._client.post<BetaMessage | Stream<unknown>>('/v1/messages', {
+      ...request,
       __span: call,
-      headers,
-      stream: modifiedParams.stream ?? false,
     });
     return (
       call ?
-        request._thenUnwrap((data) => {
+        promise._thenUnwrap((data) => {
           recordMessagesCreateResponse(this._client, call, body, data);
           return data;
         })
-      : request) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
+      : promise) as APIPromise<BetaMessage> | APIPromise<Stream<BetaRawMessageStreamEvent>>;
   }
 
   /**
@@ -274,33 +247,22 @@ export class Messages extends APIResource {
    * Learn more about token counting in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/token-counting)
    *
-   * @throws {AvailableToolsLimitExceededError} The tools available after a message exceed a limit on their number or their
-   * size.
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {CompactionBlockAmbiguousError} `messages` holds more than one `compaction` block with content. Send only the
-   * block the conversation returned last.
-   * @throws {CompactionBlockMisplacedError} The `compaction` block is not the first block of the conversation, or is in a
-   * `system` message.
-   * @throws {CompactionContentMismatchError} The `compaction` block's `content` differs from the text its `signature`
-   * recorded.
-   * @throws {CompactionNothingToSummarizeError} `messages` holds no `user` or `assistant` content to summarize or adopt.
-   * @throws {CompactionSignatureInvalidError} The `compaction` block's `signature` does not verify.
-   * @throws {CompactionToolChangesMismatchError} The `compaction` block's `tool_changes` differs from what was returned with the
-   * block.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
-   * @throws {RequestBodyEncodingInvalidError} The request body is not valid for its `Content-Encoding`.
-   * @throws {RequestBodyEncodingUnsupportedError} The request's `Content-Encoding` is not supported.
-   * @throws {ToolNameConflictError} A tool made available in `messages` takes a name that an available tool of
-   * another kind, or of another MCP server, already holds.
-   * @throws {ToolReferenceUnresolvedError} A tool change or MCP tool listing references a tool or MCP server that is not
-   * defined at that position in the conversation.
-   * @throws {RequestBodyTooLargeAfterDecodingError} The compressed request body exceeds the request size limit once decoded.
-   * @throws {EnforcedSpendLimitReachedError} The organization has crossed the monthly API usage threshold of its API tier.
-   * @throws {CompactionUnavailableError} The compaction could not be completed for a transient server reason. Retry the
-   * request.
+   * @throws {AvailableToolsLimitExceededError}
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CompactionBlockAmbiguousError}
+   * @throws {CompactionBlockMisplacedError}
+   * @throws {CompactionContentMismatchError}
+   * @throws {CompactionNothingToSummarizeError}
+   * @throws {CompactionSignatureInvalidError}
+   * @throws {CompactionToolChangesMismatchError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {RequestBodyEncodingInvalidError}
+   * @throws {RequestBodyEncodingUnsupportedError}
+   * @throws {ToolNameConflictError}
+   * @throws {ToolReferenceUnresolvedError}
+   * @throws {RequestBodyTooLargeAfterDecodingError}
+   * @throws {EnforcedSpendLimitReachedError}
+   * @throws {CompactionUnavailableError}
    *
    * @example
    * ```ts
@@ -319,32 +281,26 @@ export class Messages extends APIResource {
     const modifiedParams = transformOutputFormat(params);
 
     const { betas, user_profile_id, workspace_id, ...body } = modifiedParams;
-    const headers = buildHeaders([
-      {
-        'anthropic-beta': [...(betas ?? []), 'token-counting-2024-11-01'].toString(),
-        ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
-        ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
-      },
-      options?.headers,
-    ]);
-    const call = startApiCallSpan(this._client, 'anthropic.messages.count_tokens', options, {
-      route: '/v1/messages/count_tokens',
-      attributes: { [ATTR_GEN_AI_REQUEST_MODEL]: body.model },
-    });
-    const request = this._client.post<BetaMessageTokensCount>('/v1/messages/count_tokens', {
+    const request = {
       body,
       ...options,
+      headers: buildHeaders([
+        {
+          'anthropic-beta': [...(betas ?? []), 'token-counting-2024-11-01'].toString(),
+          ...(user_profile_id != null ? { 'anthropic-user-profile-id': user_profile_id } : undefined),
+          ...(workspace_id != null ? { 'anthropic-workspace-id': workspace_id } : undefined),
+        },
+        options?.headers,
+      ]),
       __qualifiers: { beta: 'true' },
-      __span: call,
-      headers,
+    };
+    return this._client.post('/v1/messages/count_tokens', {
+      ...request,
+      __span: startApiCallSpan(this._client, 'anthropic.messages.count_tokens', options, {
+        route: '/v1/messages/count_tokens',
+        request,
+      }),
     });
-    // Only a request with a span has a response to record.
-    return call ?
-        request._thenUnwrap((count) => {
-          recordCountTokensResponse(this._client, call, count);
-          return count;
-        })
-      : request;
   }
 
   toolRunner(

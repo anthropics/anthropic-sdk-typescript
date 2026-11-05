@@ -368,6 +368,9 @@ export type BetaManagedAgentsMemoryListItem = BetaManagedAgentsMemory | BetaMana
  * `/notes/todo.md`. To free the path, rename or delete the memory that
  * `conflicting_memory_id` references, then retry. To change that memory instead of
  * creating a new one, update it.
+ *
+ * To handle the error in code, use `conflicting_path` and `conflicting_memory_id`
+ * instead of `message`.
  */
 export interface BetaManagedAgentsMemoryPathConflictError {
   type: 'memory_path_conflict_error';
@@ -386,10 +389,6 @@ export interface BetaManagedAgentsMemoryPathConflictError {
    */
   conflicting_path?: string;
 
-  /**
-   * A human-readable explanation of the conflict. To handle the error in code, use
-   * `conflicting_path` and `conflicting_memory_id` instead.
-   */
   message?: string;
 }
 
@@ -408,9 +407,6 @@ export interface BetaManagedAgentsMemoryPathConflictError {
 export interface BetaManagedAgentsMemoryPreconditionFailedError {
   type: 'memory_precondition_failed_error';
 
-  /**
-   * A human-readable explanation of why the precondition failed.
-   */
   message?: string;
 }
 

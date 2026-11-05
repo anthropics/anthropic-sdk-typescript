@@ -9,10 +9,11 @@ The generator writes the rest of this file. Rules about this repository's hand-w
 ### Overview
 
 - The official TypeScript SDK for the Claude API (`@anthropic-ai/sdk`). Hand-written helpers, streams, tool runners, credentials, and middleware sit on top of the generated code. The platform clients live in `packages/{aws,bedrock,foundry,google-cloud,vertex}-sdk` and are released as separate packages.
-- `src/helpers/`, `src/tools/`, and `packages/` are hand-written, like `src/lib/` and `examples/`. The generator never touches them.
+- `src/helpers/` and `src/tools/` are hand-written, like `src/lib/` and `examples/`. The generator never touches them.
+- `packages/` is hand-written too, except for each package's `package.json` and build files: `build`, `tsc-multi.json`, the `tsconfig*.json` files, `vitest.config.mts`, and `tests/vitest-globals.d.ts`.
 - `stream()`, `parse()`, and `toolRunner()` in `src/resources/beta/messages/messages.ts` are hand-written.
-- An unreleased API feature has its own branch, and hand-written work for that feature targets it. Those branches get force-pushed, so rebase with `git rebase --onto <new-base> <old-base-sha>`.
-- Describe a public type change in its doc comment and commit message, not in a manual `CHANGELOG.md` edit.
+- Each package has its own `CHANGELOG.md`, so a PR adds its line to the changelog of the package it changes.
+- Describe a public type change in its doc comment and in its changelog line.
 
 ### Build, test, lint
 
@@ -37,12 +38,11 @@ The generator writes the rest of this file. Rules about this repository's hand-w
 - `Messages.BetaToolRunner` and `client.beta.messages.toolRunner()` show how a helper class hangs off the resource that creates it.
 - Beta helpers are prefixed `beta` and live in `src/helpers/beta/` (`betaZodTool`, `betaTool`). GA helpers stay in `src/helpers/`.
 - Cross-cutting behavior goes in middleware or request options, not in `xWithY` method variants. That way `create`, `stream`, and `toolRunner` all get it.
-- Helpers that make requests accept `requestOptions`, and tag their requests with `helperHeader(...)` from `src/internal/stainless-helper-header.ts`. Those tag values are shared with the other SDKs.
-- A method for a beta API appends that API's beta value to the caller's `betas` and sends the list as `anthropic-beta`. `options.headers` is merged last, so an explicit header from the caller wins. A helper that needs a beta adds it the same way, as `parse` does with `structured-outputs-2025-12-15`. It doesn't ask the caller to add it.
-- A platform client keeps its own state in private fields, and carries that state into copies through its `withOptions` override. A resource the platform doesn't serve is a getter that throws an explanatory error.
+- Helpers that make requests accept `requestOptions`, and tag their requests with `helperHeader(...)` from `src/internal/stainless-helper-header.ts`.
+- `options.headers` is merged last, so an explicit `anthropic-beta` header from the caller wins. `parse` adds `structured-outputs-2025-12-15` itself.
+- A platform client keeps its own state in private fields, and carries that state into copies through its `withOptions` override. A resource the platform doesn't serve is a getter that throws.
 - A platform client rejects a first-party credential option it doesn't authenticate with. Its constructor starts with `rejectUnsupportedCredentials` from `src/internal/utils/values.ts`, and names the ones it accepts, so a new one is rejected until the client opts in. That covers `withOptions` too, because the base `withOptions` runs the constructor again. `AnthropicAws` takes an `authToken`, which the environment helpers pass, and signs instead of sending it. `apiKey: null` never reads the platform's key variable.
-- Hand-written unions that shadow generated ones, such as `BetaClientRunnableToolType`, have to be updated when a tool version ships.
-- Matching the other SDKs also covers `x-stainless-helper` values and model-visible strings.
+- Hand-written unions that shadow generated ones, such as `TracksToolInput`, have to be updated when the spec adds a member.
 - Say in `src/_vendor/<name>/README.md` where vendored code came from and what changed locally.
 
 ### Errors
@@ -55,10 +55,10 @@ The generator writes the rest of this file. Rules about this repository's hand-w
 
 ### Common mistakes
 
-- **Dropping a new `message_delta` field.** When codegen adds one, handle it in both `MessageStream` and `BetaMessageStream`. Then add it to the `Record<keyof …, true>` tripwires in `tests/api-resources/MessageStream.test.ts` and `tests/api-resources/BetaMessageStream.test.ts`.
-- **Hand-listing generated fields with no tripwire.** The existing tripwires are the stream-test constants above and `tests/lib/TracksToolInput.test.ts`.
-- **Fixing one stream and not the other.** `MessageStream` and `BetaMessageStream` are parallel. A fix to one belongs in the other, in the same PR. Report a stream error only through `#handleError`.
-- **Throwing on an unknown union member.** Handle the known cases in a `switch`, and end it with `default: checkNever(value)` from `src/internal/utils/values.ts`. `checkNever` takes a `never`, so it stops compiling when a known member is unhandled, and it does nothing at runtime.
+- **Dropping a new `message_delta` field.** `MessageStream` and `BetaMessageStream` are the accumulators. The tripwires are the `Record<keyof …, true>` constants in `tests/api-resources/MessageStream.test.ts` and `tests/api-resources/BetaMessageStream.test.ts`.
+- **Hand-listing generated fields where a missed member would cause a bug, with no tripwire.** The existing tripwires are the stream-test constants above and `tests/lib/TracksToolInput.test.ts`.
+- **Fixing one stream and not the other.** `MessageStream` and `BetaMessageStream` are parallel. Report a stream error only through `#handleError`.
+- **Throwing on an unknown union member.** Handle the known cases in a `switch`. Where a missed member would cause a bug, end it with `default: checkNever(value)` from `src/internal/utils/values.ts`. `checkNever` takes a `never`, so it stops compiling when a known member is unhandled, and it does nothing at runtime.
 - **Validating what the API validates.** Don't re-validate the tool input the model sent against its schema. A path outside the working directory is something the API never sees, so a client-side check covers it. `AgentToolContext.maxFileBytes` is a configurable cap.
 - **Retry loops that differ from the client.** Add jitter with `applyJitter`, and cap delays with `Math.min`.
 - **Leaking through abort listeners.** `makeCleanup` in `src/internal/request-signal.ts` builds its listener in a separate function, as `_makeAbort` does. Link controllers with `linkAbort`, and call the cleanup function it returns.
@@ -68,14 +68,13 @@ The generator writes the rest of this file. Rules about this repository's hand-w
 - Don't pluralize "middleware": a list of them is still `middleware`, as in the client's `middleware` option and `applyMiddleware`, never `middlewares`.
 - Names use API terms (`tool`, `input_schema`, `run`).
 - Date-suffix a factory for a versioned tool (`betaAgentToolset20260401`).
-- Bedrock examples use inference-profile model IDs.
 
 ### Tests
 
 - Platform-package tests live in `packages/<name>-sdk/tests/`.
 - Tool-runner end-to-end tests replay decompressed `nock` fixtures from `tests/lib/tools/nockFixtures/`. They only reach the real API when `NOCK_RECORD=true` re-records them.
 
-## Rules every SDK shares
+## Rules every generated repository shares
 
 These rules don't depend on the language. The SDKs for this API in other languages carry the same text.
 
@@ -100,7 +99,7 @@ These rules don't depend on the language. The SDKs for this API in other languag
 
 - `./scripts/lint` and `./scripts/test` are what CI runs, so run them before you push.
 - It is fine to call the tools behind `./scripts/lint` and `./scripts/test` directly for a quick, targeted check while you work.
-- `./scripts/test` starts a mock API server on port 4010, unless one is already up or `TEST_API_BASE_URL` is set. The mock server needs Node.
+- Where `./scripts/mock` exists, `./scripts/test` starts a mock API server on port 4010, unless one is already up or `TEST_API_BASE_URL` is set. The mock server needs Node.
 - `./scripts/mock` runs the mock server on its own. It serves `scripts/mock-spec.json.gz` unless you pass a spec path or URL, and `--daemon` runs it in the background.
 - Nothing in a default run calls a real endpoint. A test that does is skipped unless an environment variable turns it on.
 - Rarely silence a checker. A suppression usually means the code is doing something wrong, so fix the code or its types first. One that stays names its rule and has an obvious reason.
@@ -140,7 +139,7 @@ These rules don't depend on the language. The SDKs for this API in other languag
 ### Commits and pull requests
 
 - Commit subjects and PR titles follow Conventional Commits (`feat(scope):`, `fix(scope):`, `chore`, `docs`). A `!` or a `BREAKING CHANGE:` footer marks the release as breaking (a major version, or a minor one below 1.0). Only a maintainer adds one.
-- If `.github/workflows/changelog.yml` exists, every PR adds a changelog entry or carries the `skip-changelog` label, and CI fails it otherwise. An entry is a new file in `.changelog/`, the directory beside `CHANGELOG.md`, under any name such as `close-socket.md`. It holds one line, a Conventional Commits subject such as `fix(client): close the socket on timeout`, with no body or footer. Release automation moves the line into `CHANGELOG.md` when it sets the version, so don't edit `CHANGELOG.md` by hand. If that workflow doesn't exist, release automation writes `CHANGELOG.md` and the version files from the commit subjects, and a manual edit is overwritten or conflicts with the release PR.
+- If `.github/workflows/changelog.yml` exists, every PR adds a changelog entry or carries the `skip-changelog` label, and CI fails it otherwise. An entry is a new file in `.changelog/`, the directory beside `CHANGELOG.md`, under any name such as `close-socket.md`. Its first line is a Conventional Commits subject such as `fix(client): close the socket on timeout`. What users need beyond that, such as migration notes, goes in a body: a blank line, then any Markdown. A footer in the body has no effect, so only a `!` marks an entry as breaking. Release automation moves the entry into `CHANGELOG.md` when it sets the version, with the body under the subject's line, so don't edit `CHANGELOG.md` by hand. If that workflow doesn't exist, release automation writes `CHANGELOG.md` and the version files from the commit subjects, and a manual edit is overwritten or conflicts with the release PR.
 - Either way, release automation writes the version, so don't edit it by hand. Where PRs add entries, a maintainer sets the version of the next release by adding the file `.changelog/version`. It holds one line, a version higher than the current one, such as `2.0.0`. A PR that adds only that file needs no entry.
 - Where PRs add entries and `.version-manifest.json` lists several packages, each package has its own `CHANGELOG.md` and `.changelog/`, and a PR adds an entry to every package it changes. A release leaves out a package whose `.changelog/` holds no file, so a change merged with `skip-changelog` ships only once another change has added an entry for that package.
 - An entry's type is one of `feat`, `fix`, `perf`, `revert`, `chore`, `docs`, `style`, `refactor` and `build`. `test` and `ci` are hidden commit types, so CI fails a PR whose entry has one, with or without a `!`. Where release automation writes `CHANGELOG.md` from commit subjects, `release-please-config.json` lists the commit types, and a subject with no type doesn't reach the changelog.
@@ -187,6 +186,9 @@ These rules are about the design of a client library. They don't depend on the l
 
 - Send what the caller passed. Don't hoist, merge, reorder, default, or drop parts of a request the caller built.
 - Let the API validate. It rejects media types, lengths, and formats it doesn't support, and the caller gets an actionable error. A client-side check is for something the API never sees, such as the size of a local file. If the client needs a cap for its own safety, make the cap configurable.
+- Parse, don't validate. Leave type checking to the language's type checker, and don't reject a response the SDK could hand to the user. Check a value's type at runtime only where the code can't go on without knowing it, such as an error code that must be a string to dispatch on. Otherwise pass the value along as-is, whether it came from the API, including a model's tool input, or from a caller whose types cover it, even in a language that doesn't enforce types. A clearer error for a value that would fail anyway isn't a reason.
+- Before you add a runtime type check, such as `typeof`, `isinstance`, `is_a?`, `respond_to?`, `instanceof`, `is_string`, or a helper that takes an untyped value and narrows it, find what real input reaches it and whether the rest of the SDK checks the same value, and name both in the PR description. Being more idiomatic or more robust isn't a reason, and neither is a review bot's finding.
+- The two rules above don't cover a `null` check on an optional value, a value that decides a security or permission question, a tool runner parsing a model's tool input into the tool's declared type, or reading into an error body that may not be an object, where that read would otherwise throw, though the fields it reads still pass through as-is.
 - Never fail on data this version doesn't recognize. The API adds enum members, union variants, and fields, and a new one has to flow through the user's process. Handle the cases you know and pass the rest through untouched, above all in streaming and middleware code, where a failure tears down the caller's response.
 - A permission or security decision is the exception. It treats an unrecognized value as a denial.
 - When API output goes into a new request, carry the raw data across. Rebuilding it from typed properties drops whatever this version doesn't model.
@@ -201,7 +203,8 @@ These rules are about the design of a client library. They don't depend on the l
 
 - A failure a caller may want to handle separately has a type or value they can match on, following this SDK's existing error design.
 - Reuse the existing error types before you add one. A family of related failures can have its own type.
-- Generated code maps an HTTP status to an error. Leave that mapping to it.
+- Generated code maps a response to an error, by its HTTP status and, where the spec declares error codes, by its code. A code this version doesn't know gets the error for its status. Leave that mapping to it.
+- The error for a status or a code is generated from the spec, so don't hand-write one. A new one is a spec change.
 - Keep the original error as the cause.
 - Error text is actionable. It names the option, where its value came from, and the fix. Each failed check has its own message, with the actual value in it unless that value is a secret.
 - Two options that conflict are an error, not a warning. Rejecting an option the SDK used to ignore is a breaking change, so deprecate it first.
@@ -260,8 +263,11 @@ The SDK runs on Node, Deno, Bun, edge runtimes, and in browsers. Bundlers follow
 
 ### Errors
 
-- A failure that comes from SDK- or API-specific logic throws `AnthropicError` or a subclass, so callers can catch the SDK's failures in one place. API failures are `APIError` subclasses, chosen by status.
-- Use the standard `TypeError`, or `RangeError` for a value out of range, where any JavaScript library would. That covers an argument of the wrong type (`buildHeaders` rejects a header name that isn't a string) and options that can't be combined. Avoid a bare `Error`, because a caller can't tell it apart from anything else.
+- A failure that comes from SDK- or API-specific logic throws `AnthropicError` or a subclass, so callers can catch the SDK's failures in one place. An API failure is an `APIError` or a subclass.
+- The class for a status is in `src/core/error.ts`. Where the spec declares error codes, the class for a code extends its status class, and sits in the resource file that has its details type.
+- `APIError` has members for the properties every error body shares, `null` when the body lacks one. With error codes it also has `errorCode` and `details`, and the class for a code narrows those two.
+- An error event in a stream throws a plain `APIError` with no status.
+- When a check fails, use the standard `TypeError`, or `RangeError` for a value out of range, where any JavaScript library would, as `buildHeaders` does for a header name that isn't a string. That also covers options that can't be combined. Avoid a bare `Error`, because a caller can't tell it apart from anything else.
 - Format caught values with `castToError`, or with `e instanceof Error ? e.message : String(e)`. Don't write `(e as Error).message`.
 - Detect an abort with `isAbortError(err)` from `src/internal/errors.ts`, not with `instanceof`.
 - Log through the client's logger (`loggerFor(client)`), not `console`.
@@ -269,7 +275,6 @@ The SDK runs on Node, Deno, Bun, edge runtimes, and in browsers. Bundlers follow
 ### Common mistakes
 
 - **Hand-listing generated fields where a missed member would cause a bug, with no tripwire.** A tripwire stops compiling when the spec changes the generated type without the hand-written list. `tsc` enforces them through `./scripts/lint`, not the test runner.
-- **Runtime checks that the types already cover.** Trust typed inputs. Don't add a runtime check for something the caller's types already rule out.
 - **Validating what the API validates.** `null` is the only off-switch for a configurable cap.
 - **Leaking through abort listeners.** A listener on the caller's signal lives as long as that signal does, and so does everything its closure captures.
   - Build the listener in a small separate function that takes only what it needs, as `_makeAbort` in `src/client.ts` does. An arrow function written inline captures the whole enclosing scope, the request body and options included, and a long-lived signal then keeps all of it from being collected.
@@ -296,3 +301,44 @@ The SDK runs on Node, Deno, Bun, edge runtimes, and in browsers. Bundlers follow
 - Reuse SDK internals in tests, such as `_iterSSEMessages`. Don't write a second SSE parser.
 - Use `test.each` for cases that differ only in input, and snapshots for large expected values.
 - A new header merge rule needs a case in `tests/buildHeaders.test.ts` for each `HeadersLike` shape.
+
+## Rules the Claude SDKs share
+
+### Stable and beta
+
+- Stable and beta are parallel copies: the generated types, and the hand-written helpers over them. When you change one, check whether its stable or beta twin needs the same change.
+- The ways to create a message are copies too. Behavior added to `create` usually belongs on the streaming, parsing, and tool-runner entry points.
+
+### Headers
+
+- The headers that hold a list are `anthropic-beta` and `x-stainless-helper`, both comma-joined. Merge `x-stainless-helper` through the existing helper.
+- A method for a beta API adds that API's `anthropic-beta` value by default, joined with the caller's betas. A helper that needs a beta adds it the same way. It doesn't ask the caller to add it.
+- The `x-stainless-helper` values are shared with the other SDKs, and telemetry matches on them, so don't rename one.
+- Matching the other SDKs also covers header semantics, model-visible strings, and helper shapes such as the accumulated stream returning the non-streaming `Message`. Where this SDK has them, it covers client-side policies such as the non-streaming `max_tokens`/timeout guard too.
+
+### Errors
+
+- An error body has `error.type`, `error.message`, and `error.details`, and `error.details.error_code` names the specific failure. Every error for an API response exposes all four, whichever class it is.
+- An `error` event in a stream arrives after a 200 response, so it never gets the class for a status or a code. Tell those failures apart by the `error.type` in the event.
+
+### Models
+
+- Examples use a current model ID, or the generated constant for one. Bedrock examples use an inference-profile model ID (a `global.` prefix, or a regional one such as `us.`).
+
+### Platform clients
+
+- Protocol translation for a platform (`model` into the URL, `anthropic_version` and `anthropic_beta` into the body) is mapping, not rewriting the request.
+- A platform client never sends a first-party credential (`ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, a profile) to the platform's host.
+- A resource a platform doesn't serve is left off the client's type, or fails with an error that says so.
+- The platform clients each resolve credentials and translate requests, so they are copies as well.
+
+### Streaming and tools
+
+- The accumulators copy the `message_delta` fields by hand, and a missed field is dropped quietly, so that list needs a tripwire test. When codegen adds a field, handle it for stable and for beta, then update the tripwire.
+- Apply a `message_delta` field only when it is present. An omitted key keeps the earlier value, and a present one replaces it, even an empty list. A `null` usage counter counts as omitted.
+- Not every block has deltas. Some arrive complete in `content_block_start` (`redacted_thinking`, server-tool and MCP tool results), others as a placeholder plus one delta (compaction), and new block types keep appearing. So default to passing a whole block through.
+- A failure inside a tool isn't an SDK failure. The tool runner sends it to the model as an `is_error` tool result.
+
+## Rules the Claude SDKs and the CLI share
+
+- An unreleased API feature has its own branch, and hand-written work for that feature targets it. Those branches get force-pushed, so rebase with `git rebase --onto <new-base> <old-base-sha>`.

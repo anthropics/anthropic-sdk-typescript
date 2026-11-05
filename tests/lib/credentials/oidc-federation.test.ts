@@ -136,6 +136,13 @@ describe('oidcFederationProvider', () => {
     }
   });
 
+  it('names the error it throws on non-ok response WorkloadIdentityError', async () => {
+    const mockFetch: Fetch = vi.fn().mockResolvedValue(new Response('unauthorized', { status: 401 }));
+    const provider = oidcFederationProvider({ ...baseConfig, fetch: mockFetch });
+
+    await expect(provider()).rejects.toHaveProperty('name', 'WorkloadIdentityError');
+  });
+
   it('appends the full token-exchange hint on 401 when workspaceId is unset', async () => {
     // Without a workspaceId the most common cause is a federation rule that
     // spans multiple workspaces — surface the workspace-ID fix alongside the

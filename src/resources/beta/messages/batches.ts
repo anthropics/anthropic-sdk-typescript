@@ -22,14 +22,10 @@ export class Batches extends APIResource {
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {CMEKKeyDisabledError} The workspace's customer-managed encryption key is disabled or revoked.
-   * Re-enable the key, then retry.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
-   * @throws {EnforcedSpendLimitReachedError} The organization has crossed the monthly API usage threshold of its API tier.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {EnforcedSpendLimitReachedError}
    *
    * @example
    * ```ts
@@ -81,11 +77,8 @@ export class Batches extends APIResource {
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -125,11 +118,8 @@ export class Batches extends APIResource {
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -171,11 +161,8 @@ export class Batches extends APIResource {
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -222,11 +209,8 @@ export class Batches extends APIResource {
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -269,13 +253,9 @@ export class Batches extends APIResource {
    * Learn more about the Message Batches API in our
    * [user guide](https://platform.claude.com/docs/en/build-with-claude/batch-processing)
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {CMEKKeyDisabledError} The workspace's customer-managed encryption key is disabled or revoked.
-   * Re-enable the key, then retry.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {CMEKKeyDisabledError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts

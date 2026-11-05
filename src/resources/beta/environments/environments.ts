@@ -37,6 +37,9 @@ import { path } from '../../../internal/utils/path';
 export class BetaEnvironmentArchivedError extends BadRequestError {
   declare readonly errorCode: 'environment_archived';
   declare readonly details: BetaEnvironmentArchivedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaEnvironmentArchivedError';
 }
 
 /**
@@ -46,6 +49,9 @@ export class BetaEnvironmentArchivedError extends BadRequestError {
 export class BetaInvalidConfigTypeChangeError extends BadRequestError {
   declare readonly errorCode: 'invalid_config_type_change';
   declare readonly details: BetaInvalidConfigTypeChangeErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaInvalidConfigTypeChangeError';
 }
 
 /**
@@ -55,6 +61,9 @@ export class BetaInvalidConfigTypeChangeError extends BadRequestError {
 export class BetaInvalidMetadataError extends BadRequestError {
   declare readonly errorCode: 'invalid_metadata';
   declare readonly details: BetaInvalidMetadataErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaInvalidMetadataError';
 }
 
 /**
@@ -64,6 +73,9 @@ export class BetaInvalidMetadataError extends BadRequestError {
 export class BetaEnvironmentCreateDisabledError extends PermissionDeniedError {
   declare readonly errorCode: 'environment_create_disabled';
   declare readonly details: BetaEnvironmentCreateDisabledErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaEnvironmentCreateDisabledError';
 }
 
 /**
@@ -73,6 +85,9 @@ export class BetaEnvironmentCreateDisabledError extends PermissionDeniedError {
 export class BetaEnvironmentUpdateDisabledError extends PermissionDeniedError {
   declare readonly errorCode: 'environment_update_disabled';
   declare readonly details: BetaEnvironmentUpdateDisabledErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaEnvironmentUpdateDisabledError';
 }
 
 /**
@@ -81,6 +96,9 @@ export class BetaEnvironmentUpdateDisabledError extends PermissionDeniedError {
 export class BetaEnvironmentNotFoundError extends NotFoundError {
   declare readonly errorCode: 'environment_not_found';
   declare readonly details: BetaEnvironmentNotFoundErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaEnvironmentNotFoundError';
 }
 
 export class Environments extends APIResource {
@@ -89,13 +107,9 @@ export class Environments extends APIResource {
   /**
    * Create a new environment with the specified configuration.
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
-   * @throws {BetaEnvironmentCreateDisabledError} Anthropic has turned off creating environments for this organization. Existing
-   * environments still work.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {BetaEnvironmentCreateDisabledError}
    *
    * @example
    * ```ts
@@ -128,11 +142,8 @@ export class Environments extends APIResource {
   /**
    * Retrieve a specific environment by ID.
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -168,16 +179,11 @@ export class Environments extends APIResource {
   /**
    * Update an existing environment's configuration.
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {BetaEnvironmentArchivedError} The environment is archived, so it cannot be updated.
-   * @throws {BetaInvalidConfigTypeChangeError} `config.type` differs from the environment's stored type, which cannot change
-   * after creation.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
-   * @throws {BetaEnvironmentUpdateDisabledError} Anthropic has turned off updating environments for this organization. Existing
-   * environments still work as they are.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {BetaEnvironmentArchivedError}
+   * @throws {BetaInvalidConfigTypeChangeError}
+   * @throws {OrganizationOnHoldError}
+   * @throws {BetaEnvironmentUpdateDisabledError}
    *
    * @example
    * ```ts
@@ -215,11 +221,8 @@ export class Environments extends APIResource {
   /**
    * List environments with pagination support.
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -255,11 +258,8 @@ export class Environments extends APIResource {
   /**
    * Delete an environment by ID. Returns a confirmation of the deletion.
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts
@@ -296,11 +296,8 @@ export class Environments extends APIResource {
    * Archive an environment by ID. Archived environments cannot be used to create new
    * sessions.
    *
-   * @throws {ClaudeCodeKeyCreatorNotMemberError} The API key belongs to the Claude Code workspace, and the user who created it is
-   * no longer a member of the organization or of that workspace.
-   * @throws {OrganizationOnHoldError} Anthropic has disabled the organization for trust and safety reasons. An
-   * organization disabled for any other reason, such as billing, does not get this
-   * code. `appeal_url`, when present, is where the organization can appeal.
+   * @throws {ClaudeCodeKeyCreatorNotMemberError}
+   * @throws {OrganizationOnHoldError}
    *
    * @example
    * ```ts

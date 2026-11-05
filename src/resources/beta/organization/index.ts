@@ -112,6 +112,27 @@ export {
   type BetaOrganizationRole,
 } from './organization';
 export {
+  BetaCannotSignOutPrimaryOwnerError,
+  BetaCannotSignOutSelfError,
+  BetaCannotSignOutManagedMemberError,
+  BetaCannotSignOutMembershipAdminError,
+  BetaCannotSignOutOwnerError,
+  BetaCannotSignOutPrivilegedMemberError,
+  Users,
+  type BetaCannotSignOutManagedMemberErrorDetails,
+  type BetaCannotSignOutMembershipAdminErrorDetails,
+  type BetaCannotSignOutOwnerErrorDetails,
+  type BetaCannotSignOutPrimaryOwnerErrorDetails,
+  type BetaCannotSignOutPrivilegedMemberErrorDetails,
+  type BetaCannotSignOutSelfErrorDetails,
+  type BetaOrganizationUser,
+  type UserRemoveResponse,
+  type UserUpdateParams,
+  type UserListParams,
+  type UserSignOutParams,
+  type BetaOrganizationUsersPage,
+} from './users';
+export {
   BetaScanFailedError,
   BetaPluginNameTakenError,
   BetaScanPendingError,
@@ -326,14 +347,6 @@ export {
   type TelemetryDestinationTestParams,
   type BetaTelemetryDestinationsPageCursor,
 } from './telemetry-destinations/index';
-export {
-  Users,
-  type BetaOrganizationUser,
-  type UserRemoveResponse,
-  type UserUpdateParams,
-  type UserListParams,
-  type BetaOrganizationUsersPage,
-} from './users';
 export {
   Webhooks,
   type BetaDeletedOrganizationWebhookEndpoint,
