@@ -49,6 +49,9 @@ import { MODEL_NONSTREAMING_TOKENS } from '../../internal/constants';
 export class AvailableToolsLimitExceededError extends BadRequestError {
   declare readonly errorCode: 'available_tools_limit_exceeded';
   declare readonly details: AvailableToolsLimitExceededErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'AvailableToolsLimitExceededError';
 }
 
 /**
@@ -58,6 +61,9 @@ export class AvailableToolsLimitExceededError extends BadRequestError {
 export class CompactionBlockAmbiguousError extends BadRequestError {
   declare readonly errorCode: 'compaction_block_ambiguous';
   declare readonly details: CompactionBlockAmbiguousErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionBlockAmbiguousError';
 }
 
 /**
@@ -67,6 +73,9 @@ export class CompactionBlockAmbiguousError extends BadRequestError {
 export class CompactionBlockMisplacedError extends BadRequestError {
   declare readonly errorCode: 'compaction_block_misplaced';
   declare readonly details: CompactionBlockMisplacedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionBlockMisplacedError';
 }
 
 /**
@@ -76,6 +85,9 @@ export class CompactionBlockMisplacedError extends BadRequestError {
 export class CompactionContentMismatchError extends BadRequestError {
   declare readonly errorCode: 'compaction_content_mismatch';
   declare readonly details: CompactionContentMismatchErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionContentMismatchError';
 }
 
 /**
@@ -84,6 +96,9 @@ export class CompactionContentMismatchError extends BadRequestError {
 export class CompactionIncompleteTurnError extends BadRequestError {
   declare readonly errorCode: 'compaction_incomplete_turn';
   declare readonly details: CompactionIncompleteTurnErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionIncompleteTurnError';
 }
 
 /**
@@ -92,6 +107,9 @@ export class CompactionIncompleteTurnError extends BadRequestError {
 export class CompactionNothingToSummarizeError extends BadRequestError {
   declare readonly errorCode: 'compaction_nothing_to_summarize';
   declare readonly details: CompactionNothingToSummarizeErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionNothingToSummarizeError';
 }
 
 /**
@@ -100,6 +118,9 @@ export class CompactionNothingToSummarizeError extends BadRequestError {
 export class CompactionSignatureInvalidError extends BadRequestError {
   declare readonly errorCode: 'compaction_signature_invalid';
   declare readonly details: CompactionSignatureInvalidErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionSignatureInvalidError';
 }
 
 /**
@@ -109,6 +130,9 @@ export class CompactionSignatureInvalidError extends BadRequestError {
 export class CompactionTooManyToolReferencesError extends BadRequestError {
   declare readonly errorCode: 'compaction_too_many_tool_references';
   declare readonly details: CompactionTooManyToolReferencesErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionTooManyToolReferencesError';
 }
 
 /**
@@ -118,6 +142,9 @@ export class CompactionTooManyToolReferencesError extends BadRequestError {
 export class CompactionToolChangesMismatchError extends BadRequestError {
   declare readonly errorCode: 'compaction_tool_changes_mismatch';
   declare readonly details: CompactionToolChangesMismatchErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionToolChangesMismatchError';
 }
 
 /**
@@ -128,6 +155,9 @@ export class CompactionToolChangesMismatchError extends BadRequestError {
 export class ThreadAlreadyContinuedError extends BadRequestError {
   declare readonly errorCode: 'thread_already_continued';
   declare readonly details: ThreadAlreadyContinuedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ThreadAlreadyContinuedError';
 }
 
 /**
@@ -138,6 +168,9 @@ export class ThreadAlreadyContinuedError extends BadRequestError {
 export class ThreadContinueInFlightError extends BadRequestError {
   declare readonly errorCode: 'thread_continue_in_flight';
   declare readonly details: ThreadContinueInFlightErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ThreadContinueInFlightError';
 }
 
 /**
@@ -149,6 +182,9 @@ export class ThreadContinueInFlightError extends BadRequestError {
 export class ThreadFingerprintMismatchError extends BadRequestError {
   declare readonly errorCode: 'thread_fingerprint_mismatch';
   declare readonly details: ThreadFingerprintMismatchErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ThreadFingerprintMismatchError';
 }
 
 /**
@@ -159,6 +195,9 @@ export class ThreadFingerprintMismatchError extends BadRequestError {
 export class ThreadUnsupportedRequestError extends BadRequestError {
   declare readonly errorCode: 'thread_unsupported_request';
   declare readonly details: ThreadUnsupportedRequestErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ThreadUnsupportedRequestError';
 }
 
 /**
@@ -168,6 +207,9 @@ export class ThreadUnsupportedRequestError extends BadRequestError {
 export class ToolNameConflictError extends BadRequestError {
   declare readonly errorCode: 'tool_name_conflict';
   declare readonly details: ToolNameConflictErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ToolNameConflictError';
 }
 
 /**
@@ -177,6 +219,9 @@ export class ToolNameConflictError extends BadRequestError {
 export class ToolReferenceUnresolvedError extends BadRequestError {
   declare readonly errorCode: 'tool_reference_unresolved';
   declare readonly details: ToolReferenceUnresolvedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ToolReferenceUnresolvedError';
 }
 
 /**
@@ -186,6 +231,9 @@ export class ToolReferenceUnresolvedError extends BadRequestError {
 export class ThreadNotFoundError extends NotFoundError {
   declare readonly errorCode: 'thread_not_found';
   declare readonly details: ThreadNotFoundErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ThreadNotFoundError';
 }
 
 /**
@@ -195,6 +243,9 @@ export class ThreadNotFoundError extends NotFoundError {
 export class CompactionUnavailableError extends OverloadedError {
   declare readonly errorCode: 'compaction_unavailable';
   declare readonly details: CompactionUnavailableErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CompactionUnavailableError';
 }
 
 export class Messages extends APIResource {

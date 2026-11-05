@@ -222,6 +222,9 @@ import { startApiCallSpan } from '../../internal/tracing';
 export class OrgMemberLimitExceededError extends BadRequestError {
   declare readonly errorCode: 'org_member_limit_exceeded';
   declare readonly details: OrgMemberLimitExceededErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'OrgMemberLimitExceededError';
 }
 
 /**
@@ -231,6 +234,9 @@ export class OrgMemberLimitExceededError extends BadRequestError {
 export class ConcurrentMembershipChangeError extends ConflictError {
   declare readonly errorCode: 'concurrent_membership_change';
   declare readonly details: ConcurrentMembershipChangeErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ConcurrentMembershipChangeError';
 }
 
 export class Organization extends APIResource {

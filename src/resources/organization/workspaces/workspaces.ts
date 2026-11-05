@@ -47,6 +47,9 @@ import { path } from '../../../internal/utils/path';
 export class KeyProfileMismatchError extends BadRequestError {
   declare readonly errorCode: 'key_profile_mismatch';
   declare readonly details: KeyProfileMismatchErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'KeyProfileMismatchError';
 }
 
 /**
@@ -55,6 +58,9 @@ export class KeyProfileMismatchError extends BadRequestError {
 export class WorkspaceMemberLimitExceededError extends BadRequestError {
   declare readonly errorCode: 'workspace_member_limit_exceeded';
   declare readonly details: WorkspaceMemberLimitExceededErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'WorkspaceMemberLimitExceededError';
 }
 
 /**
@@ -65,6 +71,9 @@ export class WorkspaceMemberLimitExceededError extends BadRequestError {
 export class WorkspacePolicyViolationError extends BadRequestError {
   declare readonly errorCode: 'workspace_policy_violation';
   declare readonly details: WorkspacePolicyViolationErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'WorkspacePolicyViolationError';
 }
 
 export class Workspaces extends APIResource {

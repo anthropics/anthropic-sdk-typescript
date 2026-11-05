@@ -39,6 +39,9 @@ import { path } from '../../../../internal/utils/path';
 export class BetaScanFailedError extends BadRequestError {
   declare readonly errorCode: 'scan_failed';
   declare readonly details: BetaScanFailedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaScanFailedError';
 }
 
 /**
@@ -48,6 +51,9 @@ export class BetaScanFailedError extends BadRequestError {
 export class BetaPluginNameTakenError extends ConflictError {
   declare readonly errorCode: 'plugin_name_taken';
   declare readonly details: BetaPluginNameTakenErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaPluginNameTakenError';
 }
 
 /**
@@ -57,6 +63,9 @@ export class BetaPluginNameTakenError extends ConflictError {
 export class BetaScanPendingError extends ConflictError {
   declare readonly errorCode: 'scan_pending';
   declare readonly details: BetaScanPendingErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaScanPendingError';
 }
 
 /**
@@ -66,6 +75,9 @@ export class BetaScanPendingError extends ConflictError {
 export class BetaSkillNameTakenError extends ConflictError {
   declare readonly errorCode: 'skill_name_taken';
   declare readonly details: BetaSkillNameTakenErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaSkillNameTakenError';
 }
 
 /**
@@ -75,6 +87,9 @@ export class BetaSkillNameTakenError extends ConflictError {
 export class BetaRegistrationPendingError extends ServiceUnavailableError {
   declare readonly errorCode: 'registration_pending';
   declare readonly details: BetaRegistrationPendingErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaRegistrationPendingError';
 }
 
 export class Plugins extends APIResource {

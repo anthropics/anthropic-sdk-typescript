@@ -30,6 +30,9 @@ import { path } from '../../../../internal/utils/path';
 export class BetaSpendLimitsAdminAPIWritesNotEnabledError extends PermissionDeniedError {
   declare readonly errorCode: 'spend_limits_admin_api_writes_not_enabled';
   declare readonly details: BetaSpendLimitsAdminAPIWritesNotEnabledErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaSpendLimitsAdminAPIWritesNotEnabledError';
 }
 
 export class SpendLimits extends APIResource {

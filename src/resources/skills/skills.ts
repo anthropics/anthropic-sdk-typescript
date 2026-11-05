@@ -27,6 +27,9 @@ import { path } from '../../internal/utils/path';
 export class SkillReadBlockedUndecryptableError extends ConflictError {
   declare readonly errorCode: 'skill_read_blocked_undecryptable';
   declare readonly details: SkillReadBlockedUndecryptableErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'SkillReadBlockedUndecryptableError';
 }
 
 export class Skills extends APIResource {

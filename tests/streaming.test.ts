@@ -384,7 +384,7 @@ test('error handling', async () => {
   ).rejects;
 
   await err.toMatchInlineSnapshot(
-    `[Error: {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}]`,
+    `[APIError: {"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}]`,
   );
   await err.toBeInstanceOf(APIError);
 });

@@ -17,6 +17,9 @@ import { path } from '../internal/utils/path';
 export class FileNotDownloadableError extends BadRequestError {
   declare readonly errorCode: 'file_not_downloadable';
   declare readonly details: FileNotDownloadableErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'FileNotDownloadableError';
 }
 
 /**
@@ -26,6 +29,9 @@ export class FileNotDownloadableError extends BadRequestError {
 export class StorageQuotaExceededError extends BadRequestError {
   declare readonly errorCode: 'storage_quota_exceeded';
   declare readonly details: StorageQuotaExceededErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'StorageQuotaExceededError';
 }
 
 /**
@@ -34,6 +40,9 @@ export class StorageQuotaExceededError extends BadRequestError {
 export class FileExpiredError extends NotFoundError {
   declare readonly errorCode: 'file_expired';
   declare readonly details: FileExpiredErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'FileExpiredError';
 }
 
 export class Files extends APIResource {

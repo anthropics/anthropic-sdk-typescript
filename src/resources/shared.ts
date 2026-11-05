@@ -30,6 +30,9 @@ import {
 export class ClaudeCodeKeyCreatorNotMemberError extends BadRequestError {
   declare readonly errorCode: 'claude_code_key_creator_not_member';
   declare readonly details: ClaudeCodeKeyCreatorNotMemberErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ClaudeCodeKeyCreatorNotMemberError';
 }
 
 /**
@@ -39,6 +42,9 @@ export class ClaudeCodeKeyCreatorNotMemberError extends BadRequestError {
 export class ClaudeCodeVersionTooOldError extends BadRequestError {
   declare readonly errorCode: 'claude_code_version_too_old';
   declare readonly details: ClaudeCodeVersionTooOldErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ClaudeCodeVersionTooOldError';
 }
 
 /**
@@ -48,6 +54,9 @@ export class ClaudeCodeVersionTooOldError extends BadRequestError {
 export class CMEKKeyDisabledError extends BadRequestError {
   declare readonly errorCode: 'cmek_key_disabled';
   declare readonly details: CMEKKeyDisabledErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CMEKKeyDisabledError';
 }
 
 /**
@@ -57,6 +66,9 @@ export class CMEKKeyDisabledError extends BadRequestError {
 export class CMEKKeyNetworkBlockedError extends BadRequestError {
   declare readonly errorCode: 'cmek_key_network_blocked';
   declare readonly details: CMEKKeyNetworkBlockedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CMEKKeyNetworkBlockedError';
 }
 
 /**
@@ -67,6 +79,9 @@ export class CMEKKeyNetworkBlockedError extends BadRequestError {
 export class OrganizationOnHoldError extends BadRequestError {
   declare readonly errorCode: 'organization_on_hold';
   declare readonly details: OrganizationOnHoldErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'OrganizationOnHoldError';
 }
 
 /**
@@ -76,6 +91,9 @@ export class OrganizationOnHoldError extends BadRequestError {
 export class OrganizationTypeNotSupportedError extends BadRequestError {
   declare readonly errorCode: 'organization_type_not_supported';
   declare readonly details: OrganizationTypeNotSupportedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'OrganizationTypeNotSupportedError';
 }
 
 /**
@@ -84,6 +102,9 @@ export class OrganizationTypeNotSupportedError extends BadRequestError {
 export class RequestBodyEncodingInvalidError extends BadRequestError {
   declare readonly errorCode: 'request_body_encoding_invalid';
   declare readonly details: RequestBodyEncodingInvalidErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'RequestBodyEncodingInvalidError';
 }
 
 /**
@@ -92,6 +113,9 @@ export class RequestBodyEncodingInvalidError extends BadRequestError {
 export class RequestBodyEncodingUnsupportedError extends BadRequestError {
   declare readonly errorCode: 'request_body_encoding_unsupported';
   declare readonly details: RequestBodyEncodingUnsupportedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'RequestBodyEncodingUnsupportedError';
 }
 
 /**
@@ -100,6 +124,9 @@ export class RequestBodyEncodingUnsupportedError extends BadRequestError {
 export class RequestBodyTooLargeAfterDecodingError extends ContentTooLargeError {
   declare readonly errorCode: 'request_body_too_large_after_decoding';
   declare readonly details: RequestBodyTooLargeAfterDecodingErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'RequestBodyTooLargeAfterDecodingError';
 }
 
 /**
@@ -108,6 +135,9 @@ export class RequestBodyTooLargeAfterDecodingError extends ContentTooLargeError 
 export class EnforcedSpendLimitReachedError extends ErrorsRateLimitError {
   declare readonly errorCode: 'enforced_spend_limit_reached';
   declare readonly details: EnforcedSpendLimitReachedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'EnforcedSpendLimitReachedError';
 }
 
 /**
@@ -117,6 +147,9 @@ export class EnforcedSpendLimitReachedError extends ErrorsRateLimitError {
 export class RampLimitExceededError extends ErrorsRateLimitError {
   declare readonly errorCode: 'ramp_limit_exceeded';
   declare readonly details: RampLimitExceededErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'RampLimitExceededError';
 }
 
 /**
@@ -126,6 +159,9 @@ export class RampLimitExceededError extends ErrorsRateLimitError {
 export class CMEKContextUnavailableError extends ServiceUnavailableError {
   declare readonly errorCode: 'cmek_context_unavailable';
   declare readonly details: CMEKContextUnavailableErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CMEKContextUnavailableError';
 }
 
 /**
@@ -136,6 +172,9 @@ export class CMEKContextUnavailableError extends ServiceUnavailableError {
 export class CMEKKeyUnreachableError extends ServiceUnavailableError {
   declare readonly errorCode: 'cmek_key_unreachable';
   declare readonly details: CMEKKeyUnreachableErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CMEKKeyUnreachableError';
 }
 
 export interface APIErrorObject {

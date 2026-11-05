@@ -375,6 +375,9 @@ import { startApiCallSpan } from '../../../internal/tracing';
 export class BetaBillingFrozenError extends PermissionDeniedError {
   declare readonly errorCode: 'billing_frozen';
   declare readonly details: BetaBillingFrozenErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaBillingFrozenError';
 }
 
 export class Organization extends APIResource {

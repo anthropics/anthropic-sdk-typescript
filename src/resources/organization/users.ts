@@ -14,6 +14,9 @@ import { path } from '../../internal/utils/path';
 export class CannotRemoveLastMemberError extends BadRequestError {
   declare readonly errorCode: 'cannot_remove_last_member';
   declare readonly details: CannotRemoveLastMemberErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CannotRemoveLastMemberError';
 }
 
 export class Users extends APIResource {

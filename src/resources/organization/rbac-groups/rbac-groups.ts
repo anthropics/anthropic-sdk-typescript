@@ -25,6 +25,9 @@ import { path } from '../../../internal/utils/path';
 export class RBACGroupGrantsOwnerAccessError extends BadRequestError {
   declare readonly errorCode: 'rbac_group_grants_owner_access';
   declare readonly details: RBACGroupGrantsOwnerAccessErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'RBACGroupGrantsOwnerAccessError';
 }
 
 /**
@@ -35,6 +38,9 @@ export class RBACGroupGrantsOwnerAccessError extends BadRequestError {
 export class RBACGroupOwnerAccessUnconfirmedError extends BadRequestError {
   declare readonly errorCode: 'rbac_group_owner_access_unconfirmed';
   declare readonly details: RBACGroupOwnerAccessUnconfirmedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'RBACGroupOwnerAccessUnconfirmedError';
 }
 
 export class RBACGroups extends APIResource {

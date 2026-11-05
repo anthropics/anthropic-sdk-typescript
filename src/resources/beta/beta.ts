@@ -969,6 +969,9 @@ import { BadRequestError } from '../../core/error';
 export class BetaUnsupportedCharsetError extends BadRequestError {
   declare readonly errorCode: 'unsupported_charset';
   declare readonly details: BetaUnsupportedCharsetErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaUnsupportedCharsetError';
 }
 
 export class Beta extends APIResource {

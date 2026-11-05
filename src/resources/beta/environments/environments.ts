@@ -37,6 +37,9 @@ import { path } from '../../../internal/utils/path';
 export class BetaEnvironmentArchivedError extends BadRequestError {
   declare readonly errorCode: 'environment_archived';
   declare readonly details: BetaEnvironmentArchivedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaEnvironmentArchivedError';
 }
 
 /**
@@ -46,6 +49,9 @@ export class BetaEnvironmentArchivedError extends BadRequestError {
 export class BetaInvalidConfigTypeChangeError extends BadRequestError {
   declare readonly errorCode: 'invalid_config_type_change';
   declare readonly details: BetaInvalidConfigTypeChangeErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaInvalidConfigTypeChangeError';
 }
 
 /**
@@ -55,6 +61,9 @@ export class BetaInvalidConfigTypeChangeError extends BadRequestError {
 export class BetaInvalidMetadataError extends BadRequestError {
   declare readonly errorCode: 'invalid_metadata';
   declare readonly details: BetaInvalidMetadataErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaInvalidMetadataError';
 }
 
 /**
@@ -64,6 +73,9 @@ export class BetaInvalidMetadataError extends BadRequestError {
 export class BetaEnvironmentCreateDisabledError extends PermissionDeniedError {
   declare readonly errorCode: 'environment_create_disabled';
   declare readonly details: BetaEnvironmentCreateDisabledErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaEnvironmentCreateDisabledError';
 }
 
 /**
@@ -73,6 +85,9 @@ export class BetaEnvironmentCreateDisabledError extends PermissionDeniedError {
 export class BetaEnvironmentUpdateDisabledError extends PermissionDeniedError {
   declare readonly errorCode: 'environment_update_disabled';
   declare readonly details: BetaEnvironmentUpdateDisabledErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaEnvironmentUpdateDisabledError';
 }
 
 /**
@@ -81,6 +96,9 @@ export class BetaEnvironmentUpdateDisabledError extends PermissionDeniedError {
 export class BetaEnvironmentNotFoundError extends NotFoundError {
   declare readonly errorCode: 'environment_not_found';
   declare readonly details: BetaEnvironmentNotFoundErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaEnvironmentNotFoundError';
 }
 
 export class Environments extends APIResource {

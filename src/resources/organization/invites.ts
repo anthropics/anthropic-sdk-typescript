@@ -14,6 +14,9 @@ import { path } from '../../internal/utils/path';
 export class AlreadyMemberError extends BadRequestError {
   declare readonly errorCode: 'already_member';
   declare readonly details: AlreadyMemberErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'AlreadyMemberError';
 }
 
 /**
@@ -23,6 +26,9 @@ export class AlreadyMemberError extends BadRequestError {
 export class CannotInviteEmailsWithUnverifiedDomainsError extends BadRequestError {
   declare readonly errorCode: 'cannot_invite_emails_with_unverified_domains';
   declare readonly details: CannotInviteEmailsWithUnverifiedDomainsErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'CannotInviteEmailsWithUnverifiedDomainsError';
 }
 
 /**
@@ -32,6 +38,9 @@ export class CannotInviteEmailsWithUnverifiedDomainsError extends BadRequestErro
 export class EmailDomainNotAllowedError extends BadRequestError {
   declare readonly errorCode: 'email_domain_not_allowed';
   declare readonly details: EmailDomainNotAllowedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'EmailDomainNotAllowedError';
 }
 
 /**
@@ -41,6 +50,9 @@ export class EmailDomainNotAllowedError extends BadRequestError {
 export class InviteAlreadyExistsError extends BadRequestError {
   declare readonly errorCode: 'invite_already_exists';
   declare readonly details: InviteAlreadyExistsErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'InviteAlreadyExistsError';
 }
 
 export class Invites extends APIResource {

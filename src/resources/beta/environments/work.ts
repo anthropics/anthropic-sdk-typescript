@@ -24,6 +24,9 @@ import {
 export class BetaHeartbeatPreconditionFailedError extends PreconditionFailedError {
   declare readonly errorCode: 'heartbeat_precondition_failed';
   declare readonly details: BetaHeartbeatPreconditionFailedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'BetaHeartbeatPreconditionFailedError';
 }
 
 export class Work extends APIResource {

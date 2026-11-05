@@ -13,6 +13,9 @@ import { path } from '../../internal/utils/path';
 export class ExternalKeyInWorkspacePolicyError extends BadRequestError {
   declare readonly errorCode: 'external_key_in_workspace_policy';
   declare readonly details: ExternalKeyInWorkspacePolicyErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ExternalKeyInWorkspacePolicyError';
 }
 
 /**
@@ -22,6 +25,9 @@ export class ExternalKeyInWorkspacePolicyError extends BadRequestError {
 export class ExternalKeyChangedError extends ConflictError {
   declare readonly errorCode: 'external_key_changed';
   declare readonly details: ExternalKeyChangedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'ExternalKeyChangedError';
 }
 
 export class ExternalKeys extends APIResource {
