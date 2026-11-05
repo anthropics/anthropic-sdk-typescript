@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.6.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.5.0...sdk-v1.6.0) (2026-11-05)
+
+### Features
+
+* **api:** add error code for ramp limit errors
+* **api:** add error codes for External Key validation failures
+* **api:** add support for signing organization members out everywhere
+
+
+### Bug Fixes
+
+* **client:** set the name of each error to its class name
+* **client:** set the name of WorkloadIdentityError
+
+
+### Chores
+
+* **docs:** describe the type and message of API errors
+* **internal:** generate the OpenTelemetry span attribute tables
+* **internal:** tell contributors when a runtime type check belongs
+
+
+### Documentation
+
+* add the rules the SDKs share to CLAUDE.md
+* **client:** describe the type, message, code and details of API errors
+* **client:** list each method's errors without their descriptions
+
 ## [1.5.0](https://github.com/anthropics/anthropic-sdk-typescript/compare/sdk-v1.4.0...sdk-v1.5.0) (2026-11-04)
 
 ### Features
