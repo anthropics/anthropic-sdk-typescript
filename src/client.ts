@@ -1757,7 +1757,7 @@ export class BaseAnthropic {
         url: response.url,
         status: response.status,
         headers: response.headers,
-        message: errMessage,
+        body: errJSON ?? errText,
         durationMs: Date.now() - startTime,
       });
 
