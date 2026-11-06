@@ -79,6 +79,8 @@ export class ServiceAccounts extends APIResource {
    * `POST /workspaces/{workspace_id}/service_accounts`. Archived workspaces
    * return 400. Archived service accounts cannot be updated and are rejected.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaServiceAccountWorkspaceMember =
@@ -197,6 +199,8 @@ export class ServiceAccounts extends APIResource {
    * `workspace_role` is replaced with the value supplied here. Archived workspaces
    * return 400. Archived service accounts cannot be added and are rejected.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaServiceAccountWorkspaceMember =
@@ -250,6 +254,8 @@ export class ServiceAccounts extends APIResource {
    * no-op and the membership persists; deleting an explicit default-workspace row
    * reverts to the implicit `workspace_user` membership. Archived workspaces
    * return 400.
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

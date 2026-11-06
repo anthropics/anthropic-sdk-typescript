@@ -30,6 +30,7 @@ Types:
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingInvalidErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingUnsupportedErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyTooLargeAfterDecodingErrorDetails</a></code>
+- <code><a href="./src/resources/shared.ts">SandboxEgressRestrictedErrorDetails</a></code>
 - <code><a href="./src/resources/shared.ts">ClaudeCodeKeyCreatorNotMemberError</a></code>
 - <code><a href="./src/resources/shared.ts">ClaudeCodeVersionTooOldError</a></code>
 - <code><a href="./src/resources/shared.ts">CMEKKeyDisabledError</a></code>
@@ -38,6 +39,7 @@ Types:
 - <code><a href="./src/resources/shared.ts">OrganizationTypeNotSupportedError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingInvalidError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyEncodingUnsupportedError</a></code>
+- <code><a href="./src/resources/shared.ts">SandboxEgressRestrictedError</a></code>
 - <code><a href="./src/resources/shared.ts">RequestBodyTooLargeAfterDecodingError</a></code>
 - <code><a href="./src/resources/shared.ts">EnforcedSpendLimitReachedError</a></code>
 - <code><a href="./src/resources/shared.ts">RampLimitExceededError</a></code>

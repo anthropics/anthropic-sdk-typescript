@@ -19,6 +19,7 @@ import * as SpendLimitsAPI from './beta/organization/spend-limits/spend-limits';
 import {
   BadRequestError,
   ContentTooLargeError,
+  PermissionDeniedError,
   RateLimitError as ErrorsRateLimitError,
   ServiceUnavailableError,
 } from '../core/error';
@@ -116,6 +117,19 @@ export class RequestBodyEncodingUnsupportedError extends BadRequestError {
 
   /** @internal */
   static override readonly _errorName: string = 'RequestBodyEncodingUnsupportedError';
+}
+
+/**
+ * The request came from a Claude sandbox with restricted network access, which is
+ * not allowed to make this change. Send it from outside the sandbox, or from a
+ * sandbox with unrestricted network access.
+ */
+export class SandboxEgressRestrictedError extends PermissionDeniedError {
+  declare readonly errorCode: 'sandbox_egress_restricted';
+  declare readonly details: SandboxEgressRestrictedErrorDetails;
+
+  /** @internal */
+  static override readonly _errorName: string = 'SandboxEgressRestrictedError';
 }
 
 /**
@@ -308,6 +322,7 @@ export type ErrorDetails =
   | CMEKContextUnavailableErrorDetails
   | APIKeysAPI.OrgAPIKeyLimitExceededErrorDetails
   | APIKeysAPI.WorkspaceAPIKeyLimitExceededErrorDetails
+  | SandboxEgressRestrictedErrorDetails
   | UserProfilesAPI.UserProfileNotFoundErrorDetails
   | ExternalKeysAPI.ExternalKeyInWorkspacePolicyErrorDetails
   | InvitesAPI.AlreadyMemberErrorDetails
@@ -512,4 +527,13 @@ export interface RequestBodyEncodingUnsupportedErrorDetails {
  */
 export interface RequestBodyTooLargeAfterDecodingErrorDetails {
   error_code: 'request_body_too_large_after_decoding';
+}
+
+/**
+ * The request came from a Claude sandbox with restricted network access, which is
+ * not allowed to make this change. Send it from outside the sandbox, or from a
+ * sandbox with unrestricted network access.
+ */
+export interface SandboxEgressRestrictedErrorDetails {
+  error_code: 'sandbox_egress_restricted';
 }

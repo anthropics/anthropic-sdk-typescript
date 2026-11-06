@@ -90,6 +90,8 @@ export class IncreaseRequests extends APIResource {
    * request to `approved`. `period` defaults to the period the member was blocked
    * on. Anthropic emails the requester unless `suppress_notification` is set.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const response =
@@ -131,6 +133,8 @@ export class IncreaseRequests extends APIResource {
    *
    * Idempotent on `denied`; denying an already-`approved` request returns 400.
    * Anthropic emails the requester unless `suppress_notification` is set.
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

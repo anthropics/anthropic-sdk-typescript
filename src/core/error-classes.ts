@@ -14,6 +14,7 @@ import {
   RequestBodyEncodingInvalidError,
   RequestBodyEncodingUnsupportedError,
   RequestBodyTooLargeAfterDecodingError,
+  SandboxEgressRestrictedError,
 } from '../resources/shared';
 import { BetaOrganizationNotEnrolledInBetaError, BetaUnsupportedCharsetError } from '../resources/beta/beta';
 import {
@@ -165,6 +166,7 @@ export const ERROR_CODE_CLASSES = /* @__PURE__ */ new Map<string, typeof APIErro
   ['403 environment_create_disabled', BetaEnvironmentCreateDisabledError],
   ['403 environment_update_disabled', BetaEnvironmentUpdateDisabledError],
   ['403 organization_level_scoped_api_key_required', BetaOrganizationLevelScopedAPIKeyRequiredError],
+  ['403 sandbox_egress_restricted', SandboxEgressRestrictedError],
   ['403 spend_limits_admin_api_writes_not_enabled', BetaSpendLimitsAdminAPIWritesNotEnabledError],
   ['404 environment_not_found', BetaEnvironmentNotFoundError],
   ['404 file_expired', FileExpiredError],

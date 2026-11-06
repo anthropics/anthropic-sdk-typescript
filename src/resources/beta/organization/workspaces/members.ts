@@ -43,6 +43,7 @@ export class Members extends APIResource {
    * Update Workspace Member
    *
    * @throws {WorkspaceMemberLimitExceededError}
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts
@@ -114,6 +115,7 @@ export class Members extends APIResource {
    * Create Workspace Member
    *
    * @throws {WorkspaceMemberLimitExceededError}
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts
@@ -147,6 +149,8 @@ export class Members extends APIResource {
 
   /**
    * Delete Workspace Member
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

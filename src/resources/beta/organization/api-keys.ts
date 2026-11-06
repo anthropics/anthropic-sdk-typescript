@@ -33,6 +33,7 @@ export class APIKeys extends APIResource {
    *
    * @throws {OrgAPIKeyLimitExceededError}
    * @throws {WorkspaceAPIKeyLimitExceededError}
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

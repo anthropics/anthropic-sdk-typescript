@@ -105,6 +105,8 @@ export class Users extends APIResource {
   /**
    * Update a member's organization role.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaOrganizationUser =
@@ -155,6 +157,7 @@ export class Users extends APIResource {
    * Remove a member from the organization.
    *
    * @throws {CannotRemoveLastMemberError}
+   * @throws {SandboxEgressRestrictedError}
    * @throws {ConcurrentMembershipChangeError}
    *
    * @example
@@ -209,6 +212,7 @@ export class Users extends APIResource {
    * @throws {BetaCannotSignOutMembershipAdminError}
    * @throws {BetaCannotSignOutOwnerError}
    * @throws {BetaCannotSignOutPrivilegedMemberError}
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

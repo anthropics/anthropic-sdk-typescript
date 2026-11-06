@@ -45,6 +45,8 @@ export class ComplianceSettings extends APIResource {
    * re-enables the Compliance API even after a `disabled` request. Automated
    * provisioning never disables compliance settings.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const organizationComplianceSettings =

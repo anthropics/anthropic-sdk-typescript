@@ -24,6 +24,8 @@ export class Issuers extends APIResource {
    * modes the issuer URL is only matched as the JWT's `iss` claim and is not
    * fetched.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const federationIssuer =
@@ -83,6 +85,8 @@ export class Issuers extends APIResource {
    *
    * Updating an issuer that backs a rule with a scope outside `workspace:developer`
    * or `workspace:inference` requires a Console session.
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts
@@ -152,6 +156,8 @@ export class Issuers extends APIResource {
    * Rejected with 400 if any live (non-archived) federation rule still references
    * the issuer; archive those rules first (a rule's issuer cannot be changed), or
    * recreate them against another issuer.
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

@@ -81,6 +81,8 @@ export class Workspaces extends APIResource {
    * may only manage rules whose `oauth_scope` is `workspace:developer` or
    * `workspace:inference`; other scopes require a Console session.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaFederationRuleWorkspace =
@@ -129,6 +131,8 @@ export class Workspaces extends APIResource {
    * Idempotent; succeeds even if the enablement was already removed. OAuth callers
    * may only manage rules whose `oauth_scope` is `workspace:developer` or
    * `workspace:inference`; other scopes require a Console session.
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

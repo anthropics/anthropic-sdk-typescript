@@ -89,6 +89,7 @@ export class Workspaces extends APIResource {
    * @throws {KeyProfileMismatchError}
    * @throws {UserProfileNotFoundError}
    * @throws {WorkspacePolicyViolationError}
+   * @throws {SandboxEgressRestrictedError}
    * @throws {ExternalKeyChangedError}
    *
    * @example
@@ -139,6 +140,7 @@ export class Workspaces extends APIResource {
    * @throws {KeyProfileMismatchError}
    * @throws {UserProfileNotFoundError}
    * @throws {WorkspacePolicyViolationError}
+   * @throws {SandboxEgressRestrictedError}
    * @throws {ExternalKeyChangedError}
    *
    * @example
@@ -188,6 +190,8 @@ export class Workspaces extends APIResource {
 
   /**
    * Archive Workspace
+   *
+   * @throws {SandboxEgressRestrictedError}
    *
    * @example
    * ```ts

@@ -19,6 +19,8 @@ export class RateLimits extends APIResource {
    * `GET /v1/organizations/workspaces/{workspace_id}/rate_limits` returns. Changes
    * take effect within about an hour.
    *
+   * @throws {SandboxEgressRestrictedError}
+   *
    * @example
    * ```ts
    * const betaWorkspaceRateLimit =

@@ -115,6 +115,7 @@ export class SpendLimits extends APIResource {
    * `usage_tier` limit. Deleting organization and workspace limits through the API
    * is in an early access preview.
    *
+   * @throws {SandboxEgressRestrictedError}
    * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError}
    *
    * @example
@@ -146,6 +147,7 @@ export class SpendLimits extends APIResource {
    * monthly and always carry an amount. Setting those limits is in an early access
    * preview. To request access, contact your Anthropic account team.
    *
+   * @throws {SandboxEgressRestrictedError}
    * @throws {BetaSpendLimitsAdminAPIWritesNotEnabledError}
    *
    * @example
